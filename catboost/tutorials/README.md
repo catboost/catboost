@@ -73,6 +73,10 @@ It's better to start CatBoost exploring from this basic tutorials.
 * [Apply CatBoost model from Rust](apply_model/rust/train_model.ipynb)
     * Explore how to apply CatBoost model from Rust application. If you just want to look at code snippets you can go directly to [main.rs](apply_model/rust/src/main.rs)
 
+* [Convert LightGBM to CatBoost to use CatBoost fast appliers](apply_model/fast_light_gbm_applier.ipynb)
+    * Convert LightGBM to CatBoost, save resulting CatBoost model and use CatBoost C++, Python, C# or other applier, which in case of not symmetric trees will be around 7-10 faster than native LightGBM one.
+    * Note that CatBoost applier with CatBoost models is even faster, because it uses specific fast symmetric trees.
+
 ## Tools
 
 * [Gradient Boosting: CPU vs GPU](tools/google_colaboratory_cpu_vs_gpu_tutorial.ipynb)

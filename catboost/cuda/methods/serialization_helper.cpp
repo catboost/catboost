@@ -34,7 +34,7 @@ void Out<NCatboostCuda::TEstimatedFeature>(IOutputStream& out, const  NCatboostC
     if (feature.EstimatorId.IsOnline) {
         out << "(online)";
     }
-    out << ", id=" << feature.FeatureId;
+    out << ", id=" << feature.LocalFeatureId;
 }
 
 template <class TFeatInfo>

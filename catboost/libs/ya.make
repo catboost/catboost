@@ -7,6 +7,7 @@ RECURSE(
     app_helpers
     data_new
     data_new/ut
+    data_new/benchmarks_ut
     data_types
     data_util
     data_util/ut

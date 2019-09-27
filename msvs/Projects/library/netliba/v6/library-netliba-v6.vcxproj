@@ -143,6 +143,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\netliba\socket\library-netliba-socket.vcxproj">
       <Project>{F9056049-5115-AB7C-F09D-A4BCA92367DD}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\shmat\library-shmat.vcxproj">
+      <Project>{7E0461CC-7C71-317F-E018-AE1E26D0C44F}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\url\library-string_utils-url.vcxproj">
       <Project>{F79D59BA-A429-102B-7C71-A1F895119240}</Project>
     </ProjectReference>

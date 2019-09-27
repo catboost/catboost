@@ -74,18 +74,28 @@ namespace NCB {
             ignoredFeatures,
             commonFloatFeaturesBinarization,
             perFloatFeatureQuantization,
-            NCatboostOptions::TTextProcessingOptionCollection(),
+            NCatboostOptions::TTextProcessingOptions(),
             floatFeaturesAllowNansInTestOnly,
             allowWriteFiles
         )
     {}
+
+    static TVector<ui32> GetAvailableTextFeatureIndices(const TFeaturesLayout& featuresLayout) {
+        TVector<ui32> textFeatureIndices;
+        featuresLayout.IterateOverAvailableFeatures<EFeatureType::Text>(
+            [&textFeatureIndices](TTextFeatureIdx textFeatureIdx) {
+                textFeatureIndices.push_back(textFeatureIdx.Idx);
+            }
+        );
+        return textFeatureIndices;
+    }
 
     TQuantizedFeaturesInfo::TQuantizedFeaturesInfo(
         const TFeaturesLayout& featuresLayout,
         TConstArrayRef<ui32> ignoredFeatures,
         NCatboostOptions::TBinarizationOptions commonFloatFeaturesBinarization,
         TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeatureQuantization,
-        NCatboostOptions::TTextProcessingOptionCollection textFeaturesProcessing,
+        const NCatboostOptions::TTextProcessingOptions& textFeaturesProcessing,
         bool floatFeaturesAllowNansInTestOnly,
         bool allowWriteFiles)
         : FeaturesLayout(MakeIntrusive<TFeaturesLayout>(featuresLayout))
@@ -96,8 +106,14 @@ namespace NCB {
             featuresLayout.GetCatFeatureCount(),
             TString::Join("cat_feature_index.", CreateGuidAsString(), ".tmp"),
             allowWriteFiles)
-        , TextFeaturesProcessing(std::move(textFeaturesProcessing))
+        , RuntimeTextProcessingOptions(GetAvailableTextFeatureIndices(featuresLayout), textFeaturesProcessing)
+        , Tokenizer(CreateTokenizer(ETokenizerType::Naive))
     {
+        featuresLayout.IterateOverAvailableFeatures<EFeatureType::Text>(
+            [&](TTextFeatureIdx textFeatureIdx) {
+                TokenizedTextFeatureIds[textFeatureIdx.Idx] = TSet<ui32>{};
+            }
+        );
         FeaturesLayout->IgnoreExternalFeatures(ignoredFeatures);
     }
 

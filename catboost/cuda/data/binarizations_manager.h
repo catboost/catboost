@@ -5,12 +5,12 @@
 #include <catboost/libs/ctr_description/ctr_config.h>
 #include <catboost/libs/data_new/cat_feature_perfect_hash.h>
 #include <catboost/libs/data_new/features_layout.h>
+#include <catboost/libs/data_new/feature_estimators.h>
 #include <catboost/libs/data_new/quantized_features_info.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/options/binarization_options.h>
 #include <catboost/libs/options/cat_feature_options.h>
 #include <catboost/libs/options/enums.h>
-#include <catboost/libs/feature_estimator/feature_estimator.h>
 
 #include <util/generic/map.h>
 #include <util/generic/set.h>
@@ -30,7 +30,7 @@ namespace NCatboostCuda {
          *   (For example, for feature evaluation)
          */
         TBinarizedFeaturesManager(const NCatboostOptions::TCatFeatureParams& catFeatureOptions,
-                                  const NCB::TFeatureEstimators& estimators,
+                                  NCB::TFeatureEstimatorsPtr estimators,
                                   const NCB::TFeaturesLayout& featuresLayout,
                                   NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo);
 
@@ -104,6 +104,14 @@ namespace NCatboostCuda {
 
         TEstimatedFeature GetEstimatedFeature(ui32 featureId) const {
             return FeatureManagerIdToEstimatedFeatureId.at(featureId);
+        }
+
+        NCB::TEstimatorSourceId GetEstimatorSourceIdx(NCB::TEstimatorId estimatorId) const {
+            return FeatureEstimators->GetEstimatorSourceFeatureIdx(estimatorId);
+        }
+
+        ui32 GetEstimatedFeatureCount() const {
+            return EstimatedFeatureToFeatureManagerId.size();
         }
 
         bool IsKnown(const TCtr& ctr) const {
@@ -235,8 +243,23 @@ namespace NCatboostCuda {
         }
 
 
-        void RegisterFeatureEstimator(ui32 id, const NCB::TEstimatedFeaturesMeta& meta, bool isOnline) {
-            TEstimatorId estimatorId{id, isOnline};
+        void RegisterFeatureEstimators(NCB::TFeatureEstimatorsPtr estimators) {
+            if (!estimators) {
+                return;
+            }
+
+            estimators->ForEach(
+                [&](
+                    NCB::TEstimatorId estimatorId,
+                    NCB::TEstimatorSourceId /*sourceId*/,
+                    NCB::TFeatureEstimatorPtr estimator
+                ) {
+                    RegisterFeatureEstimator(estimatorId, estimator->FeaturesMeta());
+                }
+            );
+        }
+
+        void RegisterFeatureEstimator(const NCB::TEstimatorId& estimatorId, const NCB::TEstimatedFeaturesMeta& meta) {
             for (ui32 f = 0; f < meta.FeaturesCount; ++f) {
                 TEstimatedFeature feature{estimatorId, f};
                 const ui32 maxBins = QuantizedFeaturesInfo->GetFloatFeatureBinarization(Max<ui32>()).BorderCount + 1;
@@ -295,6 +318,7 @@ namespace NCatboostCuda {
         THashMap<ui32, TVector<float>> Borders;
 
         NCB::TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
+        NCB::TFeatureEstimatorsPtr FeatureEstimators;
 
         struct TUserDefinedCombination {
             TFeatureTensor Tensor;

@@ -271,6 +271,11 @@ enum class EFinalCtrComputationMode {
     Default
 };
 
+enum class EFinalFeatureCalcerComputationMode {
+    Skip,
+    Default
+};
+
 enum class ELeavesEstimationStepBacktracking {
     No,
     AnyImprovement,

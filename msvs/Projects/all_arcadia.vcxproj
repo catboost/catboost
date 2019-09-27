@@ -165,6 +165,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\cuda_wrappers\catboost-libs-cuda_wrappers.vcxproj">
       <Project>1913A6ED-B427-7353-0A27-3C443B10E85E</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_new\benchmarks_ut\catboost-libs-data_new-benchmarks_ut.vcxproj">
+      <Project>3567992D-936F-7A5F-AADB-8CF406FF270E</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_new\catboost-libs-data_new.vcxproj">
       <Project>2C228BC9-6312-D2CC-3CFB-6F34BAB794C9</Project>
     </ProjectReference>
@@ -318,8 +321,14 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_features\ut\catboost-libs-text_features-ut.vcxproj">
       <Project>1667D033-3231-03A1-025B-D08B4920BBD2</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_features\ut\lib\text_features-ut-lib.vcxproj">
+      <Project>389724DD-1A1A-22DD-A67C-F605123646BC</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_processing\catboost-libs-text_processing.vcxproj">
       <Project>FFADE371-7C1D-73A4-49BB-7BB88008B40D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_processing\ut\lib\text_processing-ut-lib.vcxproj">
+      <Project>12BC7D04-7267-7466-7A07-9BBCAB0C263A</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\train_interface\catboost.vcxproj">
       <Project>57C64460-E1A9-1AD6-8C62-4AEAF48107D3</Project>
@@ -1215,6 +1224,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\resource\library-resource.vcxproj">
       <Project>0182C1FA-B7CF-C21E-561C-06B91159C53A</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\shmat\library-shmat.vcxproj">
+      <Project>7E0461CC-7C71-317F-E018-AE1E26D0C44F</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\sse\library-sse.vcxproj">
       <Project>D4A23E39-75EE-97F4-A50A-283C64388B74</Project>
     </ProjectReference>
@@ -1232,6 +1244,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\base64\library-string_utils-base64.vcxproj">
       <Project>137212F6-D2FE-719F-EBE2-99060434BC72</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\csv\library-string_utils-csv.vcxproj">
+      <Project>31268EC0-4867-4A36-6D41-58F80A28A7F3</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\quote\library-string_utils-quote.vcxproj">
       <Project>075BADF5-1D74-1D82-2261-20891F7B1B30</Project>

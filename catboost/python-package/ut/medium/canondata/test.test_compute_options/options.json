@@ -127,8 +127,37 @@
         "ignored_features": [], 
         "per_float_feature_quantization": {}, 
         "target_border": null, 
-        "text_processing": {
-            "per_feature_text_processing": {}
+        "text_processing_options": {
+            "dictionaries": [
+                {
+                    "dictionary_id": "BiGram", 
+                    "gram_order": "2", 
+                    "min_token_occurrence": "50", 
+                    "token_level_type": "Letter"
+                }, 
+                {
+                    "dictionary_id": "Word", 
+                    "min_token_occurrence": "50", 
+                    "token_level_type": "Word"
+                }
+            ], 
+            "text_processing": {
+                "default": [
+                    {
+                        "dictionaries_names": [
+                            "BiGram", 
+                            "Word"
+                        ], 
+                        "feature_calcer": "BoW"
+                    }, 
+                    {
+                        "dictionaries_names": [
+                            "Word"
+                        ], 
+                        "feature_calcer": "NaiveBayes"
+                    }
+                ]
+            }
         }
     }, 
     "detailed_profile": false, 
@@ -162,12 +191,6 @@
         "used_ram_limit": ""
     }, 
     "task_type": "CPU", 
-    "text_feature_options": {
-        "text_feature_estimators": [
-            "BoW", 
-            "NaiveBayes"
-        ]
-    }, 
     "tree_learner_options": {
         "bayesian_matrix_reg": 0.1000000015, 
         "bootstrap": {

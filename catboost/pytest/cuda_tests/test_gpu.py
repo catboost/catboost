@@ -2542,7 +2542,6 @@ def test_model_based_eval(dataset):
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('feature_estimators', TEXT_FEATURE_ESTIMATORS)
 def test_fit_binclass_with_text_features(boosting_type, feature_estimators):
-    output_model_path = yatest.common.test_output_path('model.bin')
     learn_error_path = yatest.common.test_output_path('learn.tsv')
     test_error_path = yatest.common.test_output_path('test.tsv')
 
@@ -2552,12 +2551,11 @@ def test_fit_binclass_with_text_features(boosting_type, feature_estimators):
         '--eval-metric': 'AUC',
         '-f': data_file(pool_name, 'train'),
         '-t': data_file(pool_name, 'test'),
-        '--text-feature-estimators': feature_estimators,
+        '--text-processing': feature_estimators.replace(',', '|'),
         '--column-description': data_file(pool_name, 'cd_binclass'),
         '--boosting-type': boosting_type,
         '-i': '20',
         '-T': '4',
-        '-m': output_model_path,
         '--learn-err-log': learn_error_path,
         '--test-err-log': test_error_path,
         '--use-best-model': 'false',
@@ -2571,7 +2569,6 @@ def test_fit_binclass_with_text_features(boosting_type, feature_estimators):
 @pytest.mark.parametrize('feature_estimators', TEXT_FEATURE_ESTIMATORS)
 @pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
 def test_fit_multiclass_with_text_features(feature_estimators, loss_function):
-    output_model_path = yatest.common.test_output_path('model.bin')
     learn_error_path = yatest.common.test_output_path('learn.tsv')
     test_error_path = yatest.common.test_output_path('test.tsv')
 
@@ -2581,12 +2578,11 @@ def test_fit_multiclass_with_text_features(feature_estimators, loss_function):
         '--eval-metric': 'Accuracy',
         '-f': data_file(pool_name, 'train'),
         '-t': data_file(pool_name, 'test'),
-        '--text-feature-estimators': feature_estimators,
+        '--text-processing': feature_estimators.replace(',', '|'),
         '--column-description': data_file(pool_name, 'cd'),
         '--boosting-type': 'Plain',
         '-i': '20',
         '-T': '4',
-        '-m': output_model_path,
         '--learn-err-log': learn_error_path,
         '--test-err-log': test_error_path,
         '--use-best-model': 'false',
@@ -2597,22 +2593,38 @@ def test_fit_multiclass_with_text_features(feature_estimators, loss_function):
             local_canonical_file(test_error_path, diff_tool=diff_tool())]
 
 
-TEXT_PROCESSING_OPTIONS = [
-    "min_token_occurence=2:token_level_type=Word",
-    "min_token_occurence=5:token_level_type=Word",
-    "min_token_occurence=10",
-    "min_token_occurence=5:gram_order=1:token_level_type=Letter",
-    "min_token_occurence=5:gram_order=2:token_level_type=Letter",
-    "min_token_occurence=5:gram_order=3:token_level_type=Letter",
+DICTIONARIES_OPTIONS = [
+    {
+        "Simple": "token_level_type=Word"
+    },
+    {
+        "WordDictOccur2": "min_token_occurrence=2,token_level_type=Word",
+        "WordDictOccur5": "min_token_occurrence=2,token_level_type=Word",
+        "WordDictOccur10": "min_token_occurrence=2,token_level_type=Word"
+    },
+    {
+        "Unigram": "min_token_occurrence=10,gram_order=1,token_level_type=Letter",
+        "Bigram": "min_token_occurrence=5,gram_order=2,token_level_type=Letter",
+        "Trigram": "min_token_occurrence=2,gram_order=3,token_level_type=Letter"
+    },
+    {
+        "Letter": "token_level_type=Letter",
+        "Word": "token_level_type=Word"
+    }
 ]
 
 
-@pytest.mark.parametrize('text_processing', TEXT_PROCESSING_OPTIONS)
+@pytest.mark.parametrize('dictionaries', DICTIONARIES_OPTIONS)
 @pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
-def test_text_processing_options(text_processing, loss_function):
-    output_model_path = yatest.common.test_output_path('model.bin')
+def test_text_processing_options(dictionaries, loss_function):
     learn_error_path = yatest.common.test_output_path('learn.tsv')
     test_error_path = yatest.common.test_output_path('test.tsv')
+
+    dictionaries_names = ','.join(dictionaries.keys())
+    dictionaries_description = ';'.join([key + ':' + value for key, value in dictionaries.items()])
+
+    text_processing = [calcer + ':' + dictionaries_names for calcer in ['BM25', 'BoW', 'NaiveBayes']]
+    text_processing = '|'.join(text_processing)
 
     pool_name = 'rotten_tomatoes'
     params = {
@@ -2621,19 +2633,19 @@ def test_text_processing_options(text_processing, loss_function):
         '-f': data_file(pool_name, 'train'),
         '-t': data_file(pool_name, 'test'),
         '--column-description': data_file(pool_name, 'cd'),
-        '--text-processing': '2:' + text_processing + ';7:' + text_processing,
+        '--dictionaries': dictionaries_description,
+        '--text-processing': text_processing,
         '--boosting-type': 'Plain',
         '-i': '20',
         '-T': '4',
-        '-m': output_model_path,
         '--learn-err-log': learn_error_path,
         '--test-err-log': test_error_path,
         '--use-best-model': 'false',
     }
     fit_catboost_gpu(params)
 
-    return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
-            local_canonical_file(test_error_path, diff_tool=diff_tool())]
+    return [local_canonical_file(learn_error_path, diff_tool=diff_tool(1e-6)),
+            local_canonical_file(test_error_path, diff_tool=diff_tool(1e-6))]
 
 
 @pytest.mark.parametrize('task_type', ['CPU', 'GPU'])

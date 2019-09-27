@@ -21,7 +21,7 @@ def main():
 
     import _pytest.assertion
     from _pytest.monkeypatch import MonkeyPatch
-    import rewrite
+    from . import rewrite
     m = MonkeyPatch()
     m.setattr(_pytest.assertion.rewrite, "AssertionRewritingHook", rewrite.AssertionRewritingHook)
 

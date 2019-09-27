@@ -288,7 +288,8 @@ namespace NCatboostCuda {
             return result;
         }
 
-        TVector<TEstimatorId> GetEstimators(const THashSet<ui32>& features) {
+        TVector<NCB::TEstimatorId> GetEstimators(const THashSet<ui32>& features) {
+            using NCB::TEstimatorId;
             THashSet<TEstimatorId> estimators;
             for (const auto& feature : features) {
                 TEstimatorId id = FeaturesManager.GetEstimatedFeature(feature).EstimatorId;

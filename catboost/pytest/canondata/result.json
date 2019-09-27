@@ -1185,21 +1185,21 @@
     ],
     "test.test_custom_loss_for_multiclassification[Ordered]": [
         {
-            "checksum": "f818767cba472ae463d68baaa04e2f09",
+            "checksum": "bdd06aceeba7312c65312f3c14d84d2f",
             "uri": "file://test.test_custom_loss_for_multiclassification_Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "89f77f7989696ad2a61fb341baa1170a",
+            "checksum": "00e9049d8e3251a3011a17e82fc5dbcc",
             "uri": "file://test.test_custom_loss_for_multiclassification_Ordered_/test_error.tsv"
         }
     ],
     "test.test_custom_loss_for_multiclassification[Plain]": [
         {
-            "checksum": "4d20818df0e1bcfd569218bfb8d0719f",
+            "checksum": "7809434815fa8b2ea444ce64b708a122",
             "uri": "file://test.test_custom_loss_for_multiclassification_Plain_/learn_error.tsv"
         },
         {
-            "checksum": "6f012d8210592de9db60c54f920d3122",
+            "checksum": "6ac2537454ca4b4a52e1bda73fc3ba42",
             "uri": "file://test.test_custom_loss_for_multiclassification_Plain_/test_error.tsv"
         }
     ],
@@ -1771,7 +1771,7 @@
     ],
     "test.test_eval_metrics_class_names": [
         {
-            "checksum": "66c4338c26d3f7076ad9cd37a40ec5ed",
+            "checksum": "ad98f27b7c6b5b97e1e364473b298b32",
             "uri": "file://test.test_eval_metrics_class_names/eval.txt"
         }
     ],
@@ -1957,25 +1957,25 @@
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-F1-1]": [
         {
-            "checksum": "3c100114195193b6994c579a56904f5a",
+            "checksum": "7f1f9f51ad324b399426cafc855c7672",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-F1-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-F1-2]": [
         {
-            "checksum": "eb83141b1bbe41813e77283f05c8f0c9",
+            "checksum": "0743757fa3eea458e7214976bd8a2e5d",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-F1-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-MCC-1]": [
         {
-            "checksum": "32a2369a68a354b9b7755f1e501f31e4",
+            "checksum": "2c96a8defcc7cc70397f3a040ebd78a7",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-MCC-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-MCC-2]": [
         {
-            "checksum": "9ccefa042fd7c31621e0c3e8ee251d1b",
+            "checksum": "ade7b599bf135104a3dbbae023864688",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-MCC-2_/output.tsv"
         }
     ],
@@ -1993,37 +1993,37 @@
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-Precision-1]": [
         {
-            "checksum": "61714c493f5ae43aad21c8ae3aabff32",
+            "checksum": "5903c283495077c5ff4b59beabbda5fd",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Precision-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-Precision-2]": [
         {
-            "checksum": "aa1d2faee149842bf03e174a0e03ac0d",
+            "checksum": "10e4ff22458fc78093dfdb989584a9c5",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Precision-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-Recall-1]": [
         {
-            "checksum": "4b27813393dbae58c42bf801125d7f4e",
+            "checksum": "a28e8e30f796717dec36667428f1c7ef",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Recall-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-Recall-2]": [
         {
-            "checksum": "fc50a21f17f95f9961cdab5e88fa3354",
+            "checksum": "ba982f76559cc2beb7858cc6bd683eca",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Recall-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-TotalF1-1]": [
         {
-            "checksum": "75c4fa951e2c6cfbe8f171a91d9ccc12",
+            "checksum": "83d2ee81fbf69f10ac2de97a34626e99",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-TotalF1-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-TotalF1-2]": [
         {
-            "checksum": "585bc4053d47217aee1da616505340bb",
+            "checksum": "f737a8c3f7df55d0c5e7ead89d6f97cf",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-TotalF1-2_/output.tsv"
         }
     ],
@@ -4172,7 +4172,7 @@
         "uri": "file://test.test_output_columns_format/test.eval"
     },
     "test.test_output_options": {
-        "checksum": "d75baed95a1ca82890a1251ab9153d01",
+        "checksum": "51e32ccf1a57b7199cf4f7e3dc5cf741",
         "uri": "file://test.test_output_options/training_options.json"
     },
     "test.test_overfit_detector_inc_to_dec[Ordered]": [

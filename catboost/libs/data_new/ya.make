@@ -14,6 +14,7 @@ SRCS(
     data_provider_builders.cpp
     exclusive_feature_bundling.cpp
     external_columns.cpp
+    feature_estimators.cpp
     feature_grouping.cpp
     feature_index.cpp
     features_layout.cpp
@@ -40,6 +41,7 @@ PEERDIR(
     library/dbg_output
     library/object_factory
     library/pop_count
+    library/string_utils/csv
     library/threading/future
     library/threading/local_executor
 

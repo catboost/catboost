@@ -1984,36 +1984,125 @@ namespace NCB {
     }
 
 
-    static void ProcessTextFeature(
-        TTextFeatureIdx textFeatureIdx,
-        const TStringTextValuesHolder& srcFeature,
-        const TFeaturesArraySubsetIndexing* dstSubsetIndexing,
-        TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
-        THolder<TTokenizedTextValuesHolder>* dstQuantizedFeature
+    static void CreateDictionaries(
+        TConstArrayRef<THolder<TStringTextValuesHolder>> textFeatures,
+        TQuantizedFeaturesInfoPtr quantizedFeaturesInfo
     ) {
-        const TStringTextArrayValuesHolder& srcDenseFeature
-            = dynamic_cast<const TStringTextArrayValuesHolder&>(srcFeature);
+        TTokenizerPtr tokenizer = CreateTokenizer(ETokenizerType::Naive);
 
-        ITypedArraySubsetPtr<TString> srcFeatureData = srcDenseFeature.GetData();
-        const auto &textProcessingOptions = quantizedFeaturesInfo->GetTextFeatureProcessing(srcFeature.GetId());
-        const TTokenizerPtr tokenizer = CreateTokenizer(textProcessingOptions.TokenizerType);
+        const auto& textOptions = quantizedFeaturesInfo->GetTextProcessingOptions();
+        const TFeaturesLayoutPtr featuresLayout = quantizedFeaturesInfo->GetFeaturesLayout();
 
-        if (!quantizedFeaturesInfo->HasDictionary(textFeatureIdx)) {
-            TDictionaryPtr dictionary = CreateDictionary(TIterableTextFeature(srcFeatureData), textProcessingOptions, tokenizer);
-            quantizedFeaturesInfo->SetDictionary(textFeatureIdx, dictionary);
+        for (ui32 tokenizedFeatureIdx: xrange(textOptions.TokenizedFeatureCount())) {
+            const auto& featureDescription = textOptions.GetTokenizedFeatureDescription(tokenizedFeatureIdx);
+
+            const TString dictionaryId = featureDescription.DictionaryId;
+            const ui32 textFeatureIdx = featureDescription.TextFeatureId;
+
+            const auto& dictionaryOptions = textOptions.GetDictionaryOptions(dictionaryId);
+
+            if (quantizedFeaturesInfo->HasDictionary(dictionaryOptions) ||
+                !featuresLayout->GetInternalFeatureMetaInfo(textFeatureIdx, EFeatureType::Text).IsAvailable) {
+                continue;
+            }
+
+            const auto& srcDenseFeature = dynamic_cast<const TStringTextArrayValuesHolder&>(
+                *textFeatures[textFeatureIdx]
+            );
+            ITypedArraySubsetPtr<TString> textFeature = srcDenseFeature.GetData();
+
+            auto dictionary = CreateDictionary(
+                TIterableTextFeature(textFeature),
+                dictionaryOptions,
+                tokenizer
+            );
+            quantizedFeaturesInfo->SetDictionary(dictionaryId, dictionary);
+        }
+    }
+
+    static void AddTokenizedFeaturesToFeatureLayout(
+        TConstArrayRef<TString> tokenizedFeatureNames,
+        TFeaturesLayout* featuresLayout
+    ) {
+        const ui32 tokenizedFeatureCount = tokenizedFeatureNames.size();
+
+        TFeaturesLayout layoutWithTokenizedFeatures;
+
+        ui32 tokenizedFeatureIdx = 0;
+        for (ui32 featureIdx = 0; featureIdx < featuresLayout->GetExternalFeatureCount(); featureIdx++) {
+            auto& metaInfo = featuresLayout->GetExternalFeatureMetaInfo(featureIdx);
+            if (metaInfo.Type == EFeatureType::Text) {
+                layoutWithTokenizedFeatures.AddFeature(
+                    TFeatureMetaInfo{
+                        EFeatureType::Text,
+                        tokenizedFeatureNames[tokenizedFeatureIdx]
+                    }
+                );
+                tokenizedFeatureIdx++;
+            } else {
+                layoutWithTokenizedFeatures.AddFeature(TFeatureMetaInfo(metaInfo));
+            }
         }
 
-        const TDictionaryPtr dictionary = quantizedFeaturesInfo->GetDictionary(textFeatureIdx);
-        TTextColumnBuilder textColumnBuilder(tokenizer, dictionary, srcFeatureData->GetSize());
-        srcFeatureData->ForEach([&](ui32 index, TStringBuf phrase) {
-            textColumnBuilder.AddText(index, phrase);
-        });
+        for (; tokenizedFeatureIdx < tokenizedFeatureCount; tokenizedFeatureIdx++) {
+            layoutWithTokenizedFeatures.AddFeature(
+                TFeatureMetaInfo{
+                    EFeatureType::Text,
+                    tokenizedFeatureNames[tokenizedFeatureIdx]
+                }
+            );
+        }
 
-        *dstQuantizedFeature = MakeHolder<TTokenizedTextArrayValuesHolder>(
-            srcFeature.GetId(),
-            TTextColumn::CreateOwning(textColumnBuilder.Build()),
-            dstSubsetIndexing
-        );
+        *featuresLayout = std::move(layoutWithTokenizedFeatures);
+    }
+
+
+    static void ProcessTextFeatures(
+        TConstArrayRef<THolder<TStringTextValuesHolder>> textFeatures,
+        const TFeaturesArraySubsetIndexing* dstSubsetIndexing,
+        TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+        TArrayRef<THolder<TTokenizedTextValuesHolder>> dstQuantizedFeatures,
+        TFeaturesLayoutPtr featuresLayout
+    ) {
+        const TTokenizerPtr tokenizer = CreateTokenizer(quantizedFeaturesInfo->GetTokenizerType());
+
+        const auto& textOptions = quantizedFeaturesInfo->GetTextProcessingOptions();
+        const ui32 tokenizedFeatureCount = textOptions.TokenizedFeatureCount();
+
+        TVector<TString> tokenizedFeatureNames;
+        tokenizedFeatureNames.yresize(tokenizedFeatureCount);
+
+        for (ui32 tokenizedFeatureIdx : xrange(tokenizedFeatureCount)) {
+            const auto& featureDescription = textOptions.GetTokenizedFeatureDescription(tokenizedFeatureIdx);
+
+            const ui32 textFeatureIdx = featureDescription.TextFeatureId.Get();
+            const auto& dictionary = quantizedFeaturesInfo->GetDictionary(
+                featureDescription.DictionaryId.Get()
+            );
+
+            if (!featuresLayout->GetInternalFeatureMetaInfo(textFeatureIdx, EFeatureType::Text).IsAvailable) {
+                continue;
+            }
+
+            const TStringTextValuesHolder& srcFeature = *textFeatures[textFeatureIdx];
+            const auto& srcDenseFeature = dynamic_cast<const TStringTextArrayValuesHolder&>(srcFeature);
+            ITypedArraySubsetPtr<TString> srcFeatureData = srcDenseFeature.GetData();
+
+            TTextColumnBuilder textColumnBuilder(tokenizer, dictionary, srcFeatureData->GetSize());
+            srcFeatureData->ForEach([&](ui32 index, TStringBuf phrase) {
+                textColumnBuilder.AddText(index, phrase);
+            });
+
+            quantizedFeaturesInfo->AddTokenizedTextFeature(textFeatureIdx, tokenizedFeatureIdx);
+            dstQuantizedFeatures[tokenizedFeatureIdx] = MakeHolder<TTokenizedTextArrayValuesHolder>(
+                srcFeature.GetId(),
+                TTextColumn::CreateOwning(textColumnBuilder.Build()),
+                dstSubsetIndexing
+            );
+            tokenizedFeatureNames[tokenizedFeatureIdx] = featureDescription.FeatureId;
+        }
+
+        AddTokenizedFeaturesToFeatureLayout(tokenizedFeatureNames, featuresLayout.Get());
     }
 
 
@@ -2176,7 +2265,7 @@ namespace NCB {
 
                 data->ObjectsData.Data.FloatFeatures.resize(featuresLayout->GetFloatFeatureCount());
                 data->ObjectsData.Data.CatFeatures.resize(featuresLayout->GetCatFeatureCount());
-                data->ObjectsData.Data.TextFeatures.resize(featuresLayout->GetTextFeatureCount());
+                data->ObjectsData.Data.TextFeatures.resize(quantizedFeaturesInfo->GetTokenizedFeatureCount());
 
                 if (storeFeaturesDataAsExternalValuesHolders) {
                     // external columns keep the same subset
@@ -2305,19 +2394,17 @@ namespace NCB {
                     );
 
 
-                    // tokenize text features
-                    featuresLayout->IterateOverAvailableFeatures<EFeatureType::Text>(
-                        [&] (TTextFeatureIdx textFeatureIdx) {
-                            auto& srcTextFeatureHolder = rawDataProvider->ObjectsData->Data.TextFeatures[*textFeatureIdx];
+                    CreateDictionaries(
+                        rawDataProvider->ObjectsData->Data.TextFeatures,
+                        quantizedFeaturesInfo
+                    );
 
-                            ProcessTextFeature(
-                                textFeatureIdx,
-                                *srcTextFeatureHolder,
-                                subsetIndexing.Get(),
-                                quantizedFeaturesInfo,
-                                &(data->ObjectsData.Data.TextFeatures[*textFeatureIdx])
-                            );
-                        }
+                    ProcessTextFeatures(
+                        rawDataProvider->ObjectsData->Data.TextFeatures,
+                        subsetIndexing.Get(),
+                        quantizedFeaturesInfo,
+                        data->ObjectsData.Data.TextFeatures,
+                        featuresLayout
                     );
                 }
 
@@ -2511,7 +2598,7 @@ namespace NCB {
             ignoredFeatures,
             dataProcessingOptions.FloatFeaturesBinarization.Get(),
             dataProcessingOptions.PerFloatFeatureQuantization.Get(),
-            dataProcessingOptions.TextProcessing.Get(),
+            dataProcessingOptions.TextProcessingOptions.Get(),
             floatFeaturesAllowNansInTestOnly,
             options.AllowWriteFiles
         );
@@ -2595,7 +2682,7 @@ namespace NCB {
                 params->DataProcessingOptions->IgnoredFeatures.Get(),
                 params->DataProcessingOptions->FloatFeaturesBinarization.Get(),
                 params->DataProcessingOptions->PerFloatFeatureQuantization.Get(),
-                params->DataProcessingOptions->TextProcessing.Get(),
+                params->DataProcessingOptions->TextProcessingOptions.Get(),
                 /*allowNansInTestOnly*/true
             );
 

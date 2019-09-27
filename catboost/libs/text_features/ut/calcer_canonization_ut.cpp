@@ -7,7 +7,7 @@
 
 using namespace NCB;
 
-Y_UNIT_TEST_SUITE(TestFeatureCalcer) {
+Y_UNIT_TEST_SUITE(TestFeatureCalcerCanonization) {
     TText CreateRandomText(TFastRng<ui64>& rng, ui32 dictionarySize, ui32 scale=100) {
         TText text;
         for (ui32 tokenId: xrange(dictionarySize)) {

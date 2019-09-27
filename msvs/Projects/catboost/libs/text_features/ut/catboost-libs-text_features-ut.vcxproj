@@ -115,8 +115,14 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_features\flatbuffers\libs-text_features-flatbuffers.vcxproj">
       <Project>{E3DB2F4B-F914-EC79-08A1-FC9635AA8929}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_features\ut\lib\text_features-ut-lib.vcxproj">
+      <Project>{389724DD-1A1A-22DD-A67C-F605123646BC}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_processing\catboost-libs-text_processing.vcxproj">
       <Project>{FFADE371-7C1D-73A4-49BB-7BB88008B40D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_processing\ut\lib\text_processing-ut-lib.vcxproj">
+      <Project>{12BC7D04-7267-7466-7A07-9BBCAB0C263A}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\avx2\libs-base64-avx2.vcxproj">
       <Project>{69A3431A-8A49-B198-8E40-2F61C1B0C1BC}</Project>

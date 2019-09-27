@@ -673,6 +673,125 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         }
     }
 
+    Y_UNIT_TEST(ReadDatasetWithQuotedValues) {
+        TVector<TReadDatasetTestCase> testCases;
+
+        {
+            TReadDatasetTestCase floatAndCatFeaturesTestCase;
+            TSrcData srcData;
+            srcData.CdFileData = AsStringBuf(
+                "0\tTarget\n"
+                "1\tNum\tfloat0\n"
+                "2\tCateg\tPlace1\n"
+                "3\tNum\tfloat2\n"
+            );
+            srcData.DatasetFileData = AsStringBuf(
+                "0\t0\t\"Berlin, Germany\"\t0\n"
+                "0\t0\t\"\"\"Skolkovo\"\", Russia\"\t0\n"
+            );
+            srcData.DsvFileHasHeader = false;
+            srcData.ObjectsOrder = EObjectsOrder::Undefined;
+            floatAndCatFeaturesTestCase.SrcData = std::move(srcData);
+
+            TExpectedRawData expectedData;
+
+            TDataColumnsMetaInfo dataColumnsMetaInfo;
+            dataColumnsMetaInfo.Columns = {
+                {EColumn::Label, ""},
+                {EColumn::Num, "float0"},
+                {EColumn::Categ, "Place1"},
+                {EColumn::Num, "float2"},
+            };
+
+            TVector<TString> featureId = {"float0", "Place1", "float2"};
+
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.Objects.Order = EObjectsOrder::Undefined;
+
+            expectedData.Objects.FloatFeatures = {
+                TVector<float>{0, 0},
+                TVector<float>{0, 0}
+            };
+            expectedData.Objects.CatFeatures = {
+                TVector<TStringBuf>{"Berlin, Germany", "\"Skolkovo\", Russia"}
+            };
+
+            expectedData.ObjectsGrouping = TObjectsGrouping(2);
+            expectedData.Target.Target =
+                TVector<TString>{"0", "0"};
+            expectedData.Target.Weights = TWeights<float>(2);
+            expectedData.Target.GroupWeights = TWeights<float>(2);
+
+            floatAndCatFeaturesTestCase.ExpectedData = std::move(expectedData);
+
+            testCases.push_back(std::move(floatAndCatFeaturesTestCase));
+        }
+
+        for (const auto& testCase : testCases) {
+            TestReadDataset(testCase);
+        }
+    }
+
+    Y_UNIT_TEST(ReadDatasetWithQuotedHeadersAndQuotedValues) {
+        TVector<TReadDatasetTestCase> testCases;
+
+        {
+            TReadDatasetTestCase floatAndCatFeaturesTestCase;
+            TSrcData srcData;
+            srcData.CdFileData = AsStringBuf(
+                "0\tTarget\n"
+                "1\tNum\tfloat0\n"
+                "2\tCateg\tPlace1\n"
+                "3\tNum\tfloat2\n"
+            );
+            srcData.DatasetFileData = AsStringBuf(
+                "Target\t\"just \"\"float\"\"\"\t\"Place, Country\"\t\"second\tfloat\"\n"
+                "0\t0\t\"Berlin, Germany\"\t0\n"
+                "0\t0\t\"\"\"Skolkovo\"\", Russia\"\t0\n"
+            );
+            srcData.DsvFileHasHeader = true;
+            srcData.ObjectsOrder = EObjectsOrder::Undefined;
+            floatAndCatFeaturesTestCase.SrcData = std::move(srcData);
+
+            TExpectedRawData expectedData;
+
+            TDataColumnsMetaInfo dataColumnsMetaInfo;
+            dataColumnsMetaInfo.Columns = {
+                {EColumn::Label, ""},
+                {EColumn::Num, "float0"},
+                {EColumn::Categ, "Place1"},
+                {EColumn::Num, "float2"},
+            };
+
+            TVector<TString> featureId = {"float0", "Place1", "float2"};
+
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.Objects.Order = EObjectsOrder::Undefined;
+
+            expectedData.Objects.FloatFeatures = {
+                TVector<float>{0, 0},
+                TVector<float>{0, 0}
+            };
+            expectedData.Objects.CatFeatures = {
+                TVector<TStringBuf>{"Berlin, Germany", "\"Skolkovo\", Russia"}
+            };
+
+            expectedData.ObjectsGrouping = TObjectsGrouping(2);
+            expectedData.Target.Target =
+                TVector<TString>{"0", "0"};
+            expectedData.Target.Weights = TWeights<float>(2);
+            expectedData.Target.GroupWeights = TWeights<float>(2);
+
+            floatAndCatFeaturesTestCase.ExpectedData = std::move(expectedData);
+
+            testCases.push_back(std::move(floatAndCatFeaturesTestCase));
+        }
+
+        for (const auto& testCase : testCases) {
+            TestReadDataset(testCase);
+        }
+    }
+
     Y_UNIT_TEST(ReadDatasetWithTextColumns) {
         TVector<TReadDatasetTestCase> testCases;
 

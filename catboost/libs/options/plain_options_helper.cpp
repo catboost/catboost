@@ -3,7 +3,7 @@
 #include "cat_feature_options.h"
 #include "binarization_options.h"
 #include "plain_options_helper.h"
-#include "text_feature_options.h"
+#include "text_processing_options.h"
 
 #include <catboost/libs/logging/logging.h>
 
@@ -20,7 +20,6 @@
 using NCatboostOptions::ParseCtrDescription;
 using NCatboostOptions::ParsePerFeatureBinarization;
 using NCatboostOptions::ParsePerFeatureCtrDescription;
-using NCatboostOptions::ParsePerTextFeatureProcessing;
 using NCatboostOptions::BuildCtrOptionsDescription;
 
 
@@ -109,30 +108,6 @@ static Y_NO_INLINE void CopyPerFloatFeatureQuantization(
     for (const auto& onePerFeatureCtrConfig : binarizationDescription.GetArraySafe()) {
         auto perFeatureBinarization = ParsePerFeatureBinarization(onePerFeatureCtrConfig.GetStringSafe());
         perFeatureBinarizationMap[perFeatureBinarization.first] = perFeatureBinarization.second;
-    }
-
-    seenKeys->insert(TString(key));
-}
-
-static Y_NO_INLINE void CopyPerFeatureTextProcessing(
-    const NJson::TJsonValue& options,
-    const TStringBuf key,
-    const TStringBuf dstKey,
-    NJson::TJsonValue* dst,
-    TSet<TString>* seenKeys
-) {
-    if (!options.Has(key)) {
-        return;
-    }
-
-    NJson::TJsonValue& perFeatureProcessingMap = (*dst)[dstKey];
-    perFeatureProcessingMap.SetType(NJson::JSON_MAP);
-    const NJson::TJsonValue& textProcessingDescription = options[key];
-    CB_ENSURE(textProcessingDescription.IsArray());
-
-    for (const auto& onePerFeatureConfig : textProcessingDescription.GetArraySafe()) {
-        const auto [featureId, processingOptions] = ParsePerTextFeatureProcessing(onePerFeatureConfig.GetStringSafe());
-        perFeatureProcessingMap[featureId] = processingOptions;
     }
 
     seenKeys->insert(TString(key));
@@ -238,22 +213,6 @@ static Y_NO_INLINE void RemapPerFeatureCtrDescription(
     }
 }
 
-static Y_NO_INLINE void RemapTextProcessingOptions(
-    const NJson::TJsonValue& options,
-    const TStringBuf destinationKey,
-    NJson::TJsonValue* const destination
-) {
-    const auto& paramsDict = options["text_processing"]["per_feature_text_processing"];
-    auto& plainTextParams = (*destination)[destinationKey] = NJson::TJsonValue(NJson::JSON_ARRAY);
-    for (auto& oneTextFeatureConfig : paramsDict.GetMap()) {
-        TString concatenatedTextFeatureParams = ToString(oneTextFeatureConfig.first);
-        for (auto& paramKeyValuePair : oneTextFeatureConfig.second.GetMapSafe()) {
-            concatenatedTextFeatureParams =
-                    concatenatedTextFeatureParams + ":" + paramKeyValuePair.first + "=" + paramKeyValuePair.second.GetString();
-        }
-        plainTextParams.AppendValue(concatenatedTextFeatureParams);
-    }
-}
 
 static Y_NO_INLINE void ConcatenatePerFloatFeatureQuantizationOptions(
     const NJson::TJsonValue& options,
@@ -434,10 +393,6 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyCtrDescription(plainOptions, "combinations_ctr", "combinations_ctrs", &ctrOptions, &seenKeys);
     CopyPerFeatureCtrDescription(plainOptions, "per_feature_ctr", "per_feature_ctrs", &ctrOptions, &seenKeys);
 
-    auto& textFeatureOptions = trainOptions["text_feature_options"];
-    textFeatureOptions.SetType(NJson::JSON_MAP);
-    CopyOption(plainOptions, "text_feature_estimators", &textFeatureOptions, &seenKeys);
-
     auto& ctrTargetBinarization = ctrOptions["target_binarization"];
     ctrTargetBinarization.SetType(NJson::JSON_MAP);
     CopyOptionWithNewKey(plainOptions, "ctr_target_border_count", "border_count", &ctrTargetBinarization, &seenKeys);
@@ -475,8 +430,8 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "nan_mode", &floatFeaturesBinarization, &seenKeys);
     CopyPerFloatFeatureQuantization(plainOptions, "per_float_feature_quantization", &dataProcessingOptions, &seenKeys);
 
-    auto& textProcessingOptions = dataProcessingOptions["text_processing"];
-    CopyPerFeatureTextProcessing(plainOptions, "text_processing", "per_feature_text_processing", &textProcessingOptions, &seenKeys);
+    auto& textProcessingOptions = dataProcessingOptions["text_processing_options"];
+    ParseTextProcessingOptionsFromPlainJson(plainOptions, &textProcessingOptions, &seenKeys);
 
     //system
     auto& systemOptions = trainOptions["system_options"];
@@ -775,16 +730,6 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
             DeleteSeenOption(&optionsCopyCtr, "target_binarization");
         }
 
-        if (options.Has("text_feature_options")) {
-            const auto& textFeatureOptions = options["text_feature_options"];
-            auto textFeatureOptionsCopy = optionsCopy["text_feature_options"];
-            CopyOption(textFeatureOptions, "text_feature_estimators", &plainOptionsJson, &seenKeys);
-            DeleteSeenOption(&textFeatureOptionsCopy, "text_feature_estimators");
-
-            CB_ENSURE(textFeatureOptionsCopy.GetMapSafe().empty(), "text_feature_options: key " + textFeatureOptionsCopy.GetMapSafe().begin()->first + " wasn't added to plain options.");
-            DeleteSeenOption(&optionsCopy, "text_feature_options");
-        }
-
         CopyOption(ctrOptions, "max_ctr_complexity", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyCtr, "max_ctr_complexity");
 
@@ -848,8 +793,9 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         CopyOption(dataProcessingOptions, "gpu_cat_features_storage", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyDataProcessing, "gpu_cat_features_storage");
 
-        RemapTextProcessingOptions(dataProcessingOptions, "text_processing", &plainOptionsJson);
-        DeleteSeenOption(&optionsCopyDataProcessing, "text_processing");
+        SaveTextProcessingOptionsToPlainJson(dataProcessingOptions["text_processing_options"], &plainOptionsJson);
+        seenKeys.insert("text_processing_options");
+        DeleteSeenOption(&optionsCopyDataProcessing, "text_processing_options");
 
         ConcatenatePerFloatFeatureQuantizationOptions(
             dataProcessingOptions,
@@ -981,8 +927,8 @@ void NCatboostOptions::CleanPlainJson(
     }
 
     if (!hasTextFeatures) {
+        DeleteSeenOption(plainOptionsJsonEfficient, "dictionaries");
         DeleteSeenOption(plainOptionsJsonEfficient, "text_processing");
-        DeleteSeenOption(plainOptionsJsonEfficient, "text_feature_estimators");
     }
     TVector<TStringBuf> keysToDelete;
     auto& map = plainOptionsJsonEfficient->GetMapSafe();

@@ -186,7 +186,7 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
 
     *featuresManager = MakeHolder<NCatboostCuda::TBinarizedFeaturesManager>(
         catFeatureParams,
-        estimators,
+        MakeIntrusiveConst<NCB::TFeatureEstimators>(estimators),
         *((*trainingData)->MetaInfo.FeaturesLayout),
         (*trainingData)->ObjectsData->GetQuantizedFeaturesInfo());
 

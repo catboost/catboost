@@ -9,7 +9,8 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/options/binarization_options.h>
 #include <catboost/libs/options/enums.h>
-#include <catboost/libs/options/text_feature_options.h>
+#include <catboost/libs/options/text_processing_options.h>
+#include <catboost/libs/options/runtime_text_options.h>
 #include <catboost/libs/text_processing/dictionary.h>
 #include <catboost/libs/quantization/utils.h>
 
@@ -22,6 +23,7 @@
 #include <util/generic/map.h>
 #include <util/generic/ptr.h>
 #include <util/generic/vector.h>
+#include <util/generic/set.h>
 #include <util/generic/xrange.h>
 #include <util/string/builder.h>
 #include <util/system/rwlock.h>
@@ -68,7 +70,7 @@ namespace NCB {
             TConstArrayRef<ui32> ignoredFeatures,
             NCatboostOptions::TBinarizationOptions commonFloatFeaturesBinarization,
             TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeatureQuantization,
-            NCatboostOptions::TTextProcessingOptionCollection textFeaturesProcessing,
+            const NCatboostOptions::TTextProcessingOptions& textFeaturesProcessing,
             bool floatFeaturesAllowNansInTestOnly = true,
             bool allowWriteFiles = true);
 
@@ -161,10 +163,6 @@ namespace NCB {
             return CommonFloatFeaturesBinarization;
         }
 
-        const NCatboostOptions::TTextProcessingOptions& GetTextFeatureProcessing(ui32 featureIdx) const {
-            return TextFeaturesProcessing.GetFeatureTextProcessing(featureIdx);
-        }
-
         bool GetFloatFeaturesAllowNansInTestOnly() const {
             return FloatFeaturesAllowNansInTestOnly;
         }
@@ -212,20 +210,51 @@ namespace NCB {
 
         ui32 CalcCheckSum() const;
 
-        void SetDictionary(const TTextFeatureIdx textFeatureIdx,
+        void SetDictionary(const TString& dictionaryId,
                            TDictionaryPtr dictionary) {
-            CheckCorrectPerTypeFeatureIdx(textFeatureIdx);
-            Dictionaries[*textFeatureIdx] = std::move(dictionary);
+            Dictionaries[dictionaryId] = std::move(dictionary);
         }
 
-        const TDictionaryPtr GetDictionary(const TTextFeatureIdx textFeatureIdx) const {
-            CheckCorrectPerTypeFeatureIdx(textFeatureIdx);
-            return Dictionaries.at(*textFeatureIdx);
+        bool HasDictionary(const TString& dictionaryId) const {
+            return Dictionaries.contains(dictionaryId);
         }
 
-        bool HasDictionary(const TTextFeatureIdx textFeatureIdx) const {
-            CheckCorrectPerTypeFeatureIdx(textFeatureIdx);
-            return Dictionaries.contains(*textFeatureIdx);
+        bool HasDictionary(const NCatboostOptions::TTextColumnDictionaryOptions& dictionaryOptions) const {
+            return HasDictionary(dictionaryOptions.DictionaryId.Get());
+        }
+
+        const TDictionaryPtr GetDictionary(const TString& dictionaryId) const {
+            return Dictionaries.at(dictionaryId);
+        }
+
+        const TDictionaryPtr GetDictionary(ui32 tokenizedFeatureIdx) const {
+            const auto& tokenizedFeatureDescription =
+                RuntimeTextProcessingOptions.GetTokenizedFeatureDescription(tokenizedFeatureIdx);
+            const TString& dictionaryId = tokenizedFeatureDescription.DictionaryId.Get();
+            CB_ENSURE(
+                HasDictionary(dictionaryId),
+                "DictionaryId \"" << dictionaryId
+                    << "\" used in tokenizedFeature \"" << tokenizedFeatureDescription.FeatureId << "\""
+                    << " is not presented in QuantizedFeaturesInfo"
+            );
+            return Dictionaries.at(dictionaryId);
+        }
+
+        void AddTokenizedTextFeature(ui32 textFeatureIdx, ui32 tokenizedFeatureIdx) {
+            CheckCorrectPerTypeFeatureIdx(TTextFeatureIdx(textFeatureIdx));
+            TokenizedTextFeatureIds[textFeatureIdx].insert(tokenizedFeatureIdx);
+        }
+
+        const NCatboostOptions::TRuntimeTextOptions& GetTextProcessingOptions() const {
+            return RuntimeTextProcessingOptions;
+        }
+
+        ui32 GetTokenizedFeatureCount() const {
+            return RuntimeTextProcessingOptions.TokenizedFeatureCount();
+        }
+
+        ETokenizerType GetTokenizerType() const {
+            return RuntimeTextProcessingOptions.GetTokenizerType();
         }
 
     private:
@@ -265,8 +294,10 @@ namespace NCB {
 
         TCatFeaturesPerfectHash CatFeaturesPerfectHash;
 
-        NCatboostOptions::TTextProcessingOptionCollection TextFeaturesProcessing;
-        TMap<ui32, TDictionaryPtr> Dictionaries; // [textFeatureIdx]
+        NCatboostOptions::TRuntimeTextOptions RuntimeTextProcessingOptions;
+        TMap<TString, TDictionaryPtr> Dictionaries; // [dictionaryId]
+        TTokenizerPtr Tokenizer;
+        TMap<ui32, TSet<ui32>> TokenizedTextFeatureIds; // [textFeatureIdx]
     };
 
     using TQuantizedFeaturesInfoPtr = TIntrusivePtr<TQuantizedFeaturesInfo>;

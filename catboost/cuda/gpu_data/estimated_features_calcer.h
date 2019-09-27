@@ -29,7 +29,7 @@ namespace NCatboostCuda {
                 Permutation.FillOrder(PermutationIndices);
         }
 
-        void ExecEstimators(TConstArrayRef<TEstimatorId> estimatorIds,
+        void ExecEstimators(TConstArrayRef<NCB::TEstimatorId> estimatorIds,
                             TBinarizedFeatureVisitor visitor,
                             TMaybe<TBinarizedFeatureVisitor> testVisitor
                             );

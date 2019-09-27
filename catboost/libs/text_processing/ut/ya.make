@@ -9,6 +9,7 @@ SRCS(
 
 PEERDIR(
     catboost/libs/text_processing
+    catboost/libs/text_processing/ut/lib
 )
 
 

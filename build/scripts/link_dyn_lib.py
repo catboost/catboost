@@ -140,6 +140,60 @@ def fix_cmd(arch, musl, c):
     return sum((do_fix(x) for x in c), [])
 
 
+def postprocess_whole_archive(opts, args):
+    if not opts.whole_archive:
+        return args
+
+    def match_peer_lib(arg, peers):
+        key = None
+        if arg.endswith('.a'):
+            key = os.path.dirname(arg)
+        return key if key and key in peers else None
+
+    whole_archive_peers = { x : 0 for x in opts.whole_archive }
+
+    whole_archive_flag = '-Wl,--whole-archive'
+    no_whole_archive_flag = '-Wl,--no-whole-archive'
+
+    cmd = []
+    is_inside_whole_archive = False
+    is_whole_archive = False
+    # We are trying not to create excessive sequences of consecutive flags
+    # -Wl,--no-whole-archive  -Wl,--whole-archive ('externally' specified
+    # flags -Wl,--[no-]whole-archive are not taken for consideration in this
+    # optimization intentionally)
+    for arg in args:
+        if arg == whole_archive_flag:
+            is_inside_whole_archive = True
+            is_whole_archive = False
+        elif arg == no_whole_archive_flag:
+            is_inside_whole_archive = False
+            is_whole_archive = False
+        else:
+            key = match_peer_lib(arg, whole_archive_peers)
+            if key:
+                whole_archive_peers[key] += 1
+
+            if not is_inside_whole_archive:
+                if key:
+                    if not is_whole_archive:
+                        cmd.append(whole_archive_flag)
+                        is_whole_archive = True
+                elif is_whole_archive:
+                    cmd.append(no_whole_archive_flag)
+                    is_whole_archive = False
+
+        cmd.append(arg)
+
+    if is_whole_archive:
+        cmd.append(no_whole_archive_flag)
+
+    for key, value in whole_archive_peers.items():
+        assert value > 0, '"{}" specified in WHOLE_ARCHIVE() macro is not used on link command'.format(key)
+
+    return cmd
+
+
 def parse_args():
     parser = optparse.OptionParser()
     parser.disable_interspersed_args()
@@ -148,6 +202,7 @@ def parse_args():
     parser.add_option('--soname')
     parser.add_option('--fix-elf')
     parser.add_option('--musl', action='store_true')
+    parser.add_option('--whole-archive', action='append')
     return parser.parse_args()
 
 
@@ -158,6 +213,7 @@ if __name__ == '__main__':
     assert opts.target
 
     cmd = fix_cmd(opts.arch, opts.musl, args)
+    cmd = postprocess_whole_archive(opts, cmd)
     proc = subprocess.Popen(cmd, shell=False, stderr=sys.stderr, stdout=sys.stdout)
     proc.communicate()
 

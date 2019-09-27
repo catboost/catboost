@@ -24,7 +24,7 @@
         "uri": "file://test.test_classification_ctr_CPU_/model.bin"
     },
     "test.test_compute_options": {
-        "checksum": "fa4c8aa86f9e411e41356dd04afc8631",
+        "checksum": "7f97f20bab1a5f26e8884200d0f04861",
         "uri": "file://test.test_compute_options/options.json"
     },
     "test.test_continue_learning_with_changing_dataset": {
@@ -263,7 +263,7 @@
     ],
     "test.test_eval_features[CPU-problem=multiclass-eval_type=SeqAdd]": [
         {
-            "checksum": "56afa8f549be9189a0ec89355baa040a",
+            "checksum": "d7bc98584ae20dd75fdef96685ea29e2",
             "uri": "file://test.test_eval_features_CPU-problem=multiclass-eval_type=SeqAdd_/eval_results_Accuracy.csv"
         },
         {
@@ -452,7 +452,7 @@
         "uri": "file://test.test_metadata/model.bin"
     },
     "test.test_multiclass[CPU]": {
-        "checksum": "37122ad6b4a543bd08c9b574142ae3c9",
+        "checksum": "58771c68873518b61c4de394a59fe2a6",
         "uri": "file://test.test_multiclass_CPU_/predictions.npy"
     },
     "test.test_multiclass_classes_count_missed_classes[CPU]": {
@@ -496,7 +496,7 @@
         "uri": "file://test.test_onnx_export_binclass_/model.onnx"
     },
     "test.test_onnx_export[multiclass]": {
-        "checksum": "8c88f30f22788f78cd3f7b58398682e6",
+        "checksum": "b3b83899576d2e462eff1b36a750ec6d",
         "uri": "file://test.test_onnx_export_multiclass_/model.onnx"
     },
     "test.test_onnx_export[regression]": {
@@ -626,11 +626,11 @@
         "uri": "file://test.test_shap_feature_importance_CPU_/feature_importance.npy"
     },
     "test.test_shap_feature_importance_multiclass[CPU]": {
-        "checksum": "c6ded6beecdffab389953d2d96300e46",
+        "checksum": "a4c327e98ff133fa22a2b5f2a9e4587e",
         "uri": "file://test.test_shap_feature_importance_multiclass_CPU_/feature_importance.npy"
     },
     "test.test_shap_multiclass[CPU]": {
-        "checksum": "ac49de03a67776218f4927fcf6c80f73",
+        "checksum": "c107105fc26edbad3edc51e125b09915",
         "uri": "file://test.test_shap_multiclass_CPU_/feature_importance.txt"
     },
     "test.test_staged_predict[CPU]": {

@@ -1,8 +1,8 @@
 #include "binarizations_manager.h"
 
 #include <catboost/libs/ctr_description/ctr_type.h>
+#include <catboost/libs/data_new/feature_estimators.h>
 #include <catboost/libs/options/restrictions.h>
-#include <catboost/libs/feature_estimator/feature_estimator.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/xrange.h>
@@ -13,11 +13,12 @@ using namespace NCB;
 namespace NCatboostCuda {
     TBinarizedFeaturesManager::TBinarizedFeaturesManager(
         const NCatboostOptions::TCatFeatureParams& catFeatureOptions,
-        const TFeatureEstimators& estimators,
+        TFeatureEstimatorsPtr estimators,
         const TFeaturesLayout& featuresLayout,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo)
         : CatFeatureOptions(catFeatureOptions)
         , QuantizedFeaturesInfo(quantizedFeaturesInfo)
+        , FeatureEstimators(estimators)
     {
         const auto& featuresMetaInfo = featuresLayout.GetExternalFeaturesMetaInfo();
 
@@ -33,13 +34,7 @@ namespace NCatboostCuda {
             }
         }
 
-        for (ui32 estimatorId = 0; estimatorId < estimators.FeatureEstimators.size(); ++estimatorId) {
-            auto meta = estimators.FeatureEstimators[estimatorId]->FeaturesMeta();
-            RegisterFeatureEstimator(estimatorId, meta, false);
-        }
-        for (ui32 estimatorId = 0; estimatorId < estimators.OnlineFeatureEstimators.size(); ++estimatorId) {
-            RegisterFeatureEstimator(estimatorId, estimators.OnlineFeatureEstimators[estimatorId]->FeaturesMeta(),  true);
-        }
+        RegisterFeatureEstimators(FeatureEstimators);
     }
 
     TBinarizedFeaturesManager::TBinarizedFeaturesManager(
@@ -59,6 +54,7 @@ namespace NCatboostCuda {
         , CatFeatureOptions(featureManager.CatFeatureOptions)
         , Borders(featureManager.Borders)
         , QuantizedFeaturesInfo(featureManager.QuantizedFeaturesInfo)
+        , FeatureEstimators(featureManager.FeatureEstimators)
         , UserCombinations(featureManager.UserCombinations)
         , IgnoredFeatures(ignoredFeatureIds.begin(), ignoredFeatureIds.end()) {
     }

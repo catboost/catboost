@@ -377,7 +377,7 @@ namespace NCatboostCuda {
                 outputOptions,
                 *trainingData.Learn,
                 !trainingData.Test.empty() ? trainingData.Test[0].Get() : nullptr,
-                trainingData.FeatureEstimators,
+                *trainingData.FeatureEstimators,
                 featuresManager,
                 approxDimension,
                 onEndIterationCallback,
@@ -473,7 +473,7 @@ namespace NCatboostCuda {
 
             auto quantizedFeaturesInfo = trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo();
 
-            TFeatureEstimators estimators;
+            TFeatureEstimatorsPtr estimators;
             TBinarizedFeaturesManager featuresManager(updatedCatboostOptions.CatFeatureParams,
                                                       estimators,
                                                       *trainingData.Learn->MetaInfo.FeaturesLayout,

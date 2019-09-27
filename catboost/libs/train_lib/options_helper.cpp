@@ -239,6 +239,15 @@ static void AdjustBoostFromAverageDefaultValue(
     }
 }
 
+static void UpdateMinTokenOccurrenceDefaultValue(
+    ui64 learnPoolSize,
+    NCatboostOptions::TCatBoostOptions* catBoostOptions
+) {
+    const ui64 minTokenOccurence = (learnPoolSize < 1000) ? 1 : 50;
+    auto& textProcessingOptions = catBoostOptions->DataProcessingOptions->TextProcessingOptions;
+    textProcessingOptions->SetDefaultMinTokenOccurrence(minTokenOccurence);
+}
+
 void SetDataDependentDefaults(
     const NCB::TDataMetaInfo& trainDataMetaInfo,
     const TMaybe<NCB::TDataMetaInfo>& testDataMetaInfo,
@@ -268,4 +277,5 @@ void SetDataDependentDefaults(
     UpdateAndValidateMonotoneConstraints(*trainDataMetaInfo.FeaturesLayout.Get(), catBoostOptions);
     DropModelShrinkageIfBaselineUsed(trainDataMetaInfo, continueFromModel || continueFromProgress, catBoostOptions);
     AdjustBoostFromAverageDefaultValue(trainDataMetaInfo, testDataMetaInfo, continueFromModel, catBoostOptions);
+    UpdateMinTokenOccurrenceDefaultValue(learnPoolSize, catBoostOptions);
 }

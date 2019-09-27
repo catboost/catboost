@@ -1,7 +1,7 @@
 #include <catboost/libs/feature_estimator/text_feature_estimators.h>
 #include <catboost/libs/feature_estimator/base_text_feature_estimator.h>
 
-#include <catboost/libs/options/text_feature_options.h>
+#include <catboost/libs/options/text_processing_options.h>
 #include <catboost/libs/text_features/bow.h>
 #include <catboost/libs/text_features/bm25.h>
 #include <catboost/libs/text_features/naive_bayesian.h>
@@ -101,10 +101,10 @@ Y_UNIT_TEST_SUITE(TestFeatureEstimators) {
             Fill(texts.begin(), texts.end(), text);
         }
 
-        TTextProcessingOptions textProcessingOptions;
+        TTextColumnDictionaryOptions columnDictionaryOptions;
         TDictionaryPtr dictionary = NTextProcessing::NDictionary::TDictionaryBuilder(
-            textProcessingOptions.DictionaryBuilderOptions,
-            textProcessingOptions.DictionaryOptions
+            columnDictionaryOptions.DictionaryBuilderOptions,
+            columnDictionaryOptions.DictionaryOptions
         ).FinishBuilding();
 
         TTextColumn textColumn = TTextColumn::CreateOwning(std::move(texts));
@@ -167,10 +167,10 @@ Y_UNIT_TEST_SUITE(TestFeatureEstimators) {
             texts[sampleId] = text;
         }
 
-        TTextProcessingOptions textProcessingOptions;
+        TTextColumnDictionaryOptions columnDictionaryOptions;
         TDictionaryPtr dictionary = NTextProcessing::NDictionary::TDictionaryBuilder(
-            textProcessingOptions.DictionaryBuilderOptions,
-            textProcessingOptions.DictionaryOptions
+            columnDictionaryOptions.DictionaryBuilderOptions,
+            columnDictionaryOptions.DictionaryOptions
         ).FinishBuilding();
 
         TTextColumn textColumn = TTextColumn::CreateOwning(std::move(texts));
@@ -200,7 +200,7 @@ Y_UNIT_TEST_SUITE(TestFeatureEstimators) {
         TEmbeddingPtr embeddingPtr;
         for (auto calcerType : calcerTypes) {
             TVector<TOnlineFeatureEstimatorPtr> estimators = CreateEstimators(
-                {calcerType},
+                {NCatboostOptions::TFeatureCalcerDescription(calcerType)},
                 embeddingPtr,
                 target,
                 learnTexts,

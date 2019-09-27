@@ -37,6 +37,7 @@ RECURSE(
     pugixml
     python
     python/ut
+    re2
     snappy
     sqlite3
     tensorboard
@@ -76,7 +77,7 @@ IF (OS_WINDOWS)
 )
 ELSE()
     RECURSE(
-    
+    re2/tests
 )
 ENDIF()
 

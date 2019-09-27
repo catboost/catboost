@@ -86,7 +86,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\text_processing\tokenizer.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\text_processing\dictionary.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\text_processing\embedding.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\text_processing\embedding_loader.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\text_processing\text_column_builder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\text_processing\text_dataset.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\text_processing\tokenizer.h"/>

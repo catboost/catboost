@@ -90,6 +90,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\data_provider_builders.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\exclusive_feature_bundling.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\external_columns.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\feature_estimators.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\feature_grouping.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\feature_index.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data_new\feature_names_converter.cpp"/>
@@ -231,6 +232,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\data_provider_builders.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\exclusive_feature_bundling.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\external_columns.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\feature_estimators.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\feature_grouping.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\feature_index.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data_new\feature_names_converter.h"/>
@@ -434,6 +436,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\base64\library-string_utils-base64.vcxproj">
       <Project>{137212F6-D2FE-719F-EBE2-99060434BC72}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\csv\library-string_utils-csv.vcxproj">
+      <Project>{31268EC0-4867-4A36-6D41-58F80A28A7F3}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\relaxed_escaper\library-string_utils-relaxed_escaper.vcxproj">
       <Project>{91423FEC-8B3D-547B-2674-3740D83114B5}</Project>

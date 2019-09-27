@@ -768,7 +768,7 @@
                 "nm": { "bottle": "gcc63-armv7a", "executable": "nm" }
             },
             "platforms": [
-                {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "armv7a"}, "default": true}
+                {"host": {"os": "LINUX"}, "target": {"os": "LINUX", "arch": "armv7a"}}
             ],
             "params": {
                 "type": "gnu",
@@ -1616,7 +1616,7 @@
         },
         "arc": {
             "formula": {
-                "sandbox_id": [509287469],
+                "sandbox_id": [514978561],
                 "match": "arc"
             },
             "executable": {
@@ -2552,7 +2552,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 514883158,
+                "sandbox_id": 515204335,
                 "match": "SEDEM archive"
 
             },

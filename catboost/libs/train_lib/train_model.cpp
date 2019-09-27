@@ -640,7 +640,7 @@ namespace {
             TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
             THolder<TLearnProgress>* dstLearnProgress
         ) const override {
-            CB_ENSURE(trainingData.FeatureEstimators.Empty(), "Feature calcers are not supported in CPU training yet");
+            CB_ENSURE(trainingData.FeatureEstimators->Empty(), "Feature calcers are not supported in CPU training yet");
             TTrainingForCPUDataProviders trainingDataForCpu
                 = trainingData.Cast<TQuantizedForCPUObjectsDataProvider>();
 
@@ -830,7 +830,7 @@ static void TrainModel(
             catBoostOptions.DataProcessingOptions.Get().IgnoredFeatures.Get(),
             catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
             catBoostOptions.DataProcessingOptions->PerFloatFeatureQuantization.Get(),
-            catBoostOptions.DataProcessingOptions->TextProcessing.Get(),
+            catBoostOptions.DataProcessingOptions->TextProcessingOptions.Get(),
             /*allowNansInTestOnly*/true,
             outputOptions.AllowWriteFiles()
         );
@@ -1036,7 +1036,7 @@ void TrainModel(
         catBoostOptions.DataProcessingOptions->IgnoredFeatures.Get(),
         catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
         catBoostOptions.DataProcessingOptions->PerFloatFeatureQuantization.Get(),
-        catBoostOptions.DataProcessingOptions->TextProcessing.Get(),
+        catBoostOptions.DataProcessingOptions->TextProcessingOptions.Get(),
         /*allowNansInTestOnly*/true,
         outputOptions.AllowWriteFiles()
     );
@@ -1166,7 +1166,7 @@ static void ModelBasedEval(
             catBoostOptions.DataProcessingOptions.Get().IgnoredFeatures.Get(),
             catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
             catBoostOptions.DataProcessingOptions->PerFloatFeatureQuantization.Get(),
-            catBoostOptions.DataProcessingOptions->TextProcessing.Get(),
+            catBoostOptions.DataProcessingOptions->TextProcessingOptions.Get(),
             /*allowNansInTestOnly*/true,
             outputOptions.AllowWriteFiles()
         );
@@ -1271,7 +1271,7 @@ void ModelBasedEval(
         catBoostOptions.DataProcessingOptions->IgnoredFeatures.Get(),
         catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
         catBoostOptions.DataProcessingOptions->PerFloatFeatureQuantization.Get(),
-        catBoostOptions.DataProcessingOptions->TextProcessing.Get(),
+        catBoostOptions.DataProcessingOptions->TextProcessingOptions.Get(),
         /*allowNansInTestOnly*/true,
         outputOptions.AllowWriteFiles()
     );

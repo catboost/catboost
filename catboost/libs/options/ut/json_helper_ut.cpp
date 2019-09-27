@@ -136,37 +136,39 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
         UNIT_ASSERT_VALUES_EQUAL(ToString<NJson::TJsonValue>(tree2), "{\"option_1\":102}");
     }
         Y_UNIT_TEST(TestPlainAndReversePlainSerialization) {
-            TStringBuf jsonPlain = ""
-                                   "{\n"
-                                   "  \"loss_function\": \"Logloss\",\n"
-                                   "  \"custom_metric\": \"CrossEntropy\",\n"
-                                   "  \"eval_metric\": \"RMSE\",\n"
+            TString jsonPlain = ""
+                "{\n"
+                "  \"loss_function\": \"Logloss\",\n"
+                "  \"custom_metric\": \"CrossEntropy\",\n"
+                "  \"eval_metric\": \"RMSE\",\n"
 
-                                   "  \"use_best_model\": true,\n"
-                                   "  \"verbose\": 0,\n"
+                "  \"use_best_model\": true,\n"
+                "  \"verbose\": 0,\n"
 
-                                   "  \"iterations\": 100,\n"
-                                   "  \"learning_rate\": 0.1,\n"
-                                   "  \"depth\": 3,\n"
-                                   "  \"fold_len_multiplier\": 2,\n"
-                                   "  \"approx_on_full_history\": false,\n"
-                                   "  \"fold_permutation_block\": 16,\n"
+                "  \"iterations\": 100,\n"
+                "  \"learning_rate\": 0.1,\n"
+                "  \"depth\": 3,\n"
+                "  \"fold_len_multiplier\": 2,\n"
+                "  \"approx_on_full_history\": false,\n"
+                "  \"fold_permutation_block\": 16,\n"
 
-                                   "  \"od_pval\": 0.001,\n"
-                                   "  \"od_wait\": 10,\n"
-                                   "  \"od_type\": \"IncToDec\",\n"
+                "  \"od_pval\": 0.001,\n"
+                "  \"od_wait\": 10,\n"
+                "  \"od_type\": \"IncToDec\",\n"
 
-                                   "  \"leaf_estimation_iterations\": 15,\n"
-                                   "  \"leaf_estimation_backtracking\": \"AnyImprovement\",\n"
+                "  \"leaf_estimation_iterations\": 15,\n"
+                "  \"leaf_estimation_backtracking\": \"AnyImprovement\",\n"
 
-                                   "  \"bootstrap_type\": \"Bernoulli\",\n"
-                                   "  \"bagging_temperature\": 36.6,\n"
+                "  \"bootstrap_type\": \"Bernoulli\",\n"
+                "  \"bagging_temperature\": 36.6,\n"
 
-                                   "  \"text_processing\": [\"1:max_dict_size=4\", \"3:min_token_occurence=55\"],\n"
-                                   "  \"per_float_feature_quantization\": [\"1:border_count=4\", \"2:nan_mode=Max,border_type=MinEntropy\"],\n"
+                "  \"dictionaries\": [\"BiGram:token_level_type=Letter,gram_order=2\", \"Word:token_level_type=Word\"],\n"
+                "  \"text_processing\": [\"TextFeature~BoW:BiGram,Word|NaiveBayes:Word\"],\n"
 
-                                   "}"
-                                   "";
+                "  \"per_float_feature_quantization\": [\"1:border_count=4\", \"2:nan_mode=Max,border_type=MinEntropy\"]\n"
+
+                "}"
+                "";
 
             NJson::TJsonValue plainOptions;
             NJson::ReadJsonTree(jsonPlain, &plainOptions);
@@ -189,7 +191,11 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
             TString refBootstrapType = "Bernoulli";
             double refBaggingTemperature = 36.6;
 
-            TVector<TString> refTextProcessing = {"1:max_dict_size=4", "3:min_token_occurence=55"};
+            TVector<TString> refTextProcessing = {"TextFeature~BoW:BiGram,Word|NaiveBayes:Word"};
+            TVector<TString> refDictionaries = {
+                "BiGram:token_level_type=Letter,gram_order=2",
+                "Word:token_level_type=Word"
+            };
             TVector<TString> refPerFloatFeatureQuantization = {"1:border_count=4", "2:nan_mode=Max,border_type=MinEntropy"};
 
             // parsed variables
@@ -242,6 +248,34 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
             TJsonFieldHelper<TString>::Read(bootstrapOptions["type"], &parsedBootstrapType);
             TJsonFieldHelper<double>::Read(bootstrapOptions["bagging_temperature"], &parsedBaggingTemperature);
 
+            auto& textProcessingOptions = trainOptionsJson["data_processing_options"]["text_processing_options"];
+            const TString refTextProcessingOptions = ""
+                "{\n"
+                "    \"dictionaries\": [\n"
+                "        {\n"
+                "            \"dictionary_id\": \"BiGram\",\n"
+                "            \"token_level_type\": \"Letter\",\n"
+                "            \"gram_order\": \"2\"\n"
+                "        },\n"
+                "        {\n"
+                "            \"dictionary_id\": \"Word\",\n"
+                "            \"token_level_type\": \"Word\"\n"
+                "        }\n"
+                "    ],\n"
+                "    \"text_processing\": {\n"
+                "        \"TextFeature\": [\n"
+                "            {\n"
+                "                \"feature_calcer\": \"BoW\",\n"
+                "                \"dictionaries_names\": [\"BiGram\", \"Word\"]\n"
+                "            },\n"
+                "            {\n"
+                "                \"feature_calcer\": \"NaiveBayes\",\n"
+                "                \"dictionaries_names\": [\"Word\"]\n"
+                "            }\n"
+                "        ]\n"
+                "    }\n"
+                "}";
+
             // plainOptions to trainOptionsJson and outputFilesOptionsJson using PlainJsonToOptions
             UNIT_ASSERT_VALUES_EQUAL(parsedIterations, refIterations);
             UNIT_ASSERT_VALUES_EQUAL(parsedLearningRate, refLearningRate);
@@ -259,6 +293,10 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
 
             UNIT_ASSERT_VALUES_EQUAL(parsedBootstrapType, refBootstrapType);
             UNIT_ASSERT_VALUES_EQUAL(parsedBaggingTemperature, refBaggingTemperature);
+
+            NJson::TJsonValue textProcessingJson;
+            NJson::ReadJsonTree(refTextProcessingOptions, &textProcessingJson);
+            UNIT_ASSERT_VALUES_EQUAL(textProcessingJson, textProcessingOptions);
 
             // now test reverse transformation
             NJson::TJsonValue reversePlainOptions;
@@ -281,7 +319,8 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
             TString reverseParsedBootstrapType = "Laplace";
             double reverseParsedBaggingTemperature = 39.0;
 
-            TVector<TString> reverseTextOptions = {"foo", "bar"};
+            TVector<TString> reverseTextProcessingOptions = {"foo"};
+            TVector<TString> reverseDictionaryOptions = {"foo", "bar"};
             TVector<TString> reversePerFloatFeatureQuantization = {"foo", "bar"};
 
             TJsonFieldHelper<int>::Read(reversePlainOptions["iterations"], &reverseParsedIterations);
@@ -301,7 +340,8 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
             TJsonFieldHelper<TString>::Read(reversePlainOptions["bootstrap_type"], &reverseParsedBootstrapType);
             TJsonFieldHelper<double>::Read(reversePlainOptions["bagging_temperature"], &reverseParsedBaggingTemperature);
 
-            TJsonFieldHelper<TVector<TString>>::Read(reversePlainOptions["text_processing"], &reverseTextOptions);
+            TJsonFieldHelper<TVector<TString>>::Read(reversePlainOptions["text_processing"], &reverseTextProcessingOptions);
+            TJsonFieldHelper<TVector<TString>>::Read(reversePlainOptions["dictionaries"], &reverseDictionaryOptions);
             TJsonFieldHelper<TVector<TString>>::Read(reversePlainOptions["per_float_feature_quantization"], &reversePerFloatFeatureQuantization);
 
             // plainOptions == reversePlainOptions
@@ -322,7 +362,8 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
             UNIT_ASSERT_VALUES_EQUAL(reverseParsedBootstrapType, refBootstrapType);
             UNIT_ASSERT_VALUES_EQUAL(reverseParsedBaggingTemperature, refBaggingTemperature);
 
-            UNIT_ASSERT_VALUES_EQUAL(reverseTextOptions, refTextProcessing);
+            UNIT_ASSERT_VALUES_EQUAL(reverseTextProcessingOptions, refTextProcessing);
+            UNIT_ASSERT_VALUES_EQUAL(reverseDictionaryOptions, refDictionaries);
             UNIT_ASSERT_VALUES_EQUAL(reversePerFloatFeatureQuantization, refPerFloatFeatureQuantization);
         }
 }

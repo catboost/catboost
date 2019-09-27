@@ -1,0 +1,24 @@
+
+RECURSE(
+    charclass_test
+    common
+    compile_test
+    dfa_test
+    exhaustive1_test
+    exhaustive2_test
+    exhaustive3_test
+    exhaustive_test
+    filtered_re2_test
+    mimics_pcre_test
+    parse_test
+    possible_match_test
+    random_test
+    re2_arg_test
+    re2_test
+    regexp_test
+    required_prefix_test
+    search_test
+    set_test
+    simplify_test
+    string_generator_test
+)

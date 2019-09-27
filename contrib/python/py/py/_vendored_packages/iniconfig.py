@@ -1,6 +1,8 @@
 """ brain-dead simple parser for ini-style files.
 (C) Ronny Pfannschmidt, Holger Krekel -- MIT licensed
 """
+import six
+
 __all__ = ['IniConfig', 'ParseError']
 
 COMMENTCHARS = "#;"
@@ -51,11 +53,10 @@ class IniConfig(object):
         if data is None:
             if self.path.startswith('pkg:'):
                 import pkgutil
-                from cStringIO import StringIO
 
                 _, package, resource = self.path.split(':')
                 content = pkgutil.get_data(package, resource)
-                f = StringIO(content)
+                f = six.StringIO(content.decode('utf-8'))
             else:
                 f = open(self.path)
             try:

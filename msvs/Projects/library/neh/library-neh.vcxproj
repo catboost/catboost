@@ -296,6 +296,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\openssl\method\library-openssl-method.vcxproj">
       <Project>{EBC3626B-F273-EB61-E7BE-9BBC217D8FB4}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\shmat\library-shmat.vcxproj">
+      <Project>{7E0461CC-7C71-317F-E018-AE1E26D0C44F}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\streams\brotli\library-streams-brotli.vcxproj">
       <Project>{C372D0A1-5406-DEDE-C1E4-5FDC44B12554}</Project>
     </ProjectReference>

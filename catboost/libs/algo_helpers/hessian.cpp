@@ -26,17 +26,21 @@ void TSymmetricHessian::SolveNewtonEquation(
 {
     Y_ASSERT(hessian.ApproxDimension == negativeDer.ysize());
     const int approxDimension = hessian.ApproxDimension;
-    TArray2D<double> der2(approxDimension, approxDimension);
-    int idx = 0;
-    for (int dimY = 0; dimY < approxDimension; ++dimY) {
-        for (int dimX = dimY; dimX < approxDimension; ++dimX) {
-            der2[dimY][dimX] = hessian.Data[idx];
-            der2[dimX][dimY] = hessian.Data[idx++];
-        }
-        der2[dimY][dimY] -= l2Regularizer;
-    }
 
-    SolveLinearSystem(der2, negativeDer, res);
+    *res = negativeDer;
+    auto localHessian = hessian.Data;
+    int idx = 0;
+    for (int rowSize = approxDimension; rowSize >= 1; --rowSize) {
+        localHessian[idx] -= l2Regularizer;
+        idx += rowSize;
+    }
+    for (double& value : localHessian) {
+        value = - value;
+    }
+    SolveLinearSystem(localHessian, *res);
+    for (double& value : *res) {
+        value = - value;
+    }
 }
 
 

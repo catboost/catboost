@@ -1,4 +1,4 @@
-#include <catboost/libs/options/text_feature_options.h>
+#include <catboost/libs/options/text_processing_options.h>
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/text_processing/text_dataset.h>
 #include <catboost/libs/text_processing/text_column_builder.h>
@@ -40,7 +40,7 @@ Y_UNIT_TEST_SUITE(TestTextDataset) {
             "hi ha ho",
             ""
         };
-        NCatboostOptions::TTextProcessingOptions options;
+        NCatboostOptions::TTextColumnDictionaryOptions options;
         NTextProcessing::NDictionary::TDictionaryBuilderOptions builderOptions;
         builderOptions.OccurrenceLowerBound = 1;
         options.DictionaryBuilderOptions.Set(builderOptions);

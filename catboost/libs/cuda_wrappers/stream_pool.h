@@ -1,6 +1,7 @@
 #pragma once
 
 #include <catboost/libs/cuda_wrappers/base.h>
+#include <catboost/libs/cuda_wrappers/cuda_event.h>
 #include <util/system/types.h>
 #include <util/generic/vector.h>
 
@@ -29,10 +30,14 @@ namespace NCudaNN {
 
         TCudaStream Stream(ui64 idx) const {
             return idx == 0 ? DefaultStream_ : HelperStreams_[idx - 1];
-
         }
+
+        void DefaultWaitForPrefix(ui64 size);
+        void PrefixWaitForDefault(ui64 size);
     private:
         TCudaStream DefaultStream_;
+        TCudaEvent DefaultEvent_;
+        TVector<TCudaEvent> SyncEvents_;
         TVector<TCudaStream> HelperStreams_;
     };
 }

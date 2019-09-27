@@ -51,3 +51,7 @@
   - google/protobuf/message_lite.h
   - google/protobuf/repeated_field.h
   - google/protobuf/wire_format_lite.h
+  - OpenGLES/ES3/gl.h
+  - OpenGLES/ES3/glext.h
+  - GLES2/gl2.h
+  - GLES2/gl2ext.h

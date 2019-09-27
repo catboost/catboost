@@ -150,7 +150,7 @@ namespace NCB {
 
     inline ui8 CalcHistogramWidthForBorders(size_t bordersCount) {
         Y_ASSERT(bordersCount < 65536);
-        if (bordersCount < 255) {
+        if (bordersCount < 256) {
             return 8;
         }
         return 16;

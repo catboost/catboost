@@ -4,7 +4,7 @@
 namespace NCatboostCuda {
 
     void TEstimatorsExecutor::ExecEstimators(
-        TConstArrayRef<NCatboostCuda::TEstimatorId> estimatorIds,
+        TConstArrayRef<NCB::TEstimatorId> estimatorIds,
         TBinarizedFeatureVisitor learnBinarizedVisitor,
         TMaybe<TBinarizedFeatureVisitor> testBinarizedVisitor
         ) {
@@ -30,13 +30,13 @@ namespace NCatboostCuda {
             }
 
             if (estimator.IsOnline) {
-                Estimators.OnlineFeatureEstimators[estimator.Id]->ComputeOnlineFeatures(
+                Estimators.GetOnlineFeatureEstimator(estimator.Id)->ComputeOnlineFeatures(
                     PermutationIndices,
                     learnVisitor,
                     testVisitors,
                     LocalExecutor);
             } else {
-                Estimators.FeatureEstimators[estimator.Id]->ComputeFeatures(learnVisitor, testVisitors, LocalExecutor);
+                Estimators.GetFeatureEstimator(estimator.Id)->ComputeFeatures(learnVisitor, testVisitors, LocalExecutor);
             }
         }
     }

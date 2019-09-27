@@ -1035,101 +1035,101 @@
     ],
     "test_gpu.test_fit_binclass_with_text_features[BM25-Ordered]": [
         {
-            "checksum": "cdeb35684575b8d0773f5c009349a262",
+            "checksum": "7b9ea3d5474eb4f33480f13b1248c18a",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BM25-Ordered_/learn.tsv"
         },
         {
-            "checksum": "d4f20f3f4a16c401e3f3b6c5215d2f03",
+            "checksum": "c330b9b6d8a598c606ec4c50aa170149",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BM25-Ordered_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BM25-Plain]": [
         {
-            "checksum": "36c3cb076e45bd5e24534cc2f23b3abf",
+            "checksum": "8722aa70139339c8b5886ea57f3df59d",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BM25-Plain_/learn.tsv"
         },
         {
-            "checksum": "b8a6f730e8fe94f4829edb7155dacbcf",
+            "checksum": "7360da4c2548ec4fed403c51c2a4b7c5",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BM25-Plain_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW,NaiveBayes,BM25-Ordered]": [
         {
-            "checksum": "dddd528fefbed4036586b79a83931fb1",
+            "checksum": "1135780d7aef5563aab4bd6cef59b747",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-Ordered_/learn.tsv"
         },
         {
-            "checksum": "5bb1ebc75fe1fc71c3fff3a85e25a4e0",
+            "checksum": "90530931f517f9393b0498cc07ebc637",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-Ordered_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW,NaiveBayes,BM25-Plain]": [
         {
-            "checksum": "ae29cf8d74db455d440d2d77760ee800",
+            "checksum": "96fdb95c41aaf1b0c8709dfcf877e1b3",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-Plain_/learn.tsv"
         },
         {
-            "checksum": "fad2cbe81cf3b72dd29c2c749eda0a1e",
+            "checksum": "5dd619c07773fa8eab13538add279cd6",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-Plain_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW,NaiveBayes-Ordered]": [
         {
-            "checksum": "28e40b1283ec2cb96b1262660fc66495",
+            "checksum": "5e29dbf92d276429494f23eada01f34c",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes-Ordered_/learn.tsv"
         },
         {
-            "checksum": "da63d8c681cb16611be2be5a4b6baea9",
+            "checksum": "160173dfd01272140f11e923da725d55",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes-Ordered_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW,NaiveBayes-Plain]": [
         {
-            "checksum": "acf2c7c12a211760e3eaf790639f3ba4",
+            "checksum": "374bde05909a1f583440d9cd04f7a422",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes-Plain_/learn.tsv"
         },
         {
-            "checksum": "9433ee78ccd8fc24c68a3d8400ada0a5",
+            "checksum": "265a6d0d5169f5b93629954cb7ac5166",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes-Plain_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW-Ordered]": [
         {
-            "checksum": "37a564d1507329b75d643ff2e908037b",
+            "checksum": "be1aed2848d94252d621a7451dcd5e9f",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW-Ordered_/learn.tsv"
         },
         {
-            "checksum": "0998ff03f6b2b1a88fdcf678f85b2403",
+            "checksum": "d4ef28d2594025f9a7dd67da85babdad",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW-Ordered_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW-Plain]": [
         {
-            "checksum": "98711a9736b2a0c54da08b6c2c6c2c80",
+            "checksum": "48ff6b01e4de7976641a45d1180f26ec",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW-Plain_/learn.tsv"
         },
         {
-            "checksum": "81a3c41826644504f6c99ce4a09bb3b9",
+            "checksum": "7701ecef4775e2eedfcc3290e1597ed2",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW-Plain_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[NaiveBayes-Ordered]": [
         {
-            "checksum": "eb91618db25ef2601e3ced5544656bb7",
+            "checksum": "73ee772f204386a07c5df9e7b5ad58f2",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_NaiveBayes-Ordered_/learn.tsv"
         },
         {
-            "checksum": "8e345a53386258aee3c1032ebe65ec9c",
+            "checksum": "943fb5764fc8aba0067d8555687ff6bd",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_NaiveBayes-Ordered_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[NaiveBayes-Plain]": [
         {
-            "checksum": "8d70a683edb1bf1f661c822cca001f3b",
+            "checksum": "ce022bc94a1ea7ce8c0c7f391e70dcf6",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_NaiveBayes-Plain_/learn.tsv"
         },
         {
-            "checksum": "0a9fe19f311b7e02c97ca30bdbb021c8",
+            "checksum": "b744e311d38f0f3ee0a45a091502d3ae",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_NaiveBayes-Plain_/test.tsv"
         }
     ],
@@ -1141,101 +1141,101 @@
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClass-BM25]": [
         {
-            "checksum": "226e4adee16d62027a7255c3f6910281",
+            "checksum": "ca8e49731c1d465fea9ff14def6584fb",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BM25_/learn.tsv"
         },
         {
-            "checksum": "78a90f1c8624de20e1a95f631a11c13e",
+            "checksum": "f37e22558517f5d9fc063dc14c1c5094",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BM25_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClass-BoW,NaiveBayes,BM25]": [
         {
-            "checksum": "9f4f66ea38e269cfa5cbb667a9b3316c",
+            "checksum": "84dcec1f8912aeeb2068b4921d8cb047",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_BM25_/learn.tsv"
         },
         {
-            "checksum": "278d3e0ff25ff2db81c0f1a985c01a68",
+            "checksum": "269ab6619a4f272807b4db9530f7f52d",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_BM25_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClass-BoW,NaiveBayes]": [
         {
-            "checksum": "586953451ae17f515e01570fab321997",
+            "checksum": "d8e91ced57b850d905709ab11c7fd3db",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_/learn.tsv"
         },
         {
-            "checksum": "dbdb498c2f1eae6da75b9c0b6543bff4",
+            "checksum": "b1f6945e5f7b24302acfdc7722f8ce65",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClass-BoW]": [
         {
-            "checksum": "138f0ccfa57fe334769546d38f7599d0",
+            "checksum": "ff34126ff8950ea3b579ed1cfe5d5636",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_/learn.tsv"
         },
         {
-            "checksum": "0f46aad5a2711260de6ea00701cbea0d",
+            "checksum": "219fabeb38bd0790938a49052e4071dc",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClass-NaiveBayes]": [
         {
-            "checksum": "16df0d81e3423042b5ca5f58fca4d4e8",
+            "checksum": "8f5c0cdd4ebb8f0e0eaf0ee2190a4704",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-NaiveBayes_/learn.tsv"
         },
         {
-            "checksum": "9640241f7559dfb19cae6e5325636296",
+            "checksum": "db54a267f288746e1ee5f56177a2ce38",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-NaiveBayes_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BM25]": [
         {
-            "checksum": "5054bef011a3db0aeb535988a3ca9c43",
+            "checksum": "78cf1ba328d1548256df1debfcbe6ec0",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BM25_/learn.tsv"
         },
         {
-            "checksum": "c78dacad9f435d6ab4d123e5c11bec3a",
+            "checksum": "1a092d40394e35cc06b15393dbedb0f3",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BM25_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW,NaiveBayes,BM25]": [
         {
-            "checksum": "9888b8993880579b056395212d73d339",
+            "checksum": "c15eac0b54e4d1723c25c5099d98a857",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes_BM25_/learn.tsv"
         },
         {
-            "checksum": "47bda059eecd9920955a2d82a11a8f09",
+            "checksum": "a8ebea44573d109edc962738ad6f56cd",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes_BM25_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW,NaiveBayes]": [
         {
-            "checksum": "6b4158af24e2c91641129c3114dd2c84",
+            "checksum": "77f3971005b7939963b6f72d5fac8128",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes_/learn.tsv"
         },
         {
-            "checksum": "ea06d0846a7cc3ca2fa211e0d91c0090",
+            "checksum": "dae09c8c600b3dda56c90b2ab6dbe32e",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW]": [
         {
-            "checksum": "ca48cff39503e1165f51e76cf279973c",
+            "checksum": "ce2e717c086513fde2895696afba06d5",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_/learn.tsv"
         },
         {
-            "checksum": "abb72f1b189737f1cc67b3fc446788a3",
+            "checksum": "1b96cb3ed93e7622fcb3b6f68ec8c4df",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClassOneVsAll-NaiveBayes]": [
         {
-            "checksum": "94521055f368dfa7a12fd7afc0ddf025",
+            "checksum": "020fe1bfcebfa2d3dfe6db148780e4b2",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-NaiveBayes_/learn.tsv"
         },
         {
-            "checksum": "9305207fd22db27ec62318d6b71ac92d",
+            "checksum": "9bc468823009921cfb42644da05c333f",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-NaiveBayes_/test.tsv"
         }
     ],
@@ -3002,7 +3002,7 @@
         }
     ],
     "test_gpu.test_output_options": {
-        "checksum": "aef641403e38dedb0369c910d3278b39",
+        "checksum": "25037debb62bbb12ec57445f551caab9",
         "uri": "file://test_gpu.test_output_options/training_options.json"
     },
     "test_gpu.test_overfit_detector_inc_to_dec[Ordered]": [
@@ -3329,124 +3329,84 @@
             "uri": "file://test_gpu.test_save_and_apply_multiclass_labels_from_classes_count_RawFormulaVal-MultiClass_/eval.txt"
         }
     ],
-    "test_gpu.test_text_processing_options[MultiClass-min_token_occurence=10]": [
+    "test_gpu.test_text_processing_options[MultiClass-dictionaries0]": [
         {
-            "checksum": "c916331fb5670ffed0373dac98fa6442",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClass-min_token_occurence=10_/learn.tsv"
+            "checksum": "c25dc62211c69a7404ef0fd8ab9f2317",
+            "uri": "file://test_gpu.test_text_processing_options_MultiClass-dictionaries0_/learn.tsv"
         },
         {
-            "checksum": "dbdb498c2f1eae6da75b9c0b6543bff4",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClass-min_token_occurence=10_/test.tsv"
+            "checksum": "813864814e347d9473c6969d864b715f",
+            "uri": "file://test_gpu.test_text_processing_options_MultiClass-dictionaries0_/test.tsv"
         }
     ],
-    "test_gpu.test_text_processing_options[MultiClass-min_token_occurence=2:token_level_type=Word]": [
+    "test_gpu.test_text_processing_options[MultiClass-dictionaries1]": [
         {
-            "checksum": "c916331fb5670ffed0373dac98fa6442",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClass-min_token_occurence=2_token_level_type=Word_/learn.tsv"
+            "checksum": "dfe4093ca3c2974bbb98754cb2d70ae9",
+            "uri": "file://test_gpu.test_text_processing_options_MultiClass-dictionaries1_/learn.tsv"
         },
         {
-            "checksum": "dbdb498c2f1eae6da75b9c0b6543bff4",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClass-min_token_occurence=2_token_level_type=Word_/test.tsv"
+            "checksum": "3f5ccea8513c88bcdf7ad70d5068b147",
+            "uri": "file://test_gpu.test_text_processing_options_MultiClass-dictionaries1_/test.tsv"
         }
     ],
-    "test_gpu.test_text_processing_options[MultiClass-min_token_occurence=5:gram_order=1:token_level_type=Letter]": [
+    "test_gpu.test_text_processing_options[MultiClass-dictionaries2]": [
         {
-            "checksum": "c916331fb5670ffed0373dac98fa6442",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClass-min_token_occurence=5_gram_order=1_token_level_type=Letter_/learn.tsv"
+            "checksum": "1d18857909375846e27757b0084fbc21",
+            "uri": "file://test_gpu.test_text_processing_options_MultiClass-dictionaries2_/learn.tsv"
         },
         {
-            "checksum": "dbdb498c2f1eae6da75b9c0b6543bff4",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClass-min_token_occurence=5_gram_order=1_token_level_type=Letter_/test.tsv"
+            "checksum": "0d57567eae255ea2649bdcda53c13212",
+            "uri": "file://test_gpu.test_text_processing_options_MultiClass-dictionaries2_/test.tsv"
         }
     ],
-    "test_gpu.test_text_processing_options[MultiClass-min_token_occurence=5:gram_order=2:token_level_type=Letter]": [
+    "test_gpu.test_text_processing_options[MultiClass-dictionaries3]": [
         {
-            "checksum": "7c1e4eb13c419e8210cb7ec210b45d7e",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClass-min_token_occurence=5_gram_order=2_token_level_type=Letter_/learn.tsv"
+            "checksum": "ac7df171b914f677eb2d10584371245c",
+            "uri": "file://test_gpu.test_text_processing_options_MultiClass-dictionaries3_/learn.tsv"
         },
         {
-            "checksum": "dbdb498c2f1eae6da75b9c0b6543bff4",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClass-min_token_occurence=5_gram_order=2_token_level_type=Letter_/test.tsv"
+            "checksum": "039e04ec0b2642c78edd2b8a7702fcc6",
+            "uri": "file://test_gpu.test_text_processing_options_MultiClass-dictionaries3_/test.tsv"
         }
     ],
-    "test_gpu.test_text_processing_options[MultiClass-min_token_occurence=5:gram_order=3:token_level_type=Letter]": [
+    "test_gpu.test_text_processing_options[MultiClassOneVsAll-dictionaries0]": [
         {
-            "checksum": "586953451ae17f515e01570fab321997",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClass-min_token_occurence=5_gram_order=3_token_level_type=Letter_/learn.tsv"
+            "checksum": "8cea750c36a8ad9fba3eba0dc0ae9207",
+            "uri": "file://test_gpu.test_text_processing_options_MultiClassOneVsAll-dictionaries0_/learn.tsv"
         },
         {
-            "checksum": "dbdb498c2f1eae6da75b9c0b6543bff4",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClass-min_token_occurence=5_gram_order=3_token_level_type=Letter_/test.tsv"
+            "checksum": "1773d8168ccd92038d55fe1b852c6932",
+            "uri": "file://test_gpu.test_text_processing_options_MultiClassOneVsAll-dictionaries0_/test.tsv"
         }
     ],
-    "test_gpu.test_text_processing_options[MultiClass-min_token_occurence=5:token_level_type=Word]": [
+    "test_gpu.test_text_processing_options[MultiClassOneVsAll-dictionaries1]": [
         {
-            "checksum": "7c1e4eb13c419e8210cb7ec210b45d7e",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClass-min_token_occurence=5_token_level_type=Word_/learn.tsv"
+            "checksum": "c477d35fded761d9761929ad7303423b",
+            "uri": "file://test_gpu.test_text_processing_options_MultiClassOneVsAll-dictionaries1_/learn.tsv"
         },
         {
-            "checksum": "dbdb498c2f1eae6da75b9c0b6543bff4",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClass-min_token_occurence=5_token_level_type=Word_/test.tsv"
+            "checksum": "451bea1b92ae5e15e48e36da7b1d963a",
+            "uri": "file://test_gpu.test_text_processing_options_MultiClassOneVsAll-dictionaries1_/test.tsv"
         }
     ],
-    "test_gpu.test_text_processing_options[MultiClassOneVsAll-min_token_occurence=10]": [
+    "test_gpu.test_text_processing_options[MultiClassOneVsAll-dictionaries2]": [
         {
-            "checksum": "6b4158af24e2c91641129c3114dd2c84",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClassOneVsAll-min_token_occurence=10_/learn.tsv"
+            "checksum": "0131192da22553a3c17527c0266ec48c",
+            "uri": "file://test_gpu.test_text_processing_options_MultiClassOneVsAll-dictionaries2_/learn.tsv"
         },
         {
-            "checksum": "ea06d0846a7cc3ca2fa211e0d91c0090",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClassOneVsAll-min_token_occurence=10_/test.tsv"
+            "checksum": "6de1e338419ede4678219965433f0c11",
+            "uri": "file://test_gpu.test_text_processing_options_MultiClassOneVsAll-dictionaries2_/test.tsv"
         }
     ],
-    "test_gpu.test_text_processing_options[MultiClassOneVsAll-min_token_occurence=2:token_level_type=Word]": [
+    "test_gpu.test_text_processing_options[MultiClassOneVsAll-dictionaries3]": [
         {
-            "checksum": "6b4158af24e2c91641129c3114dd2c84",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClassOneVsAll-min_token_occurence=2_token_level_type=Word_/learn.tsv"
+            "checksum": "49e4983ccb97876892c9a315bcd0f8ef",
+            "uri": "file://test_gpu.test_text_processing_options_MultiClassOneVsAll-dictionaries3_/learn.tsv"
         },
         {
-            "checksum": "ea06d0846a7cc3ca2fa211e0d91c0090",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClassOneVsAll-min_token_occurence=2_token_level_type=Word_/test.tsv"
-        }
-    ],
-    "test_gpu.test_text_processing_options[MultiClassOneVsAll-min_token_occurence=5:gram_order=1:token_level_type=Letter]": [
-        {
-            "checksum": "6b4158af24e2c91641129c3114dd2c84",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClassOneVsAll-min_token_occurence=5_gram_order=1_token_level_type=Letter_/learn.tsv"
-        },
-        {
-            "checksum": "ea06d0846a7cc3ca2fa211e0d91c0090",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClassOneVsAll-min_token_occurence=5_gram_order=1_token_level_type=Letter_/test.tsv"
-        }
-    ],
-    "test_gpu.test_text_processing_options[MultiClassOneVsAll-min_token_occurence=5:gram_order=2:token_level_type=Letter]": [
-        {
-            "checksum": "6b4158af24e2c91641129c3114dd2c84",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClassOneVsAll-min_token_occurence=5_gram_order=2_token_level_type=Letter_/learn.tsv"
-        },
-        {
-            "checksum": "ea06d0846a7cc3ca2fa211e0d91c0090",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClassOneVsAll-min_token_occurence=5_gram_order=2_token_level_type=Letter_/test.tsv"
-        }
-    ],
-    "test_gpu.test_text_processing_options[MultiClassOneVsAll-min_token_occurence=5:gram_order=3:token_level_type=Letter]": [
-        {
-            "checksum": "6b4158af24e2c91641129c3114dd2c84",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClassOneVsAll-min_token_occurence=5_gram_order=3_token_level_type=Letter_/learn.tsv"
-        },
-        {
-            "checksum": "ea06d0846a7cc3ca2fa211e0d91c0090",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClassOneVsAll-min_token_occurence=5_gram_order=3_token_level_type=Letter_/test.tsv"
-        }
-    ],
-    "test_gpu.test_text_processing_options[MultiClassOneVsAll-min_token_occurence=5:token_level_type=Word]": [
-        {
-            "checksum": "6b4158af24e2c91641129c3114dd2c84",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClassOneVsAll-min_token_occurence=5_token_level_type=Word_/learn.tsv"
-        },
-        {
-            "checksum": "ea06d0846a7cc3ca2fa211e0d91c0090",
-            "uri": "file://test_gpu.test_text_processing_options_MultiClassOneVsAll-min_token_occurence=5_token_level_type=Word_/test.tsv"
+            "checksum": "b0f6c4657bd3599029a220a9868d9281",
+            "uri": "file://test_gpu.test_text_processing_options_MultiClassOneVsAll-dictionaries3_/test.tsv"
         }
     ],
     "test_gpu.test_train_on_binarized_equal_train_on_float[QueryRMSE-Ordered]": [

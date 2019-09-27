@@ -4,6 +4,7 @@
 
 #include <catboost/libs/helpers/hash.h>
 #include <catboost/libs/helpers/set.h>
+#include <catboost/libs/data_new/feature_estimators.h>
 
 #include <util/system/types.h>
 #include <util/generic/vector.h>
@@ -218,47 +219,14 @@ namespace NCatboostCuda {
     };
 
 
-    struct TEstimatorId {
-        ui32 Id = 0;
-        bool IsOnline = false;
-
-        bool operator<(const TEstimatorId& rhs) const {
-            return std::tie(Id, IsOnline) < std::tie(rhs.Id, rhs.IsOnline);
-        }
-        bool operator>(const TEstimatorId& rhs) const {
-            return rhs < *this;
-        }
-        bool operator<=(const TEstimatorId& rhs) const {
-            return !(rhs < *this);
-        }
-        bool operator>=(const TEstimatorId& rhs) const {
-            return !(*this < rhs);
-        }
-
-        bool operator==(const TEstimatorId& rhs) const {
-            return std::tie(Id, IsOnline) == std::tie(rhs.Id, rhs.IsOnline);
-        }
-        bool operator!=(const TEstimatorId& rhs) const {
-            return !(rhs == *this);
-        }
-
-        ui64 GetHash() const {
-            return MultiHash(Id, IsOnline);
-        }
-
-        Y_SAVELOAD_DEFINE(Id, IsOnline);
-
-    };
-
-
     struct TEstimatedFeature {
-        TEstimatorId EstimatorId;
-        ui32 FeatureId = 0;
+        NCB::TEstimatorId EstimatorId;
+        ui32 LocalFeatureId = 0;
 
-        Y_SAVELOAD_DEFINE(EstimatorId, FeatureId);
+        Y_SAVELOAD_DEFINE(EstimatorId, LocalFeatureId);
 
         bool operator<(const TEstimatedFeature& rhs) const {
-            return std::tie(EstimatorId, FeatureId) < std::tie(rhs.EstimatorId, rhs.FeatureId);
+            return std::tie(EstimatorId, LocalFeatureId) < std::tie(rhs.EstimatorId, rhs.LocalFeatureId);
         }
         bool operator>(const TEstimatedFeature& rhs) const {
             return rhs < *this;
@@ -270,14 +238,14 @@ namespace NCatboostCuda {
             return !(*this < rhs);
         }
         bool operator==(const TEstimatedFeature& rhs) const {
-            return std::tie(EstimatorId, FeatureId) == std::tie(rhs.EstimatorId, rhs.FeatureId);
+            return std::tie(EstimatorId, LocalFeatureId) == std::tie(rhs.EstimatorId, rhs.LocalFeatureId);
         }
         bool operator!=(const TEstimatedFeature& rhs) const {
             return !(rhs == *this);
         }
 
         ui64 GetHash() const {
-            return MultiHash(EstimatorId, FeatureId);
+            return MultiHash(EstimatorId, LocalFeatureId);
         }
 
 
@@ -304,13 +272,6 @@ struct THash<NCatboostCuda::TFeatureTensor> {
 template <>
 struct THash<NCatboostCuda::TCtr> {
     inline size_t operator()(const NCatboostCuda::TCtr& value) const {
-        return value.GetHash();
-    }
-};
-
-template <>
-struct THash<NCatboostCuda::TEstimatorId> {
-    inline size_t operator()(const NCatboostCuda::TEstimatorId& value) const {
         return value.GetHash();
     }
 };

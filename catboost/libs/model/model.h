@@ -433,10 +433,17 @@ public:
         return !(*this == other);
     }
 
+    //TODO(kirillovs): get rid of this method
     void Swap(TFullModel& other) {
-        DoSwap(ObliviousTrees, other.ObliviousTrees);
-        DoSwap(ModelInfo, other.ModelInfo);
-        DoSwap(CtrProvider, other.CtrProvider);
+        with_lock(CurrentEvaluatorLock) {
+            with_lock(other.CurrentEvaluatorLock) {
+                DoSwap(ObliviousTrees, other.ObliviousTrees);
+                DoSwap(ModelInfo, other.ModelInfo);
+                DoSwap(CtrProvider, other.CtrProvider);
+                DoSwap(FormulaEvaluatorType, other.FormulaEvaluatorType);
+                DoSwap(Evaluator, other.Evaluator);
+            }
+        }
     }
 
     /**

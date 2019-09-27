@@ -17,7 +17,7 @@ NCatboostOptions::TDataProcessingOptions::TDataProcessingOptions(ETaskType type)
           type
       ))
       , PerFloatFeatureQuantization("per_float_feature_quantization", TMap<ui32, TBinarizationOptions>())
-      , TextProcessing("text_processing", TTextProcessingOptionCollection())
+      , TextProcessingOptions("text_processing_options", TTextProcessingOptions())
       , ClassesCount("classes_count", 0)
       , ClassWeights("class_weights", TVector<float>())
       , ClassNames("class_names", TVector<TString>())
@@ -31,7 +31,7 @@ NCatboostOptions::TDataProcessingOptions::TDataProcessingOptions(ETaskType type)
 void NCatboostOptions::TDataProcessingOptions::Load(const NJson::TJsonValue& options) {
     CheckedLoad(
         options, &IgnoredFeatures, &HasTimeFlag, &AllowConstLabel, &TargetBorder,
-        &FloatFeaturesBinarization, &PerFloatFeatureQuantization, &TextProcessing,
+        &FloatFeaturesBinarization, &PerFloatFeatureQuantization, &TextProcessingOptions,
         &ClassesCount, &ClassWeights, &ClassNames,
         &DevDefaultValueFractionToEnableSparseStorage,
         &DevSparseArrayIndexingType,
@@ -44,7 +44,7 @@ void NCatboostOptions::TDataProcessingOptions::Load(const NJson::TJsonValue& opt
 void NCatboostOptions::TDataProcessingOptions::Save(NJson::TJsonValue* options) const {
     SaveFields(
         options, IgnoredFeatures, HasTimeFlag, AllowConstLabel, TargetBorder,
-        FloatFeaturesBinarization, PerFloatFeatureQuantization, TextProcessing,
+        FloatFeaturesBinarization, PerFloatFeatureQuantization, TextProcessingOptions,
         ClassesCount, ClassWeights, ClassNames,
         DevDefaultValueFractionToEnableSparseStorage,
         DevSparseArrayIndexingType,
@@ -54,12 +54,12 @@ void NCatboostOptions::TDataProcessingOptions::Save(NJson::TJsonValue* options) 
 
 bool NCatboostOptions::TDataProcessingOptions::operator==(const TDataProcessingOptions& rhs) const {
     return std::tie(IgnoredFeatures, HasTimeFlag, AllowConstLabel, TargetBorder,
-                    FloatFeaturesBinarization, PerFloatFeatureQuantization, TextProcessing,
+                    FloatFeaturesBinarization, PerFloatFeatureQuantization, TextProcessingOptions,
                     ClassesCount, ClassWeights, ClassNames,
                     DevDefaultValueFractionToEnableSparseStorage,
                     DevSparseArrayIndexingType, GpuCatFeaturesStorage) ==
         std::tie(rhs.IgnoredFeatures, rhs.HasTimeFlag, rhs.AllowConstLabel, rhs.TargetBorder,
-                 rhs.FloatFeaturesBinarization, rhs.PerFloatFeatureQuantization, rhs.TextProcessing,
+                 rhs.FloatFeaturesBinarization, rhs.PerFloatFeatureQuantization, rhs.TextProcessingOptions,
                  rhs.ClassesCount, rhs.ClassWeights,
  rhs.ClassNames,
                  rhs.DevDefaultValueFractionToEnableSparseStorage,

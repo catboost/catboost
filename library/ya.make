@@ -65,6 +65,9 @@ RECURSE(
     lfalloc/dbg
     lfalloc/dbg_info
     lfalloc/yt
+    linear_regression
+    linear_regression/benchmark
+    linear_regression/ut
     logger
     logger/global
     logger/global/ut
@@ -84,6 +87,8 @@ RECURSE(
     python
     resource
     resource/ut
+    shmat
+    shmat/ut
     sse
     statistics
     statistics/ut
@@ -93,6 +98,7 @@ RECURSE(
     svnversion/java
     terminate_handler
     terminate_handler/sample
+    testing
     text_processing
     threading
     unittest

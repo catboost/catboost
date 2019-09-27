@@ -51,6 +51,7 @@ PEERDIR(
     library/binsaver
     library/netliba/socket
     library/string_utils/url
+    library/shmat
 )
 
 END()

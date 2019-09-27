@@ -15,7 +15,7 @@
 #include <pthread.h>
 #endif
 #include "block_chain.h"
-#include <util/system/shmat.h>
+#include <library/shmat/shmat.h>
 
 #include <atomic>
 

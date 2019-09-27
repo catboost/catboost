@@ -78,16 +78,6 @@ namespace NCB {
     };
 
 
-    using TFeatureEstimatorPtr = TIntrusivePtr<IFeatureEstimator>;
-    using TOnlineFeatureEstimatorPtr = TIntrusivePtr<IOnlineFeatureEstimator>;
-
-    struct TFeatureEstimators {
-
-        bool Empty() const {
-            return FeatureEstimators.empty() && OnlineFeatureEstimators.empty();
-        }
-
-        TVector<NCB::TFeatureEstimatorPtr> FeatureEstimators;
-        TVector<NCB::TOnlineFeatureEstimatorPtr> OnlineFeatureEstimators;
-    };
+    using TFeatureEstimatorPtr = TIntrusiveConstPtr<IFeatureEstimator>;
+    using TOnlineFeatureEstimatorPtr = TIntrusiveConstPtr<IOnlineFeatureEstimator>;
 }

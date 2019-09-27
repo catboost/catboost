@@ -7,7 +7,7 @@
 #include <limits>
 
 #if defined(_win32_) || defined(__IOS__)
-#include <util/system/shmat.h>
+#include <library/shmat/shmat.h>
 
 struct TPosixSharedMemory: public TSharedMemory {
     using TSharedMemory::TSharedMemory;
@@ -31,7 +31,7 @@ struct TPosixSharedMemory: public TSharedMemory {
 #define INVALID_HANDLE_VALUE -1
 #define INVALID_POINTER_VALUE NULL // user expects NULL as error result
 
-// source-compatible with TSharedMemory (util/system/shmat.h)
+// source-compatible with TSharedMemory (library/shmat/shmat.h)
 class TPosixSharedMemory: public TThrRefBase {
 public:
     enum EUnlinkPolicy { UP_DONT_UNLINK,

@@ -239,7 +239,7 @@ void NCatboostOptions::TCatBoostOptions::Load(const NJson::TJsonValue& options) 
                 &SystemOptions, &BoostingOptions, &ModelBasedEvalOptions,
                 &ObliviousTreeOptions,
                 &DataProcessingOptions, &LossFunctionDescription,
-                &RandomSeed, &CatFeatureParams, &TextFeatureOptions,
+                &RandomSeed, &CatFeatureParams,
                 &FlatParams, &Metadata, &LoggingLevel,
                 &IsProfile, &MetricOptions);
     SetNotSpecifiedOptionsToDefaults();
@@ -250,7 +250,7 @@ void NCatboostOptions::TCatBoostOptions::Load(const NJson::TJsonValue& options) 
 void NCatboostOptions::TCatBoostOptions::Save(NJson::TJsonValue* options) const {
     SaveFields(options, TaskType, SystemOptions, BoostingOptions, ModelBasedEvalOptions, ObliviousTreeOptions,
                DataProcessingOptions, LossFunctionDescription,
-               RandomSeed, CatFeatureParams, TextFeatureOptions, FlatParams,
+               RandomSeed, CatFeatureParams, FlatParams,
                Metadata, LoggingLevel, IsProfile, MetricOptions);
 }
 
@@ -862,7 +862,6 @@ NCatboostOptions::TCatBoostOptions::TCatBoostOptions(ETaskType taskType)
     , DataProcessingOptions("data_processing_options", TDataProcessingOptions(taskType))
     , LossFunctionDescription("loss_function", TLossDescription())
     , CatFeatureParams("cat_feature_params", TCatFeatureParams(taskType))
-    , TextFeatureOptions("text_feature_options", TTextFeatureOptions())
     , FlatParams("flat_params", NJson::TJsonValue(NJson::JSON_MAP))
     , Metadata("metadata", NJson::TJsonValue(NJson::JSON_MAP))
     , RandomSeed("random_seed", 0)

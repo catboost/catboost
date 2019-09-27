@@ -11,7 +11,7 @@ SRCS(
 
 PEERDIR(
     catboost/libs/text_features
-
+    catboost/libs/text_features/ut/lib
 )
 
 

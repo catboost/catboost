@@ -921,26 +921,32 @@ static void BindTextFeaturesParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonVa
     using namespace NTextProcessing::NDictionary;
 
     auto& parser = *parserPtr;
-    parser.AddLongOption("text-feature-estimators")
-        .RequiredArgument("Comma separated list of names")
-        .Help("List of feature estimators to compute over each text column in dataset")
-        .Handler1T<TString>([plainJsonPtr](const TString& estimatorsLine) {
-            for (const auto& featureEstimator : StringSplitter(estimatorsLine).Split(',').SkipEmpty()) {
-                FromString<EFeatureCalcerType>(featureEstimator.Token());
-                (*plainJsonPtr)["text_feature_estimators"].AppendValue(NJson::TJsonValue(featureEstimator.Token()));
+    parser.AddLongOption("dictionaries")
+        .RequiredArgument("DESC[;DESC...]")
+        .Help("Semicolon separated list of dictionary descriptions. Description should be written in format "
+            "DictionaryId[:min_token_occurrence=MinTokenOccurrence][:max_dict_size=MaxDictSize][:gram_order=GramOrder][:token_level_type=TokenLevelType]"
+        ).Handler1T<TString>([plainJsonPtr](const TString& descriptionLine) {
+            for (const auto& oneConfig : StringSplitter(descriptionLine).Split(';').SkipEmpty()) {
+                (*plainJsonPtr)["dictionaries"].AppendValue(oneConfig.Token());
             }
-            CB_ENSURE(!(*plainJsonPtr)["text_feature_estimators"].GetArray().empty(), "Empty text features list " << estimatorsLine);
+            CB_ENSURE(
+                !(*plainJsonPtr)["dictionaries"].GetArray().empty(),
+                "Empty text processing settings " << descriptionLine
+            );
         });
 
     parser.AddLongOption("text-processing")
         .RequiredArgument("DESC[;DESC...]")
-        .Help("Semicolon separated list of text processing descriptions. Text processing description should be written in format "
-            "FeatureId[:min_token_occurence=MinTokenOccurence][:max_dict_size=MaxDictSize][:gram_order=GramOrder][:token_level_type=TokenLevelType]"
-        ).Handler1T<TString>([plainJsonPtr](const TString& descriptionLine) {
-            for (const auto& oneConfig : StringSplitter(descriptionLine).Split(';').SkipEmpty()) {
+        .Help("Semicolon separated list of text processing descriptions. Description should be written in format "
+              "[TextFeatureId~]NaiveBayes:DictionaryName1|BoW:LetterGramDictionary,BiGramDictionary")
+        .Handler1T<TString>([plainJsonPtr](const TString& estimatorsLine) {
+            for (const auto& oneConfig : StringSplitter(estimatorsLine).Split(';').SkipEmpty()) {
                 (*plainJsonPtr)["text_processing"].AppendValue(oneConfig.Token());
             }
-            CB_ENSURE(!(*plainJsonPtr)["text_processing"].GetArray().empty(), "Empty text processing settings " << descriptionLine);
+            CB_ENSURE(
+                !(*plainJsonPtr)["text_processing"].GetArray().empty(),
+                "Empty text processing list " << estimatorsLine
+            );
         });
 }
 

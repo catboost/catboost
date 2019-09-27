@@ -5,11 +5,12 @@
 #include <catboost/libs/text_processing/dictionary.h>
 
 #include <util/generic/hash.h>
+#include <util/generic/ptr.h>
 #include <util/generic/vector.h>
 
 namespace NCB {
 
-    class TTextProcessingCollection {
+    class TTextProcessingCollection : public TThrRefBase {
     public:
         TTextProcessingCollection() = default;
 

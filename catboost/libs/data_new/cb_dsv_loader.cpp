@@ -6,6 +6,7 @@
 #include <catboost/libs/helpers/mem_usage.h>
 
 #include <library/object_factory/object_factory.h>
+#include <library/string_utils/csv/csv.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/strbuf.h>
@@ -43,12 +44,12 @@ namespace NCB {
         TMaybe<TString> header = LineDataReader->GetHeader();
         TMaybe<TVector<TString>> headerColumns;
         if (header) {
-            headerColumns = TVector<TString>(StringSplitter(*header).Split(FieldDelimiter));
+            headerColumns = TVector<TString>(NCsvFormat::CsvSplitter(*header, FieldDelimiter, '"'));
         }
 
         TString firstLine;
         CB_ENSURE(LineDataReader->ReadLine(&firstLine), "TCBDsvDataLoader: no data rows in pool");
-        const ui32 columnsCount = StringSplitter(firstLine).Split(FieldDelimiter).Count();
+        const ui32 columnsCount = TVector<TString>(NCsvFormat::CsvSplitter(firstLine, FieldDelimiter, '"')).size();
 
         auto columnsDescription = TDataColumnsMetaInfo{ CreateColumnsDescription(columnsCount) };
         auto featureIds = columnsDescription.GenerateFeatureIds(headerColumns);
@@ -113,13 +114,14 @@ namespace NCB {
             textFeatures.yresize(featuresLayout.GetTextFeatureCount());
 
             size_t tokenCount = 0;
-            TVector<TStringBuf> tokens = StringSplitter(line).Split(FieldDelimiter);
             try {
-                CB_ENSURE(
-                    tokens.size() == columnsDescription.size(),
-                    "wrong column count: expected " << columnsDescription.ysize() << ", found " << tokens.size()
-                );
-                for (const auto& token : tokens) {
+                auto splitter = NCsvFormat::CsvSplitter(line, FieldDelimiter, catFeatures.empty() ? '\0' : '"');
+                do {
+                    TStringBuf token = splitter.Consume();
+                    CB_ENSURE(
+                        tokenCount < columnsDescription.size(),
+                        "wrong column count: expected " << columnsDescription.ysize() << ", found " << tokenCount
+                    );
                     try {
                         switch (columnsDescription[tokenCount].Type) {
                             case EColumn::Categ: {
@@ -207,7 +209,11 @@ namespace NCB {
                             << "\"): " << e.what();
                     }
                     ++tokenCount;
-                }
+                } while (splitter.Step());
+                CB_ENSURE(
+                    tokenCount == columnsDescription.size(),
+                    "wrong column count: expected " << columnsDescription.ysize() << ", found " << tokenCount
+                );
                 if (!floatFeatures.empty()) {
                     visitor->AddAllFloatFeatures(lineIdx, floatFeatures);
                 }

@@ -1742,6 +1742,38 @@ def test_ignored_features(task_type):
     return compare_canonical_models(output_model_path)
 
 
+def test_multi_reload_model(task_type):
+    friday_train_pool = Pool(data=BLACK_FRIDAY_TRAIN_FILE, column_description=BLACK_FRIDAY_CD_FILE, has_header=True)
+    friday_params = dict(
+        iterations=20,
+        learning_rate=0.5,
+        task_type=task_type,
+        devices='0',
+        max_ctr_complexity=1,
+        target_border=5000,
+    )
+    friday_model = CatBoostClassifier(**friday_params)
+    friday_model.fit(friday_train_pool)
+    friday_model_path = test_output_path('friday_' + OUTPUT_MODEL_PATH)
+    friday_model.save_model(friday_model_path)
+
+    adult_train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    adult_model = CatBoost({'iterations': 2, 'loss_function': 'RMSE', 'task_type': task_type, 'devices': '0'})
+    adult_model.fit(adult_train_pool)
+    adult_model_path = test_output_path('adult_' + OUTPUT_MODEL_PATH)
+    adult_model.save_model(adult_model_path)
+
+    model = CatBoost()
+    model.load_model(friday_model_path)
+    model.predict(friday_train_pool)
+    model.load_model(adult_model_path)
+    model.predict(adult_train_pool)
+    model.load_model(friday_model_path)
+    model.predict(friday_train_pool)
+    model.load_model(adult_model_path)
+    model.predict(adult_train_pool)
+
+
 def test_ignored_features_names(task_type):
     train_pool = Pool(data=BLACK_FRIDAY_TRAIN_FILE, column_description=BLACK_FRIDAY_CD_FILE, has_header=True)
     test_pool = Pool(data=BLACK_FRIDAY_TEST_FILE, column_description=BLACK_FRIDAY_CD_FILE, has_header=True)
@@ -5740,7 +5772,8 @@ def test_training_and_prediction_equal_on_pandas_dense_and_sparse_input(task_typ
 
 @pytest.mark.parametrize('model_shrink_rate', [None, 0, 0.2])
 def test_param_array_monotonic_constrains(model_shrink_rate):
-    from catboost.datasets import monotonic2
+    from catboost.datasets import monotonic2, set_cache_path
+    set_cache_path(test_output_path())  # specify cache dir to fix potential data race while downloading dataset
     monotonic2_train, monotonic2_test = monotonic2()
     train_pool = Pool(data=monotonic2_train.drop(columns=['Target']), label=monotonic2_train['Target'])
     test_pool = Pool(data=monotonic2_test.drop(columns=['Target']), label=monotonic2_test['Target'])

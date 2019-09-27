@@ -230,12 +230,12 @@ namespace NCB {
 
     static TTextDataSetPtr CreateTextDataSet(
         const TQuantizedObjectsDataProvider& dataProvider,
-        TTextFeatureIdx textFeatureIdx,
-        NPar::TLocalExecutor* localExecutor) {
+        ui32 tokenizedTextFeatureIdx,
+        NPar::TLocalExecutor* localExecutor
+    ) {
+        auto dictionary = dataProvider.GetQuantizedFeaturesInfo()->GetDictionary(tokenizedTextFeatureIdx);
+        const TTokenizedTextValuesHolder* textColumn = *dataProvider.GetTextFeature(tokenizedTextFeatureIdx);
 
-        auto dictionary = dataProvider.GetQuantizedFeaturesInfo()->GetDictionary(textFeatureIdx);
-
-        const TTokenizedTextValuesHolder* textColumn = *dataProvider.GetTextFeature(textFeatureIdx.Idx);
         if (const auto* denseData = dynamic_cast<const TTokenizedTextArrayValuesHolder*>(textColumn)) {
             TMaybeOwningArrayHolder<TText> textData = denseData->ExtractValues(localExecutor);
             TMaybeOwningConstArrayHolder<TText> constTextData
@@ -260,42 +260,61 @@ namespace NCB {
         return MakeIntrusive<TTextClassificationTarget>(std::move(classes), numClasses);
     }
 
-    static TFeatureEstimators CreateEstimators(
-        TConstArrayRef<EFeatureCalcerType> estimatorsTypes,
+    static TFeatureEstimatorsPtr CreateEstimators(
+        TVector<NCatboostOptions::TTokenizedFeatureDescription> tokenizedFeaturesDescription,
         TTrainingDataProviders pools,
-        NPar::TLocalExecutor* localExecutor) {
+        NPar::TLocalExecutor* localExecutor
+    ) {
+        TFeatureEstimatorsBuilder estimatorsBuilder;
 
-        TFeatureEstimators estimators;
-        CB_ENSURE(
-            !AnyOf(estimatorsTypes, IsEmbeddingFeatureEstimator),
-            "Embedding features cannot be calculated yet"
-        );
-
+        const TQuantizedObjectsDataProvider& learnDataProvider = *pools.Learn->ObjectsData;
         auto learnTarget = CreateTextClassificationTarget(*pools.Learn->TargetData);
+
         pools.Learn->MetaInfo.FeaturesLayout->IterateOverAvailableFeatures<EFeatureType::Text>(
-            [&estimators, &estimatorsTypes, &pools, &learnTarget, localExecutor](TTextFeatureIdx textFeatureIdx){
-                auto learnTexts = CreateTextDataSet(*pools.Learn->ObjectsData, textFeatureIdx, localExecutor);
+            [&](TTextFeatureIdx tokenizedTextFeatureIdx) {
+
+                const ui32 tokenizedFeatureIdx = tokenizedTextFeatureIdx.Idx;
+                auto learnTexts = CreateTextDataSet(learnDataProvider, tokenizedFeatureIdx, localExecutor);
 
                 TVector<TTextDataSetPtr> testTexts;
                 for (const auto& testDataProvider : pools.Test) {
                     testTexts.emplace_back(
-                        CreateTextDataSet(*testDataProvider->ObjectsData, textFeatureIdx, localExecutor));
+                        CreateTextDataSet(
+                            *testDataProvider->ObjectsData,
+                            tokenizedFeatureIdx,
+                            localExecutor
+                        ));
                 }
 
+                const auto& featureDescription = tokenizedFeaturesDescription[tokenizedFeatureIdx];
                 TEmbeddingPtr embedding;
-                auto offlineEstimators = CreateEstimators(estimatorsTypes, embedding, learnTexts, testTexts);
+                auto offlineEstimators = CreateEstimators(
+                    featureDescription.FeatureEstimators.Get(),
+                    embedding,
+                    learnTexts,
+                    testTexts
+                );
+
+                const ui32 textFeatureId = tokenizedFeaturesDescription[tokenizedFeatureIdx].TextFeatureId;
+                TEstimatorSourceId sourceFeatureIdx{textFeatureId, tokenizedFeatureIdx};
                 for (auto&& estimator : offlineEstimators) {
-                    estimators.FeatureEstimators.emplace_back(std::move(estimator));
+                    estimatorsBuilder.AddFeatureEstimator(std::move(estimator), sourceFeatureIdx);
                 }
 
-                auto onlineEstimators = CreateEstimators(estimatorsTypes, embedding, learnTarget, learnTexts, testTexts);
+                auto onlineEstimators = CreateEstimators(
+                    featureDescription.FeatureEstimators.Get(),
+                    embedding,
+                    learnTarget,
+                    learnTexts,
+                    testTexts
+                );
                 for (auto&& estimator : onlineEstimators) {
-                    estimators.OnlineFeatureEstimators.emplace_back(std::move(estimator));
+                    estimatorsBuilder.AddFeatureEstimator(std::move(estimator), sourceFeatureIdx);
                 }
             }
         );
 
-        return estimators;
+        return estimatorsBuilder.Build();
     }
 
 
@@ -353,15 +372,13 @@ namespace NCB {
             );
         }
 
-
-        if (trainingData.Learn->MetaInfo.FeaturesLayout->GetTextFeatureCount() > 0 &&
-            params->TextFeatureOptions->FeatureEstimators->size() > 0) {
+        if (trainingData.Learn->MetaInfo.FeaturesLayout->GetTextFeatureCount() > 0) {
             CB_ENSURE(
                 IsClassificationObjective(params->LossFunctionDescription->LossFunction),
                 "Computation of online text features is supported only for classification task"
             );
             trainingData.FeatureEstimators = CreateEstimators(
-                params->TextFeatureOptions->FeatureEstimators.Get(),
+                quantizedFeaturesInfo->GetTextProcessingOptions().GetTokenizedFeatureDescriptions(),
                 trainingData,
                 localExecutor);
         }

@@ -3,7 +3,6 @@
 
 #include <catboost/libs/text_features/text_feature_calcers.h>
 #include <catboost/libs/text_processing/embedding.h>
-#include <catboost/libs/text_processing/embedding_loader.h>
 
 #include <catboost/libs/options/enum_helpers.h>
 
@@ -189,12 +188,16 @@ namespace {
 }
 
 TVector<TOnlineFeatureEstimatorPtr> NCB::CreateEstimators(
-    TConstArrayRef<EFeatureCalcerType> type,
+    TConstArrayRef<NCatboostOptions::TFeatureCalcerDescription> featureCalcerDescription,
     TEmbeddingPtr embedding,
     TTextClassificationTargetPtr target,
     TTextDataSetPtr learnTexts,
     TArrayRef<TTextDataSetPtr> testText) {
-    TSet<EFeatureCalcerType> typesSet(type.begin(), type.end());
+
+    TSet<EFeatureCalcerType> typesSet;
+    for (auto& calcerDescription: featureCalcerDescription) {
+        typesSet.insert(calcerDescription.CalcerType);
+    }
 
     TVector<TOnlineFeatureEstimatorPtr> estimators;
 
@@ -223,12 +226,17 @@ TVector<TOnlineFeatureEstimatorPtr> NCB::CreateEstimators(
 }
 
 TVector<TFeatureEstimatorPtr> NCB::CreateEstimators(
-    TConstArrayRef<EFeatureCalcerType> types,
+    TConstArrayRef<NCatboostOptions::TFeatureCalcerDescription> featureCalcerDescription,
     TEmbeddingPtr embedding,
     TTextDataSetPtr learnTexts,
     TArrayRef<TTextDataSetPtr> testText) {
+
     Y_UNUSED(embedding);
-    TSet<EFeatureCalcerType> typesSet(types.begin(), types.end());
+    TSet<EFeatureCalcerType> typesSet;
+    for (auto& calcerDescription: featureCalcerDescription) {
+        typesSet.insert(calcerDescription.CalcerType);
+    }
+
     TVector<TFeatureEstimatorPtr> estimators;
     if (typesSet.contains(EFeatureCalcerType::BoW)) {
         estimators.push_back(new TBagOfWordsEstimator(learnTexts, testText));

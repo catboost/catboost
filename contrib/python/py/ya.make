@@ -58,6 +58,11 @@ RESOURCE_FILES(
     .dist-info/top_level.txt
 )
 
+
+PEERDIR(
+    contrib/python/six
+)
+
 NO_LINT()
 
 END()

@@ -1,10 +1,8 @@
 #pragma once
 
 #include <util/generic/fwd.h>
+#include <util/generic/array_ref.h>
 
-template <typename T>
-class TArray2D;
-
-void SolveLinearSystem(const TArray2D<double>& matrix, const TVector<double>& proj, TVector<double>* res);
+void SolveLinearSystem(TArrayRef<double> matrix, TArrayRef<double> target);
 
 void SolveLinearSystemCholesky(TVector<double>* matrix, TVector<double>* target);

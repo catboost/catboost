@@ -12,6 +12,8 @@ RECURSE(
     mux_event/ut
     name_guard
     name_guard/ut
+    poor_man_openmp
+    poor_man_openmp/ut
 )
 
 NEED_CHECK()
