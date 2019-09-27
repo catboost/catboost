@@ -1281,6 +1281,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\future\library-threading-future.vcxproj">
       <Project>CF2582C4-C4A1-875F-6897-27B28FB8018A</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\threading\hot_swap\library-threading-hot_swap.vcxproj">
+      <Project>03DFB2A4-4366-AD11-DF9C-49D8A6E93B89</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
       <Project>5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854</Project>
     </ProjectReference>
@@ -1289,6 +1292,12 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\name_guard\library-threading-name_guard.vcxproj">
       <Project>245DBD38-96D4-34AF-0014-199EB4C1FEEA</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\threading\skip_list\library-threading-skip_list.vcxproj">
+      <Project>64500012-0CE9-1419-96CF-A85C24C84116</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\threading\thread_local\library-threading-thread_local.vcxproj">
+      <Project>0CA825EB-0BEC-9E11-8FE5-8C3E99DF01E6</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\unittest\library-unittest.vcxproj">
       <Project>370FE76E-4632-6C9C-415B-0652D0E1566F</Project>
