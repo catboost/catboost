@@ -269,12 +269,14 @@ void CalcLeafDersMulti(
     for (auto& curLeafDers : *leafDers) {
         curLeafDers.SetZeroDers();
     }
+    const auto& zeroDers = MakeZeroDers(approxDimension, estimationMethod, error.GetHessianType());
+    const auto hessianSize = zeroDers.SumDer2.Data.size();
     NCB::MapMerge(
         localExecutor,
-        NCB::TSimpleIndexRangesGenerator<int>(NCB::TIndexRange<int>(sampleCount), /*blockSize*/1000),
+        NCB::TSimpleIndexRangesGenerator<int>(NCB::TIndexRange<int>(sampleCount), /*blockSize*/Max<ui32>(1000, hessianSize / CB_THREAD_LIMIT)),
         /*mapFunc*/[&](NCB::TIndexRange<int> partIndexRange, TVector<TSumMulti>* leafDers) {
             Y_ASSERT(!partIndexRange.Empty());
-            leafDers->resize(leafCount, MakeZeroDers(approxDimension, estimationMethod, error.GetHessianType()));
+            leafDers->resize(leafCount, zeroDers);
             AddDersRangeMulti(
                 indices,
                 target,
@@ -290,14 +292,14 @@ void CalcLeafDersMulti(
         },
         /*mergeFunc*/[=](TVector<TSumMulti>* leafDers, TVector<TVector<TSumMulti>>&& addVector) {
             if (estimationMethod == ELeavesEstimation::Newton) {
-                for (const auto& addItem : addVector) {
-                    for (auto leafIdx : xrange(leafCount)) {
+                for (auto leafIdx : xrange(leafCount)) {
+                    for (const auto& addItem : addVector) {
                         (*leafDers)[leafIdx].AddDerDer2(addItem[leafIdx].SumDer, addItem[leafIdx].SumDer2);
                     }
                 }
             } else {
-                for (const auto& addItem : addVector) {
-                    for (auto leafIdx : xrange(leafCount)) {
+                for (auto leafIdx : xrange(leafCount)) {
+                    for (const auto& addItem : addVector) {
                         (*leafDers)[leafIdx].AddDerWeight(addItem[leafIdx].SumDer, addItem[leafIdx].SumWeights, isUpdateWeight);
                     }
                 }
