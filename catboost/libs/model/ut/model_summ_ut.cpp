@@ -43,11 +43,11 @@ Y_UNIT_TEST_SUITE(TModelSummTests) {
 
         TDataProviderPtr dataProvider = GetAdultPool();
 
-        Y_UNUSED(dataProvider);
-        /*TDataProviders dataProviders;
+        TDataProviders dataProviders;
         dataProviders.Learn = dataProvider;
         dataProviders.Test.push_back(dataProvider);
 
+        THolder<TLearnProgress> learnProgress;
 
         TrainModel(
             params,
@@ -55,29 +55,32 @@ Y_UNIT_TEST_SUITE(TModelSummTests) {
             Nothing(),
             Nothing(),
             dataProviders,
+            Nothing(),
+            &learnProgress,
             "",
             &bigModel,
             {&evalResult});
-        auto bigResult = ApplyModel(bigModel, *(dataProvider->ObjectsData));
-        bigModel.ObliviousTrees->DropUnusedFeatures();
+
+        auto bigResult = ApplyModelMulti(bigModel, *(dataProvider->ObjectsData));
+        bigModel.ObliviousTrees.GetMutable()->DropUnusedFeatures();
         TVector<TFullModel> partModels;
         TVector<const TFullModel*> modelPtrs;
         TVector<double> modelWeights(5, 1.0);
         for (size_t i = 0; i < 5; ++i) {
             auto partModel = bigModel.CopyTreeRange(i * 20, (i + 1) * 20);
-            partModel.ObliviousTrees->DropUnusedFeatures();
+            partModel.ObliviousTrees.GetMutable()->DropUnusedFeatures();
             partModels.emplace_back(partModel);
         }
         for (auto& model : partModels) {
             modelPtrs.push_back(&model);
         }
         auto mergedModel = SumModels(modelPtrs, modelWeights);
-        UNIT_ASSERT_EQUAL(mergedModel.ObliviousTrees, bigModel.ObliviousTrees);
+        UNIT_ASSERT_EQUAL(*mergedModel.ObliviousTrees, *bigModel.ObliviousTrees);
 
-        auto mergedResult = ApplyModel(mergedModel, *dataProvider->ObjectsData);
+        auto mergedResult = ApplyModelMulti(mergedModel, *dataProvider->ObjectsData);
         UNIT_ASSERT_VALUES_EQUAL(bigResult.ysize(), mergedResult.ysize());
         for (int idx = 0; idx < bigResult.ysize(); ++idx) {
             UNIT_ASSERT_VALUES_EQUAL(bigResult[idx], mergedResult[idx]);
-        }*/
+        }
     }
 }
