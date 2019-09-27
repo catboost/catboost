@@ -246,7 +246,7 @@ public:
         const TVector<TIndexType>& indices,
         TRestorableFastRng64* rand,
         NPar::TLocalExecutor* localExecutor,
-        bool isCoinFlipping = true
+        bool performRandomChoice = true
     );
     void UpdateIndices(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
     int GetDocCount() const;

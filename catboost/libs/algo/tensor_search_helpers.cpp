@@ -351,6 +351,7 @@ static void CalcWeightedData(
 void Bootstrap(
     const NCatboostOptions::TCatBoostOptions& params,
     const TVector<TIndexType>& indices,
+    const TVector<TVector<TVector<double>>>& leafValues,
     TFold* fold,
     TCalcScoreFold* sampledDocs,
     NPar::TLocalExecutor* localExecutor,
@@ -363,8 +364,8 @@ void Bootstrap(
     const float baggingTemperature = params.ObliviousTreeOptions->BootstrapConfig->GetBaggingTemperature();
     const float takenFraction = params.ObliviousTreeOptions->BootstrapConfig->GetTakenFraction();
     const bool isPairwiseScoring = IsPairwiseScoring(params.LossFunctionDescription->GetLossFunction());
-    const float headFraction = params.ObliviousTreeOptions->BootstrapConfig->GetMvsHeadFraction();
-    bool isCoinFlipping = true;
+    const TMaybe<float> mvsReg = params.ObliviousTreeOptions->BootstrapConfig->GetMvsReg();
+    bool performRandomChoice = true;
     switch (bootstrapType) {
         case EBootstrapType::Bernoulli:
             if (isPairwiseScoring) {
@@ -388,9 +389,9 @@ void Bootstrap(
             break;
         case EBootstrapType::MVS:
             if (!isPairwiseScoring) {
-                isCoinFlipping = false;
-                TMvsSampler sampler(learnSampleCount, headFraction);
-                sampler.GenSampleWeights(boostingType, rand, localExecutor, fold);
+                performRandomChoice = false;
+                TMvsSampler sampler(learnSampleCount, takenFraction, mvsReg);
+                sampler.GenSampleWeights(boostingType, leafValues, rand, localExecutor, fold);
             }
             break;
         case EBootstrapType::No:
@@ -404,7 +405,7 @@ void Bootstrap(
     if (!isPairwiseScoring) {
         CalcWeightedData(learnSampleCount, params.BoostingOptions->BoostingType.Get(), localExecutor, fold);
     }
-    sampledDocs->Sample(*fold, samplingUnit, indices, rand, localExecutor, isCoinFlipping);
+    sampledDocs->Sample(*fold, samplingUnit, indices, rand, localExecutor, performRandomChoice);
 }
 
 void CalcWeightedDerivatives(

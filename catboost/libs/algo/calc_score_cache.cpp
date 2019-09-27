@@ -478,9 +478,9 @@ void TCalcScoreFold::Sample(
     const TVector<TIndexType>& indices,
     TRestorableFastRng64* rand,
     NPar::TLocalExecutor* localExecutor,
-    bool isCoinFlipping
+    bool performRandomChoice
 ) {
-    if (isCoinFlipping) {
+    if (performRandomChoice) {
         SetSampledControl(indices.ysize(), samplingUnit, fold.LearnQueriesInfo, rand);
     } else {
         BernoulliSampleRate = 0.0f;

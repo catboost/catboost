@@ -794,12 +794,12 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         );
 
     parser
-        .AddLongOption("mvs-head-fraction")
+        .AddLongOption("mvs-reg")
         .RequiredArgument("Float")
-        .Handler1T<float>([plainJsonPtr](float mvs_head_fraction) {
-            (*plainJsonPtr)["mvs_head_fraction"] = mvs_head_fraction;
+        .Handler1T<float>([plainJsonPtr](float mvs_reg) {
+            (*plainJsonPtr)["mvs_reg"] = mvs_reg;
         })
-        .Help("Controls fraction of highest by absolute value gradients taken for minimal variance sampling. Possible values are from (0, 1]");
+        .Help("Controls the weight of denominator in MVS procedure.");
 
     parser
         .AddLongOption("observations-to-bootstrap")

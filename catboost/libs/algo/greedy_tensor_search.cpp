@@ -631,6 +631,7 @@ static void DoBootstrap(const TVector<TIndexType>& indices, TFold* fold, TLearnC
         Bootstrap(
             ctx->Params,
             indices,
+            ctx->LearnProgress->LeafValues,
             fold,
             &ctx->SampledDocs,
             ctx->LocalExecutor,

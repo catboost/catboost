@@ -288,6 +288,7 @@ namespace NCatboostDistributed {
         Bootstrap(
             localData.Params,
             localData.Indices,
+            localData.Progress->LeafValues,
             &localData.Progress->AveragingFold,
             &localData.SampledDocs,
             &NPar::LocalExecutor(),
