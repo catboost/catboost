@@ -65,7 +65,6 @@ SRCS(
     system/spinlock_ut.cpp
     system/src_root_ut.cpp
     system/src_location_ut.cpp
-    system/shmat_ut.cpp
     system/tempfile_ut.cpp
     system/thread_ut.cpp
     system/tls_ut.cpp

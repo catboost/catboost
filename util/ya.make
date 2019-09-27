@@ -296,7 +296,6 @@ JOIN_SRCS(
     system/sanitizers.cpp
     system/sem.cpp
     system/shellcommand.cpp
-    system/shmat.cpp
     system/sigset.cpp
     system/spinlock.cpp
     system/spin_wait.cpp

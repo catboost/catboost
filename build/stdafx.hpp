@@ -133,7 +133,6 @@
 #include <util/system/fstat.h>
 #include <util/system/madvise.h>
 #include <util/system/valgrind.h>
-#include <util/system/shmat.h>
 #include <util/system/rusage.h>
 #include <util/system/yassert.h>
 #include <util/system/mktemp.h>
