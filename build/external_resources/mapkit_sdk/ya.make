@@ -17,7 +17,7 @@ IF (OS_LINUX)
         GLOBAL "-I$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/include"
         GLOBAL "-I$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/linux.x86-64/include"
     )
-    LDFLAGS_FIXED(
+    LDFLAGS(
         "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/linux.x86-64/lib"
         "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/lib/x86_64-linux-gnu"
     )
@@ -29,7 +29,7 @@ ELSEIF (OS_ANDROID)
         GLOBAL "-I$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/include"
     )
     IF (ARCH_ARM7)
-        LDFLAGS_FIXED(
+        LDFLAGS(
             "-L$MAPS_NDK_PATCH/android.armeabi-v7a/lib"
             "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/android.armeabi-v7a/lib"
         )
@@ -37,7 +37,7 @@ ELSEIF (OS_ANDROID)
             GLOBAL "-I$MAPS_NDK_PATCH/android.armeabi-v7a/include"
         )
     ELSEIF (ARCH_ARM64)
-        LDFLAGS_FIXED(
+        LDFLAGS(
             "-L$MAPS_NDK_PATCH/android.arm64-v8a/lib"
             "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/android.arm64-v8a/lib"
         )
@@ -45,7 +45,7 @@ ELSEIF (OS_ANDROID)
             GLOBAL "-I$MAPS_NDK_PATCH/android.arm64-v8a/include"
         )
     ELSEIF(ARCH_I386)
-        LDFLAGS_FIXED(
+        LDFLAGS(
             "-L$MAPS_NDK_PATCH/android.x86/lib"
             "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/android.x86/lib"
         )
@@ -53,7 +53,7 @@ ELSEIF (OS_ANDROID)
             GLOBAL "-I$MAPS_NDK_PATCH/android.x86/include"
         )
     ELSEIF (ARCH_X86_64)
-        LDFLAGS_FIXED(
+        LDFLAGS(
             "-L$MAPS_NDK_PATCH/android.x86_64/lib"
             "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/android.x86_64/lib"
         )
@@ -70,7 +70,7 @@ ELSEIF (OS_DARWIN)
         GLOBAL "-I$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/include"
         GLOBAL "-I$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/darwin.x86-64/include"
     )
-    LDFLAGS_FIXED(
+    LDFLAGS(
         "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/darwin.x86-64/lib"
     )
 ELSEIF (OS_IOS)
@@ -86,19 +86,19 @@ ELSEIF (OS_IOS)
         GLOBAL "-I$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/include"
     )
     IF (ARCH_ARM64)
-        LDFLAGS_FIXED(
+        LDFLAGS(
             "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/ios.arm64/lib"
         )
     ELSEIF (ARCH_ARM7)
-        LDFLAGS_FIXED(
+        LDFLAGS(
             "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/ios.armv7/lib"
         )
     ELSEIF (ARCH_I386)
-        LDFLAGS_FIXED(
+        LDFLAGS(
             "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/ios.i386/lib"
         )
     ELSEIF (ARCH_X86_64)
-        LDFLAGS_FIXED(
+        LDFLAGS(
             "-L$MAPKIT_SDK_RESOURCE_GLOBAL/mapkit_sdk/local/ios.x86-64/lib"
         )
     ELSE()
