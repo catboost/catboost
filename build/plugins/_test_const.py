@@ -312,7 +312,7 @@ class _StatusColorMap(object):
         'timeout': Highlight.BAD,
         'flaky': Highlight.ALTERNATIVE3,
         'xfail': Highlight.WARNING,
-        'xpass': Highlight.BAD,
+        'xpass': Highlight.WARNING,
         'diff': Highlight.BAD,
         'internal': Highlight.BAD,
         'deselected': Highlight.UNIMPORTANT,
