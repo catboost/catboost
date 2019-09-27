@@ -9,6 +9,7 @@ SRCS(
     multiclient_ut.cpp
     neh_ut.cpp
     smart_ptr_ut.cpp
+    listen_ut.cpp
 )
 
 END()

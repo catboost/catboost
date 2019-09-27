@@ -99,7 +99,7 @@ namespace NNeh {
         }
     };
 
-    typedef TSimpleSharedPtr<IRequester> IRequesterRef;
+    typedef TAtomicSharedPtr<IRequester> IRequesterRef;
 
     class IService: public TThrRefBase {
     public:
@@ -124,6 +124,8 @@ namespace NNeh {
         virtual void SyncStopFork() = 0;
         /// send stopping request and return control (async call)
         virtual void Stop() = 0;
+        /// just listen, don't start any threads
+        virtual void Listen() = 0;
 
         inline IServices& Add(const TString& service, IServiceRef srv) {
             DoAdd(service, srv);

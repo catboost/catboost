@@ -6,6 +6,8 @@ RECURSE(
     future
     future/perf
     future/ut
+    hot_swap
+    hot_swap/ut
     local_executor
     local_executor/ut
     mux_event
@@ -14,6 +16,12 @@ RECURSE(
     name_guard/ut
     poor_man_openmp
     poor_man_openmp/ut
+    skip_list
+    skip_list/perf
+    skip_list/ut
+    thread_local
+    thread_local/benchmark
+    thread_local/ut
 )
 
 NEED_CHECK()

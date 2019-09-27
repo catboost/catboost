@@ -4,6 +4,8 @@
 #include "location.h"
 #include "utils.h"
 
+#include <library/threading/thread_local/thread_local.h>
+
 #include <util/generic/hash.h>
 #include <util/thread/factory.h>
 #include <util/system/yield.h>
@@ -18,6 +20,12 @@ namespace {
     class TServices: public TServicesBase, public TThrRefBase, public IOnRequest {
         typedef THashMap<TStringBuf, IServiceRef> TSrvs;
 
+        struct TVersionedServiceMap {
+            TSrvs Srvs;
+            i64 Version = 0;
+        };
+
+
         struct TFunc: public IThreadFactory::IThreadAble {
             inline TFunc(TServices* parent)
                 : Parent(parent)
@@ -25,9 +33,7 @@ namespace {
             }
 
             void DoExecute() override {
-                TSrvs srvs;
-                i64 version = -1;
-
+                TVersionedServiceMap mp;
                 while (true) {
                     IRequestRef req = Parent->RQ_->Next();
 
@@ -35,28 +41,7 @@ namespace {
                         break;
                     }
 
-                    const TStringBuf name = req->Service();
-                    TSrvs::const_iterator it = srvs.find(name);
-
-                    if (Y_UNLIKELY(it == srvs.end())) {
-                        if (Parent->UpdateServices(srvs, version)) {
-                            it = srvs.find(name);
-                        }
-                    }
-
-                    if (Y_UNLIKELY(it == srvs.end())) {
-                        it = srvs.find(AsStringBuf("*"));
-                    }
-
-                    if (Y_UNLIKELY(it == srvs.end())) {
-                        req->SendError(IRequest::NotExistService);
-                    } else {
-                        try {
-                            it->second->ServeRequest(req);
-                        } catch (...) {
-                            Cdbg << CurrentExceptionMessage() << Endl;
-                        }
-                    }
+                    Parent->ServeRequest(mp, req);
                 }
 
                 Parent->RQ_->Schedule(nullptr);
@@ -88,7 +73,16 @@ namespace {
             AtomicIncrement(SelfVersion_);
         }
 
+        inline void Listen() {
+            Y_ENSURE(!HasLoop_ || !*HasLoop_);
+            RR_ = MultiRequester(ListenAddrs(), this);
+            HasLoop_ = false;
+        }
+
         inline void Loop(size_t threads) {
+            Y_ENSURE(!HasLoop_ || *HasLoop_);
+            HasLoop_ = true;
+
             TIntrusivePtr<TServices> self(this);
             IRequesterRef rr = MultiRequester(ListenAddrs(), this);
             TFunc func(this);
@@ -109,6 +103,8 @@ namespace {
         }
 
         inline void ForkLoop(size_t threads) {
+            Y_ENSURE(!HasLoop_ || *HasLoop_);
+            HasLoop_ = true;
             //here we can have trouble with binding port(s), so expect exceptions
             IRequesterRef rr = MultiRequester(ListenAddrs(), this);
             LF_.Reset(new TLoopFunc(this, threads, rr));
@@ -131,7 +127,11 @@ namespace {
                     return;
                 }
             }
-            RQ_->Schedule(req);
+            if (!*HasLoop_) {
+                ServeRequest(LocalMap_.GetRef(), req);
+            } else {
+                RQ_->Schedule(req);
+            }
         }
 
     private:
@@ -176,6 +176,35 @@ namespace {
             IRequesterRef RR_;
         };
 
+        inline void ServeRequest(TVersionedServiceMap& mp, IRequestRef req) {
+            if (!req) {
+                return;
+            }
+
+            const TStringBuf name = req->Service();
+            TSrvs::const_iterator it = mp.Srvs.find(name);
+
+            if (Y_UNLIKELY(it == mp.Srvs.end())) {
+                if (UpdateServices(mp.Srvs, mp.Version)) {
+                    it = mp.Srvs.find(name);
+                }
+            }
+
+            if (Y_UNLIKELY(it == mp.Srvs.end())) {
+                it = mp.Srvs.find(AsStringBuf("*"));
+            }
+
+            if (Y_UNLIKELY(it == mp.Srvs.end())) {
+                req->SendError(IRequest::NotExistService);
+            } else {
+                try {
+                    it->second->ServeRequest(req);
+                } catch (...) {
+                    Cdbg << CurrentExceptionMessage() << Endl;
+                }
+            }
+        }
+
         inline bool UpdateServices(TSrvs& srvs, i64& version) const {
             if (AtomicGet(SelfVersion_) == version) {
                 return false;
@@ -210,8 +239,13 @@ namespace {
         TSpinLock L_;
         IRequestQueueRef RQ_;
         THolder<TLoopFunc> LF_;
-        TAtomic SelfVersion_ = 0;
+        TAtomic SelfVersion_ = 1;
         TCheck C_;
+
+        NThreading::TThreadLocalValue<TVersionedServiceMap> LocalMap_;
+
+        IRequesterRef RR_;
+        TMaybe<bool> HasLoop_;
     };
 
     class TServicesFace: public IServices {
@@ -244,6 +278,10 @@ namespace {
 
         void Stop() override {
             S_->Stop();
+        }
+
+        void Listen() override {
+            S_->Listen();
         }
 
     private:
