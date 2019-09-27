@@ -68,7 +68,10 @@ namespace NCB::NModelEvaluation {
         inline TArrayRef<double> GetResultBlockView(ui32 blockId, ui32 dimension) {
             return Results.Slice(
                 blockId * BlockSize * dimension,
-                Min<ui32>(BlockSize, Results.size() - (blockId * BlockSize)) * dimension
+                Min<ui32>(
+                    BlockSize * dimension,
+                    Results.size() - (blockId * BlockSize * dimension)
+                )
             );
         }
 
