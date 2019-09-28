@@ -44,5 +44,4 @@ RECURSE_FOR_TESTS(
     scipy/spatial/tests
     scipy/special/tests
     scipy/stats/tests
-    scipy/weave/tests
 )
