@@ -15,7 +15,6 @@
         "svn": { "description": "Subversion command-line client" },
         "zipatcher": { "description": "Apply zipatch from file or Arcanum pull request" },
         "ymake": { "description": "Run ymake", "visible": false },
-        "ymake_dev": { "description": "Run ymake dev version", "visible": false },
         "maven_import_sandbox_uploader": { "description": "Sandbox uploader for maven-import cmd", "visible": false },
         "cmake": { "description": "Run cmake" },
         "ninja": { "description": "Run ninja" },
@@ -292,18 +291,6 @@
         "ymake": {
             "tools": {
                 "ymake": { "bottle": "ymake", "executable": "ymake" }
-            },
-            "platforms": [
-                {"host": {"os": "LINUX"}, "default": true},
-                {"host": {"os": "FREEBSD"}, "default": true},
-                {"host": {"os": "WIN"}, "default": true},
-                {"host": {"os": "DARWIN"}, "default": true},
-                {"host": {"os": "LINUX", "arch": "aarch64"}, "default": true}
-            ]
-        },
-        "ymake_dev": {
-            "tools": {
-                "ymake_dev": { "bottle": "ymake_dev", "executable": "ymake" }
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "default": true},
@@ -1591,15 +1578,6 @@
             "formula": {
                 "sandbox_id": [513005121],
                 "match": "ymake"
-            },
-            "executable": {
-                "ymake": ["ymake"]
-            }
-        },
-        "ymake_dev": {
-            "formula": {
-                "sandbox_id": 124407090,
-                "match": "YMake"
             },
             "executable": {
                 "ymake": ["ymake"]
