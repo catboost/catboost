@@ -348,4 +348,7 @@ ALLOW yt/jaeger/plugin -> vendor/github.com/spf13/viper
 ALLOW yt/jaeger/plugin -> vendor/github.com/gorilla
 ALLOW yt/jaeger/plugin -> vendor/github.com/gogo
 
+# CONTRIB-1496 RTP/RTCP stack for Go. responsible: rmcf@
+ALLOW yabs/telephony/platform/internal/rtp -> vendor/github.com/wernerd/GoRTP
+
 DENY .* -> vendor/
