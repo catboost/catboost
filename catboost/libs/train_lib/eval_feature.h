@@ -15,15 +15,22 @@
 struct TFeatureEvaluationSummary {
     TVector<TString> Metrics; // [metric count]
     TVector<TVector<ui32>> FeatureSets; // [feature set count][]
+
+    TVector<TVector<TVector<double>>> BestBaselineMetrics; // [feature set count][metric count][fold count]
+    TVector<TVector<TVector<double>>> BestTestedMetrics; // [feature set count][metric count][fold count]
+    TVector<TVector<ui32>> BestBaselineIterations; // [feature set count][fold count]
+
     TVector<double> WxTest; // [feature set count]
-    TVector<TVector<ui32>> BestBaselineIterations; // [feature set count][fold Count]
-    TVector<TVector<double>> MetricDelta; // [feature set count][metric count]
+    TVector<TVector<double>> AverageMetricDelta; // [feature set count][metric count]
 
 public:
-    void PushBackWxTestAndDelta(
+    void AppendFeatureSetMetrics(
+        ui32 featureSetIdx,
         const TVector<THolder<IMetric>>& metrics,
         const TVector<TFoldContext>& baselineFoldContexts,
         const TVector<TFoldContext>& testedFoldContexts);
+
+    void CalcWxTestAndAverageDelta(const TVector<THolder<IMetric>>& metrics);
 };
 
 TString ToString(const TFeatureEvaluationSummary& summary);

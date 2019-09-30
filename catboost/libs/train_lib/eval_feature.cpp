@@ -65,7 +65,7 @@ TString ToString(const TFeatureEvaluationSummary& summary) {
         const auto& bestIterations = summary.BestBaselineIterations[featureSetIdx];
         featureEvalStream << JoinRange(",", bestIterations.begin(), bestIterations.end());
         featureEvalStream << '\t';
-        for (double delta : summary.MetricDelta[featureSetIdx]) {
+        for (double delta : summary.AverageMetricDelta[featureSetIdx]) {
             featureEvalStream << delta << '\t';
         }
         const auto& featureSet = summary.FeatureSets[featureSetIdx];
@@ -142,37 +142,73 @@ static TVector<double> GetMetricValues(
     return metricValues;
 }
 
-void TFeatureEvaluationSummary::PushBackWxTestAndDelta(
+void TFeatureEvaluationSummary::AppendFeatureSetMetrics(
+    ui32 featureSetIdx,
     const TVector<THolder<IMetric>>& metrics,
     const TVector<TFoldContext>& baselineFolds,
     const TVector<TFoldContext>& testedFolds
 ) {
+    const auto featureSetCount = FeatureSets.size();
+    CB_ENSURE_INTERNAL(featureSetIdx < featureSetCount, "Feature set index is too large");
+
+    BestBaselineIterations.resize(featureSetCount);
+    BestBaselineMetrics.resize(featureSetCount);
+    BestTestedMetrics.resize(featureSetCount);
+
     const auto bestValueTypes = GetBestValueType(metrics);
     const auto bestBaselineIterations = GetBestIterations(bestValueTypes, baselineFolds);
+    BestBaselineIterations[featureSetIdx].insert(
+        BestBaselineIterations[featureSetIdx].end(),
+        bestBaselineIterations.begin(),
+        bestBaselineIterations.end()
+    );
     const auto bestTestedIterations = GetBestIterations(bestValueTypes, testedFolds);
-
-    BestBaselineIterations.push_back(bestBaselineIterations);
-    constexpr ui32 lossIdx = 0;
-    WxTest.push_back(
-        ::WxTest(
-            GetMetricValues(lossIdx, bestBaselineIterations, baselineFolds),
-            GetMetricValues(lossIdx, bestTestedIterations, testedFolds)
-        ).PValue);
     const auto metricCount = metrics.size();
-    MetricDelta.push_back(TVector<double>(metricCount));
-    const auto foldCount = baselineFolds.size();
     for (auto metricIdx : xrange(metricCount)) {
-        const auto baselineAverage = Accumulate(
-            GetMetricValues(metricIdx, bestBaselineIterations, baselineFolds),
-            0.0) / foldCount;
-        const auto testedAverage = Accumulate(
-            GetMetricValues(metricIdx, bestTestedIterations, testedFolds),
-            0.0) / foldCount;
-        if (bestValueTypes[metricIdx] == EMetricBestValue::Min) {
-            MetricDelta.back()[metricIdx] = -testedAverage + baselineAverage;
-        } else {
-            MetricDelta.back()[metricIdx] = + testedAverage - baselineAverage;
+        const auto& foldsBaselineMetric = GetMetricValues(metricIdx, bestBaselineIterations, baselineFolds);
+        auto& baselineMetrics = BestBaselineMetrics[featureSetIdx];
+        baselineMetrics.resize(metricCount);
+        baselineMetrics[metricIdx].insert(
+            baselineMetrics[metricIdx].end(),
+            foldsBaselineMetric.begin(),
+            foldsBaselineMetric.end()
+        );
+        const auto& foldsTestedMetric = GetMetricValues(metricIdx, bestTestedIterations, testedFolds);
+        auto& testedMetrics = BestTestedMetrics[featureSetIdx];
+        testedMetrics.resize(metricCount);
+        testedMetrics[metricIdx].insert(
+            testedMetrics[metricIdx].end(),
+            foldsTestedMetric.begin(),
+            foldsTestedMetric.end()
+        );
+    }
+}
+
+
+void TFeatureEvaluationSummary::CalcWxTestAndAverageDelta(const TVector<THolder<IMetric>>& metrics) {
+    const auto featureSetCount = FeatureSets.size();
+    const auto bestValueTypes = GetBestValueType(metrics);
+    const auto metricCount = metrics.size();
+    TVector<double> averageDelta(metricCount);
+    WxTest.resize(featureSetCount);
+    AverageMetricDelta.resize(featureSetCount);
+    constexpr ui32 LossIdx = 0;
+    for (auto featureSetIdx : xrange(featureSetCount)) {
+        const auto& baselineMetrics = BestBaselineMetrics[featureSetIdx];
+        const auto& testedMetrics = BestTestedMetrics[featureSetIdx];
+        WxTest[featureSetIdx] = ::WxTest(baselineMetrics[LossIdx], testedMetrics[LossIdx]).PValue;
+
+        const auto foldCount = baselineMetrics.size();
+        for (auto metricIdx : xrange(metricCount)) {
+            const auto baselineAverage = Accumulate(baselineMetrics[metricIdx], 0.0) / foldCount;
+            const auto testedAverage = Accumulate(testedMetrics[metricIdx], 0.0) / foldCount;
+            if (bestValueTypes[metricIdx] == EMetricBestValue::Min) {
+                averageDelta[metricIdx] = - testedAverage + baselineAverage;
+            } else {
+                averageDelta[metricIdx] = + testedAverage - baselineAverage;
+            }
         }
+        AverageMetricDelta[featureSetIdx] = averageDelta;
     }
 }
 
@@ -678,6 +714,11 @@ void EvaluateFeatures(
         return;
     }
 
+    for (const auto& metric : metrics) {
+        results->Metrics.push_back(metric->GetDescription());
+    }
+    results->FeatureSets = featureEvalOptions.FeaturesToEvaluate;
+
     const auto useCommonBaseline = featureEvalOptions.FeatureEvalMode != NCB::EFeatureEvalMode::OneVsOthers;
     for (ui32 featureSetIdx : xrange(featureEvalOptions.FeaturesToEvaluate->size())) {
         const auto haveBaseline = featureSetIdx > 0 && useCommonBaseline;
@@ -706,11 +747,7 @@ void EvaluateFeatures(
         const auto testingDirPrefix = TStringBuilder() << "Testing_set_" << featureSetIdx << "_";
         trainFullModels(testingDirPrefix, &newFoldsData, &testedFoldContexts);
 
-        results->PushBackWxTestAndDelta(metrics, baselineFoldContexts, testedFoldContexts);
+        results->AppendFeatureSetMetrics(featureSetIdx, metrics, baselineFoldContexts, testedFoldContexts);
     }
-
-    for (const auto& metric : metrics) {
-        results->Metrics.push_back(metric->GetDescription());
-    }
-    results->FeatureSets = featureEvalOptions.FeaturesToEvaluate;
+    results->CalcWxTestAndAverageDelta(metrics);
 }
