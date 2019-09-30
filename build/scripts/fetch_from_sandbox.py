@@ -33,31 +33,33 @@ class UnsupportedProtocolException(Exception):
     pass
 
 
+def _sky_path():
+    return "/usr/local/bin/sky"
+
+
+def _is_skynet_avaliable():
+    if not os.path.exists(_sky_path()):
+        return False
+    try:
+        subprocess.check_output([_sky_path(), "--version"])
+        return True
+    except subprocess.CalledProcessError:
+        return False
+    except OSError:
+        return False
+
+
 def download_by_skynet(resource_info, file_name):
-    def _sky_path():
-        return "/usr/local/bin/sky"
-
-    def is_skynet_avaliable():
-        if not os.path.exists(_sky_path()):
-            return False
-        try:
-            subprocess.check_output([_sky_path(), "--version"])
-            return True
-        except subprocess.CalledProcessError:
-            return False
-        except OSError:
-            return False
-
     def sky_get(skynet_id, target_dir, timeout=None):
         cmd_args = [_sky_path(), 'get', "-N", "Backbone", "--user", "--wait", "--dir", target_dir, skynet_id]
         if timeout is not None:
             cmd_args += ["--timeout", str(timeout)]
-        logging.debug('Call skynet with args: %s', cmd_args)
+        logging.info('Call skynet with args: %s', cmd_args)
         stdout = subprocess.check_output(cmd_args).strip()
         logging.debug('Skynet call with args %s is finished, result is %s', cmd_args, stdout)
         return stdout
 
-    if not is_skynet_avaliable():
+    if not _is_skynet_avaliable():
         raise UnsupportedProtocolException("Skynet is not available")
 
     skynet_id = resource_info.get("skynet_id")
@@ -149,8 +151,15 @@ def fetch(resource_id, custom_fetcher):
         random.shuffle(storage_links)
         return storage_links
 
+    skynet = _is_skynet_avaliable()
+
+    if not skynet:
+        logging.info("Skynet is not available, will try other protocols")
+
     def iter_tries():
-        yield lambda: download_by_skynet(resource_info, resource_file_name)
+        if skynet:
+            yield lambda: download_by_skynet(resource_info, resource_file_name)
+
         if custom_fetcher:
             yield lambda: fetch_via_script(custom_fetcher, resource_id)
 
@@ -174,12 +183,25 @@ def fetch(resource_id, custom_fetcher):
         try:
             fetched_file = action()
             break
+        except UnsupportedProtocolException:
+            pass
+        except subprocess.CalledProcessError as e:
+            logging.error(e)
+            time.sleep(i)
+        except urllib2.HTTPError as e:
+            logging.error(e)
+            if e.code not in (500, 503, 504):
+                exc_info = exc_info or sys.exc_info()
+            time.sleep(i)
         except Exception as e:
             logging.exception(e)
             exc_info = exc_info or sys.exc_info()
             time.sleep(i)
     else:
-        raise exc_info[0], exc_info[1], exc_info[2]
+        if exc_info:
+            raise exc_info[0], exc_info[1], exc_info[2]
+        else:
+            raise Exception("No available protocol and/or server to fetch resource")
 
     return fetched_file, resource_info['file_name']
 
