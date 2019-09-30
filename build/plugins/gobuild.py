@@ -1,5 +1,6 @@
 import base64
 import itertools
+import md5
 import os
 from _common import rootrel_arc_src, tobuilddir
 import ymake
@@ -228,7 +229,8 @@ def on_go_resource(unit, *args):
     args = list(args)
     files = args[::2]
     keys = args[1::2]
-    resource_go = os.path.join("resource.res.go")
+    suffix_md5 = md5.new('@'.join(args)).hexdigest()
+    resource_go = os.path.join("resource.{}.res.go".format(suffix_md5))
 
     unit.onpeerdir(["library/go/core/resource"])
 
