@@ -18,11 +18,11 @@ namespace NCB {
 
         void Compute(const TText& text, TOutputFloatIterator outputFeaturesIterator) const override;
 
-        ui32 FeatureCount() const override {
+    protected:
+        ui32 BaseFeatureCount() const override {
             return NumTokens;
         }
 
-    protected:
         flatbuffers::Offset<NCatBoostFbs::TFeatureCalcer> SaveParametersToFB(flatbuffers::FlatBufferBuilder&) const override;
         void LoadParametersFromFB(const NCatBoostFbs::TFeatureCalcer*) override;
 

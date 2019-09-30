@@ -32,11 +32,8 @@ namespace NCB {
 
         void Compute(const TText& text, TOutputFloatIterator iterator) const override;
 
-        static ui32 FeatureCount(ui32 numClasses) {
+        static ui32 BaseFeatureCount(ui32 numClasses) {
             return numClasses > 2 ? numClasses : 1;
-        }
-        ui32 FeatureCount() const override {
-            return FeatureCount(NumClasses);
         }
 
         EFeatureCalcerType Type() const override {
@@ -56,6 +53,10 @@ namespace NCB {
         ) const;
 
     protected:
+        ui32 BaseFeatureCount() const override {
+            return BaseFeatureCount(NumClasses);
+        }
+
         flatbuffers::Offset<NCatBoostFbs::TFeatureCalcer> SaveParametersToFB(flatbuffers::FlatBufferBuilder& builder) const override;
         void LoadParametersFromFB(const NCatBoostFbs::TFeatureCalcer* calcerFbs) override;
 

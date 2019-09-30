@@ -42,7 +42,7 @@ namespace NCB {
             }
         }
 
-        static ui32 FeatureCount(
+        static ui32 BaseFeatureCount(
             ui32 numClasses,
             bool computeCosDistance,
             bool computeHomoscedasticModel,
@@ -52,9 +52,6 @@ namespace NCB {
                 (ui32)(computeHomoscedasticModel) +
                 (ui32)(computeHeteroscedasticModel)
             );
-        }
-        ui32 FeatureCount() const override {
-            return FeatureCount(NumClasses, ComputeCosDistance, ComputeHomoscedasticModel, ComputeHeteroscedasticModel);
         }
 
         void Compute(TConstArrayRef<float> embedding, TOutputFloatIterator outputFeaturesIterator) const;
@@ -75,6 +72,16 @@ namespace NCB {
 
         bool IsSerializable() const override {
             return true;
+        }
+
+    protected:
+        ui32 BaseFeatureCount() const override {
+            return BaseFeatureCount(
+                NumClasses,
+                ComputeCosDistance,
+                ComputeHomoscedasticModel,
+                ComputeHeteroscedasticModel
+            );
         }
 
     private:

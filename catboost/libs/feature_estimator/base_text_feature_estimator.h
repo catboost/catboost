@@ -22,26 +22,16 @@ namespace NCB {
             TConstArrayRef<TCalculatedFeatureVisitor> testVisitors,
             NPar::TLocalExecutor*) const override {
 
-            TFeatureCalcer featureCalcer = CreateFeatureCalcer();
-            TCalcerVisitor calcerVisitor = CreateCalcerVisitor();
+            THolder<TFeatureCalcer> featureCalcer = EstimateFeatureCalcer();
 
-            {
-                const auto& ds = GetLearnDataSet();
-                const auto& target = GetTarget();
+            TVector<TTextDataSetPtr> learnDs{GetLearnDataSetPtr()};
+            TVector<TCalculatedFeatureVisitor> learnVisitors{std::move(learnVisitor)};
+            Calc(*featureCalcer, learnDs, learnVisitors);
 
-                const ui64 samplesCount = ds.SamplesCount();
-                for (ui64 line = 0; line < samplesCount; ++line) {
-                    calcerVisitor.Update(target.Classes[line], ds.GetText(line), &featureCalcer);
-                }
-
-                TVector<TTextDataSetPtr> learnDs{GetLearnDataSetPtr()};
-                TVector<TCalculatedFeatureVisitor> learnVisitors{std::move(learnVisitor)};
-                Calc(featureCalcer, learnDs, learnVisitors);
-            }
             if (!testVisitors.empty()) {
                 CB_ENSURE(testVisitors.size() == NumberOfTestDataSets(),
                           "If specified, testVisitors should be the same number as test sets");
-                Calc(featureCalcer, GetTestDataSets(), testVisitors);
+                Calc(*featureCalcer, GetTestDataSets(), testVisitors);
             }
         }
 
@@ -85,6 +75,17 @@ namespace NCB {
             }
         }
 
+        THolder<IFeatureCalcer> MakeFinalFeatureCalcer(
+            TConstArrayRef<ui32> featureIndices,
+            NPar::TLocalExecutor* executor) const override {
+
+            Y_UNUSED(executor);
+
+            THolder<TFeatureCalcer> calcer = EstimateFeatureCalcer();
+            calcer->TrimFeatures(featureIndices);
+            return calcer;
+        }
+
     protected:
         void Calc(
             const TFeatureCalcer& featureCalcer,
@@ -115,6 +116,22 @@ namespace NCB {
 
         virtual TFeatureCalcer CreateFeatureCalcer() const = 0;
         virtual TCalcerVisitor CreateCalcerVisitor() const = 0;
+
+        THolder<TFeatureCalcer> EstimateFeatureCalcer() const {
+            THolder<TFeatureCalcer> featureCalcer = MakeHolder<TFeatureCalcer>(CreateFeatureCalcer());
+            TCalcerVisitor calcerVisitor = CreateCalcerVisitor();
+
+            const auto& ds = GetLearnDataSet();
+            const auto& target = GetTarget();
+
+            const ui64 samplesCount = ds.SamplesCount();
+            for (ui64 line = 0; line < samplesCount; ++line) {
+                const TText& text = ds.GetText(line);
+                calcerVisitor.Update(target.Classes[line], text, featureCalcer.Get());
+            }
+
+            return featureCalcer;
+        }
 
         void Compute(
             const TFeatureCalcer& featureCalcer,

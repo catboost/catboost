@@ -55,9 +55,12 @@ void TMultinomialNaiveBayes::Compute(
     }
     Softmax(logProbs);
 
-    for (ui32 featureIdx = 0; featureIdx < FeatureCount(); ++featureIdx, ++outputFeaturesIterator) {
-        *outputFeaturesIterator = logProbs[featureIdx];
-    }
+    ForEachActiveFeature(
+        [&logProbs, &outputFeaturesIterator](ui32 featureId) {
+            *outputFeaturesIterator = logProbs[featureId];
+            ++outputFeaturesIterator;
+        }
+    );
 }
 
 flatbuffers::Offset<NCatBoostFbs::TFeatureCalcer> TMultinomialNaiveBayes::SaveParametersToFB(flatbuffers::FlatBufferBuilder& builder) const {
@@ -86,7 +89,12 @@ flatbuffers::Offset<NCatBoostFbs::TFeatureCalcer> TMultinomialNaiveBayes::SavePa
         fbsClassTotalTokens
     );
 
-    return CreateTFeatureCalcer(builder, TAnyFeatureCalcer_TNaiveBayes, fbsNaiveBayes.Union());
+    return CreateTFeatureCalcer(
+        builder,
+        ActiveFeatureIndicesToFB(builder),
+        TAnyFeatureCalcer_TNaiveBayes,
+        fbsNaiveBayes.Union()
+    );
 }
 
 void TMultinomialNaiveBayes::LoadParametersFromFB(const NCatBoostFbs::TFeatureCalcer* calcer) {

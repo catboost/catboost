@@ -25,7 +25,7 @@ Y_UNIT_TEST_SUITE(TestFeatureEstimators) {
                 return EFeatureCalcerType::BM25; // only for test purposes
             }
 
-            ui32 FeatureCount() const override {
+            ui32 BaseFeatureCount() const override {
                 return 1;
             }
 

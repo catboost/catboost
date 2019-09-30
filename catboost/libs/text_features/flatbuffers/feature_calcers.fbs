@@ -29,6 +29,7 @@ union TAnyFeatureCalcer {
 }
 
 table TFeatureCalcer {
+    ActiveFeatureIndices: [uint];
     FeatureCalcerImpl: TAnyFeatureCalcer;
 }
 

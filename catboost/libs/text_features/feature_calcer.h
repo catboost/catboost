@@ -10,6 +10,7 @@
 #include <util/generic/ptr.h>
 #include <util/generic/guid.h>
 #include <util/stream/input.h>
+#include <util/system/mutex.h>
 
 #include <contrib/libs/cxxsupp/libcxx/include/array>
 
@@ -35,6 +36,7 @@ namespace NCB {
             Y_FAIL("Deserialization not allowed");
         };
 
+        virtual void TrimFeatures(TConstArrayRef<ui32> featureIndices) = 0;
     };
 
     class TTextCalcerSerializer;
@@ -74,12 +76,31 @@ namespace NCB {
         void Save(IOutputStream* stream) const final;
         void Load(IInputStream* stream) final;
 
+        void TrimFeatures(TConstArrayRef<ui32> featureIndices) override;
+        TConstArrayRef<ui32> GetActiveFeatureIndices() const;
+        ui32 FeatureCount() const override;
+
     protected:
+        virtual ui32 BaseFeatureCount() const = 0;
+
+        template <class F>
+        void ForEachActiveFeature(F&& func) const {
+            for (ui32 featureId: GetActiveFeatureIndices()) {
+                func(featureId);
+            }
+        }
+
         virtual flatbuffers::Offset<NCatBoostFbs::TFeatureCalcer> SaveParametersToFB(flatbuffers::FlatBufferBuilder&) const;
         virtual void SaveLargeParameters(IOutputStream*) const;
 
         virtual void LoadParametersFromFB(const NCatBoostFbs::TFeatureCalcer*);
         virtual void LoadLargeParameters(IInputStream*);
+
+        flatbuffers::Offset<flatbuffers::Vector<uint32_t>> ActiveFeatureIndicesToFB(flatbuffers::FlatBufferBuilder& builder) const;
+
+    private:
+        mutable TVector<ui32> ActiveFeatureIndices;
+        TMutex InitActiveFeatureIndicesLock;
     };
 
     using TTextFeatureCalcerPtr = TIntrusivePtr<TTextFeatureCalcer>;

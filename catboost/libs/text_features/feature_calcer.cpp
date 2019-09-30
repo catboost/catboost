@@ -2,6 +2,8 @@
 
 #include "helpers.h"
 
+#include <util/system/guard.h>
+
 namespace NCB {
     static void WriteMagic(const char* magic, ui32 magicSize, ui32 alignment, TCountingOutput* stream) {
         stream->Write(magic, magicSize);
@@ -64,6 +66,10 @@ namespace NCB {
         CB_ENSURE(loadedBytes == bufferSize, "Failed to deserialize: Couldn't read calcer flatbuffer");
 
         auto calcer = flatbuffers::GetRoot<NCatBoostFbs::TFeatureCalcer>(buffer.Get());
+        ActiveFeatureIndices = TVector<ui32>(
+            calcer->ActiveFeatureIndices()->begin(),
+            calcer->ActiveFeatureIndices()->end()
+        );
         LoadParametersFromFB(calcer);
 
         LoadLargeParameters(stream);
@@ -83,6 +89,38 @@ namespace NCB {
 
     void TTextFeatureCalcer::LoadLargeParameters(IInputStream*) {
         Y_FAIL("Deserialization is not implemented");
+    }
+
+    flatbuffers::Offset<flatbuffers::Vector<uint32_t>> TTextFeatureCalcer::ActiveFeatureIndicesToFB(flatbuffers::FlatBufferBuilder& builder) const {
+        return builder.CreateVector(
+            reinterpret_cast<const uint32_t*>(ActiveFeatureIndices.data()),
+            ActiveFeatureIndices.size()
+        );
+    }
+
+    void TTextFeatureCalcer::TrimFeatures(TConstArrayRef<ui32> featureIndices) {
+        const ui32 featureCount = FeatureCount();
+        CB_ENSURE(
+            featureIndices.size() <= featureCount && featureIndices.back() < featureCount,
+            "Specified trim feature indices is greater than number of features that calcer produce"
+        );
+        ActiveFeatureIndices = TVector<ui32>(featureIndices.begin(), featureIndices.end());
+    }
+
+    ui32 TTextFeatureCalcer::FeatureCount() const {
+        return GetActiveFeatureIndices().size();
+    }
+
+    TConstArrayRef<ui32> TTextFeatureCalcer::GetActiveFeatureIndices() const {
+        if (ActiveFeatureIndices.empty()) {
+            with_lock(InitActiveFeatureIndicesLock) {
+                if (ActiveFeatureIndices.empty()) {
+                    ActiveFeatureIndices.yresize(BaseFeatureCount());
+                    Iota(ActiveFeatureIndices.begin(), ActiveFeatureIndices.end(), 0);
+                }
+            }
+        }
+        return TConstArrayRef<ui32>(ActiveFeatureIndices);
     }
 
     TOutputFloatIterator::TOutputFloatIterator(float* data, ui64 size)

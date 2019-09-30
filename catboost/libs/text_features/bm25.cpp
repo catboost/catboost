@@ -51,9 +51,13 @@ void TBM25::Compute(const TText& text, TOutputFloatIterator iterator) const {
             scores[clazz] += inverseClassFreq * Score(termFreqInClass[clazz], K, B, meanClassLength,  ClassTotalTokens[clazz]);
         }
     }
-    for (ui32 featureId = 0; featureId < NumClasses; ++featureId, ++iterator) {
-        *iterator = scores[featureId];
-    }
+
+    ForEachActiveFeature(
+        [&scores, &iterator](ui32 featureId){
+            *iterator = scores[featureId];
+            ++iterator;
+        }
+    );
 }
 
 flatbuffers::Offset<NCatBoostFbs::TFeatureCalcer> TBM25::SaveParametersToFB(flatbuffers::FlatBufferBuilder& builder) const {
@@ -66,8 +70,21 @@ flatbuffers::Offset<NCatBoostFbs::TFeatureCalcer> TBM25::SaveParametersToFB(flat
         reinterpret_cast<const uint64_t*>(ClassTotalTokens.data()),
         ClassTotalTokens.size()
     );
-    auto fbBm25 = CreateTBM25(builder, NumClasses, K, B, TruncateBorder, TotalTokens, fbClassTotalTokens);
-    return CreateTFeatureCalcer(builder, TAnyFeatureCalcer_TBM25, fbBm25.Union());
+    const auto& fbBm25 = CreateTBM25(
+        builder,
+        NumClasses,
+        K,
+        B,
+        TruncateBorder,
+        TotalTokens,
+        fbClassTotalTokens
+    );
+    return CreateTFeatureCalcer(
+        builder,
+        ActiveFeatureIndicesToFB(builder),
+        TAnyFeatureCalcer_TBM25,
+        fbBm25.Union()
+    );
 }
 
 void TBM25::LoadParametersFromFB(const NCatBoostFbs::TFeatureCalcer* calcer) {

@@ -24,7 +24,7 @@ namespace {
 
         TEstimatedFeaturesMeta FeaturesMeta() const override {
             TEstimatedFeaturesMeta meta;
-            meta.FeaturesCount = TMultinomialNaiveBayes::FeatureCount(GetTarget().NumClasses);
+            meta.FeaturesCount = TMultinomialNaiveBayes::BaseFeatureCount(GetTarget().NumClasses);
             meta.Type.resize(meta.FeaturesCount, EFeatureCalcerType::NaiveBayes);
             return meta;
         }
@@ -50,7 +50,7 @@ namespace {
 
         TEstimatedFeaturesMeta FeaturesMeta() const override {
             TEstimatedFeaturesMeta meta;
-            meta.FeaturesCount = TBM25::FeatureCount(GetTarget().NumClasses);
+            meta.FeaturesCount = TBM25::BaseFeatureCount(GetTarget().NumClasses);
             meta.Type.resize(meta.FeaturesCount, EFeatureCalcerType::BM25);
             return meta;
         }
@@ -82,7 +82,7 @@ namespace {
 
         TEstimatedFeaturesMeta FeaturesMeta() const override {
             TEstimatedFeaturesMeta meta;
-            meta.FeaturesCount = TEmbeddingOnlineFeatures::FeatureCount(
+            meta.FeaturesCount = TEmbeddingOnlineFeatures::BaseFeatureCount(
                 GetTarget().NumClasses,
                 ComputeCosDistance,
                 ComputeGaussianHomoscedatic,

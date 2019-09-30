@@ -36,11 +36,13 @@ namespace NCB {
 
         void Compute(const TText& text, TOutputFloatIterator iterator) const override;
 
-        static ui32 FeatureCount(ui32 numClasses) {
+        static ui32 BaseFeatureCount(ui32 numClasses) {
             return numClasses;
         }
-        ui32 FeatureCount() const override {
-            return FeatureCount(NumClasses);
+
+    protected:
+        ui32 BaseFeatureCount() const override {
+            return BaseFeatureCount(NumClasses);
         }
 
     private:
