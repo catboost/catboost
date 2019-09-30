@@ -7,7 +7,7 @@
 #include <util/system/yield.h>
 #include <util/system/unaligned_mem.h>
 #include "block_chain.h"
-#include <library/shmat/shmat.h>
+#include <util/system/shmat.h>
 #include "udp_debug.h"
 #include "udp_socket.h"
 #include "ib_cs.h"

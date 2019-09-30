@@ -4,7 +4,7 @@
 #include <util/generic/guid.h>
 #include <util/generic/vector.h>
 #include <util/system/hp_timer.h>
-#include <library/shmat/shmat.h>
+#include <util/system/shmat.h>
 #include <util/system/yield.h>
 #include <util/system/spinlock.h>
 #include <library/threading/chunk_queue/queue.h>

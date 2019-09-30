@@ -15,7 +15,6 @@ PEERDIR(
     library/netliba/v6
     library/openssl/init
     library/openssl/method
-    library/shmat
     library/threading/atomic
     library/threading/thread_local
 )

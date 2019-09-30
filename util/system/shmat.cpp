@@ -4,7 +4,7 @@
 
 #if defined(_win_)
 #include <stdio.h>
-#include <util/system/winint.h>
+#include "winint.h"
 #elif defined(_bionic_)
 #include <sys/types.h>
 #include <sys/ipc.h>

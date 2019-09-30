@@ -1,8 +1,9 @@
 #pragma once
 
+#include "fhandle.h"
+
 #include <util/generic/ptr.h>
 #include <util/generic/guid.h>
-#include <util/system/fhandle.h>
 
 class TSharedMemory: public TThrRefBase {
     TGUID Id;

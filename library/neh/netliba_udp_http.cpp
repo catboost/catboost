@@ -9,7 +9,7 @@
 #include <library/netliba/v6/block_chain.h> // depend on another headers
 
 #include <util/system/hp_timer.h>
-#include <library/shmat/shmat.h>
+#include <util/system/shmat.h>
 #include <util/system/spinlock.h>
 #include <util/system/thread.h>
 #include <util/system/types.h>

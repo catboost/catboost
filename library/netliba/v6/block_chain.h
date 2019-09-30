@@ -2,7 +2,7 @@
 
 #include <util/generic/algorithm.h>
 #include <util/generic/list.h>
-#include <library/shmat/shmat.h>
+#include <util/system/shmat.h>
 #include <util/generic/noncopyable.h>
 
 namespace NNetliba {

@@ -87,8 +87,6 @@ RECURSE(
     python
     resource
     resource/ut
-    shmat
-    shmat/ut
     sse
     statistics
     statistics/ut

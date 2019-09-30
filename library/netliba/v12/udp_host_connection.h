@@ -10,7 +10,7 @@
 #include <util/generic/intrlist.h>
 #include <util/string/cast.h>
 #include <util/system/atomic.h>
-#include <library/shmat/shmat.h>
+#include <util/system/shmat.h>
 #include <util/system/yassert.h>
 #include "block_chain.h"
 #include "circular_pod_buffer.h"

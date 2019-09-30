@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/shmat/shmat.h>
+#include <util/system/shmat.h>
 #include <util/system/defaults.h>
 #include <util/generic/algorithm.h>
 #include <util/generic/list.h>
