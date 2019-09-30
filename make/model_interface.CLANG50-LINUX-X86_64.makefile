@@ -1789,6 +1789,7 @@ $(BUILD_ROOT)/util/all_system_2.cpp\
         $(SOURCE_ROOT)/util/system/sanitizers.cpp\
         $(SOURCE_ROOT)/util/system/sem.cpp\
         $(SOURCE_ROOT)/util/system/shellcommand.cpp\
+        $(SOURCE_ROOT)/util/system/shmat.cpp\
         $(SOURCE_ROOT)/util/system/sigset.cpp\
         $(SOURCE_ROOT)/util/system/spinlock.cpp\
         $(SOURCE_ROOT)/util/system/spin_wait.cpp\
@@ -1806,7 +1807,7 @@ $(BUILD_ROOT)/util/all_system_2.cpp\
         $(SOURCE_ROOT)/util/system/yield.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/util'
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_system_2.cpp' util/system/align.cpp util/system/atomic.cpp util/system/byteorder.cpp util/system/cpu_id.cpp util/system/fhandle.cpp util/system/guard.cpp util/system/interrupt_signals.cpp util/system/madvise.cpp util/system/maxlen.cpp util/system/mem_info.cpp util/system/mktemp.cpp util/system/mlock.cpp util/system/mutex.cpp util/system/nice.cpp util/system/pipe.cpp util/system/platform.cpp util/system/progname.cpp util/system/protect.cpp util/system/rusage.cpp util/system/rwlock.cpp util/system/sanitizers.cpp util/system/sem.cpp util/system/shellcommand.cpp util/system/sigset.cpp util/system/spinlock.cpp util/system/spin_wait.cpp util/system/src_location.cpp util/system/sys_alloc.cpp util/system/sysstat.cpp util/system/tempfile.cpp util/system/thread.cpp util/system/tls.cpp util/system/types.cpp util/system/unaligned_mem.cpp util/system/user.cpp util/system/utime.cpp util/system/yassert.cpp util/system/yield.cpp
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/gen_join_srcs.py' '$(BUILD_ROOT)/util/all_system_2.cpp' util/system/align.cpp util/system/atomic.cpp util/system/byteorder.cpp util/system/cpu_id.cpp util/system/fhandle.cpp util/system/guard.cpp util/system/interrupt_signals.cpp util/system/madvise.cpp util/system/maxlen.cpp util/system/mem_info.cpp util/system/mktemp.cpp util/system/mlock.cpp util/system/mutex.cpp util/system/nice.cpp util/system/pipe.cpp util/system/platform.cpp util/system/progname.cpp util/system/protect.cpp util/system/rusage.cpp util/system/rwlock.cpp util/system/sanitizers.cpp util/system/sem.cpp util/system/shellcommand.cpp util/system/shmat.cpp util/system/sigset.cpp util/system/spinlock.cpp util/system/spin_wait.cpp util/system/src_location.cpp util/system/sys_alloc.cpp util/system/sysstat.cpp util/system/tempfile.cpp util/system/thread.cpp util/system/tls.cpp util/system/types.cpp util/system/unaligned_mem.cpp util/system/user.cpp util/system/utime.cpp util/system/yassert.cpp util/system/yield.cpp
 
 $(BUILD_ROOT)/util/all_thread.cpp.pic.o\
         ::\

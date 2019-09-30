@@ -464,9 +464,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\pop_count\library-pop_count.vcxproj">
       <Project>{5388367D-330A-ED57-0DB7-1F988A5A9B05}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\shmat\library-shmat.vcxproj">
-      <Project>{7E0461CC-7C71-317F-E018-AE1E26D0C44F}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\sse\library-sse.vcxproj">
       <Project>{D4A23E39-75EE-97F4-A50A-283C64388B74}</Project>
     </ProjectReference>
