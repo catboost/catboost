@@ -110,6 +110,8 @@ ALLOW yabs/telephony -> contrib/libs/boost
 ALLOW yabs/telephony -> contrib/deprecated/boost
 ALLOW yweb/robot/js -> contrib/libs/boost
 ALLOW yweb/robot/js -> contrib/deprecated/boost
+ALLOW tools/idl -> contrib/libs/boost
+ALLOW tools/idl -> contrib/deprecated/boost
 DENY .* -> contrib/libs/boost
 DENY .* -> contrib/deprecated/boost
 
