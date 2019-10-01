@@ -1,31 +1,28 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using System.Runtime.InteropServices;
 
-namespace CatBoostNet
-{
+
+namespace CatBoostNet {
     /// <summary>
     /// Low-level API for interacting with CatBoost library.
     /// Should be used only for creating custom predictors —
     /// if you just want to run common classification/regression task,
     /// use <see cref="CatBoostModel"/> instead.
     /// </summary>
-    public class CatBoostModelEvaluator
-    {
+    public class CatBoostModelEvaluator {
         /// <summary>
         /// Structure for storing minimal model info — path to the model file
         /// and pointer to the model handler
-        /// (as returned by <see cref="ModelCalcerCreate"/>).
+        /// (as returned by <see cref="CatboostNativeInterface.ModelCalcerCreate"/>).
         /// </summary>
-        private struct CatBoostModelContainer
-        {
+        private struct CatBoostModelContainer {
             /// <summary>
             /// Path to the model file.
             /// </summary>
             public string ModelPath { get; }
 
             /// <summary>
-            /// Pointer to the model handler. <seealso cref="ModelCalcerCreate"/>
+            /// Pointer to the model handler. <seealso cref="CatboostNativeInterface.ModelCalcerCreate"/>
             /// </summary>
             public IntPtr ModelHandler { get; }
 
@@ -33,12 +30,10 @@ namespace CatBoostNet
             /// Container constructor.
             /// </summary>
             /// <param name="path">Path to the model file</param>
-            public CatBoostModelContainer(string path)
-            {
+            public CatBoostModelContainer(string path) {
                 ModelPath = path;
-                ModelHandler = ModelCalcerCreate();
-                if (!LoadFullModelFromFile(ModelHandler, ModelPath))
-                {
+                ModelHandler = CatboostNativeInterface.ModelCalcerCreate();
+                if (!CatboostNativeInterface.LoadFullModelFromFile(ModelHandler, ModelPath)) {
                     string msg = "";
                     // TODO Call `GetErrorString` without crashing everything
                     throw new CatBoostException(
@@ -53,30 +48,29 @@ namespace CatBoostNet
         /// Low-level model evaluator constructor.
         /// </summary>
         /// <param name="path">Path to the model file</param>
-        public CatBoostModelEvaluator(string path)
-        {
+        public CatBoostModelEvaluator(string path) {
             ModelContainer = new CatBoostModelContainer(path);
         }
 
         /// <summary>
         /// Low-level model evaluator destructor.
         /// </summary>
-        ~CatBoostModelEvaluator() => ModelCalcerDelete(ModelContainer.ModelHandler);
+        ~CatBoostModelEvaluator() => CatboostNativeInterface.ModelCalcerDelete(ModelContainer.ModelHandler);
 
         /// <summary>
         /// Number of trees in the model
         /// </summary>
-        public uint TreeCount => CatBoostModelEvaluator.GetTreeCount(ModelContainer.ModelHandler);
+        public uint TreeCount => CatboostNativeInterface.GetTreeCount(ModelContainer.ModelHandler);
 
         /// <summary>
         /// Number of numeric used in the model input
         /// </summary>
-        public uint FloatFeaturesCount => CatBoostModelEvaluator.GetFloatFeaturesCount(ModelContainer.ModelHandler);
+        public uint FloatFeaturesCount => CatboostNativeInterface.GetFloatFeaturesCount(ModelContainer.ModelHandler);
 
         /// <summary>
         /// Number of categorical features used in the model input
         /// </summary>
-        public uint CatFeaturesCount => CatBoostModelEvaluator.GetCatFeaturesCount(ModelContainer.ModelHandler);
+        public uint CatFeaturesCount => CatboostNativeInterface.GetCatFeaturesCount(ModelContainer.ModelHandler);
 
         /// <summary>
         /// Indices of the categorical features in the model input
@@ -97,58 +91,54 @@ namespace CatBoostNet
         /// Should have the same <c>.GetLength(0)</c> as <paramref name="floatFeatures"/>
         /// </param>
         /// <returns>2D array with model predictions for all samples in the batch</returns>
-        public double[,] EvaluateBatch(float[,] floatFeatures, string[,] catFeatures)
-        {
-            if (floatFeatures.GetLength(0) != catFeatures.GetLength(0))
-            {
-                if (floatFeatures.GetLength(0) > 0 && catFeatures.GetLength(0) > 0)
-                {
+        public double[,] EvaluateBatch(float[,] floatFeatures, string[,] catFeatures) {
+            if (floatFeatures.GetLength(0) != catFeatures.GetLength(0)) {
+                if (floatFeatures.GetLength(0) > 0 && catFeatures.GetLength(0) > 0) {
                     throw new CatBoostException("Inconsistent EvaluateBatch arguments:" +
                         $"got {floatFeatures.GetLength(0)} samples for float features " +
                         $"but {catFeatures.GetLength(0)} samples for cat features");
                 }
             }
             uint docs = (uint)Math.Max(floatFeatures.GetLength(0), catFeatures.GetLength(0));
-            uint dim = GetDimensionsCount(ModelContainer.ModelHandler);
+            uint dim = CatboostNativeInterface.GetDimensionsCount(ModelContainer.ModelHandler);
 
-            IntPtr floatFeaturePtr = PointerTools.AllocateToPtr(floatFeatures);
-            IntPtr catFeaturePtr = PointerTools.AllocateToPtr(catFeatures);
 
-            try
-            {
-                uint resultSize = dim * docs;
-                double[] results = new double[resultSize];
-                bool res = CatBoostModelEvaluator.CalcModelPrediction(
-                    ModelContainer.ModelHandler,
-                    docs,
-                    floatFeaturePtr, (uint)floatFeatures.GetLength(1),
-                    catFeaturePtr, (uint)catFeatures.GetLength(1),
-                    results, resultSize
-                );
-                if (res)
-                {
-                    double[,] resultMatrix = new double[docs, dim];
-                    for (int doc = 0; doc < docs; ++doc)
-                    {
-                        for (int d = 0; d < dim; ++d)
-                        {
-                            resultMatrix[doc, d] = results[dim * doc + d];
+            uint resultSize = dim * docs;
+            double[] results = new double[resultSize];
+            bool res = false;
+            unsafe {
+                fixed (float* floatFeaturesPtr = floatFeatures) {
+                    using (var catFeatureHolder = new StringPointerHolder(catFeatures)) {
+                        float*[] floatFeaturesBeginPtrs = new float*[docs];
+                        for (int i = 0; i < floatFeatures.GetLength(0); ++i) {
+                            floatFeaturesBeginPtrs[i] = floatFeaturesPtr + i * floatFeatures.GetLength(1);
+                        }
+                        fixed (float** fff = floatFeaturesBeginPtrs) {
+                            res = CatboostNativeInterface.CalcModelPrediction(
+                                ModelContainer.ModelHandler,
+                                docs,
+                                fff, (uint)floatFeatures.GetLength(1),
+                                catFeatureHolder.MainPointer, (uint)catFeatures.GetLength(1),
+                                results, resultSize
+                            );
                         }
                     }
-                    return resultMatrix;
-                }
-                else
-                {
-                    string msg = "";
-                    throw new CatBoostException(
-                        "An error has occurred in the CalcModelPredictionSingle() method in catboostmodel library.\n" +
-                        $"Returned error message: {msg}"
-                    );
                 }
             }
-            finally
-            {
-                // TODO Deallocate
+            if (res) {
+                double[,] resultMatrix = new double[docs, dim];
+                for (int doc = 0; doc < docs; ++doc) {
+                    for (int d = 0; d < dim; ++d) {
+                        resultMatrix[doc, d] = results[dim * doc + d];
+                    }
+                }
+                return resultMatrix;
+            } else {
+                string msg = "";
+                throw new CatBoostException(
+                    "An error has occurred in the CalcModelPredictionSingle() method in catboostmodel library.\n" +
+                    $"Returned error message: {msg}"
+                );
             }
         }
 
@@ -159,22 +149,24 @@ namespace CatBoostNet
         /// <param name="floatFeatures">Array of float features</param>
         /// <param name="catFeatures">Array of categorical features</param>
         /// <returns>Array storing model prediction for the input</returns>
-        public double[] EvaluateSingle(float[] floatFeatures, string[] catFeatures)
-        {
-            uint resultSize = GetDimensionsCount(ModelContainer.ModelHandler);
+        public double[] EvaluateSingle(float[] floatFeatures, string[] catFeatures) {
+            uint resultSize = CatboostNativeInterface.GetDimensionsCount(ModelContainer.ModelHandler);
             double[] results = new double[resultSize];
-            bool res = CatBoostModelEvaluator.CalcModelPredictionSingle(
-                ModelContainer.ModelHandler,
-                floatFeatures, (uint)floatFeatures.Length,
-                catFeatures, (uint)catFeatures.Length,
-                results, resultSize
-            );
-            if (res)
-            {
-                return results;
+            bool res = true;
+            unsafe {
+                fixed (float* floatFeaturesPtr = floatFeatures) {
+                    res = CatboostNativeInterface.CalcModelPredictionSingle(
+                       ModelContainer.ModelHandler,
+                       floatFeatures, (uint)floatFeatures.Length,
+                       catFeatures, (uint)catFeatures.Length,
+                       results, resultSize
+                   );
+                }
             }
-            else
-            {
+
+            if (res) {
+                return results;
+            } else {
                 string msg = "";
                 throw new CatBoostException(
                     "An error has occurred in the CalcModelPredictionSingle() method in catboostmodel library.\n" +
@@ -193,47 +185,5 @@ namespace CatBoostNet
         /// </summary>
         private CatBoostModelContainer ModelContainer { get; }
 
-        // CatBoost DLL imports
-
-        [DllImport("catboostmodel")]
-        private static extern IntPtr ModelCalcerCreate();
-
-        [DllImport("catboostmodel")]
-        private static extern string GetErrorString([In] IntPtr handler);
-
-        [DllImport("catboostmodel")]
-        private static extern void ModelCalcerDelete([In, Out] IntPtr handler);
-
-        [DllImport("catboostmodel")]
-        private static extern bool LoadFullModelFromFile([In, Out] IntPtr modelHandle, string filename);
-
-        [DllImport("catboostmodel")]
-        private static extern uint GetTreeCount([In] IntPtr modelHandle);
-
-        [DllImport("catboostmodel")]
-        private static extern uint GetDimensionsCount([In] IntPtr modelHandle);
-
-        [DllImport("catboostmodel")]
-        private static extern uint GetFloatFeaturesCount([In] IntPtr modelHandle);
-
-        [DllImport("catboostmodel")]
-        private static extern uint GetCatFeaturesCount([In] IntPtr modelHandle);
-
-        [DllImport("catboostmodel")]
-        private static extern bool CalcModelPrediction(
-            [In] IntPtr modelHandle,
-            uint docCount,
-            [In] IntPtr floatFeatures, uint floatFeaturesSize,
-            [In] IntPtr catFeatures, uint catFeaturesSize,
-            [Out] double[] result, uint resultSize
-        );
-
-        [DllImport("catboostmodel")]
-        private static extern bool CalcModelPredictionSingle(
-            [In] IntPtr modelHandle,
-            float[] floatFeatures, uint floatFeaturesSize,
-            string[] catFeatures, uint catFeaturesSize,
-            [Out] double[] result, uint resultSize
-        );
     }
 }

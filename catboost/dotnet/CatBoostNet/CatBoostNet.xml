@@ -66,7 +66,7 @@
             <summary>
             Structure for storing minimal model info — path to the model file
             and pointer to the model handler
-            (as returned by <see cref="M:CatBoostNet.CatBoostModelEvaluator.ModelCalcerCreate"/>).
+            (as returned by <see cref="M:CatBoostNet.CatboostNativeInterface.ModelCalcerCreate"/>).
             </summary>
         </member>
         <member name="P:CatBoostNet.CatBoostModelEvaluator.CatBoostModelContainer.ModelPath">
@@ -76,7 +76,7 @@
         </member>
         <member name="P:CatBoostNet.CatBoostModelEvaluator.CatBoostModelContainer.ModelHandler">
             <summary>
-            Pointer to the model handler. <seealso cref="M:CatBoostNet.CatBoostModelEvaluator.ModelCalcerCreate"/>
+            Pointer to the model handler. <seealso cref="M:CatBoostNet.CatboostNativeInterface.ModelCalcerCreate"/>
             </summary>
         </member>
         <member name="M:CatBoostNet.CatBoostModelEvaluator.CatBoostModelContainer.#ctor(System.String)">
@@ -150,24 +150,34 @@
             Container storing the model handler
             </summary>
         </member>
-        <member name="T:CatBoostNet.PointerTools">
+        <member name="T:CatBoostNet.CatboostNativeInterface">
+            <summary>
+            Static class containing definitions for imported functions
+            </summary>
+        </member>
+        <member name="M:CatBoostNet.CatboostNativeInterface.ModelCalcerCreate">
+            <summary>
+            Create native model handle
+            </summary>
+            <returns>Handle (pointer) to empty model</returns>
+        </member>
+        <member name="M:CatBoostNet.CatboostNativeInterface.GetErrorString(System.IntPtr)">
+            <summary>
+            Get error string from model library
+            </summary>
+            <param name="handler"></param>
+            <returns>String with textual error description</returns>
+        </member>
+        <member name="M:CatBoostNet.CatboostNativeInterface.ModelCalcerDelete(System.IntPtr)">
+            <summary>
+            Deallocate model by given handle
+            </summary>
+            <param name="handler"></param>
+        </member>
+        <member name="T:CatBoostNet.StringPointerHolder">
             <summary>
             Helper class for pointer-level memory management.
             </summary>
-        </member>
-        <member name="M:CatBoostNet.PointerTools.AllocateToPtr(System.Single[0:,0:])">
-            <summary>
-            Allocate the 2D array of floats to the contiguous memory segment
-            </summary>
-            <param name="vals">Array to be allocated</param>
-            <returns>Pointer to the first memory cell storing input array</returns>
-        </member>
-        <member name="M:CatBoostNet.PointerTools.AllocateToPtr(System.String[0:,0:])">
-            <summary>
-            Allocate the 2D array of strings as the contiguous array of char pointers
-            </summary>
-            <param name="vals">Array to be allocated</param>
-            <returns>Pointer to the first memory cell storing array of pointers to the strings of the input array</returns>
         </member>
     </members>
 </doc>

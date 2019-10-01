@@ -1,67 +1,62 @@
 ﻿using System;
 using System.Runtime.InteropServices;
+using System.Text;
 
-namespace CatBoostNet
-{
+namespace CatBoostNet {
     /// <summary>
     /// Helper class for pointer-level memory management.
     /// </summary>
-    internal class PointerTools
-    {
-        /// <summary>
-        /// Allocate the 2D array of floats to the contiguous memory segment
-        /// </summary>
-        /// <param name="vals">Array to be allocated</param>
-        /// <returns>Pointer to the first memory cell storing input array</returns>
-        public static IntPtr AllocateToPtr(float[,] vals)
-        {
-            int ptrSize = Marshal.SizeOf(IntPtr.Zero);
-            IntPtr ret = Marshal.AllocHGlobal(vals.GetLength(0) * ptrSize);
-            int offset = 0;
+    internal class StringPointerHolder : IDisposable {
+        private IntPtr Utf8StringBuf;
+        private IntPtr StringPointerBuf;
+        private IntPtr LinePointerBuf;
 
-            for (int i = 0; i < vals.GetLength(0); i++)
-            {
-                IntPtr lineRet = Marshal.AllocHGlobal(vals.GetLength(1) * sizeof(float));
+        public IntPtr MainPointer { get => LinePointerBuf; }
 
-                float[] arr = new float[vals.GetLength(1)];
-                for (int j = 0; j < vals.GetLength(1); j++)
-                {
-                    arr[j] = vals[i, j];
-                }
-                Marshal.Copy(arr, 0, lineRet, arr.Length);
-                Marshal.WriteIntPtr(ret, offset, lineRet);
-                offset += ptrSize;
+        public StringPointerHolder(string[,] vals) {
+            if (vals.Length == 0) {
+                this.Utf8StringBuf = IntPtr.Zero;
+                this.StringPointerBuf = IntPtr.Zero;
+                this.LinePointerBuf = IntPtr.Zero;
+                return;
             }
+            int ptrSize = Marshal.SizeOf(IntPtr.Zero);
+            Encoding utf8 = Encoding.UTF8;
+            int neededBufSize = 0;
+            int maxStringLen = 0;
+            foreach (string s in vals) {
+                int currStrUtf8Size = utf8.GetByteCount(s);
+                maxStringLen = Math.Max(maxStringLen, currStrUtf8Size);
+                neededBufSize += currStrUtf8Size + 1;
+            }
+            LinePointerBuf = Marshal.AllocHGlobal(vals.GetLength(0) * ptrSize);
+            StringPointerBuf = Marshal.AllocHGlobal(vals.Length * ptrSize);
+            IntPtr linePointerLast = LinePointerBuf;
+            IntPtr stringPointerLast = StringPointerBuf;
 
-            return ret;
+            this.Utf8StringBuf = Marshal.AllocHGlobal(neededBufSize);
+            byte[] utf8EncodeBuf = new byte[maxStringLen + 1];
+            IntPtr writePosition = Utf8StringBuf;
+            for (int i = 0; i < vals.GetLength(0); ++i) {
+                Marshal.WriteIntPtr(linePointerLast, stringPointerLast);
+                linePointerLast += ptrSize;
+                for (int j = 0; j < vals.GetLength(1); ++j) {
+                    int strLen = utf8.GetBytes(vals[i, j], 0, vals[i, j].Length, utf8EncodeBuf, 0);
+                    Marshal.WriteIntPtr(stringPointerLast, writePosition);
+                    stringPointerLast += ptrSize;
+                    Marshal.Copy(utf8EncodeBuf, 0, writePosition, strLen);
+                    writePosition += strLen;
+                    Marshal.WriteByte(writePosition, 0);
+                    writePosition += 1;
+                }
+            }
         }
-
-        /// <summary>
-        /// Allocate the 2D array of strings as the contiguous array of char pointers
-        /// </summary>
-        /// <param name="vals">Array to be allocated</param>
-        /// <returns>Pointer to the first memory cell storing array of pointers to the strings of the input array</returns>
-        public static IntPtr AllocateToPtr(string[,] vals)
-        {
-            int ptrSize = Marshal.SizeOf(IntPtr.Zero);
-            IntPtr ret = Marshal.AllocHGlobal(vals.GetLength(0) * ptrSize);
-            int offset = 0;
-
-            for (int i = 0; i < vals.GetLength(0); i++)
-            {
-                IntPtr lineRet = Marshal.AllocHGlobal(vals.GetLength(1) * ptrSize);
-
-                IntPtr[] arr = new IntPtr[vals.GetLength(1)];
-                for (int j = 0; j < vals.GetLength(1); j++)
-                {
-                    arr[j] = Marshal.StringToHGlobalUni(vals[i, j]);
-                }
-                Marshal.Copy(arr, 0, lineRet, arr.Length);
-                Marshal.WriteIntPtr(ret, offset, lineRet);
-                offset += ptrSize;
+        public void Dispose() {
+            if (Utf8StringBuf != IntPtr.Zero) {
+                Marshal.FreeHGlobal(Utf8StringBuf);
+                Marshal.FreeHGlobal(StringPointerBuf);
+                Marshal.FreeHGlobal(LinePointerBuf);
             }
-
-            return ret;
         }
     }
 }
