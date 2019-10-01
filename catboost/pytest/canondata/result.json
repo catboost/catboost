@@ -1769,12 +1769,6 @@
             "uri": "file://test.test_eval_metrics_TotalF1-2_/output.tsv"
         }
     ],
-    "test.test_eval_metrics_class_names": [
-        {
-            "checksum": "ad98f27b7c6b5b97e1e364473b298b32",
-            "uri": "file://test.test_eval_metrics_class_names/eval.txt"
-        }
-    ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-Accuracy-1]": [
         {
             "checksum": "267c03fa8ef8e12700a07febbfef4db8",

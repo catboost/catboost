@@ -4799,7 +4799,6 @@ def test_eval_metrics_class_names():
     first_metrics = np.round(np.loadtxt(test_error_path, skiprows=1)[:, 2], 8)
     second_metrics = np.round(np.loadtxt(eval_path, skiprows=1)[:, 1], 8)
     assert np.all(first_metrics == second_metrics)
-    return [local_canonical_file(eval_path)]
 
 
 @pytest.mark.parametrize('metric_period', ['1', '2'])
