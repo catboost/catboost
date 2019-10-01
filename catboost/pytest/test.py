@@ -4525,6 +4525,7 @@ def test_dist_train_auc_weight(loss_func):
         output_file_switch='--test-err-log'))]
 
 
+@pytest.mark.xfail(reason='Boost from average for distributed training')
 @pytest.mark.parametrize('schema,train', [('quantized://', 'train_small_x128_greedylogsum.bin'), ('', 'train_small')])
 def test_dist_train_snapshot(schema, train):
     train_cmd = make_deterministic_train_cmd(
