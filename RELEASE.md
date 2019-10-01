@@ -1,3 +1,14 @@
+# Release 0.17.4
+
+## Improvements:
+- Massive 2x speedup for `MultiClass` with many classes
+- Updated MVS implementation. See _Minimal Variance Sampling in Stochastic Gradient Boosting_ by Bulat Ibragimov and Gleb Gusev at [NeurIPS 2019](https://neurips.cc/Conferences/2019)
+- Added `sum_models` in R-package, #1007
+
+## Bugs fixed:
+- Multi model initialization in python, #995
+- Mishandling of 255 borders in training on GPU, #1010
+
 # Release 0.17.3
 
 ## Improvements:
