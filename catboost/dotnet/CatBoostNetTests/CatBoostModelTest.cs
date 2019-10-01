@@ -49,13 +49,18 @@ namespace CatBoostNetTests
             string[] targetLabelList = new string[] { "Iris-setosa", "Iris-versicolor", "Iris-virginica" };
 
             int i = 0;
+            List<int> failedIds = new List<int>();
             foreach (var xy in dataPoints.Zip(predictionsBatch, Tuple.Create))
             {
+                ++i;
                 (var x, var y) = xy;
                 int argmax = Enumerable.Range(0, y.OutputValues.Length).Select(j => Tuple.Create(y.OutputValues[j], j)).Max().Item2;
                 string predLabel = targetLabelList[argmax];
-                Assert.IsTrue(predLabel == x.IrisType, $"Iris test crashed on sample #{i + 1}");
+                if(predLabel != x.IrisType) {
+                    failedIds.Add(i);
+                }
             }
+            Assert.IsTrue(failedIds.Count == 0, $"Iris test crashed on sample #{string.Join(",", failedIds.Select(x => x.ToString()).ToArray())}");
         }
 
         [TestMethod]

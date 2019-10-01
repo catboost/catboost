@@ -4,6 +4,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -65,11 +66,17 @@ namespace CatBoostNetTests {
 
             List<float[]> featureList = new List<float[]>();
             List<double> targetList = new List<double>();
+            var pointCulture = new CultureInfo("en") {
+                NumberFormat = {
+                    NumberDecimalSeparator = "."
+                }
+            };
             using (TextReader textReader = new StreamReader(dsPath)) {
                 while (textReader.Peek() != -1) {
-                    var tokens = textReader.ReadLine().Split(' ').ToList().Where(x => x != "");
-                    targetList.Add(double.Parse(tokens.Last()));
-                    featureList.Add(tokens.SkipLast(1).Select(x => float.Parse(x)).ToArray());
+                    var tokens = textReader.ReadLine().Split(' ').Where(x => x != "").ToList();
+                    var last = tokens.Last();
+                    targetList.Add(double.Parse(last, pointCulture));
+                    featureList.Add(tokens.SkipLast(1).Select(x => float.Parse(x, pointCulture)).ToArray());
                 }
             }
 
