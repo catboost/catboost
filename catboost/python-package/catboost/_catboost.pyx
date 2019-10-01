@@ -3188,7 +3188,7 @@ cdef class _PoolBase:
 
     cpdef _save(self, fname):
         cdef TString file_name = to_arcadia_string(fname)
-        SaveQuantizedPool(self.__pool, fname)
+        SaveQuantizedPool(self.__pool, file_name)
 
 
     cpdef _set_pairs(self, pairs):
