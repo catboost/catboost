@@ -4,7 +4,7 @@
 #include "target_classifier.h"
 
 #include <catboost/libs/algo_helpers/custom_objective_descriptor.h>
-#include <catboost/libs/data_new/util.h>
+#include <catboost/libs/data/util.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/map.h>

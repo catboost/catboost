@@ -1,5 +1,5 @@
 
-#include <catboost/libs/data_new/data_provider_builders.h>
+#include <catboost/libs/data/data_provider_builders.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/train_lib/train_model.h>
 

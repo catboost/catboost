@@ -2,7 +2,7 @@
 
 #include "features_data_helpers.h"
 
-#include <catboost/libs/data_new/objects.h>
+#include <catboost/libs/data/objects.h>
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/model/fwd.h>
 

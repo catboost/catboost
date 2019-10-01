@@ -1,7 +1,7 @@
 #pragma once
 
 #include <catboost/libs/algo_helpers/custom_objective_descriptor.h>
-#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/options/split_params.h>
 #include <catboost/libs/train_lib/cross_validation.h>

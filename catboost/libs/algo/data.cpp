@@ -3,8 +3,8 @@
 #include "approx_dimension.h"
 
 
-#include <catboost/libs/data_new/borders_io.h>
-#include <catboost/libs/data_new/quantization.h>
+#include <catboost/libs/data/borders_io.h>
+#include <catboost/libs/data/quantization.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/labels/label_converter.h>

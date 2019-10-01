@@ -3,7 +3,7 @@
 #include "online_ctr.h"
 #include "projection.h"
 
-#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/model/fwd.h>
 #include <catboost/libs/model/ctr_data.h>
 #include <catboost/libs/model/online_ctr.h>

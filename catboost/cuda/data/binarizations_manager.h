@@ -3,10 +3,10 @@
 #include "feature.h"
 
 #include <catboost/libs/ctr_description/ctr_config.h>
-#include <catboost/libs/data_new/cat_feature_perfect_hash.h>
-#include <catboost/libs/data_new/features_layout.h>
-#include <catboost/libs/data_new/feature_estimators.h>
-#include <catboost/libs/data_new/quantized_features_info.h>
+#include <catboost/libs/data/cat_feature_perfect_hash.h>
+#include <catboost/libs/data/features_layout.h>
+#include <catboost/libs/data/feature_estimators.h>
+#include <catboost/libs/data/quantized_features_info.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/options/binarization_options.h>
 #include <catboost/libs/options/cat_feature_options.h>

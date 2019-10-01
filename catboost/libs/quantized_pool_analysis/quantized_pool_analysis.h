@@ -2,9 +2,9 @@
 
 #include <catboost/libs/algo/apply.h>
 #include <catboost/libs/algo/index_calcer.h>
-#include <catboost/libs/data_new/quantization.h>
-#include <catboost/libs/data_new/data_provider.h>
-#include <catboost/libs/data_new/data_provider_builders.h>
+#include <catboost/libs/data/quantization.h>
+#include <catboost/libs/data/data_provider.h>
+#include <catboost/libs/data/data_provider_builders.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/cpu/evaluator.h>
 #include <catboost/libs/target/data_providers.h>

@@ -5,7 +5,7 @@
 #include "score_calcers.h"
 #include "split.h"
 
-#include <catboost/libs/data_new/packed_binary_features.h>
+#include <catboost/libs/data/packed_binary_features.h>
 #include <catboost/libs/index_range/index_range.h>
 
 #include <library/binsaver/bin_saver.h>

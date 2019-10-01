@@ -9,7 +9,7 @@
 #include <catboost/cuda/cuda_lib/cache.h>
 #include <catboost/cuda/data/permutation.h>
 
-#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data/data_provider.h>
 
 #include <util/system/env.h>
 

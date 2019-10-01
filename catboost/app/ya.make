@@ -25,7 +25,7 @@ PEERDIR(
     catboost/libs/algo
     catboost/libs/app_helpers
     catboost/libs/column_description
-    catboost/libs/data_new
+    catboost/libs/data
     catboost/libs/data_util
     catboost/libs/distributed
     catboost/libs/documents_importance

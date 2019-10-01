@@ -1,7 +1,7 @@
 #pragma once
 
 #include <catboost/libs/options/enums.h>
-#include <catboost/libs/data_new/cat_feature_perfect_hash.h>
+#include <catboost/libs/data/cat_feature_perfect_hash.h>
 
 #include <util/generic/vector.h>
 #include <util/generic/string.h>

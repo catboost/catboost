@@ -2,7 +2,7 @@
 
 #include "learn_context.h"
 
-#include <catboost/libs/data_new/quantized_features_info.h>
+#include <catboost/libs/data/quantized_features_info.h>
 #include <catboost/libs/distributed/master.h>
 #include <catboost/libs/logging/logging.h>
 

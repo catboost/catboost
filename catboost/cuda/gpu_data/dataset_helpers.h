@@ -5,7 +5,7 @@
 #include "batch_binarized_ctr_calcer.h"
 #include "compressed_index_builder.h"
 #include "estimated_features_calcer.h"
-#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/quantization/utils.h>
 #include <catboost/cuda/data/binarizations_manager.h>

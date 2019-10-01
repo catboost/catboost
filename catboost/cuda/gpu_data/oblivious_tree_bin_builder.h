@@ -4,7 +4,7 @@
 #include "splitter.h"
 #include "feature_parallel_dataset.h"
 
-#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data/data_provider.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/ctrs/ctr_bins_builder.h>

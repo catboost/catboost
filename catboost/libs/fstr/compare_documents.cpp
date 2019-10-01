@@ -3,7 +3,7 @@
 #include <catboost/libs/algo/apply.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/model.h>
-#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data/data_provider.h>
 #include <util/generic/utility.h>
 
 

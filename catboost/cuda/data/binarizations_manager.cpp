@@ -1,7 +1,7 @@
 #include "binarizations_manager.h"
 
 #include <catboost/libs/ctr_description/ctr_type.h>
-#include <catboost/libs/data_new/feature_estimators.h>
+#include <catboost/libs/data/feature_estimators.h>
 #include <catboost/libs/options/restrictions.h>
 
 #include <util/generic/algorithm.h>

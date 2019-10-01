@@ -4,7 +4,7 @@
 #include "projection.h"
 #include "target_classifier.h"
 
-#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/data_types/pair.h>
 #include <catboost/libs/data_types/query.h>
 #include <catboost/libs/helpers/clear_array.h>

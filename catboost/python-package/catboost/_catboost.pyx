@@ -337,7 +337,7 @@ cdef extern from "catboost/libs/quantization_schema/schema.h" namespace "NCB":
         pass
 
 
-cdef extern from "catboost/libs/data_new/features_layout.h" namespace "NCB":
+cdef extern from "catboost/libs/data/features_layout.h" namespace "NCB":
     cdef cppclass TFeatureMetaInfo:
         EFeatureType Type
         TString Name
@@ -366,7 +366,7 @@ cdef extern from "catboost/libs/data_new/features_layout.h" namespace "NCB":
         TConstArrayRef[ui32] GetCatFeatureInternalIdxToExternalIdx() except +ProcessException
 
 
-cdef extern from "catboost/libs/data_new/meta_info.h" namespace "NCB":
+cdef extern from "catboost/libs/data/meta_info.h" namespace "NCB":
     cdef cppclass TTargetStats:
         float MinValue
         float MaxValue
@@ -391,7 +391,7 @@ cdef extern from "catboost/libs/data_new/meta_info.h" namespace "NCB":
 
         ui32 GetFeatureCount() except +ProcessException
 
-cdef extern from "catboost/libs/data_new/order.h" namespace "NCB":
+cdef extern from "catboost/libs/data/order.h" namespace "NCB":
     cdef cppclass EObjectsOrder:
         pass
 
@@ -414,7 +414,7 @@ cdef extern from "catboost/libs/data_types/groupid.h":
     cdef TSubgroupId CalcSubgroupIdFor(const TStringBuf& token) except +ProcessException
 
 
-cdef extern from "catboost/libs/data_new/util.h" namespace "NCB":
+cdef extern from "catboost/libs/data/util.h" namespace "NCB":
     cdef cppclass TMaybeData[T]:
         TMaybeData(...) except +
 
@@ -435,14 +435,14 @@ cdef extern from "catboost/libs/data_new/util.h" namespace "NCB":
         TMaybeData OrElse(TMaybeData&) except +
 
 
-cdef extern from "catboost/libs/data_new/quantized_features_info.h" namespace "NCB":
+cdef extern from "catboost/libs/data/quantized_features_info.h" namespace "NCB":
     cdef cppclass TQuantizedFeaturesInfo:
         TQuantizedFeaturesInfo(...)
 
     ctypedef TIntrusivePtr[TQuantizedFeaturesInfo] TQuantizedFeaturesInfoPtr
 
 
-cdef extern from "catboost/libs/data_new/objects_grouping.h" namespace "NCB":
+cdef extern from "catboost/libs/data/objects_grouping.h" namespace "NCB":
     cdef cppclass TObjectsGrouping:
         pass
 
@@ -457,11 +457,11 @@ cdef extern from "catboost/libs/data_new/objects_grouping.h" namespace "NCB":
         EObjectsOrder subsetOrder
     ) except +ProcessException
 
-cdef extern from "catboost/libs/data_new/columns.h" namespace "NCB":
+cdef extern from "catboost/libs/data/columns.h" namespace "NCB":
     cdef cppclass TFloatValuesHolder:
         TMaybeOwningArrayHolder[float] ExtractValues(TLocalExecutor* localExecutor)
 
-cdef extern from "catboost/libs/data_new/objects.h" namespace "NCB":
+cdef extern from "catboost/libs/data/objects.h" namespace "NCB":
     cdef cppclass TObjectsDataProvider:
         ui32 GetObjectCount()
         bool_t EqualTo(const TObjectsDataProvider& rhs, bool_t ignoreSparsity)
@@ -485,7 +485,7 @@ cdef extern from *:
     TQuantizedObjectsDataProvider* dynamic_cast_to_TQuantizedObjectsDataProvider "dynamic_cast<NCB::TQuantizedObjectsDataProvider*>" (TObjectsDataProvider*)
 
 
-cdef extern from "catboost/libs/data_new/weights.h" namespace "NCB":
+cdef extern from "catboost/libs/data/weights.h" namespace "NCB":
     cdef cppclass TWeights[T]:
         T operator[](ui32 idx) except +ProcessException
         ui32 GetSize()
@@ -496,7 +496,7 @@ cdef extern from "catboost/libs/data_new/weights.h" namespace "NCB":
 ctypedef TConstArrayRef[TConstArrayRef[float]] TBaselineArrayRef
 
 
-cdef extern from "catboost/libs/data_new/target.h" namespace "NCB":
+cdef extern from "catboost/libs/data/target.h" namespace "NCB":
     cdef cppclass TRawTargetDataProvider:
         TMaybeData[TConstArrayRef[TString]] GetTarget()
         TMaybeData[TBaselineArrayRef] GetBaseline()
@@ -517,7 +517,7 @@ cdef extern from "catboost/libs/data_new/target.h" namespace "NCB":
 ctypedef TIntrusivePtr[TTargetDataProvider] TTargetDataProviderPtr
 ctypedef TIntrusivePtr[TQuantizedObjectsDataProvider] TQuantizedObjectsDataProviderPtr
 
-cdef extern from "catboost/libs/data_new/data_provider.h" namespace "NCB":
+cdef extern from "catboost/libs/data/data_provider.h" namespace "NCB":
     cdef cppclass TDataProviderTemplate[TTObjectsDataProvider]:
         TDataMetaInfo MetaInfo
         TIntrusivePtr[TTObjectsDataProvider] ObjectsData
@@ -592,7 +592,7 @@ cdef extern from "catboost/libs/options/load_options.h" namespace "NCatboostOpti
         TPathWithScheme CdFilePath
 
 
-cdef extern from "catboost/libs/data_new/visitor.h" namespace "NCB":
+cdef extern from "catboost/libs/data/visitor.h" namespace "NCB":
     cdef cppclass IRawObjectsOrderDataVisitor:
         void Start(
             bool_t inBlock,
@@ -660,7 +660,7 @@ cdef extern from "catboost/libs/data_new/visitor.h" namespace "NCB":
         void Finish() except +ProcessException
 
 
-cdef extern from "catboost/libs/data_new/data_provider_builders.h" namespace "NCB":
+cdef extern from "catboost/libs/data/data_provider_builders.h" namespace "NCB":
     cdef cppclass IDataProviderBuilder:
         TDataProviderPtr GetResult() except +ProcessException
 
@@ -697,7 +697,7 @@ cdef class Py_FeaturesOrderBuilderVisitor:
         pass
 
 
-cdef extern from "catboost/libs/data_new/load_data.h" namespace "NCB":
+cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
     cdef TDataProviderPtr ReadDataset(
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath,
@@ -944,7 +944,7 @@ cdef extern from "catboost/libs/train_lib/train_model.h":
         THolder[TLearnProgress]* dstLearnProgress
     ) nogil except +ProcessException
 
-cdef extern from "catboost/libs/data_new/quantization.h"  namespace "NCB":
+cdef extern from "catboost/libs/data/quantization.h"  namespace "NCB":
     cdef TQuantizedObjectsDataProviderPtr ConstructQuantizedPoolFromRawPool(
         TDataProviderPtr pool,
         TJsonValue plainJsonParams,
@@ -1138,12 +1138,12 @@ cdef extern from "catboost/libs/helpers/wx_test.h" nogil:
 
 cdef float _FLOAT_NAN = float('nan')
 
-cdef extern from "catboost/libs/data_new/borders_io.h" namespace "NCB" nogil:
+cdef extern from "catboost/libs/data/borders_io.h" namespace "NCB" nogil:
     void LoadBordersAndNanModesFromFromFileInMatrixnetFormat(
         const TString& path,
         TQuantizedFeaturesInfo* quantizedFeaturesInfo) except *
 
-cdef extern from "catboost/libs/data_new/loader.h" namespace "NCB" nogil:
+cdef extern from "catboost/libs/data/loader.h" namespace "NCB" nogil:
     int IsMissingValue(const TStringBuf& s)
 
 cdef inline float _FloatOrNanFromString(const TString& s) except *:

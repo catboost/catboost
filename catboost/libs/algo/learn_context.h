@@ -7,8 +7,8 @@
 #include "split.h"
 
 #include <catboost/libs/algo_helpers/custom_objective_descriptor.h>
-#include <catboost/libs/data_new/data_provider.h>
-#include <catboost/libs/data_new/features_layout.h>
+#include <catboost/libs/data/data_provider.h>
+#include <catboost/libs/data/features_layout.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/labels/label_converter.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>

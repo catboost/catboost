@@ -1,6 +1,6 @@
 #include "target_converter.h"
 
-#include <catboost/libs/data_new/loader.h> // for IsNanValue
+#include <catboost/libs/data/loader.h> // for IsNanValue
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/options/enum_helpers.h>
 #include <catboost/libs/options/metric_options.h>

@@ -8,7 +8,7 @@ SRCS(
 
 PEERDIR(
     catboost/libs/algo_helpers
-    catboost/libs/data_new
+    catboost/libs/data
     catboost/libs/helpers
     catboost/libs/train_lib
     catboost/libs/metrics

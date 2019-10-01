@@ -4,7 +4,7 @@
 
 #include <catboost/libs/algo/features_data_helpers.h>
 #include <catboost/libs/algo/index_calcer.h>
-#include <catboost/libs/data_new/features_layout.h>
+#include <catboost/libs/data/features_layout.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/logging/profile_info.h>

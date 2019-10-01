@@ -1,7 +1,7 @@
 #pragma once
 
-#include <catboost/libs/data_new/data_provider.h>
-#include <catboost/libs/data_new/util.h>
+#include <catboost/libs/data/data_provider.h>
+#include <catboost/libs/data/util.h>
 #include <catboost/libs/data_types/groupid.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/labels/label_converter.h>

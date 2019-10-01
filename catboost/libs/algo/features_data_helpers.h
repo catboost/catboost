@@ -1,7 +1,7 @@
 #pragma once
 
-#include <catboost/libs/data_new/model_dataset_compatibility.h>
-#include <catboost/libs/data_new/objects.h>
+#include <catboost/libs/data/model_dataset_compatibility.h>
+#include <catboost/libs/data/objects.h>
 #include <catboost/libs/helpers/dynamic_iterator.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/model.h>

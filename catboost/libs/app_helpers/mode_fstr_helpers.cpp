@@ -1,6 +1,6 @@
 #include "mode_fstr_helpers.h"
 
-#include <catboost/libs/data_new/load_data.h>
+#include <catboost/libs/data/load_data.h>
 #include <catboost/libs/fstr/compare_documents.h>
 #include <catboost/libs/fstr/output_fstr.h>
 #include <catboost/libs/fstr/shap_values.h>

@@ -12,7 +12,7 @@ SRCS(
 PEERDIR(
     catboost/libs/algo
     catboost/libs/algo_helpers
-    catboost/libs/data_new
+    catboost/libs/data
     catboost/libs/model
     catboost/libs/options
     catboost/libs/helpers

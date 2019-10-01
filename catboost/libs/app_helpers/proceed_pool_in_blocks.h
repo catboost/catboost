@@ -1,8 +1,8 @@
 #pragma once
 
 #include <catboost/libs/column_description/cd_parser.h>
-#include <catboost/libs/data_new/loader.h>
-#include <catboost/libs/data_new/data_provider_builders.h>
+#include <catboost/libs/data/loader.h>
+#include <catboost/libs/data/data_provider_builders.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/options/analytical_mode_params.h>
 

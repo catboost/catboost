@@ -1,6 +1,6 @@
 #include "modes.h"
 
-#include <catboost/libs/data_new/load_data.h>
+#include <catboost/libs/data/load_data.h>
 #include <catboost/libs/documents_importance/docs_importance.h>
 #include <catboost/libs/documents_importance/enums.h>
 #include <catboost/libs/model/model.h>

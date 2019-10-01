@@ -10,8 +10,8 @@
 #include "tree_print.h"
 #include "monotonic_constraint_utils.h"
 
-#include <catboost/libs/data_new/feature_index.h>
-#include <catboost/libs/data_new/packed_binary_features.h>
+#include <catboost/libs/data/feature_index.h>
+#include <catboost/libs/data/packed_binary_features.h>
 #include <catboost/libs/distributed/master.h>
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/helpers/query_info_helper.h>

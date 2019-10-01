@@ -2,7 +2,7 @@
 
 #include <catboost/libs/algo/approx_calcer.cpp>
 
-#include <catboost/libs/data_new/data_provider_builders.h>
+#include <catboost/libs/data/data_provider_builders.h>
 #include <catboost/libs/eval_result/eval_result.h>
 #include <catboost/libs/train_lib/train_model.h>
 

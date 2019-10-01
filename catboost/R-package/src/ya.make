@@ -13,7 +13,7 @@ PEERDIR(
     catboost/libs/algo
     catboost/libs/cat_feature
     catboost/libs/data_util
-    catboost/libs/data_new
+    catboost/libs/data
     catboost/libs/documents_importance
     catboost/libs/fstr
     catboost/libs/gpu_config/maybe_have_cuda

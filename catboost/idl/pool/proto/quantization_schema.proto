@@ -16,7 +16,7 @@ message TFeatureQuantizationSchema {
     optional ENanMode NanMode = 2;
 }
 
-//TODO(ivankozlov98): duplicates `TValueWithCount` from `catboost/libs/data_new/cat_feature_perfect_hash.h`
+//TODO(ivankozlov98): duplicates `TValueWithCount` from `catboost/libs/data/cat_feature_perfect_hash.h`
 message TValueWithCount {
     optional uint32 Value = 1; // by default = 0
     optional uint32 Count = 2; // by default = 0

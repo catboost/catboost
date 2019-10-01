@@ -16,7 +16,7 @@ SRCS(
 
 PEERDIR(
     catboost/libs/cat_feature
-    catboost/libs/data_new
+    catboost/libs/data
     catboost/libs/helpers
     catboost/libs/model
     catboost/libs/options

@@ -8,7 +8,7 @@
 #include "tree_print.h"
 
 #include <catboost/libs/cat_feature/cat_feature.h>
-#include <catboost/libs/data_new/model_dataset_compatibility.h>
+#include <catboost/libs/data/model_dataset_compatibility.h>
 #include <catboost/libs/helpers/dense_hash.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/cpu/evaluator.h>

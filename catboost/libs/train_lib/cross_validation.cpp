@@ -9,8 +9,8 @@
 #include <catboost/libs/algo/preprocess.h>
 #include <catboost/libs/algo/roc_curve.h>
 #include <catboost/libs/algo/train.h>
-#include <catboost/libs/data_new/data_provider.h>
-#include <catboost/libs/data_new/feature_names_converter.h>
+#include <catboost/libs/data/data_provider.h>
+#include <catboost/libs/data/feature_names_converter.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>

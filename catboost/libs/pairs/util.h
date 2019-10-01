@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/libs/data_new/objects_grouping.h>
+#include <catboost/libs/data/objects_grouping.h>
 #include <catboost/libs/data_types/pair.h>
 
 #include <catboost/libs/helpers/restorable_rng.h>

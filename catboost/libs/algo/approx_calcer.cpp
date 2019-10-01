@@ -15,7 +15,7 @@
 #include <catboost/libs/algo_helpers/error_functions.h>
 #include <catboost/libs/algo_helpers/gradient_walker.h>
 #include <catboost/libs/algo_helpers/pairwise_leaves_calculation.h>
-#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>

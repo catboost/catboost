@@ -1,6 +1,6 @@
 #include "util.h"
 
-#include <catboost/libs/data_new/util.h>
+#include <catboost/libs/data/util.h>
 #include <catboost/libs/options/loss_description.h>
 
 #include <util/generic/set.h>

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <catboost/libs/data_new/exclusive_feature_bundling.h>
-#include <catboost/libs/data_new/objects.h>
+#include <catboost/libs/data/exclusive_feature_bundling.h>
+#include <catboost/libs/data/objects.h>
 #include <catboost/libs/helpers/clear_array.h>
 
 #include <library/containers/dense_hash/dense_hash.h>

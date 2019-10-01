@@ -1,6 +1,6 @@
 #include "test_utils.h"
 
-#include <catboost/libs/data_new/load_data.h>
+#include <catboost/libs/data/load_data.h>
 #include <catboost/libs/quantization/grid_creator.h>
 #include <catboost/libs/algo/data.h>
 #include <catboost/libs/labels/label_converter.h>

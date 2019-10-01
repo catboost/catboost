@@ -1,7 +1,7 @@
 #pragma once
 
 #include <catboost/libs/column_description/column.h>
-#include <catboost/libs/data_new/meta_info.h>
+#include <catboost/libs/data/meta_info.h>
 #include <catboost/libs/data_util/line_data_reader.h>
 #include <catboost/libs/data_util/path_with_scheme.h>
 #include <catboost/libs/quantized_pool/pool.h>

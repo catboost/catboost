@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/helpers/exception.h>
 
 #include <util/system/types.h>

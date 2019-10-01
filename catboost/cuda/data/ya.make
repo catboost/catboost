@@ -13,7 +13,7 @@ SRCS(
 PEERDIR(
     catboost/cuda/cuda_lib
     catboost/libs/ctr_description
-    catboost/libs/data_new
+    catboost/libs/data
     catboost/libs/data_types
     catboost/libs/model
     catboost/libs/helpers

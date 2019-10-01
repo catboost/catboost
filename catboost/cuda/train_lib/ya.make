@@ -32,7 +32,7 @@ PEERDIR(
     catboost/cuda/targets
     catboost/libs/algo
     catboost/libs/algo_helpers
-    catboost/libs/data_new
+    catboost/libs/data
     catboost/libs/eval_result
     catboost/libs/fstr
     catboost/libs/helpers

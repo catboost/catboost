@@ -3,7 +3,7 @@
 #include "pool.h"
 #include "serialization.h"
 
-#include <catboost/libs/data_new/loader.h>
+#include <catboost/libs/data/loader.h>
 #include <catboost/libs/index_range/index_range.h>
 
 #include <library/object_factory/object_factory.h>

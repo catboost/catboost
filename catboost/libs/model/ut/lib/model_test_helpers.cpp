@@ -1,9 +1,9 @@
 #include "model_test_helpers.h"
 
-#include <catboost/libs/data_new/data_provider_builders.h>
+#include <catboost/libs/data/data_provider_builders.h>
 #include <catboost/libs/model/model_build_helper.h>
-#include <catboost/libs/data_new/load_data.h>
-#include <catboost/libs/data_new/ut/lib/for_loader.h>
+#include <catboost/libs/data/load_data.h>
+#include <catboost/libs/data/ut/lib/for_loader.h>
 #include <catboost/libs/train_lib/train_model.h>
 
 #include <util/string/builder.h>

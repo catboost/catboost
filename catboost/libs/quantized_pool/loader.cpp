@@ -3,9 +3,9 @@
 
 #include <catboost/idl/pool/flat/quantized_chunk_t.fbs.h>
 #include <catboost/libs/column_description/column.h>
-#include <catboost/libs/data_new/baseline.h>
-#include <catboost/libs/data_new/meta_info.h>
-#include <catboost/libs/data_new/unaligned_mem.h>
+#include <catboost/libs/data/baseline.h>
+#include <catboost/libs/data/meta_info.h>
+#include <catboost/libs/data/unaligned_mem.h>
 #include <catboost/libs/data_util/exists_checker.h>
 #include <catboost/libs/data_util/path_with_scheme.h>
 #include <catboost/libs/helpers/exception.h>

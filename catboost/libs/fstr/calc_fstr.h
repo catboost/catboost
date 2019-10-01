@@ -3,7 +3,7 @@
 #include "feature_str.h"
 
 #include <catboost/libs/algo/split.h>
-#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/options/enums.h>
 #include <catboost/libs/options/enum_helpers.h>

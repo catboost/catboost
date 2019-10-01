@@ -3,7 +3,7 @@
 #include "enums.h"
 #include "tree_statistics.h"
 
-#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/options/enums.h>

@@ -1,7 +1,7 @@
 #pragma once
 
-#include <catboost/libs/data_new/data_provider.h>
-#include <catboost/libs/data_new/features_layout.h>
+#include <catboost/libs/data/data_provider.h>
+#include <catboost/libs/data/features_layout.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/options/enums.h>
 

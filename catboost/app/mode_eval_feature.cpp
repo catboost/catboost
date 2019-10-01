@@ -2,13 +2,13 @@
 #include "bind_options.h"
 
 #include <catboost/libs/algo/helpers.h>
-#include <catboost/libs/data_new/load_data.h>
+#include <catboost/libs/data/load_data.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/feature_eval_options.h>
 #include <catboost/libs/options/plain_options_helper.h>
 #include <catboost/libs/train_lib/eval_feature.h>
-#include <catboost/libs/data_new/feature_names_converter.h>
+#include <catboost/libs/data/feature_names_converter.h>
 
 #include <library/json/json_reader.h>
 

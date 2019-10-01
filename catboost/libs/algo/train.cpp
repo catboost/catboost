@@ -9,7 +9,7 @@
 #include "tensor_search_helpers.h"
 
 #include <catboost/libs/algo_helpers/error_functions.h>
-#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/distributed/master.h>
 #include <catboost/libs/distributed/worker.h>
 #include <catboost/libs/helpers/interrupt.h>

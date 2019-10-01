@@ -2,7 +2,7 @@
 
 #include "target_classifier.h"
 
-#include <catboost/libs/data_new/features_layout.h>
+#include <catboost/libs/data/features_layout.h>
 #include <catboost/libs/model/target_classifier.h>
 #include <catboost/libs/options/cat_feature_options.h>
 #include <catboost/libs/options/defaults_helper.h>

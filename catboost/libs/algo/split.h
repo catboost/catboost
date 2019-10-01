@@ -2,9 +2,9 @@
 
 #include "projection.h"
 
-#include <catboost/libs/data_new/exclusive_feature_bundling.h>
-#include <catboost/libs/data_new/packed_binary_features.h>
-#include <catboost/libs/data_new/quantized_features_info.h>
+#include <catboost/libs/data/exclusive_feature_bundling.h>
+#include <catboost/libs/data/packed_binary_features.h>
+#include <catboost/libs/data/quantized_features_info.h>
 #include <catboost/libs/model/split.h>
 
 #include <library/binsaver/bin_saver.h>

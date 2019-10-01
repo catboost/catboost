@@ -1,8 +1,8 @@
 
 #include <catboost/idl/pool/flat/quantized_chunk_t.fbs.h>
-#include <catboost/libs/data_new/load_data.h>
-#include <catboost/libs/data_new/ut/lib/for_data_provider.h>
-#include <catboost/libs/data_new/ut/lib/for_loader.h>
+#include <catboost/libs/data/load_data.h>
+#include <catboost/libs/data/ut/lib/for_data_provider.h>
+#include <catboost/libs/data/ut/lib/for_loader.h>
 #include <catboost/libs/data_types/groupid.h>
 #include <catboost/libs/quantized_pool/pool.h>
 #include <catboost/libs/quantized_pool/serialization.h>

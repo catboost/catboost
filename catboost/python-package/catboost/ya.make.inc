@@ -21,7 +21,7 @@ PEERDIR(
     catboost/libs/algo
     catboost/libs/algo_helpers
     catboost/libs/cat_feature
-    catboost/libs/data_new
+    catboost/libs/data
     catboost/libs/data_types
     catboost/libs/data_util
     catboost/libs/init

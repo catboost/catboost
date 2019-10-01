@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/libs/data_new/target.h>
+#include <catboost/libs/data/target.h>
 
 namespace NCB {
 

@@ -3,7 +3,7 @@
 #include "calc_score_cache.h"
 #include "mvs.h"
 
-#include <catboost/libs/data_new/objects.h>
+#include <catboost/libs/data/objects.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/options/catboost_options.h>
 

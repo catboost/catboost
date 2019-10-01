@@ -4,7 +4,7 @@
 
 #include <catboost/libs/helpers/hash.h>
 #include <catboost/libs/helpers/set.h>
-#include <catboost/libs/data_new/feature_estimators.h>
+#include <catboost/libs/data/feature_estimators.h>
 
 #include <util/system/types.h>
 #include <util/generic/vector.h>

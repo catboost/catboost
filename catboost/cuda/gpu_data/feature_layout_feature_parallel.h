@@ -11,7 +11,7 @@
 #include <catboost/cuda/cuda_util/fill.h>
 #include <catboost/cuda/data/feature.h>
 #include <catboost/cuda/data/binarizations_manager.h>
-#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data/data_provider.h>
 
 namespace NCatboostCuda {
     template <>

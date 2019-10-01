@@ -2,7 +2,7 @@
 
 #include <catboost/libs/algo/data.h>
 #include <catboost/libs/algo/approx_dimension.h>
-#include <catboost/libs/data_new/objects_grouping.h>
+#include <catboost/libs/data/objects_grouping.h>
 #include <catboost/libs/helpers/cpu_random.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/dynamic_iterator.h>

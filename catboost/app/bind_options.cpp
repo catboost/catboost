@@ -1,7 +1,7 @@
 #include "bind_options.h"
 
 #include <catboost/libs/column_description/column.h>
-#include <catboost/libs/data_new/baseline.h>
+#include <catboost/libs/data/baseline.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/analytical_mode_params.h>

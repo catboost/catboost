@@ -2,7 +2,7 @@
 
 #include <catboost/libs/algo/learn_context.h>
 #include <catboost/libs/algo_helpers/custom_objective_descriptor.h>
-#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/eval_result/eval_result.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/metrics/metric.h>

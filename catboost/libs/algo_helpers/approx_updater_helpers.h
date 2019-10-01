@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/data_types/query.h>
 #include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/restrictions.h>

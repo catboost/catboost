@@ -2,7 +2,7 @@
 
 #include "model_quantization_adapter.h"
 
-#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/options/restrictions.h>
 
 #include <util/generic/vector.h>

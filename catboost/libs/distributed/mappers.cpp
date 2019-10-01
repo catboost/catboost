@@ -10,7 +10,7 @@
 #include <catboost/libs/algo/preprocess.h>
 #include <catboost/libs/algo_helpers/approx_calcer_helpers.h>
 #include <catboost/libs/algo_helpers/error_functions.h>
-#include <catboost/libs/data_new/load_data.h>
+#include <catboost/libs/data/load_data.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/vector_helpers.h>

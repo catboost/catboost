@@ -3,7 +3,7 @@
 #include "learn_context.h"
 #include "online_ctr.h"
 
-#include <catboost/libs/data_new/packed_binary_features.h>
+#include <catboost/libs/data/packed_binary_features.h>
 
 #include <util/system/yassert.h>
 

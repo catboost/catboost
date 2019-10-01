@@ -10,9 +10,9 @@
 #include <catboost/libs/algo/preprocess.h>
 #include <catboost/libs/algo/train.h>
 #include <catboost/libs/algo/tree_print.h>
-#include <catboost/libs/data_new/feature_names_converter.h>
-#include <catboost/libs/data_new/borders_io.h>
-#include <catboost/libs/data_new/load_data.h>
+#include <catboost/libs/data/feature_names_converter.h>
+#include <catboost/libs/data/borders_io.h>
+#include <catboost/libs/data/load_data.h>
 #include <catboost/libs/data_util/exists_checker.h>
 #include <catboost/libs/distributed/master.h>
 #include <catboost/libs/distributed/worker.h>

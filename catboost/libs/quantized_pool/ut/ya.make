@@ -12,8 +12,8 @@ SRCS(
 
 PEERDIR(
     catboost/idl/pool/flat
-    catboost/libs/data_new
-    catboost/libs/data_new/ut/lib
+    catboost/libs/data
+    catboost/libs/data/ut/lib
     catboost/libs/data_types
     catboost/libs/quantization_schema
 

@@ -1,8 +1,8 @@
 #pragma once
 
-#include <catboost/libs/data_new/loader.h>
+#include <catboost/libs/data/loader.h>
 #include <catboost/libs/data_util/path_with_scheme.h>
-#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data/data_provider.h>
 
 #include <util/generic/fwd.h>
 #include <util/stream/fwd.h>

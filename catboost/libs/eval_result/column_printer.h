@@ -3,7 +3,7 @@
 #include "pool_printer.h"
 
 #include <catboost/libs/column_description/column.h>
-#include <catboost/libs/data_new/weights.h>
+#include <catboost/libs/data/weights.h>
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/labels/external_label_helper.h>

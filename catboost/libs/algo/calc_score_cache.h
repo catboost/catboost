@@ -5,7 +5,7 @@
 #include "fold.h"
 #include "split.h"
 
-#include <catboost/libs/data_new/columns.h>
+#include <catboost/libs/data/columns.h>
 #include <catboost/libs/index_range/index_range.h>
 #include <catboost/libs/options/restrictions.h>
 

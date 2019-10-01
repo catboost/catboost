@@ -10,7 +10,7 @@ PEERDIR(
     catboost/cuda/data
     catboost/cuda/models
     catboost/libs/algo
-    catboost/libs/data_new
+    catboost/libs/data
     catboost/libs/helpers
     catboost/libs/model
     catboost/libs/target

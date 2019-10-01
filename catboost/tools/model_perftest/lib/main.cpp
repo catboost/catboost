@@ -1,7 +1,7 @@
 #include "perftest_module.h"
 #include <catboost/libs/algo/features_data_helpers.h>
 
-#include <catboost/libs/data_new/load_data.h>
+#include <catboost/libs/data/load_data.h>
 
 #include <catboost/libs/logging/logging.h>
 

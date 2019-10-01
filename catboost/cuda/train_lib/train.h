@@ -6,7 +6,7 @@
 #include <catboost/cuda/models/non_symmetric_tree.h>
 #include <catboost/cuda/models/oblivious_model.h>
 
-#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/options/catboost_options.h>
 #include <catboost/libs/options/enums.h>

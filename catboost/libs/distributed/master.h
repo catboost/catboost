@@ -6,8 +6,8 @@
 #include <catboost/libs/algo/learn_context.h>
 #include <catboost/libs/algo/split.h>
 #include <catboost/libs/algo/tensor_search_helpers.h>
-#include <catboost/libs/data_new/data_provider.h>
-#include <catboost/libs/data_new/loader.h>
+#include <catboost/libs/data/data_provider.h>
+#include <catboost/libs/data/loader.h>
 #include <catboost/libs/options/load_options.h>
 
 void InitializeMaster(const NCatboostOptions::TSystemOptions& systemOptions);

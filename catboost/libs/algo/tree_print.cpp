@@ -3,8 +3,8 @@
 #include "projection.h"
 #include "split.h"
 
-#include <catboost/libs/data_new/features_layout.h>
-#include <catboost/libs/data_new/objects.h>
+#include <catboost/libs/data/features_layout.h>
+#include <catboost/libs/data/objects.h>
 
 #include <util/string/builder.h>
 #include <util/string/cast.h>

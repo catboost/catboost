@@ -46,7 +46,7 @@ SRCS(
 PEERDIR(
     catboost/libs/algo_helpers
     catboost/libs/cat_feature
-    catboost/libs/data_new
+    catboost/libs/data
     catboost/libs/data_types
     catboost/libs/eval_result
     catboost/libs/feature_estimator

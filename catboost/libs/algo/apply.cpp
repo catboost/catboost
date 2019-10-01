@@ -2,8 +2,8 @@
 #include "index_calcer.h"
 #include "features_data_helpers.h"
 
-#include <catboost/libs/data_new/data_provider.h>
-#include <catboost/libs/data_new/model_dataset_compatibility.h>
+#include <catboost/libs/data/data_provider.h>
+#include <catboost/libs/data/model_dataset_compatibility.h>
 #include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>

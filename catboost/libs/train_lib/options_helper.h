@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/libs/data_new/meta_info.h>
+#include <catboost/libs/data/meta_info.h>
 #include <catboost/libs/options/catboost_options.h>
 
 void UpdateYetiRankEvalMetric(

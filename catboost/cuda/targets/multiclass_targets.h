@@ -5,7 +5,7 @@
 
 #include <catboost/cuda/cuda_lib/mapping.h>
 
-#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/options/enums.h>

@@ -2,8 +2,8 @@
 
 #include "projection.h"
 
-#include <catboost/libs/data_new/data_provider.h>
-#include <catboost/libs/data_new/quantized_features_info.h>
+#include <catboost/libs/data/data_provider.h>
+#include <catboost/libs/data/quantized_features_info.h>
 #include <catboost/libs/model/online_ctr.h>
 
 #include <util/generic/maybe.h>

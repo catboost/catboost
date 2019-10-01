@@ -5,7 +5,7 @@
 #include <catboost/cuda/ctrs/ctr_bins_builder.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_resharding.h>
 
-#include <catboost/libs/data_new/data_provider.h>
+#include <catboost/libs/data/data_provider.h>
 
 #include <library/threading/local_executor/local_executor.h>
 

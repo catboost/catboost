@@ -10,7 +10,7 @@ SRCS(
 )
 
 PEERDIR(
-    catboost/libs/data_new
+    catboost/libs/data
     catboost/libs/data_types
     catboost/libs/helpers
     catboost/libs/labels

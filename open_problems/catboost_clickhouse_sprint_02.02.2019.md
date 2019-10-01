@@ -263,7 +263,7 @@ It also requires refactoring of quantization library to expose the quantization 
 Reference:
 * About Quantization in CatBoost: <https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/>
 * Quantization options handling: <https://github.com/catboost/catboost/blob/master/catboost/libs/options/binarization_options.h>
-* Quantization in CatBoost is called from <https://github.com/catboost/catboost/blob/e7d668e5e1fd2f549640fc80dc97598f260e3c4e/catboost/libs/data_new/quantization.cpp#L179-L183>
+* Quantization in CatBoost is called from <https://github.com/catboost/catboost/blob/e7d668e5e1fd2f549640fc80dc97598f260e3c4e/catboost/libs/data/quantization.cpp#L179-L183>
 * Quantization library is here: <https://github.com/catboost/catboost/tree/master/library/grid_creator>
 * Quantization function that accepts weights is here: <https://github.com/catboost/catboost/blob/e7d668e5e1fd2f549640fc80dc97598f260e3c4e/library/grid_creator/binarization.cpp#L640>
 

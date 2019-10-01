@@ -7,7 +7,7 @@
 #include <catboost/libs/algo/score_calcers.h>
 #include <catboost/libs/algo/scoring.h>
 #include <catboost/libs/algo_helpers/error_functions.h>
-#include <catboost/libs/data_new/load_data.h>
+#include <catboost/libs/data/load_data.h>
 
 #include <library/par/par_settings.h>
 
