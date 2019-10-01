@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{3567992D-936F-7A5F-AADB-8CF406FF270E}</ProjectGUID>
+    <ProjectGUID>{54E939EF-A373-6AFA-E9E2-99DAE5271F5C}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>catboost-libs-data_new-benchmarks_ut</ProjectName>
+    <ProjectName>catboost-libs-data-benchmarks_ut</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>catboost-libs-data_new-benchmarks_ut</TargetName>
+    <TargetName>catboost-libs-data-benchmarks_ut</TargetName>
     <TargetExtention>.exe</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\3567992D-936F-7A5F-AADB-8CF406FF270E\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\54E939EF-A373-6AFA-E9E2-99DAE5271F5C\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,13 +78,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut\1204c9a5db0a366fa0204390af.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut\757b0c3c3f7488f42e2296988f.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut\_1204c9a5db0a366fa0204390af.yasm">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut\1204c9a5db0a366fa0204390af.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut\c4cfa5570a2fd350a3a2060010.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut\_1204c9a5db0a366fa0204390af.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/_1204c9a5db0a366fa0204390af.obj" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/_1204c9a5db0a366fa0204390af.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/_1204c9a5db0a366fa0204390af.obj" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/_1204c9a5db0a366fa0204390af.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -93,9 +93,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/_1204c9a5db0a366fa0204390af.obj" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/_1204c9a5db0a366fa0204390af.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/_1204c9a5db0a366fa0204390af.obj" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/_1204c9a5db0a366fa0204390af.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -103,15 +103,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/data_new/benchmarks_ut/_1204c9a5db0a366fa0204390af.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut\_1204c9a5db0a366fa0204390af.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut\_1204c9a5db0a366fa0204390af.obj;</Outputs>
+      <Message>$B/catboost/libs/data/benchmarks_ut/_1204c9a5db0a366fa0204390af.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut\_1204c9a5db0a366fa0204390af.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut\_1204c9a5db0a366fa0204390af.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut\_757b0c3c3f7488f42e2296988f.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut\_c4cfa5570a2fd350a3a2060010.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/_757b0c3c3f7488f42e2296988f.obj" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/_757b0c3c3f7488f42e2296988f.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/_c4cfa5570a2fd350a3a2060010.obj" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/_c4cfa5570a2fd350a3a2060010.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -120,9 +120,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/_757b0c3c3f7488f42e2296988f.obj" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/_757b0c3c3f7488f42e2296988f.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/_c4cfa5570a2fd350a3a2060010.obj" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/_c4cfa5570a2fd350a3a2060010.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -130,15 +130,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/data_new/benchmarks_ut/_757b0c3c3f7488f42e2296988f.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut\_757b0c3c3f7488f42e2296988f.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut\_757b0c3c3f7488f42e2296988f.obj;</Outputs>
+      <Message>$B/catboost/libs/data/benchmarks_ut/_c4cfa5570a2fd350a3a2060010.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut\_c4cfa5570a2fd350a3a2060010.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut\_c4cfa5570a2fd350a3a2060010.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/_1204c9a5db0a366fa0204390af.yasm" "-" "library.python.pytest.main:main" "_98245ebad7ff049b2578ddf198.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/_1204c9a5db0a366fa0204390af.yasm" "-" "library.python.pytest.main:main" "_d537aa4180ec32c187ec021a5b.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -147,9 +147,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/_1204c9a5db0a366fa0204390af.yasm" "-" "library.python.pytest.main:main" "_98245ebad7ff049b2578ddf198.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/_1204c9a5db0a366fa0204390af.yasm" "-" "library.python.pytest.main:main" "_d537aa4180ec32c187ec021a5b.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -157,19 +157,19 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/data_new/benchmarks_ut/_1204c9a5db0a366fa0204390af.yasm	</Message>
+      <Message>$B/catboost/libs/data/benchmarks_ut/_1204c9a5db0a366fa0204390af.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut\_1204c9a5db0a366fa0204390af.yasm;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut\_1204c9a5db0a366fa0204390af.yasm;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/1204c9a5db0a366fa0204390af.cpp" "_98245ebad7ff049b2578ddf198=PY_MAIN"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/1204c9a5db0a366fa0204390af.cpp" "_d537aa4180ec32c187ec021a5b=PY_MAIN"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/757b0c3c3f7488f42e2296988f.cpp" "_4a5ce926529fedf401992e2851=/py_modules/__tests__.test_perf" "_fa99f68dde85d96ada28259b65=resfs/src//py_modules/__tests__.test_perf" "_12ce7067e306067982eb518b34=/py_code/__tests__.test_perf"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/c4cfa5570a2fd350a3a2060010.cpp" "_0af8d10bba97736f52ae961c8d=/py_modules/__tests__.test_perf" "_225ca265057cdfc9ecda62858a=resfs/src//py_modules/__tests__.test_perf" "_a6fc3f8b9f88338a81b99c38b7=/py_code/__tests__.test_perf"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -178,13 +178,13 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/1204c9a5db0a366fa0204390af.cpp" "_98245ebad7ff049b2578ddf198=PY_MAIN"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/1204c9a5db0a366fa0204390af.cpp" "_d537aa4180ec32c187ec021a5b=PY_MAIN"
 if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/757b0c3c3f7488f42e2296988f.cpp" "_4a5ce926529fedf401992e2851=/py_modules/__tests__.test_perf" "_fa99f68dde85d96ada28259b65=resfs/src//py_modules/__tests__.test_perf" "_12ce7067e306067982eb518b34=/py_code/__tests__.test_perf"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/c4cfa5570a2fd350a3a2060010.cpp" "_0af8d10bba97736f52ae961c8d=/py_modules/__tests__.test_perf" "_225ca265057cdfc9ecda62858a=resfs/src//py_modules/__tests__.test_perf" "_a6fc3f8b9f88338a81b99c38b7=/py_code/__tests__.test_perf"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -192,15 +192,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/data_new/benchmarks_ut/1204c9a5db0a366fa0204390af.cpp	$B/catboost/libs/data_new/benchmarks_ut/757b0c3c3f7488f42e2296988f.cpp	</Message>
+      <Message>$B/catboost/libs/data/benchmarks_ut/1204c9a5db0a366fa0204390af.cpp	$B/catboost/libs/data/benchmarks_ut/c4cfa5570a2fd350a3a2060010.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut\1204c9a5db0a366fa0204390af.cpp;$(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut\757b0c3c3f7488f42e2296988f.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut\1204c9a5db0a366fa0204390af.cpp;$(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut\c4cfa5570a2fd350a3a2060010.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/libs/data_new/benchmarks_ut/test_perf.py-" "$(SolutionDir)../catboost/libs/data_new/benchmarks_ut/test_perf.py" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/test_perf.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/libs/data/benchmarks_ut/test_perf.py-" "$(SolutionDir)../catboost/libs/data/benchmarks_ut/test_perf.py" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/test_perf.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -209,9 +209,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/libs/data_new/benchmarks_ut/test_perf.py-" "$(SolutionDir)../catboost/libs/data_new/benchmarks_ut/test_perf.py" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/test_perf.py.yapyc"
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "catboost/libs/data/benchmarks_ut/test_perf.py-" "$(SolutionDir)../catboost/libs/data/benchmarks_ut/test_perf.py" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/test_perf.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -219,15 +219,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/data_new/benchmarks_ut/test_perf.py.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\catboost\libs\data_new\benchmarks_ut\test_perf.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut\test_perf.py.yapyc;</Outputs>
+      <Message>$B/catboost/libs/data/benchmarks_ut/test_perf.py.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\catboost\libs\data\benchmarks_ut\test_perf.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut\test_perf.py.yapyc;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\catboost\libs\data_new\benchmarks_ut\test_perf.py">
+    <CustomBuild Include="$(SolutionDir)..\catboost\libs\data\benchmarks_ut\test_perf.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/_757b0c3c3f7488f42e2296988f.yasm" "$(SolutionDir)../catboost/libs/data_new/benchmarks_ut/test_perf.py" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/_4a5ce926529fedf401992e2851.rodata" "-" "catboost/libs/data_new/benchmarks_ut/test_perf.py" "_fa99f68dde85d96ada28259b65.rodata" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/test_perf.py.yapyc" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/_12ce7067e306067982eb518b34.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/_c4cfa5570a2fd350a3a2060010.yasm" "$(SolutionDir)../catboost/libs/data/benchmarks_ut/test_perf.py" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/_0af8d10bba97736f52ae961c8d.rodata" "-" "catboost/libs/data/benchmarks_ut/test_perf.py" "_225ca265057cdfc9ecda62858a.rodata" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/test_perf.py.yapyc" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/_a6fc3f8b9f88338a81b99c38b7.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -236,9 +236,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/_757b0c3c3f7488f42e2296988f.yasm" "$(SolutionDir)../catboost/libs/data_new/benchmarks_ut/test_perf.py" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/_4a5ce926529fedf401992e2851.rodata" "-" "catboost/libs/data_new/benchmarks_ut/test_perf.py" "_fa99f68dde85d96ada28259b65.rodata" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/test_perf.py.yapyc" "$(SolutionDir)$(Configuration)/catboost/libs/data_new/benchmarks_ut/_12ce7067e306067982eb518b34.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/_c4cfa5570a2fd350a3a2060010.yasm" "$(SolutionDir)../catboost/libs/data/benchmarks_ut/test_perf.py" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/_0af8d10bba97736f52ae961c8d.rodata" "-" "catboost/libs/data/benchmarks_ut/test_perf.py" "_225ca265057cdfc9ecda62858a.rodata" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/test_perf.py.yapyc" "$(SolutionDir)$(Configuration)/catboost/libs/data/benchmarks_ut/_a6fc3f8b9f88338a81b99c38b7.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -246,9 +246,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/data_new/benchmarks_ut/_757b0c3c3f7488f42e2296988f.yasm	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\libs\data_new\benchmarks_ut\test_perf.py;$(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut\test_perf.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut\_757b0c3c3f7488f42e2296988f.yasm;$(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut\_4a5ce926529fedf401992e2851.rodata;$(SolutionDir)$(Configuration)\catboost\libs\data_new\benchmarks_ut\_12ce7067e306067982eb518b34.rodata;</Outputs>
+      <Message>$B/catboost/libs/data/benchmarks_ut/_c4cfa5570a2fd350a3a2060010.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\data\benchmarks_ut\test_perf.py;$(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut\test_perf.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut\_c4cfa5570a2fd350a3a2060010.yasm;$(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut\_0af8d10bba97736f52ae961c8d.rodata;$(SolutionDir)$(Configuration)\catboost\libs\data\benchmarks_ut\_a6fc3f8b9f88338a81b99c38b7.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
