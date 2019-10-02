@@ -231,7 +231,11 @@ static void AdjustBoostFromAverageDefaultValue(
     if (catBoostOptions->BoostingOptions->BoostFromAverage.IsSet()) {
         return;
     }
-    if (catBoostOptions->SystemOptions->IsSingleHost() && !continueFromModel) {
+    if (catBoostOptions->SystemOptions->IsSingleHost()
+        && !continueFromModel
+        // boost from average is enabled by default only for RMSE now
+        && catBoostOptions->LossFunctionDescription->GetLossFunction() == ELossFunction::RMSE
+    ) {
         catBoostOptions->BoostingOptions->BoostFromAverage.Set(true);
     }
     if (trainDataMetaInfo.BaselineCount != 0 || (testDataMetaInfo.Defined() && testDataMetaInfo->BaselineCount != 0)) {

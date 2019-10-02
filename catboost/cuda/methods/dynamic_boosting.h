@@ -14,10 +14,10 @@
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/helpers/math_utils.h>
 #include <catboost/libs/helpers/progress_helper.h>
+#include <catboost/libs/metrics/optimal_const_for_loss.h>
 #include <catboost/libs/options/boosting_options.h>
 #include <catboost/libs/options/loss_description.h>
 #include <catboost/libs/overfitting_detector/overfitting_detector.h>
-#include <catboost/libs/target/target_weighted_average.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -536,9 +536,10 @@ namespace NCatboostCuda {
                     "You can't use boost_from_average with baseline now.");
                 CB_ENSURE(!TestDataProvider || !TestDataProvider->TargetData->GetBaseline(),
                     "You can't use boost_from_average with baseline now.");
-                if (CatBoostOptions.LossFunctionDescription->GetLossFunction() == ELossFunction::RMSE) {
-                    state->StartingPoint = CalculateWeightedTargetAverage(*DataProvider->TargetData);
-                }
+                state->StartingPoint = NCB::CalcOptimumConstApprox(
+                    CatBoostOptions.LossFunctionDescription->GetLossFunction(),
+                    DataProvider->TargetData->GetTarget().GetOrElse(TConstArrayRef<float>()),
+                    GetWeights(*DataProvider->TargetData));
             }
 
             const ui32 estimationPermutation = state->DataSets.PermutationsCount() - 1;

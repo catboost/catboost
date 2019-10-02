@@ -27,6 +27,7 @@
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/metrics/metric.h>
+#include <catboost/libs/metrics/optimal_const_for_loss.h>
 #include <catboost/libs/model/ctr_data.h>
 #include <catboost/libs/model/model_build_helper.h>
 #include <catboost/libs/options/catboost_options.h>
@@ -34,7 +35,6 @@
 #include <catboost/libs/options/system_options.h>
 #include <catboost/libs/pairs/util.h>
 #include <catboost/libs/target/classification_target_helper.h>
-#include <catboost/libs/target/target_weighted_average.h>
 
 #include <library/grid_creator/binarization.h>
 #include <library/json/json_prettifier.h>
@@ -604,20 +604,6 @@ static void SaveModel(
 }
 
 
-//TODO(isaf27): add baseline to CalcOptimumConstApprox
-static inline TMaybe<double> CalcOptimumConstApprox(
-    const TTargetDataProvider& targetDataProvider,
-    ELossFunction lossFunction,
-    bool boostFromAverage
-) {
-    if (lossFunction != ELossFunction::RMSE || !boostFromAverage) {
-        return Nothing();
-    }
-
-    return CalculateWeightedTargetAverage(targetDataProvider);
-}
-
-
 namespace {
     class TCPUModelTrainer : public IModelTrainer {
 
@@ -689,6 +675,12 @@ namespace {
                 }
             }
 
+            const auto startingApprox = catboostOptions.BoostingOptions->BoostFromAverage.Get()
+                ? CalcOptimumConstApprox(
+                    catboostOptions.LossFunctionDescription->GetLossFunction(),
+                    trainingData.Learn->TargetData->GetTarget().GetOrElse(TConstArrayRef<float>()),
+                    GetWeights(*trainingData.Learn->TargetData))
+                : Nothing();
             TLearnContext ctx(
                 catboostOptions,
                 objectiveDescriptor,
@@ -696,11 +688,7 @@ namespace {
                 outputOptions,
                 trainingDataForCpu,
                 labelConverter,
-                CalcOptimumConstApprox(
-                    *trainingData.Learn->TargetData,
-                    catboostOptions.LossFunctionDescription->GetLossFunction(),
-                    catboostOptions.BoostingOptions->BoostFromAverage.Get()
-                ),
+                startingApprox,
                 rand,
                 std::move(initModel),
                 std::move(initLearnProgress),

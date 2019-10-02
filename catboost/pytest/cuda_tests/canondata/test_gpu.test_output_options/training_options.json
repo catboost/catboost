@@ -19,7 +19,7 @@
             "type" : "None",
             "stop_pvalue" : 0
         },
-        "boost_from_average" : true,
+        "boost_from_average" : false,
         "min_fold_size" : 100,
         "permutation_count" : 4,
         "learning_rate" : 0.4402559996

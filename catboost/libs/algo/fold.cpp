@@ -168,8 +168,9 @@ TFold TFold::BuildDynamicFold(
 
         TVector<double> initialApprox(bt.TailFinish, GetNeutralApprox(storeExpApproxes));
         if (startingApprox) {
+            double initApprox = ExpApproxIf(storeExpApproxes, *startingApprox);
             for (ui32 i = leftPartLen; i < (ui32)bt.TailFinish; ++i) {
-                initialApprox[i] = *startingApprox;
+                initialApprox[i] = initApprox;
             }
         }
         bt.Approx.resize(approxDimension, initialApprox);
@@ -256,7 +257,10 @@ TFold TFold::BuildPlainFold(
         ff.GetSumWeight()
     );
 
-    bt.Approx.resize(approxDimension, TVector<double>(learnSampleCount, startingApprox ? *startingApprox : GetNeutralApprox(storeExpApproxes)));
+    bt.Approx.resize(approxDimension,
+        TVector<double>(
+            learnSampleCount,
+            startingApprox ? ExpApproxIf(storeExpApproxes, *startingApprox) : GetNeutralApprox(storeExpApproxes)));
     bt.WeightedDerivatives.resize(approxDimension, TVector<double>(learnSampleCount));
     bt.SampleWeightedDerivatives.resize(approxDimension, TVector<double>(learnSampleCount));
     if (hasPairwiseWeights) {

@@ -13,6 +13,7 @@ SRCS(
     kappa.cpp
     llp.cpp
     metric.cpp
+    optimal_const_for_loss.cpp
     pfound.cpp
     precision_recall_at_k.cpp
     sample.cpp

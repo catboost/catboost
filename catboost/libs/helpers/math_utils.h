@@ -23,5 +23,9 @@ namespace NCB {
         }
         return lhs == rhs;
     }
+
+    inline double Logit(double x) {
+        return -log(1 / x - 1);
+    }
 }
 

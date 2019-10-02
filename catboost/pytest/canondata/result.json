@@ -435,16 +435,40 @@
             "uri": "file://test.test_baseline_output/test.eval"
         }
     ],
-    "test.test_boost_from_average[Ordered]": [
+    "test.test_boost_from_average[CrossEntropy-Ordered]": [
         {
-            "checksum": "4ff71a14c1d2f13e64b3ca28532fe142",
-            "uri": "file://test.test_boost_from_average_Ordered_/test_avg.eval"
+            "checksum": "3562b2b183893bc93cb21cd7e7e84e48",
+            "uri": "file://test.test_boost_from_average_CrossEntropy-Ordered_/test_avg.eval"
         }
     ],
-    "test.test_boost_from_average[Plain]": [
+    "test.test_boost_from_average[CrossEntropy-Plain]": [
+        {
+            "checksum": "746fc38cce5a27d024564d3cc64500e2",
+            "uri": "file://test.test_boost_from_average_CrossEntropy-Plain_/test_avg.eval"
+        }
+    ],
+    "test.test_boost_from_average[Logloss-Ordered]": [
+        {
+            "checksum": "3562b2b183893bc93cb21cd7e7e84e48",
+            "uri": "file://test.test_boost_from_average_Logloss-Ordered_/test_avg.eval"
+        }
+    ],
+    "test.test_boost_from_average[Logloss-Plain]": [
+        {
+            "checksum": "746fc38cce5a27d024564d3cc64500e2",
+            "uri": "file://test.test_boost_from_average_Logloss-Plain_/test_avg.eval"
+        }
+    ],
+    "test.test_boost_from_average[RMSE-Ordered]": [
+        {
+            "checksum": "4ff71a14c1d2f13e64b3ca28532fe142",
+            "uri": "file://test.test_boost_from_average_RMSE-Ordered_/test_avg.eval"
+        }
+    ],
+    "test.test_boost_from_average[RMSE-Plain]": [
         {
             "checksum": "06bfb617624d4014c53baa64ad4754d7",
-            "uri": "file://test.test_boost_from_average_Plain_/test_avg.eval"
+            "uri": "file://test.test_boost_from_average_RMSE-Plain_/test_avg.eval"
         }
     ],
     "test.test_bootstrap[calc_block=5000000-Ordered]": [
@@ -4166,7 +4190,7 @@
         "uri": "file://test.test_output_columns_format/test.eval"
     },
     "test.test_output_options": {
-        "checksum": "51e32ccf1a57b7199cf4f7e3dc5cf741",
+        "checksum": "7a0169dc09c6357530e3aa4b1d531d2f",
         "uri": "file://test.test_output_options/training_options.json"
     },
     "test.test_overfit_detector_inc_to_dec[Ordered]": [

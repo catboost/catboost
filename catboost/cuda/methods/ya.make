@@ -92,6 +92,7 @@ PEERDIR(
     catboost/libs/helpers
     catboost/libs/lapack
     catboost/libs/loggers
+    catboost/libs/metrics
     catboost/libs/overfitting_detector
     library/threading/local_executor
 )

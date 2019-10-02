@@ -15,6 +15,7 @@ __all__ = [
     'binary_path',
     'compare_evals',
     'compare_evals_with_precision',
+    'compare_fit_evals_with_precision',
     'compare_metrics_with_diff',
     'generate_random_labeled_set',
     'load_dataset_as_dataframe',
@@ -175,6 +176,10 @@ def compare_evals_with_precision(fit_eval, calc_eval, rtol=1e-6, skip_last_colum
     for i, _ in itertools.islice(filter(lambda x: not np.all(x[1]), enumerate(is_close)), 100):
         sys.stderr.write("index: {} {} != {}\n".format(i, array_fit[i], array_calc[i]))
     return False
+
+
+def compare_fit_evals_with_precision(fit_eval_1, fit_eval_2, rtol=1e-6):
+    return compare_evals_with_precision(fit_eval_1, fit_eval_2, rtol, False)
 
 
 def load_dataset_as_dataframe(data_file, columns_metadata, has_header=False):

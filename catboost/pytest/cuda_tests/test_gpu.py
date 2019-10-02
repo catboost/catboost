@@ -11,6 +11,7 @@ from catboost_pytest_lib import (
     append_params_to_cmdline,
     apply_catboost,
     compare_evals_with_precision,
+    compare_fit_evals_with_precision,
     compare_metrics_with_diff,
     data_file,
     execute_catboost_fit,
@@ -488,7 +489,8 @@ def test_baseline(boosting_type):
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
-def test_boost_from_average(boosting_type):
+@pytest.mark.parametrize('loss_function', ['RMSE', 'Logloss', 'CrossEntropy'])
+def test_boost_from_average(boosting_type, loss_function):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_calc_eval_path = yatest.common.test_output_path('test_calc.eval')
     output_eval_path_with_avg = yatest.common.test_output_path('test_avg.eval')
@@ -501,21 +503,23 @@ def test_boost_from_average(boosting_type):
     test_path = data_file('adult', 'test_small')
     original_cd = data_file('adult', 'train.cd')
 
-    sum_target = 0.0
-    obj_count = 0.0
+    # use float32 beacause we use float in C++
+    sum_target = np.float32(0)
+    obj_count = np.float32(0)
     with open(train_path) as train_f:
         for line in train_f:
             obj_count += 1
-            sum_target += float(line.split()[1])
+            sum_target += np.float32(line.split()[1])
 
-    mean_target_str = str(sum_target / obj_count)
+    mean_target = sum_target / obj_count
+    if loss_function in ['Logloss', 'CrossEntropy']:
+        mean_target = -np.log(1 / mean_target - 1)
+    mean_target_str = str(mean_target)
 
     def append_baseline_to_pool(source, target):
         with open(source) as source_f, open(target, 'w') as target_f:
             for line in source_f:
-                tokens = line.rstrip('\n').split('\t')
-                tokens.append(mean_target_str)
-                target_f.write('\t'.join(tokens) + '\n')
+                target_f.write(line.rstrip('\n') + '\t' + mean_target_str + '\n')
 
     append_baseline_to_pool(train_path, baselined_train)
     append_baseline_to_pool(test_path, baselined_test)
@@ -526,7 +530,7 @@ def test_boost_from_average(boosting_type):
         cd_output.write('18\tBaseline\n')
 
     baseline_boost_params = {
-        '--loss-function': 'RMSE',
+        '--loss-function': loss_function,
         '--boosting-type': boosting_type,
         '-i': '30',
         '-w': '0.03',
@@ -539,7 +543,7 @@ def test_boost_from_average(boosting_type):
         '--eval-file': output_eval_path_with_baseline,
     }
     avg_boost_params = {
-        '--loss-function': 'RMSE',
+        '--loss-function': loss_function,
         '--boosting-type': boosting_type,
         '-i': '30',
         '-w': '0.03',
@@ -556,7 +560,7 @@ def test_boost_from_average(boosting_type):
 
     apply_catboost(output_model_path, test_path, original_cd, output_calc_eval_path)
 
-    assert compare_evals_with_precision(output_eval_path_with_avg, output_eval_path_with_baseline, skip_last_column_in_fit=False)
+    assert compare_fit_evals_with_precision(output_eval_path_with_avg, output_eval_path_with_baseline)
     assert compare_evals_with_precision(output_eval_path_with_avg, output_calc_eval_path)
 
 

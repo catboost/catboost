@@ -39,6 +39,10 @@ static inline double GetNeutralApprox(bool storeExpApproxes) {
     }
 }
 
+static inline double ExpApproxIf(bool storeExpApproxes, double approx) {
+    return storeExpApproxes ? fast_exp(approx) : approx;
+}
+
 static inline void ExpApproxIf(bool storeExpApproxes, TArrayRef<double> approx) {
     if (storeExpApproxes) {
         FastExpInplace(approx.data(), approx.size());
