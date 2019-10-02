@@ -86,7 +86,6 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\target\classification_target_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\target\data_providers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\target\target_converter.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\target\target_weighted_average.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
