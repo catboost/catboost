@@ -2,48 +2,45 @@
 
 #include <library/unittest/registar.h>
 
-// This version of memory output stream is written here only
+#include <util/generic/string.h>
+
+// This version of string output stream is written here only
 // for testing IZeroCopyOutput implementation of DoWrite.
-class TSimpleMemoryOutput: public IZeroCopyOutput {
+class TSimpleStringOutput: public IZeroCopyOutput {
 public:
-    TSimpleMemoryOutput(void* buf, size_t len) noexcept
-        : Buf_(static_cast<char*>(buf))
-        , End_(Buf_ + len)
+    TSimpleStringOutput(TString& s) noexcept
+        : S_(s)
     {
     }
 
 private:
     size_t DoNext(void** ptr) override {
-        Y_ENSURE(Buf_ < End_, AsStringBuf("memory output stream exhausted"));
-        *ptr = Buf_;
-        return End_ - Buf_;
+        if (S_.size() == S_.capacity()) {
+            S_.reserve(FastClp2(S_.capacity() + 1));
+        }
+        *ptr = S_.Detach() + S_.size();
+        return S_.capacity() - S_.size();
     }
 
     void DoAdvance(size_t len) override {
-        char* end = Buf_ + len;
-        Y_ENSURE(end <= End_, AsStringBuf("memory output stream exhausted"));
-        Buf_ = end;
+        Y_ENSURE(S_.size() + len <= S_.capacity(), "trying to advance past the buffer");
+        S_.ReserveAndResize(S_.size() + len);
     }
 
-    char* Buf_;
-    char* End_;
+    TString& S_;
 };
 
 Y_UNIT_TEST_SUITE(TestZerocopyOutput) {
     Y_UNIT_TEST(Write) {
-        char buffer[20];
-        TSimpleMemoryOutput output(buffer, sizeof(buffer));
-        output << "1"
-               << "22"
-               << "333"
-               << "4444"
-               << "55555";
+        TString str;
+        TSimpleStringOutput output(str);
+        TString result;
 
-        const char* const result = "1"
-                                   "22"
-                                   "333"
-                                   "4444"
-                                   "55555";
-        UNIT_ASSERT(0 == memcmp(buffer, result, strlen(result)));
+        for (size_t i = 0; i < 1000; ++i) {
+            result.push_back('a' + (i % 20));
+        }
+
+        output.Write(result.begin(), result.size());
+        UNIT_ASSERT_STRINGS_EQUAL(str, result);
     }
 }
