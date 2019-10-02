@@ -192,10 +192,11 @@ static void UpdateAndValidateMonotoneConstraints(
         monotoneConstraints->clear();
     } else {
         TVector<int> floatFeatureMonotonicConstraints(featuresLayout.GetFloatFeatureCount(), 0);
-        for (ui32 floatFeatureId : xrange<ui32>(featuresLayout.GetFloatFeatureCount())) {
-            floatFeatureMonotonicConstraints[floatFeatureId] = (*monotoneConstraints)[
-                featuresLayout.GetExternalFeatureIdx(floatFeatureId, EFeatureType::Float)
-            ];
+        ui32 floatFeatureIdx = 0;
+        for (ui32 featureIdx : xrange(monotoneConstraints->size())) {
+            if (featuresLayout.GetExternalFeatureType(featureIdx) == EFeatureType::Float) {
+                floatFeatureMonotonicConstraints[floatFeatureIdx++] = (*monotoneConstraints)[featureIdx];
+            }
         }
         *monotoneConstraints = floatFeatureMonotonicConstraints;
     }
