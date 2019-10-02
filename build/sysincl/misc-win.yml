@@ -57,3 +57,7 @@
 - source_filter: "^logbroker/push-client"
   includes:
   - dirent.h:      logbroker/push-client/src/win32/dirent.h
+
+- source_fiter: "^contrib/libs/curl"
+  includes:
+  - nghttp2/nghttp2.h
