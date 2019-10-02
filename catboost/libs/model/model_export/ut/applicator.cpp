@@ -116,7 +116,7 @@ int main(int argc, char *argv[]) {
         double rawFormulaVal = ApplyCatboostModel(floatFeatures, catFeatures);
 
         if (docId == 0) {
-            predictions << "DocId" << DELIMITER << "RawFormulaVal" << endl;
+            predictions << "SampleId" << DELIMITER << "RawFormulaVal" << endl;
         }
         predictions << docId << DELIMITER << rawFormulaVal << endl;
     }
