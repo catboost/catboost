@@ -141,26 +141,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\jvm-packages\catboost4j-prediction\src\native\catboost4j-prediction.vcxproj">
       <Project>E4F2A889-133D-9E4F-6DAD-8897A1E9F474</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\algo\catboost-libs-algo.vcxproj">
-      <Project>B0627422-3EA3-A666-3928-B63AADBE0945</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\algo\ut\catboost_ut.vcxproj">
-      <Project>75278F3A-FB82-407F-59BD-A84754B31B69</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\algo_helpers\catboost-libs-algo_helpers.vcxproj">
-      <Project>CB77A63C-4A04-5369-C5C8-08704889BD38</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\app_helpers\catboost-libs-app_helpers.vcxproj">
-      <Project>3F36677D-DB2E-249F-9E84-C37B0016FE1F</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\cat_feature\catboost-libs-cat_feature.vcxproj">
       <Project>39CEAA9A-D75F-AA0D-96C0-E8C323B015CB</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\column_description\catboost-libs-column_description.vcxproj">
       <Project>C4CE937E-C847-074C-4882-D3312E33D29A</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\ctr_description\catboost-libs-ctr_description.vcxproj">
-      <Project>5030F53C-99A3-E919-89CF-5D8DD5FD3717</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\cuda_wrappers\catboost-libs-cuda_wrappers.vcxproj">
       <Project>1913A6ED-B427-7353-0A27-3C443B10E85E</Project>
@@ -177,32 +162,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data\ut\lib\data-ut-lib.vcxproj">
       <Project>9F866CA2-8F19-2A5C-6337-B8E5CDC176DC</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_types\catboost-libs-data_types.vcxproj">
-      <Project>3750DBCB-749A-6149-7B4D-D132A7A922DA</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_util\catboost-libs-data_util.vcxproj">
-      <Project>B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_util\ut\catboost-libs-data_util-ut.vcxproj">
-      <Project>39BE17E7-8807-B57C-7648-3C7D5C685460</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\distributed\catboost-libs-distributed.vcxproj">
-      <Project>F6BCA033-DCEE-0EBC-29CD-D9BE4598E359</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\documents_importance\catboost-libs-documents_importance.vcxproj">
-      <Project>7751BEC2-0B4A-B9BE-613C-ADD0DA46E2F6</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\eval_result\catboost-libs-eval_result.vcxproj">
       <Project>4721D1FD-2700-CA2E-7C39-1340CCD203BE</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\feature_estimator\catboost-libs-feature_estimator.vcxproj">
-      <Project>0E2E4DB1-7B74-0856-9AE8-A5C39471561D</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\fstr\catboost-libs-fstr.vcxproj">
       <Project>E83B3FB9-9F00-AC47-8D5D-2028D57A073D</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\functools\catboost-libs-functools.vcxproj">
-      <Project>28BD79FF-3694-9990-18EC-977E3029F9E6</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\gpu_config\force_no_cuda\libs-gpu_config-force_no_cuda.vcxproj">
       <Project>7D39B3E0-A57A-014D-3DEE-3EC312ACE825</Project>
@@ -224,21 +188,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\ut\catboost-libs-helpers-ut.vcxproj">
       <Project>D8F65ACB-B4D5-C453-9642-AF492985188F</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\hyperparameter_tuning\catboost-libs-hyperparameter_tuning.vcxproj">
-      <Project>F4CD697E-52B9-329F-6AEF-0AF26D95C5D9</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\index_range\catboost-libs-index_range.vcxproj">
-      <Project>C7EA1784-4778-7D80-C197-652E8C20DC97</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\init\catboost-libs-init.vcxproj">
-      <Project>8C9203B7-3634-9C08-97C3-BEF287A48132</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\labels\catboost-libs-labels.vcxproj">
-      <Project>EB86A32A-0A4A-7BD0-0414-09B87332B724</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\lapack\catboost-libs-lapack.vcxproj">
-      <Project>34417530-E016-6BED-C5EA-EFB4E5D0038B</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\loggers\catboost-libs-loggers.vcxproj">
       <Project>8AC84D86-0BD7-E573-5982-63BDF5296882</Project>
@@ -279,56 +228,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model_interface\catboostmodel.vcxproj">
       <Project>4D7E3A2D-8534-FF5D-5F6B-AFAF877D2578</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\options\catboost-libs-options.vcxproj">
-      <Project>D350B71A-438C-3D20-8D8E-292B20D81461</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\options\ut\json_options_ut.vcxproj">
-      <Project>4ACFE55B-9AAC-E7D7-5C3F-543620CDF721</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\overfitting_detector\catboost-libs-overfitting_detector.vcxproj">
       <Project>37000E43-2347-88B9-F125-78F4CA4B2776</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\pairs\catboost-libs-pairs.vcxproj">
-      <Project>6BE76251-8797-21D8-087A-ECBA25DEF163</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization\catboost-libs-quantization.vcxproj">
-      <Project>FB5A55D2-0C31-3068-15EB-9FA55E97086F</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization_schema\catboost-libs-quantization_schema.vcxproj">
-      <Project>DD94FB48-7329-B4E0-9617-51FA31F09621</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization_schema\ut\catboost-libs-quantization_schema-ut.vcxproj">
-      <Project>9EBF429C-71FA-34E6-0CF8-ED44FF8FDE3F</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantized_pool\catboost-libs-quantized_pool.vcxproj">
-      <Project>5B6277B4-44BD-6F15-42A1-2BEB2252ED53</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantized_pool\ut\catboost-libs-quantized_pool-ut.vcxproj">
-      <Project>EB0CBF19-3B67-53B2-74E1-00519C0C7885</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantized_pool_analysis\catboost-libs-quantized_pool_analysis.vcxproj">
-      <Project>4C63CD0F-B8A4-4282-7B4F-E1CD186E6A2D</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\target\catboost-libs-target.vcxproj">
-      <Project>5B13F9C8-8762-C986-5C05-19D08B360E04</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_features\catboost-libs-text_features.vcxproj">
-      <Project>1DC2329C-D17B-1F04-445F-BD55E24DB60E</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_features\flatbuffers\libs-text_features-flatbuffers.vcxproj">
-      <Project>E3DB2F4B-F914-EC79-08A1-FC9635AA8929</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_features\ut\catboost-libs-text_features-ut.vcxproj">
-      <Project>1667D033-3231-03A1-025B-D08B4920BBD2</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_features\ut\lib\text_features-ut-lib.vcxproj">
-      <Project>389724DD-1A1A-22DD-A67C-F605123646BC</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_processing\catboost-libs-text_processing.vcxproj">
-      <Project>FFADE371-7C1D-73A4-49BB-7BB88008B40D</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_processing\ut\lib\text_processing-ut-lib.vcxproj">
-      <Project>12BC7D04-7267-7466-7A07-9BBCAB0C263A</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\train_interface\catboost.vcxproj">
       <Project>57C64460-E1A9-1AD6-8C62-4AEAF48107D3</Project>
@@ -339,8 +240,107 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\train_lib\ut\catboost-libs-train_lib-ut.vcxproj">
       <Project>DCB837BA-C2A3-4CFA-E077-88E81A37FDAD</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\validate_fb\catboost-libs-validate_fb.vcxproj">
-      <Project>5C82988B-62A7-7DFB-0935-AAAD43162232</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\algo\private-libs-algo.vcxproj">
+      <Project>57E74FB3-A4F4-6EEA-1797-1666D9FC13A2</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\algo\ut\catboost_ut.vcxproj">
+      <Project>859701F5-CC85-0B81-547C-18957C1E1848</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\algo_helpers\private-libs-algo_helpers.vcxproj">
+      <Project>EB3D7653-201F-4D73-1FD4-98AAF0E592AD</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\app_helpers\private-libs-app_helpers.vcxproj">
+      <Project>0F9A14A7-EC11-ECD1-4292-3D1414CD5EA3</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\ctr_description\private-libs-ctr_description.vcxproj">
+      <Project>D9CF9349-0F07-0E90-92DA-B8BD92D9A01E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\data_types\private-libs-data_types.vcxproj">
+      <Project>F2160F0E-DE4C-1A06-A693-818BC4C8D21F</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\data_util\private-libs-data_util.vcxproj">
+      <Project>62440384-FCD2-5217-9DB5-BBEF00D51E9B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\data_util\ut\catboost-private-libs-data_util-ut.vcxproj">
+      <Project>268EE31C-30A0-9E05-1A42-77BA01324A40</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\distributed\private-libs-distributed.vcxproj">
+      <Project>5559205C-B421-1C91-FCAE-67F58278863F</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\documents_importance\private-libs-documents_importance.vcxproj">
+      <Project>C7C09423-FDD2-E5CC-881E-F4C32FFFBCE0</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\feature_estimator\private-libs-feature_estimator.vcxproj">
+      <Project>29D5DF37-EE16-EE4D-D67A-36EB7D0B5736</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\functools\private-libs-functools.vcxproj">
+      <Project>DA3CA223-F5CD-A8D5-08DD-830BB28E5F6D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\hyperparameter_tuning\private-libs-hyperparameter_tuning.vcxproj">
+      <Project>04C491F9-96F4-CDFB-2117-03AF003B49CD</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\index_range\private-libs-index_range.vcxproj">
+      <Project>FD092503-CF90-DD15-46DE-A054A4863C5B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\init\private-libs-init.vcxproj">
+      <Project>5F598100-C9FE-A15C-0510-A9E03FCF2725</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\labels\private-libs-labels.vcxproj">
+      <Project>2C5BA6AA-A668-2330-199A-FEA006895C03</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\lapack\private-libs-lapack.vcxproj">
+      <Project>A63E6BC1-4D67-20EF-88B0-FD7529E5DED0</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\options\private-libs-options.vcxproj">
+      <Project>AE8B6D87-D33D-8A7F-D668-74C392A7B1DE</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\options\ut\json_options_ut.vcxproj">
+      <Project>7F31EB1E-B185-6C27-CCE8-8B8A6C96B9FD</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\pairs\private-libs-pairs.vcxproj">
+      <Project>BFA23B94-70BF-D8C2-6943-5E1417446778</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\quantization\private-libs-quantization.vcxproj">
+      <Project>082F5051-134D-166A-51DB-F98B0CD8AF1C</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\quantization_schema\private-libs-quantization_schema.vcxproj">
+      <Project>615033B0-5579-FBC3-1630-AF28EB4E0D00</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\quantization_schema\ut\catboost-private-libs-quantization_schema-ut.vcxproj">
+      <Project>F48D7B90-4D3F-57D9-E3BC-3FB1622BA521</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\quantized_pool\private-libs-quantized_pool.vcxproj">
+      <Project>99DC1DEE-5972-B246-E371-76454FEDA000</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\quantized_pool\ut\catboost-private-libs-quantized_pool-ut.vcxproj">
+      <Project>52F0B120-A505-D3A2-3B9A-4984B5795A06</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\quantized_pool_analysis\private-libs-quantized_pool_analysis.vcxproj">
+      <Project>4046BC08-71FC-170A-AAC2-8081BD389217</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\target\private-libs-target.vcxproj">
+      <Project>CAE86D00-2536-7F56-ABFD-6F8F7C37EC12</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\text_features\flatbuffers\libs-text_features-flatbuffers.vcxproj">
+      <Project>798DF9C1-2AB3-4B2B-15D3-1CBB92190D6A</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\text_features\private-libs-text_features.vcxproj">
+      <Project>FB7B0D88-A00A-6D89-CEDA-F16BC181EC85</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\text_features\ut\catboost-private-libs-text_features-ut.vcxproj">
+      <Project>F84B9586-F2C8-033B-D800-70BE92AD611B</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\text_features\ut\lib\text_features-ut-lib.vcxproj">
+      <Project>1FD62A04-8727-3D22-0DEC-9A1ADDBDD964</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\text_processing\private-libs-text_processing.vcxproj">
+      <Project>2FD7974D-753A-8A5B-1DDD-D82AF77A73A1</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\text_processing\ut\lib\text_processing-ut-lib.vcxproj">
+      <Project>D5B17AA8-A27C-F971-3059-CC2F24B7DD5C</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\validate_fb\private-libs-validate_fb.vcxproj">
+      <Project>53950737-2B1C-B981-49E0-906A97994F3A</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\pytest\catboost-pytest.vcxproj">
       <Project>1DA15BE1-5F6A-2408-1DFC-F862D643AFD9</Project>

@@ -84,8 +84,8 @@
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\index_range\catboost-libs-index_range.vcxproj">
-      <Project>{C7EA1784-4778-7D80-C197-652E8C20DC97}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\index_range\private-libs-index_range.vcxproj">
+      <Project>{FD092503-CF90-DD15-46DE-A054A4863C5B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
       <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>

@@ -192,17 +192,17 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_types\catboost-libs-data_types.vcxproj">
-      <Project>{3750DBCB-749A-6149-7B4D-D132A7A922DA}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_util\catboost-libs-data_util.vcxproj">
-      <Project>{B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\index_range\catboost-libs-index_range.vcxproj">
-      <Project>{C7EA1784-4778-7D80-C197-652E8C20DC97}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\logging\catboost-libs-logging.vcxproj">
       <Project>{F83EC464-B188-D6BC-6C08-C75EB8176525}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\data_types\private-libs-data_types.vcxproj">
+      <Project>{F2160F0E-DE4C-1A06-A693-818BC4C8D21F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\data_util\private-libs-data_util.vcxproj">
+      <Project>{62440384-FCD2-5217-9DB5-BBEF00D51E9B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\index_range\private-libs-index_range.vcxproj">
+      <Project>{FD092503-CF90-DD15-46DE-A054A4863C5B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\avx2\libs-base64-avx2.vcxproj">
       <Project>{69A3431A-8A49-B198-8E40-2F61C1B0C1BC}</Project>

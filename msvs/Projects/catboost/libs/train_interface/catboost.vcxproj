@@ -66,7 +66,7 @@
       <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/google/protobuf;$(SolutionDir)../contrib/libs/brotli/include;$(SolutionDir)../contrib/libs/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;$(SolutionDir)$(Configuration)\MSVS\07ECC93E-2BA3-7E0C-C328-28501ED2E5A3\ctr_kernels.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\reduce_scatter.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\task.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\enable_peers.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\host_tasks.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\kernel_task.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\memory_allocation.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\memory_copy_tasks.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\memory_state_func.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\request_stream_task.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\bootstrap.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\compression_helpers_gpu.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\dot_product.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\fill.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\filter.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\gpu_random.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\helpers.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\partitions.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\partitions_reduce.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\reduce.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\reorder_bins.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\scan.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\segmented_scan.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\segmented_sort.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\sort.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\transform.obj;$(SolutionDir)$(Configuration)\MSVS\4FE35BB1-F43A-39F4-9770-E9463DC3D595\kernels.obj;$(SolutionDir)$(Configuration)\MSVS\4FE35BB1-F43A-39F4-9770-E9463DC3D595\splitter.obj;$(SolutionDir)$(Configuration)\MSVS\B414E7D1-BF71-311C-0E2C-D6B4527D7528\pairwise_kernels.obj;$(SolutionDir)$(Configuration)\MSVS\B414E7D1-BF71-311C-0E2C-D6B4527D7528\pointwise_kernels.obj;$(SolutionDir)$(Configuration)\MSVS\6E76AE3A-B08F-C725-81DB-2ECE3CE545A2\add_bin_values.obj;$(SolutionDir)$(Configuration)\MSVS\6E76AE3A-B08F-C725-81DB-2ECE3CE545A2\add_non_symmetric_tree_doc_parallel.obj;$(SolutionDir)$(Configuration)\MSVS\6E76AE3A-B08F-C725-81DB-2ECE3CE545A2\add_region_doc_parallel.obj;$(SolutionDir)$(Configuration)\MSVS\1D3CF7E0-080E-0EC6-D27D-211F8567FEC0\dcg.obj;$(SolutionDir)$(Configuration)\MSVS\1D3CF7E0-080E-0EC6-D27D-211F8567FEC0\kernel.obj;$(SolutionDir)$(Configuration)\MSVS\1D3CF7E0-080E-0EC6-D27D-211F8567FEC0\multiclass_kernels.obj;$(SolutionDir)$(Configuration)\MSVS\1D3CF7E0-080E-0EC6-D27D-211F8567FEC0\query_cross_entropy_kernels.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\multiclass.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\multiclass_non_symmetric.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\multiclass_region.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\pair_logit_pairwise.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\pfound_f.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\pointwise.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\pointwise_non_symmetric.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\pointwise_region.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\query_cross_entropy.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\querywise.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\querywise_non_symmetric.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\querywise_region.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\train.obj;$(SolutionDir)$(Configuration)\MSVS\262F6CF9-EB50-BD91-AC9B-1967CC6B84F7\cb_dsv_loader.obj;$(SolutionDir)$(Configuration)\MSVS\262F6CF9-EB50-BD91-AC9B-1967CC6B84F7\libsvm_loader.obj;$(SolutionDir)$(Configuration)\MSVS\B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0\exists_checker.obj;$(SolutionDir)$(Configuration)\MSVS\B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0\line_data_reader.obj;$(SolutionDir)$(Configuration)\MSVS\8C9203B7-3634-9C08-97C3-BEF287A48132\init_reg.obj;$(SolutionDir)$(Configuration)\MSVS\A51525C5-634E-FC35-5327-3CD4A8F2B67F\formula_evaluator.obj;$(SolutionDir)$(Configuration)\MSVS\A51525C5-634E-FC35-5327-3CD4A8F2B67F\model_import_interface.obj;$(SolutionDir)$(Configuration)\MSVS\3B03C733-2186-8088-C630-809F047C70CD\evaluator.obj;$(SolutionDir)$(Configuration)\MSVS\FAFB4883-665E-74FC-687B-B3E92B73012E\1cc3e14d43bed0c73ca4b4b233.obj;$(SolutionDir)$(Configuration)\MSVS\FAFB4883-665E-74FC-687B-B3E92B73012E\model_import.obj;$(SolutionDir)$(Configuration)\MSVS\5B6277B4-44BD-6F15-42A1-2BEB2252ED53\loader.obj;$(SolutionDir)$(Configuration)\MSVS\B6361F28-19AC-62AF-82F3-98822E01D227\model_import_snapshot.obj;$(SolutionDir)$(Configuration)\MSVS\B6361F28-19AC-62AF-82F3-98822E01D227\train_model.obj;$(SolutionDir)$(Configuration)\MSVS\2674849B-0330-C348-578B-DB562AA37E65\brotli.obj;$(SolutionDir)$(Configuration)\MSVS\AC376A6B-93D4-59AC-5493-C2308B528517\bzip.obj;$(SolutionDir)$(Configuration)\MSVS\A880DD8B-7948-E7DF-FDDB-6F6C1A23012A\fastlz.obj;$(SolutionDir)$(Configuration)\MSVS\39206ED1-8CD9-0701-178E-0631ABD19D17\legacy_zstd06.obj;$(SolutionDir)$(Configuration)\MSVS\F13B7D24-08DF-93EE-EF06-0A42A67F1F2A\lz4.obj;$(SolutionDir)$(Configuration)\MSVS\005F2BD3-F54E-2F5E-204D-10BBF3ABD244\lzma.obj;$(SolutionDir)$(Configuration)\MSVS\96581D45-46BF-09E3-6477-BFA2BF8C22E1\snappy.obj;$(SolutionDir)$(Configuration)\MSVS\DD085378-CB32-3420-0F56-EB3498FD2743\zlib.obj;$(SolutionDir)$(Configuration)\MSVS\AC7594FF-6F1D-C755-11B7-918627CFBD0B\zstd.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;$(SolutionDir)$(Configuration)\MSVS\07ECC93E-2BA3-7E0C-C328-28501ED2E5A3\ctr_kernels.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\reduce_scatter.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\task.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\enable_peers.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\host_tasks.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\kernel_task.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\memory_allocation.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\memory_copy_tasks.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\memory_state_func.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\request_stream_task.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\bootstrap.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\compression_helpers_gpu.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\dot_product.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\fill.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\filter.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\gpu_random.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\helpers.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\partitions.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\partitions_reduce.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\reduce.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\reorder_bins.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\scan.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\segmented_scan.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\segmented_sort.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\sort.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\transform.obj;$(SolutionDir)$(Configuration)\MSVS\4FE35BB1-F43A-39F4-9770-E9463DC3D595\kernels.obj;$(SolutionDir)$(Configuration)\MSVS\4FE35BB1-F43A-39F4-9770-E9463DC3D595\splitter.obj;$(SolutionDir)$(Configuration)\MSVS\B414E7D1-BF71-311C-0E2C-D6B4527D7528\pairwise_kernels.obj;$(SolutionDir)$(Configuration)\MSVS\B414E7D1-BF71-311C-0E2C-D6B4527D7528\pointwise_kernels.obj;$(SolutionDir)$(Configuration)\MSVS\6E76AE3A-B08F-C725-81DB-2ECE3CE545A2\add_bin_values.obj;$(SolutionDir)$(Configuration)\MSVS\6E76AE3A-B08F-C725-81DB-2ECE3CE545A2\add_non_symmetric_tree_doc_parallel.obj;$(SolutionDir)$(Configuration)\MSVS\6E76AE3A-B08F-C725-81DB-2ECE3CE545A2\add_region_doc_parallel.obj;$(SolutionDir)$(Configuration)\MSVS\1D3CF7E0-080E-0EC6-D27D-211F8567FEC0\dcg.obj;$(SolutionDir)$(Configuration)\MSVS\1D3CF7E0-080E-0EC6-D27D-211F8567FEC0\kernel.obj;$(SolutionDir)$(Configuration)\MSVS\1D3CF7E0-080E-0EC6-D27D-211F8567FEC0\multiclass_kernels.obj;$(SolutionDir)$(Configuration)\MSVS\1D3CF7E0-080E-0EC6-D27D-211F8567FEC0\query_cross_entropy_kernels.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\multiclass.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\multiclass_non_symmetric.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\multiclass_region.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\pair_logit_pairwise.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\pfound_f.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\pointwise.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\pointwise_non_symmetric.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\pointwise_region.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\query_cross_entropy.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\querywise.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\querywise_non_symmetric.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\querywise_region.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\train.obj;$(SolutionDir)$(Configuration)\MSVS\262F6CF9-EB50-BD91-AC9B-1967CC6B84F7\cb_dsv_loader.obj;$(SolutionDir)$(Configuration)\MSVS\262F6CF9-EB50-BD91-AC9B-1967CC6B84F7\libsvm_loader.obj;$(SolutionDir)$(Configuration)\MSVS\A51525C5-634E-FC35-5327-3CD4A8F2B67F\formula_evaluator.obj;$(SolutionDir)$(Configuration)\MSVS\A51525C5-634E-FC35-5327-3CD4A8F2B67F\model_import_interface.obj;$(SolutionDir)$(Configuration)\MSVS\3B03C733-2186-8088-C630-809F047C70CD\evaluator.obj;$(SolutionDir)$(Configuration)\MSVS\FAFB4883-665E-74FC-687B-B3E92B73012E\1cc3e14d43bed0c73ca4b4b233.obj;$(SolutionDir)$(Configuration)\MSVS\FAFB4883-665E-74FC-687B-B3E92B73012E\model_import.obj;$(SolutionDir)$(Configuration)\MSVS\B6361F28-19AC-62AF-82F3-98822E01D227\model_import_snapshot.obj;$(SolutionDir)$(Configuration)\MSVS\B6361F28-19AC-62AF-82F3-98822E01D227\train_model.obj;$(SolutionDir)$(Configuration)\MSVS\62440384-FCD2-5217-9DB5-BBEF00D51E9B\exists_checker.obj;$(SolutionDir)$(Configuration)\MSVS\62440384-FCD2-5217-9DB5-BBEF00D51E9B\line_data_reader.obj;$(SolutionDir)$(Configuration)\MSVS\5F598100-C9FE-A15C-0510-A9E03FCF2725\init_reg.obj;$(SolutionDir)$(Configuration)\MSVS\99DC1DEE-5972-B246-E371-76454FEDA000\loader.obj;$(SolutionDir)$(Configuration)\MSVS\2674849B-0330-C348-578B-DB562AA37E65\brotli.obj;$(SolutionDir)$(Configuration)\MSVS\AC376A6B-93D4-59AC-5493-C2308B528517\bzip.obj;$(SolutionDir)$(Configuration)\MSVS\A880DD8B-7948-E7DF-FDDB-6F6C1A23012A\fastlz.obj;$(SolutionDir)$(Configuration)\MSVS\39206ED1-8CD9-0701-178E-0631ABD19D17\legacy_zstd06.obj;$(SolutionDir)$(Configuration)\MSVS\F13B7D24-08DF-93EE-EF06-0A42A67F1F2A\lz4.obj;$(SolutionDir)$(Configuration)\MSVS\005F2BD3-F54E-2F5E-204D-10BBF3ABD244\lzma.obj;$(SolutionDir)$(Configuration)\MSVS\96581D45-46BF-09E3-6477-BFA2BF8C22E1\snappy.obj;$(SolutionDir)$(Configuration)\MSVS\DD085378-CB32-3420-0F56-EB3498FD2743\zlib.obj;$(SolutionDir)$(Configuration)\MSVS\AC7594FF-6F1D-C755-11B7-918627CFBD0B\zstd.obj;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  ws2_32.lib "/LIBPATH:$(CUDA_PATH)/lib/x64" cublas.lib curand.lib cudart_static.lib cusparse.lib /DEF:$(SolutionDir)../catboost/libs/train_interface/catboost.exports</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  ws2_32.lib "/LIBPATH:$(CUDA_PATH)/lib/x64" cublas.lib curand.lib cudart_static.lib cusparse.lib /DEF:$(SolutionDir)../catboost/libs/train_interface/catboost.exports</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
@@ -123,20 +123,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\idl-pool-proto.vcxproj">
       <Project>{DC2F8CD1-9883-449F-5F63-13AE540A462A}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\algo\catboost-libs-algo.vcxproj">
-      <Project>{B0627422-3EA3-A666-3928-B63AADBE0945}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\algo_helpers\catboost-libs-algo_helpers.vcxproj">
-      <Project>{CB77A63C-4A04-5369-C5C8-08704889BD38}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\cat_feature\catboost-libs-cat_feature.vcxproj">
       <Project>{39CEAA9A-D75F-AA0D-96C0-E8C323B015CB}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\column_description\catboost-libs-column_description.vcxproj">
       <Project>{C4CE937E-C847-074C-4882-D3312E33D29A}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\ctr_description\catboost-libs-ctr_description.vcxproj">
-      <Project>{5030F53C-99A3-E919-89CF-5D8DD5FD3717}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\cuda_wrappers\catboost-libs-cuda_wrappers.vcxproj">
       <Project>{1913A6ED-B427-7353-0A27-3C443B10E85E}</Project>
@@ -144,44 +135,17 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data\catboost-libs-data.vcxproj">
       <Project>{262F6CF9-EB50-BD91-AC9B-1967CC6B84F7}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_types\catboost-libs-data_types.vcxproj">
-      <Project>{3750DBCB-749A-6149-7B4D-D132A7A922DA}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\data_util\catboost-libs-data_util.vcxproj">
-      <Project>{B4A310AF-0E82-DDD5-9A9D-5C5C37155EC0}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\distributed\catboost-libs-distributed.vcxproj">
-      <Project>{F6BCA033-DCEE-0EBC-29CD-D9BE4598E359}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\eval_result\catboost-libs-eval_result.vcxproj">
       <Project>{4721D1FD-2700-CA2E-7C39-1340CCD203BE}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\feature_estimator\catboost-libs-feature_estimator.vcxproj">
-      <Project>{0E2E4DB1-7B74-0856-9AE8-A5C39471561D}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\fstr\catboost-libs-fstr.vcxproj">
       <Project>{E83B3FB9-9F00-AC47-8D5D-2028D57A073D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\functools\catboost-libs-functools.vcxproj">
-      <Project>{28BD79FF-3694-9990-18EC-977E3029F9E6}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\catboost-libs-helpers.vcxproj">
       <Project>{1ED2E5C8-4D20-BC86-8EEB-C69117E1D3FA}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\helpers\parallel_sort\libs-helpers-parallel_sort.vcxproj">
       <Project>{3D8525D8-C5BE-2847-94DF-23F1896F6BA1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\index_range\catboost-libs-index_range.vcxproj">
-      <Project>{C7EA1784-4778-7D80-C197-652E8C20DC97}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\init\catboost-libs-init.vcxproj">
-      <Project>{8C9203B7-3634-9C08-97C3-BEF287A48132}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\labels\catboost-libs-labels.vcxproj">
-      <Project>{EB86A32A-0A4A-7BD0-0414-09B87332B724}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\lapack\catboost-libs-lapack.vcxproj">
-      <Project>{34417530-E016-6BED-C5EA-EFB4E5D0038B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\loggers\catboost-libs-loggers.vcxproj">
       <Project>{8AC84D86-0BD7-E573-5982-63BDF5296882}</Project>
@@ -204,41 +168,77 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\model\model_export\libs-model-model_export.vcxproj">
       <Project>{FAFB4883-665E-74FC-687B-B3E92B73012E}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\options\catboost-libs-options.vcxproj">
-      <Project>{D350B71A-438C-3D20-8D8E-292B20D81461}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\overfitting_detector\catboost-libs-overfitting_detector.vcxproj">
       <Project>{37000E43-2347-88B9-F125-78F4CA4B2776}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\pairs\catboost-libs-pairs.vcxproj">
-      <Project>{6BE76251-8797-21D8-087A-ECBA25DEF163}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization\catboost-libs-quantization.vcxproj">
-      <Project>{FB5A55D2-0C31-3068-15EB-9FA55E97086F}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantization_schema\catboost-libs-quantization_schema.vcxproj">
-      <Project>{DD94FB48-7329-B4E0-9617-51FA31F09621}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\quantized_pool\catboost-libs-quantized_pool.vcxproj">
-      <Project>{5B6277B4-44BD-6F15-42A1-2BEB2252ED53}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\target\catboost-libs-target.vcxproj">
-      <Project>{5B13F9C8-8762-C986-5C05-19D08B360E04}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_features\catboost-libs-text_features.vcxproj">
-      <Project>{1DC2329C-D17B-1F04-445F-BD55E24DB60E}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_features\flatbuffers\libs-text_features-flatbuffers.vcxproj">
-      <Project>{E3DB2F4B-F914-EC79-08A1-FC9635AA8929}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\text_processing\catboost-libs-text_processing.vcxproj">
-      <Project>{FFADE371-7C1D-73A4-49BB-7BB88008B40D}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\train_lib\catboost-libs-train_lib.vcxproj">
       <Project>{B6361F28-19AC-62AF-82F3-98822E01D227}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\validate_fb\catboost-libs-validate_fb.vcxproj">
-      <Project>{5C82988B-62A7-7DFB-0935-AAAD43162232}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\algo\private-libs-algo.vcxproj">
+      <Project>{57E74FB3-A4F4-6EEA-1797-1666D9FC13A2}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\algo_helpers\private-libs-algo_helpers.vcxproj">
+      <Project>{EB3D7653-201F-4D73-1FD4-98AAF0E592AD}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\ctr_description\private-libs-ctr_description.vcxproj">
+      <Project>{D9CF9349-0F07-0E90-92DA-B8BD92D9A01E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\data_types\private-libs-data_types.vcxproj">
+      <Project>{F2160F0E-DE4C-1A06-A693-818BC4C8D21F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\data_util\private-libs-data_util.vcxproj">
+      <Project>{62440384-FCD2-5217-9DB5-BBEF00D51E9B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\distributed\private-libs-distributed.vcxproj">
+      <Project>{5559205C-B421-1C91-FCAE-67F58278863F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\feature_estimator\private-libs-feature_estimator.vcxproj">
+      <Project>{29D5DF37-EE16-EE4D-D67A-36EB7D0B5736}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\functools\private-libs-functools.vcxproj">
+      <Project>{DA3CA223-F5CD-A8D5-08DD-830BB28E5F6D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\index_range\private-libs-index_range.vcxproj">
+      <Project>{FD092503-CF90-DD15-46DE-A054A4863C5B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\init\private-libs-init.vcxproj">
+      <Project>{5F598100-C9FE-A15C-0510-A9E03FCF2725}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\labels\private-libs-labels.vcxproj">
+      <Project>{2C5BA6AA-A668-2330-199A-FEA006895C03}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\lapack\private-libs-lapack.vcxproj">
+      <Project>{A63E6BC1-4D67-20EF-88B0-FD7529E5DED0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\options\private-libs-options.vcxproj">
+      <Project>{AE8B6D87-D33D-8A7F-D668-74C392A7B1DE}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\pairs\private-libs-pairs.vcxproj">
+      <Project>{BFA23B94-70BF-D8C2-6943-5E1417446778}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\quantization\private-libs-quantization.vcxproj">
+      <Project>{082F5051-134D-166A-51DB-F98B0CD8AF1C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\quantization_schema\private-libs-quantization_schema.vcxproj">
+      <Project>{615033B0-5579-FBC3-1630-AF28EB4E0D00}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\quantized_pool\private-libs-quantized_pool.vcxproj">
+      <Project>{99DC1DEE-5972-B246-E371-76454FEDA000}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\target\private-libs-target.vcxproj">
+      <Project>{CAE86D00-2536-7F56-ABFD-6F8F7C37EC12}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\text_features\flatbuffers\libs-text_features-flatbuffers.vcxproj">
+      <Project>{798DF9C1-2AB3-4B2B-15D3-1CBB92190D6A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\text_features\private-libs-text_features.vcxproj">
+      <Project>{FB7B0D88-A00A-6D89-CEDA-F16BC181EC85}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\text_processing\private-libs-text_processing.vcxproj">
+      <Project>{2FD7974D-753A-8A5B-1DDD-D82AF77A73A1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\validate_fb\private-libs-validate_fb.vcxproj">
+      <Project>{53950737-2B1C-B981-49E0-906A97994F3A}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\avx2\libs-base64-avx2.vcxproj">
       <Project>{69A3431A-8A49-B198-8E40-2F61C1B0C1BC}</Project>
