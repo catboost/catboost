@@ -441,13 +441,13 @@
     ],
     "test_gpu.test_eval_feature[CPU]": [
         {
-            "checksum": "e569895806a88c08de2b69453e226e58",
+            "checksum": "e84e399be51023f12c45664ebf5ea50f",
             "uri": "file://test_gpu.test_eval_feature_CPU_/best_metrics.txt"
         }
     ],
     "test_gpu.test_eval_feature[GPU]": [
         {
-            "checksum": "a8b30c7133e033c412b1a906ee30cab7",
+            "checksum": "b65e20660445a716684c09081d80659f",
             "uri": "file://test_gpu.test_eval_feature_GPU_/best_metrics.txt"
         }
     ],
