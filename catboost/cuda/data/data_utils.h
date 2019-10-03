@@ -2,7 +2,7 @@
 
 #include <catboost/cuda/cuda_lib/helpers.h>
 
-#include <catboost/libs/data_types/groupid.h>
+#include <catboost/private/libs/data_types/groupid.h>
 #include <catboost/libs/helpers/cpu_random.h>
 
 #include <util/system/types.h>

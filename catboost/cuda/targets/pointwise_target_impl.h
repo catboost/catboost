@@ -4,7 +4,7 @@
 #include "kernel.h"
 #include "oracle_type.h"
 #include <catboost/cuda/cuda_util/fill.h>
-#include <catboost/libs/options/loss_description.h>
+#include <catboost/private/libs/options/loss_description.h>
 #include <catboost/cuda/cuda_util/dot_product.h>
 #include <catboost/cuda/cuda_util/algorithm.h>
 #include <catboost/cuda/gpu_data/feature_parallel_dataset.h>

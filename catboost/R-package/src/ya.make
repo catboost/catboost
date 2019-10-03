@@ -10,20 +10,20 @@ SRCS(
 )
 
 PEERDIR(
-    catboost/libs/algo
+    catboost/private/libs/algo
     catboost/libs/cat_feature
-    catboost/libs/data_util
+    catboost/private/libs/data_util
     catboost/libs/data
-    catboost/libs/documents_importance
+    catboost/private/libs/documents_importance
     catboost/libs/fstr
     catboost/libs/gpu_config/maybe_have_cuda
     catboost/libs/eval_result
-    catboost/libs/init
+    catboost/private/libs/init
     catboost/libs/logging
     catboost/libs/model
-    catboost/libs/options
+    catboost/private/libs/options
     catboost/libs/train_lib
-    catboost/libs/options
+    catboost/private/libs/options
 )
 
 IF (HAVE_CUDA)

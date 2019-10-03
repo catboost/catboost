@@ -297,12 +297,12 @@ cdef extern from "catboost/libs/helpers/sparse_array.h" namespace "NCB":
         TDstValue defaultValue
     ) except +ProcessException
 
-cdef extern from "catboost/libs/options/binarization_options.h" namespace "NCatboostOptions" nogil:
+cdef extern from "catboost/private/libs/options/binarization_options.h" namespace "NCatboostOptions" nogil:
     cdef cppclass TBinarizationOptions:
         TBinarizationOptions(...)
 
 
-cdef extern from "catboost/libs/options/enums.h":
+cdef extern from "catboost/private/libs/options/enums.h":
     cdef cppclass EFeatureType:
         bool_t operator==(EFeatureType)
 
@@ -332,7 +332,7 @@ cdef extern from "catboost/libs/options/enums.h":
     cdef ECrossValidation ECrossValidation_Inverted "ECrossValidation::Inverted"
 
 
-cdef extern from "catboost/libs/quantization_schema/schema.h" namespace "NCB":
+cdef extern from "catboost/private/libs/quantization_schema/schema.h" namespace "NCB":
     cdef cppclass TPoolQuantizationSchema:
         pass
 
@@ -400,14 +400,14 @@ cdef extern from "catboost/libs/data/order.h" namespace "NCB":
     cdef EObjectsOrder EObjectsOrder_Undefined "NCB::EObjectsOrder::Undefined"
 
 
-cdef extern from "catboost/libs/data_types/pair.h":
+cdef extern from "catboost/private/libs/data_types/pair.h":
     cdef cppclass TPair:
         ui32 WinnerId
         ui32 LoserId
         float Weight
         TPair(ui32 winnerId, ui32 loserId, float weight) nogil except +ProcessException
 
-cdef extern from "catboost/libs/data_types/groupid.h":
+cdef extern from "catboost/private/libs/data_types/groupid.h":
     ctypedef ui64 TGroupId
     ctypedef ui32 TSubgroupId
     cdef TGroupId CalcGroupIdFor(const TStringBuf& token) except +ProcessException
@@ -569,11 +569,11 @@ cdef extern from "catboost/libs/data/data_provider.h" namespace "NCB":
     ctypedef TTrainingDataProvidersTemplate[TObjectsDataProvider] TTrainingDataProviders
 
 
-cdef extern from "catboost/libs/quantized_pool/serialization.h" namespace "NCB":
+cdef extern from "catboost/private/libs/quantized_pool/serialization.h" namespace "NCB":
     cdef void SaveQuantizedPool(const TDataProviderPtr& dataProvider, TString fileName)
 
 
-cdef extern from "catboost/libs/data_util/path_with_scheme.h" namespace "NCB":
+cdef extern from "catboost/private/libs/data_util/path_with_scheme.h" namespace "NCB":
     cdef cppclass TPathWithScheme:
         TString Scheme
         TString Path
@@ -581,12 +581,12 @@ cdef extern from "catboost/libs/data_util/path_with_scheme.h" namespace "NCB":
         TPathWithScheme(const TStringBuf& pathWithScheme, const TStringBuf& defaultScheme) except +ProcessException
         bool_t Inited() except +ProcessException
 
-cdef extern from "catboost/libs/data_util/line_data_reader.h" namespace "NCB":
+cdef extern from "catboost/private/libs/data_util/line_data_reader.h" namespace "NCB":
     cdef cppclass TDsvFormatOptions:
         bool_t HasHeader
         char Delimiter
 
-cdef extern from "catboost/libs/options/load_options.h" namespace "NCatboostOptions":
+cdef extern from "catboost/private/libs/options/load_options.h" namespace "NCatboostOptions":
     cdef cppclass TColumnarPoolFormatParams:
         TDsvFormatOptions DsvFormat
         TPathWithScheme CdFilePath
@@ -710,11 +710,11 @@ cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
         bool_t verbose
     ) nogil except +ProcessException
 
-cdef extern from "catboost/libs/algo_helpers/hessian.h":
+cdef extern from "catboost/private/libs/algo_helpers/hessian.h":
     cdef cppclass THessianInfo:
         TVector[double] Data
 
-cdef extern from "catboost/libs/algo/learn_context.h":
+cdef extern from "catboost/private/libs/algo/learn_context.h":
     cdef cppclass TLearnProgress:
         pass
 
@@ -821,13 +821,13 @@ cdef extern from "catboost/libs/metrics/metric.h":
 cdef extern from "catboost/libs/metrics/metric.h":
     cdef bool_t IsMaxOptimal(const IMetric& metric);
 
-cdef extern from "catboost/libs/algo_helpers/ders_holder.h":
+cdef extern from "catboost/private/libs/algo_helpers/ders_holder.h":
     cdef cppclass TDers:
         double Der1
         double Der2
 
 
-cdef extern from "catboost/libs/algo/tree_print.h":
+cdef extern from "catboost/private/libs/algo/tree_print.h":
     TVector[TString] GetTreeSplitsDescriptions(
         const TFullModel& model,
         int tree_idx,
@@ -841,7 +841,7 @@ cdef extern from "catboost/libs/algo/tree_print.h":
     ) nogil except +ProcessException
 
 
-cdef extern from "catboost/libs/options/enum_helpers.h":
+cdef extern from "catboost/private/libs/options/enum_helpers.h":
     cdef bool_t IsClassificationObjective(const TString& lossFunction) nogil except +ProcessException
     cdef bool_t IsCvStratifiedObjective(const TString& lossFunction) nogil except +ProcessException
     cdef bool_t IsRegressionObjective(const TString& lossFunction) nogil except +ProcessException
@@ -867,7 +867,7 @@ cdef extern from "catboost/libs/metrics/metric.h":
     cdef bool_t IsMinOptimal(const TString& metricName) nogil except +ProcessException
 
 
-cdef extern from "catboost/libs/algo_helpers/custom_objective_descriptor.h":
+cdef extern from "catboost/private/libs/algo_helpers/custom_objective_descriptor.h":
     cdef cppclass TCustomObjectiveDescriptor:
         void* CustomData
 
@@ -890,7 +890,7 @@ cdef extern from "catboost/libs/algo_helpers/custom_objective_descriptor.h":
         ) with gil
 
 ctypedef pair[TVector[TVector[ui32]], TVector[TVector[ui32]]] TCustomTrainTestSubsets
-cdef extern from "catboost/libs/options/cross_validation_params.h":
+cdef extern from "catboost/private/libs/options/cross_validation_params.h":
     cdef cppclass TCrossValidationParams:
         ui32 FoldCount
         ECrossValidation Type
@@ -903,21 +903,21 @@ cdef extern from "catboost/libs/options/cross_validation_params.h":
         ui32 DevMaxIterationsBatchSize
         bool_t IsCalledFromSearchHyperparameters
 
-cdef extern from "catboost/libs/options/split_params.h":
+cdef extern from "catboost/private/libs/options/split_params.h":
     cdef cppclass TTrainTestSplitParams:
         int PartitionRandSeed
         bool_t Shuffle
         bool_t Stratified
         double TrainPart
 
-cdef extern from "catboost/libs/options/check_train_options.h":
+cdef extern from "catboost/private/libs/options/check_train_options.h":
     cdef void CheckFitParams(
         const TJsonValue& tree,
         const TCustomObjectiveDescriptor* objectiveDescriptor,
         const TCustomMetricDescriptor* evalMetricDescriptor
     ) nogil except +ProcessException
 
-cdef extern from "catboost/libs/options/json_helper.h":
+cdef extern from "catboost/private/libs/options/json_helper.h":
     cdef TJsonValue ReadTJsonValue(const TString& paramsJson) nogil except +ProcessException
 
 cdef extern from "catboost/libs/loggers/catboost_logger_helpers.h":
@@ -970,7 +970,7 @@ cdef extern from "catboost/libs/train_lib/cross_validation.h":
         TVector[TCVResult]* results
     ) nogil except +ProcessException
 
-cdef extern from "catboost/libs/algo/apply.h":
+cdef extern from "catboost/private/libs/algo/apply.h":
     cdef cppclass TModelCalcerOnPool:
         TModelCalcerOnPool(
             const TFullModel& model,
@@ -1016,17 +1016,17 @@ cdef extern from "catboost/libs/algo/apply.h":
         int threadCount
     )  nogil except +ProcessException
 
-cdef extern from "catboost/libs/algo/helpers.h":
+cdef extern from "catboost/private/libs/algo/helpers.h":
     cdef void ConfigureMalloc() nogil except *
 
-cdef extern from "catboost/libs/algo/confusion_matrix.h":
+cdef extern from "catboost/private/libs/algo/confusion_matrix.h":
     cdef TVector[double] MakeConfusionMatrix(
         const TFullModel &model,
         const TDataProviderPtr datasets,
         int threadCount
     ) nogil except +ProcessException
 
-cdef extern from "catboost/libs/algo/roc_curve.h":
+cdef extern from "catboost/private/libs/algo/roc_curve.h":
     cdef cppclass TRocPoint:
         double Boundary
         double FalseNegativeRate
@@ -1085,7 +1085,7 @@ cdef extern from "catboost/libs/eval_result/eval_result.h" namespace "NCB":
         TVector[TVector[TVector[double]]] GetRawValuesRef() except * with gil
         void ClearRawValues() except * with gil
 
-cdef extern from "catboost/libs/init/init_reg.h" namespace "NCB":
+cdef extern from "catboost/private/libs/init/init_reg.h" namespace "NCB":
     cdef void LibraryInit() nogil except *
 
 cdef extern from "catboost/libs/fstr/calc_fstr.h":
@@ -1113,7 +1113,7 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
     ) nogil except +ProcessException
 
 
-cdef extern from "catboost/libs/documents_importance/docs_importance.h":
+cdef extern from "catboost/private/libs/documents_importance/docs_importance.h":
     cdef cppclass TDStrResult:
         TVector[TVector[uint32_t]] Indices
         TVector[TVector[double]] Scores
@@ -1209,7 +1209,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
         bool_t hasCatFeatures
     ) nogil except +ProcessException
 
-cdef extern from "catboost/libs/quantized_pool_analysis/quantized_pool_analysis.h" namespace "NCB":
+cdef extern from "catboost/private/libs/quantized_pool_analysis/quantized_pool_analysis.h" namespace "NCB":
     cdef cppclass TBinarizedFeatureStatistics:
         TVector[float] Borders
         TVector[int] BinarizedFeature
@@ -1244,7 +1244,7 @@ cdef extern from "catboost/libs/quantized_pool_analysis/quantized_pool_analysis.
         const TDataProvider& dataset,
         const int flatFeatureIndex) nogil except +ProcessException
 
-cdef extern from "catboost/libs/hyperparameter_tuning/hyperparameter_tuning.h" namespace "NCB":
+cdef extern from "catboost/private/libs/hyperparameter_tuning/hyperparameter_tuning.h" namespace "NCB":
     cdef cppclass TCustomRandomDistributionGenerator:
         void* CustomData
         double (*EvalFunc)(void* customData) with gil

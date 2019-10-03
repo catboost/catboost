@@ -3,7 +3,7 @@
 #include "loader.h"
 
 #include <catboost/libs/column_description/column.h>
-#include <catboost/libs/data_util/line_data_reader.h>
+#include <catboost/private/libs/data_util/line_data_reader.h>
 #include <catboost/libs/helpers/exception.h>
 
 #include <util/generic/ptr.h>

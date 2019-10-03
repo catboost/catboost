@@ -2,9 +2,9 @@
 
 #include <catboost/libs/metrics/metric_holder.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
-#include <catboost/libs/options/enums.h>
-#include <catboost/libs/options/loss_description.h>
-#include <catboost/libs/options/metric_options.h>
+#include <catboost/private/libs/options/enums.h>
+#include <catboost/private/libs/options/loss_description.h>
+#include <catboost/private/libs/options/metric_options.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/cuda/gpu_data/samples_grouping_gpu.h>
 

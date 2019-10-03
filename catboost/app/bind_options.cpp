@@ -4,12 +4,12 @@
 #include <catboost/libs/data/baseline.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
-#include <catboost/libs/options/analytical_mode_params.h>
-#include <catboost/libs/options/catboost_options.h>
-#include <catboost/libs/options/enums.h>
-#include <catboost/libs/options/enum_helpers.h>
-#include <catboost/libs/options/output_file_options.h>
-#include <catboost/libs/options/plain_options_helper.h>
+#include <catboost/private/libs/options/analytical_mode_params.h>
+#include <catboost/private/libs/options/catboost_options.h>
+#include <catboost/private/libs/options/enums.h>
+#include <catboost/private/libs/options/enum_helpers.h>
+#include <catboost/private/libs/options/output_file_options.h>
+#include <catboost/private/libs/options/plain_options_helper.h>
 
 #include <library/getopt/small/last_getopt_opts.h>
 #include <library/grid_creator/binarization.h>

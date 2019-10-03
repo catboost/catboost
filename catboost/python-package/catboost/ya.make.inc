@@ -18,25 +18,25 @@ ADDINCL(
 
 PEERDIR(
     catboost/libs/train_lib
-    catboost/libs/algo
-    catboost/libs/algo_helpers
+    catboost/private/libs/algo
+    catboost/private/libs/algo_helpers
     catboost/libs/cat_feature
     catboost/libs/data
-    catboost/libs/data_types
-    catboost/libs/data_util
-    catboost/libs/init
+    catboost/private/libs/data_types
+    catboost/private/libs/data_util
+    catboost/private/libs/init
     catboost/libs/fstr
-    catboost/libs/documents_importance
+    catboost/private/libs/documents_importance
     catboost/libs/eval_result
     catboost/libs/helpers
-    catboost/libs/hyperparameter_tuning
+    catboost/private/libs/hyperparameter_tuning
     catboost/libs/loggers
     catboost/libs/logging
     catboost/libs/metrics
     catboost/libs/model
-    catboost/libs/options
-    catboost/libs/quantized_pool_analysis
-    catboost/libs/target
+    catboost/private/libs/options
+    catboost/private/libs/quantized_pool_analysis
+    catboost/private/libs/target
     library/containers/2d_array
     library/json/writer
 )

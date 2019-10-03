@@ -1,6 +1,6 @@
 #include <catboost/libs/data/objects_grouping.h>
 
-#include <catboost/libs/index_range/index_range.h>
+#include <catboost/private/libs/index_range/index_range.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
 #include <util/generic/xrange.h>

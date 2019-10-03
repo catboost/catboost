@@ -1818,7 +1818,7 @@ def test_classification_ctr(task_type):
     return compare_canonical_models(output_model_path)
 
 
-@fails_on_gpu(how="libs/options/catboost_options.cpp:280: Error: GPU doesn't not support target binarization per CTR description currently. Please use ctr_target_border_count option instead")
+@fails_on_gpu(how="private/libs/options/catboost_options.cpp:280: Error: GPU doesn't not support target binarization per CTR description currently. Please use ctr_target_border_count option instead")
 def test_regression_ctr(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostRegressor(iterations=5, learning_rate=0.03, ctr_description=['Borders:TargetBorderCount=5:TargetBorderType=Uniform', 'Counter'], task_type=task_type, devices='0')
@@ -2628,7 +2628,7 @@ def test_different_cat_features_order(task_type):
     assert (model.predict(pool1) == model.predict(pool2)).all()
 
 
-@fails_on_gpu(how='libs/options/json_helper.h:198: Error: change of option approx_on_full_history is unimplemented for task type GPU and was not default in previous run')
+@fails_on_gpu(how='private/libs/options/json_helper.h:198: Error: change of option approx_on_full_history is unimplemented for task type GPU and was not default in previous run')
 def test_full_history(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)

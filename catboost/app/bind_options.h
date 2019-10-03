@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/libs/options/load_options.h>
+#include <catboost/private/libs/options/load_options.h>
 
 #include <library/json/json_value.h>
 

@@ -9,7 +9,7 @@
 #include <catboost/cuda/cuda_util/compression_helpers_gpu.h>
 #include <catboost/cuda/cuda_util/algorithm.h>
 
-#include <catboost/libs/ctr_description/ctr_config.h>
+#include <catboost/private/libs/ctr_description/ctr_config.h>
 #include <catboost/libs/helpers/math_utils.h>
 
 namespace NCatboostCuda {

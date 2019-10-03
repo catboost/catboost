@@ -1,7 +1,7 @@
 #pragma once
 
 #include <catboost/cuda/cuda_lib/mapping.h>
-#include <catboost/libs/options/oblivious_tree_options.h>
+#include <catboost/private/libs/options/oblivious_tree_options.h>
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/models/oblivious_model.h>
 #include <catboost/cuda/gpu_data/doc_parallel_dataset.h>

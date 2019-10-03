@@ -6,14 +6,14 @@
 #include "unaligned_mem.h"
 #include "util.h"
 
-#include <catboost/libs/data_types/groupid.h>
-#include <catboost/libs/data_types/pair.h>
+#include <catboost/private/libs/data_types/groupid.h>
+#include <catboost/private/libs/data_types/pair.h>
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
 #include <catboost/libs/helpers/polymorphic_type_containers.h>
 #include <catboost/libs/helpers/resource_holder.h>
 #include <catboost/libs/helpers/sparse_array.h>
 #include <catboost/libs/helpers/vector_helpers.h>
-#include <catboost/libs/quantization_schema/schema.h>
+#include <catboost/private/libs/quantization_schema/schema.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>

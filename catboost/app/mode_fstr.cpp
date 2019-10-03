@@ -1,5 +1,5 @@
-#include <catboost/libs/app_helpers/mode_fstr_helpers.h>
-#include <catboost/libs/options/analytical_mode_params.h>
+#include <catboost/private/libs/app_helpers/mode_fstr_helpers.h>
+#include <catboost/private/libs/options/analytical_mode_params.h>
 
 #include <library/getopt/small/last_getopt.h>
 

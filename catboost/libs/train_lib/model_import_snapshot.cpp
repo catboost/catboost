@@ -1,7 +1,7 @@
 #include <catboost/libs/model/model_import_interface.h>
 #include <catboost/libs/model/model_build_helper.h>
-#include <catboost/libs/algo/learn_context.h>
-#include <catboost/libs/algo/split.h>
+#include <catboost/private/libs/algo/learn_context.h>
+#include <catboost/private/libs/algo/split.h>
 #include <catboost/libs/helpers/progress_helper.h>
 
 

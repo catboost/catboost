@@ -13,7 +13,7 @@
 #include <util/system/fs.h>
 
 
-#include <catboost/libs/options/enums.h>
+#include <catboost/private/libs/options/enums.h>
 #include <catboost/libs/logging/logging.h>
 
 #include <util/generic/map.h>

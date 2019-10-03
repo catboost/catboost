@@ -5,7 +5,7 @@
 
 #include <catboost/cuda/gpu_data/gpu_structures.h>
 #include <catboost/cuda/gpu_data/splitter.h>
-#include <catboost/libs/options/oblivious_tree_options.h>
+#include <catboost/private/libs/options/oblivious_tree_options.h>
 
 namespace NCatboostCuda {
     class TTreeCtrDataSetVisitor {

@@ -1,10 +1,10 @@
 #include "test_utils.h"
 
 #include <catboost/libs/data/load_data.h>
-#include <catboost/libs/quantization/grid_creator.h>
-#include <catboost/libs/algo/data.h>
-#include <catboost/libs/labels/label_converter.h>
-#include <catboost/libs/options/catboost_options.h>
+#include <catboost/private/libs/quantization/grid_creator.h>
+#include <catboost/private/libs/algo/data.h>
+#include <catboost/private/libs/labels/label_converter.h>
+#include <catboost/private/libs/options/catboost_options.h>
 
 #include <catboost/libs/helpers/cpu_random.h>
 #include <util/stream/str.h>

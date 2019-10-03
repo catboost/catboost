@@ -13,14 +13,14 @@ PEERDIR(
     library/threading/local_executor
     catboost/libs/column_description
     catboost/libs/data
-    catboost/libs/data_util
+    catboost/private/libs/data_util
     catboost/libs/helpers
     catboost/idl/pool/flat
-    catboost/libs/labels
+    catboost/private/libs/labels
     catboost/libs/logging
     catboost/libs/model
-    catboost/libs/options
-    catboost/libs/quantized_pool
+    catboost/private/libs/options
+    catboost/private/libs/quantized_pool
 )
 
 GENERATE_ENUM_SERIALIZATION(eval_helpers.h)

@@ -3,10 +3,10 @@
 #include <catboost/libs/model/model_build_helper.h>
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/options/enum_helpers.h>
-#include <catboost/libs/options/json_helper.h>
-#include <catboost/libs/options/loss_description.h>
-#include <catboost/libs/options/multiclass_label_options.h>
+#include <catboost/private/libs/options/enum_helpers.h>
+#include <catboost/private/libs/options/json_helper.h>
+#include <catboost/private/libs/options/loss_description.h>
+#include <catboost/private/libs/options/multiclass_label_options.h>
 
 #include <library/svnversion/svnversion.h>
 

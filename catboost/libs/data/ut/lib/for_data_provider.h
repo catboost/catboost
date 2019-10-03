@@ -6,7 +6,7 @@
 #include <catboost/libs/data/objects.h>
 #include <catboost/libs/data/quantized_features_info.h>
 #include <catboost/libs/data/target.h>
-#include <catboost/libs/data_types/groupid.h>
+#include <catboost/private/libs/data_types/groupid.h>
 #include <catboost/libs/helpers/sparse_array.h>
 
 #include <library/unittest/registar.h>

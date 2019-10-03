@@ -47,9 +47,9 @@ SRCS(
 )
 
 PEERDIR(
-    catboost/libs/data_types
-    catboost/libs/data_util
-    catboost/libs/index_range
+    catboost/private/libs/data_types
+    catboost/private/libs/data_util
+    catboost/private/libs/index_range
     catboost/libs/logging
     library/binsaver
     library/containers/2d_array

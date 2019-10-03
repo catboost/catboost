@@ -4,9 +4,9 @@
 #include "pool_printer.h"
 
 #include <catboost/libs/data/data_provider.h>
-#include <catboost/libs/data_util/line_data_reader.h>
-#include <catboost/libs/data_util/path_with_scheme.h>
-#include <catboost/libs/labels/external_label_helper.h>
+#include <catboost/private/libs/data_util/line_data_reader.h>
+#include <catboost/private/libs/data_util/path_with_scheme.h>
+#include <catboost/private/libs/labels/external_label_helper.h>
 
 #include <util/generic/fwd.h>
 #include <util/generic/maybe.h>

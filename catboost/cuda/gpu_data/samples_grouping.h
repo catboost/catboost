@@ -4,7 +4,7 @@
 #include <catboost/cuda/cuda_lib/slice.h>
 #include <catboost/cuda/data/data_utils.h>
 #include <catboost/libs/data/objects_grouping.h>
-#include <catboost/libs/data_types/query.h>
+#include <catboost/private/libs/data_types/query.h>
 #include <util/system/types.h>
 #include <util/generic/vector.h>
 

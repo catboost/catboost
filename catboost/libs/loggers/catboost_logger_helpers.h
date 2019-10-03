@@ -1,9 +1,9 @@
 #pragma once
 
 #include "logger.h"
-#include <catboost/libs/options/catboost_options.h>
+#include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/libs/metrics/metric.h>
-#include <catboost/libs/options/enums.h>
+#include <catboost/private/libs/options/enums.h>
 #include <catboost/libs/metrics/metric.h>
 
 #include <util/generic/maybe.h>

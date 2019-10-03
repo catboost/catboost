@@ -1,9 +1,9 @@
 #include "modes.h"
 
-#include <catboost/libs/app_helpers/mode_calc_helpers.h>
-#include <catboost/libs/app_helpers/mode_fstr_helpers.h>
+#include <catboost/private/libs/app_helpers/mode_calc_helpers.h>
+#include <catboost/private/libs/app_helpers/mode_fstr_helpers.h>
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/init/init_reg.h>
+#include <catboost/private/libs/init/init_reg.h>
 #include <catboost/libs/logging/logging.h>
 
 #include <library/getopt/small/modchooser.h>

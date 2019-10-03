@@ -4,7 +4,7 @@
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/gpu_data/feature_parallel_dataset.h>
 
-#include <catboost/libs/ctr_description/ctr_config.h>
+#include <catboost/private/libs/ctr_description/ctr_config.h>
 
 #include <util/generic/map.h>
 #include <util/generic/hash.h>

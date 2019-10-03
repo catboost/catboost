@@ -14,7 +14,7 @@ SRCS(
 PEERDIR(
     build/platform/cuda
     catboost/cuda/cuda_lib
-    catboost/libs/ctr_description
+    catboost/private/libs/ctr_description
     catboost/cuda/cuda_util
     catboost/libs/helpers
     contrib/libs/gamma_function_apache_math_port

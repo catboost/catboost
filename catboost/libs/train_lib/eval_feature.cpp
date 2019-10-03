@@ -2,15 +2,15 @@
 #include "train_model.h"
 #include "options_helper.h"
 
-#include <catboost/libs/algo/apply.h>
-#include <catboost/libs/algo/approx_dimension.h>
-#include <catboost/libs/algo/calc_score_cache.h>
-#include <catboost/libs/algo/data.h>
-#include <catboost/libs/algo/helpers.h>
-#include <catboost/libs/algo/learn_context.h>
-#include <catboost/libs/algo/preprocess.h>
-#include <catboost/libs/algo/roc_curve.h>
-#include <catboost/libs/algo/train.h>
+#include <catboost/private/libs/algo/apply.h>
+#include <catboost/private/libs/algo/approx_dimension.h>
+#include <catboost/private/libs/algo/calc_score_cache.h>
+#include <catboost/private/libs/algo/data.h>
+#include <catboost/private/libs/algo/helpers.h>
+#include <catboost/private/libs/algo/learn_context.h>
+#include <catboost/private/libs/algo/preprocess.h>
+#include <catboost/private/libs/algo/roc_curve.h>
+#include <catboost/private/libs/algo/train.h>
 #include <catboost/libs/fstr/output_fstr.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
@@ -24,10 +24,10 @@
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/model/features.h>
 #include <catboost/libs/model/model.h>
-#include <catboost/libs/options/enum_helpers.h>
-#include <catboost/libs/options/feature_eval_options.h>
-#include <catboost/libs/options/output_file_options.h>
-#include <catboost/libs/options/plain_options_helper.h>
+#include <catboost/private/libs/options/enum_helpers.h>
+#include <catboost/private/libs/options/feature_eval_options.h>
+#include <catboost/private/libs/options/output_file_options.h>
+#include <catboost/private/libs/options/plain_options_helper.h>
 
 #include <util/folder/tempdir.h>
 #include <util/generic/algorithm.h>

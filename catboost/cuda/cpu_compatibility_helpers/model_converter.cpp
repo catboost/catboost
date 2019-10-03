@@ -1,8 +1,8 @@
 #include "model_converter.h"
 
-#include <catboost/libs/algo/helpers.h>
-#include <catboost/libs/algo/projection.h>
-#include <catboost/libs/algo/split.h>
+#include <catboost/private/libs/algo/helpers.h>
+#include <catboost/private/libs/algo/projection.h>
+#include <catboost/private/libs/algo/split.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/model_build_helper.h>
 

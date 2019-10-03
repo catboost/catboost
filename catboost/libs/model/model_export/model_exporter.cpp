@@ -7,7 +7,7 @@
 #include "pmml_helpers.h"
 #include "python_exporter.h"
 
-#include <catboost/libs/options/output_file_options.h>
+#include <catboost/private/libs/options/output_file_options.h>
 
 #include <library/json/json_reader.h>
 

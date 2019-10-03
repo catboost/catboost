@@ -14,7 +14,7 @@ SRCS(
 
 PEERDIR(
     catboost/libs/logging
-    catboost/libs/options
+    catboost/private/libs/options
     catboost/libs/metrics
     contrib/libs/tensorboard
     library/digest/crc32c

@@ -1,12 +1,12 @@
 #include "modes.h"
 #include "bind_options.h"
 
-#include <catboost/libs/algo/helpers.h>
+#include <catboost/private/libs/algo/helpers.h>
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/options/catboost_options.h>
-#include <catboost/libs/options/feature_eval_options.h>
-#include <catboost/libs/options/plain_options_helper.h>
+#include <catboost/private/libs/options/catboost_options.h>
+#include <catboost/private/libs/options/feature_eval_options.h>
+#include <catboost/private/libs/options/plain_options_helper.h>
 #include <catboost/libs/train_lib/eval_feature.h>
 #include <catboost/libs/data/feature_names_converter.h>
 

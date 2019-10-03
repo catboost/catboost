@@ -6,12 +6,12 @@
 #include "feature_grouping.h"
 #include "quantized_features_info.h"
 
-#include <catboost/libs/index_range/index_range.h>
+#include <catboost/private/libs/index_range/index_range.h>
 #include <catboost/libs/helpers/dynamic_iterator.h>
 #include <catboost/libs/helpers/sparse_array.h>
 #include <catboost/libs/helpers/restorable_rng.h>
-#include <catboost/libs/options/data_processing_options.h>
-#include <catboost/libs/options/catboost_options.h>
+#include <catboost/private/libs/options/data_processing_options.h>
+#include <catboost/private/libs/options/catboost_options.h>
 
 #include <library/threading/local_executor/local_executor.h>
 

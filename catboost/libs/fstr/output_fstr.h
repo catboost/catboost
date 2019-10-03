@@ -2,7 +2,7 @@
 
 #include "calc_fstr.h"
 
-#include <catboost/libs/algo/tree_print.h>
+#include <catboost/private/libs/algo/tree_print.h>
 
 #include <util/stream/file.h>
 #include <util/system/yassert.h>

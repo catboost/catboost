@@ -10,7 +10,7 @@
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/methods/leaves_estimation/leaves_estimation_config.h>
 #include <catboost/cuda/methods/leaves_estimation/oblivious_tree_leaves_estimator.h>
-#include <catboost/libs/options/catboost_options.h>
+#include <catboost/private/libs/options/catboost_options.h>
 
 namespace NCatboostCuda {
     class TDocParallelObliviousTree {

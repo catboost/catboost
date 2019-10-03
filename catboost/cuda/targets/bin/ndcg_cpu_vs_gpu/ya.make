@@ -11,7 +11,7 @@ PEERDIR(
     catboost/cuda/targets
     catboost/libs/logging
     catboost/libs/metrics
-    catboost/libs/options
+    catboost/private/libs/options
     library/getopt
     library/threading/local_executor
 )

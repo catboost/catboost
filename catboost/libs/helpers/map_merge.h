@@ -2,7 +2,7 @@
 
 #include "exception.h"
 
-#include <catboost/libs/index_range/index_range.h>
+#include <catboost/private/libs/index_range/index_range.h>
 
 #include <library/threading/local_executor/local_executor.h>
 

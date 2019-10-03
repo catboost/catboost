@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/libs/data_types/pair.h>
+#include <catboost/private/libs/data_types/pair.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/maybe_data.h>
 

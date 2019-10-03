@@ -22,21 +22,21 @@ SRCS(
 )
 
 PEERDIR(
-    catboost/libs/algo
-    catboost/libs/app_helpers
+    catboost/private/libs/algo
+    catboost/private/libs/app_helpers
     catboost/libs/column_description
     catboost/libs/data
-    catboost/libs/data_util
-    catboost/libs/distributed
-    catboost/libs/documents_importance
+    catboost/private/libs/data_util
+    catboost/private/libs/distributed
+    catboost/private/libs/documents_importance
     catboost/libs/helpers
-    catboost/libs/init
-    catboost/libs/labels
+    catboost/private/libs/init
+    catboost/private/libs/labels
     catboost/libs/logging
     catboost/libs/metrics
     catboost/libs/model
-    catboost/libs/options
-    catboost/libs/target
+    catboost/private/libs/options
+    catboost/private/libs/target
     catboost/libs/train_lib
     library/getopt/small
     library/grid_creator
@@ -59,7 +59,7 @@ IF(CATBOOST_OPENSOURCE)
     NO_GPL()
 ELSE()
     PEERDIR(
-        catboost//libs/for_app
+        catboost//private/libs/for_app
     )
 ENDIF()
 

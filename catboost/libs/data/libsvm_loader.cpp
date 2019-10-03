@@ -3,8 +3,8 @@
 #include "features_layout.h"
 
 #include <catboost/libs/column_description/cd_parser.h>
-#include <catboost/libs/data_util/exists_checker.h>
-#include <catboost/libs/data_util/line_data_reader.h>
+#include <catboost/private/libs/data_util/exists_checker.h>
+#include <catboost/private/libs/data_util/line_data_reader.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/sparse_array.h>
 

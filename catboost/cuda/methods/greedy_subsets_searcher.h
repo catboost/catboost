@@ -14,7 +14,7 @@
 #include <catboost/cuda/methods/leaves_estimation/leaves_estimation_config.h>
 #include <catboost/cuda/methods/greedy_subsets_searcher/structure_searcher_template.h>
 #include <catboost/cuda/methods/leaves_estimation/doc_parallel_leaves_estimator.h>
-#include <catboost/libs/options/catboost_options.h>
+#include <catboost/private/libs/options/catboost_options.h>
 
 namespace NCatboostCuda {
     inline TTreeStructureSearcherOptions MakeStructureSearcherOptions(const NCatboostOptions::TObliviousTreeLearnerOptions& config) {

@@ -1,6 +1,6 @@
 #include "gpu_binarization_helpers.h"
-#include <catboost/libs/quantization/grid_creator.h>
-#include <catboost/libs/quantization/utils.h>
+#include <catboost/private/libs/quantization/grid_creator.h>
+#include <catboost/private/libs/quantization/utils.h>
 
 
 inline TVector<float> ComputeBorders(const NCatboostOptions::TBinarizationOptions& binarizationDescription,

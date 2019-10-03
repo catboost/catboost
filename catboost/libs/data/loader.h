@@ -5,11 +5,11 @@
 #include "objects.h"
 #include "visitor.h"
 
-#include <catboost/libs/data_util/line_data_reader.h>
-#include <catboost/libs/data_util/path_with_scheme.h>
-#include <catboost/libs/data_types/pair.h>
-#include <catboost/libs/index_range/index_range.h>
-#include <catboost/libs/options/load_options.h>
+#include <catboost/private/libs/data_util/line_data_reader.h>
+#include <catboost/private/libs/data_util/path_with_scheme.h>
+#include <catboost/private/libs/data_types/pair.h>
+#include <catboost/private/libs/index_range/index_range.h>
+#include <catboost/private/libs/options/load_options.h>
 #include <catboost/libs/column_description/cd_parser.h>
 
 #include <library/object_factory/object_factory.h>

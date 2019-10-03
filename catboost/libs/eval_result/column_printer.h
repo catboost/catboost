@@ -6,8 +6,8 @@
 #include <catboost/libs/data/weights.h>
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/labels/external_label_helper.h>
-#include <catboost/libs/options/enums.h>
+#include <catboost/private/libs/labels/external_label_helper.h>
+#include <catboost/private/libs/options/enums.h>
 
 #include <library/threading/local_executor/local_executor.h>
 

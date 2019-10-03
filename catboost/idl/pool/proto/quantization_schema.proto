@@ -2,7 +2,7 @@ syntax = "proto2";
 
 package NCB.NIdl;
 
-// TODO(yazevnul): duplicates `ENanMode` from `catboost/libs/options/enums.h`
+// TODO(yazevnul): duplicates `ENanMode` from `catboost/private/libs/options/enums.h`
 enum ENanMode {
     NM_UNKNOWN   = 0;
     NM_MIN       = 1;

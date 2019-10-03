@@ -1,17 +1,17 @@
 #include "modes.h"
 
-#include <catboost/libs/algo/plot.h>
-#include <catboost/libs/app_helpers/proceed_pool_in_blocks.h>
+#include <catboost/private/libs/algo/plot.h>
+#include <catboost/private/libs/app_helpers/proceed_pool_in_blocks.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
-#include <catboost/libs/labels/label_converter.h>
-#include <catboost/libs/labels/label_helper_builder.h>
+#include <catboost/private/libs/labels/label_converter.h>
+#include <catboost/private/libs/labels/label_helper_builder.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/model/model.h>
-#include <catboost/libs/options/analytical_mode_params.h>
-#include <catboost/libs/options/loss_description.h>
-#include <catboost/libs/target/data_providers.h>
+#include <catboost/private/libs/options/analytical_mode_params.h>
+#include <catboost/private/libs/options/loss_description.h>
+#include <catboost/private/libs/target/data_providers.h>
 
 #include <library/getopt/small/last_getopt_opts.h>
 

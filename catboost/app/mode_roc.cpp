@@ -1,9 +1,9 @@
 #include "modes.h"
 
-#include <catboost/libs/algo/roc_curve.h>
-#include <catboost/libs/data_util/line_data_reader.h>
+#include <catboost/private/libs/algo/roc_curve.h>
+#include <catboost/private/libs/data_util/line_data_reader.h>
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/target/binarize_target.h>
+#include <catboost/private/libs/target/binarize_target.h>
 
 #include <library/getopt/small/last_getopt.h>
 

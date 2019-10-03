@@ -12,8 +12,8 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/resource_holder.h>
 #include <catboost/libs/logging/logging.h>
-#include <catboost/libs/options/restrictions.h>
-#include <catboost/libs/quantization/utils.h>
+#include <catboost/private/libs/options/restrictions.h>
+#include <catboost/private/libs/quantization/utils.h>
 
 #include <library/threading/local_executor/local_executor.h>
 

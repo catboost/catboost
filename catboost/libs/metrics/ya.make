@@ -21,11 +21,11 @@ SRCS(
 )
 
 PEERDIR(
-    catboost/libs/data_types
+    catboost/private/libs/data_types
     catboost/libs/eval_result
     catboost/libs/helpers
     catboost/libs/logging
-    catboost/libs/options
+    catboost/private/libs/options
     catboost/libs/helpers/parallel_sort
     library/binsaver
     library/containers/2d_array

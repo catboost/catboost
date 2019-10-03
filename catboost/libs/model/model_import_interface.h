@@ -2,7 +2,7 @@
 
 #include "model.h"
 
-#include <catboost/libs/options/json_helper.h>
+#include <catboost/private/libs/options/json_helper.h>
 
 #include <library/object_factory/object_factory.h>
 

@@ -15,8 +15,8 @@
 #include <catboost/libs/helpers/math_utils.h>
 #include <catboost/libs/helpers/progress_helper.h>
 #include <catboost/libs/metrics/optimal_const_for_loss.h>
-#include <catboost/libs/options/boosting_options.h>
-#include <catboost/libs/options/loss_description.h>
+#include <catboost/private/libs/options/boosting_options.h>
+#include <catboost/private/libs/options/loss_description.h>
 #include <catboost/libs/overfitting_detector/overfitting_detector.h>
 
 #include <library/threading/local_executor/local_executor.h>

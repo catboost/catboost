@@ -12,7 +12,7 @@
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/gpu_data/bootstrap.h>
 #include <catboost/cuda/targets/target_func.h>
-#include <catboost/libs/options/catboost_options.h>
+#include <catboost/private/libs/options/catboost_options.h>
 
 namespace NCatboostCuda {
     class TFeatureParallelPointwiseObliviousTree {

@@ -9,7 +9,7 @@
 #include <catboost/cuda/methods/kernel/pointwise_hist2.cuh>
 #include <catboost/cuda/methods/kernel/pointwise_hist1.cuh>
 #include <catboost/cuda/methods/kernel/pointwise_scores.cuh>
-#include <catboost/libs/options/enums.h>
+#include <catboost/private/libs/options/enums.h>
 #include <catboost/cuda/gpu_data/folds_histogram.h>
 #include <catboost/libs/helpers/math_utils.h>
 

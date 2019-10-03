@@ -5,20 +5,20 @@
 #include "shap_values.h"
 #include "util.h"
 
-#include <catboost/libs/algo/apply.h>
-#include <catboost/libs/algo/plot.h>
-#include <catboost/libs/algo/yetirank_helpers.h>
-#include <catboost/libs/algo/tree_print.h>
+#include <catboost/private/libs/algo/apply.h>
+#include <catboost/private/libs/algo/plot.h>
+#include <catboost/private/libs/algo/yetirank_helpers.h>
+#include <catboost/private/libs/algo/tree_print.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/loggers/logger.h>
-#include <catboost/libs/options/enum_helpers.h>
-#include <catboost/libs/options/json_helper.h>
-#include <catboost/libs/options/restrictions.h>
-#include <catboost/libs/target/data_providers.h>
+#include <catboost/private/libs/options/enum_helpers.h>
+#include <catboost/private/libs/options/json_helper.h>
+#include <catboost/private/libs/options/restrictions.h>
+#include <catboost/private/libs/target/data_providers.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/hash.h>

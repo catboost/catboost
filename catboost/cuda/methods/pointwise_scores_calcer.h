@@ -4,7 +4,7 @@
 #include "helpers.h"
 #include "pointwise_optimization_subsets.h"
 #include <catboost/cuda/gpu_data/compressed_index.h>
-#include <catboost/libs/options/oblivious_tree_options.h>
+#include <catboost/private/libs/options/oblivious_tree_options.h>
 
 namespace NCatboostCuda {
     template <EFeaturesGroupingPolicy Policy,

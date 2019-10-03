@@ -9,11 +9,11 @@ SRCS(
 PEERDIR(
     catboost/cuda/data
     catboost/cuda/models
-    catboost/libs/algo
+    catboost/private/libs/algo
     catboost/libs/data
     catboost/libs/helpers
     catboost/libs/model
-    catboost/libs/target
+    catboost/private/libs/target
 )
 
 END()

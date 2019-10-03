@@ -1,10 +1,10 @@
 #pragma once
 
-#include <catboost/libs/labels/external_label_helper.h>
+#include <catboost/private/libs/labels/external_label_helper.h>
 // TODO(kirillovs): remove this include and fix external code
 #include <catboost/libs/model/eval_processing.h>
 #include <catboost/libs/model/model.h>
-#include <catboost/libs/options/enums.h>
+#include <catboost/private/libs/options/enums.h>
 
 #include <library/threading/local_executor/local_executor.h>
 

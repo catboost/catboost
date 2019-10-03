@@ -1,7 +1,7 @@
 #include "cd_parser.h"
 
-#include <catboost/libs/data_util/exists_checker.h>
-#include <catboost/libs/data_util/line_data_reader.h>
+#include <catboost/private/libs/data_util/exists_checker.h>
+#include <catboost/private/libs/data_util/line_data_reader.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 

@@ -2,7 +2,7 @@
 #include "json_model_helpers.h"
 
 #include <catboost/libs/model/model_import_interface.h>
-#include <catboost/libs/options/json_helper.h>
+#include <catboost/private/libs/options/json_helper.h>
 #include <catboost/libs/model/model_export/onnx_helpers.h>
 
 #include <library/json/json_reader.h>

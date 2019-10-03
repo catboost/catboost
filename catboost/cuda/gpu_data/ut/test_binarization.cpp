@@ -10,8 +10,8 @@
 #include <catboost/cuda/data/permutation.h>
 #include <catboost/cuda/data/permutation.h>
 
-#include <catboost/libs/quantization/grid_creator.h>
-#include <catboost/libs/quantization/utils.h>
+#include <catboost/private/libs/quantization/grid_creator.h>
+#include <catboost/private/libs/quantization/utils.h>
 
 #include <library/unittest/registar.h>
 

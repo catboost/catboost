@@ -5,7 +5,7 @@
 #include <catboost/cuda/targets/dcg.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/metrics/metric.h>
-#include <catboost/libs/options/enums.h>
+#include <catboost/private/libs/options/enums.h>
 
 #include <library/getopt/last_getopt.h>
 #include <library/threading/local_executor/local_executor.h>

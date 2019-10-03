@@ -1,7 +1,7 @@
 #pragma once
 
 #include <catboost/libs/gpu_config/interface/get_gpu_device_count.h>
-#include <catboost/libs/options/enums.h>
+#include <catboost/private/libs/options/enums.h>
 
 #include <util/generic/vector.h>
 

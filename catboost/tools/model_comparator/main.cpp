@@ -5,7 +5,7 @@
 
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/logging/logging.h>
-#include <catboost/libs/options/json_helper.h>
+#include <catboost/private/libs/options/json_helper.h>
 #include <library/getopt/small/last_getopt.h>
 
 #include <util/generic/set.h>

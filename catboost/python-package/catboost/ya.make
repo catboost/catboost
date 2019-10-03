@@ -19,7 +19,7 @@ ENDIF()
 
 IF(NOT CATBOOST_OPENSOURCE)
     PEERDIR(
-        catboost//libs/for_python_package
+        catboost//private/libs/for_python_package
     )
 ENDIF()
 

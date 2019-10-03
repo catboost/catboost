@@ -2,11 +2,11 @@
 
 #include <catboost/cuda/data/binarizations_manager.h>
 
-#include <catboost/libs/data_types/groupid.h>
+#include <catboost/private/libs/data_types/groupid.h>
 #include <catboost/libs/data/data_provider.h>
-#include <catboost/libs/data_util/path_with_scheme.h>
-#include <catboost/libs/options/binarization_options.h>
-#include <catboost/libs/options/cat_feature_options.h>
+#include <catboost/private/libs/data_util/path_with_scheme.h>
+#include <catboost/private/libs/options/binarization_options.h>
+#include <catboost/private/libs/options/cat_feature_options.h>
 
 #include <util/generic/ptr.h>
 #include <util/generic/vector.h>

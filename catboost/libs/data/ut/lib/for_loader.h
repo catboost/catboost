@@ -4,8 +4,8 @@
 
 #include <catboost/libs/data/order.h>
 
-#include <catboost/libs/data_util/path_with_scheme.h>
-#include <catboost/libs/options/load_options.h>
+#include <catboost/private/libs/data_util/path_with_scheme.h>
+#include <catboost/private/libs/options/load_options.h>
 
 #include <util/generic/ptr.h>
 #include <util/generic/strbuf.h>

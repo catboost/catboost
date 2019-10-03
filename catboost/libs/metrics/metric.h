@@ -4,13 +4,13 @@
 #include "caching_metric.h"
 #include "pfound.h"
 
-#include <catboost/libs/data_types/pair.h>
-#include <catboost/libs/data_types/query.h>
+#include <catboost/private/libs/data_types/pair.h>
+#include <catboost/private/libs/data_types/query.h>
 #include <catboost/libs/helpers/vector_helpers.h>
-#include <catboost/libs/options/data_processing_options.h>
-#include <catboost/libs/options/enum_helpers.h>
-#include <catboost/libs/options/loss_description.h>
-#include <catboost/libs/options/metric_options.h>
+#include <catboost/private/libs/options/data_processing_options.h>
+#include <catboost/private/libs/options/enum_helpers.h>
+#include <catboost/private/libs/options/loss_description.h>
+#include <catboost/private/libs/options/metric_options.h>
 #include <catboost/libs/helpers/maybe_data.h>
 
 #include <library/threading/local_executor/local_executor.h>

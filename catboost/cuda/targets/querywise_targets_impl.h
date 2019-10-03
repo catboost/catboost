@@ -3,8 +3,8 @@
 #include "target_func.h"
 #include "kernel.h"
 #include "oracle_type.h"
-#include <catboost/libs/options/enums.h>
-#include <catboost/libs/options/loss_description.h>
+#include <catboost/private/libs/options/enums.h>
+#include <catboost/private/libs/options/loss_description.h>
 #include <catboost/libs/metrics/pfound.h>
 #include <catboost/cuda/gpu_data/dataset_base.h>
 #include <catboost/cuda/gpu_data/feature_parallel_dataset.h>

@@ -1,15 +1,15 @@
 #pragma once
 
-#include <catboost/libs/algo/data.h>
-#include <catboost/libs/algo/learn_context.h>
-#include <catboost/libs/algo_helpers/custom_objective_descriptor.h>
+#include <catboost/private/libs/algo/data.h>
+#include <catboost/private/libs/algo/learn_context.h>
+#include <catboost/private/libs/algo_helpers/custom_objective_descriptor.h>
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/eval_result/eval_result.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/metrics/metric.h>
-#include <catboost/libs/options/cross_validation_params.h>
-#include <catboost/libs/options/output_file_options.h>
+#include <catboost/private/libs/options/cross_validation_params.h>
+#include <catboost/private/libs/options/output_file_options.h>
 #include <catboost/libs/train_lib/train_model.h>
 
 #include <library/json/json_value.h>

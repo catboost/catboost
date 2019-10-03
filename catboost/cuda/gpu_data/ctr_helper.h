@@ -4,7 +4,7 @@
 #include <catboost/cuda/ctrs/ctr_bins_builder.h>
 #include <catboost/cuda/ctrs/ctr_calcers.h>
 
-#include <catboost/libs/ctr_description/ctr_config.h>
+#include <catboost/private/libs/ctr_description/ctr_config.h>
 
 namespace NCatboostCuda {
     template <class TMapping>

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <catboost/libs/helpers/math_utils.h>
-#include <catboost/libs/options/enums.h>
+#include <catboost/private/libs/options/enums.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>

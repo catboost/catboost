@@ -5,10 +5,10 @@
 #include "objects.h"
 
 #include <catboost/libs/column_description/column.h>
-#include <catboost/libs/data_util/line_data_reader.h>
-#include <catboost/libs/data_util/path_with_scheme.h>
+#include <catboost/private/libs/data_util/line_data_reader.h>
+#include <catboost/private/libs/data_util/path_with_scheme.h>
 #include <catboost/libs/logging/profile_info.h>
-#include <catboost/libs/options/load_options.h>
+#include <catboost/private/libs/options/load_options.h>
 
 #include <library/threading/local_executor/local_executor.h>
 

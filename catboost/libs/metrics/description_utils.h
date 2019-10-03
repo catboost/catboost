@@ -7,7 +7,7 @@
 #include <util/string/split.h>
 #include <util/string/printf.h>
 
-#include <catboost/libs/options/enums.h>
+#include <catboost/private/libs/options/enums.h>
 
 template <typename T>
 static inline TString BuildDescription(const TMetricParam<T>& param) {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/libs/index_range/index_range.h>
+#include <catboost/private/libs/index_range/index_range.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>

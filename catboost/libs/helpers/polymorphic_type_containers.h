@@ -4,7 +4,7 @@
 #include "dynamic_iterator.h"
 #include "maybe_owning_array_holder.h"
 
-#include <catboost/libs/index_range/index_range.h>
+#include <catboost/private/libs/index_range/index_range.h>
 
 #include <library/threading/local_executor/local_executor.h>
 

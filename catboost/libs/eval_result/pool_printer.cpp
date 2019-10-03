@@ -2,7 +2,7 @@
 
 #include <catboost/idl/pool/flat/quantized_chunk_t.fbs.h>
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/quantized_pool/serialization.h>
+#include <catboost/private/libs/quantized_pool/serialization.h>
 
 #include <util/generic/xrange.h>
 #include <util/string/cast.h>

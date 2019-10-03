@@ -5,8 +5,8 @@
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/dbg_output.h>
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/index_range/index_range.h>
-#include <catboost/libs/options/enums.h>
+#include <catboost/private/libs/index_range/index_range.h>
+#include <catboost/private/libs/options/enums.h>
 
 #include <library/binsaver/bin_saver.h>
 #include <library/dbg_output/dump.h>

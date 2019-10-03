@@ -1,8 +1,8 @@
 #pragma once
 
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/ctr_description/ctr_config.h>
-#include <catboost/libs/ctr_description/ctr_type.h>
+#include <catboost/private/libs/ctr_description/ctr_config.h>
+#include <catboost/private/libs/ctr_description/ctr_type.h>
 
 #include <util/generic/vector.h>
 #include <util/generic/algorithm.h>

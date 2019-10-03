@@ -1,7 +1,7 @@
 #pragma once
 
 #include <catboost/cuda/cuda_lib/kernel/kernel.cuh>
-#include <catboost/libs/options/enums.h>
+#include <catboost/private/libs/options/enums.h>
 
 
 namespace NKernel {

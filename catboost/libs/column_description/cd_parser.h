@@ -2,7 +2,7 @@
 
 #include "column.h"
 
-#include <catboost/libs/data_util/path_with_scheme.h>
+#include <catboost/private/libs/data_util/path_with_scheme.h>
 
 #include <util/stream/fwd.h>
 #include <util/generic/array_ref.h>

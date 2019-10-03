@@ -3,8 +3,8 @@
 #include "features_layout.h"
 
 #include <catboost/libs/column_description/column.h>
-#include <catboost/libs/data_types/groupid.h>
-#include <catboost/libs/data_types/pair.h>
+#include <catboost/private/libs/data_types/groupid.h>
+#include <catboost/private/libs/data_types/pair.h>
 #include <catboost/libs/helpers/serialization.h>
 #include <catboost/libs/model/features.h>
 

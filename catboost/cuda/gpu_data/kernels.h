@@ -5,7 +5,7 @@
 #include <catboost/cuda/gpu_data/kernel/binarize.cuh>
 #include <catboost/cuda/gpu_data/kernel/query_helper.cuh>
 #include <catboost/cuda/cuda_util/compression_helpers_gpu.h>
-#include <catboost/libs/options/binarization_options.h>
+#include <catboost/private/libs/options/binarization_options.h>
 
 #include <library/grid_creator/binarization.h>
 

@@ -14,7 +14,7 @@
 #include <catboost/cuda/cuda_util/reduce.h>
 #include <catboost/cuda/cuda_util/compression_helpers_gpu.h>
 
-#include <catboost/libs/ctr_description/ctr_config.h>
+#include <catboost/private/libs/ctr_description/ctr_config.h>
 
 namespace NCatboostCuda {
 

@@ -21,7 +21,7 @@ SRCS(
 PEERDIR(
     catboost/libs/model
 
-    catboost/libs/ctr_description
+    catboost/private/libs/ctr_description
     contrib/libs/coreml
     contrib/libs/onnx
     library/resource

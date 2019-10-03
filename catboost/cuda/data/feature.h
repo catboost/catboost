@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/libs/ctr_description/ctr_config.h>
+#include <catboost/private/libs/ctr_description/ctr_config.h>
 
 #include <catboost/libs/helpers/hash.h>
 #include <catboost/libs/helpers/set.h>

@@ -5,8 +5,8 @@
 #include "util.h"
 #include "weights.h"
 
-#include <catboost/libs/data_types/pair.h>
-#include <catboost/libs/data_types/query.h>
+#include <catboost/private/libs/data_types/pair.h>
+#include <catboost/private/libs/data_types/query.h>
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/serialization.h>

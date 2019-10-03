@@ -11,7 +11,7 @@
 #include <catboost/cuda/gpu_data/bootstrap.h>
 #include <catboost/cuda/models/oblivious_model.h>
 #include <catboost/cuda/methods/helpers.h>
-#include <catboost/libs/options/oblivious_tree_options.h>
+#include <catboost/private/libs/options/oblivious_tree_options.h>
 #include <catboost/cuda/targets/weak_objective.h>
 
 namespace NCatboostCuda {

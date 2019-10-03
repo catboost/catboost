@@ -35,7 +35,7 @@ PEERDIR(
     catboost/libs/helpers
     catboost/libs/logging
     catboost/libs/metrics
-    catboost/libs/options
+    catboost/private/libs/options
     library/threading/local_executor
 )
 

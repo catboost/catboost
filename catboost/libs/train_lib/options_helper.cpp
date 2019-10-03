@@ -1,8 +1,8 @@
 #include "options_helper.h"
 
 #include <catboost/libs/helpers/vector_helpers.h>
-#include <catboost/libs/options/enum_helpers.h>
-#include <catboost/libs/options/defaults_helper.h>
+#include <catboost/private/libs/options/enum_helpers.h>
+#include <catboost/private/libs/options/defaults_helper.h>
 
 #include <util/system/types.h>
 #include <util/generic/ymath.h>

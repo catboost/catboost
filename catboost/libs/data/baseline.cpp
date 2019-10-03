@@ -1,6 +1,6 @@
 #include "baseline.h"
 
-#include <catboost/libs/data_util/exists_checker.h>
+#include <catboost/private/libs/data_util/exists_checker.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/is_in.h>

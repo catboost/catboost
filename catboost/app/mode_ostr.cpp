@@ -1,10 +1,10 @@
 #include "modes.h"
 
 #include <catboost/libs/data/load_data.h>
-#include <catboost/libs/documents_importance/docs_importance.h>
-#include <catboost/libs/documents_importance/enums.h>
+#include <catboost/private/libs/documents_importance/docs_importance.h>
+#include <catboost/private/libs/documents_importance/enums.h>
 #include <catboost/libs/model/model.h>
-#include <catboost/libs/options/analytical_mode_params.h>
+#include <catboost/private/libs/options/analytical_mode_params.h>
 
 #include <library/getopt/small/last_getopt.h>
 

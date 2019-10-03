@@ -47,17 +47,17 @@ PEERDIR(
 
     catboost/libs/cat_feature
     catboost/libs/column_description
-    catboost/libs/data_types
-    catboost/libs/data_util
-    catboost/libs/feature_estimator
+    catboost/private/libs/data_types
+    catboost/private/libs/data_util
+    catboost/private/libs/feature_estimator
     catboost/libs/helpers
-    catboost/libs/index_range
+    catboost/private/libs/index_range
     catboost/libs/logging
     catboost/libs/model
-    catboost/libs/options
-    catboost/libs/text_processing
-    catboost/libs/quantization
-    catboost/libs/quantization_schema
+    catboost/private/libs/options
+    catboost/private/libs/text_processing
+    catboost/private/libs/quantization
+    catboost/private/libs/quantization_schema
 )
 
 GENERATE_ENUM_SERIALIZATION(baseline.h)

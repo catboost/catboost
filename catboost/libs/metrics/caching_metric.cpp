@@ -3,7 +3,7 @@
 #include "description_utils.h"
 #include "classification_utils.h"
 
-#include <catboost/libs/options/enum_helpers.h>
+#include <catboost/private/libs/options/enum_helpers.h>
 #include <util/generic/string.h>
 #include <util/generic/set.h>
 

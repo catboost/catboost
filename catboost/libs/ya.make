@@ -1,29 +1,14 @@
 
 
 RECURSE(
-    algo
-    algo/ut
-    algo_helpers
-    app_helpers
     data
     data/ut
     data/benchmarks_ut
-    data_types
-    data_util
-    data_util/ut
-    distributed
-    documents_importance
     eval_result
     fstr
-    functools
     gpu_config
     helpers
     helpers/ut
-    hyperparameter_tuning
-    index_range
-    init
-    labels
-    lapack
     loggers
     logging
     metrics
@@ -33,22 +18,9 @@ RECURSE(
     model/model_export/ut
     model/ut
     model_interface
-    options
-    options/ut
     overfitting_detector
-    quantization
-    quantization_schema
-    quantization_schema/ut
-    quantized_pool
-    quantized_pool_analysis
-    quantized_pool/ut
-    target
     train_lib
     train_lib/ut
-    validate_fb
-    feature_estimator
-    text_features
-    text_features/ut
     train_interface
 )
 

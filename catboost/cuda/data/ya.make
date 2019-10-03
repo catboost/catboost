@@ -12,13 +12,13 @@ SRCS(
 
 PEERDIR(
     catboost/cuda/cuda_lib
-    catboost/libs/ctr_description
+    catboost/private/libs/ctr_description
     catboost/libs/data
-    catboost/libs/data_types
+    catboost/private/libs/data_types
     catboost/libs/model
     catboost/libs/helpers
-    catboost/libs/options
-    catboost/libs/feature_estimator
+    catboost/private/libs/options
+    catboost/private/libs/feature_estimator
 )
 
 GENERATE_ENUM_SERIALIZATION(feature.h)

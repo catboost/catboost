@@ -1,7 +1,7 @@
 #pragma once
 
 
-#include <catboost/libs/algo_helpers/online_predictor.h>
+#include <catboost/private/libs/algo_helpers/online_predictor.h>
 #include <catboost/libs/metrics/metric_holder.h>
 
 #include <library/sse/sse.h>

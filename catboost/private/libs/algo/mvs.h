@@ -1,0 +1,49 @@
+#pragma once
+
+#include <catboost/private/libs/options/enums.h>
+
+#include <util/system/types.h>
+#include <util/generic/vector.h>
+#include <util/generic/maybe.h>
+#include <util/generic/array_ref.h>
+
+
+class TFold;
+struct TRestorableFastRng64;
+
+namespace NPar {
+    class TLocalExecutor;
+}
+
+
+class TMvsSampler {
+public:
+    TMvsSampler(ui32 sampleCount, float sampleRate, const TMaybe<float>& lambda)
+        : SampleCount(sampleCount)
+        , SampleRate(sampleRate)
+        , Lambda(lambda)
+    {}
+    void GenSampleWeights(
+        EBoostingType boostingType,
+        const TVector<TVector<TVector<double>>>& leafValues,
+        TRestorableFastRng64* rand,
+        NPar::TLocalExecutor* localExecutor,
+        TFold* fold) const;
+
+private:
+    double GetLambda(
+        TConstArrayRef<double> derivatives,
+        const TVector<TVector<TVector<double>>>& leafValues,
+        NPar::TLocalExecutor* localExecutor) const;
+    double CalculateThreshold(
+        TVector<double>::iterator candidatesBegin,
+        TVector<double>::iterator candidatesEnd,
+        double sumSmall,
+        ui32 nLarge,
+        double sampleSize) const;
+
+private:
+    ui32 SampleCount;
+    float SampleRate;
+    TMaybe<float> Lambda;
+};

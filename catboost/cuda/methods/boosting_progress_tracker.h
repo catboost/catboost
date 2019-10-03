@@ -11,9 +11,9 @@
 #include <catboost/cuda/gpu_data/feature_parallel_dataset_builder.h>
 #include <catboost/libs/overfitting_detector/error_tracker.h>
 #include <catboost/libs/logging/profile_info.h>
-#include <catboost/libs/options/output_file_options.h>
+#include <catboost/private/libs/options/output_file_options.h>
 #include <catboost/libs/loggers/logger.h>
-#include <catboost/libs/options/catboost_options.h>
+#include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/libs/helpers/progress_helper.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
 

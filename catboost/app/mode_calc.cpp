@@ -1,4 +1,4 @@
-#include <catboost/libs/app_helpers/mode_calc_helpers.h>
+#include <catboost/private/libs/app_helpers/mode_calc_helpers.h>
 #include <catboost/libs/model/model.h>
 
 namespace {

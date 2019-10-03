@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/libs/feature_estimator/feature_estimator.h>
+#include <catboost/private/libs/feature_estimator/feature_estimator.h>
 
 #include <util/digest/multi.h>
 #include <util/generic/hash.h>

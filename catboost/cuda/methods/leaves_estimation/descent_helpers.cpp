@@ -3,7 +3,7 @@
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/libs/helpers/matrix.h>
-#include <catboost/libs/lapack/linear_system.h>
+#include <catboost/private/libs/lapack/linear_system.h>
 
 #include <library/threading/local_executor/local_executor.h>
 

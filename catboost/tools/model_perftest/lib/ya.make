@@ -3,7 +3,7 @@
 LIBRARY()
 
 PEERDIR(
-    catboost/libs/algo
+    catboost/private/libs/algo
     catboost/libs/data
     library/getopt/small
     library/threading/future

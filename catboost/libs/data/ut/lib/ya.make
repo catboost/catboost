@@ -14,10 +14,10 @@ PEERDIR(
 
     catboost/libs/cat_feature
     catboost/libs/data
-    catboost/libs/data_types
-    catboost/libs/data_util
+    catboost/private/libs/data_types
+    catboost/private/libs/data_util
     catboost/libs/helpers
-    catboost/libs/options
+    catboost/private/libs/options
 )
 
 END()

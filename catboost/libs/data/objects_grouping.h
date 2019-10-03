@@ -3,7 +3,7 @@
 #include "order.h"
 #include "util.h"
 
-#include <catboost/libs/data_types/query.h>
+#include <catboost/private/libs/data_types/query.h>
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/element_range.h>
 #include <catboost/libs/helpers/exception.h>

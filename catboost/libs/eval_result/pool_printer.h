@@ -2,9 +2,9 @@
 
 #include <catboost/libs/column_description/column.h>
 #include <catboost/libs/data/meta_info.h>
-#include <catboost/libs/data_util/line_data_reader.h>
-#include <catboost/libs/data_util/path_with_scheme.h>
-#include <catboost/libs/quantized_pool/pool.h>
+#include <catboost/private/libs/data_util/line_data_reader.h>
+#include <catboost/private/libs/data_util/path_with_scheme.h>
+#include <catboost/private/libs/quantized_pool/pool.h>
 
 #include <util/generic/hash.h>
 #include <util/generic/maybe.h>

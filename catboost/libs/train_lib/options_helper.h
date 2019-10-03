@@ -1,7 +1,7 @@
 #pragma once
 
 #include <catboost/libs/data/meta_info.h>
-#include <catboost/libs/options/catboost_options.h>
+#include <catboost/private/libs/options/catboost_options.h>
 
 void UpdateYetiRankEvalMetric(
     const TMaybe<NCB::TTargetStats>& learnTargetStats,

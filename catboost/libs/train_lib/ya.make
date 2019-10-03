@@ -11,16 +11,16 @@ SRCS(
 )
 
 PEERDIR(
-    catboost/libs/algo
-    catboost/libs/algo_helpers
+    catboost/private/libs/algo
+    catboost/private/libs/algo_helpers
     catboost/libs/column_description
-    catboost/libs/options
+    catboost/private/libs/options
     catboost/libs/data
     catboost/libs/helpers
-    catboost/libs/data_util
-    catboost/libs/distributed
+    catboost/private/libs/data_util
+    catboost/private/libs/distributed
     catboost/libs/eval_result
-    catboost/libs/labels
+    catboost/private/libs/labels
     catboost/libs/logging
     catboost/libs/loggers
     catboost/libs/metrics
@@ -28,8 +28,8 @@ PEERDIR(
     catboost/libs/model/model_export
     catboost/libs/fstr
     catboost/libs/overfitting_detector
-    catboost/libs/pairs
-    catboost/libs/target
+    catboost/private/libs/pairs
+    catboost/private/libs/target
     library/grid_creator
     library/json
     library/object_factory

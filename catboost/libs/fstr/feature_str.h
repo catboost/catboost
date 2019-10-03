@@ -1,7 +1,7 @@
 #pragma once
 
 #include <catboost/libs/model/model.h>
-#include <catboost/libs/algo/tree_print.h>
+#include <catboost/private/libs/algo/tree_print.h>
 
 #include <util/generic/vector.h>
 #include <util/generic/ymath.h>

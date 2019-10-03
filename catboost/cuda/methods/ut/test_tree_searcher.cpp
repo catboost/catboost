@@ -12,7 +12,7 @@
 
 #include <catboost/libs/helpers/cpu_random.h>
 #include <catboost/libs/helpers/math_utils.h>
-#include <catboost/libs/quantization/grid_creator.h>
+#include <catboost/private/libs/quantization/grid_creator.h>
 
 using namespace std;
 using namespace NCatboostCuda;

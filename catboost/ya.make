@@ -8,6 +8,7 @@ RECURSE(
     idl
     jvm-packages
     libs
+    private
     pytest
     python-package
     tools

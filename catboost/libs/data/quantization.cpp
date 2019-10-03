@@ -15,12 +15,12 @@
 #include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/helpers/resource_constrained_executor.h>
 #include <catboost/libs/logging/logging.h>
-#include <catboost/libs/labels/label_converter.h>
-#include <catboost/libs/options/plain_options_helper.h>
-#include <catboost/libs/options/system_options.h>
-#include <catboost/libs/text_processing/text_column_builder.h>
-#include <catboost/libs/quantization/utils.h>
-#include <catboost/libs/quantization_schema/quantize.h>
+#include <catboost/private/libs/labels/label_converter.h>
+#include <catboost/private/libs/options/plain_options_helper.h>
+#include <catboost/private/libs/options/system_options.h>
+#include <catboost/private/libs/text_processing/text_column_builder.h>
+#include <catboost/private/libs/quantization/utils.h>
+#include <catboost/private/libs/quantization_schema/quantize.h>
 
 #include <library/grid_creator/binarization.h>
 

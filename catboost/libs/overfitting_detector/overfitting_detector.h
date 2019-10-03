@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/libs/options/overfitting_detector_options.h>
+#include <catboost/private/libs/options/overfitting_detector_options.h>
 
 #include <util/generic/deque.h>
 #include <util/generic/vector.h>

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <util/generic/vector.h>
-#include <catboost/libs/options/enums.h>
+#include <catboost/private/libs/options/enums.h>
 
 namespace NCatboostCuda {
     class IStepEstimator {

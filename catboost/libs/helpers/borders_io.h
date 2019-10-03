@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/libs/options/enums.h>
+#include <catboost/private/libs/options/enums.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/vector.h>

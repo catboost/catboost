@@ -7,7 +7,7 @@
 #include "estimated_features_calcer.h"
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/helpers/interrupt.h>
-#include <catboost/libs/quantization/utils.h>
+#include <catboost/private/libs/quantization/utils.h>
 #include <catboost/cuda/data/binarizations_manager.h>
 #include <catboost/cuda/data/data_utils.h>
 

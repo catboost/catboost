@@ -1,6 +1,6 @@
 #pragma once
 
-#include <catboost/libs/options/oblivious_tree_options.h>
+#include <catboost/private/libs/options/oblivious_tree_options.h>
 
 namespace NCatboostCuda {
     struct TLeavesEstimationConfig {

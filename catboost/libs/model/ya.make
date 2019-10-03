@@ -22,11 +22,11 @@ SRCS(
 
 PEERDIR(
     catboost/libs/cat_feature
-    catboost/libs/ctr_description
+    catboost/private/libs/ctr_description
     catboost/libs/helpers
     catboost/libs/logging
     catboost/libs/model/flatbuffers
-    catboost/libs/options
+    catboost/private/libs/options
     contrib/libs/flatbuffers
     library/binsaver
     library/containers/dense_hash

@@ -1,8 +1,8 @@
 #include "batch_binarized_ctr_calcer.h"
 
 #include "gpu_binarization_helpers.h"
-#include <catboost/libs/quantization/grid_creator.h>
-#include <catboost/libs/quantization/utils.h>
+#include <catboost/private/libs/quantization/grid_creator.h>
+#include <catboost/private/libs/quantization/utils.h>
 
 void NCatboostCuda::TBatchedBinarizedCtrsCalcer::ComputeBinarizedCtrs(const TVector<ui32>& ctrs,
                                                                       TVector<NCatboostCuda::TBatchedBinarizedCtrsCalcer::TBinarizedCtr>* learnCtrs,

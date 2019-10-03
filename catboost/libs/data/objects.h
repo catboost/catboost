@@ -11,7 +11,7 @@
 #include "quantized_features_info.h"
 #include "util.h"
 
-#include <catboost/libs/data_types/groupid.h>
+#include <catboost/private/libs/data_types/groupid.h>
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/compression.h>
 #include <catboost/libs/helpers/exception.h>
@@ -20,7 +20,7 @@
 #include <catboost/libs/helpers/resource_holder.h>
 #include <catboost/libs/helpers/serialization.h>
 
-#include <catboost/libs/options/binarization_options.h>
+#include <catboost/private/libs/options/binarization_options.h>
 
 #include <library/binsaver/bin_saver.h>
 #include <library/dbg_output/dump.h>

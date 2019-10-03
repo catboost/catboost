@@ -1,6 +1,6 @@
 #include "parallel_sort.h"
 
-#include <catboost/libs/index_range/index_range.h>
+#include <catboost/private/libs/index_range/index_range.h>
 
 namespace NCB {
 

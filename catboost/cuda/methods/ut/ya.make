@@ -18,7 +18,7 @@ PEERDIR(
     catboost/cuda/methods
     catboost/cuda/ut_helpers
     catboost/libs/helpers
-    catboost/libs/quantization
+    catboost/private/libs/quantization
 )
 
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)

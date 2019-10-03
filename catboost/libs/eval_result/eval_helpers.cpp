@@ -1,7 +1,7 @@
 #include "eval_helpers.h"
 
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/labels/label_helper_builder.h>
+#include <catboost/private/libs/labels/label_helper_builder.h>
 #include <catboost/libs/model/eval_processing.h>
 
 #include <util/generic/utility.h>

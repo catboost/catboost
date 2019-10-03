@@ -1,7 +1,7 @@
 #pragma once
 
 #include "non_zero_filter.h"
-#include <catboost/libs/options/bootstrap_options.h>
+#include <catboost/private/libs/options/bootstrap_options.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
 #include <catboost/cuda/cuda_util/gpu_random.h>

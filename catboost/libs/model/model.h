@@ -8,7 +8,7 @@
 #include "split.h"
 
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/options/enums.h>
+#include <catboost/private/libs/options/enums.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>

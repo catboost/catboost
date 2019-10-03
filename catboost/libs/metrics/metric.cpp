@@ -19,8 +19,8 @@
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/helpers/short_vector_ops.h>
 #include <catboost/libs/logging/logging.h>
-#include <catboost/libs/options/enum_helpers.h>
-#include <catboost/libs/options/loss_description.h>
+#include <catboost/private/libs/options/enum_helpers.h>
+#include <catboost/private/libs/options/loss_description.h>
 
 #include <library/fast_exp/fast_exp.h>
 #include <library/fast_log/fast_log.h>

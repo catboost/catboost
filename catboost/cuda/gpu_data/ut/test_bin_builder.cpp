@@ -7,8 +7,8 @@
 #include <catboost/cuda/gpu_data/oblivious_tree_bin_builder.h>
 
 #include <catboost/libs/helpers/math_utils.h>
-#include <catboost/libs/quantization/grid_creator.h>
-#include <catboost/libs/quantization/utils.h>
+#include <catboost/private/libs/quantization/grid_creator.h>
+#include <catboost/private/libs/quantization/utils.h>
 
 #include <library/unittest/registar.h>
 

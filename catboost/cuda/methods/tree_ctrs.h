@@ -4,7 +4,7 @@
 #include "tree_ctr_memory_usage_estimator.h"
 
 #include <catboost/cuda/cuda_lib/mapping.h>
-#include <catboost/libs/options/binarization_options.h>
+#include <catboost/private/libs/options/binarization_options.h>
 #include <catboost/cuda/gpu_data/oblivious_tree_bin_builder.h>
 #include <catboost/cuda/data/feature.h>
 

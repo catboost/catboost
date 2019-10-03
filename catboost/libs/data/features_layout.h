@@ -3,7 +3,7 @@
 #include "feature_index.h"
 
 #include <catboost/libs/model/features.h>
-#include <catboost/libs/options/enums.h>
+#include <catboost/private/libs/options/enums.h>
 
 #include <library/binsaver/bin_saver.h>
 #include <library/dbg_output/dump.h>

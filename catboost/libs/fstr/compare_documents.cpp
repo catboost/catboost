@@ -1,6 +1,6 @@
 #include "compare_documents.h"
 
-#include <catboost/libs/algo/apply.h>
+#include <catboost/private/libs/algo/apply.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/data/data_provider.h>

@@ -1,9 +1,9 @@
 #pragma once
 
-#include <catboost/libs/algo_helpers/custom_objective_descriptor.h>
+#include <catboost/private/libs/algo_helpers/custom_objective_descriptor.h>
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/metrics/metric.h>
-#include <catboost/libs/options/feature_eval_options.h>
+#include <catboost/private/libs/options/feature_eval_options.h>
 #include <catboost/libs/train_lib/cross_validation.h>
 
 #include <library/json/json_value.h>

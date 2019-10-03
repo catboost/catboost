@@ -5,7 +5,7 @@
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/model_export/model_exporter.h>
 
-#include <catboost/libs/options/analytical_mode_params.h>
+#include <catboost/private/libs/options/analytical_mode_params.h>
 
 #include <library/getopt/small/modchooser.h>
 #include <library/getopt/small/last_getopt.h>

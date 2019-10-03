@@ -30,17 +30,17 @@ PEERDIR(
     catboost/cuda/methods
     catboost/cuda/models
     catboost/cuda/targets
-    catboost/libs/algo
-    catboost/libs/algo_helpers
+    catboost/private/libs/algo
+    catboost/private/libs/algo_helpers
     catboost/libs/data
     catboost/libs/eval_result
     catboost/libs/fstr
     catboost/libs/helpers
     catboost/libs/loggers
     catboost/libs/model
-    catboost/libs/options
+    catboost/private/libs/options
     catboost/libs/overfitting_detector
-    catboost/libs/quantization
+    catboost/private/libs/quantization
     catboost/libs/train_lib
     library/json
     library/object_factory

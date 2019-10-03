@@ -1,7 +1,7 @@
 #pragma once
 
-#include <catboost/libs/data_util/path_with_scheme.h>
-#include <catboost/libs/data_util/line_data_reader.h>
+#include <catboost/private/libs/data_util/path_with_scheme.h>
+#include <catboost/private/libs/data_util/line_data_reader.h>
 #include <catboost/libs/helpers/exception.h>
 
 #include <util/generic/cast.h>

@@ -31,7 +31,7 @@ model.eval_metrics(test_pool, ['AUC', 'Recall'], eval_period=200)  # error here
 **Solution**
 
 The error comes from 
-class `TMetricsPlotCalcer` which checks the step against plot size, [here](https://github.com/catboost/catboost/blob/29f49edf05bd7b25d1a3ecb7c892d81155f3f074/catboost/libs/algo/plot.h#L121).
+class `TMetricsPlotCalcer` which checks the step against plot size, [here](https://github.com/catboost/catboost/blob/29f49edf05bd7b25d1a3ecb7c892d81155f3f074/catboost/private/libs/algo/plot.h#L121).
  
 We should
 make this check always pass or get rid of this check.
@@ -139,10 +139,10 @@ Currently CatBoost uses 'one hot' encoding for all categorical features that hav
 
 You need to implement option --one-hot to list explicitly indexes of categorical features which need one-hot encoding.
 1. Add --one-hot option near `--one-hot-max-size`
-  * Look in folder catboost/libs/options .
+  * Look in folder catboost/private/libs/options .
   * If both are given, throw TCatBoostException.
 2. Find which code handles `--one-hot-max-size` during training, and change this code so that it looks at the features listed after --one-hot
-  * Look in `catboost/libs/algo/greedy_tensor_search.cpp`.
+  * Look in `catboost/private/libs/algo/greedy_tensor_search.cpp`.
   * If some feature listed after `--one-hot` has too many values, throw `TCatBoostException`.
   
 ## 10. sklearn check classifier
@@ -164,14 +164,14 @@ Steps of implementation:
 - Download epsilon dataset:
    a. train part: <https://proxy.sandbox.yandex-team.ru/785711439> to train.tsv
    b. test part: <https://storage.mds.yandex.net/get-devtools-opensource/250854/epsilon.tar.gz> to test.tsv
-- In catboost/libs/algo/error_functions.h
+- In catboost/private/libs/algo/error_functions.h
    a. Add new class `TNoiseRobustLogloss` inherited from `IDerCalcer`.
    b. Implement constructor and functions 
       `ouble CalcDer(double approx, float target)`, `CalcDer2`, `CalcDer3`
 - Add function to common set of loss functions:
-   a. Add value `TNoiseRobustLogloss` to enum `ELossFunction` in `libs/options/enums.h`
-   b. Add enum value to `GetAllObjectives`, `IsForCrossEntropyOptimization` functions in `libs/options/enum_helpers.cpp`
-   c. Add object initialization to `BuildError` function in `libs/algo/tensor_search_helpers.cpp`
+   a. Add value `TNoiseRobustLogloss` to enum `ELossFunction` in `private/libs/options/enums.h`
+   b. Add enum value to `GetAllObjectives`, `IsForCrossEntropyOptimization` functions in `private/libs/options/enum_helpers.cpp`
+   c. Add object initialization to `BuildError` function in `private/libs/algo/tensor_search_helpers.cpp`
    
      ```cpp
      case ELossFunction::NoiseRobustLogloss:
@@ -192,7 +192,7 @@ Steps of implementation:
 Currently, in CLI CatBoost binary it is possible to output predictions only to file, when sometimes it would be more useful to output predictions to stdout.
 To implement this functionality we suppose to add special input path scheme with two possible paths:  `stream://stdout` and `stream://stderr` .
 In function  CalcModelSingleHost in file 
-catboost/libs/app_helpers/mode_calc_helpers.cpp
+catboost/private/libs/app_helpers/mode_calc_helpers.cpp
 add output path schema check and use  `TFileOutput(Duplicate(1))` to create `IOutputStream` compatible stdout stream wrapper.
 
 ## 13. get borders from model in python
@@ -230,7 +230,7 @@ Add some metric or loss that you think is missing in CatBoost
 
 ## 18. Model calculation is not able to read features from stdin
 
-You need to implement special `ILineDataReader` successor class for scheme and path `stream://stdin` in `catboost/libs/data_util/line_data_reader.cpp` and properly register `stream://` scheme for dsv parsing.
+You need to implement special `ILineDataReader` successor class for scheme and path `stream://stdin` in `catboost/private/libs/data_util/line_data_reader.cpp` and properly register `stream://` scheme for dsv parsing.
 
 ## 19. Add CatBoostClassifier `predict_log_proba` and `decision_function` methods to support sklearn API better
 
@@ -242,7 +242,7 @@ Put link to kernel in tutorials repo.
 
 ## 21. rename Custom to UserDefined
 
-catboost/libs/options/enums.h#L96
+catboost/private/libs/options/enums.h#L96
 Custom -> PythonUserDefinedPerObject
 
 ## 22. Support passing feature names in cat_features
@@ -262,7 +262,7 @@ It also requires refactoring of quantization library to expose the quantization 
 
 Reference:
 * About Quantization in CatBoost: <https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/>
-* Quantization options handling: <https://github.com/catboost/catboost/blob/master/catboost/libs/options/binarization_options.h>
+* Quantization options handling: <https://github.com/catboost/catboost/blob/master/catboost/private/libs/options/binarization_options.h>
 * Quantization in CatBoost is called from <https://github.com/catboost/catboost/blob/e7d668e5e1fd2f549640fc80dc97598f260e3c4e/catboost/libs/data/quantization.cpp#L179-L183>
 * Quantization library is here: <https://github.com/catboost/catboost/tree/master/library/grid_creator>
 * Quantization function that accepts weights is here: <https://github.com/catboost/catboost/blob/e7d668e5e1fd2f549640fc80dc97598f260e3c4e/library/grid_creator/binarization.cpp#L640>

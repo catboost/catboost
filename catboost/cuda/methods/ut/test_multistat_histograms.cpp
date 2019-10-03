@@ -9,7 +9,7 @@
 #include <catboost/cuda/methods/pointwise_optimization_subsets.h>
 
 #include <catboost/libs/helpers/cpu_random.h>
-#include <catboost/libs/quantization/grid_creator.h>
+#include <catboost/private/libs/quantization/grid_creator.h>
 
 #include <util/generic/hash.h>
 #include <util/system/info.h>

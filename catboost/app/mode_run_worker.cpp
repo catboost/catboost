@@ -1,6 +1,6 @@
 #include "modes.h"
 
-#include <catboost/libs/distributed/worker.h>
+#include <catboost/private/libs/distributed/worker.h>
 
 #include <library/getopt/small/last_getopt.h>
 

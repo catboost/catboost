@@ -4,7 +4,7 @@
 #include <catboost/cuda/data/feature.h>
 #include <catboost/cuda/gpu_data/ctr_helper.h>
 
-#include <catboost/libs/ctr_description/ctr_config.h>
+#include <catboost/private/libs/ctr_description/ctr_config.h>
 
 namespace NCatboostCuda {
     class TCtrFromTensorCalcer {

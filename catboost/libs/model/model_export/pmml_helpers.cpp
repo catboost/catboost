@@ -4,7 +4,7 @@
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/xml_output.h>
-#include <catboost/libs/options/enum_helpers.h>
+#include <catboost/private/libs/options/enum_helpers.h>
 
 #include <library/json/json_value.h>
 #include <library/svnversion/svnversion.h>

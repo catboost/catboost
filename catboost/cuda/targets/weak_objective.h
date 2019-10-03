@@ -3,7 +3,7 @@
 #include <util/generic/noncopyable.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_util/gpu_random.h>
-#include <catboost/libs/options/bootstrap_options.h>
+#include <catboost/private/libs/options/bootstrap_options.h>
 
 namespace NCatboostCuda {
     struct TOptimizationTarget {

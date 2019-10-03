@@ -3,7 +3,7 @@
 #include "util.h"
 
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/quantization_schema/schema.h>
+#include <catboost/private/libs/quantization_schema/schema.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/cast.h>

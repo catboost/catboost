@@ -4,7 +4,7 @@
 
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/gpu_config/interface/get_gpu_device_count.h>
-#include <catboost/libs/quantization/utils.h>
+#include <catboost/private/libs/quantization/utils.h>
 
 #include <library/unittest/registar.h>
 

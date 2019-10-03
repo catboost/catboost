@@ -9,9 +9,9 @@
 #include <catboost/cuda/cuda_lib/mapping.h>
 
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/options/bootstrap_options.h>
-#include <catboost/libs/options/enums.h>
-#include <catboost/libs/options/loss_description.h>
+#include <catboost/private/libs/options/bootstrap_options.h>
+#include <catboost/private/libs/options/enums.h>
+#include <catboost/private/libs/options/loss_description.h>
 
 #include <util/generic/map.h>
 #include <util/generic/string.h>

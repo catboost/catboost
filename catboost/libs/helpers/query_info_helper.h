@@ -1,7 +1,7 @@
 #pragma once
 
-#include <catboost/libs/data_types/groupid.h>
-#include <catboost/libs/data_types/query.h>
+#include <catboost/private/libs/data_types/groupid.h>
+#include <catboost/private/libs/data_types/query.h>
 
 #include <util/generic/fwd.h>
 

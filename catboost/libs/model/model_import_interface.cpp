@@ -1,8 +1,8 @@
 #include "model_import_interface.h"
 
 #include <catboost/libs/logging/logging.h>
-#include <catboost/libs/options/json_helper.h>
-#include <catboost/libs/options/check_train_options.h>
+#include <catboost/private/libs/options/json_helper.h>
+#include <catboost/private/libs/options/check_train_options.h>
 
 namespace NCB {
     class TBinaryModelLoader : public NCB::IModelLoader {

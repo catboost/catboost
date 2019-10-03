@@ -1,0 +1,34 @@
+
+
+RECURSE(
+    algo
+    algo/ut
+    algo_helpers
+    app_helpers
+    ctr_description
+    data_types
+    data_util
+    data_util/ut
+    distributed
+    documents_importance
+    feature_estimator
+    functools
+    hyperparameter_tuning
+    index_range
+    init
+    labels
+    lapack
+    options
+    options/ut
+    pairs
+    quantization
+    quantization_schema
+    quantization_schema/ut
+    quantized_pool
+    quantized_pool_analysis
+    quantized_pool/ut
+    target
+    text_features
+    text_features/ut
+    validate_fb
+)

@@ -1,7 +1,7 @@
 #include "external_columns.h"
 
 #include <catboost/libs/helpers/double_array_iterator.h>
-#include <catboost/libs/quantization/utils.h>
+#include <catboost/private/libs/quantization/utils.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/utility.h>

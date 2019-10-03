@@ -14,7 +14,7 @@
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/metrics/metric_holder.h>
-#include <catboost/libs/options/bootstrap_options.h>
+#include <catboost/private/libs/options/bootstrap_options.h>
 
 #include <util/generic/buffer.h>
 #include <util/generic/utility.h>

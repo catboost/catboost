@@ -7,12 +7,12 @@
 
 #include <catboost/libs/helpers/dbg_output.h>
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/options/binarization_options.h>
-#include <catboost/libs/options/enums.h>
-#include <catboost/libs/options/text_processing_options.h>
-#include <catboost/libs/options/runtime_text_options.h>
-#include <catboost/libs/text_processing/dictionary.h>
-#include <catboost/libs/quantization/utils.h>
+#include <catboost/private/libs/options/binarization_options.h>
+#include <catboost/private/libs/options/enums.h>
+#include <catboost/private/libs/options/text_processing_options.h>
+#include <catboost/private/libs/options/runtime_text_options.h>
+#include <catboost/private/libs/text_processing/dictionary.h>
+#include <catboost/private/libs/quantization/utils.h>
 
 #include <library/binsaver/bin_saver.h>
 #include <library/grid_creator/binarization.h>

@@ -5,11 +5,11 @@
 #include <catboost/cuda/models/non_symmetric_tree.h>
 #include <catboost/cuda/models/oblivious_model.h>
 
-#include <catboost/libs/algo/projection.h>
+#include <catboost/private/libs/algo/projection.h>
 #include <catboost/libs/data/quantized_features_info.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/target_classifier.h>
-#include <catboost/libs/target/classification_target_helper.h>
+#include <catboost/private/libs/target/classification_target_helper.h>
 
 namespace NCatboostCuda {
     class TModelConverter {

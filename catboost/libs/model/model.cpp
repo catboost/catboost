@@ -11,7 +11,7 @@
 #include <catboost/libs/helpers/borders_io.h>
 #include <catboost/libs/logging/logging.h>
 
-#include <catboost/libs/options/loss_description.h>
+#include <catboost/private/libs/options/loss_description.h>
 
 #include <library/json/json_reader.h>
 #include <library/dbg_output/dump.h>

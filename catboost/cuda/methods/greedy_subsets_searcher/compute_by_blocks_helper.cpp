@@ -1,7 +1,7 @@
 #include "compute_by_blocks_helper.h"
 #include "structure_searcher_options.h"
 #include "split_properties_helper.h"
-#include <catboost/libs/options/bootstrap_options.h>
+#include <catboost/private/libs/options/bootstrap_options.h>
 #include <util/generic/vector.h>
 
 using namespace NCatboostCuda;

@@ -8,9 +8,9 @@
 
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
-#include <catboost/libs/options/catboost_options.h>
-#include <catboost/libs/options/enums.h>
-#include <catboost/libs/options/output_file_options.h>
+#include <catboost/private/libs/options/catboost_options.h>
+#include <catboost/private/libs/options/enums.h>
+#include <catboost/private/libs/options/output_file_options.h>
 #include <catboost/libs/train_lib/train_model.h>
 
 #include <library/object_factory/object_factory.h>

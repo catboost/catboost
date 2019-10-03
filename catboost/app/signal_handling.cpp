@@ -1,4 +1,4 @@
-#include <catboost/libs/init/init_reg.h>
+#include <catboost/private/libs/init/init_reg.h>
 #include <catboost/libs/helpers/interrupt.h>
 
 #include <util/system/atomic.h>

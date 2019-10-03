@@ -12,14 +12,14 @@ SRCS(
 )
 
 PEERDIR(
-    catboost/libs/algo
+    catboost/private/libs/algo
     catboost/libs/data
     catboost/libs/helpers
     catboost/libs/loggers
     catboost/libs/logging
     catboost/libs/model
-    catboost/libs/options
-    catboost/libs/target
+    catboost/private/libs/options
+    catboost/private/libs/target
     library/threading/local_executor
 )
 

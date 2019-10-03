@@ -2,7 +2,7 @@
 
 #include "pairwise_score_calcer_for_policy.h"
 #include <catboost/cuda/gpu_data/compressed_index.h>
-#include <catboost/libs/options/oblivious_tree_options.h>
+#include <catboost/private/libs/options/oblivious_tree_options.h>
 #include <catboost/cuda/methods/helpers.h>
 #include <catboost/cuda/methods/pairwise_kernels.h>
 

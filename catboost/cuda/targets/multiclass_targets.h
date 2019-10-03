@@ -8,8 +8,8 @@
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
-#include <catboost/libs/options/enums.h>
-#include <catboost/libs/options/loss_description.h>
+#include <catboost/private/libs/options/enums.h>
+#include <catboost/private/libs/options/loss_description.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/mapfindptr.h>

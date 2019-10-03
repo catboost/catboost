@@ -1,13 +1,13 @@
 #pragma once
 
-#include <catboost/libs/algo/plot.h>
-#include <catboost/libs/data_types/groupid.h>
+#include <catboost/private/libs/algo/plot.h>
+#include <catboost/private/libs/data_types/groupid.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/metrics/metric.h>
-#include <catboost/libs/options/loss_description.h>
-#include <catboost/libs/options/plain_options_helper.h>
-#include <catboost/libs/target/data_providers.h>
+#include <catboost/private/libs/options/loss_description.h>
+#include <catboost/private/libs/options/plain_options_helper.h>
+#include <catboost/private/libs/target/data_providers.h>
 #include <catboost/libs/train_lib/options_helper.h>
 
 #include <library/json/json_value.h>
