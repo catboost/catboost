@@ -537,7 +537,7 @@ namespace NCatboostCuda {
                 CB_ENSURE(!TestDataProvider || !TestDataProvider->TargetData->GetBaseline(),
                     "You can't use boost_from_average with baseline now.");
                 state->StartingPoint = NCB::CalcOptimumConstApprox(
-                    CatBoostOptions.LossFunctionDescription->GetLossFunction(),
+                    CatBoostOptions.LossFunctionDescription,
                     DataProvider->TargetData->GetTarget().GetOrElse(TConstArrayRef<float>()),
                     GetWeights(*DataProvider->TargetData));
             }

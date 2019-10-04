@@ -57,8 +57,8 @@ void CreateBacktrackingObjective(
 );
 
 double CalcSampleQuantile(
-    TConstArrayRef<double> sample,
-    TConstArrayRef<double> weights,
+    TConstArrayRef<float> sample,
+    TConstArrayRef<float> weights,
     const double alpha,
     const double delta
 );

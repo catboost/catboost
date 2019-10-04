@@ -677,7 +677,7 @@ namespace {
 
             const auto startingApprox = catboostOptions.BoostingOptions->BoostFromAverage.Get()
                 ? CalcOptimumConstApprox(
-                    catboostOptions.LossFunctionDescription->GetLossFunction(),
+                    catboostOptions.LossFunctionDescription,
                     trainingData.Learn->TargetData->GetTarget().GetOrElse(TConstArrayRef<float>()),
                     GetWeights(*trainingData.Learn->TargetData))
                 : Nothing();

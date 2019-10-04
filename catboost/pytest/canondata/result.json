@@ -31,7 +31,7 @@
     ],
     "test.test_all_targets[calc_block=5000000-Ordered-MAE]": [
         {
-            "checksum": "88bc7953885ee9bddcb2885d7d0029ec",
+            "checksum": "f3ede249384489ed75eba7ac39ced4b8",
             "uri": "file://test.test_all_targets_calc_block=5000000-Ordered-MAE_/test.eval"
         }
     ],
@@ -65,7 +65,7 @@
     ],
     "test.test_all_targets[calc_block=5000000-Ordered-Quantile]": [
         {
-            "checksum": "d22e15a03a4558796cac9e451dce59c5",
+            "checksum": "963ca709913530dab8b64b5fd0f3c580",
             "uri": "file://test.test_all_targets_calc_block=5000000-Ordered-Quantile_/test.eval"
         }
     ],
@@ -95,7 +95,7 @@
     ],
     "test.test_all_targets[calc_block=5000000-Plain-MAE]": [
         {
-            "checksum": "0c930ca9b0a419807b6af40e185698b9",
+            "checksum": "f364275a82560853f74127e6b82a70fb",
             "uri": "file://test.test_all_targets_calc_block=5000000-Plain-MAE_/test.eval"
         }
     ],
@@ -129,7 +129,7 @@
     ],
     "test.test_all_targets[calc_block=5000000-Plain-Quantile]": [
         {
-            "checksum": "9ab8c3a2cb6da8e7eaa0fdfdcf85fc2b",
+            "checksum": "1303de24510ca1030023c486180e7989",
             "uri": "file://test.test_all_targets_calc_block=5000000-Plain-Quantile_/test.eval"
         }
     ],
@@ -159,7 +159,7 @@
     ],
     "test.test_all_targets[calc_block=60-Ordered-MAE]": [
         {
-            "checksum": "88bc7953885ee9bddcb2885d7d0029ec",
+            "checksum": "f3ede249384489ed75eba7ac39ced4b8",
             "uri": "file://test.test_all_targets_calc_block=60-Ordered-MAE_/test.eval"
         }
     ],
@@ -193,7 +193,7 @@
     ],
     "test.test_all_targets[calc_block=60-Ordered-Quantile]": [
         {
-            "checksum": "d22e15a03a4558796cac9e451dce59c5",
+            "checksum": "963ca709913530dab8b64b5fd0f3c580",
             "uri": "file://test.test_all_targets_calc_block=60-Ordered-Quantile_/test.eval"
         }
     ],
@@ -223,7 +223,7 @@
     ],
     "test.test_all_targets[calc_block=60-Plain-MAE]": [
         {
-            "checksum": "0c930ca9b0a419807b6af40e185698b9",
+            "checksum": "f364275a82560853f74127e6b82a70fb",
             "uri": "file://test.test_all_targets_calc_block=60-Plain-MAE_/test.eval"
         }
     ],
@@ -257,7 +257,7 @@
     ],
     "test.test_all_targets[calc_block=60-Plain-Quantile]": [
         {
-            "checksum": "9ab8c3a2cb6da8e7eaa0fdfdcf85fc2b",
+            "checksum": "1303de24510ca1030023c486180e7989",
             "uri": "file://test.test_all_targets_calc_block=60-Plain-Quantile_/test.eval"
         }
     ],
@@ -4969,13 +4969,13 @@
     ],
     "test.test_quantile_categorical[Ordered]": [
         {
-            "checksum": "5d5337a45d4af9cda68c18e2aa6dc770",
+            "checksum": "86da8c652e0d48dd9f582f3cf1740de1",
             "uri": "file://test.test_quantile_categorical_Ordered_/test.eval"
         }
     ],
     "test.test_quantile_categorical[Plain]": [
         {
-            "checksum": "249aafc0dba929437b986df643a64dd8",
+            "checksum": "291649b07dffa1743a35773420f008ec",
             "uri": "file://test.test_quantile_categorical_Plain_/test.eval"
         }
     ],
@@ -4987,7 +4987,7 @@
     ],
     "test.test_quantile_targets[Ordered-Quantile]": [
         {
-            "checksum": "756da557101e974d64a458e5c40a43c7",
+            "checksum": "31cf180b8c521246121b645ecc1ad937",
             "uri": "file://test.test_quantile_targets_Ordered-Quantile_/test.eval"
         }
     ],
@@ -4999,31 +4999,31 @@
     ],
     "test.test_quantile_targets[Plain-Quantile]": [
         {
-            "checksum": "47efc994fec975f9740de2ea233e9ef9",
+            "checksum": "3c76d894635f41549796a7caeadd7845",
             "uri": "file://test.test_quantile_targets_Plain-Quantile_/test.eval"
         }
     ],
     "test.test_quantile_targets_exact[Ordered]": [
         {
-            "checksum": "756da557101e974d64a458e5c40a43c7",
+            "checksum": "31cf180b8c521246121b645ecc1ad937",
             "uri": "file://test.test_quantile_targets_exact_Ordered_/test.eval"
         }
     ],
     "test.test_quantile_targets_exact[Plain]": [
         {
-            "checksum": "47efc994fec975f9740de2ea233e9ef9",
+            "checksum": "3c76d894635f41549796a7caeadd7845",
             "uri": "file://test.test_quantile_targets_exact_Plain_/test.eval"
         }
     ],
     "test.test_quantile_weights[Ordered]": [
         {
-            "checksum": "c17e0062d5b6fda2d43030204bf19a90",
+            "checksum": "6d59c24bf45cac22e65467d244cde14b",
             "uri": "file://test.test_quantile_weights_Ordered_/test.eval"
         }
     ],
     "test.test_quantile_weights[Plain]": [
         {
-            "checksum": "d4976bcfe4d49c8e6c5ba9f63c8ecf0d",
+            "checksum": "1d82b76e8ec0b9b5009f6a4b7cb6ed6c",
             "uri": "file://test.test_quantile_weights_Plain_/test.eval"
         }
     ],
@@ -5047,7 +5047,7 @@
     ],
     "test.test_quantized_adult_pool[Ordered-MAE]": [
         {
-            "checksum": "aae8a01c915ad4aa68c6001ae75a078c",
+            "checksum": "e064b20b19f6f1d2018e05cf9fd2eda8",
             "uri": "file://test.test_quantized_adult_pool_Ordered-MAE_/test.eval"
         }
     ],
@@ -5059,7 +5059,7 @@
     ],
     "test.test_quantized_adult_pool[Ordered-Quantile]": [
         {
-            "checksum": "d7add8981975d3027ae2a43b027f6827",
+            "checksum": "c569b9f607ba241ff6c49a476963fd21",
             "uri": "file://test.test_quantized_adult_pool_Ordered-Quantile_/test.eval"
         }
     ],
@@ -5089,7 +5089,7 @@
     ],
     "test.test_quantized_adult_pool[Plain-MAE]": [
         {
-            "checksum": "fa2e65e79ac4f51f669f0f7481461a0d",
+            "checksum": "90a4432671f931dfa44feee187ae1576",
             "uri": "file://test.test_quantized_adult_pool_Plain-MAE_/test.eval"
         }
     ],
@@ -5101,7 +5101,7 @@
     ],
     "test.test_quantized_adult_pool[Plain-Quantile]": [
         {
-            "checksum": "3850aa260896e347ac942a6e48a1127a",
+            "checksum": "1c717f7c107972815f312a936f75aac4",
             "uri": "file://test.test_quantized_adult_pool_Plain-Quantile_/test.eval"
         }
     ],
@@ -5377,7 +5377,7 @@
     ],
     "test.test_reg_targets[calc_block=5000000-Ordered-MAE]": [
         {
-            "checksum": "d65a2c5f8489605401129194ef47eb13",
+            "checksum": "fa83a14166b6f4507a813d77075cd86b",
             "uri": "file://test.test_reg_targets_calc_block=5000000-Ordered-MAE_/test.eval"
         }
     ],
@@ -5395,7 +5395,7 @@
     ],
     "test.test_reg_targets[calc_block=5000000-Ordered-Quantile]": [
         {
-            "checksum": "b1a7592e37f895a6e225b67081d31778",
+            "checksum": "5fec4c82eb3dd36b46d8da7b5554e161",
             "uri": "file://test.test_reg_targets_calc_block=5000000-Ordered-Quantile_/test.eval"
         }
     ],
@@ -5437,7 +5437,7 @@
     ],
     "test.test_reg_targets[calc_block=5000000-Plain-MAE]": [
         {
-            "checksum": "5ae5e86d4b6674c87ed48560ebc90b23",
+            "checksum": "0455077fb1696fae2bc8505f7a2e19c6",
             "uri": "file://test.test_reg_targets_calc_block=5000000-Plain-MAE_/test.eval"
         }
     ],
@@ -5455,7 +5455,7 @@
     ],
     "test.test_reg_targets[calc_block=5000000-Plain-Quantile]": [
         {
-            "checksum": "5f757fda7f5708822fd9c93f6e73f5b4",
+            "checksum": "c3e730f27e9d618b7155ba158be09f2a",
             "uri": "file://test.test_reg_targets_calc_block=5000000-Plain-Quantile_/test.eval"
         }
     ],
@@ -5497,7 +5497,7 @@
     ],
     "test.test_reg_targets[calc_block=60-Ordered-MAE]": [
         {
-            "checksum": "d65a2c5f8489605401129194ef47eb13",
+            "checksum": "fa83a14166b6f4507a813d77075cd86b",
             "uri": "file://test.test_reg_targets_calc_block=60-Ordered-MAE_/test.eval"
         }
     ],
@@ -5515,7 +5515,7 @@
     ],
     "test.test_reg_targets[calc_block=60-Ordered-Quantile]": [
         {
-            "checksum": "b1a7592e37f895a6e225b67081d31778",
+            "checksum": "5fec4c82eb3dd36b46d8da7b5554e161",
             "uri": "file://test.test_reg_targets_calc_block=60-Ordered-Quantile_/test.eval"
         }
     ],
@@ -5557,7 +5557,7 @@
     ],
     "test.test_reg_targets[calc_block=60-Plain-MAE]": [
         {
-            "checksum": "5ae5e86d4b6674c87ed48560ebc90b23",
+            "checksum": "0455077fb1696fae2bc8505f7a2e19c6",
             "uri": "file://test.test_reg_targets_calc_block=60-Plain-MAE_/test.eval"
         }
     ],
@@ -5575,7 +5575,7 @@
     ],
     "test.test_reg_targets[calc_block=60-Plain-Quantile]": [
         {
-            "checksum": "5f757fda7f5708822fd9c93f6e73f5b4",
+            "checksum": "c3e730f27e9d618b7155ba158be09f2a",
             "uri": "file://test.test_reg_targets_calc_block=60-Plain-Quantile_/test.eval"
         }
     ],

@@ -554,8 +554,8 @@ static void CalcQuantileLeafDeltas(
     TConstArrayRef<float> targets,
     TConstArrayRef<float> weights,
     TVector<double>* leafDeltas) {
-    TVector<TVector<double>> leafSamples(leafCount);
-    TVector<TVector<double>> leafWeights(leafCount);
+    TVector<TVector<float>> leafSamples(leafCount);
+    TVector<TVector<float>> leafWeights(leafCount);
 
     for (size_t i = 0; i < sampleCount; i++) {
         Y_ASSERT(indices[i] < leafSamples.size());
@@ -568,8 +568,8 @@ static void CalcQuantileLeafDeltas(
         Y_ASSERT(i < (*leafDeltas).size());
         Y_ASSERT(i < leafSamples.size());
         Y_ASSERT(i < leafWeights.size());
-        TVector<double>& weight = leafWeights[i];
-        TVector<double>& sample = leafSamples[i];
+        TVector<float>& weight = leafWeights[i];
+        TVector<float>& sample = leafSamples[i];
         double& leafDelta = (*leafDeltas)[i];
         leafDelta = CalcSampleQuantile(MakeConstArrayRef(sample), MakeConstArrayRef(weight), alpha, delta);
     }
