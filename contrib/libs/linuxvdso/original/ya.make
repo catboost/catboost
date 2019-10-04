@@ -17,10 +17,10 @@ SRCS(
 
 IF (MUSL)
     ADDINCL(
-        contrib/libs/musl/arch/generic
         contrib/libs/musl/arch/x86_64
-        contrib/libs/musl/extra
+        contrib/libs/musl/arch/generic
         contrib/libs/musl/include
+        contrib/libs/musl/extra
     )
 ENDIF ()
 

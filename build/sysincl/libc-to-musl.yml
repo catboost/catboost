@@ -5,6 +5,71 @@
 # * musl
 # or some combination of them depending on the build flags.
 
+# Musl has some internal header replacements. We will just resolve to both.
+- source_filter: "^contrib/libs/musl"
+  includes:
+  - arpa/inet.h:
+    - contrib/libs/musl/include/arpa/inet.h
+    - contrib/libs/musl/src/include/arpa/inet.h
+  - crypt.h:
+    - contrib/libs/musl/include/crypt.h
+    - contrib/libs/musl/src/include/crypt.h
+  - errno.h:
+    - contrib/libs/musl/include/errno.h
+    - contrib/libs/musl/src/include/errno.h
+  - features.h:
+    - contrib/libs/musl/include/features.h
+    - contrib/libs/musl/src/include/features.h
+  - langinfo.h:
+    - contrib/libs/musl/include/langinfo.h
+    - contrib/libs/musl/src/include/langinfo.h
+  - pthread.h:
+    - contrib/libs/musl/include/pthread.h
+    - contrib/libs/musl/src/include/pthread.h
+  - resolv.h:
+    - contrib/libs/musl/include/resolv.h
+    - contrib/libs/musl/src/include/resolv.h
+  - signal.h:
+    - contrib/libs/musl/include/signal.h
+    - contrib/libs/musl/src/include/signal.h
+  - stdio.h:
+    - contrib/libs/musl/include/stdio.h
+    - contrib/libs/musl/src/include/stdio.h
+  - stdlib.h:
+    - contrib/libs/musl/include/stdlib.h
+    - contrib/libs/musl/src/include/stdlib.h
+  - string.h:
+    - contrib/libs/musl/include/string.h
+    - contrib/libs/musl/src/include/string.h
+  - sys/auxv.h:
+    - contrib/libs/musl/include/sys/auxv.h
+    - contrib/libs/musl/src/include/sys/auxv.h
+  - sys/membarrier.h:
+    - contrib/libs/musl/include/sys/membarrier.h
+    - contrib/libs/musl/src/include/sys/membarrier.h
+  - sys/mman.h:
+    - contrib/libs/musl/include/sys/mman.h
+    - contrib/libs/musl/src/include/sys/mman.h
+  - sys/sysinfo.h:
+    - contrib/libs/musl/include/sys/sysinfo.h
+    - contrib/libs/musl/src/include/sys/sysinfo.h
+  - sys/time.h:
+    - contrib/libs/musl/include/sys/time.h
+    - contrib/libs/musl/src/include/sys/time.h
+  - time.h:
+    - contrib/libs/musl/include/time.h
+    - contrib/libs/musl/src/include/time.h
+  - unistd.h:
+    - contrib/libs/musl/include/unistd.h
+    - contrib/libs/musl/src/include/unistd.h
+  - wchar.h:
+    - contrib/libs/musl/include/wchar.h
+    - contrib/libs/musl/src/include/wchar.h
+
+  - inttypes.h:             contrib/libs/musl/include/inttypes.h
+  - stdint.h:               contrib/libs/musl/include/stdint.h
+
+
 # We want musl to resolve itself without these sysincls, but its test must have them
 # Also we disable this headers for some libraries, that want to build withoud libc at all
 - source_filter: "^(?!(contrib/libs/musl|contrib/libs/cxxsupp/builtins|contrib/libs/cxxsupp/libcxx/include/support|contrib/libs/libunwind|contrib/tools/yasm)).*|^contrib/libs/musl/tests"
