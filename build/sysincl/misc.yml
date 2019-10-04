@@ -27,9 +27,12 @@
 
 # Resolve jni.h from swig/Lib/java/javahead.swg when building non-java .swg
 # since they do not peerdir contrib/libs/jdk.
+# Resolve Python.h from swig/Lib/python/pyruntime.swg when building non-python .swg
+# since they do not peerdir contrib/libs/python.
 - source_filter: "[.]swg$"
   includes:
   - jni.h:           contrib/libs/jdk/include/jni.h
+  - Python.h:        contrib/libs/python/Include/Python.h
 - source_filter: "^contrib/libs/jdk/include/jni[.]h$"
   includes:
   - jni_md.h:
