@@ -32,16 +32,16 @@ namespace NThreading {
     TFuture<void> MakeFuture();
 
     // waits for all futures
-    TFuture<void> WaitAll(const TFuture<void>& f1);
-    TFuture<void> WaitAll(const TFuture<void>& f1, const TFuture<void>& f2);
+    [[nodiscard]] TFuture<void> WaitAll(const TFuture<void>& f1);
+    [[nodiscard]] TFuture<void> WaitAll(const TFuture<void>& f1, const TFuture<void>& f2);
     template <typename TContainer>
-    TFuture<void> WaitAll(const TContainer& futures);
+    [[nodiscard]] TFuture<void> WaitAll(const TContainer& futures);
 
     // waits for any future
-    TFuture<void> WaitAny(const TFuture<void>& f1);
-    TFuture<void> WaitAny(const TFuture<void>& f1, const TFuture<void>& f2);
+    [[nodiscard]] TFuture<void> WaitAny(const TFuture<void>& f1);
+    [[nodiscard]] TFuture<void> WaitAny(const TFuture<void>& f1, const TFuture<void>& f2);
     template <typename TContainer>
-    TFuture<void> WaitAny(const TContainer& futures);
+    [[nodiscard]] TFuture<void> WaitAny(const TContainer& futures);
 
     ////////////////////////////////////////////////////////////////////////////////
 
