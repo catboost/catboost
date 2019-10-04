@@ -10,10 +10,10 @@ using namespace NCB;
 
 Y_UNIT_TEST_SUITE(TCalcQuantile) {
 
-    const TVector<double> weightsNoWeights = {1, 1, 1, 1, 1, 1, 1, 1};
-    const TVector<double> weightsHasWeights = {0.2, 0.4, 0.13, 0.43, 0.74, 0.3, 0.44, 0.37};
-    const TVector<double> sampleOrderedNoWeights = {0, 2, 10, 37, 40, 500, 501, 600};
-    TVector<double> sampleUnorderedNoWeights = {600, 40, 2, 500, 0, 37, 10, 501};
+    const TVector<float> weightsNoWeights = {1, 1, 1, 1, 1, 1, 1, 1};
+    const TVector<float> weightsHasWeights = {0.2, 0.4, 0.13, 0.43, 0.74, 0.3, 0.44, 0.37};
+    const TVector<float> sampleOrderedNoWeights = {0, 2, 10, 37, 40, 500, 501, 600};
+    TVector<float> sampleUnorderedNoWeights = {600, 40, 2, 500, 0, 37, 10, 501};
     const double eps = 1e-6;
 
     Y_UNIT_TEST(TCalcQuantileSampleOrderedNoWeights1) {
@@ -153,52 +153,52 @@ Y_UNIT_TEST_SUITE(TCalcQuantile) {
     }
 
     Y_UNIT_TEST(TCalcQuantileSampleOrderedNoWeightsRepeating1) {
-        TVector<double> sample = {0, 1, 1, 1, 2, 2, 2, 2};
+        TVector<float> sample = {0, 1, 1, 1, 2, 2, 2, 2};
         UNIT_ASSERT_DOUBLES_EQUAL(CalcSampleQuantile(sample, weightsNoWeights, 0, eps), -eps, 1e-6);
     }
 
     Y_UNIT_TEST(TCalcQuantileSampleOrderedNoWeightsRepeating2) {
-        TVector<double> sample = {0, 1, 1, 1, 2, 2, 2, 2};
+        TVector<float> sample = {0, 1, 1, 1, 2, 2, 2, 2};
         UNIT_ASSERT_DOUBLES_EQUAL(CalcSampleQuantile(sample, weightsNoWeights, 0.125 - 5 * DBL_EPSILON, eps), eps, 1e-6);
     }
 
     Y_UNIT_TEST(TCalcQuantileSampleOrderedNoWeightsRepeating3) {
-        TVector<double> sample = {0, 1, 1, 1, 2, 2, 2, 2};
+        TVector<float> sample = {0, 1, 1, 1, 2, 2, 2, 2};
         UNIT_ASSERT_DOUBLES_EQUAL(CalcSampleQuantile(sample, weightsNoWeights, 0.125 + 5 * DBL_EPSILON, eps), 1 - eps, 1e-6);
     }
 
     Y_UNIT_TEST(TCalcQuantileSampleOrderedNoWeightsRepeating4) {
-        TVector<double> sample = {0, 1, 1, 1, 2, 2, 2, 2};
+        TVector<float> sample = {0, 1, 1, 1, 2, 2, 2, 2};
         UNIT_ASSERT_DOUBLES_EQUAL(CalcSampleQuantile(sample, weightsNoWeights, 0.2 - 5 * DBL_EPSILON, eps), 1 - eps, 1e-6);
     }
 
     Y_UNIT_TEST(TCalcQuantileSampleOrderedNoWeightsRepeating5) {
-        TVector<double> sample = {0, 1, 1, 1, 2, 2, 2, 2};
+        TVector<float> sample = {0, 1, 1, 1, 2, 2, 2, 2};
         UNIT_ASSERT_DOUBLES_EQUAL(CalcSampleQuantile(sample, weightsNoWeights, 0.2 + 5 * DBL_EPSILON, eps), 1 + eps, 1e-6);
     }
 
     Y_UNIT_TEST(TCalcQuantileSampleOrderedNoWeightsRepeating6) {
-        TVector<double> sample = {0, 1, 1, 1, 2, 2, 2, 2};
+        TVector<float> sample = {0, 1, 1, 1, 2, 2, 2, 2};
         UNIT_ASSERT_DOUBLES_EQUAL(CalcSampleQuantile(sample, weightsNoWeights, 0.5 - 5 * DBL_EPSILON, eps), 1 + eps , 1e-6);
     }
 
     Y_UNIT_TEST(TCalcQuantileSampleOrderedNoWeightsRepeating7) {
-        TVector<double> sample = {0, 1, 1, 1, 2, 2, 2, 2};
+        TVector<float> sample = {0, 1, 1, 1, 2, 2, 2, 2};
         UNIT_ASSERT_DOUBLES_EQUAL(CalcSampleQuantile(sample, weightsNoWeights, 0.5 + 5 * DBL_EPSILON, eps), 2 - eps, 1e-6);
     }
 
     Y_UNIT_TEST(TCalcQuantileSampleOrderedWeights1) {
-        TVector<double> sample =    {0,     1,      2,      3,      4,      5,      6,      7};
+        TVector<float> sample =    {0,     1,      2,      3,      4,      5,      6,      7};
         UNIT_ASSERT_DOUBLES_EQUAL(CalcSampleQuantile(sample, weightsHasWeights, 0.38, eps), 3 + eps, 1e-6);
     }
 
     Y_UNIT_TEST(TCalcQuantileSampleOrderedWeights2) {
-        TVector<double> sample =    {0,     1,      2,      3,      4,      5,      6,      7};
+        TVector<float> sample =    {0,     1,      2,      3,      4,      5,      6,      7};
         UNIT_ASSERT_DOUBLES_EQUAL(CalcSampleQuantile(sample, weightsHasWeights, 0.5, eps), 4 - eps, 1e-6);
     }
 
     Y_UNIT_TEST(TCalcQuantileSampleOrderedWeights3) {
-        TVector<double> sample =    {0,     1,      2,      3,      4,      5,      6,      7};
+        TVector<float> sample =    {0,     1,      2,      3,      4,      5,      6,      7};
         UNIT_ASSERT_DOUBLES_EQUAL(CalcSampleQuantile(sample, weightsHasWeights, 0.52, eps), 4 + eps, 1e-6);
     }
 
