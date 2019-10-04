@@ -20,7 +20,7 @@ TCommonModelBuilderHelper::TCommonModelBuilderHelper(
     if (!FloatFeatures.empty()) {
         CB_ENSURE(IsSorted(FloatFeatures.begin(), FloatFeatures.end(),
                            [](const TFloatFeature& f1, const TFloatFeature& f2) {
-                               return f1.FeatureId < f2.FeatureId && f1.Position.FlatIndex < f2.Position.FlatIndex;
+                               return f1.Position.FlatIndex < f2.Position.FlatIndex;
                            }),
                   "Float features should be sorted"
         );
@@ -32,7 +32,7 @@ TCommonModelBuilderHelper::TCommonModelBuilderHelper(
     if (!CatFeatures.empty()) {
         CB_ENSURE(IsSorted(CatFeatures.begin(), CatFeatures.end(),
                            [](const TCatFeature& f1, const TCatFeature& f2) {
-                               return f1.FeatureId < f2.FeatureId && f1.Position.FlatIndex < f2.Position.FlatIndex;
+                               return f1.Position.FlatIndex < f2.Position.FlatIndex;
                            }),
                   "Cat features should be sorted"
         );
