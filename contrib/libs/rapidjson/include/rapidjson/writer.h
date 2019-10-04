@@ -66,6 +66,7 @@ enum WriteFlag {
     kWriteNoFlags = 0,              //!< No flags are set.
     kWriteValidateEncodingFlag = 1, //!< Validate encoding of JSON strings.
     kWriteNanAndInfFlag = 2,        //!< Allow writing of Infinity, -Infinity and NaN.
+    kWriteNoEscapeSlashFlag = 4,    //!< Disable escaping of '/'.
     kWriteDefaultFlags = RAPIDJSON_WRITE_DEFAULT_FLAGS  //!< Default write flags. Can be customized by defining RAPIDJSON_WRITE_DEFAULT_FLAGS
 };
 
@@ -373,7 +374,7 @@ protected:
             //0    1    2    3    4    5    6    7    8    9    A    B    C    D    E    F
             'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'b', 't', 'n', 'u', 'f', 'r', 'u', 'u', // 00
             'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', 'u', // 10
-              0,   0, '"',   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, '/', // 20
+              0,   0, '"',   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0, // 20
             Z16, Z16,                                                                       // 30~4F
               0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,   0,'\\',   0,   0,   0, // 50
             Z16, Z16, Z16, Z16, Z16, Z16, Z16, Z16, Z16, Z16                                // 60~FF
@@ -430,6 +431,11 @@ protected:
                     PutUnsafe(*os_, hexDigits[static_cast<unsigned char>(c) >> 4]);
                     PutUnsafe(*os_, hexDigits[static_cast<unsigned char>(c) & 0xF]);
                 }
+            }
+            else if (RAPIDJSON_UNLIKELY(c == '/' && !(writeFlags & kWriteNoEscapeSlashFlag))) {
+                is.Take();
+                PutUnsafe(*os_, '\\');
+                PutUnsafe(*os_, '/');
             }
             else if (RAPIDJSON_UNLIKELY(!(writeFlags & kWriteValidateEncodingFlag ? 
                 Transcoder<SourceEncoding, TargetEncoding>::Validate(is, *os_) :
