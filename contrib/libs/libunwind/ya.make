@@ -44,7 +44,7 @@ SRCS(
     src/libunwind.cpp
 )
 
-IF (OS_DARWIN)
+IF (OS_DARWIN OR OS_IOS)
     SRCS(
         src/Unwind_AppleExtras.cpp
     )
