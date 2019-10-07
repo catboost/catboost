@@ -31,3 +31,8 @@ This guide is not a mandatory as there is the general style guide.
 Nevertheless if it is not followed, then a next `ya style .` run in the util folder will undeservedly update authors of some lines of code.
 
 Thus before a commit it is recommended to run `ya style .` in the util folder.
+
+
+Don't forget to run tests from folder `tests`: `ya make -t tests`
+
+**Note:** tests are designed to run using `autocheck/` solution.
