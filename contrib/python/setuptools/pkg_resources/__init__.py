@@ -3259,6 +3259,26 @@ class ResProvider(EmptyProvider):
             raise IOError(path)
         return result
 
+    def _listdir(self, path):
+        slash = '/' if isinstance(path, six.string_types) else '/'.encode('utf-8')
+        bslash = '/'.encode('utf-8')
+        path = path.rstrip(slash) + slash
+        components = len(path.split(slash))
+        listing = set()
+        for f in resource.iterkeys(path):
+            listing.add(f.split('/', components)[components - 1])
+        if isinstance(path, six.string_types):
+            return [l for l in listing]
+        else:
+            return [l.encode('utf-8') for l in listing]
+
+    def _isdir(self, path):
+        slash = '/' if isinstance(path, six.string_types) else '/'.encode('utf-8')
+        path = path.rstrip(slash) + slash
+        for f in resource.iterkeys(path):
+            return True
+        return False
+
 
 class ResDistribution(DistInfoDistribution):
     def __init__(self, prefix):
