@@ -1,0 +1,5 @@
+ALLOW catboost -> catboost
+
+DENY .* -> catboost/private
+
+DENY .* -> catboost/yandex_specific/private
