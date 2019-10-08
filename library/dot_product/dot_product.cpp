@@ -42,6 +42,35 @@ i32 DotProduct(const i8* lhs, const i8* rhs, ui32 length) noexcept {
     return sum;
 }
 
+ui32 DotProduct(const ui8* lhs, const ui8* rhs, ui32 length) noexcept {
+    const __m128i zero = _mm_setzero_si128();
+    __m128i resVec = zero;
+    while (length >= 16) {
+        __m128i lVec = _mm_loadu_si128((const __m128i*)lhs);
+        __m128i rVec = _mm_loadu_si128((const __m128i*)rhs);
+
+        __m128i lLo = _mm_unpacklo_epi8(lVec, zero);
+        __m128i rLo = _mm_unpacklo_epi8(rVec, zero);
+        __m128i lHi = _mm_unpackhi_epi8(lVec, zero);
+        __m128i rHi = _mm_unpackhi_epi8(rVec, zero);
+
+        resVec = _mm_add_epi32(resVec,
+                               _mm_add_epi32(_mm_madd_epi16(lLo, rLo), _mm_madd_epi16(lHi, rHi)));
+
+        lhs += 16;
+        rhs += 16;
+        length -= 16;
+    }
+
+    alignas(16) i32 res[4];
+    _mm_store_si128((__m128i*)res, resVec);
+    i32 sum = res[0] + res[1] + res[2] + res[3];
+    for (ui32 i = 0; i < length; ++i) {
+        sum += static_cast<i32>(lhs[i]) * static_cast<i32>(rhs[i]);
+    }
+
+    return static_cast<ui32>(sum);
+}
 #ifdef _sse4_1_
 
 i64 DotProduct(const i32* lhs, const i32* rhs, ui32 length) noexcept {
@@ -485,6 +514,10 @@ static Res DotProductSlowImpl(const Number* lhs, const Number* rhs, ui32 length)
     }
 
     return s0 + s1 + s2 + s3;
+}
+
+ui32 DotProductSlow(const ui8* lhs, const ui8* rhs, ui32 length) noexcept {
+    return DotProductSlowImpl<ui32, ui8>(lhs, rhs, length);
 }
 
 i64 DotProductSlow(const i32* lhs, const i32* rhs, ui32 length) noexcept {

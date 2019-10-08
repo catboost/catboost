@@ -50,6 +50,20 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
         }
     }
 
+    Y_UNIT_TEST(TestDotProduct8u) {
+        TVector<ui8> a(100);
+        FillWithRandomNumbers(a.data(), 179, 100);
+        TVector<ui8> b(100);
+        FillWithRandomNumbers(b.data(), 239, 100);
+
+        for (ui32 i = 0; i < 30; ++i) {
+            for (ui32 length = 1; length + i + 1 < a.size(); ++length) {
+                UNIT_ASSERT_EQUAL(DotProduct(a.data() + i, b.data() + i, length), (SimpleDotProduct<ui32, ui8>(a.data() + i, b.data() + i, length)));
+                UNIT_ASSERT_EQUAL(DotProductSlow(a.data() + i, b.data() + i, length), (SimpleDotProduct<ui32, ui8>(a.data() + i, b.data() + i, length)));
+            }
+        }
+    }
+
     Y_UNIT_TEST(TestDotProduct32) {
         TVector<i32> a(100);
         FillWithRandomNumbers(a.data(), 179, 100);
@@ -155,10 +169,12 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
 
     Y_UNIT_TEST(TestDotProductZeroLength) {
         UNIT_ASSERT_EQUAL(DotProduct(static_cast<const i8*>(nullptr), nullptr, 0), 0);
+        UNIT_ASSERT_EQUAL(DotProduct(static_cast<const ui8*>(nullptr), nullptr, 0), 0);
         UNIT_ASSERT_EQUAL(DotProduct(static_cast<const i32*>(nullptr), nullptr, 0), 0);
         UNIT_ASSERT(std::abs(DotProduct(static_cast<const float*>(nullptr), nullptr, 0)) < EPSILON);
         UNIT_ASSERT(std::abs(DotProduct(static_cast<const double*>(nullptr), nullptr, 0)) < EPSILON);
         UNIT_ASSERT_EQUAL(DotProductSlow(static_cast<const i8*>(nullptr), nullptr, 0), 0);
+        UNIT_ASSERT_EQUAL(DotProductSlow(static_cast<const ui8*>(nullptr), nullptr, 0), 0);
         UNIT_ASSERT_EQUAL(DotProductSlow(static_cast<const i32*>(nullptr), nullptr, 0), 0);
         UNIT_ASSERT(std::abs(DotProductSlow(static_cast<const float*>(nullptr), nullptr, 0)) < EPSILON);
         UNIT_ASSERT(std::abs(DotProductSlow(static_cast<const double*>(nullptr), nullptr, 0)) < EPSILON);
@@ -210,5 +226,21 @@ Y_UNIT_TEST_SUITE(TDocProductTestSuite) {
         }
 
         UNIT_ASSERT_VALUES_EQUAL(res, 90928);
+    }
+
+    Y_UNIT_TEST(TestDotProductCharStabilityU) {
+        TVector<ui8> a(1003);
+        FillWithRandomNumbers(a.data(), 1079, a.size());
+        TVector<ui8> b(1003);
+        FillWithRandomNumbers(b.data(), 2139, b.size());
+
+        ui32 res = DotProduct(a.data(), b.data(), a.size());
+
+        for (ui32 i = 0; i < 30; ++i) {
+            UNIT_ASSERT_VALUES_EQUAL(DotProduct(a.data(), b.data(), a.size()), res);
+            UNIT_ASSERT_VALUES_EQUAL(DotProductSlow(a.data(), b.data(), a.size()), res);
+        }
+
+        UNIT_ASSERT_VALUES_EQUAL(res, 16420179);
     }
 }

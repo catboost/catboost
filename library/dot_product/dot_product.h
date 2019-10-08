@@ -10,6 +10,9 @@ Y_PURE_FUNCTION
 i32 DotProduct(const i8* lhs, const i8* rhs, ui32 length) noexcept;
 
 Y_PURE_FUNCTION
+ui32 DotProduct(const ui8* lhs, const ui8* rhs, ui32 length) noexcept;
+
+Y_PURE_FUNCTION
 i64 DotProduct(const i32* lhs, const i32* rhs, ui32 length) noexcept;
 
 Y_PURE_FUNCTION
@@ -60,6 +63,9 @@ static inline TTriWayDotProduct<float> TriWayDotProduct(const float* lhs, const 
 /**
  * Dot product implementation without SSE optimizations.
  */
+Y_PURE_FUNCTION
+ui32 DotProductSlow(const ui8* lhs, const ui8* rhs, ui32 length) noexcept;
+
 Y_PURE_FUNCTION
 i32 DotProductSlow(const i8* lhs, const i8* rhs, ui32 length) noexcept;
 

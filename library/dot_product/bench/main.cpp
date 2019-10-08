@@ -14,6 +14,10 @@ namespace {
         value = rng.Uniform(~((ui8)0));
     };
 
+    inline void RandomNumber(TReallyFastRng32& rng, ui8& value) {
+        value = rng.Uniform(~((ui8)0));
+    };
+
     inline void RandomNumber(TReallyFastRng32& rng, i32& value) {
         value = rng.Uniform(~((ui32)0));
     };
@@ -157,6 +161,11 @@ namespace {
     };
 
     template <>
+    struct TResultType<ui8> {
+        using TType = ui32;
+    };
+
+    template <>
     struct TResultType<i32> {
         using TType = i64;
     };
@@ -191,6 +200,7 @@ namespace {
     DefineBenchmarkAlgos(30000, TSourceType);
 
     DefineBenchmarkLengths(i8);
+    DefineBenchmarkLengths(ui8);
     DefineBenchmarkLengths(i32);
     DefineBenchmarkLengths(float);
     DefineBenchmarkLengths(double);
