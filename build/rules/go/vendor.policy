@@ -329,6 +329,9 @@ ALLOW .* -> vendor/github.com/zaf/g711
 # CONTRIB-1505 The exponential backoff algorithm & retry library
 ALLOW .* -> vendor/github.com/cenkalti/backoff
 
+# CONTRIB-1491 A parser library for Go
+ALLOW .* -> vendor/github.com/alecthomas/participle
+
 #
 # Temporary exceptions.
 #
