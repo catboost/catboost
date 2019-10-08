@@ -29,10 +29,9 @@ void TSymmetricHessian::SolveNewtonEquation(
 
     *res = negativeDer;
     auto localHessian = hessian.Data;
-    int idx = 0;
-    for (int rowSize = approxDimension; rowSize >= 1; --rowSize) {
+    const auto hessianSize = (approxDimension + 1) * approxDimension / 2;
+    for (int idx = 0, rowSize = approxDimension; idx < hessianSize; idx += rowSize, --rowSize) {
         localHessian[idx] -= l2Regularizer;
-        idx += rowSize;
     }
     for (double& value : localHessian) {
         value = - value;
