@@ -173,8 +173,6 @@
   - pth.h
   - relocatable.h
   - rtl.h
-  - sanitizer/msan_interface.h
-  - sanitizer/tsan_interface_atomic.h
   - semLib.h
   - shlib-compat.h
   - sigsegv.h
@@ -549,12 +547,6 @@
   #endif
   #if defined(__NetBSD__)
   - perfuse.h
-  #endif
-  #if defined(LEAK_SANITIZER)
-  - sanitizer/lsan_interface.h
-  #endif
-  #ifdef V8_USE_ADDRESS_SANITIZER
-  - sanitizer/asan_interface.h
   #endif
   #if V8_OS_QNX
   - sys/syspage.h
