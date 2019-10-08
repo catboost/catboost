@@ -42,13 +42,7 @@
   - QtWidgets/QVBoxLayout
   - QtWidgets/QWidget
   - android/bitmap.h
-  - google/protobuf/descriptor.h
-  - google/protobuf/io/coded_stream.h
-  - google/protobuf/io/zero_copy_stream.h
-  - google/protobuf/io/zero_copy_stream_impl.h
-  - google/protobuf/io/zero_copy_stream_impl_lite.h
-  - google/protobuf/message.h
-  - google/protobuf/message_lite.h
-  - google/protobuf/repeated_field.h
-  - google/protobuf/wire_format_lite.h
   - message_lite.h
+- source_filter: "^contrib/deprecated/boost"
+  includes:
+  - atomic.h
