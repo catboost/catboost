@@ -32,6 +32,10 @@ DENY .* -> contrib/deprecated/uriparser
 
 ALLOW travel/rasp -> contrib/python/django/django-1.9
 DENY .* -> contrib/python/django/django-1.9
+ALLOW contrib/python/.*/tests? -> contrib/python/django/django-1.11
+ALLOW contrib/python/.*/tests? -> contrib/python/django/django-2.2
+DENY contrib/python -> contrib/python/django/django-1.11
+DENY contrib/python -> contrib/python/django/django-2.2
 
 ALLOW maps -> maps/contrib
 # maps/contrib/libpqxx is used by maps/libs/pgpool, a client-side connection pool for PostgrSQL
