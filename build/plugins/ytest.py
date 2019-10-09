@@ -29,7 +29,7 @@ VALID_NETWORK_REQUIREMENTS = ("full", "restricted")
 VALID_DNS_REQUIREMENTS = ("default", "local", "dns64")
 BLOCK_SEPARATOR = '============================================================='
 SPLIT_FACTOR_MAX_VALUE = 1000
-
+PARTITION_MODS = ('SEQUENTIAL', 'MODULO')
 
 def ontest_data(unit, *args):
     ymake.report_configure_error("TEST_DATA is removed in favour of DATA")
@@ -256,6 +256,10 @@ def validate_test(unit, kw):
     if valid_kw.get("USE_ARCADIA_PYTHON") == "yes" and valid_kw.get("SCRIPT-REL-PATH") == "py.test":
         errors.append("PYTEST_SCRIPT is deprecated")
 
+    partition = valid_kw.get('TEST_PARTITION', 'SEQUENTIAL')
+    if partition not in PARTITION_MODS:
+        raise ValueError('partition mode should be one of {}, detected: {}'.format(PARTITION_MODS, partition))
+
     if valid_kw.get('SPLIT-FACTOR'):
         if valid_kw.get('FORK-MODE') == 'none':
             errors.append('SPLIT_FACTOR must be use with FORK_TESTS() or FORK_SUBTESTS() macro')
@@ -386,6 +390,7 @@ def onadd_ytest(unit, *args):
         'TEST_IOS_DEVICE_TYPE': unit.get('TEST_IOS_DEVICE_TYPE_VALUE') or '',
         'TEST_IOS_RUNTIME_TYPE': unit.get('TEST_IOS_RUNTIME_TYPE_VALUE') or '',
         'ANDROID_APK_TEST_ACTIVITY': unit.get('ANDROID_APK_TEST_ACTIVITY_VALUE') or '',
+        'TEST_PARTITION': unit.get("TEST_PARTITION") or 'SEQUENTIAL',
     }
 
     if flat_args[1] == 'fuzz.test' and unit.get('FUZZING') == 'yes':
@@ -486,6 +491,7 @@ def onadd_check(unit, *args):
         'CUSTOM-DEPENDENCIES': " ".join(spec_args.get('DEPENDS', [])),
         'TEST-DATA': '',
         'SPLIT-FACTOR': '',
+        'TEST_PARTITION': 'SEQUENTIAL',
         'FORK-MODE': '',
         'FORK-TEST-FILES': '',
         'SIZE': 'SMALL',
@@ -526,6 +532,7 @@ def onadd_check_py_imports(unit, *args):
         'TEST-DATA': '',
         'TEST-ENV': prepare_env(unit.get("TEST_ENV_VALUE")),
         'SPLIT-FACTOR': '',
+        'TEST_PARTITION': 'SEQUENTIAL',
         'FORK-MODE': '',
         'FORK-TEST-FILES': '',
         'SIZE': 'SMALL',
@@ -711,6 +718,7 @@ def onjava_test_deps(unit, *args):
         'TEST-TIMEOUT': '',
         'TESTED-PROJECT-NAME': path,
         'TEST-DATA': '',
+        'TEST_PARTITION': 'SEQUENTIAL',
         'FORK-MODE': '',
         'SPLIT-FACTOR': '',
         'CUSTOM-DEPENDENCIES': ' '.join(get_values_list(unit, 'TEST_DEPENDS_VALUE')),
@@ -787,6 +795,7 @@ def _dump_test(
             'TEST-DATA': serialize_list(sorted(_common.filter_out_by_keyword(test_data, 'AUTOUPDATED'))),
             'TEST-RECIPES': prepare_recipes(unit.get("TEST_RECIPES_VALUE")),
             'SPLIT-FACTOR': split_factor,
+            'TEST_PARTITION': unit.get('TEST_PARTITION') or 'SEQUENTIAL',
             'FORK-MODE': fork_mode,
             'FORK-TEST-FILES': fork_test_files,
             'TEST-FILES': serialize_list(tests),
