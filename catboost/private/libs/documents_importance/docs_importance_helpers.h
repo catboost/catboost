@@ -6,6 +6,7 @@
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/model.h>
+#include <catboost/libs/metrics/optimal_const_for_loss.h>
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/options/json_helper.h>
 
@@ -58,6 +59,14 @@ public:
         LeafEstimationMethod = FromString<ELeavesEstimation>(paramsJson["tree_learner_options"]["leaf_estimation_method"].GetString());
         LeavesEstimationIterations = paramsJson["tree_learner_options"]["leaf_estimation_iterations"].GetUInteger();
         LearningRate = paramsJson["boosting_options"]["learning_rate"].GetDouble();
+        TMaybe<double> startingApprox = Nothing();
+        if (paramsJson["boost_from_average"].GetBoolean()) {
+            startingApprox = NCB::CalcOptimumConstApprox(
+                NCatboostOptions::ParseLossDescription(ToString(LossFunction)),
+                processedData.TargetData->GetTarget().GetOrElse(TConstArrayRef<float>()),
+                GetWeights(*processedData.TargetData)
+            );
+        }
 
         THolder<ITreeStatisticsEvaluator> treeStatisticsEvaluator;
         const ELeavesEstimation leavesEstimationMethod = FromString<ELeavesEstimation>(paramsJson["tree_learner_options"]["leaf_estimation_method"].GetString());
@@ -67,7 +76,7 @@ public:
         Y_ASSERT(leavesEstimationMethod == ELeavesEstimation::Newton);
             treeStatisticsEvaluator = MakeHolder<TNewtonTreeStatisticsEvaluator>(DocCount);
         }
-        TreesStatistics = treeStatisticsEvaluator->EvaluateTreeStatistics(model, processedData, logPeriod);
+        TreesStatistics = treeStatisticsEvaluator->EvaluateTreeStatistics(model, processedData, startingApprox, logPeriod);
     }
 
     // Getting the importance of all train objects for all objects from pool.

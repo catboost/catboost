@@ -35,6 +35,7 @@ public:
     TVector<TTreeStatistics> EvaluateTreeStatistics(
         const TFullModel& model,
         const NCB::TProcessedDataProvider& processedData,
+        const TMaybe<double> startingApprox,
         int logPeriod = 0
     );
 

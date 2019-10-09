@@ -15,6 +15,7 @@ using namespace NCB;
 TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
     const TFullModel& model,
     const NCB::TProcessedDataProvider& processedData,
+    const TMaybe<double> startingApprox,
     int logPeriod
 ) {
     //TODO(eermishkina): support non symmetric trees
@@ -31,7 +32,7 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
     auto binarizedFeatures = MakeQuantizedFeaturesForEvaluator(model, *processedData.ObjectsData.Get());
     TVector<TTreeStatistics> treeStatistics;
     treeStatistics.reserve(treeCount);
-    TVector<double> approxes(DocCount);
+    TVector<double> approxes(DocCount, startingApprox ? *startingApprox : 0);
 
     TImportanceLogger treesLogger(treeCount, "Trees processed", "Processing trees...", logPeriod);
     TProfileInfo processTreesProfile(treeCount);
