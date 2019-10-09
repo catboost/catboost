@@ -7354,3 +7354,22 @@ def test_metric_description(dataset_has_weights, eval_metric_loss, eval_metric_u
                 expected_custom_metrics_descriptions = [custom_metric_loss]
             assert unique_metrics_descriptions == set(s.lower() for s in [expected_objective_metric_description] + [expected_eval_metric_description] + expected_custom_metrics_descriptions)
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+def test_leafwise_scoring():
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    cmd = [
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '--cd', data_file('adult', 'train.cd'),
+        '-i', '50',
+        '-r', '0',
+        '--learn-err-log', learn_error_path
+    ]
+    yatest.common.execute(cmd)
+    learn_errors_log = open(learn_error_path).read()
+    yatest.common.execute(cmd + ['--dev-leafwise-scoring'])
+    new_learn_errors_log = open(learn_error_path).read()
+    assert new_learn_errors_log == learn_errors_log

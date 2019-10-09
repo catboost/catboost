@@ -246,9 +246,12 @@ public:
         const TVector<TIndexType>& indices,
         TRestorableFastRng64* rand,
         NPar::TLocalExecutor* localExecutor,
-        bool performRandomChoice = true
+        bool performRandomChoice = true,
+        bool shouldSortByLeaf = false,
+        ui32 leavesCount = 0
     );
     void UpdateIndices(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
+    void UpdateIndicesInLeafwiseSortedFold(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
     int GetDocCount() const;
     int GetBodyTailCount() const;
     int GetApproxDimension() const;
@@ -300,6 +303,8 @@ private:
         int ctrDataPermutationBlockSize
     );
 
+    void SortFoldByLeafIndex(ui32 leafCount, NPar::TLocalExecutor* localExecutor);
+
 public:
     TUnsizedVector<TIndexType> Indices;
 
@@ -322,6 +327,9 @@ public:
     bool SmallestSplitSideValue;
     int NonCtrDataPermutationBlockSize = FoldPermutationBlockSizeNotSet;
     int CtrDataPermutationBlockSize = FoldPermutationBlockSizeNotSet;
+    ui32 LeavesCount;
+    TVector<NCB::TIndexRange<ui32>> LeavesBounds;
+    TVector<ui32> LeavesIndices;
 
 private:
     TUnsizedVector<bool> Control;

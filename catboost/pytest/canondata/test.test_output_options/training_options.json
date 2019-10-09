@@ -133,6 +133,7 @@
         "class_names" : [ ],
         "class_weights" : [ ],
         "target_border" : null,
+        "dev_leafwise_scoring" : false,
         "dev_sparse_array_indexing" : "Indices",
         "float_features_binarization" : {
             "border_count" : 254,

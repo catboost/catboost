@@ -24,6 +24,7 @@ NCatboostOptions::TDataProcessingOptions::TDataProcessingOptions(ETaskType type)
       , DevDefaultValueFractionToEnableSparseStorage("dev_default_value_fraction_for_sparse", 0.83f)
       , DevSparseArrayIndexingType("dev_sparse_array_indexing", NCB::ESparseArrayIndexingType::Indices)
       , GpuCatFeaturesStorage("gpu_cat_features_storage", EGpuCatFeaturesStorage::GpuRam, type)
+      , DevLeafwiseScoring("dev_leafwise_scoring", false, type)
 {
     GpuCatFeaturesStorage.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
 }
@@ -35,7 +36,7 @@ void NCatboostOptions::TDataProcessingOptions::Load(const NJson::TJsonValue& opt
         &ClassesCount, &ClassWeights, &ClassNames,
         &DevDefaultValueFractionToEnableSparseStorage,
         &DevSparseArrayIndexingType,
-        &GpuCatFeaturesStorage
+        &GpuCatFeaturesStorage, &DevLeafwiseScoring
     );
     Validate();
     SetPerFeatureMissingSettingToCommonValues();
@@ -48,7 +49,7 @@ void NCatboostOptions::TDataProcessingOptions::Save(NJson::TJsonValue* options) 
         ClassesCount, ClassWeights, ClassNames,
         DevDefaultValueFractionToEnableSparseStorage,
         DevSparseArrayIndexingType,
-        GpuCatFeaturesStorage
+        GpuCatFeaturesStorage, DevLeafwiseScoring
     );
 }
 
@@ -57,14 +58,13 @@ bool NCatboostOptions::TDataProcessingOptions::operator==(const TDataProcessingO
                     FloatFeaturesBinarization, PerFloatFeatureQuantization, TextProcessingOptions,
                     ClassesCount, ClassWeights, ClassNames,
                     DevDefaultValueFractionToEnableSparseStorage,
-                    DevSparseArrayIndexingType, GpuCatFeaturesStorage) ==
-        std::tie(rhs.IgnoredFeatures, rhs.HasTimeFlag, rhs.AllowConstLabel, rhs.TargetBorder,
-                 rhs.FloatFeaturesBinarization, rhs.PerFloatFeatureQuantization, rhs.TextProcessingOptions,
-                 rhs.ClassesCount, rhs.ClassWeights,
- rhs.ClassNames,
-                 rhs.DevDefaultValueFractionToEnableSparseStorage,
-                 rhs.DevSparseArrayIndexingType,
-                 rhs.GpuCatFeaturesStorage);
+                    DevSparseArrayIndexingType, GpuCatFeaturesStorage, DevLeafwiseScoring) ==
+           std::tie(rhs.IgnoredFeatures, rhs.HasTimeFlag, rhs.AllowConstLabel, rhs.TargetBorder,
+                    rhs.FloatFeaturesBinarization, rhs.PerFloatFeatureQuantization, rhs.TextProcessingOptions,
+                    rhs.ClassesCount, rhs.ClassWeights, rhs.ClassNames,
+                    rhs.DevDefaultValueFractionToEnableSparseStorage,
+                    rhs.DevSparseArrayIndexingType,
+                    rhs.GpuCatFeaturesStorage, rhs.DevLeafwiseScoring);
 }
 
 bool NCatboostOptions::TDataProcessingOptions::operator!=(const TDataProcessingOptions& rhs) const {

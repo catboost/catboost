@@ -21,6 +21,7 @@ SRCS(
     helpers.cpp
     index_calcer.cpp
     index_hash_calcer.cpp
+    leafwise_scoring.cpp
     learn_context.cpp
     model_quantization_adapter.cpp
     monotonic_constraint_utils.cpp

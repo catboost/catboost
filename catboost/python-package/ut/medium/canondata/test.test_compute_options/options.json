@@ -117,6 +117,7 @@
         "class_weights": [], 
         "classes_count": 0, 
         "dev_default_value_fraction_for_sparse": 0.8299999833, 
+        "dev_leafwise_scoring": false, 
         "dev_sparse_array_indexing": "Indices", 
         "float_features_binarization": {
             "border_count": 254, 

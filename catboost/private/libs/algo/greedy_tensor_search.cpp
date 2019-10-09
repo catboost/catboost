@@ -3,6 +3,7 @@
 #include "fold.h"
 #include "helpers.h"
 #include "index_calcer.h"
+#include "leafwise_scoring.h"
 #include "learn_context.h"
 #include "scoring.h"
 #include "split.h"
@@ -624,7 +625,7 @@ static void CalcBestScore(
         NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
-static void DoBootstrap(const TVector<TIndexType>& indices, TFold* fold, TLearnContext* ctx) {
+static void DoBootstrap(const TVector<TIndexType>& indices, TFold* fold, TLearnContext* ctx, ui32 leavesCount = 0) {
     if (!ctx->Params.SystemOptions->IsSingleHost()) {
         MapBootstrap(ctx);
     } else {
@@ -635,8 +636,81 @@ static void DoBootstrap(const TVector<TIndexType>& indices, TFold* fold, TLearnC
             fold,
             &ctx->SampledDocs,
             ctx->LocalExecutor,
-            &ctx->LearnProgress->Rand);
+            &ctx->LearnProgress->Rand,
+            IsLeafwiseScoringApplicable(ctx->Params),
+            leavesCount);
     }
+}
+
+static void CalcBestScoreForOneCandidate(
+    const TTrainingForCPUDataProviders& data,
+    ui64 randSeed,
+    double scoreStDev,
+    const TCandidatesContext& candidatesContext,
+    TCandidatesInfoList* candidate,
+    TFold* fold,
+    TLearnContext* ctx
+) {
+    auto candidateScores = CalcScoresForOneCandidate(
+        *data.Learn->ObjectsData,
+        *candidate,
+        ctx->SampledDocs,
+        *fold,
+        ctx);
+
+    SetBestScore(
+        randSeed,
+        candidateScores,
+        scoreStDev,
+        candidatesContext,
+        &candidate->Candidates);
+}
+
+static void CalcBestScoreLeafwise(
+    const TTrainingForCPUDataProviders& data,
+    ui64 randSeed,
+    double scoreStDev,
+    TCandidatesContext* candidatesContext,
+    TFold* fold,
+    TLearnContext* ctx) {
+
+    TCandidateList& candList = candidatesContext->CandidateList;
+
+    ctx->LocalExecutor->ExecRange(
+        [&](int candId) {
+            auto& candidate = candList[candId];
+
+            const auto& splitEnsemble = candidate.Candidates[0].SplitEnsemble;
+
+            // Calc online ctr if needed
+            if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr)) {
+                const auto& proj = splitEnsemble.SplitCandidate.Ctr.Projection;
+                if (fold->GetCtrRef(proj).Feature.empty()) {
+                    ComputeOnlineCTRs(
+                        data,
+                        *fold,
+                        proj,
+                        ctx,
+                        &fold->GetCtrRef(proj));
+                }
+            }
+
+            CalcBestScoreForOneCandidate(
+                data,
+                randSeed + candId,
+                scoreStDev,
+                *candidatesContext,
+                &candidate,
+                fold,
+                ctx);
+
+            if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr) && candidate.ShouldDropCtrAfterCalc) {
+                fold->GetCtrRef(splitEnsemble.SplitCandidate.Ctr.Projection).Feature.clear();
+            }
+        },
+        0,
+        candList.ysize(),
+        NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
 static void CalcScores(
@@ -660,14 +734,24 @@ static void CalcScores(
         }
     } else {
         const ui64 randSeed = ctx->LearnProgress->Rand.GenRand();
-        CalcBestScore(
-            data,
-            currentSplitTree,
-            randSeed,
-            scoreStDev,
-            candidatesContext,
-            fold,
-            ctx);
+        if (IsLeafwiseScoringApplicable(ctx->Params)) {
+            CalcBestScoreLeafwise(
+                data,
+                randSeed,
+                scoreStDev,
+                candidatesContext,
+                fold,
+                ctx);
+        } else {
+            CalcBestScore(
+                data,
+                currentSplitTree,
+                randSeed,
+                scoreStDev,
+                candidatesContext,
+                fold,
+                ctx);
+        }
     }
 }
 
@@ -721,13 +805,15 @@ void GreedyTensorSearch(
     TVector<TIndexType> indices(learnSampleCount); // always for all documents
     CATBOOST_INFO_LOG << "\n";
 
+    const bool useLeafwiseScoring = IsLeafwiseScoringApplicable(ctx->Params);
+
     if (!ctx->Params.SystemOptions->IsSingleHost()) {
         MapTensorSearchStart(ctx);
     }
 
     const bool isSamplingPerTree = IsSamplingPerTree(ctx->Params.ObliviousTreeOptions);
     if (isSamplingPerTree) {
-        DoBootstrap(indices, fold, ctx);
+        DoBootstrap(indices, fold, ctx, /* leavesCount */ 1);
         if (ctx->UseTreeLevelCaching()) {
             ctx->PrevTreeLevelStats.GarbageCollect();
         }
@@ -770,7 +856,7 @@ void GreedyTensorSearch(
         CheckInterrupted(); // check after long-lasting operation
 
         if (!isSamplingPerTree) {  // sampling per tree level
-            DoBootstrap(indices, fold, ctx);
+            DoBootstrap(indices, fold, ctx, /* leavesCount */ 1u << curDepth);
         }
         profile.AddOperation(TStringBuilder() << "Bootstrap, depth " << curDepth);
 
@@ -829,8 +915,12 @@ void GreedyTensorSearch(
                 &indices,
                 ctx->LocalExecutor);
             if (isSamplingPerTree) {
-                ctx->SampledDocs.UpdateIndices(indices, ctx->LocalExecutor);
-                if (ctx->UseTreeLevelCaching()) {
+                if (useLeafwiseScoring) {
+                    ctx->SampledDocs.UpdateIndicesInLeafwiseSortedFold(indices, ctx->LocalExecutor);
+                } else {
+                    ctx->SampledDocs.UpdateIndices(indices, ctx->LocalExecutor);
+                }
+                if (ctx->UseTreeLevelCaching() && !useLeafwiseScoring) {
                     ctx->SmallestSplitSideDocs.SelectSmallestSplitSide(
                         curDepth + 1,
                         ctx->SampledDocs,

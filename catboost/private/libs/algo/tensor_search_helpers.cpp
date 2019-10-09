@@ -355,7 +355,9 @@ void Bootstrap(
     TFold* fold,
     TCalcScoreFold* sampledDocs,
     NPar::TLocalExecutor* localExecutor,
-    TRestorableFastRng64* rand
+    TRestorableFastRng64* rand,
+    bool shouldSortByLeaf,
+    ui32 leavesCount
 ) {
     const int learnSampleCount = indices.ysize();
     const EBootstrapType bootstrapType = params.ObliviousTreeOptions->BootstrapConfig->GetBootstrapType();
@@ -405,7 +407,7 @@ void Bootstrap(
     if (!isPairwiseScoring) {
         CalcWeightedData(learnSampleCount, params.BoostingOptions->BoostingType.Get(), localExecutor, fold);
     }
-    sampledDocs->Sample(*fold, samplingUnit, indices, rand, localExecutor, performRandomChoice);
+    sampledDocs->Sample(*fold, samplingUnit, indices, rand, localExecutor, performRandomChoice, shouldSortByLeaf, leavesCount);
 }
 
 void CalcWeightedDerivatives(

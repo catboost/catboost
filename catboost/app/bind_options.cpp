@@ -1017,6 +1017,12 @@ static void BindDataProcessingParams(NLastGetopt::TOpts* parserPtr, NJson::TJson
         .Handler1T<EGpuCatFeaturesStorage>([plainJsonPtr](const auto storage) {
             (*plainJsonPtr)["gpu_cat_features_storage"] = ToString(storage);
         });
+
+    parser.AddLongOption("dev-leafwise-scoring", "Use scoring with sorting by leaf")
+        .NoArgument()
+        .Handler0([plainJsonPtr](){
+            (*plainJsonPtr)["dev_leafwise_scoring"] = true;
+        });
 }
 
 static void BindDistributedTrainingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {

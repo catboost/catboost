@@ -91,7 +91,9 @@ void Bootstrap(
     TFold* fold,
     TCalcScoreFold* sampledDocs,
     NPar::TLocalExecutor* localExecutor,
-    TRestorableFastRng64* rand
+    TRestorableFastRng64* rand,
+    bool shouldSortByLeaf = false,
+    ui32 leavesCount = 0
 );
 
 THolder<IDerCalcer> BuildError(

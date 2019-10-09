@@ -12,6 +12,7 @@ SRCS(
     hessian.cpp
     online_predictor.cpp
     pairwise_leaves_calculation.cpp
+    scoring_helpers.cpp
 )
 
 PEERDIR(

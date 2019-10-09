@@ -3,16 +3,17 @@
 #include "calc_score_cache.h"
 #include "fold.h"
 #include "index_calcer.h"
-
-#include <catboost/private/libs/algo_helpers/online_predictor.h>
+#include "leafwise_scoring.h"
 #include "pairwise_scoring.h"
 #include "split.h"
 #include "monotonic_constraint_utils.h"
 #include "tensor_search_helpers.h"
 
 #include <catboost/libs/data/objects.h>
-#include <catboost/private/libs/data_types/pair.h>
 #include <catboost/libs/helpers/map_merge.h>
+#include <catboost/private/libs/algo_helpers/online_predictor.h>
+#include <catboost/private/libs/algo_helpers/scoring_helpers.h>
+#include <catboost/private/libs/data_types/pair.h>
 #include <catboost/private/libs/index_range/index_range.h>
 #include <catboost/private/libs/options/catboost_options.h>
 
@@ -48,59 +49,6 @@ namespace {
             return BucketCount * leafIndex + bucketIndex;
         }
     };
-
-
-    template <class T>
-    class TDataRefOptionalHolder {
-    public:
-        TDataRefOptionalHolder() = default;
-
-        // Buf not used, init from external data
-        explicit TDataRefOptionalHolder(TArrayRef<T> extData)
-            : Data(extData)
-        {}
-
-        // noninitializing
-        explicit TDataRefOptionalHolder(size_t size)
-        {
-            Buf.yresize(size);
-            Data = TArrayRef<T>(Buf);
-        }
-
-        bool NonInited() const {
-            return Data.data() == nullptr;
-        }
-
-        TArrayRef<T> GetData() {
-            return Data;
-        }
-
-        TConstArrayRef<T> GetData() const {
-            return Data;
-        }
-
-    private:
-        TArrayRef<T> Data;
-        TVector<T> Buf;
-    };
-
-    using TBucketStatsRefOptionalHolder = TDataRefOptionalHolder<TBucketStats>;
-}
-
-
-/* A helper function that returns calculated ctr values for this projection
-   (== feature or feature combination) from cache.
-*/
-inline static const TOnlineCTR& GetCtr(
-    const std::tuple<const TOnlineCTRHash&,
-    const TOnlineCTRHash&>& allCtrs,
-    const TProjection& proj
-) {
-    static const constexpr size_t OnlineSingleCtrsIndex = 0;
-    static const constexpr size_t OnlineCTRIndex = 1;
-    return proj.HasSingleFeature() ?
-          std::get<OnlineSingleCtrsIndex>(allCtrs).at(proj)
-        : std::get<OnlineCTRIndex>(allCtrs).at(proj);
 }
 
 
@@ -743,161 +691,16 @@ inline static void UpdateScores(
         }
     };
 
-    // used only if splitEnsembleSpec.Type == ESplitEnsembleType::ExclusiveBundle
-    const auto& exclusiveFeaturesBundle = splitEnsembleSpec.ExclusiveFeaturesBundle;
-
-    // allocate one time for all leaves
-    TVector<TBucketStats> bundlePartsStats;
-
-    // used only if splitEnsembleSpec.Type == ESplitEnsembleType::ExclusiveBundle
-    TVector<bool> useBundlePartForCalcScores; // [bundlePartIdx]
-
-    if (splitEnsembleSpec.Type == ESplitEnsembleType::ExclusiveBundle) {
-        bundlePartsStats.resize(exclusiveFeaturesBundle.Parts.size());
-
-        for (const auto& bundlePart : exclusiveFeaturesBundle.Parts) {
-            useBundlePartForCalcScores.push_back(UseForCalcScores(bundlePart, oneHotMaxSize));
-        }
-    }
-
-
     for (int leaf = 0; leaf < leafCount; ++leaf) {
-        switch (splitEnsembleSpec.Type) {
-            case ESplitEnsembleType::OneFeature:
-                {
-                    auto splitType = splitEnsembleSpec.OneSplitType;
-
-                    TBucketStats allStats{0, 0, 0, 0};
-
-                    for (int bucketIdx = 0; bucketIdx < indexer.BucketCount; ++bucketIdx) {
-                        const TBucketStats& leafStats = stats[indexer.GetIndex(leaf, bucketIdx)];
-                        allStats.Add(leafStats);
-                    }
-
-                    TBucketStats trueStats{0, 0, 0, 0};
-                    TBucketStats falseStats{0, 0, 0, 0};
-                    if (splitType == ESplitType::OnlineCtr || splitType == ESplitType::FloatFeature) {
-                        trueStats = allStats;
-                        for (int splitIdx = 0; splitIdx < indexer.BucketCount - 1; ++splitIdx) {
-                            falseStats.Add(stats[indexer.GetIndex(leaf, splitIdx)]);
-                            trueStats.Remove(stats[indexer.GetIndex(leaf, splitIdx)]);
-
-                            updateSplitScoreClosure(trueStats, falseStats, splitIdx);
-                        }
-                    } else {
-                        Y_ASSERT(splitType == ESplitType::OneHotFeature);
-                        falseStats = allStats;
-                        for (int bucketIdx = 0; bucketIdx < indexer.BucketCount; ++bucketIdx) {
-                            if (bucketIdx > 0) {
-                                falseStats.Add(stats[indexer.GetIndex(leaf, bucketIdx - 1)]);
-                            }
-                            falseStats.Remove(stats[indexer.GetIndex(leaf, bucketIdx)]);
-
-                            updateSplitScoreClosure(
-                                /*trueStats*/ stats[indexer.GetIndex(leaf, bucketIdx)],
-                                falseStats,
-                                bucketIdx
-                            );
-                        }
-                    }
-                }
-                break;
-            case ESplitEnsembleType::BinarySplits:
-                {
-                    int binaryFeaturesCount = (int)GetValueBitCount(indexer.BucketCount - 1);
-                    for (int binFeatureIdx = 0; binFeatureIdx < binaryFeaturesCount; ++binFeatureIdx) {
-                        TBucketStats trueStats{0, 0, 0, 0};
-                        TBucketStats falseStats{0, 0, 0, 0};
-
-                        for (int bucketIdx = 0; bucketIdx < indexer.BucketCount; ++bucketIdx) {
-                            auto& dstStats = ((bucketIdx >> binFeatureIdx) & 1) ? trueStats : falseStats;
-                            dstStats.Add(stats[indexer.GetIndex(leaf, bucketIdx)]);
-                        }
-
-                        updateSplitScoreClosure(trueStats, falseStats, binFeatureIdx);
-                    }
-                }
-                break;
-            case ESplitEnsembleType::ExclusiveBundle:
-                {
-                    TBucketStats allStats = stats[indexer.GetIndex(leaf, indexer.BucketCount - 1)];
-
-                    for (auto bundlePartIdx : xrange(exclusiveFeaturesBundle.Parts.size())) {
-                        auto& bundlePartStats = bundlePartsStats[bundlePartIdx];
-                        bundlePartStats = TBucketStats{0, 0, 0, 0};
-
-                        for (auto bucketIdx : exclusiveFeaturesBundle.Parts[bundlePartIdx].Bounds.Iter()) {
-                            const TBucketStats& leafStats = stats[indexer.GetIndex(leaf, bucketIdx)];
-                            bundlePartStats.Add(leafStats);
-                        }
-                        allStats.Add(bundlePartStats);
-                    }
-
-                    ui32 binsBegin = 0;
-                    for (auto bundlePartIdx : xrange(exclusiveFeaturesBundle.Parts.size())) {
-                        if (!useBundlePartForCalcScores[bundlePartIdx]) {
-                            continue;
-                        }
-
-                        const auto& bundlePart = exclusiveFeaturesBundle.Parts[bundlePartIdx];
-                        auto binBounds = bundlePart.Bounds;
-
-                        if (bundlePart.FeatureType == EFeatureType::Float) {
-                            TBucketStats falseStats = allStats;
-                            TBucketStats trueStats = bundlePartsStats[bundlePartIdx];
-                            falseStats.Remove(bundlePartsStats[bundlePartIdx]);
-
-                            for (ui32 splitIdx = 0; splitIdx < binBounds.GetSize(); ++splitIdx) {
-                                if (splitIdx != 0) {
-                                    const auto& statsPart
-                                        = stats[indexer.GetIndex(leaf, binBounds.Begin + splitIdx - 1)];
-                                    falseStats.Add(statsPart);
-                                    trueStats.Remove(statsPart);
-                                }
-
-                                updateSplitScoreClosure(trueStats, falseStats, binsBegin + splitIdx);
-                            }
-                            binsBegin += binBounds.GetSize();
-                        } else {
-                            Y_ASSERT(bundlePart.FeatureType == EFeatureType::Categorical);
-                            Y_ASSERT((binBounds.GetSize() + 1) <= oneHotMaxSize);
-
-                            /* for binary features split on value 0 is the same as split on value 1
-                             * so don't double the calculations,
-                             * it also maintains compatibility with binary packed binary categorical features
-                             * where value 1 is always assumed
-                             */
-                            if (binBounds.GetSize() > 1) {
-                                TBucketStats trueStats = allStats;
-                                trueStats.Remove(bundlePartsStats[bundlePartIdx]);
-
-                                updateSplitScoreClosure(
-                                    trueStats,
-                                    /*falseStats*/ bundlePartsStats[bundlePartIdx],
-                                    binsBegin
-                                );
-                            }
-
-                            for (ui32 binIdx = 0; binIdx < binBounds.GetSize(); ++binIdx) {
-                                const auto& statsPart
-                                    = stats[indexer.GetIndex(leaf, binBounds.Begin + binIdx)];
-
-                                TBucketStats falseStats = allStats;
-                                falseStats.Remove(statsPart);
-
-                                updateSplitScoreClosure(
-                                    /*trueStats*/ statsPart,
-                                    falseStats,
-                                    binsBegin + binIdx + 1
-                                );
-                            }
-
-                            binsBegin += binBounds.GetSize() + 1;
-                        }
-                    }
-                }
-                break;
-        }
+        const auto& getBucketStats = [stats, leaf, indexer] (int bucketIdx) {
+            return stats[indexer.GetIndex(leaf, bucketIdx)];
+        };
+        CalcScoresForLeaf(
+            splitEnsembleSpec,
+            oneHotMaxSize,
+            indexer.BucketCount,
+            getBucketStats,
+            updateSplitScoreClosure);
     }
 
     if (haveMonotonicConstraints) {

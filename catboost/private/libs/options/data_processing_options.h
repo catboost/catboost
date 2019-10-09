@@ -47,6 +47,7 @@ namespace NCatboostOptions {
         TOption<NCB::ESparseArrayIndexingType> DevSparseArrayIndexingType;
 
         TGpuOnlyOption<EGpuCatFeaturesStorage> GpuCatFeaturesStorage;
+        TCpuOnlyOption<bool> DevLeafwiseScoring;
     private:
         void SetPerFeatureMissingSettingToCommonValues();
     };
