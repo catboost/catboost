@@ -97,6 +97,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\index_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\index_hash_calcer.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\leafwise_scoring.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\learn_context.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\model_quantization_adapter.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\monotonic_constraint_utils.cpp"/>
@@ -135,6 +136,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\index_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\index_hash_calcer.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\leafwise_scoring.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\learn_context.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\model_quantization_adapter.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\monotonic_constraint_utils.h"/>

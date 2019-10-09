@@ -86,6 +86,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\hessian.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\online_predictor.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\pairwise_leaves_calculation.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\scoring_helpers.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\approx_calcer_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\approx_updater_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\custom_objective_descriptor.h"/>
@@ -95,6 +96,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\hessian.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\online_predictor.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\pairwise_leaves_calculation.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\scoring_helpers.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
