@@ -453,6 +453,21 @@ static void ValidateModelSize(const NCatboostOptions::TObliviousTreeLearnerOptio
     }
 }
 
+static void EnsureNewtonIsAvailable(ETaskType taskType, const NCatboostOptions::TLossDescription& lossDescription) {
+    const auto lossFunction = lossDescription.GetLossFunction();
+    CB_ENSURE(
+        lossFunction != ELossFunction::StochasticFilter &&
+        lossFunction != ELossFunction::Quantile &&
+        lossFunction != ELossFunction::MAE &&
+        lossFunction != ELossFunction::LogLinQuantile &&
+        lossFunction != ELossFunction::MAPE &&
+        !(taskType == ETaskType::CPU && IsPairwiseScoring(lossFunction)),
+        "Newton leaves estimation method is not supoprted for " << lossFunction << " loss function");
+    CB_ENSURE(
+        lossFunction != ELossFunction::Lq || NCatboostOptions::GetLqParam(lossDescription) >= 2,
+        "Newton leaves estimation method is not supoprted for Lq loss function with q < 2");
+}
+
 void NCatboostOptions::TCatBoostOptions::Validate() const {
     ELossFunction lossFunction = LossFunctionDescription->GetLossFunction();
     {
@@ -489,16 +504,6 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         }
     }
 
-    ELeavesEstimation leavesEstimation = ObliviousTreeOptions->LeavesEstimationMethod;
-    if (lossFunction == ELossFunction::Quantile ||
-        lossFunction == ELossFunction::MAE ||
-        lossFunction == ELossFunction::LogLinQuantile ||
-        lossFunction == ELossFunction::MAPE)
-    {
-        CB_ENSURE(leavesEstimation != ELeavesEstimation::Newton,
-                  "Newton leave estimation method is not supported for " << lossFunction << " loss function");
-    }
-
     CB_ENSURE(!(IsPlainOnlyModeLoss(lossFunction) && (BoostingOptions->BoostingType == EBoostingType::Ordered)),
         "Boosting type should be Plain for loss functions " << lossFunction);
 
@@ -508,8 +513,6 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
     if (GetTaskType() == ETaskType::CPU) {
         CB_ENSURE(lossFunction != ELossFunction::QueryCrossEntropy,
                   ELossFunction::QueryCrossEntropy << " loss function is not supported for CPU learning");
-        CB_ENSURE(!(IsPairwiseScoring(lossFunction) && leavesEstimation == ELeavesEstimation::Newton),
-                  "This leaf estimation method is not supported for querywise error for CPU learning");
         CB_ENSURE(
             ObliviousTreeOptions->LeavesEstimationBacktrackingType != ELeavesEstimationStepBacktracking::Armijo,
             "Backtracking type Armijo is supported only on GPU");
@@ -585,6 +588,11 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         );
     }
     ValidateModelSize(ObliviousTreeOptions.Get(), BoostingOptions->OverfittingDetector.Get(), GetTaskType());
+
+    const ELeavesEstimation leavesEstimation = ObliviousTreeOptions->LeavesEstimationMethod;
+    if (leavesEstimation == ELeavesEstimation::Newton) {
+        EnsureNewtonIsAvailable(GetTaskType(), LossFunctionDescription);
+    }
 }
 
 void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {

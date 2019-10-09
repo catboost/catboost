@@ -131,10 +131,6 @@ static void ScaleAllApproxes(
 void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnContext* ctx) {
     const auto error = BuildError(ctx->Params, ctx->ObjectiveDescriptor);
     ctx->LearnProgress->HessianType = error->GetHessianType();
-    CheckDerivativeOrderForTrain(
-        error->GetMaxSupportedDerivativeOrder(),
-        ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod
-    );
     TProfileInfo& profile = ctx->Profile;
 
     const size_t iterationIndex = ctx->LearnProgress->TreeStruct.size();

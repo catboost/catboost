@@ -936,5 +936,4 @@ private:
     }
 };
 
-void CheckDerivativeOrderForTrain(ui32 derivativeOrder, ELeavesEstimation estimationMethod);
 void CheckDerivativeOrderForObjectImportance(ui32 derivativeOrder, ELeavesEstimation estimationMethod);
