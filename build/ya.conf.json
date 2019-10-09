@@ -82,6 +82,7 @@
         "qemu-i386": { "description": "QEMU i386 machine emulator and virtualizer" },
         "qemu-img": { "description": "QEMU disk image utility" },
         "qemu-nbd": { "description": "QEMU disk network block device server" },
+        "qyp": { "description": "QYP tool" },
         "vmexec": { "description": "VMEXEC run script inside qemu-vm" },
         "yfm": { "description": "YFM-extended markdown processor for Cloud deploy" },
         "aws": { "description": "Run aws" },
@@ -1512,6 +1513,16 @@
                 {"host": {"os": "LINUX"}, "default": true}
             ]
         },
+        "qyp": {
+            "tools": {
+                "qyp": { "bottle": "qyp", "executable": "vmctl" }
+            },
+            "platforms": [
+                  {"host": {"os": "LINUX"}, "default": true},
+                  {"host": {"os": "DARWIN"}, "default": true},
+                  {"host": {"os": "WIN"}, "default": true}
+            ]
+        },
         "fio": {
             "tools": {
                 "fio": { "bottle" : "fio", "executable": "fio" }
@@ -1844,7 +1855,7 @@
                 "cc": ["bin", "arm-linux-gnueabihf-gcc"],
                 "gcov": ["bin", "arm-linux-gnueabihf-gcov"],
                 "c++filt": ["bin", "arm-linux-gnueabihf-c++filt"],
-                "strip": ["bin", "arm-linux-gnueabihf-strip"], 
+                "strip": ["bin", "arm-linux-gnueabihf-strip"],
                 "nm": ["bin", "arm-linux-gnueabihf-nm"]
             }
         },
@@ -2490,6 +2501,15 @@
                 "qemu-i386": ["qemu", "bin", "qemu-system-i386"],
                 "qemu-img": ["qemu", "bin", "qemu-img"],
                 "qemu-nbd": ["qemu", "bin", "qemu-nbd"]
+            }
+        },
+        "qyp": {
+            "formula": {
+                "sandbox_id": [523033576],
+                "match": "infra/qyp/vmctl/bin/vmctl"
+            },
+            "executable": {
+                "vmctl": ["vmctl"],
             }
         },
         "fio": {
