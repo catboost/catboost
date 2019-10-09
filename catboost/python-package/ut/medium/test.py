@@ -238,51 +238,64 @@ def test_load_list():
     assert _check_shape(Pool(features_data, labels, CAT_FEATURES), 101, 17)
 
 
+datasets_for_test_ndarray = ['adult', 'cloudness_small', 'higgs']
+
+
 @pytest.mark.parametrize(
-    'dtype',
-    [np.float32, np.float64, object],
-    ids=['dtype=np.float32', 'dtype=np.float64', 'dtype=object']
+    'dataset',
+    datasets_for_test_ndarray,
+    ids=['dataset=%s' % dataset for dataset in datasets_for_test_ndarray]
 )
 @pytest.mark.parametrize('order', ['C', 'F'], ids=['order=C', 'order=F'])
-def test_load_ndarray_vs_load_from_file(dtype, order):
-    if dtype is object:  # mixed numeric and categorical features data
-        n_features = 17
-        n_objects = 101
+def test_load_ndarray_vs_load_from_file(dataset, order):
+    n_objects = 101
+    if dataset == 'adult':  # mixed numeric and categorical features data, cat data is strings
         train_file = TRAIN_FILE
         cd_file = CD_FILE
-        target_column_idx = TARGET_IDX
-        cat_column_indices = CAT_COLUMNS
-        cat_feature_indices = CAT_FEATURES
-    else:
-        n_features = 28
-        n_objects = 101
+        dtypes = [object]
+        float_dtype_is_ok = False
+    elif dataset == 'cloudness_small':  # mixed numeric and categorical features data, cat data is integers
+        train_file = CLOUDNESS_TRAIN_FILE
+        cd_file = CLOUDNESS_CD_FILE
+        dtypes = [np.float32, np.float64, object]
+        float_dtype_is_ok = False
+    elif dataset == 'higgs':  # mixed numeric and categorical features data, cat data is strings
         train_file = HIGGS_TRAIN_FILE
         cd_file = HIGGS_CD_FILE
-        target_column_idx = 0
-        cat_column_indices = []
-        cat_feature_indices = []
+        dtypes = [np.float32, np.float64, object]
+        float_dtype_is_ok = True
+
+    columns_metadata = read_cd(cd_file, data_file=train_file, canonize_column_types=True)
+    target_column_idx = columns_metadata['column_type_to_indices']['Label'][0]
+    cat_column_indices = columns_metadata['column_type_to_indices'].get('Categ', [])
+    n_features = len(cat_column_indices) + len(columns_metadata['column_type_to_indices'].get('Num', []))
 
     pool_from_file = Pool(train_file, column_description=cd_file)
 
-    features_data = np.empty((n_objects, n_features), dtype=dtype, order=order)
-    labels = np.empty(n_objects, dtype=float)
-    with open(train_file) as train_input:
-        for line_idx, l in enumerate(train_input.readlines()):
-            elements = l[:-1].split('\t')
-            feature_idx = 0
-            for column_idx, element in enumerate(elements):
-                if column_idx == target_column_idx:
-                    labels[line_idx] = float(element)
-                else:
-                    features_data[line_idx, feature_idx] = (
-                        element if (dtype is object) or (column_idx in cat_column_indices) else dtype(element)
-                    )
-                    feature_idx += 1
+    for dtype in dtypes:
+        features_data = np.empty((n_objects, n_features), dtype=dtype, order=order)
+        labels = np.empty(n_objects, dtype=float)
+        with open(train_file) as train_input:
+            for line_idx, l in enumerate(train_input.readlines()):
+                elements = l[:-1].split('\t')
+                feature_idx = 0
+                for column_idx, element in enumerate(elements):
+                    if column_idx == target_column_idx:
+                        labels[line_idx] = float(element)
+                    else:
+                        features_data[line_idx, feature_idx] = (
+                            element if (dtype is object) or (column_idx in cat_column_indices) else dtype(element)
+                        )
+                        feature_idx += 1
 
-    pool_from_ndarray = Pool(features_data, labels, cat_features=cat_feature_indices)
+        if (dtype in [np.float32, np.float64]) and (not float_dtype_is_ok):
+            with pytest.raises(CatBoostError):
+                pool_from_ndarray = Pool(features_data, labels, cat_features=columns_metadata['cat_feature_indices'])
+        else:
+            pool_from_ndarray = Pool(features_data, labels, cat_features=columns_metadata['cat_feature_indices'])
 
-    assert _have_equal_features(pool_from_file, pool_from_ndarray)
-    assert _check_data([float(label) for label in pool_from_file.get_label()], pool_from_ndarray.get_label())
+            assert _have_equal_features(pool_from_file, pool_from_ndarray)
+            assert _check_data([float(label) for label in pool_from_file.get_label()], pool_from_ndarray.get_label())
 
 
 @pytest.mark.parametrize('dataset', ['adult', 'adult_nan', 'querywise'])
@@ -5632,18 +5645,27 @@ def test_pools_equal_on_dense_and_scipy_sparse_input(dataset):
     for sparse_matrix_type in sparse_matrix_types:
         sparse_features = sparse_matrix_type(data['features'])
 
-        sparse_pool = Pool(
-            sparse_features,
-            label=data['target'],
-            feature_names=list(data['features'].columns),
-            cat_features=columns_metadata['cat_feature_indices']
-        )
-
-        if canon_sparse_pool is None:
-            canon_sparse_pool = sparse_pool
-            assert _have_equal_features(dense_pool, sparse_pool, True)
+        if columns_metadata['cat_feature_indices'] and (sparse_features.dtype.kind == 'f'):
+            with pytest.raises(CatBoostError):
+                Pool(
+                    sparse_features,
+                    label=data['target'],
+                    feature_names=list(data['features'].columns),
+                    cat_features=columns_metadata['cat_feature_indices']
+                )
         else:
-            assert _have_equal_features(sparse_pool, canon_sparse_pool, False)
+            sparse_pool = Pool(
+                sparse_features,
+                label=data['target'],
+                feature_names=list(data['features'].columns),
+                cat_features=columns_metadata['cat_feature_indices']
+            )
+
+            if canon_sparse_pool is None:
+                canon_sparse_pool = sparse_pool
+                assert _have_equal_features(dense_pool, sparse_pool, True)
+            else:
+                assert _have_equal_features(sparse_pool, canon_sparse_pool, False)
 
 
 # pandas has NaN value indicating missing values by default,

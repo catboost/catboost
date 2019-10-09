@@ -1736,10 +1736,7 @@ cdef inline get_id_object_bytes_string_representation(
     elif obj_type is _npuint32 or obj_type is _npuint64:
         bytes_string_buf_representation[0] = ToString[ui64](<ui64>id_object)
     elif obj_type is float or obj_type is _npfloat32 or obj_type is _npfloat64:
-        double_val = <double>id_object
-        if isnan(double_val) or <i64>double_val != double_val:
-            raise CatBoostError("bad object for id: {}".format(id_object))
-        bytes_string_buf_representation[0] = ToString[i64](<i64>double_val)
+        raise CatBoostError("bad object for id: {}".format(id_object))
     else:
         # this part is really heavy as it uses lot's of python internal magic, so put it down
         if isinstance(id_object, all_string_types_plus_bytes):
@@ -2362,20 +2359,15 @@ cdef void _get_categorical_feature_value_from_scipy_sparse(
     TString * factor_string_buf,
     TString * error_string  # non-emptiness indicates an error)
 ):
-    cdef np.float64_t int_part
-    cdef np.float64_t frac_part
-
     if is_float_value:
-        frac_part = modf(value, & int_part)
-        if frac_part != 0.0:
-            error_string[0] = (
-                TString('Invalid value for cat_feature[') + ToString(doc_idx) + ','
-                +ToString(feature_idx) + ']=' + ToString(<double>value)
-                +' cat_features must be integer or string, real number values and NaN values'
-                +' should be converted to string'
-            )
-            return
-    factor_string_buf[0] = ToString[i64](<i64>value)
+        error_string[0] = (
+            TString('Invalid value for cat_feature[') + ToString(doc_idx) + ','
+            + ToString(feature_idx) + ']=' + ToString(<double>value)
+            +' cat_features must be integer or string, real number values and NaN values'
+            +' should be converted to string'
+        )
+    else:
+        factor_string_buf[0] = ToString[i64](<i64>value)
 
 cdef void _add_single_feature_value_from_scipy_sparse(
     int doc_idx,

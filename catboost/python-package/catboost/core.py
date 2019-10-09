@@ -323,9 +323,15 @@ class Pool(_PoolBase):
                             " has FeaturesData type"
                         )
                 elif isinstance(data, np.ndarray):
-                    if (data.dtype == np.float32) and (cat_features is not None) and (len(cat_features) > 0):
+                    if (data.dtype.kind == 'f') and (cat_features is not None) and (len(cat_features) > 0):
                         raise CatBoostError(
-                            "'data' is numpy array of np.float32, it means no categorical features,"
+                            "'data' is numpy array of floating point numerical type, it means no categorical features,"
+                            " but 'cat_features' parameter specifies nonzero number of categorical features"
+                        )
+                elif isinstance(data, scipy.sparse.spmatrix):
+                    if (data.dtype.kind == 'f') and (cat_features is not None) and (len(cat_features) > 0):
+                        raise CatBoostError(
+                            "'data' is scipy.sparse.spmatrix of floating point numerical type, it means no categorical features,"
                             " but 'cat_features' parameter specifies nonzero number of categorical features"
                         )
 
