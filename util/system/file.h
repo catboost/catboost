@@ -22,18 +22,16 @@ enum EOpenModeFlag {
     RdWr = 24,   // open for reading and writing
     MaskRW = 24,
 
-    Seq = 0x20,    // file access is primarily sequential
-    Direct = 0x40, // file is being opened with no system caching (Does not work as intended! See implementation)
-    Temp = 0x80,   // avoid writing data back to disk if sufficient cache memory is available
-    MaskMisc = 0xE0,
-
-    ForAppend = 256,
-    //actually, temporary file - 'delete on close' for windows, unlink after creation for unix
-    Transient = 512,
-    NoReuse = 1024,
-    CloseOnExec = 2048,
-    DirectAligned = 4096, // file is actually being opened with no system caching (may require buffer alignment)
-    Sync = 8192,          // no write call will return before the data is transferred to the disk
+    Seq = 0x20,             // file access is primarily sequential (POSIX_FADV_SEQUENTIAL)
+    Direct = 0x40,          // file is being opened with no system caching (Does not work as intended! See implementation)
+    Temp = 0x80,            // avoid writing data back to disk if sufficient cache memory is available (no op for linux)
+    ForAppend = 0x100,      // write appends data to the end of file (O_APPEND)
+    Transient = 0x200,      // actually, temporary file - 'delete on close' for windows, unlink after creation for unix
+    NoReuse = 0x400,        // no second access expected (POSIX_FADV_NOREUSE)
+    CloseOnExec = 0x800,    // set close-on-exec right at open (O_CLOEXEC)
+    DirectAligned = 0x1000, // file is actually being opened with no system caching (may require buffer alignment) (O_DIRECT)
+    Sync = 0x2000,          // no write call will return before the data is transferred to the disk (O_SYNC)
+    NoReadAhead = 0x4000,   // no sequential access expected, opposite for Seq (POSIX_FADV_RANDOM)
 
     AXOther = 0x00010000,
     AWOther = 0x00020000,
@@ -128,6 +126,17 @@ public:
     bool SetDirect();
     void ResetDirect();
 
+    /* Manual file cache management, length = 0 means "as much as possible" */
+
+    //measure amount of cached data in bytes, returns -1 if failed
+    i64 CountCache(i64 offset = 0, i64 length = 0) const noexcept;
+    //read data into cache and optionally wait for completion
+    void PrefetchCache(i64 offset = 0, i64 length = 0, bool wait = true) const noexcept;
+    //remove clean and unused data from cache
+    void EvictCache(i64 offset = 0, i64 length = 0) const noexcept;
+    //flush unwritten data in this range and optionally wait for completion
+    bool FlushCache(i64 offset = 0, i64 length = 0, bool wait = true) noexcept;
+
 private:
     FHANDLE Fd_ = INVALID_FHANDLE;
 };
@@ -171,6 +180,17 @@ public:
     //do not use, their meaning very platform-dependant
     void SetDirect();
     void ResetDirect();
+
+    /* Manual file cache management, length = 0 means "as much as possible" */
+
+    //measure amount of cached data in bytes, returns -1 if failed
+    i64 CountCache(i64 offset = 0, i64 length = 0) const noexcept;
+    //read data into cache and optionally wait for completion
+    void PrefetchCache(i64 offset = 0, i64 length = 0, bool wait = true) const noexcept;
+    //remove clean and unused data from cache, incomplete pages could stay
+    void EvictCache(i64 offset = 0, i64 length = 0) const noexcept;
+    //flush unwritten data in this range and optionally wait for completion
+    void FlushCache(i64 offset = 0, i64 length = 0, bool wait = true);
 
     static TFile Temporary(const TString& prefix);
     static TFile ForAppend(const TString& path);
