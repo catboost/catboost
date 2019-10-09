@@ -4,7 +4,7 @@
 
 #ifdef JEMALLOC_PROF_LIBUNWIND
 #define	UNW_LOCAL_ONLY
-#error #include <libunwind.h>
+#include <libunwind.h>
 #endif
 
 #ifdef JEMALLOC_PROF_LIBGCC

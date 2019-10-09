@@ -23,6 +23,7 @@ NO_SANITIZE()
 NO_SANITIZE_COVERAGE()
 
 CFLAGS(
+    GLOBAL -D_libunwind_
     -D_LIBUNWIND_IS_NATIVE_ONLY
     -fno-exceptions
     -fno-rtti

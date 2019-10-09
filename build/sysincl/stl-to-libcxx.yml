@@ -38,6 +38,7 @@
   - unwind.h:
     - contrib/libs/cxxsupp/libcxx/include/unwind.h
     - contrib/libs/cxxsupp/libcxxrt/unwind.h
+    - contrib/libs/libunwind/include/unwind.h
 
 - source_filter: "^contrib/libs/cxxsupp/libcxx/include"
   includes:

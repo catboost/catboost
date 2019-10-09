@@ -1,23 +1,23 @@
 LIBRARY()
 
-LICENSE(
-    BSD2
-)
-
-# Version: 3.6.0
 
 
+VERSION(3.6.0)
 
-NO_UTIL()
+LICENSE(BSD2)
+
 NO_COMPILER_WARNINGS()
 
+NO_UTIL()
+
 ADDINCL(
-    ${ARCADIA_ROOT}/contrib/libs/jemalloc/include
+    contrib/libs/jemalloc/include
+    contrib/libs/libunwind/include
 )
 
 IF (OS_WINDOWS)
     ADDINCL(
-        ${ARCADIA_ROOT}/contrib/libs/jemalloc/include/msvc_compat
+        contrib/libs/jemalloc/include/msvc_compat
     )
 ELSEIF (OS_DARWIN OR OS_IOS)
     SRCS(
