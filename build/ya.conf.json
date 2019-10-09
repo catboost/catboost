@@ -2509,7 +2509,7 @@
                 "match": "infra/qyp/vmctl/bin/vmctl"
             },
             "executable": {
-                "vmctl": ["vmctl"],
+                "vmctl": ["vmctl"]
             }
         },
         "fio": {
