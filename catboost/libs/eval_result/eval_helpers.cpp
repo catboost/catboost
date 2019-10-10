@@ -1,12 +1,14 @@
 #include "eval_helpers.h"
 
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/private/libs/labels/label_helper_builder.h>
 #include <catboost/libs/model/eval_processing.h>
+#include <catboost/libs/logging/logging.h>
+#include <catboost/private/libs/labels/label_helper_builder.h>
 
-#include <util/generic/utility.h>
-#include <util/string/cast.h>
 #include <util/generic/array_ref.h>
+#include <util/generic/utility.h>
+#include <util/generic/xrange.h>
+#include <util/string/cast.h>
 
 #include <limits>
 
@@ -152,19 +154,21 @@ TVector<TVector<double>> PrepareEvalForInternalApprox(
               "Inappropriate usage of visible label helper: it MUST be initialized ONLY for multiclass problem");
     const auto& externalApprox = externalLabelsHelper.IsInitialized() ?
                                  MakeExternalApprox(approx, externalLabelsHelper) : approx;
-    return PrepareEval(predictionType, externalApprox, localExecutor);
+    return PrepareEval(predictionType, model.GetLossFunctionName(), externalApprox, localExecutor);
 }
 
 TVector<TVector<double>> PrepareEval(const EPredictionType predictionType,
+                                     const TString& lossFunctionName,
                                      const TVector<TVector<double>>& approx,
                                      int threadCount) {
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(threadCount - 1);
-    return PrepareEval(predictionType, approx, &executor);
+    return PrepareEval(predictionType, lossFunctionName, approx, &executor);
 }
 
 
 void PrepareEval(const EPredictionType predictionType,
+                 const TString& lossFunctionName,
                  const TVector<TVector<double>>& approx,
                  NPar::TLocalExecutor* executor,
                  TVector<TVector<double>>* result) {
@@ -172,7 +176,18 @@ void PrepareEval(const EPredictionType predictionType,
     switch (predictionType) {
         case EPredictionType::Probability:
             if (IsMulticlass(approx)) {
-                *result = CalcSoftmax(approx, executor);
+                if (lossFunctionName == "MultiClassOneVsAll") {
+                    result->resize(approx.size());
+                    for (auto dim : xrange(approx.size())) {
+                        (*result)[dim] = CalcSigmoid(approx[dim]);
+                    }
+                } else {
+                    if (lossFunctionName.empty()) {
+                        CATBOOST_WARNING_LOG << "Optimized loss function was not saved in the model. Probabilities will be calculated \
+                                                 under the assumption that it is MultiClass loss function" << Endl;
+                    }
+                    *result = CalcSoftmax(approx, executor);
+                }
             } else {
                 *result = {CalcSigmoid(approx[0])};
             }
@@ -198,9 +213,10 @@ void PrepareEval(const EPredictionType predictionType,
 }
 
 TVector<TVector<double>> PrepareEval(const EPredictionType predictionType,
+                                     const TString& lossFunctionName,
                                      const TVector<TVector<double>>& approx,
                                      NPar::TLocalExecutor* localExecutor) {
     TVector<TVector<double>> result;
-    PrepareEval(predictionType, approx, localExecutor, &result);
+    PrepareEval(predictionType, lossFunctionName, approx, localExecutor, &result);
     return result;
 }

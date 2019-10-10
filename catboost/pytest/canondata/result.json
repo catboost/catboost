@@ -4861,7 +4861,7 @@
     ],
     "test.test_prediction_type[Ordered-Probability-MultiClassOneVsAll]": [
         {
-            "checksum": "d7ab09bc78415ffeef04c1cf38762fbc",
+            "checksum": "fd0984cf097a47e159aed8c86d39aabd",
             "uri": "file://test.test_prediction_type_Ordered-Probability-MultiClassOneVsAll_/test.eval"
         }
     ],
@@ -4933,7 +4933,7 @@
     ],
     "test.test_prediction_type[Plain-Probability-MultiClassOneVsAll]": [
         {
-            "checksum": "09d35a2ec4c00d9300b91735a32df1fd",
+            "checksum": "31d41db6d0a62035fd17c35c0cc393d6",
             "uri": "file://test.test_prediction_type_Plain-Probability-MultiClassOneVsAll_/test.eval"
         }
     ],
@@ -5671,7 +5671,7 @@
     ],
     "test.test_save_and_apply_multiclass_labels_from_classes_count[Probability-MultiClassOneVsAll]": [
         {
-            "checksum": "4624f2b4a6882e6f512170559f585ec3",
+            "checksum": "c9ed36ad9d1ae24102d0af7a911f71a8",
             "uri": "file://test.test_save_and_apply_multiclass_labels_from_classes_count_Probability-MultiClassOneVsAll_/eval.txt"
         }
     ],

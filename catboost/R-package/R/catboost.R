@@ -1512,7 +1512,7 @@ catboost.cv <- function(pool, params = list(),
 #'   \item 'IntersectingCountersAverage'
 #'     Use the average ctr counter values in the intersecting bins
 #' }
-#' 
+#'
 #' Default value: 'IntersectingCountersAverage'
 #'
 #' @export
@@ -1540,7 +1540,7 @@ catboost.sum_models <- function(models, weights = NULL, ctr_merge_policy = 'Inte
 
     model$random_seed <- 0
     model$learning_rate <- 0
-    
+
     class(model) <- "catboost.Model"
     return(model)
 }
@@ -1742,7 +1742,8 @@ catboost.staged_predict <- function(model, pool, verbose = FALSE, prediction_typ
                                          min(current_tree_count, ntree_end), thread_count))
         approx <<- approx + current_approx
         prediction_columns <- length(approx) / nrow(pool)
-        prediction <- .Call("CatBoostPrepareEval_R", approx, prediction_type, prediction_columns, thread_count)
+        loss_function <- catboost.get_model_params(model)$loss_function$type
+        prediction <- .Call("CatBoostPrepareEval_R", approx, prediction_type, loss_function, prediction_columns, thread_count)
         if (prediction_columns != 1) {
             prediction <- matrix(prediction, ncol = prediction_columns, byrow = TRUE)
         }

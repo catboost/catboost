@@ -1079,6 +1079,7 @@ void TrainModel(
                 evalResults[testIdx],
                 &executor,
                 outputColumns,
+                model.GetLossFunctionName(),
                 visibleLabelsHelper,
                 testPool,
                 &fileStream,

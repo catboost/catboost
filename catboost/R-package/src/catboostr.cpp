@@ -699,7 +699,7 @@ SEXP CatBoostPredictMulti_R(SEXP modelParam, SEXP poolParam, SEXP verboseParam,
     return result;
 }
 
-SEXP CatBoostPrepareEval_R(SEXP approxParam, SEXP typeParam, SEXP columnCountParam, SEXP threadCountParam) {
+SEXP CatBoostPrepareEval_R(SEXP approxParam, SEXP typeParam, SEXP lossFunctionName, SEXP columnCountParam, SEXP threadCountParam) {
     SEXP result = NULL;
     R_API_BEGIN();
     SEXP dataDim = getAttrib(approxParam, R_DimSymbol);
@@ -716,7 +716,7 @@ SEXP CatBoostPrepareEval_R(SEXP approxParam, SEXP typeParam, SEXP columnCountPar
     EPredictionType predictionType;
     CB_ENSURE(TryFromString<EPredictionType>(CHAR(asChar(typeParam)), predictionType),
               "unsupported prediction type: 'Probability', 'Class' or 'RawFormulaVal' was expected");
-    prediction = PrepareEval(predictionType, prediction, &executor);
+    prediction = PrepareEval(predictionType, CHAR(asChar(lossFunctionName)), prediction, &executor);
 
     size_t predictionSize = prediction.size() * dataRows;
     result = PROTECT(allocVector(REALSXP, predictionSize));

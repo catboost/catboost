@@ -14,6 +14,7 @@ namespace NCB {
         NPar::TLocalExecutor* executor,
         const TVector<TVector<TVector<double>>>& rawValues,
         const EPredictionType predictionType,
+        const TString& lossFunctionName,
         const TExternalLabelsHelper& visibleLabelsHelper,
         TMaybe<std::pair<size_t, size_t>> evalParameters)
         : VisibleLabelsHelper(visibleLabelsHelper) {
@@ -22,7 +23,7 @@ namespace NCB {
             CB_ENSURE(VisibleLabelsHelper.IsInitialized() == IsMulticlass(raws),
                       "Inappropriate usage of visible label helper: it MUST be initialized ONLY for multiclass problem");
             const auto& approx = VisibleLabelsHelper.IsInitialized() ? MakeExternalApprox(raws, VisibleLabelsHelper) : raws;
-            Approxes.push_back(PrepareEval(predictionType, approx, executor));
+            Approxes.push_back(PrepareEval(predictionType, lossFunctionName, approx, executor));
             const auto& headers = CreatePredictionTypeHeader(approx.size(), predictionType, VisibleLabelsHelper, begin, evalParameters.Get());
             Header.insert(Header.end(), headers.begin(), headers.end());
             if (evalParameters) {

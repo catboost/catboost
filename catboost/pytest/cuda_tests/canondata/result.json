@@ -3307,7 +3307,7 @@
     ],
     "test_gpu.test_save_and_apply_multiclass_labels_from_classes_count[Probability-MultiClassOneVsAll]": [
         {
-            "checksum": "0deafc15326c0aff83134c0ff3299b04",
+            "checksum": "01c62681c3c0de3d124f05eb603c4c3a",
             "uri": "file://test_gpu.test_save_and_apply_multiclass_labels_from_classes_count_Probability-MultiClassOneVsAll_/eval.txt"
         }
     ],

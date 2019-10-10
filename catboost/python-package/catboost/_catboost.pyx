@@ -1064,6 +1064,7 @@ cdef extern from "catboost/private/libs/algo/roc_curve.h":
 cdef extern from "catboost/libs/eval_result/eval_helpers.h":
     cdef TVector[TVector[double]] PrepareEval(
         const EPredictionType predictionType,
+        const TMaybe[TString]& lossFunctionName,
         const TVector[TVector[double]]& approx,
         int threadCount
     ) nogil except +ProcessException

@@ -175,6 +175,7 @@ void NCB::CalcModelSingleHost(
             approx,
             &executor,
             params.OutputColumnsIds,
+            model.GetLossFunctionName(),
             visibleLabelsHelper,
             *datasetPart,
             outputStream.Get(),

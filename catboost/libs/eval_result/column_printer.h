@@ -184,6 +184,7 @@ namespace NCB {
             NPar::TLocalExecutor* executor,
             const TVector<TVector<TVector<double>>>& rawValues,
             const EPredictionType predictionType,
+            const TString& lossFunctionName,
             const TExternalLabelsHelper& visibleLabelsHelper,
             TMaybe<std::pair<size_t, size_t>> evalParameters = TMaybe<std::pair<size_t, size_t>>());
         void OutputValue(IOutputStream* outStream, size_t docIndex) override;

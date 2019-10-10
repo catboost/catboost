@@ -160,6 +160,7 @@ namespace NCB {
         const TEvalResult& evalResult,
         NPar::TLocalExecutor* executor,
         const TVector<TString>& outputColumns,
+        const TString& lossFunctionName,
         const TExternalLabelsHelper& visibleLabelsHelper,
         const TDataProvider& pool,
         IOutputStream* outputStream,
@@ -176,7 +177,8 @@ namespace NCB {
         for (const auto& outputColumn : outputColumns) {
             EPredictionType type;
             if (TryFromString<EPredictionType>(outputColumn, type)) {
-                columnPrinter.push_back(MakeHolder<TEvalPrinter>(executor, evalResult.GetRawValuesConstRef(), type, visibleLabelsHelper, evalParameters));
+                columnPrinter.push_back(MakeHolder<TEvalPrinter>(executor, evalResult.GetRawValuesConstRef(), type, lossFunctionName,
+                                                                 visibleLabelsHelper, evalParameters));
                 continue;
             }
             EColumn outputType;
@@ -301,6 +303,7 @@ namespace NCB {
         const TEvalResult& evalResult,
         NPar::TLocalExecutor* const executor,
         const TVector<TString>& outputColumns,
+        const TString& lossFunctionName,
         const TExternalLabelsHelper& visibleLabelsHelper,
         const TDataProvider& pool,
         IOutputStream* outputStream,
@@ -319,6 +322,7 @@ namespace NCB {
             evalResult,
             executor,
             outputColumns,
+            lossFunctionName,
             visibleLabelsHelper,
             pool,
             outputStream,

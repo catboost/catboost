@@ -45,16 +45,19 @@ TVector<TString> ConvertTargetToExternalName(
 
 void PrepareEval(
     const EPredictionType predictionType,
+    const TString& lossFunctionName,
     const TVector<TVector<double>>& approx,
     NPar::TLocalExecutor* executor,
     TVector<TVector<double>>* result);
 
 TVector<TVector<double>> PrepareEval(
     const EPredictionType predictionType,
+    const TString& lossFunctionName,
     const TVector<TVector<double>>& approx,
     NPar::TLocalExecutor* executor = nullptr);
 
 TVector<TVector<double>> PrepareEval(
     const EPredictionType predictionType,
+    const TString& lossFunctionName,
     const TVector<TVector<double>>& approx,
     int threadCount);
