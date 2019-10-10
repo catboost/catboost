@@ -2,6 +2,7 @@
 
 [Website](https://catboost.ai) |
 [Documentation](https://catboost.ai/docs/) |
+[Tutorials](https://catboost.ai/docs/concepts/tutorials.html) |
 [Installation](https://catboost.ai/docs/concepts/installation.html) |
 [Release Notes](https://github.com/catboost/catboost/releases)
 
