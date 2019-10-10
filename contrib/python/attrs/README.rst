@@ -9,8 +9,8 @@
    :target: https://www.attrs.org/en/stable/?badge=stable
    :alt: Documentation Status
 
-.. image:: https://travis-ci.org/python-attrs/attrs.svg?branch=master
-   :target: https://travis-ci.org/python-attrs/attrs
+.. image:: https://attrs.visualstudio.com/attrs/_apis/build/status/python-attrs.attrs?branchName=master
+   :target: https://attrs.visualstudio.com/attrs/_build/latest?definitionId=1&branchName=master
    :alt: CI Status
 
 .. image:: https://codecov.io/github/python-attrs/attrs/branch/master/graph/badge.svg
@@ -18,7 +18,7 @@
    :alt: Test Coverage
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-   :target: https://github.com/ambv/black
+   :target: https://github.com/psf/black
    :alt: Code style: black
 
 .. teaser-begin
@@ -72,7 +72,7 @@ After *declaring* your attributes ``attrs`` gives you:
 
 - a concise and explicit overview of the class's attributes,
 - a nice human-readable ``__repr__``,
-- a complete set of comparison methods,
+- a complete set of comparison methods (equality and ordering),
 - an initializer,
 - and much more,
 
@@ -101,12 +101,12 @@ Testimonials
   It exerts a subtle, but positive, design influence in all the codebases I’ve see it used in.
 
 
-**Kenneth Reitz**, author of `Requests <http://www.python-requests.org/>`_ and Developer Advocate at DigitalOcean, (`on paper no less <https://twitter.com/hynek/status/866817877650751488>`_!):
+**Kenneth Reitz**, creator of `Requests <https://github.com/psf/requests>`_ (`on paper no less <https://twitter.com/hynek/status/866817877650751488>`_!):
 
   attrs—classes for humans.  I like it.
 
 
-**Łukasz Langa**, prolific CPython core developer and Production Engineer at Facebook:
+**Łukasz Langa**, creator of `Black <https://github.com/psf/black>`_, prolific Python core developer, and release manager for Python 3.8 and 3.9:
 
   I'm increasingly digging your attr.ocity. Good job!
 

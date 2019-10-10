@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: attrs
-Version: 19.1.0
+Version: 19.2.0
 Summary: Classes Without Boilerplate
 Home-page: https://www.attrs.org/
 Author: Hynek Schlawack
@@ -30,11 +30,20 @@ Classifier: Programming Language :: Python :: Implementation :: CPython
 Classifier: Programming Language :: Python :: Implementation :: PyPy
 Classifier: Topic :: Software Development :: Libraries :: Python Modules
 Requires-Python: >=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*
+Description-Content-Type: text/x-rst
+Provides-Extra: azure-pipelines
+Requires-Dist: coverage ; extra == 'azure-pipelines'
+Requires-Dist: hypothesis ; extra == 'azure-pipelines'
+Requires-Dist: pympler ; extra == 'azure-pipelines'
+Requires-Dist: pytest (>=4.3.0) ; extra == 'azure-pipelines'
+Requires-Dist: six ; extra == 'azure-pipelines'
+Requires-Dist: zope.interface ; extra == 'azure-pipelines'
+Requires-Dist: pytest-azurepipelines ; extra == 'azure-pipelines'
 Provides-Extra: dev
 Requires-Dist: coverage ; extra == 'dev'
 Requires-Dist: hypothesis ; extra == 'dev'
 Requires-Dist: pympler ; extra == 'dev'
-Requires-Dist: pytest ; extra == 'dev'
+Requires-Dist: pytest (>=4.3.0) ; extra == 'dev'
 Requires-Dist: six ; extra == 'dev'
 Requires-Dist: zope.interface ; extra == 'dev'
 Requires-Dist: sphinx ; extra == 'dev'
@@ -46,7 +55,7 @@ Provides-Extra: tests
 Requires-Dist: coverage ; extra == 'tests'
 Requires-Dist: hypothesis ; extra == 'tests'
 Requires-Dist: pympler ; extra == 'tests'
-Requires-Dist: pytest ; extra == 'tests'
+Requires-Dist: pytest (>=4.3.0) ; extra == 'tests'
 Requires-Dist: six ; extra == 'tests'
 Requires-Dist: zope.interface ; extra == 'tests'
 
@@ -61,8 +70,8 @@ Requires-Dist: zope.interface ; extra == 'tests'
    :target: https://www.attrs.org/en/stable/?badge=stable
    :alt: Documentation Status
 
-.. image:: https://travis-ci.org/python-attrs/attrs.svg?branch=master
-   :target: https://travis-ci.org/python-attrs/attrs
+.. image:: https://attrs.visualstudio.com/attrs/_apis/build/status/python-attrs.attrs?branchName=master
+   :target: https://attrs.visualstudio.com/attrs/_build/latest?definitionId=1&branchName=master
    :alt: CI Status
 
 .. image:: https://codecov.io/github/python-attrs/attrs/branch/master/graph/badge.svg
@@ -70,7 +79,7 @@ Requires-Dist: zope.interface ; extra == 'tests'
    :alt: Test Coverage
 
 .. image:: https://img.shields.io/badge/code%20style-black-000000.svg
-   :target: https://github.com/ambv/black
+   :target: https://github.com/psf/black
    :alt: Code style: black
 
 .. teaser-begin
@@ -124,7 +133,7 @@ After *declaring* your attributes ``attrs`` gives you:
 
 - a concise and explicit overview of the class's attributes,
 - a nice human-readable ``__repr__``,
-- a complete set of comparison methods,
+- a complete set of comparison methods (equality and ordering),
 - an initializer,
 - and much more,
 
@@ -153,12 +162,12 @@ Testimonials
   It exerts a subtle, but positive, design influence in all the codebases I’ve see it used in.
 
 
-**Kenneth Reitz**, author of `Requests <http://www.python-requests.org/>`_ and Developer Advocate at DigitalOcean, (`on paper no less <https://twitter.com/hynek/status/866817877650751488>`_!):
+**Kenneth Reitz**, creator of `Requests <https://github.com/psf/requests>`_ (`on paper no less <https://twitter.com/hynek/status/866817877650751488>`_!):
 
   attrs—classes for humans.  I like it.
 
 
-**Łukasz Langa**, prolific CPython core developer and Production Engineer at Facebook:
+**Łukasz Langa**, creator of `Black <https://github.com/psf/black>`_, prolific Python core developer, and release manager for Python 3.8 and 3.9:
 
   I'm increasingly digging your attr.ocity. Good job!
 
@@ -193,44 +202,70 @@ If you'd like to contribute to ``attrs`` you're most welcome and we've written `
 Release Information
 ===================
 
-19.1.0 (2019-03-03)
+19.2.0 (2019-10-01)
 -------------------
 
 Backward-incompatible Changes
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-- Fixed a bug where deserialized objects with ``cache_hash=True`` could have incorrect hash code values.
-  This change breaks classes with ``cache_hash=True`` when a custom ``__setstate__`` is present.
-  An exception will be thrown when applying the ``attrs`` annotation to such a class.
-  This limitation is tracked in issue `#494 <https://github.com/python-attrs/attrs/issues/494>`_.
-  `#482 <https://github.com/python-attrs/attrs/issues/482>`_
+- Removed deprecated ``Attribute`` attribute ``convert`` per scheduled removal on 2019/1.
+  This planned deprecation is tracked in issue `#307 <https://github.com/python-attrs/attrs/issues/307>`_.
+  `#504 <https://github.com/python-attrs/attrs/issues/504>`_
+- ``__lt__``, ``__le__``, ``__gt__``, and ``__ge__`` do not consider subclasses comparable anymore.
+
+  This has been deprecated since 18.2.0 and was raising a ``DeprecationWarning`` for over a year.
+  `#570 <https://github.com/python-attrs/attrs/issues/570>`_
+
+
+Deprecations
+^^^^^^^^^^^^
+
+- The ``cmp`` argument to ``attr.s()`` and ``attr.ib()`` is now deprecated.
+
+  Please use ``eq`` to add equality methods (``__eq__`` and ``__ne__``) and ``order`` to add ordering methods (``__lt__``, ``__le__``, ``__gt__``, and ``__ge__``) instead – just like with `dataclasses <https://docs.python.org/3/library/dataclasses.html>`_.
+
+  Both are effectively ``True`` by default but it's enough to set ``eq=False`` to disable both at once.
+  Passing ``eq=False, order=True`` explicitly will raise a ``ValueError`` though.
+
+  Since this is arguably a deeper backward-compatibility break, it will have an extended deprecation period until 2021-06-01.
+  After that day, the ``cmp`` argument will be removed.
+
+  ``attr.Attribute`` also isn't orderable anymore.
+  `#574 <https://github.com/python-attrs/attrs/issues/574>`_
 
 
 Changes
 ^^^^^^^
 
-- Add ``is_callable``, ``deep_iterable``, and ``deep_mapping`` validators.
+- Updated ``attr.validators.__all__`` to include new validators added in `#425`_.
+  `#517 <https://github.com/python-attrs/attrs/issues/517>`_
+- Slotted classes now use a pure Python mechanism to rewrite the ``__class__`` cell when rebuilding the class, so ``super()`` works even on environments where ``ctypes`` is not installed.
+  `#522 <https://github.com/python-attrs/attrs/issues/522>`_
+- When collecting attributes using ``@attr.s(auto_attribs=True)``, attributes with a default of ``None`` are now deleted too.
+  `#523 <https://github.com/python-attrs/attrs/issues/523>`_,
+  `#556 <https://github.com/python-attrs/attrs/issues/556>`_
+- Fixed ``attr.validators.deep_iterable()`` and ``attr.validators.deep_mapping()`` type stubs.
+  `#533 <https://github.com/python-attrs/attrs/issues/533>`_
+- ``attr.validators.is_callable()`` validator now raises an exception ``attr.exceptions.NotCallableError``, a subclass of ``TypeError``, informing the received value.
+  `#536 <https://github.com/python-attrs/attrs/issues/536>`_
+- ``@attr.s(auto_exc=True)`` now generates classes that are hashable by ID, as the documentation always claimed it would.
+  `#543 <https://github.com/python-attrs/attrs/issues/543>`_,
+  `#563 <https://github.com/python-attrs/attrs/issues/563>`_
+- Added ``attr.validators.matches_re()`` that checks string attributes whether they match a regular expression.
+  `#552 <https://github.com/python-attrs/attrs/issues/552>`_
+- Keyword-only attributes (``kw_only=True``) and attributes that are excluded from the ``attrs``'s ``__init__`` (``init=False``) now can appear before mandatory attributes.
+  `#559 <https://github.com/python-attrs/attrs/issues/559>`_
+- The fake filename for generated methods is now more stable.
+  It won't change when you restart the process.
+  `#560 <https://github.com/python-attrs/attrs/issues/560>`_
+- The value passed to ``@attr.ib(repr=…)`` can now be either a boolean (as before) or a callable.
+  That callable must return a string and is then used for formatting the attribute by the generated ``__repr__()`` method.
+  `#568 <https://github.com/python-attrs/attrs/issues/568>`_
+- Added ``attr.__version_info__`` that can be used to reliably check the version of ``attrs`` and write forward- and backward-compatible code.
+  Please check out the `section on deprecated APIs <http://www.attrs.org/en/stable/api.html#deprecated-apis>`_ on how to use it.
+  `#580 <https://github.com/python-attrs/attrs/issues/580>`_
 
-  * ``is_callable``: validates that a value is callable
-  * ``deep_iterable``: Allows recursion down into an iterable,
-    applying another validator to every member in the iterable
-    as well as applying an optional validator to the iterable itself.
-  * ``deep_mapping``: Allows recursion down into the items in a mapping object,
-    applying a key validator and a value validator to the key and value in every item.
-    Also applies an optional validator to the mapping object itself.
-
-  You can find them in the ``attr.validators`` package.
-  `#425 <https://github.com/python-attrs/attrs/issues/425>`_
-- Fixed stub files to prevent errors raised by mypy's ``disallow_any_generics = True`` option.
-  `#443 <https://github.com/python-attrs/attrs/issues/443>`_
-- Attributes with ``init=False`` now can follow after ``kw_only=True`` attributes.
-  `#450 <https://github.com/python-attrs/attrs/issues/450>`_
-- ``attrs`` now has first class support for defining exception classes.
-
-  If you define a class using ``@attr.s(auto_exc=True)`` and subclass an exception, the class will behave like a well-behaved exception class including an appropriate ``__str__`` method, and all attributes additionally available in an ``args`` attribute.
-  `#500 <https://github.com/python-attrs/attrs/issues/500>`_
-- Clarified documentation for hashing to warn that hashable objects should be deeply immutable (in their usage, even if this is not enforced).
-  `#503 <https://github.com/python-attrs/attrs/issues/503>`_
+ .. _`#425`: https://github.com/python-attrs/attrs/issues/425
 
 `Full changelog <https://www.attrs.org/en/stable/changelog.html>`_.
 
