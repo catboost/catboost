@@ -18,8 +18,6 @@ IF(HAVE_CUDA)
     )
 ENDIF()
 
-STRIP()
-
 IF (OS_WINDOWS)
     CFLAGS(-D_WINDLL)
 ENDIF()

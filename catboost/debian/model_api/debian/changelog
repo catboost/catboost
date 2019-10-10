@@ -1,3 +1,15 @@
+libcatboostmodel (0.3) unstable; urgency=medium
+
+  * Fix for ubsan
+
+ -- Maxim Stebelev <mstebelev@yandex-team.ru>  Thu, 10 Oct 2019 16:00:21 +0300
+
+libcatboostmodel (0.2) unstable; urgency=medium
+
+  * GPU inference
+
+ -- Maxim Stebelev <mstebelev@yandex-team.ru>  Wed, 11 Sep 2019 11:37:48 +0300
+
 libcatboostmodel (0.16.5ubuntu1) unstable; urgency=medium
 
   * GPU release 

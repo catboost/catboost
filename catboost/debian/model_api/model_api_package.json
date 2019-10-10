@@ -7,9 +7,15 @@
         "homepage": "https://catboost.ai"
     },
     "build": {
-         "libcatboostmodel": {
+        "libcatboostmodel": {
             "targets": [
                 "catboost/libs/model_interface"
+            ],
+            "flags": [
+                {
+                    "name": "CFLAGS",
+                    "value": "-DROBOT_SIGPIPE"
+                }
             ]
         }
     },
