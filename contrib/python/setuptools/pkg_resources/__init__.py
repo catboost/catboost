@@ -3228,6 +3228,14 @@ from library.python import resource
 
 
 class ResProvider(EmptyProvider):
+    _resource_fs = {}
+    for path in resource.iterkeys(b'resfs/file/'):
+        path_str = path if six.PY2 else path.decode('utf-8')
+        components = path_str.split('/')
+        for l in range(len(components)):
+            subpath = os.path.normpath('/'.join(components[:l]))
+            _resource_fs.setdefault(subpath, set()).add(components[l])
+
     def __init__(self, prefix):
         if hasattr(prefix, '__file__'):
             key = prefix.__file__.rsplit('/', 1)[0]
@@ -3250,6 +3258,11 @@ class ResProvider(EmptyProvider):
     def _fn(self, base, resource_name):
         return base + resource_name
 
+    def __lookup(self, path):
+        path = path.encode('utf-8') if isinstance(path, six.text_type) and six.PY2 else path
+        path = os.path.normpath(path)
+        return self._resource_fs.get(path)
+
     def _has(self, path):
         return resource.find(path) is not None
 
@@ -3260,24 +3273,16 @@ class ResProvider(EmptyProvider):
         return result
 
     def _listdir(self, path):
-        slash = '/' if isinstance(path, six.string_types) else '/'.encode('utf-8')
-        bslash = '/'.encode('utf-8')
-        path = path.rstrip(slash) + slash
-        components = len(path.split(slash))
-        listing = set()
-        for f in resource.iterkeys(path):
-            listing.add(f.split('/', components)[components - 1])
-        if isinstance(path, six.string_types):
-            return [l for l in listing]
+        result = self.__lookup(path)
+        if result is None:
+            return []
+        if isinstance(path, six.text_type) and six.PY2:
+            return [key.decode('utf-8') for key in result]
         else:
-            return [l.encode('utf-8') for l in listing]
+            return list(result)
 
     def _isdir(self, path):
-        slash = '/' if isinstance(path, six.string_types) else '/'.encode('utf-8')
-        path = path.rstrip(slash) + slash
-        for f in resource.iterkeys(path):
-            return True
-        return False
+        return bool(self.__lookup(path))
 
 
 class ResDistribution(DistInfoDistribution):
