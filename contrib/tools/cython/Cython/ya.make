@@ -10,4 +10,8 @@ PY_SRCS(
     Utils.py
 )
 
+PEERDIR(
+    contrib/python/six
+)
+
 END()
