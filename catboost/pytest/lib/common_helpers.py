@@ -17,7 +17,8 @@ __all__ = [
     'compare_evals_with_precision',
     'compare_fit_evals_with_precision',
     'compare_metrics_with_diff',
-    'generate_random_labeled_set',
+    'generate_random_labeled_dataset',
+    'generate_concatenated_random_labeled_dataset',
     'load_dataset_as_dataframe',
     'load_pool_features_as_df',
     'permute_dataset_columns',
@@ -94,12 +95,42 @@ def permute_dataset_columns(test_pool_path, cd_path, seed=123):
     return permuted_test_path, permuted_cd_path
 
 
-def generate_random_labeled_set(nrows, nvals, labels, seed=20181219, prng=None):
+def generate_concatenated_random_labeled_dataset(nrows, nvals, labels, seed=20181219, prng=None):
     if prng is None:
         prng = np.random.RandomState(seed=seed)
     label = prng.choice(labels, [nrows, 1])
     feature = prng.random_sample([nrows, nvals])
     return np.concatenate([label, feature], axis=1)
+
+
+# returns (features : numpy.ndarray, labels : list) tuple
+def generate_random_labeled_dataset(
+    n_samples,
+    n_features,
+    labels,
+    features_density=1.0,
+    features_dtype=np.float32,
+    features_range=(-1., 1.),
+    features_order='C',
+    seed=20191008
+):
+    assert features_density > 0.0
+
+    random.seed(seed)
+
+    features = np.empty((n_samples, n_features), dtype=features_dtype, order=features_order)
+    for feature_idx in range(n_features):
+        for sample_idx in range(n_samples):
+            v1 = random.random()
+            if v1 > features_density:
+                value = 0
+            else:
+                value = features_range[0] + (features_range[1] - features_range[0]) * (v1 / features_density)
+            features[sample_idx, feature_idx] = features_dtype(value)
+
+    labels = [random.choice(labels) for i in range(n_samples)]
+
+    return (features, labels)
 
 
 BY_CLASS_METRICS = ['AUC', 'Precision', 'Recall', 'F1']

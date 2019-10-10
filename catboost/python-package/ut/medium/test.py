@@ -41,7 +41,8 @@ from catboost_pytest_lib import (
     permute_dataset_columns,
     remove_time_from_json,
     test_output_path,
-    generate_random_labeled_set,
+    generate_concatenated_random_labeled_dataset,
+    generate_random_labeled_dataset,
     load_dataset_as_dataframe,
     load_pool_features_as_df
 )
@@ -126,6 +127,29 @@ OUTPUT_QUANTIZED_POOL_PATH = 'quantized_pool.bin'
 TARGET_IDX = 1
 CAT_FEATURES = [0, 1, 2, 4, 6, 8, 9, 10, 11, 12, 16]
 CAT_COLUMNS = [0, 2, 3, 5, 7, 9, 10, 11, 12, 13, 17]
+
+numpy_num_data_types = [
+    np.int8,
+    np.int16,
+    np.int32,
+    np.int64,
+    np.uint8,
+    np.uint16,
+    np.uint32,
+    np.uint64,
+    np.float32,
+    np.float64
+]
+
+sparse_matrix_types = [
+    scipy.sparse.csr_matrix,
+    scipy.sparse.bsr_matrix,
+    scipy.sparse.coo_matrix,
+    scipy.sparse.csc_matrix,
+    scipy.sparse.dok_matrix,
+    scipy.sparse.lil_matrix
+]
+
 
 model_diff_tool = binary_path("catboost/tools/model_comparator/model_comparator")
 
@@ -296,6 +320,44 @@ def test_load_ndarray_vs_load_from_file(dataset, order):
 
             assert _have_equal_features(pool_from_file, pool_from_ndarray)
             assert _check_data([float(label) for label in pool_from_file.get_label()], pool_from_ndarray.get_label())
+
+
+@pytest.mark.parametrize(
+    'features_dtype',
+    numpy_num_data_types,
+    ids=['features_dtype=%s' % np.dtype(dtype).name for dtype in numpy_num_data_types]
+)
+def test_fit_on_ndarray(features_dtype):
+    if np.dtype(features_dtype).kind == 'f':
+        cat_features = []
+        lower_bound = -1.0
+        upper_bound = 1.0
+    else:
+        cat_features = [0, 7, 11]
+        lower_bound = max(np.iinfo(features_dtype).min, -32767)
+        upper_bound = min(np.iinfo(features_dtype).max, 32767)
+
+    order_to_pool = {}
+    for order in ('C', 'F'):
+        features, labels = generate_random_labeled_dataset(
+            n_samples=100,
+            n_features=20,
+            labels=[0, 1],
+            features_dtype=features_dtype,
+            features_range=(lower_bound, upper_bound),
+            features_order=order
+        )
+        order_to_pool[order] = Pool(features, label=labels, cat_features=cat_features)
+
+    assert _have_equal_features(order_to_pool['C'], order_to_pool['F'])
+
+    model = CatBoostClassifier(iterations=5)
+    model.fit(order_to_pool['F'])  # order is irrelevant here - they are equal
+    preds = model.predict(order_to_pool['F'])
+
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    np.savetxt(preds_path, np.array(preds))
+    return local_canonical_file(preds_path)
 
 
 @pytest.mark.parametrize('dataset', ['adult', 'adult_nan', 'querywise'])
@@ -1213,10 +1275,10 @@ def test_multiclass_custom_class_labels_from_files(task_type):
     prng = np.random.RandomState(seed=0)
 
     train_path = test_output_path('train.txt')
-    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
+    np.savetxt(train_path, generate_concatenated_random_labeled_dataset(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     test_path = test_output_path('test.txt')
-    np.savetxt(test_path, generate_random_labeled_set(25, 10, labels, prng=prng), fmt='%s', delimiter='\t')
+    np.savetxt(test_path, generate_concatenated_random_labeled_dataset(25, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     train_pool = Pool(train_path, column_description=cd_path)
     test_pool = Pool(test_path, column_description=cd_path)
@@ -5633,15 +5695,6 @@ def test_pools_equal_on_dense_and_scipy_sparse_input(dataset):
 
     canon_sparse_pool = None
 
-    sparse_matrix_types = [
-        scipy.sparse.csr_matrix,
-        scipy.sparse.bsr_matrix,
-        scipy.sparse.coo_matrix,
-        scipy.sparse.csc_matrix,
-        scipy.sparse.dok_matrix,
-        scipy.sparse.lil_matrix
-    ]
-
     for sparse_matrix_type in sparse_matrix_types:
         sparse_features = sparse_matrix_type(data['features'])
 
@@ -5666,6 +5719,56 @@ def test_pools_equal_on_dense_and_scipy_sparse_input(dataset):
                 assert _have_equal_features(dense_pool, sparse_pool, True)
             else:
                 assert _have_equal_features(sparse_pool, canon_sparse_pool, False)
+
+@pytest.mark.parametrize(
+    'features_dtype',
+    numpy_num_data_types,
+    ids=['features_dtype=%s' % np.dtype(dtype).name for dtype in numpy_num_data_types]
+)
+@pytest.mark.parametrize(
+    'features_density',
+    [0.1, 0.2, 0.8],
+    ids=['features_density=%s' % density for density in [0.1, 0.2, 0.8]]
+)
+def test_fit_on_scipy_sparse_spmatrix(features_dtype, features_density):
+    if np.dtype(features_dtype).kind == 'f':
+        cat_features = []
+        lower_bound = -1.0
+        upper_bound = 1.0
+    else:
+        cat_features = [0, 7, 11]
+        lower_bound = max(np.iinfo(features_dtype).min, -32767)
+        upper_bound = min(np.iinfo(features_dtype).max, 32767)
+
+    features, labels = generate_random_labeled_dataset(
+        n_samples=100,
+        n_features=20,
+        labels=[0, 1],
+        features_density=features_density,
+        features_dtype=features_dtype,
+        features_range=(lower_bound, upper_bound),
+    )
+
+    dense_pool = Pool(features, label=labels, cat_features=cat_features)
+
+    canon_sparse_pool = None
+
+    for sparse_matrix_type in sparse_matrix_types:
+        sparse_pool = Pool(sparse_matrix_type(features), label=labels, cat_features=cat_features)
+
+        if canon_sparse_pool is None:
+            canon_sparse_pool = sparse_pool
+            assert _have_equal_features(dense_pool, sparse_pool, True)
+        else:
+            assert _have_equal_features(sparse_pool, canon_sparse_pool, False)
+
+    model = CatBoostClassifier(iterations=5)
+    model.fit(canon_sparse_pool)
+    preds = model.predict(canon_sparse_pool)
+
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    np.savetxt(preds_path, np.array(preds))
+    return local_canonical_file(preds_path)
 
 
 # pandas has NaN value indicating missing values by default,
@@ -5818,19 +5921,6 @@ def test_param_array_monotonic_constrains(model_shrink_rate):
 
 
 def test_same_values_with_different_types(task_type):
-    data_types = [
-        np.int8,
-        np.int16,
-        np.int32,
-        np.int64,
-        np.uint8,
-        np.uint16,
-        np.uint32,
-        np.uint64,
-        np.float32,
-        np.float64
-    ]
-
     # take integers from [0, 127] because they can be represented by any of this types
 
     canon_predictions = None
@@ -5848,7 +5938,7 @@ def test_same_values_with_different_types(task_type):
 
     canon_features = np.random.randint(0, 127, size=(n_objects, n_features), dtype=np.int8)
 
-    for data_type in data_types:
+    for data_type in numpy_num_data_types:
         features_df = DataFrame()
 
         for feature_idx in range(n_features):

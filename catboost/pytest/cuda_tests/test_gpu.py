@@ -40,7 +40,7 @@ TEXT_FEATURE_ESTIMATORS = [
 ]
 
 
-def generate_random_labeled_set(nrows, nvals, labels, seed=20181219, prng=None):
+def generate_concatenated_random_labeled_dataset(nrows, nvals, labels, seed=20181219, prng=None):
     if prng is None:
         prng = np.random.RandomState(seed=seed)
     label = prng.choice(labels, [nrows, 1])
@@ -1500,10 +1500,10 @@ def test_multiclass_baseline(loss_function):
     prng = np.random.RandomState(seed=0)
 
     train_path = yatest.common.test_output_path('train.txt')
-    np.savetxt(train_path, generate_random_labeled_set(100, 1000, labels, prng=prng), fmt='%s', delimiter='\t')
+    np.savetxt(train_path, generate_concatenated_random_labeled_dataset(100, 1000, labels, prng=prng), fmt='%s', delimiter='\t')
 
     test_path = yatest.common.test_output_path('test.txt')
-    np.savetxt(test_path, generate_random_labeled_set(100, 1000, labels, prng=prng), fmt='%s', delimiter='\t')
+    np.savetxt(test_path, generate_concatenated_random_labeled_dataset(100, 1000, labels, prng=prng), fmt='%s', delimiter='\t')
 
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
@@ -1545,10 +1545,10 @@ def test_multiclass_baseline_lost_class(loss_function):
     prng = np.random.RandomState(seed=0)
 
     train_path = yatest.common.test_output_path('train.txt')
-    np.savetxt(train_path, generate_random_labeled_set(num_objects, 10, labels=[1, 2], prng=prng), fmt='%.5f', delimiter='\t')
+    np.savetxt(train_path, generate_concatenated_random_labeled_dataset(num_objects, 10, labels=[1, 2], prng=prng), fmt='%.5f', delimiter='\t')
 
     test_path = yatest.common.test_output_path('test.txt')
-    np.savetxt(test_path, generate_random_labeled_set(num_objects, 10, labels=[0, 1, 2, 3], prng=prng), fmt='%.5f', delimiter='\t')
+    np.savetxt(test_path, generate_concatenated_random_labeled_dataset(num_objects, 10, labels=[0, 1, 2, 3], prng=prng), fmt='%.5f', delimiter='\t')
 
     eval_error_path = yatest.common.test_output_path('eval_error.tsv')
 
@@ -1920,10 +1920,10 @@ def test_eval_metrics_class_names():
     prng = np.random.RandomState(seed=0)
 
     train_path = yatest.common.test_output_path('train.txt')
-    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
+    np.savetxt(train_path, generate_concatenated_random_labeled_dataset(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     test_path = yatest.common.test_output_path('test.txt')
-    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
+    np.savetxt(test_path, generate_concatenated_random_labeled_dataset(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     learn_error_path = yatest.common.test_output_path('learn_error.tsv')
     test_error_path = yatest.common.test_output_path('test_error.tsv')
@@ -1968,10 +1968,10 @@ def test_fit_multiclass_with_class_names():
     prng = np.random.RandomState(seed=0)
 
     learn_path = yatest.common.test_output_path('train.txt')
-    np.savetxt(learn_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
+    np.savetxt(learn_path, generate_concatenated_random_labeled_dataset(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     test_path = yatest.common.test_output_path('test.txt')
-    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
+    np.savetxt(test_path, generate_concatenated_random_labeled_dataset(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     test_error_path = yatest.common.test_output_path('test_error.tsv')
     eval_error_path = yatest.common.test_output_path('eval_error.tsv')
@@ -2011,10 +2011,10 @@ def test_extract_multiclass_labels_from_class_names():
     prng = np.random.RandomState(seed=0)
 
     train_path = yatest.common.test_output_path('train.txt')
-    np.savetxt(train_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
+    np.savetxt(train_path, generate_concatenated_random_labeled_dataset(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     test_path = yatest.common.test_output_path('test.txt')
-    np.savetxt(test_path, generate_random_labeled_set(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
+    np.savetxt(test_path, generate_concatenated_random_labeled_dataset(100, 10, labels, prng=prng), fmt='%s', delimiter='\t')
 
     test_error_path = yatest.common.test_output_path('test_error.tsv')
     eval_error_path = yatest.common.test_output_path('eval_error.tsv')
@@ -2062,10 +2062,10 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
     prng = np.random.RandomState(seed=0)
 
     train_path = yatest.common.test_output_path('train.txt')
-    np.savetxt(train_path, generate_random_labeled_set(100, 10, [1, 2], prng=prng), fmt='%s', delimiter='\t')
+    np.savetxt(train_path, generate_concatenated_random_labeled_dataset(100, 10, [1, 2], prng=prng), fmt='%s', delimiter='\t')
 
     test_path = yatest.common.test_output_path('test.txt')
-    np.savetxt(test_path, generate_random_labeled_set(100, 10, [0, 1, 2, 3], prng=prng), fmt='%s', delimiter='\t')
+    np.savetxt(test_path, generate_concatenated_random_labeled_dataset(100, 10, [0, 1, 2, 3], prng=prng), fmt='%s', delimiter='\t')
 
     eval_path = yatest.common.test_output_path('eval.txt')
 

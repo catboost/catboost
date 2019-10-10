@@ -1929,7 +1929,7 @@ cdef _get_object_count(data):
 
 # num_feature_values and cat_feature values cannot be const due to
 # https://github.com/cython/cython/issues/2485
-def _set_features_order_data_np(
+def _set_features_order_data_features_data(
     numpy_num_dtype [:,:] num_feature_values,
     object [:,:] cat_feature_values,
     Py_FeaturesOrderBuilderVisitor py_builder_visitor
@@ -1975,6 +1975,40 @@ def _set_features_order_data_np(
             cat_factor_data.push_back(factor_string)
         builder_visitor[0].AddCatFeature(dst_feature_idx, <TConstArrayRef[TString]>cat_factor_data)
         dst_feature_idx += 1
+
+# feature_values cannot be const due to https://github.com/cython/cython/issues/2485
+def _set_features_order_data_ndarray(
+    numpy_num_dtype [:,:] feature_values,
+    bool_t [:] is_cat_feature_mask,
+    Py_FeaturesOrderBuilderVisitor py_builder_visitor
+):
+    cdef IRawFeaturesOrderDataVisitor* builder_visitor
+    py_builder_visitor.get_raw_features_order_data_visitor(&builder_visitor)
+
+    cdef ui32 doc_count = <ui32>(feature_values.shape[0])
+    cdef ui32 feature_count = <ui32>(feature_values.shape[1])
+
+    cdef Py_ITypedSequencePtr py_num_factor_data
+    cdef ITypedSequencePtr[np.float32_t] num_factor_data
+
+    cdef TVector[TString] cat_factor_data
+    cdef ui32 doc_idx
+
+    cdef ui32 flat_feature_idx
+
+    cat_factor_data.reserve(doc_count)
+
+    for flat_feature_idx in range(feature_count):
+        if is_cat_feature_mask[flat_feature_idx]:
+            cat_factor_data.clear()
+            for doc_idx in range(doc_count):
+                cat_factor_data.push_back(ToString(feature_values[doc_idx, flat_feature_idx]))
+            builder_visitor[0].AddCatFeature(flat_feature_idx, <TConstArrayRef[TString]>cat_factor_data)
+        else:
+            py_num_factor_data = make_non_owning_type_cast_array_holder(feature_values[:,flat_feature_idx])
+            py_num_factor_data.get_result(&num_factor_data)
+            builder_visitor[0].AddFloatFeature(flat_feature_idx, num_factor_data)
+
 
 cdef float get_float_feature(ui32 non_default_doc_idx, ui32 flat_feature_idx, src_value) except*:
     try:
@@ -2977,9 +3011,12 @@ cdef class _PoolBase:
         pairs_weight,
         baseline):
 
+        cdef TFeaturesLayout* features_layout = data_meta_info.FeaturesLayout.Get()
         cdef Py_FeaturesOrderBuilderVisitor py_builder_visitor = Py_FeaturesOrderBuilderVisitor()
         cdef IRawFeaturesOrderDataVisitor* builder_visitor = py_builder_visitor.builder_visitor
         py_builder_visitor.set_features_layout(data_meta_info.FeaturesLayout.Get())
+
+        cdef TVector[bool_t] cat_features_mask # used only if data is np.ndarray
 
         cdef TVector[TIntrusivePtr[IResourceHolder]] resource_holders
         builder_visitor[0].Start(
@@ -3000,12 +3037,12 @@ cdef class _PoolBase:
             if data.cat_feature_data is not None:
                 data.cat_feature_data.setflags(write=1)
 
-            _set_features_order_data_np(
+            _set_features_order_data_features_data(
                 data.num_feature_data,
                 data.cat_feature_data,
                 py_builder_visitor)
 
-            # set after _set_features_order_data_np call because we can't pass const data to it
+            # set after _set_features_order_data_features_data call because we can't pass const data to it
             if data.num_feature_data is not None:
                 data.num_feature_data.setflags(write=0)
             if data.cat_feature_data is not None:
@@ -3013,22 +3050,29 @@ cdef class _PoolBase:
         elif isinstance(data, pd.DataFrame):
             new_data_holders = _set_features_order_data_pd_data_frame(
                 data,
-                data_meta_info.FeaturesLayout.Get(),
+                features_layout,
                 builder_visitor
             )
         elif isinstance(data, scipy.sparse.spmatrix):
             new_data_holders = _set_features_order_data_scipy_sparse_matrix(
                 data,
-                data_meta_info.FeaturesLayout.Get(),
+                features_layout,
                 py_builder_visitor
             )
         elif isinstance(data, np.ndarray):
-            new_data_holders = data
+            if data_meta_info.FeaturesLayout.Get()[0].GetFloatFeatureCount():
+                new_data_holders = data
+
+            cat_features_mask = _get_is_cat_feature_mask(features_layout)
 
             # needed because of https://github.com/cython/cython/issues/1772
             data.setflags(write=1)
 
-            _set_features_order_data_np(data, None, py_builder_visitor)
+            _set_features_order_data_ndarray(
+                data,
+                <bool_t[:features_layout[0].GetExternalFeatureCount()]>cat_features_mask.data(),
+                py_builder_visitor
+            )
 
             # set after _set_features_order_data_np call because we can't pass const data to it
             data.setflags(write=0)

@@ -411,6 +411,166 @@
         "checksum": "1b2da73a44d73ca1efc3b65c6037e0a9",
         "uri": "file://test.test_fit_data_CPU_/predictions.npy"
     },
+    "test.test_fit_on_ndarray[features_dtype=float32]": {
+        "checksum": "768cf08f49bc364eb1a38486d2ece7b4",
+        "uri": "file://test.test_fit_on_ndarray_features_dtype=float32_/predictions.txt"
+    },
+    "test.test_fit_on_ndarray[features_dtype=float64]": {
+        "checksum": "768cf08f49bc364eb1a38486d2ece7b4",
+        "uri": "file://test.test_fit_on_ndarray_features_dtype=float64_/predictions.txt"
+    },
+    "test.test_fit_on_ndarray[features_dtype=int16]": {
+        "checksum": "7f7d154822eb62a6702914a411a6e065",
+        "uri": "file://test.test_fit_on_ndarray_features_dtype=int16_/predictions.txt"
+    },
+    "test.test_fit_on_ndarray[features_dtype=int32]": {
+        "checksum": "7f7d154822eb62a6702914a411a6e065",
+        "uri": "file://test.test_fit_on_ndarray_features_dtype=int32_/predictions.txt"
+    },
+    "test.test_fit_on_ndarray[features_dtype=int64]": {
+        "checksum": "7f7d154822eb62a6702914a411a6e065",
+        "uri": "file://test.test_fit_on_ndarray_features_dtype=int64_/predictions.txt"
+    },
+    "test.test_fit_on_ndarray[features_dtype=int8]": {
+        "checksum": "5f95af130b05b8ee2c396916d78622a9",
+        "uri": "file://test.test_fit_on_ndarray_features_dtype=int8_/predictions.txt"
+    },
+    "test.test_fit_on_ndarray[features_dtype=uint16]": {
+        "checksum": "7f7d154822eb62a6702914a411a6e065",
+        "uri": "file://test.test_fit_on_ndarray_features_dtype=uint16_/predictions.txt"
+    },
+    "test.test_fit_on_ndarray[features_dtype=uint32]": {
+        "checksum": "7f7d154822eb62a6702914a411a6e065",
+        "uri": "file://test.test_fit_on_ndarray_features_dtype=uint32_/predictions.txt"
+    },
+    "test.test_fit_on_ndarray[features_dtype=uint64]": {
+        "checksum": "7f7d154822eb62a6702914a411a6e065",
+        "uri": "file://test.test_fit_on_ndarray_features_dtype=uint64_/predictions.txt"
+    },
+    "test.test_fit_on_ndarray[features_dtype=uint8]": {
+        "checksum": "66be28b9c7c896a9b0fea24b960736e9",
+        "uri": "file://test.test_fit_on_ndarray_features_dtype=uint8_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.1-features_dtype=float32]": {
+        "checksum": "4c93c54e497762742570fb71efd9871c",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.1-features_dtype=float32_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.1-features_dtype=float64]": {
+        "checksum": "4c93c54e497762742570fb71efd9871c",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.1-features_dtype=float64_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.1-features_dtype=int16]": {
+        "checksum": "3b736c65ac802fcc40c2ace0ed83fcdb",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.1-features_dtype=int16_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.1-features_dtype=int32]": {
+        "checksum": "3b736c65ac802fcc40c2ace0ed83fcdb",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.1-features_dtype=int32_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.1-features_dtype=int64]": {
+        "checksum": "3b736c65ac802fcc40c2ace0ed83fcdb",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.1-features_dtype=int64_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.1-features_dtype=int8]": {
+        "checksum": "b071b8d56f2279177ece4a8777c86de9",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.1-features_dtype=int8_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.1-features_dtype=uint16]": {
+        "checksum": "9fdec49e81ce01d622eecc4dd09915c4",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.1-features_dtype=uint16_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.1-features_dtype=uint32]": {
+        "checksum": "9fdec49e81ce01d622eecc4dd09915c4",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.1-features_dtype=uint32_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.1-features_dtype=uint64]": {
+        "checksum": "9fdec49e81ce01d622eecc4dd09915c4",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.1-features_dtype=uint64_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.1-features_dtype=uint8]": {
+        "checksum": "10e46512eb67000f556587b3a3c101f4",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.1-features_dtype=uint8_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.2-features_dtype=float32]": {
+        "checksum": "30bd6d9b24c6b5b918aeb3d4f1caba6b",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.2-features_dtype=float32_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.2-features_dtype=float64]": {
+        "checksum": "30bd6d9b24c6b5b918aeb3d4f1caba6b",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.2-features_dtype=float64_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.2-features_dtype=int16]": {
+        "checksum": "f39a3f89c7d8c5836b856aec14ee0425",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.2-features_dtype=int16_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.2-features_dtype=int32]": {
+        "checksum": "f39a3f89c7d8c5836b856aec14ee0425",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.2-features_dtype=int32_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.2-features_dtype=int64]": {
+        "checksum": "f39a3f89c7d8c5836b856aec14ee0425",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.2-features_dtype=int64_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.2-features_dtype=int8]": {
+        "checksum": "46547b9b3c827300e897369b290a83eb",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.2-features_dtype=int8_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.2-features_dtype=uint16]": {
+        "checksum": "b269e09130549196dfb9a26c6542c041",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.2-features_dtype=uint16_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.2-features_dtype=uint32]": {
+        "checksum": "b269e09130549196dfb9a26c6542c041",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.2-features_dtype=uint32_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.2-features_dtype=uint64]": {
+        "checksum": "b269e09130549196dfb9a26c6542c041",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.2-features_dtype=uint64_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.2-features_dtype=uint8]": {
+        "checksum": "dcb850d3fac0850d6a874b66f6f7205f",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.2-features_dtype=uint8_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.8-features_dtype=float32]": {
+        "checksum": "5495609fd670359603ff60c5a3afd3cf",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.8-features_dtype=float32_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.8-features_dtype=float64]": {
+        "checksum": "5495609fd670359603ff60c5a3afd3cf",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.8-features_dtype=float64_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.8-features_dtype=int16]": {
+        "checksum": "a7026f361ee3af60225fd208afad66ee",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.8-features_dtype=int16_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.8-features_dtype=int32]": {
+        "checksum": "a7026f361ee3af60225fd208afad66ee",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.8-features_dtype=int32_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.8-features_dtype=int64]": {
+        "checksum": "a7026f361ee3af60225fd208afad66ee",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.8-features_dtype=int64_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.8-features_dtype=int8]": {
+        "checksum": "590c554b8845e7ea117ad55e893a6054",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.8-features_dtype=int8_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.8-features_dtype=uint16]": {
+        "checksum": "8a951c2f1a0c1fb70e274a5582258f5e",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.8-features_dtype=uint16_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.8-features_dtype=uint32]": {
+        "checksum": "8a951c2f1a0c1fb70e274a5582258f5e",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.8-features_dtype=uint32_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.8-features_dtype=uint64]": {
+        "checksum": "8a951c2f1a0c1fb70e274a5582258f5e",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.8-features_dtype=uint64_/predictions.txt"
+    },
+    "test.test_fit_on_scipy_sparse_spmatrix[features_density=0.8-features_dtype=uint8]": {
+        "checksum": "1f95790e288cc64470383b2dd4a70ae8",
+        "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.8-features_dtype=uint8_/predictions.txt"
+    },
     "test.test_full_history[CPU]": {
         "checksum": "56d87d24b3d5ebfb87100aa081c66b46",
         "uri": "file://test.test_full_history_CPU_/model.bin"
