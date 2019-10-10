@@ -11,9 +11,11 @@ NO_RUNTIME()
 
 NO_COMPILER_WARNINGS()
 
-ADDINCL(
-    contrib/libs/cxxsupp/libcxx/include
-)
+IF (NOT USE_STL_SYSTEM)
+    ADDINCL(
+        contrib/libs/cxxsupp/libcxx/include
+    )
+ENDIF()
 
 IF (OS_WINDOWS)
     SRCS(
