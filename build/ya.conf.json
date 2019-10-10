@@ -68,6 +68,7 @@
         "graphs_difference": { "description": "Run graphs_difference tool", "visible": false },
         "contexts_difference": { "description": "Run contexts_difference tool", "visible": false },
         "ygdiff": { "description": "Run ygdiff tool", "visible": false },
+        "ya-tc": { "description": "Run ya-tc tool", "visible": false },
         "crypta": { "description": "Run Crypta client" },
         "go": { "description": "Run go tool (1.12.10)" },
         "gofmt": { "description": "Run gofmt tool (1.12.10)" },
@@ -1451,6 +1452,15 @@
                 {"host": {"os": "WIN"}, "default": true}
             ]
         },
+        "ya-tc": {
+            "tools": {
+                "ya-tc": {"bottle": "ya-tc", "executable": "ya-tc"}
+            },
+            "platforms": [
+                {"host": {"os": "LINUX"}, "default": true},
+                {"host": {"os": "DARWIN"}, "default": true}
+            ]
+        },
         "crypta": {
             "tools": {
                 "crypta": {"bottle": "crypta", "executable": "crypta"}
@@ -2460,6 +2470,15 @@
             },
             "executable": {
                 "ygdiff": ["ygdiff"]
+            }
+        },
+        "ya-tc": {
+            "formula": {
+                "sandbox_id": 523661954,
+                "match": "ya-tc"
+            },
+            "executable": {
+                "ya-tc": ["ya-tc"]
             }
         },
         "crypta": {
