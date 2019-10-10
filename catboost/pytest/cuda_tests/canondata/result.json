@@ -25,7 +25,7 @@
     ],
     "test_gpu.test_all_targets[Ordered-MAPE]": [
         {
-            "checksum": "775c6bfa92be9c430dcfde6f757b5cdf",
+            "checksum": "3063c7b6df0bf9713dd68137caf9cb9c",
             "uri": "file://test_gpu.test_all_targets_Ordered-MAPE_/test.eval"
         }
     ],
@@ -73,7 +73,7 @@
     ],
     "test_gpu.test_all_targets[Plain-MAPE]": [
         {
-            "checksum": "d72696684a84a4f7bd8848b922384bc3",
+            "checksum": "af476bcbe34102262762c810af5baff6",
             "uri": "file://test_gpu.test_all_targets_Plain-MAPE_/test.eval"
         }
     ],

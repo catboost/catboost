@@ -387,7 +387,7 @@ public:
 
 private:
     double CalcDer(double approx, float target) const override {
-        return (target - approx > 0) ? 1 / target : -1 / target;
+        return (target - approx > 0) ? 1 / Max(1.f, Abs(target)) : -1 / Max(1.f, Abs(target));
     }
 
     double CalcDer2(double /*approx*/, float /*target*/) const override {

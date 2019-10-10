@@ -783,7 +783,7 @@ TMetricHolder TMAPEMetric::EvalSingleThread(
         for (int k : xrange(begin, end)) {
             const float w = hasWeight ? weight[k] : 1;
             const double delta = hasDelta ? approxDelta[k] : 0;
-            error.Stats[0] += Abs(1 - (approx[k] + delta) / target[k]) * w;
+            error.Stats[0] += Abs(target[k] - (approx[k] + delta)) / Max(1.f, Abs(target[k])) * w;
             error.Stats[1] += w;
         }
         return error;

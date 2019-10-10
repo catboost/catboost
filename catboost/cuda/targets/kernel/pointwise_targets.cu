@@ -83,11 +83,11 @@ namespace NKernel {
     struct TMAPETarget  {
 
         __device__ __forceinline__ float Score(float target, float prediction) const {
-            return abs(1.0f - prediction / target);
+            return abs(target - prediction) / max(1.f, abs(target));
         }
 
         __device__ __forceinline__ float Der(float target, float prediction) const {
-            return (target - prediction > 0) ? 1.0f / target : -1.0f / target;
+            return (target - prediction > 0) ? 1.0f / max(1.f, abs(target)) : -1.0f / max(1.f, abs(target));
         }
 
         __device__ __forceinline__  float Der2(float, float) const {
