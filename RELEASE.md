@@ -1,3 +1,8 @@
+# Release 0.17.5
+
+## Bugs fixed:
+- `System of linear equations is not positive definite` when training MultiClass on Windows, #1022
+
 # Release 0.17.4
 
 ## Improvements:
