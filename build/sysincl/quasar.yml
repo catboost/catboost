@@ -1,50 +1,36 @@
-- source_filter: "^quasar/yandex_io/daemons/local/include/"
+- source_filter: "^quasar/yandex_io/daemons/external_libs/asio"
   includes:
+  - __config
+  - atomic.h
+- source_filter: "^quasar/yandex_io/daemons/external_libs/boost"
+  includes:
+  - ../include/fenv.h
+  - __config
+  - _cygwin.h
   - _mingw.h
-  - mingw-threads/mingw.thread.h
-  - mingw-threads/mingw.mutex.h
-  - mingw-threads/mingw.condition_variable.h
-  - sanitizer/tsan_interface_atomic.h
-  - sanitizer/msan_interface.h
-- source_filter: "^quasar/yandex_io/daemons/local/include/json/"
+  - atomic.h
+  - builtins.h
+  - kfuncs.h
+  - msl_utility
+  - msl_utility
+  - sysLib.h
+  - tickLib.h
+  - type_traits.h
+  - version.h
+- source_filter: "^quasar/yandex_io/daemons/external_libs/jsoncpp/"
   includes:
   - cpptl/config.h
   - cpptl/cpptl_autolink.h
   - cpptl/smallmap.h
   - cpptl/forwards.h
-- source_filter: "^quasar/yandex_io/daemons/local/include/(asio|boost/asio)/"
-  includes:
-  - __config
-  - atomic.h
-- source_filter: "^quasar/yandex_io/daemons/local/include/"
+- source_filter: "^quasar/yandex_io/daemons/external_libs/protobuf/"
   includes:
   - atomic.h
-  - asm/sgidefs.h
-- source_filter: "^quasar/yandex_io/daemons/contrib/spdlog"
+- source_filter: "^quasar/yandex_io/daemons/external_libs/websocketpp"
   includes:
-  - fmt/core.h
-  - fmt/format.h
-- source_filter: "^quasar/yandex_io/daemons/local/include/boost"
-  includes:
-  - ../include/fenv.h
-  - version.h
-  - sysLib.h
-  - tickLib.h
-  - type_traits.h
-  - msl_utility
-  - builtins.h
-  - _cygwin.h
-  - kfuncs.h
-  - msl_utility
-- source_filter: "^quasar/yandex_io/daemons/src/audiod/speex_port/"
-  includes:
-  - fixed_arm4.h
-  - fixed_arm5e.h
-  - fixed_bfin.h
-  - fixed_debug.h
-  - fixed_generic.h
-  - config.h
-  - os_support_custom.h
+  - mingw-threads/mingw.thread.h
+  - mingw-threads/mingw.mutex.h
+  - mingw-threads/mingw.condition_variable.h
 - source_filter: "^quasar/yandex_io/daemons/src/wifid/wpa_supplicant/"
   includes:
   - private/android_filesystem_config.h
