@@ -5872,3 +5872,23 @@ def test_default_eval_metric(loss_function):
     model = CatBoostClassifier(task_type='CPU', loss_function=loss_function, iterations=15, metric_period=100)
     model.fit(p)
     assert model.get_all_params()["eval_metric"] == loss_function
+
+
+def test_multiclass_train_on_constant_data(task_type):
+    features = np.asarray(
+        [[0.27290749, 0.63002519, 0., 0.38624339, 0.],
+         [0.27290748, 0.63002519, 0., 0.38624339, 0.],
+         [0.27290747, 0.63002519, 0., 0.38624339, 0.]]
+    )
+    classes = ['0', '1', '2']
+    labels = np.asarray(classes)
+
+    clf = CatBoostClassifier(
+        iterations=2,
+        loss_function='MultiClass'
+    )
+
+    model = clf.fit(features, labels)
+
+    assert model.classes_ == classes
+    model.predict(features)

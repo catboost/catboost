@@ -357,11 +357,13 @@ namespace NCB::NModelEvaluation {
             ) const override {
                 const TCPUEvaluatorQuantizedData* cpuQuantizedFeatures = reinterpret_cast<const TCPUEvaluatorQuantizedData*>(quantizedFeatures);
                 CB_ENSURE(cpuQuantizedFeatures != nullptr, "Expected pointer to TCPUEvaluatorQuantizedData");
-                CB_ENSURE(
-                    cpuQuantizedFeatures->BlockStride % ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount() == 0,
-                    "Unexpected block stride: " << cpuQuantizedFeatures->BlockStride
-                    << " (EffectiveBinaryFeaturesBucketsCount == " << ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount() << " )"
-                );
+                if (ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount() != 0) {
+                    CB_ENSURE(
+                        cpuQuantizedFeatures->BlockStride % ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount() == 0,
+                        "Unexpected block stride: " << cpuQuantizedFeatures->BlockStride
+                        << " (EffectiveBinaryFeaturesBucketsCount == " << ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount() << " )"
+                    );
+                }
                 CB_ENSURE(cpuQuantizedFeatures->BlocksCount * FORMULA_EVALUATION_BLOCK_SIZE >= cpuQuantizedFeatures->ObjectsCount);
                 std::fill(results.begin(), results.end(), 0.0);
                 auto subBlockSize = Min<size_t>(FORMULA_EVALUATION_BLOCK_SIZE, cpuQuantizedFeatures->ObjectsCount);
@@ -395,11 +397,13 @@ namespace NCB::NModelEvaluation {
             ) const override {
                 const TCPUEvaluatorQuantizedData* cpuQuantizedFeatures = reinterpret_cast<const TCPUEvaluatorQuantizedData*>(quantizedFeatures);
                 CB_ENSURE(cpuQuantizedFeatures != nullptr, "Expected pointer to TCPUEvaluatorQuantizedData");
-                CB_ENSURE(
-                    cpuQuantizedFeatures->BlockStride % ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount() == 0,
-                    "Unexpected block stride: " << cpuQuantizedFeatures->BlockStride
-                    << " (EffectiveBinaryFeaturesBucketsCount == " << ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount() << " )"
-                );
+                if (ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount() != 0) {
+                    CB_ENSURE(
+                        cpuQuantizedFeatures->BlockStride % ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount() == 0,
+                        "Unexpected block stride: " << cpuQuantizedFeatures->BlockStride
+                        << " (EffectiveBinaryFeaturesBucketsCount == " << ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount() << " )"
+                    );
+                }
                 CB_ENSURE(cpuQuantizedFeatures->BlocksCount * FORMULA_EVALUATION_BLOCK_SIZE >= cpuQuantizedFeatures->ObjectsCount);
                 auto calcFunction = GetCalcTreesFunction(
                     *ObliviousTrees,
@@ -408,12 +412,12 @@ namespace NCB::NModelEvaluation {
                 );
                 size_t treeCount = treeEnd - treeStart;
                 CB_ENSURE(indexes.size() == treeCount * cpuQuantizedFeatures->ObjectsCount);
-                TVector<TCalcerIndexType> tmpLeafIndexHolder(
-                    (cpuQuantizedFeatures->BlockStride / ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount()) * treeCount);
-                TCalcerIndexType* transposedLeafIndexesPtr = tmpLeafIndexHolder.data();
+                TVector<TCalcerIndexType> tmpLeafIndexHolder;
                 TCalcerIndexType* indexesWritePtr = indexes.data();
                 for (size_t blockId = 0; blockId < cpuQuantizedFeatures->BlocksCount; ++blockId) {
                     auto subBlock = cpuQuantizedFeatures->ExtractBlock(blockId);
+                    tmpLeafIndexHolder.yresize(subBlock.GetObjectsCount() * treeCount);
+                    TCalcerIndexType* transposedLeafIndexesPtr = tmpLeafIndexHolder.data();
                     calcFunction(
                         *ObliviousTrees,
                         &subBlock,
