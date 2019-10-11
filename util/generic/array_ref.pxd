@@ -1,3 +1,5 @@
+from libcpp cimport bool as bool_t
+
 
 cdef extern from "util/generic/array_ref.h" nogil:
     cdef cppclass TArrayRef[T]:
@@ -5,6 +7,7 @@ cdef extern from "util/generic/array_ref.h" nogil:
 
         T& operator[](size_t)
 
+        bool_t empty()
         T* data() except +
         size_t size() except +
         T* begin() except +
@@ -15,6 +18,7 @@ cdef extern from "util/generic/array_ref.h" nogil:
 
         const T& operator[](size_t)
 
+        bool_t empty()
         const T* data() except +
         size_t size() except +
         const T* begin() except +
