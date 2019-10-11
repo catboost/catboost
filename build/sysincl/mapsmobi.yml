@@ -43,6 +43,8 @@
   - QtWidgets/QWidget
   - android/bitmap.h
   - message_lite.h
+  - MoltenVK/vk_mvk_moltenvk.h
+
 - source_filter: "^contrib/deprecated/boost"
   includes:
   - atomic.h
