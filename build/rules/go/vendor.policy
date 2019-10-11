@@ -219,7 +219,7 @@ ALLOW .* -> vendor/golang.org/x/sys
 ALLOW .* -> vendor/gopkg.in/ldap.v3
 
 # simple HTTP and REST client library
-ALLOW .* -> vendor/gopkg.in/resty.v1
+ALLOW .* -> vendor/github.com/go-resty/resty/v2
 
 # YAML support for Go
 ALLOW .* -> vendor/gopkg.in/yaml.v2
