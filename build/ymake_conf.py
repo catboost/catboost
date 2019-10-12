@@ -916,6 +916,8 @@ class GnuToolchainOptions(ToolchainOptions):
 
         self.ar = self.params.get('ar')
         self.ar_plugin = self.params.get('ar_plugin')
+        self.strip = self.params.get('strip')
+        self.objcopy = self.params.get('objcopy')
 
         self.dwarf_tool = self.target.find_in_dict(self.params.get('dwarf_tool'))
 
@@ -1441,6 +1443,8 @@ class LD(Linker):
 
         self.ar = preset('AR') or self.tc.ar
         self.ar_plugin = self.tc.ar_plugin
+        self.strip = self.tc.strip
+        self.objcopy = self.tc.objcopy
 
         self.musl = Setting('MUSL', convert=to_bool)
 
@@ -1559,6 +1563,9 @@ class LD(Linker):
 
         emit('AR_TOOL', self.ar)
         emit('AR_TYPE', 'AR' if 'libtool' not in self.ar else 'LIBTOOL')
+
+        emit('STRIP_TOOL_VENDOR', self.strip)
+        emit('OBJCOPY_TOOL_VENDOR', self.objcopy)
 
         append('LDFLAGS', '$USER_LDFLAGS', self.ld_flags)
         append('LDFLAGS_GLOBAL', '')
