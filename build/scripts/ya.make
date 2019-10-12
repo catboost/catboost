@@ -28,6 +28,7 @@ TEST_SRCS(
     fetch_from_mds.py
     fetch_from_sandbox.py
     fetch_resource.py
+    filter_zip.py
     find_and_tar.py
     fix_msvc_output.py
     fs_tools.py

@@ -82,6 +82,8 @@ def onjava_module(unit, *args):
         'ADD_WAR': extract_macro_calls(unit, 'ADD_WAR_VALUE', args_delim),
         'DEPENDENCY_MANAGEMENT': extract_macro_calls(unit, 'DEPENDENCY_MANAGEMENT_VALUE', args_delim),
         'MAVEN_GROUP_ID': extract_macro_calls(unit, 'MAVEN_GROUP_ID_VALUE', args_delim),
+        'JAR_INCLUDE_FILTER': extract_macro_calls(unit, 'JAR_INCLUDE_FILTER_VALUE', args_delim),
+        'JAR_EXCLUDE_FILTER': extract_macro_calls(unit, 'JAR_EXCLUDE_FILTER_VALUE', args_delim),
 
         # TODO remove when java test dart is in prod
         'UNITTEST_DIR': unit.get('UNITTEST_DIR'),
