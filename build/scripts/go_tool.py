@@ -269,7 +269,7 @@ def do_link_exe(args):
     assert args.non_local_peers is not None
     compile_args = copy_args(args)
     compile_args.output = os.path.join(args.output_root, 'main.a')
-    compile_args.import_path = 'main'
+    # compile_args.import_path = 'main'
 
     if args.vcs and os.path.isfile(compile_args.vcs):
         build_info = os.path.join('library', 'go', 'core', 'buildinfo')
