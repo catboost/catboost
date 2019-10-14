@@ -527,6 +527,29 @@ static void CalcMetricsForTest(
 }
 
 
+class TEvalFeatureCallbacks : public ITrainingCallbacks {
+public:
+    explicit TEvalFeatureCallbacks(ui32 iterationCount)
+    : IterationCount(iterationCount)
+    {
+    }
+
+    bool IsContinueTraining(const TMetricsAndTimeLeftHistory& /*unused*/) override {
+        ++IterationIdx;
+        constexpr double HeartbeatSeconds = 1;
+        if (TrainTimer.Passed() > HeartbeatSeconds) {
+            TrainTimer.Reset();
+            TSetLogging infomationMode(ELoggingLevel::Info);
+            CATBOOST_INFO_LOG << "Train iteration " << IterationIdx << " of " << IterationCount << Endl;
+        }
+        return /*continue training*/true;
+    }
+private:
+    THPTimer TrainTimer;
+    ui32 IterationIdx = 0;
+    ui32 IterationCount;
+};
+
 static void EvaluateFeaturesImpl(
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
     const NCatboostOptions::TOutputFilesOptions& outputFileOptions,
@@ -635,6 +658,9 @@ static void EvaluateFeaturesImpl(
         results->SetHeaderInfo(metrics, featureEvalOptions.FeaturesToEvaluate);
     }
 
+    const ui32 iterationCount = dataSpecificOptions.BoostingOptions->IterationCount;
+    const THolder<ITrainingCallbacks> evalFeatureCallbacks = MakeHolder<TEvalFeatureCallbacks>(iterationCount);
+
     const auto trainFullModels = [&] (
         const TString& trainDirPrefix,
         TVector<TTrainingDataProviders>* foldsData,
@@ -652,7 +678,6 @@ static void EvaluateFeaturesImpl(
             );
         }
 
-        const auto iterationCount = dataSpecificOptions.BoostingOptions->IterationCount.Get();
         const auto topLevelTrainDir = outputFileOptions.GetTrainDir();
         const bool isCalcFstr = outputFileOptions.CreateFstrRegularFullPath() || outputFileOptions.CreateFstrIternalFullPath();
 
@@ -673,6 +698,7 @@ static void EvaluateFeaturesImpl(
                 labelConverter,
                 metrics,
                 errorTracker.IsActive(),
+                evalFeatureCallbacks,
                 &(*foldContexts)[foldIdx],
                 modelTrainerHolder.Get(),
                 &NPar::LocalExecutor()

@@ -52,6 +52,17 @@ struct TTrainModelInternalOptions {
     bool OffsetMetricPeriodByInitModelSize = false;
 };
 
+class ITrainingCallbacks {
+public:
+    virtual bool IsContinueTraining(const TMetricsAndTimeLeftHistory& /*history*/) {
+        return true;
+    }
+    virtual void AppendToSnapshot(IOutputStream* /*snapshot*/) {
+    }
+
+    virtual ~ITrainingCallbacks() = default;
+};
+
 
 class IModelTrainer {
 public:
@@ -61,9 +72,9 @@ public:
         const NCatboostOptions::TOutputFilesOptions& outputOptions,
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-        const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
         NCB::TTrainingDataProviders trainingData,
         const TLabelConverter& labelConverter,
+        const THolder<ITrainingCallbacks>& trainingCallbacks,
         TMaybe<TFullModel*> initModel,
         THolder<TLearnProgress> initLearnProgress, // can be nullptr, can be modified if non-nullptr
 

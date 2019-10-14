@@ -953,11 +953,6 @@ namespace {
                 lastQuantizationParamsSet = quantizationParamsSet;
                 THolder<IModelTrainer> modelTrainerHolder = TTrainerFactory::Construct(catBoostOptions.GetTaskType());
 
-                // Iteration callback
-                // TODO(ilikepugs): MLTOOLS-3540
-                const TOnEndIterationCallback onEndIterationCallback =
-                    [] (const TMetricsAndTimeLeftHistory& /*metricsAndTimeHistory*/) -> bool { return true; };
-
                 TEvalResult evalRes;
 
                 TTrainModelInternalOptions internalOptions;
@@ -972,9 +967,9 @@ namespace {
                     outputFileOptions,
                     objectiveDescriptor,
                     evalMetricDescriptor,
-                    onEndIterationCallback,
                     trainTestData,
                     labelConverter,
+                    MakeHolder<ITrainingCallbacks>(), // TODO(ilikepugs): MLTOOLS-3540
                     /*initModel*/ Nothing(),
                     /*initLearnProgress*/ nullptr,
                     /*initModelApplyCompatiblePools*/ NCB::TDataProviders(),

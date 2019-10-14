@@ -16,6 +16,7 @@
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/libs/helpers/progress_helper.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
+#include <catboost/libs/train_lib/train_model.h>
 
 #include <util/generic/maybe.h>
 
@@ -30,8 +31,8 @@ namespace NCatboostCuda {
                                  bool hasTest,
                                  bool testHasTarget,
                                  ui32 cpuApproxDim,
-                                 const TMaybe<std::function<bool(const TMetricsAndTimeLeftHistory&)>>& onEndIterationCallback,
-                                 bool hasWeights);
+                                 bool hasWeights,
+                                 ITrainingCallbacks* trainingCallbacks);
 
         const TErrorTracker& GetErrorTracker() const {
             return ErrorTracker;
@@ -100,8 +101,8 @@ namespace NCatboostCuda {
                 HasTest,
                 HasTestTarget,
                 CpuApproxDim,
-                /*onEndIterationCallback*/ Nothing(),
-                HasWeights
+                HasWeights,
+                TrainingCallbacks
             );
         }
 
@@ -165,7 +166,7 @@ namespace NCatboostCuda {
         TErrorTracker ErrorTracker;
         TErrorTracker BestModelMinTreesTracker;
 
-        const TMaybe<std::function<bool(const TMetricsAndTimeLeftHistory&)>> OnEndIterationCallback;
+        ITrainingCallbacks* const TrainingCallbacks;
 
         TString LearnToken;
         TVector<const TString> TestTokens;

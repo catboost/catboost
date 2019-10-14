@@ -222,6 +222,7 @@ void Train(
     const TLabelConverter& labelConverter,
     const TVector<THolder<IMetric>>& metrics,
     bool isErrorTrackerActive,
+    const THolder<ITrainingCallbacks>& trainingCallbacks,
     TFoldContext* foldContext,
     IModelTrainer* modelTrainer,
     NPar::TLocalExecutor* localExecutor);

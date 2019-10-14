@@ -229,7 +229,7 @@ namespace NCatboostCuda {
                                                                 const TFeatureEstimators& featureEstimators,
                                                                 TBinarizedFeaturesManager& featuresManager,
                                                                 ui32 approxDimension,
-                                                                const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+                                                                const THolder<ITrainingCallbacks>& trainingCallbacks,
                                                                 NPar::TLocalExecutor* localExecutor,
                                                                 TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                 TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
@@ -253,7 +253,7 @@ namespace NCatboostCuda {
                                         featureEstimators,
                                         random,
                                         approxDimension,
-                                        onEndIterationCallback,
+                                        trainingCallbacks,
                                         localExecutor,
                                         testMultiApprox,
                                         metricsAndTimeHistory);
@@ -297,9 +297,9 @@ namespace NCatboostCuda {
             const NCatboostOptions::TOutputFilesOptions& outputOptions,
             const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
             const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-            const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
             TTrainingDataProviders trainingData,
             const TLabelConverter& labelConverter,
+            const THolder<ITrainingCallbacks>& trainingCallbacks,
             TMaybe<TFullModel*> initModel,
             THolder<TLearnProgress> initLearnProgress,
             NCB::TDataProviders initModelApplyCompatiblePools,
@@ -380,7 +380,7 @@ namespace NCatboostCuda {
                 *trainingData.FeatureEstimators,
                 featuresManager,
                 approxDimension,
-                onEndIterationCallback,
+                trainingCallbacks,
                 localExecutor,
                 &rawValues,
                 metricsAndTimeHistory);

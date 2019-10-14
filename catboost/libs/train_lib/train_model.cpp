@@ -232,7 +232,7 @@ static bool ShouldCalcErrorTrackerMetric(ui32 iter, const TMetricsData& metricsD
 static void ProcessHistoryMetrics(
     const TTrainingForCPUDataProviders& data,
     const TLearnContext& ctx,
-    const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+    const THolder<ITrainingCallbacks>& trainingCallbacks,
     TMetricsData* metricsData,
     TLoggingData* loggingData,
     bool* continueTraining) {
@@ -280,9 +280,7 @@ static void ProcessHistoryMetrics(
             &loggingData->Logger
         );
 
-        if (onEndIterationCallback) {
-            *continueTraining = (*onEndIterationCallback)(ctx.LearnProgress->MetricsAndTimeHistory);
-        }
+        *continueTraining = trainingCallbacks->IsContinueTraining(ctx.LearnProgress->MetricsAndTimeHistory);
     }
 
     AddConsoleLogger(
@@ -338,7 +336,7 @@ static void CalcErrors(
 static void Train(
     const TTrainModelInternalOptions& internalOptions,
     const TTrainingForCPUDataProviders& data,
-    const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
+    const THolder<ITrainingCallbacks>& trainingCallbacks,
     TLearnContext* ctx,
     TVector<TVector<TVector<double>>>* testMultiApprox // [test][dim][docIdx]
 ) {
@@ -353,7 +351,7 @@ static void Train(
 
     TLoggingData loggingData;
     bool continueTraining;
-    ProcessHistoryMetrics(data, *ctx, onEndIterationCallback, &metricsData, &loggingData, &continueTraining);
+    ProcessHistoryMetrics(data, *ctx, trainingCallbacks, &metricsData, &loggingData, &continueTraining);
 
     if (continueTraining) {
         InitializeSamplingStructures(data, ctx);
@@ -439,9 +437,7 @@ static void Train(
             break;
         }
 
-        if (onEndIterationCallback) {
-            continueTraining = (*onEndIterationCallback)(ctx->LearnProgress->MetricsAndTimeHistory);
-        }
+        continueTraining = trainingCallbacks->IsContinueTraining(ctx->LearnProgress->MetricsAndTimeHistory);
     }
 
     ctx->SaveProgress();
@@ -613,9 +609,9 @@ namespace {
             const NCatboostOptions::TOutputFilesOptions& outputOptions,
             const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
             const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
-            const TMaybe<TOnEndIterationCallback>& onEndIterationCallback,
             TTrainingDataProviders trainingData,
             const TLabelConverter& labelConverter,
+            const THolder<ITrainingCallbacks>& trainingCallbacks,
             TMaybe<TFullModel*> initModel,
             THolder<TLearnProgress> initLearnProgress,
             TDataProviders initModelApplyCompatiblePools,
@@ -707,7 +703,7 @@ namespace {
             TVector<TVector<double>> oneRawValues(ctx.LearnProgress->ApproxDimension);
             TVector<TVector<TVector<double>>> rawValues(trainingDataForCpu.Test.size(), oneRawValues);
 
-            Train(internalOptions, trainingDataForCpu, onEndIterationCallback, &ctx, &rawValues);
+            Train(internalOptions, trainingDataForCpu, trainingCallbacks, &ctx, &rawValues);
 
             if (!dstLearnProgress) {
                 // Save memory as it is no longer needed
@@ -917,9 +913,9 @@ static void TrainModel(
         updatedOutputOptions,
         objectiveDescriptor,
         evalMetricDescriptor,
-        /*onEndIterationCallback*/ Nothing(),
         std::move(trainingData),
         labelConverter,
+        MakeHolder<ITrainingCallbacks>(),
         std::move(initModel),
         std::move(initLearnProgress),
         needInitModelApplyCompatiblePools ? std::move(pools) : TDataProviders(),

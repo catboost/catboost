@@ -181,6 +181,99 @@ TFoldContext::TFoldContext(
     }
 }
 
+class TCrossValidationCallbacks : public ITrainingCallbacks {
+public:
+    TCrossValidationCallbacks(
+        ELoggingLevel loggingLevel,
+        double maxTimeSpentOnFixedCostRatio,
+        ui32 maxIterationsBatchSize,
+        size_t globalMaxIteration,
+        bool isErrorTrackerActive,
+        TConstArrayRef<THolder<IMetric>> metrics,
+        TConstArrayRef<bool> skipMetricOnTrain,
+        TMaybe<ui32>* upToIteration,
+        TFoldContext* foldContext)
+    : BatchStartIteration(foldContext->MetricValuesOnTest.size())
+    , LoggingLevel(loggingLevel)
+    , MaxTimeSpentOnFixedCostRatio(maxTimeSpentOnFixedCostRatio)
+    , MaxIterationsBatchSize(maxIterationsBatchSize)
+    , GlobalMaxIteration(globalMaxIteration)
+    , IsErrorTrackerActive(isErrorTrackerActive)
+    , Metrics(metrics)
+    , SkipMetricOnTrain(skipMetricOnTrain)
+    , UpToIteration(upToIteration)
+    , FoldContext(foldContext)
+    {
+    }
+
+    bool IsContinueTraining(const TMetricsAndTimeLeftHistory& metricsAndTimeHistory) override {
+        Y_VERIFY(metricsAndTimeHistory.TimeHistory.size() > 0);
+        size_t iteration = (FoldContext->TaskType == ETaskType::CPU) ?
+              BatchStartIteration + (metricsAndTimeHistory.TimeHistory.size() - 1)
+            : (metricsAndTimeHistory.TimeHistory.size() - 1);
+
+        // replay
+        if (iteration < FoldContext->MetricValuesOnTest.size()) {
+            return true;
+        }
+
+        if (!*UpToIteration) {
+            TSetLogging inThisScope(LoggingLevel);
+
+            BatchIterationsTime += metricsAndTimeHistory.TimeHistory.back().IterationTime;
+
+            TMaybe<ui32> prevUpToIteration = *UpToIteration;
+
+            *UpToIteration
+                = BatchStartIteration + CalcBatchSize(
+                    FoldContext->TaskType,
+                    iteration,
+                    BatchStartIteration,
+                    BatchIterationsTime,
+                    TrainTimer.Passed(),
+                    MaxTimeSpentOnFixedCostRatio,
+                    MaxIterationsBatchSize,
+                    GlobalMaxIteration);
+
+            if (*UpToIteration != prevUpToIteration) {
+                CATBOOST_INFO_LOG << "CrossValidation: batch iterations upper bound estimate = "
+                    << **UpToIteration << Endl;
+            }
+        }
+
+        const bool calcMetrics = DivisibleOrLastIteration(
+            iteration,
+            GlobalMaxIteration,
+            FoldContext->OutputOptions.GetMetricPeriod());
+
+        UpdateMetricsAfterIteration(
+            iteration,
+            calcMetrics,
+            IsErrorTrackerActive,
+            Metrics,
+            SkipMetricOnTrain,
+            metricsAndTimeHistory,
+            &FoldContext->MetricValuesOnTrain,
+            &FoldContext->MetricValuesOnTest);
+
+        return (iteration + 1) < **UpToIteration;
+    }
+
+private:
+    size_t BatchStartIteration;
+    ELoggingLevel LoggingLevel;
+    double MaxTimeSpentOnFixedCostRatio;
+    ui32 MaxIterationsBatchSize;
+    size_t GlobalMaxIteration;
+    bool IsErrorTrackerActive;
+    TConstArrayRef<THolder<IMetric>> Metrics;
+    TConstArrayRef<bool> SkipMetricOnTrain;
+    THPTimer TrainTimer;
+    double BatchIterationsTime = 0.0;
+    TMaybe<ui32>* const UpToIteration;
+    TFoldContext* const FoldContext;
+};
+
 void TrainBatch(
     const NCatboostOptions::TCatBoostOptions& catboostOption,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
@@ -208,82 +301,23 @@ void TrainBatch(
         (foldContext->LearnProgress && (foldContext->LearnProgress->GetInitModelTreesSize() == batchStartIteration))
     );
 
-    double batchIterationsTime = 0.0; // without initialization time
-
     TTrainModelInternalOptions internalOptions;
     internalOptions.CalcMetricsOnly = true;
     internalOptions.ForceCalcEvalMetricOnEveryIteration = isErrorTrackerActive;
     internalOptions.OffsetMetricPeriodByInitModelSize = true;
 
-    THPTimer trainTimer;
     THolder<TLearnProgress> dstLearnProgress;
 
-    TOnEndIterationCallback onEndIterationCallback
-        = [
-            batchStartIteration,
-            loggingLevel,
-            &upToIteration,
-            &batchIterationsTime,
-            &trainTimer,
-            maxTimeSpentOnFixedCostRatio,
-            maxIterationsBatchSize,
-            globalMaxIteration,
-            isErrorTrackerActive,
-            &metrics,
-            skipMetricOnTrain,
-            foldContext
-          ] (const TMetricsAndTimeLeftHistory& metricsAndTimeHistory) -> bool {
-                Y_VERIFY(metricsAndTimeHistory.TimeHistory.size() > 0);
-                size_t iteration = (foldContext->TaskType == ETaskType::CPU) ?
-                      batchStartIteration + (metricsAndTimeHistory.TimeHistory.size() - 1)
-                    : (metricsAndTimeHistory.TimeHistory.size() - 1);
-
-                // replay
-                if (iteration < foldContext->MetricValuesOnTest.size()) {
-                    return true;
-                }
-
-                if (!*upToIteration) {
-                    TSetLogging inThisScope(loggingLevel);
-
-                    batchIterationsTime += metricsAndTimeHistory.TimeHistory.back().IterationTime;
-
-                    TMaybe<ui32> prevUpToIteration = *upToIteration;
-
-                    *upToIteration
-                        = batchStartIteration + CalcBatchSize(
-                            foldContext->TaskType,
-                            iteration,
-                            batchStartIteration,
-                            batchIterationsTime,
-                            trainTimer.Passed(),
-                            maxTimeSpentOnFixedCostRatio,
-                            maxIterationsBatchSize,
-                            globalMaxIteration);
-
-                    if (*upToIteration != prevUpToIteration) {
-                        CATBOOST_INFO_LOG << "CrossValidation: batch iterations upper bound estimate = "
-                            << **upToIteration << Endl;
-                    }
-                }
-
-                const bool calcMetrics = DivisibleOrLastIteration(
-                    iteration,
-                    globalMaxIteration,
-                    foldContext->OutputOptions.GetMetricPeriod());
-
-                UpdateMetricsAfterIteration(
-                    iteration,
-                    calcMetrics,
-                    isErrorTrackerActive,
-                    metrics,
-                    skipMetricOnTrain,
-                    metricsAndTimeHistory,
-                    &foldContext->MetricValuesOnTrain,
-                    &foldContext->MetricValuesOnTest);
-
-                return (iteration + 1) < **upToIteration;
-            };
+    const THolder<ITrainingCallbacks> cvCallbacks = MakeHolder<TCrossValidationCallbacks>(
+        loggingLevel,
+        maxTimeSpentOnFixedCostRatio,
+        maxIterationsBatchSize,
+        globalMaxIteration,
+        isErrorTrackerActive,
+        metrics,
+        skipMetricOnTrain,
+        upToIteration,
+        foldContext);
 
     modelTrainer->TrainModel(
         internalOptions,
@@ -291,9 +325,9 @@ void TrainBatch(
         foldContext->OutputOptions,
         objectiveDescriptor,
         evalMetricDescriptor,
-        onEndIterationCallback,
         foldContext->TrainingData,
         labelConverter,
+        cvCallbacks,
         /*initModel*/ Nothing(),
         std::move(foldContext->LearnProgress),
         /*initModelApplyCompatiblePools*/ TDataProviders(),
@@ -339,6 +373,7 @@ void Train(
     const TLabelConverter& labelConverter,
     const TVector<THolder<IMetric>>& metrics,
     bool isErrorTrackerActive,
+    const THolder<ITrainingCallbacks>& trainingCallbacks,
     TFoldContext* foldContext,
     IModelTrainer* modelTrainer,
     NPar::TLocalExecutor* localExecutor
@@ -350,19 +385,6 @@ void Train(
     internalOptions.CalcMetricsOnly = !foldContext->FullModel.Defined();
     internalOptions.ForceCalcEvalMetricOnEveryIteration = isErrorTrackerActive;
 
-    THPTimer trainTimer;
-    ui32 iterationIdx = 0;
-    const ui32 iterationCount = catboostOption.BoostingOptions->IterationCount;
-    const auto heartBeatCallback = [&] (const TMetricsAndTimeLeftHistory& /*unused*/) -> bool {
-        ++iterationIdx;
-        constexpr double heartbeatSeconds = 1;
-        if (trainTimer.Passed() > heartbeatSeconds) {
-            trainTimer.Reset();
-            TSetLogging infomationMode(ELoggingLevel::Info);
-            CATBOOST_INFO_LOG << "Train iteration " << iterationIdx << " of " << iterationCount << Endl;
-        }
-        return /*continue training*/true;
-    };
     auto foldOutputOptions = foldContext->OutputOptions;
     foldOutputOptions.SetTrainDir(trainDir);
     if (foldContext->FullModel.Defined()) {
@@ -376,9 +398,9 @@ void Train(
         foldOutputOptions,
         objectiveDescriptor,
         evalMetricDescriptor,
-        heartBeatCallback,
         foldContext->TrainingData,
         labelConverter,
+        trainingCallbacks,
         /*initModel*/ Nothing(),
         THolder<TLearnProgress>(),
         /*initModelApplyCompatiblePools*/ TDataProviders(),
