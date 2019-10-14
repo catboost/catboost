@@ -195,8 +195,9 @@
     "tree_learner_options": {
         "bayesian_matrix_reg": 0.1000000015, 
         "bootstrap": {
-            "bagging_temperature": 1, 
-            "type": "Bayesian"
+            "mvs_reg": null, 
+            "subsample": 0.8000000119, 
+            "type": "MVS"
         }, 
         "depth": 6, 
         "dev_efb_max_buckets": 1024, 

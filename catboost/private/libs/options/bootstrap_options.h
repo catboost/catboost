@@ -79,7 +79,7 @@ namespace NCatboostOptions {
                     break;
                 }
                 case EBootstrapType::MVS: {
-                    SaveFields(options, MvsReg, BootstrapType);
+                    SaveFields(options, TakenFraction, MvsReg, BootstrapType);
                     break;
                 }
                 default: {
@@ -90,8 +90,8 @@ namespace NCatboostOptions {
         }
 
         bool operator==(const TBootstrapConfig& rhs) const {
-            return std::tie(TakenFraction, BaggingTemperature, MvsReg, BootstrapType) ==
-                   std::tie(rhs.TakenFraction, rhs.BaggingTemperature, rhs.MvsReg, rhs.BootstrapType);
+            return std::tie(TakenFraction, BaggingTemperature, MvsReg, BootstrapType, SamplingUnit) ==
+                   std::tie(rhs.TakenFraction, rhs.BaggingTemperature, rhs.MvsReg, rhs.BootstrapType, rhs.SamplingUnit);
         }
 
         bool operator!=(const TBootstrapConfig& rhs) const {

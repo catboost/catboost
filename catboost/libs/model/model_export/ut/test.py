@@ -164,6 +164,7 @@ def test_python_export_from_app(dataset):
 
 @pytest.mark.parametrize('iterations', [2, 40])
 @pytest.mark.parametrize('dataset', ['adult', 'higgs'])
+@pytest.mark.xfail(reason='MLTOOLS-4300')
 def test_python_export_from_python(dataset, iterations):
     train_pool, test_pool = _get_train_test_pool(dataset)
 
@@ -182,6 +183,7 @@ def test_python_export_from_python(dataset, iterations):
 
 
 @pytest.mark.parametrize('dataset', ['adult', 'higgs'])
+@pytest.mark.xfail(reason='MLTOOLS-4300')
 def test_python_after_load(dataset):
     train_pool, test_pool = _get_train_test_pool(dataset)
     model = CatBoostClassifier(iterations=40, random_seed=0)

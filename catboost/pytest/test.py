@@ -463,6 +463,7 @@ def test_queryrmse_approx_on_full_history():
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
+        '--boosting-type', 'Ordered',
     )
     yatest.common.execute(cmd)
 
@@ -627,6 +628,7 @@ def test_pairlogit_approx_on_full_history():
         '-m', output_model_path,
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
+        '--boosting-type', 'Ordered',
     )
     yatest.common.execute(cmd)
 

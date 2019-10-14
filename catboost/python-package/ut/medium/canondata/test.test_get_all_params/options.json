@@ -1,11 +1,10 @@
 {
     "approx_on_full_history": false, 
-    "bagging_temperature": 1, 
     "bayesian_matrix_reg": 0.1000000015, 
     "best_model_min_trees": 1, 
     "boost_from_average": true, 
     "boosting_type": "Plain", 
-    "bootstrap_type": "Bayesian", 
+    "bootstrap_type": "MVS", 
     "border_count": 254, 
     "classes_count": 0, 
     "combinations_ctr": [
@@ -45,6 +44,7 @@
     ], 
     "sparse_features_conflict_fraction": 0, 
     "store_all_simple_ctr": false, 
+    "subsample": 0.8000000119, 
     "task_type": "CPU", 
     "use_best_model": false
 }

@@ -192,8 +192,9 @@
         "sampling_frequency" : "PerTree",
         "model_size_reg" : 0.5,
         "bootstrap" : {
-            "bagging_temperature" : 1,
-            "type" : "Bayesian"
+            "mvs_reg" : null,
+            "subsample" : 0.8000000119,
+            "type" : "MVS"
         },
         "monotone_constraints" : [ ],
         "l2_leaf_reg" : 3,

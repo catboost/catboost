@@ -686,6 +686,9 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
             CopyOption(bootstrapOptions, "mvs_reg", &plainOptionsJson, &seenKeys);
             DeleteSeenOption(&optionsCopyTreeBootstrap, "mvs_reg");
 
+            CopyOption(bootstrapOptions, "sampling_unit", &plainOptionsJson, &seenKeys);
+            DeleteSeenOption(&optionsCopyTreeBootstrap, "sampling_unit");
+
             CB_ENSURE(optionsCopyTreeBootstrap.GetMapSafe().empty(), "bootstrap: key " + optionsCopyTreeBootstrap.GetMapSafe().begin()->first + " wasn't added to plain options.");
             DeleteSeenOption(&optionsCopyTree, "bootstrap");
         }

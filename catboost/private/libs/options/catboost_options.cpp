@@ -593,19 +593,41 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
     if (leavesEstimation == ELeavesEstimation::Newton) {
         EnsureNewtonIsAvailable(GetTaskType(), LossFunctionDescription);
     }
+
+    const auto bootstrapType = ObliviousTreeOptions->BootstrapConfig->GetBootstrapType();
+    const bool isMvsMultiClass = IsMultiClassOnlyMetric(lossFunction) && bootstrapType == EBootstrapType::MVS;
+    CB_ENSURE(!isMvsMultiClass, "MVS sampling isn't supported for multiclass.");
 }
 
 void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
-    if (IsPlainOnlyModeLoss(LossFunctionDescription->GetLossFunction())) {
-        BoostingOptions->BoostingType.SetDefault(EBoostingType::Plain);
-        CB_ENSURE(BoostingOptions->BoostingType.IsDefault(), "Boosting type should be plain for " << LossFunctionDescription->GetLossFunction());
+    const auto lossFunction = LossFunctionDescription->GetLossFunction();
+
+    // TODO(nikitxskv): Support MVS for MultiClass and for MVS.
+    auto& boostingType = BoostingOptions->BoostingType;
+    TOption<EBootstrapType>& bootstrapType = ObliviousTreeOptions->BootstrapConfig->GetBootstrapType();
+    TOption<float>& subsample = ObliviousTreeOptions->BootstrapConfig->GetTakenFraction();
+    if (!IsMultiClassOnlyMetric(lossFunction) && TaskType == ETaskType::CPU) {
+        if (!bootstrapType.IsSet()) {
+            bootstrapType.SetDefault(EBootstrapType::MVS);
+        }
+        if (!subsample.IsSet()) {
+            subsample.SetDefault(0.8f);
+        }
+    }
+    if (!IsMultiClassOnlyMetric(lossFunction) && TaskType == ETaskType::GPU && !boostingType.IsSet()) {
+        boostingType.SetDefault(EBoostingType::Ordered);
     }
 
-    if (BoostingOptions->BoostingType.NotSet() && !SystemOptions->IsSingleHost()) {
-        BoostingOptions->BoostingType.SetDefault(EBoostingType::Plain);
+    if (IsPlainOnlyModeLoss(lossFunction)) {
+        boostingType.SetDefault(EBoostingType::Plain);
+        CB_ENSURE(boostingType.IsDefault(), "Boosting type should be plain for " << lossFunction);
     }
 
-    switch (LossFunctionDescription->GetLossFunction()) {
+    if (boostingType.NotSet() && !SystemOptions->IsSingleHost()) {
+        boostingType.SetDefault(EBoostingType::Plain);
+    }
+
+    switch (lossFunction) {
         case ELossFunction::QueryCrossEntropy:
         case ELossFunction::YetiRankPairwise:
         case ELossFunction::PairLogitPairwise: {
@@ -615,11 +637,11 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             if (ObliviousTreeOptions->BootstrapConfig->GetBaggingTemperature().IsSet()) {
                 CB_ENSURE(ObliviousTreeOptions->BootstrapConfig->GetTakenFraction().NotSet(), "Error: can't use bagging temperature and subsample at the same time");
                 //fallback to bayesian bootstrap
-                if (ObliviousTreeOptions->BootstrapConfig->GetBootstrapType().NotSet()) {
+                if (bootstrapType.NotSet()) {
                     CATBOOST_WARNING_LOG << "Implicitly assume bayesian bootstrap, learning could be slower" << Endl;
                 }
             } else {
-                ObliviousTreeOptions->BootstrapConfig->GetBootstrapType().SetDefault(EBootstrapType::Bernoulli);
+                bootstrapType.SetDefault(EBootstrapType::Bernoulli);
                 ObliviousTreeOptions->BootstrapConfig->GetTakenFraction().SetDefault(0.5);
             }
             break;
@@ -634,7 +656,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         }
     }
 
-    switch (LossFunctionDescription->GetLossFunction()) {
+    switch (lossFunction) {
         case ELossFunction::YetiRank:
         case ELossFunction::YetiRankPairwise: {
             NCatboostOptions::TLossDescription lossDescription;
@@ -665,38 +687,37 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
     }
 
     if (TaskType == ETaskType::GPU) {
-        if (IsGpuPlainDocParallelOnlyMode(LossFunctionDescription->GetLossFunction()) ||
+        if (IsGpuPlainDocParallelOnlyMode(lossFunction) ||
             ObliviousTreeOptions->GrowPolicy != EGrowPolicy::SymmetricTree) {
             //lets check correctness first
             BoostingOptions->DataPartitionType.SetDefault(EDataPartitionType::DocParallel);
-            BoostingOptions->BoostingType.SetDefault(EBoostingType::Plain);
+            boostingType.SetDefault(EBoostingType::Plain);
 
             TString option;
-            if (IsGpuPlainDocParallelOnlyMode(LossFunctionDescription->GetLossFunction())) {
-                option = "loss " + ToString(LossFunctionDescription->GetLossFunction());
+            if (IsGpuPlainDocParallelOnlyMode(lossFunction)) {
+                option = "loss " + ToString(lossFunction);
             } else {
                 option = "grow policy " + ToString(ObliviousTreeOptions->GrowPolicy.Get());
             }
 
             CB_ENSURE(BoostingOptions->DataPartitionType == EDataPartitionType::DocParallel,
                     "On GPU " << option << " is implemented in doc-parallel mode only");
-            CB_ENSURE(BoostingOptions->BoostingType == EBoostingType::Plain,
+            CB_ENSURE(boostingType == EBoostingType::Plain,
                     "On GPU " << option << " can't be used with ordered boosting");
 
             //now ensure automatic estimations won't override this
-            BoostingOptions->BoostingType = EBoostingType::Plain;
+            boostingType = EBoostingType::Plain;
             BoostingOptions->DataPartitionType = EDataPartitionType::DocParallel;
         }
 
         if (IsPlainOnlyModeScoreFunction(ObliviousTreeOptions->ScoreFunction)) {
-            BoostingOptions->BoostingType.SetDefault(EBoostingType::Plain);
-            CB_ENSURE(BoostingOptions->BoostingType == EBoostingType::Plain,
+            boostingType.SetDefault(EBoostingType::Plain);
+            CB_ENSURE(boostingType == EBoostingType::Plain,
                     "Score function " << ObliviousTreeOptions->ScoreFunction.Get() << " can't be used with ordered boosting");
-            BoostingOptions->BoostingType = EBoostingType::Plain;
+            boostingType = EBoostingType::Plain;
         }
 
         if (ObliviousTreeOptions->GrowPolicy == EGrowPolicy::Lossguide) {
-            auto lossFunction = LossFunctionDescription.Get().GetLossFunction();
             if (lossFunction == ELossFunction::MultiClass || lossFunction == ELossFunction::MultiClassOneVsAll) {
                 ObliviousTreeOptions->ScoreFunction.SetDefault(EScoreFunction::L2);
             } else {

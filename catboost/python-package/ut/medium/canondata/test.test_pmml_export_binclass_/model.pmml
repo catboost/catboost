@@ -3,20 +3,20 @@
 <Header copyright="(c) catboost team" description="CatBoostModel_for_binclass" modelVersion="1">
 <Application name="CatBoost" version="Svn info:
     URL: svn+ssh://arcadia.yandex.ru/arc/trunk/arcadia
-    Last Changed Rev: 5695326
-    Last Changed Author: zaglossus
-    Last Changed Date: 2019-09-23T05:23:56.026647Z
+    Last Changed Rev: 5807517
+    Last Changed Author: freeoks
+    Last Changed Date: 2019-10-10T18:28:24.227801Z
 
 Other info:
-    Build by: ivankozlov98
-    Top src dir: /place/home/ivankozlov98/Arcadia
-    Top build dir: /home/ivankozlov98/.ya/build
-    Hostname: zergling45.search.yandex.net
+    Build by: nikitxskv
+    Top src dir: /place/home/nikitxskv/trunk4/arcadia
+    Top build dir: /home/nikitxskv/.ya/build
+    Hostname: t34.search.yandex.net
     Host information: 
-        Linux zergling45.search.yandex.net 4.4.88-42 #1 SMP Mon Sep 18 14:33:37 UTC 2017 x86_64
+        Linux t34.search.yandex.net 4.4.68-33 #1 SMP Mon May 15 15:50:23 UTC 2017 x86_64
 
     "/>
-<Timestamp>2019-09-23T05:57:40Z</Timestamp>
+<Timestamp>2019-10-10T18:33:04Z</Timestamp>
 </Header>
 <DataDictionary>
 <DataField name="feature_3" optype="continuous" dataType="float"/>
@@ -103,16 +103,27 @@ Other info:
 <FieldColumnPair field="feature_4" column="key"/>
 <InlineTable>
 <row>
-<key>Federal-gov</key>
+<key>Self-emp-inc</key>
 <value>0</value>
 </row>
 <row>
-<key>Self-emp-inc</key>
+<key>Local-gov</key>
 <value>1</value>
 </row>
 <row>
 <key>Private</key>
 <value>2</value>
+</row>
+</InlineTable>
+</MapValues>
+</DerivedField>
+<DerivedField name="feature_6_mapped" optype="categorical" dataType="integer">
+<MapValues mapMissingTo="1" defaultValue="1" outputColumn="value" dataType="integer">
+<FieldColumnPair field="feature_6" column="key"/>
+<InlineTable>
+<row>
+<key>Prof-school</key>
+<value>0</value>
 </row>
 </InlineTable>
 </MapValues>
@@ -133,20 +144,12 @@ Other info:
 </MapValues>
 </DerivedField>
 <DerivedField name="feature_9_mapped" optype="categorical" dataType="integer">
-<MapValues mapMissingTo="3" defaultValue="3" outputColumn="value" dataType="integer">
+<MapValues mapMissingTo="1" defaultValue="1" outputColumn="value" dataType="integer">
 <FieldColumnPair field="feature_9" column="key"/>
 <InlineTable>
 <row>
-<key>?</key>
-<value>0</value>
-</row>
-<row>
 <key>Exec-managerial</key>
-<value>1</value>
-</row>
-<row>
-<key>Craft-repair</key>
-<value>2</value>
+<value>0</value>
 </row>
 </InlineTable>
 </MapValues>
@@ -166,12 +169,12 @@ Other info:
 </InlineTable>
 </MapValues>
 </DerivedField>
-<DerivedField name="feature_16_mapped" optype="categorical" dataType="integer">
+<DerivedField name="feature_11_mapped" optype="categorical" dataType="integer">
 <MapValues mapMissingTo="1" defaultValue="1" outputColumn="value" dataType="integer">
-<FieldColumnPair field="feature_16" column="key"/>
+<FieldColumnPair field="feature_11" column="key"/>
 <InlineTable>
 <row>
-<key>Canada</key>
+<key>Asian-Pac-Islander</key>
 <value>0</value>
 </row>
 </InlineTable>
@@ -212,9 +215,9 @@ Other info:
 <Node id="6" defaultChild="13">
 <SimplePredicate field="feature_3" operator="greaterThan" value="52.5"/>
 <Node id="14" defaultChild="29">
-<SimplePredicate field="feature_4_mapped" operator="equal" value="0"/>
-<Node id="30" score="0">
 <SimplePredicate field="feature_4_mapped" operator="equal" value="1"/>
+<Node id="30" score="0">
+<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
 </Node>
 <Node id="29" score="0">
 <True/>
@@ -223,7 +226,7 @@ Other info:
 <Node id="13">
 <True/>
 <Node id="28" score="0">
-<SimplePredicate field="feature_4_mapped" operator="equal" value="1"/>
+<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
 </Node>
 <Node id="27" score="0">
 <True/>
@@ -233,9 +236,9 @@ Other info:
 <Node id="5">
 <True/>
 <Node id="12" defaultChild="25">
-<SimplePredicate field="feature_4_mapped" operator="equal" value="0"/>
-<Node id="26" score="0">
 <SimplePredicate field="feature_4_mapped" operator="equal" value="1"/>
+<Node id="26" score="0">
+<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
 </Node>
 <Node id="25" score="0">
 <True/>
@@ -243,10 +246,10 @@ Other info:
 </Node>
 <Node id="11">
 <True/>
-<Node id="24" score="-0.07692307692">
-<SimplePredicate field="feature_4_mapped" operator="equal" value="1"/>
+<Node id="24" score="-0.1764705882">
+<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
 </Node>
-<Node id="23" score="-0.05882352941">
+<Node id="23" score="0.07692307692">
 <True/>
 </Node>
 </Node>
@@ -257,20 +260,20 @@ Other info:
 <Node id="4" defaultChild="9">
 <SimplePredicate field="feature_3" operator="greaterThan" value="52.5"/>
 <Node id="10" defaultChild="21">
-<SimplePredicate field="feature_4_mapped" operator="equal" value="0"/>
-<Node id="22" score="0">
 <SimplePredicate field="feature_4_mapped" operator="equal" value="1"/>
+<Node id="22" score="0">
+<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
 </Node>
-<Node id="21" score="0">
+<Node id="21" score="0.1428571429">
 <True/>
 </Node>
 </Node>
 <Node id="9">
 <True/>
-<Node id="20" score="-0.2">
-<SimplePredicate field="feature_4_mapped" operator="equal" value="1"/>
+<Node id="20" score="-0.1304347826">
+<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
 </Node>
-<Node id="19" score="0.375">
+<Node id="19" score="0.4545454545">
 <True/>
 </Node>
 </Node>
@@ -278,20 +281,20 @@ Other info:
 <Node id="3">
 <True/>
 <Node id="8" defaultChild="17">
-<SimplePredicate field="feature_4_mapped" operator="equal" value="0"/>
-<Node id="18" score="0">
 <SimplePredicate field="feature_4_mapped" operator="equal" value="1"/>
+<Node id="18" score="-0.2">
+<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
 </Node>
-<Node id="17" score="-0.1428571429">
+<Node id="17" score="0.25">
 <True/>
 </Node>
 </Node>
 <Node id="7">
 <True/>
-<Node id="16" score="-0.07692307692">
-<SimplePredicate field="feature_4_mapped" operator="equal" value="1"/>
+<Node id="16" score="0.2">
+<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
 </Node>
-<Node id="15" score="0.6543209877">
+<Node id="15" score="0.7777777778">
 <True/>
 </Node>
 </Node>
@@ -331,11 +334,11 @@ Other info:
 <Node id="2" defaultChild="5">
 <SimplePredicate field="feature_10_mapped" operator="equal" value="1"/>
 <Node id="6" defaultChild="13">
-<SimplePredicate field="feature_3" operator="greaterThan" value="37.5"/>
+<SimplePredicate field="feature_3" operator="greaterThan" value="61.5"/>
 <Node id="14" defaultChild="29">
-<SimplePredicate field="feature_16_mapped" operator="equal" value="0"/>
+<SimplePredicate field="feature_13" operator="greaterThan" value="1087"/>
 <Node id="30" score="0">
-<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
+<SimplePredicate field="feature_7" operator="greaterThan" value="13.5"/>
 </Node>
 <Node id="29" score="0">
 <True/>
@@ -343,10 +346,10 @@ Other info:
 </Node>
 <Node id="13">
 <True/>
-<Node id="28" score="-0.07146584949">
-<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
+<Node id="28" score="0">
+<SimplePredicate field="feature_7" operator="greaterThan" value="13.5"/>
 </Node>
-<Node id="27" score="0.06283269248">
+<Node id="27" score="0">
 <True/>
 </Node>
 </Node>
@@ -354,9 +357,9 @@ Other info:
 <Node id="5">
 <True/>
 <Node id="12" defaultChild="25">
-<SimplePredicate field="feature_16_mapped" operator="equal" value="0"/>
-<Node id="26" score="0">
-<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
+<SimplePredicate field="feature_13" operator="greaterThan" value="1087"/>
+<Node id="26" score="-0.08465453293">
+<SimplePredicate field="feature_7" operator="greaterThan" value="13.5"/>
 </Node>
 <Node id="25" score="0">
 <True/>
@@ -364,8 +367,8 @@ Other info:
 </Node>
 <Node id="11">
 <True/>
-<Node id="24" score="0">
-<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
+<Node id="24" score="0.05996576635">
+<SimplePredicate field="feature_7" operator="greaterThan" value="13.5"/>
 </Node>
 <Node id="23" score="0">
 <True/>
@@ -376,22 +379,22 @@ Other info:
 <Node id="1">
 <True/>
 <Node id="4" defaultChild="9">
-<SimplePredicate field="feature_3" operator="greaterThan" value="37.5"/>
+<SimplePredicate field="feature_3" operator="greaterThan" value="61.5"/>
 <Node id="10" defaultChild="21">
-<SimplePredicate field="feature_16_mapped" operator="equal" value="0"/>
+<SimplePredicate field="feature_13" operator="greaterThan" value="1087"/>
 <Node id="22" score="0">
-<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
+<SimplePredicate field="feature_7" operator="greaterThan" value="13.5"/>
 </Node>
-<Node id="21" score="0">
+<Node id="21" score="-0.133634528">
 <True/>
 </Node>
 </Node>
 <Node id="9">
 <True/>
-<Node id="20" score="-0.2918956575">
-<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
+<Node id="20" score="0">
+<SimplePredicate field="feature_7" operator="greaterThan" value="13.5"/>
 </Node>
-<Node id="19" score="0.4856589466">
+<Node id="19" score="0.1117342139">
 <True/>
 </Node>
 </Node>
@@ -399,20 +402,20 @@ Other info:
 <Node id="3">
 <True/>
 <Node id="8" defaultChild="17">
-<SimplePredicate field="feature_16_mapped" operator="equal" value="0"/>
-<Node id="18" score="-0.1020116463">
-<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
+<SimplePredicate field="feature_13" operator="greaterThan" value="1087"/>
+<Node id="18" score="0">
+<SimplePredicate field="feature_7" operator="greaterThan" value="13.5"/>
 </Node>
-<Node id="17" score="0">
+<Node id="17" score="-0.1581325395">
 <True/>
 </Node>
 </Node>
 <Node id="7">
 <True/>
-<Node id="16" score="0.1017858474">
-<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
+<Node id="16" score="-0.2156917413">
+<SimplePredicate field="feature_7" operator="greaterThan" value="13.5"/>
 </Node>
-<Node id="15" score="0.5699491735">
+<Node id="15" score="0.5334851559">
 <True/>
 </Node>
 </Node>
@@ -454,9 +457,9 @@ Other info:
 <Node id="6" defaultChild="13">
 <SimplePredicate field="feature_9_mapped" operator="equal" value="0"/>
 <Node id="14" defaultChild="29">
-<SimplePredicate field="feature_14" operator="greaterThan" value="1881.5"/>
+<SimplePredicate field="feature_11_mapped" operator="equal" value="0"/>
 <Node id="30" score="0">
-<SimplePredicate field="feature_13" operator="greaterThan" value="1087"/>
+<SimplePredicate field="feature_15" operator="greaterThan" value="42"/>
 </Node>
 <Node id="29" score="0">
 <True/>
@@ -465,7 +468,7 @@ Other info:
 <Node id="13">
 <True/>
 <Node id="28" score="0">
-<SimplePredicate field="feature_13" operator="greaterThan" value="1087"/>
+<SimplePredicate field="feature_15" operator="greaterThan" value="42"/>
 </Node>
 <Node id="27" score="0">
 <True/>
@@ -475,20 +478,20 @@ Other info:
 <Node id="5">
 <True/>
 <Node id="12" defaultChild="25">
-<SimplePredicate field="feature_14" operator="greaterThan" value="1881.5"/>
+<SimplePredicate field="feature_11_mapped" operator="equal" value="0"/>
 <Node id="26" score="0">
-<SimplePredicate field="feature_13" operator="greaterThan" value="1087"/>
+<SimplePredicate field="feature_15" operator="greaterThan" value="42"/>
 </Node>
-<Node id="25" score="0">
+<Node id="25" score="0.04242135116">
 <True/>
 </Node>
 </Node>
 <Node id="11">
 <True/>
-<Node id="24" score="0">
-<SimplePredicate field="feature_13" operator="greaterThan" value="1087"/>
+<Node id="24" score="0.03351139866">
+<SimplePredicate field="feature_15" operator="greaterThan" value="42"/>
 </Node>
-<Node id="23" score="0.1408439858">
+<Node id="23" score="0.07185580139">
 <True/>
 </Node>
 </Node>
@@ -499,9 +502,9 @@ Other info:
 <Node id="4" defaultChild="9">
 <SimplePredicate field="feature_9_mapped" operator="equal" value="0"/>
 <Node id="10" defaultChild="21">
-<SimplePredicate field="feature_14" operator="greaterThan" value="1881.5"/>
+<SimplePredicate field="feature_11_mapped" operator="equal" value="0"/>
 <Node id="22" score="0">
-<SimplePredicate field="feature_13" operator="greaterThan" value="1087"/>
+<SimplePredicate field="feature_15" operator="greaterThan" value="42"/>
 </Node>
 <Node id="21" score="0">
 <True/>
@@ -509,10 +512,10 @@ Other info:
 </Node>
 <Node id="9">
 <True/>
-<Node id="20" score="-0.0801281894">
-<SimplePredicate field="feature_13" operator="greaterThan" value="1087"/>
+<Node id="20" score="-0.24062517">
+<SimplePredicate field="feature_15" operator="greaterThan" value="42"/>
 </Node>
-<Node id="19" score="0.1633271603">
+<Node id="19" score="-0.003296823756">
 <True/>
 </Node>
 </Node>
@@ -520,20 +523,20 @@ Other info:
 <Node id="3">
 <True/>
 <Node id="8" defaultChild="17">
-<SimplePredicate field="feature_14" operator="greaterThan" value="1881.5"/>
+<SimplePredicate field="feature_11_mapped" operator="equal" value="0"/>
 <Node id="18" score="0">
-<SimplePredicate field="feature_13" operator="greaterThan" value="1087"/>
+<SimplePredicate field="feature_15" operator="greaterThan" value="42"/>
 </Node>
-<Node id="17" score="-0.093798602">
+<Node id="17" score="0.03406094764">
 <True/>
 </Node>
 </Node>
 <Node id="7">
 <True/>
-<Node id="16" score="-0.2794130888">
-<SimplePredicate field="feature_13" operator="greaterThan" value="1087"/>
+<Node id="16" score="0.04932573264">
+<SimplePredicate field="feature_15" operator="greaterThan" value="42"/>
 </Node>
-<Node id="15" score="0.3176063256">
+<Node id="15" score="0.3537693746">
 <True/>
 </Node>
 </Node>
@@ -571,11 +574,11 @@ Other info:
 <Node id="0">
 <True/>
 <Node id="2" defaultChild="5">
-<SimplePredicate field="feature_9_mapped" operator="equal" value="2"/>
+<SimplePredicate field="feature_6_mapped" operator="equal" value="0"/>
 <Node id="6" defaultChild="13">
 <SimplePredicate field="feature_8_mapped" operator="equal" value="1"/>
 <Node id="14" defaultChild="29">
-<SimplePredicate field="feature_4_mapped" operator="equal" value="1"/>
+<SimplePredicate field="feature_4_mapped" operator="equal" value="0"/>
 <Node id="30" score="0">
 <SimplePredicate field="feature_10_mapped" operator="equal" value="0"/>
 </Node>
@@ -596,8 +599,8 @@ Other info:
 <Node id="5">
 <True/>
 <Node id="12" defaultChild="25">
-<SimplePredicate field="feature_4_mapped" operator="equal" value="1"/>
-<Node id="26" score="-0.04915653286">
+<SimplePredicate field="feature_4_mapped" operator="equal" value="0"/>
+<Node id="26" score="0">
 <SimplePredicate field="feature_10_mapped" operator="equal" value="0"/>
 </Node>
 <Node id="25" score="0">
@@ -606,10 +609,10 @@ Other info:
 </Node>
 <Node id="11">
 <True/>
-<Node id="24" score="0.213641446">
+<Node id="24" score="-0.1322074251">
 <SimplePredicate field="feature_10_mapped" operator="equal" value="0"/>
 </Node>
-<Node id="23" score="0.175712452">
+<Node id="23" score="0">
 <True/>
 </Node>
 </Node>
@@ -620,7 +623,7 @@ Other info:
 <Node id="4" defaultChild="9">
 <SimplePredicate field="feature_8_mapped" operator="equal" value="1"/>
 <Node id="10" defaultChild="21">
-<SimplePredicate field="feature_4_mapped" operator="equal" value="1"/>
+<SimplePredicate field="feature_4_mapped" operator="equal" value="0"/>
 <Node id="22" score="0">
 <SimplePredicate field="feature_10_mapped" operator="equal" value="0"/>
 </Node>
@@ -633,7 +636,7 @@ Other info:
 <Node id="20" score="0">
 <SimplePredicate field="feature_10_mapped" operator="equal" value="0"/>
 </Node>
-<Node id="19" score="0.128601272">
+<Node id="19" score="0.1250341238">
 <True/>
 </Node>
 </Node>
@@ -641,20 +644,20 @@ Other info:
 <Node id="3">
 <True/>
 <Node id="8" defaultChild="17">
-<SimplePredicate field="feature_4_mapped" operator="equal" value="1"/>
-<Node id="18" score="-0.1868997871">
+<SimplePredicate field="feature_4_mapped" operator="equal" value="0"/>
+<Node id="18" score="-0.2619846855">
 <SimplePredicate field="feature_10_mapped" operator="equal" value="0"/>
 </Node>
-<Node id="17" score="-0.05967789709">
+<Node id="17" score="-0.104097216">
 <True/>
 </Node>
 </Node>
 <Node id="7">
 <True/>
-<Node id="16" score="-0.311618418">
+<Node id="16" score="-0.08941501574">
 <SimplePredicate field="feature_10_mapped" operator="equal" value="0"/>
 </Node>
-<Node id="15" score="0.3946927268">
+<Node id="15" score="0.4305648527">
 <True/>
 </Node>
 </Node>
@@ -696,20 +699,20 @@ Other info:
 <Node id="6" defaultChild="13">
 <SimplePredicate field="feature_5" operator="greaterThan" value="188655"/>
 <Node id="14" defaultChild="29">
-<SimplePredicate field="feature_9_mapped" operator="equal" value="1"/>
-<Node id="30" score="-0.1091127625">
-<SimplePredicate field="feature_7" operator="greaterThan" value="6.5"/>
+<SimplePredicate field="feature_9_mapped" operator="equal" value="0"/>
+<Node id="30" score="-0.1177744909">
+<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
 </Node>
-<Node id="29" score="0">
+<Node id="29" score="0.04593911833">
 <True/>
 </Node>
 </Node>
 <Node id="13">
 <True/>
-<Node id="28" score="0.2102968304">
-<SimplePredicate field="feature_7" operator="greaterThan" value="6.5"/>
+<Node id="28" score="0.08846563497">
+<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
 </Node>
-<Node id="27" score="0.1030557953">
+<Node id="27" score="0.2478621967">
 <True/>
 </Node>
 </Node>
@@ -717,20 +720,20 @@ Other info:
 <Node id="5">
 <True/>
 <Node id="12" defaultChild="25">
-<SimplePredicate field="feature_9_mapped" operator="equal" value="1"/>
-<Node id="26" score="0.004742350768">
-<SimplePredicate field="feature_7" operator="greaterThan" value="6.5"/>
+<SimplePredicate field="feature_9_mapped" operator="equal" value="0"/>
+<Node id="26" score="0.002635432443">
+<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
 </Node>
-<Node id="25" score="0">
+<Node id="25" score="0.02390349843">
 <True/>
 </Node>
 </Node>
 <Node id="11">
 <True/>
-<Node id="24" score="0.1771919257">
-<SimplePredicate field="feature_7" operator="greaterThan" value="6.5"/>
+<Node id="24" score="-0.009234379587">
+<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
 </Node>
-<Node id="23" score="0.06164565733">
+<Node id="23" score="0.2477838702">
 <True/>
 </Node>
 </Node>
@@ -741,9 +744,9 @@ Other info:
 <Node id="4" defaultChild="9">
 <SimplePredicate field="feature_5" operator="greaterThan" value="188655"/>
 <Node id="10" defaultChild="21">
-<SimplePredicate field="feature_9_mapped" operator="equal" value="1"/>
-<Node id="22" score="-0.1895484725">
-<SimplePredicate field="feature_7" operator="greaterThan" value="6.5"/>
+<SimplePredicate field="feature_9_mapped" operator="equal" value="0"/>
+<Node id="22" score="-0.1791062546">
+<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
 </Node>
 <Node id="21" score="0">
 <True/>
@@ -751,10 +754,10 @@ Other info:
 </Node>
 <Node id="9">
 <True/>
-<Node id="20" score="0.08541277551">
-<SimplePredicate field="feature_7" operator="greaterThan" value="6.5"/>
+<Node id="20" score="-0.09142634843">
+<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
 </Node>
-<Node id="19" score="0.03086399579">
+<Node id="19" score="0.1992849475">
 <True/>
 </Node>
 </Node>
@@ -762,20 +765,20 @@ Other info:
 <Node id="3">
 <True/>
 <Node id="8" defaultChild="17">
-<SimplePredicate field="feature_9_mapped" operator="equal" value="1"/>
-<Node id="18" score="-0.02533531247">
-<SimplePredicate field="feature_7" operator="greaterThan" value="6.5"/>
+<SimplePredicate field="feature_9_mapped" operator="equal" value="0"/>
+<Node id="18" score="-0.09782320827">
+<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
 </Node>
-<Node id="17" score="0">
+<Node id="17" score="0.06013004558">
 <True/>
 </Node>
 </Node>
 <Node id="7">
 <True/>
-<Node id="16" score="-0.1820374994">
-<SimplePredicate field="feature_7" operator="greaterThan" value="6.5"/>
+<Node id="16" score="-0.3081692852">
+<SimplePredicate field="feature_8_mapped" operator="equal" value="0"/>
 </Node>
-<Node id="15" score="0.05556900325">
+<Node id="15" score="0.1324874527">
 <True/>
 </Node>
 </Node>

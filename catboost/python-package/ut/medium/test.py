@@ -2709,7 +2709,10 @@ def test_different_cat_features_order(task_type):
 def test_full_history(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(iterations=1000, learning_rate=0.03, od_type='Iter', od_wait=20, random_seed=42, approx_on_full_history=True, task_type=task_type, devices='0')
+    model = CatBoostClassifier(
+        iterations=1000, learning_rate=0.03, od_type='Iter', od_wait=20, random_seed=42,
+        approx_on_full_history=True, task_type=task_type, devices='0', boosting_type='Ordered'
+    )
     model.fit(train_pool, eval_set=test_pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     model.save_model(output_model_path)
@@ -3693,8 +3696,9 @@ def test_str_metrics_in_eval_metrics(task_type):
 
 def test_str_eval_metrics_in_eval_features():
     learn_params = {
-        'iterations': 20, 'learning_rate': 0.5,
-        'logging_level': 'Silent', 'loss_function': 'RMSE', 'boosting_type': 'Plain', 'allow_const_label': True}
+        'iterations': 20, 'learning_rate': 0.5, 'logging_level': 'Silent', 'loss_function': 'RMSE',
+        'boosting_type': 'Plain', 'allow_const_label': True, 'bootstrap_type': 'No',
+    }
     evaluator = CatboostEvaluation(
         TRAIN_FILE, fold_size=2, fold_count=2,
         column_description=CD_FILE, partition_random_seed=0)
@@ -3706,9 +3710,9 @@ def test_str_eval_metrics_in_eval_features():
 def test_compare():
     dataset = np.array([[1, 4, 5, 6], [4, 5, 6, 7], [30, 40, 50, 60], [20, 15, 85, 60]])
     train_labels = [1.2, 3.4, 9.5, 24.5]
-    model = CatBoostRegressor(learning_rate=1, depth=6, loss_function='RMSE')
+    model = CatBoostRegressor(learning_rate=1, depth=6, loss_function='RMSE', bootstrap_type='No')
     model.fit(dataset, train_labels)
-    model2 = CatBoostRegressor(learning_rate=0.1, depth=1, loss_function='MAE')
+    model2 = CatBoostRegressor(learning_rate=0.1, depth=1, loss_function='MAE', bootstrap_type='No')
     model2.fit(dataset, train_labels)
 
     try:
@@ -4054,6 +4058,7 @@ def test_use_last_testset_for_best_iteration():
         'leaf_estimation_iterations': 10,
         'max_ctr_complexity': 4,
         'boosting_type': 'Ordered',
+        'bootstrap_type': 'Bayesian',
     }
 
     model = CatBoostClassifier(**args)
