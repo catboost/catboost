@@ -818,6 +818,11 @@ public:
      * @return the name, or empty string if the model does not have this information
      */
     TString GetLossFunctionName() const;
+
+    /**
+     * @return Names for classes predicted by model if model can be used for classification,
+     *  empty vector otherwise
+     */
     TVector<TString> GetModelClassNames() const;
 
     /**

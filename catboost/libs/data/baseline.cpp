@@ -50,7 +50,7 @@ namespace NCB {
             for (const auto& token: tokens) {
                 auto splitIdx = token.find(CLASS_NAME_DELIMITER);
                 if (token.substr(0, splitIdx) == "RawFormulaVal") {
-                    if (!classNames.empty() && splitIdx < token.size()) {
+                    if ((BaselineSize_ != 1) && !classNames.empty() && splitIdx < token.size()) {
                         TString className = token.substr(splitIdx + CLASS_NAME_DELIMITER.size());
                         CB_ENSURE(classNames[BaselineIndexes_.size()] == className, "Unknown class name " << className);
                     }
@@ -59,7 +59,8 @@ namespace NCB {
                 ++columnIdx;
             }
             CB_ENSURE(!BaselineIndexes_.empty(), "Baseline file header should contain at least one 'RawFormulaVal[:Class=class_name]' value");
-            CB_ENSURE((BaselineIndexes_.size() == 1 && classNames.empty()) || (!classNames.empty() &&  BaselineIndexes_.size() == classNames.size()),
+            CB_ENSURE((BaselineIndexes_.size() == 1 && (classNames.empty() || (classNames.size() == 2))) ||
+                      (!classNames.empty() &&  BaselineIndexes_.size() == classNames.size()),
                       "Baseline file header for multiclass should contain one 'RawFormulaVal' value or several 'RawFormulaVal:Class=class_name' values");
             Inited_ = true;
         }

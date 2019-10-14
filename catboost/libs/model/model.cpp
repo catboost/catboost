@@ -11,7 +11,9 @@
 #include <catboost/libs/helpers/borders_io.h>
 #include <catboost/libs/logging/logging.h>
 
+#include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/loss_description.h>
+#include <catboost/private/libs/options/multiclass_label_options.h>
 
 #include <library/json/json_reader.h>
 #include <library/dbg_output/dump.h>
@@ -617,18 +619,26 @@ void SetModelExternalFeatureNames(const TVector<TString>& featureNames, TFullMod
     }
 }
 
-TString TFullModel::GetLossFunctionName() const {
-    NCatboostOptions::TLossDescription lossDescription;
-    if (ModelInfo.contains("loss_function")) {
-        lossDescription.Load(ReadTJsonValue(ModelInfo.at("loss_function")));
-        return ToString(lossDescription.GetLossFunction());
+static TMaybe<NCatboostOptions::TLossDescription> GetLossDescription(const TFullModel& model) {
+    TMaybe<NCatboostOptions::TLossDescription> lossDescription;
+    if (model.ModelInfo.contains("loss_function")) {
+        lossDescription.ConstructInPlace();
+        lossDescription->Load(ReadTJsonValue(model.ModelInfo.at("loss_function")));
     }
-    if (ModelInfo.contains("params")) {
-        const auto& params = ReadTJsonValue(ModelInfo.at("params"));
+    if (model.ModelInfo.contains("params")) {
+        const auto& params = ReadTJsonValue(model.ModelInfo.at("params"));
         if (params.Has("loss_function")) {
-            lossDescription.Load(params["loss_function"]);
-            return ToString(lossDescription.GetLossFunction());
+            lossDescription.ConstructInPlace();
+            lossDescription->Load(params["loss_function"]);
         }
+    }
+    return lossDescription;
+}
+
+TString TFullModel::GetLossFunctionName() const {
+    const TMaybe<NCatboostOptions::TLossDescription> lossDescription = GetLossDescription(*this);
+    if (lossDescription.Defined()) {
+        return ToString(lossDescription->GetLossFunction());
     }
     return {};
 }
@@ -644,16 +654,44 @@ inline TVector<TString> ExtractClassNamesFromJsonArray(const NJson::TJsonValue& 
 TVector<TString> TFullModel::GetModelClassNames() const {
     TVector<TString> classNames;
     if (ModelInfo.contains("multiclass_params")) {
-        NJson::TJsonValue paramsJson = ReadTJsonValue(ModelInfo.at("multiclass_params"));
-        classNames = ExtractClassNamesFromJsonArray(paramsJson["class_names"]);
-    } else if (ModelInfo.contains("params")) {
+        TMulticlassLabelOptions multiclassOptions;
+        multiclassOptions.Load(ReadTJsonValue(ModelInfo.at("multiclass_params")));
+        if (multiclassOptions.ClassNames.IsSet()) {
+            classNames = multiclassOptions.ClassNames.Get();
+            return classNames;
+        } else if (multiclassOptions.ClassToLabel.IsSet()) {
+            classNames.reserve(multiclassOptions.ClassToLabel->size());
+            for (float label : multiclassOptions.ClassToLabel.Get()) {
+                classNames.push_back(ToString(ui32(label)));
+            }
+            return classNames;
+        }
+    }
+    if (ModelInfo.contains("params")) {
         const TString& modelInfoParams = ModelInfo.at("params");
         NJson::TJsonValue paramsJson = ReadTJsonValue(modelInfoParams);
         if (paramsJson.Has("data_processing_options")
             && paramsJson["data_processing_options"].Has("class_names")) {
             classNames = ExtractClassNamesFromJsonArray(paramsJson["data_processing_options"]["class_names"]);
+            if (!classNames.empty()) {
+                return classNames;
+            }
         }
     }
+
+    const size_t dimensionsCount = GetDimensionsCount();
+    if (dimensionsCount > 1) {
+        classNames.reserve(dimensionsCount);
+        for (auto i : xrange(dimensionsCount)) {
+            classNames.push_back(ToString(i));
+        }
+    } else {
+        const TMaybe<NCatboostOptions::TLossDescription> lossDescription = GetLossDescription(*this);
+        if (lossDescription.Defined() && IsClassificationObjective(lossDescription->GetLossFunction())) {
+            classNames = TVector<TString>{"0", "1"};
+        }
+    }
+
     return classNames;
 }
 

@@ -150,6 +150,8 @@ sparse_matrix_types = [
     scipy.sparse.lil_matrix
 ]
 
+label_types = ['consecutive_integers', 'nonconsecutive_integers', 'string', 'float']
+
 
 model_diff_tool = binary_path("catboost/tools/model_comparator/model_comparator")
 
@@ -5983,3 +5985,82 @@ def test_multiclass_train_on_constant_data(task_type):
 
     assert model.classes_ == classes
     model.predict(features)
+
+
+@pytest.mark.parametrize(
+    'label_type',
+    label_types,
+    ids=['label_type=%s' % s for s in label_types]
+)
+@pytest.mark.parametrize(
+    'loss_function',
+    ['Logloss', 'CrossEntropy'],
+    ids=['label_type=%s' % s for s in ['Logloss', 'CrossEntropy']]
+)
+def test_classes_attribute_binclass(label_type, loss_function):
+    params = {'loss_function': loss_function, 'iterations': 2}
+
+    if label_type == 'consecutive_integers':
+        unique_labels = [0, 1]
+    elif label_type == 'nonconsecutive_integers':
+        unique_labels = [2, 5]
+    elif label_type == 'string':
+        unique_labels = ['class0', 'class1']
+        params['class_names'] = ['class0', 'class1']
+    elif label_type == 'float':
+        unique_labels = [0.0, 0.1, 0.2, 0.5, 1.0]
+        if loss_function == 'Logloss':
+            params['target_border'] = 0.5
+
+    features, labels = generate_random_labeled_dataset(n_samples=20, n_features=5, labels=unique_labels)
+
+    model = CatBoostClassifier(**params)
+    if (loss_function == 'CrossEntropy') and (label_type == 'nonconsecutive_integers'):
+        # out of [0.0, 1.0] bounds
+        with pytest.raises(CatBoostError):
+            model.fit(features, labels)
+    else:
+        model.fit(features, labels)
+
+        if label_type == 'consecutive_integers':
+            assert model.classes_ == ['0', '1']
+        elif label_type == 'nonconsecutive_integers':
+            # if loss_function == 'Logloss' and label contains two unique numeric values CatBoost automatically
+            # calculates target_border as their average
+            assert sorted(model.classes_) == ['0', '1']
+        elif label_type == 'string':
+            assert model.classes_ == ['class0', 'class1']
+        elif label_type == 'float':
+            assert model.classes_ == ['0', '1']
+
+
+@pytest.mark.parametrize(
+    'label_type',
+    label_types,
+    ids=['label_type=%s' % s for s in label_types]
+)
+def test_classes_attribute_multiclass(label_type):
+    params = {'loss_function': 'MultiClass', 'iterations': 2}
+
+    if label_type == 'consecutive_integers':
+        unique_labels = [0, 1, 2, 3]
+    elif label_type == 'nonconsecutive_integers':
+        unique_labels = [2, 5, 9, 11]
+    elif label_type == 'string':
+        unique_labels = ['class0', 'class1', 'class2', 'class3']
+    elif label_type == 'float':
+        unique_labels = [0.0, 0.1, 0.2, 0.5, 1.0]
+
+    features, labels = generate_random_labeled_dataset(n_samples=20, n_features=5, labels=unique_labels)
+
+    model = CatBoostClassifier(**params)
+    model.fit(features, labels)
+
+    if label_type == 'consecutive_integers':
+        assert model.classes_ == ['0', '1', '2', '3']
+    elif label_type == 'nonconsecutive_integers':
+        assert model.classes_ == ['2', '5', '9', '11']
+    elif label_type == 'string':
+        assert sorted(model.classes_) == ['class0', 'class1', 'class2', 'class3']
+    elif label_type == 'float':
+        assert sorted(model.classes_) == ['0', '0.1', '0.2', '0.5', '1']

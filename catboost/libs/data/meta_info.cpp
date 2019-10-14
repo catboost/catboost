@@ -128,8 +128,21 @@ void TDataMetaInfo::Validate() const {
     CB_ENSURE(GetFeatureCount() > 0, "Pool should have at least one factor");
     CB_ENSURE(!HasGroupWeight || (HasGroupWeight && HasGroupId),
         "You should provide GroupId when providing GroupWeight.");
-    CB_ENSURE(ClassNames.empty() || BaselineCount == 0 || BaselineCount == ClassNames.size(),
-        "Baseline columns count " << BaselineCount << " and class names count "  << ClassNames.size() << " are not equal");
+    if ((BaselineCount != 0) && !ClassNames.empty()) {
+        if (BaselineCount == 1) {
+            CB_ENSURE(
+                ClassNames.size() == 2,
+                "Inconsistent columns specification: Baseline columns count " << BaselineCount
+                << " and class names count "  << ClassNames.size() << ". Either wrong baseline count for "
+                " multiclassification or wrong class count for binary classification"
+            );
+        } else {
+            CB_ENSURE(
+                BaselineCount == ClassNames.size(),
+                "Baseline columns count " << BaselineCount << " and class names count "  << ClassNames.size() << " are not equal"
+            );
+        }
+    }
 }
 
 TVector<TString> TDataColumnsMetaInfo::GenerateFeatureIds(const TMaybe<TVector<TString>>& header) const {
