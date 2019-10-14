@@ -265,6 +265,24 @@ Y_UNIT_TEST_SUITE(TBase64) {
         UNIT_ASSERT_EXCEPTION(Base64StrictDecode("\1\1\1\2"), yexception);
     }
 
+    Y_UNIT_TEST(TestDecodeUneven) {
+        UNIT_ASSERT_VALUES_EQUAL(Base64DecodeUneven(""), "");
+
+        UNIT_ASSERT_VALUES_EQUAL(Base64DecodeUneven("YWFh"), "aaa");
+
+        UNIT_ASSERT_VALUES_EQUAL(Base64DecodeUneven("MTI="), "12");
+        UNIT_ASSERT_VALUES_EQUAL(Base64DecodeUneven("MTI,"), "12");
+        UNIT_ASSERT_VALUES_EQUAL(Base64DecodeUneven("MTI"), "12");
+
+        UNIT_ASSERT_VALUES_EQUAL(Base64DecodeUneven("QQ=="), "A");
+        UNIT_ASSERT_VALUES_EQUAL(Base64DecodeUneven("QQ,,"), "A");
+        UNIT_ASSERT_VALUES_EQUAL(Base64DecodeUneven("QQ"), "A");
+
+        UNIT_ASSERT_VALUES_EQUAL(Base64DecodeUneven("dnluZHg="), "vyndx");
+        UNIT_ASSERT_VALUES_EQUAL(Base64DecodeUneven("dnluZHg,"), "vyndx");
+        UNIT_ASSERT_VALUES_EQUAL(Base64DecodeUneven("dnluZHg"), "vyndx");
+    }
+
     Y_UNIT_TEST(TestDecodeRandom) {
         TString input;
         constexpr size_t testSize = 240000;
