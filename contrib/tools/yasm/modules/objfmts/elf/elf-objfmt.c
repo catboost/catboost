@@ -370,9 +370,14 @@ elf_objfmt_create_common(yasm_object *object, yasm_objfmt_module *module,
 
     /* FIXME: misuse of NULL bytecode here; it works, but only barely. */
     filesym = yasm_symtab_define_label(object->symtab, ".file", NULL, 0, 0);
+    if (!object->deb_filename) {
+        object->deb_filename = yasm_replace_path(
+                module->replace_map, module->replace_map_size,
+                object->src_filename, strlen(object->src_filename));
+    }
     /* Put in current input filename; we'll replace it in output() */
     objfmt_elf->file_strtab_entry =
-        elf_strtab_append_str(objfmt_elf->strtab, object->src_filename);
+        elf_strtab_append_str(objfmt_elf->strtab, object->deb_filename);
     entry = elf_symtab_entry_create(objfmt_elf->file_strtab_entry, filesym);
     yasm_symrec_add_data(filesym, &elf_symrec_data, entry);
     elf_symtab_set_nonzero(entry, NULL, SHN_ABS, STB_LOCAL, STT_FILE, NULL,
@@ -753,9 +758,14 @@ elf_objfmt_output(yasm_object *object, FILE *f, int all_syms,
     info.f = f;
     info.GOT_sym = yasm_symtab_get(object->symtab, "_GLOBAL_OFFSET_TABLE_");
 
+    if (!object->deb_filename) {
+        object->deb_filename = yasm_replace_path(
+             objfmt_elf->objfmt.module->replace_map, objfmt_elf->objfmt.module->replace_map_size,
+             object->src_filename, strlen(object->src_filename));
+    }
     /* Update filename strtab */
     elf_strtab_entry_set_str(objfmt_elf->file_strtab_entry,
-                             object->src_filename);
+                             object->deb_filename);
 
     /* Allocate space for Ehdr by seeking forward */
     if (fseek(f, (long)(elf_proghead_get_size()), SEEK_SET) < 0) {

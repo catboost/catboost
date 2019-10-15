@@ -48,6 +48,7 @@ struct yasm_reloc {
 /** An object.  This is the internal representation of an object file. */
 struct yasm_object {
     /*@owned@*/ char *src_filename;     /**< Source filename */
+    /*@owned@*/ char *deb_filename;     /**< Debug filename */
     /*@owned@*/ char *obj_filename;     /**< Object filename */
 
     /*@owned@*/ yasm_symtab *symtab;    /**< Symbol table */

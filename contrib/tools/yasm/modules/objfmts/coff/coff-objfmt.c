@@ -1192,8 +1192,13 @@ coff_objfmt_output(yasm_object *object, FILE *f, int all_syms,
 
     if (objfmt_coff->filesym_data->aux[0].fname)
         yasm_xfree(objfmt_coff->filesym_data->aux[0].fname);
+    if (!object->deb_filename) {
+        object->deb_filename = yasm_replace_path(
+             objfmt_coff->objfmt.module->replace_map, objfmt_coff->objfmt.module->replace_map_size,
+             object->src_filename, strlen(object->src_filename));
+    }
     objfmt_coff->filesym_data->aux[0].fname =
-        yasm__xstrdup(object->src_filename);
+        yasm__xstrdup(object->deb_filename);
 
     /* Force all syms for win64 because they're needed for relocations.
      * FIXME: Not *all* syms need to be output, only the ones needed for

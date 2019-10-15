@@ -123,6 +123,15 @@ struct yasm_objfmt_module {
     /*@observer@*/ /*@null@*/ yasm_symrec *
         (*get_special_sym)(yasm_object *object, const char *name,
                            const char *parser);
+
+    /**
+     * --replace params
+     */
+    const char** replace_map;
+    /**
+     * Number of elements in replace_map
+     */
+    int replace_map_size;
 };
 
 /** Create object format.

@@ -69,6 +69,15 @@ struct yasm_dbgfmt_module {
      */
     void (*generate) (yasm_object *object, yasm_linemap *linemap,
                       yasm_errwarns *errwarns);
+
+    /**
+     * --replace params
+     */
+    const char** replace_map;
+    /**
+     * Number of elements in replace_map
+     */
+    int replace_map_size;
 };
 
 /** Get the keyword used to select a debug format.

@@ -64,3 +64,23 @@ yasm_init_plugin(void)
     yasm_register_module(YASM_MODULE_OBJFMT, "xdf", &yasm_xdf_LTX_objfmt);
 }
 
+void
+yasm_plugin_set_replace(const char* replace_params[], int size) {
+    yasm_dwarf2_LTX_dbgfmt.replace_map = replace_params;
+    yasm_dwarf2_LTX_dbgfmt.replace_map_size = size;
+    yasm_elf_LTX_objfmt.replace_map = replace_params;
+    yasm_elf_LTX_objfmt.replace_map_size = size;
+    yasm_elf32_LTX_objfmt.replace_map = replace_params;
+    yasm_elf32_LTX_objfmt.replace_map_size = size;
+    yasm_elf64_LTX_objfmt.replace_map = replace_params;
+    yasm_elf64_LTX_objfmt.replace_map_size = size;
+    yasm_elfx32_LTX_objfmt.replace_map = replace_params;
+    yasm_elfx32_LTX_objfmt.replace_map_size = size;
+
+    yasm_macho_LTX_objfmt.replace_map = replace_params;
+    yasm_macho_LTX_objfmt.replace_map_size = size;
+    yasm_macho32_LTX_objfmt.replace_map = replace_params;
+    yasm_macho32_LTX_objfmt.replace_map_size = size;
+    yasm_macho64_LTX_objfmt.replace_map = replace_params;
+    yasm_macho64_LTX_objfmt.replace_map_size = size;
+}

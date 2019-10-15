@@ -326,12 +326,21 @@ yasm_dwarf2__generate_info(yasm_object *object, yasm_section *debug_line,
 
     /* input filename */
     abc->len += dwarf2_add_abbrev_attr(abbrev, DW_AT_name, DW_FORM_string);
-    dwarf2_append_str(debug_info, object->src_filename);
+    if (!object->deb_filename) {
+        object->deb_filename = yasm_replace_path(
+                dbgfmt_dwarf2->dbgfmt.module->replace_map, dbgfmt_dwarf2->dbgfmt.module->replace_map_size,
+                object->src_filename, strlen(object->src_filename));
+    }
+    dwarf2_append_str(debug_info, object->deb_filename);
 
     /* compile directory (current working directory) */
     abc->len += dwarf2_add_abbrev_attr(abbrev, DW_AT_comp_dir, DW_FORM_string);
     buf = yasm__getcwd();
-    dwarf2_append_str(debug_info, buf);
+    char * new_cwd_name = yasm_replace_path(
+         dbgfmt_dwarf2->dbgfmt.module->replace_map, dbgfmt_dwarf2->dbgfmt.module->replace_map_size,
+         buf, strlen(buf));
+    dwarf2_append_str(debug_info, new_cwd_name);
+    yasm_xfree(new_cwd_name);
     yasm_xfree(buf);
 
     /* producer - assembler name */

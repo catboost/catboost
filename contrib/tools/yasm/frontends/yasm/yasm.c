@@ -50,6 +50,9 @@
 /*@null@*/ /*@only@*/ static char *global_prefix = NULL, *global_suffix = NULL;
 /*@null@*/ /*@only@*/ static char *list_filename = NULL, *map_filename = NULL;
 /*@null@*/ /*@only@*/ static char *machine_name = NULL;
+static char **replace_params;
+static int replace_size = 0;
+static int replace_capacity = 0;
 static int special_options = 0;
 /*@null@*/ /*@dependent@*/ static yasm_arch *cur_arch = NULL;
 /*@null@*/ /*@dependent@*/ static const yasm_arch_module *
@@ -107,6 +110,7 @@ static int opt_preproc_option(char *cmd, /*@null@*/ char *param, int extra);
 static int opt_ewmsg_handler(char *cmd, /*@null@*/ char *param, int extra);
 static int opt_makedep_handler(char *cmd, /*@null@*/ char *param, int extra);
 static int opt_prefix_handler(char *cmd, /*@null@*/ char *param, int extra);
+static int opt_replace_handler(char *cmd, /*@null@*/ char *param, int extra);
 static int opt_suffix_handler(char *cmd, /*@null@*/ char *param, int extra);
 #if defined(CMAKE_BUILD) && defined(BUILD_SHARED_LIBS)
 static int opt_plugin_handler(char *cmd, /*@null@*/ char *param, int extra);
@@ -114,6 +118,7 @@ static int opt_plugin_handler(char *cmd, /*@null@*/ char *param, int extra);
 
 #if defined(CMAKE_BUILD) && !defined(BUILD_SHARED_LIBS)
 void yasm_init_plugin(void);
+void yasm_plugin_set_replace(const char* replace[], int size);
 #endif
 
 static /*@only@*/ char *replace_extension(const char *orig, /*@null@*/
@@ -212,6 +217,8 @@ static opt_option options[] =
     { 'N', "plugin", 1, opt_plugin_handler, 0,
       N_("load plugin module"), N_("plugin") },
 #endif
+    { 0, "replace", 1, opt_replace_handler, 0,
+      N_("replace names"), N_("replace") },
 };
 
 /* version message */
@@ -655,6 +662,10 @@ main(int argc, char *argv[])
         if (!errfile)
             return EXIT_FAILURE;
     }
+
+#if defined(CMAKE_BUILD) && !defined(BUILD_SHARED_LIBS)
+    yasm_plugin_set_replace(replace_params, replace_size);
+#endif
 
     /* If not already specified, default to bin as the object format. */
     if (!cur_objfmt_module) {
@@ -1184,6 +1195,32 @@ opt_prefix_handler(/*@unused@*/ char *cmd, char *param, /*@unused@*/ int extra)
 
     assert(param != NULL);
     global_prefix = yasm__xstrdup(param);
+
+    return 0;
+}
+
+static void
+opt_free_replace(void)
+{
+    yasm_xfree(replace_params);
+    replace_capacity = 0;
+    replace_size = 0;
+}
+
+static int
+opt_replace_handler(/*@unused@*/ char *cmd, char *param, /*@unused@*/ int extra)
+{
+    if (replace_capacity == 0) {
+        atexit(opt_free_replace);
+    }
+    if (replace_size == replace_capacity) {
+        replace_capacity += 10;
+        replace_params = yasm_xrealloc(replace_params, replace_capacity);
+    }
+
+    assert(param != NULL);
+    replace_params[replace_size] = yasm__xstrdup(param);
+    ++replace_size;
 
     return 0;
 }

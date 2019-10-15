@@ -532,17 +532,21 @@ dwarf2_generate_line_bc(yasm_bytecode *bc, /*@null@*/ void *d)
 
     yasm_linemap_lookup(info->linemap, bc->line, &pathname, &info->loc.line);
     dirlen = yasm__splitpath(pathname, &filename);
+    char * new_dir_name = yasm_replace_path(
+         dbgfmt_dwarf2->dbgfmt.module->replace_map, dbgfmt_dwarf2->dbgfmt.module->replace_map_size,
+         pathname, dirlen);
+    dirlen = strlen(new_dir_name);
 
     /* Find file index; just linear search it unless it was the last used */
     if (info->lastfile > 0
         && dwarf2_filename_equals(&dbgfmt_dwarf2->filenames[info->lastfile-1],
-                                  dbgfmt_dwarf2->dirs, pathname, dirlen,
+                                  dbgfmt_dwarf2->dirs, new_dir_name, dirlen,
                                   filename))
         info->loc.file = info->lastfile;
     else {
         for (i=0; i<dbgfmt_dwarf2->filenames_size; i++) {
             if (dwarf2_filename_equals(&dbgfmt_dwarf2->filenames[i],
-                                       dbgfmt_dwarf2->dirs, pathname, dirlen,
+                                       dbgfmt_dwarf2->dirs, new_dir_name, dirlen,
                                        filename))
                 break;
         }
@@ -551,6 +555,7 @@ dwarf2_generate_line_bc(yasm_bytecode *bc, /*@null@*/ void *d)
         info->loc.file = i+1;
         info->lastfile = i+1;
     }
+    yasm_xfree(new_dir_name);
     if (dwarf2_dbgfmt_gen_line_op(info->debug_line, info->state, &info->loc,
                                   NULL))
         return 1;
@@ -677,7 +682,11 @@ static int
 dwarf2_generate_filename(const char *filename, void *d)
 {
     yasm_dbgfmt_dwarf2 *dbgfmt_dwarf2 = (yasm_dbgfmt_dwarf2 *)d;
-    dwarf2_dbgfmt_add_file(dbgfmt_dwarf2, 0, filename);
+    char *deb_name = yasm_replace_path(
+            dbgfmt_dwarf2->dbgfmt.module->replace_map, dbgfmt_dwarf2->dbgfmt.module->replace_map_size,
+            filename, strlen(filename));
+    dwarf2_dbgfmt_add_file(dbgfmt_dwarf2, 0, deb_name);
+    yasm_xfree(deb_name);
     return 0;
 }
 
@@ -1121,6 +1130,9 @@ yasm_dwarf2__dir_file(yasm_object *object, yasm_valparamhead *valparams,
     if (yasm_vp_string(vp)) {
         /* Just a bare filename */
         yasm_object_set_source_fn(object, yasm_vp_string(vp));
+        object->deb_filename = yasm_replace_path(
+                dbgfmt_dwarf2->dbgfmt.module->replace_map, dbgfmt_dwarf2->dbgfmt.module->replace_map_size,
+                yasm_vp_string(vp), strlen(yasm_vp_string(vp)));
         return;
     }
 

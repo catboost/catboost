@@ -69,6 +69,7 @@ SRCS(
     libyasm/md5.c
     libyasm/mergesort.c
     libyasm/phash.c
+    libyasm/replace_path.c
     libyasm/section.c
     libyasm/strcasecmp.c
     libyasm/strsep.c

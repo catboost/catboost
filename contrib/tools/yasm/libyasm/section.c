@@ -220,6 +220,7 @@ yasm_object_create(const char *src_filename, const char *obj_filename,
     int matched, i;
 
     object->src_filename = yasm__xstrdup(src_filename);
+    object->deb_filename = NULL;
     object->obj_filename = yasm__xstrdup(obj_filename);
 
     /* No prefix/suffix */
@@ -384,6 +385,8 @@ yasm_object_set_source_fn(yasm_object *object, const char *src_filename)
 {
     yasm_xfree(object->src_filename);
     object->src_filename = yasm__xstrdup(src_filename);
+    yasm_xfree(object->deb_filename);
+    object->deb_filename = NULL;
 }
 
 void
@@ -480,6 +483,7 @@ yasm_object_destroy(yasm_object *object)
 
     /* Delete associated filenames */
     yasm_xfree(object->src_filename);
+    yasm_xfree(object->deb_filename);
     yasm_xfree(object->obj_filename);
 
     /* Delete symbol table */
