@@ -288,7 +288,7 @@ Y_UNIT_TEST_SUITE(TDateTimeParseTest) {
         // ISO 8601 actually does not allow time without time zone
         ret = ParseISO8601DateTime("1990-03-15", t);
         UNIT_ASSERT(ret);
-        UNIT_ASSERT_VALUES_EQUAL(t, 637498800);
+        UNIT_ASSERT_VALUES_EQUAL(t, 637459200);
 
         // some normal dates
         ret = ParseISO8601DateTime("1990-03-15T15:16:17Z", t);

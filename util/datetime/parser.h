@@ -8,7 +8,7 @@ struct TDateTimeFields {
     TDateTimeFields() {
         Zero(*this);
         ZoneOffsetMinutes = 0;
-        Hour = 11;
+        Hour = 0;
     }
 
     ui32 Year;
