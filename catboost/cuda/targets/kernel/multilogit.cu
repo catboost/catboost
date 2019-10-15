@@ -357,20 +357,23 @@ namespace NKernel {
                                                  const float* predictions, ui32 predictionsDim,
                                                  ui64 predictionsAlignSize,
                                                  bool isBinClass,
+                                                 float binTargetProbabilityThreshold,
                                                  ui32* bins) {
 
         ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
 
         if (i < size) {
-            const ui32 targetClass =  static_cast<ui16>(__ldg(targetClasses + i));
+            ui32 targetClass;
             float bestApprox = NegativeInfty();
             int bestClass = -1;
 
             predictions += i;
 
             if (isBinClass) {
+                targetClass = __ldg(targetClasses + i) > binTargetProbabilityThreshold;
                 bestClass = __ldg(predictions) > 0;
             } else {
+                targetClass = static_cast<ui16>(__ldg(targetClasses + i));
                 for (int clazz = 0; clazz < numClasses; ++clazz) {
                     const float approx = clazz < predictionsDim ? __ldg(predictions + clazz * predictionsAlignSize) : 0.0f;
                     if (approx > bestApprox) {
@@ -386,13 +389,14 @@ namespace NKernel {
     void BuildConfusionMatrixBins(const float* targetClasses, int numClasses, ui32 size,
                                   const float* predictions, int predictionsDim, ui32 predictionsAlignSize,
                                   bool isBinClass,
+                                  float binTargetProbabilityThreshold,
                                   ui32* bins,
                                   TCudaStream stream) {
         const int blockSize = 256;
         const int numBlocks = (size + blockSize - 1) / blockSize;
         CB_ENSURE(numClasses < 65536);
         if (numBlocks) {
-            BuildConfusionMatrixBinsImpl << < numBlocks, blockSize, 0, stream >> >(targetClasses, numClasses, size, predictions, predictionsDim, predictionsAlignSize, isBinClass, bins);
+            BuildConfusionMatrixBinsImpl << < numBlocks, blockSize, 0, stream >> >(targetClasses, numClasses, size, predictions, predictionsDim, predictionsAlignSize, isBinClass, binTargetProbabilityThreshold, bins);
         }
     }
 }

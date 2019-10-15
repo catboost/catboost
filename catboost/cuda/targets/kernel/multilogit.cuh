@@ -47,6 +47,7 @@ namespace NKernel {
                                   const float* predictions, int predictionsDim,
                                   ui32 predictionsAlignSize,
                                   bool isBinClass,
+                                  float binTargetProbabilityThreshold,
                                   ui32* bins,
                                   TCudaStream stream);
 

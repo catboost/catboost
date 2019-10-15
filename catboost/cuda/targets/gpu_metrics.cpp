@@ -21,6 +21,10 @@ using namespace NCudaLib;
 namespace NCatboostCuda {
     //layout: approxClass * columns + targetClass
 
+    static constexpr float GetBinTargetProbabilityThreshold() {
+        return 0.5;
+    }
+
     //target pos
     static inline double TruePositivePlusFalseNegative(const TVector<double>& confusionMatrix, ui32 numClasses,
                                                        ui32 classIdx) {
@@ -299,7 +303,7 @@ namespace NCatboostCuda {
                 MakeSequence(indices);
 
                 auto bins = TCudaBuffer<ui32, TMapping>::CopyMapping(target);
-                BuildConfusionMatrix(target, cursor, numClasses, IsBinClass, &bins);
+                BuildConfusionMatrix(target, cursor, numClasses, IsBinClass, GetBinTargetProbabilityThreshold(), &bins);
 
                 const ui32 matrixSize = numClasses * numClasses;
                 ReorderBins(bins, indices, 0, NCB::IntLog2(matrixSize));

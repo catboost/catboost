@@ -165,6 +165,7 @@ namespace NKernelHost {
         TCudaBufferPtr<const float> Predictions;
         int NumClasses;
         bool IsBinClass;
+        float BinTargetProbabilityThreshold;
         TCudaBufferPtr<ui32> Bins;
 
     public:
@@ -174,19 +175,21 @@ namespace NKernelHost {
                                     TCudaBufferPtr<const float> predictions,
                                     int numClasses,
                                     bool isBinClass,
+                                    float binTargetProbabilityThreshold,
                                     TCudaBufferPtr<ui32> bins)
             : TargetClasses(targetClasses)
             , Predictions(predictions)
             , NumClasses(numClasses)
             , IsBinClass(isBinClass)
+            , BinTargetProbabilityThreshold(binTargetProbabilityThreshold)
             , Bins(bins)
         {
         }
 
-        Y_SAVELOAD_DEFINE(TargetClasses, NumClasses, Predictions, IsBinClass, Bins);
+        Y_SAVELOAD_DEFINE(TargetClasses, NumClasses, Predictions, IsBinClass, BinTargetProbabilityThreshold, Bins);
 
         void Run(const TCudaStream& stream) const {
-            NKernel::BuildConfusionMatrixBins(TargetClasses.Get(), NumClasses, TargetClasses.Size(), Predictions.Get(), Predictions.GetColumnCount(), Predictions.AlignedColumnSize(), IsBinClass, Bins.Get(), stream.GetStream());
+            NKernel::BuildConfusionMatrixBins(TargetClasses.Get(), NumClasses, TargetClasses.Size(), Predictions.Get(), Predictions.GetColumnCount(), Predictions.AlignedColumnSize(), IsBinClass, BinTargetProbabilityThreshold, Bins.Get(), stream.GetStream());
         }
     };
 
@@ -275,6 +278,7 @@ inline void BuildConfusionMatrix(const TCudaBuffer<TFloat, TMapping>& target,
                                  const TCudaBuffer<TFloat, TMapping>& approx,
                                  int numClasses,
                                  bool isBinClass,
+                                 float binTargetProbabilityThreshold,
                                  TCudaBuffer<ui32, TMapping>* bins,
                                  ui32 stream = 0) {
     using TKernel = NKernelHost::TBuildConfusionMatrixKernel;
@@ -284,5 +288,6 @@ inline void BuildConfusionMatrix(const TCudaBuffer<TFloat, TMapping>& target,
                            approx,
                            numClasses,
                            isBinClass,
+                           binTargetProbabilityThreshold,
                            bins);
 }
