@@ -467,7 +467,6 @@
     - parquet/file_reader.h
     - parquet/util/memory.h
     - pcg_uint128.hpp
-    - rapidjson/document.h
     - rdkafka.h
     - re2_st/re2.h
     - readpassphrase.h: contrib/libs/clickhouse/dbms/programs/client/readpassphrase/readpassphrase.h
