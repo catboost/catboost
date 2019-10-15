@@ -438,7 +438,8 @@ static void BindBoostingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue*
 
     parser
         .AddLongOption("boost-from-average",
-                       "Enables to initialize approx values by average target value at the beginning, if loss function is RMSE. Possible values: true, false.")
+                       "Enables to initialize approx values by best constant value for specified loss function. \
+                       Available for RMSE, Logloss, CrossEntropy, Quantile and MAE. Possible values: true, false.")
         .RequiredArgument("bool")
         .Handler1T<TString>([plainJsonPtr](const TString& param) {
             (*plainJsonPtr)["boost_from_average"] = FromString<bool>(param);

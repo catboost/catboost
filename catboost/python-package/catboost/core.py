@@ -3494,6 +3494,10 @@ class CatBoostClassifier(CatBoost):
         This parameter enables shrinkage of whole model at the start of each iteration.
         At i-th iteration (if i > 0) model is multiplied by (1 - model_shrink_rate / i).
         range : [0, 1)
+
+    boost_from_average : bool, [default=True for RMSE, False for other losses]
+        Enables to initialize approx values by best constant value for specified loss function.
+        Available for RMSE, Logloss, CrossEntropy, Quantile and MAE.
     """
     def __init__(
         self,
@@ -3595,7 +3599,8 @@ class CatBoostClassifier(CatBoost):
         leaf_estimation_backtracking=None,
         ctr_history_unit=None,
         monotone_constraints=None,
-        model_shrink_rate=None
+        model_shrink_rate=None,
+        boost_from_average=None
     ):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]
@@ -4038,7 +4043,8 @@ class CatBoostRegressor(CatBoost):
         leaf_estimation_backtracking=None,
         ctr_history_unit=None,
         monotone_constraints=None,
-        model_shrink_rate=None
+        model_shrink_rate=None,
+        boost_from_average=None
     ):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]
