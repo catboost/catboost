@@ -76,12 +76,26 @@ private:
     }
 };
 
+static TString CompressPath(const TVector<TStringBuf>& replacements, TStringBuf in) {
+    for (auto r : replacements) {
+        TStringBuf from, to;
+        r.Split('=', from, to);
+        if (in.StartsWith(from)) {
+            return Compress(TString(to) + in.SubStr(from.Size()));
+        }
+    }
+
+    return Compress(in);
+}
+
 int main(int argc, char** argv) {
     if (argc < 4) {
         Cerr << "usage: " << argv[0] << "asm_output --prefix? [-? origin_resource ro_resource]+" << Endl;
 
         return 1;
     }
+
+    TVector<TStringBuf> replacements;
 
     argv++;
     TFixedBufferFileOutput asmout(*argv);
@@ -95,13 +109,18 @@ int main(int argc, char** argv) {
         prefix = "";
     }
 
+    while (TStringBuf(*argv).StartsWith("--replace=")) {
+        replacements.push_back(TStringBuf(*argv).SubStr(AsStringBuf("--replace=").Size()));
+        argv++;
+    }
+
     TAsmWriter aw(asmout, prefix);
     bool raw;
     while (*argv) {
         TString compressed;
         if (AsStringBuf("-") == *argv) {
             argv++;
-            compressed = Compress(TStringBuf(*argv));
+            compressed = CompressPath(replacements, TStringBuf(*argv));
             raw = true;
         }
         else {
