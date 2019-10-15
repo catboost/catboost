@@ -78,7 +78,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\join_f0a5b2d383f5186ba11970c012.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\Jinja2\join_444332df67d952edf57caf433d.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

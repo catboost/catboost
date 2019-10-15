@@ -78,7 +78,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\tools\model_perftest\lib\main.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\tools\model_perftest\lib\perftest_modules.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\tools\model_perftest\lib\perftest_module.h"/>

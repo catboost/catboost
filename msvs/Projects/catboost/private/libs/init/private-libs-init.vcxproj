@@ -78,7 +78,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\init\init_reg.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\init\init_reg.h"/>
   </ItemGroup>

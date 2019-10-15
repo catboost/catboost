@@ -78,7 +78,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\multiclass.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\multiclass_non_symmetric.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\train_lib\multiclass_region.cpp"/>

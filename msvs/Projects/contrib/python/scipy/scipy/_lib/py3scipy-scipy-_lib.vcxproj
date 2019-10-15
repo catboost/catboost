@@ -78,7 +78,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\_lib\join_6504e12ff5dc6cd3768fe2249f.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\_lib\join_82cfedbc0fd491ff82671cf270.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

@@ -78,7 +78,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\build\scripts\_fake_src.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\getopt\print.cpp"/>
     <ClInclude Include="$(SolutionDir)..\library\getopt\last_getopt.h"/>
     <ClInclude Include="$(SolutionDir)..\library\getopt\last_getopt_support.h"/>
