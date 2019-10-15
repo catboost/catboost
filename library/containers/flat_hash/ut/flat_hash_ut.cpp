@@ -63,6 +63,21 @@ class TMapTest : public TTestBase {
         UNIT_ASSERT(!st2.empty());
     }
 
+    void DoubleCopyAssignmentTest() {
+        Map st(MAP_INPUT_SAMPLE);
+        Map st2;
+        UNIT_ASSERT_UNEQUAL(st, st2);
+        UNIT_ASSERT(st2.empty());
+
+        st2 = st;
+        UNIT_ASSERT_EQUAL(st, st2);
+        UNIT_ASSERT(!st2.empty());
+
+        st2 = st;
+        UNIT_ASSERT_EQUAL(st, st2);
+        UNIT_ASSERT(!st2.empty());
+    }
+
     void MoveAssignmentTest() {
         Map st(MAP_INPUT_SAMPLE);
         Map st2;
@@ -113,6 +128,7 @@ class TMapTest : public TTestBase {
     UNIT_TEST(CopyConstructionTest);
     UNIT_TEST(MoveConstructionTest);
     UNIT_TEST(CopyAssignmentTest);
+    UNIT_TEST(DoubleCopyAssignmentTest);
     UNIT_TEST(MoveAssignmentTest);
     UNIT_TEST(InsertOrAssignTest);
     UNIT_TEST(TryEmplaceTest);

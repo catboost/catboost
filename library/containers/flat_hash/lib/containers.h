@@ -40,12 +40,24 @@ private:
         TCage(TCage&&) = default;
 
         TCage& operator=(const TCage& rhs) {
-            Status_ = rhs.Status_;
-            if constexpr (std::is_copy_assignable_v<value_type>) {
-                Value_ = rhs.Value_;
-            } else {
-                Value_.emplace(rhs.Value());
+            switch (rhs.Status_) {
+            case NS_TAKEN:
+                if constexpr (std::is_copy_assignable_v<value_type>) {
+                    Value_ = rhs.Value_;
+                } else {
+                    Value_.emplace(rhs.Value());
+                }
+                break;
+            case NS_EMPTY:
+            case NS_DELETED:
+                if (Value_.has_value()) {
+                    Value_.reset();
+                }
+                break;
+            default:
+                Y_VERIFY(false, "Not implemented");
             }
+            Status_ = rhs.Status_;
             return *this;
         }
         // We never call it since all the TCage's are stored in vector
