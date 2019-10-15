@@ -147,6 +147,9 @@
     <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\phash.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\replace_path.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\tools\yasm\libyasm\section.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
