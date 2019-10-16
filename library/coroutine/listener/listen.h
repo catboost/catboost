@@ -65,20 +65,11 @@ public:
     public:
         struct TAccept {
             TSocketHolder* S;
-            const TIpAddress* Remote;
-            const TIpAddress* Local;
-        };
-
-        struct TAcceptFull {
-            TSocketHolder* S;
             const NAddr::IRemoteAddr* Remote;
             const NAddr::IRemoteAddr* Local;
         };
 
-        virtual void OnAccept(const TAccept&) {
-        }
-
-        virtual void OnAcceptFull(const TAcceptFull&);
+        virtual void OnAccept(const TAccept&) = 0;
 
         /*
          * will be called from catch (...) {} context

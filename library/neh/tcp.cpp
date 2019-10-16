@@ -231,7 +231,7 @@ namespace {
             };
 
             struct TLink: public TAtomicRefCount<TLink> {
-                inline TLink(TServer* parent, const TAcceptFull& a)
+                inline TLink(TServer* parent, const TAccept& a)
                     : P(parent)
                     , MQ(Executor())
                 {
@@ -345,7 +345,7 @@ namespace {
                 E->Execute();
             }
 
-            void OnAcceptFull(const TAcceptFull& a) override {
+            void OnAccept(const TAccept& a) override {
                 //I love such code
                 new TLink(this, a);
             }

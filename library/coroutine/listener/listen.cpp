@@ -148,13 +148,13 @@ private:
                     } else {
                         TSocketHolder c((SOCKET)res);
 
-                        const ICallBack::TAcceptFull acc = {
+                        const ICallBack::TAccept acc = {
                             &c,
                             &remote,
                             Addr(),
                         };
 
-                        Parent_->Cb_->OnAcceptFull(acc);
+                        Parent_->Cb_->OnAccept(acc);
                     }
                 } catch (...) {
                     try {
@@ -330,21 +330,6 @@ void TContListener::StopListenAddr(const TIpAddress& addr) {
 void TContListener::StopListenAddr(const TNetworkAddress& addr) {
     for (TNetworkAddress::TIterator it = addr.Begin(); it != addr.End(); ++it) {
         StopListenAddr(TAddrInfo(&*it));
-    }
-}
-
-void TContListener::ICallBack::OnAcceptFull(const TAcceptFull& params) {
-    const TSa remote(params.Remote->Addr());
-    const TSa local(params.Local->Addr());
-
-    if (local.Sa->sa_family == AF_INET) {
-        const TIpAddress r(*remote.In);
-        const TIpAddress l(*local.In);
-
-        const TAccept a = {
-            params.S, &r, &l};
-
-        OnAccept(a);
     }
 }
 
