@@ -193,8 +193,8 @@ public:
 
     ~TLearnContext();
 
-    void SaveProgress();
-    bool TryLoadProgress();
+    void SaveProgress(std::function<void(IOutputStream*)> onSnapshotSaved = [] (IOutputStream* /*snapshot*/) {});
+    bool TryLoadProgress(std::function<void(IInputStream*)> onSnapshotLoaded = [] (IInputStream* /*snapshot*/) {});
     bool UseTreeLevelCaching() const;
     bool GetHasWeights() const;
 

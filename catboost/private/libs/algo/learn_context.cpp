@@ -369,7 +369,7 @@ TLearnContext::~TLearnContext() {
     }
 }
 
-void TLearnContext::SaveProgress() {
+void TLearnContext::SaveProgress(std::function<void(IOutputStream*)> onSnapshotSaved) {
     if (!OutputOptions.SaveSnapshot()) {
         return;
     }
@@ -377,11 +377,12 @@ void TLearnContext::SaveProgress() {
         Files.SnapshotFile,
         [&](IOutputStream* out) {
             ::SaveMany(out, *LearnProgress, Profile.DumpProfileInfo());
+            onSnapshotSaved(out);
         }
     );
 }
 
-bool TLearnContext::TryLoadProgress() {
+bool TLearnContext::TryLoadProgress(std::function<void(IInputStream*)> onSnapshotLoaded) {
     if (!OutputOptions.SaveSnapshot() || !NFs::Exists(Files.SnapshotFile)) {
         return false;
     }
@@ -395,6 +396,7 @@ bool TLearnContext::TryLoadProgress() {
 
                 // fail here does nothing with real LearnProgress
                 ::LoadMany(in, *learnProgressRestored, ProfileRestored);
+                onSnapshotLoaded(in);
 
                 const bool paramsCompatible = NCatboostOptions::IsParamsCompatible(
                     learnProgressRestored->SerializedTrainParams,

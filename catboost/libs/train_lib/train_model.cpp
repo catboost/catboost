@@ -345,7 +345,11 @@ static void Train(
     TMetricsData metricsData;
     InitializeAndCheckMetricData(internalOptions, data, *ctx, &metricsData);
 
-    if (ctx->TryLoadProgress() && ctx->Params.SystemOptions->IsMaster()) {
+    const auto onSnapshotLoadedCallback = [&] (IInputStream* in) {
+        trainingCallbacks->OnSnapshotLoaded(in);
+    };
+
+    if (ctx->TryLoadProgress(onSnapshotLoadedCallback) && ctx->Params.SystemOptions->IsMaster()) {
         MapRestoreApproxFromTreeStruct(ctx);
     }
 
@@ -363,6 +367,10 @@ static void Train(
     const bool hasTest = data.GetTestSampleCount() > 0;
     const auto& metrics = metricsData.Metrics;
     auto& errorTracker = metricsData.ErrorTracker;
+    const auto onSnapshotSavedCallback = [&] (IOutputStream* out) {
+        trainingCallbacks->OnSnapshotSaved(out);
+    };
+
     for (ui32 iter = ctx->LearnProgress->GetCurrentTrainingIterationCount();
          continueTraining && (iter < ctx->Params.BoostingOptions->IterationCount);
          ++iter)
@@ -377,7 +385,7 @@ static void Train(
 
         if (timer.Passed() > ctx->OutputOptions.GetSnapshotSaveInterval()) {
             profile.AddOperation("Save snapshot");
-            ctx->SaveProgress();
+            ctx->SaveProgress(onSnapshotSavedCallback);
             timer.Reset();
         }
 
@@ -440,7 +448,7 @@ static void Train(
         continueTraining = trainingCallbacks->IsContinueTraining(ctx->LearnProgress->MetricsAndTimeHistory);
     }
 
-    ctx->SaveProgress();
+    ctx->SaveProgress(onSnapshotSavedCallback);
 
     if (hasTest) {
         (*testMultiApprox) = ctx->LearnProgress->TestApprox;

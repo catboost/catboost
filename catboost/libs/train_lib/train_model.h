@@ -57,7 +57,9 @@ public:
     virtual bool IsContinueTraining(const TMetricsAndTimeLeftHistory& /*history*/) {
         return true;
     }
-    virtual void AppendToSnapshot(IOutputStream* /*snapshot*/) {
+    virtual void OnSnapshotSaved(IOutputStream* /*snapshot*/) {
+    }
+    virtual void OnSnapshotLoaded(IInputStream* /*snapshot*/) {
     }
 
     virtual ~ITrainingCallbacks() = default;

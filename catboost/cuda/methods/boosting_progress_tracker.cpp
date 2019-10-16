@@ -170,6 +170,7 @@ namespace NCatboostCuda {
                 ProfileInfo.InitProfileInfo(std::move(profileData));
 
                 loader(in);
+                TrainingCallbacks->OnSnapshotLoaded(in);
             });
         } catch (const TCatBoostException&) {
             throw;
@@ -220,6 +221,7 @@ namespace NCatboostCuda {
                 ::Save(out, History);
                 ::Save(out, ProfileInfo.DumpProfileInfo());
                 saver(out);
+                TrainingCallbacks->OnSnapshotSaved(out);
             });
             LastSnapshotTime = Now();
         }
