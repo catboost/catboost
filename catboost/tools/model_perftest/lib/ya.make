@@ -9,6 +9,12 @@ PEERDIR(
     library/threading/future
 )
 
+IF (HAVE_CUDA)
+    PEERDIR(
+        catboost/libs/model/cuda
+    )
+ENDIF()
+
 SRCS(
     GLOBAL main.cpp
     GLOBAL perftest_modules.cpp
