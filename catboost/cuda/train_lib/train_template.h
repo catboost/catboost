@@ -24,11 +24,24 @@ namespace NCatboostCuda {
         return boosting;
     }
 
+    static bool NeedZeroAverage(const NCatboostOptions::TLossDescription& lossConfig) {
+        switch (lossConfig.GetLossFunction()) {
+            case ELossFunction::PairLogit:
+            case ELossFunction::PairLogitPairwise:
+            case ELossFunction::YetiRank:
+            case ELossFunction::YetiRankPairwise: {
+                return true;
+            }
+            default:
+                return false;
+        }
+    }
+
     template <class TWeakLearner>
     inline TWeakLearner MakeWeakLearner(TBinarizedFeaturesManager& featureManager,
         const NCatboostOptions::TCatBoostOptions& catBoostOptions
     ) {
-        const bool zeroAverage = catBoostOptions.LossFunctionDescription->GetLossFunction() == ELossFunction::PairLogit;
+        const bool zeroAverage = NeedZeroAverage(catBoostOptions.LossFunctionDescription.Get());
         return TWeakLearner(featureManager, catBoostOptions, zeroAverage);
     }
 

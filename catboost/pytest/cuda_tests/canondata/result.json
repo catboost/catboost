@@ -1305,13 +1305,13 @@
     ],
     "test_gpu.test_groupwise_with_cat_features[loss_function=PairLogitPairwise,eval_metric=NDCG,boosting_type=Plain]": [
         {
-            "checksum": "d89bd6ec88a63c2beba89fd31edcbc7c",
+            "checksum": "9e4cc8e30199403c21a118616f510bf3",
             "uri": "file://test_gpu.test_groupwise_with_cat_features_loss_function=PairLogitPairwise_eval_metric=NDCG_boosting_type=Plain_/test.eval"
         }
     ],
     "test_gpu.test_groupwise_with_cat_features[loss_function=PairLogitPairwise,eval_metric=PairAccuracy,boosting_type=Plain]": [
         {
-            "checksum": "3d308bb2e9f4ca641f21c71871615cb6",
+            "checksum": "a049a6c94eb7d03ae4cc31fee23a6815",
             "uri": "file://test_gpu.test_groupwise_with_cat_features_loss_function=PairLogitPairwise_eval_metric=PairAccuracy_boosting_type=Plain_/test.eval"
         }
     ],
@@ -1329,7 +1329,7 @@
     ],
     "test_gpu.test_groupwise_with_cat_features[loss_function=YetiRankPairwise,eval_metric=NDCG,boosting_type=Plain]": [
         {
-            "checksum": "84f27ee59f0f6b41639b78b082ef8c36",
+            "checksum": "297359fadeae929132392781c239bde5",
             "uri": "file://test_gpu.test_groupwise_with_cat_features_loss_function=YetiRankPairwise_eval_metric=NDCG_boosting_type=Plain_/test.eval"
         }
     ],
@@ -2339,7 +2339,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-Cosine-Depthwise-Default_/learn_error.tsv"
         },
         {
-            "checksum": "59b82b95e960502fae49477a9f307502",
+            "checksum": "e39a63adad4ffa1d5928ec31d3002fae",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-Cosine-Depthwise-Default_/test_error.tsv"
         }
     ],
@@ -2349,7 +2349,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-Cosine-Depthwise-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "59b82b95e960502fae49477a9f307502",
+            "checksum": "e39a63adad4ffa1d5928ec31d3002fae",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-Cosine-Depthwise-Plain_/test_error.tsv"
         }
     ],
@@ -2359,7 +2359,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-Cosine-Lossguide-Default_/learn_error.tsv"
         },
         {
-            "checksum": "51d8d5733806e0e72cc98735d38706ad",
+            "checksum": "38313fe8c364b4f4b21b4798122a40c9",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-Cosine-Lossguide-Default_/test_error.tsv"
         }
     ],
@@ -2369,7 +2369,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-Cosine-Lossguide-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "51d8d5733806e0e72cc98735d38706ad",
+            "checksum": "38313fe8c364b4f4b21b4798122a40c9",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-Cosine-Lossguide-Plain_/test_error.tsv"
         }
     ],
@@ -2409,7 +2409,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-L2-Depthwise-Default_/learn_error.tsv"
         },
         {
-            "checksum": "fa3d5e91a30757932f0095ed56149b25",
+            "checksum": "1015db52457b7ece0a1e72de5ad664ae",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-L2-Depthwise-Default_/test_error.tsv"
         }
     ],
@@ -2419,7 +2419,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-L2-Depthwise-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "fa3d5e91a30757932f0095ed56149b25",
+            "checksum": "1015db52457b7ece0a1e72de5ad664ae",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-L2-Depthwise-Plain_/test_error.tsv"
         }
     ],
@@ -2429,7 +2429,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-L2-Lossguide-Default_/learn_error.tsv"
         },
         {
-            "checksum": "5cd89bbb471456937a2a9bfc623527d5",
+            "checksum": "815051d8bbbd2c1d2ef5ee2b2403c5ae",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-L2-Lossguide-Default_/test_error.tsv"
         }
     ],
@@ -2439,7 +2439,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-L2-Lossguide-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "5cd89bbb471456937a2a9bfc623527d5",
+            "checksum": "815051d8bbbd2c1d2ef5ee2b2403c5ae",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-L2-Lossguide-Plain_/test_error.tsv"
         }
     ],
@@ -2469,7 +2469,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-LOOL2-Depthwise-Default_/learn_error.tsv"
         },
         {
-            "checksum": "a691109b0b40efcedf8ac030447c0d3c",
+            "checksum": "3f49e5607bded1074730c0b4e6a0ec0d",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-LOOL2-Depthwise-Default_/test_error.tsv"
         }
     ],
@@ -2479,7 +2479,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-LOOL2-Depthwise-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "a691109b0b40efcedf8ac030447c0d3c",
+            "checksum": "3f49e5607bded1074730c0b4e6a0ec0d",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-LOOL2-Depthwise-Plain_/test_error.tsv"
         }
     ],
@@ -2489,7 +2489,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-LOOL2-Lossguide-Default_/learn_error.tsv"
         },
         {
-            "checksum": "7a93d429d5bb69942fcfb7e53bd27e69",
+            "checksum": "cb4c9f72801537a7f856198156e078c9",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-LOOL2-Lossguide-Default_/test_error.tsv"
         }
     ],
@@ -2499,7 +2499,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-LOOL2-Lossguide-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "7a93d429d5bb69942fcfb7e53bd27e69",
+            "checksum": "cb4c9f72801537a7f856198156e078c9",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-LOOL2-Lossguide-Plain_/test_error.tsv"
         }
     ],
@@ -2529,7 +2529,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCosine-Depthwise-Default_/learn_error.tsv"
         },
         {
-            "checksum": "59b82b95e960502fae49477a9f307502",
+            "checksum": "e39a63adad4ffa1d5928ec31d3002fae",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCosine-Depthwise-Default_/test_error.tsv"
         }
     ],
@@ -2539,7 +2539,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCosine-Depthwise-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "59b82b95e960502fae49477a9f307502",
+            "checksum": "e39a63adad4ffa1d5928ec31d3002fae",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCosine-Depthwise-Plain_/test_error.tsv"
         }
     ],
@@ -2549,7 +2549,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCosine-Lossguide-Default_/learn_error.tsv"
         },
         {
-            "checksum": "51d8d5733806e0e72cc98735d38706ad",
+            "checksum": "38313fe8c364b4f4b21b4798122a40c9",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCosine-Lossguide-Default_/test_error.tsv"
         }
     ],
@@ -2559,7 +2559,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCosine-Lossguide-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "51d8d5733806e0e72cc98735d38706ad",
+            "checksum": "38313fe8c364b4f4b21b4798122a40c9",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonCosine-Lossguide-Plain_/test_error.tsv"
         }
     ],
@@ -2599,7 +2599,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonL2-Depthwise-Default_/learn_error.tsv"
         },
         {
-            "checksum": "fa3d5e91a30757932f0095ed56149b25",
+            "checksum": "1015db52457b7ece0a1e72de5ad664ae",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonL2-Depthwise-Default_/test_error.tsv"
         }
     ],
@@ -2609,7 +2609,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonL2-Depthwise-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "fa3d5e91a30757932f0095ed56149b25",
+            "checksum": "1015db52457b7ece0a1e72de5ad664ae",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonL2-Depthwise-Plain_/test_error.tsv"
         }
     ],
@@ -2619,7 +2619,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonL2-Lossguide-Default_/learn_error.tsv"
         },
         {
-            "checksum": "5cd89bbb471456937a2a9bfc623527d5",
+            "checksum": "815051d8bbbd2c1d2ef5ee2b2403c5ae",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonL2-Lossguide-Default_/test_error.tsv"
         }
     ],
@@ -2629,7 +2629,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonL2-Lossguide-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "5cd89bbb471456937a2a9bfc623527d5",
+            "checksum": "815051d8bbbd2c1d2ef5ee2b2403c5ae",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-NewtonL2-Lossguide-Plain_/test_error.tsv"
         }
     ],
@@ -2659,7 +2659,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-SolarL2-Depthwise-Default_/learn_error.tsv"
         },
         {
-            "checksum": "5d90660c0d83583495a03661a8a3ff5d",
+            "checksum": "d169ee3fd8a1c41e062ffda7892aa2e9",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-SolarL2-Depthwise-Default_/test_error.tsv"
         }
     ],
@@ -2669,7 +2669,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-SolarL2-Depthwise-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "5d90660c0d83583495a03661a8a3ff5d",
+            "checksum": "d169ee3fd8a1c41e062ffda7892aa2e9",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-SolarL2-Depthwise-Plain_/test_error.tsv"
         }
     ],
@@ -2679,7 +2679,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-SolarL2-Lossguide-Default_/learn_error.tsv"
         },
         {
-            "checksum": "2d4bb09c85ffd1cbc1cf85faddfd09ca",
+            "checksum": "ae170c5449aade3dbcb3063b0670c7e2",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-SolarL2-Lossguide-Default_/test_error.tsv"
         }
     ],
@@ -2689,7 +2689,7 @@
             "uri": "file://test_gpu.test_grow_policies_YetiRank-SolarL2-Lossguide-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "2d4bb09c85ffd1cbc1cf85faddfd09ca",
+            "checksum": "ae170c5449aade3dbcb3063b0670c7e2",
             "uri": "file://test_gpu.test_grow_policies_YetiRank-SolarL2-Lossguide-Plain_/test_error.tsv"
         }
     ],
@@ -3559,7 +3559,7 @@
     ],
     "test_gpu.test_yetirank_default_metric[YetiRankPairwise]": [
         {
-            "checksum": "42f633b1f96e220d048dc46badaaf15e",
+            "checksum": "319d147d2c5a89931a468181adefa7ad",
             "uri": "file://test_gpu.test_yetirank_default_metric_YetiRankPairwise_/test_error.tsv"
         }
     ],
