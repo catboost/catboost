@@ -5603,6 +5603,14 @@ def test_save_quantized_pool():
     assert all(predictions1 == predictions2)
 
 
+def test_save_quantized_pool_categorical():
+    train_quantized_pool = Pool(SMALL_CATEGORIAL_FILE, column_description=SMALL_CATEGORIAL_CD_FILE)
+    train_quantized_pool.quantize()
+    assert(train_quantized_pool.is_quantized())
+    with pytest.raises(CatBoostError):
+        train_quantized_pool.save(OUTPUT_QUANTIZED_POOL_PATH)
+
+
 # returns dict with 'train_file', 'test_file', 'data_files_have_header', 'cd_file', 'loss_function' keys
 def get_dataset_specification_for_sparse_input_tests():
     return {

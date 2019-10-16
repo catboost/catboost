@@ -570,7 +570,7 @@ cdef extern from "catboost/libs/data/data_provider.h" namespace "NCB":
 
 
 cdef extern from "catboost/private/libs/quantized_pool/serialization.h" namespace "NCB":
-    cdef void SaveQuantizedPool(const TDataProviderPtr& dataProvider, TString fileName)
+    cdef void SaveQuantizedPool(const TDataProviderPtr& dataProvider, TString fileName) except +ProcessException
 
 
 cdef extern from "catboost/private/libs/data_util/path_with_scheme.h" namespace "NCB":
