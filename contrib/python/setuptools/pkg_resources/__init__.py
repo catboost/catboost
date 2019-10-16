@@ -3229,12 +3229,6 @@ from library.python import resource
 
 class ResProvider(EmptyProvider):
     _resource_fs = {}
-    for path in resource.iterkeys(b'resfs/file/'):
-        path_str = path if six.PY2 else path.decode('utf-8')
-        components = path_str.split('/')
-        for l in range(len(components)):
-            subpath = os.path.normpath('/'.join(components[:l]))
-            _resource_fs.setdefault(subpath, set()).add(components[l])
 
     def __init__(self, prefix):
         if hasattr(prefix, '__file__'):
@@ -3258,11 +3252,6 @@ class ResProvider(EmptyProvider):
     def _fn(self, base, resource_name):
         return base + resource_name
 
-    def __lookup(self, path):
-        path = path.encode('utf-8') if isinstance(path, six.text_type) and six.PY2 else path
-        path = os.path.normpath(path)
-        return self._resource_fs.get(path)
-
     def _has(self, path):
         return resource.find(path) is not None
 
@@ -3271,6 +3260,22 @@ class ResProvider(EmptyProvider):
         if result is None:
             raise IOError(path)
         return result
+
+    @classmethod
+    def _init_resource_fs(cls):
+        for path in resource.iterkeys(b'resfs/file/'):
+            path_str = path if six.PY2 else path.decode('utf-8')
+            components = path_str.split('/')
+            for l in range(len(components)):
+                subpath = os.path.normpath('/'.join(components[:l]))
+                cls._resource_fs.setdefault(subpath, set()).add(components[l])
+
+    def __lookup(self, path):
+        if not self._resource_fs:
+            self._init_resource_fs()
+        path = path.encode('utf-8') if isinstance(path, six.text_type) and six.PY2 else path
+        path = os.path.normpath(path)
+        return self._resource_fs.get(path)
 
     def _listdir(self, path):
         result = self.__lookup(path)
