@@ -138,9 +138,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\quantization_schema\private-libs-quantization_schema.vcxproj">
       <Project>{615033B0-5579-FBC3-1630-AF28EB4E0D00}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\text_features\flatbuffers\libs-text_features-flatbuffers.vcxproj">
-      <Project>{798DF9C1-2AB3-4B2B-15D3-1CBB92190D6A}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\text_features\private-libs-text_features.vcxproj">
       <Project>{FB7B0D88-A00A-6D89-CEDA-F16BC181EC85}</Project>
     </ProjectReference>

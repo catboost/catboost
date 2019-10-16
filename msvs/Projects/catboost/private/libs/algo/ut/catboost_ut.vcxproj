@@ -199,9 +199,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\target\private-libs-target.vcxproj">
       <Project>{CAE86D00-2536-7F56-ABFD-6F8F7C37EC12}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\text_features\flatbuffers\libs-text_features-flatbuffers.vcxproj">
-      <Project>{798DF9C1-2AB3-4B2B-15D3-1CBB92190D6A}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\text_features\private-libs-text_features.vcxproj">
       <Project>{FB7B0D88-A00A-6D89-CEDA-F16BC181EC85}</Project>
     </ProjectReference>
