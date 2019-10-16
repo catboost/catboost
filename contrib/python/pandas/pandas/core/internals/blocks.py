@@ -1846,7 +1846,7 @@ class ExtensionBlock(NonConsolidatableMixIn, Block):
             placement=self.mgr_locs)
 
     def shift(self, periods, axis=0, fill_value=None):
-        # type: (int, Optional[BlockPlacement]) -> List[ExtensionBlock]
+        ## type: (int, Optional[BlockPlacement]) -> List[ExtensionBlock]
         """
         Shift the block by `periods`.
 
