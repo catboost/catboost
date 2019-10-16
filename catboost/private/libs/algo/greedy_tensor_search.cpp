@@ -503,9 +503,12 @@ static void SelectCtrsToDropAfterCalc(
         },
         candList);
 
+    if (!fullNeededMemoryForCtrs) {
+        return;
+    }
     auto currentMemoryUsage = NMemInfo::GetMemInfo().RSS;
     if (fullNeededMemoryForCtrs + currentMemoryUsage > memoryLimit) {
-        CATBOOST_DEBUG_LOG << "Needed more memory than allowed, will drop some ctrs after score calculation"
+        CATBOOST_DEBUG_LOG << "Need more memory than allowed, will drop some ctrs after score calculation"
             << Endl;
         const float GB = (ui64)1024 * 1024 * 1024;
         CATBOOST_DEBUG_LOG << "current rss: " << currentMemoryUsage / GB << " full needed memory: "
