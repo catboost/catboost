@@ -1807,7 +1807,7 @@ namespace NNeh {
                 c->Executor()->Abort();
             }
 
-            void OnAccept(const TAccept& a) override {
+            void OnAcceptFull(const TAcceptFull& a) override {
                 try {
                     TSocketRef s(new TSharedSocket(*a.S));
 

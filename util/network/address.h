@@ -132,6 +132,4 @@ namespace NAddr {
     private:
         const sockaddr_in6 A_;
     };
-
-    TIpAddress IpAddressFromRemoteAddr(const IRemoteAddr& addr);
 }

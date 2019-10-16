@@ -192,10 +192,3 @@ socklen_t NAddr::SockAddrLength(const sockaddr* addr) {
 
     ythrow yexception() << "unsupported address family: " << addr->sa_family;
 }
-
-TIpAddress NAddr::IpAddressFromRemoteAddr(const IRemoteAddr& addr) {
-    if (addr.Addr()->sa_family == AF_INET) {
-        return *(const sockaddr_in*)(addr.Addr());
-    }
-    return {};
-}
