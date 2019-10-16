@@ -4,6 +4,8 @@ LIBRARY()
 
 
 SRCS(
+    flatbuffers/feature_calcers.fbs
+    flatbuffers/text_processing_collection.fbs
     bm25.cpp
     bow.cpp
     embedding_online_features.cpp
@@ -17,7 +19,6 @@ PEERDIR(
     catboost/libs/helpers
     catboost/private/libs/data_types
     catboost/private/libs/options
-    catboost/private/libs/text_features/flatbuffers
     catboost/private/libs/text_processing
     contrib/libs/clapack
     contrib/libs/flatbuffers
