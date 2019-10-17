@@ -143,7 +143,7 @@ def gen_vet_info(args):
         'PackageVetx': dict((key, vet_info_output_name(value)) for key, value in info['packagefile']),
         'VetxOnly': False,
         'VetxOutput': vet_info_output_name(args.output),
-        'SucceedOnTypecheckFailure': True
+        'SucceedOnTypecheckFailure': False
     }
     # print >>sys.stderr, json.dumps(data, indent=4)
     return data
@@ -153,6 +153,24 @@ def create_vet_config(args, info):
     with tempfile.NamedTemporaryFile(delete=False, suffix='.cfg') as f:
         f.write(json.dumps(info))
         return f.name
+
+
+def decode_vet_report(json_report):
+    report = ''
+    if json_report:
+        try:
+            full_diags = json.JSONDecoder(encoding='UTF-8').decode(json_report)
+        except ValueError:
+            report = json_report
+        else:
+            messages = []
+            for _, module_diags in full_diags.iteritems():
+                for _, type_diags in module_diags.iteritems():
+                     for diag in type_diags:
+                         messages.append(u'{}: {}'.format(diag['posn'], diag['message']))
+            report = '\n'.join(sorted(messages)).encode('UTF-8')
+
+    return report
 
 
 def dump_vet_report(args, report):
@@ -180,13 +198,16 @@ def do_vet(args):
     assert args.vet
     info = gen_vet_info(args)
     vet_config = create_vet_config(args, info)
-    cmd = [args.go_vet]
+    cmd = [args.go_vet, '-json']
     if args.vet_flags:
         cmd.extend(args.vet_flags)
     cmd.append(vet_config)
-    p_vet = subprocess.Popen(cmd, stdin=None, stderr=subprocess.PIPE, cwd=args.build_root)
-    _, vet_err = p_vet.communicate()
-    dump_vet_report(args, vet_err if vet_err else '')
+    p_vet = subprocess.Popen(cmd, stdin=None, stderr=subprocess.PIPE, stdout=subprocess.PIPE, cwd=args.build_root)
+    vet_out, vet_err = p_vet.communicate()
+    report = decode_vet_report(vet_out) if vet_out else ''
+    dump_vet_report(args, report)
+    if p_vet.returncode:
+        raise subprocess.CalledProcessError(returncode=p_vet.returncode, cmd=cmd, output=vet_err)
 
 
 def _do_compile_go(args):
@@ -224,15 +245,37 @@ def _do_compile_go(args):
     call(cmd, args.build_root)
 
 
+class VetThread(threading.Thread):
+
+    def __init__(self, target, args):
+        threading.Thread.__init__(self)
+        self.target = target
+        self.args = args
+        self.exc_info = None
+
+    def run(self):
+        try:
+            self.target(self.args)
+        except:
+            self.exc_info = sys.exc_info()
+
+    def join_with_exception(self, reraise_exception):
+        self.join()
+        if reraise_exception and self.exc_info:
+            raise self.exc_info[0], self.exc_info[1], self.exc_info[2]
+
+
 def do_compile_go(args):
+    raise_exception_from_vet = False
     if args.vet:
-        run_vet = threading.Thread(target=do_vet, args=(args,))
+        run_vet = VetThread(target=do_vet, args=args)
         run_vet.start()
     try:
         _do_compile_go(args)
+        raise_exception_from_vet = True
     finally:
         if args.vet:
-            run_vet.join()
+            run_vet.join_with_exception(raise_exception_from_vet)
 
 
 def do_compile_asm(args):
