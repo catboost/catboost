@@ -107,13 +107,8 @@ namespace NCB {
             TString::Join("cat_feature_index.", CreateGuidAsString(), ".tmp"),
             allowWriteFiles)
         , RuntimeTextProcessingOptions(GetAvailableTextFeatureIndices(featuresLayout), textFeaturesProcessing)
-        , Tokenizer(CreateTokenizer(ETokenizerType::Naive))
+        , TextDigitizers()
     {
-        featuresLayout.IterateOverAvailableFeatures<EFeatureType::Text>(
-            [&](TTextFeatureIdx textFeatureIdx) {
-                TokenizedTextFeatureIds[textFeatureIdx.Idx] = TSet<ui32>{};
-            }
-        );
         FeaturesLayout->IgnoreExternalFeatures(ignoredFeatures);
     }
 

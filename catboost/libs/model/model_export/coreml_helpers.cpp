@@ -475,7 +475,12 @@ void NCB::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, TFullM
     }
 
 
-    TObliviousTreeBuilder treeBuilder(featuresMetaData.FloatFeatures, featuresMetaData.CategoricalFeatures, approxDimension);
+    TObliviousTreeBuilder treeBuilder(
+        featuresMetaData.FloatFeatures,
+        featuresMetaData.CategoricalFeatures,
+        {},
+        approxDimension
+    );
     for (size_t i = 0; i < treesSplits.size(); ++i) {
         treeBuilder.AddTree(treesSplits[i], leafValues[i]);
     }

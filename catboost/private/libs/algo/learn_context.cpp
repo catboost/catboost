@@ -163,7 +163,7 @@ static inline ui32 UpdateCheckSumImpl(ui32 init, const TNonSymmetricTreeStepNode
 static inline ui32 UpdateCheckSumImpl(ui32 init, const TCatFeature& catFeature) {
     return UpdateCheckSum(
         init,
-        catFeature.UsedInModel,
+        catFeature.UsedInModel(),
         catFeature.Position.Index,
         catFeature.Position.FlatIndex
     );

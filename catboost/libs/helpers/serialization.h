@@ -6,8 +6,8 @@
 #include <util/generic/cast.h>
 #include <util/generic/ptr.h>
 #include <util/generic/xrange.h>
+#include <util/stream/length.h>
 #include <util/system/yassert.h>
-
 
 namespace NCB {
 
@@ -172,6 +172,11 @@ namespace NCB {
         return 0; \
     }
 
+    void AddPadding(TCountingOutput* const output, ui32 alignment);
+    void SkipPadding(TCountingInput* const input, ui32 alignment);
+
+    void WriteMagic(const char* magic, ui32 magicSize, ui32 alignment, IOutputStream* stream);
+    void ReadMagic(const char* expectedMagic, ui32 magicSize, ui32 alignment, IInputStream* stream);
 }
 
 template <class T>

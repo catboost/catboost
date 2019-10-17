@@ -57,8 +57,12 @@ public:
         ::Load(inp, CtrData);
     }
 
-    TString ModelPartIdentifier() const override {
+    static TString ModelPartId() {
         return "static_provider_v1";
+    }
+
+    TString ModelPartIdentifier() const override {
+        return ModelPartId();
     }
 
     const THashMap<TFloatSplit, TBinFeatureIndexValue>& GetFloatFeatureIndexes() const {

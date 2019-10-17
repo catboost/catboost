@@ -1,3 +1,5 @@
+include "catboost/libs/helpers/flatbuffers/guid.fbs";
+
 namespace NCatBoostFbs;
 
 table TBM25 {
@@ -29,6 +31,7 @@ union TAnyFeatureCalcer {
 }
 
 table TFeatureCalcer {
+    Id: TGuid;
     ActiveFeatureIndices: [uint];
     FeatureCalcerImpl: TAnyFeatureCalcer;
 }

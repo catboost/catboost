@@ -54,7 +54,7 @@ Y_UNIT_TEST_SUITE(TestFeatureCalcer) {
 
     Y_UNIT_TEST(TestBagOfWordsCalcer) {
         const ui32 numTokens = 27;
-        TTextFeatureCalcerPtr calcer = MakeIntrusive<TBagOfWordsCalcer>(numTokens);
+        TTextFeatureCalcerPtr calcer = MakeIntrusive<TBagOfWordsCalcer>(CreateGuid(), numTokens);
 
         const ui32 numSamples = 327;
         const ui32 numTokensPerText = 11;
@@ -96,7 +96,7 @@ Y_UNIT_TEST_SUITE(TestFeatureCalcer) {
             text.insert({/*tokenId*/ 0, /*count*/ 1});
 
             for (const ui32 numClasses: {2, 5, 10, 200}) {
-                TMultinomialNaiveBayes naiveBayes(numClasses);
+                TMultinomialNaiveBayes naiveBayes(CreateGuid(), numClasses);
 
                 TVector<float> features = naiveBayes.TTextFeatureCalcer::Compute(text);
                 UNIT_ASSERT_EQUAL(features.size(), numClasses == 2 ? 1 : numClasses);
@@ -113,7 +113,7 @@ Y_UNIT_TEST_SUITE(TestFeatureCalcer) {
             const ui32 numClasses = 4;
             const ui32 dictionarySize = 7;
 
-            TMultinomialNaiveBayes naiveBayes(numClasses, classPrior, tokenPrior);
+            TMultinomialNaiveBayes naiveBayes(CreateGuid(), numClasses, classPrior, tokenPrior);
             TNaiveBayesVisitor bayesVisitor;
             for (ui32 classIdx: xrange(numClasses)) {
                 TText text;
@@ -172,7 +172,7 @@ Y_UNIT_TEST_SUITE(TestFeatureCalcer) {
             const float tokenPrior = 0;
             const ui32 numClasses = 2;
 
-            TMultinomialNaiveBayes naiveBayes(numClasses, classPrior, tokenPrior);
+            TMultinomialNaiveBayes naiveBayes(CreateGuid(), numClasses, classPrior, tokenPrior);
             TNaiveBayesVisitor bayesVisitor;
 
             {

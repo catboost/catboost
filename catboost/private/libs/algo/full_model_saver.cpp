@@ -22,6 +22,212 @@
 #include <util/generic/xrange.h>
 
 
+namespace {
+    using namespace NCB;
+
+    class TTextCollectionBuilder {
+    public:
+        TTextCollectionBuilder(
+            const TFeatureEstimators& estimators,
+            const TTextDigitizers& textDigitizers,
+            NPar::TLocalExecutor* localExecutor
+        )
+            : WasBuilt(false)
+            , FeatureEstimators(estimators)
+            , TextDigitizers(textDigitizers)
+            , PerFeatureDictionaries()
+            , PerTokenizedFeatureCalcers()
+            , LocalExecutor(localExecutor)
+        {
+            const ui32 textFeatureCount = textDigitizers.GetSourceTextsCount();
+            const ui32 tokenizedFeatureCount = textDigitizers.GetDigitizedTextsCount();
+
+            PerFeatureDictionaries.resize(textFeatureCount);
+            PerTokenizedFeatureCalcers.resize(tokenizedFeatureCount);
+        }
+
+        TTextCollectionBuilder& AddFeatureEstimator(
+            const TGuid& calcerId,
+            TConstArrayRef<TEstimatedFeature> estimatedFeatures
+        ) {
+            TEstimatorSourceId estimatorSourceId = FeatureEstimators.GetEstimatorSourceFeatureIdx(calcerId);
+            const ui32 textFeatureIdx = estimatorSourceId.TextFeatureId;
+            const ui32 tokenizedFeatureIdx = estimatorSourceId.TokenizedFeatureId;
+
+            TDictionaryPtr dictionary = TextDigitizers.GetDictionary(tokenizedFeatureIdx);
+            const ui32 dictionaryFlatIdx = AddDictionary(dictionary);
+
+            TVector<ui32> localIds;
+            for (const auto& estimatedFeature : estimatedFeatures) {
+                localIds.push_back(estimatedFeature.LocalIndex);
+            }
+
+            const ui32 calcerFlatIdx = AddCalcer(MakeFinalFeatureCalcer(calcerId, MakeConstArrayRef(localIds)));
+            CalcerToDictionary[calcerId] = dictionary->Id();
+
+            AddEstimatedFeature(textFeatureIdx, calcerFlatIdx, estimatedFeatures);
+            RegisterIndices(
+                textFeatureIdx,
+                tokenizedFeatureIdx,
+                dictionaryFlatIdx,
+                calcerFlatIdx
+            );
+
+            return *this;
+        }
+
+        void Build(
+            TTextProcessingCollection* textProcessingCollection,
+            TVector<TEstimatedFeature>* estimatedFeatures
+        ) {
+            CB_ENSURE_INTERNAL(!WasBuilt, "TTextCollectionBuilder: Build can be done only once");
+            WasBuilt = true;
+
+            TVector<TDictionaryPtr> dictionaries;
+            dictionaries.resize(DictionaryToId.size());
+            for (const auto& [dictionary, id]: DictionaryToId) {
+                dictionaries[id] = dictionary;
+            }
+
+            TVector<TVector<ui32>> perFeatureDictionaries;
+            perFeatureDictionaries.resize(PerFeatureDictionaries.size());
+
+            for (ui32 textFeature: xrange(PerFeatureDictionaries.size())) {
+                auto& dictionariesIds = perFeatureDictionaries[textFeature];
+                for (const auto& [tokenizedFeature, dictionaryId]: PerFeatureDictionaries[textFeature]) {
+                    Y_UNUSED(tokenizedFeature); // we need just sort by tokenized feature index
+                    dictionariesIds.push_back(dictionaryId);
+                }
+                textFeature++;
+            }
+
+            EraseIf(
+                PerTokenizedFeatureCalcers,
+                [&] (TVector<ui32>& calcers) {
+                    return calcers.empty();
+                }
+            );
+
+            CheckFeatureIndexes(Calcers, dictionaries, perFeatureDictionaries, PerTokenizedFeatureCalcers);
+
+            *textProcessingCollection = TTextProcessingCollection(
+                Calcers,
+                dictionaries,
+                perFeatureDictionaries,
+                PerTokenizedFeatureCalcers,
+                TextDigitizers.GetTokenizer()
+            );
+
+            *estimatedFeatures = EstimatedFeatures;
+        }
+
+    private:
+        ui32 AddDictionary(TDictionaryPtr dictionary) {
+            if (DictionaryToId.contains(dictionary)) {
+                return DictionaryToId[dictionary];
+            }
+
+            const ui32 dictionaryIdx = DictionaryToId.size();
+            DictionaryToId[dictionary] = dictionaryIdx;
+            return dictionaryIdx;
+        }
+
+        ui32 AddCalcer(TTextFeatureCalcerPtr&& calcer) {
+            const ui32 calcerId = Calcers.size();
+            Calcers.push_back(calcer);
+            return calcerId;
+        }
+
+        void AddEstimatedFeature(
+            ui32 textFeatureId,
+            ui32 calcerFlatIdx,
+            TConstArrayRef<TEstimatedFeature> estimatedFeatures
+        ) {
+            const auto& calcer = Calcers[calcerFlatIdx];
+            for (ui32 localIndex: xrange(calcer->FeatureCount())) {
+                TEstimatedFeature estimatedFeature = TEstimatedFeature{
+                    SafeIntegerCast<int>(textFeatureId),
+                    calcer->Id(),
+                    SafeIntegerCast<int>(localIndex)
+                };
+                estimatedFeature.Borders = estimatedFeatures[localIndex].Borders;
+                EstimatedFeatures.push_back(estimatedFeature);
+            }
+        }
+
+        void RegisterIndices(
+            ui32 textFeatureId,
+            ui32 tokenizedFeatureId,
+            ui32 dictionaryId,
+            ui32 calcerId
+        ) {
+            PerFeatureDictionaries[textFeatureId][tokenizedFeatureId] = dictionaryId;
+            PerTokenizedFeatureCalcers[tokenizedFeatureId].push_back(calcerId);
+        }
+
+        void CheckFeatureIndexes(
+            const TVector<TTextFeatureCalcerPtr>& calcers,
+            const TVector<TDictionaryPtr>& dictionaries,
+            const TVector<TVector<ui32>>& perFeatureDictionaries,
+            const TVector<TVector<ui32>>& perTokenizedFeatureCalcers
+        ) {
+            ui32 tokenizedFeatureId = 0;
+            for (const auto& featureDictionaries: perFeatureDictionaries) {
+                for (ui32 dictionaryId: featureDictionaries) {
+                    CB_ENSURE(
+                        tokenizedFeatureId < perTokenizedFeatureCalcers.size(),
+                        "Tokenized feature id=" << tokenizedFeatureId
+                            << " should be less than " << LabeledOutput(perTokenizedFeatureCalcers.size())
+                    );
+                    const TVector<ui32>& calcersIds = perTokenizedFeatureCalcers[tokenizedFeatureId];
+                    CB_ENSURE(
+                        IsSorted(calcersIds.begin(), calcersIds.end()),
+                        "Feature calcers must be sorted"
+                    );
+                    for (ui32 calcerId: calcersIds) {
+                        const TGuid& calcerGuid = calcers[calcerId]->Id();
+                        const TGuid& dictionaryGuid = dictionaries[dictionaryId]->Id();
+                        CB_ENSURE(
+                            CalcerToDictionary[calcerGuid] == dictionaryGuid,
+                            "FeatureCalcer id=" << calcerGuid << " should be computed for "
+                                << "tokenized feature id=" << tokenizedFeatureId
+                                << " with dictionary id=" << dictionaryGuid << Endl;
+                        );
+                    }
+                    tokenizedFeatureId++;
+                }
+            }
+        }
+
+        TTextFeatureCalcerPtr MakeFinalFeatureCalcer(const TGuid& calcerId, TConstArrayRef<ui32> featureIds) {
+            TFeatureEstimatorPtr estimator = FeatureEstimators.GetEstimatorByGuid(calcerId);
+
+            auto calcerHolder = estimator->MakeFinalFeatureCalcer(featureIds, LocalExecutor);
+            TTextFeatureCalcerPtr calcerPtr = dynamic_cast<TTextFeatureCalcer*>(calcerHolder.Release());
+            CB_ENSURE(calcerPtr, "CalcerPtr == null after MakeFinalFeatureCalcer");
+            CB_ENSURE(estimator->Id() == calcerPtr->Id(), "Estimator.Id() != Calcer.Id()");
+            return calcerPtr;
+        }
+
+        bool WasBuilt = false;
+
+        const TFeatureEstimators& FeatureEstimators;
+        const TTextDigitizers& TextDigitizers;
+
+        TVector<TMap<ui32, ui32>> PerFeatureDictionaries;
+        TVector<TVector<ui32>> PerTokenizedFeatureCalcers;
+
+        TVector<TTextFeatureCalcerPtr> Calcers;
+        THashMap<TDictionaryPtr, ui32> DictionaryToId;
+
+        THashMap<TGuid, TGuid> CalcerToDictionary;
+        TVector<TEstimatedFeature> EstimatedFeatures;
+
+        NPar::TLocalExecutor* LocalExecutor;
+    };
+}
+
+
 namespace NCB {
 
     static void CreateTargetClasses(
@@ -132,10 +338,12 @@ namespace NCB {
         const TClassificationTargetHelper& classificationTargetHelper,
         ui64 ctrLeafCountLimit,
         bool storeAllSimpleCtrs,
-        EFinalCtrComputationMode finalCtrComputationMode
+        EFinalCtrComputationMode finalCtrComputationMode,
+        EFinalFeatureCalcersComputationMode finalFeatureCalcerComputationMode
     )
         : NumThreads(options.SystemOptions->NumThreads)
         , FinalCtrComputationMode(finalCtrComputationMode)
+        , FinalFeatureCalcerComputationMode(finalFeatureCalcerComputationMode)
         , CpuRamLimit(ParseMemorySizeDescription(options.SystemOptions->CpuUsedRamLimit.Get()))
         , CtrLeafCountLimit(ctrLeafCountLimit)
         , StoreAllSimpleCtrs(storeAllSimpleCtrs)
@@ -204,14 +412,26 @@ namespace NCB {
         return *this;
     }
 
-    void TCoreModelToFullModelConverter::Do(bool requiresStaticCtrProvider, TFullModel* dstModel) {
-        DoImpl(requiresStaticCtrProvider, dstModel);
+    TCoreModelToFullModelConverter& TCoreModelToFullModelConverter::WithFeatureEstimators(
+        TFeatureEstimatorsPtr featureEstimators
+    ) {
+        FeatureEstimators = featureEstimators;
+        return *this;
+    }
+
+    void TCoreModelToFullModelConverter::Do(
+        bool requiresStaticCtrProvider,
+        TFullModel* dstModel,
+        NPar::TLocalExecutor* localExecutor) {
+
+        DoImpl(requiresStaticCtrProvider, dstModel, localExecutor);
     }
 
     void TCoreModelToFullModelConverter::Do(
         const TString& fullModelPath,
         const TVector<EModelType>& formats,
-        bool addFileFormatExtension
+        bool addFileFormatExtension,
+        NPar::TLocalExecutor* localExecutor
     ) {
         TFullModel fullModel;
 
@@ -224,13 +444,18 @@ namespace NCB {
                         format == EModelType::Json;
                 }
             ),
-            &fullModel
+            &fullModel,
+            localExecutor
         );
 
         ExportFullModel(fullModel, fullModelPath, LearnObjectsData.Get(), formats, addFileFormatExtension);
     }
 
-    void TCoreModelToFullModelConverter::DoImpl(bool requiresStaticCtrProvider, TFullModel* dstModel) {
+    void TCoreModelToFullModelConverter::DoImpl(
+        bool requiresStaticCtrProvider,
+        TFullModel* dstModel,
+        NPar::TLocalExecutor* localExecutor
+    ) {
         CB_ENSURE_INTERNAL(CoreModel, "CoreModel has not been specified");
 
         if (CoreModel != dstModel) {
@@ -255,6 +480,33 @@ namespace NCB {
         ELossFunction lossFunction = Options.LossFunctionDescription.Get().GetLossFunction();
         if (IsMultiClassOnlyMetric(lossFunction)) {
             dstModel->ModelInfo["multiclass_params"] = ClassificationTargetHelper.Serialize();
+        }
+
+        if (
+            FinalFeatureCalcerComputationMode == EFinalFeatureCalcersComputationMode::Default &&
+            !dstModel->ObliviousTrees->EstimatedFeatures.empty()
+        ) {
+            CB_ENSURE_INTERNAL(
+                FeatureEstimators,
+                "FinalFeatureCalcerComputation: FeatureEstimators shouldn't be empty"
+            );
+
+            const TTextDigitizers& textDigitizers =
+                LearnObjectsData->GetQuantizedFeaturesInfo()->GetTextDigitizers();
+
+            TTextProcessingCollection textProcessingCollection;
+            TVector<TEstimatedFeature> remappedEstimatedFeatures;
+            CreateTextProcessingCollection(
+                *FeatureEstimators,
+                textDigitizers,
+                dstModel->ObliviousTrees->EstimatedFeatures,
+                &textProcessingCollection,
+                &remappedEstimatedFeatures,
+                localExecutor
+            );
+
+            dstModel->TextProcessingCollection = MakeIntrusive<TTextProcessingCollection>(textProcessingCollection);
+            dstModel->UpdateEstimatedFeaturesIndices(std::move(remappedEstimatedFeatures));
         }
 
         if (FinalCtrComputationMode == EFinalCtrComputationMode::Skip) {
@@ -341,6 +593,41 @@ namespace NCB {
             std::move(asyncCtrValueTableCallback),
             &localExecutor
         );
+    }
+
+    void CreateTextProcessingCollection(
+        const TFeatureEstimators& featureEstimators,
+        const TTextDigitizers& textDigitizers,
+        const TVector<TEstimatedFeature>& estimatedFeatures,
+        TTextProcessingCollection* textProcessingCollection,
+        TVector<TEstimatedFeature>* reorderedEstimatedFeatures,
+        NPar::TLocalExecutor* localExecutor
+    ) {
+        CB_ENSURE(
+            !estimatedFeatures.empty(),
+            "CreateTextProcessingCollection: Estimated feature shouldn't be empty"
+        );
+
+        TTextCollectionBuilder textCollectionBuilder(
+            featureEstimators,
+            textDigitizers,
+            localExecutor
+        );
+
+        TVector<TEstimatedFeature> usedEstimatedFeatures;
+        TGuid lastCalcerId = estimatedFeatures[0].CalcerId;
+
+        for (const auto& estimatedFeature: estimatedFeatures) {
+            const TGuid currentCalcerIndex = estimatedFeature.CalcerId;
+            if (lastCalcerId != currentCalcerIndex) {
+                textCollectionBuilder.AddFeatureEstimator(lastCalcerId, usedEstimatedFeatures);
+                lastCalcerId = currentCalcerIndex;
+                usedEstimatedFeatures.clear();
+            }
+            usedEstimatedFeatures.push_back(estimatedFeature);
+        }
+        textCollectionBuilder.AddFeatureEstimator(lastCalcerId, usedEstimatedFeatures);
+        textCollectionBuilder.Build(textProcessingCollection, reorderedEstimatedFeatures);
     };
 
     void ExportFullModel(

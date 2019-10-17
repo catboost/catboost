@@ -271,7 +271,7 @@ enum class EFinalCtrComputationMode {
     Default
 };
 
-enum class EFinalFeatureCalcerComputationMode {
+enum class EFinalFeatureCalcersComputationMode {
     Skip,
     Default
 };

@@ -159,6 +159,84 @@ TFullModel SimpleFloatModel(size_t treeCount) {
     return model;
 }
 
+TFullModel SimpleTextModel(
+    TIntrusivePtr<TTextProcessingCollection> textCollection,
+    TConstArrayRef<TVector<TStringBuf>> textFeaturesValues,
+    TArrayRef<double> expectedResults
+) {
+    TFullModel model;
+
+    model.TextProcessingCollection = textCollection;
+    TVector<TTextFeature> textFeatures;
+    const int textFeatureCount = static_cast<int>(textCollection->GetTextFeatureCount());
+
+    for (int featureId = 0; featureId < textFeatureCount; featureId++) {
+        TTextFeature textFeature(true, featureId, featureId, ToString(featureId));
+        textFeatures.emplace_back(textFeature);
+    }
+
+    TObliviousTreeBuilder treeBuilder(TVector<TFloatFeature>{}, TVector<TCatFeature>{}, textFeatures, 1);
+
+    {
+        const int docCount = textFeaturesValues[0].size();
+        TVector<float> estimatedFeatures;
+        estimatedFeatures.yresize(docCount * textCollection->TotalNumberOfOutputFeatures());
+        {
+            TVector<ui32> textFeatureIds = xrange(textFeatureCount);
+            textCollection->CalcFeatures(
+                [&](ui32 textFeatureIdx, ui32 docId) { return textFeaturesValues[textFeatureIdx][docId]; },
+                MakeConstArrayRef(textFeatureIds),
+                docCount,
+                MakeArrayRef(estimatedFeatures)
+            );
+        }
+
+        ui32 estimatedFeatureIdx = 0;
+        for (const auto& producedFeature: textCollection->GetProducedFeatures()) {
+            TEstimatedFeatureSplit estimatedFeatureSplit{
+                SafeIntegerCast<int>(producedFeature.TextFeatureId),
+                producedFeature.CalcerId,
+                SafeIntegerCast<int>(producedFeature.LocalId),
+                /* split */ 0.f
+            };
+
+            const ui32 calcerOffset = textCollection->GetAbsoluteCalcerOffset(producedFeature.CalcerId);
+            const ui32 estimatedFeatureOffset = calcerOffset + producedFeature.LocalId;
+            TArrayRef<float> estimatedFeatureValues(
+                estimatedFeatures.data() + estimatedFeatureOffset * docCount,
+                estimatedFeatures.data() + (estimatedFeatureOffset + 1) * docCount
+            );
+
+            {
+                float mean = 0.;
+                for (auto featureValue : estimatedFeatureValues) {
+                    mean += featureValue;
+                }
+                mean /= (float) estimatedFeatureValues.size();
+
+                estimatedFeatureSplit.Split = mean;
+            }
+
+            TVector<double> treeLeafValues = {estimatedFeatureIdx * 10., estimatedFeatureIdx * 10. + 1};
+            TVector<double> treeLeafWeights = {1., 1.};
+            treeBuilder.AddTree({TModelSplit(estimatedFeatureSplit)}, treeLeafValues, treeLeafWeights);
+
+            for (ui32 docId : xrange(docCount)) {
+                double estimatedFeatureValue = estimatedFeatures[estimatedFeatureOffset * docCount + docId];
+                expectedResults[estimatedFeatureOffset * docCount + docId] =
+                    (estimatedFeatureValue <= estimatedFeatureSplit.Split) ?
+                    treeLeafValues[0] : treeLeafValues[1];
+            }
+            estimatedFeatureIdx++;
+        }
+    }
+
+    treeBuilder.Build(model.ObliviousTrees.GetMutable());
+    model.UpdateDynamicData();
+
+    return model;
+}
+
 TFullModel SimpleDeepTreeModel(size_t treeDepth) {
     TFullModel model;
     TObliviousTrees* trees = model.ObliviousTrees.GetMutable();
@@ -194,7 +272,7 @@ TFullModel SimpleAsymmetricModel() {
         }
     };
 
-    TNonSymmetricTreeModelBuilder builder(floatFeatures, TVector<TCatFeature>{}, 1);
+    TNonSymmetricTreeModelBuilder builder(floatFeatures, TVector<TCatFeature>{}, TVector<TTextFeature>{}, 1);
 
     THolder<TNonSymmetricTreeNode> treeHead = MakeHolder<TNonSymmetricTreeNode>();
     treeHead->SplitCondition = TModelSplit(TFloatSplit(0, 0.5));

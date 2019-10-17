@@ -9,6 +9,7 @@
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/private/libs/options/enums.h>
+#include <catboost/private/libs/text_features/text_processing_collection.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>
@@ -90,8 +91,11 @@ public:
     struct TRuntimeData {
         size_t UsedFloatFeaturesCount = 0;
         size_t UsedCatFeaturesCount = 0;
+        size_t UsedTextFeaturesCount = 0;
+        size_t UsedEstimatedFeaturesCount = 0;
         size_t MinimalSufficientFloatFeaturesVectorSize = 0;
         size_t MinimalSufficientCatFeaturesVectorSize = 0;
+        size_t MinimalSufficientTextFeaturesVectorSize = 0;
         /**
          * List of all TModelCTR used in model
          */
@@ -158,7 +162,8 @@ public:
     //! Categorical features, used in model in OneHot conditions or/and in CTR feature combinations
     TVector<TCatFeature> CatFeatures;
 
-    static_assert(ESplitType::FloatFeature < ESplitType::OneHotFeature
+    static_assert(ESplitType::FloatFeature < ESplitType::EstimatedFeature
+                  && ESplitType::EstimatedFeature < ESplitType::OneHotFeature
                   && ESplitType::OneHotFeature < ESplitType::OnlineCtr,
                   "ESplitType should represent bin feature order in model");
 
@@ -168,6 +173,11 @@ public:
     TVector<TOneHotFeature> OneHotFeatures;
     //! CTR features used in model
     TVector<TCtrFeature> CtrFeatures;
+
+    //! Text features used in model
+    TVector<TTextFeature> TextFeatures;
+    //! Computed on text features used in model
+    TVector<TEstimatedFeature> EstimatedFeatures;
 
 public:
     bool operator==(const TObliviousTrees& other) const {
@@ -181,8 +191,10 @@ public:
             LeafValues,
             CatFeatures,
             FloatFeatures,
+            TextFeatures,
             OneHotFeatures,
-            CtrFeatures)
+            CtrFeatures,
+            EstimatedFeatures)
           == std::tie(
             other.ApproxDimension,
             other.TreeSplits,
@@ -193,8 +205,10 @@ public:
             other.LeafValues,
             other.CatFeatures,
             other.FloatFeatures,
+            other.TextFeatures,
             other.OneHotFeatures,
-            other.CtrFeatures);
+            other.CtrFeatures,
+            other.EstimatedFeatures);
     }
 
     bool operator!=(const TObliviousTrees& other) const {
@@ -338,6 +352,21 @@ public:
         return RuntimeData->UsedCatFeaturesCount;
     }
 
+    size_t GetUsedTextFeaturesCount() const {
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->UsedTextFeaturesCount;
+    }
+
+    size_t GetMinimalSufficientTextFeaturesVectorSize() const {
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->MinimalSufficientTextFeaturesVectorSize;
+    }
+
+    size_t GetUsedEstimatedFeaturesCount() const {
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->UsedEstimatedFeaturesCount;
+    }
+
     size_t GetBinaryFeaturesFullCount() const {
         return GetBinFeatures().size();
     }
@@ -350,7 +379,8 @@ public:
     size_t GetFlatFeatureVectorExpectedSize() const {
         return (size_t)Max(
             CatFeatures.empty() ? 0 : CatFeatures.back().Position.FlatIndex + 1,
-            FloatFeatures.empty() ? 0 : FloatFeatures.back().Position.FlatIndex + 1
+            FloatFeatures.empty() ? 0 : FloatFeatures.back().Position.FlatIndex + 1,
+            TextFeatures.empty() ? 0 : TextFeatures.back().Position.FlatIndex + 1
         );
     }
 
@@ -402,6 +432,7 @@ public:
      */
     THashMap<TString, TString> ModelInfo;
     TIntrusivePtr<ICtrProvider> CtrProvider;
+    TIntrusivePtr<NCB::TTextProcessingCollection> TextProcessingCollection;
 private:
     EFormulaEvaluatorType FormulaEvaluatorType = EFormulaEvaluatorType::CPU;
     TAdaptiveLock CurrentEvaluatorLock;
@@ -444,6 +475,7 @@ public:
                 DoSwap(Evaluator, other.Evaluator);
             }
         }
+        DoSwap(TextProcessingCollection, other.TextProcessingCollection);
     }
 
     /**
@@ -451,6 +483,13 @@ public:
      */
     bool HasCategoricalFeatures() const {
         return GetUsedCatFeaturesCount() != 0;
+    }
+
+    /**
+     * Check wheter model contains text features
+     */
+    bool HasTextFeatures() const {
+        return GetUsedTextFeaturesCount() != 0;
     }
 
     /**
@@ -491,6 +530,13 @@ public:
      */
     size_t GetUsedFloatFeaturesCount() const {
         return ObliviousTrees->GetUsedFloatFeaturesCount();
+    }
+
+    /**
+     * @return Number of text features that are really used in trees
+     */
+    size_t GetUsedTextFeaturesCount() const {
+        return ObliviousTrees->GetUsedTextFeaturesCount();
     }
 
     /**
@@ -546,6 +592,11 @@ public:
             return ObliviousTrees->GetUsedModelCtrs().empty();
         }
         return CtrProvider->HasNeededCtrs(ObliviousTrees->GetUsedModelCtrs());
+    }
+
+    //! Check if TFullModel instance has valid Text processing collection
+    bool HasValidTextProcessingCollection() const {
+        return (bool) TextProcessingCollection;
     }
 
     /**
@@ -735,6 +786,42 @@ public:
     }
 
     /**
+     * Evaluate raw formula predictions for objects. Uses all model trees.
+     * @param floatFeatures
+     * @param catFeatures vector of vector of TStringBuf with categorical features strings
+     * @param treeStart
+     * @param treeEnd
+     * @param textFeatures vector of vector of TStringBuf with features containing text as strings
+     * @param results indexation is [objectIndex * ApproxDimension + classId]
+     */
+    void Calc(
+        TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+        TConstArrayRef<TVector<TStringBuf>> catFeatures,
+        TConstArrayRef<TVector<TStringBuf>> textFeatures,
+        size_t treeStart,
+        size_t treeEnd,
+        TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr
+    ) const;
+
+    /**
+     * Evaluate raw formula predictions for objects. Uses all model trees.
+     * @param floatFeatures
+     * @param catFeatures vector of vector of TStringBuf with categorical features strings
+     * @param textFeatures vector of vector of TStringBuf with features containing text as strings
+     * @param results indexation is [objectIndex * ApproxDimension + classId]
+     */
+    void Calc(
+        TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+        TConstArrayRef<TVector<TStringBuf>> catFeatures,
+        TConstArrayRef<TVector<TStringBuf>> textFeatures,
+        TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr
+    ) const {
+        Calc(floatFeatures, catFeatures, textFeatures, 0, GetTreeCount(), results, featureInfo);
+    }
+
+    /**
      * Truncate model to contain only trees from [begin; end) interval.
      * @param begin
      * @param end
@@ -831,6 +918,12 @@ public:
      *  modifications.
      */
     void UpdateDynamicData();
+
+    /**
+     * Internal usage only.
+     * Update indexes between TextProcessingCollection and Estimated features in ObliviousTrees
+     */
+    void UpdateEstimatedFeaturesIndices(TVector<TEstimatedFeature>&& newEstimatedFeatures);
 };
 
 void OutputModel(const TFullModel& model, TStringBuf modelFile);

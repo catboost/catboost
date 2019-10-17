@@ -1,3 +1,4 @@
+#include <catboost/private/libs/options/text_processing_options.h>
 #include <catboost/private/libs/text_features/embedding_online_features.h>
 #include <catboost/private/libs/text_processing/dictionary.h>
 #include <catboost/private/libs/text_processing/embedding_loader.h>
@@ -56,25 +57,35 @@ Y_UNIT_TEST_SUITE(EmbeddingTest) {
     }
 
     Y_UNIT_TEST(TestEmbeddingLoad) {
+        using namespace NCatboostOptions;
 
         TFastRng64 rng(0);
-        TDictionaryBuilder builder{NTextProcessing::NDictionary::TDictionaryBuilderOptions{1, -1},  NTextProcessing::NDictionary::TDictionaryOptions()};
+        auto dictionaryBuilderOptions = TDictionaryBuilderOptions{1, -1};
+        NTextProcessing::NDictionary::TDictionaryOptions dictionaryOptions;
+
+        TDictionaryBuilder builder{dictionaryBuilderOptions, dictionaryOptions};
+        NCatboostOptions::TTextColumnDictionaryOptions textColumnDictionaryOptions(
+            "default",
+            dictionaryOptions,
+            dictionaryBuilderOptions
+        );
         auto embedding = GenerateEmbedding(1000, 100, &rng, &builder);
         DumpEmbedding(embedding, "embedding.txt");
 
-        auto dict = builder.FinishBuilding();
+        auto dict = new TDictionaryProxy(builder.FinishBuilding());
         auto embeddingFromFile = LoadEmbedding("embedding.txt", *dict);
 
         TVector<float> testVec;
 
         const ui32 numClasses = 2;
-        TEmbeddingOnlineFeatures calcer(numClasses, embeddingFromFile);
+        TEmbeddingOnlineFeatures calcer(CreateGuid(), numClasses, embeddingFromFile);
 
         int i = 0;
 
         for (const auto& [word, vec] : embedding) {
             UNIT_ASSERT(dict->Apply(word) != dict->GetUnknownTokenId());
-            const TText& text = TokenToText(*dict, word);
+            TText text;
+            dict->Apply({word}, &text);
             auto id = text.begin()->first;
             UNIT_ASSERT(dict->Apply(word) == id);
 

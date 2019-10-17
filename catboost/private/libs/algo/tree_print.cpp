@@ -146,6 +146,11 @@ TString BuildDescription(const NCB::TFeaturesLayout& layout, const TModelSplit& 
         result << " type" << (int)feature.OnlineCtr.Ctr.Base.CtrType;
     } else if (feature.Type == ESplitType::FloatFeature) {
         result << BuildFeatureDescription(layout, feature.FloatFeature.FloatFeature, EFeatureType::Float);
+    } else if (feature.Type == ESplitType::EstimatedFeature) {
+        const TEstimatedFeatureSplit& split = feature.EstimatedFeature;
+        result << " src_feature_id=" << split.SourceFeatureId;
+        result << " calcer_id=" << split.CalcerId;
+        result << " local_id=" << split.LocalId;
     } else {
         Y_ASSERT(feature.Type == ESplitType::OneHotFeature);
         result << BuildFeatureDescription(layout, feature.OneHotFeature.CatFeatureIdx, EFeatureType::Categorical);

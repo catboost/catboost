@@ -1,6 +1,8 @@
 #include "embedding.h"
 #include <catboost/private/libs/data_util/path_with_scheme.h>
 #include <catboost/private/libs/data_util/line_data_reader.h>
+
+#include <util/generic/string.h>
 #include <util/string/split.h>
 #include <util/stream/file.h>
 
@@ -15,7 +17,7 @@ namespace NCB {
     }
 
     TEmbeddingPtr LoadEmbedding(const TString& path,
-                                const IDictionary& dictionary) {
+                                const TDictionaryProxy& dictionary) {
         const auto delim = '\t';
 
         TDenseHash<TTokenId, TVector<float>> embeddings;

@@ -707,7 +707,7 @@ static void ConfigureSymmetricTrees(const onnx::GraphProto& onnxGraph, TFullMode
     int approxDimension = 1;
     PrepareTrees(treesAttributes, isClassifierModel, &trees, &approxDimension, &floatFeatures);
 
-    TNonSymmetricTreeModelBuilder treeBuilder(floatFeatures, TVector<TCatFeature>(0), approxDimension);
+    TNonSymmetricTreeModelBuilder treeBuilder(floatFeatures, TVector<TCatFeature>(0), {}, approxDimension);
 
     for (const auto& tree : trees) {
         treeBuilder.AddTree(BuildNonSymmetricTree(tree, 0));

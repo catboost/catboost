@@ -1,0 +1,8 @@
+namespace NCatBoostFbs;
+
+struct TGuid {
+    dw0: uint32;
+    dw1: uint32;
+    dw2: uint32;
+    dw3: uint32;
+}

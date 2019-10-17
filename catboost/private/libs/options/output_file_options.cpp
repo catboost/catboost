@@ -80,6 +80,7 @@ NCatboostOptions::TOutputFilesOptions::TOutputFilesOptions()
     , SaveSnapshotFlag("save_snapshot", false)
     , AllowWriteFilesFlag("allow_writing_files", true)
     , FinalCtrComputationMode("final_ctr_computation_mode", EFinalCtrComputationMode::Default)
+    , FinalFeatureCalcerComputationMode("final_feature_calcer_computation_mode", EFinalFeatureCalcersComputationMode::Default)
     , EvalFileName("eval_file_name", "")
     , FstrRegularFileName("fstr_regular_file", "")
     , FstrInternalFileName("fstr_internal_file", "")
@@ -253,14 +254,14 @@ bool NCatboostOptions::TOutputFilesOptions::operator==(const TOutputFilesOptions
     return std::tie(
             TrainDir, Name, JsonLogPath, ProfileLogPath, LearnErrorLogPath, TestErrorLogPath,
             TimeLeftLog, ResultModelPath, SnapshotPath, ModelFormats, SaveSnapshotFlag,
-            AllowWriteFilesFlag, FinalCtrComputationMode, UseBestModel, BestModelMinTrees,
+            AllowWriteFilesFlag, FinalCtrComputationMode, FinalFeatureCalcerComputationMode, UseBestModel, BestModelMinTrees,
             SnapshotSaveIntervalSeconds, EvalFileName, FstrRegularFileName, FstrInternalFileName, FstrType,
             TrainingOptionsFileName, OutputBordersFileName, RocOutputPath
             ) == std::tie(
                 rhs.TrainDir, rhs.Name, rhs.JsonLogPath, rhs.ProfileLogPath,
                 rhs.LearnErrorLogPath, rhs.TestErrorLogPath, rhs.TimeLeftLog, rhs.ResultModelPath,
                 rhs.SnapshotPath, rhs.ModelFormats, rhs.SaveSnapshotFlag, rhs.AllowWriteFilesFlag,
-                rhs.FinalCtrComputationMode, rhs.UseBestModel, rhs.BestModelMinTrees,
+                rhs.FinalCtrComputationMode, rhs.FinalFeatureCalcerComputationMode, rhs.UseBestModel, rhs.BestModelMinTrees,
                 rhs.SnapshotSaveIntervalSeconds, rhs.EvalFileName, rhs.FstrRegularFileName,
                 rhs.FstrInternalFileName, rhs.FstrType, rhs.TrainingOptionsFileName, rhs.OutputBordersFileName,
                 rhs.RocOutputPath
@@ -276,8 +277,8 @@ void NCatboostOptions::TOutputFilesOptions::Load(const NJson::TJsonValue& option
             options,
             &TrainDir, &Name, &JsonLogPath, &ProfileLogPath, &LearnErrorLogPath,
             &TestErrorLogPath, &TimeLeftLog, &ResultModelPath, &SnapshotPath, &ModelFormats,
-            &SaveSnapshotFlag, &AllowWriteFilesFlag, &FinalCtrComputationMode, &UseBestModel,
-            &BestModelMinTrees, &SnapshotSaveIntervalSeconds, &EvalFileName, &OutputColumns,
+            &SaveSnapshotFlag, &AllowWriteFilesFlag, &FinalCtrComputationMode, &FinalFeatureCalcerComputationMode,
+            &UseBestModel, &BestModelMinTrees, &SnapshotSaveIntervalSeconds, &EvalFileName, &OutputColumns,
             &FstrRegularFileName, &FstrInternalFileName, &FstrType, &TrainingOptionsFileName, &MetricPeriod,
             &VerbosePeriod, &PredictionTypes, &OutputBordersFileName, &RocOutputPath
             );
@@ -292,8 +293,8 @@ void NCatboostOptions::TOutputFilesOptions::Save(NJson::TJsonValue* options) con
             options,
             TrainDir, Name, JsonLogPath, ProfileLogPath, LearnErrorLogPath, TestErrorLogPath,
             TimeLeftLog, ResultModelPath, SnapshotPath, ModelFormats, SaveSnapshotFlag,
-            AllowWriteFilesFlag, FinalCtrComputationMode, UseBestModel, BestModelMinTrees,
-            SnapshotSaveIntervalSeconds, EvalFileName, OutputColumns, FstrRegularFileName,
+            AllowWriteFilesFlag, FinalCtrComputationMode, FinalFeatureCalcerComputationMode, UseBestModel,
+            BestModelMinTrees, SnapshotSaveIntervalSeconds, EvalFileName, OutputColumns, FstrRegularFileName,
             FstrInternalFileName, FstrType, TrainingOptionsFileName, MetricPeriod, VerbosePeriod, PredictionTypes,
             OutputBordersFileName, RocOutputPath
             );
@@ -332,4 +333,8 @@ TString NCatboostOptions::TOutputFilesOptions::GetFullPath(const TString& fileNa
     } else {
         return JoinFsPaths(trainDirStr, filePath);
     }
+}
+
+EFinalFeatureCalcersComputationMode NCatboostOptions::TOutputFilesOptions::GetFinalFeatureCalcerComputationMode() const {
+    return FinalFeatureCalcerComputationMode;
 }

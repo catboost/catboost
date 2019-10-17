@@ -434,7 +434,7 @@ TVector<TFeatureEffect> CalcRegularFeatureEffect(
             case ESplitType::OneHotFeature:
                 catFeatureEffect[feature.FeatureIdx] += effectWithSplit.first;
                 break;
-            case ESplitType::OnlineCtr:
+            case ESplitType::OnlineCtr: {
                 auto& proj = feature.Ctr.Base.Projection;
                 int featuresInSplit = proj.BinFeatures.ysize() + proj.CatFeatures.ysize()
                     + proj.OneHotFeatures.ysize();
@@ -448,6 +448,10 @@ TVector<TFeatureEffect> CalcRegularFeatureEffect(
                 for (auto oneHotFeature : proj.OneHotFeatures) {
                     catFeatureEffect[oneHotFeature.CatFeatureIdx] += addEffect;
                 }
+                break;
+            }
+            case ESplitType::EstimatedFeature:
+                CB_ENSURE(false, "Estimated features is not supported in fstr mode");
                 break;
         }
     }
@@ -593,6 +597,10 @@ static TVector<TVector<double>> CalcFstr(
     CB_ENSURE(
         !model.ObliviousTrees->LeafWeights.empty() || (dataset != nullptr),
         "CalcFstr requires either non-empty LeafWeights in model or provided dataset");
+    CB_ENSURE(
+        model.ObliviousTrees->TextFeatures.empty(),
+        "CalcFstr is not implemented for models with text features"
+    );
 
     TVector<double> regularEffect = CalcRegularFeatureEffect(model, dataset, type, localExecutor);
     TVector<TVector<double>> result;

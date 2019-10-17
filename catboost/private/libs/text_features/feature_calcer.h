@@ -1,9 +1,12 @@
 #pragma once
 
+#include "helpers.h"
+
 #include <catboost/private/libs/data_types/text.h>
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/libs/helpers/guid.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/flatbuffers/guid.fbs.h>
 #include <catboost/private/libs/text_features/flatbuffers/feature_calcers.fbs.h>
 
 #include <library/object_factory/object_factory.h>
@@ -37,6 +40,8 @@ namespace NCB {
         };
 
         virtual void TrimFeatures(TConstArrayRef<ui32> featureIndices) = 0;
+
+        virtual TGuid Id() const = 0;
     };
 
     class TTextCalcerSerializer;
@@ -60,6 +65,13 @@ namespace NCB {
 
     class TTextFeatureCalcer : public IFeatureCalcer {
     public:
+        TTextFeatureCalcer(ui32 baseFeatureCount, const TGuid& calcerId)
+            : ActiveFeatureIndices(baseFeatureCount)
+            , Guid(calcerId)
+        {
+            Iota(ActiveFeatureIndices.begin(), ActiveFeatureIndices.end(), 0);
+        }
+
         virtual void Compute(const TText& text, TOutputFloatIterator outputFeaturesIterator) const = 0;
 
         void Compute(const TText& text, TArrayRef<float> result) const {
@@ -80,8 +92,40 @@ namespace NCB {
         TConstArrayRef<ui32> GetActiveFeatureIndices() const;
         ui32 FeatureCount() const override;
 
+        TGuid Id() const override {
+            return Guid;
+        }
+
+        void SetId(const TGuid& guid) {
+            Guid = guid;
+        }
+
     protected:
-        virtual ui32 BaseFeatureCount() const = 0;
+        class TFeatureCalcerFbs {
+        public:
+            using TCalcerFbsImpl = flatbuffers::Offset<void>;
+            using ECalcerFbsType = NCatBoostFbs::TAnyFeatureCalcer;
+
+            TFeatureCalcerFbs(
+                ECalcerFbsType calcerFbsType,
+                TCalcerFbsImpl featureCalcerFbs
+            )
+                : CalcerType(calcerFbsType)
+                , CalcerFlatBuffer(featureCalcerFbs)
+            {}
+
+            ECalcerFbsType GetCalcerType() const {
+                return CalcerType;
+            }
+
+            const TCalcerFbsImpl& GetCalcerFlatBuffer() const {
+                return CalcerFlatBuffer;
+            }
+
+        private:
+            ECalcerFbsType CalcerType;
+            TCalcerFbsImpl CalcerFlatBuffer;
+        };
 
         template <class F>
         void ForEachActiveFeature(F&& func) const {
@@ -90,7 +134,11 @@ namespace NCB {
             }
         }
 
-        virtual flatbuffers::Offset<NCatBoostFbs::TFeatureCalcer> SaveParametersToFB(flatbuffers::FlatBufferBuilder&) const;
+        NCatBoostFbs::TGuid GetFbsGuid() const {
+            return CreateFbsGuid(Guid);
+        }
+
+        virtual TFeatureCalcerFbs SaveParametersToFB(flatbuffers::FlatBufferBuilder&) const;
         virtual void SaveLargeParameters(IOutputStream*) const;
 
         virtual void LoadParametersFromFB(const NCatBoostFbs::TFeatureCalcer*);
@@ -99,8 +147,8 @@ namespace NCB {
         flatbuffers::Offset<flatbuffers::Vector<uint32_t>> ActiveFeatureIndicesToFB(flatbuffers::FlatBufferBuilder& builder) const;
 
     private:
-        mutable TVector<ui32> ActiveFeatureIndices;
-        TMutex InitActiveFeatureIndicesLock;
+        TVector<ui32> ActiveFeatureIndices;
+        TGuid Guid = CreateGuid();
     };
 
     using TTextFeatureCalcerPtr = TIntrusivePtr<TTextFeatureCalcer>;

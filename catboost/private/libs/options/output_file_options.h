@@ -71,6 +71,8 @@ namespace NCatboostOptions {
 
         EFinalCtrComputationMode GetFinalCtrComputationMode() const;
 
+        EFinalFeatureCalcersComputationMode GetFinalFeatureCalcerComputationMode() const;
+
         bool SaveSnapshot() const;
 
         ui64 GetSnapshotSaveInterval() const;
@@ -136,6 +138,7 @@ namespace NCatboostOptions {
         TOption<bool> SaveSnapshotFlag;
         TOption<bool> AllowWriteFilesFlag;
         TOption<EFinalCtrComputationMode> FinalCtrComputationMode;
+        TOption<EFinalFeatureCalcersComputationMode> FinalFeatureCalcerComputationMode;
         TOption<TString> EvalFileName;
         TOption<TString> FstrRegularFileName;
         TOption<TString> FstrInternalFileName;

@@ -153,7 +153,7 @@ TVector<bool> GetFeaturesUsedInModel(const TFullModel& model) {
     }
 
     for (const auto& catFeature : model.ObliviousTrees->CatFeatures) {
-        if (catFeature.UsedInModel) {
+        if (catFeature.UsedInModel()) {
             result[catFeature.Position.FlatIndex] = true;
         }
     }

@@ -90,12 +90,14 @@ namespace NCatboostOptions {
 
     TTextColumnDictionaryOptions::TTextColumnDictionaryOptions(
         TString dictionaryId,
-        NTextProcessing::NDictionary::TDictionaryOptions dictionaryOptions,
-        NTextProcessing::NDictionary::TDictionaryBuilderOptions dictionaryBuilderOptions
+        TDictionaryOptions dictionaryOptions,
+        TMaybe<TDictionaryBuilderOptions> dictionaryBuilderOptions
     ) : TTextColumnDictionaryOptions() {
         DictionaryId.SetDefault(dictionaryId);
         DictionaryOptions.SetDefault(dictionaryOptions);
-        DictionaryBuilderOptions.SetDefault(dictionaryBuilderOptions);
+        if (dictionaryBuilderOptions.Defined()) {
+            DictionaryBuilderOptions.SetDefault(dictionaryBuilderOptions.GetRef());
+        }
     }
 
     void TTextColumnDictionaryOptions::Save(NJson::TJsonValue* optionsJson) const {
@@ -233,18 +235,16 @@ namespace NCatboostOptions {
             NTextProcessing::NDictionary::TDictionaryOptions{
                 NTextProcessing::NDictionary::ETokenLevelType::Letter,
                 2
-            },
-            NTextProcessing::NDictionary::TDictionaryBuilderOptions{}
+            }
         };
     }
 
     TTextColumnDictionaryOptions TTextProcessingOptions::WordDictionaryOptions() {
         return {
             "Word",
-                NTextProcessing::NDictionary::TDictionaryOptions{
-                    NTextProcessing::NDictionary::ETokenLevelType::Word
-                },
-                NTextProcessing::NDictionary::TDictionaryBuilderOptions{}
+            NTextProcessing::NDictionary::TDictionaryOptions{
+                NTextProcessing::NDictionary::ETokenLevelType::Word
+            }
         };
     }
 
@@ -274,6 +274,15 @@ namespace NCatboostOptions {
             "No default dictionaries for feature calcer " << ToString(calcerType)
         );
         return defaultCalcerDictionaries.at(calcerType);
+    }
+
+    TTextProcessingOptions::TTextProcessingOptions(
+        TVector<TTextColumnDictionaryOptions>&& dictionaries,
+        TMap<TString, TVector<TTextFeatureProcessing>>&& textFeatureProcessing
+    )
+    : TTextProcessingOptions() {
+        Dictionaries.Set(dictionaries);
+        TextFeatureProcessing.Set(textFeatureProcessing);
     }
 
     TTextFeatureProcessing::TTextFeatureProcessing()

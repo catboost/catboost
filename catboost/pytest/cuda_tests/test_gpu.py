@@ -2546,25 +2546,37 @@ def test_model_based_eval(dataset):
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('feature_estimators', TEXT_FEATURE_ESTIMATORS)
 def test_fit_binclass_with_text_features(boosting_type, feature_estimators):
+    output_model_path = yatest.common.test_output_path('model.bin')
     learn_error_path = yatest.common.test_output_path('learn.tsv')
     test_error_path = yatest.common.test_output_path('test.tsv')
 
+    test_eval_path = yatest.common.test_output_path('test.eval')
+    calc_eval_path = yatest.common.test_output_path('calc.eval')
+
     pool_name = 'rotten_tomatoes'
+    test_file = data_file(pool_name, 'test')
+    cd_file = data_file(pool_name, 'cd_binclass')
     params = {
         '--loss-function': 'Logloss',
         '--eval-metric': 'AUC',
         '-f': data_file(pool_name, 'train'),
-        '-t': data_file(pool_name, 'test'),
+        '-t': test_file,
         '--text-processing': feature_estimators.replace(',', '|'),
-        '--column-description': data_file(pool_name, 'cd_binclass'),
+        '--column-description': cd_file,
         '--boosting-type': boosting_type,
         '-i': '20',
         '-T': '4',
+        '-m': output_model_path,
         '--learn-err-log': learn_error_path,
         '--test-err-log': test_error_path,
+        '--eval-file': test_eval_path,
+        '--output-columns': 'RawFormulaVal',
         '--use-best-model': 'false',
     }
     fit_catboost_gpu(params)
+
+    apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
+    assert(compare_evals_with_precision(test_eval_path, calc_eval_path, rtol=1e-4, skip_last_column_in_fit=False))
 
     return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
             local_canonical_file(test_error_path, diff_tool=diff_tool())]
@@ -2573,25 +2585,79 @@ def test_fit_binclass_with_text_features(boosting_type, feature_estimators):
 @pytest.mark.parametrize('feature_estimators', TEXT_FEATURE_ESTIMATORS)
 @pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
 def test_fit_multiclass_with_text_features(feature_estimators, loss_function):
+    output_model_path = yatest.common.test_output_path('model.bin')
     learn_error_path = yatest.common.test_output_path('learn.tsv')
     test_error_path = yatest.common.test_output_path('test.tsv')
 
+    test_eval_path = yatest.common.test_output_path('test.eval')
+    calc_eval_path = yatest.common.test_output_path('calc.eval')
+
     pool_name = 'rotten_tomatoes'
+    test_file = data_file(pool_name, 'test')
+    cd_file = data_file(pool_name, 'cd')
     params = {
         '--loss-function': loss_function,
         '--eval-metric': 'Accuracy',
         '-f': data_file(pool_name, 'train'),
-        '-t': data_file(pool_name, 'test'),
+        '-t': test_file,
         '--text-processing': feature_estimators.replace(',', '|'),
-        '--column-description': data_file(pool_name, 'cd'),
+        '--column-description': cd_file,
         '--boosting-type': 'Plain',
         '-i': '20',
         '-T': '4',
+        '-m': output_model_path,
         '--learn-err-log': learn_error_path,
         '--test-err-log': test_error_path,
+        '--eval-file': test_eval_path,
+        '--output-columns': 'RawFormulaVal',
         '--use-best-model': 'false',
     }
     fit_catboost_gpu(params)
+
+    apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
+    assert(compare_evals_with_precision(test_eval_path, calc_eval_path, rtol=1e-4, skip_last_column_in_fit=False))
+
+    return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
+            local_canonical_file(test_error_path, diff_tool=diff_tool())]
+
+
+@pytest.mark.parametrize('grow_policy', GROW_POLICIES)
+def test_shrink_model_with_text_features(grow_policy):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn.tsv')
+    test_error_path = yatest.common.test_output_path('test.tsv')
+
+    test_eval_path = yatest.common.test_output_path('test.eval')
+    calc_eval_path = yatest.common.test_output_path('calc.eval')
+
+    loss_function = 'MultiClass'
+    feature_estimators = 'BoW|NaiveBayes|BM25'
+
+    pool_name = 'rotten_tomatoes'
+    test_file = data_file(pool_name, 'test')
+    cd_file = data_file(pool_name, 'cd')
+    params = {
+        '--loss-function': loss_function,
+        '--eval-metric': 'Accuracy',
+        '-f': data_file(pool_name, 'train'),
+        '-t': test_file,
+        '--column-description': cd_file,
+        '--text-processing': feature_estimators,
+        '--grow-policy': grow_policy,
+        '--boosting-type': 'Plain',
+        '-i': '20',
+        '-T': '4',
+        '-m': output_model_path,
+        '--learn-err-log': learn_error_path,
+        '--test-err-log': test_error_path,
+        '--eval-file': test_eval_path,
+        '--output-columns': 'RawFormulaVal',
+        '--use-best-model': 'true',
+    }
+    fit_catboost_gpu(params)
+
+    apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
+    assert(compare_evals_with_precision(test_eval_path, calc_eval_path, rtol=1e-4, skip_last_column_in_fit=False))
 
     return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
             local_canonical_file(test_error_path, diff_tool=diff_tool())]
@@ -2602,14 +2668,16 @@ DICTIONARIES_OPTIONS = [
         "Simple": "token_level_type=Word"
     },
     {
+        "UniGramOccur5": "min_token_occurrence=5,token_level_type=Letter",
+        "BiGramOccur2": "min_token_occurrence=2,gram_order=2,token_level_type=Letter",
+        "WordDictOccur1": "min_token_occurrence=1,token_level_type=Word",
         "WordDictOccur2": "min_token_occurrence=2,token_level_type=Word",
-        "WordDictOccur5": "min_token_occurrence=2,token_level_type=Word",
-        "WordDictOccur10": "min_token_occurrence=2,token_level_type=Word"
+        "WordDictOccur3": "min_token_occurrence=3,token_level_type=Word"
     },
     {
-        "Unigram": "min_token_occurrence=10,gram_order=1,token_level_type=Letter",
-        "Bigram": "min_token_occurrence=5,gram_order=2,token_level_type=Letter",
-        "Trigram": "min_token_occurrence=2,gram_order=3,token_level_type=Letter"
+        "Unigram": "gram_order=1,token_level_type=Letter",
+        "Bigram": "gram_order=2,token_level_type=Letter",
+        "Trigram": "gram_order=3,token_level_type=Letter"
     },
     {
         "Letter": "token_level_type=Letter",
@@ -2621,8 +2689,12 @@ DICTIONARIES_OPTIONS = [
 @pytest.mark.parametrize('dictionaries', DICTIONARIES_OPTIONS)
 @pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
 def test_text_processing_options(dictionaries, loss_function):
+    output_model_path = yatest.common.test_output_path('model.bin')
     learn_error_path = yatest.common.test_output_path('learn.tsv')
     test_error_path = yatest.common.test_output_path('test.tsv')
+
+    test_eval_path = yatest.common.test_output_path('test.eval')
+    calc_eval_path = yatest.common.test_output_path('calc.eval')
 
     dictionaries_names = ','.join(dictionaries.keys())
     dictionaries_description = ';'.join([key + ':' + value for key, value in dictionaries.items()])
@@ -2631,22 +2703,30 @@ def test_text_processing_options(dictionaries, loss_function):
     text_processing = '|'.join(text_processing)
 
     pool_name = 'rotten_tomatoes'
+    test_file = data_file(pool_name, 'test')
+    cd_file = data_file(pool_name, 'cd')
     params = {
         '--loss-function': loss_function,
         '--eval-metric': 'Accuracy',
         '-f': data_file(pool_name, 'train'),
-        '-t': data_file(pool_name, 'test'),
-        '--column-description': data_file(pool_name, 'cd'),
+        '-t': test_file,
+        '--column-description': cd_file,
         '--dictionaries': dictionaries_description,
         '--text-processing': text_processing,
         '--boosting-type': 'Plain',
         '-i': '20',
         '-T': '4',
+        '-m': output_model_path,
         '--learn-err-log': learn_error_path,
         '--test-err-log': test_error_path,
+        '--eval-file': test_eval_path,
+        '--output-columns': 'RawFormulaVal',
         '--use-best-model': 'false',
     }
     fit_catboost_gpu(params)
+
+    apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
+    assert(compare_evals_with_precision(test_eval_path, calc_eval_path, rtol=1e-4, skip_last_column_in_fit=False))
 
     return [local_canonical_file(learn_error_path, diff_tool=diff_tool(1e-6)),
             local_canonical_file(test_error_path, diff_tool=diff_tool(1e-6))]

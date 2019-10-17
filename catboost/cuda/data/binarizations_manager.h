@@ -106,8 +106,8 @@ namespace NCatboostCuda {
             return FeatureManagerIdToEstimatedFeatureId.at(featureId);
         }
 
-        NCB::TEstimatorSourceId GetEstimatorSourceIdx(NCB::TEstimatorId estimatorId) const {
-            return FeatureEstimators->GetEstimatorSourceFeatureIdx(estimatorId);
+        NCB::TFeatureEstimatorsPtr GetFeatureEstimators() const {
+            return FeatureEstimators;
         }
 
         ui32 GetEstimatedFeatureCount() const {
@@ -251,7 +251,6 @@ namespace NCatboostCuda {
             estimators->ForEach(
                 [&](
                     NCB::TEstimatorId estimatorId,
-                    NCB::TEstimatorSourceId /*sourceId*/,
                     NCB::TFeatureEstimatorPtr estimator
                 ) {
                     RegisterFeatureEstimator(estimatorId, estimator->FeaturesMeta());

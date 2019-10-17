@@ -121,7 +121,7 @@ namespace NCB::NModelEvaluation {
                 }
                 if (!docCount.Defined() && !ObliviousTrees->CatFeatures.empty()) {
                     for (const auto& catFeature : ObliviousTrees->CatFeatures) {
-                        if (catFeature.UsedInModel) {
+                        if (catFeature.UsedInModel()) {
                             docCount = transposedFeatures[catFeature.Position.FlatIndex].size();
                             break;
                         }
@@ -233,6 +233,23 @@ namespace NCB::NModelEvaluation {
                     "Cat features are not supported on GPU, should be empty"
                 );
                 CalcFlat(floatFeatures, treeStart, treeEnd, results, featureLayout);
+            }
+
+            void Calc(
+                TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+                TConstArrayRef<TConstArrayRef<TStringBuf>> catFeatures,
+                TConstArrayRef<TConstArrayRef<TStringBuf>> textFeatures,
+                size_t treeStart,
+                size_t treeEnd,
+                TArrayRef<double> results,
+                const TFeatureLayout* featureInfo = nullptr
+            ) const override {
+                ValidateInputFeatures(floatFeatures, catFeatures);
+                CB_ENSURE(
+                    textFeatures.empty(),
+                    "Text features are not supported in GPU calc, should be empty"
+                );
+                CalcFlat(floatFeatures, treeStart, treeEnd, results, featureInfo);
             }
 
             void Calc(

@@ -41,13 +41,54 @@ namespace NCB::NModelEvaluation {
         return val;
     }
 
-    template <bool isQuantizedFeaturesData = false,
-        typename TFloatFeatureAccessor, typename TCatFeatureAccessor, typename TFunctor>
+    template <
+        typename TFloatFeatureAccessor,
+        typename TCatFeatureAccessor,
+        typename TFunctor
+    >
     inline void ProcessDocsInBlocks(
         const TObliviousTrees& trees,
         const TIntrusivePtr<ICtrProvider>& ctrProvider,
         TFloatFeatureAccessor floatFeatureAccessor,
         TCatFeatureAccessor catFeaturesAccessor,
+        size_t docCount,
+        size_t blockSize,
+        TFunctor callback,
+        const NCB::NModelEvaluation::TFeatureLayout* featureInfo
+    ) {
+        ProcessDocsInBlocks(
+            trees,
+            ctrProvider,
+            TIntrusivePtr<TTextProcessingCollection>(),
+            floatFeatureAccessor,
+            catFeaturesAccessor,
+            [](TFeaturePosition, size_t) -> TStringBuf {
+                CB_ENSURE_INTERNAL(
+                    false,
+                    "Trying to access text data from model.Calc() interface which has no text features"
+                );
+                return "Undefined";
+            },
+            docCount,
+            blockSize,
+            callback,
+            featureInfo
+        );
+    }
+
+    template <
+        typename TFloatFeatureAccessor,
+        typename TCatFeatureAccessor,
+        typename TTextFeatureAccessor,
+        typename TFunctor
+    >
+    inline void ProcessDocsInBlocks(
+        const TObliviousTrees& trees,
+        const TIntrusivePtr<ICtrProvider>& ctrProvider,
+        const TIntrusivePtr<TTextProcessingCollection>& textProcessingCollection,
+        TFloatFeatureAccessor floatFeatureAccessor,
+        TCatFeatureAccessor catFeaturesAccessor,
+        TTextFeatureAccessor textFeatureAccessor,
         size_t docCount,
         size_t blockSize,
         TFunctor callback,
@@ -64,38 +105,33 @@ namespace NCB::NModelEvaluation {
             binFeaturesHolder.yresize(binSlots);
             quantizedData.QuantizedData = NCB::TMaybeOwningArrayHolder<ui8>::CreateOwning(std::move(binFeaturesHolder));
         }
-        if constexpr (!isQuantizedFeaturesData) {
-            TVector<ui32> transposedHash(blockSize * trees.GetUsedCatFeaturesCount());
-            TVector<float> ctrs(trees.GetUsedModelCtrs().size() * blockSize);
-            for (size_t blockStart = 0; blockStart < docCount; blockStart += blockSize) {
-                const auto docCountInBlock = Min(blockSize, docCount - blockStart);
-                BinarizeFeatures(
-                    trees,
-                    ctrProvider,
-                    floatFeatureAccessor,
-                    catFeaturesAccessor,
-                    blockStart,
-                    blockStart + docCountInBlock,
-                    &quantizedData,
-                    transposedHash,
-                    ctrs,
-                    featureInfo
-                );
-                callback(docCountInBlock, &quantizedData);
-            }
-        } else {
-            for (size_t blockStart = 0; blockStart < docCount; blockStart += blockSize) {
-                const auto docCountInBlock = Min(blockSize, docCount - blockStart);
-                AssignFeatureBins(
-                    trees,
-                    floatFeatureAccessor,
-                    catFeaturesAccessor,
-                    blockStart,
-                    blockStart + docCountInBlock,
-                    &quantizedData
-                );
-                callback(docCountInBlock, &quantizedData);
-            }
+
+        TVector<ui32> transposedHash(blockSize * trees.GetUsedCatFeaturesCount());
+        TVector<float> ctrs(trees.GetUsedModelCtrs().size() * blockSize);
+        TVector<float> estimatedFeatures;
+        if (textProcessingCollection) {
+            // TODO(d-kruchinin): replace to GetUsedEstimatedFeatures.size() after creation TrimFeatures
+            estimatedFeatures = TVector<float>(textProcessingCollection->TotalNumberOfOutputFeatures() * blockSize);
+        }
+
+        for (size_t blockStart = 0; blockStart < docCount; blockStart += blockSize) {
+            const auto docCountInBlock = Min(blockSize, docCount - blockStart);
+            BinarizeFeatures(
+                trees,
+                ctrProvider,
+                textProcessingCollection,
+                floatFeatureAccessor,
+                catFeaturesAccessor,
+                textFeatureAccessor,
+                blockStart,
+                blockStart + docCountInBlock,
+                &quantizedData,
+                transposedHash,
+                ctrs,
+                estimatedFeatures,
+                featureInfo
+            );
+            callback(docCountInBlock, &quantizedData);
         }
     }
 
@@ -116,7 +152,7 @@ namespace NCB::NModelEvaluation {
         }
     }
 
-    template <bool IsQuantizedFeaturesData = false, typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
+    template <typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
     inline void CalcLeafIndexesGeneric(
         const TObliviousTrees& trees,
         const TIntrusivePtr<ICtrProvider>& ctrProvider,
@@ -134,6 +170,10 @@ namespace NCB::NModelEvaluation {
         CB_ENSURE(treeLeafIndexes.size() == docCount * treeCount,
                   "`treeLeafIndexes` size is insufficient: "
                       LabeledOutput(treeLeafIndexes.size(), docCount * treeCount));
+        CB_ENSURE(
+            trees.TextFeatures.empty(),
+            "Leaf indexes calculation is not implemented for models with text features"
+        );
         std::fill(treeLeafIndexes.begin(), treeLeafIndexes.end(), 0);
         const size_t blockSize = Min(FORMULA_EVALUATION_BLOCK_SIZE, docCount);
         TCalcerIndexType* indexesWritePtr = treeLeafIndexes.data();
@@ -141,7 +181,7 @@ namespace NCB::NModelEvaluation {
         auto calcTrees = GetCalcTreesFunction(trees, blockSize, true);
 
         if (docCount == 1) {
-            ProcessDocsInBlocks<IsQuantizedFeaturesData>(
+            ProcessDocsInBlocks(
                 trees, ctrProvider, floatFeatureAccessor, catFeaturesAccessor, docCount, blockSize,
                 [&](size_t docCountInBlock, const TCPUEvaluatorQuantizedData* quantizedData) {
                     calcTrees(
@@ -160,7 +200,7 @@ namespace NCB::NModelEvaluation {
         }
         TVector<TCalcerIndexType> tmpLeafIndexHolder(blockSize * treeCount);
         TCalcerIndexType* transposedLeafIndexesPtr = tmpLeafIndexHolder.data();
-        ProcessDocsInBlocks<IsQuantizedFeaturesData>(
+        ProcessDocsInBlocks(
             trees,
             ctrProvider,
             floatFeatureAccessor,

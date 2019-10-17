@@ -8,16 +8,6 @@
 
 namespace NCB {
 
-    using IDictionary = NTextProcessing::NDictionary::IDictionary;
-    using TDictionaryPtr = TIntrusivePtr<IDictionary>;
-
-    TText TokensToText(const IDictionary& dictionary, TConstArrayRef<TStringBuf> tokens);
-
-    inline TText TokenToText(const IDictionary& dictionary, TStringBuf token) {
-        std::array<TStringBuf, 1> tmp{token};
-        return TokensToText(dictionary, MakeConstArrayRef(tmp));
-    }
-
     class TTextColumnBuilder {
     public:
         TTextColumnBuilder(TTokenizerPtr tokenizer, TDictionaryPtr dictionary, ui32 samplesCount)

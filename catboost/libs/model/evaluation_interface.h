@@ -16,9 +16,10 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
         public:
             TMaybe<TVector<ui32>> FloatFeatureIndexes;
             TMaybe<TVector<ui32>> CatFeatureIndexes;
+            TMaybe<TVector<ui32>> TextFeatureIndexes;
             TMaybe<TVector<ui32>> FlatIndexes;
         public:
-            inline TFeaturePosition AdjustFeature(const TFloatFeature& feature) const {
+            inline TFeaturePosition GetRemappedPosition(const TFloatFeature& feature) const {
                 TFeaturePosition position = feature.Position;
                 if (FloatFeatureIndexes.Defined()) {
                     position.Index = FloatFeatureIndexes->at(position.Index);
@@ -29,10 +30,21 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
                 return position;
             }
 
-            inline TFeaturePosition AdjustFeature(const TCatFeature& feature) const {
+            inline TFeaturePosition GetRemappedPosition(const TCatFeature& feature) const {
                 TFeaturePosition position = feature.Position;
                 if (CatFeatureIndexes.Defined()) {
                     position.Index = CatFeatureIndexes->at(position.Index);
+                }
+                if (FlatIndexes.Defined()) {
+                    position.FlatIndex = FlatIndexes->at(position.FlatIndex);
+                }
+                return position;
+            }
+
+            inline TFeaturePosition GetRemappedPosition(const TTextFeature& feature) const {
+                TFeaturePosition position = feature.Position;
+                if (TextFeatureIndexes.Defined()) {
+                    position.Index = TextFeatureIndexes->at(position.Index);
                 }
                 if (FlatIndexes.Defined()) {
                     position.FlatIndex = FlatIndexes->at(position.FlatIndex);
@@ -149,6 +161,16 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
             virtual void Calc(
                 TConstArrayRef<TConstArrayRef<float>> floatFeatures,
                 TConstArrayRef<TConstArrayRef<TStringBuf>> catFeatures,
+                size_t treeStart,
+                size_t treeEnd,
+                TArrayRef<double> results,
+                const TFeatureLayout* featureInfo = nullptr
+            ) const = 0;
+
+            virtual void Calc(
+                TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+                TConstArrayRef<TConstArrayRef<TStringBuf>> catFeatures,
+                TConstArrayRef<TConstArrayRef<TStringBuf>> textFeatures,
                 size_t treeStart,
                 size_t treeEnd,
                 TArrayRef<double> results,

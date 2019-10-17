@@ -1,52 +1,42 @@
 #include "feature_calcer.h"
 
-#include "helpers.h"
+#include <catboost/libs/helpers/serialization.h>
 
 #include <util/system/guard.h>
 
 namespace NCB {
-    static void WriteMagic(const char* magic, ui32 magicSize, ui32 alignment, TCountingOutput* stream) {
-        stream->Write(magic, magicSize);
-        AddPadding(stream, alignment);
-        Y_ASSERT(stream->Counter() % alignment == 0);
+    void TTextCalcerSerializer::Save(IOutputStream* stream, const TTextFeatureCalcer& calcer) {
+        WriteMagic(CalcerMagic.data(), MagicSize, Alignment, stream);
+
+        ::Save(stream, static_cast<ui32>(calcer.Type()));
+        ::Save(stream, calcer);
     }
 
-    static void ReadMagic(const char* magic, ui32 magicSize, ui32 alignment, TCountingInput* stream) {
-        Y_UNUSED(magic);
-        TArrayHolder<char> loadedMagic = new char[magicSize];
-        ui32 loadedBytes = stream->Load(loadedMagic.Get(), magicSize);
-        CB_ENSURE(
-            loadedBytes == magicSize && Equal(loadedMagic.Get(), loadedMagic.Get() + magicSize, magic),
-            "Failed to deserialize calcer: couldn't read magic"
-        );
-        SkipPadding(stream, alignment);
-    }
-
-    void TTextCalcerSerializer::Save(IOutputStream* s, const TTextFeatureCalcer& calcer) {
-        TCountingOutput stream(s);
-        WriteMagic(CalcerMagic.data(), MagicSize, Alignment, &stream);
-
-        ::Save(&stream, static_cast<ui32>(calcer.Type()));
-        ::Save(&stream, calcer);
-    }
-
-    TTextFeatureCalcerPtr TTextCalcerSerializer::Load(IInputStream* s) {
-        TCountingInput stream(s);
-        ReadMagic(CalcerMagic.data(), MagicSize, Alignment, &stream);
+    TTextFeatureCalcerPtr TTextCalcerSerializer::Load(IInputStream* stream) {
+        ReadMagic(CalcerMagic.data(), MagicSize, Alignment, stream);
 
         static_assert(sizeof(EFeatureCalcerType) == sizeof(ui32));
         EFeatureCalcerType calcerType;
-        ::Load(&stream, calcerType);
+        ::Load(stream, calcerType);
 
         TTextFeatureCalcer* calcer = TTextFeatureCalcerFactory::Construct(calcerType);
-        ::Load(&stream, *calcer);
+        ::Load(stream, *calcer);
 
         return calcer;
     }
 
     void TTextFeatureCalcer::Save(IOutputStream* stream) const {
         flatbuffers::FlatBufferBuilder builder;
-        auto calcerFbs = SaveParametersToFB(builder);
+        TFeatureCalcerFbs anyCalcerFbs = SaveParametersToFB(builder);
+        auto fbsGuid = CreateFbsGuid(Guid);
+
+        auto calcerFbs = NCatBoostFbs::CreateTFeatureCalcer(
+            builder,
+            &fbsGuid,
+            ActiveFeatureIndicesToFB(builder),
+            anyCalcerFbs.GetCalcerType(),
+            anyCalcerFbs.GetCalcerFlatBuffer()
+        );
         builder.Finish(calcerFbs);
 
         {
@@ -70,12 +60,15 @@ namespace NCB {
             calcer->ActiveFeatureIndices()->begin(),
             calcer->ActiveFeatureIndices()->end()
         );
+        const TGuid guid = GuidFromFbs(calcer->Id());
+        SetId(guid);
+
         LoadParametersFromFB(calcer);
 
         LoadLargeParameters(stream);
     }
 
-    flatbuffers::Offset<NCatBoostFbs::TFeatureCalcer> TTextFeatureCalcer::SaveParametersToFB(flatbuffers::FlatBufferBuilder&) const {
+    TTextFeatureCalcer::TFeatureCalcerFbs TTextFeatureCalcer::SaveParametersToFB(flatbuffers::FlatBufferBuilder&) const {
         Y_FAIL("Serialization to flatbuffer is not implemented");
     }
 
@@ -112,15 +105,7 @@ namespace NCB {
     }
 
     TConstArrayRef<ui32> TTextFeatureCalcer::GetActiveFeatureIndices() const {
-        if (ActiveFeatureIndices.empty()) {
-            with_lock(InitActiveFeatureIndicesLock) {
-                if (ActiveFeatureIndices.empty()) {
-                    ActiveFeatureIndices.yresize(BaseFeatureCount());
-                    Iota(ActiveFeatureIndices.begin(), ActiveFeatureIndices.end(), 0);
-                }
-            }
-        }
-        return TConstArrayRef<ui32>(ActiveFeatureIndices);
+        return MakeConstArrayRef(ActiveFeatureIndices);
     }
 
     TOutputFloatIterator::TOutputFloatIterator(float* data, ui64 size)

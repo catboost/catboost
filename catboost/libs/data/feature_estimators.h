@@ -18,19 +18,17 @@ namespace NCB {
     struct TEstimatorId {
     public:
         ui32 Id = 0;
-        ui32 CalcerId = 0;
         bool IsOnline = false;
 
     public:
         TEstimatorId() = default;
 
-        TEstimatorId(ui32 id, ui32 calcerId, bool isOnline)
+        TEstimatorId(ui32 id, bool isOnline)
             : Id(id)
-            , CalcerId(calcerId)
             , IsOnline(isOnline) {}
 
         bool operator<(const TEstimatorId& rhs) const {
-            return std::tie(IsOnline, Id, CalcerId) < std::tie(rhs.IsOnline, rhs.Id, rhs.CalcerId);
+            return std::tie(IsOnline, Id) < std::tie(rhs.IsOnline, rhs.Id);
         }
 
         bool operator>(const TEstimatorId& rhs) const {
@@ -46,7 +44,7 @@ namespace NCB {
         }
 
         bool operator==(const TEstimatorId& rhs) const {
-            return std::tie(IsOnline, Id, CalcerId) == std::tie(rhs.IsOnline, rhs.Id, rhs.CalcerId);
+            return std::tie(IsOnline, Id) == std::tie(rhs.IsOnline, rhs.Id);
         }
 
         bool operator!=(const TEstimatorId& rhs) const {
@@ -54,10 +52,10 @@ namespace NCB {
         }
 
         ui64 GetHash() const {
-            return MultiHash(IsOnline, Id, CalcerId);
+            return MultiHash(IsOnline, Id);
         }
 
-        Y_SAVELOAD_DEFINE(IsOnline, Id, CalcerId);
+        Y_SAVELOAD_DEFINE(IsOnline, Id);
     };
 }
 
@@ -140,9 +138,7 @@ namespace NCB {
         , OnlineFeatureEstimators(std::move(onlineFeatureEstimators))
         , EstimatorToSourceFeatures(std::move(estimatorToSourceFeatures))
         {
-            for (const auto& [estimatorId, sourceId]: EstimatorToSourceFeatures) {
-                CalcerToEstimatorId[estimatorId.CalcerId] = estimatorId;
-            }
+            RebuildInnerData();
         }
 
         bool Empty() const {
@@ -158,8 +154,9 @@ namespace NCB {
         }
 
         TFeatureEstimatorPtr GetFeatureEstimator(TEstimatorId estimatorId) const;
+        TGuid GetEstimatorGuid(TEstimatorId estimatorId) const;
 
-        TEstimatorId GetFeatureEstimatorIdByCalcerId(ui32 calcerId) const;
+        TFeatureEstimatorPtr GetEstimatorByGuid(const TGuid& calcerId) const;
 
         TFeatureEstimatorPtr GetFeatureEstimator(ui32 estimatorId) const;
 
@@ -168,22 +165,25 @@ namespace NCB {
         template <class F>
         void ForEach(F&& functor) const {
             for (const auto& [estimatorId, sourceFeatureIdx]: EstimatorToSourceFeatures) {
+                Y_UNUSED(sourceFeatureIdx);
                 if (estimatorId.IsOnline) {
-                    functor(estimatorId, sourceFeatureIdx, OnlineFeatureEstimators[estimatorId.Id]);
+                    functor(estimatorId, OnlineFeatureEstimators[estimatorId.Id]);
                 } else {
-                    functor(estimatorId, sourceFeatureIdx, FeatureEstimators[estimatorId.Id]);
+                    functor(estimatorId, FeatureEstimators[estimatorId.Id]);
                 }
             }
         }
 
-        TEstimatorSourceId GetEstimatorSourceFeatureIdx(const TEstimatorId& estimatorId) const;
+        TEstimatorSourceId GetEstimatorSourceFeatureIdx(const TGuid& guid) const;
 
     private:
+        void RebuildInnerData();
+
         const TVector<TFeatureEstimatorPtr> FeatureEstimators;
         const TVector<TOnlineFeatureEstimatorPtr> OnlineFeatureEstimators;
 
         const TMap<TEstimatorId, TEstimatorSourceId> EstimatorToSourceFeatures;
-        THashMap<ui32, TEstimatorId> CalcerToEstimatorId;
+        THashMap<TGuid, TEstimatorId> EstimatorGuidToFlatId;
     };
 
     using TFeatureEstimatorsPtr = TIntrusiveConstPtr<TFeatureEstimators>;

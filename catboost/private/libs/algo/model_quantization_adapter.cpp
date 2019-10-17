@@ -31,17 +31,21 @@ namespace {
             const auto blockSize = Min(docCount, FORMULA_EVALUATION_BLOCK_SIZE);
             TVector<ui32> transposedHash(blockSize * Model.GetUsedCatFeaturesCount());
             TVector<float> ctrs(Model.ObliviousTrees->GetUsedModelCtrs().size() * blockSize);
+            TVector<float> estimatedFeatures(Model.ObliviousTrees->EstimatedFeatures.size() * blockSize);
 
             BinarizeFeatures(
                 *Model.ObliviousTrees,
                 Model.CtrProvider,
+                Model.TextProcessingCollection,
                 rawFeatureAccessor.GetFloatAccessor(),
                 rawFeatureAccessor.GetCatAccessor(),
+                rawFeatureAccessor.GetTextAccessor(),
                 0,
                 docCount,
                 Result.Get(),
                 transposedHash,
-                ctrs
+                ctrs,
+                estimatedFeatures
             );
         }
 

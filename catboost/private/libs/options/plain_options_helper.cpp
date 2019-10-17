@@ -297,6 +297,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "output_columns", &outputFilesJson, &seenKeys);
     CopyOption(plainOptions, "allow_writing_files", &outputFilesJson, &seenKeys);
     CopyOption(plainOptions, "final_ctr_computation_mode", &outputFilesJson, &seenKeys);
+    CopyOption(plainOptions, "final_feature_calcer_computation_mode", &outputFilesJson, &seenKeys);
     CopyOption(plainOptions, "use_best_model", &outputFilesJson, &seenKeys);
     CopyOption(plainOptions, "best_model_min_trees", &outputFilesJson, &seenKeys);
     CopyOption(plainOptions, "eval_file_name", &outputFilesJson, &seenKeys);
@@ -527,6 +528,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
     DeleteSeenOption(&outputoptionsCopy, "output_columns");
     DeleteSeenOption(&outputoptionsCopy, "allow_writing_files");
     DeleteSeenOption(&outputoptionsCopy, "final_ctr_computation_mode");
+    DeleteSeenOption(&outputoptionsCopy, "final_feature_calcer_computation_mode");
 
     CopyOption(outputOptions, "use_best_model", &plainOptionsJson, &seenKeys);
     DeleteSeenOption(&outputoptionsCopy, "use_best_model");

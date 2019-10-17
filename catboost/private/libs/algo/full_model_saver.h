@@ -10,6 +10,7 @@
 #include <catboost/libs/model/target_classifier.h>
 #include <catboost/private/libs/options/cat_feature_options.h>
 #include <catboost/private/libs/options/enums.h>
+#include <catboost/private/libs/text_features/text_processing_collection.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>
@@ -50,7 +51,8 @@ namespace NCB {
             const TClassificationTargetHelper& classificationTargetHelper,
             ui64 ctrLeafCountLimit,
             bool storeAllSimpleCtrs,
-            EFinalCtrComputationMode finalCtrComputationMode
+            EFinalCtrComputationMode finalCtrComputationMode,
+            EFinalFeatureCalcersComputationMode finalFeatureCalcerComputationMode
         );
 
         TCoreModelToFullModelConverter& WithCoreModelFrom(TFullModel* coreModel);
@@ -72,16 +74,29 @@ namespace NCB {
             const NCB::TPerfectHashedToHashedCatValuesMap* perfectHashedToHashedCatValuesMap
         );
 
-        void Do(bool requiresStaticCtrProvider, TFullModel* dstModel);
+        TCoreModelToFullModelConverter& WithFeatureEstimators(
+            TFeatureEstimatorsPtr featureEstimators
+        );
+
+        void Do(
+            bool requiresStaticCtrProvider,
+            TFullModel* dstModel,
+            NPar::TLocalExecutor* localExecutor
+        );
 
         void Do(
             const TString& fullModelPath,
             const TVector<EModelType>& formats,
-            bool addFileFormatExtension = false
+            bool addFileFormatExtension = false,
+            NPar::TLocalExecutor* localExecutor = nullptr
         );
 
     private:
-        void DoImpl(bool requiresStaticCtrProvider, TFullModel* fullModel);
+        void DoImpl(
+            bool requiresStaticCtrProvider,
+            TFullModel* fullModel,
+            NPar::TLocalExecutor* localExecutor
+        );
 
         void CalcFinalCtrs(
             const TDatasetDataForFinalCtrs& datasetDataForFinalCtrs,
@@ -93,6 +108,7 @@ namespace NCB {
     private:
         ui32 NumThreads;
         EFinalCtrComputationMode FinalCtrComputationMode;
+        EFinalFeatureCalcersComputationMode FinalFeatureCalcerComputationMode;
         ui64 CpuRamLimit;
 
         /* these two params are explicit here because we can't get them from CatFeatureParams as
@@ -107,9 +123,20 @@ namespace NCB {
 
         TFullModel* CoreModel = nullptr;
         const NCB::TPerfectHashedToHashedCatValuesMap* PerfectHashedToHashedCatValuesMap = nullptr;
+        TFeatureEstimatorsPtr FeatureEstimators = nullptr;
+
         TGetBinarizedDataFunc GetBinarizedDataFunc;
         TObjectsDataProviderPtr LearnObjectsData;
     };
+
+    void CreateTextProcessingCollection(
+        const TFeatureEstimators& featureEstimators,
+        const TTextDigitizers& textDigitizers,
+        const TVector<TEstimatedFeature>& estimatedFeatures,
+        TTextProcessingCollection* textProcessingCollection,
+        TVector<TEstimatedFeature>* reorderedEstimatedFeatures,
+        NPar::TLocalExecutor* localExecutor
+    );
 
     void ExportFullModel(
         const TFullModel& fullModel,

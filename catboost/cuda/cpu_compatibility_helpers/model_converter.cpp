@@ -90,49 +90,47 @@ TFullModel TModelConverter::Convert(
         *QuantizedFeaturesInfo->GetFeaturesLayout(), // it's ok to get from QuantizedFeaturesInfo
         *QuantizedFeaturesInfo);
     TVector<TCatFeature> catFeatures = CreateCatFeatures(*QuantizedFeaturesInfo->GetFeaturesLayout());
+    TVector<TTextFeature> textFeatures = CreateTextFeatures(*QuantizedFeaturesInfo->GetFeaturesLayout());
 
     TObliviousTreeBuilder obliviousTreeBuilder(
         floatFeatures,
         catFeatures,
+        textFeatures,
         cpuApproxDim);
 
-    if (HasEstimatedFeature(FeaturesManager, src)) {
-        CATBOOST_WARNING_LOG
-            << "Estimated features working during learn only currently. Result model will be empty" << Endl;
-    } else {
-        for (ui32 i = 0; i < src.Size(); ++i) {
-            const TObliviousTreeModel& model = src.GetWeakModel(i);
-            const ui32 outputDim = model.OutputDim();
-            TVector<TVector<double>> leafValues(cpuApproxDim);
-            TVector<double> leafWeights;
+    for (ui32 i = 0; i < src.Size(); ++i) {
+        const TObliviousTreeModel& model = src.GetWeakModel(i);
+        const ui32 outputDim = model.OutputDim();
+        TVector<TVector<double>> leafValues(cpuApproxDim);
+        TVector<double> leafWeights;
 
-            const auto& values = model.GetValues();
-            const auto& weights = model.GetWeights();
+        const auto& values = model.GetValues();
+        const auto& weights = model.GetWeights();
 
-            leafWeights.resize(weights.size());
-            for (ui32 leaf = 0; leaf < weights.size(); ++leaf) {
-                leafWeights[leaf] = weights[leaf];
-            }
+        leafWeights.resize(weights.size());
+        for (ui32 leaf = 0; leaf < weights.size(); ++leaf) {
+            leafWeights[leaf] = weights[leaf];
+        }
 
-            for (ui32 dim = 0; dim < cpuApproxDim; ++dim) {
-                leafValues[dim].resize(model.BinCount());
-                if (dim < outputDim) {
-                    for (ui32 leaf = 0; leaf < model.BinCount(); ++leaf) {
-                        const double val = values[outputDim * leaf + dim];
-                        leafValues[dim][leaf] = val;
-                    }
+        for (ui32 dim = 0; dim < cpuApproxDim; ++dim) {
+            leafValues[dim].resize(model.BinCount());
+            if (dim < outputDim) {
+                for (ui32 leaf = 0; leaf < model.BinCount(); ++leaf) {
+                    const double val = values[outputDim * leaf + dim];
+                    leafValues[dim][leaf] = val;
                 }
             }
-
-            const auto& structure = model.GetStructure();
-            auto treeStructure = ConvertSplits(structure.Splits, featureCombinationToProjection);
-            obliviousTreeBuilder.AddTree(treeStructure, leafValues, leafWeights);
         }
+
+        const auto& structure = model.GetStructure();
+        auto treeStructure = ConvertSplits(structure.Splits, featureCombinationToProjection);
+        obliviousTreeBuilder.AddTree(treeStructure, leafValues, leafWeights);
     }
-        obliviousTreeBuilder.Build(coreModel.ObliviousTrees.GetMutable());
-        coreModel.UpdateDynamicData();
-        return coreModel;
-    }
+
+    obliviousTreeBuilder.Build(coreModel.ObliviousTrees.GetMutable());
+    coreModel.UpdateDynamicData();
+    return coreModel;
+}
 
     TFullModel TModelConverter::Convert(
         const TAdditiveModel<TNonSymmetricTree>& src,
@@ -151,62 +149,67 @@ TFullModel TModelConverter::Convert(
             *QuantizedFeaturesInfo->GetFeaturesLayout(), // it's ok to get from QuantizedFeaturesInfo
             *QuantizedFeaturesInfo);
         TVector<TCatFeature> catFeatures = CreateCatFeatures(*QuantizedFeaturesInfo->GetFeaturesLayout());
+        TVector<TTextFeature> textFeatures = CreateTextFeatures(*QuantizedFeaturesInfo->GetFeaturesLayout());
 
         TNonSymmetricTreeModelBuilder treeBuilder(
             floatFeatures,
             catFeatures,
+            textFeatures,
             cpuApproxDim);
-        if (HasEstimatedFeature(FeaturesManager, src)) {
-            CATBOOST_WARNING_LOG
-                << "Estimated features working during learn only currently. Result model will be empty" << Endl;
-        } else {
-            for (ui32 treeId = 0; treeId < src.Size(); ++treeId) {
-                const TNonSymmetricTree& tree = src.GetWeakModel(treeId);
-                THolder<TNonSymmetricTreeNode> treeHeadHolder = MakeHolder<TNonSymmetricTreeNode>();
-                tree.VisitLeavesAndWeights([&](
-                    const TLeafPath& leafPath,
-                    TConstArrayRef<float> pathValues,
-                    double weight) {
-                    auto pathStructure = ConvertSplits(leafPath.Splits, featureCombinationToProjection);
-                    TNonSymmetricTreeNode* currentNode = treeHeadHolder.Get();
-                    for (size_t i = 0; i < pathStructure.size(); ++i) {
-                        if (!currentNode->SplitCondition) {
-                            currentNode->SplitCondition = pathStructure[i];
-                        } else {
-                            Y_VERIFY(currentNode->SplitCondition == pathStructure[i]);
-                        }
-                        if (leafPath.Directions[i] == ESplitValue::Zero) {
-                            if (!currentNode->Left) {
-                                currentNode->Left = MakeHolder<TNonSymmetricTreeNode>();
-                            }
-                            currentNode = currentNode->Left.Get();
-                        } else {
-                            if (!currentNode->Right) {
-                                currentNode->Right = MakeHolder<TNonSymmetricTreeNode>();
-                            }
-                            currentNode = currentNode->Right.Get();
-                        }
+
+        for (ui32 treeId = 0; treeId < src.Size(); ++treeId) {
+            const TNonSymmetricTree& tree = src.GetWeakModel(treeId);
+            THolder<TNonSymmetricTreeNode> treeHeadHolder = MakeHolder<TNonSymmetricTreeNode>();
+            tree.VisitLeavesAndWeights([&](
+                const TLeafPath& leafPath,
+                TConstArrayRef<float> pathValues,
+                double weight) {
+                auto pathStructure = ConvertSplits(leafPath.Splits, featureCombinationToProjection);
+                TNonSymmetricTreeNode* currentNode = treeHeadHolder.Get();
+                for (size_t i = 0; i < pathStructure.size(); ++i) {
+                    if (!currentNode->SplitCondition) {
+                        currentNode->SplitCondition = pathStructure[i];
+                    } else {
+                        CB_ENSURE_INTERNAL(
+                            currentNode->SplitCondition == pathStructure[i],
+                            "Error while converting non symmetric trees from GPU format to CPU"
+                        );
                     }
-                    auto vals = TVector<double>(pathValues.begin(), pathValues.end());
-                    CB_ENSURE(vals.size() <= cpuApproxDim, "Error: this is a bug with dimensions, contact catboost team");
-                    //GPU in multiclass use classCount - 1 dimensions for learning
-                    vals.resize(cpuApproxDim);
+                    if (leafPath.Directions[i] == ESplitValue::Zero) {
+                        if (!currentNode->Left) {
+                            currentNode->Left = MakeHolder<TNonSymmetricTreeNode>();
+                        }
+                        currentNode = currentNode->Left.Get();
+                    } else {
+                        if (!currentNode->Right) {
+                            currentNode->Right = MakeHolder<TNonSymmetricTreeNode>();
+                        }
+                        currentNode = currentNode->Right.Get();
+                    }
+                }
+                auto vals = TVector<double>(pathValues.begin(), pathValues.end());
+                CB_ENSURE(vals.size() <= cpuApproxDim, "Error: this is a bug with dimensions, contact catboost team");
+                //GPU in multiclass use classCount - 1 dimensions for learning
+                vals.resize(cpuApproxDim);
 
-                    currentNode->Value = vals;
+                currentNode->Value = vals;
 
-                    currentNode->NodeWeight = weight;
-                });
+                currentNode->NodeWeight = weight;
+            });
 
-                treeBuilder.AddTree(std::move(treeHeadHolder));
-            }
+            treeBuilder.AddTree(std::move(treeHeadHolder));
         }
+
         treeBuilder.Build(coreModel.ObliviousTrees.GetMutable());
         coreModel.UpdateDynamicData();
         return coreModel;
     }
 
     TModelSplit TModelConverter::CreateFloatSplit(const TBinarySplit& split) const {
-        CB_ENSURE(FeaturesManager.IsFloat(split.FeatureId));
+        CB_ENSURE(
+            FeaturesManager.IsFloat(split.FeatureId),
+            "Feature with id " << split.FeatureId << " is not FloatFeature"
+        );
 
         TModelSplit modelSplit;
         modelSplit.Type = ESplitType::FloatFeature;
@@ -218,8 +221,36 @@ TFullModel TModelConverter::Convert(
         return modelSplit;
     }
 
+    TModelSplit TModelConverter::CreateEstimatedFeatureSplit(const TBinarySplit& split) const {
+        CB_ENSURE(
+            FeaturesManager.IsEstimatedFeature(split.FeatureId),
+            "Feature with id " << split.FeatureId << " is not EstimatedFeature"
+        );
+
+        TModelSplit modelSplit;
+        modelSplit.Type = ESplitType::EstimatedFeature;
+
+        const auto& featureBorders = FeaturesManager.GetBorders(split.FeatureId);
+        const float border = featureBorders.at(split.BinIdx);
+
+        TEstimatedFeature estimatedFeature = FeaturesManager.GetEstimatedFeature(split.FeatureId);
+        TFeatureEstimatorsPtr featureEstimators = FeaturesManager.GetFeatureEstimators();
+        const TGuid& estimatorGuid = featureEstimators->GetEstimatorGuid(estimatedFeature.EstimatorId);
+
+        modelSplit.EstimatedFeature = TEstimatedFeatureSplit{
+            SafeIntegerCast<int>(featureEstimators->GetEstimatorSourceFeatureIdx(estimatorGuid).TextFeatureId),
+            estimatorGuid,
+            SafeIntegerCast<int>(estimatedFeature.LocalFeatureId),
+            border
+        };
+        return modelSplit;
+    }
+
     TModelSplit TModelConverter::CreateOneHotSplit(const TBinarySplit& split) const {
-        CB_ENSURE(FeaturesManager.IsCat(split.FeatureId));
+        CB_ENSURE(
+            FeaturesManager.IsCat(split.FeatureId),
+            "Feature with id " << split.FeatureId << " is not CategoricalFeature"
+        );
 
         TModelSplit modelSplit;
         modelSplit.Type = ESplitType::OneHotFeature;
@@ -286,7 +317,10 @@ TFullModel TModelConverter::Convert(
         const TBinarySplit& split,
         THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection) const {
         TModelSplit modelSplit;
-        CB_ENSURE(FeaturesManager.IsCtr(split.FeatureId));
+        CB_ENSURE(
+            FeaturesManager.IsCtr(split.FeatureId),
+            "Feature with id " << split.FeatureId << " is not CtrFeature"
+        );
         const auto& ctr = FeaturesManager.GetCtr(split.FeatureId);
         auto& borders = FeaturesManager.GetBorders(split.FeatureId);
         CB_ENSURE(split.BinIdx < borders.size(), "Split " << split.BinIdx << ", borders: " << borders.size());
@@ -322,8 +356,12 @@ TFullModel TModelConverter::Convert(
                 modelSplit = CreateFloatSplit(split);
             } else if (FeaturesManager.IsCat(split.FeatureId)) {
                 modelSplit = CreateOneHotSplit(split);
-            } else {
+            } else if (FeaturesManager.IsCtr(split.FeatureId)) {
                 modelSplit = CreateCtrSplit(split, featureCombinationToProjection);
+            } else if (FeaturesManager.IsEstimatedFeature(split.FeatureId)) {
+                modelSplit = CreateEstimatedFeatureSplit(split);
+            } else {
+                CB_ENSURE_INTERNAL(false, "Unknown split type");
             }
             structure3.push_back(modelSplit);
         }

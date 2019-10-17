@@ -157,7 +157,7 @@ void TStaticCtrProvider::SetupBinFeatureIndexes(const TVector<TFloatFeature>& fl
     }
     CatFeatureIndex.clear();
     for (const auto& catFeature : catFeatures) {
-        if (catFeature.UsedInModel) {
+        if (catFeature.UsedInModel()) {
             const int prevSize = CatFeatureIndex.ysize();
             CatFeatureIndex[catFeature.Position.Index] = prevSize;
         }

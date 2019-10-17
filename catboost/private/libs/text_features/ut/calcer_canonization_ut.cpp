@@ -40,7 +40,7 @@ Y_UNIT_TEST_SUITE(TestFeatureCalcerCanonization) {
         THashMap<ui32, TVector<float>> scores;
 
         for (ui32 numClasses : {2, 6, 10}) {
-            TBM25 bm25(numClasses, truncateBorder);
+            TBM25 bm25(CreateGuid(), numClasses, truncateBorder);
             TBM25Visitor visitor;
             for (ui32 sampleId: xrange(numSamples)) {
                 visitor.Update(sampleId % numClasses, texts[sampleId], &bm25);
@@ -98,7 +98,7 @@ Y_UNIT_TEST_SUITE(TestFeatureCalcerCanonization) {
         THashMap<ui32, TVector<float>> scores;
 
         for (ui32 numClasses : {2, 6, 10}) {
-            TMultinomialNaiveBayes naiveBayes(numClasses);
+            TMultinomialNaiveBayes naiveBayes(CreateGuid(), numClasses);
             TNaiveBayesVisitor visitor;
             for (ui32 sampleId: xrange(numSamples)) {
                 visitor.Update(sampleId % numClasses, texts[sampleId], &naiveBayes);
@@ -167,7 +167,7 @@ Y_UNIT_TEST_SUITE(TestFeatureCalcerCanonization) {
         THashMap<ui32, TVector<float>> scores;
 
         for (ui32 numClasses : {2, 6, 10}) {
-            TEmbeddingOnlineFeatures embeddingOnlineFeatures(numClasses, embeddingPtr);
+            TEmbeddingOnlineFeatures embeddingOnlineFeatures(CreateGuid(), numClasses, embeddingPtr);
             TEmbeddingFeaturesVisitor visitor(numClasses, embeddingDim);
             for (ui32 sampleId: xrange(numSamples)) {
                 visitor.Update(sampleId % numClasses, texts[sampleId], &embeddingOnlineFeatures);

@@ -21,6 +21,7 @@ PEERDIR(
     catboost/libs/model
     catboost/libs/model/ut/lib
     catboost/libs/train_lib
+    catboost/private/libs/text_features/ut/lib
 )
 
 END()

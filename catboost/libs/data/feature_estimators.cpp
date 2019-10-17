@@ -14,12 +14,16 @@ namespace NCB {
         }
     }
 
-    TEstimatorId TFeatureEstimators::GetFeatureEstimatorIdByCalcerId(ui32 calcerId) const {
+    TGuid TFeatureEstimators::GetEstimatorGuid(TEstimatorId estimatorId) const {
+        return GetFeatureEstimator(estimatorId)->Id();
+    }
+
+    TFeatureEstimatorPtr TFeatureEstimators::GetEstimatorByGuid(const TGuid& calcerId) const {
         CB_ENSURE(
-            CalcerToEstimatorId.contains(calcerId),
+            EstimatorGuidToFlatId.contains(calcerId),
             "There is no estimator with " << LabeledOutput(calcerId)
         );
-        return CalcerToEstimatorId.at(calcerId);
+        return GetFeatureEstimator(EstimatorGuidToFlatId.at(calcerId));
     }
 
     TFeatureEstimatorPtr TFeatureEstimators::GetFeatureEstimator(ui32 estimatorId) const {
@@ -30,12 +34,26 @@ namespace NCB {
         return OnlineFeatureEstimators[estimatorId];
     }
 
-    TEstimatorSourceId TFeatureEstimators::GetEstimatorSourceFeatureIdx(const TEstimatorId& estimatorId) const {
+    TEstimatorSourceId TFeatureEstimators::GetEstimatorSourceFeatureIdx(const TGuid& guid) const {
         CB_ENSURE(
-            EstimatorToSourceFeatures.contains(estimatorId),
-            "There is no estimator with " << LabeledOutput(estimatorId.Id, estimatorId.IsOnline)
+            EstimatorGuidToFlatId.contains(guid),
+            "There is no estimator with " << LabeledOutput(guid)
         );
+        TEstimatorId estimatorId = EstimatorGuidToFlatId.at(guid);
         return EstimatorToSourceFeatures.at(estimatorId);
+    }
+
+    void TFeatureEstimators::RebuildInnerData() {
+        for (const auto& [estimatorId, sourceId]: EstimatorToSourceFeatures) {
+            TFeatureEstimatorPtr estimator;
+            if (estimatorId.IsOnline) {
+                estimator = OnlineFeatureEstimators[estimatorId.Id];
+            } else {
+                estimator = FeatureEstimators[estimatorId.Id];
+            }
+            const TGuid& guid = estimator->Id();
+            EstimatorGuidToFlatId[guid] = estimatorId;
+        }
     }
 
     void TFeatureEstimatorsBuilder::AddFeatureEstimator(
@@ -60,17 +78,14 @@ namespace NCB {
 
         TMap<TEstimatorId, TEstimatorSourceId> estimatorToSourceFeatures;
 
-        ui32 calcerId = 0;
-        for (ui32 featureEstimatorId: xrange(FeatureEstimatorsSourceId.size())) {
-            TEstimatorId id{featureEstimatorId, calcerId, false};
-            estimatorToSourceFeatures[id] = FeatureEstimatorsSourceId[featureEstimatorId];
-            calcerId++;
+        for (ui32 estimatorId: xrange(FeatureEstimatorsSourceId.size())) {
+            TEstimatorId id{estimatorId, false};
+            estimatorToSourceFeatures[id] = FeatureEstimatorsSourceId[estimatorId];
         }
 
-        for (ui32 onlineEstimatorId: xrange(OnlineFeatureEstimatorsSourceId.size())) {
-            TEstimatorId id{onlineEstimatorId, calcerId, true};
-            estimatorToSourceFeatures[id] = OnlineFeatureEstimatorsSourceId[onlineEstimatorId];
-            calcerId++;
+        for (ui32 estimatorId: xrange(OnlineFeatureEstimatorsSourceId.size())) {
+            TEstimatorId id{estimatorId, true};
+            estimatorToSourceFeatures[id] = OnlineFeatureEstimatorsSourceId[estimatorId];
         }
 
         return MakeIntrusive<TFeatureEstimators>(

@@ -467,7 +467,7 @@ namespace NCB {
             SafeIntegerCast<size_t>(
                 CountIf(
                     model.ObliviousTrees->CatFeatures,
-                    [](const TCatFeature& catFeature) { return catFeature.UsedInModel; }))
+                    [](const TCatFeature& catFeature) { return catFeature.UsedInModel(); }))
                 == model.ObliviousTrees->OneHotFeatures.size(),
             "PMML export requires that all categorical features in the model are one hot encoded");
 

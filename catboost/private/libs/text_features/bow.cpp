@@ -13,18 +13,12 @@ namespace NCB {
         );
     }
 
-    flatbuffers::Offset<NCatBoostFbs::TFeatureCalcer> TBagOfWordsCalcer::SaveParametersToFB(
+    TTextFeatureCalcer::TFeatureCalcerFbs TBagOfWordsCalcer::SaveParametersToFB(
         flatbuffers::FlatBufferBuilder& builder) const {
         using namespace NCatBoostFbs;
 
         auto bow = CreateTBoW(builder, NumTokens);
-
-        return CreateTFeatureCalcer(
-            builder,
-            ActiveFeatureIndicesToFB(builder),
-            TAnyFeatureCalcer_TBoW,
-            bow.Union()
-        );
+        return TFeatureCalcerFbs(TAnyFeatureCalcer_TBoW, bow.Union());
     }
 
     void TBagOfWordsCalcer::LoadParametersFromFB(const NCatBoostFbs::TFeatureCalcer* calcer) {

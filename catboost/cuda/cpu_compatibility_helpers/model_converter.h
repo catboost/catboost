@@ -27,6 +27,8 @@ namespace NCatboostCuda {
     private:
         TModelSplit CreateFloatSplit(const TBinarySplit& split) const;
 
+        TModelSplit CreateEstimatedFeatureSplit(const TBinarySplit& split) const;
+
         TModelSplit CreateOneHotSplit(const TBinarySplit& split) const;
 
         ui32 GetRemappedIndex(ui32 featureId) const;

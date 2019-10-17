@@ -29,6 +29,9 @@ table TObliviousTrees {
 
     NonSymmetricStepNodes:[TNonSymmetricTreeStepNode];
     NonSymmetricNodeIdToLeafId:[uint32];
+
+    TextFeatures:[TTextFeature];
+    EstimatedFeatures:[TEstimatedFeature];
 }
 
 table TModelCore {

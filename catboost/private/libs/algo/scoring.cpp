@@ -446,6 +446,9 @@ static void CalcStatsImpl(
                                         (ui32)splitCandidate.FeatureIdx
                                     ));
                                 break;
+                            case ESplitType::EstimatedFeature:
+                                CB_ENSURE(false, "Estimated features cannot be used in CPU train now");
+                                break;
                         }
                     }
                     break;

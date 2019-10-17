@@ -70,7 +70,15 @@ TVector<TFloatFeature> CreateFloatFeatures(
 TVector<TCatFeature> CreateCatFeatures(const NCB::TFeaturesLayout& featuresLayout) {
     return CreateFeatures<TCatFeature, EFeatureType::Categorical>(
         featuresLayout,
-        [&] (TCatFeature&) { }
+        [] (TCatFeature&) { }
+    );
+}
+
+
+TVector<TTextFeature> CreateTextFeatures(const NCB::TFeaturesLayout& featuresLayout) {
+    return CreateFeatures<TTextFeature, EFeatureType::Text>(
+        featuresLayout,
+        [] (TTextFeature&) { }
     );
 }
 

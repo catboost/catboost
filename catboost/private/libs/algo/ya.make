@@ -61,6 +61,7 @@ PEERDIR(
     catboost/libs/metrics
     catboost/libs/model
     catboost/private/libs/target
+    catboost/private/libs/text_features
     catboost/private/libs/options
     catboost/libs/overfitting_detector
     library/binsaver

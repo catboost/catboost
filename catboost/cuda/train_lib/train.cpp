@@ -432,13 +432,21 @@ namespace NCatboostCuda {
 
             auto targetClassifiers = CreateTargetClassifiers(featuresManager);
 
+            EFinalFeatureCalcersComputationMode featureCalcerComputationMode = outputOptions.GetFinalFeatureCalcerComputationMode();
+            if (modelPtr->ObliviousTrees->TextFeatures.empty() ||
+                modelPtr->ObliviousTrees->EstimatedFeatures.empty()
+            ) {
+                featureCalcerComputationMode = EFinalFeatureCalcersComputationMode::Skip;
+            }
+
             TCoreModelToFullModelConverter coreModelToFullModelConverter(
                 updatedCatboostOptions,
                 outputOptions,
                 classificationTargetHelper,
                 /*ctrLeafCountLimit*/ Max<ui64>(),
                 /*storeAllSimpleCtrs*/ false,
-                saveFinalCtrsInModel ? EFinalCtrComputationMode::Default : EFinalCtrComputationMode::Skip);
+                saveFinalCtrsInModel ? EFinalCtrComputationMode::Default : EFinalCtrComputationMode::Skip,
+                featureCalcerComputationMode);
 
             coreModelToFullModelConverter.WithBinarizedDataComputedFrom(
                                              std::move(trainingDataForFinalCtrCalculation),
@@ -448,15 +456,17 @@ namespace NCatboostCuda {
                     &perfectHashedToHashedCatValuesMap)
                 .WithCoreModelFrom(
                     modelPtr)
-                .WithObjectsDataFrom(trainingData.Learn->ObjectsData);
+                .WithObjectsDataFrom(trainingData.Learn->ObjectsData)
+                .WithFeatureEstimators(trainingData.FeatureEstimators);
 
             if (dstModel) {
-                coreModelToFullModelConverter.Do(true, dstModel);
+                coreModelToFullModelConverter.Do(true, dstModel, localExecutor);
             } else {
                 coreModelToFullModelConverter.Do(
                     outputOptions.CreateResultModelFullPath(),
                     outputOptions.GetModelFormats(),
-                    outputOptions.AddFileFormatExtension());
+                    outputOptions.AddFileFormatExtension(),
+                    localExecutor);
             }
         }
 

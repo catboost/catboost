@@ -20,6 +20,8 @@ TVector<TFloatFeature> CreateFloatFeatures(
     const NCB::TFeaturesLayout& featuresLayout,
     const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo);
 
+TVector<TTextFeature> CreateTextFeatures(const NCB::TFeaturesLayout& featuresLayout);
+
 TVector<TCatFeature> CreateCatFeatures(const NCB::TFeaturesLayout& featuresLayout);
 
 
