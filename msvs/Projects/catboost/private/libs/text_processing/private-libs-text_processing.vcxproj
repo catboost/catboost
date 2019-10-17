@@ -83,11 +83,13 @@
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\text_processing\embedding_loader.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\text_processing\text_column_builder.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\text_processing\text_dataset.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\text_processing\text_digitizers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\text_processing\tokenizer.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\text_processing\dictionary.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\text_processing\embedding.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\text_processing\text_column_builder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\text_processing\text_dataset.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\text_processing\text_digitizers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\text_processing\tokenizer.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
