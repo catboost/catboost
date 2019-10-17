@@ -5,8 +5,8 @@ build:
   script:
     - cd catboost/python-package/catboost 
     - ../../../ya make -r -DUSE_ARCADIA_PYTHON=no -DUSE_SYSTEM_PYTHON=2.7
-    - cd ../../../
-    - python catboost/python-package/mk_wheel.py
+    - cd ../
+    - python mk_wheel.py -DUSE_ARCADIA_PYTHON=no -DUSE_SYSTEM_PYTHON=2.7
 #  artifacts:
 #    paths:
 #      - mybinary
