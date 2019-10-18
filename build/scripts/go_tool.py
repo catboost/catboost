@@ -248,14 +248,12 @@ def _do_compile_go(args):
 class VetThread(threading.Thread):
 
     def __init__(self, target, args):
-        threading.Thread.__init__(self)
-        self.target = target
-        self.args = args
+        super(VetThread, self).__init__(target=target, args=args)
         self.exc_info = None
 
     def run(self):
         try:
-            self.target(self.args)
+            super(VetThread, self).run()
         except:
             self.exc_info = sys.exc_info()
 
@@ -268,7 +266,7 @@ class VetThread(threading.Thread):
 def do_compile_go(args):
     raise_exception_from_vet = False
     if args.vet:
-        run_vet = VetThread(target=do_vet, args=args)
+        run_vet = VetThread(target=do_vet, args=(args,))
         run_vet.start()
     try:
         _do_compile_go(args)
