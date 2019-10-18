@@ -78,9 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\threading\local_executor\fwd.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\threading\local_executor\local_executor.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\threading\local_executor\fwd.h"/>
     <ClInclude Include="$(SolutionDir)..\library\threading\local_executor\local_executor.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
