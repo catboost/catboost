@@ -287,7 +287,11 @@ int DoMain(int argc, char** argv) {
     int biggestPriority = Min<int>();
     for (const auto& key : allRegisteredKeys) {
         try {
-            modules.emplace_back(TPerftestModuleFactory::Construct(key, model));
+            auto product = TPerftestModuleFactory::Construct(key, model);
+            if (!product) {
+                continue;
+            }
+            modules.emplace_back(std::move(product));
             if (modules.back()->GetComparisonPriority(IPerftestModule::EPerftestModuleDataLayout::ObjectsFirst) > biggestPriority) {
                 biggestPriority = modules.back()->GetComparisonPriority(IPerftestModule::EPerftestModuleDataLayout::ObjectsFirst);
                 results.BaseResultName = modules.back()->GetName(IPerftestModule::EPerftestModuleDataLayout::ObjectsFirst);
