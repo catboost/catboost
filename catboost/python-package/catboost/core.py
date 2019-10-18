@@ -1403,16 +1403,8 @@ def _check_param_types(params):
     _cast_value_to_list_of_strings(params, 'custom_metric')
     _cast_value_to_list_of_strings(params, 'per_float_feature_quantization')
     if 'monotone_constraints' in params:
-        param = params['monotone_constraints']
-        if isinstance(param, STRING_TYPES):
-            try:
-                params['monotone_constraints'] = list(map(int, param[1: -1].split(',')))
-            except ValueError:
-                raise CatBoostError("Invalid `monotone_constraints` string format")
-        elif isinstance(param, ARRAY_TYPES):
-            param = list(param)
-        if not isinstance(param, Sequence):
-            raise CatBoostError("Invalid `monotone_constraints` type={} : must be string or list of ints in range {-1, 0, 1}.".format(type(params['monotone_constraints'])))
+        if not isinstance(params['monotone_constraints'], STRING_TYPES + ARRAY_TYPES + (dict,)):
+            raise CatBoostError("Invalid `monotone_constraints` type={} : must be string or list of ints in range {-1, 0, 1} or dict.".format(type(param)))
 
 
 def _params_type_cast(params):
@@ -3371,8 +3363,8 @@ class CatBoostClassifier(CatBoost):
     mvs-reg : float, [default is set automatically at each iteration based on gradient distribution]
         Regularization parameter for MVS sampling algorithm
 
-    monotone_constraints : list or numpy.array or string, [default=None]
-        Monotone constraints for all features.
+    monotone_constraints : list or numpy.array or string or dict, [default=None]
+        Monotone constraints for features.
 
     sampling_frequency : string, [default=PerTree]
         Frequency to sample weights and objects when building trees.

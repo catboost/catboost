@@ -828,7 +828,7 @@ void CalcStatsAndScores(
     int depth,
     bool useTreeLevelCaching,
     const TVector<int>& currTreeMonotonicConstraints,
-    const TVector<int>& monotonicConstraints,
+    const TMap<ui32, int>& monotonicConstraints,
     NPar::TLocalExecutor* localExecutor,
     TBucketStatsCache* statsFromPrevTree,
     TStats3D* stats3d,
@@ -1032,8 +1032,10 @@ void CalcStatsAndScores(
                     );
                     if (split.Type == ESplitType::FloatFeature) {
                         Y_ASSERT(split.FeatureIdx >= 0);
-                        candidateSplitMonotonicConstraints[splitIdx] =
-                            monotonicConstraints[split.FeatureIdx];
+                        if (monotonicConstraints.contains(split.FeatureIdx)) {
+                            candidateSplitMonotonicConstraints[splitIdx] =
+                                monotonicConstraints.at(split.FeatureIdx);
+                        }
                     }
                 }
             }

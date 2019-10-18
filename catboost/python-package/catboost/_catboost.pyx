@@ -4808,6 +4808,8 @@ cpdef _check_train_params(dict params):
         del params_to_check['input_borders']
     if 'ignored_features' in params_to_check:
         del params_to_check['ignored_features']
+    if 'monotone_constraints' in params_to_check:
+        del params_to_check['monotone_constraints']
 
     prep_params = _PreprocessParams(params_to_check)
     CheckFitParams(

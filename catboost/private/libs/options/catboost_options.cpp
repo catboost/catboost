@@ -581,11 +581,10 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
             SystemOptions->IsSingleHost(), "Monotone constraints is unsupported for distributed learning."
         );
         const THashSet<int> validMonotoneConstraintValues = {-1, 0, 1};
-        CB_ENSURE(
-            AllOf(monotoneConstraints, [&] (int val) { return validMonotoneConstraintValues.contains(val); }),
-            TStringBuilder() << "Monotone constraints should be values in {-1, 0, 1}. Got:\n" <<
-            "(" << JoinVectorIntoString(monotoneConstraints, ",") << ")"
-        );
+        for (auto [featureIdx, constraint] : monotoneConstraints) {
+            CB_ENSURE(validMonotoneConstraintValues.contains(constraint),
+                "Monotone constraints should be values in {-1, 0, 1}. Got: " << featureIdx << ":" << constraint);
+        }
     }
     ValidateModelSize(ObliviousTreeOptions.Get(), BoostingOptions->OverfittingDetector.Get(), GetTaskType());
 

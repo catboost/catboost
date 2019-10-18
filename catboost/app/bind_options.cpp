@@ -813,15 +813,9 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
     parser
         .AddLongOption("monotone-constraints")
         .RequiredArgument("String")
-        .Help("Monotone constraints for all features.")
-        .Handler1T<TString>([plainJsonPtr](TString monotonic) {
-            if (!monotonic.empty()) {
-                monotonic.erase(monotonic.begin());
-                monotonic.pop_back();
-                for (const auto& oneFeatureMonotonic : StringSplitter(monotonic).Split(',').SkipEmpty()) {
-                    (*plainJsonPtr)["monotone_constraints"].AppendValue(FromString<int>(oneFeatureMonotonic.Token()));
-                }
-            }
+        .Help("Monotone constraints for features. Possible formats: \"(1,0,0,-1)\" or \"0:1,3:-1\" or \"FeatureName1:1,FeatureName2:-1\"")
+        .Handler1T<TString>([plainJsonPtr](const TString& monotoneConstraints) {
+            (*plainJsonPtr)["monotone_constraints"] = monotoneConstraints;
         });
 }
 

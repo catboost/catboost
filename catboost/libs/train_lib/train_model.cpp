@@ -32,6 +32,7 @@
 #include <catboost/libs/model/ctr_data.h>
 #include <catboost/libs/model/model_build_helper.h>
 #include <catboost/private/libs/options/catboost_options.h>
+#include <catboost/private/libs/options/monotone_constraints.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 #include <catboost/private/libs/options/system_options.h>
 #include <catboost/private/libs/pairs/util.h>
@@ -1318,6 +1319,8 @@ void TrainModel(
     NJson::TJsonValue outputFilesOptionsJson;
     ConvertIgnoredFeaturesFromStringToIndices(pools.Learn.Get()->MetaInfo, &plainJsonParams);
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &trainOptionsJson, &outputFilesOptionsJson);
+    ConvertMonotoneConstraintsToCanonicalFormat(&trainOptionsJson);
+    ConvertFeatureNamesToIndicesInMonotoneConstraints(pools.Learn.Get()->MetaInfo, &trainOptionsJson);
     CB_ENSURE(!plainJsonParams.Has("node_type") || plainJsonParams["node_type"] == "SingleHost", "CatBoost Python module does not support distributed training");
 
     NCatboostOptions::TOutputFilesOptions outputOptions;

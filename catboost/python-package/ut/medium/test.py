@@ -5921,28 +5921,37 @@ def test_training_and_prediction_equal_on_pandas_dense_and_sparse_input(task_typ
 
 
 @pytest.mark.parametrize('model_shrink_rate', [None, 0, 0.2])
-def test_param_array_monotonic_constrains(model_shrink_rate):
+def test_different_formats_of_monotone_constraints(model_shrink_rate):
     from catboost.datasets import monotonic2, set_cache_path
     set_cache_path(test_output_path())  # specify cache dir to fix potential data race while downloading dataset
     monotonic2_train, monotonic2_test = monotonic2()
-    train_pool = Pool(data=monotonic2_train.drop(columns=['Target']), label=monotonic2_train['Target'])
-    test_pool = Pool(data=monotonic2_test.drop(columns=['Target']), label=monotonic2_test['Target'])
+    X_train, y_train = monotonic2_train.drop(columns=['Target']), monotonic2_train['Target']
+    X_test, y_test = monotonic2_test.drop(columns=['Target']), monotonic2_test['Target']
+    feature_names = list(X_train.columns)
+    train_pool = Pool(data=X_train, label=y_train, feature_names=feature_names)
+    test_pool = Pool(data=X_test, label=y_test, feature_names=feature_names)
 
-    monotone_constraints_array = np.array([-1, 1, -1, 1])
-    monotone_constraints_list = [-1, 1, -1, 1]
+    monotone_constraints_array = np.array([-1, 1, 1, -1])
+    monotone_constraints_list = [-1, 1, 1, -1]
+    monotone_constraints_dict_1 = {0: -1, 1: 1, 2: 1, 3: -1}
+    monotone_constraints_dict_2 = {'MonotonicNeg0': -1, 'MonotonicPos0': 1, 'MonotonicPos1': 1, 'MonotonicNeg1': -1}
+    monotone_constraints_string_1 = "(-1,1,1,-1)"
+    monotone_constraints_string_2 = "0:-1,1:1,2:1,3:-1"
+    monotone_constraints_string_3 = "MonotonicNeg0:-1,MonotonicPos0:1,MonotonicPos1:1,MonotonicNeg1:-1"
 
     common_options = dict(iterations=50, model_shrink_rate=model_shrink_rate)
     model1 = CatBoostRegressor(monotone_constraints=monotone_constraints_array, **common_options)
-    model2 = CatBoostRegressor(monotone_constraints=monotone_constraints_list, **common_options)
-
     model1.fit(train_pool)
-    model2.fit(train_pool)
-
-    predections1 = model1.predict(test_pool)
-    predections2 = model2.predict(test_pool)
-
-    assert all(predections1 == predections2)
+    predictions1 = model1.predict(test_pool)
     assert abs(model1.evals_result_['learn']['RMSE'][-1] - model1.eval_metrics(train_pool, 'RMSE')['RMSE'][-1]) < 1e-9
+
+    for monotone_constraints in [monotone_constraints_list, monotone_constraints_dict_1,
+                                 monotone_constraints_dict_2, monotone_constraints_string_1,
+                                 monotone_constraints_string_2, monotone_constraints_string_3]:
+        model2 = CatBoostRegressor(monotone_constraints=monotone_constraints, **common_options)
+        model2.fit(train_pool)
+        predictions2 = model2.predict(test_pool)
+        assert all(predictions1 == predictions2)
 
 
 def test_same_values_with_different_types(task_type):

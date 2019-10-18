@@ -7145,6 +7145,34 @@ def test_monotonic_constraint():
             assert np.all(prediction_deltas * monotonicity >= 0)
 
 
+def test_different_formats_of_monotone_constraints():
+    eval_path = yatest.common.test_output_path('eval.tsv')
+    eval_path_with_monotone1 = yatest.common.test_output_path('eval_monotone1.tsv')
+    eval_path_with_monotone2 = yatest.common.test_output_path('eval_monotone2.tsv')
+    cmd = [
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--cd', data_file('adult', 'train_with_id.cd'),
+        '-i', '20'
+    ]
+    yatest.common.execute(cmd + ['--eval-file', eval_path])
+    yatest.common.execute(cmd + ['--eval-file', eval_path_with_monotone1, '--monotone-constraints', '(0,0,0,1,0,-1)'])
+    assert not filecmp.cmp(eval_path_with_monotone1, eval_path)
+
+    for constraints in ['3:1,5:-1', 'F0:1,F1:-1']:
+        yatest.common.execute(cmd + ['--eval-file', eval_path_with_monotone2, '--monotone-constraints', constraints])
+        assert filecmp.cmp(eval_path_with_monotone1, eval_path_with_monotone2)
+
+    params_file = yatest.common.test_output_path("params.json")
+    for constraints in ['3:1,5:-1', 'F0:1,F1:-1', [0, 0, 0, 1, 0, -1], {3: 1, 5: -1}, {'F0': 1, 'F1': -1}]:
+        json.dump({'monotone_constraints': constraints}, open(params_file, 'w'))
+        yatest.common.execute(cmd + ['--eval-file', eval_path_with_monotone2, '--params-file', params_file])
+        assert filecmp.cmp(eval_path_with_monotone1, eval_path_with_monotone2)
+
+
 class TestModelWithoutParams(object):
 
     @pytest.fixture(

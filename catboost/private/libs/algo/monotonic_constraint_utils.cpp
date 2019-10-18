@@ -108,14 +108,16 @@ void CalcOneDimensionalIsotonicRegression(
     }
 }
 
-TVector<int> GetTreeMonotoneConstraints(const TSplitTree& tree, const TVector<int>& monotoneConstraints) {
+TVector<int> GetTreeMonotoneConstraints(const TSplitTree& tree, const TMap<ui32, int>& monotoneConstraints) {
     TVector<int> treeMonotoneConstraints(tree.GetDepth(), 0);
     if (!monotoneConstraints.empty()) {
         for (int splitIndex = 0; splitIndex < tree.GetDepth(); ++splitIndex) {
             if (tree.Splits[splitIndex].Type == ESplitType::FloatFeature) {
                 int splitFeatureId = tree.Splits[splitIndex].FeatureIdx;
                 Y_ASSERT(splitFeatureId != -1);
-                treeMonotoneConstraints[splitIndex] = monotoneConstraints[splitFeatureId];
+                if (monotoneConstraints.contains(splitFeatureId)) {
+                    treeMonotoneConstraints[splitIndex] = monotoneConstraints.at(splitFeatureId);
+                }
             }
         }
     }

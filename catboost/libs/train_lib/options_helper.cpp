@@ -169,37 +169,20 @@ static void UpdateAndValidateMonotoneConstraints(
     if (catBoostOptions->GetTaskType() != ETaskType::CPU) {
         return;
     }
-    TVector<int>* monotoneConstraints = &catBoostOptions->ObliviousTreeOptions->MonotoneConstraints.Get();
-    CB_ENSURE(
-        monotoneConstraints->size() <= featuresLayout.GetExternalFeatureCount(),
-        "length of monotone constraints vector exceeds number of features."
-    );
-    CB_ENSURE(
-        AllOf(
-            xrange(monotoneConstraints->size()),
-            [&] (int featureIndex) {
-                return (
-                    (*monotoneConstraints)[featureIndex] == 0 ||
-                    featuresLayout.GetExternalFeatureType(featureIndex) == EFeatureType::Float
-                );
-            }
-        ),
-        "Monotone constraints may be imposed only on float features."
-    );
+    auto& monotoneConstraints = catBoostOptions->ObliviousTreeOptions->MonotoneConstraints.Get();
 
-    // Ensure that monotoneConstraints size is zero or equals to the number of float features.
-    if (AllOf(*monotoneConstraints, [] (int constraint) { return constraint == 0; })) {
-        monotoneConstraints->clear();
-    } else {
-        TVector<int> floatFeatureMonotonicConstraints(featuresLayout.GetFloatFeatureCount(), 0);
-        ui32 floatFeatureIdx = 0;
-        for (ui32 featureIdx : xrange(monotoneConstraints->size())) {
-            if (featuresLayout.GetExternalFeatureType(featureIdx) == EFeatureType::Float) {
-                floatFeatureMonotonicConstraints[floatFeatureIdx++] = (*monotoneConstraints)[featureIdx];
-            }
+    TMap<ui32, int> floatFeatureMonotonicConstraints;
+    for (auto [featureIdx, constraint] : monotoneConstraints) {
+        if (constraint != 0) {
+            CB_ENSURE(
+                featuresLayout.GetExternalFeatureType(featureIdx) == EFeatureType::Float,
+                "Monotone constraints may be imposed only on float features."
+            );
+            ui32 floatFeatureIdx = featuresLayout.GetInternalFeatureIdx(featureIdx);
+            floatFeatureMonotonicConstraints[floatFeatureIdx] = constraint;
         }
-        *monotoneConstraints = floatFeatureMonotonicConstraints;
     }
+    monotoneConstraints = floatFeatureMonotonicConstraints;
 }
 
 static void DropModelShrinkageIfBaselineUsed(
