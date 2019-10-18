@@ -174,18 +174,19 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
     TVector<double> effect;
     TVector<TFeature> features;
 
-    TVector<double> leavesStatisticsOnPool;
-    if (model.ObliviousTrees->LeafWeights.empty()) {
-        CB_ENSURE(dataset, "CalcFeatureEffect requires either non-empty LeafWeights in model"
-            " or provided dataset");
+    TVector<double> leavesStatistics;
+    TConstArrayRef<double> weights;
+    if (dataset) {
         CB_ENSURE(dataset->GetObjectCount() != 0, "no docs in pool");
         CB_ENSURE(dataset->MetaInfo.GetFeatureCount() > 0, "no features in pool");
+        CATBOOST_INFO_LOG << "Used dataset leave statistics for fstr calculation" << Endl;
 
-        leavesStatisticsOnPool = CollectLeavesStatistics(*dataset, model, localExecutor);
+        leavesStatistics = CollectLeavesStatistics(*dataset, model, localExecutor);
+        weights = leavesStatistics;
     } else {
-        if (dataset) {
-            CATBOOST_NOTICE_LOG << "Dataset is provided, but not used, because importance values are cached in the model." << Endl;
-        }
+        CB_ENSURE(!model.ObliviousTrees->LeafWeights.empty(), "CalcFeatureEffect requires either non-empty LeafWeights in model"
+            " or provided dataset");
+        weights = model.ObliviousTrees->LeafWeights;
     }
 
     THashMap<TFeature, int, TFeatureHash> featureToIdx = GetFeatureToIdxMap(model, &features);
@@ -193,15 +194,13 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
         TVector<TMxTree> trees = BuildTrees(featureToIdx, model);
 
         TVector<TConstArrayRef<double>> mxTreeWeightsPresentation;
-        const TVector<double>& weights = model.ObliviousTrees->LeafWeights.empty() ?
-            leavesStatisticsOnPool : model.ObliviousTrees->LeafWeights;
         auto leafOffsetPtr = model.ObliviousTrees->GetFirstLeafOffsets();
         const auto& leafSizes = model.ObliviousTrees->TreeSizes;
         const int approxDimension = model.ObliviousTrees->ApproxDimension;
         for (size_t treeIdx = 0; treeIdx < model.GetTreeCount(); ++treeIdx) {
             mxTreeWeightsPresentation.push_back(
                 TConstArrayRef<double>(
-                    weights.begin() + leafOffsetPtr[treeIdx] / approxDimension,
+                    weights.data() + leafOffsetPtr[treeIdx] / approxDimension,
                     (1u << leafSizes[treeIdx])
                 )
             );
@@ -214,7 +213,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
         effect = CalcEffect(
             model,
             featureToIdx,
-            model.ObliviousTrees->LeafWeights.empty() ? leavesStatisticsOnPool : model.ObliviousTrees->LeafWeights
+            weights
         );
     }
 

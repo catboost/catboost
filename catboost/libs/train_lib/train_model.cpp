@@ -16,6 +16,7 @@
 #include <catboost/private/libs/data_util/exists_checker.h>
 #include <catboost/private/libs/distributed/master.h>
 #include <catboost/private/libs/distributed/worker.h>
+#include <catboost/libs/fstr/calc_fstr.h>
 #include <catboost/libs/fstr/output_fstr.h>
 #include <catboost/libs/helpers/int_cast.h>
 #include <catboost/libs/helpers/mem_usage.h>
@@ -1114,7 +1115,7 @@ void TrainModel(
         TFullModel model = ReadModel(fullModelPath, modelFormat);
         CalcAndOutputFstr(
             model,
-            needPoolAfterTrain ? pools.Learn : nullptr,
+            GetFeatureImportanceType(model, true, outputOptions.GetFstrType()) == EFstrType::LossFunctionChange ? pools.Learn : nullptr,
             &executor,
             &fstrRegularFileName,
             &fstrInternalFileName,

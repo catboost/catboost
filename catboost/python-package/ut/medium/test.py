@@ -72,7 +72,6 @@ NAN_CD_FILE = data_file('adult_nan', 'train.cd')
 CLOUDNESS_TRAIN_FILE = data_file('cloudness_small', 'train_small')
 CLOUDNESS_TEST_FILE = data_file('cloudness_small', 'test_small')
 CLOUDNESS_CD_FILE = data_file('cloudness_small', 'train.cd')
-CLOUDNESS_ONLY_NUM_CD_FILE = data_file('cloudness_small', 'train_float.cd')
 
 QUERYWISE_TRAIN_FILE = data_file('querywise', 'train')
 QUERYWISE_TEST_FILE = data_file('querywise', 'test')
@@ -4568,41 +4567,21 @@ def test_best_iteration(task_type):
     assert str(model.best_iteration_) == best_iteration_from_log
 
 
-def assert_sum_models_equal_sliced_copies(train, test, cd):
-    train_pool = Pool(train, column_description=cd)
-    test_pool = Pool(test, column_description=cd)
-    iter_step = 10
-    model_count = 2
-    model = CatBoostClassifier(iterations=iter_step * model_count)
+def test_model_merging():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    ITER_STEP = 5
+    MODEL_COUNT = 8
+    model = CatBoostClassifier(iterations=ITER_STEP * MODEL_COUNT)
     model.fit(train_pool)
-
-    truncated_copies = [model.copy() for _ in range(model_count)]
-    for i, truncated_model in enumerate(truncated_copies):
-        truncated_model.shrink(ntree_start=i * iter_step, ntree_end=(i + 1) * iter_step)
-
-        pred_local_shrinked = truncated_model.predict(test_pool, prediction_type='RawFormulaVal')
-        pred_local = model.predict(
-            test_pool,
-            prediction_type='RawFormulaVal',
-            ntree_start=i * iter_step,
-            ntree_end=(i + 1) * iter_step)
-
-        assert np.all(pred_local_shrinked == pred_local)
-        assert model.classes_ == truncated_model.classes_
-
-    weights = [1.0] * model_count
+    truncated_copies = [model.copy() for _ in range(MODEL_COUNT)]
+    for i, model_to_shrink in enumerate(truncated_copies):
+        model_to_shrink.shrink(ntree_start=i * ITER_STEP, ntree_end=(i + 1) * ITER_STEP)
+    weights = [1.0] * MODEL_COUNT
     merged_model = sum_models(truncated_copies, weights)
     pred = model.predict(test_pool, prediction_type='RawFormulaVal')
     merged_pred = merged_model.predict(test_pool, prediction_type='RawFormulaVal')
-
     assert np.all(pred == merged_pred)
-    assert model.classes_ == merged_model.classes_
-
-
-def test_model_merging():
-    assert_sum_models_equal_sliced_copies(TRAIN_FILE, TEST_FILE, CD_FILE)
-    # multiclass
-    assert_sum_models_equal_sliced_copies(CLOUDNESS_TRAIN_FILE, CLOUDNESS_TEST_FILE, CLOUDNESS_ONLY_NUM_CD_FILE)
 
 
 def test_tree_depth_pairwise(task_type):
@@ -5401,6 +5380,15 @@ class TestModelWithoutParams(object):
         else:
             model.get_feature_importance(type=fstr_type, data=train_pool)
 
+    def test_prediction_values_fstr_change_on_different_pools(self):
+        train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+        test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
+        model = CatBoost(dict(iterations=16, loss_function='RMSE'))
+        model.fit(train_pool)
+        train_fstr = model.get_feature_importance(type='PredictionValuesChange', data=train_pool)
+        test_fstr = model.get_feature_importance(type='PredictionValuesChange', data=test_pool)
+        assert not np.array_equal(train_fstr, test_fstr)
+
     @pytest.fixture(params=['not-trained', 'collapsed'])
     def model_no_trees(self, request):
         train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
@@ -6098,35 +6086,3 @@ def test_classes_attribute_multiclass(label_type):
         assert sorted(model.classes_) == ['class0', 'class1', 'class2', 'class3']
     elif label_type == 'float':
         assert sorted(model.classes_) == ['0', '0.1', '0.2', '0.5', '1']
-
-
-def test_multiclass_non_positive_definite_from_github():
-    train = np.array([
-        [
-            0., 0., 0., 0., 0., 0., 0., 0., 0., 0.
-        ],
-        [
-            0.00473934, 0.05, 0., 0., 0., 0., 0., 0., 0., 0.
-        ],
-        [
-            0.04739336, 0.1, 0., 0., 0., 0.03191489, 0., 0., 0., 0.
-        ],
-        [
-            0., 0., 0., 0., 0.00298507, 0.09574468, 0.0195122, 0.01492537, 0.00787402, 0.
-        ],
-        [
-            0.0521327, 0.15, 0.00480769, 0.07692308, 0., 0., 0., 0., 0., 0.
-        ]
-    ])
-    cat_params = {
-        'iterations': 500,
-        'random_state': 42,
-        'loss_function': 'MultiClass',
-        'eval_metric': 'TotalF1',
-        'early_stopping_rounds': 30,
-        'thread_count': 16,
-        'l2_leaf_reg': 0
-    }
-    y_train = np.array([1, 2, 4, 2, 1])
-    cat_model = CatBoostClassifier(**cat_params)
-    cat_model.fit(X=np.array(train)[:5, :10], y=np.array(y_train)[:5], verbose=0)

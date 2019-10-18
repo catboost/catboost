@@ -2266,11 +2266,11 @@
         }
     ],
     "test.test_feature_id_fstr[Ordered]": {
-        "checksum": "db6da0a8bff244f612e2e5ce7aedd450",
+        "checksum": "80ef397f8d1e45da212e3ed581f34cbe",
         "uri": "file://test.test_feature_id_fstr_Ordered_/fstr.tsv"
     },
     "test.test_feature_id_fstr[Plain]": {
-        "checksum": "68ecf5c0096e9fab203e0e5852a62f2c",
+        "checksum": "8e0ae333a173b23de05489817777ea72",
         "uri": "file://test.test_feature_id_fstr_Plain_/fstr.tsv"
     },
     "test.test_fit_multiclass_with_class_names": [

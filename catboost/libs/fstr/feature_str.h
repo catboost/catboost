@@ -123,7 +123,7 @@ template <class T>
 TVector<double> CalcEffect(
     const TFullModel& model,
     const THashMap<TFeature, int, TFeatureHash>& featureToIdx,
-    const TVector<T>& weightedDocCountInLeaf) {
+    TConstArrayRef<T> weightedDocCountInLeaf) {
 
     const auto& binFeatures = model.ObliviousTrees->GetBinFeatures();
     const auto& leafValues = model.ObliviousTrees->LeafValues;
