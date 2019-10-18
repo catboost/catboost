@@ -5,6 +5,7 @@
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
+#include <util/charset/unidata.h>
 #include <util/generic/ptr.h>
 #include <util/string/cast.h>
 #include <util/string/split.h>
@@ -251,31 +252,46 @@ namespace NCB {
     }
 
     bool IsMissingValue(const TStringBuf& s) {
-        return
-            s == AsStringBuf("") ||
-            s == AsStringBuf("nan") ||
-            s == AsStringBuf("NaN") ||
-            s == AsStringBuf("NAN") ||
-            s == AsStringBuf("NA") ||
-            s == AsStringBuf("Na") ||
-            s == AsStringBuf("na") ||
-            s == AsStringBuf("#N/A") ||
-            s == AsStringBuf("#N/A N/A") ||
-            s == AsStringBuf("#NA") ||
-            s == AsStringBuf("-1.#IND") ||
-            s == AsStringBuf("-1.#QNAN") ||
-            s == AsStringBuf("-NaN") ||
-            s == AsStringBuf("-nan") ||
-            s == AsStringBuf("1.#IND") ||
-            s == AsStringBuf("1.#QNAN") ||
-            s == AsStringBuf("N/A") ||
-            s == AsStringBuf("NULL") ||
-            s == AsStringBuf("n/a") ||
-            s == AsStringBuf("null") ||
-            s == AsStringBuf("Null") ||
-            s == AsStringBuf("none") ||
-            s == AsStringBuf("None") ||
-            s == AsStringBuf("-");
+        switch (s.length()) {
+            case 0:
+                return true;
+            case 1:
+                return s[0] == '-';
+            case 2:
+                return (ToLower(s[0]) == 'n') && (
+                    s == AsStringBuf("NA") ||
+                    s == AsStringBuf("Na") ||
+                    s == AsStringBuf("na") ||
+                    false);
+            case 3:
+                return (ToLower(s[0]) == 'n' || ToLower(s[1]) == 'n') && (
+                    s == AsStringBuf("nan") ||
+                    s == AsStringBuf("NaN") ||
+                    s == AsStringBuf("NAN") ||
+                    s == AsStringBuf("#NA") ||
+                    s == AsStringBuf("N/A") ||
+                    s == AsStringBuf("n/a") ||
+                    false);
+            case 4:
+                return (ToLower(s[0]) == 'n' || ToLower(s[1]) == 'n') && (
+                    s == AsStringBuf("#N/A") ||
+                    s == AsStringBuf("-NaN") ||
+                    s == AsStringBuf("-nan") ||
+                    s == AsStringBuf("NULL") ||
+                    s == AsStringBuf("null") ||
+                    s == AsStringBuf("Null") ||
+                    s == AsStringBuf("none") ||
+                    s == AsStringBuf("None") ||
+                    false);
+            default:
+                return
+                    s == AsStringBuf("#N/A N/A") ||
+                    s == AsStringBuf("-1.#IND") ||
+                    s == AsStringBuf("-1.#QNAN") ||
+                    s == AsStringBuf("1.#IND") ||
+                    s == AsStringBuf("1.#QNAN") ||
+                    false;
+        }
     }
 
     bool TryParseFloatFeatureValue(TStringBuf stringValue, float* value) {
