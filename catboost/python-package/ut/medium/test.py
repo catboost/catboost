@@ -6098,3 +6098,35 @@ def test_classes_attribute_multiclass(label_type):
         assert sorted(model.classes_) == ['class0', 'class1', 'class2', 'class3']
     elif label_type == 'float':
         assert sorted(model.classes_) == ['0', '0.1', '0.2', '0.5', '1']
+
+
+def test_multiclass_non_positive_definite_from_github():
+    train = np.array([
+        [
+            0., 0., 0., 0., 0., 0., 0., 0., 0., 0.
+        ],
+        [
+            0.00473934, 0.05, 0., 0., 0., 0., 0., 0., 0., 0.
+        ],
+        [
+            0.04739336, 0.1, 0., 0., 0., 0.03191489, 0., 0., 0., 0.
+        ],
+        [
+            0., 0., 0., 0., 0.00298507, 0.09574468, 0.0195122, 0.01492537, 0.00787402, 0.
+        ],
+        [
+            0.0521327, 0.15, 0.00480769, 0.07692308, 0., 0., 0., 0., 0., 0.
+        ]
+    ])
+    cat_params = {
+        'iterations': 500,
+        'random_state': 42,
+        'loss_function': 'MultiClass',
+        'eval_metric': 'TotalF1',
+        'early_stopping_rounds': 30,
+        'thread_count': 16,
+        'l2_leaf_reg': 0
+    }
+    y_train = np.array([1, 2, 4, 2, 1])
+    cat_model = CatBoostClassifier(**cat_params)
+    cat_model.fit(X=np.array(train)[:5, :10], y=np.array(y_train)[:5], verbose=0)
