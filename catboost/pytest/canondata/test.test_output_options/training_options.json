@@ -140,6 +140,7 @@
             "nan_mode" : "Min",
             "border_type" : "GreedyLogSum"
         },
+        "dev_group_features" : false,
         "classes_count" : 0,
         "ignored_features" : [ ],
         "text_processing_options" : {

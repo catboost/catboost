@@ -48,6 +48,7 @@ namespace NCatboostOptions {
 
         TGpuOnlyOption<EGpuCatFeaturesStorage> GpuCatFeaturesStorage;
         TCpuOnlyOption<bool> DevLeafwiseScoring;
+        TCpuOnlyOption<bool> DevGroupFeatures;
     private:
         void SetPerFeatureMissingSettingToCommonValues();
     };

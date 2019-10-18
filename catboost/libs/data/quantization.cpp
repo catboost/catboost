@@ -2613,6 +2613,7 @@ namespace NCB {
         const TInitialBorders& initialBorders) {
 
         TQuantizationOptions quantizationOptions;
+        quantizationOptions.GroupFeaturesForCpu = params->DataProcessingOptions->DevGroupFeatures.GetUnchecked();
         if (params->GetTaskType() == ETaskType::CPU) {
             quantizationOptions.GpuCompatibleFormat = false;
 
@@ -2650,6 +2651,9 @@ namespace NCB {
                  *    than calculation speed so it should be enabled
                  */
                 quantizationOptions.BundleExclusiveFeaturesForCpu = false;
+
+                // grouping is unused on GPU
+                quantizationOptions.GroupFeaturesForCpu = false;
             }
         }
         quantizationOptions.CpuRamLimit

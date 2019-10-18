@@ -135,6 +135,7 @@ void CalculatePairwiseScore(
 
     TArray2D<double> weightSum(2 * leafCount, 2 * leafCount);
 
+    // TODO(ilyzhin): refactor this (extract common code to functions)
     switch (pairwiseStats.SplitEnsembleSpec.Type) {
         case ESplitEnsembleType::OneFeature:
             {
@@ -425,6 +426,97 @@ void CalculatePairwiseScore(
 
                     srcBucketOffset = bucketEnd;
                     dstBinOffset += boundsInBundle.GetSize();
+                }
+            }
+            break;
+        case ESplitEnsembleType::FeaturesGroup:
+            {
+                scoreCalcer->SetSplitsCount(
+                    CalcSplitsCount(pairwiseStats.SplitEnsembleSpec, bucketCount, oneHotMaxSize)
+                );
+                const auto& group = pairwiseStats.SplitEnsembleSpec.FeaturesGroup;
+                TVector<double> derSum;
+                int bucketIdxOffset = 0;
+                int splitIdxOffset = 0;
+                for (const auto& part : group.Parts) {
+                    derSum.assign(2 * leafCount, 0);
+                    weightSum.FillZero();
+                    for (int leafId = 0; leafId < leafCount; ++leafId) {
+                        for (int bucketIdx = bucketIdxOffset; bucketIdx < bucketIdxOffset + static_cast<int>(part.BucketCount); ++bucketIdx) {
+                            derSum[2 * leafId + 1] += derSums[leafId][bucketIdx];
+                        }
+                    }
+                    for (int y = 0; y < leafCount; ++y) {
+                        for (int x = y + 1; x < leafCount; ++x) {
+                            const TBucketPairWeightStatistics* xyData = pairWeightStatistics[x][y].data();
+                            const TBucketPairWeightStatistics* yxData = pairWeightStatistics[y][x].data();
+                            auto totalXY0 = NSimdOps::MakeZeros();
+                            auto totalXY2 = NSimdOps::MakeZeros();
+                            auto totalYX0 = NSimdOps::MakeZeros();
+                            auto totalYX2 = NSimdOps::MakeZeros();
+                            for (int bucketId = bucketIdxOffset;
+                                 bucketId + 2 * static_cast<int>(NSimdOps::Size) <= bucketIdxOffset + static_cast<int>(part.BucketCount);
+                                 bucketId += 2 * NSimdOps::Size) {
+                                totalXY0 = NSimdOps::ElementwiseAdd(
+                                    totalXY0,
+                                    NSimdOps::Gather(
+                                        &xyData[bucketId + 0].SmallerBorderWeightSum,
+                                        &xyData[bucketId + 1].SmallerBorderWeightSum));
+                                totalXY2 = NSimdOps::ElementwiseAdd(
+                                    totalXY2,
+                                    NSimdOps::Gather(
+                                        &xyData[bucketId + 2].SmallerBorderWeightSum,
+                                        &xyData[bucketId + 3].SmallerBorderWeightSum));
+                                totalYX0 = NSimdOps::ElementwiseAdd(
+                                    totalYX0,
+                                    NSimdOps::Gather(
+                                        &yxData[bucketId + 0].SmallerBorderWeightSum,
+                                        &yxData[bucketId + 1].SmallerBorderWeightSum));
+                                totalYX2 = NSimdOps::ElementwiseAdd(
+                                    totalYX2,
+                                    NSimdOps::Gather(
+                                        &yxData[bucketId + 2].SmallerBorderWeightSum,
+                                        &yxData[bucketId + 3].SmallerBorderWeightSum));
+                            }
+                            double total =
+                                NSimdOps::HorizontalAdd(totalXY0) + NSimdOps::HorizontalAdd(totalXY2)
+                                + NSimdOps::HorizontalAdd(totalYX0) + NSimdOps::HorizontalAdd(totalYX2);
+                            for (int bucketId = bucketIdxOffset + part.BucketCount - part.BucketCount % (2 * NSimdOps::Size);
+                                 bucketId < bucketIdxOffset + bucketCount;
+                                 ++bucketId) {
+                                total += xyData[bucketId].SmallerBorderWeightSum
+                                         + yxData[bucketId].SmallerBorderWeightSum;
+                            }
+                            UpdateWeightSumFromTotal(y, x, total, &weightSum);
+                        }
+                    }
+                    for (int splitId = splitIdxOffset, bucketId = bucketIdxOffset; splitId < splitIdxOffset + static_cast<int>(part.BucketCount) - 1; ++splitId, ++bucketId) {
+                        for (int y = 0; y < leafCount; ++y) {
+                            const double derDelta = derSums[y][bucketId];
+                            derSum[2 * y] += derDelta;
+                            derSum[2 * y + 1] -= derDelta;
+                            const double weightDelta = (
+                                pairWeightStatistics[y][y][bucketId].SmallerBorderWeightSum
+                                - pairWeightStatistics[y][y][bucketId].GreaterBorderRightWeightSum);
+                            weightSum[2 * y][2 * y + 1] += weightDelta;
+                            weightSum[2 * y + 1][2 * y] += weightDelta;
+                            weightSum[2 * y][2 * y] -= weightDelta;
+                            weightSum[2 * y + 1][2 * y + 1] -= weightDelta;
+                            for (int x = y + 1; x < leafCount; ++x) {
+                                const TBucketPairWeightStatistics& xy = pairWeightStatistics[x][y][bucketId];
+                                const TBucketPairWeightStatistics& yx = pairWeightStatistics[y][x][bucketId];
+                                UpdateWeightSumFromNonDiagStats(y, x, xy, yx, &weightSum);
+                            }
+                        }
+                        const TVector<double> leafValues = CalculatePairwiseLeafValues(
+                            weightSum,
+                            derSum,
+                            l2DiagReg,
+                            pairwiseBucketWeightPriorReg);
+                        scoreCalcer->CalculateScore(splitId, leafValues, derSum, weightSum);
+                    }
+                    bucketIdxOffset += part.BucketCount;
+                    splitIdxOffset += part.BucketCount - 1;
                 }
             }
             break;

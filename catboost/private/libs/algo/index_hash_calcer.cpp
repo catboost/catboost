@@ -14,7 +14,7 @@ void CalcHashes(
     const TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
     const TFeaturesArraySubsetIndexing& featuresSubsetIndexing,
     const TPerfectHashedToHashedCatValuesMap* perfectHashedToHashedCatValuesMap,
-    bool processBundledAndBinaryFeaturesInPacks,
+    bool processAggregatedFeatures,
     ui64* begin,
     ui64* end,
     NPar::TLocalExecutor* localExecutor) {
@@ -33,6 +33,11 @@ void CalcHashes(
         objectsDataProvider.GetExclusiveFeatureBundlesSize()
     );
 
+    // [groupIdx]
+    TVector<TVector<TCalcHashInGroupContext>> featuresInGroups(
+        objectsDataProvider.GetFeaturesGroupsSize()
+    );
+
     // TBinaryFeaturesPack here is actually bit mask to what binary feature in pack are used in projection
     TVector<TBinaryFeaturesPack> binaryFeaturesBitMasks(
         objectsDataProvider.GetBinaryFeaturesPacksSize(),
@@ -48,14 +53,17 @@ void CalcHashes(
         auto catFeatureIdx = TCatFeatureIdx((ui32)featureIdx);
         const auto bundleIdx = objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx);
         const auto packIdx = objectsDataProvider.GetCatFeatureToPackedBinaryIndex(catFeatureIdx);
-        if ((!bundleIdx && !packIdx) || !processBundledAndBinaryFeaturesInPacks || perfectHashedToHashedCatValuesMap) {
+        const auto groupIdx = objectsDataProvider.GetCatFeatureToFeaturesGroupIndex(catFeatureIdx);
+        if ((!bundleIdx && !packIdx && !groupIdx) || !processAggregatedFeatures || perfectHashedToHashedCatValuesMap) {
             auto featureCalcHashParams = ExtractColumnLocation<ui32, EFeatureValuesType::PerfectHashedCategorical>(
                 bundleIdx,
                 packIdx,
+                groupIdx,
                 [&]() { return *objectsDataProvider.GetCatFeature(*catFeatureIdx); },
                 [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeatureBundlesMetaData()[bundleIdx]; },
                 [&](ui32 bundleIdx) { return &objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
-                [&](ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); }
+                [&](ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
+                [&](ui32 groupIdx) { return &objectsDataProvider.GetFeaturesGroup(groupIdx); }
             );
             if (perfectHashedToHashedCatValuesMap) {
                 const auto ohv = MakeArrayRef((*perfectHashedToHashedCatValuesMap)[featureIdx]);
@@ -66,10 +74,12 @@ void CalcHashes(
             ExtractIndicesAndMasks(
                 bundleIdx,
                 packIdx,
+                groupIdx,
                 /*isBinaryFeatureEquals1*/ true,
                 featuresInBundles,
                 binaryFeaturesBitMasks,
                 projBinaryFeatureValues,
+                featuresInGroups,
                 [hashArr] (ui32 i, ui32 featureValue) {
                     hashArr[i] = CalcHash(hashArr[i], (ui64)featureValue + 1);
                 }
@@ -81,14 +91,17 @@ void CalcHashes(
         auto floatFeatureIdx = TFloatFeatureIdx((ui32)feature.FloatFeature);
         const auto bundleIdx = objectsDataProvider.GetFloatFeatureToExclusiveBundleIndex(floatFeatureIdx);
         const auto packIdx = objectsDataProvider.GetFloatFeatureToPackedBinaryIndex(floatFeatureIdx);
-        if ((!bundleIdx && !packIdx) || !processBundledAndBinaryFeaturesInPacks) {
+        const auto groupIdx = objectsDataProvider.GetFloatFeatureToFeaturesGroupIndex(floatFeatureIdx);
+        if ((!bundleIdx && !packIdx && !groupIdx) || !processAggregatedFeatures) {
             auto featureCalcHashParams = ExtractColumnLocation<ui8, EFeatureValuesType::QuantizedFloat>(
                 bundleIdx,
                 packIdx,
+                groupIdx,
                 [&]() { return *objectsDataProvider.GetFloatFeature(*floatFeatureIdx); },
                 [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeatureBundlesMetaData()[bundleIdx]; },
                 [&](ui32 bundleIdx) { return &objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
-                [&](ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); }
+                [&](ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
+                [&](ui32 groupIdx) { return &objectsDataProvider.GetFeaturesGroup(groupIdx); }
             );
             featureCalcHashParams.SplitIdx = feature.SplitIdx;
             calcHashParams.push_back(featureCalcHashParams);
@@ -96,10 +109,12 @@ void CalcHashes(
             ExtractIndicesAndMasks(
                 bundleIdx,
                 packIdx,
+                groupIdx,
                 /*isBinaryFeatureEquals1*/ true,
                 featuresInBundles,
                 binaryFeaturesBitMasks,
                 projBinaryFeatureValues,
+                featuresInGroups,
                 [feature, hashArr] (ui32 i, ui32 featureValue) {
                     const bool isTrueFeature = IsTrueHistogram((ui16)featureValue, (ui16)feature.SplitIdx);
                     hashArr[i] = CalcHash(hashArr[i], (ui64)isTrueFeature);
@@ -122,14 +137,17 @@ void CalcHashes(
             maxBin = uniqueValuesCounts.OnLearnOnly;
         }
         const auto bundleIdx = objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx);
-        if ((!bundleIdx && !maybeBinaryIndex) || !processBundledAndBinaryFeaturesInPacks) {
+        const auto groupIdx = objectsDataProvider.GetCatFeatureToFeaturesGroupIndex(catFeatureIdx);
+        if ((!bundleIdx && !maybeBinaryIndex) || !processAggregatedFeatures) {
             auto featureCalcHashParams = ExtractColumnLocation<ui32, EFeatureValuesType::PerfectHashedCategorical>(
                 bundleIdx,
                 maybeBinaryIndex,
+                groupIdx,
                 [&]() { return *objectsDataProvider.GetCatFeature(*catFeatureIdx); },
                 [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeatureBundlesMetaData()[bundleIdx]; },
                 [&](ui32 bundleIdx) { return &objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
-                [&](ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); }
+                [&](ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
+                [&](ui32 groupIdx) { return &objectsDataProvider.GetFeaturesGroup(groupIdx); }
             );
             featureCalcHashParams.MaxBinAndValue = std::array<ui32, 2>{maxBin, (ui32)feature.Value};
             calcHashParams.push_back(featureCalcHashParams);
@@ -137,10 +155,12 @@ void CalcHashes(
             ExtractIndicesAndMasks(
                 bundleIdx,
                 maybeBinaryIndex,
+                groupIdx,
                 /*isBinaryFeatureEquals1*/ feature.Value == 1,
                 featuresInBundles,
                 binaryFeaturesBitMasks,
                 projBinaryFeatureValues,
+                featuresInGroups,
                 [feature, hashArr, maxBin] (ui32 i, ui32 featureValue) {
                     const bool isTrueFeature = IsTrueOneHotFeature(Min(featureValue, maxBin), (ui32)feature.Value);
                     hashArr[i] = CalcHash(hashArr[i], (ui64)isTrueFeature);
@@ -195,7 +215,7 @@ void CalcHashes(
         );
     }
 
-    if (processBundledAndBinaryFeaturesInPacks) {
+    if (processAggregatedFeatures) {
         for (size_t bundleIdx : xrange(featuresInBundles.size())) {
             TConstArrayRef<TCalcHashInBundleContext> featuresInBundle = featuresInBundles[bundleIdx];
             if (featuresInBundle.empty()) {
@@ -250,6 +270,29 @@ void CalcHashes(
                 [=] (ui32 i, ui64 b) {
                     hashArr[i] = CalcHash(hashArr[i], b);
                 },
+                localExecutor
+            );
+        }
+
+        for (size_t groupIdx : xrange(featuresInGroups.size())) {
+            TConstArrayRef<TCalcHashInGroupContext> featuresInGroup = featuresInGroups[groupIdx];
+            if (featuresInGroup.empty()) {
+                continue;
+            }
+
+            auto processGroupValue = [&] (ui32 i, auto groupValue) {
+                for (const auto& selectedFeature : featuresInGroup) {
+                    selectedFeature.CalcHashCallback(
+                        i,
+                        GetPartValueFromGroup(groupValue, selectedFeature.InGroupIdx)
+                    );
+                }
+            };
+
+            ProcessColumnForCalcHashes(
+                objectsDataProvider.GetFeaturesGroup(groupIdx),
+                featuresSubsetIndexing,
+                std::move(processGroupValue),
                 localExecutor
             );
         }

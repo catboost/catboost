@@ -423,6 +423,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "dev_sparse_array_indexing", &dataProcessingOptions, &seenKeys);
     CopyOption(plainOptions, "gpu_cat_features_storage", &dataProcessingOptions, &seenKeys);
     CopyOption(plainOptions, "dev_leafwise_scoring", &dataProcessingOptions, &seenKeys);
+    CopyOption(plainOptions, "dev_group_features", &dataProcessingOptions, &seenKeys);
 
     auto& floatFeaturesBinarization = dataProcessingOptions["float_features_binarization"];
     floatFeaturesBinarization.SetType(NJson::JSON_MAP);
@@ -805,6 +806,9 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
         CopyOption(dataProcessingOptions, "dev_leafwise_scoring", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyDataProcessing, "dev_leafwise_scoring");
+
+        CopyOption(dataProcessingOptions, "dev_group_features", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyDataProcessing, "dev_group_features");
 
         ConcatenatePerFloatFeatureQuantizationOptions(
             dataProcessingOptions,

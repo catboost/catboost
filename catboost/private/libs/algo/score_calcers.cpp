@@ -75,5 +75,11 @@ int CalcSplitsCount(
                 }
                 return SafeIntegerCast<int>(binCount);
             }
+        case ESplitEnsembleType::FeaturesGroup:
+            {
+                const auto& featuresGroup = splitEnsembleSpec.FeaturesGroup;
+                // for each part: part.BucketCount - 1
+                return featuresGroup.TotalBucketCount - featuresGroup.Parts.size();
+            }
     }
 }

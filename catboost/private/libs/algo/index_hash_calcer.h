@@ -22,6 +22,11 @@ struct TCalcHashInBundleContext {
     std::function<void(ui32, ui32)> CalcHashCallback;
 };
 
+struct TCalcHashInGroupContext {
+    ui32 InGroupIdx;
+    std::function<void(ui32, ui32)> CalcHashCallback;
+};
+
 
 template <class T, NCB::EFeatureValuesType FeatureValuesType, class F> // F args are (index, value)
 inline void ProcessColumnForCalcHashes(
@@ -86,21 +91,24 @@ template <class T, NCB::EFeatureValuesType FeatureValuesType, class F>
 inline void ProcessFeatureForCalcHashes(
     TMaybe<NCB::TExclusiveBundleIndex> maybeExclusiveBundleIndex,
     TMaybe<NCB::TPackedBinaryIndex> maybeBinaryIndex,
+    TMaybe<NCB::TFeaturesGroupIndex> maybeFeaturesGroupIndex,
     const NCB::TFeaturesArraySubsetIndexing& featuresSubsetIndexing,
-    bool processBundledAndBinaryFeaturesInPacks,
+    bool processAggregatedFeatures,
     bool isBinaryFeatureEquals1, // used only if processBinary
     TArrayRef<TVector<TCalcHashInBundleContext>> featuresInBundles,
     TArrayRef<NCB::TBinaryFeaturesPack> binaryFeaturesBitMasks,
     TArrayRef<NCB::TBinaryFeaturesPack> projBinaryFeatureValues,
+    TArrayRef<TVector<TCalcHashInGroupContext>> featuresInGroups,
     std::function<const NCB::TTypedFeatureValuesHolder<T, FeatureValuesType>*()>&& getFeatureColumn,
     std::function<const NCB::TExclusiveFeaturesBundle(ui32)>&& getExclusiveFeatureBundleMetaData,
     std::function<const NCB::TExclusiveFeatureBundleHolder*(ui32)>&& getExclusiveFeatureBundle,
     std::function<const NCB::TBinaryPacksHolder*(ui32)>&& getBinaryFeaturesPack,
+    std::function<const NCB::TFeaturesGroupHolder*(ui32)>&& getFeaturesGroup,
     F&& f,
     NPar::TLocalExecutor* localExecutor) {
 
     if (maybeExclusiveBundleIndex) {
-        if (processBundledAndBinaryFeaturesInPacks) {
+        if (processAggregatedFeatures) {
             TCalcHashInBundleContext calcHashInBundleContext;
             calcHashInBundleContext.InBundleIdx = maybeExclusiveBundleIndex->InBundleIdx;
             calcHashInBundleContext.CalcHashCallback = f;
@@ -126,7 +134,7 @@ inline void ProcessFeatureForCalcHashes(
         }
     } else if (maybeBinaryIndex) {
         NCB::TBinaryFeaturesPack bitMask = NCB::TBinaryFeaturesPack(1) << maybeBinaryIndex->BitIdx;
-        if (processBundledAndBinaryFeaturesInPacks) {
+        if (processAggregatedFeatures) {
             binaryFeaturesBitMasks[maybeBinaryIndex->PackIdx] |= bitMask;
 
             if (isBinaryFeatureEquals1) {
@@ -140,6 +148,29 @@ inline void ProcessFeatureForCalcHashes(
                 featuresSubsetIndexing,
                 [bitMask, bitIdx] (NCB::TBinaryFeaturesPack featuresPack) {
                     return (featuresPack & bitMask) >> bitIdx;
+                },
+                std::move(f),
+                localExecutor
+            );
+        }
+    } else if (maybeFeaturesGroupIndex) {
+        if (processAggregatedFeatures) {
+            TCalcHashInGroupContext calcHashInGroupContext;
+            calcHashInGroupContext.InGroupIdx = maybeFeaturesGroupIndex->InGroupIdx;
+            calcHashInGroupContext.CalcHashCallback = f;
+
+            featuresInGroups[maybeFeaturesGroupIndex->GroupIdx].push_back(
+                std::move(calcHashInGroupContext)
+            );
+        } else {
+            const ui32 groupIdx = maybeFeaturesGroupIndex->GroupIdx;
+            const ui32 partIdx = maybeFeaturesGroupIndex->InGroupIdx;
+
+            ProcessColumnForCalcHashes(
+                *getFeaturesGroup(groupIdx),
+                featuresSubsetIndexing,
+                [partIdx] (auto groupData) {
+                    return NCB::GetPartValueFromGroup(groupData, partIdx);
                 },
                 std::move(f),
                 localExecutor
@@ -161,10 +192,12 @@ template <class F>
 inline void ExtractIndicesAndMasks(
     TMaybe<NCB::TExclusiveBundleIndex> maybeExclusiveBundleIndex,
     TMaybe<NCB::TPackedBinaryIndex> maybeBinaryIndex,
+    TMaybe<NCB::TFeaturesGroupIndex> maybeFeaturesGroupIndex,
     bool isBinaryFeatureEquals1, // used only if processBinary
     TArrayRef<TVector<TCalcHashInBundleContext>> featuresInBundles,
     TArrayRef<NCB::TBinaryFeaturesPack> binaryFeaturesBitMasks,
     TArrayRef<NCB::TBinaryFeaturesPack> projBinaryFeatureValues,
+    TArrayRef<TVector<TCalcHashInGroupContext>> featuresInGroups,
     F&& f
 ) {
     if (maybeExclusiveBundleIndex) {
@@ -180,6 +213,11 @@ inline void ExtractIndicesAndMasks(
         if (isBinaryFeatureEquals1) {
             projBinaryFeatureValues[maybeBinaryIndex->PackIdx] |= bitMask;
         }
+    } else if (maybeFeaturesGroupIndex) {
+        TCalcHashInGroupContext calcHashInGroupContext;
+        calcHashInGroupContext.InGroupIdx = maybeFeaturesGroupIndex->InGroupIdx;
+        calcHashInGroupContext.CalcHashCallback = f;
+        featuresInGroups[maybeFeaturesGroupIndex->GroupIdx].push_back(std::move(calcHashInGroupContext));
     }
 }
 
@@ -194,6 +232,7 @@ struct TCalcHashParams {
 
     TMaybe<NCB::TBoundsInBundle> Bounds;
     TMaybe<ui8> BitIdx;
+    TMaybe<ui32> InGroupIdx;
 
     const void* RawColumnPtr = nullptr;
     ui32 BitsPerKey;
@@ -221,6 +260,10 @@ struct TCalcHashParams {
             for (auto& value : values) {
                 value = (value >> BitIdx.GetRef()) & 1;
             }
+        } else if (InGroupIdx) {
+            for (auto& value : values) {
+                value = NCB::GetPartValueFromGroup(value, *InGroupIdx);
+            }
         }
     }
 
@@ -247,6 +290,10 @@ struct TCalcHashParams {
             for (auto& value : values) {
                 value = (value >> BitIdx.GetRef()) & 1;
             }
+        } else if (InGroupIdx) {
+            for (auto& value : values) {
+                value = NCB::GetPartValueFromGroup(value, *InGroupIdx);
+            }
         }
     }
 };
@@ -255,10 +302,12 @@ template <class T, NCB::EFeatureValuesType FeatureValuesType>
 inline TCalcHashParams ExtractColumnLocation(
     TMaybe<NCB::TExclusiveBundleIndex> maybeExclusiveBundleIndex,
     TMaybe<NCB::TPackedBinaryIndex> maybeBinaryIndex,
+    TMaybe<NCB::TFeaturesGroupIndex> maybeFeaturesGroupIndex,
     std::function<const NCB::TTypedFeatureValuesHolder<T, FeatureValuesType>*()>&& getFeatureColumn,
     std::function<const NCB::TExclusiveFeaturesBundle(ui32)>&& getExclusiveFeatureBundleMetaData,
     std::function<const NCB::TExclusiveFeatureBundleHolder*(ui32)>&& getExclusiveFeatureBundle,
-    std::function<const NCB::TBinaryPacksHolder*(ui32)>&& getBinaryFeaturesPack
+    std::function<const NCB::TBinaryPacksHolder*(ui32)>&& getBinaryFeaturesPack,
+    std::function<const NCB::TFeaturesGroupHolder*(ui32)>&& getFeaturesGroup
 ) {
     TCalcHashParams calcHashParams;
     if (maybeExclusiveBundleIndex) {
@@ -276,6 +325,13 @@ inline TCalcHashParams ExtractColumnLocation(
             &calcHashParams.RawColumnPtr,
             &calcHashParams.BitsPerKey);
         calcHashParams.BitIdx = maybeBinaryIndex->BitIdx;
+    } else if (maybeFeaturesGroupIndex) {
+        const ui32 groupIdx = maybeFeaturesGroupIndex->GroupIdx;
+        GetRawColumn<ui32, NCB::EFeatureValuesType::FeaturesGroup>(
+            *getFeaturesGroup(groupIdx),
+            &calcHashParams.RawColumnPtr,
+            &calcHashParams.BitsPerKey);
+        calcHashParams.InGroupIdx = maybeFeaturesGroupIndex->InGroupIdx;
     } else {
         GetRawColumn<T, FeatureValuesType>(
             *getFeatureColumn(),
@@ -292,7 +348,7 @@ inline TCalcHashParams ExtractColumnLocation(
 /// @param featuresSubsetIndexing - Use these indices when accessing raw arrays data
 /// @param perfectHashedToHashedCatValuesMap - if not nullptr use it to Hash original hashed cat values
 //                                             if nullptr - used perfectHashed values
-/// @param processBundledAndBinaryFeaturesInPacks - process bundled and binary features in packs.
+/// @param processAggregatedFeatures - process bundled, grouped and binary features in packs.
 ///                                       Faster, but not compatible with current model format.
 ///                                       So, enabled only during training, disabled for FinalCtr.
 /// @param begin, @param end - Result range
@@ -301,7 +357,7 @@ void CalcHashes(
     const NCB::TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
     const NCB::TFeaturesArraySubsetIndexing& featuresSubsetIndexing,
     const NCB::TPerfectHashedToHashedCatValuesMap* perfectHashedToHashedCatValuesMap,
-    bool processBundledAndBinaryFeaturesInPacks,
+    bool processAggregatedFeatures,
     ui64* begin,
     ui64* end,
     NPar::TLocalExecutor* localExecutor);

@@ -1024,6 +1024,13 @@ static void BindDataProcessingParams(NLastGetopt::TOpts* parserPtr, NJson::TJson
         .Handler0([plainJsonPtr](){
             (*plainJsonPtr)["dev_leafwise_scoring"] = true;
         });
+
+    parser
+        .AddLongOption("dev-group-features")
+        .NoArgument()
+        .Handler0([plainJsonPtr]() {
+            (*plainJsonPtr)["dev_group_features"] = true;
+        });
 }
 
 static void BindDistributedTrainingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {

@@ -7375,3 +7375,32 @@ def test_leafwise_scoring():
     yatest.common.execute(cmd + ['--dev-leafwise-scoring'])
     new_learn_errors_log = open(learn_error_path).read()
     assert new_learn_errors_log == learn_errors_log
+
+
+def test_group_features():
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_predictions_path = yatest.common.test_output_path('test_predictions.tsv')
+    model_path = yatest.common.test_output_path('model.bin')
+    fit_cmd = [
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '--cd', data_file('adult', 'train.cd'),
+        '-i', '50',
+        '-r', '0',
+        '-m', model_path,
+        '--learn-err-log', learn_error_path
+    ]
+    yatest.common.execute(fit_cmd)
+    calc_cmd = [
+        CATBOOST_PATH,
+        'calc',
+        '-m', model_path,
+        '--input-path', data_file('adult', 'test_small'),
+        '--cd', data_file('adult', 'train.cd'),
+        '--output-path', test_predictions_path,
+        '--output-columns', 'Probability'
+    ]
+    yatest.common.execute(calc_cmd)
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_predictions_path)]

@@ -27,20 +27,43 @@ inline static void SetBucketIndex(
     const ui32* bucketIndexing, // can be nullptr for simple case, use bucketBeginOffset instead then
     const int bucketBeginOffset,
     TIndexRange<ui32> docIndexRange,
+    int groupSize,
+    const TVector<ui32>& groupPartsBucketsOffsets,
     TVector<TBucketIndexType>* bucketIdx // already of proper size
 ) {
     const TArrayRef<TBucketIndexType> bucketIdxRef(*bucketIdx);
 
-    if (bucketIndexing == nullptr) {
-        for (auto doc : docIndexRange.Iter()) {
-            bucketIdxRef[doc] = column[bucketBeginOffset + doc];
+    if (groupSize == 1) {
+        if (bucketIndexing == nullptr) {
+            for (auto doc : docIndexRange.Iter()) {
+                bucketIdxRef[doc] = column[bucketBeginOffset + doc];
+            }
+        } else {
+            for (auto doc : docIndexRange.Iter()) {
+                const ui32 originalDocIdx = bucketIndexing[doc];
+                bucketIdxRef[doc] = column[originalDocIdx];
+            }
         }
     } else {
-        for (auto doc : docIndexRange.Iter()) {
-            const ui32 originalDocIdx = bucketIndexing[doc];
-            bucketIdxRef[doc] = column[originalDocIdx];
+        int pos = docIndexRange.Begin * groupSize;
+        if (bucketIndexing == nullptr) {
+            for (auto doc : docIndexRange.Iter()) {
+                for (auto partIdx : xrange(groupSize)) {
+                    bucketIdxRef[pos++] = groupPartsBucketsOffsets[partIdx] +
+                        GetPartValueFromGroup(column[bucketBeginOffset + doc], partIdx);
+                }
+            }
+        } else {
+            for (auto doc : docIndexRange.Iter()) {
+                const ui32 originalDocIdx = bucketIndexing[doc];
+                for (auto partIdx : xrange(groupSize)) {
+                    bucketIdxRef[pos++] = groupPartsBucketsOffsets[partIdx] +
+                        GetPartValueFromGroup(column[originalDocIdx], partIdx);
+                }
+            }
         }
     }
+
 }
 
 
@@ -49,6 +72,8 @@ inline static void ExtractBucketIndex(
     const TCalcScoreFold& fold,
     const TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
     TIndexRange<ui32> docIndexRange,
+    int groupSize,
+    const TVector<ui32>& groupPartsBucketsOffsets,
     TVector<TBucketIndexType>* bucketIdx // already of proper size
 ) {
     if (const auto* denseColumnData
@@ -72,6 +97,8 @@ inline static void ExtractBucketIndex(
                     docInDataProviderIndexing,
                     docInDataProviderBeginOffset,
                     docIndexRange,
+                    groupSize,
+                    groupPartsBucketsOffsets,
                     bucketIdx
                 );
             }
@@ -90,6 +117,8 @@ inline static void ExtractBucketIndex(
     const std::tuple<const TOnlineCTRHash&, const TOnlineCTRHash&>& allCtrs,
     const TSplitEnsemble& splitEnsemble,
     TIndexRange<ui32> docIndexRange,
+    int groupSize,
+    const TVector<ui32>& groupPartsBucketsOffsets,
     TVector<TBucketIndexType>* bucketIdx // already of proper size
 ) {
     if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr)) {
@@ -103,6 +132,8 @@ inline static void ExtractBucketIndex(
             docInFoldIndexing,
             0,
             docIndexRange,
+            groupSize,
+            groupPartsBucketsOffsets,
             bucketIdx
         );
     } else {
@@ -111,6 +142,8 @@ inline static void ExtractBucketIndex(
                 fold,
                 column,
                 docIndexRange,
+                groupSize,
+                groupPartsBucketsOffsets,
                 bucketIdx
             );
         };
@@ -142,6 +175,13 @@ inline static void ExtractBucketIndex(
                         splitEnsemble.ExclusiveFeaturesBundleRef.BundleIdx
                     )
                 );
+                break;
+            case ESplitEnsembleType::FeaturesGroup:
+                extractBucketIndexFunc(
+                    objectsDataProvider.GetFeaturesGroup(
+                        splitEnsemble.FeaturesGroupRef.GroupIdx
+                    )
+                );
         }
     }
 }
@@ -152,12 +192,17 @@ inline void UpdateWeighted(
     const double* weightedDer,
     const float* sampleWeights,
     TIndexRange<ui32> docIndexRange,
+    int indicesPerDoc,
     TBucketStats* stats
 ) {
+    int pos = docIndexRange.Begin * indicesPerDoc;
     for (auto doc : docIndexRange.Iter()) {
-        TBucketStats& leafStats = stats[bucketIdx[doc]];
-        leafStats.SumWeightedDelta += weightedDer[doc];
-        leafStats.SumWeight += sampleWeights[doc];
+        for (auto idx : xrange(indicesPerDoc)) {
+            Y_UNUSED(idx);
+            TBucketStats& leafStats = stats[bucketIdx[pos++]];
+            leafStats.SumWeightedDelta += weightedDer[doc];
+            leafStats.SumWeight += sampleWeights[doc];
+        }
     }
 }
 
@@ -168,7 +213,8 @@ inline void CalcStatsKernel(
     int dim,
     int bucketCount,
     TIndexRange<ui32> docIndexRange,
-    const TVector<TBucketIndexType>& bucketIdx, // has the same size as docs
+    const TVector<TBucketIndexType>& bucketIdx, // has size = docs * indicesPerDoc
+    int indicesPerDoc,
     TBucketStats* stats
 ) {
     Fill(stats, stats + bucketCount, TBucketStats{0, 0, 0, 0});
@@ -178,6 +224,7 @@ inline void CalcStatsKernel(
         GetDataPtr(bt.SampleWeightedDerivatives[dim]),
         GetDataPtr(fold.SampleWeights),
         docIndexRange,
+        indicesPerDoc,
         stats
     );
 }
@@ -196,12 +243,20 @@ static void CalcScoresForSubCandidate(
 
     const int approxDimension = fold.GetApproxDimension();
     const ui32 oneHotMaxSize = ctx->Params.CatFeatureParams.Get().OneHotMaxSize.Get();
-    const TSplitEnsembleSpec& splitEnsembleSpec = TSplitEnsembleSpec(
+    const TSplitEnsembleSpec splitEnsembleSpec(
         candidateInfo.SplitEnsemble,
-        objectsDataProvider.GetExclusiveFeatureBundlesMetaData());
+        objectsDataProvider.GetExclusiveFeatureBundlesMetaData(),
+        objectsDataProvider.GetFeaturesGroupsMetaData());
 
     TVector<TBucketIndexType> bucketIdx;
-    bucketIdx.yresize(fold.GetDocCount());
+    int groupSize = 1;
+    TVector<ui32> bucketOffsets(1);
+    if (candidateInfo.SplitEnsemble.Type == ESplitEnsembleType::FeaturesGroup) {
+        const auto groupIdx = candidateInfo.SplitEnsemble.FeaturesGroupRef.GroupIdx;
+        groupSize = objectsDataProvider.GetFeaturesGroupMetaData(groupIdx).Parts.ysize();
+        bucketOffsets = objectsDataProvider.GetFeaturesGroupMetaData(groupIdx).BucketOffsets;
+    }
+    bucketIdx.yresize(fold.GetDocCount() * groupSize);
 
     auto extractBucketIndex = [&] (TIndexRange<ui32> docIndexRange) {
         ExtractBucketIndex(
@@ -210,6 +265,8 @@ static void CalcScoresForSubCandidate(
             initialFold.GetAllCtrs(),
             candidateInfo.SplitEnsemble,
             docIndexRange,
+            groupSize,
+            bucketOffsets,
             &bucketIdx
         );
     };
@@ -222,6 +279,7 @@ static void CalcScoresForSubCandidate(
             bucketCount,
             docIndexRange,
             bucketIdx,
+            groupSize,
             GetDataPtr(stats)
         );
     };
@@ -349,12 +407,14 @@ static TVector<TVector<double>> CalcScoresForOneCandidateImpl(
                 splitEnsemble,
                 *objectsDataProvider.GetQuantizedFeaturesInfo(),
                 objectsDataProvider.GetPackedBinaryFeaturesSize(),
-                objectsDataProvider.GetExclusiveFeatureBundlesMetaData()
+                objectsDataProvider.GetExclusiveFeatureBundlesMetaData(),
+                objectsDataProvider.GetFeaturesGroupsMetaData()
             );
             const int bucketIndexBitCount = GetValueBitCount(bucketCount - 1);
             TSplitEnsembleSpec splitEnsembleSpec(
                 splitEnsemble,
-                objectsDataProvider.GetExclusiveFeatureBundlesMetaData()
+                objectsDataProvider.GetExclusiveFeatureBundlesMetaData(),
+                objectsDataProvider.GetFeaturesGroupsMetaData()
             );
             const ui32 oneHotMaxSize = ctx->Params.CatFeatureParams.Get().OneHotMaxSize.Get();
             const int candidateSplitCount = CalcSplitsCount(

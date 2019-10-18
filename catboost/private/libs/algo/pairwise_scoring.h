@@ -5,6 +5,7 @@
 #include "score_calcers.h"
 #include "split.h"
 
+#include <catboost/libs/data/feature_grouping.h>
 #include <catboost/libs/data/packed_binary_features.h>
 #include <catboost/private/libs/index_range/index_range.h>
 
@@ -32,6 +33,7 @@ struct TPairwiseStats {
      *  For SplitCandidates:         bucketCount
      *  For Binary packs:            binaryFeaturesCount * 2 (binIdx)
      *  For ExclusiveFeaturesBundle: bucketCount for all used features
+     *  For FeaturesGroup:           bucketCount for all grouped features
      */
     TArray2D<TVector<TBucketPairWeightStatistics>> PairWeightStatistics; // [leafCount][leafCount][statsCount]
 
@@ -215,6 +217,55 @@ inline TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatistic
 }
 
 
+// TGetFeaturesGroupValue is of type TGroupValue(ui32 docId)
+template <class TGetFeaturesGroupValue>
+inline TArray2D<TVector<TBucketPairWeightStatistics>> ComputePairWeightStatisticsForFeaturesGroup(
+    const TFlatPairsInfo& pairs,
+    int leafCount,
+    const TVector<TIndexType>& leafIndices,
+    const NCB::TFeaturesGroup& featuresGroup,
+    TGetFeaturesGroupValue getFeaturesGroupValue,
+    NCB::TIndexRange<int> pairIndexRange
+) {
+    TArray2D<TVector<TBucketPairWeightStatistics>> weightSums(leafCount, leafCount);
+    weightSums.FillEvery(TVector<TBucketPairWeightStatistics>(featuresGroup.TotalBucketCount));
+    for (size_t pairIdx : pairIndexRange.Iter()) {
+        const auto winnerIdx = pairs[pairIdx].WinnerId;
+        const auto loserIdx = pairs[pairIdx].LoserId;
+        if (winnerIdx == loserIdx) {
+            continue;
+        }
+        const auto winnerGroupValue = getFeaturesGroupValue(winnerIdx);
+        const auto winnerLeafId = leafIndices[winnerIdx];
+        const auto loserGroupValue = getFeaturesGroupValue(loserIdx);
+        const auto loserLeafId = leafIndices[loserIdx];
+        const float weight = pairs[pairIdx].Weight;
+
+        ui32 bucketOffset = 0;
+        for (auto partIdx : xrange(featuresGroup.Parts.size())) {
+            auto winnerBucketId = NCB::GetPartValueFromGroup(winnerGroupValue, partIdx);
+            auto loserBucketId = NCB::GetPartValueFromGroup(loserGroupValue, partIdx);
+
+            if (winnerBucketId > loserBucketId) {
+                weightSums[loserLeafId][winnerLeafId][bucketOffset + loserBucketId].SmallerBorderWeightSum
+                    -= weight;
+                weightSums[loserLeafId][winnerLeafId][bucketOffset + winnerBucketId].GreaterBorderRightWeightSum
+                    -= weight;
+            } else {
+                weightSums[winnerLeafId][loserLeafId][bucketOffset + winnerBucketId].SmallerBorderWeightSum
+                    -= weight;
+                weightSums[winnerLeafId][loserLeafId][bucketOffset + loserBucketId].GreaterBorderRightWeightSum
+                    -= weight;
+            }
+
+            bucketOffset += featuresGroup.Parts[partIdx].BucketCount;
+        }
+    }
+
+    return weightSums;
+}
+
+
 template <typename TBucket, typename TGetBucketFunc>
 inline void ComputePairwiseStats(
     ESplitEnsembleType splitEnsembleType,
@@ -227,6 +278,8 @@ inline void ComputePairwiseStats(
 
     // used only if SplitEnsembleType == ESplitEnsembleType::ExclusiveBundle
     TMaybe<const NCB::TExclusiveFeaturesBundle*> exclusiveFeaturesBundle,
+    // used only if SplitEnsembleType == ESplitEnsembleType::FeaturesGroup
+    TMaybe<const NCB::TFeaturesGroup*> featuresGroup,
     NCB::TIndexRange<int> docIndexRange,
     NCB::TIndexRange<int> pairIndexRange,
     TGetBucketFunc&& getBucketFunc,
@@ -273,6 +326,16 @@ inline void ComputePairwiseStats(
                 pairIndexRange
             );
             break;
+        case ESplitEnsembleType::FeaturesGroup:
+            output->PairWeightStatistics = ComputePairWeightStatisticsForFeaturesGroup(
+                pairs,
+                leafCount,
+                leafIndices,
+                **featuresGroup,
+                getBucketFunc,
+                pairIndexRange
+            );
+            break;
     }
 }
 
@@ -288,6 +351,8 @@ inline void ComputePairwiseStats(
 
     // used only if splitEnsembleType == ESplitEnsembleType::ExclusiveBundle
     TMaybe<const NCB::TExclusiveFeaturesBundle*> exclusiveFeaturesBundle,
+    // used only if SplitEnsembleType == ESplitEnsembleType::FeaturesGroup
+    TMaybe<const NCB::TFeaturesGroup*> featuresGroup,
     const NCB::TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
     NCB::TIndexRange<int> docIndexRange,
     NCB::TIndexRange<int> pairIndexRange,
@@ -298,6 +363,8 @@ inline void ComputePairwiseStats(
         splitEnsembleType = ESplitEnsembleType::BinarySplits;
     } else if constexpr (FeatureValuesType == NCB::EFeatureValuesType::ExclusiveFeatureBundle) {
         splitEnsembleType = ESplitEnsembleType::ExclusiveBundle;
+    } else if constexpr (FeatureValuesType == NCB::EFeatureValuesType::FeaturesGroup) {
+        splitEnsembleType = ESplitEnsembleType::FeaturesGroup;
     } else {
         splitEnsembleType = ESplitEnsembleType::OneFeature;
     }
@@ -323,6 +390,7 @@ inline void ComputePairwiseStats(
                     oneHotMaxSize,
                     fold.Indices,
                     exclusiveFeaturesBundle,
+                    featuresGroup,
                     docIndexRange,
                     pairIndexRange,
                     [bucketSrcData, bucketIndexing](ui32 docIdx) {

@@ -168,9 +168,11 @@ static void CompressCandidates(
     auto& candList = candidatesContext->CandidateList;
     auto& selectedFeaturesInBundles = candidatesContext->SelectedFeaturesInBundles;
     auto& perBinaryPackMasks = candidatesContext->PerBinaryPackMasks;
+    auto& selectedFeaturesInGroups = candidatesContext->SelectedFeaturesInGroups;
 
     selectedFeaturesInBundles.assign(learnObjectsData.GetExclusiveFeatureBundlesSize(), TVector<ui32>());
     perBinaryPackMasks.assign(learnObjectsData.GetBinaryFeaturesPacksSize(), TBinaryFeaturesPack(0));
+    selectedFeaturesInGroups.assign(learnObjectsData.GetFeaturesGroupsSize(), TVector<ui32>());
 
     TCandidateList updatedCandList;
     updatedCandList.reserve(candList.size());
@@ -182,18 +184,22 @@ static void CompressCandidates(
 
         TMaybe<TExclusiveBundleIndex> maybeExclusiveBundleIndex;
         TMaybe<TPackedBinaryIndex> maybePackedBinaryIndex;
+        TMaybe<TFeaturesGroupIndex> maybeFeaturesGroupIndex;
 
         if (splitCandidate.Type == ESplitType::FloatFeature) {
             auto floatFeatureIdx = TFloatFeatureIdx(splitCandidate.FeatureIdx);
             maybeExclusiveBundleIndex = learnObjectsData.GetFeatureToExclusiveBundleIndex(floatFeatureIdx);
             maybePackedBinaryIndex = learnObjectsData.GetFeatureToPackedBinaryIndex(floatFeatureIdx);
+            maybeFeaturesGroupIndex = learnObjectsData.GetFeatureToFeaturesGroupIndex(floatFeatureIdx);
         } else {
             auto catFeatureIdx = TCatFeatureIdx(splitCandidate.FeatureIdx);
             maybeExclusiveBundleIndex = learnObjectsData.GetFeatureToExclusiveBundleIndex(catFeatureIdx);
             maybePackedBinaryIndex = learnObjectsData.GetFeatureToPackedBinaryIndex(catFeatureIdx);
         }
         CB_ENSURE_INTERNAL(
-            !maybeExclusiveBundleIndex || !maybePackedBinaryIndex,
+            maybeExclusiveBundleIndex.Defined()
+                + maybePackedBinaryIndex.Defined()
+                + maybeFeaturesGroupIndex.Defined() <= 1,
             "Feature #"
             << learnObjectsData.GetFeaturesLayout()->GetExternalFeatureIdx(
                 splitCandidate.FeatureIdx,
@@ -201,13 +207,17 @@ static void CompressCandidates(
                     EFeatureType::Float :
                     EFeatureType::Categorical
             )
-            << " is both in an exclusive bundle and in a binary pack");
+            << " is mis-included into more than one aggregated column");
 
         if (maybeExclusiveBundleIndex) {
             selectedFeaturesInBundles[maybeExclusiveBundleIndex->BundleIdx].push_back(
                 maybeExclusiveBundleIndex->InBundleIdx);
         } else if (maybePackedBinaryIndex) {
             MarkFeatureAsIncluded(*maybePackedBinaryIndex, &perBinaryPackMasks);
+        } else if (maybeFeaturesGroupIndex) {
+            selectedFeaturesInGroups[maybeFeaturesGroupIndex->GroupIdx].push_back(
+                maybeFeaturesGroupIndex->InGroupIdx
+            );
         } else {
             updatedCandList.push_back(std::move(candSubList));
         }
@@ -233,6 +243,19 @@ static void CompressCandidates(
         updatedCandList.emplace_back(TCandidatesInfoList(candidate));
     }
 
+    for (auto groupIdx : xrange(SafeIntegerCast<ui32>(selectedFeaturesInGroups.size()))) {
+        auto& group = selectedFeaturesInGroups[groupIdx];
+        if (group.empty()) {
+            continue;
+        }
+
+        Sort(group);
+
+        TCandidateInfo candidate;
+        candidate.SplitEnsemble = TSplitEnsemble{TFeaturesGroupRef{groupIdx}};
+        updatedCandList.emplace_back(TCandidatesInfoList(candidate));
+    }
+
     candList = std::move(updatedCandList);
 }
 
@@ -245,6 +268,7 @@ static void SelectCandidatesAndCleanupStatsFromPrevTree(
     auto& candList = candidatesContext->CandidateList;
     auto& selectedFeaturesInBundles = candidatesContext->SelectedFeaturesInBundles;
     auto& perBinaryPackMasks = candidatesContext->PerBinaryPackMasks;
+    auto& selectedFeaturesInGroups = candidatesContext->SelectedFeaturesInGroups;
 
     TCandidateList updatedCandList;
     updatedCandList.reserve(candList.size());
@@ -294,6 +318,24 @@ static void SelectCandidatesAndCleanupStatsFromPrevTree(
                     }
                     selectedFeaturesInBundle = std::move(filteredFeaturesInBundle);
                     addCandSubListToResult = !selectedFeaturesInBundle.empty();
+                }
+                break;
+            case ESplitEnsembleType::FeaturesGroup:
+                {
+                    TVector<ui32>& selectedFeaturesInGroup
+                        = selectedFeaturesInGroups[splitEnsemble.FeaturesGroupRef.GroupIdx];
+
+                    TVector<ui32> filteredFeaturesInGroup;
+                    filteredFeaturesInGroup.reserve(selectedFeaturesInGroup.size());
+                    for (auto inGroupIdx : selectedFeaturesInGroup) {
+                        const bool addToCandidates
+                            = ctx->LearnProgress->Rand.GenRandReal1() <= ctx->Params.ObliviousTreeOptions->Rsm;
+                        if (addToCandidates) {
+                            filteredFeaturesInGroup.push_back(inGroupIdx);
+                        }
+                    }
+                    selectedFeaturesInGroup = std::move(filteredFeaturesInGroup);
+                    addCandSubListToResult = !selectedFeaturesInGroup.empty();
                 }
                 break;
         }
@@ -826,6 +868,7 @@ void GreedyTensorSearch(
         TCandidatesContext candidatesContext;
         candidatesContext.OneHotMaxSize = ctx->Params.CatFeatureParams->OneHotMaxSize;
         candidatesContext.BundlesMetaData = data.Learn->ObjectsData->GetExclusiveFeatureBundlesMetaData();
+        candidatesContext.FeaturesGroupsMetaData = data.Learn->ObjectsData->GetFeaturesGroupsMetaData();
 
         AddFloatFeatures(*data.Learn->ObjectsData, &candidatesContext.CandidateList);
         AddOneHotFeatures(*data.Learn->ObjectsData, ctx, &candidatesContext.CandidateList);

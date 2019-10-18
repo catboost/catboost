@@ -2381,6 +2381,16 @@
             "uri": "file://test.test_gradient_walker/test.eval"
         }
     ],
+    "test.test_group_features": [
+        {
+            "checksum": "01c1583cc903e6d02264f7f25a9f4084",
+            "uri": "file://test.test_group_features/learn_error.tsv"
+        },
+        {
+            "checksum": "cd6f898f9b5961081da763b13bbba629",
+            "uri": "file://test.test_group_features/test_predictions.tsv"
+        }
+    ],
     "test.test_group_weight[calc_block=5000000-Ordered]": [
         {
             "checksum": "1ff482467071502f92c32cea77f132f6",
@@ -4190,7 +4200,7 @@
         "uri": "file://test.test_output_columns_format/test.eval"
     },
     "test.test_output_options": {
-        "checksum": "877284411e51303fd5692ec83af09f3d",
+        "checksum": "e74289ee29e8e88166c1d0d29eebd637",
         "uri": "file://test.test_output_options/training_options.json"
     },
     "test.test_overfit_detector_inc_to_dec[Ordered]": [
