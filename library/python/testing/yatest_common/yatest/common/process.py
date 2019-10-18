@@ -628,7 +628,7 @@ def check_glibc_version(binary_path):
 
 def backtrace_to_html(bt_filename, output):
     with open(output, "wb") as afile:
-        res = execute([runtime.python_path(), runtime.source_path("devtools/coredump_filter/core_proc.py"), bt_filename], check_exit_code=False, check_sanitizer=False, stdout=afile)
+        res = execute([runtime.python_path(), runtime.source_path("library/python/coredump_filter/core_proc.py"), bt_filename], check_exit_code=False, check_sanitizer=False, stdout=afile)
     if res.exit_code != 0:
         with open(output, "ab") as afile:
             afile.write("\n")
