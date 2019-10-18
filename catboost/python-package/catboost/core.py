@@ -1058,17 +1058,6 @@ def _get_loss_function_for_train(params, estimator_type, train_pool):
         return 'RMSE'
 
 
-def _get_loss_function_for_predict(params):
-    if params is None:
-        return None
-
-    # check 'objective' first because it can be overridden as a CatBoost* param with default 'loss_function'
-    objective_param = params.get('objective')
-    if objective_param is not None:
-        return objective_param
-
-    return params.get('loss_function')
-
 def _save_plot_file(plot_file, plot_name, figs):
     warn_msg = "To draw plots you should install plotly."
     try:
@@ -1218,9 +1207,6 @@ class _CatBoostBase(object):
 
     def _base_predict(self, pool, prediction_type, ntree_start, ntree_end, thread_count, verbose):
         return self._object._base_predict(pool, prediction_type, ntree_start, ntree_end, thread_count, verbose)
-
-    def _base_predict_multi(self, pool, prediction_type, ntree_start, ntree_end, thread_count, verbose):
-        return self._object._base_predict_multi(pool, prediction_type, ntree_start, ntree_end, thread_count, verbose)
 
     def _staged_predict_iterator(self, pool, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose):
         return self._object._staged_predict_iterator(pool, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
@@ -1772,14 +1758,7 @@ class CatBoost(_CatBoostBase):
         data, data_is_single_object = self._process_predict_input_data(data, parent_method_name)
         self._validate_prediction_type(prediction_type)
 
-        loss_function_type = _get_loss_function_for_predict(self._get_params())
-
-        # TODO(kirillovs): very bad solution. user should be able to use custom multiclass losses
-        if loss_function_type is not None and (loss_function_type == 'MultiClass' or loss_function_type == 'MultiClassOneVsAll'):
-            return np.transpose(self._base_predict_multi(data, prediction_type, ntree_start, ntree_end, thread_count, verbose))
-        predictions = np.array(self._base_predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose))
-        if prediction_type == 'Probability':
-            predictions = np.transpose([1 - predictions, predictions])
+        predictions = self._base_predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose)
         return predictions[0] if data_is_single_object else predictions
 
     def predict(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
@@ -1840,15 +1819,8 @@ class CatBoost(_CatBoostBase):
         if ntree_end == 0:
             ntree_end = self.tree_count_
         staged_predict_iterator = self._staged_predict_iterator(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
-        loss_function = _get_loss_function_for_predict(self._get_params())
         while True:
             predictions = staged_predict_iterator.next()
-            if loss_function is not None and (loss_function == 'MultiClass' or loss_function == 'MultiClassOneVsAll'):
-                predictions = np.transpose(predictions)
-            else:
-                predictions = np.array(predictions[0])
-                if prediction_type == 'Probability':
-                    predictions = np.transpose([1 - predictions, predictions])
             yield predictions[0] if data_is_single_object else predictions
 
     def staged_predict(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):

@@ -9,6 +9,8 @@ TFullModel TrainFloatCatboostModel(int iterations = 5, int seed = 123);
 NCB::TDataProviderPtr GetAdultPool();
 NCB::TDataProviderPtr GetMultiClassPool();
 
+NCB::TDataProviderPtr GetMultiClassPool();
+
 TFullModel SimpleFloatModel(size_t treeCount = 1);
 
 TFullModel SimpleTextModel(

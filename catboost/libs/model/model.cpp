@@ -884,6 +884,47 @@ static void StreamModelTreesToBuilder(
     }
 }
 
+static void SumModelsParams(
+    const TVector<const TFullModel*> modelVector,
+    THashMap<TString, TString>* modelInfo
+) {
+    const char* multiClassParamsName = "multiclass_params";
+    if (modelVector.back()->ModelInfo.contains(multiClassParamsName)) {
+        const TString multiClassParams = modelVector.back()->ModelInfo.at(multiClassParamsName);
+        const bool allMultiClassParamsAreSame = AllOf(
+            modelVector,
+            [&](const TFullModel* model) {
+                return model->ModelInfo.contains(multiClassParamsName) &&
+                       model->ModelInfo.at(multiClassParamsName) == multiClassParams;
+            }
+        );
+
+        CB_ENSURE(
+            allMultiClassParamsAreSame,
+            "Cannot sum models with different multiclass_params"
+        );
+        (*modelInfo)[multiClassParamsName] = multiClassParams;
+    }
+
+    const auto lossDescription = GetLossDescription(*modelVector.back());
+    if (lossDescription.Defined()) {
+        const bool allLossesAreSame = AllOf(
+            modelVector,
+            [&lossDescription](const TFullModel* model) {
+                const auto currentLossDescription = GetLossDescription(*model);
+                return currentLossDescription.Defined() && ((*currentLossDescription) == (*lossDescription));
+            }
+        );
+
+        if (allLossesAreSame) {
+            NJson::TJsonValue lossDescriptionJson;
+            lossDescription->Save(&lossDescriptionJson);
+            (*modelInfo)["loss_function"] = ToString(lossDescriptionJson);
+        }
+    }
+
+}
+
 TFullModel SumModels(
     const TVector<const TFullModel*> modelVector,
     const TVector<double>& weights,
@@ -960,6 +1001,7 @@ TFullModel SumModels(
     result.CtrProvider = MergeCtrProvidersData(ctrProviders, ctrMergePolicy);
     result.UpdateDynamicData();
     result.ModelInfo["model_guid"] = CreateGuidAsString();
+    SumModelsParams(modelVector, &result.ModelInfo);
     return result;
 }
 

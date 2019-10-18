@@ -1558,6 +1558,19 @@ cdef EPredictionType string_to_prediction_type(prediction_type_str):
         raise CatBoostError("Unknown prediction type {}.".format(prediction_type_str))
     return prediction_type
 
+cdef transform_predictions(TVector[TVector[double]] predictions, EPredictionType predictionType, int thread_count, TFullModel* model):
+    approx_dimension = model.GetDimensionsCount()
+
+    if approx_dimension == 1:
+        pred_single_dim = _vector_of_double_to_np_array(predictions[0])
+
+        if predictionType == EPredictionType_Probability:
+            return np.transpose([1 - pred_single_dim, pred_single_dim])
+        return pred_single_dim
+
+    assert(approx_dimension > 1)
+    return np.transpose(_convert_to_visible_labels(predictionType, predictions, thread_count, model))
+
 
 cdef EModelType string_to_model_type(model_type_str) except *:
     cdef EModelType model_type
@@ -3749,24 +3762,6 @@ cdef class _CatBoost:
         return dict([(feature.Position.FlatIndex, feature.Borders) for feature in arrayView])
 
     cpdef _base_predict(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, bool_t verbose):
-        cdef TVector[double] pred
-        cdef EPredictionType predictionType = string_to_prediction_type(prediction_type)
-        thread_count = UpdateThreadCount(thread_count);
-        with nogil:
-            pred = ApplyModelMulti(
-                dereference(self.__model),
-                dereference(pool.__pool.Get()),
-                verbose,
-                predictionType,
-                ntree_start,
-                ntree_end,
-                thread_count
-            )[0]
-        return _vector_of_double_to_np_array(pred)
-
-
-    cpdef _base_predict_multi(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end,
-                              int thread_count, bool_t verbose):
         cdef TVector[TVector[double]] pred
         cdef EPredictionType predictionType = string_to_prediction_type(prediction_type)
         thread_count = UpdateThreadCount(thread_count);
@@ -3780,7 +3775,8 @@ cdef class _CatBoost:
                 ntree_end,
                 thread_count
             )
-        return _convert_to_visible_labels(predictionType, pred, thread_count, self.__model)
+
+        return transform_predictions(pred, predictionType, thread_count, self.__model)
 
     cpdef _staged_predict_iterator(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int eval_period, int thread_count, verbose):
         thread_count = UpdateThreadCount(thread_count);
@@ -4486,7 +4482,7 @@ cdef class _StagedPredictIterator:
         self.ntree_start += self.eval_period
         self.__pred = PrepareEvalForInternalApprox(self.predictionType, dereference(self.__model), self.__approx, self.thread_count)
 
-        return _convert_to_visible_labels(self.predictionType, self.__pred, self.thread_count, self.__model)
+        return transform_predictions(self.__pred, self.predictionType, self.thread_count, self.__model)
 
 cdef class _LeafIndexIterator:
     cdef TLeafIndexCalcerOnPool* __leafIndexCalcer
