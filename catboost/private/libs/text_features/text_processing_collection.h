@@ -9,6 +9,22 @@
 #include <util/generic/vector.h>
 
 namespace NCB {
+    struct TEvaluatedFeature {
+    public:
+        TEvaluatedFeature(
+            ui32 textFeatureId,
+            TGuid calcerId,
+            ui32 localId)
+            : TextFeatureId(textFeatureId)
+            , CalcerId(std::move(calcerId))
+            , LocalId(localId)
+        {}
+
+    public:
+        ui32 TextFeatureId;
+        TGuid CalcerId;
+        ui32 LocalId;
+    };
 
     class TTextProcessingCollection : public TThrRefBase {
     public:
@@ -28,14 +44,58 @@ namespace NCB {
             CalcFeatures(textFeature, textFeatureIdx, textFeature.size(), result);
         }
 
+        template <class TTextFeatureAccessor>
+        void CalcFeatures(
+            TTextFeatureAccessor featureAccessor,
+            TConstArrayRef<ui32> textFeatureIds,
+            ui32 docCount,
+            TArrayRef<float> result
+        ) const {
+            const ui32 totalNumberOfFeatures = TotalNumberOfOutputFeatures() * docCount;
+            CB_ENSURE(
+                result.size() == totalNumberOfFeatures,
+                "Proposed result buffer has size (" << result.size()
+                    << ") less than text processing produce (" << totalNumberOfFeatures << ')'
+            );
+
+            TVector<TStringBuf> texts;
+            texts.yresize(docCount);
+
+            float* estimatedFeatureBegin = &result[0];
+            for (ui32 textFeatureId: textFeatureIds) {
+                auto estimatedFeatureEnd = estimatedFeatureBegin + NumberOfOutputFeatures(textFeatureId) * docCount;
+
+                for (size_t docId : xrange(docCount)) {
+                    static_assert(std::is_same<decltype(featureAccessor(textFeatureId, docId)), TStringBuf>::value);
+                    texts[docId] = featureAccessor(textFeatureId, docId);
+                }
+
+                CalcFeatures(
+                    MakeConstArrayRef(texts),
+                    textFeatureId,
+                    TArrayRef<float>(
+                        estimatedFeatureBegin,
+                        estimatedFeatureEnd
+                    )
+                );
+                estimatedFeatureBegin = estimatedFeatureEnd;
+            }
+        }
+
         void CalcFeatures(
             TConstArrayRef<TStringBuf> textFeature,
             ui32 textFeatureIdx,
             size_t docCount,
             TArrayRef<float> result) const;
 
-        TStringBuf GetStringIdentifier() {
-            return TStringBuf(StringIdentifier.data());
+        ui32 GetAbsoluteCalcerOffset(const TGuid& calcerGuid) const;
+        ui32 GetRelativeCalcerOffset(ui32 textFeatureIdx, const TGuid& calcerGuid) const;
+
+        ui32 GetTextFeatureCount() const;
+        ui32 GetTokenizedFeatureCount() const;
+
+        static TString GetStringIdentifier() {
+            return TString(StringIdentifier.data(), StringIdentifier.size());
         }
 
         TTextFeatureCalcerPtr GetCalcer(ui32 calcerId) const {
@@ -45,20 +105,25 @@ namespace NCB {
         ui32 NumberOfOutputFeatures(ui32 textFeatureId) const;
         ui32 TotalNumberOfOutputFeatures() const;
 
+        TVector<TEvaluatedFeature> GetProducedFeatures() const;
+
         void Save(IOutputStream* s) const;
         void Load(IInputStream* s);
-
-        ui32 GetTokenizedFeatureId(ui32 textFeatureIdx, ui32 dictionaryIdx) const;
-        ui32 GetCalcerFeatureOffset(ui32 textFeatureIdx, ui32 dictionaryIdx, ui32 calcerIdx) const;
 
         bool operator==(const TTextProcessingCollection& rhs);
         bool operator!=(const TTextProcessingCollection& rhs);
 
     private:
+        ui32 GetFirstTextFeatureCalcer(ui32 textFeatureIdx) const;
+        ui32 GetTokenizedFeatureId(ui32 textFeatureIdx, ui32 dictionaryIdx) const;
+
+        ui32 GetAbsoluteCalcerOffset(ui32 calcerIdx) const;
+        ui32 GetRelativeCalcerOffset(ui32 textFeatureIdx, ui32 calcerIdx) const;
+
         void SaveHeader(IOutputStream* stream) const;
         void LoadHeader(IInputStream* stream);
 
-        void CalcProcessedFeatureIdx();
+        void CalcRuntimeData();
         void CheckPerFeatureIdx() const;
 
         TTokenizerPtr Tokenizer = CreateTokenizer();
@@ -67,14 +132,15 @@ namespace NCB {
 
         TVector<TGuid> DictionaryId;
         TVector<TGuid> FeatureCalcerId;
+        THashMap<TGuid, ui32> CalcerGuidToFlatIdx;
 
         TVector<TVector<ui32>> PerFeatureDictionaries;
         TVector<TVector<ui32>> PerTokenizedFeatureCalcers;
 
         THashMap<std::pair<ui32, ui32>, ui32> TokenizedFeatureId;
-        THashMap<std::tuple<ui32, ui32, ui32>, ui32> ProcessedFeatureId;
+        THashMap<ui32, ui32> FeatureCalcerOffset;
 
-        static constexpr std::array<char, 16> StringIdentifier = {"TTextCollection"};
+        static constexpr std::array<char, 16> StringIdentifier = {"text_process_v1"};
         static constexpr size_t IdentifierSize = 16;
         static constexpr ui32 SerializationAlignment = 16;
     };

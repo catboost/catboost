@@ -1312,8 +1312,11 @@ namespace NCB {
                 }
                 return;
             }
+            TString zero{"0"};
+            TString one{"1"};
             for (auto it = targetPart.GetIterator(); !it.AtEnd(); it.Next(), ++objectOffset) {
-                target[objectOffset] = ToString(it.Cur());
+                const auto cur = it.Cur();
+                target[objectOffset] = cur == 0.f ? zero : cur == 1.f ? one : ToString(cur);
             }
         }
 

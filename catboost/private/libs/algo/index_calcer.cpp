@@ -128,11 +128,13 @@ template <typename T, EFeatureValuesType FeatureValuesType, class TCmpOp>
 void ScheduleUpdateIndicesForSplit(
     TMaybe<TExclusiveBundleIndex> maybeExclusiveBundleIndex,
     TMaybe<TPackedBinaryIndex> maybeBinaryIndex,
+    TMaybe<TFeaturesGroupIndex> maybeFeaturesGroupIndex,
     TConstArrayRef<TExclusiveFeaturesBundle> exclusiveFeaturesBundlesMetaData,
     const TIndexedSubset<ui32>& columnsIndexing,
     const TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
     std::function<const TExclusiveFeatureBundleHolder*(ui32)>&& getExclusiveFeaturesBundle,
     std::function<const TBinaryPacksHolder*(ui32)>&& getBinaryFeaturesPack,
+    std::function<const TFeaturesGroupHolder*(ui32)>&& getFeaturesGroup,
     TCmpOp cmpOp,
     int level,
     TIndexType* indices,
@@ -166,6 +168,12 @@ void ScheduleUpdateIndicesForSplit(
             *getExclusiveFeaturesBundle(maybeExclusiveBundleIndex->BundleIdx),
             [boundsInBundle, cmpOp = std::move(cmpOp)] (ui16 featuresBundle) {
                 return cmpOp(GetBinFromBundle<ui16>(featuresBundle, boundsInBundle));
+            });
+    } else if (maybeFeaturesGroupIndex) {
+        scheduleUpdateIndicesForSplit(
+            *getFeaturesGroup(maybeFeaturesGroupIndex->GroupIdx),
+            [partIdx = maybeFeaturesGroupIndex->InGroupIdx, cmpOp = std::move(cmpOp)] (const auto& featuresGroupValue) {
+                return cmpOp(GetPartValueFromGroup(featuresGroupValue, partIdx));
             });
     } else {
         scheduleUpdateIndicesForSplit(column, std::move(cmpOp));
@@ -219,12 +227,14 @@ static void UpdateIndices(
             auto scheduleUpdateIndicesForSplit = [&] (
                 auto maybeExclusiveBundleIndex,
                 auto maybeBinaryIndex,
+                auto maybeFeaturesGroupIndex,
                 const auto& column,
                 auto&& cmpOp) {
 
                 ScheduleUpdateIndicesForSplit(
                     maybeExclusiveBundleIndex,
                     maybeBinaryIndex,
+                    maybeFeaturesGroupIndex,
                     objectsDataProvider.GetExclusiveFeatureBundlesMetaData(),
                     columnsIndexing,
                     column,
@@ -232,6 +242,9 @@ static void UpdateIndices(
                         return &objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx);
                     },
                     [&] (ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
+                    [&] (ui32 groupIdx) {
+                        return &objectsDataProvider.GetFeaturesGroup(groupIdx);
+                    },
                     std::move(cmpOp),
                     splitWeight,
                     indicesData,
@@ -245,6 +258,7 @@ static void UpdateIndices(
                 scheduleUpdateIndicesForSplit(
                     objectsDataProvider.GetFloatFeatureToExclusiveBundleIndex(floatFeatureIdx),
                     objectsDataProvider.GetFloatFeatureToPackedBinaryIndex(floatFeatureIdx),
+                    objectsDataProvider.GetFloatFeatureToFeaturesGroupIndex(floatFeatureIdx),
                     **objectsDataProvider.GetFloatFeature((ui32)split.FeatureIdx),
                     [splitIdx = GetFeatureSplitIdx(split)] (ui16 bucket) {
                         return IsTrueHistogram<ui16>(bucket, splitIdx);
@@ -257,6 +271,7 @@ static void UpdateIndices(
                 scheduleUpdateIndicesForSplit(
                     objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
                     objectsDataProvider.GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
+                    objectsDataProvider.GetCatFeatureToFeaturesGroupIndex(catFeatureIdx),
                     **objectsDataProvider.GetCatFeature((ui32)split.FeatureIdx),
                     [bucketIdx = (ui32)split.BinBorder] (ui32 bucket) {
                         return IsTrueOneHotFeature(bucket, bucketIdx);

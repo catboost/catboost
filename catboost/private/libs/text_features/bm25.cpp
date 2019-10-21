@@ -60,7 +60,7 @@ void TBM25::Compute(const TText& text, TOutputFloatIterator iterator) const {
     );
 }
 
-flatbuffers::Offset<NCatBoostFbs::TFeatureCalcer> TBM25::SaveParametersToFB(flatbuffers::FlatBufferBuilder& builder) const {
+TTextFeatureCalcer::TFeatureCalcerFbs TBM25::SaveParametersToFB(flatbuffers::FlatBufferBuilder& builder) const {
     using namespace NCatBoostFbs;
 
     // TODO(d-kruchinin, kirillovs) change flatbuffer types to arcadian
@@ -79,12 +79,7 @@ flatbuffers::Offset<NCatBoostFbs::TFeatureCalcer> TBM25::SaveParametersToFB(flat
         TotalTokens,
         fbClassTotalTokens
     );
-    return CreateTFeatureCalcer(
-        builder,
-        ActiveFeatureIndicesToFB(builder),
-        TAnyFeatureCalcer_TBM25,
-        fbBm25.Union()
-    );
+    return TFeatureCalcerFbs(TAnyFeatureCalcer_TBM25, fbBm25.Union());
 }
 
 void TBM25::LoadParametersFromFB(const NCatBoostFbs::TFeatureCalcer* calcer) {

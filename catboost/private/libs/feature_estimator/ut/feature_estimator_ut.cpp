@@ -19,14 +19,12 @@ Y_UNIT_TEST_SUITE(TestFeatureEstimators) {
 
         class TIdentityCalcer : public TTextFeatureCalcer {
         public:
-            TIdentityCalcer() = default;
+            TIdentityCalcer()
+                : TTextFeatureCalcer(1, CreateGuid())
+            {}
 
             EFeatureCalcerType Type() const override {
                 return EFeatureCalcerType::BM25; // only for test purposes
-            }
-
-            ui32 BaseFeatureCount() const override {
-                return 1;
             }
 
             void Compute(const TText& text, TOutputFloatIterator outputFeaturesIterator) const override {
@@ -41,7 +39,7 @@ Y_UNIT_TEST_SUITE(TestFeatureEstimators) {
             friend class TIdentityVisitor;
         };
 
-        class TIdentityVisitor final : public ITextCalcerVisitor{
+        class TIdentityVisitor final : public ITextCalcerVisitor {
         public:
             void Update(ui32 classIdx, const TText& text, TTextFeatureCalcer* calcer) {
                 auto identityCalcer = dynamic_cast<TIdentityCalcer*>(calcer);
@@ -102,10 +100,12 @@ Y_UNIT_TEST_SUITE(TestFeatureEstimators) {
         }
 
         TTextColumnDictionaryOptions columnDictionaryOptions;
-        TDictionaryPtr dictionary = NTextProcessing::NDictionary::TDictionaryBuilder(
-            columnDictionaryOptions.DictionaryBuilderOptions,
-            columnDictionaryOptions.DictionaryOptions
-        ).FinishBuilding();
+        TDictionaryPtr dictionary = new TDictionaryProxy(
+            NTextProcessing::NDictionary::TDictionaryBuilder(
+                columnDictionaryOptions.DictionaryBuilderOptions,
+                columnDictionaryOptions.DictionaryOptions
+            ).FinishBuilding()
+        );
 
         TTextColumn textColumn = TTextColumn::CreateOwning(std::move(texts));
         TTextDataSetPtr learnTexts = MakeIntrusive<TTextDataSet>(textColumn, dictionary);
@@ -168,10 +168,12 @@ Y_UNIT_TEST_SUITE(TestFeatureEstimators) {
         }
 
         TTextColumnDictionaryOptions columnDictionaryOptions;
-        TDictionaryPtr dictionary = NTextProcessing::NDictionary::TDictionaryBuilder(
-            columnDictionaryOptions.DictionaryBuilderOptions,
-            columnDictionaryOptions.DictionaryOptions
-        ).FinishBuilding();
+        TDictionaryPtr dictionary = new TDictionaryProxy(
+            NTextProcessing::NDictionary::TDictionaryBuilder(
+                columnDictionaryOptions.DictionaryBuilderOptions,
+                columnDictionaryOptions.DictionaryOptions
+            ).FinishBuilding()
+        );
 
         TTextColumn textColumn = TTextColumn::CreateOwning(std::move(texts));
         TTextDataSetPtr learnTexts = MakeIntrusive<TTextDataSet>(textColumn, dictionary);
@@ -188,8 +190,8 @@ Y_UNIT_TEST_SUITE(TestFeatureEstimators) {
         };
 
         const TMap<EFeatureCalcerType, TTextFeatureCalcerPtr> calcers = {
-            {EFeatureCalcerType::BM25, MakeIntrusive<TBM25>(numClasses)},
-            {EFeatureCalcerType::NaiveBayes, MakeIntrusive<TMultinomialNaiveBayes>(numClasses)}
+            {EFeatureCalcerType::BM25, MakeIntrusive<TBM25>(CreateGuid(), numClasses)},
+            {EFeatureCalcerType::NaiveBayes, MakeIntrusive<TMultinomialNaiveBayes>(CreateGuid(), numClasses)}
         };
 
         const TMap<EFeatureCalcerType, TTextCalcerVisitorPtr> visitors = {

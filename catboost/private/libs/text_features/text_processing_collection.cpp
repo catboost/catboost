@@ -1,6 +1,7 @@
 #include "text_processing_collection.h"
 #include "helpers.h"
 
+#include <catboost/libs/helpers/serialization.h>
 #include <catboost/private/libs/text_features/flatbuffers/text_processing_collection.fbs.h>
 #include <catboost/private/libs/text_processing/text_column_builder.h>
 
@@ -13,13 +14,13 @@
 namespace NCB {
     static void CalcFeatures(
         const TVector<TVector<TStringBuf>>& tokens,
-        const IDictionary& dictionary,
+        const TDictionaryProxy& dictionary,
         const TTextFeatureCalcer& calcer,
         TArrayRef<float> result
     ) {
         const ui64 docCount = tokens.size();
         for (ui32 docId: xrange(docCount)) {
-            TText text = TokensToText(dictionary, tokens[docId]);
+            TText text = dictionary.Apply(tokens[docId]);
 
             calcer.Compute(
                 text,
@@ -52,8 +53,7 @@ namespace NCB {
             for (ui32 calcerId: PerTokenizedFeatureCalcers[tokenizedFeatureIdx]) {
                 const auto& calcer = FeatureCalcers[calcerId];
 
-                const ui32 calcerOffset = GetCalcerFeatureOffset(textFeatureIdx, dictionaryId, calcerId)
-                    * docCount;
+                const size_t calcerOffset = GetRelativeCalcerOffset(textFeatureIdx, calcerId) * docCount;
                 const size_t calculatedFeaturesSize = docCount * calcer->FeatureCount();
 
                 auto currentResult = TArrayRef<float>(
@@ -63,19 +63,6 @@ namespace NCB {
                 NCB::CalcFeatures(tokens, *dictionary, *calcer, currentResult);
             }
         }
-    }
-
-    static NCatBoostFbs::TGuid CreateFbsGuid(const TGuid& guid) {
-        return NCatBoostFbs::TGuid(guid.dw[0], guid.dw[1], guid.dw[2], guid.dw[3]);
-    }
-
-    static TGuid GuidFromFbs(const NCatBoostFbs::TGuid* fbsGuid) {
-        TGuid guid;
-        guid.dw[0] = fbsGuid->dw0();
-        guid.dw[1] = fbsGuid->dw1();
-        guid.dw[2] = fbsGuid->dw2();
-        guid.dw[3] = fbsGuid->dw3();
-        return guid;
     }
 
     static decltype(auto) FBSerializeGuidArray(
@@ -209,15 +196,7 @@ namespace NCB {
             ::Save(&stream, static_cast<ui64>(builder.GetSize()));
             stream.Write(builder.GetBufferPointer(), builder.GetSize());
 
-            TDictionaryPtr dictionary = Dictionaries[dictionaryId];
-            if (auto basicDictionary = dynamic_cast<TDictionary*>(dictionary.Get())) {
-                TMMapDictionary mMapDictionary = TMMapDictionary(basicDictionary);
-                mMapDictionary.Save(&stream);
-            } else if (auto mMapDictionary = dynamic_cast<TMMapDictionary*>(dictionary.Get())) {
-                mMapDictionary->Save(&stream);
-            } else {
-                CB_ENSURE(false, "Failed to serialize dictionary: Unknown dictionary type");
-            }
+            Dictionaries[dictionaryId]->Save(&stream);
         }
     }
 
@@ -274,11 +253,16 @@ namespace NCB {
             if (collectionPart->PartType() == NCatBoostFbs::EPartType_FeatureCalcer) {
                 TTextFeatureCalcerPtr calcer = TTextCalcerSerializer::Load(&stream);
                 FeatureCalcers[guidId[partId]] = calcer;
+                CB_ENSURE(partId == calcer->Id(), "Failed to deserialize: CalcerId not equal to PartId");
             } else if (collectionPart->PartType() == NCatBoostFbs::EPartType_Dictionary) {
-                auto dictionaryPtr = MakeIntrusive<TMMapDictionary>();
+                auto dictionary = MakeIntrusive<TDictionaryProxy>();
+                dictionary->Load(&stream);
+                CB_ENSURE(
+                    partId == dictionary->Id(),
+                    "Failed to deserialize: DictionaryId not equal to PartId"
+                );
 
-                dictionaryPtr->Load(&stream);
-                Dictionaries[guidId[partId]] = dictionaryPtr;
+                Dictionaries[guidId[partId]] = std::move(dictionary);
             } else {
                 CB_ENSURE(false, "Failed to deserialize: Unknown part type");
             }
@@ -298,7 +282,7 @@ namespace NCB {
             "Failed to deserialize: Some of dictionaries are missing"
         );
 
-        CalcProcessedFeatureIdx();
+        CalcRuntimeData();
         CheckPerFeatureIdx();
     }
 
@@ -314,13 +298,17 @@ namespace NCB {
         , PerFeatureDictionaries(std::move(perFeatureDictionaries))
         , PerTokenizedFeatureCalcers(std::move(perTokenizedFeatureCalcers)) {
 
-        FeatureCalcerId.yresize(FeatureCalcers.size());
-        Generate(FeatureCalcerId.begin(), FeatureCalcerId.end(), CreateGuid);
+        FeatureCalcerId.resize(FeatureCalcers.size());
+        for (ui32 idx : xrange(FeatureCalcers.size())) {
+            FeatureCalcerId[idx] = FeatureCalcers[idx]->Id();
+        }
 
-        DictionaryId.yresize(Dictionaries.size());
-        Generate(DictionaryId.begin(), DictionaryId.end(), CreateGuid);
+        DictionaryId.resize(Dictionaries.size());
+        for (ui32 idx : xrange(Dictionaries.size())) {
+            DictionaryId[idx] = Dictionaries[idx]->Id();
+        }
 
-        CalcProcessedFeatureIdx();
+        CalcRuntimeData();
         CheckPerFeatureIdx();
     }
 
@@ -328,39 +316,40 @@ namespace NCB {
         return TokenizedFeatureId.at(std::make_pair(textFeatureIdx, dictionaryIdx));
     }
 
-    void TTextProcessingCollection::CalcProcessedFeatureIdx() {
+    void TTextProcessingCollection::CalcRuntimeData() {
         ui32 tokenizedFeatureIdx = 0;
-        ui32 processedFeatureIdx = 0;
-
+        ui32 currentOffset = 0;
         for (ui32 textFeatureIdx: xrange(PerFeatureDictionaries.size())) {
             for (ui32 dictionaryId: PerFeatureDictionaries[textFeatureIdx]) {
                 auto pairIdx = std::make_pair(textFeatureIdx, dictionaryId);
                 TokenizedFeatureId[pairIdx] = tokenizedFeatureIdx;
 
                 for (ui32 calcerId: PerTokenizedFeatureCalcers[tokenizedFeatureIdx]) {
-                    ProcessedFeatureId[std::tie(textFeatureIdx, dictionaryId, calcerId)] = processedFeatureIdx;
-                    processedFeatureIdx += FeatureCalcers[calcerId]->FeatureCount();
+                    FeatureCalcerOffset[calcerId] = currentOffset;
+                    currentOffset += FeatureCalcers[calcerId]->FeatureCount();
                 }
 
                 tokenizedFeatureIdx++;
             }
         }
+
+        for (ui32 calcerFlatIdx: xrange(FeatureCalcerId.size())) {
+            CalcerGuidToFlatIdx[FeatureCalcerId[calcerFlatIdx]] = calcerFlatIdx;
+        }
     }
 
-    ui32 TTextProcessingCollection::GetCalcerFeatureOffset(
-        ui32 textFeatureIdx,
-        ui32 dictionaryIdx,
-        ui32 calcerIdx) const {
+    ui32 TTextProcessingCollection::GetFirstTextFeatureCalcer(ui32 textFeatureIdx) const {
+        const ui32 firstDictionary = PerFeatureDictionaries[textFeatureIdx][0];
+        const ui32 tokenizedFeature = GetTokenizedFeatureId(textFeatureIdx, firstDictionary);
+        return PerTokenizedFeatureCalcers[tokenizedFeature][0];
+    }
 
-        auto key = std::tie(textFeatureIdx, dictionaryIdx, calcerIdx);
-        Y_ASSERT(ProcessedFeatureId.contains(key));
+    ui32 TTextProcessingCollection::GetAbsoluteCalcerOffset(ui32 calcerIdx) const {
+        return FeatureCalcerOffset.at(calcerIdx);
+    }
 
-        const ui32 firstDictionaryId = PerFeatureDictionaries[textFeatureIdx][0];
-        const ui32 firstTokenizedFeatureId = TokenizedFeatureId.at(std::make_pair(textFeatureIdx, firstDictionaryId));
-        const ui32 firstCalcerId = PerTokenizedFeatureCalcers[firstTokenizedFeatureId][0];
-        auto firstKey = std::tie(textFeatureIdx, firstDictionaryId, firstCalcerId);
-
-        return ProcessedFeatureId.at(key) - ProcessedFeatureId.at(firstKey);
+    ui32 TTextProcessingCollection::GetRelativeCalcerOffset(ui32 textFeatureIdx, ui32 calcerIdx) const {
+        return GetAbsoluteCalcerOffset(calcerIdx) - GetAbsoluteCalcerOffset(GetFirstTextFeatureCalcer(textFeatureIdx));
     }
 
     void TTextProcessingCollection::CheckPerFeatureIdx() const {
@@ -391,15 +380,13 @@ namespace NCB {
             FeatureCalcerId,
             PerFeatureDictionaries,
             PerTokenizedFeatureCalcers,
-            TokenizedFeatureId,
-            ProcessedFeatureId
+            TokenizedFeatureId
         ) == std::tie(
             rhs.DictionaryId,
             rhs.FeatureCalcerId,
             rhs.PerFeatureDictionaries,
             rhs.PerTokenizedFeatureCalcers,
-            rhs.TokenizedFeatureId,
-            rhs.ProcessedFeatureId
+            rhs.TokenizedFeatureId
         );
     }
 
@@ -428,6 +415,60 @@ namespace NCB {
         }
 
         return sum;
+    }
+
+    ui32 TTextProcessingCollection::GetTextFeatureCount() const {
+        return PerFeatureDictionaries.size();
+    }
+
+    ui32 TTextProcessingCollection::GetTokenizedFeatureCount() const {
+        return PerTokenizedFeatureCalcers.size();
+    }
+
+    ui32 TTextProcessingCollection::GetAbsoluteCalcerOffset(const TGuid& calcerGuid) const {
+        CB_ENSURE(
+            CalcerGuidToFlatIdx.contains(calcerGuid),
+            "There is no calcer with " << LabeledOutput(calcerGuid)
+        );
+        return GetAbsoluteCalcerOffset(CalcerGuidToFlatIdx.at(calcerGuid));
+    }
+
+    ui32 TTextProcessingCollection::GetRelativeCalcerOffset(ui32 textFeatureIdx, const TGuid& calcerGuid) const {
+        return GetRelativeCalcerOffset(textFeatureIdx, CalcerGuidToFlatIdx.at(calcerGuid));
+    }
+
+    static void CreateEvaluatedCalcerFeatures(
+        ui32 textFeatureIdx,
+        const TTextFeatureCalcer& calcer,
+        TVector<TEvaluatedFeature>* evaluatedFeatures
+    ) {
+        const TGuid& guid = calcer.Id();
+        for (ui32 localId: xrange(calcer.FeatureCount())) {
+            evaluatedFeatures->emplace_back(
+                TEvaluatedFeature{
+                    textFeatureIdx,
+                    guid,
+                    localId
+                }
+            );
+        }
+    }
+
+    TVector<TEvaluatedFeature> TTextProcessingCollection::GetProducedFeatures() const {
+        TVector<TEvaluatedFeature> evaluatedFeatures;
+        for (ui32 textFeatureId : xrange(PerFeatureDictionaries.size())) {
+            for (ui32 dictionaryId : PerFeatureDictionaries[textFeatureId]) {
+                const ui32 tokenizedFeatureId = GetTokenizedFeatureId(textFeatureId, dictionaryId);
+                for (ui32 calcerId: PerTokenizedFeatureCalcers[tokenizedFeatureId]) {
+                    CreateEvaluatedCalcerFeatures(
+                        textFeatureId,
+                        *FeatureCalcers[calcerId],
+                        &evaluatedFeatures
+                    );
+                }
+            }
+        }
+        return evaluatedFeatures;
     }
 
 } // NCB

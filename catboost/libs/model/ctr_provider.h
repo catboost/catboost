@@ -32,9 +32,9 @@ public:
         TArrayRef<float> result) = 0;
 
     virtual void SetupBinFeatureIndexes(
-        const TVector<TFloatFeature>& floatFeatures,
-        const TVector<TOneHotFeature>& oheFeatures,
-        const TVector<TCatFeature>& catFeatures) = 0;
+        const TConstArrayRef<TFloatFeature> floatFeatures,
+        const TConstArrayRef<TOneHotFeature> oheFeatures,
+        const TConstArrayRef<TCatFeature> catFeatures) = 0;
 
     virtual void AddCtrCalcerData(TCtrValueTable&& valueTable) = 0;
     virtual bool IsSerializable() const {

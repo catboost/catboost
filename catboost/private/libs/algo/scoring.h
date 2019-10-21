@@ -48,7 +48,7 @@ void CalcStatsAndScores(
     int depth,
     bool useTreeLevelCaching,
     const TVector<int>& currTreeMonotonicConstraints,
-    const TVector<int>& monotonicConstraints,
+    const TMap<ui32, int>& monotonicConstraints,
     NPar::TLocalExecutor* localExecutor,
     TBucketStatsCache* statsFromPrevTree,
     TStats3D* stats3d, // can be nullptr (and if PairwiseScoring must be), if so - don't return this data

@@ -72,14 +72,14 @@ static void OutputDataDictionary(
 
     TXmlElementOutputContext dataDictionary(xmlOut, "DataDictionary");
 
-    for (const auto& floatFeature : model.ObliviousTrees->FloatFeatures) {
+    for (const auto& floatFeature : model.ObliviousTrees->GetFloatFeatures()) {
         TXmlElementOutputContext dataField(xmlOut, "DataField");
         xmlOut->AddAttr("name", CreateFeatureName(floatFeature))
             .AddAttr("optype", "continuous")
             .AddAttr("dataType", "float");
     }
 
-    for (const auto& catFeature : model.ObliviousTrees->CatFeatures) {
+    for (const auto& catFeature : model.ObliviousTrees->GetCatFeatures()) {
         const auto featureName = CreateFeatureName(catFeature);
         {
             TXmlElementOutputContext dataField(xmlOut, "DataField");
@@ -119,12 +119,12 @@ static void OutputMiningSchemaWithModelFeatures(
 
     TXmlElementOutputContext miningSchema(xmlOut, "MiningSchema");
 
-    for (const auto& floatFeature : model.ObliviousTrees->FloatFeatures) {
+    for (const auto& floatFeature : model.ObliviousTrees->GetFloatFeatures()) {
         TXmlElementOutputContext miningField(xmlOut, "MiningField");
         xmlOut->AddAttr("name", CreateFeatureName(floatFeature)).AddAttr("usageType", "active");
     }
 
-    for (const auto& catFeature : model.ObliviousTrees->CatFeatures) {
+    for (const auto& catFeature : model.ObliviousTrees->GetCatFeatures()) {
         TXmlElementOutputContext miningField(xmlOut, "MiningField");
         xmlOut->AddAttr("name", CreateFeatureName(catFeature) + (mappedCategoricalFeatures ? "_mapped" : ""))
             .AddAttr("usageType", "active");
@@ -149,12 +149,12 @@ static void OutputCategoricalMapping(
     const auto& obliviousTrees = model.ObliviousTrees;
 
     oneHotValuesToIdx->clear();
-    oneHotValuesToIdx->resize(model.ObliviousTrees->CatFeatures.size());
+    oneHotValuesToIdx->resize(model.ObliviousTrees->GetCatFeatures().size());
 
     TXmlElementOutputContext localTransformations(xmlOut, "LocalTransformations");
 
-    for (const auto& oneHotFeature : obliviousTrees->OneHotFeatures) {
-        const auto featureName = CreateFeatureName(obliviousTrees->CatFeatures[oneHotFeature.CatFeatureIndex]);
+    for (const auto& oneHotFeature : obliviousTrees->GetOneHotFeatures()) {
+        const auto featureName = CreateFeatureName(obliviousTrees->GetCatFeatures()[oneHotFeature.CatFeatureIndex]);
         auto& oneHotValuesToIdxMap = (*oneHotValuesToIdx)[oneHotFeature.CatFeatureIndex];
 
         TString mappedFeatureName = featureName + "_mapped";
@@ -211,25 +211,25 @@ static void OutputNode(
     TXmlElementOutputContext node(xmlOut, "Node");
     xmlOut->AddAttr("id", leafIdx);
 
-    const bool isLeafNode = layer == SafeIntegerCast<size_t>(obliviousTrees.TreeSizes[treeIdx]);
+    const bool isLeafNode = layer == SafeIntegerCast<size_t>(obliviousTrees.GetTreeSizes()[treeIdx]);
 
     if (isLeafNode) {
         xmlOut->AddAttr(
             "score",
-            obliviousTrees.LeafValues[treeFirstGlobalLeafIdx + leafIdx + 1 - (size_t(1) << layer)]);
+            obliviousTrees.GetLeafValues()[treeFirstGlobalLeafIdx + leafIdx + 1 - (size_t(1) << layer)]);
     }
 
     // predicate
     if ((layer != 0) && (leafIdx % 2 == 0)) {
         const int splitIdx
-            = obliviousTrees.TreeStartOffsets[treeIdx] + obliviousTrees.TreeSizes[treeIdx] - layer;
-        const auto& binFeature = obliviousTrees.GetBinFeatures()[obliviousTrees.TreeSplits.at(splitIdx)];
+            = obliviousTrees.GetTreeStartOffsets()[treeIdx] + obliviousTrees.GetTreeSizes()[treeIdx] - layer;
+        const auto& binFeature = obliviousTrees.GetBinFeatures()[obliviousTrees.GetTreeSplits().at(splitIdx)];
 
         auto featureType = binFeature.Type;
 
         if (featureType == ESplitType::FloatFeature) {
             int floatFeatureIdx = binFeature.FloatFeature.FloatFeature;
-            const auto& floatFeature = obliviousTrees.FloatFeatures[floatFeatureIdx];
+            const auto& floatFeature = obliviousTrees.GetFloatFeatures()[floatFeatureIdx];
 
             if (!isLeafNode) {
                 if (floatFeature.HasNans &&
@@ -253,7 +253,7 @@ static void OutputNode(
             }
 
             int catFeatureIdx = binFeature.OneHotFeature.CatFeatureIdx;
-            const auto& catFeature = obliviousTrees.CatFeatures[catFeatureIdx];
+            const auto& catFeature = obliviousTrees.GetCatFeatures()[catFeatureIdx];
 
             TXmlElementOutputContext simplePredicate(xmlOut, "SimplePredicate");
             xmlOut->AddAttr("field", CreateFeatureName(catFeature) + "_mapped")
@@ -339,7 +339,7 @@ static void OutputTreeEnsemble(
     const auto& obliviousTrees = *model.ObliviousTrees;
 
     TOneHotValuesToIdx oneHotValuesToIdx;
-    if (obliviousTrees.OneHotFeatures.size()) {
+    if (obliviousTrees.GetOneHotFeatures().size()) {
         OutputCategoricalMapping(model, *catFeaturesHashToString, &oneHotValuesToIdx, xmlOut);
     }
 
@@ -347,7 +347,7 @@ static void OutputTreeEnsemble(
     xmlOut->AddAttr("multipleModelMethod", "sum");
 
     size_t treeFirstGlobalLeafIdx = 0;
-    for (auto treeIdx : xrange(obliviousTrees.TreeSizes.size())) {
+    for (auto treeIdx : xrange(obliviousTrees.GetTreeSizes().size())) {
         TXmlElementOutputContext segment(xmlOut, "Segment");
         xmlOut->AddAttr("id", treeIdx);
 
@@ -358,7 +358,7 @@ static void OutputTreeEnsemble(
 
         OutputTree(model, treeIdx, treeFirstGlobalLeafIdx, targetName, oneHotValuesToIdx, xmlOut);
 
-        treeFirstGlobalLeafIdx += (size_t(1) << obliviousTrees.TreeSizes[treeIdx]);
+        treeFirstGlobalLeafIdx += (size_t(1) << obliviousTrees.GetTreeSizes()[treeIdx]);
     }
 }
 
@@ -466,9 +466,9 @@ namespace NCB {
         CB_ENSURE(
             SafeIntegerCast<size_t>(
                 CountIf(
-                    model.ObliviousTrees->CatFeatures,
-                    [](const TCatFeature& catFeature) { return catFeature.UsedInModel; }))
-                == model.ObliviousTrees->OneHotFeatures.size(),
+                    model.ObliviousTrees->GetCatFeatures(),
+                    [](const TCatFeature& catFeature) { return catFeature.UsedInModel(); }))
+                == model.ObliviousTrees->GetOneHotFeatures().size(),
             "PMML export requires that all categorical features in the model are one hot encoded");
 
         CB_ENSURE(
@@ -478,7 +478,7 @@ namespace NCB {
         CB_ENSURE(model.IsOblivious(), "PMML export currently supports only oblivious trees models");
 
         CB_ENSURE_INTERNAL(
-            !model.ObliviousTrees->OneHotFeatures.size() || catFeaturesHashToString,
+            !model.ObliviousTrees->GetOneHotFeatures().size() || catFeaturesHashToString,
             "catFeaturesHashToString has to be specified if the model contains one hot features");
 
         // assumed regression by default

@@ -2266,11 +2266,11 @@
         }
     ],
     "test.test_feature_id_fstr[Ordered]": {
-        "checksum": "db6da0a8bff244f612e2e5ce7aedd450",
+        "checksum": "80ef397f8d1e45da212e3ed581f34cbe",
         "uri": "file://test.test_feature_id_fstr_Ordered_/fstr.tsv"
     },
     "test.test_feature_id_fstr[Plain]": {
-        "checksum": "68ecf5c0096e9fab203e0e5852a62f2c",
+        "checksum": "8e0ae333a173b23de05489817777ea72",
         "uri": "file://test.test_feature_id_fstr_Plain_/fstr.tsv"
     },
     "test.test_fit_multiclass_with_class_names": [
@@ -2379,6 +2379,16 @@
         {
             "checksum": "76983baa21cb0911ec3b3274dde97e69",
             "uri": "file://test.test_gradient_walker/test.eval"
+        }
+    ],
+    "test.test_group_features": [
+        {
+            "checksum": "01c1583cc903e6d02264f7f25a9f4084",
+            "uri": "file://test.test_group_features/learn_error.tsv"
+        },
+        {
+            "checksum": "cd6f898f9b5961081da763b13bbba629",
+            "uri": "file://test.test_group_features/test_predictions.tsv"
         }
     ],
     "test.test_group_weight[calc_block=5000000-Ordered]": [
@@ -4190,7 +4200,7 @@
         "uri": "file://test.test_output_columns_format/test.eval"
     },
     "test.test_output_options": {
-        "checksum": "877284411e51303fd5692ec83af09f3d",
+        "checksum": "38724df2eb255e1ea7625336ae9574ee",
         "uri": "file://test.test_output_options/training_options.json"
     },
     "test.test_overfit_detector_inc_to_dec[Ordered]": [

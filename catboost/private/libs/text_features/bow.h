@@ -8,8 +8,9 @@ namespace NCB {
 
     class TBagOfWordsCalcer final : public TTextFeatureCalcer {
     public:
-        explicit TBagOfWordsCalcer(ui32 numTokens = 1)
-        : NumTokens(numTokens)
+        explicit TBagOfWordsCalcer(const TGuid& calcerId = CreateGuid(), ui32 numTokens = 1)
+        : TTextFeatureCalcer(numTokens, calcerId)
+        , NumTokens(numTokens)
         {}
 
         EFeatureCalcerType Type() const override {
@@ -19,11 +20,7 @@ namespace NCB {
         void Compute(const TText& text, TOutputFloatIterator outputFeaturesIterator) const override;
 
     protected:
-        ui32 BaseFeatureCount() const override {
-            return NumTokens;
-        }
-
-        flatbuffers::Offset<NCatBoostFbs::TFeatureCalcer> SaveParametersToFB(flatbuffers::FlatBufferBuilder&) const override;
+        TTextFeatureCalcer::TFeatureCalcerFbs SaveParametersToFB(flatbuffers::FlatBufferBuilder&) const override;
         void LoadParametersFromFB(const NCatBoostFbs::TFeatureCalcer*) override;
 
         void SaveLargeParameters(IOutputStream*) const override {}

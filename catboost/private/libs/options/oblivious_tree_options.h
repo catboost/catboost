@@ -50,6 +50,6 @@ namespace NCatboostOptions {
         TGpuOnlyOption<ui32> MaxLeaves;
         TGpuOnlyOption<double> MinDataInLeaf;
 
-        TCpuOnlyOption<TVector<int>> MonotoneConstraints;
+        TCpuOnlyOption<TMap<ui32, int>> MonotoneConstraints;
     };
 }

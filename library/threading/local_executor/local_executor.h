@@ -1,8 +1,6 @@
 #pragma once
 
-#include "fwd.h"
-
-#include <library/threading/future/fwd.h>
+#include <library/threading/future/future.h>
 
 #include <util/generic/fwd.h>
 #include <util/generic/noncopyable.h>
@@ -21,6 +19,11 @@ namespace NPar {
         //                  some dummy value, e.g. `0`.
         virtual void LocalExec(int id) = 0;
     };
+
+    // Alternative and simpler way of describing a job for executor. Function argument has the
+    // same meaning as `id` in `ILocallyExecutable::LocalExec`.
+    //
+    using TLocallyExecutableFunction = std::function<void(int)>;
 
     // `TLocalExecutor` provides facilities for easy parallelization of existing code and cycles.
     //
@@ -190,7 +193,7 @@ namespace NPar {
             if (firstId >= lastId) {
                 return;
             }
-            const int threadCount = GetThreadCount();
+            const int threadCount = Max(GetThreadCount(), 1);
             const int batchSize = batchSizeOrZeroForAutoBatchSize
                 ? batchSizeOrZeroForAutoBatchSize
                 : (lastId - firstId + threadCount - 1) / threadCount;

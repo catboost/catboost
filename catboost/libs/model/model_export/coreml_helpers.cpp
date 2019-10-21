@@ -15,15 +15,15 @@
 using namespace CoreML::Specification;
 
 void NCB::NCoreML::ConfigureTrees(const TFullModel& model, const TPerTypeFeatureIdxToInputIndex& perTypeFeatureIdxToInputIndex, TreeEnsembleParameters* ensemble) {
-    const auto classesCount = static_cast<size_t>(model.ObliviousTrees->ApproxDimension);
+    const auto classesCount = static_cast<size_t>(model.ObliviousTrees->GetDimensionsCount());
     auto& binFeatures = model.ObliviousTrees->GetBinFeatures();
     size_t currentSplitIndex = 0;
-    auto currentTreeFirstLeafPtr = model.ObliviousTrees->LeafValues.data();
+    auto currentTreeFirstLeafPtr = model.ObliviousTrees->GetLeafValues().data();
 
-    size_t catFeaturesCount = model.ObliviousTrees->CatFeatures.size();
+    size_t catFeaturesCount = model.ObliviousTrees->GetCatFeatures().size();
     TVector<THashMap<int, double>> splitCategoricalValues(catFeaturesCount);
 
-    for (const auto& oneHotFeature: model.ObliviousTrees->OneHotFeatures) {
+    for (const auto& oneHotFeature: model.ObliviousTrees->GetOneHotFeatures()) {
         THashMap<int, double> valuesMapping;
         for (size_t i = 0; i < oneHotFeature.Values.size(); i++) {
             valuesMapping.insert(std::pair<int, double>(oneHotFeature.Values[i], double(i)));
@@ -31,8 +31,8 @@ void NCB::NCoreML::ConfigureTrees(const TFullModel& model, const TPerTypeFeature
         splitCategoricalValues[oneHotFeature.CatFeatureIndex] = std::move(valuesMapping);
     }
 
-    for (size_t treeIdx = 0; treeIdx < model.ObliviousTrees->TreeSizes.size(); ++treeIdx) {
-        const size_t leafCount = (1uLL << model.ObliviousTrees->TreeSizes[treeIdx]);
+    for (size_t treeIdx = 0; treeIdx < model.ObliviousTrees->GetTreeSizes().size(); ++treeIdx) {
+        const size_t leafCount = (1uLL << model.ObliviousTrees->GetTreeSizes()[treeIdx]);
         size_t lastNodeId = 0;
 
         TVector<TreeEnsembleParameters::TreeNode*> outputLeaves(leafCount);
@@ -51,17 +51,17 @@ void NCB::NCoreML::ConfigureTrees(const TFullModel& model, const TPerTypeFeature
                 auto evalInfo = evalInfoArray->Add();
                 evalInfo->set_evaluationindex(classIdx);
                 evalInfo->set_evaluationvalue(
-                    currentTreeFirstLeafPtr[leafIdx * model.ObliviousTrees->ApproxDimension + classIdx]);
+                    currentTreeFirstLeafPtr[leafIdx * model.ObliviousTrees->GetDimensionsCount() + classIdx]);
             }
 
             outputLeaves[leafIdx] = leafNode;
         }
-        currentTreeFirstLeafPtr += leafCount * model.ObliviousTrees->ApproxDimension;
+        currentTreeFirstLeafPtr += leafCount * model.ObliviousTrees->GetDimensionsCount();
 
         auto& previousLayer = outputLeaves;
-        auto treeDepth = model.ObliviousTrees->TreeSizes[treeIdx];
+        auto treeDepth = model.ObliviousTrees->GetTreeSizes()[treeIdx];
         for (int layer = treeDepth - 1; layer >= 0; --layer) {
-            const auto& binFeature = binFeatures[model.ObliviousTrees->TreeSplits.at(currentSplitIndex)];
+            const auto& binFeature = binFeatures[model.ObliviousTrees->GetTreeSplits().at(currentSplitIndex)];
             ++currentSplitIndex;
             auto featureType = binFeature.Type;
             CB_ENSURE(featureType == ESplitType::FloatFeature || featureType == ESplitType::OneHotFeature,
@@ -116,14 +116,14 @@ void NCB::NCoreML::ConfigureTrees(const TFullModel& model, const TPerTypeFeature
 void NCB::NCoreML::ConfigureCategoricalMappings(const TFullModel& model,
                                                       const THashMap<ui32, TString>* catFeaturesHashToString,
                                                       google::protobuf::RepeatedPtrField<CoreML::Specification::Model>* container) {
-    size_t catFeaturesCount  = model.ObliviousTrees->CatFeatures.size();
+    size_t catFeaturesCount  = model.ObliviousTrees->GetCatFeatures().size();
     TVector<int> categoricalFlatIndexes(catFeaturesCount);
-    for (const auto& catFeature: model.ObliviousTrees->CatFeatures) {
+    for (const auto& catFeature: model.ObliviousTrees->GetCatFeatures()) {
         categoricalFlatIndexes[catFeature.Position.Index] = catFeature.Position.FlatIndex;
     }
 
-    for (auto oneHotFeatureIdx : xrange(model.ObliviousTrees->OneHotFeatures.size())) {
-        const auto& oneHotFeature = model.ObliviousTrees->OneHotFeatures[oneHotFeatureIdx];
+    for (auto oneHotFeatureIdx : xrange(model.ObliviousTrees->GetOneHotFeatures().size())) {
+        const auto& oneHotFeature = model.ObliviousTrees->GetOneHotFeatures()[oneHotFeatureIdx];
 
         int flatFeatureIndex = categoricalFlatIndexes[oneHotFeature.CatFeatureIndex];
         THashMap<TString, long> categoricalMapping;
@@ -169,8 +169,8 @@ void NCB::NCoreML::ConfigureFloatInput(
     const TFullModel& model,
     CoreML::Specification::ModelDescription* description,
     THashMap<int, int>* perTypeFeatureIdxToInputIndex) {
-    for (auto floatFeatureIdx : xrange(model.ObliviousTrees->FloatFeatures.size())) {
-        const auto& floatFeature = model.ObliviousTrees->FloatFeatures[floatFeatureIdx];
+    for (auto floatFeatureIdx : xrange(model.ObliviousTrees->GetFloatFeatures().size())) {
+        const auto& floatFeature = model.ObliviousTrees->GetFloatFeatures()[floatFeatureIdx];
         if (perTypeFeatureIdxToInputIndex) {
             (*perTypeFeatureIdxToInputIndex)[floatFeature.Position.Index] = description->input().size();
         }
@@ -189,13 +189,13 @@ void NCB::NCoreML::ConfigurePipelineModelIO(const TFullModel& model,
                                                   CoreML::Specification::ModelDescription* description) {
     ConfigureFloatInput(model, description);
 
-    size_t catFeaturesCount  = model.ObliviousTrees->CatFeatures.size();
+    size_t catFeaturesCount  = model.ObliviousTrees->GetCatFeatures().size();
     TVector<int> categoricalFlatIndexes(catFeaturesCount);
-    for (const auto& catFeature: model.ObliviousTrees->CatFeatures) {
+    for (const auto& catFeature: model.ObliviousTrees->GetCatFeatures()) {
         categoricalFlatIndexes[catFeature.Position.Index] = catFeature.Position.FlatIndex;
     }
 
-    for (const auto& oneHotFeature : model.ObliviousTrees->OneHotFeatures) {
+    for (const auto& oneHotFeature : model.ObliviousTrees->GetOneHotFeatures()) {
 
         auto feature = description->add_input();
         int flatFeatureIndex = categoricalFlatIndexes[oneHotFeature.CatFeatureIndex];
@@ -208,7 +208,7 @@ void NCB::NCoreML::ConfigurePipelineModelIO(const TFullModel& model,
         feature->set_allocated_type(featureType);
     }
 
-    const auto classesCount = static_cast<size_t>(model.ObliviousTrees->ApproxDimension);
+    const auto classesCount = static_cast<size_t>(model.ObliviousTrees->GetDimensionsCount());
     auto outputPrediction = description->add_output();
     outputPrediction->set_name("prediction");
     description->set_predictedfeaturename("prediction");
@@ -233,13 +233,13 @@ void NCB::NCoreML::ConfigureTreeModelIO(
 
     ConfigureFloatInput(model, description, &(perTypeFeatureIdxToInputIndex->ForFloatFeatures));
 
-    size_t catFeaturesCount  = model.ObliviousTrees->CatFeatures.size();
+    size_t catFeaturesCount  = model.ObliviousTrees->GetCatFeatures().size();
     TVector<int> categoricalFlatIndexes(catFeaturesCount);
-    for (const auto& catFeature: model.ObliviousTrees->CatFeatures) {
+    for (const auto& catFeature: model.ObliviousTrees->GetCatFeatures()) {
         categoricalFlatIndexes[catFeature.Position.Index] = catFeature.Position.FlatIndex;
     }
 
-    for (const auto& oneHotFeature : model.ObliviousTrees->OneHotFeatures) {
+    for (const auto& oneHotFeature : model.ObliviousTrees->GetOneHotFeatures()) {
         (*perTypeFeatureIdxToInputIndex).ForCatFeatures[oneHotFeature.CatFeatureIndex] = description->input().size();
 
         auto feature = description->add_input();
@@ -253,7 +253,7 @@ void NCB::NCoreML::ConfigureTreeModelIO(
         feature->set_allocated_type(featureType);
     }
 
-    const auto classesCount = static_cast<size_t>(model.ObliviousTrees->ApproxDimension);
+    const auto classesCount = static_cast<size_t>(model.ObliviousTrees->GetDimensionsCount());
     regressor->mutable_treeensemble()->set_numpredictiondimensions(classesCount);
     for (size_t outputIdx = 0; outputIdx < classesCount; ++outputIdx) {
         regressor->mutable_treeensemble()->add_basepredictionvalue(0.0);
@@ -475,7 +475,12 @@ void NCB::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, TFullM
     }
 
 
-    TObliviousTreeBuilder treeBuilder(featuresMetaData.FloatFeatures, featuresMetaData.CategoricalFeatures, approxDimension);
+    TObliviousTreeBuilder treeBuilder(
+        featuresMetaData.FloatFeatures,
+        featuresMetaData.CategoricalFeatures,
+        {},
+        approxDimension
+    );
     for (size_t i = 0; i < treesSplits.size(); ++i) {
         treeBuilder.AddTree(treesSplits[i], leafValues[i]);
     }

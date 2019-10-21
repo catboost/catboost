@@ -73,10 +73,6 @@ namespace NCatboostCuda {
         }
 
         ui32 PointDim() const final {
-            //if l2 is big enough => we could solve linear system as is
-            if (LeavesEstimationConfig.Lambda > 1e-1) {
-                return BinCount();
-            }
             //otherwise for pure pairwise modes we remove last row to make system more stable (but l2 will be less fare)
             return TImpl::HasDiagonalPart() ? BinCount() : BinCount() - 1;
         }

@@ -23,7 +23,7 @@ namespace NCB{
             });
             CB_ENSURE(learnProgress.CatFeatures.empty(),
                       "Can't load model trained on dataset with categorical features from snapshot");
-            TObliviousTreeBuilder builder(learnProgress.FloatFeatures, learnProgress.CatFeatures,
+            TObliviousTreeBuilder builder(learnProgress.FloatFeatures, learnProgress.CatFeatures, {},
                                           learnProgress.ApproxDimension);
             TVector<TModelSplit> modelSplits;
             for (ui32 treeId = 0; treeId < learnProgress.TreeStruct.size(); ++treeId) {

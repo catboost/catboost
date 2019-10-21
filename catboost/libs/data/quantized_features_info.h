@@ -11,7 +11,7 @@
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/options/text_processing_options.h>
 #include <catboost/private/libs/options/runtime_text_options.h>
-#include <catboost/private/libs/text_processing/dictionary.h>
+#include <catboost/private/libs/text_processing/text_digitizers.h>
 #include <catboost/private/libs/quantization/utils.h>
 
 #include <library/binsaver/bin_saver.h>
@@ -210,39 +210,12 @@ namespace NCB {
 
         ui32 CalcCheckSum() const;
 
-        void SetDictionary(const TString& dictionaryId,
-                           TDictionaryPtr dictionary) {
-            Dictionaries[dictionaryId] = std::move(dictionary);
+        TTextDigitizers* GetTextDigitizersMutable() {
+            return &TextDigitizers;
         }
 
-        bool HasDictionary(const TString& dictionaryId) const {
-            return Dictionaries.contains(dictionaryId);
-        }
-
-        bool HasDictionary(const NCatboostOptions::TTextColumnDictionaryOptions& dictionaryOptions) const {
-            return HasDictionary(dictionaryOptions.DictionaryId.Get());
-        }
-
-        const TDictionaryPtr GetDictionary(const TString& dictionaryId) const {
-            return Dictionaries.at(dictionaryId);
-        }
-
-        const TDictionaryPtr GetDictionary(ui32 tokenizedFeatureIdx) const {
-            const auto& tokenizedFeatureDescription =
-                RuntimeTextProcessingOptions.GetTokenizedFeatureDescription(tokenizedFeatureIdx);
-            const TString& dictionaryId = tokenizedFeatureDescription.DictionaryId.Get();
-            CB_ENSURE(
-                HasDictionary(dictionaryId),
-                "DictionaryId \"" << dictionaryId
-                    << "\" used in tokenizedFeature \"" << tokenizedFeatureDescription.FeatureId << "\""
-                    << " is not presented in QuantizedFeaturesInfo"
-            );
-            return Dictionaries.at(dictionaryId);
-        }
-
-        void AddTokenizedTextFeature(ui32 textFeatureIdx, ui32 tokenizedFeatureIdx) {
-            CheckCorrectPerTypeFeatureIdx(TTextFeatureIdx(textFeatureIdx));
-            TokenizedTextFeatureIds[textFeatureIdx].insert(tokenizedFeatureIdx);
+        const TTextDigitizers& GetTextDigitizers() const {
+            return TextDigitizers;
         }
 
         const NCatboostOptions::TRuntimeTextOptions& GetTextProcessingOptions() const {
@@ -295,9 +268,7 @@ namespace NCB {
         TCatFeaturesPerfectHash CatFeaturesPerfectHash;
 
         NCatboostOptions::TRuntimeTextOptions RuntimeTextProcessingOptions;
-        TMap<TString, TDictionaryPtr> Dictionaries; // [dictionaryId]
-        TTokenizerPtr Tokenizer;
-        TMap<ui32, TSet<ui32>> TokenizedTextFeatureIds; // [textFeatureIdx]
+        TTextDigitizers TextDigitizers;
     };
 
     using TQuantizedFeaturesInfoPtr = TIntrusivePtr<TQuantizedFeaturesInfo>;

@@ -297,6 +297,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "output_columns", &outputFilesJson, &seenKeys);
     CopyOption(plainOptions, "allow_writing_files", &outputFilesJson, &seenKeys);
     CopyOption(plainOptions, "final_ctr_computation_mode", &outputFilesJson, &seenKeys);
+    CopyOption(plainOptions, "final_feature_calcer_computation_mode", &outputFilesJson, &seenKeys);
     CopyOption(plainOptions, "use_best_model", &outputFilesJson, &seenKeys);
     CopyOption(plainOptions, "best_model_min_trees", &outputFilesJson, &seenKeys);
     CopyOption(plainOptions, "eval_file_name", &outputFilesJson, &seenKeys);
@@ -422,6 +423,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "dev_sparse_array_indexing", &dataProcessingOptions, &seenKeys);
     CopyOption(plainOptions, "gpu_cat_features_storage", &dataProcessingOptions, &seenKeys);
     CopyOption(plainOptions, "dev_leafwise_scoring", &dataProcessingOptions, &seenKeys);
+    CopyOption(plainOptions, "dev_group_features", &dataProcessingOptions, &seenKeys);
 
     auto& floatFeaturesBinarization = dataProcessingOptions["float_features_binarization"];
     floatFeaturesBinarization.SetType(NJson::JSON_MAP);
@@ -527,6 +529,7 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
     DeleteSeenOption(&outputoptionsCopy, "output_columns");
     DeleteSeenOption(&outputoptionsCopy, "allow_writing_files");
     DeleteSeenOption(&outputoptionsCopy, "final_ctr_computation_mode");
+    DeleteSeenOption(&outputoptionsCopy, "final_feature_calcer_computation_mode");
 
     CopyOption(outputOptions, "use_best_model", &plainOptionsJson, &seenKeys);
     DeleteSeenOption(&outputoptionsCopy, "use_best_model");
@@ -803,6 +806,9 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
         CopyOption(dataProcessingOptions, "dev_leafwise_scoring", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyDataProcessing, "dev_leafwise_scoring");
+
+        CopyOption(dataProcessingOptions, "dev_group_features", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyDataProcessing, "dev_group_features");
 
         ConcatenatePerFloatFeatureQuantizationOptions(
             dataProcessingOptions,

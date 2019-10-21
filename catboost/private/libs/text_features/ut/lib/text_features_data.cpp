@@ -17,7 +17,7 @@ TIntrusivePtr<TMultinomialNaiveBayes> NCBTest::CreateBayes(
     TConstArrayRef<ui32> target,
     ui32 numClasses
 ) {
-    auto naiveBayes = MakeIntrusive<TMultinomialNaiveBayes>(numClasses);
+    auto naiveBayes = MakeIntrusive<TMultinomialNaiveBayes>(CreateGuid(), numClasses);
     TNaiveBayesVisitor bayesVisitor;
 
     for (ui32 sampleId: xrange(features.size())) {
@@ -32,7 +32,7 @@ TIntrusivePtr<TBM25> NCBTest::CreateBm25(
     TConstArrayRef<ui32> target,
     ui32 numClasses
 ) {
-    auto bm25 = MakeIntrusive<TBM25>(TBM25(numClasses));
+    auto bm25 = MakeIntrusive<TBM25>(CreateGuid(), numClasses);
     TBM25Visitor bm25Visitor;
 
     for (ui32 sampleId: xrange(features.size())) {
@@ -43,52 +43,53 @@ TIntrusivePtr<TBM25> NCBTest::CreateBm25(
 }
 
 TIntrusivePtr<TBagOfWordsCalcer> NCBTest::CreateBoW(const TDictionaryPtr& dictionaryPtr) {
-    return MakeIntrusive<TBagOfWordsCalcer>(dictionaryPtr->Size());
+    return MakeIntrusive<TBagOfWordsCalcer>(CreateGuid(), dictionaryPtr->Size());
 }
 
 static void CreateCalcersAndDependencies(
     TConstArrayRef<TTokenizedTextFeature> tokenizedFeatures,
     TConstArrayRef<TDictionaryPtr> dictionaries,
     TConstArrayRef<ui32> target,
+    ui32 textFeatureCount,
+    const TRuntimeTextOptions& runtimeTextOptions,
     TVector<TTextFeatureCalcerPtr>* calcers,
     TVector<TVector<ui32>>* perFeatureDictionaries,
     TVector<TVector<ui32>>* perTokenizedFeatureCalcers
 ) {
-    auto naiveBayes0 = CreateBayes(tokenizedFeatures[0], target, 2);
-    auto naiveBayes1 = CreateBayes(tokenizedFeatures[1], target, 2);
-    auto naiveBayes2 = CreateBayes(tokenizedFeatures[2], target, 2);
-    auto naiveBayes3 = CreateBayes(tokenizedFeatures[3], target, 2);
-    auto naiveBayes4 = CreateBayes(tokenizedFeatures[4], target, 2);
+    const ui32 classesCount = 2;
 
-    auto bow0 = CreateBoW(dictionaries[0]);
-    auto bow3 = CreateBoW(dictionaries[2]);
-    auto bow4 = CreateBoW(dictionaries[3]);
+    perFeatureDictionaries->resize(textFeatureCount);
+    perTokenizedFeatureCalcers->resize(tokenizedFeatures.size());
 
-    auto bm0 = CreateBm25(tokenizedFeatures[0], target, 2);
-    auto bm2 = CreateBm25(tokenizedFeatures[2], target, 2);
-    auto bm4 = CreateBm25(tokenizedFeatures[4], target, 2);
+    for (ui32 tokenizedFeatureIdx : xrange(tokenizedFeatures.size())) {
+        const auto& featureDescription = runtimeTextOptions.GetTokenizedFeatureDescription(tokenizedFeatureIdx);
 
-    *calcers = {
-        /*  0 */ bow0,
-        /*  1 */ bm0,
-        /*  2 */ naiveBayes0,
-        /*  3 */ naiveBayes1,
-        /*  4 */ bm2,
-        /*  5 */ naiveBayes2,
-        /*  6 */ bow3,
-        /*  7 */ naiveBayes3,
-        /*  8 */ bow4,
-        /*  9 */ bm4,
-        /* 10 */ naiveBayes4
-    };
+        const auto& dictionary = dictionaries[tokenizedFeatureIdx];
+        const ui32 textFeatureIdx = featureDescription.TextFeatureId;
+        perFeatureDictionaries->at(textFeatureIdx).push_back(tokenizedFeatureIdx);
 
-    *perFeatureDictionaries = {
-        {0}, {1}, {2}, {3, 4}
-    };
+        auto& featureCalcers = (*perTokenizedFeatureCalcers)[tokenizedFeatureIdx];
+        const auto& tokenizedFeature = tokenizedFeatures[tokenizedFeatureIdx];
 
-    *perTokenizedFeatureCalcers = {
-        {0, 1, 2}, {3}, {4, 5}, {6, 7}, {8, 9, 10}
-    };
+        for (const auto& featureCalcer: featureDescription.FeatureEstimators.Get()) {
+            const EFeatureCalcerType calcerType = featureCalcer.CalcerType;
+            featureCalcers.push_back(calcers->size());
+
+            switch (calcerType) {
+                case EFeatureCalcerType::BoW:
+                    calcers->push_back(CreateBoW(dictionary));
+                    break;
+                case EFeatureCalcerType::NaiveBayes:
+                    calcers->push_back(CreateBayes(tokenizedFeature, target, classesCount));
+                    break;
+                case EFeatureCalcerType::BM25:
+                    calcers->push_back(CreateBm25(tokenizedFeature, target, classesCount));
+                    break;
+                default:
+                    CB_ENSURE(false, "feature calcer " << calcerType << " is not present in tests");
+            }
+        }
+    }
 }
 
 void NCBTest::CreateTextDataForTest(
@@ -101,12 +102,20 @@ void NCBTest::CreateTextDataForTest(
     TVector<TVector<ui32>>* perTokenizedFeatureCalcers
 ) {
     TVector<ui32> target;
-    TRuntimeTextOptions options;
-    CreateTextDataForTest(features, tokenizedFeatures, dictionaries, tokenizer, &target, &options);
+    TTextProcessingOptions options;
+    TTextDigitizers textDigitizers;
+    CreateTextDataForTest(features, tokenizedFeatures, &target, &textDigitizers, &options);
+
+    *tokenizer = textDigitizers.GetTokenizer();
+    *dictionaries = textDigitizers.GetDictionaries();
+
+    TRuntimeTextOptions runtimeTextOptions(xrange(features->size()), options);
     CreateCalcersAndDependencies(
         MakeConstArrayRef(*tokenizedFeatures),
         MakeConstArrayRef(*dictionaries),
         MakeConstArrayRef(target),
+        features->size(),
+        runtimeTextOptions,
         calcers,
         perFeatureDictionaries,
         perTokenizedFeatureCalcers

@@ -10,6 +10,7 @@ SRCS(
 )
 
 PEERDIR(
+    catboost/libs/helpers/flatbuffers
     catboost/private/libs/text_features
     catboost/private/libs/text_features/ut/lib
 )

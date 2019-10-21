@@ -1138,8 +1138,9 @@ class GnuCompiler(Compiler):
             '-DFAKEID=$CPP_FAKEID', '-DARCADIA_ROOT=${ARCADIA_ROOT}', '-DARCADIA_BUILD_ROOT=${ARCADIA_BUILD_ROOT}',
             '-D_THREAD_SAFE', '-D_PTHREADS', '-D_REENTRANT', '-D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES',
             '-D_LARGEFILE_SOURCE', '-D__STDC_CONSTANT_MACROS', '-D__STDC_FORMAT_MACROS',
+            '$CL_MACRO_INFO_DISABLE_CACHE__NO_UID__'
         ]
-        self.c_flags = []
+        self.c_flags = ['$CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__']
 
         if not self.target.is_android:
             # There is no usable _FILE_OFFSET_BITS=64 support in Androids until API 21. And it's incomplete until at least API 24.
@@ -1295,6 +1296,48 @@ class GnuCompiler(Compiler):
                 # TODO: FIXME
                 ENABLE(UNUSED_MACRO)
             }''')
+
+        c_builtins = [
+            "-Wno-builtin-macro-redefined", '-D__DATE__=\\""Sep 31 2019\\""', '-D__TIME__=\\"00:00:00\\"',
+            '-D__FILE__=\\""${qe;rootrel:SRC}\\""',
+        ]
+        c_debug_map = [
+            # XXX does not support non-normalized paths
+            "-fdebug-prefix-map=${ARCADIA_BUILD_ROOT}=/-B",
+            "-fdebug-prefix-map=${ARCADIA_ROOT}=/-S",
+            "-fdebug-prefix-map=$(TOOL_ROOT)=/-T",
+            "-Xclang", "-fdebug-compilation-dir", "-Xclang", "/tmp",
+        ]
+        c_debug_map_light = [
+            # XXX does not support non-normalized paths
+            "-fdebug-prefix-map=${ARCADIA_BUILD_ROOT}=/-B",
+            "-Xclang", "-fdebug-compilation-dir", "-Xclang", "/tmp",
+        ]
+        yasm_debug_map = [
+            # XXX does not support non-normalized paths
+            "--replace=${ARCADIA_BUILD_ROOT}=/-B",
+            "--replace=${ARCADIA_ROOT}=/-S",
+            "--replace=$(TOOL_ROOT)=/-T"
+        ]
+        emit_big('''
+            when ($CONSISTENT_DEBUG == "yes") {{
+                CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__={c_debug}
+                YASM_DEBUG_INFO_DISABLE_CACHE__NO_UID__={yasm_debug}
+            }}
+
+            when ($CONSISTENT_DEBUG_LIGHT == "yes") {{
+                CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__={c_debug_light}
+                YASM_DEBUG_INFO_DISABLE_CACHE__NO_UID__={yasm_debug_light}
+            }}
+
+            when ($CONSISTENT_BUILD == "yes") {{
+                CL_MACRO_INFO_DISABLE_CACHE__NO_UID__={macro}
+            }}
+        '''.format(c_debug=' '.join(c_debug_map),
+                   yasm_debug=' '.join(yasm_debug_map),
+                   c_debug_light=' '.join(c_debug_map_light),  # build_root substitution only
+                   yasm_debug_light=yasm_debug_map[0],  # build_root substitution only
+                   macro=' '.join(c_builtins)))
 
         # TODO(somov): Check whether this specific architecture is needed.
         if self.target.arch == 'i386':

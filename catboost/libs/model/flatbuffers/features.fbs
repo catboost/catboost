@@ -1,3 +1,5 @@
+include "catboost/libs/helpers/flatbuffers/guid.fbs";
+
 namespace NCatBoostFbs;
 
 enum ENanValueTreatment : byte {
@@ -20,6 +22,20 @@ table TCatFeature {
     FlatIndex:int = -1;
     FeatureId:string;
     UsedInModel:bool = true;
+}
+
+table TTextFeature {
+    Index:int = -1;
+    FlatIndex:int = -1;
+    FeatureId:string;
+    UsedInModel:bool = true;
+}
+
+table TEstimatedFeature {
+    SourceFeatureIndex:int = -1;
+    CalcerId:TGuid;
+    LocalIndex:int = -1;
+    Borders:[float];
 }
 
 table TOneHotFeature {

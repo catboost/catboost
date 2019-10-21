@@ -1,7 +1,9 @@
 #pragma once
 
-#include <util/generic/vector.h>
 #include "split.h"
+
+#include <util/generic/map.h>
+#include <util/generic/vector.h>
 
 /* We can consider every oblivious tree with monotonic constraints as a tree on it's non-monotonic features
  * where at each leaf grows a fully monotonic subtree. For each monotonic subtree the monotonic constraints
@@ -31,6 +33,6 @@ void CalcOneDimensionalIsotonicRegression(
     TVector<double>* solution
 );
 
-TVector<int> GetTreeMonotoneConstraints(const TSplitTree& tree, const TVector<int>& monotoneConstraints);
+TVector<int> GetTreeMonotoneConstraints(const TSplitTree& tree, const TMap<ui32, int>& monotoneConstraints);
 
 bool CheckMonotonicity(const TVector<ui32>& indexOrder, const TVector<double>& values);

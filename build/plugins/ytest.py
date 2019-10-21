@@ -843,7 +843,11 @@ def onrun(unit, *args):
 
 
 def onsetup_exectest(unit, *args):
-    command = unit.get(["EXECTEST_COMMAND_VALUE"]).replace("$EXECTEST_COMMAND_VALUE", "")
+    command = unit.get(["EXECTEST_COMMAND_VALUE"])
+    if command is None:
+        ymake.report_configure_error("EXECTEST must have at least one RUN macro")
+        return
+    command = command.replace("$EXECTEST_COMMAND_VALUE", "")
     if "PYTHON_BIN" in command:
         unit.ondepends('contrib/tools/python')
     unit.set(["TEST_BLOB_DATA", base64.b64encode(command)])

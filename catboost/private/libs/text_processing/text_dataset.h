@@ -31,7 +31,7 @@ namespace NCB {
             return *Text;
         }
 
-        const IDictionary& GetDictionary() const {
+        const TDictionaryProxy& GetDictionary() const {
             return *Dictionary;
         }
     private:

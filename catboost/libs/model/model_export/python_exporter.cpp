@@ -142,7 +142,7 @@ namespace NCB {
 
 
     void TCatboostModelToPythonConverter::WriteModelCatFeatures(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString) {
-        CB_ENSURE(model.ObliviousTrees->ApproxDimension == 1, "Export of MultiClassification model to Python is not supported.");
+        CB_ENSURE(model.ObliviousTrees->GetDimensionsCount() == 1, "Export of MultiClassification model to Python is not supported.");
 
         if (!model.ObliviousTrees->GetUsedModelCtrs().empty()) {
             WriteCTRStructs();
@@ -155,7 +155,7 @@ namespace NCB {
         Out << indent++ << "class catboost_model(object):" << '\n';
         Out << indent << "float_features_index = [\n";
         TStringBuilder str;
-        for (const auto& feature: model.ObliviousTrees->FloatFeatures) {
+        for (const auto& feature: model.ObliviousTrees->GetFloatFeatures()) {
             if (feature.UsedInModel()) {
                 str << feature.Position.Index << ", ";
             }
@@ -166,11 +166,11 @@ namespace NCB {
         Out << indent << "float_feature_count = " << model.ObliviousTrees->GetNumFloatFeatures() << '\n';
         Out << indent << "cat_feature_count = " << model.ObliviousTrees->GetNumCatFeatures() << '\n';
         Out << indent << "binary_feature_count = " << model.ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount() << '\n';
-        Out << indent << "tree_count = " << model.ObliviousTrees->TreeSizes.size() << '\n';
+        Out << indent << "tree_count = " << model.ObliviousTrees->GetTreeSizes().size() << '\n';
 
         Out << indent++ << "float_feature_borders = [" << '\n';
-        comma.ResetCount(model.ObliviousTrees->FloatFeatures.size());
-        for (const auto& floatFeature : model.ObliviousTrees->FloatFeatures) {
+        comma.ResetCount(model.ObliviousTrees->GetFloatFeatures().size());
+        for (const auto& floatFeature : model.ObliviousTrees->GetFloatFeatures()) {
             if (!floatFeature.UsedInModel()) {
                 continue;
             }
@@ -180,7 +180,7 @@ namespace NCB {
         }
         Out << --indent << "]" << '\n';
 
-        Out << indent << "tree_depth = [" << OutputArrayInitializer(model.ObliviousTrees->TreeSizes) << "]" << '\n';
+        Out << indent << "tree_depth = [" << OutputArrayInitializer(model.ObliviousTrees->GetTreeSizes()) << "]" << '\n';
 
         const TVector<TRepackedBin>& bins = model.ObliviousTrees->GetRepackedBins();
         Out << indent << "tree_split_border = [" << OutputArrayInitializer([&bins](size_t i) { return (int)bins[i].SplitIdx; }, bins.size()) << "]" << '\n';
@@ -188,15 +188,15 @@ namespace NCB {
         Out << indent << "tree_split_xor_mask = [" << OutputArrayInitializer([&bins](size_t i) { return (int)bins[i].XorMask; }, bins.size()) << "]" << '\n';
 
         Out << indent << "cat_features_index = ["
-            << OutputArrayInitializer([&model](size_t i) { return model.ObliviousTrees->CatFeatures[i].Position.Index; }, model.ObliviousTrees->CatFeatures.size()) << "]" << '\n';
+            << OutputArrayInitializer([&model](size_t i) { return model.ObliviousTrees->GetCatFeatures()[i].Position.Index; }, model.ObliviousTrees->GetCatFeatures().size()) << "]" << '\n';
 
         Out << indent << "one_hot_cat_feature_index = ["
-            << OutputArrayInitializer([&model](size_t i) { return model.ObliviousTrees->OneHotFeatures[i].CatFeatureIndex; }, model.ObliviousTrees->OneHotFeatures.size())
+            << OutputArrayInitializer([&model](size_t i) { return model.ObliviousTrees->GetOneHotFeatures()[i].CatFeatureIndex; }, model.ObliviousTrees->GetOneHotFeatures().size())
             << "]" << '\n';
 
         Out << indent++ << "one_hot_hash_values = [" << '\n';
-        comma.ResetCount(model.ObliviousTrees->OneHotFeatures.size());
-        for (const auto& oneHotFeature : model.ObliviousTrees->OneHotFeatures) {
+        comma.ResetCount(model.ObliviousTrees->GetOneHotFeatures().size());
+        for (const auto& oneHotFeature : model.ObliviousTrees->GetOneHotFeatures()) {
             Out << indent << "["
                 << OutputArrayInitializer([&oneHotFeature](size_t i) { return oneHotFeature.Values[i]; }, oneHotFeature.Values.size())
                 << "]" << comma << '\n';
@@ -204,8 +204,8 @@ namespace NCB {
         Out << --indent << "]" << '\n';
 
         Out << indent++ << "ctr_feature_borders = [" << '\n';
-        comma.ResetCount(model.ObliviousTrees->CtrFeatures.size());
-        for (const auto& ctrFeature : model.ObliviousTrees->CtrFeatures) {
+        comma.ResetCount(model.ObliviousTrees->GetCtrFeatures().size());
+        for (const auto& ctrFeature : model.ObliviousTrees->GetCtrFeatures()) {
             Out << indent << "["
                 << OutputArrayInitializer([&ctrFeature](size_t i) { return FloatToString(ctrFeature.Borders[i], PREC_NDIGITS, 9); }, ctrFeature.Borders.size())
                 << "]" << comma << '\n';
@@ -213,8 +213,8 @@ namespace NCB {
         Out << --indent << "]" << '\n';
 
         int leafValueCount = 0;
-        for (const auto& treeSize : model.ObliviousTrees->TreeSizes) {
-            leafValueCount += treeSize * model.ObliviousTrees->ApproxDimension;
+        for (const auto& treeSize : model.ObliviousTrees->GetTreeSizes()) {
+            leafValueCount += treeSize * model.ObliviousTrees->GetDimensionsCount();
         }
         Out << '\n';
         Out << indent << "## Aggregated array of leaf values for trees. Each tree is represented by a separate line:" << '\n';

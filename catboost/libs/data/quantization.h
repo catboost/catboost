@@ -4,7 +4,7 @@
 #include "data_provider.h"
 #include "exclusive_feature_bundling.h"
 #include "feature_grouping.h"
-#include "quantized_features_info.h"
+#include "catboost/libs/data/quantized_features_info.h"
 
 #include <catboost/private/libs/index_range/index_range.h>
 #include <catboost/libs/helpers/dynamic_iterator.h>

@@ -16,12 +16,14 @@ namespace NCB {
         static constexpr ui32 SEEN_TOKENS_PRIOR = 1;
 
         explicit TMultinomialNaiveBayes(
+            const TGuid& calcerId = CreateGuid(),
             ui32 numClasses = 2,
             double classPrior = DEFAULT_PRIOR,
             double tokenPrior = DEFAULT_PRIOR,
             ui64 numSeenTokens = 0
         )
-            : NumClasses(numClasses)
+            : TTextFeatureCalcer(BaseFeatureCount(numClasses), calcerId)
+            , NumClasses(numClasses)
             , ClassPrior(classPrior)
             , TokenPrior(tokenPrior)
             , NumSeenTokens(numSeenTokens)
@@ -53,11 +55,7 @@ namespace NCB {
         ) const;
 
     protected:
-        ui32 BaseFeatureCount() const override {
-            return BaseFeatureCount(NumClasses);
-        }
-
-        flatbuffers::Offset<NCatBoostFbs::TFeatureCalcer> SaveParametersToFB(flatbuffers::FlatBufferBuilder& builder) const override;
+        TTextFeatureCalcer::TFeatureCalcerFbs SaveParametersToFB(flatbuffers::FlatBufferBuilder& builder) const override;
         void LoadParametersFromFB(const NCatBoostFbs::TFeatureCalcer* calcerFbs) override;
 
         void SaveLargeParameters(IOutputStream*) const override;

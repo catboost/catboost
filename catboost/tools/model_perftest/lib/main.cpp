@@ -7,6 +7,7 @@
 
 #include <library/json/json_value.h>
 #include <library/getopt/small/last_getopt.h>
+#include <library/threading/local_executor/local_executor.h>
 #include <library/threading/future/async.h>
 
 #include <util/system/info.h>
@@ -21,6 +22,7 @@ struct TCMDOptions {
     TString ModelPath;
     size_t BlockSize = Max<size_t>();
     size_t RepetitionCount = 1;
+    int ThreadCount = 1;
 };
 
 struct TTimingResult {
@@ -81,13 +83,16 @@ struct TTimingResult {
 struct TResults {
     TMap<TString, THolder<TTimingResult>> Results;
     TString BaseResultName;
+    TAdaptiveLock Lock;
 
     void UpdateResult(const TString& name, double time) {
-        auto& value = Results[name];
-        if (!value) {
-            value = MakeHolder<TTimingResult>();
+        with_lock(Lock) {
+            auto& value = Results[name];
+            if (!value) {
+                value = MakeHolder<TTimingResult>();
+            }
+            value->Add(time);
         }
-        value->Add(time);
     }
 
     void OutputResults() const {
@@ -141,14 +146,14 @@ private:
 TVector<bool> GetFeaturesUsedInModel(const TFullModel& model) {
     TVector<bool> result(model.ObliviousTrees->GetFlatFeatureVectorExpectedSize(), false);
 
-    for (const auto& floatFeature : model.ObliviousTrees->FloatFeatures) {
+    for (const auto& floatFeature : model.ObliviousTrees->GetFloatFeatures()) {
         if (floatFeature.UsedInModel()) {
             result[floatFeature.Position.FlatIndex] = true;
         }
     }
 
-    for (const auto& catFeature : model.ObliviousTrees->CatFeatures) {
-        if (catFeature.UsedInModel) {
+    for (const auto& catFeature : model.ObliviousTrees->GetCatFeatures()) {
+        if (catFeature.UsedInModel()) {
             result[catFeature.Position.FlatIndex] = true;
         }
     }
@@ -165,7 +170,7 @@ int DoMain(int argc, char** argv) {
         .Required();
     parser.AddLongOption("cd")
         .StoreResult(&options.CdPath)
-        .Required();;
+        .Required();
     parser.AddLongOption('m', "model-path")
         .StoreResult(&options.ModelPath)
         .Required();
@@ -175,10 +180,18 @@ int DoMain(int argc, char** argv) {
     parser.AddLongOption("repetitions")
         .StoreResult(&options.RepetitionCount)
         .Optional();
+    parser.AddLongOption("threads")
+        .StoreResult(&options.ThreadCount)
+        .Optional();
+
     NLastGetopt::TOptsParseResult parserResult{&parser, argc, argv};
     TFullModel model = ReadModel(options.ModelPath);
 
     TVector<bool> featureUsedInModel = GetFeaturesUsedInModel(model);
+
+    if (options.ThreadCount > 1) {
+        NPar::LocalExecutor().RunAdditionalThreads(options.ThreadCount - 1);
+    }
 
     NCatboostOptions::TColumnarPoolFormatParams columnarPoolFormatParams;
     columnarPoolFormatParams.CdFilePath = NCB::TPathWithScheme(options.CdPath, "dsv");
@@ -274,7 +287,11 @@ int DoMain(int argc, char** argv) {
     int biggestPriority = Min<int>();
     for (const auto& key : allRegisteredKeys) {
         try {
-            modules.emplace_back(TPerftestModuleFactory::Construct(key, model));
+            auto product = TPerftestModuleFactory::Construct(key, model);
+            if (!product) {
+                continue;
+            }
+            modules.emplace_back(std::move(product));
             if (modules.back()->GetComparisonPriority(IPerftestModule::EPerftestModuleDataLayout::ObjectsFirst) > biggestPriority) {
                 biggestPriority = modules.back()->GetComparisonPriority(IPerftestModule::EPerftestModuleDataLayout::ObjectsFirst);
                 results.BaseResultName = modules.back()->GetName(IPerftestModule::EPerftestModuleDataLayout::ObjectsFirst);
@@ -292,19 +309,41 @@ int DoMain(int argc, char** argv) {
     for (size_t i = 0; i < options.RepetitionCount; ++i) {
         for (auto& module : modules) {
             if (module->SupportsLayout(IPerftestModule::EPerftestModuleDataLayout::ObjectsFirst)) {
-                for (size_t blockId = 0; blockId < blockCount; ++blockId) {
+                if (options.ThreadCount == 1) {
+                    for (size_t blockId = 0; blockId < blockCount; ++blockId) {
+                        results.UpdateResult(
+                            module->GetName(IPerftestModule::EPerftestModuleDataLayout::ObjectsFirst),
+                            module->Do(IPerftestModule::EPerftestModuleDataLayout::ObjectsFirst, nonTranspFactorsRef[blockId])
+                        );
+                    }
+                } else {
+                    THPTimer timer;
+                    NPar::LocalExecutor().ExecRangeWithThrow([&](int blockId) {
+                        module->Do(IPerftestModule::EPerftestModuleDataLayout::ObjectsFirst, nonTranspFactorsRef[blockId]);
+                    }, 0, blockCount, NPar::TLocalExecutor::WAIT_COMPLETE);
                     results.UpdateResult(
                         module->GetName(IPerftestModule::EPerftestModuleDataLayout::ObjectsFirst),
-                        module->Do(IPerftestModule::EPerftestModuleDataLayout::ObjectsFirst,
-                                   nonTranspFactorsRef[blockId]));
+                        timer.Passed()
+                    );
                 }
             }
             if (module->SupportsLayout(IPerftestModule::EPerftestModuleDataLayout::FeaturesFirst)) {
-                for (size_t blockId = 0; blockId < blockCount; ++blockId) {
+                if (options.ThreadCount == 1) {
+                    for (size_t blockId = 0; blockId < blockCount; ++blockId) {
+                        results.UpdateResult(
+                            module->GetName(IPerftestModule::EPerftestModuleDataLayout::FeaturesFirst),
+                            module->Do(IPerftestModule::EPerftestModuleDataLayout::FeaturesFirst,
+                                transpFactorsRef[blockId]));
+                    }
+                } else {
+                    THPTimer timer;
+                    NPar::LocalExecutor().ExecRangeWithThrow([&](int blockId) {
+                        module->Do(IPerftestModule::EPerftestModuleDataLayout::FeaturesFirst, transpFactorsRef[blockId]);
+                    }, 0, blockCount, NPar::TLocalExecutor::WAIT_COMPLETE);
                     results.UpdateResult(
                         module->GetName(IPerftestModule::EPerftestModuleDataLayout::FeaturesFirst),
-                        module->Do(IPerftestModule::EPerftestModuleDataLayout::FeaturesFirst,
-                                   transpFactorsRef[blockId]));
+                        timer.Passed()
+                    );
                 }
             }
         }

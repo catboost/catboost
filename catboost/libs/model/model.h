@@ -9,6 +9,7 @@
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/private/libs/options/enums.h>
+#include <catboost/private/libs/text_features/text_processing_collection.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>
@@ -90,8 +91,11 @@ public:
     struct TRuntimeData {
         size_t UsedFloatFeaturesCount = 0;
         size_t UsedCatFeaturesCount = 0;
+        size_t UsedTextFeaturesCount = 0;
+        size_t UsedEstimatedFeaturesCount = 0;
         size_t MinimalSufficientFloatFeaturesVectorSize = 0;
         size_t MinimalSufficientCatFeaturesVectorSize = 0;
+        size_t MinimalSufficientTextFeaturesVectorSize = 0;
         /**
          * List of all TModelCTR used in model
          */
@@ -121,55 +125,6 @@ public:
     };
 
 public:
-    //! Number of classes in model, in most cases equals to 1.
-    int ApproxDimension = 1;
-
-    //! Split values
-    TVector<int> TreeSplits;
-
-    //! Tree sizes
-    TVector<int> TreeSizes;
-
-    //! Offset of first split in TreeSplits array
-    TVector<int> TreeStartOffsets;
-
-    //! Steps in a non-symmetric tree.
-    //! If at least one diff in a step node is zero, it's a terminal node and has a value.
-    //! If both diffs are zero, the corresponding split condition (in the RepackedBins vector) may be invalid.
-    TVector<TNonSymmetricTreeStepNode> NonSymmetricStepNodes;
-
-    //! Holds a value index (in the LeafValues vector) for each terminal node in a non-symmetric tree.
-    //! For multiclass models holds indexes for 0-class.
-    TVector<ui32> NonSymmetricNodeIdToLeafId;
-
-    //! Leaf values layout: [treeIndex][leafId * ApproxDimension + dimension]
-    TVector<double> LeafValues;
-
-    /**
-     * Leaf Weights are sums of weights or group weights of samples from the learn dataset that go to that leaf.
-     * This information can be absent (this vector will be empty) in some models:
-     *   - Loaded from CoreML format
-     *   - Old models trained on GPU (trained with catboost version < 0.9.x)
-     *
-     *  layout: [treeIndex][leafId]
-     */
-    TVector<double> LeafWeights;
-
-    //! Categorical features, used in model in OneHot conditions or/and in CTR feature combinations
-    TVector<TCatFeature> CatFeatures;
-
-    static_assert(ESplitType::FloatFeature < ESplitType::OneHotFeature
-                  && ESplitType::OneHotFeature < ESplitType::OnlineCtr,
-                  "ESplitType should represent bin feature order in model");
-
-    //! Float features used in model
-    TVector<TFloatFeature> FloatFeatures;
-    //! One hot encoded features used in model
-    TVector<TOneHotFeature> OneHotFeatures;
-    //! CTR features used in model
-    TVector<TCtrFeature> CtrFeatures;
-
-public:
     bool operator==(const TObliviousTrees& other) const {
         return std::tie(
             ApproxDimension,
@@ -181,8 +136,10 @@ public:
             LeafValues,
             CatFeatures,
             FloatFeatures,
+            TextFeatures,
             OneHotFeatures,
-            CtrFeatures)
+            CtrFeatures,
+            EstimatedFeatures)
           == std::tie(
             other.ApproxDimension,
             other.TreeSplits,
@@ -193,8 +150,10 @@ public:
             other.LeafValues,
             other.CatFeatures,
             other.FloatFeatures,
+            other.TextFeatures,
             other.OneHotFeatures,
-            other.CtrFeatures);
+            other.CtrFeatures,
+            other.EstimatedFeatures);
     }
 
     bool operator!=(const TObliviousTrees& other) const {
@@ -239,6 +198,167 @@ public:
 
     size_t GetTreeCount() const {
         return TreeSizes.size();
+    }
+
+    size_t GetDimensionsCount() const {
+        return ApproxDimension;
+    }
+
+    TConstArrayRef<int> GetTreeSplits() const {
+        return TConstArrayRef<int>(TreeSplits.begin(), TreeSplits.end());
+    }
+
+    TConstArrayRef<int> GetTreeSizes() const {
+        return TConstArrayRef<int>(TreeSizes.begin(), TreeSizes.end());
+    }
+
+    TConstArrayRef<int> GetTreeStartOffsets() const {
+        return TConstArrayRef<int>(TreeStartOffsets.begin(), TreeStartOffsets.end());
+    }
+
+    TConstArrayRef<TNonSymmetricTreeStepNode> GetNonSymmetricStepNodes() const {
+        return TConstArrayRef<TNonSymmetricTreeStepNode>(NonSymmetricStepNodes.begin(), NonSymmetricStepNodes.end());
+    }
+
+    TConstArrayRef<ui32> GetNonSymmetricNodeIdToLeafId() const {
+        return TConstArrayRef<ui32>(NonSymmetricNodeIdToLeafId.begin(), NonSymmetricNodeIdToLeafId.end());
+    }
+
+    TConstArrayRef<double> GetLeafValues() const {
+        return TConstArrayRef<double>(LeafValues.begin(), LeafValues.end());
+    }
+
+    TConstArrayRef<double> GetLeafWeights() const {
+        return TConstArrayRef<double>(LeafWeights.begin(), LeafWeights.end());
+    }
+
+    TConstArrayRef<TCatFeature> GetCatFeatures() const {
+        return TConstArrayRef<TCatFeature>(CatFeatures.begin(), CatFeatures.end());
+    }
+
+    TConstArrayRef<TFloatFeature> GetFloatFeatures() const {
+        return TConstArrayRef<TFloatFeature>(FloatFeatures.begin(), FloatFeatures.end());
+    }
+
+    TConstArrayRef<TOneHotFeature> GetOneHotFeatures() const {
+        return TConstArrayRef<TOneHotFeature>(OneHotFeatures.begin(), OneHotFeatures.end());
+    }
+
+    TConstArrayRef<TCtrFeature> GetCtrFeatures() const {
+        return TConstArrayRef<TCtrFeature>(CtrFeatures.begin(), CtrFeatures.end());
+    }
+
+    TConstArrayRef<TTextFeature> GetTextFeatures() const {
+        return TConstArrayRef<TTextFeature>(TextFeatures.begin(), TextFeatures.end());
+    }
+
+    TConstArrayRef<TEstimatedFeature> GetEstimatedFeatures() const {
+        return TConstArrayRef<TEstimatedFeature>(EstimatedFeatures.begin(), EstimatedFeatures.end());
+    }
+
+    void SetApproxDimension(int approxDimension) {
+        ApproxDimension = approxDimension;
+    }
+
+    void SetLeafValues(const TVector<double>& leafValues) {
+        LeafValues = leafValues;
+    }
+
+    void SetLeafWeights(const TVector<double>& leafWeights) {
+        LeafWeights = leafWeights;
+    }
+
+    void ClearLeafWeights() {
+        LeafWeights.clear();
+    }
+
+    void SetNonSymmetricStepNodes(const TVector<TNonSymmetricTreeStepNode>& nonSymmetricStepNodes) {
+        NonSymmetricStepNodes = nonSymmetricStepNodes;
+    }
+
+    void SetNonSymmetricNodeIdToLeafId(const TVector<ui32>& nonSymmetricNodeIdToLeafId) {
+        NonSymmetricNodeIdToLeafId = nonSymmetricNodeIdToLeafId;
+    }
+
+    void SetTreeSizes(const TVector<int>& treeSizes) {
+        TreeSizes = treeSizes;
+    }
+
+    void SetTreeStartOffsets(const TVector<int>& treeStartOffsets) {
+        TreeStartOffsets = treeStartOffsets;
+    }
+
+    void SetCatFeatures(const TVector<TCatFeature>& catFeatures) {
+        CatFeatures = catFeatures;
+    }
+
+    void SetFloatFeatures(const TVector<TFloatFeature>& floatFeatures) {
+        FloatFeatures = floatFeatures;
+    }
+
+    void SetTextFeatures(const TVector<TTextFeature>& textFeatures) {
+        TextFeatures = textFeatures;
+    }
+
+    void SetEstimatedFeatures(const TVector<TEstimatedFeature>& estimatedFeatures) {
+        EstimatedFeatures = estimatedFeatures;
+    }
+
+    void ProcessSplitsSet(
+        const TSet<TModelSplit>& modelSplitSet,
+        const TVector<size_t>& floatFeaturesInternalIndexesMap,
+        const TVector<size_t>& catFeaturesInternalIndexesMap,
+        const TVector<size_t>& textFeaturesInternalIndexesMap
+    );
+
+    void ApplyFeatureNames(const TVector<TString>& featureNames) {
+        for (TFloatFeature& feature : FloatFeatures) {
+            feature.FeatureId = featureNames[feature.Position.FlatIndex];
+        }
+        for (TCatFeature& feature : CatFeatures) {
+            feature.FeatureId = featureNames[feature.Position.FlatIndex];
+        }
+    }
+
+    void AddFloatFeature(const TFloatFeature& floatFeature) {
+        FloatFeatures.push_back(floatFeature);
+    }
+
+    void AddFloatFeatureBorder(const int featureId, const float border) {
+        FloatFeatures[featureId].Borders.push_back(border);
+    }
+
+    void AddCatFeature(const TCatFeature& catFeature) {
+        CatFeatures.push_back(catFeature);
+    }
+
+    void AddOneHotFeature(const TOneHotFeature& oneHotFeature) {
+        OneHotFeatures.push_back(oneHotFeature);
+    }
+
+    void AddCtrFeature(const TCtrFeature& ctrFeature) {
+        CtrFeatures.push_back(ctrFeature);
+    }
+
+    void AddTreeSplit(int treeSplit) {
+        TreeSplits.push_back(treeSplit);
+    }
+
+    void AddTreeSize(int treeSize) {
+        if (TreeStartOffsets.empty()) {
+            TreeStartOffsets.push_back(0);
+        } else {
+            TreeStartOffsets.push_back(TreeStartOffsets.back() + TreeSizes.back());
+        }
+        TreeSizes.push_back(treeSize);
+    }
+
+    void AddLeafValue(double leafValue) {
+        LeafValues.push_back(leafValue);
+    }
+
+    void AddLeafWeight(double leafWeight) {
+        LeafWeights.push_back(leafWeight);
     }
 
     /**
@@ -338,6 +458,21 @@ public:
         return RuntimeData->UsedCatFeaturesCount;
     }
 
+    size_t GetUsedTextFeaturesCount() const {
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->UsedTextFeaturesCount;
+    }
+
+    size_t GetMinimalSufficientTextFeaturesVectorSize() const {
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->MinimalSufficientTextFeaturesVectorSize;
+    }
+
+    size_t GetUsedEstimatedFeaturesCount() const {
+        CB_ENSURE(RuntimeData.Defined(), "runtime data should be initialized");
+        return RuntimeData->UsedEstimatedFeaturesCount;
+    }
+
     size_t GetBinaryFeaturesFullCount() const {
         return GetBinFeatures().size();
     }
@@ -350,7 +485,8 @@ public:
     size_t GetFlatFeatureVectorExpectedSize() const {
         return (size_t)Max(
             CatFeatures.empty() ? 0 : CatFeatures.back().Position.FlatIndex + 1,
-            FloatFeatures.empty() ? 0 : FloatFeatures.back().Position.FlatIndex + 1
+            FloatFeatures.empty() ? 0 : FloatFeatures.back().Position.FlatIndex + 1,
+            TextFeatures.empty() ? 0 : TextFeatures.back().Position.FlatIndex + 1
         );
     }
 
@@ -360,6 +496,59 @@ public:
     void AddNumberToAllTreeLeafValues(ui32 treeId, double numberToAdd);
 
 private:
+    //! Number of classes in model, in most cases equals to 1.
+    int ApproxDimension = 1;
+
+    //! Split values
+    TVector<int> TreeSplits;
+
+    //! Tree sizes
+    TVector<int> TreeSizes;
+
+    //! Offset of first split in TreeSplits array
+    TVector<int> TreeStartOffsets;
+
+    //! Steps in a non-symmetric tree.
+    //! If at least one diff in a step node is zero, it's a terminal node and has a value.
+    //! If both diffs are zero, the corresponding split condition (in the RepackedBins vector) may be invalid.
+    TVector<TNonSymmetricTreeStepNode> NonSymmetricStepNodes;
+
+    //! Holds a value index (in the LeafValues vector) for each terminal node in a non-symmetric tree.
+    //! For multiclass models holds indexes for 0-class.
+    TVector<ui32> NonSymmetricNodeIdToLeafId;
+
+    //! Leaf values layout: [treeIndex][leafId * ApproxDimension + dimension]
+    TVector<double> LeafValues;
+
+    /**
+     * Leaf Weights are sums of weights or group weights of samples from the learn dataset that go to that leaf.
+     * This information can be absent (this vector will be empty) in some models:
+     *   - Loaded from CoreML format
+     *   - Old models trained on GPU (trained with catboost version < 0.9.x)
+     *
+     *  layout: [treeIndex][leafId]
+     */
+    TVector<double> LeafWeights;
+
+    //! Categorical features, used in model in OneHot conditions or/and in CTR feature combinations
+    TVector<TCatFeature> CatFeatures;
+
+    static_assert(ESplitType::FloatFeature < ESplitType::OneHotFeature
+                  && ESplitType::OneHotFeature < ESplitType::OnlineCtr,
+                  "ESplitType should represent bin feature order in model");
+
+    //! Float features used in model
+    TVector<TFloatFeature> FloatFeatures;
+    //! One hot encoded features used in model
+    TVector<TOneHotFeature> OneHotFeatures;
+    //! CTR features used in model
+    TVector<TCtrFeature> CtrFeatures;
+
+    //! Text features used in model
+    TVector<TTextFeature> TextFeatures;
+    //! Computed on text features used in model
+    TVector<TEstimatedFeature> EstimatedFeatures;
+
     mutable TMaybe<TRuntimeData> RuntimeData;
 };
 
@@ -402,6 +591,7 @@ public:
      */
     THashMap<TString, TString> ModelInfo;
     TIntrusivePtr<ICtrProvider> CtrProvider;
+    TIntrusivePtr<NCB::TTextProcessingCollection> TextProcessingCollection;
 private:
     EFormulaEvaluatorType FormulaEvaluatorType = EFormulaEvaluatorType::CPU;
     TAdaptiveLock CurrentEvaluatorLock;
@@ -444,6 +634,7 @@ public:
                 DoSwap(Evaluator, other.Evaluator);
             }
         }
+        DoSwap(TextProcessingCollection, other.TextProcessingCollection);
     }
 
     /**
@@ -454,17 +645,24 @@ public:
     }
 
     /**
+     * Check wheter model contains text features
+     */
+    bool HasTextFeatures() const {
+        return GetUsedTextFeaturesCount() != 0;
+    }
+
+    /**
      * @return Number of trees in model.
      */
     size_t GetTreeCount() const {
-        return ObliviousTrees->TreeSizes.size();
+        return ObliviousTrees->GetTreeCount();
     }
 
     /**
      * @return Number of dimensions in model.
      */
     size_t GetDimensionsCount() const {
-        return ObliviousTrees->ApproxDimension;
+        return ObliviousTrees->GetDimensionsCount();
     }
 
     /**
@@ -491,6 +689,13 @@ public:
      */
     size_t GetUsedFloatFeaturesCount() const {
         return ObliviousTrees->GetUsedFloatFeaturesCount();
+    }
+
+    /**
+     * @return Number of text features that are really used in trees
+     */
+    size_t GetUsedTextFeaturesCount() const {
+        return ObliviousTrees->GetUsedTextFeaturesCount();
     }
 
     /**
@@ -546,6 +751,11 @@ public:
             return ObliviousTrees->GetUsedModelCtrs().empty();
         }
         return CtrProvider->HasNeededCtrs(ObliviousTrees->GetUsedModelCtrs());
+    }
+
+    //! Check if TFullModel instance has valid Text processing collection
+    bool HasValidTextProcessingCollection() const {
+        return (bool) TextProcessingCollection;
     }
 
     /**
@@ -735,6 +945,42 @@ public:
     }
 
     /**
+     * Evaluate raw formula predictions for objects. Uses all model trees.
+     * @param floatFeatures
+     * @param catFeatures vector of vector of TStringBuf with categorical features strings
+     * @param treeStart
+     * @param treeEnd
+     * @param textFeatures vector of vector of TStringBuf with features containing text as strings
+     * @param results indexation is [objectIndex * ApproxDimension + classId]
+     */
+    void Calc(
+        TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+        TConstArrayRef<TVector<TStringBuf>> catFeatures,
+        TConstArrayRef<TVector<TStringBuf>> textFeatures,
+        size_t treeStart,
+        size_t treeEnd,
+        TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr
+    ) const;
+
+    /**
+     * Evaluate raw formula predictions for objects. Uses all model trees.
+     * @param floatFeatures
+     * @param catFeatures vector of vector of TStringBuf with categorical features strings
+     * @param textFeatures vector of vector of TStringBuf with features containing text as strings
+     * @param results indexation is [objectIndex * ApproxDimension + classId]
+     */
+    void Calc(
+        TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+        TConstArrayRef<TVector<TStringBuf>> catFeatures,
+        TConstArrayRef<TVector<TStringBuf>> textFeatures,
+        TArrayRef<double> results,
+        const TFeatureLayout* featureInfo = nullptr
+    ) const {
+        Calc(floatFeatures, catFeatures, textFeatures, 0, GetTreeCount(), results, featureInfo);
+    }
+
+    /**
      * Truncate model to contain only trees from [begin; end) interval.
      * @param begin
      * @param end
@@ -810,7 +1056,7 @@ public:
         TArrayRef<ui32> indexes,
         const TFeatureLayout* featureInfo = nullptr
     ) const {
-        CalcLeafIndexes(floatFeatures, catFeatures, 0, ObliviousTrees->TreeSizes.size(), indexes, featureInfo);
+        CalcLeafIndexes(floatFeatures, catFeatures, 0, GetTreeCount(), indexes, featureInfo);
     }
 
     /**
@@ -818,11 +1064,6 @@ public:
      * @return the name, or empty string if the model does not have this information
      */
     TString GetLossFunctionName() const;
-
-    /**
-     * @return Names for classes predicted by model if model can be used for classification,
-     *  empty vector otherwise
-     */
     TVector<TString> GetModelClassNames() const;
 
     /**
@@ -831,6 +1072,12 @@ public:
      *  modifications.
      */
     void UpdateDynamicData();
+
+    /**
+     * Internal usage only.
+     * Update indexes between TextProcessingCollection and Estimated features in ObliviousTrees
+     */
+    void UpdateEstimatedFeaturesIndices(TVector<TEstimatedFeature>&& newEstimatedFeatures);
 };
 
 void OutputModel(const TFullModel& model, TStringBuf modelFile);

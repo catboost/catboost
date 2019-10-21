@@ -34,14 +34,15 @@ static TVector<TStringBuf> ToStringBufArray(
 
 static void AssertApplyEqual(
     const TTextFeature& feature,
-    const TTokenizedTextFeature& processedTextFeature,
+    const TTokenizedTextFeature& tokenizedTextFeature,
     const TTextProcessingIdx index,
     const TTextFeatureCalcerPtr& calcer,
     const TTextProcessingCollection& collection) {
 
     const auto& collectionCalcer = collection.GetCalcer(index.calcerIdx);
-    Y_ASSERT(calcer);
-    Y_ASSERT(collectionCalcer);
+    UNIT_ASSERT(calcer);
+    UNIT_ASSERT(collectionCalcer);
+    UNIT_ASSERT(calcer->Id() == collectionCalcer->Id());
 
     const ui32 calcerFeatureCount = calcer->FeatureCount();
     const ui64 docCount = feature.size();
@@ -54,21 +55,16 @@ static void AssertApplyEqual(
     collection.CalcFeatures(
         ToStringBufArray(feature, &buffer),
         index.featureIdx,
-        result);
-
-    const ui32 calcerOffset = collection.GetCalcerFeatureOffset(
-        index.featureIdx,
-        index.dictionaryIdx,
-        index.calcerIdx
-    );
+        MakeArrayRef(result));
 
     for (ui32 docId : xrange(docCount)) {
-        TVector<float> calcerResult = calcer->Compute(processedTextFeature[docId]);
+        TVector<float> calcerResult = calcer->Compute(tokenizedTextFeature[docId]);
+        const ui32 calcerOffset = collection.GetRelativeCalcerOffset(index.featureIdx, calcer->Id());
 
-        for (ui32 processedFeatureId : xrange(calcerFeatureCount)) {
+        for (ui32 localIndex : xrange(calcerFeatureCount)) {
             UNIT_ASSERT_EQUAL(
-                calcerResult[processedFeatureId],
-                result[(calcerOffset + processedFeatureId) * docCount + docId]
+                calcerResult[localIndex],
+                result[(calcerOffset + localIndex) * docCount + docId]
             );
         }
     }

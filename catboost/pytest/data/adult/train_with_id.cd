@@ -2,11 +2,17 @@
 1	Target	T
 2	Categ	C1
 3	Categ	C2
+4	Num	F0
 5	Categ	C3
+6	Num	F1
 7	Categ	C4
+8	Num	F2
 9	Categ	C5
 10	Categ	C6
 11	Categ	C7
 12	Categ	C8
 13	Categ	C9
+14	Num	F3
+15	Num	F4
+16	Num	F5
 17	Categ	C10

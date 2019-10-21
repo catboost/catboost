@@ -5,17 +5,17 @@
 #include "approx_updater_helpers.h"
 #include "calc_score_cache.h"
 
-#include <catboost/private/libs/algo_helpers/error_functions.h>
 #include "helpers.h"
 #include "online_ctr.h"
 
-#include <catboost/private/libs/distributed/master.h>
 #include <catboost/libs/helpers/checksum.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/helpers/progress_helper.h>
 #include <catboost/libs/helpers/vector_helpers.h>
-#include <catboost/private/libs/index_range/index_range.h>
 #include <catboost/libs/model/model.h>
+#include <catboost/private/libs/algo_helpers/error_functions.h>
+#include <catboost/private/libs/distributed/master.h>
+#include <catboost/private/libs/index_range/index_range.h>
 #include <catboost/private/libs/options/defaults_helper.h>
 
 #include <library/digest/crc32c/crc32c.h>
@@ -163,7 +163,7 @@ static inline ui32 UpdateCheckSumImpl(ui32 init, const TNonSymmetricTreeStepNode
 static inline ui32 UpdateCheckSumImpl(ui32 init, const TCatFeature& catFeature) {
     return UpdateCheckSum(
         init,
-        catFeature.UsedInModel,
+        catFeature.UsedInModel(),
         catFeature.Position.Index,
         catFeature.Position.FlatIndex
     );
@@ -208,17 +208,17 @@ static ui32 CalcCoreModelCheckSum(const TFullModel& model) {
 
     return UpdateCheckSum(
         ui32(0),
-        trees.ApproxDimension,
-        trees.TreeSplits,
-        trees.TreeSizes,
-        trees.TreeStartOffsets,
-        trees.NonSymmetricStepNodes,
-        trees.NonSymmetricNodeIdToLeafId,
-        trees.LeafValues,
-        trees.CatFeatures,
-        trees.FloatFeatures,
-        trees.OneHotFeatures,
-        trees.CtrFeatures
+        trees.GetDimensionsCount(),
+        trees.GetTreeSplits(),
+        trees.GetTreeSizes(),
+        trees.GetTreeStartOffsets(),
+        trees.GetNonSymmetricStepNodes(),
+        trees.GetNonSymmetricNodeIdToLeafId(),
+        trees.GetLeafValues(),
+        trees.GetCatFeatures(),
+        trees.GetFloatFeatures(),
+        trees.GetOneHotFeatures(),
+        trees.GetCtrFeatures()
     );
 }
 

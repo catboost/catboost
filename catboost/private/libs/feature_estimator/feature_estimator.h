@@ -3,6 +3,7 @@
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/text_features/feature_calcer.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/guid.h>
 #include <util/system/types.h>
 #include <util/generic/vector.h>
 #include <util/generic/maybe.h>
@@ -60,7 +61,7 @@ namespace NCB {
             CB_ENSURE(false, "Final feature calcer is unimplemented yet");
         }
 
-
+        virtual TGuid Id() const = 0;
     };
 
 

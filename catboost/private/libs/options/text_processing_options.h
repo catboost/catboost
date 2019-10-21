@@ -9,17 +9,21 @@
 #include <util/generic/vector.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/map.h>
+#include <util/generic/maybe.h>
 #include <utility>
 
 
 namespace NCatboostOptions {
+    using TDictionaryOptions = NTextProcessing::NDictionary::TDictionaryOptions;
+    using TDictionaryBuilderOptions = NTextProcessing::NDictionary::TDictionaryBuilderOptions;
+
     class TTextColumnDictionaryOptions {
     public:
         TTextColumnDictionaryOptions();
         TTextColumnDictionaryOptions(
             TString dictionaryId,
-            NTextProcessing::NDictionary::TDictionaryOptions dictionaryOptions,
-            NTextProcessing::NDictionary::TDictionaryBuilderOptions dictionaryBuilderOptions = {}
+            TDictionaryOptions dictionaryOptions,
+            TMaybe<TDictionaryBuilderOptions> dictionaryBuilderOptions = Nothing()
         );
 
         void Save(NJson::TJsonValue* optionsJson) const;
@@ -29,8 +33,8 @@ namespace NCatboostOptions {
 
     public:
         TOption<TString> DictionaryId;
-        TOption<NTextProcessing::NDictionary::TDictionaryOptions> DictionaryOptions;
-        TOption<NTextProcessing::NDictionary::TDictionaryBuilderOptions> DictionaryBuilderOptions;
+        TOption<TDictionaryOptions> DictionaryOptions;
+        TOption<TDictionaryBuilderOptions> DictionaryBuilderOptions;
     };
 
     struct TFeatureCalcerDescription {
@@ -68,6 +72,10 @@ namespace NCatboostOptions {
     class TTextProcessingOptions {
     public:
         TTextProcessingOptions();
+        TTextProcessingOptions(
+            TVector<TTextColumnDictionaryOptions>&& dictionaries,
+            TMap<TString, TVector<TTextFeatureProcessing>>&& textFeatureProcessing
+        );
 
         void Save(NJson::TJsonValue* optionsJson) const;
         void Load(const NJson::TJsonValue& options);

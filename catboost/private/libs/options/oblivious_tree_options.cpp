@@ -31,7 +31,7 @@ NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETa
       , GrowPolicy("grow_policy", EGrowPolicy::SymmetricTree, taskType)
       , MaxLeaves("max_leaves", 31, taskType)
       , MinDataInLeaf("min_data_in_leaf", 1, taskType)
-      , MonotoneConstraints("monotone_constraints", TVector<int>(0), taskType)
+      , MonotoneConstraints("monotone_constraints", {}, taskType)
 
 {
     SamplingFrequency.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::ExceptionOnChange);

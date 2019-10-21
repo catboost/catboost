@@ -63,7 +63,7 @@ void TMultinomialNaiveBayes::Compute(
     );
 }
 
-flatbuffers::Offset<NCatBoostFbs::TFeatureCalcer> TMultinomialNaiveBayes::SaveParametersToFB(flatbuffers::FlatBufferBuilder& builder) const {
+TTextFeatureCalcer::TFeatureCalcerFbs TMultinomialNaiveBayes::SaveParametersToFB(flatbuffers::FlatBufferBuilder& builder) const {
     using namespace NCatBoostFbs;
 
     // TODO(d-kruchinin, kirillovs) change types in flatbuffers to arcadian
@@ -89,12 +89,7 @@ flatbuffers::Offset<NCatBoostFbs::TFeatureCalcer> TMultinomialNaiveBayes::SavePa
         fbsClassTotalTokens
     );
 
-    return CreateTFeatureCalcer(
-        builder,
-        ActiveFeatureIndicesToFB(builder),
-        TAnyFeatureCalcer_TNaiveBayes,
-        fbsNaiveBayes.Union()
-    );
+    return TFeatureCalcerFbs(TAnyFeatureCalcer_TNaiveBayes, fbsNaiveBayes.Union());
 }
 
 void TMultinomialNaiveBayes::LoadParametersFromFB(const NCatBoostFbs::TFeatureCalcer* calcer) {

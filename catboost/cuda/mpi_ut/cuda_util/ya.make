@@ -29,7 +29,10 @@ ENDIF()
 
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)
 
-ALLOCATOR(LF)
-
+IF (ARCH_AARCH64)
+    ALLOCATOR(J)
+ELSE()
+    ALLOCATOR(LF)
+ENDIF()
 
 END()

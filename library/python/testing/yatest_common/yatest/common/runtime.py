@@ -101,6 +101,24 @@ def output_path(path=None):
     return _join_path(_get_ya_plugin_instance().output_dir, path)
 
 
+def ram_drive_path(path=None):
+    """
+    :param path: path relative to the ram drive.
+    :return: absolute path inside the ram drive directory or None if no ram drive was provided by environment.
+    """
+    if 'YA_TEST_RAM_DRIVE_PATH' in os.environ:
+        return _join_path(os.environ['YA_TEST_RAM_DRIVE_PATH'], path)
+
+
+def output_ram_drive_path(path=None):
+    """
+    Returns path inside ram drive directory which will be saved in the testing_out_stuff directory after testing.
+    If no ram drive was provided by environment - returns path inside testing_out_stuff directory.
+    :param path: path relative to the output ram drive directory
+    """
+    return _join_path(os.environ['YA_TEST_OUTPUT_RAM_DRIVE_PATH'], path)
+
+
 def binary_path(path=None):
     """
     Get path to the built binary

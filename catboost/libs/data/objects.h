@@ -750,6 +750,36 @@ namespace NCB {
             return GetFeatureToExclusiveBundleIndex(featureIdx).Defined();
         }
 
+        size_t GetFeaturesGroupsSize() const {
+            return FeaturesGroupsData.MetaData.size();
+        }
+
+        TConstArrayRef<TFeaturesGroup> GetFeaturesGroupsMetaData() const {
+            return FeaturesGroupsData.MetaData;
+        }
+
+        const TFeaturesGroup& GetFeaturesGroupMetaData(ui32 groupIdx) const {
+            return FeaturesGroupsData.MetaData[groupIdx];
+        }
+
+        const TFeaturesGroupHolder& GetFeaturesGroup(ui32 groupIdx) const {
+            return *FeaturesGroupsData.SrcData[groupIdx];
+        }
+
+        TMaybe<TFeaturesGroupIndex> GetFloatFeatureToFeaturesGroupIndex(TFloatFeatureIdx floatFeatureIdx) const {
+            return GetFeatureToFeaturesGroupIndex(floatFeatureIdx);
+        }
+
+        TMaybe<TFeaturesGroupIndex> GetCatFeatureToFeaturesGroupIndex(TCatFeatureIdx catFeatureIdx) const {
+            return GetFeatureToFeaturesGroupIndex(catFeatureIdx);
+        }
+
+        template <EFeatureType FeatureType>
+        TMaybe<TFeaturesGroupIndex> GetFeatureToFeaturesGroupIndex(TFeatureIdx<FeatureType> featureIdx) const {
+            const ui32 flatFeatureIdx = GetFeaturesLayout()->GetExternalFeatureIdx(*featureIdx, FeatureType);
+            return FeaturesGroupsData.FlatFeatureIndexToGroupPart[flatFeatureIdx];
+        }
+
         /* binary packs and bundles in *this are compatible with rhs
          * useful for low-level compatibility (for example when calculating hashes by packs/bundles)
          */

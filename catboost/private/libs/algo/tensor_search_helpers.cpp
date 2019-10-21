@@ -79,6 +79,28 @@ TSplit TCandidateInfo::GetSplit(
                 // keep compiler happy
                 return TSplit();
             }
+        case ESplitEnsembleType::FeaturesGroup:
+            {
+                const auto groupIdx = SplitEnsemble.FeaturesGroupRef.GroupIdx;
+                const auto& groupMetaData = objectsData.GetFeaturesGroupMetaData(groupIdx);
+
+                ui32 splitIdxOffset = 0;
+                for (const auto& part : groupMetaData.Parts) {
+                    ui32 splitIdxInPart = binId - splitIdxOffset;
+                    if (splitIdxInPart < part.BucketCount - 1) {
+                        TSplitCandidate splitCandidate;
+                        splitCandidate.Type = ESplitType::FloatFeature;
+                        splitCandidate.FeatureIdx = part.FeatureIdx;
+
+                        return TSplit(std::move(splitCandidate), splitIdxInPart);
+                    }
+
+                    splitIdxOffset += part.BucketCount - 1;
+                }
+                Y_FAIL("This should be unreachable");
+                // keep compiler happy
+                return TSplit();
+            }
     }
 }
 
@@ -587,6 +609,31 @@ void SetBestScore(
                         }
 
                         binFeatureOffset += binFeatureSize;
+                    }
+                }
+                break;
+            case ESplitEnsembleType::FeaturesGroup:
+                {
+                    const auto groupIdx = subcandidateInfo.SplitEnsemble.FeaturesGroupRef.GroupIdx;
+
+                    const THashSet<ui32> selectedFeaturesInGroup(
+                        candidatesContext.SelectedFeaturesInGroups[groupIdx].begin(),
+                        candidatesContext.SelectedFeaturesInGroups[groupIdx].end());
+
+                    ui32 splitIdxOffset = 0;
+                    const auto& groupParts = candidatesContext.FeaturesGroupsMetaData[groupIdx].Parts;
+                    for (auto groupPartIdx : xrange(groupParts.size())) {
+                        const auto& groupPart = groupParts[groupPartIdx];
+
+                        const auto splitsCount = groupPart.BucketCount - 1;
+
+                        if (selectedFeaturesInGroup.contains(groupPartIdx)) {
+                            for (auto splitIdx : xrange(splitIdxOffset, splitIdxOffset + splitsCount)) {
+                                scoreUpdateFunction(splitIdx);
+                            }
+                        }
+
+                        splitIdxOffset += splitsCount;
                     }
                 }
                 break;

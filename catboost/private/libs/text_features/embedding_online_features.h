@@ -13,14 +13,25 @@ namespace NCB {
     class TEmbeddingOnlineFeatures final : public TTextFeatureCalcer {
     public:
 
-        explicit TEmbeddingOnlineFeatures(ui32 numClasses = 2,
-                                          TEmbeddingPtr embedding = TEmbeddingPtr(),
-                                          bool useCos = true,
-                                          bool computeHomoscedasticModel = true,
-                                          bool computeHeteroscedasticModel = true,
-                                          double prior = 1
-                                          )
-            : NumClasses(numClasses)
+        explicit TEmbeddingOnlineFeatures(
+            const TGuid& calcerId = CreateGuid(),
+            ui32 numClasses = 2,
+            TEmbeddingPtr embedding = TEmbeddingPtr(),
+            bool useCos = true,
+            bool computeHomoscedasticModel = true,
+            bool computeHeteroscedasticModel = true,
+            double prior = 1
+        )
+            : TTextFeatureCalcer(
+                BaseFeatureCount(
+                    numClasses,
+                    useCos,
+                    computeHomoscedasticModel,
+                    computeHeteroscedasticModel
+                ),
+                calcerId
+            )
+            , NumClasses(numClasses)
             , Embedding(std::move(embedding))
             , ComputeCosDistance(useCos)
             , ComputeHomoscedasticModel(computeHomoscedasticModel)
@@ -29,7 +40,8 @@ namespace NCB {
             , TotalWeight(prior)
             , Means(numClasses)
             , PerClassSigma(numClasses)
-            , ClassSizes(numClasses) {
+            , ClassSizes(numClasses)
+        {
             const auto embeddingsDim = Embedding->Dim();
 
             TotalSigma = TVector<double>(embeddingsDim * embeddingsDim);
@@ -46,7 +58,8 @@ namespace NCB {
             ui32 numClasses,
             bool computeCosDistance,
             bool computeHomoscedasticModel,
-            bool computeHeteroscedasticModel) {
+            bool computeHeteroscedasticModel
+        ) {
             return numClasses * (
                 (ui32)(computeCosDistance) +
                 (ui32)(computeHomoscedasticModel) +
@@ -72,16 +85,6 @@ namespace NCB {
 
         bool IsSerializable() const override {
             return true;
-        }
-
-    protected:
-        ui32 BaseFeatureCount() const override {
-            return BaseFeatureCount(
-                NumClasses,
-                ComputeCosDistance,
-                ComputeHomoscedasticModel,
-                ComputeHeteroscedasticModel
-            );
         }
 
     private:

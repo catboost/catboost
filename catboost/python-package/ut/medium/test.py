@@ -5380,6 +5380,15 @@ class TestModelWithoutParams(object):
         else:
             model.get_feature_importance(type=fstr_type, data=train_pool)
 
+    def test_prediction_values_fstr_change_on_different_pools(self):
+        train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+        test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
+        model = CatBoost(dict(iterations=16, loss_function='RMSE'))
+        model.fit(train_pool)
+        train_fstr = model.get_feature_importance(type='PredictionValuesChange', data=train_pool)
+        test_fstr = model.get_feature_importance(type='PredictionValuesChange', data=test_pool)
+        assert not np.array_equal(train_fstr, test_fstr)
+
     @pytest.fixture(params=['not-trained', 'collapsed'])
     def model_no_trees(self, request):
         train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
@@ -5601,6 +5610,14 @@ def test_save_quantized_pool():
     predictions2 = model_fitted_with_load_quantized_pool.predict(test_pool)
 
     assert all(predictions1 == predictions2)
+
+
+def test_save_quantized_pool_categorical():
+    train_quantized_pool = Pool(SMALL_CATEGORIAL_FILE, column_description=SMALL_CATEGORIAL_CD_FILE)
+    train_quantized_pool.quantize()
+    assert(train_quantized_pool.is_quantized())
+    with pytest.raises(CatBoostError):
+        train_quantized_pool.save(OUTPUT_QUANTIZED_POOL_PATH)
 
 
 # returns dict with 'train_file', 'test_file', 'data_files_have_header', 'cd_file', 'loss_function' keys
@@ -5904,28 +5921,37 @@ def test_training_and_prediction_equal_on_pandas_dense_and_sparse_input(task_typ
 
 
 @pytest.mark.parametrize('model_shrink_rate', [None, 0, 0.2])
-def test_param_array_monotonic_constrains(model_shrink_rate):
+def test_different_formats_of_monotone_constraints(model_shrink_rate):
     from catboost.datasets import monotonic2, set_cache_path
     set_cache_path(test_output_path())  # specify cache dir to fix potential data race while downloading dataset
     monotonic2_train, monotonic2_test = monotonic2()
-    train_pool = Pool(data=monotonic2_train.drop(columns=['Target']), label=monotonic2_train['Target'])
-    test_pool = Pool(data=monotonic2_test.drop(columns=['Target']), label=monotonic2_test['Target'])
+    X_train, y_train = monotonic2_train.drop(columns=['Target']), monotonic2_train['Target']
+    X_test, y_test = monotonic2_test.drop(columns=['Target']), monotonic2_test['Target']
+    feature_names = list(X_train.columns)
+    train_pool = Pool(data=X_train, label=y_train, feature_names=feature_names)
+    test_pool = Pool(data=X_test, label=y_test, feature_names=feature_names)
 
-    monotone_constraints_array = np.array([-1, 1, -1, 1])
-    monotone_constraints_list = [-1, 1, -1, 1]
+    monotone_constraints_array = np.array([-1, 1, 1, -1])
+    monotone_constraints_list = [-1, 1, 1, -1]
+    monotone_constraints_dict_1 = {0: -1, 1: 1, 2: 1, 3: -1}
+    monotone_constraints_dict_2 = {'MonotonicNeg0': -1, 'MonotonicPos0': 1, 'MonotonicPos1': 1, 'MonotonicNeg1': -1}
+    monotone_constraints_string_1 = "(-1,1,1,-1)"
+    monotone_constraints_string_2 = "0:-1,1:1,2:1,3:-1"
+    monotone_constraints_string_3 = "MonotonicNeg0:-1,MonotonicPos0:1,MonotonicPos1:1,MonotonicNeg1:-1"
 
     common_options = dict(iterations=50, model_shrink_rate=model_shrink_rate)
     model1 = CatBoostRegressor(monotone_constraints=monotone_constraints_array, **common_options)
-    model2 = CatBoostRegressor(monotone_constraints=monotone_constraints_list, **common_options)
-
     model1.fit(train_pool)
-    model2.fit(train_pool)
-
-    predections1 = model1.predict(test_pool)
-    predections2 = model2.predict(test_pool)
-
-    assert all(predections1 == predections2)
+    predictions1 = model1.predict(test_pool)
     assert abs(model1.evals_result_['learn']['RMSE'][-1] - model1.eval_metrics(train_pool, 'RMSE')['RMSE'][-1]) < 1e-9
+
+    for monotone_constraints in [monotone_constraints_list, monotone_constraints_dict_1,
+                                 monotone_constraints_dict_2, monotone_constraints_string_1,
+                                 monotone_constraints_string_2, monotone_constraints_string_3]:
+        model2 = CatBoostRegressor(monotone_constraints=monotone_constraints, **common_options)
+        model2.fit(train_pool)
+        predictions2 = model2.predict(test_pool)
+        assert all(predictions1 == predictions2)
 
 
 def test_same_values_with_different_types(task_type):
@@ -6069,3 +6095,35 @@ def test_classes_attribute_multiclass(label_type):
         assert sorted(model.classes_) == ['class0', 'class1', 'class2', 'class3']
     elif label_type == 'float':
         assert sorted(model.classes_) == ['0', '0.1', '0.2', '0.5', '1']
+
+
+def test_multiclass_non_positive_definite_from_github():
+    train = np.array([
+        [
+            0., 0., 0., 0., 0., 0., 0., 0., 0., 0.
+        ],
+        [
+            0.00473934, 0.05, 0., 0., 0., 0., 0., 0., 0., 0.
+        ],
+        [
+            0.04739336, 0.1, 0., 0., 0., 0.03191489, 0., 0., 0., 0.
+        ],
+        [
+            0., 0., 0., 0., 0.00298507, 0.09574468, 0.0195122, 0.01492537, 0.00787402, 0.
+        ],
+        [
+            0.0521327, 0.15, 0.00480769, 0.07692308, 0., 0., 0., 0., 0., 0.
+        ]
+    ])
+    cat_params = {
+        'iterations': 500,
+        'random_state': 42,
+        'loss_function': 'MultiClass',
+        'eval_metric': 'TotalF1',
+        'early_stopping_rounds': 30,
+        'thread_count': 16,
+        'l2_leaf_reg': 0
+    }
+    y_train = np.array([1, 2, 4, 2, 1])
+    cat_model = CatBoostClassifier(**cat_params)
+    cat_model.fit(X=np.array(train)[:5, :10], y=np.array(y_train)[:5], verbose=0)

@@ -8,6 +8,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/model.h>
 
+#include <util/folder/path.h>
 #include <util/generic/ptr.h>
 #include <util/generic/serialized_enum.h>
 #include <util/string/cast.h>
@@ -101,11 +102,12 @@ void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
     localExecutor->RunAdditionalThreads(params.ThreadCount - 1);
 
     TLazyPoolLoader poolLoader(params, model, localExecutor);
+    TFsPath inputPath(params.InputPath.Path);
     auto fstrType = GetFeatureImportanceType(model, /*haveDataset*/true, params.FstrType);
     switch (fstrType) {
         case EFstrType::PredictionValuesChange:
             CalcAndOutputFstr(model,
-                              model.ObliviousTrees->LeafWeights.empty() ? poolLoader() : nullptr,
+                              inputPath.IsFile() ? poolLoader() : nullptr, // because InputPath has default value and is always inited
                               localExecutor.Get(),
                               &params.OutputPath.Path,
                               nullptr,
@@ -121,7 +123,7 @@ void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
             break;
         case EFstrType::InternalFeatureImportance:
             CalcAndOutputFstr(model,
-                              model.ObliviousTrees->LeafWeights.empty() ? poolLoader() : nullptr,
+                              model.ObliviousTrees->GetLeafWeights().empty() ? poolLoader() : nullptr,
                               localExecutor.Get(),
                               nullptr,
                               &params.OutputPath.Path,

@@ -4,6 +4,7 @@
 #include <catboost/libs/model/cpu/evaluator.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/train_lib/train_model.h>
+#include <catboost/private/libs/text_features/ut/lib/text_features_data.h>
 
 #include <library/unittest/registar.h>
 
@@ -144,6 +145,107 @@ Y_UNIT_TEST_SUITE(TObliviousTreeModel) {
             model.Calc({}, f, results);
         };
         UNIT_ASSERT_NO_EXCEPTION(applyBatch());
+    }
+
+    static void CheckCalcTextResult(
+        const TFullModel& model,
+        TConstArrayRef<TVector<TStringBuf>> transposedTextFeatures,
+        TConstArrayRef<double> expectedResults,
+        const ui32 docCount,
+        const ui32 numEstimatedFeatures
+    ) {
+        TVector<double> results(docCount);
+        const double epsilon = 1e-8;
+
+        for (ui32 estimatedFeatureId = 0; estimatedFeatureId < numEstimatedFeatures; estimatedFeatureId++) {
+            ui32 treeIndex = estimatedFeatureId;
+            model.Calc(
+                {},
+                {},
+                transposedTextFeatures,
+                treeIndex,
+                treeIndex + 1,
+                MakeArrayRef(results)
+            );
+
+            for (ui32 docId: xrange(docCount)) {
+                UNIT_ASSERT_DOUBLES_EQUAL(
+                    expectedResults[estimatedFeatureId * docCount + docId],
+                    results[docId],
+                    epsilon
+                );
+            }
+        }
+    }
+
+    Y_UNIT_TEST(TestTextOnlyModel) {
+        TVector<NCBTest::TTextFeature> features;
+        TVector<NCBTest::TTokenizedTextFeature> tokenizedFeatures;
+        TVector<TTextFeatureCalcerPtr> calcers;
+        TVector<TDictionaryPtr> dictionaries;
+        TTokenizerPtr tokenizer;
+        TVector<TVector<ui32>> perFeatureDictionaries;
+        TVector<TVector<ui32>> perTokenizedFeatureCalcers;
+
+        NCBTest::CreateTextDataForTest(
+            &features,
+            &tokenizedFeatures,
+            &calcers,
+            &dictionaries,
+            &tokenizer,
+            &perFeatureDictionaries,
+            &perTokenizedFeatureCalcers
+        );
+
+        auto textProcessingCollection = MakeIntrusive<TTextProcessingCollection>(
+            calcers,
+            dictionaries,
+            perFeatureDictionaries,
+            perTokenizedFeatureCalcers,
+            tokenizer
+        );
+
+        const ui32 docCount = features[0].size();
+        const ui32 numTextFeatures = features.size();
+        const ui32 numEstimatedFeatures = textProcessingCollection->TotalNumberOfOutputFeatures();
+
+        TVector<TVector<TStringBuf>> textFeatures;
+        for (auto& feature: features) {
+            textFeatures.emplace_back(feature.begin(), feature.end());
+        }
+
+        TVector<double> expectedResults(numEstimatedFeatures * docCount);
+        auto model = SimpleTextModel(
+            textProcessingCollection,
+            MakeConstArrayRef(textFeatures),
+            MakeArrayRef(expectedResults)
+        );
+
+        TVector<TVector<TStringBuf>> transposedTextFeatures;
+        for (ui32 docId: xrange(docCount)) {
+            auto& ref = transposedTextFeatures.emplace_back();
+            for (ui32 featureId: xrange(numTextFeatures)) {
+                ref.emplace_back(features[featureId][docId]);
+            }
+        }
+
+        CheckCalcTextResult(
+            model,
+            MakeConstArrayRef(transposedTextFeatures),
+            MakeConstArrayRef(expectedResults),
+            docCount,
+            numEstimatedFeatures
+        );
+
+        model.ObliviousTrees.GetMutable()->ConvertObliviousToAsymmetric();
+
+        CheckCalcTextResult(
+            model,
+            MakeConstArrayRef(transposedTextFeatures),
+            MakeConstArrayRef(expectedResults),
+            docCount,
+            numEstimatedFeatures
+        );
     }
 }
 

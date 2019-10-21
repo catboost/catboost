@@ -9,13 +9,15 @@
 #include <util/generic/ylimits.h>
 
 TCommonModelBuilderHelper::TCommonModelBuilderHelper(
-    const TVector<TFloatFeature> &allFloatFeatures,
-    const TVector<TCatFeature> &allCategoricalFeatures,
+    const TVector<TFloatFeature>& allFloatFeatures,
+    const TVector<TCatFeature>& allCategoricalFeatures,
+    const TVector<TTextFeature>& allTextFeatures,
     int approxDimension
 )
     : ApproxDimension(approxDimension)
     , FloatFeatures(allFloatFeatures)
     , CatFeatures(allCategoricalFeatures)
+    , TextFeatures(allTextFeatures)
 {
     if (!FloatFeatures.empty()) {
         CB_ENSURE(IsSorted(FloatFeatures.begin(), FloatFeatures.end(),
@@ -41,43 +43,56 @@ TCommonModelBuilderHelper::TCommonModelBuilderHelper(
             CatFeaturesInternalIndexesMap.at((size_t)CatFeatures[i].Position.Index) = i;
         }
     }
+    if (!TextFeatures.empty()) {
+        CB_ENSURE(
+            IsSorted(
+                TextFeatures.begin(),
+                TextFeatures.end(),
+                [](const TTextFeature& f1, const TTextFeature& f2) {
+                    return f1.Position.FlatIndex < f2.Position.FlatIndex;
+                }
+            ),
+            "Text features should be sorted"
+        );
+        TextFeaturesInternalIndexesMap.resize((size_t)TextFeatures.back().Position.Index + 1, Max<size_t>());
+        for (auto i : xrange(TextFeatures.size())) {
+            TextFeaturesInternalIndexesMap.at((size_t)TextFeatures[i].Position.Index) = i;
+        }
+    }
+}
+
+template <class T>
+static void MakeFeaturesUnused(TArrayRef<T> features) {
+    for (auto& feature : features) {
+        feature.SetUsedInModel(false);
+    }
+}
+
+template <class T>
+static void MarkUsedFeatures(
+    const THashSet<int>& usedFeatureIds,
+    TConstArrayRef<size_t> InternalIndexesMap,
+    TArrayRef<T> features
+) {
+    for (int usedFeatureIdx : usedFeatureIds) {
+        features[InternalIndexesMap.at(usedFeatureIdx)].SetUsedInModel(true);
+    }
 }
 
 void TCommonModelBuilderHelper::ProcessSplitsSet(const TSet<TModelSplit>& modelSplitSet, TObliviousTrees* trees) {
-    trees->ApproxDimension = ApproxDimension;
+    trees->SetApproxDimension(ApproxDimension);
     for (auto& feature : FloatFeatures) {
         feature.Borders.clear();
     }
-    trees->FloatFeatures = std::move(FloatFeatures);
-    for (auto& feature : CatFeatures) {
-        feature.UsedInModel = false;
-    }
-    trees->CatFeatures = std::move(CatFeatures);
-    THashSet<int> usedCatFeatureIndexes;
-    for (const auto& split : modelSplitSet) {
-        if (split.Type == ESplitType::FloatFeature) {
-            const size_t internalFloatIndex = FloatFeaturesInternalIndexesMap.at((size_t)split.FloatFeature.FloatFeature);
-            trees->FloatFeatures.at(internalFloatIndex).Borders.push_back(split.FloatFeature.Split);
-        } else if (split.Type == ESplitType::OneHotFeature) {
-            usedCatFeatureIndexes.insert(split.OneHotFeature.CatFeatureIdx);
-            if (trees->OneHotFeatures.empty() || trees->OneHotFeatures.back().CatFeatureIndex != split.OneHotFeature.CatFeatureIdx) {
-                auto& ref = trees->OneHotFeatures.emplace_back();
-                ref.CatFeatureIndex = split.OneHotFeature.CatFeatureIdx;
-            }
-            trees->OneHotFeatures.back().Values.push_back(split.OneHotFeature.Value);
-        } else {
-            const auto& projection = split.OnlineCtr.Ctr.Base.Projection;
-            usedCatFeatureIndexes.insert(projection.CatFeatures.begin(), projection.CatFeatures.end());
-            if (trees->CtrFeatures.empty() || trees->CtrFeatures.back().Ctr != split.OnlineCtr.Ctr) {
-                trees->CtrFeatures.emplace_back();
-                trees->CtrFeatures.back().Ctr = split.OnlineCtr.Ctr;
-            }
-            trees->CtrFeatures.back().Borders.push_back(split.OnlineCtr.Border);
-        }
-    }
-    for (auto usedCatFeatureIdx : usedCatFeatureIndexes) {
-        trees->CatFeatures[CatFeaturesInternalIndexesMap.at(usedCatFeatureIdx)].UsedInModel = true;
-    }
+    trees->SetFloatFeatures(std::move(FloatFeatures));
+
+    MakeFeaturesUnused(MakeArrayRef(CatFeatures.begin(), CatFeatures.end()));
+    MakeFeaturesUnused(MakeArrayRef(TextFeatures.begin(), TextFeatures.end()));
+
+    trees->SetCatFeatures(std::move(CatFeatures));
+    trees->SetTextFeatures(std::move(TextFeatures));
+
+    trees->ProcessSplitsSet(modelSplitSet, FloatFeaturesInternalIndexesMap, CatFeaturesInternalIndexesMap, TextFeaturesInternalIndexesMap);
     for (const auto& split : modelSplitSet) {
         const int binFeatureIdx = BinFeatureIndexes.ysize();
         Y_ASSERT(!BinFeatureIndexes.contains(split));
@@ -87,8 +102,16 @@ void TCommonModelBuilderHelper::ProcessSplitsSet(const TSet<TModelSplit>& modelS
 }
 
 
-TObliviousTreeBuilder::TObliviousTreeBuilder(const TVector<TFloatFeature>& allFloatFeatures, const TVector<TCatFeature>& allCategoricalFeatures, int approxDimension)
-    : TCommonModelBuilderHelper(allFloatFeatures, allCategoricalFeatures, approxDimension)
+TObliviousTreeBuilder::TObliviousTreeBuilder(
+    const TVector<TFloatFeature>& allFloatFeatures,
+    const TVector<TCatFeature>& allCategoricalFeatures,
+    const TVector<TTextFeature>& allTextFeatures,
+    int approxDimension)
+    : TCommonModelBuilderHelper(
+        allFloatFeatures,
+        allCategoricalFeatures,
+        allTextFeatures,
+        approxDimension)
 {
 }
 
@@ -143,18 +166,13 @@ void TObliviousTreeBuilder::Build(TObliviousTrees* result) {
     }
     // filling binary tree splits
     ProcessSplitsSet(modelSplitSet, result);
-    result->LeafValues = std::move(LeafValues);
-    result->LeafWeights = std::move(LeafWeights);
+    result->SetLeafValues(std::move(LeafValues));
+    result->SetLeafWeights(std::move(LeafWeights));
     for (const auto& treeStruct : Trees) {
         for (const auto& split : treeStruct) {
-            result->TreeSplits.push_back(BinFeatureIndexes.at(split));
+            result->AddTreeSplit(BinFeatureIndexes.at(split));
         }
-        if (result->TreeStartOffsets.empty()) {
-            result->TreeStartOffsets.push_back(0);
-        } else {
-            result->TreeStartOffsets.push_back(result->TreeStartOffsets.back() + result->TreeSizes.back());
-        }
-        result->TreeSizes.push_back(treeStruct.ysize());
+        result->AddTreeSize(treeStruct.ysize());
     }
     result->UpdateRuntimeData();
 }
@@ -172,28 +190,29 @@ void TNonSymmetricTreeModelBuilder::Build(TObliviousTrees* result) {
     Y_ASSERT(FlatSplitsVector.size() == FlatNodeValueIndexes.size());
     Y_ASSERT(FlatNodeValueIndexes.size() == FlatNonSymmetricStepNodes.size());
     Y_ASSERT(LeafWeights.empty() || LeafWeights.size() == FlatValueVector.size() / ApproxDimension);
-    result->NonSymmetricStepNodes = std::move(FlatNonSymmetricStepNodes);
-    result->NonSymmetricNodeIdToLeafId = std::move(FlatNodeValueIndexes);
-    result->LeafValues = std::move(FlatValueVector);
+    result->SetNonSymmetricStepNodes(std::move(FlatNonSymmetricStepNodes));
+    result->SetNonSymmetricNodeIdToLeafId(std::move(FlatNodeValueIndexes));
+    result->SetLeafValues(std::move(FlatValueVector));
     for (const auto& split : FlatSplitsVector) {
         if (split) {
-            result->TreeSplits.push_back(BinFeatureIndexes.at(*split));
+            result->AddTreeSplit(BinFeatureIndexes.at(*split));
         } else {
-            result->TreeSplits.push_back(0);
+            result->AddTreeSplit(0);
         }
     }
-    result->TreeSizes = std::move(TreeSizes);
-    result->TreeStartOffsets = std::move(TreeStartOffsets);
-    result->LeafWeights = std::move(LeafWeights);
+    result->SetTreeSizes(std::move(TreeSizes));
+    result->SetTreeStartOffsets(std::move(TreeStartOffsets));
+    result->SetLeafWeights(std::move(LeafWeights));
     result->UpdateRuntimeData();
 }
 
 TNonSymmetricTreeModelBuilder::TNonSymmetricTreeModelBuilder(
     const TVector<TFloatFeature>& allFloatFeatures,
     const TVector<TCatFeature>& allCategoricalFeatures,
+    const TVector<TTextFeature>& allTextFeatures,
     int approxDimension
 )
-    : TCommonModelBuilderHelper(allFloatFeatures, allCategoricalFeatures, approxDimension)
+    : TCommonModelBuilderHelper(allFloatFeatures, allCategoricalFeatures, allTextFeatures, approxDimension)
 {}
 
 ui32 TNonSymmetricTreeModelBuilder::AddTreeNode(const TNonSymmetricTreeNode& node) {

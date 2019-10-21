@@ -14,7 +14,8 @@ namespace NCB {
             TArrayRef<TTextDataSetPtr> testTexts)
             : Target(std::move(target))
             , LearnTexts(std::move(learnTexts))
-            , TestTexts(testTexts.begin(), testTexts.end()) {
+            , TestTexts(testTexts.begin(), testTexts.end())
+            , Guid(CreateGuid()) {
         }
 
         void ComputeFeatures(
@@ -75,6 +76,10 @@ namespace NCB {
             }
         }
 
+        TGuid Id() const override {
+            return Guid;
+        }
+
         THolder<IFeatureCalcer> MakeFinalFeatureCalcer(
             TConstArrayRef<ui32> featureIndices,
             NPar::TLocalExecutor* executor) const override {
@@ -82,6 +87,7 @@ namespace NCB {
             Y_UNUSED(executor);
 
             THolder<TFeatureCalcer> calcer = EstimateFeatureCalcer();
+            calcer->SetId(Id());
             calcer->TrimFeatures(featureIndices);
             return calcer;
         }
@@ -180,5 +186,6 @@ namespace NCB {
         TTextClassificationTargetPtr Target;
         TTextDataSetPtr LearnTexts;
         TVector<TTextDataSetPtr> TestTexts;
+        const TGuid Guid;
     };
 }

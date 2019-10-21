@@ -77,10 +77,12 @@ using TCandidateList = TVector<TCandidatesInfoList>;
 struct TCandidatesContext {
     ui32 OneHotMaxSize; // needed to select for which categorical features in bundles to calc stats
     TConstArrayRef<NCB::TExclusiveFeaturesBundle> BundlesMetaData;
+    TConstArrayRef<NCB::TFeaturesGroup> FeaturesGroupsMetaData;
 
     TCandidateList CandidateList;
     TVector<TVector<ui32>> SelectedFeaturesInBundles; // [bundleIdx][inBundleIdx]
     TVector<NCB::TBinaryFeaturesPack> PerBinaryPackMasks;
+    TVector<TVector<ui32>> SelectedFeaturesInGroups; // [groupIdx] -> {inGroupIdx_1, ..., inGroupIdx_k}
 };
 
 

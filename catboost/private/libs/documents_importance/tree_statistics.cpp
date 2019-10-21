@@ -1,10 +1,10 @@
 #include "tree_statistics.h"
 #include "ders_helpers.h"
 
-#include <catboost/private/libs/algo/index_calcer.h>
-#include <catboost/private/libs/options/json_helper.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/logging/profile_info.h>
+#include <catboost/private/libs/algo/index_calcer.h>
+#include <catboost/private/libs/options/json_helper.h>
 
 
 using namespace NCB;
@@ -40,7 +40,7 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
     for (ui32 treeId = 0; treeId < treeCount; ++treeId) {
         processTreesProfile.StartIterationBlock();
 
-        LeafCount = 1 << model.ObliviousTrees->TreeSizes[treeId];
+        LeafCount = 1 << model.ObliviousTrees->GetTreeSizes()[treeId];
         LeafIndices = BuildIndicesForBinTree(model, binarizedFeatures.Get(), treeId);
 
         TVector<TVector<ui32>> leavesDocId(LeafCount);

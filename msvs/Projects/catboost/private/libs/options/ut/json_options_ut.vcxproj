@@ -81,6 +81,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\ut\all_losses_described.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\ut\json_helper_ut.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\ut\options_ut.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\ut\text_options_ut.cpp"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

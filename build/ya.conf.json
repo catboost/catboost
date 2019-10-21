@@ -72,8 +72,8 @@
         "crypta": { "description": "Run Crypta client" },
         "go": { "description": "Run go tool (1.12.10)" },
         "gofmt": { "description": "Run gofmt tool (1.12.10)" },
-        "go_1.13.1": { "description": "Run go tool (1.13.1)" },
-        "gofmt_1.13.1": { "description": "Run gofmt tool (1.13.1)" },
+        "go_1.13.3": { "description": "Run go tool (1.13.3)" },
+        "gofmt_1.13.3": { "description": "Run gofmt tool (1.13.3)" },
         "godoc": { "description": "Arcadia version of godoc" },
         "yo": { "description": "Tool for managing vendor/ directory" },
         "tvmknife": { "description": "Tool for debugging and testing with TVM tickets" },
@@ -1488,11 +1488,11 @@
                 "version": "1.12.10"
             }
         },
-        "golang_1_13_1": {
+        "golang_1_13_3": {
             "tools": {
-                "golang_1.13.1": {"bottle": "golang_1.13.1",  "executable": "golang"},
-                "go_1.13.1": {"bottle": "golang_1.13.1",  "executable": "go"},
-                "gofmt_1.13.1": {"bottle": "golang_1.13.1",  "executable": "gofmt"}
+                "golang_1.13.3": {"bottle": "golang_1.13.3",  "executable": "golang"},
+                "go_1.13.3": {"bottle": "golang_1.13.3",  "executable": "go"},
+                "gofmt_1.13.3": {"bottle": "golang_1.13.3",  "executable": "gofmt"}
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "default": true},
@@ -1501,7 +1501,7 @@
             ],
             "params": {
                 "type": "golang",
-                "version": "1.13.1"
+                "version": "1.13.3"
             }
         },
         "godoc": {
@@ -1599,7 +1599,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [527135337],
+                "sandbox_id": [529891341],
                 "match": "ymake"
             },
             "executable": {
@@ -1635,7 +1635,7 @@
         },
         "yo": {
             "formula": {
-                "sandbox_id": [496866925, 496866953],
+                "sandbox_id": [531633465, 531633457],
                 "match": "yo"
             },
             "executable": {
@@ -1975,7 +1975,7 @@
         },
         "yt": {
             "formula": {
-                "sandbox_id": 468969613,
+                "sandbox_id": 529865723,
                 "match": "YT"
             },
             "executable": {
@@ -2502,9 +2502,9 @@
                 "gofmt_1.12.10": ["bin", "gofmt"]
             }
         },
-        "golang_1.13.1": {
+        "golang_1.13.3": {
             "formula": {
-                "sandbox_id": [515693700, 515694391, 515695138],
+                "sandbox_id": [530246999, 530247347, 530247605],
                 "match": "GOLANG"
             },
             "executable": {
@@ -2571,7 +2571,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 528528403,
+                "sandbox_id": 530445800,
                 "match": "SEDEM archive"
 
             },

@@ -140,6 +140,7 @@
             "nan_mode" : "Min",
             "border_type" : "GreedyLogSum"
         },
+        "dev_group_features" : false,
         "classes_count" : 0,
         "ignored_features" : [ ],
         "text_processing_options" : {
@@ -196,7 +197,7 @@
             "subsample" : 0.8000000119,
             "type" : "MVS"
         },
-        "monotone_constraints" : [ ],
+        "monotone_constraints" : { },
         "l2_leaf_reg" : 3,
         "depth" : 6,
         "sparse_features_conflict_fraction" : 0

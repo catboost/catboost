@@ -3,6 +3,7 @@
 #include <catboost/libs/helpers/matrix.h>
 #include <catboost/private/libs/lapack/linear_system.h>
 
+#include <util/generic/algorithm.h>
 
 void SolveNewtonEquation(
     const THessianInfo& hessian,
@@ -30,8 +31,16 @@ void TSymmetricHessian::SolveNewtonEquation(
     *res = negativeDer;
     auto localHessian = hessian.Data;
     const auto hessianSize = (approxDimension + 1) * approxDimension / 2;
+
+    float maxTraceElement = l2Regularizer;
     for (int idx = 0, rowSize = approxDimension; idx < hessianSize; idx += rowSize, --rowSize) {
-        localHessian[idx] -= l2Regularizer;
+        maxTraceElement = Max<float>(maxTraceElement, -localHessian[idx]);
+    }
+
+    const float adjustedL2Regularizer = Max(l2Regularizer, maxTraceElement * std::numeric_limits<float>::epsilon());
+
+    for (int idx = 0, rowSize = approxDimension; idx < hessianSize; idx += rowSize, --rowSize) {
+        localHessian[idx] -= adjustedL2Regularizer;
     }
     for (double& value : localHessian) {
         value = - value;

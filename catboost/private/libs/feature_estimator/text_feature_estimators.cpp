@@ -30,7 +30,7 @@ namespace {
         }
 
         TMultinomialNaiveBayes CreateFeatureCalcer() const override {
-            return TMultinomialNaiveBayes(GetTarget().NumClasses);
+            return TMultinomialNaiveBayes(Id(), GetTarget().NumClasses);
         }
 
         TNaiveBayesVisitor CreateCalcerVisitor() const override {
@@ -56,7 +56,7 @@ namespace {
         }
 
         TBM25 CreateFeatureCalcer() const override {
-            return TBM25(GetTarget().NumClasses);
+            return TBM25(Id(), GetTarget().NumClasses);
         }
 
         TBM25Visitor CreateCalcerVisitor() const override {
@@ -105,6 +105,7 @@ namespace {
 
         TEmbeddingOnlineFeatures CreateFeatureCalcer() const override {
             return TEmbeddingOnlineFeatures(
+                Id(),
                 GetTarget().NumClasses,
                 Embedding,
                 ComputeCosDistance,
@@ -150,6 +151,20 @@ namespace {
             Calc(*executor, MakeConstArrayRef(TestTexts), testVisitors);
         }
 
+        TGuid Id() const override {
+            return Guid;
+        }
+
+        THolder<IFeatureCalcer> MakeFinalFeatureCalcer(
+            TConstArrayRef<ui32> featureIndices,
+            NPar::TLocalExecutor* executor) const override {
+
+            Y_UNUSED(executor);
+
+            TBagOfWordsCalcer calcer(Id(), Dictionary.Size());
+            calcer.TrimFeatures(featureIndices);
+            return MakeHolder<TBagOfWordsCalcer>(std::move(calcer));
+        }
 
     protected:
 
@@ -183,7 +198,8 @@ namespace {
     private:
         TVector<TTextDataSetPtr> LearnTexts;
         TVector<TTextDataSetPtr> TestTexts;
-        const IDictionary& Dictionary;
+        const TDictionaryProxy& Dictionary;
+        const TGuid Guid = CreateGuid();
     };
 }
 

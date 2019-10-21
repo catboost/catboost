@@ -10,6 +10,7 @@ public:
     TCommonModelBuilderHelper(
         const TVector<TFloatFeature>& allFloatFeatures,
         const TVector<TCatFeature>& allCategoricalFeatures,
+        const TVector<TTextFeature>& allTextFeatures,
         int approxDimension);
     void ProcessSplitsSet(const TSet<TModelSplit>& modelSplitSet, TObliviousTrees* tree);
 public:
@@ -18,6 +19,8 @@ public:
     TVector<size_t> FloatFeaturesInternalIndexesMap;
     TVector<TCatFeature> CatFeatures;
     TVector<size_t> CatFeaturesInternalIndexesMap;
+    TVector<TTextFeature> TextFeatures;
+    TVector<size_t> TextFeaturesInternalIndexesMap;
     THashMap<TModelSplit, int> BinFeatureIndexes;
 };
 
@@ -26,6 +29,7 @@ public:
     TObliviousTreeBuilder(
         const TVector<TFloatFeature>& allFloatFeatures,
         const TVector<TCatFeature>& allCategoricalFeatures,
+        const TVector<TTextFeature>& allTextFeatures,
         int approxDimension
     );
     void AddTree(
@@ -78,6 +82,7 @@ public:
     TNonSymmetricTreeModelBuilder(
         const TVector<TFloatFeature>& allFloatFeatures,
         const TVector<TCatFeature>& allCategoricalFeatures,
+        const TVector<TTextFeature>& allTextFeatures,
         int approxDimension
     );
     void AddTree(THolder<TNonSymmetricTreeNode> head);

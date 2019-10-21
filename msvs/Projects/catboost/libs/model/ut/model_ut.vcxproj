@@ -204,8 +204,14 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\text_features\private-libs-text_features.vcxproj">
       <Project>{FB7B0D88-A00A-6D89-CEDA-F16BC181EC85}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\text_features\ut\lib\text_features-ut-lib.vcxproj">
+      <Project>{1FD62A04-8727-3D22-0DEC-9A1ADDBDD964}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\text_processing\private-libs-text_processing.vcxproj">
       <Project>{2FD7974D-753A-8A5B-1DDD-D82AF77A73A1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\text_processing\ut\lib\text_processing-ut-lib.vcxproj">
+      <Project>{D5B17AA8-A27C-F971-3059-CC2F24B7DD5C}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\validate_fb\private-libs-validate_fb.vcxproj">
       <Project>{53950737-2B1C-B981-49E0-906A97994F3A}</Project>

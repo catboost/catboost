@@ -61,7 +61,7 @@ flatbuffers::Offset<NCatBoostFbs::TCatFeature> TCatFeature::FBSerialize(
         Position.Index,
         Position.FlatIndex,
         FeatureId.empty() ? nullptr : FeatureId.data(),
-        UsedInModel
+        IsUsedInModel
     );
 }
 
@@ -71,7 +71,7 @@ void TCatFeature::FBDeserialize(const NCatBoostFbs::TCatFeature* fbObj) {
     if (fbObj->FeatureId()) {
         FeatureId.assign(fbObj->FeatureId()->data(), fbObj->FeatureId()->size());
     }
-    UsedInModel = fbObj->UsedInModel();
+    IsUsedInModel = fbObj->UsedInModel();
 }
 
 flatbuffers::Offset<NCatBoostFbs::TOneHotFeature> TOneHotFeature::FBSerialize(
@@ -105,5 +105,48 @@ void TOneHotFeature::FBDeserialize(const NCatBoostFbs::TOneHotFeature* fbObj) {
             auto fbString = fbObj->StringValues()->Get(i);
             StringValues[i].assign(fbString->data(), fbString->size());
         }
+    }
+}
+
+flatbuffers::Offset<NCatBoostFbs::TTextFeature> TTextFeature::FBSerialize(
+    flatbuffers::FlatBufferBuilder& builder
+) const {
+    return NCatBoostFbs::CreateTTextFeatureDirect(
+        builder,
+        Position.Index,
+        Position.FlatIndex,
+        FeatureId.empty() ? nullptr : FeatureId.data(),
+        IsUsedInModel
+    );
+}
+
+void TTextFeature::FBDeserialize(const NCatBoostFbs::TTextFeature* fbObj) {
+    Position.Index = fbObj->Index();
+    Position.FlatIndex = fbObj->FlatIndex();
+    if (fbObj->FeatureId()) {
+        FeatureId.assign(fbObj->FeatureId()->data(), fbObj->FeatureId()->size());
+    }
+    IsUsedInModel = fbObj->UsedInModel();
+}
+
+flatbuffers::Offset<NCatBoostFbs::TEstimatedFeature> TEstimatedFeature::FBSerialize(
+    flatbuffers::FlatBufferBuilder& builder
+) const {
+    const auto calcerFbsGuid = CreateFbsGuid(CalcerId);
+    return NCatBoostFbs::CreateTEstimatedFeatureDirect(
+        builder,
+        SourceFeatureIndex,
+        &calcerFbsGuid,
+        LocalIndex,
+        &Borders
+    );
+}
+
+void TEstimatedFeature::FBDeserialize(const NCatBoostFbs::TEstimatedFeature* fbObj) {
+    SourceFeatureIndex = fbObj->SourceFeatureIndex();
+    CalcerId = GuidFromFbs(fbObj->CalcerId());
+    LocalIndex = fbObj->LocalIndex();
+    if (fbObj->Borders()) {
+        Borders.assign(fbObj->Borders()->begin(), fbObj->Borders()->end());
     }
 }

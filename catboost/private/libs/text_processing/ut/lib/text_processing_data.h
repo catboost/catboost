@@ -1,8 +1,7 @@
 #pragma once
 
 #include <catboost/private/libs/data_types/text.h>
-#include <catboost/private/libs/text_processing/dictionary.h>
-#include <catboost/private/libs/text_processing/tokenizer.h>
+#include <catboost/private/libs/text_processing/text_digitizers.h>
 
 #include <util/generic/fwd.h>
 #include <util/generic/string.h>
@@ -20,10 +19,9 @@ namespace NCBTest {
     void CreateTextDataForTest(
         TVector<TTextFeature>* features,
         TVector<TTokenizedTextFeature>* tokenizedFeatures,
-        TVector<NCB::TDictionaryPtr>* dictionaries,
-        NCB::TTokenizerPtr* tokenizer,
         TVector<ui32>* target,
-        NCatboostOptions::TRuntimeTextOptions* textProcessingOptions
+        NCB::TTextDigitizers* textDigitizers,
+        NCatboostOptions::TTextProcessingOptions* textProcessingOptions
     );
 
 }

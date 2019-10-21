@@ -464,10 +464,11 @@ def select_threshold(model=None, data=None, curve=None, FPR=None, FNR=None, thre
         for pool in data:
             if not isinstance(pool, Pool):
                 raise CatBoostError('one of data pools is not catboost.Pool')
+        return _select_threshold(model._object, data, None, FPR, FNR, thread_count)
     elif curve is not None:
         if not (isinstance(curve, list) or isinstance(curve, tuple)) or len(curve) != 3:
             raise CatBoostError('curve must be list or tuple of three arrays (fpr, tpr, thresholds).')
+        return _select_threshold(None, None, curve, FPR, FNR, thread_count)
     else:
         raise CatBoostError('One of the parameters data and curve should be set.')
 
-    return _select_threshold(model._object, data, curve, FPR, FNR, thread_count)

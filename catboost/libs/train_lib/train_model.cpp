@@ -16,6 +16,7 @@
 #include <catboost/private/libs/data_util/exists_checker.h>
 #include <catboost/private/libs/distributed/master.h>
 #include <catboost/private/libs/distributed/worker.h>
+#include <catboost/libs/fstr/calc_fstr.h>
 #include <catboost/libs/fstr/output_fstr.h>
 #include <catboost/libs/helpers/int_cast.h>
 #include <catboost/libs/helpers/mem_usage.h>
@@ -31,6 +32,7 @@
 #include <catboost/libs/model/ctr_data.h>
 #include <catboost/libs/model/model_build_helper.h>
 #include <catboost/private/libs/options/catboost_options.h>
+#include <catboost/private/libs/options/monotone_constraints.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 #include <catboost/private/libs/options/system_options.h>
 #include <catboost/private/libs/pairs/util.h>
@@ -504,7 +506,7 @@ static void SaveModel(
     TObliviousTrees obliviousTrees;
     THashMap<TFeatureCombination, TProjection> featureCombinationToProjectionMap;
     {
-        TObliviousTreeBuilder builder(ctx.LearnProgress->FloatFeatures, ctx.LearnProgress->CatFeatures, ctx.LearnProgress->ApproxDimension);
+        TObliviousTreeBuilder builder(ctx.LearnProgress->FloatFeatures, ctx.LearnProgress->CatFeatures, {}, ctx.LearnProgress->ApproxDimension);
         for (size_t treeId = 0; treeId < ctx.LearnProgress->TreeStruct.size(); ++treeId) {
             TVector<TModelSplit> modelSplits;
             for (const auto& split : ctx.LearnProgress->TreeStruct[treeId].Splits) {
@@ -545,7 +547,8 @@ static void SaveModel(
             classificationTargetHelper,
             ctx.Params.CatFeatureParams->CtrLeafCountLimit,
             ctx.Params.CatFeatureParams->StoreAllSimpleCtrs,
-            ctx.OutputOptions.GetFinalCtrComputationMode()
+            ctx.OutputOptions.GetFinalCtrComputationMode(),
+            EFinalFeatureCalcersComputationMode::Skip // TODO(d-kruchinin) support feature estimators on CPU
         );
 
         coreModelToFullModelConverter.WithBinarizedDataComputedFrom(
@@ -574,7 +577,7 @@ static void SaveModel(
         coreModelToFullModelConverter.WithCoreModelFrom(modelPtr);
 
         if (dstModel || addResultModelToInitModel) {
-            coreModelToFullModelConverter.Do(true, modelPtr);
+            coreModelToFullModelConverter.Do(true, modelPtr, ctx.LocalExecutor);
             if (addResultModelToInitModel) {
                 TVector<const TFullModel*> models = {*initModel, modelPtr};
                 TVector<double> weights = {1.0, 1.0};
@@ -601,7 +604,8 @@ static void SaveModel(
             coreModelToFullModelConverter.Do(
                 ctx.OutputOptions.CreateResultModelFullPath(),
                 ctx.OutputOptions.GetModelFormats(),
-                ctx.OutputOptions.AddFileFormatExtension()
+                ctx.OutputOptions.AddFileFormatExtension(),
+                ctx.LocalExecutor
             );
         }
     }
@@ -1112,7 +1116,7 @@ void TrainModel(
         TFullModel model = ReadModel(fullModelPath, modelFormat);
         CalcAndOutputFstr(
             model,
-            needPoolAfterTrain ? pools.Learn : nullptr,
+            GetFeatureImportanceType(model, true, outputOptions.GetFstrType()) == EFstrType::LossFunctionChange ? pools.Learn : nullptr,
             &executor,
             &fstrRegularFileName,
             &fstrInternalFileName,
@@ -1315,6 +1319,8 @@ void TrainModel(
     NJson::TJsonValue outputFilesOptionsJson;
     ConvertIgnoredFeaturesFromStringToIndices(pools.Learn.Get()->MetaInfo, &plainJsonParams);
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &trainOptionsJson, &outputFilesOptionsJson);
+    ConvertMonotoneConstraintsToCanonicalFormat(&trainOptionsJson);
+    ConvertFeatureNamesToIndicesInMonotoneConstraints(pools.Learn.Get()->MetaInfo, &trainOptionsJson);
     CB_ENSURE(!plainJsonParams.Has("node_type") || plainJsonParams["node_type"] == "SingleHost", "CatBoost Python module does not support distributed training");
 
     NCatboostOptions::TOutputFilesOptions outputOptions;

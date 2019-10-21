@@ -215,6 +215,9 @@ TFeature GetFeature(const TModelSplit& split) {
         case ESplitType::OnlineCtr:
             result.Ctr = split.OnlineCtr.Ctr;
             break;
+        case ESplitType::EstimatedFeature:
+            CB_ENSURE(false, "Text features is not supported in fstr mode yet");
+            break;
     }
     return result;
 }

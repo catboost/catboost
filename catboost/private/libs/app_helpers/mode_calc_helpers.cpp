@@ -73,6 +73,13 @@ void NCB::ReadModelAndUpdateParams(
         CB_ENSURE(model.HasValidCtrProvider(),
                   "Model has invalid ctr provider, possibly you are using core model without or with incomplete ctr data");
     }
+    if (model.HasTextFeatures()) {
+        CB_ENSURE(params.ColumnarPoolFormatParams.CdFilePath.Inited(),
+                  "Model has text features. Specify column_description file with correct text features.");
+        CB_ENSURE(model.HasValidTextProcessingCollection(),
+                  "Model has invalid text processing collection, possibly you are using"
+                  " core model without or with incomplete estimatedFeatures data");
+    }
 
     params.ClassNames = model.GetModelClassNames();
 

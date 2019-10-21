@@ -582,18 +582,21 @@ void ComputeOnlineCTRs(
                 ProcessFeatureForCalcHashes<ui32, EFeatureValuesType::PerfectHashedCategorical>(
                     data.Learn->ObjectsData->GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
                     data.Learn->ObjectsData->GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
+                    data.Learn->ObjectsData->GetCatFeatureToFeaturesGroupIndex(catFeatureIdx),
                     fold.LearnPermutationFeaturesSubset,
                     /*processBundledAndBinaryFeaturesInPacks*/ false,
                     /*isBinaryFeatureEquals1*/ false, // unused
                     TArrayRef<TVector<TCalcHashInBundleContext>>(), // unused
                     TArrayRef<TBinaryFeaturesPack>(), // unused
                     TArrayRef<TBinaryFeaturesPack>(), // unused
+                    TArrayRef<TVector<TCalcHashInGroupContext>>(), // unused
                     [&]() { return *data.Learn->ObjectsData->GetCatFeature(*catFeatureIdx); },
                     [&](ui32 bundleIdx) {
                         return data.Learn->ObjectsData->GetExclusiveFeatureBundlesMetaData()[bundleIdx];
                     },
                     [&](ui32 bundleIdx) { return &data.Learn->ObjectsData->GetExclusiveFeaturesBundle(bundleIdx); },
                     [&](ui32 packIdx) { return &data.Learn->ObjectsData->GetBinaryFeaturesPack(packIdx); },
+                    [&](ui32 groupIdx) { return &data.Learn->ObjectsData->GetFeaturesGroup(groupIdx); },
                     [hashArrView] (ui32 i, ui32 featureValue) {
                         hashArrView[i] = (ui64)featureValue + 1;
                     },
@@ -619,12 +622,14 @@ void ComputeOnlineCTRs(
                 ProcessFeatureForCalcHashes<ui32, EFeatureValuesType::PerfectHashedCategorical>(
                     data.Test[testIdx]->ObjectsData->GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
                     data.Test[testIdx]->ObjectsData->GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
+                    data.Test[testIdx]->ObjectsData->GetCatFeatureToFeaturesGroupIndex(catFeatureIdx),
                     data.Test[testIdx]->ObjectsData->GetFeaturesArraySubsetIndexing(),
                     /*processBundledAndBinaryFeaturesInPacks*/ false,
                     /*isBinaryFeatureEquals1*/ false, // unused
                     TArrayRef<TVector<TCalcHashInBundleContext>>(), // unused
                     TArrayRef<TBinaryFeaturesPack>(), // unused
                     TArrayRef<TBinaryFeaturesPack>(), // unused
+                    TArrayRef<TVector<TCalcHashInGroupContext>>(), // unused
                     [&]() { return *data.Test[testIdx]->ObjectsData->GetCatFeature(*catFeatureIdx); },
                     [&](ui32 bundleIdx) {
                         return data.Test[testIdx]->ObjectsData->GetExclusiveFeatureBundlesMetaData()[bundleIdx];
@@ -633,6 +638,7 @@ void ComputeOnlineCTRs(
                         return &data.Test[testIdx]->ObjectsData->GetExclusiveFeaturesBundle(bundleIdx);
                     },
                     [&](ui32 packIdx) { return &data.Test[testIdx]->ObjectsData->GetBinaryFeaturesPack(packIdx); },
+                    [&](ui32 groupIdx) { return &data.Learn->ObjectsData->GetFeaturesGroup(groupIdx); },
                     [hashArrView, docOffset] (ui32 i, ui32 featureValue) {
                         hashArrView[docOffset + i] = (ui64)featureValue + 1;
                     },

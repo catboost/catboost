@@ -1,9 +1,9 @@
 #include "docs_importance_helpers.h"
 #include "ders_helpers.h"
 
-#include <catboost/private/libs/algo/index_calcer.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/logging/profile_info.h>
+#include <catboost/private/libs/algo/index_calcer.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -72,7 +72,7 @@ void TDocumentImportancesEvaluator::UpdateFinalFirstDerivatives(const TVector<TV
 
 TVector<ui32> TDocumentImportancesEvaluator::GetLeafIdToUpdate(ui32 treeId, const TVector<double>& jacobian) {
     TVector<ui32> leafIdToUpdate;
-    const ui32 leafCount = 1 << Model.ObliviousTrees->TreeSizes[treeId];
+    const ui32 leafCount = 1 << Model.ObliviousTrees->GetTreeSizes()[treeId];
 
     if (UpdateMethod.UpdateType == EUpdateType::AllPoints) {
         leafIdToUpdate.resize(leafCount);

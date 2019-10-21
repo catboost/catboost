@@ -117,7 +117,7 @@ def get_source_path(args):
 
 
 def gen_vet_info(args):
-    import_path = args.import_path
+    import_path = args.real_import_path if hasattr(args, 'real_import_path') else args.import_path
     info = get_import_config_info(args.peers, True, args.import_map, args.module_map)
 
     import_map = dict(info['importmap'])
@@ -135,15 +135,14 @@ def gen_vet_info(args):
         'Dir': os.path.join(args.arc_source_root, get_source_path(args)),
         'ImportPath': import_path,
         'GoFiles': list(filter(lambda x: x.endswith('.go'), args.go_srcs)),
-        'NonGoFiles': [
-        ],
+        'NonGoFiles': list(filter(lambda x: not x.endswith('.go'), args.go_srcs)),
         'ImportMap': import_map,
         'PackageFile': dict(info['packagefile']),
         'Standard': dict(info['standard']),
         'PackageVetx': dict((key, vet_info_output_name(value)) for key, value in info['packagefile']),
         'VetxOnly': False,
         'VetxOutput': vet_info_output_name(args.output),
-        'SucceedOnTypecheckFailure': True
+        'SucceedOnTypecheckFailure': False
     }
     # print >>sys.stderr, json.dumps(data, indent=4)
     return data
@@ -153,6 +152,24 @@ def create_vet_config(args, info):
     with tempfile.NamedTemporaryFile(delete=False, suffix='.cfg') as f:
         f.write(json.dumps(info))
         return f.name
+
+
+def decode_vet_report(json_report):
+    report = ''
+    if json_report:
+        try:
+            full_diags = json.JSONDecoder(encoding='UTF-8').decode(json_report)
+        except ValueError:
+            report = json_report
+        else:
+            messages = []
+            for _, module_diags in full_diags.iteritems():
+                for _, type_diags in module_diags.iteritems():
+                     for diag in type_diags:
+                         messages.append(u'{}: {}'.format(diag['posn'], diag['message']))
+            report = '\n'.join(sorted(messages)).encode('UTF-8')
+
+    return report
 
 
 def dump_vet_report(args, report):
@@ -180,13 +197,16 @@ def do_vet(args):
     assert args.vet
     info = gen_vet_info(args)
     vet_config = create_vet_config(args, info)
-    cmd = [args.go_vet]
+    cmd = [args.go_vet, '-json']
     if args.vet_flags:
         cmd.extend(args.vet_flags)
     cmd.append(vet_config)
-    p_vet = subprocess.Popen(cmd, stdin=None, stderr=subprocess.PIPE, cwd=args.build_root)
-    _, vet_err = p_vet.communicate()
-    dump_vet_report(args, vet_err if vet_err else '')
+    p_vet = subprocess.Popen(cmd, stdin=None, stderr=subprocess.PIPE, stdout=subprocess.PIPE, cwd=args.build_root)
+    vet_out, vet_err = p_vet.communicate()
+    report = decode_vet_report(vet_out) if vet_out else ''
+    dump_vet_report(args, report)
+    if p_vet.returncode:
+        raise subprocess.CalledProcessError(returncode=p_vet.returncode, cmd=cmd, output=vet_err)
 
 
 def _do_compile_go(args):
@@ -224,15 +244,35 @@ def _do_compile_go(args):
     call(cmd, args.build_root)
 
 
+class VetThread(threading.Thread):
+
+    def __init__(self, target, args):
+        super(VetThread, self).__init__(target=target, args=args)
+        self.exc_info = None
+
+    def run(self):
+        try:
+            super(VetThread, self).run()
+        except:
+            self.exc_info = sys.exc_info()
+
+    def join_with_exception(self, reraise_exception):
+        self.join()
+        if reraise_exception and self.exc_info:
+            raise self.exc_info[0], self.exc_info[1], self.exc_info[2]
+
+
 def do_compile_go(args):
+    raise_exception_from_vet = False
     if args.vet:
-        run_vet = threading.Thread(target=do_vet, args=(args,))
+        run_vet = VetThread(target=do_vet, args=(args,))
         run_vet.start()
     try:
         _do_compile_go(args)
+        raise_exception_from_vet = True
     finally:
         if args.vet:
-            run_vet.join()
+            run_vet.join_with_exception(raise_exception_from_vet)
 
 
 def do_compile_asm(args):
@@ -269,7 +309,8 @@ def do_link_exe(args):
     assert args.non_local_peers is not None
     compile_args = copy_args(args)
     compile_args.output = os.path.join(args.output_root, 'main.a')
-    # compile_args.import_path = 'main'
+    compile_args.real_import_path = compile_args.import_path
+    compile_args.import_path = 'main'
 
     if args.vcs and os.path.isfile(compile_args.vcs):
         build_info = os.path.join('library', 'go', 'core', 'buildinfo')

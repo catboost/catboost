@@ -9,7 +9,7 @@ Y_UNIT_TEST_SUITE(TestExportHelpers) {
         TFullModel model;
         TFloatFeature feature;
         feature.Borders = {0, 0.5};
-        model.ObliviousTrees.GetMutable()->FloatFeatures.push_back(feature);
+        model.ObliviousTrees.GetMutable()->AddFloatFeature(feature);
         auto result = NCatboostModelExportHelpers::OutputBorders(model, true);
         UNIT_ASSERT_EQUAL(result, "0.f, 0.5f");
     }

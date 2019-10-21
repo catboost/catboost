@@ -4,6 +4,8 @@
 
 #include "online_ctr.h"
 
+#include <catboost/libs/helpers/guid.h>
+
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
 #include <util/ysaveload.h>
@@ -88,7 +90,7 @@ inline TVector<int> CountSplits(const TVector<TFloatFeature>& floatFeatures) {
 }
 
 struct TCatFeature {
-    bool UsedInModel = true;
+public:
     TFeaturePosition Position;
     TString FeatureId;
 public:
@@ -100,9 +102,9 @@ public:
         int flatFeatureIndex,
         TString featureId
     )
-        : UsedInModel(usedInModel)
-        , Position(featureIndex, flatFeatureIndex)
+        : Position(featureIndex, flatFeatureIndex)
         , FeatureId(featureId)
+        , IsUsedInModel(usedInModel)
     {}
 
     bool operator==(const TCatFeature& other) const {
@@ -113,9 +115,20 @@ public:
         return !(*this == other);
     }
 
+    bool UsedInModel() const {
+        return IsUsedInModel;
+    }
+
+    void SetUsedInModel(bool isUsedInModel) {
+        IsUsedInModel = isUsedInModel;
+    }
+
     flatbuffers::Offset<NCatBoostFbs::TCatFeature> FBSerialize(flatbuffers::FlatBufferBuilder& builder) const;
     void FBDeserialize(const NCatBoostFbs::TCatFeature* fbObj);
-    Y_SAVELOAD_DEFINE(Position, FeatureId);
+    Y_SAVELOAD_DEFINE(IsUsedInModel, Position, FeatureId);
+
+private:
+    bool IsUsedInModel = true;
 };
 
 struct TOneHotFeature {
@@ -136,6 +149,102 @@ public:
     ) const;
     void FBDeserialize(const NCatBoostFbs::TOneHotFeature* fbObj);
     Y_SAVELOAD_DEFINE(CatFeatureIndex, Values);
+};
+
+struct TTextFeature {
+public:
+    TFeaturePosition Position;
+    TString FeatureId;
+public:
+    TTextFeature() = default;
+
+    TTextFeature(
+        bool usedInModel,
+        int featureIndex,
+        int flatFeatureIndex,
+        TString featureId
+    )
+        : Position(featureIndex, flatFeatureIndex)
+        , FeatureId(std::move(featureId))
+        , IsUsedInModel(usedInModel)
+    {}
+
+    bool operator==(const TTextFeature& other) const {
+        return std::tie(Position, FeatureId) ==
+            std::tie(other.Position, other.FeatureId);
+    }
+    bool operator!=(const TTextFeature& other) const {
+        return !(*this == other);
+    }
+
+    bool UsedInModel() const {
+        return IsUsedInModel;
+    };
+
+    void SetUsedInModel(bool isUsedInModel) {
+        IsUsedInModel = isUsedInModel;
+    }
+
+    flatbuffers::Offset<NCatBoostFbs::TTextFeature> FBSerialize(
+        flatbuffers::FlatBufferBuilder& builder
+    ) const;
+    void FBDeserialize(const NCatBoostFbs::TTextFeature* fbObj);
+    Y_SAVELOAD_DEFINE(IsUsedInModel, Position, FeatureId);
+
+private:
+    bool IsUsedInModel = true;
+};
+
+struct TEstimatedFeature {
+    int SourceFeatureIndex = -1;
+    NCB::TGuid CalcerId;
+    int LocalIndex = -1;
+    TVector<float> Borders;
+
+public:
+    TEstimatedFeature() = default;
+
+    TEstimatedFeature(
+        int sourceFeatureIndex,
+        const NCB::TGuid& calcerId,
+        int localIndex
+    )
+        : SourceFeatureIndex(sourceFeatureIndex)
+        , CalcerId(calcerId)
+        , LocalIndex(localIndex)
+    {}
+
+    bool operator<(const TEstimatedFeature& other) const {
+        return std::tie(
+            SourceFeatureIndex,
+            CalcerId,
+            LocalIndex) <
+               std::tie(
+                   other.SourceFeatureIndex,
+                   other.CalcerId,
+                   other.LocalIndex);
+    }
+
+    bool operator==(const TEstimatedFeature& other) const {
+        return std::tie(
+            SourceFeatureIndex,
+            CalcerId,
+            LocalIndex) ==
+            std::tie(
+                other.SourceFeatureIndex,
+                other.CalcerId,
+                other.LocalIndex);
+    }
+
+    bool operator!=(const TEstimatedFeature& other) const {
+        return !(*this == other);
+    }
+
+    flatbuffers::Offset<NCatBoostFbs::TEstimatedFeature> FBSerialize(
+        flatbuffers::FlatBufferBuilder& builder
+    ) const;
+    void FBDeserialize(const NCatBoostFbs::TEstimatedFeature* fbObj);
+    Y_SAVELOAD_DEFINE(SourceFeatureIndex, CalcerId, LocalIndex, Borders);
 };
 
 class TModelPartsCachingSerializer;

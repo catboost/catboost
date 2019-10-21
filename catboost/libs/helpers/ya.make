@@ -18,6 +18,7 @@ SRCS(
     dynamic_iterator.cpp
     element_range.cpp
     exception.cpp
+    flatbuffers/guid.fbs
     guid.cpp
     hash.cpp
     int_cast.cpp
@@ -51,6 +52,7 @@ PEERDIR(
     catboost/private/libs/data_util
     catboost/private/libs/index_range
     catboost/libs/logging
+    contrib/libs/flatbuffers
     library/binsaver
     library/containers/2d_array
     library/dbg_output

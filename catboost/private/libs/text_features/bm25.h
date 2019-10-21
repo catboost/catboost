@@ -16,15 +16,22 @@ namespace NCB {
     class TBM25 final : public TTextFeatureCalcer {
     public:
 
-        explicit TBM25(ui32 numClasses = 2, double truncateBorder = 1e-3, double k = 1.5, double b = 0.75)
-            : NumClasses(numClasses)
+        explicit TBM25(
+            const TGuid& calcerId = CreateGuid(),
+            ui32 numClasses = 2,
+            double truncateBorder = 1e-3,
+            double k = 1.5,
+            double b = 0.75
+        )
+            : TTextFeatureCalcer(BaseFeatureCount(numClasses), calcerId)
+            , NumClasses(numClasses)
             , K(k)
             , B(b)
             , TruncateBorder(truncateBorder)
             , TotalTokens(1)
             , ClassTotalTokens(numClasses)
-            , Frequencies(numClasses) {
-        }
+            , Frequencies(numClasses)
+        {}
 
         virtual bool IsSerializable() const {
             return true;
@@ -40,11 +47,6 @@ namespace NCB {
             return numClasses;
         }
 
-    protected:
-        ui32 BaseFeatureCount() const override {
-            return BaseFeatureCount(NumClasses);
-        }
-
     private:
         ui32 NumClasses;
         double K;
@@ -56,7 +58,7 @@ namespace NCB {
         TVector<TDenseHash<TTokenId, ui32>> Frequencies;
 
     protected:
-        flatbuffers::Offset<NCatBoostFbs::TFeatureCalcer> SaveParametersToFB(flatbuffers::FlatBufferBuilder& builder) const override;
+        TTextFeatureCalcer::TFeatureCalcerFbs SaveParametersToFB(flatbuffers::FlatBufferBuilder& builder) const override;
         void LoadParametersFromFB(const NCatBoostFbs::TFeatureCalcer* calcerFbs) override;
 
         void SaveLargeParameters(IOutputStream* ) const override;

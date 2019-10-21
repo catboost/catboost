@@ -3,6 +3,7 @@
 #include "quantized_features_info.h"
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/logging/logging.h>
 
 
 namespace NCB {
@@ -15,16 +16,15 @@ namespace NCB {
         const TFeaturesGroupingOptions& options)
     {
         CB_ENSURE(
-            options.MaxFeaturesPerBundle == 1 ||
-            options.MaxFeaturesPerBundle == 2 ||
-            options.MaxFeaturesPerBundle == 4,
-            "Currently it is possible to group only 1, 2 or 4 features");
+            options.MaxFeaturesPerBundle == 2 || options.MaxFeaturesPerBundle == 4,
+            "Currently it is possible to group only 2 or 4 features");
         TVector<TFeaturesGroup> groups;
         TFeaturesGroup group;
         featuresLayout.IterateOverAvailableFeatures<EFeatureType::Float>(
             [&] (const TFloatFeatureIdx& floatFeatureIdx) {
                 /* Currently grouped only float features with number of bins up to 256 */
-                if (quantizedFeaturesInfo.GetBinCount(floatFeatureIdx) > 256)
+                ui32 bucketCount = quantizedFeaturesInfo.GetBinCount(floatFeatureIdx);
+                if (bucketCount > 256)
                     return;
 
                 const ui32 externalIdx = featuresLayout.GetExternalFeatureIdx(*floatFeatureIdx, EFeatureType::Float);
@@ -33,7 +33,7 @@ namespace NCB {
                 if (isInExclusiveBundle || isPackedBinary)
                     return;
 
-                group.Add(TFeaturesGroupPart{EFeatureType::Float, *floatFeatureIdx});
+                group.Add(TFeaturesGroupPart{EFeatureType::Float, *floatFeatureIdx, bucketCount});
 
                 if (group.Parts.size() == options.MaxFeaturesPerBundle) {
                     groups.emplace_back(group);
@@ -41,18 +41,19 @@ namespace NCB {
                 }
             });
 
+        // it is unreasonable to group 1 feature or 3 features
+        if (group.Parts.size() == 1 || group.Parts.size() == 3) {
+            group.PopLastFeature();
+        }
         if (!group.Parts.empty()) {
-            if (group.Parts.size() == 3) {
-                // split to 2 groups with 1 and 2 parts to fit later in ui8 and ui16
-                TFeaturesGroup firstGroup, secondGroup;
-                firstGroup.Add(group.Parts[0]);
-                firstGroup.Add(group.Parts[1]);
-                secondGroup.Add(group.Parts[2]);
-                groups.emplace_back(firstGroup);
-                groups.emplace_back(secondGroup);
-            } else {
-                groups.emplace_back(group);
+            groups.emplace_back(group);
+        }
+        for (auto groupIdx : xrange(groups.size())) {
+            CATBOOST_DEBUG_LOG << "Group #" << groupIdx << ":";
+            for (auto& part : groups[groupIdx].Parts) {
+                CATBOOST_DEBUG_LOG << " " << part.FeatureIdx;
             }
+            CATBOOST_DEBUG_LOG << Endl;
         }
         return groups;
     }

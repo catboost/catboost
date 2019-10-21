@@ -29,7 +29,7 @@ namespace NCB::NModelEvaluation {
                 Ctx.GPUModelData.UsedInModel.resize(ObliviousTrees->GetMinimalSufficientFloatFeaturesVectorSize(), false);
                 TVector<float> flatBordersVec;
                 ui32 currentBinarizedBucket = 0;
-                for (const TFloatFeature& floatFeature : ObliviousTrees->FloatFeatures) {
+                for (const TFloatFeature& floatFeature : ObliviousTrees->GetFloatFeatures()) {
                     Ctx.GPUModelData.UsedInModel[floatFeature.Position.Index] = floatFeature.UsedInModel();
                     if (!floatFeature.UsedInModel()) {
                         continue;
@@ -48,18 +48,18 @@ namespace NCB::NModelEvaluation {
                 Ctx.GPUModelData.FlatBordersVector = TCudaVec<float>(flatBordersVec, EMemoryType::Device);
 
                 Ctx.GPUModelData.TreeSizes = TCudaVec<ui32>(
-                    TVector<ui32>(ObliviousTrees->TreeSizes.begin(), ObliviousTrees->TreeSizes.end()),
+                    TVector<ui32>(ObliviousTrees->GetTreeSizes().begin(), ObliviousTrees->GetTreeSizes().end()),
                     EMemoryType::Device
                 );
                 Ctx.GPUModelData.TreeStartOffsets = TCudaVec<ui32>(
-                    TVector<ui32>(ObliviousTrees->TreeStartOffsets.begin(), ObliviousTrees->TreeStartOffsets.end()),
+                    TVector<ui32>(ObliviousTrees->GetTreeStartOffsets().begin(), ObliviousTrees->GetTreeStartOffsets().end()),
                     EMemoryType::Device
                 );
                 const auto& firstLeafOffsetRef = ObliviousTrees->GetFirstLeafOffsets();
                 TVector<ui32> firstLeafOffset(firstLeafOffsetRef.begin(), firstLeafOffsetRef.end());
                 Ctx.GPUModelData.TreeFirstLeafOffsets = TCudaVec<ui32>(firstLeafOffset, EMemoryType::Device);
                 Ctx.GPUModelData.ModelLeafs = TCudaVec<TCudaEvaluatorLeafType>(
-                    TVector<TCudaEvaluatorLeafType>(ObliviousTrees->LeafValues.begin(), ObliviousTrees->LeafValues.end()),
+                    TVector<TCudaEvaluatorLeafType>(ObliviousTrees->GetLeafValues().begin(), ObliviousTrees->GetLeafValues().end()),
                     EMemoryType::Device
                 );
                 Ctx.Stream = TCudaStream::NewStream();
@@ -93,7 +93,7 @@ namespace NCB::NModelEvaluation {
             }
 
             i32 GetApproxDimension() const override {
-                return ObliviousTrees->ApproxDimension;
+                return ObliviousTrees->GetDimensionsCount();
             }
 
             void CalcFlatTransposed(
@@ -109,19 +109,19 @@ namespace NCB::NModelEvaluation {
                 );
                 CB_ENSURE(featureLayout == nullptr, "feature layout currenlty not supported");
                 TMaybe<size_t> docCount;
-                CB_ENSURE(!ObliviousTrees->FloatFeatures.empty() || !ObliviousTrees->CatFeatures.empty(),
+                CB_ENSURE(!ObliviousTrees->GetFloatFeatures().empty() || !ObliviousTrees->GetCatFeatures().empty(),
                           "Both float features and categorical features information are empty");
-                if (!ObliviousTrees->FloatFeatures.empty()) {
-                    for (const auto& floatFeature : ObliviousTrees->FloatFeatures) {
+                if (!ObliviousTrees->GetFloatFeatures().empty()) {
+                    for (const auto& floatFeature : ObliviousTrees->GetFloatFeatures()) {
                         if (floatFeature.UsedInModel()) {
                             docCount = transposedFeatures[floatFeature.Position.FlatIndex].size();
                             break;
                         }
                     }
                 }
-                if (!docCount.Defined() && !ObliviousTrees->CatFeatures.empty()) {
-                    for (const auto& catFeature : ObliviousTrees->CatFeatures) {
-                        if (catFeature.UsedInModel) {
+                if (!docCount.Defined() && !ObliviousTrees->GetCatFeatures().empty()) {
+                    for (const auto& catFeature : ObliviousTrees->GetCatFeatures()) {
+                        if (catFeature.UsedInModel()) {
                             docCount = transposedFeatures[catFeature.Position.FlatIndex].size();
                             break;
                         }
@@ -233,6 +233,23 @@ namespace NCB::NModelEvaluation {
                     "Cat features are not supported on GPU, should be empty"
                 );
                 CalcFlat(floatFeatures, treeStart, treeEnd, results, featureLayout);
+            }
+
+            void Calc(
+                TConstArrayRef<TConstArrayRef<float>> floatFeatures,
+                TConstArrayRef<TConstArrayRef<TStringBuf>> catFeatures,
+                TConstArrayRef<TConstArrayRef<TStringBuf>> textFeatures,
+                size_t treeStart,
+                size_t treeEnd,
+                TArrayRef<double> results,
+                const TFeatureLayout* featureInfo = nullptr
+            ) const override {
+                ValidateInputFeatures(floatFeatures, catFeatures);
+                CB_ENSURE(
+                    textFeatures.empty(),
+                    "Text features are not supported in GPU calc, should be empty"
+                );
+                CalcFlat(floatFeatures, treeStart, treeEnd, results, featureInfo);
             }
 
             void Calc(

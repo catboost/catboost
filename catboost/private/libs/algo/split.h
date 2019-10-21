@@ -127,11 +127,21 @@ public:
     }
 };
 
+struct TFeaturesGroupRef {
+    ui32 GroupIdx = std::numeric_limits<ui32>::max();
+
+public:
+    bool operator==(const TFeaturesGroupRef& other) const {
+        return GroupIdx == other.GroupIdx;
+    }
+};
+
 
 enum class ESplitEnsembleType {
     OneFeature,
     BinarySplits,
-    ExclusiveBundle
+    ExclusiveBundle,
+    FeaturesGroup
 };
 
 
@@ -144,9 +154,11 @@ struct TSplitEnsemble {
     TSplitCandidate SplitCandidate;
     TBinarySplitsPackRef BinarySplitsPackRef;
     TExclusiveFeaturesBundleRef ExclusiveFeaturesBundleRef;
+    TFeaturesGroupRef FeaturesGroupRef;
 
     static constexpr size_t BinarySplitsPackHash = 118223;
     static constexpr size_t ExclusiveBundleHash = 981490;
+    static constexpr size_t FeaturesGroupHash = 735019;
 
 public:
     TSplitEnsemble()
@@ -174,6 +186,14 @@ public:
         , ExclusiveFeaturesBundleRef(std::move(exclusiveFeaturesBundleRef))
     {}
 
+    /* move is not really needed for such a simple structure but do it in the same way as splitCandidate for
+     * consistency
+     */
+    explicit TSplitEnsemble(TFeaturesGroupRef&& featuresGroupRef)
+        : Type(ESplitEnsembleType::FeaturesGroup)
+        , FeaturesGroupRef(std::move(featuresGroupRef))
+    {}
+
     bool operator==(const TSplitEnsemble& other) const {
         switch (Type) {
             case ESplitEnsembleType::OneFeature:
@@ -185,10 +205,13 @@ public:
             case ESplitEnsembleType::ExclusiveBundle:
                 return (other.Type == ESplitEnsembleType::ExclusiveBundle) &&
                     (ExclusiveFeaturesBundleRef == other.ExclusiveFeaturesBundleRef);
+            case ESplitEnsembleType::FeaturesGroup:
+                return (other.Type == ESplitEnsembleType::FeaturesGroup) &&
+                       (FeaturesGroupRef == other.FeaturesGroupRef);
         }
     }
 
-    SAVELOAD(Type, SplitCandidate, BinarySplitsPackRef, ExclusiveFeaturesBundleRef);
+    SAVELOAD(Type, SplitCandidate, BinarySplitsPackRef, ExclusiveFeaturesBundleRef, FeaturesGroupRef);
 
     size_t GetHash() const {
         switch (Type) {
@@ -198,6 +221,8 @@ public:
                 return MultiHash(BinarySplitsPackHash, BinarySplitsPackRef.PackIdx);
             case ESplitEnsembleType::ExclusiveBundle:
                 return MultiHash(ExclusiveBundleHash, ExclusiveFeaturesBundleRef.BundleIdx);
+            case ESplitEnsembleType::FeaturesGroup:
+                return MultiHash(FeaturesGroupHash, FeaturesGroupRef.GroupIdx);
         }
     }
 
@@ -219,21 +244,25 @@ struct TSplitEnsembleSpec {
 
     ESplitType OneSplitType; // used only if Type == OneFeature
     NCB::TExclusiveFeaturesBundle ExclusiveFeaturesBundle; // used only if Type == ExclusiveBundle
+    NCB::TFeaturesGroup FeaturesGroup; // used only if Type == FeaturesGroup
 
 public:
     explicit TSplitEnsembleSpec(
         ESplitEnsembleType type = ESplitEnsembleType::OneFeature,
         ESplitType oneSplitType = ESplitType::FloatFeature,
-        const NCB::TExclusiveFeaturesBundle& exclusiveFeaturesBundle = NCB::TExclusiveFeaturesBundle()
+        NCB::TExclusiveFeaturesBundle exclusiveFeaturesBundle = NCB::TExclusiveFeaturesBundle(),
+        NCB::TFeaturesGroup featuresGroup = NCB::TFeaturesGroup()
     )
         : Type(type)
         , OneSplitType(oneSplitType)
-        , ExclusiveFeaturesBundle(exclusiveFeaturesBundle)
+        , ExclusiveFeaturesBundle(std::move(exclusiveFeaturesBundle))
+        , FeaturesGroup(std::move(featuresGroup))
     {}
 
     TSplitEnsembleSpec(
         const TSplitEnsemble& splitEnsemble,
-        TConstArrayRef<NCB::TExclusiveFeaturesBundle> exclusiveFeaturesBundles
+        TConstArrayRef<NCB::TExclusiveFeaturesBundle> exclusiveFeaturesBundles,
+        TConstArrayRef<NCB::TFeaturesGroup> featuresGroups
     )
         : Type(splitEnsemble.Type)
         , OneSplitType(splitEnsemble.SplitCandidate.Type)
@@ -242,9 +271,12 @@ public:
             ExclusiveFeaturesBundle
                 = exclusiveFeaturesBundles[splitEnsemble.ExclusiveFeaturesBundleRef.BundleIdx];
         }
+        if (Type == ESplitEnsembleType::FeaturesGroup) {
+            FeaturesGroup = featuresGroups[splitEnsemble.FeaturesGroupRef.GroupIdx];
+        }
     }
 
-    SAVELOAD(Type, OneSplitType, ExclusiveFeaturesBundle);
+    SAVELOAD(Type, OneSplitType, ExclusiveFeaturesBundle, FeaturesGroup);
 
     bool operator==(const TSplitEnsembleSpec& other) const {
         switch (Type) {
@@ -255,6 +287,9 @@ public:
             case ESplitEnsembleType::ExclusiveBundle:
                 return (other.Type == ESplitEnsembleType::ExclusiveBundle) &&
                     (ExclusiveFeaturesBundle == other.ExclusiveFeaturesBundle);
+            case ESplitEnsembleType::FeaturesGroup:
+                return (other.Type == ESplitEnsembleType::FeaturesGroup) &&
+                    (FeaturesGroup == other.FeaturesGroup);
         }
     }
 
@@ -275,6 +310,17 @@ public:
             exclusiveFeaturesBundle
         );
     }
+
+    static TSplitEnsembleSpec FeatureGroup(
+        const NCB::TFeaturesGroup& featuresGroup
+    ) {
+        return TSplitEnsembleSpec(
+            ESplitEnsembleType::FeaturesGroup,
+            ESplitType::FloatFeature, // dummy value
+            {}, // dummy value
+            featuresGroup
+        );
+    }
 };
 
 
@@ -282,7 +328,8 @@ int GetBucketCount(
     const TSplitEnsemble& splitEnsemble,
     const NCB::TQuantizedFeaturesInfo& quantizedFeaturesInfo,
     size_t packedBinaryFeaturesCount,
-    TConstArrayRef<NCB::TExclusiveFeaturesBundle> exclusiveFeaturesBundles
+    TConstArrayRef<NCB::TExclusiveFeaturesBundle> exclusiveFeaturesBundles,
+    TConstArrayRef<NCB::TFeaturesGroup> featuresGroups
 );
 
 
