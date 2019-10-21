@@ -2334,7 +2334,7 @@ $(BUILD_ROOT)/util/datetime/parser.rl6.cpp\
         $(SOURCE_ROOT)/util/datetime/parser.rl6\
 
 	mkdir -p '$(BUILD_ROOT)/util/datetime'
-	'$(BUILD_ROOT)/contrib/tools/ragel6/ragel6' -CG2 '-I$(SOURCE_ROOT)' -o '$(BUILD_ROOT)/util/datetime/parser.rl6.cpp' '$(SOURCE_ROOT)/util/datetime/parser.rl6'
+	'$(BUILD_ROOT)/contrib/tools/ragel6/ragel6' -CG2 -L '-I$(SOURCE_ROOT)' -o '$(BUILD_ROOT)/util/datetime/parser.rl6.cpp' '$(SOURCE_ROOT)/util/datetime/parser.rl6'
 
 $(BUILD_ROOT)/contrib/tools/ragel6/ragel6.mf\
         ::\
@@ -21372,7 +21372,7 @@ $(BUILD_ROOT)/library/json/fast_sax/parser.rl6.cpp\
         $(SOURCE_ROOT)/library/json/fast_sax/parser.rl6\
 
 	mkdir -p '$(BUILD_ROOT)/library/json/fast_sax'
-	'$(BUILD_ROOT)/contrib/tools/ragel6/ragel6' -CG2 '-I$(SOURCE_ROOT)' -o '$(BUILD_ROOT)/library/json/fast_sax/parser.rl6.cpp' '$(SOURCE_ROOT)/library/json/fast_sax/parser.rl6'
+	'$(BUILD_ROOT)/contrib/tools/ragel6/ragel6' -CG2 -L '-I$(SOURCE_ROOT)' -o '$(BUILD_ROOT)/library/json/fast_sax/parser.rl6.cpp' '$(SOURCE_ROOT)/library/json/fast_sax/parser.rl6'
 
 $(BUILD_ROOT)/library/json/fast_sax/unescape.cpp.pic.o\
         ::\
@@ -22167,7 +22167,7 @@ $(BUILD_ROOT)/util/datetime/parser.rl6.cpp\
         $(SOURCE_ROOT)/util/datetime/parser.rl6\
 
 	mkdir -p '$(BUILD_ROOT)/util/datetime'
-	'$(BUILD_ROOT)/contrib/tools/ragel6/ragel6' -CG2 '-I$(SOURCE_ROOT)' -o '$(BUILD_ROOT)/util/datetime/parser.rl6.cpp' '$(SOURCE_ROOT)/util/datetime/parser.rl6'
+	'$(BUILD_ROOT)/contrib/tools/ragel6/ragel6' -CG2 -L '-I$(SOURCE_ROOT)' -o '$(BUILD_ROOT)/util/datetime/parser.rl6.cpp' '$(SOURCE_ROOT)/util/datetime/parser.rl6'
 
 $(BUILD_ROOT)/util/digest/city.cpp.pic.o\
         ::\
