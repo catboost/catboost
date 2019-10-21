@@ -6,6 +6,7 @@ import pandas as pd
 import tarfile
 import tempfile
 import six
+import shutil
 
 logger = logging.getLogger(__name__)
 
@@ -79,12 +80,12 @@ def set_cache_path(path):
     _cache_path = path
 
 
-def _cached_dataset_download(url, md5, dataset_name, train_file, test_file):
+def _download_dataset(url, md5, dataset_name, train_file, test_file, cache=False):
     # TODO(yazevnul): this is not thread safe (or process safe?), we should take a file lock when
     # enter this function to avoid dataset being overwritten or corrupted or something else that may
     # have happen when OS operated simultaneously on the same file. Same thing should probably be
     # done with `_cached_download`.
-    dir_path = os.path.join(_get_cache_path(), dataset_name)
+    dir_path = os.path.join(_get_cache_path(), dataset_name) if cache else tempfile.mkdtemp()
     train_path = os.path.join(dir_path, train_file)
     test_path = os.path.join(dir_path, test_file)
     if not (os.path.exists(train_path) and os.path.exists(test_path)):
@@ -96,12 +97,24 @@ def _cached_dataset_download(url, md5, dataset_name, train_file, test_file):
             _extract(file_path, dir_path)
         finally:
             os.remove(file_path)
+    # move files for safe delete of temp dir
+    if not cache:
+        new_train_path = tempfile.mktemp()
+        new_test_path = tempfile.mktemp()
+        os.rename(train_path, new_train_path)
+        os.rename(test_path, new_test_path)
+        shutil.rmtree(dir_path)
+        train_path, test_path = new_train_path, new_test_path
     return train_path, test_path
 
 
-def _cached_dataset_load_pd(url, md5, dataset_name, train_file, test_file, sep=',', header='infer'):
-    train_path, test_path = _cached_dataset_download(url, md5, dataset_name, train_file, test_file)
-    return pd.read_csv(train_path, header=header, sep=sep), pd.read_csv(test_path, header=header, sep=sep)
+def _load_dataset_pd(url, md5, dataset_name, train_file, test_file, sep=',', header='infer', cache=False):
+    train_path, test_path = _download_dataset(url, md5, dataset_name, train_file, test_file, cache)
+    train, test = pd.read_csv(train_path, header=header, sep=sep), pd.read_csv(test_path, header=header, sep=sep)
+    if not cache:
+        os.remove(train_path)
+        os.remove(test_path)
+    return train, test
 
 
 def _load_numeric_only_dataset(path, row_count, column_count, sep='\t'):
@@ -127,21 +140,21 @@ def titanic():
     url = 'https://storage.mds.yandex.net/get-devtools-opensource/233854/titanic.tar.gz'
     md5 = '9c8bc61d545c6af244a1d37494df3fc3'
     dataset_name, train_file, test_file = 'titanic', 'train.csv', 'test.csv'
-    return _cached_dataset_load_pd(url, md5, dataset_name, train_file, test_file)
+    return _load_dataset_pd(url, md5, dataset_name, train_file, test_file)
 
 
 def amazon():
     url = 'https://storage.mds.yandex.net/get-devtools-opensource/250854/amazon.tar.gz'
     md5 = '8fe3eec12bfd9c4c532b24a181d0aa2c'
     dataset_name, train_file, test_file = 'amazon', 'train.csv', 'test.csv'
-    return _cached_dataset_load_pd(url, md5, dataset_name, train_file, test_file)
+    return _load_dataset_pd(url, md5, dataset_name, train_file, test_file)
 
 
 def msrank():
     url = 'https://storage.mds.yandex.net/get-devtools-opensource/250854/msrank_10k.tar.gz'
     md5 = '79c5b67397289c4c8b367c1f34629eae'
     dataset_name, train_file, test_file = 'msrank', 'train.csv', 'test.csv'
-    return _cached_dataset_load_pd(url, md5, dataset_name, train_file, test_file, header=None)
+    return _load_dataset_pd(url, md5, dataset_name, train_file, test_file, header=None)
 
 
 def rotten_tomatoes():
@@ -161,7 +174,7 @@ def rotten_tomatoes():
     url = 'https://storage.mds.yandex.net/get-devtools-opensource/233854/rotten_tomatoes.tar.gz'
     md5 = 'f5f1412a048ebf67b3ca853568ec081d'
     dataset_name, train_file, test_file = 'rotten_tomatoes', 'train.csv', 'test.csv'
-    return _cached_dataset_load_pd(url, md5, dataset_name, train_file, test_file, sep='\t')
+    return _load_dataset_pd(url, md5, dataset_name, train_file, test_file, sep='\t')
 
 
 def epsilon():
@@ -182,7 +195,7 @@ def epsilon():
         'https://storage.mds.yandex.net/get-devtools-opensource/250854/epsilon.tar.gz', )
     md5 = '5bbfac403ac673da7d7ee84bd532e973'
     dataset_name, train_file, test_file = 'epsilon', 'train.tsv', 'test.tsv'
-    train_path, test_path = _cached_dataset_download(urls, md5, dataset_name, train_file, test_file)
+    train_path, test_path = _download_dataset(urls, md5, dataset_name, train_file, test_file, cache=True)
     return (
         _load_numeric_only_dataset(train_path, 400000, 2001, sep='\t'),
         _load_numeric_only_dataset(test_path, 100000, 2001, sep='\t'))
@@ -205,7 +218,7 @@ def monotonic1():
     url = 'https://storage.mds.yandex.net/get-devtools-opensource/479623/monotonic1.tar.gz'
     md5 = '1b9d8e15bc3fd6f1498e652e7fc4f4ca'
     dataset_name, train_file, test_file = 'monotonic1', 'train.tsv', 'test.tsv'
-    return _cached_dataset_load_pd(url, md5, dataset_name, train_file, test_file, sep='\t')
+    return _load_dataset_pd(url, md5, dataset_name, train_file, test_file, sep='\t', cache=True)
 
 
 def monotonic2():
@@ -227,7 +240,7 @@ def monotonic2():
     url = 'https://storage.mds.yandex.net/get-devtools-opensource/250854/monotonic2.tar.gz'
     md5 = 'ce559e212cb72c156269f6f9a641baca'
     dataset_name, train_file, test_file = 'monotonic2', 'train.tsv', 'test.tsv'
-    return _cached_dataset_load_pd(url, md5, dataset_name, train_file, test_file, sep='\t')
+    return _load_dataset_pd(url, md5, dataset_name, train_file, test_file, sep='\t')
 
 
 def adult():
@@ -251,9 +264,6 @@ def adult():
         'capital-loss': np.float, 'hours-per-week': np.float,
         'native-country': np.object, 'income': np.object, }
 
-    dir_path = os.path.join(_get_cache_path(), 'adult')
-    _ensure_dir_exists(dir_path)
-
     # proxy.sandbox.yandex-team.ru is Yandex internal storage, we first try to download it from
     # internal storage to avoid putting too much pressure on UCI storage from our internal CI
 
@@ -261,20 +271,22 @@ def adult():
         'https://proxy.sandbox.yandex-team.ru/779118052',
         'https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.data', )
     train_md5 = '5d7c39d7b8804f071cdd1f2a7c460872'
-    train_path = os.path.join(dir_path, 'train.csv')
+    train_path = tempfile.mktemp()
     _cached_download(train_urls, train_md5, train_path)
 
     test_urls = (
         'https://proxy.sandbox.yandex-team.ru/779120000',
         'https://archive.ics.uci.edu/ml/machine-learning-databases/adult/adult.test', )
     test_md5 = '35238206dfdf7f1fe215bbb874adecdc'
-    test_path = os.path.join(dir_path, 'test.csv')
+    test_path = tempfile.mktemp()
     _cached_download(test_urls, test_md5, test_path)
 
     train_df = pd.read_csv(train_path, names=names, header=None, sep=',\s*', na_values=['?'], engine='python')
+    os.remove(train_path)
 
     # lines in test part end with dot, thus we need to fix last column of the dataset
     test_df = pd.read_csv(test_path, names=names, header=None, sep=',\s*', na_values=['?'], skiprows=1, converters={'income': lambda x: x[:-1]}, engine='python')
+    os.remove(test_path)
 
     # pandas 0.19.1 doesn't support `dtype` parameter for `read_csv` when `python` engine is used,
     # so we have to do the casting manually; also we can't use `converters` together with `dtype`
