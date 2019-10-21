@@ -297,9 +297,9 @@ public:
     {
     }
 
-    template <class T1>
-    inline TThreadPoolBinder(TSlave* slave, const T1& t1)
-        : TQueueType(t1)
+    template <class ...Args>
+    inline TThreadPoolBinder(TSlave* slave, Args&& ...args)
+        : TQueueType(std::forward<Args>(args)...)
         , Slave_(slave)
     {
     }
