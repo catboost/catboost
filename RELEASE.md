@@ -1,3 +1,14 @@
+# Release 0.18
+
+- The main feature of the release is huge speedup on small datasets. We now use MVS sampling for CPU regression and binary classification training by default, together with `Plain` boosting scheme for both small and large datasets. This change not only gives the huge speedup but also provides quality improvement!
+- The `boost_from_average` parameter is available in `CatBoostClassifier` and `CatBoostRegressor`
+- We have added new formats for describing monotonic constraints. For example, `"(1,0,0,-1)"` or `"0:1,3:-1"` or `"FeatureName0:1,FeatureName3:-1"` are all valid specifications. With Python and `params-file` json, lists and dictionaries can also be used
+
+## Bugs fixed:
+- Error in `Multiclass` classifier training, #1040
+- Unhandled exception when saving quantized pool, #1021
+- Python 3.7: `RuntimeError` raised in `StagedPredictIterator`, #848
+
 # Release 0.17.5
 
 ## Bugs fixed:
