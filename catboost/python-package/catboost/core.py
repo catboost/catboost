@@ -2394,7 +2394,7 @@ class CatBoost(_CatBoostBase):
             )
         self._save_model(fname, format, export_parameters, pool)
 
-    def load_model(self, fname, format='catboost'):
+    def load_model(self, fname, format='cbm'):
         """
         Load model from a file.
 
