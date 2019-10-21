@@ -171,7 +171,7 @@ namespace NCB::NModelEvaluation {
                   "`treeLeafIndexes` size is insufficient: "
                       LabeledOutput(treeLeafIndexes.size(), docCount * treeCount));
         CB_ENSURE(
-            trees.TextFeatures.empty(),
+            trees.GetTextFeatures().empty(),
             "Leaf indexes calculation is not implemented for models with text features"
         );
         std::fill(treeLeafIndexes.begin(), treeLeafIndexes.end(), 0);

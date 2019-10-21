@@ -178,9 +178,9 @@ TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, int tree_idx
     TVector<TModelSplit> bin_features = model.ObliviousTrees->GetBinFeatures();
 
     if (tree_idx + 1 < tree_num) {
-        tree_split_end = model.ObliviousTrees->TreeStartOffsets[tree_idx + 1];
+        tree_split_end = model.ObliviousTrees->GetTreeStartOffsets()[tree_idx + 1];
     } else {
-        tree_split_end = model.ObliviousTrees->TreeSplits.size();
+        tree_split_end = model.ObliviousTrees->GetTreeSplits().size();
     }
 
     THashMap<ui32, TString> cat_features_hash;
@@ -190,14 +190,14 @@ TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, int tree_idx
         featuresLayout = *(pool.Get()->MetaInfo.FeaturesLayout.Get());
     } else {
         TVector<ui32> catFeaturesExternalIndexes;
-        for (const auto& feature: model.ObliviousTrees->CatFeatures) {
+        for (const auto& feature: model.ObliviousTrees->GetCatFeatures()) {
             catFeaturesExternalIndexes.push_back(feature.Position.FlatIndex);
         }
         featuresLayout = NCB::TFeaturesLayout(model.GetNumFloatFeatures() + model.GetNumCatFeatures(), catFeaturesExternalIndexes, {}, {});
     }
 
-    for (int split_idx = model.ObliviousTrees->TreeStartOffsets[tree_idx]; split_idx < tree_split_end; ++split_idx) {
-        TModelSplit bin_feature = bin_features[model.ObliviousTrees->TreeSplits[split_idx]];
+    for (int split_idx = model.ObliviousTrees->GetTreeStartOffsets()[tree_idx]; split_idx < tree_split_end; ++split_idx) {
+        TModelSplit bin_feature = bin_features[model.ObliviousTrees->GetTreeSplits()[split_idx]];
         TString feature_description = BuildDescription(featuresLayout, bin_feature);
 
         if (bin_feature.Type == ESplitType::OneHotFeature) {
@@ -220,12 +220,12 @@ TVector<TString> GetTreeLeafValuesDescriptions(const TFullModel& model, int tree
     TVector<double> leaf_values;
 
     for (int idx = 0; idx < tree_idx; ++idx) {
-        leaf_offset += (1uLL <<  model.ObliviousTrees->TreeSizes[idx]) * model.GetDimensionsCount();
+        leaf_offset += (1uLL <<  model.ObliviousTrees->GetTreeSizes()[idx]) * model.GetDimensionsCount();
     }
-    int tree_leaf_count = (1uLL <<  model.ObliviousTrees->TreeSizes[tree_idx]) * model.GetDimensionsCount();
+    int tree_leaf_count = (1uLL <<  model.ObliviousTrees->GetTreeSizes()[tree_idx]) * model.GetDimensionsCount();
 
     for (int idx = 0; idx < tree_leaf_count; ++idx) {
-        leaf_values.push_back(model.ObliviousTrees->LeafValues[leaf_offset + idx]);
+        leaf_values.push_back(model.ObliviousTrees->GetLeafValues()[leaf_offset + idx]);
     }
 
     std::reverse(leaf_values.begin(), leaf_values.end());

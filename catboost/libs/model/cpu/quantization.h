@@ -291,7 +291,7 @@ namespace NCB::NModelEvaluation {
             ui8* resultPtrForBlockStart = resultPtr;
             ++cpuEvaluatorQuantizedData->BlocksCount;
             auto docCount = Min(end - start, FORMULA_EVALUATION_BLOCK_SIZE);
-            for (const auto& floatFeature : trees.FloatFeatures) {
+            for (const auto& floatFeature : trees.GetFloatFeatures()) {
                 if (!floatFeature.UsedInModel()) {
                     continue;
                 }
@@ -350,7 +350,7 @@ namespace NCB::NModelEvaluation {
                     TVector<ui32> textFeatureIds;
                     THashMap<ui32, ui32> textFeatureIdToFlatIndex;
                     // TODO(d-kruchinin) Check out how index recalculation affects the speed
-                    for (const auto& textFeature : trees.TextFeatures) {
+                    for (const auto& textFeature : trees.GetTextFeatures()) {
                         if (!textFeature.UsedInModel()) {
                             continue;
                         }
@@ -378,7 +378,7 @@ namespace NCB::NModelEvaluation {
                     );
                 }
 
-                for (const auto& estimatedFeature : trees.EstimatedFeatures) {
+                for (const auto& estimatedFeature : trees.GetEstimatedFeatures()) {
                     const ui32 featureOffset =
                         textProcessingCollection->GetAbsoluteCalcerOffset(estimatedFeature.CalcerId)
                         + estimatedFeature.LocalIndex;
@@ -400,7 +400,7 @@ namespace NCB::NModelEvaluation {
             if (trees.GetUsedCatFeaturesCount() != 0) {
                 THashMap<int, int> catFeaturePackedIndexes;
                 int usedFeatureIdx = 0;
-                for (const auto& catFeature : trees.CatFeatures) {
+                for (const auto& catFeature : trees.GetCatFeatures()) {
                     if (!catFeature.UsedInModel()) {
                         continue;
                     }
@@ -418,7 +418,7 @@ namespace NCB::NModelEvaluation {
                 }
                 Y_ASSERT(trees.GetUsedCatFeaturesCount() == (size_t)usedFeatureIdx);
                 OneHotBinsFromTransposedCatFeatures(
-                    trees.OneHotFeatures,
+                    trees.GetOneHotFeatures(),
                     catFeaturePackedIndexes,
                     docCount,
                     transposedHash,
@@ -433,9 +433,10 @@ namespace NCB::NModelEvaluation {
                         ctrs
                     );
                 }
-                for (size_t i = 0; i < trees.CtrFeatures.size(); ++i) {
-                    const auto& ctr = trees.CtrFeatures[i];
-                    auto ctrFloatsPtr = &ctrs[i * docCount];
+                size_t ctrFloatsPosition = 0;
+                for (const auto& ctr : trees.GetCtrFeatures()) {
+                    auto ctrFloatsPtr = &ctrs[ctrFloatsPosition];
+                    ctrFloatsPosition += docCount;
                     BinarizeFloats<false>(
                         TFeaturePosition(),
                         docCount,
@@ -475,7 +476,7 @@ namespace NCB::NModelEvaluation {
         cpuEvaluatorQuantizedData->ObjectsCount = end - start;
         for (; start < end; start += FORMULA_EVALUATION_BLOCK_SIZE) {
             size_t blockEnd = Min(start + FORMULA_EVALUATION_BLOCK_SIZE, end);
-            for (const auto& floatFeature : trees.FloatFeatures) {
+            for (const auto& floatFeature : trees.GetFloatFeatures()) {
                 if (!floatFeature.UsedInModel()) {
                     continue;
                 }

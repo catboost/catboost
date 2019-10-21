@@ -209,14 +209,14 @@ int main(int argc, char** argv) {
     const TObliviousTrees& trees1 = *model1.ObliviousTrees;
     const TObliviousTrees& trees2 = *model2.ObliviousTrees;
     if (true) {
-        if (trees1.FloatFeatures.size() != trees2.FloatFeatures.size()) {
+        if (trees1.GetFloatFeatures().size() != trees2.GetFloatFeatures().size()) {
             Clog << "FloatFeatures size differ: "
-                << trees1.FloatFeatures.size() << " vs " << trees2.FloatFeatures.size() << Endl;
+                << trees1.GetFloatFeatures().size() << " vs " << trees2.GetFloatFeatures().size() << Endl;
             result.StructureIsDifferent = true;
         } else {
-            for (size_t i = 0; !result.StructureIsDifferent && i < trees1.FloatFeatures.size(); ++i) {
-                auto& floatFeature1 = trees1.FloatFeatures[i];
-                auto& floatFeature2 = trees2.FloatFeatures[i];
+            for (size_t i = 0; !result.StructureIsDifferent && i < trees1.GetFloatFeatures().size(); ++i) {
+                auto& floatFeature1 = trees1.GetFloatFeatures()[i];
+                auto& floatFeature2 = trees2.GetFloatFeatures()[i];
                 result.Update(FeatureBordersDiff("FloatFeature", i, floatFeature1.Borders, floatFeature2.Borders));
                 if (floatFeature1.FeatureId != floatFeature2.FeatureId) {
                     Clog << "FloatFeature " << i << " FeatureId differ: "
@@ -226,77 +226,108 @@ int main(int argc, char** argv) {
             }
         }
     }
-    if (trees1.CatFeatures != trees2.CatFeatures) {
+    if (trees1.GetCatFeatures().size() != trees2.GetCatFeatures().size()) {
         Clog << "CatFeatures differ" << Endl;
         result.StructureIsDifferent = true;
+    } else {
+        for (size_t i = 0; !result.StructureIsDifferent && i < trees1.GetCatFeatures().size(); ++i) {
+            const auto& catFeature1 = trees1.GetCatFeatures()[i];
+            const auto& catFeature2 = trees2.GetCatFeatures()[i];
+            if (catFeature1 != catFeature2) {
+                Clog << "CatFeatures differ" << Endl;
+                result.StructureIsDifferent = true;
+            }
+        }
     }
     if (true) {
-        if (trees1.OneHotFeatures.size() != trees2.OneHotFeatures.size()) {
+        if (trees1.GetOneHotFeatures().size() != trees2.GetOneHotFeatures().size()) {
             Clog << "OneHotFeatures size differ: "
-                << trees1.OneHotFeatures.size() << " vs " << trees2.OneHotFeatures.size() << Endl;
+                << trees1.GetOneHotFeatures().size() << " vs " << trees2.GetOneHotFeatures().size() << Endl;
             result.StructureIsDifferent = true;
         } else {
-            for (size_t i = 0; i < trees1.OneHotFeatures.size(); ++i) {
-                auto& feature1 = trees1.OneHotFeatures[i];
-                auto& feature2 = trees2.OneHotFeatures[i];
+            for (size_t i = 0; i < trees1.GetOneHotFeatures().size(); ++i) {
+                auto& feature1 = trees1.GetOneHotFeatures()[i];
+                auto& feature2 = trees2.GetOneHotFeatures()[i];
                 result.Update(FeatureBordersDiff("OneHotFeatures.Values", i, feature1.Values, feature2.Values));
             }
         }
     }
     if (true) {
-        if (trees1.CtrFeatures.size() != trees2.CtrFeatures.size()) {
+        if (trees1.GetCtrFeatures().size() != trees2.GetCtrFeatures().size()) {
             Clog << "CTRFeatures size differ: "
-                << trees1.CtrFeatures.size() << " vs " << trees2.CtrFeatures.size() << Endl;
+                << trees1.GetCtrFeatures().size() << " vs " << trees2.GetCtrFeatures().size() << Endl;
             result.StructureIsDifferent = true;
         } else {
-            for (size_t i = 0; i < trees1.CtrFeatures.size(); ++i) {
-                auto& feature1 = trees1.CtrFeatures[i];
-                auto& feature2 = trees2.CtrFeatures[i];
+            for (size_t i = 0; i < trees1.GetCtrFeatures().size(); ++i) {
+                auto& feature1 = trees1.GetCtrFeatures()[i];
+                auto& feature2 = trees2.GetCtrFeatures()[i];
                 result.Update(FeatureBordersDiff("CTRFeatures", i, feature1.Borders, feature2.Borders));
             }
         }
     }
     if (true) {
-        if (trees1.ApproxDimension != trees2.ApproxDimension) {
+        if (trees1.GetDimensionsCount() != trees2.GetDimensionsCount()) {
             Clog << "ObliviousTrees.ApproxDimension differs" << Endl;
             result.StructureIsDifferent = true;
         }
-        if (trees1.TreeSplits != trees2.TreeSplits) {
-            Clog << "ObliviousTrees.TreeSplits differ" << Endl;
+        if (trees1.GetTreeSplits().size() != trees2.GetTreeSplits().size()) {
+            Clog << "ObliviousTrees.TreeSplits differs" << Endl;
             result.StructureIsDifferent = true;
+        } else {
+            for (size_t i = 0; i < !result.StructureIsDifferent && i < trees1.GetTreeSplits().size(); ++i) {
+                const auto treeSplit1 = trees1.GetTreeSplits()[i];
+                const auto treeSplit2 = trees2.GetTreeSplits()[i];
+                if (treeSplit1 != treeSplit2) {
+                    Clog << "ObliviousTrees.TreeSplits differs" << Endl;
+                    result.StructureIsDifferent = true;
+                }
+            }
         }
-        if (trees1.TreeSizes != trees2.TreeSizes) {
-            Clog << "ObliviousTrees.TreeSizes differ" << Endl;
+        if (trees1.GetTreeSizes().size() != trees2.GetTreeSizes().size()) {
+            Clog << "ObliviousTrees.TreeSizes differs" << Endl;
             result.StructureIsDifferent = true;
+        } else {
+            for (size_t i = 0; i < !result.StructureIsDifferent && i < trees1.GetTreeSizes().size(); ++i) {
+                const auto treeSize1 = trees1.GetTreeSizes()[i];
+                const auto treeSize2 = trees2.GetTreeSizes()[i];
+                if (treeSize1 != treeSize2) {
+                    Clog << "ObliviousTrees.TreeSizes differs" << Endl;
+                    result.StructureIsDifferent = true;
+                }
+            }
         }
-        if (trees1.TreeStartOffsets != trees2.TreeStartOffsets) {
-            Clog << "ObliviousTrees.TreeStartOffsets differ" << Endl;
+        if (trees1.GetTreeStartOffsets().size() != trees2.GetTreeStartOffsets().size()) {
+            Clog << "ObliviousTrees.TreeStartOffsets differs" << Endl;
             result.StructureIsDifferent = true;
+        } else {
+            for (size_t i = 0; i < !result.StructureIsDifferent && i < trees1.GetTreeStartOffsets().size(); ++i) {
+                const auto treeStartOffset1 = trees1.GetTreeStartOffsets()[i];
+                const auto treeStartOffset2 = trees2.GetTreeStartOffsets()[i];
+                if (treeStartOffset1 != treeStartOffset2) {
+                    Clog << "ObliviousTrees.TreeStartOffsets differs" << Endl;
+                    result.StructureIsDifferent = true;
+                }
+            }
         }
         if (!result.StructureIsDifferent) {
-            Y_ASSERT(trees1.LeafValues.size() == trees2.LeafValues.size());
-            for (int i = 0; i < trees1.LeafValues.ysize(); ++i) {
-                if (result.Update(Diff(trees1.LeafValues[i], trees2.LeafValues[i]))) {
+            Y_ASSERT(trees1.GetLeafValues().size() == trees2.GetLeafValues().size());
+            for (int i = 0; i < trees1.GetLeafValues().ysize(); ++i) {
+                if (result.Update(Diff(trees1.GetLeafValues()[i], trees2.GetLeafValues()[i]))) {
                     Clog << "ObliviousTrees.LeafValues[" << i << "] differ: "
-                        << trees1.LeafValues[i] << " vs " << trees2.LeafValues[i]
+                        << trees1.GetLeafValues()[i] << " vs " << trees2.GetLeafValues()[i]
                         << ", diff = " << result.MaxElementwiseDiff << Endl;
                 }
             }
         }
         if (!result.StructureIsDifferent) {
-            Y_ASSERT(trees1.LeafWeights.size() == trees2.LeafWeights.size());
-            const TVector<double>& weights1 = trees1.LeafWeights;
-            const TVector<double>& weights2 = trees2.LeafWeights;
-            for (int i = 0; i < trees1.LeafWeights.ysize(); ++i) {
-                if (result.Update(Diff(weights1[i], weights2[i]))) {
+            Y_ASSERT(trees1.GetLeafWeights().size() == trees2.GetLeafWeights().size());
+            for (int i = 0; i < trees1.GetLeafWeights().ysize(); ++i) {
+                if (result.Update(Diff(trees1.GetLeafWeights()[i], trees2.GetLeafWeights()[i]))) {
                     Clog << "ObliviousTrees.LeafWeights[" << i << "] differ: "
-                        << weights1[i] << " vs " << weights2[i]
+                        << trees1.GetLeafWeights()[i] << " vs " << trees2.GetLeafWeights()[i]
                         << ", diff = " << result.MaxElementwiseDiff << Endl;
                 }
             }
-        }
-        if (trees1.CatFeatures != trees2.CatFeatures) {
-            result.StructureIsDifferent = true;
         }
     }
     if (!CompareModelInfo(model1.ModelInfo, model2.ModelInfo, verbose, ignoreKeys)) {

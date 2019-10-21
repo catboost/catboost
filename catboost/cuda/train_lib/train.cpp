@@ -433,8 +433,8 @@ namespace NCatboostCuda {
             auto targetClassifiers = CreateTargetClassifiers(featuresManager);
 
             EFinalFeatureCalcersComputationMode featureCalcerComputationMode = outputOptions.GetFinalFeatureCalcerComputationMode();
-            if (modelPtr->ObliviousTrees->TextFeatures.empty() ||
-                modelPtr->ObliviousTrees->EstimatedFeatures.empty()
+            if (modelPtr->ObliviousTrees->GetTextFeatures().empty() ||
+                modelPtr->ObliviousTrees->GetEstimatedFeatures().empty()
             ) {
                 featureCalcerComputationMode = EFinalFeatureCalcersComputationMode::Skip;
             }

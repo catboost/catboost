@@ -123,7 +123,7 @@ void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
             break;
         case EFstrType::InternalFeatureImportance:
             CalcAndOutputFstr(model,
-                              model.ObliviousTrees->LeafWeights.empty() ? poolLoader() : nullptr,
+                              model.ObliviousTrees->GetLeafWeights().empty() ? poolLoader() : nullptr,
                               localExecutor.Get(),
                               nullptr,
                               &params.OutputPath.Path,

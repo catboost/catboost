@@ -130,9 +130,9 @@ bool TStaticCtrProvider::HasNeededCtrs(const TVector<TModelCtr>& neededCtrs) con
     return true;
 }
 
-void TStaticCtrProvider::SetupBinFeatureIndexes(const TVector<TFloatFeature>& floatFeatures,
-                                                const TVector<TOneHotFeature>& oheFeatures,
-                                                const TVector<TCatFeature>& catFeatures) {
+void TStaticCtrProvider::SetupBinFeatureIndexes(const TConstArrayRef<TFloatFeature> floatFeatures,
+                                                const TConstArrayRef<TOneHotFeature> oheFeatures,
+                                                const TConstArrayRef<TCatFeature> catFeatures) {
     ui32 currentIndex = 0;
     FloatFeatureIndexes.clear();
     for (const auto& floatFeature : floatFeatures) {

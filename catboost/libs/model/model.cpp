@@ -84,6 +84,64 @@ TFullModel DeserializeModel(const TString& serializedModel) {
     return DeserializeModel(TMemoryInput{serializedModel.data(), serializedModel.size()});
 }
 
+static bool EstimatedFeatureIdsAreEqual(const TEstimatedFeature& lhs, const TEstimatedFeatureSplit& rhs) {
+    return std::tie(lhs.SourceFeatureIndex, lhs.CalcerId, lhs.LocalIndex)
+        == std::tie(rhs.SourceFeatureId, rhs.CalcerId, rhs.LocalId);
+}
+
+void TObliviousTrees::ProcessSplitsSet(
+    const TSet<TModelSplit>& modelSplitSet,
+    const TVector<size_t>& floatFeaturesInternalIndexesMap,
+    const TVector<size_t>& catFeaturesInternalIndexesMap,
+    const TVector<size_t>& textFeaturesInternalIndexesMap
+) {
+    THashSet<int> usedCatFeatureIndexes;
+    THashSet<int> usedTextFeatureIndexes;
+    for (const auto& split : modelSplitSet) {
+        if (split.Type == ESplitType::FloatFeature) {
+            const size_t internalFloatIndex = floatFeaturesInternalIndexesMap.at((size_t)split.FloatFeature.FloatFeature);
+            FloatFeatures.at(internalFloatIndex).Borders.push_back(split.FloatFeature.Split);
+        } else if (split.Type == ESplitType::EstimatedFeature) {
+            const TEstimatedFeatureSplit estimatedFeatureSplit = split.EstimatedFeature;
+            usedTextFeatureIndexes.insert(estimatedFeatureSplit.SourceFeatureId);
+
+            if (EstimatedFeatures.empty() ||
+                !EstimatedFeatureIdsAreEqual(EstimatedFeatures.back(), estimatedFeatureSplit)
+            ) {
+                TEstimatedFeature estimatedFeature{
+                    estimatedFeatureSplit.SourceFeatureId,
+                    estimatedFeatureSplit.CalcerId,
+                    estimatedFeatureSplit.LocalId
+                };
+                EstimatedFeatures.emplace_back(estimatedFeature);
+            }
+
+            EstimatedFeatures.back().Borders.push_back(estimatedFeatureSplit.Split);
+        } else if (split.Type == ESplitType::OneHotFeature) {
+            usedCatFeatureIndexes.insert(split.OneHotFeature.CatFeatureIdx);
+            if (OneHotFeatures.empty() || OneHotFeatures.back().CatFeatureIndex != split.OneHotFeature.CatFeatureIdx) {
+                auto& ref = OneHotFeatures.emplace_back();
+                ref.CatFeatureIndex = split.OneHotFeature.CatFeatureIdx;
+            }
+            OneHotFeatures.back().Values.push_back(split.OneHotFeature.Value);
+        } else {
+            const auto& projection = split.OnlineCtr.Ctr.Base.Projection;
+            usedCatFeatureIndexes.insert(projection.CatFeatures.begin(), projection.CatFeatures.end());
+            if (CtrFeatures.empty() || CtrFeatures.back().Ctr != split.OnlineCtr.Ctr) {
+                CtrFeatures.emplace_back();
+                CtrFeatures.back().Ctr = split.OnlineCtr.Ctr;
+            }
+            CtrFeatures.back().Borders.push_back(split.OnlineCtr.Border);
+        }
+    }
+    for (const int usedCatFeatureIdx : usedCatFeatureIndexes) {
+        CatFeatures[catFeaturesInternalIndexesMap.at(usedCatFeatureIdx)].SetUsedInModel(true);
+    }
+    for (const int usedTextFeatureIdx : usedTextFeatureIndexes) {
+        TextFeatures[textFeaturesInternalIndexesMap.at(usedTextFeatureIdx)].SetUsedInModel(true);
+    }
+}
+
 void TObliviousTrees::TruncateTrees(size_t begin, size_t end) {
     //TODO(eermishkina): support non symmetric trees
     CB_ENSURE(IsOblivious(), "Truncate support only symmetric trees");
@@ -632,9 +690,9 @@ void TFullModel::UpdateDynamicData() {
     ObliviousTrees->UpdateRuntimeData();
     if (CtrProvider) {
         CtrProvider->SetupBinFeatureIndexes(
-            ObliviousTrees->FloatFeatures,
-            ObliviousTrees->OneHotFeatures,
-            ObliviousTrees->CatFeatures);
+            ObliviousTrees->GetFloatFeatures(),
+            ObliviousTrees->GetOneHotFeatures(),
+            ObliviousTrees->GetCatFeatures());
     }
     with_lock(CurrentEvaluatorLock) {
         Evaluator.Reset();
@@ -646,13 +704,13 @@ TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model) {
     TVector<TString> featuresNames;
     const TObliviousTrees& forest = *model.ObliviousTrees;
 
-    for (const TFloatFeature& feature : forest.FloatFeatures) {
+    for (const TFloatFeature& feature : forest.GetFloatFeatures()) {
         featuresIdxs.push_back(feature.Position.FlatIndex);
         featuresNames.push_back(
             feature.FeatureId == "" ? ToString(feature.Position.FlatIndex) : feature.FeatureId
         );
     }
-    for (const TCatFeature& feature : forest.CatFeatures) {
+    for (const TCatFeature& feature : forest.GetCatFeatures()) {
         featuresIdxs.push_back(feature.Position.FlatIndex);
         featuresNames.push_back(
             feature.FeatureId == "" ? ToString(feature.Position.FlatIndex) : feature.FeatureId
@@ -677,16 +735,10 @@ TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model) {
 void SetModelExternalFeatureNames(const TVector<TString>& featureNames, TFullModel* model) {
     TObliviousTrees& forest = *(model->ObliviousTrees.GetMutable());
     CB_ENSURE(
-        (forest.FloatFeatures.empty() || featureNames.ysize() > forest.FloatFeatures.back().Position.FlatIndex) &&
-        (forest.CatFeatures.empty() || featureNames.ysize() > forest.CatFeatures.back().Position.FlatIndex),
+        (forest.GetFloatFeatures().empty() || featureNames.ysize() > forest.GetFloatFeatures().back().Position.FlatIndex) &&
+        (forest.GetCatFeatures().empty() || featureNames.ysize() > forest.GetCatFeatures().back().Position.FlatIndex),
         "Features in model not corresponds to features names array length not correspond");
-
-    for (TFloatFeature& feature : forest.FloatFeatures) {
-        feature.FeatureId = featureNames[feature.Position.FlatIndex];
-    }
-    for (TCatFeature& feature : forest.CatFeatures) {
-        feature.FeatureId = featureNames[feature.Position.FlatIndex];
-    }
+    forest.ApplyFeatureNames(featureNames);
 }
 
 static TMaybe<NCatboostOptions::TLossDescription> GetLossDescription(const TFullModel& model) {
@@ -771,7 +823,7 @@ void TFullModel::UpdateEstimatedFeaturesIndices(TVector<TEstimatedFeature>&& new
         "UpdateEstimatedFeatureIndices called when TextProcessingCollection is not defined"
     );
 
-    ObliviousTrees.GetMutable()->EstimatedFeatures = std::move(newEstimatedFeatures);
+    ObliviousTrees.GetMutable()->SetEstimatedFeatures(std::move(newEstimatedFeatures));
     ObliviousTrees->UpdateRuntimeData();
 }
 
@@ -840,34 +892,34 @@ static void StreamModelTreesToBuilder(
 {
     const auto& binFeatures = trees.GetBinFeatures();
     const auto& leafOffsets = trees.GetFirstLeafOffsets();
-    for (size_t treeIdx = 0; treeIdx < trees.TreeSizes.size(); ++treeIdx) {
+    for (size_t treeIdx = 0; treeIdx < trees.GetTreeSizes().size(); ++treeIdx) {
         TVector<TModelSplit> modelSplits;
-        for (int splitIdx = trees.TreeStartOffsets[treeIdx];
-             splitIdx < trees.TreeStartOffsets[treeIdx] + trees.TreeSizes[treeIdx];
+        for (int splitIdx = trees.GetTreeStartOffsets()[treeIdx];
+             splitIdx < trees.GetTreeStartOffsets()[treeIdx] + trees.GetTreeSizes()[treeIdx];
              ++splitIdx)
         {
-            modelSplits.push_back(binFeatures[trees.TreeSplits[splitIdx]]);
+            modelSplits.push_back(binFeatures[trees.GetTreeSplits()[splitIdx]]);
         }
         if (leafMultiplier == 1.0) {
             TConstArrayRef<double> leafValuesRef(
-                trees.LeafValues.begin() + leafOffsets[treeIdx],
-                trees.LeafValues.begin() + leafOffsets[treeIdx]
-                    + trees.ApproxDimension * (1u << trees.TreeSizes[treeIdx])
+                trees.GetLeafValues().begin() + leafOffsets[treeIdx],
+                trees.GetLeafValues().begin() + leafOffsets[treeIdx]
+                    + trees.GetDimensionsCount() * (1u << trees.GetTreeSizes()[treeIdx])
             );
             builder->AddTree(
                 modelSplits,
                 leafValuesRef,
                 !streamLeafWeights ? TConstArrayRef<double>() : TConstArrayRef<double>(
-                    trees.LeafWeights.begin() + leafOffsets[treeIdx] / trees.ApproxDimension,
-                    trees.LeafWeights.begin() + leafOffsets[treeIdx] / trees.ApproxDimension
-                        + (1u << trees.TreeSizes[treeIdx])
+                    trees.GetLeafWeights().begin() + leafOffsets[treeIdx] / trees.GetDimensionsCount(),
+                    trees.GetLeafWeights().begin() + leafOffsets[treeIdx] / trees.GetDimensionsCount()
+                        + (1u << trees.GetTreeSizes()[treeIdx])
                 )
             );
         } else {
             TVector<double> leafValues(
-                trees.LeafValues.begin() + leafOffsets[treeIdx],
-                trees.LeafValues.begin() + leafOffsets[treeIdx]
-                    + trees.ApproxDimension * (1u << trees.TreeSizes[treeIdx])
+                trees.GetLeafValues().begin() + leafOffsets[treeIdx],
+                trees.GetLeafValues().begin() + leafOffsets[treeIdx]
+                    + trees.GetDimensionsCount() * (1u << trees.GetTreeSizes()[treeIdx])
             );
             for (auto& leafValue: leafValues) {
                 leafValue *= leafMultiplier;
@@ -876,8 +928,8 @@ static void StreamModelTreesToBuilder(
                 modelSplits,
                 leafValues,
                 !streamLeafWeights ? TConstArrayRef<double>() : TConstArrayRef<double>(
-                    trees.LeafWeights.begin() + leafOffsets[treeIdx] / trees.ApproxDimension,
-                    (1u << trees.TreeSizes[treeIdx])
+                    trees.GetLeafWeights().begin() + leafOffsets[treeIdx] / trees.GetDimensionsCount(),
+                    (1u << trees.GetTreeSizes()[treeIdx])
                 )
             );
         }
@@ -942,7 +994,7 @@ TFullModel SumModels(
         //TODO(eermishkina): support non symmetric trees
         CB_ENSURE(model->IsOblivious(), "Models summation supported only for symmetric trees");
         CB_ENSURE(
-            model->ObliviousTrees->TextFeatures.empty(),
+            model->ObliviousTrees->GetTextFeatures().empty(),
             "Models summation is not supported for models with text features"
         );
         CB_ENSURE(
@@ -956,10 +1008,10 @@ TFullModel SumModels(
         );
         ctrProviders.push_back(model->CtrProvider);
         // empty model does not disable LeafWeights:
-        if (model->ObliviousTrees->LeafWeights.size() < model->GetTreeCount()) {
+        if (model->ObliviousTrees->GetLeafWeights().size() < model->GetTreeCount()) {
             allModelsHaveLeafWeights = false;
         }
-        if (!model->ObliviousTrees->LeafWeights.empty()) {
+        if (!model->ObliviousTrees->GetLeafWeights().empty()) {
             someModelHasLeafWeights = true;
         }
     }
@@ -969,10 +1021,10 @@ TFullModel SumModels(
     }
     TVector<TFlatFeature> flatFeatureInfoVector(maxFlatFeatureVectorSize);
     for (const auto& model : modelVector) {
-        for (const auto& floatFeature : model->ObliviousTrees->FloatFeatures) {
+        for (const auto& floatFeature : model->ObliviousTrees->GetFloatFeatures()) {
             flatFeatureInfoVector[floatFeature.Position.FlatIndex].SetOrCheck(floatFeature);
         }
-        for (const auto& catFeature : model->ObliviousTrees->CatFeatures) {
+        for (const auto& catFeature : model->ObliviousTrees->GetCatFeatures()) {
             flatFeatureInfoVector[catFeature.Position.FlatIndex].SetOrCheck(catFeature);
         }
     }
@@ -1011,7 +1063,7 @@ void SaveModelBorders(
 
     TOFStream out(file);
 
-    for (const auto& feature : model.ObliviousTrees->FloatFeatures) {
+    for (const auto& feature : model.ObliviousTrees->GetFloatFeatures()) {
         NCB::OutputFeatureBorders(
             feature.Position.FlatIndex,
             feature.Borders,
@@ -1038,10 +1090,10 @@ DEFINE_DUMPER(
     TreeFirstLeafOffsets
 )
 
-DEFINE_DUMPER(TObliviousTrees,
-    TreeSplits, TreeSizes,
-    TreeStartOffsets, NonSymmetricStepNodes,
-    NonSymmetricNodeIdToLeafId, LeafValues);
+//DEFINE_DUMPER(TObliviousTrees),
+//    TreeSplits, TreeSizes,
+//    TreeStartOffsets, NonSymmetricStepNodes,
+//    NonSymmetricNodeIdToLeafId, LeafValues);
 
 TNonSymmetricTreeStepNode& TNonSymmetricTreeStepNode::operator=(const NCatBoostFbs::TNonSymmetricTreeStepNode* stepNode) {
     LeftSubtreeDiff = stepNode->LeftSubtreeDiff();

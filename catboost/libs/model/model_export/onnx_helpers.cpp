@@ -72,9 +72,9 @@ void NCB::NOnnx::InitMetadata(
     }
 
     // If categorical features are present save cat_features to metadata_props as well
-    if (!model.ObliviousTrees->CatFeatures.empty()) {
+    if (!model.ObliviousTrees->GetCatFeatures().empty()) {
         TVector<int> catFeaturesIndices;
-        for (const auto& catFeature : model.ObliviousTrees->CatFeatures) {
+        for (const auto& catFeature : model.ObliviousTrees->GetCatFeatures()) {
             catFeaturesIndices.push_back(catFeature.Position.FlatIndex);
         }
 
@@ -86,7 +86,7 @@ void NCB::NOnnx::InitMetadata(
 
 
 static bool IsClassifierModel(const TFullModel& model) {
-    if (model.ObliviousTrees->ApproxDimension > 1) { // multiclass
+    if (model.ObliviousTrees->GetDimensionsCount() > 1) { // multiclass
         return true;
     }
 
@@ -116,7 +116,7 @@ static void GetClassLabels(
     classLabelsInt64->clear();
     classLabelsString->clear();
 
-    if (model.ObliviousTrees->ApproxDimension > 1) {  // is multiclass?
+    if (model.ObliviousTrees->GetDimensionsCount() > 1) {  // is multiclass?
         if (model.ModelInfo.contains("multiclass_params")) {
             const auto& multiclassParamsJsonAsString = model.ModelInfo.at("multiclass_params");
             TMulticlassLabelOptions multiclassOptions;
@@ -131,7 +131,7 @@ static void GetClassLabels(
                 return;
             }
         }
-        classLabelsInt64->resize(model.ObliviousTrees->ApproxDimension);
+        classLabelsInt64->resize(model.ObliviousTrees->GetDimensionsCount());
         std::iota(classLabelsInt64->begin(), classLabelsInt64->end(), 0);
     } else { // binclass
         if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, "params")) {
@@ -371,9 +371,9 @@ static void AddTree(
     i64 nodeIdx = 0;
 
     // Process splits
-    for (auto depth : xrange(trees.TreeSizes[treeIdx])) {
+    for (auto depth : xrange(trees.GetTreeSizes()[treeIdx])) {
         const auto& split = trees.GetBinFeatures()[
-            trees.TreeSplits[trees.TreeStartOffsets[treeIdx] + (trees.TreeSizes[treeIdx] - 1 - depth)]];
+            trees.GetTreeSplits()[trees.GetTreeStartOffsets()[treeIdx] + (trees.GetTreeSizes()[treeIdx] - 1 - depth)]];
 
         int splitFlatFeatureIdx = 0;
         TString nodeMode;
@@ -381,7 +381,7 @@ static void AddTree(
         float splitValue = 0.0f;
 
         if (split.Type == ESplitType::FloatFeature) {
-            const auto& floatFeature = trees.FloatFeatures[split.FloatFeature.FloatFeature];
+            const auto& floatFeature = trees.GetFloatFeatures()[split.FloatFeature.FloatFeature];
             splitFlatFeatureIdx = floatFeature.Position.FlatIndex;
             nodeMode = TModeNode::BRANCH_GTE;
             if (floatFeature.NanValueTreatment == TFloatFeature::ENanValueTreatment::AsTrue) {
@@ -412,7 +412,7 @@ static void AddTree(
     }
 
     // Process leafs
-    const double* leafValue = trees.LeafValues.begin() + trees.GetFirstLeafOffsets()[treeIdx];
+    const double* leafValue = trees.GetLeafValues().begin() + trees.GetFirstLeafOffsets()[treeIdx];
 
     for (i64 endNodeIdx = 2*nodeIdx + 1; nodeIdx < endNodeIdx; ++nodeIdx) {
         treesAttributes->nodes_treeids->add_ints(treeIdx);
@@ -430,8 +430,8 @@ static void AddTree(
 
 
         if (isClassifierModel) {
-            if (trees.ApproxDimension > 1) {
-                for (auto approxIdx : xrange(trees.ApproxDimension)) {
+            if (trees.GetDimensionsCount() > 1) {
+                for (auto approxIdx : xrange(trees.GetDimensionsCount())) {
                     treesAttributes->class_treeids->add_ints(treeIdx);
                     treesAttributes->class_nodeids->add_ints(nodeIdx);
 
@@ -448,7 +448,7 @@ static void AddTree(
                 ++leafValue;
             }
         } else {
-            Y_ASSERT(trees.ApproxDimension == 1);
+            Y_ASSERT(trees.GetDimensionsCount() == 1);
 
             treesAttributes->target_treeids->add_ints(treeIdx);
             treesAttributes->target_nodeids->add_ints(nodeIdx);
@@ -503,7 +503,7 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
         InitValueInfo(
             "probability_tensor",
             onnx::TensorProto_DataType_FLOAT,
-            trees.ApproxDimension == 1 ? 2 : trees.ApproxDimension,
+            trees.GetDimensionsCount() == 1 ? 2 : trees.GetDimensionsCount(),
             onnxGraph->add_value_info()
         );
         treesNode->add_output("probability_tensor");

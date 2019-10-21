@@ -31,7 +31,7 @@ namespace NCB::NModelEvaluation {
                 docCount,
                 results,
                 predictionType,
-                trees.ApproxDimension,
+                trees.GetDimensionsCount(),
                 blockSize
             );
             ui32 blockId = 0;
@@ -91,7 +91,7 @@ namespace NCB::NModelEvaluation {
             }
 
             i32 GetApproxDimension() const override {
-                return ObliviousTrees->ApproxDimension;
+                return ObliviousTrees->GetDimensionsCount();
             }
 
             void SetProperty(const TStringBuf propName, const TStringBuf propValue) override {
@@ -114,7 +114,7 @@ namespace NCB::NModelEvaluation {
                     "Not enough features provided" << LabeledOutput(ObliviousTrees->GetFlatFeatureVectorExpectedSize(), transposedFeatures.size())
                 );
                 TMaybe<size_t> docCount;
-                CB_ENSURE(!ObliviousTrees->FloatFeatures.empty() || !ObliviousTrees->CatFeatures.empty(),
+                CB_ENSURE(!ObliviousTrees->GetFloatFeatures().empty() || !ObliviousTrees->GetCatFeatures().empty(),
                           "Both float features and categorical features information are empty");
                 auto getPosition = [featureInfo] (const auto& feature) -> TFeaturePosition {
                     if (!featureInfo) {
@@ -123,16 +123,16 @@ namespace NCB::NModelEvaluation {
                         return featureInfo->GetRemappedPosition(feature);
                     }
                 };
-                if (!ObliviousTrees->FloatFeatures.empty()) {
-                    for (const auto& floatFeature : ObliviousTrees->FloatFeatures) {
+                if (!ObliviousTrees->GetFloatFeatures().empty()) {
+                    for (const auto& floatFeature : ObliviousTrees->GetFloatFeatures()) {
                         if (floatFeature.UsedInModel()) {
                             docCount = transposedFeatures[getPosition(floatFeature).FlatIndex].size();
                             break;
                         }
                     }
                 }
-                if (!docCount.Defined() && !ObliviousTrees->CatFeatures.empty()) {
-                    for (const auto& catFeature : ObliviousTrees->CatFeatures) {
+                if (!docCount.Defined() && !ObliviousTrees->GetCatFeatures().empty()) {
+                    for (const auto& catFeature : ObliviousTrees->GetCatFeatures()) {
                         if (catFeature.UsedInModel()) {
                             docCount = transposedFeatures[getPosition(catFeature).FlatIndex].size();
                             break;
@@ -248,7 +248,7 @@ namespace NCB::NModelEvaluation {
                 const TFeatureLayout* featureInfo
             ) const override {
                 CB_ENSURE(
-                    ObliviousTrees->TextFeatures.empty(),
+                    ObliviousTrees->GetTextFeatures().empty(),
                     "Model contains text features but they aren't provided"
                 );
                 Calc(
@@ -307,7 +307,7 @@ namespace NCB::NModelEvaluation {
                 const TFeatureLayout* featureInfo
             ) const override {
                 CB_ENSURE(
-                    ObliviousTrees->TextFeatures.empty(),
+                    ObliviousTrees->GetTextFeatures().empty(),
                     "Model contains text features but they aren't provided"
                 );
                 Calc(
@@ -439,7 +439,7 @@ namespace NCB::NModelEvaluation {
                     subBlockSize,
                     false
                 );
-                CB_ENSURE(results.size() == ObliviousTrees->ApproxDimension * cpuQuantizedFeatures->ObjectsCount);
+                CB_ENSURE(results.size() == ObliviousTrees->GetDimensionsCount() * cpuQuantizedFeatures->ObjectsCount);
                 TVector<TCalcerIndexType> indexesVec(subBlockSize);
                 double* resultPtr = results.data();
                 for (size_t blockId = 0; blockId < cpuQuantizedFeatures->BlocksCount; ++blockId) {
@@ -452,7 +452,7 @@ namespace NCB::NModelEvaluation {
                         treeEnd,
                         resultPtr
                     );
-                    resultPtr += subBlock.GetObjectsCount() * ObliviousTrees->ApproxDimension;
+                    resultPtr += subBlock.GetObjectsCount() * ObliviousTrees->GetDimensionsCount();
                 }
             }
 

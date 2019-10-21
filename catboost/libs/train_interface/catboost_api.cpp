@@ -121,7 +121,7 @@ EXPORT int OutputDim(ResultHandle handle) {
 
 EXPORT int TreeDepth(ResultHandle handle, int treeIndex) {
     if (handle) {
-        return (int) RESULT_PTR(handle)->ObliviousTrees->TreeSizes[treeIndex];
+        return (int) RESULT_PTR(handle)->ObliviousTrees->GetTreeSizes()[treeIndex];
     }
     return 0;
 }
@@ -137,30 +137,30 @@ EXPORT bool CopyTree(
         try {
             const auto obliviousTrees = RESULT_PTR(handle)->ObliviousTrees.GetMutable();
 
-            size_t treeLeafCount = (1uLL << obliviousTrees->TreeSizes[treeIndex]) * obliviousTrees->ApproxDimension;
+            size_t treeLeafCount = (1uLL << obliviousTrees->GetTreeSizes()[treeIndex]) * obliviousTrees->GetDimensionsCount();
             auto srcLeafValues = obliviousTrees->GetFirstLeafPtrForTree(treeIndex);
-            const auto& srcWeights = obliviousTrees->LeafWeights;
+            const auto& srcWeights = obliviousTrees->GetLeafWeights();
 
             for (size_t idx = 0; idx < treeLeafCount; ++idx) {
                 leaves[idx] = (float) srcLeafValues[idx];
             }
 
-            const size_t weightOffset = obliviousTrees->GetFirstLeafOffsets()[treeIndex] / obliviousTrees->ApproxDimension;
-            for (size_t idx = 0; idx < (1uLL << obliviousTrees->TreeSizes[treeIndex]); ++idx) {
+            const size_t weightOffset = obliviousTrees->GetFirstLeafOffsets()[treeIndex] / obliviousTrees->GetDimensionsCount();
+            for (size_t idx = 0; idx < (1uLL << obliviousTrees->GetTreeSizes()[treeIndex]); ++idx) {
                 weights[idx] = (float) srcWeights[idx + weightOffset];
             }
 
             int treeSplitEnd;
-            if (treeIndex + 1 < obliviousTrees->TreeStartOffsets.ysize()) {
-                treeSplitEnd = obliviousTrees->TreeStartOffsets[treeIndex + 1];
+            if (treeIndex + 1 < obliviousTrees->GetTreeStartOffsets().ysize()) {
+                treeSplitEnd = obliviousTrees->GetTreeStartOffsets()[treeIndex + 1];
             } else {
-                treeSplitEnd = obliviousTrees->TreeSplits.ysize();
+                treeSplitEnd = obliviousTrees->GetTreeSplits().ysize();
             }
             const auto& binFeatures = obliviousTrees->GetBinFeatures();
 
-            const auto offset = obliviousTrees->TreeStartOffsets[treeIndex];
+            const auto offset = obliviousTrees->GetTreeStartOffsets()[treeIndex];
             for (int idx = offset; idx < treeSplitEnd; ++idx) {
-                auto split = binFeatures[obliviousTrees->TreeSplits[idx]];
+                auto split = binFeatures[obliviousTrees->GetTreeSplits()[idx]];
                 CB_ENSURE(split.Type == ESplitType::FloatFeature);
                 features[idx - offset] = split.FloatFeature.FloatFeature;
                 conditions[idx - offset] = split.FloatFeature.Split;

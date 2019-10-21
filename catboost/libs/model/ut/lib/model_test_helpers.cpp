@@ -167,25 +167,27 @@ TDataProviderPtr GetMultiClassPool() {
 TFullModel SimpleFloatModel(size_t treeCount) {
     TFullModel model;
     TObliviousTrees* trees = model.ObliviousTrees.GetMutable();
-    trees->FloatFeatures = {
-        TFloatFeature{
-            false, 0, 0,
-            {}, // bin splits 0, 1
-            ""
-        },
-        TFloatFeature{
-            false, 1, 1,
-            {0.5f}, // bin split 2
-            ""
-        },
-        TFloatFeature{
-            false, 2, 2,
-            {0.5f}, // bin split 3
-            ""
+    trees->SetFloatFeatures(
+        {
+            TFloatFeature{
+                false, 0, 0,
+                {}, // bin splits 0, 1
+                ""
+            },
+            TFloatFeature{
+                false, 1, 1,
+                {0.5f}, // bin split 2
+                ""
+            },
+            TFloatFeature{
+                false, 2, 2,
+                {0.5f}, // bin split 3
+                ""
+            }
         }
-    };
+    );
     for (auto i : xrange(301)) {
-        trees->FloatFeatures[0].Borders.push_back(-298.0f + i);
+        trees->AddFloatFeatureBorder(0, -298.0f + i);
     }
     {
         double tenPower = 1.0;
@@ -193,7 +195,7 @@ TFullModel SimpleFloatModel(size_t treeCount) {
             TVector<int> tree = {300, 301, 302};
             trees->AddBinTree(tree);
             for (int leafIndex = 0; leafIndex < 8; ++leafIndex) {
-                trees->LeafValues.push_back(leafIndex * tenPower);
+                trees->AddLeafValue(leafIndex * tenPower);
             }
             tenPower *= 10.0;
         }
@@ -285,10 +287,10 @@ TFullModel SimpleDeepTreeModel(size_t treeDepth) {
     TObliviousTrees* trees = model.ObliviousTrees.GetMutable();
     for (size_t featureIndex : xrange(treeDepth)) {
         const auto feature = TFloatFeature(false, featureIndex, featureIndex, {0.5f}, "");
-        trees->FloatFeatures.push_back(feature);
+        trees->AddFloatFeature(feature);
     }
     for (size_t val : xrange(1 << treeDepth)) {
-        trees->LeafValues.push_back(val);
+        trees->AddLeafValue(val);
     }
     TVector<int> tree = xrange(treeDepth);
     trees->AddBinTree(tree);
@@ -417,28 +419,32 @@ TFullModel TrainCatOnlyModel() {
 TFullModel MultiValueFloatModel() {
     TFullModel model;
     TObliviousTrees* trees = model.ObliviousTrees.GetMutable();
-    trees->FloatFeatures = {
-        TFloatFeature{
-            false, 0, 0,
-            {0.5f}, // bin split 0
-            ""
-        },
-        TFloatFeature{
-            false, 1, 1,
-            {0.5f}, // bin split 1
-            ""
+    trees->SetFloatFeatures(
+        {
+            TFloatFeature{
+                false, 0, 0,
+                {0.5f}, // bin split 0
+                ""
+            },
+            TFloatFeature{
+                false, 1, 1,
+                {0.5f}, // bin split 1
+                ""
+            }
         }
-    };
+    );
     {
         TVector<int> tree = {0, 1};
         trees->AddBinTree(tree);
-        trees->LeafValues = {
-            00., 10., 20.,
-            01., 11., 21.,
-            02., 12., 22.,
-            03., 13., 23.
-        };
-        trees->ApproxDimension = 3;
+        trees->SetLeafValues(
+            {
+                00., 10., 20.,
+                01., 11., 21.,
+                02., 12., 22.,
+                03., 13., 23.
+            }
+        );
+        trees->SetApproxDimension(3);
     }
     model.UpdateDynamicData();
     return model;

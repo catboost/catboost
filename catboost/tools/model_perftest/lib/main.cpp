@@ -146,13 +146,13 @@ private:
 TVector<bool> GetFeaturesUsedInModel(const TFullModel& model) {
     TVector<bool> result(model.ObliviousTrees->GetFlatFeatureVectorExpectedSize(), false);
 
-    for (const auto& floatFeature : model.ObliviousTrees->FloatFeatures) {
+    for (const auto& floatFeature : model.ObliviousTrees->GetFloatFeatures()) {
         if (floatFeature.UsedInModel()) {
             result[floatFeature.Position.FlatIndex] = true;
         }
     }
 
-    for (const auto& catFeature : model.ObliviousTrees->CatFeatures) {
+    for (const auto& catFeature : model.ObliviousTrees->GetCatFeatures()) {
         if (catFeature.UsedInModel()) {
             result[catFeature.Position.FlatIndex] = true;
         }

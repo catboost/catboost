@@ -29,9 +29,9 @@ public:
         TArrayRef<float> result) override;
 
     void SetupBinFeatureIndexes(
-        const TVector<TFloatFeature>& floatFeatures,
-        const TVector<TOneHotFeature>& oheFeatures,
-        const TVector<TCatFeature>& catFeatures) override;
+        const TConstArrayRef<TFloatFeature> floatFeatures,
+        const TConstArrayRef<TOneHotFeature> oheFeatures,
+        const TConstArrayRef<TCatFeature> catFeatures) override;
     bool IsSerializable() const override {
         return true;
     }
@@ -114,9 +114,9 @@ public:
     }
 
     void SetupBinFeatureIndexes(
-        const TVector<TFloatFeature>& ,
-        const TVector<TOneHotFeature>& ,
-        const TVector<TCatFeature>& ) override {
+        const TConstArrayRef<TFloatFeature>,
+        const TConstArrayRef<TOneHotFeature>,
+        const TConstArrayRef<TCatFeature>) override {
 
         ythrow TCatBoostException()
             << "TStaticCtrOnFlightSerializationProvider is for streamed serialization only";

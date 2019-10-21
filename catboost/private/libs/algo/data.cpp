@@ -7,8 +7,8 @@
 #include <catboost/libs/data/quantization.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/restorable_rng.h>
-#include <catboost/private/libs/labels/label_converter.h>
 #include <catboost/libs/metrics/metric.h>
+#include <catboost/private/libs/labels/label_converter.h>
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/private/libs/options/system_options.h>
 #include <catboost/private/libs/target/data_providers.h>
@@ -49,8 +49,8 @@ namespace NCB {
             return Nothing();
         }
         TVector<TConstArrayRef<float>> bordersInInitModel;
-        bordersInInitModel.reserve((*initModel)->ObliviousTrees.GetMutable()->FloatFeatures.size());
-        for (const auto& floatFeature : (*initModel)->ObliviousTrees.GetMutable()->FloatFeatures) {
+        bordersInInitModel.reserve((*initModel)->ObliviousTrees.GetMutable()->GetFloatFeatures().size());
+        for (const auto& floatFeature : (*initModel)->ObliviousTrees.GetMutable()->GetFloatFeatures()) {
             bordersInInitModel.emplace_back(floatFeature.Borders.begin(), floatFeature.Borders.end());
         }
         return bordersInInitModel;

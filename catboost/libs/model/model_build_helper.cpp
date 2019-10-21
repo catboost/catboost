@@ -79,74 +79,20 @@ static void MarkUsedFeatures(
     }
 }
 
-static bool EstimatedFeatureIdsAreEqual(const TEstimatedFeature& lhs, const TEstimatedFeatureSplit& rhs) {
-    return std::tie(lhs.SourceFeatureIndex, lhs.CalcerId, lhs.LocalIndex)
-        == std::tie(rhs.SourceFeatureId, rhs.CalcerId, rhs.LocalId);
-}
-
 void TCommonModelBuilderHelper::ProcessSplitsSet(const TSet<TModelSplit>& modelSplitSet, TObliviousTrees* trees) {
-    trees->ApproxDimension = ApproxDimension;
+    trees->SetApproxDimension(ApproxDimension);
     for (auto& feature : FloatFeatures) {
         feature.Borders.clear();
     }
-    trees->FloatFeatures = std::move(FloatFeatures);
+    trees->SetFloatFeatures(std::move(FloatFeatures));
 
     MakeFeaturesUnused(MakeArrayRef(CatFeatures.begin(), CatFeatures.end()));
     MakeFeaturesUnused(MakeArrayRef(TextFeatures.begin(), TextFeatures.end()));
 
-    trees->CatFeatures = std::move(CatFeatures);
-    trees->TextFeatures = std::move(TextFeatures);
+    trees->SetCatFeatures(std::move(CatFeatures));
+    trees->SetTextFeatures(std::move(TextFeatures));
 
-    THashSet<int> usedCatFeatureIndexes;
-    THashSet<int> usedTextFeatureIndexes;
-    for (const auto& split : modelSplitSet) {
-        if (split.Type == ESplitType::FloatFeature) {
-            const size_t internalFloatIndex = FloatFeaturesInternalIndexesMap.at((size_t)split.FloatFeature.FloatFeature);
-            trees->FloatFeatures.at(internalFloatIndex).Borders.push_back(split.FloatFeature.Split);
-        } else if (split.Type == ESplitType::EstimatedFeature) {
-            const TEstimatedFeatureSplit estimatedFeatureSplit = split.EstimatedFeature;
-            usedTextFeatureIndexes.insert(estimatedFeatureSplit.SourceFeatureId);
-
-            if (trees->EstimatedFeatures.empty() ||
-                !EstimatedFeatureIdsAreEqual(trees->EstimatedFeatures.back(), estimatedFeatureSplit)
-            ) {
-                TEstimatedFeature estimatedFeature{
-                    estimatedFeatureSplit.SourceFeatureId,
-                    estimatedFeatureSplit.CalcerId,
-                    estimatedFeatureSplit.LocalId
-                };
-                trees->EstimatedFeatures.emplace_back(estimatedFeature);
-            }
-
-            trees->EstimatedFeatures.back().Borders.push_back(estimatedFeatureSplit.Split);
-        } else if (split.Type == ESplitType::OneHotFeature) {
-            usedCatFeatureIndexes.insert(split.OneHotFeature.CatFeatureIdx);
-            if (trees->OneHotFeatures.empty() || trees->OneHotFeatures.back().CatFeatureIndex != split.OneHotFeature.CatFeatureIdx) {
-                auto& ref = trees->OneHotFeatures.emplace_back();
-                ref.CatFeatureIndex = split.OneHotFeature.CatFeatureIdx;
-            }
-            trees->OneHotFeatures.back().Values.push_back(split.OneHotFeature.Value);
-        } else {
-            const auto& projection = split.OnlineCtr.Ctr.Base.Projection;
-            usedCatFeatureIndexes.insert(projection.CatFeatures.begin(), projection.CatFeatures.end());
-            if (trees->CtrFeatures.empty() || trees->CtrFeatures.back().Ctr != split.OnlineCtr.Ctr) {
-                trees->CtrFeatures.emplace_back();
-                trees->CtrFeatures.back().Ctr = split.OnlineCtr.Ctr;
-            }
-            trees->CtrFeatures.back().Borders.push_back(split.OnlineCtr.Border);
-        }
-    }
-    MarkUsedFeatures(
-        usedCatFeatureIndexes,
-        MakeConstArrayRef(CatFeaturesInternalIndexesMap),
-        MakeArrayRef(trees->CatFeatures)
-    );
-    MarkUsedFeatures(
-        usedTextFeatureIndexes,
-        MakeConstArrayRef(TextFeaturesInternalIndexesMap),
-        MakeArrayRef(trees->TextFeatures)
-    );
-
+    trees->ProcessSplitsSet(modelSplitSet, FloatFeaturesInternalIndexesMap, CatFeaturesInternalIndexesMap, TextFeaturesInternalIndexesMap);
     for (const auto& split : modelSplitSet) {
         const int binFeatureIdx = BinFeatureIndexes.ysize();
         Y_ASSERT(!BinFeatureIndexes.contains(split));
@@ -220,18 +166,13 @@ void TObliviousTreeBuilder::Build(TObliviousTrees* result) {
     }
     // filling binary tree splits
     ProcessSplitsSet(modelSplitSet, result);
-    result->LeafValues = std::move(LeafValues);
-    result->LeafWeights = std::move(LeafWeights);
+    result->SetLeafValues(std::move(LeafValues));
+    result->SetLeafWeights(std::move(LeafWeights));
     for (const auto& treeStruct : Trees) {
         for (const auto& split : treeStruct) {
-            result->TreeSplits.push_back(BinFeatureIndexes.at(split));
+            result->AddTreeSplit(BinFeatureIndexes.at(split));
         }
-        if (result->TreeStartOffsets.empty()) {
-            result->TreeStartOffsets.push_back(0);
-        } else {
-            result->TreeStartOffsets.push_back(result->TreeStartOffsets.back() + result->TreeSizes.back());
-        }
-        result->TreeSizes.push_back(treeStruct.ysize());
+        result->AddTreeSize(treeStruct.ysize());
     }
     result->UpdateRuntimeData();
 }
@@ -249,19 +190,19 @@ void TNonSymmetricTreeModelBuilder::Build(TObliviousTrees* result) {
     Y_ASSERT(FlatSplitsVector.size() == FlatNodeValueIndexes.size());
     Y_ASSERT(FlatNodeValueIndexes.size() == FlatNonSymmetricStepNodes.size());
     Y_ASSERT(LeafWeights.empty() || LeafWeights.size() == FlatValueVector.size() / ApproxDimension);
-    result->NonSymmetricStepNodes = std::move(FlatNonSymmetricStepNodes);
-    result->NonSymmetricNodeIdToLeafId = std::move(FlatNodeValueIndexes);
-    result->LeafValues = std::move(FlatValueVector);
+    result->SetNonSymmetricStepNodes(std::move(FlatNonSymmetricStepNodes));
+    result->SetNonSymmetricNodeIdToLeafId(std::move(FlatNodeValueIndexes));
+    result->SetLeafValues(std::move(FlatValueVector));
     for (const auto& split : FlatSplitsVector) {
         if (split) {
-            result->TreeSplits.push_back(BinFeatureIndexes.at(*split));
+            result->AddTreeSplit(BinFeatureIndexes.at(*split));
         } else {
-            result->TreeSplits.push_back(0);
+            result->AddTreeSplit(0);
         }
     }
-    result->TreeSizes = std::move(TreeSizes);
-    result->TreeStartOffsets = std::move(TreeStartOffsets);
-    result->LeafWeights = std::move(LeafWeights);
+    result->SetTreeSizes(std::move(TreeSizes));
+    result->SetTreeStartOffsets(std::move(TreeStartOffsets));
+    result->SetLeafWeights(std::move(LeafWeights));
     result->UpdateRuntimeData();
 }
 

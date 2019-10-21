@@ -484,7 +484,7 @@ namespace NCB {
 
         if (
             FinalFeatureCalcerComputationMode == EFinalFeatureCalcersComputationMode::Default &&
-            !dstModel->ObliviousTrees->EstimatedFeatures.empty()
+            !dstModel->ObliviousTrees->GetEstimatedFeatures().empty()
         ) {
             CB_ENSURE_INTERNAL(
                 FeatureEstimators,
@@ -499,7 +499,10 @@ namespace NCB {
             CreateTextProcessingCollection(
                 *FeatureEstimators,
                 textDigitizers,
-                dstModel->ObliviousTrees->EstimatedFeatures,
+                TVector<TEstimatedFeature>(
+                    dstModel->ObliviousTrees->GetEstimatedFeatures().begin(),
+                    dstModel->ObliviousTrees->GetEstimatedFeatures().end()
+                ),
                 &textProcessingCollection,
                 &remappedEstimatedFeatures,
                 localExecutor
@@ -637,9 +640,11 @@ namespace NCB {
         TConstArrayRef<EModelType> formats,
         bool addFileFormatExtension
     ) {
+        const TConstArrayRef<TFloatFeature> floatFeatures = fullModel.ObliviousTrees->GetFloatFeatures();
+        const TConstArrayRef<TCatFeature> catFeatures = fullModel.ObliviousTrees->GetCatFeatures();
         TFeaturesLayout featuresLayout(
-            fullModel.ObliviousTrees->FloatFeatures,
-            fullModel.ObliviousTrees->CatFeatures
+            TVector<TFloatFeature>(floatFeatures.begin(), floatFeatures.end()),
+            TVector<TCatFeature>(catFeatures.begin(), catFeatures.end())
         );
         TVector<TString> featureIds = featuresLayout.GetExternalFeatureIds();
 

@@ -263,10 +263,10 @@ static TJsonValue GetFeaturesInfoJson(
         const THashMap<ui32, TString>* catFeaturesHashToString
 ) {
     TJsonValue jsonValue;
-    if (!obliviousTrees.FloatFeatures.empty()) {
+    if (!obliviousTrees.GetFloatFeatures().empty()) {
         jsonValue.InsertValue("float_features", TJsonValue());
     }
-    for (const auto& floatFeature: obliviousTrees.FloatFeatures) {
+    for (const auto& floatFeature: obliviousTrees.GetFloatFeatures()) {
         jsonValue["float_features"].AppendValue(ToJson(floatFeature));
         if (featureId) {
             const auto& name = (*featureId)[floatFeature.Position.FlatIndex];
@@ -275,16 +275,16 @@ static TJsonValue GetFeaturesInfoJson(
             }
         }
     }
-    if (!obliviousTrees.CatFeatures.empty()) {
+    if (!obliviousTrees.GetCatFeatures().empty()) {
         jsonValue.InsertValue("categorical_features", TJsonValue());
         THashMap<int, int> oneHotIndexes;
-        for (int idx = 0; idx < obliviousTrees.OneHotFeatures.ysize(); ++idx) {
-            oneHotIndexes[obliviousTrees.OneHotFeatures[idx].CatFeatureIndex] = idx;
+        for (int idx = 0; idx < obliviousTrees.GetOneHotFeatures().ysize(); ++idx) {
+            oneHotIndexes[obliviousTrees.GetOneHotFeatures()[idx].CatFeatureIndex] = idx;
         }
-        for (const auto &catFeature: obliviousTrees.CatFeatures) {
+        for (const auto &catFeature: obliviousTrees.GetCatFeatures()) {
             auto catFeatureJsonValue = ToJson(catFeature);
             if (oneHotIndexes.contains(catFeature.Position.FlatIndex)) {
-                auto &ohFeauture = obliviousTrees.OneHotFeatures[oneHotIndexes[catFeature.Position.FlatIndex]];
+                auto &ohFeauture = obliviousTrees.GetOneHotFeatures()[oneHotIndexes[catFeature.Position.FlatIndex]];
                 catFeatureJsonValue.InsertValue("values", VectorToJson(ohFeauture.Values));
                 if (!ohFeauture.StringValues.empty()) {
                     catFeatureJsonValue.InsertValue("string_values", VectorToJson(ohFeauture.StringValues));
@@ -299,10 +299,10 @@ static TJsonValue GetFeaturesInfoJson(
             jsonValue["categorical_features"].AppendValue(catFeatureJsonValue);
         }
     }
-    if (!obliviousTrees.CtrFeatures.empty()) {
+    if (!obliviousTrees.GetCtrFeatures().empty()) {
         jsonValue.InsertValue("ctrs", TJsonValue());
     }
-    for (const auto& ctr: obliviousTrees.CtrFeatures) {
+    for (const auto& ctr: obliviousTrees.GetCtrFeatures()) {
         jsonValue["ctrs"].AppendValue(ToJson(ctr));
     }
     if (catFeaturesHashToString) {
@@ -320,25 +320,25 @@ static TJsonValue GetFeaturesInfoJson(
 static void GetFeaturesInfo(const TJsonValue& jsonValue, TObliviousTrees* obliviousTrees) {
     if (jsonValue.Has("float_features")) {
         for (const auto &value: jsonValue["float_features"].GetArray()) {
-            obliviousTrees->FloatFeatures.push_back(FloatFeatureFromJson(value));
+            obliviousTrees->AddFloatFeature(FloatFeatureFromJson(value));
         }
     }
     if (jsonValue.Has("categorical_features")) {
         for (const auto &value: jsonValue["categorical_features"].GetArray()) {
             auto catFeature = CatFeatureFromJson(value);
-            obliviousTrees->CatFeatures.push_back(catFeature);
+            obliviousTrees->AddCatFeature(catFeature);
             if (value.Has("values")) {
                 TOneHotFeature ohFeature;
                 ohFeature.CatFeatureIndex = catFeature.Position.FlatIndex;
                 ohFeature.Values = JsonToVector<int>(value["values"]);
                 ohFeature.StringValues = JsonToVector<TString>(value["string_values"]);
-                obliviousTrees->OneHotFeatures.push_back(ohFeature);
+                obliviousTrees->AddOneHotFeature(ohFeature);
             }
         }
     }
     if (jsonValue.Has("ctrs")) {
         for (const auto &value: jsonValue["ctrs"].GetArray()) {
-            obliviousTrees->CtrFeatures.push_back(CtrFeatureFromJson(value));
+            obliviousTrees->AddCtrFeature(CtrFeatureFromJson(value));
         }
     }
 }
@@ -348,31 +348,31 @@ static TJsonValue GetObliviousTreesJson(const TObliviousTrees& obliviousTrees) {
     int leafWeightsOffset = 0;
     TJsonValue jsonValue;
     const auto& binFeatures = obliviousTrees.GetBinFeatures();
-    for (int treeIdx = 0; treeIdx < obliviousTrees.TreeSizes.ysize(); ++treeIdx) {
+    for (int treeIdx = 0; treeIdx < obliviousTrees.GetTreeSizes().ysize(); ++treeIdx) {
         TJsonValue tree;
-        const size_t treeLeafCount = (1uLL <<  obliviousTrees.TreeSizes[treeIdx]) * obliviousTrees.ApproxDimension;
-        const size_t treeWeightsCount = (1uLL <<  obliviousTrees.TreeSizes[treeIdx]);
-        if (!obliviousTrees.LeafWeights.empty()) {
+        const size_t treeLeafCount = (1uLL <<  obliviousTrees.GetTreeSizes()[treeIdx]) * obliviousTrees.GetDimensionsCount();
+        const size_t treeWeightsCount = (1uLL <<  obliviousTrees.GetTreeSizes()[treeIdx]);
+        if (!obliviousTrees.GetLeafWeights().empty()) {
             for (size_t idx = 0; idx < treeWeightsCount; ++idx) {
-                tree["leaf_weights"].AppendValue(obliviousTrees.LeafWeights[leafWeightsOffset + idx]);
+                tree["leaf_weights"].AppendValue(obliviousTrees.GetLeafWeights()[leafWeightsOffset + idx]);
             }
         }
         tree.InsertValue("leaf_values", TJsonValue());
         for (size_t idx = 0; idx < treeLeafCount; ++idx) {
-            tree["leaf_values"].AppendValue(obliviousTrees.LeafValues[leafValuesOffset + idx]);
+            tree["leaf_values"].AppendValue(obliviousTrees.GetLeafValues()[leafValuesOffset + idx]);
         }
         leafValuesOffset += treeLeafCount;
         leafWeightsOffset += treeWeightsCount;
         int treeSplitEnd;
-        if (treeIdx + 1 < obliviousTrees.TreeStartOffsets.ysize()) {
-            treeSplitEnd = obliviousTrees.TreeStartOffsets[treeIdx + 1];
+        if (treeIdx + 1 < obliviousTrees.GetTreeStartOffsets().ysize()) {
+            treeSplitEnd = obliviousTrees.GetTreeStartOffsets()[treeIdx + 1];
         } else {
-            treeSplitEnd = obliviousTrees.TreeSplits.ysize();
+            treeSplitEnd = obliviousTrees.GetTreeSplits().ysize();
         }
         tree.InsertValue("splits", TJsonValue());
-        for (int idx = obliviousTrees.TreeStartOffsets[treeIdx]; idx < treeSplitEnd; ++idx) {
-            tree["splits"].AppendValue(ToJson(binFeatures[obliviousTrees.TreeSplits[idx]]));
-            tree["splits"].Back().InsertValue("split_index", obliviousTrees.TreeSplits[idx]);
+        for (int idx = obliviousTrees.GetTreeStartOffsets()[treeIdx]; idx < treeSplitEnd; ++idx) {
+            tree["splits"].AppendValue(ToJson(binFeatures[obliviousTrees.GetTreeSplits()[idx]]));
+            tree["splits"].Back().InsertValue("split_index", obliviousTrees.GetTreeSplits()[idx]);
         }
         jsonValue.AppendValue(tree);
     }
@@ -380,25 +380,22 @@ static TJsonValue GetObliviousTreesJson(const TObliviousTrees& obliviousTrees) {
 }
 
 static void GetObliviousTrees(const TJsonValue& jsonValue, TObliviousTrees* obliviousTrees) {
-    obliviousTrees->TreeStartOffsets.push_back(0);
     for (const auto& value: jsonValue.GetArray()) {
         for (const auto& leaf: value["leaf_values"].GetArray()) {
-            obliviousTrees->LeafValues.push_back(leaf.GetDouble());
+            obliviousTrees->AddLeafValue(leaf.GetDouble());
         }
         int treeSize = value["splits"].GetArray().ysize();
-        obliviousTrees->TreeSizes.push_back(treeSize);
-        obliviousTrees->ApproxDimension = value["leaf_values"].GetArray().ysize() / (1uLL << treeSize);
-        obliviousTrees->TreeStartOffsets.push_back(obliviousTrees->TreeStartOffsets.back() + treeSize);
+        obliviousTrees->AddTreeSize(treeSize);
+        obliviousTrees->SetApproxDimension(value["leaf_values"].GetArray().ysize() / (1uLL << treeSize));
         for (const auto& split: value["splits"].GetArray()) {
-            obliviousTrees->TreeSplits.push_back(split["split_index"].GetInteger());
+            obliviousTrees->AddTreeSplit(split["split_index"].GetInteger());
         }
         if (value.Has("leaf_weights")) {
             for (const auto& weight: value["leaf_weights"].GetArray()) {
-                obliviousTrees->LeafWeights.push_back(weight.GetDouble());
+                obliviousTrees->AddLeafWeight(weight.GetDouble());
             }
         }
     }
-    obliviousTrees->TreeStartOffsets.pop_back();
 }
 
 static NJson::TJsonValue ConvertCtrsToJson(const TStaticCtrProvider* ctrProvider, const TVector<TModelCtr>& neededCtrs) {

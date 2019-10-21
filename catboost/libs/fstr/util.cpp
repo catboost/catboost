@@ -47,9 +47,9 @@ TVector<double> CollectLeavesStatistics(
     }
 
     size_t treeCount = model.GetTreeCount();
-    const int approxDimension = model.ObliviousTrees->ApproxDimension;
+    const int approxDimension = model.ObliviousTrees->GetDimensionsCount();
     TVector<double> leavesStatistics(
-        model.ObliviousTrees->LeafValues.size() / approxDimension
+        model.ObliviousTrees->GetLeafValues().size() / approxDimension
     );
 
     auto binFeatures = MakeQuantizedFeaturesForEvaluator(model, *dataset.ObjectsData.Get());

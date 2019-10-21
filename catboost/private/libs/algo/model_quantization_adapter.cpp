@@ -31,7 +31,7 @@ namespace {
             const auto blockSize = Min(docCount, FORMULA_EVALUATION_BLOCK_SIZE);
             TVector<ui32> transposedHash(blockSize * Model.GetUsedCatFeaturesCount());
             TVector<float> ctrs(Model.ObliviousTrees->GetUsedModelCtrs().size() * blockSize);
-            TVector<float> estimatedFeatures(Model.ObliviousTrees->EstimatedFeatures.size() * blockSize);
+            TVector<float> estimatedFeatures(Model.ObliviousTrees->GetEstimatedFeatures().size() * blockSize);
 
             BinarizeFeatures(
                 *Model.ObliviousTrees,
