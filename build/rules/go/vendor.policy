@@ -332,6 +332,12 @@ ALLOW .* -> vendor/github.com/cenkalti/backoff
 # CONTRIB-1491 A parser library for Go
 ALLOW .* -> vendor/github.com/alecthomas/participle
 
+# CONTRIB-1542 Simple netlink library for go.
+ALLOW .* -> vendor/github.com/vishvananda/netlink
+
+# CONTRIB-1542 Simple network namespace handling for go.
+ALLOW .* -> vendor/github.com/vishvananda/netns
+
 # CONTRIB-1545 Go bindings for creating BPF programs.
 ALLOW .* -> vendor/github.com/iovisor/gobpf
 
