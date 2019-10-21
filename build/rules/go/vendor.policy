@@ -332,6 +332,9 @@ ALLOW .* -> vendor/github.com/cenkalti/backoff
 # CONTRIB-1491 A parser library for Go
 ALLOW .* -> vendor/github.com/alecthomas/participle
 
+# CONTRIB-1545 Go bindings for creating BPF programs.
+ALLOW .* -> vendor/github.com/iovisor/gobpf
+
 #
 # Temporary exceptions.
 #
