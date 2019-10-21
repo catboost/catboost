@@ -117,7 +117,7 @@ def get_source_path(args):
 
 
 def gen_vet_info(args):
-    import_path = args.import_path
+    import_path = args.real_import_path if hasattr(args, 'real_import_path') else args.import_path
     info = get_import_config_info(args.peers, True, args.import_map, args.module_map)
 
     import_map = dict(info['importmap'])
@@ -135,8 +135,7 @@ def gen_vet_info(args):
         'Dir': os.path.join(args.arc_source_root, get_source_path(args)),
         'ImportPath': import_path,
         'GoFiles': list(filter(lambda x: x.endswith('.go'), args.go_srcs)),
-        'NonGoFiles': [
-        ],
+        'NonGoFiles': list(filter(lambda x: not x.endswith('.go'), args.go_srcs)),
         'ImportMap': import_map,
         'PackageFile': dict(info['packagefile']),
         'Standard': dict(info['standard']),
@@ -310,7 +309,8 @@ def do_link_exe(args):
     assert args.non_local_peers is not None
     compile_args = copy_args(args)
     compile_args.output = os.path.join(args.output_root, 'main.a')
-    # compile_args.import_path = 'main'
+    compile_args.real_import_path = compile_args.import_path
+    compile_args.import_path = 'main'
 
     if args.vcs and os.path.isfile(compile_args.vcs):
         build_info = os.path.join('library', 'go', 'core', 'buildinfo')
