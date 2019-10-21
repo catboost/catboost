@@ -279,6 +279,7 @@ ALLOW .* -> vendor/github.com/go-cmd/cmd
 ALLOW .* -> vendor/github.com/NVIDIA/gpu-monitoring-tools/bindings/go
 
 # Opentracing interface and implementation.
+ALLOW .* -> vendor/github.com/uber/jaeger-client-go
 ALLOW .* -> vendor/github.com/jaegertracing/jaeger-client-go
 ALLOW .* -> vendor/github.com/opentracing/opentracing-go
 
