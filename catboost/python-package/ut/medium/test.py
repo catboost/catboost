@@ -6133,3 +6133,27 @@ def test_multiclass_non_positive_definite_from_github():
     y_train = np.array([1, 2, 4, 2, 1])
     cat_model = CatBoostClassifier(**cat_params)
     cat_model.fit(X=np.array(train)[:5, :10], y=np.array(y_train)[:5], verbose=0)
+
+
+def test_snapshot_checksum(task_type):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+
+    model = CatBoostClassifier(
+        task_type=task_type,
+        iterations=15,
+        save_snapshot=True,
+        snapshot_file='snapshot',
+    )
+    model.fit(train_pool, eval_set=test_pool)
+
+    model_next = CatBoostClassifier(
+        task_type=task_type,
+        iterations=30,
+        save_snapshot=True,
+        snapshot_file='snapshot',
+    )
+    model_next.fit(train_pool, eval_set=test_pool)
+
+    with pytest.raises(CatBoostError):
+        model_next.fit(test_pool, eval_set=train_pool)

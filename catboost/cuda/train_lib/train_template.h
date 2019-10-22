@@ -52,7 +52,8 @@ namespace NCatboostCuda {
         const NCB::TTrainingDataProvider* test,
         ui32 approxDimension,
         const THolder<ITrainingCallbacks>& trainingCallbacks,
-        bool hasWeights
+        bool hasWeights,
+        TMaybe<ui32> learnAndTestCheckSum
     ) {
         return TBoostingProgressTracker(catBoostOptions,
             outputOptions,
@@ -61,6 +62,7 @@ namespace NCatboostCuda {
             /*testHasTarget*/ (test != nullptr) && test->MetaInfo.HasTarget,
             approxDimension,
             hasWeights,
+            learnAndTestCheckSum,
             trainingCallbacks.Get());
     }
 
@@ -82,7 +84,20 @@ namespace NCatboostCuda {
 
         boosting.SetDataProvider(learn, featureEstimators, test);
 
-        auto progressTracker = MakeBoostingProgressTracker(internalOptions, catBoostOptions, outputOptions, test, approxDimension, trainingCallbacks, learn.MetaInfo.HasWeights);
+        ui32 learnAndTestCheckSum = learn.ObjectsData->CalcFeaturesCheckSum(localExecutor);
+        if (test != nullptr) {
+            learnAndTestCheckSum += test->ObjectsData->CalcFeaturesCheckSum(localExecutor);
+        }
+
+        auto progressTracker = MakeBoostingProgressTracker(
+            internalOptions,
+            catBoostOptions,
+            outputOptions,
+            test,
+            approxDimension,
+            trainingCallbacks,
+            learn.MetaInfo.HasWeights,
+            learnAndTestCheckSum);
 
         boosting.SetBoostingProgressTracker(&progressTracker);
 
@@ -139,7 +154,8 @@ namespace NCatboostCuda {
             &test,
             approxDimension,
             defaultTrainingCallcbacks,
-            learn.MetaInfo.HasWeights);
+            learn.MetaInfo.HasWeights,
+            /*learnAndTestCheckSum*/ Nothing());
 
         boosting.SetBoostingProgressTracker(&progressTracker);
 
