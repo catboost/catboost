@@ -601,7 +601,7 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
 void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
     const auto lossFunction = LossFunctionDescription->GetLossFunction();
 
-    // TODO(nikitxskv): Support MVS for MultiClass and for MVS.
+    // TODO(nikitxskv): Support MVS for MultiClass and for GPU.
     auto& boostingType = BoostingOptions->BoostingType;
     TOption<EBootstrapType>& bootstrapType = ObliviousTreeOptions->BootstrapConfig->GetBootstrapType();
     TOption<float>& subsample = ObliviousTreeOptions->BootstrapConfig->GetTakenFraction();
