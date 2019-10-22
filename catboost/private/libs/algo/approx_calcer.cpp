@@ -609,9 +609,6 @@ static void CalcApproxDeltaSimple(
         // If loss function is Quantile update leafDeltas specifically for it
         if (estimationMethod == ELeavesEstimation::Exact) {
             auto loss = ctx->Params.LossFunctionDescription->GetLossFunction();
-            CB_ENSURE(IsQuantileLoss(loss));
-            CB_ENSURE(!ctx->Params.BoostingOptions->ApproxOnFullHistory);
-            CB_ENSURE(ctx->Params.GetTaskType() == ETaskType::CPU);
             double alpha;
             double delta;
             if (loss == ELossFunction::Quantile) {
@@ -786,9 +783,6 @@ static void CalcLeafValuesSimple(
         // If loss function is Quantile update leafDeltas specifically for it
         if (estimationMethod == ELeavesEstimation::Exact) {
             auto loss = ctx->Params.LossFunctionDescription->GetLossFunction();
-            CB_ENSURE(IsQuantileLoss(loss));
-            CB_ENSURE(!ctx->Params.BoostingOptions->ApproxOnFullHistory);
-            CB_ENSURE(ctx->Params.GetTaskType() == ETaskType::CPU);
             double alpha;
             double delta;
             if (loss == ELossFunction::Quantile) {

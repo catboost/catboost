@@ -74,7 +74,7 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
         }
         case ELossFunction::MAE:
         case ELossFunction::Quantile: {
-            if (TaskType == ETaskType::CPU) {
+            if (TaskType == ETaskType::CPU && SystemOptions->IsSingleHost() && !BoostingOptions->ApproxOnFullHistory) {
                 defaultEstimationMethod = ELeavesEstimation::Exact;
                 defaultNewtonIterations = 1;
                 defaultGradientIterations = 1;
@@ -217,6 +217,14 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
     if (treeConfig.LeavesEstimationMethod == ELeavesEstimation::Simple) {
         CB_ENSURE(treeConfig.LeavesEstimationIterations == 1u,
                   "Leaves estimation iterations can't be greater, than 1 for Simple leaf-estimation mode");
+    }
+
+    if (treeConfig.LeavesEstimationMethod == ELeavesEstimation::Exact) {
+        auto loss = lossFunctionConfig.GetLossFunction();
+        CB_ENSURE(loss == ELossFunction::MAE || loss == ELossFunction::Quantile, "Exact method is only available for Qunatile and MAE loss functions.");
+        CB_ENSURE(!BoostingOptions->ApproxOnFullHistory, "ApproxOnFullHistory option is not available within Exact method.");
+        CB_ENSURE(TaskType == ETaskType::CPU, "Exact method is only available on CPU.");
+        CB_ENSURE(SystemOptions->IsSingleHost(), "Exact method is only available in SingleHost mode.");
     }
 
     if (treeConfig.L2Reg == 0.0f) {
