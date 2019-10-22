@@ -1811,11 +1811,7 @@ class CatBoost(_CatBoostBase):
         if ntree_end == 0:
             ntree_end = self.tree_count_
         staged_predict_iterator = self._staged_predict_iterator(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose)
-        while True:
-            try:
-                predictions = staged_predict_iterator.next()
-            except StopIteration:
-                return
+        for predictions in staged_predict_iterator:
             yield predictions[0] if data_is_single_object else predictions
 
     def staged_predict(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
@@ -1874,11 +1870,8 @@ class CatBoost(_CatBoostBase):
             ntree_end = self.tree_count_
         data, _ = self._process_predict_input_data(data, "iterate_leaf_indexes")
         leaf_indexes_iterator = self._leaf_indexes_iterator(data, ntree_start, ntree_end)
-        while True:
-            try:
-                yield leaf_indexes_iterator.next()
-            except StopIteration:
-                return
+        for leaf_index in leaf_indexes_iterator:
+            yield leaf_index
 
     def iterate_leaf_indexes(self, data, ntree_start=0, ntree_end=0):
         """

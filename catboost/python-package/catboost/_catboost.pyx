@@ -4467,7 +4467,7 @@ cdef class _StagedPredictIterator:
     def __deepcopy__(self, _):
         raise CatBoostError('Can\'t deepcopy _StagedPredictIterator object')
 
-    def next(self):
+    def __next__(self):
         if self.ntree_start >= self.ntree_end:
             raise StopIteration
 
@@ -4491,6 +4491,9 @@ cdef class _StagedPredictIterator:
 
         return transform_predictions(self.__pred, self.predictionType, self.thread_count, self.__model)
 
+    def __iter__(self):
+        return self
+
 cdef class _LeafIndexIterator:
     cdef TLeafIndexCalcerOnPool* __leafIndexCalcer
 
@@ -4508,12 +4511,15 @@ cdef class _LeafIndexIterator:
     def __deepcopy__(self, _):
         raise CatBoostError('Can\'t deepcopy _LeafIndexIterator object')
 
-    def next(self):
+    def __next__(self):
         if not dereference(self.__leafIndexCalcer).CanGet():
             raise StopIteration
         result = _vector_of_uints_to_np_array(dereference(self.__leafIndexCalcer).Get())
         dereference(self.__leafIndexCalcer).Next()
         return result
+
+    def __iter__(self):
+        return self
 
 class MetricDescription:
 
