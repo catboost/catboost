@@ -64,3 +64,5 @@ This might be not the case, if we are traing from some baseline.
 Interface: `class_weights`='Auto'
 
 17. Add CatBoost to https://github.com/apple/turicreate
+
+18. Implement Tweedie Regression
