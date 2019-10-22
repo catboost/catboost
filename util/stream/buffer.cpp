@@ -1,5 +1,6 @@
 #include "buffer.h"
 #include <util/generic/buffer.h>
+#include <util/generic/yexception.h>
 
 class TBufferOutput::TImpl {
 public:
@@ -9,6 +10,21 @@ public:
     }
 
     virtual ~TImpl() = default;
+
+    inline size_t DoNext(void** ptr) {
+        if (Data_.Avail() == 0) {
+            Data_.Reserve(FastClp2(Data_.Capacity() + MinBufferGrowSize));
+        }
+        size_t previousSize = Data_.size();
+        Data_.Resize(Data_.Capacity());
+        *ptr = Data_.Begin() + previousSize;
+        return Data_.Size() - previousSize;
+    }
+
+    inline void DoUndo(size_t len) {
+        Y_VERIFY(len <= Data_.Size(), "trying to undo more bytes than actually written");
+        Data_.Resize(Data_.size() - len);
+    }
 
     inline void DoWrite(const void* buf, size_t len) {
         Data_.Append((const char*)buf, len);
@@ -24,6 +40,7 @@ public:
 
 private:
     TBuffer& Data_;
+    static constexpr size_t MinBufferGrowSize = 16;
 };
 
 namespace {
@@ -56,6 +73,14 @@ TBufferOutput::~TBufferOutput() = default;
 
 TBuffer& TBufferOutput::Buffer() const noexcept {
     return Impl_->Buffer();
+}
+
+size_t TBufferOutput::DoNext(void** ptr) {
+    return Impl_->DoNext(ptr);
+}
+
+void TBufferOutput::DoUndo(size_t len) {
+    Impl_->DoUndo(len);
 }
 
 void TBufferOutput::DoWrite(const void* buf, size_t len) {

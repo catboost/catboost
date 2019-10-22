@@ -73,6 +73,40 @@ Y_UNIT_TEST_SUITE(TestBufferedIO) {
         UNIT_ASSERT_VALUES_EQUAL(s, "123");
     }
 
+    template <class TOut>
+    inline void DoGenAndWrite(TOut&& output, TString& str) {
+        TMersenne<ui64> r;
+        for (size_t i = 0; i < 43210; ++i) {
+            str.append('A' + (r.GenRand() % 10));
+        }
+        size_t written = 0;
+        void* ptr = nullptr;
+        while (written < str.size()) {
+            size_t bufferSize = output.Next(&ptr);
+            UNIT_ASSERT(ptr && bufferSize > 0);
+            size_t toWrite = Min(bufferSize, str.size() - written);
+            memcpy(ptr, str.begin() + written, toWrite);
+            written += toWrite;
+            if (toWrite < bufferSize) {
+                output.Undo(bufferSize - toWrite);
+            }
+        }
+    }
+
+    Y_UNIT_TEST(TestWriteViaNextAndUndo) {
+        TString str1, str2;
+        DoGenAndWrite(TBuffered<TStringOutput>(5000, str1), str2);
+
+        UNIT_ASSERT_STRINGS_EQUAL(str1, str2);
+    }
+
+    Y_UNIT_TEST(TestWriteViaNextAndUndoAdaptive) {
+        TString str1, str2;
+        DoGenAndWrite(TAdaptivelyBuffered<TStringOutput>(str1), str2);
+
+        UNIT_ASSERT_STRINGS_EQUAL(str1, str2);
+    }
+
     Y_UNIT_TEST(TestInput) {
         TString s("0123456789abcdefghijklmn");
         TBuffered<TStringInput> in(5, s);

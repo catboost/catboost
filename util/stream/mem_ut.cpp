@@ -14,22 +14,34 @@ Y_UNIT_TEST_SUITE(TestMemIO) {
         UNIT_ASSERT_VALUES_EQUAL(t, "89abc");
     }
 
-    Y_UNIT_TEST(NextAndAdvance) {
+    Y_UNIT_TEST(NextAndUndo) {
         char buffer[20];
         TMemoryOutput output(buffer, sizeof(buffer));
-        char* ptr;
-        output.Next(&ptr);
+        char* ptr = nullptr;
+        size_t bufferSize = output.Next(&ptr);
+        UNIT_ASSERT_GE(bufferSize, 1);
         *ptr = '1';
-        output.Advance(1);
-        output.Next(&ptr);
+        if (bufferSize > 1) {
+            output.Undo(bufferSize - 1);
+        }
+
+        bufferSize = output.Next(&ptr);
+        UNIT_ASSERT_GE(bufferSize, 2);
         *ptr = '2';
         *(ptr + 1) = '2';
-        output.Advance(2);
-        output.Next(&ptr);
+        if (bufferSize > 2) {
+            output.Undo(bufferSize - 2);
+        }
+
+        bufferSize = output.Next(&ptr);
+        UNIT_ASSERT_GE(bufferSize, 3);
         *ptr = '3';
         *(ptr + 1) = '3';
         *(ptr + 2) = '3';
-        output.Advance(3);
+        if (bufferSize > 3) {
+            output.Undo(bufferSize - 3);
+        }
+
         output.Finish();
 
         const char* const result = "1"

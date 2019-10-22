@@ -1,7 +1,7 @@
 #pragma once
 
-#include "output.h"
 #include "zerocopy.h"
+#include "zerocopy_output.h"
 
 #include <utility>
 #include <util/generic/ptr.h>
@@ -59,7 +59,7 @@ private:
  * Also note that this stream does not claim ownership of the underlying stream,
  * so it's up to the user to free it.
  */
-class TBufferedOutputBase: public IOutputStream {
+class TBufferedOutputBase: public IZeroCopyOutput {
 public:
     /**
      * Constructs a buffered stream that dynamically adjusts the size of the
@@ -111,6 +111,8 @@ public:
     class TImpl;
 
 protected:
+    size_t DoNext(void** ptr) override;
+    void DoUndo(size_t len) override;
     void DoWrite(const void* data, size_t len) override;
     void DoWriteC(char c) override;
     void DoFlush() override;

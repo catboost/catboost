@@ -163,6 +163,21 @@ public:
         MemOut_.Reset(Buf(), Len());
     }
 
+    inline size_t Next(void** ptr) {
+        if (MemOut_.Avail() == 0) {
+            Slave_->Write(Buf(), Stored());
+            OnBufferExhausted();
+            Reset();
+        }
+
+        return MemOut_.Next(ptr);
+    }
+
+    inline void Undo(size_t len) {
+        Y_VERIFY(len <= Stored(), "trying to undo more bytes than actually written");
+        MemOut_.Undo(len);
+    }
+
     inline void Write(const void* buf, size_t len) {
         if (len <= MemOut_.Avail()) {
             /*
@@ -349,6 +364,22 @@ TBufferedOutputBase::~TBufferedOutputBase() {
         Finish();
     } catch (...) {
         // ¯\_(ツ)_/¯
+    }
+}
+
+size_t TBufferedOutputBase::DoNext(void** ptr) {
+    if (Impl_.Get()) {
+        return Impl_->Next(ptr);
+    } else {
+        ythrow yexception() << "cannot call next in finished stream";
+    }
+}
+
+void TBufferedOutputBase::DoUndo(size_t len) {
+    if (Impl_.Get()) {
+        Impl_->Undo(len);
+    } else {
+        ythrow yexception() << "cannot call undo in finished stream";
     }
 }
 

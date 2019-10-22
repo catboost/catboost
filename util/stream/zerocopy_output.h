@@ -12,7 +12,7 @@
 /**
  * Output stream with direct access to the output buffer.
  *
- * Derived classes must implement `DoNext` and `DoAdvance` methods.
+ * Derived classes must implement `DoNext` and `DoUndo` methods.
  */
 class IZeroCopyOutput: public IOutputStream {
 public:
@@ -37,20 +37,21 @@ public:
     }
 
     /**
-     * Moves the current position in stream by `len` bytes.
+     * Tells the stream that `len` bytes at the end of the buffer returned previously
+     * by Next were actually not written so the current position in stream must be moved backwards.
      * `len` must not be greater than the size of the buffer previously returned by `Next`.
      *
-     * @param len[in]                  Number of bytes to move the position by.
+     * @param len[in]                  Number of bytes at the end to move the position by.
      *
      */
-    inline void Advance(size_t len) {
-        return DoAdvance(len);
+    inline void Undo(size_t len) {
+        return DoUndo(len);
     }
 
 protected:
     void DoWrite(const void* buf, size_t len) override;
     virtual size_t DoNext(void** ptr) = 0;
-    virtual void DoAdvance(size_t len) = 0;
+    virtual void DoUndo(size_t len) = 0;
 };
 
 /** @} */

@@ -1,7 +1,7 @@
 #pragma once
 
-#include "output.h"
 #include "zerocopy.h"
+#include "zerocopy_output.h"
 
 #include <util/generic/string.h>
 #include <util/generic/noncopyable.h>
@@ -56,7 +56,7 @@ private:
 /**
  * Stream for writing data into a string.
  */
-class TStringOutput: public IOutputStream {
+class TStringOutput: public IZeroCopyOutput {
 public:
     /**
      * Constructs a string output stream that appends character data to the
@@ -86,6 +86,8 @@ public:
     }
 
 protected:
+    size_t DoNext(void** ptr) override;
+    void DoUndo(size_t len) override;
     void DoWrite(const void* buf, size_t len) override;
     void DoWriteC(char c) override;
 
