@@ -1624,6 +1624,8 @@ cdef class _PreprocessParams:
         params_to_json = params
 
         if is_custom_objective or is_custom_eval_metric:
+            if params.get("task_type") == "GPU":
+                raise CatBoostError("User defined loss functions and metrics are not supported for GPU")
             keys_to_replace = set()
             if is_custom_objective:
                 keys_to_replace.add("loss_function")
