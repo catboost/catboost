@@ -70,10 +70,10 @@
         "ygdiff": { "description": "Run ygdiff tool", "visible": false },
         "ya-tc": { "description": "Run ya-tc tool", "visible": false },
         "crypta": { "description": "Run Crypta client" },
-        "go": { "description": "Run go tool (1.12.10)" },
-        "gofmt": { "description": "Run gofmt tool (1.12.10)" },
-        "go_1.13.3": { "description": "Run go tool (1.13.3)" },
-        "gofmt_1.13.3": { "description": "Run gofmt tool (1.13.3)" },
+        "go_1.12.10": { "description": "Run go tool (1.12.10)" },
+        "gofmt_1.12.10": { "description": "Run gofmt tool (1.12.10)" },
+        "go": { "description": "Run go tool (1.13.3)" },
+        "gofmt": { "description": "Run gofmt tool (1.13.3)" },
         "godoc": { "description": "Arcadia version of godoc" },
         "yo": { "description": "Tool for managing vendor/ directory" },
         "tvmknife": { "description": "Tool for debugging and testing with TVM tickets" },
@@ -1474,9 +1474,9 @@
         },
         "golang_1_12_10": {
             "tools": {
-                "golang": {"bottle": "golang_1.12.10",  "executable": "golang_1.12.10"},
-                "go": {"bottle": "golang_1.12.10",  "executable": "go_1.12.10"},
-                "gofmt": {"bottle": "golang_1.12.10",  "executable": "gofmt_1.12.10"}
+                "golang_1.12.10": {"bottle": "golang_1.12.10",  "executable": "golang_1.12.10"},
+                "goi_1.12.10": {"bottle": "golang_1.12.10",  "executable": "go_1.12.10"},
+                "gofmt_1.12.10": {"bottle": "golang_1.12.10",  "executable": "gofmt_1.12.10"}
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "default": true},
@@ -1490,9 +1490,9 @@
         },
         "golang_1_13_3": {
             "tools": {
-                "golang_1.13.3": {"bottle": "golang_1.13.3",  "executable": "golang"},
-                "go_1.13.3": {"bottle": "golang_1.13.3",  "executable": "go"},
-                "gofmt_1.13.3": {"bottle": "golang_1.13.3",  "executable": "gofmt"}
+                "golang": {"bottle": "golang_1.13.3",  "executable": "golang"},
+                "go": {"bottle": "golang_1.13.3",  "executable": "go"},
+                "gofmt": {"bottle": "golang_1.13.3",  "executable": "gofmt"}
             },
             "platforms": [
                 {"host": {"os": "LINUX"}, "default": true},
