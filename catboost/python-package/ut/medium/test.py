@@ -4583,6 +4583,12 @@ def test_model_merging():
     merged_pred = merged_model.predict(test_pool, prediction_type='RawFormulaVal')
     assert np.all(pred == merged_pred)
 
+    model_json = test_output_path('model.json')
+    model_cbm = test_output_path('model.bin')
+    merged_model.save_model(model_cbm)
+    CatBoostClassifier().load_model(model_cbm).save_model(model_json, format='json')
+    CatBoostClassifier().load_model(model_json, format='json')
+
 
 def test_tree_depth_pairwise(task_type):
     if task_type == 'GPU':

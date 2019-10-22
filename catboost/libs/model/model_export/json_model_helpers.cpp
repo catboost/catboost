@@ -459,11 +459,13 @@ TJsonValue ConvertModelToJson(const TFullModel& model, const TVector<TString>* f
     TJsonValue jsonModel;
     TJsonValue modelInfo;
     for (const auto& key_value : model.ModelInfo) {
-        if (key_value.first == "params") {
+        if (key_value.first.EndsWith("params")) {
             TJsonValue tree;
-            TStringStream ss(key_value.second);
-            CB_ENSURE(ReadJsonTree(&ss, &tree), "can't parse params file");
-            modelInfo.InsertValue(key_value.first, tree);
+            if (!key_value.second.empty()) {
+                TStringStream ss(key_value.second);
+                CB_ENSURE(ReadJsonTree(&ss, &tree), "can't parse params file");
+                modelInfo.InsertValue(key_value.first, tree);
+            }
         } else {
             modelInfo.InsertValue(key_value.first, key_value.second);
         }
