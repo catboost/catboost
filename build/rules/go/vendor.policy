@@ -137,9 +137,6 @@ ALLOW .* -> vendor/github.com/mailru/easyjson
 # lz4 compression codec
 ALLOW .* -> vendor/github.com/pierrec/lz4
 
-# simple error handling primitives
-ALLOW .* -> vendor/github.com/pkg/errors
-
 # library for HTML DOM manipulations and searching nodes by CSS selectors
 ALLOW .* -> vendor/github.com/PuerkitoBio/goquery
 
@@ -351,6 +348,79 @@ ALLOW .* -> vendor/github.com/iovisor/gobpf
 
 # CONTRIB-1244. resposible: gzuykov@
 ALLOW cloud -> vendor/github.com/rcrowley/go-metrics
+
+# IGNIETFERRO-1287
+ALLOW cloud/compute/snapshot/snapshot/config -> vendor/github.com/pkg/errors
+ALLOW cloud/compute/snapshot/snapshot/lib/chunker -> vendor/github.com/pkg/errors
+ALLOW cloud/compute/snapshot/snapshot/lib/nbd -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/dataproc-agent/pkg/agent -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/dataproc-agent/pkg/apiclient/grpcclient -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/dataproc-agent/pkg/metaparser/http -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/dataproc-agent/pkg/yarn/http -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/dataproc-manager/pkg/datastore/redis -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/dataproc-manager/pkg/internal-api/http -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/dataproc-manager/pkg/server -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/internal/app/swagger -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/internal/auth/access_service/grpc -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/internal/auth/tvm -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/internal/compute/dns -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/internal/config -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/internal/crypto -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/internal/dispenser/http -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/internal/httputil -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/internal/iam/http -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/internal/metadb -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/internal/nacl -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/internal/prometheus -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/internal/saltapi/cherrypy -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/internal/supervisor/remote -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/internal/tilde -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/mdb-api/pkg/client -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/mdb-cli/pkg/support/cmds/block -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/mdb-dispenser-sync/internal/app -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/mdb-dispenser-sync/pkg/c2p -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/mdb-dispenser-sync/pkg/resources -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/mdb-dispenser-sync/pkg/synchronizer -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/mdb-dns/pkg/core -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/mdb-dns/pkg/dnsapi -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/mdb-health -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/mdb-my-toolkit/pkg/dbaasutil -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/mdb-secrets/internal/service/secretsdb/pg -> vendor/github.com/pkg/errors
+ALLOW cloud/mdb/mysync/internal/dcs -> vendor/github.com/pkg/errors
+ALLOW contrib/go/hugo -> vendor/github.com/pkg/errors
+ALLOW edadeal/backend/go/charm/internal/pkg/store/pg -> vendor/github.com/pkg/errors
+ALLOW extsearch/video/station/starter -> vendor/github.com/pkg/errors
+ALLOW infra/yp_service_discovery/golang/resolver -> vendor/github.com/pkg/errors
+ALLOW library/go/yandex/solomon/reporters/pusher/httppusher -> vendor/github.com/pkg/errors
+ALLOW locdoc/doc/daas-farm/pkg/daasclient -> vendor/github.com/pkg/errors
+ALLOW locdoc/doc/daas-farm/pkg/menugen -> vendor/github.com/pkg/errors
+ALLOW locdoc/doc/daas-farm/pkg/wikiclient -> vendor/github.com/pkg/errors
+ALLOW locdoc/doc/daas-farm/pkg/wikigen -> vendor/github.com/pkg/errors
+ALLOW market/sre/library/golang/dispenser -> vendor/github.com/pkg/errors
+ALLOW market/sre/services/rtcstats2graphite/src/internal/blogic -> vendor/github.com/pkg/errors
+ALLOW market/sre/services/rtcstats2graphite/src/internal/nanny -> vendor/github.com/pkg/errors
+ALLOW market/sre/services/rtcstats2graphite/src/internal/oops -> vendor/github.com/pkg/errors
+ALLOW market/sre/services/rtcstats2graphite/src/internal/walle -> vendor/github.com/pkg/errors
+ALLOW market/sre/services/rtcstats2graphite/src/internal/yasm -> vendor/github.com/pkg/errors
+ALLOW market/sre/tools/ya-gde/src/cmd/getthefacts -> vendor/github.com/pkg/errors
+ALLOW market/sre/tools/ya-gde/src/pkg/hostinfo -> vendor/github.com/pkg/errors
+ALLOW market/sre/tools/ya-gde/src/pkg/util -> vendor/github.com/pkg/errors
+ALLOW orgvisits/witness -> vendor/github.com/pkg/errors
+ALLOW quasar/go/blackbox -> vendor/github.com/pkg/errors
+ALLOW quasar/go/tvm -> vendor/github.com/pkg/errors
+ALLOW security/impulse/api/scan-api/internal/controllers/workflow -> vendor/github.com/pkg/errors
+ALLOW security/osquery/extensions/go-secure -> vendor/github.com/pkg/errors
+ALLOW security/osquery/osquery-sender/sender -> vendor/github.com/pkg/errors
+ALLOW toolbox/bunker -> vendor/github.com/pkg/errors
+ALLOW toolbox/pg-pinger/pinger -> vendor/github.com/pkg/errors
+ALLOW transfer_manager/go/pkg/abstract -> vendor/github.com/pkg/errors
+ALLOW transfer_manager/go/pkg/server/impl -> vendor/github.com/pkg/errors
+ALLOW yabs/telephony/platform/inventory/api/http -> vendor/github.com/pkg/errors
+ALLOW yabs/telephony/platform/inventory/core -> vendor/github.com/pkg/errors
+ALLOW yabs/telephony/platform/push-service/api/http -> vendor/github.com/pkg/errors
+ALLOW yt/go/guid -> vendor/github.com/pkg/errors
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/pkg/errors
+ALLOW yt/jaeger/plugin/cmd/collector -> vendor/github.com/pkg/errors
 
 #
 # Permanent exceptions.
