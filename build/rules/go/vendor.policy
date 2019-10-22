@@ -391,7 +391,7 @@ ALLOW cloud/mdb/mdb-health -> vendor/github.com/pkg/errors
 ALLOW cloud/mdb/mdb-my-toolkit/pkg/dbaasutil -> vendor/github.com/pkg/errors
 ALLOW cloud/mdb/mdb-secrets/internal/service/secretsdb/pg -> vendor/github.com/pkg/errors
 ALLOW cloud/mdb/mysync/internal/dcs -> vendor/github.com/pkg/errors
-ALLOW contrib/go/hugo -> vendor/github.com/pkg/errors
+ALLOW contrib/go/patched/hugo -> vendor/github.com/pkg/errors
 ALLOW edadeal/backend/go/charm/internal/pkg/store/pg -> vendor/github.com/pkg/errors
 ALLOW extsearch/video/station/starter -> vendor/github.com/pkg/errors
 ALLOW infra/yp_service_discovery/golang/resolver -> vendor/github.com/pkg/errors

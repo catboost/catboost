@@ -1,0 +1,7 @@
+# Permanent exceptions for heavily-patched Go contribs. Those responsible must support them
+# in any way required (update on demand, fix bugs, etc).
+
+# CSADMIN-26541. responsible: maxk@, g:marketsre
+ALLOW market/sre/tools/config-primer/src/internal/blogic -> contrib/go/patched/hugo
+
+DENY .* -> contrib/go/patched/
