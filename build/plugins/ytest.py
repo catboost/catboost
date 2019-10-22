@@ -657,7 +657,8 @@ def onjava_test(unit, *args):
     path = strip_roots(unit.path())
 
     test_data = get_values_list(unit, 'TEST_DATA_VALUE')
-    test_data.append('arcadia/build/scripts')
+    test_data.append('arcadia/build/scripts/unpacking_jtest_runner.py')
+    test_data.append('arcadia/build/scripts/run_testng.py')
 
     props = extract_java_system_properties(unit, get_values_list(unit, 'SYSTEM_PROPERTIES_VALUE'))
     for prop in props:
