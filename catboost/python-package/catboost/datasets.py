@@ -151,9 +151,16 @@ def amazon():
 
 
 def msrank():
+    url = 'https://storage.mds.yandex.net/get-devtools-opensource/233854/msrank.tar.gz'
+    md5 = '34fee225d02419adc106581f4eb36f2e'
+    dataset_name, train_file, test_file = 'msrank', 'train.tsv', 'test.tsv'
+    return _load_dataset_pd(url, md5, dataset_name, train_file, test_file, header=None, sep='\t', cache=True)
+
+
+def msrank_10k():
     url = 'https://storage.mds.yandex.net/get-devtools-opensource/250854/msrank_10k.tar.gz'
     md5 = '79c5b67397289c4c8b367c1f34629eae'
-    dataset_name, train_file, test_file = 'msrank', 'train.csv', 'test.csv'
+    dataset_name, train_file, test_file = 'msrank_10k', 'train.csv', 'test.csv'
     return _load_dataset_pd(url, md5, dataset_name, train_file, test_file, header=None)
 
 
