@@ -504,6 +504,7 @@
   - ioLib.h
   - iosLib.h
   - resolvLib.h
+  - rtpLib.h
   - pipeDrv.h
   - selectLib.h
   #endif
@@ -546,6 +547,7 @@
   - perliol.h
   #endif
   #if defined(__NetBSD__)
+  - lwp.h
   - perfuse.h
   #endif
   #if V8_OS_QNX
@@ -553,6 +555,7 @@
   #endif
   #if V8_OS_AIX
   - sys/systemcfg.h
+  - sys/thread.h
   #endif
   - mbarrier.h
   - iostream.h
