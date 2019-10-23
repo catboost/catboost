@@ -73,10 +73,11 @@ namespace NCB {
                 }
             case EConvertTargetPolicy::UseClassNames: {
                 trainingTarget.yresize(rawTarget.size());
-                localExecutor->ExecRangeWithThrow(
+                localExecutor->ExecRangeBlockedWithThrow(
                     [&] (int idx) { trainingTarget[idx] = targetConverter.ConvertLabel(rawTarget[idx]); },
                     0,
                     SafeIntegerCast<int>(rawTarget.size()),
+                    0,
                     NPar::TLocalExecutor::WAIT_COMPLETE
                 );
                 break;
@@ -167,7 +168,7 @@ namespace NCB {
 
         TConstArrayRef<float> targetClassesArray = *targetClasses; // optimization
 
-        localExecutor->ExecRangeWithThrow(
+        localExecutor->ExecRangeBlockedWithThrow(
             [&] (int i) {
                 // TODO(annaveronika): check class weight not negative.
                 CB_ENSURE(
@@ -179,6 +180,7 @@ namespace NCB {
             },
             0,
             (int)rawWeights.GetSize(),
+            0,
             NPar::TLocalExecutor::WAIT_COMPLETE
         );
 
@@ -205,12 +207,13 @@ namespace NCB {
         TVector<float> groupAdjustedWeights;
         groupAdjustedWeights.yresize(rawWeights.GetSize());
 
-        localExecutor->ExecRangeWithThrow(
+        localExecutor->ExecRangeBlockedWithThrow(
             [&] (int i) {
                 groupAdjustedWeights[i] = rawWeights[i]*rawGroupWeights[i];
             },
             0,
             (int)rawWeights.GetSize(),
+            0,
             NPar::TLocalExecutor::WAIT_COMPLETE
         );
 
