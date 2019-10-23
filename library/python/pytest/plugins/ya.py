@@ -62,7 +62,7 @@ if COVERAGE_ENV_NAME in os.environ:
 
 
 def to_str(s):
-    if isinstance(s, six.text_type):
+    if six.PY2 and isinstance(s, six.text_type):
         return s.encode('utf8')
     return s
 
@@ -711,7 +711,7 @@ class DeselectedTestItem(CustomTestItem):
 class TraceReportGenerator(object):
 
     def __init__(self, out_file_path):
-        self.File = open(out_file_path, 'wb')
+        self.File = open(out_file_path, 'w')
 
     def on_start_test_class(self, test_item):
         pytest.config.ya.set_test_item_node_id(test_item.nodeid)
@@ -774,7 +774,7 @@ class TraceReportGenerator(object):
             'name': name
         }
         data = to_str(json.dumps(event, ensure_ascii=False))
-        self.File.write(data + b'\n')
+        self.File.write(data + '\n')
         self.File.flush()
 
 
