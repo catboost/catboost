@@ -22,7 +22,7 @@ performance_test:
     - git clone https://github.com/catboost/benchmarks.git
     
   script:
-    - cd benchmarks/benchmarks/training_speed
+    - cd benchmarks/training_speed
     - python benchmark.py --iterations 1000
   #artifacts:
     #path:
