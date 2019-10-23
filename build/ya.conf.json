@@ -1475,7 +1475,7 @@
         "golang_1_12_10": {
             "tools": {
                 "golang_1.12.10": {"bottle": "golang_1.12.10",  "executable": "golang_1.12.10"},
-                "goi_1.12.10": {"bottle": "golang_1.12.10",  "executable": "go_1.12.10"},
+                "go_1.12.10": {"bottle": "golang_1.12.10",  "executable": "go_1.12.10"},
                 "gofmt_1.12.10": {"bottle": "golang_1.12.10",  "executable": "gofmt_1.12.10"}
             },
             "platforms": [
