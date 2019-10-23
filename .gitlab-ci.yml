@@ -1,7 +1,5 @@
 build:
   stage: build
-#  before_script:
-#    - apt update && apt -y install make autoconf
   script:
     - cd catboost/python-package/catboost 
     - ../../../ya make -r -DDEBUGINFO -DOS_SDK=local -DUSE_ARCADIA_PYTHON=no -DUSE_SYSTEM_PYTHON=2.7 -DHAVE_CUDA=no
@@ -10,13 +8,24 @@ build:
   artifacts:
     paths:
       - catboost/python-package/catboost-*.whl
-      # depending on your build setup it's most likely a good idea to cache outputs to reduce the build time
-      # cache:
-      #   paths:
-      #     - "*.o"
 
-# run tests using the binary built before
-#test:
-#  stage: test
-#  script:
-#    - ./runmytests.sh
+performance_test:
+  stage: test
+  tags:
+    - performance
+  before_script:
+    - pip install catboost/python-package/catboost-*.whl --user
+    - pip install xgboost matplotlib tqdm scipy lightgbm pandas numpy scikit_learn --user
+    - rm -rf benchmarks
+    - mkdir benchmarks
+    - cd benchmarks 
+    - git clone https://github.com/catboost/benchmarks.git
+    
+  script:
+    - cd benchmarks/benchmarks/training_speed
+    - python benchmark.py --iterations 1000
+  #artifacts:
+    #path:
+      #- 
+  dependencies:
+    - build
