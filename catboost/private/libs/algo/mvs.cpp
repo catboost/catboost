@@ -19,16 +19,22 @@ inline static double GetSingleProbability(double derivativeAbsoluteValue, double
 }
 
 static double CalculateLastIterMeanLeafValue(const TVector<TVector<TVector<double>>>& leafValues) {
-    const ui32 lastIter = leafValues.ysize();
-    const TVector<double>& lastIterValues = leafValues[lastIter - 1][0]; // one dimensional approx
-    double sumOfAbsoluteValues = 0.0;
-    for (double value : lastIterValues) {
-        sumOfAbsoluteValues += Abs(value);
+    const auto approxDimension = leafValues.back().size();
+    const auto numLeaves = leafValues.back()[0].size();
+    double sumOverLeaves = 0;
+    const auto& lastIterValues = leafValues.back();
+    for (auto leaf : xrange(numLeaves)) {
+        double w2 = 0;
+        for (auto dim : xrange(approxDimension)) {
+            const double leafValue = lastIterValues[dim][leaf];
+            w2 += leafValue * leafValue;
+        }
+        sumOverLeaves += sqrt(w2);
     }
-    return sumOfAbsoluteValues / lastIterValues.ysize();
+    return sumOverLeaves / numLeaves;
 }
 
-static double CalculateMeanGradValue(TConstArrayRef<double> derivatives, ui32 cnt, NPar::TLocalExecutor* localExecutor) {
+static double CalculateMeanGradValue(const TVector<TConstArrayRef<double>>& derivatives, ui32 cnt, NPar::TLocalExecutor* localExecutor) {
         NPar::TLocalExecutor::TExecRangeParams blockParams(0, cnt);
         blockParams.SetBlockCount(CB_THREAD_LIMIT);
         TVector<double> gradSumInBlock(blockParams.GetBlockCount(), 0.0);
@@ -40,10 +46,13 @@ static double CalculateMeanGradValue(TConstArrayRef<double> derivatives, ui32 cn
                     cnt - blockOffset
                 );
                 const ui32 blockFinish = blockOffset + blockSize;
-                const auto derivativesBlockBegin = derivatives.begin() + blockOffset;
-                const auto derivativesBlockEnd = derivatives.begin() + blockFinish;
-                for (auto it = derivativesBlockBegin; it != derivativesBlockEnd; ++it) {
-                    gradSumInBlock[blockId] += Abs(*it);
+                for (auto idx = blockOffset; idx < blockFinish; ++idx) {
+                    double grad2 = 0;
+                    for (auto dim : xrange(derivatives.size())) {
+                        const double der = derivatives[dim][idx];
+                        grad2 += der * der;
+                    }
+                    gradSumInBlock[blockId] += sqrt(grad2);
                 }
             },
             0,
@@ -56,7 +65,7 @@ static double CalculateMeanGradValue(TConstArrayRef<double> derivatives, ui32 cn
 }
 
 double TMvsSampler::GetLambda(
-    TConstArrayRef<double> derivatives,
+    const TVector<TConstArrayRef<double>>& derivatives,
     const TVector<TVector<TVector<double>>>& leafValues,
     NPar::TLocalExecutor* localExecutor) const {
 
@@ -118,37 +127,44 @@ void TMvsSampler::GenSampleWeights(
     if (SampleRate == 1.0f) {
         Fill(fold->SampleWeights.begin(), fold->SampleWeights.end(), 1.0f);
     } else {
-        CB_ENSURE_INTERNAL(
-            fold->BodyTailArr[0].WeightedDerivatives.size() == 1,
-            "MVS bootstrap mode is not implemented for multi-dimensional approxes"
-        );
-        TVector<double> tailDerivatives;
-        TConstArrayRef<double> derivatives = fold->BodyTailArr[0].WeightedDerivatives[0];
+        const auto approxDimension = fold->GetApproxDimension();
+        TVector<TVector<double>> tailDerivatives;
+        TVector<TConstArrayRef<double>> derivatives(approxDimension);
+        for (auto dim : xrange(approxDimension)) {
+            derivatives[dim] = fold->BodyTailArr[0].WeightedDerivatives[dim];
+        }
         if (boostingType == EBoostingType::Ordered) {
-            tailDerivatives.yresize(SampleCount);
+            tailDerivatives.resize(approxDimension);
+            for (auto dim : xrange(approxDimension)) {
+                tailDerivatives[dim].yresize(SampleCount);
+            }
             localExecutor->ExecRange(
                 [&](ui32 bodyTailId) {
                     const TFold::TBodyTail& bt = fold->BodyTailArr[bodyTailId];
-                    TConstArrayRef<double> bodyTailDerivatives = bt.WeightedDerivatives[0];
-                    if (bodyTailId == 0) {
-                        Copy(
-                            bodyTailDerivatives.begin(),
-                            bodyTailDerivatives.begin() + bt.TailFinish,
-                            tailDerivatives.begin()
-                        );
-                    } else {
-                        Copy(
-                            bodyTailDerivatives.begin() + bt.BodyFinish,
-                            bodyTailDerivatives.begin() + bt.TailFinish,
-                            tailDerivatives.begin() + bt.BodyFinish
-                        );
+                    for (auto dim : xrange(approxDimension)) {
+                        TConstArrayRef<double> bodyTailDerivatives = bt.WeightedDerivatives[dim];
+                        if (bodyTailId == 0) {
+                            Copy(
+                                bodyTailDerivatives.begin(),
+                                bodyTailDerivatives.begin() + bt.TailFinish,
+                                tailDerivatives[dim].begin()
+                            );
+                        } else {
+                            Copy(
+                                bodyTailDerivatives.begin() + bt.BodyFinish,
+                                bodyTailDerivatives.begin() + bt.TailFinish,
+                                tailDerivatives[dim].begin() + bt.BodyFinish
+                            );
+                        }
                     }
                 },
                 0,
                 fold->BodyTailArr.size(),
                 NPar::TLocalExecutor::WAIT_COMPLETE
             );
-            derivatives = tailDerivatives;
+            for (auto dim : xrange(approxDimension)) {
+                derivatives[dim] = tailDerivatives[dim];
+            }
         }
 
         double lambda = GetLambda(derivatives, leafValues, localExecutor);
@@ -167,14 +183,17 @@ void TMvsSampler::GenSampleWeights(
                 );
                 const ui32 blockFinish = blockOffset + blockSize;
 
-                TVector<double> thresholdCandidates(blockSize);
-                Transform(
-                    derivatives.begin() + blockOffset,
-                    derivatives.begin() + blockFinish,
-                    thresholdCandidates.begin(),
-                    [lambda](double grad) {
-                        return sqrt(grad * grad + lambda);
-                    });
+                TVector<double> thresholdCandidates(blockSize, lambda);
+                for (auto dim : xrange(approxDimension)) {
+                    TConstArrayRef<double> derivativesRef(derivatives[dim].begin() + blockOffset, blockSize);
+                    for (auto idx : xrange(blockSize)) {
+                        const double der = derivativesRef[idx];
+                        thresholdCandidates[idx] += der * der;
+                    }
+                }
+                for (auto& value : thresholdCandidates) {
+                    value = sqrt(value);
+                }
                 double threshold = CalculateThreshold(
                     thresholdCandidates.begin(),
                     thresholdCandidates.end(),
@@ -182,8 +201,12 @@ void TMvsSampler::GenSampleWeights(
                     0,
                     SampleRate * blockSize);
                 for (ui32 i = blockOffset; i < blockFinish; ++i) {
-                    const double grad = derivatives[i];
-                    const double probability = GetSingleProbability(sqrt(grad * grad + lambda), threshold);
+                    double grad2 = 0;
+                    for (auto dim : xrange(approxDimension)) {
+                        const double der = derivatives[dim][i];
+                        grad2 += der * der;
+                    }
+                    const double probability = GetSingleProbability(sqrt(grad2 + lambda), threshold);
                     if (probability > std::numeric_limits<double>::epsilon()) {
                         const double weight = 1 / probability;
                         double r = prng.GenRandReal1();

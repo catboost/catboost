@@ -32,7 +32,7 @@ public:
 
 private:
     double GetLambda(
-        TConstArrayRef<double> derivatives,
+        const TVector<TConstArrayRef<double>>& derivatives,
         const TVector<TVector<TVector<double>>>& leafValues,
         NPar::TLocalExecutor* localExecutor) const;
     double CalculateThreshold(

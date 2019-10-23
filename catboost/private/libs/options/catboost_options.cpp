@@ -600,16 +600,12 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
     if (leavesEstimation == ELeavesEstimation::Newton) {
         EnsureNewtonIsAvailable(GetTaskType(), LossFunctionDescription);
     }
-
-    const auto bootstrapType = ObliviousTreeOptions->BootstrapConfig->GetBootstrapType();
-    const bool isMvsMultiClass = IsMultiClassOnlyMetric(lossFunction) && bootstrapType == EBootstrapType::MVS;
-    CB_ENSURE(!isMvsMultiClass, "MVS sampling isn't supported for multiclass.");
 }
 
 void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
     const auto lossFunction = LossFunctionDescription->GetLossFunction();
 
-    // TODO(nikitxskv): Support MVS for MultiClass and for GPU.
+    // TODO(nikitxskv): Support MVS for GPU.
     auto& boostingType = BoostingOptions->BoostingType;
     TOption<EBootstrapType>& bootstrapType = ObliviousTreeOptions->BootstrapConfig->GetBootstrapType();
     TOption<float>& subsample = ObliviousTreeOptions->BootstrapConfig->GetTakenFraction();
