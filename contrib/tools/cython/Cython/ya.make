@@ -12,6 +12,7 @@ PY_SRCS(
 
 PEERDIR(
     contrib/python/six
+    library/python/resource
 )
 
 END()
