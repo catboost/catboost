@@ -49,7 +49,7 @@ int mode_fit(int argc, const char* argv[]) {
     ConvertIgnoredFeaturesFromStringToIndices(poolLoadParams, &catBoostFlatJsonOptions);
     NCatboostOptions::PlainJsonToOptions(catBoostFlatJsonOptions, &catBoostJsonOptions, &outputOptionsJson);
     ConvertMonotoneConstraintsToCanonicalFormat(&catBoostJsonOptions);
-    ConvertFeatureNamesToIndicesInMonotoneConstraints(poolLoadParams, &catBoostJsonOptions);
+    ConvertMonotoneConstraintsFromStringToIndices(poolLoadParams, &catBoostJsonOptions);
     CopyIgnoredFeaturesToPoolParams(catBoostJsonOptions, &poolLoadParams);
     NCatboostOptions::TOutputFilesOptions outputOptions;
     outputOptions.Load(outputOptionsJson);
