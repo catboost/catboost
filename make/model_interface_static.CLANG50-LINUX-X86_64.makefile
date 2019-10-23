@@ -3816,7 +3816,6 @@ $(BUILD_ROOT)/catboost/private/libs/options/catboost_options.cpp.pic.o\
 
 $(BUILD_ROOT)/catboost/private/libs/options/check_train_options.cpp.pic.o\
         ::\
-        $(BUILD_ROOT)/catboost/libs/helpers/flatbuffers/guid.fbs.h\
         $(SOURCE_ROOT)/catboost/private/libs/options/check_train_options.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/private/libs/options'
@@ -3924,7 +3923,6 @@ $(BUILD_ROOT)/catboost/private/libs/options/model_based_eval_options.cpp.pic.o\
 
 $(BUILD_ROOT)/catboost/private/libs/options/monotone_constraints.cpp.pic.o\
         ::\
-        $(BUILD_ROOT)/catboost/libs/helpers/flatbuffers/guid.fbs.h\
         $(SOURCE_ROOT)/catboost/private/libs/options/monotone_constraints.cpp\
 
 	mkdir -p '$(BUILD_ROOT)/catboost/private/libs/options'
