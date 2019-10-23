@@ -2,7 +2,8 @@ import sys
 import os
 import errno
 from os import listdir
-from os.path import isfile, join
+from os.path import dirname, relpath, join
+
 
 def ensure_dir_exists(path):
     try:
@@ -13,13 +14,24 @@ def ensure_dir_exists(path):
         else:
             raise
 
+
 def make_dir(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
 
+
+def files(directory):
+    for dirpath, dirnames, filenames in os.walk(directory):
+        for name in filenames:
+            yield relpath(join(dirpath, name), directory)
+
+
 def headers_set(directory):
-    ensure_dir_exists(join('.', directory))    
-    return set([f for f in listdir(directory) if isfile(join('.', directory, f)) and f.endswith('.h')])
+    return {
+        f for f in files(directory)
+        if f.endswith('.h') and not f.startswith('internal/')
+    }
+
 
 if __name__ == "__main__":
 
@@ -29,14 +41,15 @@ if __name__ == "__main__":
 
     ensure_dir_exists(join('.', python2_path))
     ensure_dir_exists(join('.', python3_path))
-    make_dir(output_path)
 
     only_headers2 = headers_set(python2_path)
     only_headers3 = headers_set(python3_path)
     all_headers = only_headers2 | only_headers3
 
     for header in all_headers:
-        f = open(join(output_path, header), 'w')
+        path = join(output_path, header)
+        make_dir(dirname(path))
+        f = open(path, 'w')
         f.write('#pragma once\n\n')
         f.write('#ifdef USE_PYTHON3\n')
         if (header in only_headers3):
@@ -49,5 +62,3 @@ if __name__ == "__main__":
         else:
             f.write('#error "No <' + header + '> in Python2"\n')
         f.write('#endif\n')
-
-    
