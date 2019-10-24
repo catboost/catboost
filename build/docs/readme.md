@@ -1737,7 +1737,7 @@ Appends appendvalue to varname's value using space as a separator.
 New value is propagated to dependants
 
 ###### Macro [SIZE][](SMALL/MEDIUM/LARGE) <a name="macro_SIZE"></a>
-Set the 'size' for the test. Each 'size' has own set of resrtictions, SMALL bein the most restricted and LARGE being the list.
+Set the 'size' for the test. Each 'size' has own set of restrictions, SMALL being the most restricted and LARGE being the least.
 See documentation on test system for more details.
 
 Documentation about the system test: https://wiki.yandex-team.ru/yatool/test/
