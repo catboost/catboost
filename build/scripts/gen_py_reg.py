@@ -1,13 +1,13 @@
 import sys
 
 template = '''
-extern "C" void RegisterPythonModule(const char* name, void (*fn)(void));
+extern "C" void PyImport_AppendInittab(const char* name, void (*fn)(void));
 extern "C" void {1}();
 
 namespace {
     struct TRegistrar {
         inline TRegistrar() {
-            RegisterPythonModule("{0}", {1});
+            PyImport_AppendInittab("{0}", {1});
         }
     } REG;
 }
