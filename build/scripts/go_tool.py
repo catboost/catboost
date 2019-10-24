@@ -211,7 +211,7 @@ def do_vet(args):
 
 def _do_compile_go(args):
     import_path, is_std_module = args.import_path, args.is_std
-    cmd = [args.go_compile, '-o', args.output, '-trimpath', args.build_root, '-p', import_path, '-D', '""']
+    cmd = [args.go_compile, '-o', args.output, '-trimpath', args.arc_source_root, '-p', import_path, '-D', '""']
     cmd += ['-goversion', 'go' + args.goversion]
     if is_std_module:
         cmd.append('-std')
@@ -277,7 +277,7 @@ def do_compile_go(args):
 
 def do_compile_asm(args):
     assert(len(args.srcs) == 1 and len(args.asm_srcs) == 1)
-    cmd = [args.go_asm, '-trimpath', args.build_root]
+    cmd = [args.go_asm, '-trimpath', args.arc_source_root]
     cmd += ['-I', args.output_root, '-I', os.path.join(args.pkg_root, 'include')]
     cmd += ['-D', 'GOOS_' + args.targ_os, '-D', 'GOARCH_' + args.targ_arch, '-o', args.output]
     if args.asm_flags:
