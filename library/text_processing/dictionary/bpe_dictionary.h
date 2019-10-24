@@ -13,7 +13,7 @@ namespace NTextProcessing::NDictionary {
     class TBpeDictionaryBuilder;
     class TMMapBpeDictionary;
 
-    class TBpeDictionary final : public IDictionary {
+    class TBpeDictionary final : public IDictionary, public TMoveOnly {
     public:
         TBpeDictionary() = default;
 
@@ -87,7 +87,7 @@ namespace NTextProcessing::NDictionary {
         THashMap<std::pair<TTokenId, TTokenId>, TTokenId> SourceTokenIdsToTokenId;
     };
 
-    class TMMapBpeDictionary final : public IDictionary {
+    class TMMapBpeDictionary final : public IDictionary, public TMoveOnly {
     public:
         TMMapBpeDictionary() = default;
         explicit TMMapBpeDictionary(TIntrusivePtr<TBpeDictionary> bpeDictionary);

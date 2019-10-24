@@ -12,7 +12,7 @@
 namespace NTextProcessing::NDictionary {
     using TPairStats = THeapDict<TPair, TPairStat>;
 
-    class TBpeDictionaryBuilder {
+    class TBpeDictionaryBuilder: public TMoveOnly {
     public:
         TBpeDictionaryBuilder(ui32 numUnits, bool skipUnknown, TIntrusivePtr<TDictionary> alphabet)
             : NumUnits(numUnits)
