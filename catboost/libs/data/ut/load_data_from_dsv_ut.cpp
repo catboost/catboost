@@ -30,6 +30,49 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
         {
             TReadDatasetTestCase simpleTestCase;
             TSrcData srcData;
+            srcData.CdFileData = AsStringBuf(
+                "0\tTarget\n"
+                "1\tTarget\n"
+            );
+            srcData.DatasetFileData = AsStringBuf(
+                "Target0\tTarget1\tFeat\n"
+                "0\t0.1\t0.2\n"
+                "1\t0.97\t0.82\n"
+                "0\t0.13\t0.22\n"
+            );
+            srcData.DsvFileHasHeader = true;
+            simpleTestCase.SrcData = std::move(srcData);
+
+
+            TExpectedRawData expectedData;
+
+            TDataColumnsMetaInfo dataColumnsMetaInfo;
+            dataColumnsMetaInfo.Columns = {
+                {EColumn::Label, ""},
+                {EColumn::Label, ""},
+                {EColumn::Num, ""}
+            };
+
+            TVector<TString> featureId = {"Feat"};
+
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.Objects.FloatFeatures = {
+                TVector<float>{0.2f, 0.82f, 0.22f},
+            };
+
+            expectedData.ObjectsGrouping = TObjectsGrouping(3);
+            expectedData.Target.Target = TVector<TVector<TString>>{{"0", "1", "0"}, {"0.1", "0.97", "0.13"}};
+            expectedData.Target.Weights = TWeights<float>(3);
+            expectedData.Target.GroupWeights = TWeights<float>(3);
+
+            simpleTestCase.ExpectedData = std::move(expectedData);
+
+            testCases.push_back(std::move(simpleTestCase));
+        }
+
+        {
+            TReadDatasetTestCase simpleTestCase;
+            TSrcData srcData;
             srcData.CdFileData = AsStringBuf("0\tTarget");
             srcData.DatasetFileData = AsStringBuf(
                 "Target\tFeat0\tFeat1\n"
@@ -59,7 +102,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(3);
-            expectedData.Target.Target = TVector<TString>{"0", "1", "0"};
+            expectedData.Target.Target = TVector<TVector<TString>>{{"0", "1", "0"}};
             expectedData.Target.Weights = TWeights<float>(3);
             expectedData.Target.GroupWeights = TWeights<float>(3);
 
@@ -137,7 +180,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             expectedData.ObjectsGrouping = TObjectsGrouping(
                 TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
             );
-            expectedData.Target.Target = TVector<TString>{"0.12", "0.22", "0.34", "0.42", "0.01", "0.0"};
+            expectedData.Target.Target = TVector<TVector<TString>>{{"0.12", "0.22", "0.34", "0.42", "0.01", "0.0"}};
             expectedData.Target.Weights = TWeights<float>(
                 TVector<float>{0.12f, 0.18f, 1.0f, 0.45f, 1.0f, 2.0f}
             );
@@ -288,7 +331,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             expectedData.ObjectsGrouping = TObjectsGrouping(
                 TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
             );
-            expectedData.Target.Target = TVector<TString>{"0.12", "0.22", "0.34", "0.42", "0.01", "0.0"};
+            expectedData.Target.Target = TVector<TVector<TString>>{{"0.12", "0.22", "0.34", "0.42", "0.01", "0.0"}};
             expectedData.Target.Weights = TWeights<float>(6);
             expectedData.Target.GroupWeights = TWeights<float>(6);
 
@@ -363,7 +406,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             expectedData.ObjectsGrouping = TObjectsGrouping(
                 TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
             );
-            expectedData.Target.Target = TVector<TString>{"0.12", "0.22", "0.34", "0.42", "0.01", "0.0"};
+            expectedData.Target.Target = TVector<TVector<TString>>{{"0.12", "0.22", "0.34", "0.42", "0.01", "0.0"}};
             expectedData.Target.Weights = TWeights<float>(6);
             expectedData.Target.GroupWeights = TWeights<float>(TVector<float>{1.0f, 1.0f, 0.0f, 0.5f, 0.5f, 0.5f});
 
@@ -438,7 +481,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             expectedData.ObjectsGrouping = TObjectsGrouping(
                 TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
             );
-            expectedData.Target.Target = TVector<TString>{"0.12", "0.22", "0.34", "0.42", "0.01", "0.0"};
+            expectedData.Target.Target = TVector<TVector<TString>>{{"0.12", "0.22", "0.34", "0.42", "0.01", "0.0"}};
             expectedData.Target.Weights = TWeights<float>(6);
             expectedData.Target.GroupWeights = TWeights<float>(6);
 
@@ -493,7 +536,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(3);
-            expectedData.Target.Target = TVector<TString>{"0", "1", "0"};
+            expectedData.Target.Target = TVector<TVector<TString>>{{"0", "1", "0"}};
             expectedData.Target.Weights = TWeights<float>(3);
             expectedData.Target.GroupWeights = TWeights<float>(3);
 
@@ -540,7 +583,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(3);
-            expectedData.Target.Target = TVector<TString>{"0", "1", "0"};
+            expectedData.Target.Target = TVector<TVector<TString>>{{"0", "1", "0"}};
             expectedData.Target.Weights = TWeights<float>(3);
             expectedData.Target.GroupWeights = TWeights<float>(3);
 
@@ -587,7 +630,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(3);
-            expectedData.Target.Target = TVector<TString>{"0", "1", "0"};
+            expectedData.Target.Target = TVector<TVector<TString>>{{"0", "1", "0"}};
             expectedData.Target.Weights = TWeights<float>(3);
             expectedData.Target.GroupWeights = TWeights<float>(3);
 
@@ -659,7 +702,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             expectedData.ObjectsGrouping = TObjectsGrouping(9);
             expectedData.Target.Target =
-                TVector<TString>{"0.12", "0.22", "0.341", "None", "0.01", "0.0", "N/A", "0.11", "-"};
+                TVector<TVector<TString>>{{"0.12", "0.22", "0.341", "None", "0.01", "0.0", "N/A", "0.11", "-"}};
             expectedData.Target.Weights = TWeights<float>(9);
             expectedData.Target.GroupWeights = TWeights<float>(9);
 
@@ -718,7 +761,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             expectedData.ObjectsGrouping = TObjectsGrouping(2);
             expectedData.Target.Target =
-                TVector<TString>{"0", "0"};
+                TVector<TVector<TString>>{{"0", "0"}};
             expectedData.Target.Weights = TWeights<float>(2);
             expectedData.Target.GroupWeights = TWeights<float>(2);
 
@@ -778,7 +821,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             expectedData.ObjectsGrouping = TObjectsGrouping(2);
             expectedData.Target.Target =
-                TVector<TString>{"0", "0"};
+                TVector<TVector<TString>>{{"0", "0"}};
             expectedData.Target.Weights = TWeights<float>(2);
             expectedData.Target.GroupWeights = TWeights<float>(2);
 
@@ -834,7 +877,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             expectedData.ObjectsGrouping = TObjectsGrouping(7);
             expectedData.Target.Target =
-                TVector<TString>{"0.12", "0.22", "0.34", "0.23", "0.99", "0.01", "0.02"};
+                TVector<TVector<TString>>{{"0.12", "0.22", "0.34", "0.23", "0.99", "0.01", "0.02"}};
             expectedData.Target.Weights = TWeights<float>(7);
             expectedData.Target.GroupWeights = TWeights<float>(7);
 
@@ -903,7 +946,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             expectedData.ObjectsGrouping = TObjectsGrouping(7);
             expectedData.Target.Target =
-                TVector<TString>{"0.12", "0.22", "0.34", "0.23", "0.99", "0.01", "0.02"};
+                TVector<TVector<TString>>{{"0.12", "0.22", "0.34", "0.23", "0.99", "0.01", "0.02"}};
             expectedData.Target.Weights = TWeights<float>(7);
             expectedData.Target.GroupWeights = TWeights<float>(7);
 

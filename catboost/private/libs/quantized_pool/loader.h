@@ -21,6 +21,7 @@ namespace NCB {
         void AddChunk(
             const TQuantizedPool::TChunkDescription& chunk,
             EColumn columnType,
+            const size_t* const multiTargetIdx,
             const size_t* flatFeatureIdx,
             const size_t* baselineIdx,
             IQuantizedFeaturesDataVisitor* visitor) const;

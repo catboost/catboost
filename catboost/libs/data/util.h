@@ -70,4 +70,26 @@ namespace NCB {
         }
     }
 
+    template <class T>
+    void PrepareForInitialization(
+        TMaybe<ui64> dataCount,
+        size_t size,
+        size_t prevTailSize,
+        TMaybeData<TVector<TVector<T>>>* data
+    ) {
+        auto& dataRef = *data;
+        if (dataCount) {
+            if (!dataRef) {
+                Y_VERIFY(prevTailSize == 0);
+                dataRef = TVector<TVector<T>>();
+            }
+
+            dataRef->resize(*dataCount);
+            for (auto& subData : *dataRef) {
+                PrepareForInitialization(size, prevTailSize, &subData);
+            }
+        } else {
+            dataRef = Nothing();
+        }
+    }
 }

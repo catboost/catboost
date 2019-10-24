@@ -429,6 +429,31 @@ def test_load_df_vs_load_from_file(dataset):
     assert _check_data([float(label) for label in pool1.get_label()], pool2.get_label())
 
 
+def test_load_df_vs_load_from_file_multitarget():
+    train_file = data_file('multiregression', 'train')
+    cd_file = data_file('multiregression', 'train.cd')
+    target_idx = [0, 1]
+
+    pool1 = Pool(train_file, column_description=cd_file)
+    data = read_csv(train_file, header=None, delimiter='\t')
+
+    labels = data.iloc[:, target_idx]
+
+    data.drop(
+        target_idx,
+        axis=1,
+        inplace=True
+    )
+
+    cat_features = pool1.get_cat_feature_indices()
+
+    pool1.set_feature_names(list(data.columns))
+
+    pool2 = Pool(data, labels, cat_features, group_id=None)
+    assert _have_equal_features(pool1, pool2)
+    assert _check_data([[float(label) for label in sublabel] for sublabel in pool1.get_label()], pool2.get_label())
+
+
 def test_load_series():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     data = read_csv(TRAIN_FILE, header=None, delimiter='\t')

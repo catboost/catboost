@@ -59,7 +59,7 @@ namespace NCatboostCuda {
             outputOptions,
             internalOptions.ForceCalcEvalMetricOnEveryIteration,
             test != nullptr,
-            /*testHasTarget*/ (test != nullptr) && test->MetaInfo.HasTarget,
+            /*testHasTarget*/ (test != nullptr) && test->MetaInfo.TargetCount > 0,
             approxDimension,
             hasWeights,
             learnAndTestCheckSum,

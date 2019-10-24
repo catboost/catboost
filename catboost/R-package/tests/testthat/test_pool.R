@@ -27,6 +27,51 @@ load_data_frame <- function(pool_path, column_description_path) {
   return(pool)
 }
 
+almost_equal <- function(tensor_a, tensor_b, tol=1e-5) {
+    a_nan_mask = is.nan(tensor_a)
+    b_nan_mask = is.nan(tensor_b)
+    if (!identical(a_nan_mask, b_nan_mask)) {
+        return(FALSE)
+    }
+    return(max(abs(tensor_a[!a_nan_mask] - tensor_b[!b_nan_mask])) < tol)
+}
+
+test_that("pool: load_pool from file multitarget", {
+  train_path <- system.file("extdata", "multitarget.train", package = "catboost")
+  cd_path <- system.file("extdata", "multitarget.cd", package = "catboost")
+
+  first_pool <- catboost.load_pool(train_path, column_description = cd_path)
+
+  data <- read.table(train_path, head = FALSE, sep = "\t", colClasses = rep("numeric", 5), na.strings = "NAN")
+  target_idx <- c(1, 2)
+
+  second_pool <- catboost.load_pool(data = data[, -target_idx], label = as.matrix(data[, target_idx]))
+
+  expect_true(almost_equal(head(first_pool, nrow(first_pool)), head(second_pool, nrow(second_pool))))
+})
+
+test_that("pool: load_pool from matrix multitarget", {
+  target <- as.matrix(
+    data.frame(      
+      sample(c(1, -1), size = 1000, replace = TRUE),
+      sample(c(1, -1), size = 1000, replace = TRUE)
+    )
+  )
+  f1 <- target[, 1] + rnorm(nrow(target), mean = 0, sd = 1)
+  f2 <- target[, 2] + rbinom(nrow(target), 5, prob = 0.5)
+
+  features <- data.frame(f1 = f1, f2 = f2)
+
+  split <- sample(nrow(features), size = floor(0.75 * nrow(features)))
+
+  pool_train <- catboost.load_pool(as.matrix(features[split, ]), target[split,])
+  pool_test <- catboost.load_pool(as.matrix(features[-split, ]), target[-split,])
+
+  expect_equal(ncol(pool_train), ncol(features))
+  expect_equal(nrow(pool_train), length(split))
+  expect_equal(nrow(pool_test), nrow(target) - length(split))
+})
+
 test_that("pool: load_pool from matrix", {
   target <- sample(c(1, -1), size = 1000, replace = TRUE)
 

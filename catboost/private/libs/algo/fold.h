@@ -151,7 +151,7 @@ public:
 
 private:
     void AssignTarget(
-        NCB::TMaybeData<TConstArrayRef<float>> target,
+        NCB::TMaybeData<TConstArrayRef<TConstArrayRef<float>>> target,
         const TVector<TTargetClassifier>& targetClassifiers
     );
 
@@ -178,7 +178,7 @@ public:
     ui32 FeaturesSubsetBegin;
 
     TVector<TBodyTail> BodyTailArr;
-    TVector<float> LearnTarget;
+    TVector<TVector<float>> LearnTarget;
     TVector<float> SampleWeights; // Resulting bootstrapped weights of documents.
     TVector<TVector<int>> LearnTargetClass;
     TVector<int> TargetClassesCount;

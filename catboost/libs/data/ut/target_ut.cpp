@@ -21,6 +21,10 @@ using namespace NCB::NDataNewUT;
 
 
 Y_UNIT_TEST_SUITE(TRawTargetData) {
+    bool Equal(TConstArrayRef<TVector<TString>>& matrixA, TConstArrayRef<TVector<TString>>& matrixB) {
+        return matrixA == matrixB;
+    }
+
     // rawTargetData passed by value intentionally to be moved into created provider
     TRawTargetDataProvider CreateProviderSimple(
         ui32 objectCount,
@@ -68,7 +72,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
             for (const auto& target : goodTargets) {
                 TRawTargetData rawTargetData;
-                rawTargetData.Target = target;
+                rawTargetData.Target = {target};
                 rawTargetData.SetTrivialWeights(target.size());
 
                 auto rawTargetDataProvider = CreateProviderSimple(target.size(), rawTargetData);
@@ -83,11 +87,49 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
             for (const auto& target : badTargets) {
                 TRawTargetData rawTargetData;
-                rawTargetData.Target = target;
+                rawTargetData.Target = {target};
                 rawTargetData.SetTrivialWeights(target.size());
 
                 UNIT_ASSERT_EXCEPTION(
                     CreateProviderSimple(target.size(), rawTargetData),
+                    TCatBoostException
+                );
+            }
+        }
+    }
+
+    Y_UNIT_TEST(MultiTarget) {
+        {
+            TVector<TVector<TVector<TString>>> goodMultiTargets;
+            goodMultiTargets.push_back({{}});
+            goodMultiTargets.push_back({{"0", "1", "0", "1"}, {"1", "0", "1", "0"}});
+            goodMultiTargets.push_back({{"0.0", "1.0", "3.8"}, {"2.0", "0.5", "1.3"}});
+            goodMultiTargets.push_back({{"male", "male", "male", "female"}, {"male", "female", "female", "male"}});
+
+            for (const auto& target : goodMultiTargets) {
+                const auto docCount = target.empty() ? 0 : target[0].size();
+                TRawTargetData rawTargetData;
+                rawTargetData.Target = target;
+                rawTargetData.SetTrivialWeights(docCount);
+
+                auto rawTargetDataProvider = CreateProviderSimple(docCount, rawTargetData);
+
+                UNIT_ASSERT(Equal(*rawTargetDataProvider.GetMultiTarget(), target));
+            }
+        }
+
+        {
+            TVector<TVector<TVector<TString>>> badMultiTargets;
+            badMultiTargets.push_back({{"0", "", "0", "1"}, {"1", "1", "1", "0"}});
+
+            for (const auto& target : badMultiTargets) {
+                const auto docCount = target.empty() ? 0 : target[0].size();
+                TRawTargetData rawTargetData;
+                rawTargetData.Target = target;
+                rawTargetData.SetTrivialWeights(docCount);
+
+                UNIT_ASSERT_EXCEPTION(
+                    CreateProviderSimple(docCount, rawTargetData),
                     TCatBoostException
                 );
             }
@@ -111,7 +153,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
             for (const auto& baseline : goodBaselines) {
                 {
                     TRawTargetData rawTargetData;
-                    rawTargetData.Target = target;
+                    rawTargetData.Target = {target};
                     if (!baseline.empty()) {
                         rawTargetData.Baseline = baseline;
                     }
@@ -135,7 +177,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
                 // check Set
                 {
                     TRawTargetData rawTargetData;
-                    rawTargetData.Target = target;
+                    rawTargetData.Target = {target};
                     rawTargetData.SetTrivialWeights(target.size());
 
                     auto rawTargetDataProvider = CreateProviderSimple(target.size(), rawTargetData);
@@ -172,7 +214,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
             for (const auto& baseline : badBaselines) {
                 {
                     TRawTargetData rawTargetData;
-                    rawTargetData.Target = target;
+                    rawTargetData.Target = {target};
                     rawTargetData.Baseline = baseline;
                     rawTargetData.SetTrivialWeights(target.size());
 
@@ -185,7 +227,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
                 // check Set
                 {
                     TRawTargetData rawTargetData;
-                    rawTargetData.Target = target;
+                    rawTargetData.Target = {target};
                     rawTargetData.SetTrivialWeights(target.size());
 
                     auto rawTargetDataProvider = CreateProviderSimple(target.size(), rawTargetData);
@@ -210,7 +252,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
         // trivial
         {
             TRawTargetData rawTargetData;
-            rawTargetData.Target = target;
+            rawTargetData.Target = {target};
             rawTargetData.SetTrivialWeights(target.size());
 
             auto rawTargetDataProvider = CreateProviderSimple(target.size(), rawTargetData);
@@ -223,7 +265,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
             TVector<float> weight = {1.0, 0.0, 2.0, 3.0, 1.0};
             {
                 TRawTargetData rawTargetData;
-                rawTargetData.Target = target;
+                rawTargetData.Target = {target};
                 rawTargetData.Weights = TWeights<float>(TVector<float>(weight));
                 rawTargetData.GroupWeights = TWeights<float>(target.size());
 
@@ -236,7 +278,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
             // check Set
             {
                 TRawTargetData rawTargetData;
-                rawTargetData.Target = target;
+                rawTargetData.Target = {target};
                 rawTargetData.SetTrivialWeights(target.size());
 
                 auto rawTargetDataProvider = CreateProviderSimple(target.size(), rawTargetData);
@@ -258,7 +300,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
             for (const auto& weight : badWeights) {
                 {
                     TRawTargetData rawTargetData;
-                    rawTargetData.Target = target;
+                    rawTargetData.Target = {target};
                     rawTargetData.GroupWeights = TWeights<float>(target.size());
 
                     if (weight.size() != target.size()) {
@@ -281,7 +323,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
                 // check Set
                 {
                     TRawTargetData rawTargetData;
-                    rawTargetData.Target = target;
+                    rawTargetData.Target = {target};
                     rawTargetData.SetTrivialWeights(target.size());
 
                     auto rawTargetDataProvider = CreateProviderSimple(target.size(), rawTargetData);
@@ -304,7 +346,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
             for (const auto& groupWeights : goodGroupWeights) {
                 if (!groupWeights.empty()) {
                     TRawTargetData rawTargetData;
-                    rawTargetData.Target = target;
+                    rawTargetData.Target = {target};
                     rawTargetData.Weights = TWeights<float>(target.size());
                     rawTargetData.GroupWeights = TWeights<float>(TVector<float>(groupWeights));
 
@@ -319,7 +361,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
                 // check Set
                 {
                     TRawTargetData rawTargetData;
-                    rawTargetData.Target = target;
+                    rawTargetData.Target = {target};
                     rawTargetData.SetTrivialWeights(target.size());
 
                     auto rawTargetDataProvider = CreateProviderSimple(groupBounds, rawTargetData);
@@ -352,7 +394,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
                 const auto& groupWeights = badGroupWeights[testSetIdx];
                 {
                     TRawTargetData rawTargetData;
-                    rawTargetData.Target = target;
+                    rawTargetData.Target = {target};
                     rawTargetData.Weights = TWeights<float>(target.size());
 
                     if (testSetIdx != 0) {
@@ -376,7 +418,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
                 // check Set
                 {
                     TRawTargetData rawTargetData;
-                    rawTargetData.Target = target;
+                    rawTargetData.Target = {target};
                     rawTargetData.SetTrivialWeights(target.size());
 
                     auto rawTargetDataProvider = CreateProviderSimple(groupBounds, rawTargetData);
@@ -414,7 +456,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
                 // check Set
                 {
                     TRawTargetData rawTargetData;
-                    rawTargetData.Target = target; // for TRawTargetDataProvider creation
+                    rawTargetData.Target = {target}; // for TRawTargetDataProvider creation
                     rawTargetData.SetTrivialWeights(target.size());
 
                     auto rawTargetDataProvider = CreateProviderSimple(groupBounds, rawTargetData);
@@ -449,7 +491,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
                 // check Set
                 {
                     TRawTargetData rawTargetData;
-                    rawTargetData.Target = target; // for TRawTargetDataProvider creation
+                    rawTargetData.Target = {target}; // for TRawTargetDataProvider creation
                     rawTargetData.SetTrivialWeights(target.size());
 
                     auto rawTargetDataProvider = CreateProviderSimple(groupBounds, rawTargetData);
@@ -465,7 +507,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
         {
             TRawTargetData rawTargetData;
-            rawTargetData.Target = {"0", "1", "1", "0", "1", "0"};
+            rawTargetData.Target = {{"0", "1", "1", "0", "1", "0"}};
             rawTargetData.SetTrivialWeights(6);
             rawTargetData.Baseline = {
                 {0.0f, 0.1f, 0.3f, 0.2f, 0.35f, 0.8f},
@@ -477,7 +519,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
         {
             TRawTargetData rawTargetData;
-            rawTargetData.Target = {"0.0", "1.0", "1.0", "0.0", "1.0", "0.0", "1.0f", "0.5", "0.8"};
+            rawTargetData.Target = {{"0.0", "1.0", "1.0", "0.0", "1.0", "0.0", "1.0f", "0.5", "0.8"}};
             rawTargetData.Baseline = {{0.0f, 0.1f, 0.3f, 0.2f, 0.35f, 0.8f, 0.12f, 0.67f, 0.87f}};
             rawTargetData.Weights = TWeights<float>({1.0f, 1.0f, 2.0f, 3.0f, 0.0f, 1.0f, 0.8f, 0.9f, 0.1f});
             rawTargetData.GroupWeights = TWeights<float>(
@@ -520,7 +562,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
         {
             TRawTargetData rawTargetData;
-            rawTargetData.Target = {"1", "0"};
+            rawTargetData.Target = {{"1", "0"}};
             rawTargetData.SetTrivialWeights(2);
             rawTargetData.Baseline = {
                 {0.3f, 0.2f},
@@ -535,7 +577,158 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
         {
             TRawTargetData rawTargetData;
-            rawTargetData.Target = {"1.0", "0.0", "1.0", "0.0"};
+            rawTargetData.Target = {{"1.0", "0.0", "1.0", "0.0"}};
+            rawTargetData.Baseline = {{0.3f, 0.2f, 0.35f, 0.8f}};
+            rawTargetData.Weights = TWeights<float>({2.0f, 3.0f, 0.0f, 1.0f});
+            rawTargetData.GroupWeights = TWeights<float>({2.0f, 2.1f, 2.1f, 2.1f});
+            rawTargetData.Pairs = {TPair(1, 3, 1.0f), TPair(1, 2, 2.0f)};
+
+            expectedResults[TExpectedMapIndex(1, 1)] = std::make_pair(
+                rawTargetData,
+                MakeIntrusive<TObjectsGrouping>(TVector<TGroupBounds>{{0, 1}, {1, 4}})
+            );
+        }
+
+        for (auto rawTargetDataIdx : xrange(rawTargetDataVector.size())) {
+            for (auto subsetIdx : xrange(subsetVector.size())) {
+                // copy to move to TRawTargetDataProvider ctor
+                TRawTargetData rawTargetData = rawTargetDataVector[rawTargetDataIdx];
+
+                NPar::TLocalExecutor localExecutor;
+                localExecutor.RunAdditionalThreads(2);
+
+                TRawTargetDataProvider rawTargetDataProvider(
+                    targetDataGroupingVector[rawTargetDataIdx],
+                    std::move(rawTargetData),
+                    false,
+                    &localExecutor
+                );
+
+                TObjectsGroupingSubset objectsGroupingSubset = GetSubset(
+                    rawTargetDataProvider.GetObjectsGrouping(),
+                    TArraySubsetIndexing<ui32>(subsetVector[subsetIdx]),
+                    subsetOrdersVector[subsetIdx]
+                );
+
+                TRawTargetDataProvider subsetDataProvider =
+                    rawTargetDataProvider.GetSubset(objectsGroupingSubset, &localExecutor);
+
+                auto expectedSubsetData = expectedResults[TExpectedMapIndex(rawTargetDataIdx, subsetIdx)];
+
+                TRawTargetData expectedSubsetRawTargetData = expectedSubsetData.first;
+                TObjectsGroupingPtr expectedSubsetGrouping = expectedSubsetData.second;
+
+                TRawTargetDataProvider expectedSubsetDataProvider(
+                    expectedSubsetGrouping,
+                    std::move(expectedSubsetRawTargetData),
+                    false,
+                    &localExecutor
+                );
+
+#define COMPARE_DATA_PROVIDER_FIELD(FIELD) \
+                UNIT_ASSERT_EQUAL( \
+                    subsetDataProvider.Get##FIELD(), \
+                    expectedSubsetDataProvider.Get##FIELD() \
+                );
+
+                COMPARE_DATA_PROVIDER_FIELD(Target);
+                COMPARE_DATA_PROVIDER_FIELD(Baseline);
+                COMPARE_DATA_PROVIDER_FIELD(Weights);
+                COMPARE_DATA_PROVIDER_FIELD(GroupWeights);
+
+#undef COMPARE_DATA_PROVIDER_FIELD
+
+                UNIT_ASSERT(
+                    EqualAsMultiSets(subsetDataProvider.GetPairs(), expectedSubsetDataProvider.GetPairs())
+                );
+
+                UNIT_ASSERT_EQUAL(
+                    *subsetDataProvider.GetObjectsGrouping(),
+                    *expectedSubsetDataProvider.GetObjectsGrouping()
+                );
+            }
+        }
+    }
+
+    Y_UNIT_TEST(GetMultiTargetSubset) {
+        TVector<TRawTargetData> rawTargetDataVector;
+
+        {
+            TRawTargetData rawTargetData;
+            rawTargetData.Target = {{"0", "1", "1", "0", "1", "0"}, {"1", "0", "0", "1", "0", "1"}};
+            rawTargetData.SetTrivialWeights(6);
+            rawTargetData.Baseline = {
+                {0.0f, 0.1f, 0.3f, 0.2f, 0.35f, 0.8f},
+                {1.0f, 2.1f, 1.3f, 2.2f, 3.3f, 4.7f}
+            };
+
+            rawTargetDataVector.push_back(rawTargetData);
+        }
+
+        {
+            TRawTargetData rawTargetData;
+            rawTargetData.Target = {
+                {"0.0", "1.0", "1.0", "0.0", "1.0", "0.0", "1.0f", "0.5", "0.8"},
+                {"-0.0", "-1.0", "-1.0", "-0.0", "-1.0", "-0.0", "-1.0f", "-0.5", "-0.8"}
+            };
+            rawTargetData.Baseline = {{0.0f, 0.1f, 0.3f, 0.2f, 0.35f, 0.8f, 0.12f, 0.67f, 0.87f}};
+            rawTargetData.Weights = TWeights<float>({1.0f, 1.0f, 2.0f, 3.0f, 0.0f, 1.0f, 0.8f, 0.9f, 0.1f});
+            rawTargetData.GroupWeights = TWeights<float>(
+                {1.0f, 3.0f, 2.0f, 2.1f, 2.1f, 2.1f, 0.0f, 1.1f, 1.1f}
+            );
+            rawTargetData.Pairs = {TPair(7, 8, 0.0f), TPair(3, 5, 1.0f), TPair(3, 4, 2.0f)};
+
+            rawTargetDataVector.push_back(rawTargetData);
+        }
+
+        TVector<TObjectsGroupingPtr> targetDataGroupingVector;
+        targetDataGroupingVector.push_back(MakeIntrusive<TObjectsGrouping>(ui32(6)));
+        targetDataGroupingVector.push_back(
+            MakeIntrusive<TObjectsGrouping>(
+                TVector<TGroupBounds>{{0, 1}, {1, 2}, {2, 3}, {3, 6}, {6, 7}, {7, 9}}
+            )
+        );
+
+
+        TVector<TArraySubsetIndexing<ui32>> subsetVector;
+        TVector<EObjectsOrder> subsetOrdersVector;
+        subsetVector.emplace_back(TFullSubset<ui32>(6));
+        subsetOrdersVector.emplace_back(EObjectsOrder::Ordered);
+        subsetVector.emplace_back(TIndexedSubset<ui32>{2, 3});
+        subsetOrdersVector.emplace_back(EObjectsOrder::Undefined);
+
+        using TExpectedMapIndex = std::pair<size_t, size_t>;
+
+        // (rawTargetDataVector idx, subsetVector idx) -> expectedResult
+        THashMap<TExpectedMapIndex, std::pair<TRawTargetData, TObjectsGroupingPtr>> expectedResults;
+
+        expectedResults[TExpectedMapIndex(0, 0)] = std::make_pair(
+            rawTargetDataVector[0],
+            targetDataGroupingVector[0]
+        );
+        expectedResults[TExpectedMapIndex(1, 0)] = std::make_pair(
+            rawTargetDataVector[1],
+            targetDataGroupingVector[1]
+        );
+
+        {
+            TRawTargetData rawTargetData;
+            rawTargetData.Target = {{"1", "0"}, {"0", "1"}};
+            rawTargetData.SetTrivialWeights(2);
+            rawTargetData.Baseline = {
+                {0.3f, 0.2f},
+                {1.3f, 2.2f}
+            };
+
+            expectedResults[TExpectedMapIndex(0, 1)] = std::make_pair(
+                rawTargetData,
+                MakeIntrusive<TObjectsGrouping>(ui32(2))
+            );
+        }
+
+        {
+            TRawTargetData rawTargetData;
+            rawTargetData.Target = {{"1.0", "0.0", "1.0", "0.0"}, {"-1.0", "-0.0", "-1.0", "-0.0"}};
             rawTargetData.Baseline = {{0.3f, 0.2f, 0.35f, 0.8f}};
             rawTargetData.Weights = TWeights<float>({2.0f, 3.0f, 0.0f, 1.0f});
             rawTargetData.GroupWeights = TWeights<float>({2.0f, 2.1f, 2.1f, 2.1f});
@@ -610,8 +803,16 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 }
 
 
-
 Y_UNIT_TEST_SUITE(TTargetDataProvider) {
+
+    TVector<TSharedVector<float>> MakeTarget(const TVector<TVector<float>>& target) {
+        auto processedTarget = TVector<TSharedVector<float>>();
+        processedTarget.reserve(target.size());
+        for (const auto& subTarget : target) {
+            processedTarget.emplace_back(MakeAtomicShared<TVector<float>>(subTarget));
+        }
+        return processedTarget;
+    }
 
     // subsets are fixed: first is always FullSubset, second is always TIndexedSubset<ui32>{2, 3}
     // TComparisonFunc must accept two TTargetDataProviders and check their equality
@@ -670,6 +871,71 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
     }
 
 
+    Y_UNIT_TEST(MultiTarget_GetSubset) {
+        TVector<TTargetDataProviderPtr> targetVector;
+        TVector<TTargetDataProviderPtr> expectedSecondSubsets;
+
+        {
+            TProcessedTargetData data;
+            data.Targets.emplace("", MakeTarget({{0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f}}));
+            data.Weights.emplace("", Share(TWeights<float>(6)));
+
+            targetVector.push_back(
+                MakeIntrusive<TTargetDataProvider>(
+                    MakeIntrusive<TObjectsGrouping>(ui32(6)),
+                    std::move(data)
+                )
+            );
+        }
+        {
+            TProcessedTargetData data;
+            data.Targets.emplace("", MakeTarget({{1.0f, 0.0f}, {0.0f, 1.0f}}));
+            data.Weights.emplace("", Share(TWeights<float>(2)));
+
+            expectedSecondSubsets.push_back(
+                MakeIntrusive<TTargetDataProvider>(
+                    MakeIntrusive<TObjectsGrouping>(ui32(2)),
+                    std::move(data)
+                )
+            );
+        }
+
+        {
+            TProcessedTargetData data;
+            data.Targets.emplace("", MakeTarget({{0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f}, {1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f}}));
+            data.Weights.emplace("", Share(TWeights<float>({1.0f, 1.0f, 2.0f, 3.0f, 0.0f, 1.0f})));
+            data.Baselines.emplace(
+                "",
+                TVector<TSharedVector<float>>(1, ShareVector<float>({0.0f, 0.1f, 0.3f, 0.2f, 0.35f, 0.8f}))
+            );
+
+            targetVector.push_back(
+                MakeIntrusive<TTargetDataProvider>(
+                    MakeIntrusive<TObjectsGrouping>(ui32(6)),
+                    std::move(data)
+                )
+            );
+        }
+        {
+            TProcessedTargetData data;
+            data.Targets.emplace("", MakeTarget({{1.0f, 0.0f}, {0.0f, 1.0f}}));
+            data.Weights.emplace("", Share(TWeights<float>({2.0f, 3.0f})));
+            data.Baselines.emplace("", TVector<TSharedVector<float>>(1, ShareVector<float>({0.3f, 0.2f})));
+
+            expectedSecondSubsets.push_back(
+                MakeIntrusive<TTargetDataProvider>(
+                    MakeIntrusive<TObjectsGrouping>(ui32(2)),
+                    std::move(data)
+                )
+            );
+        }
+
+        TestGetSubset(
+            targetVector,
+            expectedSecondSubsets
+        );
+    }
+
     Y_UNIT_TEST(BinClass_GetSubset) {
         TVector<TTargetDataProviderPtr> targetVector;
         TVector<TTargetDataProviderPtr> expectedSecondSubsets;
@@ -677,7 +943,7 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
         {
             TProcessedTargetData data;
             data.TargetsClassCount.emplace("", 2);
-            data.Targets.emplace("", ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f}));
+            data.Targets.emplace("", MakeTarget({{0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f}}));
             data.Weights.emplace("", Share(TWeights<float>(6)));
 
             targetVector.push_back(
@@ -690,7 +956,7 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
         {
             TProcessedTargetData data;
             data.TargetsClassCount.emplace("", 2);
-            data.Targets.emplace("", ShareVector<float>({1.0f, 0.0f}));
+            data.Targets.emplace("", MakeTarget({{1.0f, 0.0f}}));
             data.Weights.emplace("", Share(TWeights<float>(2)));
 
             expectedSecondSubsets.push_back(
@@ -704,7 +970,7 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
         {
             TProcessedTargetData data;
             data.TargetsClassCount.emplace("", 2);
-            data.Targets.emplace("", ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f}));
+            data.Targets.emplace("", MakeTarget({{0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f}}));
             data.Weights.emplace("", Share(TWeights<float>({1.0f, 1.0f, 2.0f, 3.0f, 0.0f, 1.0f})));
             data.Baselines.emplace(
                 "",
@@ -721,7 +987,7 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
         {
             TProcessedTargetData data;
             data.TargetsClassCount.emplace("", 2);
-            data.Targets.emplace("", ShareVector<float>({1.0f, 0.0f}));
+            data.Targets.emplace("", MakeTarget({{1.0f, 0.0f}}));
             data.Weights.emplace("", Share(TWeights<float>({2.0f, 3.0f})));
             data.Baselines.emplace("", TVector<TSharedVector<float>>(1, ShareVector<float>({0.3f, 0.2f})));
 
@@ -746,7 +1012,7 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
         {
             TProcessedTargetData data;
             data.TargetsClassCount.emplace("", 2);
-            data.Targets.emplace("", ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f}));
+            data.Targets.emplace("", MakeTarget({{0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f}}));
             data.Weights.emplace("", Share(TWeights<float>({1.0f, 1.0f, 2.0f, 3.0f, 0.0f, 1.0f})));
             data.Baselines.emplace(
                 "",
@@ -766,7 +1032,7 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
         {
             TProcessedTargetData data;
             data.TargetsClassCount.emplace("", 2);
-            data.Targets.emplace("", ShareVector<float>({1.0f, 0.0f}));
+            data.Targets.emplace("", MakeTarget({{1.0f, 0.0f}}));
             data.Weights.emplace("", Share(TWeights<float>({2.0f, 3.0f})));
             data.Baselines.emplace(
                 "",
@@ -799,7 +1065,7 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
 
             data.Targets.emplace(
                 "",
-                ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.5f, 0.8f})
+                MakeTarget({{0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.5f, 0.8f}})
             );
             data.Weights.emplace("", Share(TWeights<float>(9)));
             data.GroupInfos.emplace(
@@ -828,7 +1094,7 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
         {
             TProcessedTargetData data;
 
-            data.Targets.emplace("", ShareVector<float>({1.0f, 0.0f, 1.0f, 0.0f}));
+            data.Targets.emplace("", MakeTarget({{1.0f, 0.0f, 1.0f, 0.0f}}));
             data.Weights.emplace("", Share(TWeights<float>(4)));
             data.GroupInfos.emplace("", ShareVector<TQueryInfo>({TQueryInfo(0, 1), TQueryInfo(1, 4)}));
 
@@ -876,7 +1142,7 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
             TProcessedTargetData data;
             data.Targets.emplace(
                 "",
-                ShareVector<float>({0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.5f, 0.8f})
+                MakeTarget({{0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 0.0f, 1.0f, 0.5f, 0.8f}})
             );
             data.Weights.emplace(
                 "",
@@ -914,7 +1180,7 @@ Y_UNIT_TEST_SUITE(TTargetDataProvider) {
             groupInfo[1].SubgroupId = {7};
 
             TProcessedTargetData data;
-            data.Targets.emplace("", ShareVector<float>({0.0f, 1.0f, 0.0f}));
+            data.Targets.emplace("", MakeTarget({{0.0f, 1.0f, 0.0f}}));
             data.Weights.emplace("", Share(TWeights<float>({3.0f, 0.0f, 1.0f})));
             data.Baselines.emplace(
                 "",

@@ -24,7 +24,6 @@ ui32 TDataColumnsMetaInfo::CountColumns(const EColumn columnType) const {
 
 void TDataColumnsMetaInfo::Validate() const {
     CB_ENSURE(CountColumns(EColumn::Weight) <= 1, "Too many Weight columns.");
-    CB_ENSURE(CountColumns(EColumn::Label) <= 1, "Too many Label columns.");
     CB_ENSURE(CountColumns(EColumn::SampleId) <= 1, "Too many SampleId columns.");
     CB_ENSURE(CountColumns(EColumn::GroupId) <= 1, "Too many GroupId columns. Maybe you've specified QueryId and GroupId, QueryId is synonym for GroupId.");
     CB_ENSURE(CountColumns(EColumn::GroupWeight) <= 1, "Too many GroupWeight columns.");
@@ -43,7 +42,7 @@ TDataMetaInfo::TDataMetaInfo(
     : ClassNames(classNames)
     , ColumnsInfo(std::move(columnsInfo))
 {
-    HasTarget = ColumnsInfo->CountColumns(EColumn::Label);
+    TargetCount = ColumnsInfo->CountColumns(EColumn::Label);
     BaselineCount = additionalBaselineCount ? *additionalBaselineCount : ColumnsInfo->CountColumns(EColumn::Baseline);
     HasWeights = ColumnsInfo->CountColumns(EColumn::Weight) != 0;
     HasGroupId = ColumnsInfo->CountColumns(EColumn::GroupId) != 0;
@@ -100,7 +99,7 @@ bool TDataMetaInfo::EqualTo(const TDataMetaInfo& rhs, bool ignoreSparsity) const
     }
 
     return std::tie(
-        HasTarget,
+        TargetCount,
         BaselineCount,
         HasGroupId,
         HasGroupWeight,
@@ -111,7 +110,7 @@ bool TDataMetaInfo::EqualTo(const TDataMetaInfo& rhs, bool ignoreSparsity) const
         ClassNames,
         ColumnsInfo
     ) == std::tie(
-        rhs.HasTarget,
+        rhs.TargetCount,
         rhs.BaselineCount,
         rhs.HasGroupId,
         rhs.HasGroupWeight,
@@ -167,7 +166,7 @@ TVector<TString> TDataColumnsMetaInfo::GenerateFeatureIds(const TMaybe<TVector<T
 void NCB::AddWithShared(IBinSaver* binSaver, TDataMetaInfo* data) {
     AddWithShared(binSaver, &(data->FeaturesLayout));
     binSaver->AddMulti(
-        data->HasTarget,
+        data->TargetCount,
         data->BaselineCount,
         data->HasGroupId,
         data->HasGroupWeight,

@@ -281,7 +281,7 @@ void CalcLeafDersSimple(
     if (error.GetErrorType() == EErrorType::PerObjectError) {
         CalcLeafDers(
             indices,
-            fold.LearnTarget,
+            fold.LearnTarget[0],
             fold.GetLearnWeights(),
             approxes,
             approxDeltas,
@@ -317,7 +317,7 @@ void CalcLeafDersSimple(
         CalculateDersForQueries(
             approxes,
             approxDeltas,
-            fold.LearnTarget,
+            fold.LearnTarget[0],
             weights,
             queriesInfo,
             error,
@@ -503,7 +503,7 @@ static void UpdateApproxDeltasHistorically(
         CalcApproxDers(
             bt.Approx[0],
             *approxDeltas,
-            fold.LearnTarget,
+            fold.LearnTarget[0],
             weights,
             error,
             bt.BodyFinish,
@@ -517,7 +517,7 @@ static void UpdateApproxDeltasHistorically(
         CalculateDersForQueries(
             bt.Approx[0],
             *approxDeltas,
-            fold.LearnTarget,
+            fold.LearnTarget[0],
             weights,
             queriesInfo,
             error,
@@ -626,7 +626,7 @@ static void CalcApproxDeltaSimple(
                 delta,
                 bt.BodyFinish,
                 bt.Approx[0],
-                fold.LearnTarget,
+                fold.LearnTarget[0],
                 MakeConstArrayRef(fold.SampleWeights),
                 &(*leafDeltas)[0]);
             return;
@@ -715,7 +715,7 @@ static void CalcApproxDeltaSimple(
 
     const auto lossCalcerFunc = [&](const TVector<TVector<double>>& approxDeltas) {
         TConstArrayRef<TQueryInfo> bodyTailQueryInfo(fold.LearnQueriesInfo.begin(), bt.BodyQueryFinish);
-        TConstArrayRef<float> bodyTailTarget(fold.LearnTarget.begin(), bt.BodyFinish);
+        TConstArrayRef<float> bodyTailTarget(fold.LearnTarget[0].begin(), bt.BodyFinish);
         const auto& additiveStats = EvalErrors(
             bt.Approx,
             approxDeltas,
@@ -800,7 +800,7 @@ static void CalcLeafValuesSimple(
                 delta,
                 bt.BodyFinish,
                 bt.Approx[0],
-                fold.LearnTarget,
+                fold.LearnTarget[0],
                 MakeConstArrayRef(fold.SampleWeights),
                 &(*leafDeltas)[0]);
             return;
@@ -867,7 +867,7 @@ static void CalcLeafValuesSimple(
             approx,
             /*approxDelta*/ {},
             error.GetIsExpApprox(),
-            fold.LearnTarget,
+            fold.LearnTarget[0],
             fold.GetLearnWeights(),
             fold.LearnQueriesInfo,
             *lossFunction[0],

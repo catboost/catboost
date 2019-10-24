@@ -6,6 +6,29 @@
 #include <util/generic/algorithm.h>
 #include <util/generic/cast.h>
 
+THashMap<size_t, size_t> GetColumnIndexToTargetIndexMap(const NCB::TQuantizedPool& pool) {
+    TVector<size_t> columnIndices;
+    columnIndices.reserve(pool.ColumnIndexToLocalIndex.size());
+    for (const auto& [columnIndex, localIndex] : pool.ColumnIndexToLocalIndex) {
+        const auto columnType = pool.ColumnTypes[localIndex];
+        if (columnType != EColumn::Label) {
+            continue;
+        }
+
+        columnIndices.push_back(columnIndex);
+    }
+
+    Sort(columnIndices);
+
+    THashMap<size_t, size_t> map;
+    map.reserve(columnIndices.size());
+    for (size_t i = 0; i < columnIndices.size(); ++i) {
+        map.emplace(columnIndices[i], map.size());
+    }
+
+    return map;
+}
+
 THashMap<size_t, size_t> GetColumnIndexToFlatIndexMap(const NCB::TQuantizedPool& pool) {
     TVector<size_t> columnIndices;
     columnIndices.reserve(pool.ColumnIndexToLocalIndex.size());

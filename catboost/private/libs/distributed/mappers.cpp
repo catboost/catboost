@@ -703,10 +703,11 @@ namespace NCatboostDistributed {
         Y_ASSERT(approxDimension > 1);
         const auto error = BuildError(localData.Params, /*custom objective*/Nothing());
         const auto estimationMethod = localData.Params.ObliviousTreeOptions->LeavesEstimationMethod;
+        CB_ENSURE(localData.Progress->AveragingFold.LearnTarget.size() == 1, "MultiClassification requires exactly one target");
 
         CalcLeafDersMulti(
             localData.Indices,
-            localData.Progress->AveragingFold.LearnTarget,
+            localData.Progress->AveragingFold.LearnTarget[0],
             localData.Progress->AveragingFold.GetLearnWeights(),
             localData.Progress->AveragingFold.BodyTailArr[0].Approx,
             localData.ApproxDeltas,

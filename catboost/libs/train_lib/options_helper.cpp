@@ -253,7 +253,7 @@ void SetDataDependentDefaults(
     UpdateLearningRate(learnPoolSize, useBestModel->Get(), catBoostOptions);
     UpdateOneHotMaxSize(
         trainDataMetaInfo.MaxCatFeaturesUniqValuesOnLearn,
-        trainDataMetaInfo.HasTarget,
+        trainDataMetaInfo.TargetCount > 0,
         catBoostOptions
     );
     UpdateYetiRankEvalMetric(

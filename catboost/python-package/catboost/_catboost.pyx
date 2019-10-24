@@ -379,7 +379,7 @@ cdef extern from "catboost/libs/data/meta_info.h" namespace "NCB":
         ui64 MaxCatFeaturesUniqValuesOnLearn
         TMaybe[TTargetStats] TargetStats
 
-        bool_t HasTarget
+        ui32 TargetCount
         ui32 BaselineCount
         bool_t HasGroupId
         bool_t HasGroupWeight
@@ -500,6 +500,7 @@ ctypedef TConstArrayRef[TConstArrayRef[float]] TBaselineArrayRef
 cdef extern from "catboost/libs/data/target.h" namespace "NCB":
     cdef cppclass TRawTargetDataProvider:
         TMaybeData[TConstArrayRef[TString]] GetTarget()
+        TMaybeData[TConstArrayRef[TVector[TString]]] GetMultiTarget()
         TMaybeData[TBaselineArrayRef] GetBaseline()
         const TWeights[float]& GetWeights()
         const TWeights[float]& GetGroupWeights()
@@ -624,6 +625,8 @@ cdef extern from "catboost/libs/data/visitor.h" namespace "NCB":
 
         void AddTarget(ui32 localObjectIdx, const TString& value) except +ProcessException
         void AddTarget(ui32 localObjectIdx, float value) except +ProcessException
+        void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, const TString& value) except +ProcessException
+        void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, float value) except +ProcessException
         void AddBaseline(ui32 localObjectIdx, ui32 baselineIdx, float value) except +ProcessException
         void AddWeight(ui32 localObjectIdx, float value) except +ProcessException
         void AddGroupWeight(ui32 localObjectIdx, float value) except +ProcessException
@@ -659,6 +662,8 @@ cdef extern from "catboost/libs/data/visitor.h" namespace "NCB":
 
         void AddTarget(TConstArrayRef[TString] value) except +ProcessException
         void AddTarget(TConstArrayRef[float] value) except +ProcessException
+        void AddTarget(ui32 flatTargetIdx, TConstArrayRef[TString] value) except +ProcessException
+        void AddTarget(ui32 flatTargetIdx, TConstArrayRef[float] value) except +ProcessException
         void AddBaseline(ui32 baselineIdx, TConstArrayRef[float] value) except +ProcessException
         void AddWeights(TConstArrayRef[float] value) except +ProcessException
         void AddGroupWeights(TConstArrayRef[float] value) except +ProcessException
@@ -2919,17 +2924,23 @@ cdef TString obj_to_arcadia_string(obj):
 
 cdef _set_label(label, IRawObjectsOrderDataVisitor* builder_visitor):
     for i in range(len(label)):
-        builder_visitor[0].AddTarget(<ui32>i, obj_to_arcadia_string(label[i]))
+        for j in range(len(label[i])):
+            builder_visitor[0].AddTarget(
+                <ui32>j,
+                <ui32>i,
+                obj_to_arcadia_string(label[i][j])
+            )
 
 
 cdef _set_label_features_order(label, IRawFeaturesOrderDataVisitor* builder_visitor):
     cdef TVector[TString] labelVector
     labelVector.reserve(len(label))
 
-    for i in range(len(label)):
-        labelVector.push_back(obj_to_arcadia_string(label[i]))
-
-    builder_visitor[0].AddTarget(<TConstArrayRef[TString]>labelVector)
+    for j in range(len(label[0])):
+        labelVector.clear()
+        for i in range(len(label)):
+            labelVector.push_back(obj_to_arcadia_string(label[i][j]))
+        builder_visitor[0].AddTarget(<ui32>j, <TConstArrayRef[TString]>labelVector)
 
 
 ctypedef fused IBuilderVisitor:
@@ -3175,8 +3186,7 @@ cdef class _PoolBase:
 
         if label is not None:
             _set_label_features_order(label, builder_visitor)
-            if len(label) > 0:
-                self.target_type = type(label[0])
+            self.target_type = type(label[0][0])
         if pairs is not None:
             _set_pairs(pairs, pairs_weight, builder_visitor)
         elif pairs_weight is not None:
@@ -3234,8 +3244,7 @@ cdef class _PoolBase:
 
         if label is not None:
             _set_label(label, builder_visitor)
-            if len(label) > 0:
-                self.target_type = type(label[0])
+            self.target_type = type(label[0][0])
         if pairs is not None:
             _set_pairs(pairs, pairs_weight, builder_visitor)
         elif pairs_weight is not None:
@@ -3262,7 +3271,9 @@ cdef class _PoolBase:
             raise CatBoostError('Pool must have either weight or group_weight.')
 
         cdef TDataMetaInfo data_meta_info
-        data_meta_info.HasTarget = label is not None
+        if label is not None:
+            data_meta_info.TargetCount = <ui32>len(label[0])
+
         data_meta_info.BaselineCount = len(baseline[0]) if baseline is not None else 0
         data_meta_info.HasGroupId = group_id is not None
         data_meta_info.HasGroupWeight = group_weight is not None
@@ -3533,12 +3544,24 @@ cdef class _PoolBase:
 
         Returns
         -------
-        labels : list
+        labels : list if labels are one-dimensional, np.array of shape (rows, cols) otherwise
         """
-        cdef TMaybeData[TConstArrayRef[TString]] maybe_target = self.__pool.Get()[0].RawTargetData.GetTarget()
+        cdef TMaybeData[TConstArrayRef[TVector[TString]]] maybe_target = self.__pool.Get()[0].RawTargetData.GetMultiTarget()
         if maybe_target.Defined():
-            return [self.target_type(to_native_str(target_string)) for target_string in maybe_target.GetRef()]
-        return None
+            labels = [
+                [
+                    self.target_type(to_native_str(target_string))
+                    for target_string in target
+                ]
+                for target in maybe_target.GetRef()
+            ]
+
+            if len(labels) == 1:
+                return labels[0]
+            else:
+                return np.array(labels).T
+        else:
+            return None
 
     cpdef get_cat_feature_indices(self):
         """

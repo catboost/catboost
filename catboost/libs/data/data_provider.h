@@ -390,9 +390,9 @@ namespace NCB {
                     ObjectsData->GetQuantizedFeaturesInfo()->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn();
             }
 
-            const auto& targets = TargetData->GetTarget();
-            if (targets.Defined() && !targets->empty()) {
-                auto targetBounds = CalcMinMax(*targets);
+            const auto& targets = TargetData->GetMultiTarget();
+            if (targets.Defined() && MetaInfo.ObjectCount > 0 && targets->size() == 1) {
+                auto targetBounds = CalcMinMax(MakeConstArrayRef(targets->front()));
                 MetaInfo.TargetStats = {targetBounds.Min, targetBounds.Max};
             }
         }

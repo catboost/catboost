@@ -102,6 +102,7 @@ namespace NCB {
             const auto& featuresLayout = *DataMetaInfo.FeaturesLayout;
 
             ui32 featureId = 0;
+            ui32 targetId = 0;
             ui32 baselineIdx = 0;
 
             TVector<float> floatFeatures;
@@ -159,8 +160,9 @@ namespace NCB {
                             }
                             case EColumn::Label: {
                                 CB_ENSURE(token.length() != 0, "empty values not supported for Label");
-                                visitor->AddTarget(lineIdx, TString(token));
-                                break;
+                                visitor->AddTarget(targetId, lineIdx, TString(token));
+                                ++targetId;
+                            break;
                             }
                             case EColumn::Weight: {
                                 CB_ENSURE(token.length() != 0, "empty values not supported for weight");

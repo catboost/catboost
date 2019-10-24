@@ -257,10 +257,16 @@ namespace NCB {
             even if these strings represent float or ints
         */
         void AddTarget(ui32 localObjectIdx, const TString& value) override {
-            (*Data.TargetData.Target)[Cursor + localObjectIdx] = value;
+            AddTarget(0, localObjectIdx, value);
         }
         void AddTarget(ui32 localObjectIdx, float value) override {
-            (*Data.TargetData.Target)[Cursor + localObjectIdx] = ToString(value);
+            AddTarget(0, localObjectIdx, value);
+        }
+        void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, const TString& value) override {
+            Data.TargetData.Target[flatTargetIdx][Cursor + localObjectIdx] = value;
+        }
+        void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, float value) override {
+            Data.TargetData.Target[flatTargetIdx][Cursor + localObjectIdx] = ToString(value);
         }
         void AddBaseline(ui32 localObjectIdx, ui32 baselineIdx, float value) override {
             Data.TargetData.Baseline[baselineIdx][Cursor + localObjectIdx] = value;
@@ -321,7 +327,6 @@ namespace NCB {
 
             if (InBlock && Data.MetaInfo.HasGroupId) {
                 // copy, not move weights buffers
-
                 if (Data.MetaInfo.HasWeights) {
                     Data.TargetData.Weights = TWeights<float>(TVector<float>(WeightsBuffer));
                 }
@@ -986,10 +991,16 @@ namespace NCB {
         // TRawTargetData
 
         void AddTarget(TConstArrayRef<TString> value) override {
-            Data.TargetData.Target->assign(value.begin(), value.end());
+            AddTarget(0, value);
         }
         void AddTarget(TConstArrayRef<float> value) override {
-            TArrayRef<TString> target = *Data.TargetData.Target;
+            AddTarget(0, value);
+        }
+        void AddTarget(ui32 flatTargetIdx, TConstArrayRef<TString> value) override {
+            Data.TargetData.Target[flatTargetIdx].assign(value.begin(), value.end());
+        }
+        void AddTarget(ui32 flatTargetIdx, TConstArrayRef<float> value) override {
+            TArrayRef<TString> target = Data.TargetData.Target[flatTargetIdx];
 
             LocalExecutor->ExecRange(
                 [&](int objectIdx) {
@@ -998,7 +1009,6 @@ namespace NCB {
                 *ObjectCalcParams,
                 NPar::TLocalExecutor::WAIT_COMPLETE
             );
-
         }
         void AddBaseline(ui32 baselineIdx, TConstArrayRef<float> value) override {
             Data.TargetData.Baseline[baselineIdx].assign(value.begin(), value.end());
@@ -1325,27 +1335,35 @@ namespace NCB {
         // TRawTargetData
 
         void AddTargetPart(ui32 objectOffset, TUnalignedArrayBuf<float> targetPart) override {
-            auto& target = *Data.TargetData.Target;
+            AddTargetPart(0, objectOffset, targetPart);
+        }
+
+        void AddTargetPart(ui32 objectOffset, TMaybeOwningConstArrayHolder<TString> targetPart) override {
+            AddTargetPart(0, objectOffset, targetPart);
+        }
+
+        void AddTargetPart(ui32 flatTargetIdx, ui32 objectOffset, TMaybeOwningConstArrayHolder<TString> targetPart) override {
+            Copy(
+                (*targetPart).begin(),
+                (*targetPart).end(),
+                std::next(Data.TargetData.Target[flatTargetIdx].begin(), objectOffset)
+            );
+        }
+
+        void AddTargetPart(ui32 flatTargetIdx, ui32 objectOffset, TUnalignedArrayBuf<float> targetPart) override {
+            auto& target = Data.TargetData.Target[flatTargetIdx];
             if (Data.MetaInfo.ClassNames) {
                 for (auto it = targetPart.GetIterator(); !it.AtEnd(); it.Next(), ++objectOffset) {
                     target[objectOffset] = Data.MetaInfo.ClassNames[int(it.Cur())];
                 }
-                return;
+            } else {
+                TString zero{"0"};
+                TString one{"1"};
+                for (auto it = targetPart.GetIterator(); !it.AtEnd(); it.Next(), ++objectOffset) {
+                    const auto cur = it.Cur();
+                    target[objectOffset] = cur == 0.f ? zero : cur == 1.f ? one : ToString(cur);
+                }
             }
-            TString zero{"0"};
-            TString one{"1"};
-            for (auto it = targetPart.GetIterator(); !it.AtEnd(); it.Next(), ++objectOffset) {
-                const auto cur = it.Cur();
-                target[objectOffset] = cur == 0.f ? zero : cur == 1.f ? one : ToString(cur);
-            }
-        }
-
-        void AddTargetPart(ui32 objectOffset, TMaybeOwningConstArrayHolder<TString> targetPart) override {
-            Copy(
-                (*targetPart).begin(),
-                (*targetPart).end(),
-                std::next((*Data.TargetData.Target).begin(), objectOffset)
-            );
         }
 
         void AddBaselinePart(

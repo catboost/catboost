@@ -90,7 +90,7 @@ void CalcApproxDeltaMulti(
 
     const auto& treeLearnerOptions = ctx->Params.ObliviousTreeOptions.Get();
     const int gradientIterations = treeLearnerOptions.LeavesEstimationIterations;
-    const TVector<float>& target = fold.LearnTarget;
+    const TVector<float>& target = fold.LearnTarget[0];
     const TVector<float>& weight = fold.GetLearnWeights();
     const int approxDimension = approxDelta->ysize();
     const ELeavesEstimation estimationMethod = treeLearnerOptions.LeavesEstimationMethod;
@@ -185,7 +185,7 @@ void CalcApproxDeltaMulti(
 
     const auto lossCalcerFunc = [&] (const TVector<TVector<double>>& approxDeltas) {
         TConstArrayRef<TQueryInfo> bodyTailQueryInfo(fold.LearnQueriesInfo.begin(), bt.BodyQueryFinish);
-        TConstArrayRef<float> bodyTailTarget(fold.LearnTarget.begin(), bt.BodyFinish);
+        TConstArrayRef<float> bodyTailTarget(fold.LearnTarget[0].begin(), bt.BodyFinish);
         const auto& additiveStats = EvalErrors(
             bt.Approx,
             approxDeltas,
@@ -353,7 +353,7 @@ void CalcLeafValuesMulti(
     const int gradientIterations = treeLearnerOptions.LeavesEstimationIterations;
     const ELeavesEstimation estimationMethod = treeLearnerOptions.LeavesEstimationMethod;
     const float l2Regularizer = treeLearnerOptions.L2Reg;
-    const TVector<float>& target = fold.LearnTarget;
+    const TVector<float>& target = fold.LearnTarget[0];
     const TVector<float>& weight = fold.GetLearnWeights();
     const double sumWeight = fold.GetSumWeight();
     const int learnSampleCount = fold.GetLearnSampleCount();
@@ -416,7 +416,7 @@ void CalcLeafValuesMulti(
             approx,
             /*approxDelta*/{},
             /*isExpApprox*/false,
-            fold.LearnTarget,
+            fold.LearnTarget[0],
             fold.GetLearnWeights(),
             fold.LearnQueriesInfo,
             *lossFunction[0],

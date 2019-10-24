@@ -128,7 +128,7 @@ void YetiRankRecalculation(
     *recalculatedQueriesInfo = ff.LearnQueriesInfo;
     UpdatePairsForYetiRank(
         bt.Approx[0],
-        ff.LearnTarget,
+        ff.LearnTarget[0],
         params.LossFunctionDescription.Get(),
         randomSeed,
         0,

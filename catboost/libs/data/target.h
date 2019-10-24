@@ -55,7 +55,7 @@ namespace NCB {
     // for use while building
     struct TRawTargetData {
     public:
-        TMaybeData<TVector<TString>> Target; // [objectIdx], can be empty (if pairs are used)
+        TVector<TVector<TString>> Target; // [targetIdx][objectIdx], can be empty (if pairs are used)
         TVector<TVector<float>> Baseline; // [approxIdx][objectIdx], can be empty
 
         // if not specified in source data - do not forget to set as trivial, it is checked
@@ -115,9 +115,22 @@ namespace NCB {
             return ObjectsGrouping;
         }
 
-        // [objectIdx], can return empty array (if pairs are used)
+        // [objectIdx]
         TMaybeData<TConstArrayRef<TString>> GetTarget() const {
-            return Data.Target;
+            if (Data.Target.size() == 1) {
+                return Data.Target[0];
+            } else {
+                return Nothing();
+            }
+        }
+
+        // [targetIdx][objectIdx]
+        TMaybeData<TConstArrayRef<TVector<TString>>> GetMultiTarget() const {
+            if (!Data.Target.empty()) {
+                return Data.Target;
+            } else {
+                return Nothing();
+            }
         }
 
         // can return empty array
@@ -198,7 +211,7 @@ namespace NCB {
     struct TProcessedTargetData {
     public:
         THashMap<TString, ui32> TargetsClassCount;
-        THashMap<TString, TSharedVector<float>> Targets;
+        THashMap<TString, TVector<TSharedVector<float>>> Targets;
         THashMap<TString, TSharedWeights<float>> Weights;
         THashMap<TString, TVector<TSharedVector<float>>> Baselines;
         THashMap<TString, TSharedVector<TQueryInfo>> GroupInfos;
@@ -258,7 +271,21 @@ namespace NCB {
 
         // after preprocessing - enumerating labels if necessary, etc.
         TMaybeData<TConstArrayRef<float>> GetTarget(const TString& name = "") const { // [objectIdx]
-            return GetDataFromMap<TConstArrayRef<float>>(Data.Targets, name);
+            const auto targetPtr = MapFindPtr(TargetViews, name);
+            if (targetPtr && targetPtr->size() == 1) {
+                return TConstArrayRef<float>((*targetPtr)[0]);
+            } else {
+                return Nothing();
+            }
+        }
+
+        TMaybeData<TConstArrayRef<TConstArrayRef<float>>> GetMultiTarget(const TString& name = "") const { // [targetIdx][objectIdx]
+            const auto targetPtr = MapFindPtr(TargetViews, name);
+            if (targetPtr && !targetPtr->empty()) {
+                return TConstArrayRef<TConstArrayRef<float>>(*targetPtr);
+            } else {
+                return Nothing();
+            }
         }
 
         // after preprocessing - adjusted for classes, group etc. weights
@@ -298,6 +325,9 @@ namespace NCB {
         // for returning from GetBaseline
         // [approxIdx][objectIdx], can be empty
         THashMap<TString, TVector<TConstArrayRef<float>>> BaselineViews;
+        // for returning from GetMultiTarget
+        // [targetIdx][objectIdx]
+        THashMap<TString, TVector<TConstArrayRef<float>>> TargetViews;
     };
 
     using TTargetDataProviderPtr = TIntrusivePtr<TTargetDataProvider>;

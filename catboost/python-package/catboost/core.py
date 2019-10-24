@@ -249,7 +249,7 @@ class Pool(_PoolBase):
 
         label : list or numpy.arrays or pandas.DataFrame or pandas.Series, optional (default=None)
             Label of the training data.
-            If not None, giving 1 dimensional array like data with floats.
+            If not None, giving 1 or 2 dimensional array like data with floats.
             If data is a file, then label must be in the file, that is label must be equals to None
 
         cat_features : list or numpy.array, optional (default=None)
@@ -481,9 +481,6 @@ class Pool(_PoolBase):
         """
         if len(label) != samples_count:
             raise CatBoostError("Length of label={} and length of data={} is different.".format(len(label), samples_count))
-        if isinstance(label[0], Iterable) and not isinstance(label[0], STRING_TYPES):
-            if len(label[0]) > 1:
-                raise CatBoostError("Input label cannot have multiple values per row.")
 
     def _check_baseline_type(self, baseline):
         """
@@ -850,6 +847,13 @@ class Pool(_PoolBase):
             array = np.transpose(array.values)[0]
         return array
 
+    def _label_if_pandas_to_numpy(self, label):
+        if isinstance(label, Series):
+            label = label.values
+        if isinstance(label, DataFrame):
+            label = label.values
+        return label
+
     def _read(self, pool_file, column_description, pairs, delimiter, has_header, thread_count):
         """
         Read Pool from file.
@@ -899,7 +903,9 @@ class Pool(_PoolBase):
         if label is not None:
             self._check_label_type(label)
             self._check_label_empty(label)
-            label = self._if_pandas_to_numpy(label)
+            label = self._label_if_pandas_to_numpy(label)
+            if len(np.shape(label)) == 1:
+                label = np.expand_dims(label, 1)
             self._check_label_shape(label, samples_count)
         if feature_names is not None:
             self._check_feature_names(feature_names, features_count)
@@ -4333,7 +4339,7 @@ class CatBoostRegressor(CatBoost):
             verbose=None,
             parent_method_name='score'
         )
-        total_sum_of_squares = np.sum((y - y.mean()) ** 2)
+        total_sum_of_squares = np.sum((y - y.mean(axis=0)) ** 2)
         residual_sum_of_squares = np.sum((y - predictions) ** 2)
         return 1 - residual_sum_of_squares / total_sum_of_squares
 

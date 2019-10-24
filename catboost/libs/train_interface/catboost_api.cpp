@@ -37,7 +37,7 @@ static TDataProviderPtr MakeDataProvider(
                                         &builderVisitor);
 
     TDataMetaInfo metaInfo;
-    metaInfo.HasTarget = true;
+    metaInfo.TargetCount = 1;
     metaInfo.HasWeights = weights.data() != nullptr;
     if (baseline.data() != nullptr) {
         metaInfo.BaselineCount = baseline.size() / labels.size();
