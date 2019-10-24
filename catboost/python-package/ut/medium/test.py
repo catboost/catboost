@@ -102,6 +102,12 @@ HIGGS_TRAIN_FILE = data_file('higgs', 'train_small')
 HIGGS_TEST_FILE = data_file('higgs', 'test_small')
 HIGGS_CD_FILE = data_file('higgs', 'train.cd')
 
+ROTTEN_TOMATOES_TRAIN_FILE = data_file('rotten_tomatoes', 'train')
+ROTTEN_TOMATOES_TRAIN_SMALL_NO_QUOTES_FILE = data_file('rotten_tomatoes', 'train_small_no_quotes')
+ROTTEN_TOMATOES_TEST_FILE = data_file('rotten_tomatoes', 'test')
+ROTTEN_TOMATOES_CD_FILE = data_file('rotten_tomatoes', 'cd')
+ROTTEN_TOMATOES_CD_BINCLASS_FILE = data_file('rotten_tomatoes', 'cd_binclass')
+
 AIRLINES_ONEHOT_TRAIN_FILE = data_file('airlines_onehot_250', 'train_small')
 AIRLINES_ONEHOT_TEST_FILE = data_file('airlines_onehot_250', 'test_small')
 AIRLINES_ONEHOT_CD_FILE = data_file('airlines_onehot_250', 'train.cd')
@@ -264,7 +270,17 @@ def test_load_list():
     assert _check_shape(Pool(features_data, labels, CAT_FEATURES), 101, 17)
 
 
-datasets_for_test_ndarray = ['adult', 'cloudness_small', 'higgs']
+datasets_for_test_ndarray = ['adult', 'cloudness_small', 'higgs', 'rotten_tomatoes']
+
+
+def get_only_features_names(columns_metadata):
+    column_names = columns_metadata['column_names']
+    non_feature_column_indices = set(columns_metadata['non_feature_column_indices'])
+    feature_names = []
+    for i, column_name in enumerate(column_names):
+        if i not in non_feature_column_indices:
+            feature_names.append(column_name)
+    return feature_names
 
 
 @pytest.mark.parametrize(
@@ -290,13 +306,23 @@ def test_load_ndarray_vs_load_from_file(dataset, order):
         cd_file = HIGGS_CD_FILE
         dtypes = [np.float32, np.float64, object]
         float_dtype_is_ok = True
+    elif dataset == 'rotten_tomatoes':  # mixed numeric, categorical and text features data
+        train_file = ROTTEN_TOMATOES_TRAIN_SMALL_NO_QUOTES_FILE
+        cd_file = ROTTEN_TOMATOES_CD_BINCLASS_FILE
+        dtypes = [object]
+        float_dtype_is_ok = False
 
     columns_metadata = read_cd(cd_file, data_file=train_file, canonize_column_types=True)
     target_column_idx = columns_metadata['column_type_to_indices']['Label'][0]
     cat_column_indices = columns_metadata['column_type_to_indices'].get('Categ', [])
-    n_features = len(cat_column_indices) + len(columns_metadata['column_type_to_indices'].get('Num', []))
+    text_column_indices = columns_metadata['column_type_to_indices'].get('Text', [])
+    n_features = len(cat_column_indices) + \
+                 len(text_column_indices) + \
+                 len(columns_metadata['column_type_to_indices'].get('Num', []))
+    feature_names = get_only_features_names(columns_metadata)
 
     pool_from_file = Pool(train_file, column_description=cd_file)
+    pool_from_file.set_feature_names(feature_names)
 
     for dtype in dtypes:
         features_data = np.empty((n_objects, n_features), dtype=dtype, order=order)
@@ -310,15 +336,23 @@ def test_load_ndarray_vs_load_from_file(dataset, order):
                         labels[line_idx] = float(element)
                     else:
                         features_data[line_idx, feature_idx] = (
-                            element if (dtype is object) or (column_idx in cat_column_indices) else dtype(element)
+                            element
+                            if (dtype is object) or (column_idx in cat_column_indices) or (column_idx in text_column_indices)
+                            else dtype(element)
                         )
                         feature_idx += 1
 
         if (dtype in [np.float32, np.float64]) and (not float_dtype_is_ok):
             with pytest.raises(CatBoostError):
-                pool_from_ndarray = Pool(features_data, labels, cat_features=columns_metadata['cat_feature_indices'])
+                pool_from_ndarray = Pool(features_data, labels,
+                                         cat_features=columns_metadata['cat_feature_indices'],
+                                         text_features=columns_metadata['text_feature_indices'],
+                                         feature_names=feature_names)
         else:
-            pool_from_ndarray = Pool(features_data, labels, cat_features=columns_metadata['cat_feature_indices'])
+            pool_from_ndarray = Pool(features_data, labels,
+                                     cat_features=columns_metadata['cat_feature_indices'],
+                                     text_features=columns_metadata['text_feature_indices'],
+                                     feature_names=feature_names)
 
             assert _have_equal_features(pool_from_file, pool_from_ndarray)
             assert _check_data([float(label) for label in pool_from_file.get_label()], pool_from_ndarray.get_label())
@@ -362,16 +396,17 @@ def test_fit_on_ndarray(features_dtype):
     return local_canonical_file(preds_path)
 
 
-@pytest.mark.parametrize('dataset', ['adult', 'adult_nan', 'querywise'])
+@pytest.mark.parametrize('dataset', ['adult', 'adult_nan', 'querywise', 'rotten_tomatoes'])
 def test_load_df_vs_load_from_file(dataset):
     train_file, cd_file, target_idx, group_id_idx, other_non_feature_columns = {
         'adult': (TRAIN_FILE, CD_FILE, TARGET_IDX, None, []),
         'adult_nan': (NAN_TRAIN_FILE, NAN_CD_FILE, TARGET_IDX, None, []),
-        'querywise': (QUERYWISE_TRAIN_FILE, QUERYWISE_CD_FILE, 2, 1, [0, 3, 4])
+        'querywise': (QUERYWISE_TRAIN_FILE, QUERYWISE_CD_FILE, 2, 1, [0, 3, 4]),
+        'rotten_tomatoes': (ROTTEN_TOMATOES_TRAIN_FILE, ROTTEN_TOMATOES_CD_BINCLASS_FILE, 11, None, [])
     }[dataset]
 
     pool1 = Pool(train_file, column_description=cd_file)
-    data = read_csv(train_file, header=None, delimiter='\t')
+    data = read_csv(train_file, header=None, delimiter='\t', na_filter=False)
 
     labels = data.iloc[:, target_idx]
     group_ids = None
@@ -385,10 +420,11 @@ def test_load_df_vs_load_from_file(dataset):
     )
 
     cat_features = pool1.get_cat_feature_indices()
+    text_features = pool1.get_text_feature_indices()
 
     pool1.set_feature_names(list(data.columns))
 
-    pool2 = Pool(data, labels, cat_features, group_id=group_ids)
+    pool2 = Pool(data, labels, cat_features=cat_features, text_features=text_features, group_id=group_ids)
     assert _have_equal_features(pool1, pool2)
     assert _check_data([float(label) for label in pool1.get_label()], pool2.get_label())
 
@@ -871,6 +907,68 @@ def test_fit_from_empty_features_data(task_type):
             X=FeaturesData(num_feature_data=np.empty((0, 2), dtype=np.float32)),
             y=np.empty((0), dtype=np.int32)
         )
+
+
+def fit_from_df(params, learn_file, test_file, cd_file):
+    learn_df = read_csv(learn_file, header=None, sep='\t', na_filter=False)
+    test_df = read_csv(test_file, header=None, sep='\t', na_filter=False)
+    columns_metadata = read_cd(cd_file, data_file=learn_file)
+
+    target_column_idx = columns_metadata['column_type_to_indices']['Label'][0]
+    cat_feature_indices = columns_metadata['cat_feature_indices']
+    text_feature_indices = columns_metadata['text_feature_indices']
+
+    def get_split_on_features_and_label(df, label_idx):
+        y = df.loc[:, label_idx]
+        X = df.drop(label_idx, axis=1)
+        return X, y
+
+    X_train, y_train = get_split_on_features_and_label(learn_df, target_column_idx)
+    X_test, _ = get_split_on_features_and_label(test_df, target_column_idx)
+
+    model = CatBoost(params)
+    model.fit(X_train, y_train, cat_features=cat_feature_indices, text_features=text_feature_indices)
+
+    return model.predict(X_test)
+
+
+def fit_from_file(params, learn_file, test_file, cd_file):
+    learn_pool = Pool(learn_file, column_description=cd_file)
+    test_pool = Pool(test_file, column_description=cd_file)
+
+    model = CatBoost(params)
+    model.fit(learn_pool)
+
+    return model.predict(test_pool)
+
+
+def test_fit_with_texts(task_type):
+    if task_type == 'CPU':
+        return
+
+    params = {
+        'dictionaries': [
+            'UniGram:token_level_type=Letter,min_token_occurrence=1',
+            'BiGram:token_level_type=Letter,gram_order=2,min_token_occurrence=1',
+            'Word:token_level_type=Word,min_token_occurrence=1'
+        ],
+        'text_processing': [
+            'NaiveBayes:Word|BoW:UniGram,BiGram|BM25:Word'
+        ],
+        'iterations': 100,
+        'loss_function': 'MultiClass',
+        'task_type': task_type,
+        'devices': '0'
+    }
+
+    learn = ROTTEN_TOMATOES_TRAIN_FILE
+    test = ROTTEN_TOMATOES_TEST_FILE
+    cd = ROTTEN_TOMATOES_CD_FILE
+
+    preds1 = fit_from_df(params, learn, test, cd)
+    preds2 = fit_from_file(params, learn, test, cd)
+
+    assert np.all(preds1 == preds2)
 
 
 def test_coreml_import_export(task_type):
@@ -3549,11 +3647,29 @@ def test_loading_pool_with_numpy_int():
 
 
 def test_loading_pool_with_numpy_str():
-    assert _check_shape(Pool(np.array([['abc', '2'], ['1', '2']]), np.array([1, 3]), cat_features=[0]), object_count=2, features_count=2)
+    assert _check_shape(
+        Pool(
+            np.array([['abc', '2', 'the cat'], ['1', '2', 'on the road']]),
+            np.array([1, 3]),
+            cat_features=[0],
+            text_features=[2]
+        ),
+        object_count=2,
+        features_count=3
+    )
 
 
 def test_loading_pool_with_lists():
-    assert _check_shape(Pool([['abc', 2], ['1', 2]], [1, 3], cat_features=[0]), object_count=2, features_count=2)
+    assert _check_shape(
+        Pool(
+            [['abc', 2, 'the cat'], ['1', 2, 'on the road']],
+            [1, 3],
+            cat_features=[0],
+            text_features=[2]
+        ),
+        object_count=2,
+        features_count=3
+    )
 
 
 def test_pairs_generation(task_type):

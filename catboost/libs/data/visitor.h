@@ -111,6 +111,7 @@ namespace NCB {
         // for sparse data
         virtual void AddCatFeatureDefaultValue(ui32 flatFeatureIdx, TStringBuf feature) = 0;
 
+        virtual void AddTextFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, TStringBuf feature) = 0;
         virtual void AddTextFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, const TString& feature) = 0;
         virtual void AddAllTextFeatures(ui32 localObjectIdx, TConstArrayRef<TString> features) = 0;
         virtual void AddAllTextFeatures(
@@ -179,6 +180,7 @@ namespace NCB {
         // shared ownership is passed to IRawFeaturesOrderDataVisitor
         virtual void AddCatFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder<ui32> features) = 0;
 
+        virtual void AddTextFeature(ui32 flatFeatureIdx, TConstArrayRef<TString> features) = 0;
         virtual void AddTextFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder<TString> feature) = 0;
         virtual void AddTextFeature(
             ui32 flatFeatureIdx,

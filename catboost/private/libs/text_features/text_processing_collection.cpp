@@ -36,7 +36,7 @@ namespace NCB {
         TArrayRef<float> result
     ) const {
         CB_ENSURE(
-            result.size() == NumberOfOutputFeatures(textFeatureIdx) * docCount,
+            result.size() >= NumberOfOutputFeatures(textFeatureIdx) * docCount,
             "Proposed result buffer has size less than text processing produce"
         );
 

@@ -184,8 +184,11 @@ NJson::TJsonValue GetTrainingOptions(
     return catboostOptionsJson;
 }
 
-NJson::TJsonValue GetPlainJsonWithAllOptions(const TFullModel& model, bool hasCatFeatures)
-{
+NJson::TJsonValue GetPlainJsonWithAllOptions(
+    const TFullModel& model,
+    bool hasCatFeatures,
+    bool hasTextFeatures
+) {
     NJson::TJsonValue trainOptions = ReadTJsonValue(model.ModelInfo.at("params"));
     NJson::TJsonValue outputOptions = ReadTJsonValue(model.ModelInfo.at("output_options"));
     NJson::TJsonValue plainOptions;
@@ -193,7 +196,7 @@ NJson::TJsonValue GetPlainJsonWithAllOptions(const TFullModel& model, bool hasCa
     CB_ENSURE(!plainOptions.GetMapSafe().empty(), "plainOptions should not be empty.");
     NJson::TJsonValue cleanedOptions(plainOptions);
     CB_ENSURE(!cleanedOptions.GetMapSafe().empty(), "problems with copy constructor.");
-    NCatboostOptions::CleanPlainJson(hasCatFeatures, &cleanedOptions);
+    NCatboostOptions::CleanPlainJson(hasCatFeatures, &cleanedOptions, hasTextFeatures);
     CB_ENSURE(!cleanedOptions.GetMapSafe().empty(), "cleanedOptions should not be empty.");
     return cleanedOptions;
 }

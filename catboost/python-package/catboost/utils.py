@@ -143,6 +143,7 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
     column_type_to_indices = {}
     column_dtypes = {}
     cat_feature_indices = []
+    text_feature_indices = []
     column_names = []
     non_feature_column_indices = []
 
@@ -181,13 +182,16 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
             if len(line_columns) == 3:
                 column_name = line_columns[2]
 
-            if column_type in ['Num', 'Categ']:
+            if column_type in ['Num', 'Categ', 'Text']:
                 feature_idx = column_idx - len(non_feature_column_indices)
                 if column_name is None:
                     column_name = 'feature_%i' % feature_idx
                 if column_type == 'Categ':
                     cat_feature_indices.append(feature_idx)
                     column_dtypes[column_name] = 'category'
+                elif column_type == 'Text':
+                    text_feature_indices.append(feature_idx)
+                    column_dtypes[column_name] = object
                 else:
                     column_dtypes[column_name] = np.float32
             else:
@@ -205,6 +209,7 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
         'column_type_to_indices' : column_type_to_indices,
         'column_dtypes' : column_dtypes,
         'cat_feature_indices' : cat_feature_indices,
+        'text_feature_indices' : text_feature_indices,
         'column_names' : column_names,
         'non_feature_column_indices' : non_feature_column_indices
     }

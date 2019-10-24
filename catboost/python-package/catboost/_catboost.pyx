@@ -364,6 +364,7 @@ cdef extern from "catboost/libs/data/features_layout.h" namespace "NCB":
         ui32 GetCatFeatureCount() except +ProcessException
         ui32 GetExternalFeatureCount() except +ProcessException
         TConstArrayRef[ui32] GetCatFeatureInternalIdxToExternalIdx() except +ProcessException
+        TConstArrayRef[ui32] GetTextFeatureInternalIdxToExternalIdx() except +ProcessException
 
 
 cdef extern from "catboost/libs/data/meta_info.h" namespace "NCB":
@@ -617,6 +618,10 @@ cdef extern from "catboost/libs/data/visitor.h" namespace "NCB":
         void AddAllCatFeatures(ui32 localObjectIdx, TConstArrayRef[ui32] features) except +ProcessException
         void AddCatFeatureDefaultValue(ui32 flatFeatureIdx, TStringBuf feature) except +ProcessException
 
+        void AddTextFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, TStringBuf feature) except +ProcessException
+        void AddAllTextFeatures(ui32 localObjectIdx, TConstArrayRef[ui32] features) except +ProcessException
+        void AddTextFeatureDefaultValue(ui32 flatFeatureIdx, TStringBuf feature) except +ProcessException
+
         void AddTarget(ui32 localObjectIdx, const TString& value) except +ProcessException
         void AddTarget(ui32 localObjectIdx, float value) except +ProcessException
         void AddBaseline(ui32 localObjectIdx, ui32 baselineIdx, float value) except +ProcessException
@@ -648,6 +653,9 @@ cdef extern from "catboost/libs/data/visitor.h" namespace "NCB":
 
         void AddCatFeature(ui32 flatFeatureIdx, TMaybeOwningConstArrayHolder[ui32] features) except +ProcessException
         void AddCatFeature(ui32 flatFeatureIdx, TConstPolymorphicValuesSparseArray[TString, ui32] features) except +ProcessException
+
+        void AddTextFeature(ui32 flatFeatureIdx, TConstArrayRef[TString] feature) except +ProcessException
+        void AddTextFeature(ui32 flatFeatureIdx, TConstArrayRef[TStringBuf] feature) except +ProcessException
 
         void AddTarget(TConstArrayRef[TString] value) except +ProcessException
         void AddTarget(TConstArrayRef[float] value) except +ProcessException
@@ -739,11 +747,16 @@ cdef extern from "catboost/libs/model/model.h":
         TVector[float] Borders
         TString FeatureId
 
+    cdef cppclass TTextFeature:
+        TFeaturePosition Position
+        TString FeatureId
+
     cdef cppclass TObliviousTrees:
         int GetDimensionCount() except +ProcessException
         TConstArrayRef[double] GetLeafValues() except +ProcessException
         TConstArrayRef[double] GetLeafWeights() except +ProcessException
         TConstArrayRef[TCatFeature] GetCatFeatures() except +ProcessException
+        TConstArrayRef[TTextFeature] GetTextFeatures() except +ProcessException
         TConstArrayRef[TFloatFeature] GetFloatFeatures() except +ProcessException
         void SetLeafValues(const TVector[double]& leafValues) except +ProcessException
         void DropUnusedFeatures() except +ProcessException
@@ -1208,7 +1221,8 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
 
     cdef TJsonValue GetPlainJsonWithAllOptions(
         const TFullModel& model,
-        bool_t hasCatFeatures
+        bool_t hasCatFeatures,
+        bool_t hasTextFeatures
     ) nogil except +ProcessException
 
 cdef extern from "catboost/private/libs/quantized_pool_analysis/quantized_pool_analysis.h" namespace "NCB":
@@ -1901,9 +1915,15 @@ class FeaturesData(object):
         return self.num_feature_names + self.cat_feature_names
 
 
-cdef TFeaturesLayout* _init_features_layout(data, cat_features, feature_names) except*:
+cdef void list_to_vector(values_list, TVector[ui32]* values_vector):
+    if values_list is not None:
+        for value in values_list:
+            values_vector[0].push_back(value)
+
+
+cdef TFeaturesLayout* _init_features_layout(data, cat_features, text_features, feature_names) except*:
     cdef TVector[ui32] cat_features_vector
-    cdef TVector[ui32] text_features_vector # TODO(d-kruchinin): support text features in python package
+    cdef TVector[ui32] text_features_vector
     cdef TVector[TString] feature_names_vector
     cdef bool_t all_features_are_sparse
 
@@ -1914,9 +1934,8 @@ cdef TFeaturesLayout* _init_features_layout(data, cat_features, feature_names) e
     else:
         feature_count = np.shape(data)[1]
 
-    if cat_features is not None:
-        for cat_feature in cat_features:
-            cat_features_vector.push_back(cat_feature)
+    list_to_vector(cat_features, &cat_features_vector)
+    list_to_vector(text_features, &text_features_vector)
 
     if feature_names is not None:
         for feature_name in feature_names:
@@ -1933,13 +1952,13 @@ cdef TFeaturesLayout* _init_features_layout(data, cat_features, feature_names) e
         feature_names_vector,
         all_features_are_sparse)
 
-cdef TVector[bool_t] _get_is_cat_feature_mask(const TFeaturesLayout* featuresLayout):
+cdef TVector[bool_t] _get_is_feature_type_mask(const TFeaturesLayout* featuresLayout, EFeatureType featureType):
     cdef TVector[bool_t] mask
     mask.resize(featuresLayout.GetExternalFeatureCount(), False)
 
     cdef ui32 idx
     for idx in range(featuresLayout.GetExternalFeatureCount()):
-        if featuresLayout[0].GetExternalFeatureType(idx) == EFeatureType_Categorical:
+        if featuresLayout[0].GetExternalFeatureType(idx) == featureType:
             mask[idx] = True
 
     return mask
@@ -2003,6 +2022,7 @@ def _set_features_order_data_features_data(
 def _set_features_order_data_ndarray(
     numpy_num_dtype [:,:] feature_values,
     bool_t [:] is_cat_feature_mask,
+    bool_t [:] is_text_feature_mask,
     Py_FeaturesOrderBuilderVisitor py_builder_visitor
 ):
     cdef IRawFeaturesOrderDataVisitor* builder_visitor
@@ -2014,19 +2034,22 @@ def _set_features_order_data_ndarray(
     cdef Py_ITypedSequencePtr py_num_factor_data
     cdef ITypedSequencePtr[np.float32_t] num_factor_data
 
-    cdef TVector[TString] cat_factor_data
+    cdef TVector[TString] string_factor_data
     cdef ui32 doc_idx
 
     cdef ui32 flat_feature_idx
 
-    cat_factor_data.reserve(doc_count)
+    string_factor_data.reserve(doc_count)
 
     for flat_feature_idx in range(feature_count):
-        if is_cat_feature_mask[flat_feature_idx]:
-            cat_factor_data.clear()
+        if is_cat_feature_mask[flat_feature_idx] or is_text_feature_mask[flat_feature_idx]:
+            string_factor_data.clear()
             for doc_idx in range(doc_count):
-                cat_factor_data.push_back(ToString(feature_values[doc_idx, flat_feature_idx]))
-            builder_visitor[0].AddCatFeature(flat_feature_idx, <TConstArrayRef[TString]>cat_factor_data)
+                string_factor_data.push_back(ToString(feature_values[doc_idx, flat_feature_idx]))
+            if is_cat_feature_mask[flat_feature_idx]:
+                builder_visitor[0].AddCatFeature(flat_feature_idx, <TConstArrayRef[TString]>string_factor_data)
+            else:
+                builder_visitor[0].AddTextFeature(flat_feature_idx, <TConstArrayRef[TString]>string_factor_data)
         else:
             py_num_factor_data = make_non_owning_type_cast_array_holder(feature_values[:,flat_feature_idx])
             py_num_factor_data.get_result(&num_factor_data)
@@ -2108,6 +2131,27 @@ cdef get_cat_factor_bytes_representation(
             ' cat_features must be integer or string, real number values and NaN values'
             ' should be converted to string.'.format(doc_description, feature_idx, factor)
         )
+
+cdef get_text_factor_bytes_representation(
+    int non_default_doc_idx, # can be -1 - that means default value for sparse data
+    ui32 feature_idx,
+    object factor,
+    TString* factor_strbuf
+):
+    cdef type obj_type = type(factor)
+    if obj_type is str or obj_type is unicode or obj_type is bytes or obj_type is _npstring_:
+        factor_strbuf[0] = to_arcadia_string(factor)
+    else:
+        if non_default_doc_idx == -1:
+            doc_description = 'default value for sparse data'
+        else:
+            doc_description = 'non-default value idx={}'.format(non_default_doc_idx)
+
+        raise CatBoostError(
+            'Invalid type for text_feature[{},feature_idx={}]={} :'
+            ' text_features must have string type'.format(doc_description, feature_idx, factor)
+        )
+
 
 # returns new data holders array
 cdef get_canonical_type_indexing_array(np.ndarray indices, TMaybeOwningConstArrayHolder[ui32] * result):
@@ -2290,15 +2334,15 @@ cdef object _set_features_order_data_pd_data_frame(
     const TFeaturesLayout* features_layout,
     IRawFeaturesOrderDataVisitor* builder_visitor
 ):
-    cdef TVector[bool_t] is_cat_feature_mask = _get_is_cat_feature_mask(features_layout)
+    cdef TVector[bool_t] is_cat_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Categorical)
+    cdef TVector[bool_t] is_text_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Text)
     cdef ui32 doc_count = data_frame.shape[0]
 
     cdef TString factor_string
 
     cdef ITypedSequencePtr[np.float32_t] num_factor_data
 
-    cdef TVector[TString] cat_factor_data
-
+    cdef TVector[TString] string_factor_data
 
     # this buffer for categorical processing is here to avoid reallocations in
     # _set_features_order_data_pd_data_frame_categorical_column
@@ -2310,7 +2354,7 @@ cdef object _set_features_order_data_pd_data_frame(
     cdef ui32 flat_feature_idx
     cdef np.ndarray column_values # for columns that are not Sparse or Categorical
 
-    cat_factor_data.reserve(doc_count)
+    string_factor_data.reserve(doc_count)
 
     new_data_holders = []
     for flat_feature_idx, (column_name, column_data) in enumerate(data_frame.iteritems()):
@@ -2320,7 +2364,7 @@ cdef object _set_features_order_data_pd_data_frame(
                 flat_feature_idx,
                 is_cat_feature_mask[flat_feature_idx],
                 column_data.values,
-                &cat_factor_data,
+                &string_factor_data,
                 builder_visitor
             )
         elif column_data.dtype.name == 'category':
@@ -2340,7 +2384,7 @@ cdef object _set_features_order_data_pd_data_frame(
         else:
             column_values = column_data.values
             if is_cat_feature_mask[flat_feature_idx]:
-                cat_factor_data.clear()
+                string_factor_data.clear()
                 for doc_idx in range(doc_count):
                     get_cat_factor_bytes_representation(
                         doc_idx,
@@ -2348,8 +2392,19 @@ cdef object _set_features_order_data_pd_data_frame(
                         column_values[doc_idx],
                         &factor_string
                     )
-                    cat_factor_data.push_back(factor_string)
-                builder_visitor[0].AddCatFeature(flat_feature_idx, <TConstArrayRef[TString]>cat_factor_data)
+                    string_factor_data.push_back(factor_string)
+                builder_visitor[0].AddCatFeature(flat_feature_idx, <TConstArrayRef[TString]>string_factor_data)
+            elif is_text_feature_mask[flat_feature_idx]:
+                string_factor_data.clear()
+                for doc_idx in range(doc_count):
+                    get_text_factor_bytes_representation(
+                        doc_idx,
+                        flat_feature_idx,
+                        column_values[doc_idx],
+                        &factor_string
+                    )
+                    string_factor_data.push_back(factor_string)
+                builder_visitor[0].AddTextFeature(flat_feature_idx, <TConstArrayRef[TString]>string_factor_data)
             else:
                 new_data_holders += create_num_factor_data(
                     flat_feature_idx,
@@ -2618,7 +2673,10 @@ cdef _set_objects_order_data_scipy_sparse_matrix(
 ):
     _set_cat_features_default_values_for_scipy_sparse(features_layout, builder_visitor)
 
-    cdef TVector[bool_t] is_cat_feature_mask = _get_is_cat_feature_mask(features_layout)
+    cdef TVector[bool_t] is_cat_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Categorical)
+    cdef TVector[bool_t] is_text_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Text)
+    if np.any(is_text_feature_mask):
+        raise CatBoostError('Text features reading is not supported in sparse matrix format')
 
     cdef TString error_string
 
@@ -2684,7 +2742,7 @@ def _set_features_order_data_scipy_sparse_csc_matrix(
     cdef const TFeaturesLayout* features_layout
     py_builder_visitor.get_features_layout(&features_layout)
 
-    cdef TVector[bool_t] is_cat_feature_mask = _get_is_cat_feature_mask(features_layout)
+    cdef TVector[bool_t] is_cat_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Categorical)
 
     cdef np.float32_t float_default_value = 0.0
     cdef TString cat_default_value = "0"
@@ -2803,7 +2861,8 @@ cdef _set_data_from_generic_matrix(
     cdef int feature_idx
     cdef int cat_feature_idx
 
-    cdef TVector[bool_t] is_cat_feature_mask = _get_is_cat_feature_mask(features_layout)
+    cdef TVector[bool_t] is_cat_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Categorical)
+    cdef TVector[bool_t] is_text_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Text)
 
     for doc_idx in range(doc_count):
         doc_data = data[doc_idx]
@@ -2817,6 +2876,14 @@ cdef _set_data_from_generic_matrix(
                     &factor_strbuf
                 )
                 builder_visitor[0].AddCatFeature(doc_idx, feature_idx, <TStringBuf>factor_strbuf)
+            elif is_text_feature_mask[feature_idx]:
+                get_text_factor_bytes_representation(
+                    doc_idx,
+                    feature_idx,
+                    factor,
+                    &factor_strbuf
+                )
+                builder_visitor[0].AddTextFeature(doc_idx, feature_idx, <TStringBuf>factor_strbuf)
             else:
                 builder_visitor[0].AddFloatFeature(
                     doc_idx,
@@ -3086,7 +3153,8 @@ cdef class _PoolBase:
             if data_meta_info.FeaturesLayout.Get()[0].GetFloatFeatureCount():
                 new_data_holders = data
 
-            cat_features_mask = _get_is_cat_feature_mask(features_layout)
+            cat_features_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Categorical)
+            text_features_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Text)
 
             # needed because of https://github.com/cython/cython/issues/1772
             data.setflags(write=1)
@@ -3094,6 +3162,7 @@ cdef class _PoolBase:
             _set_features_order_data_ndarray(
                 data,
                 <bool_t[:features_layout[0].GetExternalFeatureCount()]>cat_features_mask.data(),
+                <bool_t[:features_layout[0].GetExternalFeatureCount()]>text_features_mask.data(),
                 py_builder_visitor
             )
 
@@ -3187,7 +3256,8 @@ cdef class _PoolBase:
         self.__pool = data_provider_builder.Get()[0].GetResult()
 
 
-    cpdef _init_pool(self, data, label, cat_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names):
+    cpdef _init_pool(self, data, label, cat_features, text_features, pairs, weight, group_id, group_weight,
+                     subgroup_id, pairs_weight, baseline, feature_names):
         if group_weight is not None and weight is not None:
             raise CatBoostError('Pool must have either weight or group_weight.')
 
@@ -3201,7 +3271,7 @@ cdef class _PoolBase:
         data_meta_info.HasTimestamp = False
         data_meta_info.HasPairs = pairs is not None
 
-        data_meta_info.FeaturesLayout = _init_features_layout(data, cat_features, feature_names)
+        data_meta_info.FeaturesLayout = _init_features_layout(data, cat_features, text_features, feature_names)
 
         do_use_raw_data_in_features_order = False
         if isinstance(data, FeaturesData):
@@ -3480,6 +3550,17 @@ cdef class _PoolBase:
         """
         cdef TFeaturesLayout* featuresLayout = dereference(self.__pool.Get()).MetaInfo.FeaturesLayout.Get()
         return [int(i) for i in featuresLayout[0].GetCatFeatureInternalIdxToExternalIdx()]
+
+    cpdef get_text_feature_indices(self):
+        """
+        Get text_feature indices from Pool.
+
+        Returns
+        -------
+        text_feature_indices : list
+        """
+        cdef TFeaturesLayout* featuresLayout = dereference(self.__pool.Get()).MetaInfo.FeaturesLayout.Get()
+        return [int(i) for i in featuresLayout[0].GetTextFeatureInternalIdxToExternalIdx()]
 
     cpdef get_cat_feature_hash_to_string(self):
         """
@@ -3763,6 +3844,10 @@ cdef class _CatBoost:
         cdef TConstArrayRef[TCatFeature] arrayView = self.__model.ObliviousTrees.Get().GetCatFeatures()
         return [feature.Position.FlatIndex for feature in arrayView]
 
+    cpdef _get_text_feature_indices(self):
+        cdef TConstArrayRef[TTextFeature] arrayView = self.__model.ObliviousTrees.Get().GetTextFeatures()
+        return [feature.Position.FlatIndex for feature in arrayView]
+
     cpdef _get_float_feature_indices(self):
         cdef TConstArrayRef[TFloatFeature] arrayView = self.__model.ObliviousTrees.Get().GetFloatFeatures()
         return [feature.Position.FlatIndex for feature in arrayView]
@@ -3959,7 +4044,12 @@ cdef class _CatBoost:
 
     cpdef _get_plain_params(self):
         hasCatFeatures = len(self._get_cat_feature_indices()) != 0
-        cdef TJsonValue plainOptions = GetPlainJsonWithAllOptions(dereference(self.__model), hasCatFeatures)
+        hasTextFeatures = len(self._get_text_feature_indices()) != 0
+        cdef TJsonValue plainOptions = GetPlainJsonWithAllOptions(
+            dereference(self.__model),
+            hasCatFeatures,
+            hasTextFeatures
+        )
         return loads(to_native_str(ToString(plainOptions)))
 
     def _get_tree_count(self):

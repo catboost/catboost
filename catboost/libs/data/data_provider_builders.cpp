@@ -214,6 +214,15 @@ namespace NCB {
             CatFeaturesStorage.SetDefaultValue(catFeatureIdx, GetCatFeatureValue(flatFeatureIdx, feature));
         }
 
+        void AddTextFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, TStringBuf feature) override {
+            auto textFeatureIdx = GetInternalFeatureIdx<EFeatureType::Text>(flatFeatureIdx);
+            TextFeaturesStorage.Set(
+                textFeatureIdx,
+                Cursor + localObjectIdx,
+                TString(feature)
+            );
+        }
+
         void AddTextFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, const TString& feature) override {
             auto textFeatureIdx = GetInternalFeatureIdx<EFeatureType::Text>(flatFeatureIdx);
             TextFeaturesStorage.Set(
@@ -943,6 +952,17 @@ namespace NCB {
                     ),
                     GetCatFeatureValue(flatFeatureIdx, features.GetDefaultValue())
                 )
+            );
+        }
+
+        void AddTextFeature(ui32 flatFeatureIdx, TConstArrayRef<TString> features) override {
+            auto textFeatureIdx = GetInternalFeatureIdx<EFeatureType::Text>(flatFeatureIdx);
+            TVector<TString> featuresCopy(features.begin(), features.end());
+
+            Data.ObjectsData.TextFeatures[*textFeatureIdx] = MakeHolder<TStringTextArrayValuesHolder>(
+                flatFeatureIdx,
+                TMaybeOwningConstArrayHolder<TString>::CreateOwning(std::move(featuresCopy)),
+                Data.CommonObjectsData.SubsetIndexing.Get()
             );
         }
 
