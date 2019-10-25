@@ -23,7 +23,7 @@ performance_test:
     
   script:
     - cd benchmarks/training_speed
-    - python benchmark.py --iterations 100
+    - python benchmark.py --iterations 10
   artifacts:
     paths:
       - catboost/benchmarks/training_speed/common-table.txt
