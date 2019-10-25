@@ -282,6 +282,9 @@
         },
         "fio": {
             "description": "flexible I/O tester"
+        },
+        "stress-ng": {
+            "description": "stress load tester"
         }
     },
     "toolchain": {
@@ -4367,6 +4370,22 @@
                 }
             ]
         },
+        "stress-ng": {
+            "tools": {
+                "stress-ng": {
+                    "bottle": "stress-ng",
+                    "executable": "stress-ng"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "vmexec": {
             "tools": {
                 "vmexec": {
@@ -6057,6 +6076,20 @@
                     "fio",
                     "bin",
                     "fio"
+                ]
+            }
+        },
+        "stress-ng": {
+            "formula": {
+                "sandbox_id": [
+                    535192029
+                ],
+                "match": "infra/kernel/tools/stress-ng/build/stress-ng-static.tar.gz"
+            },
+            "executable": {
+                "stress-ng": [
+                    "stress-ng",
+                    "stress-ng"
                 ]
             }
         },
