@@ -1306,12 +1306,12 @@ class GnuCompiler(Compiler):
             "-fdebug-prefix-map=${ARCADIA_BUILD_ROOT}=/-B",
             "-fdebug-prefix-map=${ARCADIA_ROOT}=/-S",
             "-fdebug-prefix-map=$(TOOL_ROOT)=/-T",
-            "-Xclang", "-fdebug-compilation-dir", "-Xclang", "/tmp",
+            # "-Xclang", "-fdebug-compilation-dir", "-Xclang", "/tmp",
         ]
         c_debug_map_light = [
             # XXX does not support non-normalized paths
             "-fdebug-prefix-map=${ARCADIA_BUILD_ROOT}=/-B",
-            "-Xclang", "-fdebug-compilation-dir", "-Xclang", "/tmp",
+            # "-Xclang", "-fdebug-compilation-dir", "-Xclang", "/tmp",
         ]
         yasm_debug_map = [
             # XXX does not support non-normalized paths
