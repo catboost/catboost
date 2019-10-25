@@ -123,3 +123,16 @@ template <>
 void Out<TFloat16>(IOutputStream& out, typename TTypeTraits<TFloat16>::TFuncParam value) {
     out << static_cast<float>(value);
 }
+
+void NFloat16Ops::PackFloat16SequenceAuto(const float* src, TFloat16* dst, size_t len) {
+    if (IsIntrisincsAvailableOnHost()) {
+        PackFloat16SequenceIntrisincs(src, dst, len);
+    } else {
+        while (len > 0) {
+            *dst = *src;
+            ++dst;
+            ++src;
+            --len;
+        }
+    }
+}

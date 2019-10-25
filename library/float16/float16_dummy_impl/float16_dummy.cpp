@@ -13,3 +13,7 @@ void NFloat16Ops::UnpackFloat16SequenceIntrisincs(const TFloat16*, float*, size_
 float NFloat16Ops::DotProductOnFloatIntrisincs(const float*, const TFloat16*, size_t) {
     Y_FAIL("NFloat16Ops::DotProductOnFloatIntrisincs() is not implemented on this platform");
 }
+
+void NFloat16Ops::PackFloat16SequenceIntrisincs(const float*, TFloat16*, size_t) {
+    Y_FAIL("NFloat16Ops::PackFloat16SequenceIntrisincs() is not implemented on this platform");
+}
