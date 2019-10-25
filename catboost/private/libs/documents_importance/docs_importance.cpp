@@ -103,8 +103,8 @@ static TDStrResult GetFinalDocumentImportances(
             if (predicate(preprocessedImportancesRef[indices[i]])) {
                 result.Scores[testDocId].push_back(preprocessedImportancesRef[indices[i]]);
                 result.Indices[testDocId].push_back(indices[i]);
-            }
-            ++currentSize;
+                ++currentSize;
+            }            
         }
     }
     return result;
