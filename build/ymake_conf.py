@@ -1706,11 +1706,7 @@ class LD(Linker):
             emit('DWARF_COMMAND')
         else:
             emit('DWARF_COMMAND', self.dwarf_command, ld_env_style)
-        if self.target.is_ios and preset('BUILD_IOS_APP'):
-            emit('PACK_IOS', '$YMAKE_PYTHON', '${input:"build/scripts/pack_ios.py"}', '--binary', '$TARGET', '--target', '$TARGET', '--temp-dir', '$BINDIR', '$PEERS' )
-        else:
-            emit('PACK_IOS')
-        emit('LINK_EXE', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_LINK_EXE && $DWARF_COMMAND && $PACK_IOS')
+        emit('LINK_EXE', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_LINK_EXE && $DWARF_COMMAND && $PACK_IOS_CMD')
         emit('LINK_DYN_LIB', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_LINK_DYN_LIB && $DWARF_COMMAND')
         emit('LINK_EXEC_DYN_LIB', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_LINK_EXEC_DYN_LIB && $DWARF_COMMAND')
         emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_SWIG_DLL_JAR_CMD && $DWARF_COMMAND')
