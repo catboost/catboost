@@ -26,6 +26,6 @@ performance_test:
     - python benchmark.py --iterations 100
   artifacts:
     paths:
-      - catboost/benchmarks/benchmarks/training_speed/common-table.txt
+      - catboost/benchmarks/training_speed/common-table.txt
   dependencies:
     - build
