@@ -14,6 +14,15 @@ PEERDIR(
     contrib/libs/double-conversion
 )
 
+IF (OS_ANDROID)
+    PEERDIR(
+        contrib/libs/android_ifaddrs
+    )
+    ADDINCL(
+        contrib/libs/android_ifaddrs
+    )
+ENDIF()
+
 # datetime
 JOIN_SRCS(
     all_datetime.cpp
