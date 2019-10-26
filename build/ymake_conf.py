@@ -1306,12 +1306,16 @@ class GnuCompiler(Compiler):
             "-fdebug-prefix-map=${ARCADIA_BUILD_ROOT}=/-B",
             "-fdebug-prefix-map=${ARCADIA_ROOT}=/-S",
             "-fdebug-prefix-map=$(TOOL_ROOT)=/-T",
-            # "-Xclang", "-fdebug-compilation-dir", "-Xclang", "/tmp",
+        ]
+        c_debug_map_cl = c_debug_map + [
+            "-Xclang", "-fdebug-compilation-dir", "-Xclang", "/tmp",
         ]
         c_debug_map_light = [
             # XXX does not support non-normalized paths
             "-fdebug-prefix-map=${ARCADIA_BUILD_ROOT}=/-B",
-            # "-Xclang", "-fdebug-compilation-dir", "-Xclang", "/tmp",
+        ]
+        c_debug_map_light_cl = c_debug_map_light + [
+            "-Xclang", "-fdebug-compilation-dir", "-Xclang", "/tmp",
         ]
         yasm_debug_map = [
             # XXX does not support non-normalized paths
@@ -1321,12 +1325,22 @@ class GnuCompiler(Compiler):
         ]
         emit_big('''
             when ($CONSISTENT_DEBUG == "yes") {{
-                CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__={c_debug}
+                when ($CLANG == "yes") {{
+                    CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__={c_debug_cl}
+                }}
+                otherwise {{
+                    CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__={c_debug}
+                }}
                 YASM_DEBUG_INFO_DISABLE_CACHE__NO_UID__={yasm_debug}
             }}
 
             when ($CONSISTENT_DEBUG_LIGHT == "yes") {{
-                CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__={c_debug_light}
+                when ($CLANG == "yes") {{
+                    CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__={c_debug_light_cl}
+                }}
+                otherwise {{
+                    CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__={c_debug_light}
+                }}
                 YASM_DEBUG_INFO_DISABLE_CACHE__NO_UID__={yasm_debug_light}
             }}
 
@@ -1334,8 +1348,10 @@ class GnuCompiler(Compiler):
                 CL_MACRO_INFO_DISABLE_CACHE__NO_UID__={macro}
             }}
         '''.format(c_debug=' '.join(c_debug_map),
+                   c_debug_cl=' '.join(c_debug_map_cl),
                    yasm_debug=' '.join(yasm_debug_map),
                    c_debug_light=' '.join(c_debug_map_light),  # build_root substitution only
+                   c_debug_light_cl=' '.join(c_debug_map_light_cl),  # build_root substitution only
                    yasm_debug_light=yasm_debug_map[0],  # build_root substitution only
                    macro=' '.join(c_builtins)))
 
