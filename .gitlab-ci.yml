@@ -23,10 +23,9 @@ performance_test:
     
   script:
     - cd benchmarks/training_speed
-    - python benchmark.py --iterations 10
+    #- python benchmark.py --iterations 10
   artifacts:
     paths:
-      - catboost/benchmarks/benchmarks/training_speed/*.txt
-      - catboost/benchmarks/benchmarks/training_speed/*.json
+      - *
   dependencies:
     - build
