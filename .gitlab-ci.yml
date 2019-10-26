@@ -26,6 +26,6 @@ performance_test:
     #- python benchmark.py --iterations 10
   artifacts:
     paths:
-      - *
+      - catboost/*
   dependencies:
     - build
