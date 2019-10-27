@@ -16,6 +16,8 @@ import signal
 import inspect
 import six
 
+from yatest_lib import test_splitter
+
 try:
     import resource
 except ImportError:
@@ -139,6 +141,7 @@ def pytest_addoption(parser):
     parser.addoption("--test-list-file", action="store", dest="test_list_file")
     parser.addoption("--modulo", default=1, type=int)
     parser.addoption("--modulo-index", default=0, type=int)
+    parser.addoption("--partition-mode", default='SEQUENTIAL', help="Split tests according to partitoin mode")
     parser.addoption("--split-by-tests", action='store_true', help="Split test execution by tests instead of suites", default=False)
     parser.addoption("--project-path", action="store", default="", help="path to CMakeList where test is declared")
     parser.addoption("--build-type", action="store", default="", help="build type")
@@ -378,7 +381,7 @@ def pytest_collection_modifyitems(items, config):
 
     if config.option.test_filter:
         filter_items(config.option.test_filter)
-
+    partition_mode = config.option.partition_mode
     modulo = config.option.modulo
     if modulo > 1:
         items[:] = sorted(items, key=lambda item: item.nodeid)
@@ -395,14 +398,10 @@ def pytest_collection_modifyitems(items, config):
                 items_by_classes[class_name].append(item)
             else:
                 res.append([item])
-
-        shift = int((len(res) + modulo - 1) / modulo)
-        start = modulo_index * shift
-        end = start + shift
-        chunk_items = []
-        for classes_items in res[start:end]:
-            chunk_items.extend(classes_items)
-        items[:] = chunk_items
+        chunk_items = test_splitter.get_splitted_tests(res, modulo, modulo_index, partition_mode, is_sorted=True)
+        items[:] = []
+        for item in chunk_items:
+            items.extend(item)
         yatest_logger.info("Modulo %s tests are: %s", modulo_index, chunk_items)
 
     if config.option.mode == RunMode.Run:
