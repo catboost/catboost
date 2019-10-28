@@ -103,13 +103,17 @@
             "uri": "file://test.test_continue_learning_with_changing_params_param_set=iterations_learning_rate-problem_type=regression_/predictions_for_boosting_type_Plain.txt"
         }
     ],
-    "test.test_convert_model_to_json[CPU-adult]": {
-        "checksum": "f7269e13972e760b5308277c2030ec0a",
-        "uri": "file://test.test_convert_model_to_json_CPU-adult_/converted_model.bin"
+    "test.test_convert_model_to_json[CPU-adult-parameters0]": {
+        "checksum": "61de365c657bc78e4b6c88619a7184d0",
+        "uri": "file://test.test_convert_model_to_json_CPU-adult-parameters0_/converted_model.bin"
     },
-    "test.test_convert_model_to_json[CPU-higgs]": {
-        "checksum": "9265146a807caa183d9fcb68da60d001",
-        "uri": "file://test.test_convert_model_to_json_CPU-higgs_/converted_model.bin"
+    "test.test_convert_model_to_json[CPU-adult-parameters1]": {
+        "checksum": "87a6edac17f896eebe5cc56f09575a34",
+        "uri": "file://test.test_convert_model_to_json_CPU-adult-parameters1_/converted_model.bin"
+    },
+    "test.test_convert_model_to_json[CPU-higgs-parameters2]": {
+        "checksum": "2e88c99e9b05f577d9db56560f1c13b0",
+        "uri": "file://test.test_convert_model_to_json_CPU-higgs-parameters2_/converted_model.bin"
     },
     "test.test_copy_model": {
         "checksum": "65fe57a40e12a2529870fd1d2f3b01da",

@@ -1023,12 +1023,13 @@ def test_coreml_import_export_one_hot_features(task_type):
     return compare_canonical_models(output_coreml_model_path)
 
 
-@pytest.mark.parametrize('pool', ['adult', 'higgs'])
-def test_convert_model_to_json(task_type, pool):
+@pytest.mark.parametrize('pool,parameters', [('adult', {}), ('adult', {'one_hot_max_size': 100}), ('higgs', {})])
+def test_convert_model_to_json(task_type, pool, parameters):
     train_pool = Pool(data_file(pool, 'train_small'), column_description=data_file(pool, 'train.cd'))
     test_pool = Pool(data_file(pool, 'test_small'), column_description=data_file(pool, 'train.cd'))
     converted_model_path = test_output_path("converted_model.bin")
-    model = CatBoost({'iterations': 20, 'task_type': task_type, 'devices': '0'})
+    parameters.update({'iterations': 20, 'task_type': task_type, 'devices': '0'})
+    model = CatBoost(parameters)
     model.fit(train_pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     output_json_model_path = test_output_path(OUTPUT_JSON_MODEL_PATH)
