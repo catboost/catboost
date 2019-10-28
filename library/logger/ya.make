@@ -13,6 +13,7 @@ SRCS(
     backend.cpp
     thread.cpp
     stream.cpp
+    sync_page_cache_file.cpp
     element.cpp
     all.h
     priority.h
