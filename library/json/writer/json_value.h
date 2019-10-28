@@ -257,4 +257,30 @@ namespace NJson {
 
     bool GetMapPointer(const TJsonValue& jv, const TStringBuf key, const TJsonValue::TMapType** value);
     bool GetArrayPointer(const TJsonValue& jv, const TStringBuf key, const TJsonValue::TArray** value);
+
+    class TJsonMap: public TJsonValue {
+    public:
+        TJsonMap()
+            : TJsonValue(NJson::JSON_MAP)
+        {}
+
+        TJsonMap(const std::initializer_list<std::pair<TString, TJsonValue>>& list)
+            : TJsonValue(NJson::JSON_MAP)
+        {
+            GetMapSafe() = THashMap<TString, TJsonValue>(list);
+        }
+    };
+
+    class TJsonArray: public TJsonValue {
+    public:
+        TJsonArray()
+            : TJsonValue(NJson::JSON_ARRAY)
+        {}
+
+        TJsonArray(const std::initializer_list<TJsonValue>& list)
+            : TJsonValue(NJson::JSON_ARRAY)
+        {
+            GetArraySafe() = TJsonValue::TArray(list);
+        }
+    };
 }
