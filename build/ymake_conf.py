@@ -1157,6 +1157,8 @@ class GnuCompiler(Compiler):
                 self.c_foptions.append('$CLANG_ALIGNED_ALLOCATION_FLAG')
             else:
                 self.c_warnings.append('-Wno-aligned-allocation-unavailable')
+            if preset('MAPSMOBI_BUILD_TARGET') and self.target.is_arm:
+                self.c_foptions.append('-fembed-bitcode')
 
         if self.target.is_android:
             self.c_flags.append('-I{}/include/llvm-libc++abi/include'.format(tc.name_marker))
