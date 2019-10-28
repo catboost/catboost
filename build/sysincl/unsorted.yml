@@ -651,7 +651,6 @@
   - StorageDefs.h
   #endif
   - fpxcp.h
-  - local.h
   - fptrap.h
   - fortran.h
   - agg_allocator.h

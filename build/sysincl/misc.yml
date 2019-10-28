@@ -475,3 +475,11 @@
     - vectorf128.h
     - vectormath_exp.h
     - vectormath_trig.h
+
+- source_filter: "^contrib/libs/libf2c"
+  includes:
+    - local.h
+
+- source_filter: "^contrib/libs/libpq"
+  includes:
+    - local.h
