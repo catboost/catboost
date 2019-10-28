@@ -471,7 +471,7 @@ class Build(object):
     @property
     def is_release(self):
         # TODO(somov): Проверить, бывают ли тут суффиксы на самом деле
-        return self.build_type in ('release', 'relwithdebinfo', 'profile', 'gprof') or self.build_type.endswith('-release')
+        return self.build_type in ('release', 'relwithdebinfo', 'minsizerel', 'profile', 'gprof') or self.build_type.endswith('-release')
 
     @property
     def is_debug(self):
@@ -487,7 +487,7 @@ class Build(object):
 
     @property
     def with_ndebug(self):
-        return self.build_type in ('release', 'valgrind-release', 'profile', 'gprof')
+        return self.build_type in ('release', 'minsizerel', 'valgrind-release', 'profile', 'gprof')
 
     @property
     def is_valgrind(self):
@@ -1220,7 +1220,10 @@ class GnuCompiler(Compiler):
 
         if self.build.is_release:
             self.c_flags.append('$OPTIMIZE')
-            self.optimize = '-O3'
+            if self.build.build_type == 'minsizerel':
+                self.optimize = '-Os'
+            else:
+                self.optimize = '-O3'
 
         if self.build.with_ndebug:
             self.c_defines.append('-DNDEBUG')
