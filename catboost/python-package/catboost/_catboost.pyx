@@ -3585,33 +3585,6 @@ cdef class _PoolBase:
         cdef TFeaturesLayout* featuresLayout = dereference(self.__pool.Get()).MetaInfo.FeaturesLayout.Get()
         return [int(i) for i in featuresLayout[0].GetTextFeatureInternalIdxToExternalIdx()]
 
-    cpdef get_cat_feature_hash_to_string(self):
-        """
-        Get mapping of float hash values to corresponding strings
-
-        Returns
-        -------
-        hash_to_string : map
-        """
-        cdef const THashMap[ui32, TString]* cat_features_hash_to_string
-
-        hash_to_string = {}
-
-        cat_feature_count = self.__pool.Get()[0].MetaInfo.FeaturesLayout.Get()[0].GetCatFeatureCount()
-        for cat_feature_idx in range(cat_feature_count):
-            cat_features_hash_to_string = &(
-                self.__pool.Get()[0].ObjectsData.Get()[0].GetCatFeaturesHashToString(cat_feature_idx)
-            )
-
-            # can't use canonical for loop here due to Cython's bugs:
-            # https://github.com/cython/cython/issues/1451
-            it = cat_features_hash_to_string[0].const_begin()
-            while it != cat_features_hash_to_string[0].const_end():
-                hash_to_string[ConvertCatFeatureHashToFloat(dereference(it).first)] = to_native_str(dereference(it).second)
-                preincrement(it)
-
-        return hash_to_string
-
     cpdef get_weight(self):
         """
         Get weight for each instance.
@@ -4230,15 +4203,15 @@ cdef class _CatBoost:
             result_metrics.add(name)
         best_params = {}
         for key, value in results.BoolOptions:
-            best_params[key.decode('utf-8')] = value
+            best_params[to_native_str(key)] = value
         for key, value in results.IntOptions:
-            best_params[key.decode('utf-8')] = value
+            best_params[to_native_str(key)] = value
         for key, value in results.UIntOptions:
-            best_params[key.decode('utf-8')] = value
+            best_params[to_native_str(key)] = value
         for key, value in results.DoubleOptions:
-            best_params[key.decode('utf-8')] = value
+            best_params[to_native_str(key)] = value
         for key, value in results.StringOptions:
-            best_params[key.decode('utf-8')] = value.decode('utf-8')
+            best_params[to_native_str(key)] = to_native_str(value)
         search_result = {}
         search_result["params"] = best_params
         if return_cv_results:
