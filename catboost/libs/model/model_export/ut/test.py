@@ -25,7 +25,7 @@ def _get_train_test_pool(dataset):
     return (train_pool, test_pool)
 
 
-def _get_cpp_py_cbm_model(dataset):
+def _get_cpp_py_cbm_model(dataset, parameters=[]):
     train_path, _, cd_path = _get_train_test_cd_path(dataset)
     basename = yatest.common.test_output_path('model')
     cmd = [CATBOOST_APP_PATH, 'fit',
@@ -37,7 +37,7 @@ def _get_cpp_py_cbm_model(dataset):
            '--model-format', 'CPP',
            '--model-format', 'Python',
            '--model-format', 'CatboostBinary',
-           ]
+           ] + parameters
     yatest.common.execute(cmd)
     assert os.path.exists(basename + '.cpp')
     assert os.path.exists(basename + '.py')
@@ -49,9 +49,9 @@ def _check_data(data1, data2, rtol=0.001):
     return np.all(np.isclose(data1, data2, rtol=rtol, equal_nan=True))
 
 
-@pytest.mark.parametrize('dataset', ['adult', 'higgs'])
-def test_cpp_export(dataset):
-    model_cpp, _, model_cbm = _get_cpp_py_cbm_model(dataset)
+@pytest.mark.parametrize('dataset,parameters', [('adult', []), ('adult', ['-I', '3']), ('higgs', [])])
+def test_cpp_export(dataset, parameters):
+    model_cpp, _, model_cbm = _get_cpp_py_cbm_model(dataset, parameters)
     _, test_path, cd_path = _get_train_test_cd_path(dataset)
 
     # form the commands we are going to run

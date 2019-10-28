@@ -22,10 +22,12 @@ double ApplyCatboostModel(
     {
         /* Binarize float features */
         for (size_t i = 0; i < model.FloatFeatureBorders.size(); ++i) {
-            for (const float border : model.FloatFeatureBorders[i]) {
-                binaryFeatures[binFeatureIndex] += (unsigned char)(floatFeatures[i] > border);
+            if (!model.FloatFeatureBorders[i].empty()) {
+                for (const float border : model.FloatFeatureBorders[i]) {
+                    binaryFeatures[binFeatureIndex] += (unsigned char) (floatFeatures[i] > border);
+                }
+                ++binFeatureIndex;
             }
-            ++binFeatureIndex;
         }
     }
 
@@ -43,10 +45,13 @@ double ApplyCatboostModel(
         for (unsigned int i = 0; i < model.OneHotCatFeatureIndex.size(); ++i) {
             const auto catIdx = catFeaturePackedIndexes.at(model.OneHotCatFeatureIndex[i]);
             const auto hash = transposedHash[catIdx];
-            for (unsigned int borderIdx = 0; borderIdx < model.OneHotHashValues[i].size(); ++borderIdx) {
-                binaryFeatures[binFeatureIndex] |= (unsigned char)(hash == model.OneHotHashValues[i][borderIdx]) * (borderIdx + 1);
+            if (!model.OneHotHashValues[i].empty()) {
+                for (unsigned int borderIdx = 0; borderIdx < model.OneHotHashValues[i].size(); ++borderIdx) {
+                    binaryFeatures[binFeatureIndex] |=
+                        (unsigned char) (hash == model.OneHotHashValues[i][borderIdx]) * (borderIdx + 1);
+                }
+                ++binFeatureIndex;
             }
-            ++binFeatureIndex;
         }
     }
 
