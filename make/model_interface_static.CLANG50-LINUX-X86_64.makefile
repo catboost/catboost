@@ -21538,6 +21538,7 @@ $(BUILD_ROOT)/library/logger/liblibrary-logger.a\
         $(BUILD_ROOT)/library/logger/priority.h_serialized.cpp.pic.o\
         $(BUILD_ROOT)/library/logger/rotating_file.cpp.pic.o\
         $(BUILD_ROOT)/library/logger/stream.cpp.pic.o\
+        $(BUILD_ROOT)/library/logger/sync_page_cache_file.cpp.pic.o\
         $(BUILD_ROOT)/library/logger/system.cpp.pic.o\
         $(BUILD_ROOT)/library/logger/thread.cpp.pic.o\
         $(SOURCE_ROOT)/build/scripts/generate_mf.py\
@@ -21545,7 +21546,7 @@ $(BUILD_ROOT)/library/logger/liblibrary-logger.a\
 
 	mkdir -p '$(BUILD_ROOT)/library/logger'
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name library-logger -o library/logger/liblibrary-logger.a.mf -t LIBRARY -Ya,lics -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/logger/liblibrary-logger.a' '$(BUILD_ROOT)/library/logger/log.cpp.pic.o' '$(BUILD_ROOT)/library/logger/system.cpp.pic.o' '$(BUILD_ROOT)/library/logger/file.cpp.pic.o' '$(BUILD_ROOT)/library/logger/rotating_file.cpp.pic.o' '$(BUILD_ROOT)/library/logger/null.cpp.pic.o' '$(BUILD_ROOT)/library/logger/backend.cpp.pic.o' '$(BUILD_ROOT)/library/logger/thread.cpp.pic.o' '$(BUILD_ROOT)/library/logger/stream.cpp.pic.o' '$(BUILD_ROOT)/library/logger/element.cpp.pic.o' '$(BUILD_ROOT)/library/logger/filter.cpp.pic.o' '$(BUILD_ROOT)/library/logger/priority.h_serialized.cpp.pic.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/library/logger/liblibrary-logger.a' '$(BUILD_ROOT)/library/logger/log.cpp.pic.o' '$(BUILD_ROOT)/library/logger/system.cpp.pic.o' '$(BUILD_ROOT)/library/logger/file.cpp.pic.o' '$(BUILD_ROOT)/library/logger/rotating_file.cpp.pic.o' '$(BUILD_ROOT)/library/logger/null.cpp.pic.o' '$(BUILD_ROOT)/library/logger/backend.cpp.pic.o' '$(BUILD_ROOT)/library/logger/thread.cpp.pic.o' '$(BUILD_ROOT)/library/logger/stream.cpp.pic.o' '$(BUILD_ROOT)/library/logger/sync_page_cache_file.cpp.pic.o' '$(BUILD_ROOT)/library/logger/element.cpp.pic.o' '$(BUILD_ROOT)/library/logger/filter.cpp.pic.o' '$(BUILD_ROOT)/library/logger/priority.h_serialized.cpp.pic.o'
 
 $(BUILD_ROOT)/library/logger/backend.cpp.pic.o\
         ::\
@@ -21617,6 +21618,13 @@ $(BUILD_ROOT)/library/logger/stream.cpp.pic.o\
 
 	mkdir -p '$(BUILD_ROOT)/library/logger'
 	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/logger/stream.cpp.pic.o' '$(SOURCE_ROOT)/library/logger/stream.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-fdebug-prefix-map=$(BUILD_ROOT)=/-B' -Xclang -fdebug-compilation-dir -Xclang /tmp -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_libunwind_ -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/library/logger/sync_page_cache_file.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/library/logger/sync_page_cache_file.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/library/logger'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/library/logger/sync_page_cache_file.cpp.pic.o' '$(SOURCE_ROOT)/library/logger/sync_page_cache_file.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' '-I$(SOURCE_ROOT)/contrib/libs/double-conversion/include' '-fdebug-prefix-map=$(BUILD_ROOT)=/-B' -Xclang -fdebug-compilation-dir -Xclang /tmp -pipe -m64 -O3 -g -ggnu-pubnames -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_libunwind_ -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
 $(BUILD_ROOT)/library/logger/system.cpp.pic.o\
         ::\
@@ -24794,6 +24802,7 @@ clean\
 	rm -f '$(BUILD_ROOT)/library/logger/priority.h_serialized.cpp'
 	rm -f '$(BUILD_ROOT)/library/logger/rotating_file.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/library/logger/stream.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/library/logger/sync_page_cache_file.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/library/logger/system.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/library/logger/thread.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/library/malloc/api/liblibrary-malloc-api.a' '$(BUILD_ROOT)/library/malloc/api/liblibrary-malloc-api.a.mf'
