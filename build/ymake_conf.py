@@ -1154,8 +1154,7 @@ class GnuCompiler(Compiler):
         if self.target.is_ios:
             self.c_defines.extend(['-D_XOPEN_SOURCE', '-D_DARWIN_C_SOURCE'])
             if self.tc.version_at_least(7):
-                if not preset('MAPSMOBI_BUILD_TARGET'):
-                    self.c_foptions.append('-faligned-allocation')
+                self.c_foptions.append('$CLANG_ALIGNED_ALLOCATION_FLAG')
             else:
                 self.c_warnings.append('-Wno-aligned-allocation-unavailable')
 
@@ -1204,8 +1203,8 @@ class GnuCompiler(Compiler):
                     '-Wno-enum-compare-switch',
                     '-Wno-pass-failed',
                 ))
-
-                self.c_foptions.append('-faligned-allocation')
+                if not self.target.is_ios:
+                    self.c_foptions.append('$CLANG_ALIGNED_ALLOCATION_FLAG')
 
         if self.tc.is_gcc and self.tc.version_at_least(4, 9):
             self.c_foptions.append('-fno-delete-null-pointer-checks')
