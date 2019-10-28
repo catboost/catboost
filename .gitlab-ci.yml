@@ -16,10 +16,6 @@ performance_test:
   before_script:
     - pip2 install catboost/python-package/catboost-*.whl --user
     - pip2 install xgboost matplotlib tqdm scipy lightgbm pandas numpy scikit_learn --user
-    #- rm -rf benchmarks
-    #- mkdir benchmarks
-    #- cd benchmarks 
-    #- git clone https://github.com/catboost/benchmarks.git
     
   script:
     - cd catboost/benchmarks/training_speed
