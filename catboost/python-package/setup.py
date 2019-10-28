@@ -27,8 +27,10 @@ install_requires=[
     'scipy',
     'plotly',
     'six',
-    'enum34; python_version < "3.4"'
 ],
+
+if sys.version_info < (3, 4):
+    install_requires.append('enum34')
 
 setup(
     name=PACKAGE,
