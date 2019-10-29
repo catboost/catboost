@@ -6,7 +6,7 @@
   includes:
   - __config
   - atomic.h
-- source_filter: "^quasar/yandex_io/daemons/(external_libs|local/include)/boost"
+- source_filter: "^quasar/yandex_io/daemons/local/include/boost"
   includes:
   - ../include/fenv.h
   - __config

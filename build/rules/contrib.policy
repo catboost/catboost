@@ -98,6 +98,8 @@ ALLOW orgvisits/library/soc -> contrib/libs/boost
 ALLOW orgvisits/library/soc -> contrib/deprecated/boost
 ALLOW quality/antifraud/common_lib -> contrib/libs/boost
 ALLOW quality/antifraud/common_lib -> contrib/deprecated/boost
+ALLOW quasar/yandex_io -> contrib/libs/boost
+ALLOW quasar/yandex_io -> contrib/deprecated/boost
 ALLOW regulargeo/research -> contrib/libs/boost
 ALLOW regulargeo/research -> contrib/deprecated/boost
 ALLOW rem/python/geobase30 -> contrib/libs/boost
