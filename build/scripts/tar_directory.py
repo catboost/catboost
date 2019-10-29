@@ -15,7 +15,7 @@ def main(args):
         prefix = args[2]
     for tar_exe in ('/usr/bin/tar', '/bin/tar'):
         if is_exe(tar_exe):
-            source = os.path.relpath(source, prefix)
+            source = os.path.relpath(source, prefix) if prefix else source
             os.execv(tar_exe, [tar_exe, '-cf', tar] + (['-C', prefix] if prefix else []) + [source])
     else:
         with tarfile.open(tar, 'w') as out:
