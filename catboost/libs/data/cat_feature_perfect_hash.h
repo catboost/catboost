@@ -6,6 +6,7 @@
 #include <catboost/libs/helpers/exception.h>
 
 #include <library/binsaver/bin_saver.h>
+#include <library/dbg_output/dump.h>
 
 #include <util/generic/guid.h>
 #include <util/generic/map.h>
@@ -108,6 +109,45 @@ namespace NCB {
 Y_DECLARE_PODTYPE(NCB::TCatFeatureUniqueValuesCounts);
 Y_DECLARE_PODTYPE(NCB::TValueWithCount);
 Y_DECLARE_PODTYPE(NCB::TCatFeaturePerfectHashDefaultValue);
+
+
+template <>
+struct TDumper<NCB::TValueWithCount> {
+    template <class S>
+    static inline void Dump(
+        S& s,
+        NCB::TValueWithCount valueWithCount
+    ) {
+        s << "{Value=" << valueWithCount.Value << ",Count=" << valueWithCount.Count << '}';
+    }
+};
+
+template <>
+struct TDumper<NCB::TCatFeaturePerfectHashDefaultValue> {
+    template <class S>
+    static inline void Dump(
+        S& s,
+        const NCB::TCatFeaturePerfectHashDefaultValue& catFeaturePerfectHashDefaultValue
+    ) {
+        s << "{SrcValue=" << catFeaturePerfectHashDefaultValue.SrcValue
+            << ",DstValueWithCount=" << DbgDump(catFeaturePerfectHashDefaultValue.DstValueWithCount)
+            << ",Fraction=" << catFeaturePerfectHashDefaultValue.Fraction << '}';
+    }
+};
+
+template <>
+struct TDumper<NCB::TCatFeaturePerfectHash> {
+    template <class S>
+    static inline void Dump(S& s, const NCB::TCatFeaturePerfectHash& catFeaturePerfectHash) {
+        s << "{DefaultMap=";
+        if (catFeaturePerfectHash.DefaultMap) {
+            s << DbgDump(*catFeaturePerfectHash.DefaultMap);
+        } else {
+            s << "None";
+        }
+        s << "Map=" << DbgDump(catFeaturePerfectHash.Map) << "}\n";
+    }
+};
 
 
 namespace NCB {
