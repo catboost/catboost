@@ -14,7 +14,7 @@ JOIN_SRCS(
     wide.cpp
 )
 
-IF (ARCH_X86_64)
+IF (ARCH_X86_64 AND NOT DISABLE_INSTRUCTION_SETS)
     SRC_CPP_SSE41(wide_sse41.cpp)
 ELSE()
     SRC(
