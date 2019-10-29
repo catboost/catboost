@@ -368,35 +368,23 @@ TBufferedOutputBase::~TBufferedOutputBase() {
 }
 
 size_t TBufferedOutputBase::DoNext(void** ptr) {
-    if (Impl_.Get()) {
-        return Impl_->Next(ptr);
-    } else {
-        ythrow yexception() << "cannot call next in finished stream";
-    }
+    Y_ENSURE(Impl_.Get(), "cannot call next in finished stream");
+    return Impl_->Next(ptr);
 }
 
 void TBufferedOutputBase::DoUndo(size_t len) {
-    if (Impl_.Get()) {
-        Impl_->Undo(len);
-    } else {
-        ythrow yexception() << "cannot call undo in finished stream";
-    }
+    Y_ENSURE(Impl_.Get(), "cannot call undo in finished stream");
+    Impl_->Undo(len);
 }
 
 void TBufferedOutputBase::DoWrite(const void* data, size_t len) {
-    if (Impl_.Get()) {
-        Impl_->Write(data, len);
-    } else {
-        ythrow yexception() << "cannot write to finished stream";
-    }
+    Y_ENSURE(Impl_.Get(), "cannot write to finished stream");
+    Impl_->Write(data, len);
 }
 
 void TBufferedOutputBase::DoWriteC(char c) {
-    if (Impl_.Get()) {
-        Impl_->Write(c);
-    } else {
-        ythrow yexception() << "cannot write to finished stream";
-    }
+    Y_ENSURE(Impl_.Get(), "cannot write to finished stream");
+    Impl_->Write(c);
 }
 
 void TBufferedOutputBase::DoFlush() {
