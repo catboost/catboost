@@ -4506,7 +4506,9 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [536532251],
+                "sandbox_id": [
+                    536532251
+                ],
                 "match": "ymake"
             },
             "executable": {
@@ -5871,7 +5873,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 536806373,
+                "sandbox_id": 537530940,
                 "match": "horadric"
             },
             "executable": {
