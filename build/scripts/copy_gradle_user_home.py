@@ -18,7 +18,7 @@ def main():
     for root, _, files in os.walk(args.output):
         os.chmod(root, 0o775)
         for f in files:
-            os.chmod(os.path.join(root, f), 0o664)
+            os.chmod(os.path.join(root, f), 0o775)
 
 
 if __name__ == '__main__':
