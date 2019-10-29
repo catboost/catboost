@@ -36,7 +36,7 @@ namespace NCB {
         bool CpuCompatibleFormat = true;
         bool GpuCompatibleFormat = true;
         ui64 CpuRamLimit = Max<ui64>();
-        ui32 MaxSubsetSizeForSlowBuildBordersAlgorithms = 200000;
+        ui32 MaxSubsetSizeForBuildBordersAlgorithms = 200000;
         bool BundleExclusiveFeaturesForCpu = true;
         TExclusiveFeaturesBundlingOptions ExclusiveFeaturesBundlingOptions{};
         bool PackBinaryFeaturesForCpu = true;

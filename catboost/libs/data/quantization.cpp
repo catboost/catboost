@@ -120,7 +120,7 @@ namespace NCB {
                  * sample size
                  */
                 quantizedFeaturesInfo.GetFloatFeatureBinarization(Max<ui32>()).BorderSelectionType,
-                options.MaxSubsetSizeForSlowBuildBordersAlgorithms
+                options.MaxSubsetSizeForBuildBordersAlgorithms
             );
             if (sampleSize < objectCount) {
                 TFeaturesArraySubsetIndexing subsetIndexing;
@@ -198,7 +198,7 @@ namespace NCB {
             const ui32 sampleSize = GetSampleSizeForBorderSelectionType(
                 srcFeature.GetSize(),
                 defaultBinarizationSettings.BorderSelectionType,
-                options.MaxSubsetSizeForSlowBuildBordersAlgorithms
+                options.MaxSubsetSizeForBuildBordersAlgorithms
             );
 
             ui32 nonDefaultSampleSize;
