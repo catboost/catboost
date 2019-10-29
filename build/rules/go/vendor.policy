@@ -374,9 +374,6 @@ ALLOW market/sre/tools/ya-gde/src/pkg/util -> vendor/github.com/pkg/errors
 ALLOW orgvisits/witness -> vendor/github.com/pkg/errors
 ALLOW quasar/go/blackbox -> vendor/github.com/pkg/errors
 ALLOW quasar/go/tvm -> vendor/github.com/pkg/errors
-ALLOW security/impulse/api/scan-api/internal/controllers/workflow -> vendor/github.com/pkg/errors
-ALLOW security/osquery/extensions/go-secure -> vendor/github.com/pkg/errors
-ALLOW security/osquery/osquery-sender/sender -> vendor/github.com/pkg/errors
 ALLOW toolbox/bunker -> vendor/github.com/pkg/errors
 ALLOW toolbox/pg-pinger/pinger -> vendor/github.com/pkg/errors
 ALLOW transfer_manager/go/pkg/abstract -> vendor/github.com/pkg/errors
