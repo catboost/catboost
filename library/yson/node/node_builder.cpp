@@ -79,6 +79,11 @@ void TNodeBuilder::OnEndAttributes()
     Stack_.pop();
 }
 
+void TNodeBuilder::OnNode(TNode node)
+{
+    AddNode(std::move(node), true);
+}
+
 void TNodeBuilder::AddNode(TNode value, bool pop)
 {
     Stack_.top()->MoveWithoutAttributes(std::move(value));

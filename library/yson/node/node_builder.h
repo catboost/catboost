@@ -32,6 +32,7 @@ public:
     void OnEndMap() override;
     void OnBeginAttributes() override;
     void OnEndAttributes() override;
+    void OnNode(TNode node);
 
 private:
     TStack<TNode*> Stack_;
