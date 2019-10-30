@@ -150,6 +150,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\train_lib\catboost-libs-train_lib.vcxproj">
       <Project>{B6361F28-19AC-62AF-82F3-98822E01D227}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\algo\approx_calcer\libs-algo-approx_calcer.vcxproj">
+      <Project>{0F5235D9-7C61-080A-C810-DA5B714E61C5}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\algo\private-libs-algo.vcxproj">
       <Project>{57E74FB3-A4F4-6EEA-1797-1666D9FC13A2}</Project>
     </ProjectReference>
