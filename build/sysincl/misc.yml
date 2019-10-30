@@ -259,6 +259,10 @@
     - sasl/sasl.h
     - sasl/saslutil.h
 
+- source_filter: "^contrib/libs/apr"
+  includes:
+    - atomic.h
+
 - source_filter: "^contrib/libs/(apr|httpd|llvm)"
   includes:
     - uuid.h
