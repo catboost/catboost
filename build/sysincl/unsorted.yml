@@ -277,6 +277,8 @@
   - cusolverDn.h
   - cupti.h
   - curand.h
+  - curand_mtgp32_host.h
+  - curand_mtgp32dc_p_11213.h  
   - cusparse.h
   - cooperative_groups.h
   - driver_types.h
