@@ -614,7 +614,7 @@ class TSomeException: public yexception {
 ...
 
 if (errorHappened) {
-    ythrow TSomeException(numericCode) << "error happened (" << usefulDescription << ")";
+    throw TSomeException(numericCode) << "error happened (" << usefulDescription << ")";
 }
 ```
 
