@@ -342,6 +342,9 @@ ALLOW .* -> vendor/github.com/vishvananda/netns
 # CONTRIB-1545 Go bindings for creating BPF programs.
 ALLOW .* -> vendor/github.com/iovisor/gobpf
 
+# CONTRIB-1561 Go pretty format for numbers
+ALLOW .* -> vendor/github.com/dustin/go-humanize
+
 #
 # Temporary exceptions.
 #
