@@ -6,6 +6,9 @@ namespace NCatboostOptions {
         CB_ENSURE(GetBaggingTemperature() >= 0, "Bagging temperature should be >= 0");
         CB_ENSURE(GetMvsReg().OrElse(0) >= 0, "MVS regularization parameter should be >= 0");
 
+        if (BootstrapType.NotSet()) {
+            return;
+        }
         EBootstrapType type = BootstrapType;
         switch (type) {
             case EBootstrapType::Bayesian: {

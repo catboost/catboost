@@ -19,13 +19,17 @@
         "checksum": "289da4402d5793633961cb427b47111b",
         "uri": "file://test.test_classification_ctr_GPU_/model.bin"
     },
-    "test.test_convert_model_to_json[GPU-adult]": {
-        "checksum": "d2eadf3ef5a07b2fbde9e4e2fdb368f0",
-        "uri": "file://test.test_convert_model_to_json_GPU-adult_/converted_model.bin"
+    "test.test_convert_model_to_json[GPU-adult-parameters0]": {
+        "checksum": "91e7eaf54edb4ac67e5cc0928ab18b5c",
+        "uri": "file://test.test_convert_model_to_json_GPU-adult-parameters0_/converted_model.bin"
     },
-    "test.test_convert_model_to_json[GPU-higgs]": {
-        "checksum": "9df7a4705e0c3cc736ecf3ba0ee20903",
-        "uri": "file://test.test_convert_model_to_json_GPU-higgs_/converted_model.bin"
+    "test.test_convert_model_to_json[GPU-adult-parameters1]": {
+        "checksum": "64b9cd45d6bdc025cb30e3fa5d716bc6",
+        "uri": "file://test.test_convert_model_to_json_GPU-adult-parameters1_/converted_model.bin"
+    },
+    "test.test_convert_model_to_json[GPU-higgs-parameters2]": {
+        "checksum": "0af76a9722bc1dbac26f3c93dc646a04",
+        "uri": "file://test.test_convert_model_to_json_GPU-higgs-parameters2_/converted_model.bin"
     },
     "test.test_coreml_cbm_import_export[GPU]": {
         "checksum": "db8a7baa9cfe7ac8f84a4df5287162ad",
@@ -131,17 +135,17 @@
     ],
     "test.test_eval_features[GPU-problem=binclass-eval_type=SeqAdd]": [
         {
-            "checksum": "26e9ff25d15bcf886925525dc54f55f3",
+            "checksum": "9a18cb79fb034dcde4bd839e3480fd08",
             "uri": "file://test.test_eval_features_GPU-problem=binclass-eval_type=SeqAdd_/eval_results_Logloss.csv"
         },
         {
-            "checksum": "eea01e3a0e5a22576782255c6f2c2b17",
+            "checksum": "e871ca6209b01818afbdcd27e06761ed",
             "uri": "file://test.test_eval_features_GPU-problem=binclass-eval_type=SeqAdd_/eval_results_AUC.csv"
         }
     ],
     "test.test_eval_features[GPU-problem=binclass-eval_type=SeqRem]": [
         {
-            "checksum": "32a1abfc432b861447a4176b203b79f0",
+            "checksum": "3adbfdaad51df8a231f3abb65c241950",
             "uri": "file://test.test_eval_features_GPU-problem=binclass-eval_type=SeqRem_/eval_results_Logloss.csv"
         },
         {

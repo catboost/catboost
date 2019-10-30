@@ -286,7 +286,7 @@ private:
         const TVector<TQueryInfo>& queriesInfo,
         TRestorableFastRng64* rand
     );
-    void SetControlNoZeroWeighted(int docCount, const float* sampleWeights, ESamplingUnit samplingUnit);
+    void SetControlNoZeroWeighted(int docCount, const float* sampleWeights);
 
     void CreateBlocksAndUpdateQueriesInfoByControl(
         NPar::TLocalExecutor* localExecutor,

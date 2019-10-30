@@ -609,14 +609,22 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
     auto& boostingType = BoostingOptions->BoostingType;
     TOption<EBootstrapType>& bootstrapType = ObliviousTreeOptions->BootstrapConfig->GetBootstrapType();
     TOption<float>& subsample = ObliviousTreeOptions->BootstrapConfig->GetTakenFraction();
-    if (!IsMultiClassOnlyMetric(lossFunction) && TaskType == ETaskType::CPU) {
-        if (!bootstrapType.IsSet()) {
+    if (bootstrapType.NotSet()) {
+        if (!IsMultiClassOnlyMetric(lossFunction)
+            && TaskType == ETaskType::CPU
+            && ObliviousTreeOptions->BootstrapConfig->GetSamplingUnit() == ESamplingUnit::Object)
+        {
             bootstrapType.SetDefault(EBootstrapType::MVS);
         }
-        if (!subsample.IsSet()) {
-            subsample.SetDefault(0.8f);
+    }
+    if (subsample.IsSet()) {
+        CB_ENSURE(bootstrapType != EBootstrapType::Bayesian, "Error: default bootstrap type (bayesian) doesn't support taken fraction option");
+    } else {
+        if (bootstrapType == EBootstrapType::MVS) {
+            subsample.SetDefault(0.8);
         }
     }
+
     if (!IsMultiClassOnlyMetric(lossFunction) && TaskType == ETaskType::GPU && !boostingType.IsSet()) {
         boostingType.SetDefault(EBoostingType::Ordered);
     }

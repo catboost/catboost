@@ -40,3 +40,10 @@ inline void UpdateBoostingTypeOption(size_t learnSampleCount, NCatboostOptions::
         boostingTypeOption = EBoostingType::Plain;
     }
 }
+
+inline void UpdateSampleRateOption(size_t learnSampleCount, NCatboostOptions::TCatBoostOptions* catBoostOptions) {
+    auto& takenFraction = catBoostOptions->ObliviousTreeOptions->BootstrapConfig->GetTakenFraction();
+    if (takenFraction.NotSet() && learnSampleCount < 100) {
+        takenFraction.SetDefault(1.0);
+    }
+}

@@ -6299,3 +6299,25 @@ def test_snapshot_checksum(task_type):
 
     with pytest.raises(CatBoostError):
         model_next.fit(test_pool, eval_set=train_pool)
+
+
+def test_bootstrap_defaults():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+
+    model = CatBoostClassifier(iterations=1)
+    model.fit(pool)
+    params = model.get_all_params()
+    assert params['bootstrap_type'] == 'MVS'
+    assert abs(params['subsample'] - 0.8) < EPS
+
+    model = CatBoostClassifier(iterations=1, bootstrap_type='Bernoulli')
+    model.fit(pool)
+    params = model.get_all_params()
+    assert params['bootstrap_type'] == 'Bernoulli'
+    assert abs(params['subsample'] - 0.66) < EPS
+
+    model = CatBoostClassifier(iterations=1, loss_function='MultiClass')
+    model.fit(pool)
+    params = model.get_all_params()
+    assert params['bootstrap_type'] == 'Bayesian'
+    assert 'subsample' not in params

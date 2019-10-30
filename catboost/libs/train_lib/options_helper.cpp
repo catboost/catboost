@@ -266,4 +266,5 @@ void SetDataDependentDefaults(
     DropModelShrinkageIfBaselineUsed(trainDataMetaInfo, continueFromModel || continueFromProgress, catBoostOptions);
     AdjustBoostFromAverageDefaultValue(trainDataMetaInfo, testDataMetaInfo, continueFromModel, catBoostOptions);
     UpdateMinTokenOccurrenceDefaultValue(learnPoolSize, catBoostOptions);
+    UpdateSampleRateOption(learnPoolSize, catBoostOptions);
 }
