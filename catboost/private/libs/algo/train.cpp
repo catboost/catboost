@@ -1,20 +1,26 @@
 #include "train.h"
 
 #include "approx_calcer.h"
+#include "approx_calcer_helpers.h"
 #include "approx_updater_helpers.h"
+#include "build_subset_in_leaf.cpp"
 #include "fold.h"
 #include "greedy_tensor_search.h"
+#include "index_calcer.h"
 #include "learn_context.h"
+#include "monotonic_constraint_utils.h"
 #include "online_ctr.h"
 #include "tensor_search_helpers.h"
 
-#include <catboost/private/libs/algo_helpers/error_functions.h>
 #include <catboost/libs/data/data_provider.h>
-#include <catboost/private/libs/distributed/master.h>
-#include <catboost/private/libs/distributed/worker.h>
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/logging/profile_info.h>
+#include <catboost/private/libs/algo/approx_calcer/leafwise_approx_calcer.h>
+#include <catboost/private/libs/algo_helpers/approx_calcer_helpers.h>
+#include <catboost/private/libs/algo_helpers/error_functions.h>
+#include <catboost/private/libs/distributed/master.h>
+#include <catboost/private/libs/distributed/worker.h>
 
 
 TErrorTracker BuildErrorTracker(
@@ -126,6 +132,56 @@ static void ScaleAllApproxes(
             }
         }
     );
+}
+
+void CalcApproxesLeafwise(
+    const NCB::TTrainingForCPUDataProviders& data,
+    const IDerCalcer& error,
+    const TSplitTree& bestSplitTree,
+    TLearnContext* ctx,
+    TVector<TVector<double>>* treeValues,
+    TVector<TIndexType>* indices
+) {
+    *indices = BuildIndices(
+        ctx->LearnProgress->AveragingFold,
+        bestSplitTree,
+        data.Learn,
+        data.Test,
+        ctx->LocalExecutor
+    );
+    auto statistics = BuildSubset(
+        *indices,
+        bestSplitTree.GetLeafCount(),
+        ctx
+    );
+
+    TVector<TDers> weightedDers;
+    const int approxDimension = ctx->LearnProgress->AveragingFold.GetApproxDimension();
+    if (approxDimension == 1) {
+        const int scratchSize = APPROX_BLOCK_SIZE * CB_THREAD_LIMIT;
+        weightedDers.yresize(scratchSize);
+    }
+    for (int leafIdx = 0; leafIdx < bestSplitTree.GetLeafCount(); ++leafIdx) {
+        CalcLeafValues(
+            error,
+            ctx->Params,
+            &(statistics[leafIdx]),
+            ctx->LocalExecutor,
+            weightedDers
+        );
+    }
+    AssignLeafValues(
+        statistics,
+        treeValues
+    );
+
+    // cycle for accordance with non leawfise approxes
+    if (ctx->LearnProgress->AveragingFold.BodyTailArr[0].Approx.size() < 2
+        && ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod != ELeavesEstimation::Exact
+    ) {
+        ctx->LearnProgress->Rand.Advance(ctx->Params.ObliviousTreeOptions->LeavesEstimationIterations);
+    }
+
 }
 
 void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnContext* ctx) {
@@ -277,15 +333,33 @@ void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnCont
             CheckInterrupted(); // check after long-lasting operation
 
             TVector<TIndexType> indices;
-            CalcLeafValues(
-                data,
-                *error,
-                ctx->LearnProgress->AveragingFold,
-                bestSplitTree,
-                ctx,
-                &treeValues,
-                &indices
-            );
+
+            const bool treeHasMonotonicConstraints = !ctx->Params.ObliviousTreeOptions->MonotoneConstraints.GetUnchecked().empty();
+            if (
+                ctx->Params.ObliviousTreeOptions->DevLeafwiseApproxes.Get() &&
+                ctx->Params.BoostingOptions->BoostingType.Get() == EBoostingType::Plain
+                && !treeHasMonotonicConstraints
+                && error->GetErrorType() == EErrorType::PerObjectError
+            ) {
+                CalcApproxesLeafwise(
+                    data,
+                    *error,
+                    bestSplitTree,
+                    ctx,
+                    &treeValues,
+                    &indices
+                );
+            } else {
+                CalcLeafValues(
+                    data,
+                    *error,
+                    ctx->LearnProgress->AveragingFold,
+                    bestSplitTree,
+                    ctx,
+                    &treeValues,
+                    &indices
+                );
+            }
 
             ctx->Profile.AddOperation("CalcApprox result leaves");
             CheckInterrupted(); // check after long-lasting operation

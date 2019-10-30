@@ -6,6 +6,7 @@
 #include <catboost/private/libs/algo/index_calcer.h>
 #include <catboost/private/libs/algo/score_calcers.h>
 #include <catboost/private/libs/algo/scoring.h>
+#include <catboost/private/libs/algo_helpers/approx_calcer_multi_helpers.h>
 #include <catboost/private/libs/algo_helpers/error_functions.h>
 #include <catboost/libs/data/load_data.h>
 

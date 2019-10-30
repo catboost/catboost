@@ -2,7 +2,7 @@
 
 #include "mappers.h"
 
-#include <catboost/private/libs/algo/approx_calcer_multi.h>
+#include <catboost/private/libs/algo/approx_delta_calcer_multi.h>
 #include <catboost/private/libs/algo/learn_context.h>
 #include <catboost/private/libs/algo/split.h>
 #include <catboost/private/libs/algo/tensor_search_helpers.h>

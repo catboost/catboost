@@ -4,8 +4,8 @@ LIBRARY()
 
 SRCS(
     approx_calcer_helpers.cpp
+    approx_calcer_multi_helpers.cpp
     approx_updater_helpers.cpp
-
     custom_objective_descriptor.cpp
     ders_holder.cpp
     error_functions.cpp

@@ -1901,6 +1901,44 @@ def test_gradient(boosting_type, dev_score_calc_obj_block_size):
     return [local_canonical_file(output_eval_path)]
 
 
+@pytest.mark.parametrize(
+    'loss_function',
+    LOSS_FUNCTIONS_SHORT,
+    ids=['loss_function=%s' % loss_function for loss_function in LOSS_FUNCTIONS_SHORT]
+)
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_gradient_with_leafwise_approxes(loss_function, dev_score_calc_obj_block_size):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    output_eval_path_dev_approxes = yatest.common.test_output_path('test_dev_approxes.eval')
+
+    cmd = [
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '--loss-function', loss_function,
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--boosting-type', 'Plain',
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
+        '-i', '10',
+        '-T', '4',
+        '-m', output_model_path,
+        '--leaf-estimation-method', 'Gradient',
+        '--eval-file', output_eval_path,
+    ]
+    yatest.common.execute(cmd)
+
+    cmd = cmd[:-1] + [output_eval_path_dev_approxes, '--dev-leafwise-approxes']
+    yatest.common.execute(cmd)
+    assert filecmp.cmp(output_eval_path, output_eval_path_dev_approxes)
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize(
     'dev_score_calc_obj_block_size',
@@ -1924,11 +1962,46 @@ def test_newton(boosting_type, dev_score_calc_obj_block_size):
         '-i', '10',
         '-T', '4',
         '-m', output_model_path,
+        '--leaf-estimation-iterations', '1',
         '--leaf-estimation-method', 'Newton',
         '--eval-file', output_eval_path,
     )
     yatest.common.execute(cmd)
     return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_newton_with_leafwise_approxes(dev_score_calc_obj_block_size):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    output_eval_path_dev_approxes = yatest.common.test_output_path('test_dev_approxes.eval')
+
+    cmd = [
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--boosting-type', 'Plain',
+        '--dev-score-calc-obj-block-size', dev_score_calc_obj_block_size,
+        '-i', '10',
+        '-T', '4',
+        '-m', output_model_path,
+        '--leaf-estimation-iterations', '1',
+        '--leaf-estimation-method', 'Newton',
+        '--eval-file', output_eval_path,
+    ]
+    yatest.common.execute(cmd)
+
+    cmd = cmd[:-1] + [output_eval_path_dev_approxes, '--dev-leafwise-approxes']
+    yatest.common.execute(cmd)
+    assert filecmp.cmp(output_eval_path, output_eval_path_dev_approxes)
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -2481,8 +2554,9 @@ def test_reg_targets(loss_function, boosting_type, dev_score_calc_obj_block_size
 def test_multi_targets(loss_function, boosting_type, dev_score_calc_obj_block_size):
     output_model_path = yatest.common.test_output_path('model.bin')
     output_eval_path = yatest.common.test_output_path('test.eval')
+    output_eval_path_dev_approxes = yatest.common.test_output_path('test_dev_approxes.eval')
 
-    cmd = (
+    cmd = [
         CATBOOST_PATH,
         'fit',
         '--use-best-model', 'false',
@@ -2496,8 +2570,13 @@ def test_multi_targets(loss_function, boosting_type, dev_score_calc_obj_block_si
         '-T', '4',
         '-m', output_model_path,
         '--eval-file', output_eval_path
-    )
+    ]
     yatest.common.execute(cmd)
+
+    if boosting_type == 'Plain':
+        cmd = cmd[:-1] + [output_eval_path_dev_approxes, '--dev-leafwise-approxes']
+        yatest.common.execute(cmd)
+        assert filecmp.cmp(output_eval_path, output_eval_path_dev_approxes)
 
     formula_predict_path = yatest.common.test_output_path('predict_test.eval')
 

@@ -817,6 +817,13 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         .Handler1T<TString>([plainJsonPtr](const TString& monotoneConstraints) {
             (*plainJsonPtr)["monotone_constraints"] = monotoneConstraints;
         });
+
+    parser
+        .AddLongOption("dev-leafwise-approxes", "Calculate approxes independently in each leaf")
+        .NoArgument()
+        .Handler0([plainJsonPtr]() {
+            (*plainJsonPtr)["dev_leafwise_approxes"] = true;
+        });
 }
 
 static void BindCatFeatureParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {

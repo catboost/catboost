@@ -1,8 +1,8 @@
 #include "approx_calcer.h"
 
 #include "approx_calcer_helpers.h"
-#include "approx_calcer_multi.h"
 #include "approx_calcer_querywise.h"
+#include "approx_delta_calcer_multi.h"
 #include "fold.h"
 #include "index_calcer.h"
 #include "learn_context.h"
@@ -11,9 +11,10 @@
 #include "split.h"
 #include "yetirank_helpers.h"
 
+#include <catboost/private/libs/algo/approx_calcer/approx_calcer_multi.h>
+#include <catboost/private/libs/algo/approx_calcer/gradient_walker.h>
 #include <catboost/private/libs/algo_helpers/approx_calcer_helpers.h>
 #include <catboost/private/libs/algo_helpers/error_functions.h>
-#include <catboost/private/libs/algo_helpers/gradient_walker.h>
 #include <catboost/private/libs/algo_helpers/pairwise_leaves_calculation.h>
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
@@ -670,7 +671,7 @@ static void CalcApproxDeltaSimple(
     };
 
     const float l2Regularizer = treeLearnerOptions.L2Reg;
-    const auto approxUpdaterFunc = [&](
+    const auto approxUpdaterFunc = [&] (
                                        const TVector<TVector<double>>& leafDeltas,
                                        TVector<TVector<double>>* approxDeltas) {
         auto localLeafValues = leafDeltas;
@@ -732,7 +733,7 @@ static void CalcApproxDeltaSimple(
         CopyApprox(src, dst, ctx->LocalExecutor);
     };
 
-    GradientWalker(
+    GradientWalker</*IsLeafwise*/false>(
         /*isTrivialWalker*/ !haveBacktrackingObjective,
         gradientIterations,
         leafCount,
@@ -742,7 +743,8 @@ static void CalcApproxDeltaSimple(
         lossCalcerFunc,
         approxCopyFunc,
         approxDeltas,
-        sumLeafDeltas);
+        sumLeafDeltas
+    );
 }
 
 static void CalcLeafValuesSimple(
@@ -844,7 +846,7 @@ static void CalcLeafValuesSimple(
         }
     };
 
-    const auto approxUpdaterFunc = [&](
+    const auto approxUpdaterFunc = [&] (
                                        const TVector<TVector<double>>& leafDeltas,
                                        TVector<TVector<double>>* approxes) {
         auto localLeafValues = leafDeltas;
@@ -879,7 +881,7 @@ static void CalcLeafValuesSimple(
         CopyApprox(src, dst, ctx->LocalExecutor);
     };
 
-    GradientWalker(
+    GradientWalker</*IsLeafwise*/ false>(
         /*isTrivialWalker*/ !haveBacktrackingObjective,
         gradientIterations,
         leafCount,
@@ -889,7 +891,45 @@ static void CalcLeafValuesSimple(
         lossCalcerFunc,
         approxCopyFunc,
         &approxes,
-        sumLeafDeltas);
+        sumLeafDeltas
+    );
+}
+
+inline void CalcLeafValuesMultiForAllLeaves(
+    int leafCount,
+    const IDerCalcer& error,
+    const TFold& fold,
+    const TVector<TIndexType>& indices,
+    TLearnContext* ctx,
+    TVector<TVector<double>>* sumLeafDeltas
+) {
+    CB_ENSURE(!error.GetIsExpApprox(), "Multi-class does not support exponentiated approxes");
+
+    const int approxDimension = fold.GetApproxDimension();
+    sumLeafDeltas->assign(approxDimension, TVector<double>(leafCount));
+    auto localExecutor = ctx->LocalExecutor;
+
+    TVector<TVector<double>> approx;
+    CopyApprox(fold.BodyTailArr[0].Approx, &approx, localExecutor);
+
+    CalcLeafValuesMulti(
+        ctx->Params.ObliviousTreeOptions.Get(),
+        /*isLeafwise*/ false,
+        leafCount,
+        error,
+        fold.LearnQueriesInfo,
+        indices,
+        fold.LearnTarget[0],
+        fold.GetLearnWeights(),
+        ctx->LearnProgress->ApproxDimension,
+        fold.GetSumWeight(),
+        fold.GetLearnSampleCount(),
+        /*objectsInLeafCount*/ 0,
+        ctx->Params.MetricOptions->ObjectiveMetric,
+        localExecutor,
+        sumLeafDeltas,
+        &approx
+    );
 }
 
 void CalcLeafValues(
@@ -912,7 +952,7 @@ void CalcLeafValues(
     if (approxDimension == 1) {
         CalcLeafValuesSimple(leafCount, error, fold, *indices, treeMonotoneConstraints, ctx, leafDeltas);
     } else {
-        CalcLeafValuesMulti(leafCount, error, fold, *indices, ctx, leafDeltas);
+        CalcLeafValuesMultiForAllLeaves(leafCount, error, fold, *indices, ctx, leafDeltas);
     }
 }
 

@@ -1,5 +1,7 @@
 #include "approx_calcer_helpers.h"
 
+#include <catboost/private/libs/options/catboost_options.h>
+
 double CalcSampleQuantile(
     TConstArrayRef<float> sample,
     TConstArrayRef<float> weights,
@@ -61,7 +63,7 @@ double CalcSampleQuantile(
     return 0;
 }
 
-void CreateBacktrackingObjective(
+void CreateBacktrackingObjectiveImpl(
     int dimensionCount,
     int leavesEstimationIterations,
     ELeavesEstimationStepBacktracking leavesEstimationBacktrackingType,
@@ -76,6 +78,24 @@ void CreateBacktrackingObjective(
         *lossFunction = CreateMetricFromDescription(objectiveMetric, dimensionCount);
         *minimizationSign = GetMinimizeSign((*lossFunction)[0]);
     }
+}
+
+void CreateBacktrackingObjective(
+    NCatboostOptions::TLossDescription metricDescriptions,
+    const NCatboostOptions::TObliviousTreeLearnerOptions& treeOptions,
+    int approxDimension,
+    bool* haveBacktrackingObjective,
+    double* minimizationSign,
+    TVector<THolder<IMetric>>* lossFunction
+) {
+    CreateBacktrackingObjectiveImpl(
+        approxDimension,
+        int(treeOptions.LeavesEstimationIterations.Get()),
+        treeOptions.LeavesEstimationBacktrackingType,
+        metricDescriptions,
+        haveBacktrackingObjective,
+        minimizationSign,
+        lossFunction);
 }
 
 double GetMinimizeSign(const THolder<IMetric>& metric) {

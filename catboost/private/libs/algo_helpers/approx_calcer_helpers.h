@@ -5,6 +5,7 @@
 
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/private/libs/options/enums.h>
+#include <catboost/private/libs/options/oblivious_tree_options.h>
 
 #include <util/generic/ptr.h>
 
@@ -47,10 +48,9 @@ inline double CalcMethodDelta<ELeavesEstimation::Newton>(
 }
 
 void CreateBacktrackingObjective(
-    int dimensionCount,
-    int leavesEstimationIterations,
-    ELeavesEstimationStepBacktracking leavesEstimationBacktrackingType,
-    const NCatboostOptions::TLossDescription& objectiveMetric,
+    NCatboostOptions::TLossDescription metricDescriptions,
+    const NCatboostOptions::TObliviousTreeLearnerOptions& treeOptions,
+    int approxDimension,
     bool* haveBacktrackingObjective,
     double* minimizationSign,
     TVector<THolder<IMetric>>* lossFunction

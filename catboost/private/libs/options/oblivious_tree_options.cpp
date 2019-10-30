@@ -32,6 +32,7 @@ NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETa
       , MaxLeaves("max_leaves", 31, taskType)
       , MinDataInLeaf("min_data_in_leaf", 1, taskType)
       , MonotoneConstraints("monotone_constraints", {}, taskType)
+      , DevLeafwiseApproxes("dev_leafwise_approxes", false, taskType)
 
 {
     SamplingFrequency.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::ExceptionOnChange);
@@ -60,7 +61,8 @@ void NCatboostOptions::TObliviousTreeLearnerOptions::Load(const NJson::TJsonValu
             &GrowPolicy,
             &MaxLeaves,
             &MinDataInLeaf,
-            &MonotoneConstraints
+            &MonotoneConstraints,
+            &DevLeafwiseApproxes
             );
 
     Validate();
@@ -80,7 +82,8 @@ void NCatboostOptions::TObliviousTreeLearnerOptions::Save(NJson::TJsonValue* opt
             GrowPolicy,
             MaxLeaves,
             MinDataInLeaf,
-            MonotoneConstraints
+            MonotoneConstraints,
+            DevLeafwiseApproxes
             );
 }
 
@@ -90,7 +93,7 @@ bool NCatboostOptions::TObliviousTreeLearnerOptions::operator==(const TOblivious
             AddRidgeToTargetFunctionFlag, ScoreFunction, MaxCtrComplexityForBordersCaching,
             PairwiseNonDiagReg, LeavesEstimationBacktrackingType, DevScoreCalcObjBlockSize,
             DevExclusiveFeaturesBundleMaxBuckets, SparseFeaturesConflictFraction,
-            GrowPolicy, MaxLeaves, MinDataInLeaf, MonotoneConstraints
+            GrowPolicy, MaxLeaves, MinDataInLeaf, MonotoneConstraints, DevLeafwiseApproxes
             ) ==
         std::tie(rhs.MaxDepth, rhs.LeavesEstimationIterations, rhs.LeavesEstimationMethod, rhs.L2Reg, rhs.ModelSizeReg,
                 rhs.RandomStrength, rhs.BootstrapConfig, rhs.Rsm, rhs.SamplingFrequency,
@@ -98,7 +101,7 @@ bool NCatboostOptions::TObliviousTreeLearnerOptions::operator==(const TOblivious
                 rhs.ScoreFunction, rhs.MaxCtrComplexityForBordersCaching, rhs.PairwiseNonDiagReg, rhs.LeavesEstimationBacktrackingType,
                 rhs.DevScoreCalcObjBlockSize,
                 rhs.DevExclusiveFeaturesBundleMaxBuckets, rhs.SparseFeaturesConflictFraction,
-                rhs.GrowPolicy, rhs.MaxLeaves, rhs.MinDataInLeaf, rhs.MonotoneConstraints);
+                rhs.GrowPolicy, rhs.MaxLeaves, rhs.MinDataInLeaf, rhs.MonotoneConstraints, rhs.DevLeafwiseApproxes);
 }
 
 bool NCatboostOptions::TObliviousTreeLearnerOptions::operator!=(const TObliviousTreeLearnerOptions& rhs) const {
