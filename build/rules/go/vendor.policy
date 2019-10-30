@@ -250,6 +250,7 @@ ALLOW .* -> vendor/github.com/tarm/serial
 
 # generation tool and serialization library for MessagePack
 ALLOW .* -> vendor/github.com/tinylib/msgp
+ALLOW .* -> vendor/github.com/vmihailenco/msgpack
 
 # Generate fancy REST API from grpc api
 ALLOW .* -> vendor/github.com/grpc-ecosystem/grpc-gateway
