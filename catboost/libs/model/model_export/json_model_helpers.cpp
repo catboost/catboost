@@ -283,8 +283,8 @@ static TJsonValue GetFeaturesInfoJson(
         }
         for (const auto &catFeature: obliviousTrees.GetCatFeatures()) {
             auto catFeatureJsonValue = ToJson(catFeature);
-            if (oneHotIndexes.contains(catFeature.Position.FlatIndex)) {
-                auto &ohFeauture = obliviousTrees.GetOneHotFeatures()[oneHotIndexes[catFeature.Position.FlatIndex]];
+            if (oneHotIndexes.contains(catFeature.Position.Index)) {
+                auto &ohFeauture = obliviousTrees.GetOneHotFeatures()[oneHotIndexes[catFeature.Position.Index]];
                 catFeatureJsonValue.InsertValue("values", VectorToJson(ohFeauture.Values));
                 if (!ohFeauture.StringValues.empty()) {
                     catFeatureJsonValue.InsertValue("string_values", VectorToJson(ohFeauture.StringValues));
@@ -329,7 +329,7 @@ static void GetFeaturesInfo(const TJsonValue& jsonValue, TObliviousTrees* oblivi
             obliviousTrees->AddCatFeature(catFeature);
             if (value.Has("values")) {
                 TOneHotFeature ohFeature;
-                ohFeature.CatFeatureIndex = catFeature.Position.FlatIndex;
+                ohFeature.CatFeatureIndex = catFeature.Position.Index;
                 ohFeature.Values = JsonToVector<int>(value["values"]);
                 ohFeature.StringValues = JsonToVector<TString>(value["string_values"]);
                 obliviousTrees->AddOneHotFeature(ohFeature);
@@ -350,8 +350,8 @@ static TJsonValue GetObliviousTreesJson(const TObliviousTrees& obliviousTrees) {
     const auto& binFeatures = obliviousTrees.GetBinFeatures();
     for (int treeIdx = 0; treeIdx < obliviousTrees.GetTreeSizes().ysize(); ++treeIdx) {
         TJsonValue tree;
-        const size_t treeLeafCount = (1uLL <<  obliviousTrees.GetTreeSizes()[treeIdx]) * obliviousTrees.GetDimensionsCount();
-        const size_t treeWeightsCount = (1uLL <<  obliviousTrees.GetTreeSizes()[treeIdx]);
+        const size_t treeLeafCount = (1uLL << obliviousTrees.GetTreeSizes()[treeIdx]) * obliviousTrees.GetDimensionsCount();
+        const size_t treeWeightsCount = (1uLL << obliviousTrees.GetTreeSizes()[treeIdx]);
         if (!obliviousTrees.GetLeafWeights().empty()) {
             for (size_t idx = 0; idx < treeWeightsCount; ++idx) {
                 tree["leaf_weights"].AppendValue(obliviousTrees.GetLeafWeights()[leafWeightsOffset + idx]);
@@ -459,11 +459,13 @@ TJsonValue ConvertModelToJson(const TFullModel& model, const TVector<TString>* f
     TJsonValue jsonModel;
     TJsonValue modelInfo;
     for (const auto& key_value : model.ModelInfo) {
-        if (key_value.first == "params") {
+        if (key_value.first.EndsWith("params")) {
             TJsonValue tree;
-            TStringStream ss(key_value.second);
-            CB_ENSURE(ReadJsonTree(&ss, &tree), "can't parse params file");
-            modelInfo.InsertValue(key_value.first, tree);
+            if (!key_value.second.empty()) {
+                TStringStream ss(key_value.second);
+                CB_ENSURE(ReadJsonTree(&ss, &tree), "can't parse params file");
+                modelInfo.InsertValue(key_value.first, tree);
+            }
         } else {
             modelInfo.InsertValue(key_value.first, key_value.second);
         }

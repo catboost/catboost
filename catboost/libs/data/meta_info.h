@@ -47,7 +47,7 @@ namespace NCB {
         TFeaturesLayoutPtr FeaturesLayout;
         ui64 MaxCatFeaturesUniqValuesOnLearn = 0;
 
-        bool HasTarget = false;
+        ui32 TargetCount = 0;
         TMaybe<TTargetStats> TargetStats;
 
         ui32 BaselineCount = 0;

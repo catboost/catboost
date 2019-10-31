@@ -1,7 +1,7 @@
 #include "mappers.h"
 
 #include <catboost/private/libs/algo/approx_calcer.h>
-#include <catboost/private/libs/algo/approx_calcer_multi.h>
+#include <catboost/private/libs/algo/approx_delta_calcer_multi.h>
 #include <catboost/private/libs/algo/approx_updater_helpers.h>
 #include <catboost/private/libs/algo/data.h>
 #include <catboost/private/libs/algo/scoring.h>
@@ -9,6 +9,7 @@
 #include <catboost/private/libs/algo/online_ctr.h>
 #include <catboost/private/libs/algo/preprocess.h>
 #include <catboost/private/libs/algo_helpers/approx_calcer_helpers.h>
+#include <catboost/private/libs/algo_helpers/approx_calcer_multi_helpers.h>
 #include <catboost/private/libs/algo_helpers/error_functions.h>
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/helpers/exception.h>
@@ -703,10 +704,11 @@ namespace NCatboostDistributed {
         Y_ASSERT(approxDimension > 1);
         const auto error = BuildError(localData.Params, /*custom objective*/Nothing());
         const auto estimationMethod = localData.Params.ObliviousTreeOptions->LeavesEstimationMethod;
+        CB_ENSURE(localData.Progress->AveragingFold.LearnTarget.size() == 1, "MultiClassification requires exactly one target");
 
         CalcLeafDersMulti(
             localData.Indices,
-            localData.Progress->AveragingFold.LearnTarget,
+            localData.Progress->AveragingFold.LearnTarget[0],
             localData.Progress->AveragingFold.GetLearnWeights(),
             localData.Progress->AveragingFold.BodyTailArr[0].Approx,
             localData.ApproxDeltas,
@@ -729,9 +731,9 @@ namespace NCatboostDistributed {
         UpdateApproxDeltasMulti(
             localData.Indices,
             localData.Progress->AveragingFold.BodyTailArr[0].BodyFinish,
-            &NPar::LocalExecutor(),
-            leafValues,
-            &localData.ApproxDeltas);
+            MakeConstArrayRef(*leafValues),
+            &localData.ApproxDeltas,
+            &NPar::LocalExecutor());
         ++localData.GradientIteration; // gradient iteration completed
     }
 

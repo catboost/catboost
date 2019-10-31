@@ -7,7 +7,7 @@ namespace NTextProcessing::NDictionary {
 
     class IDictionaryImpl;
 
-    class TDictionary final : public IDictionary {
+    class TDictionary final : public IDictionary, public TMoveOnly {
     public:
         TDictionary();
         TDictionary(TDictionary&&);

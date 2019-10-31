@@ -471,7 +471,7 @@ class Build(object):
     @property
     def is_release(self):
         # TODO(somov): Проверить, бывают ли тут суффиксы на самом деле
-        return self.build_type in ('release', 'relwithdebinfo', 'profile', 'gprof') or self.build_type.endswith('-release')
+        return self.build_type in ('release', 'relwithdebinfo', 'minsizerel', 'profile', 'gprof') or self.build_type.endswith('-release')
 
     @property
     def is_debug(self):
@@ -487,7 +487,7 @@ class Build(object):
 
     @property
     def with_ndebug(self):
-        return self.build_type in ('release', 'valgrind-release', 'profile', 'gprof')
+        return self.build_type in ('release', 'minsizerel', 'valgrind-release', 'profile', 'gprof')
 
     @property
     def is_valgrind(self):
@@ -1154,10 +1154,11 @@ class GnuCompiler(Compiler):
         if self.target.is_ios:
             self.c_defines.extend(['-D_XOPEN_SOURCE', '-D_DARWIN_C_SOURCE'])
             if self.tc.version_at_least(7):
-                if not preset('MAPSMOBI_BUILD_TARGET'):
-                    self.c_foptions.append('-faligned-allocation')
+                self.c_foptions.append('$CLANG_ALIGNED_ALLOCATION_FLAG')
             else:
                 self.c_warnings.append('-Wno-aligned-allocation-unavailable')
+            if preset('MAPSMOBI_BUILD_TARGET') and self.target.is_arm:
+                self.c_foptions.append('-fembed-bitcode')
 
         if self.target.is_android:
             self.c_flags.append('-I{}/include/llvm-libc++abi/include'.format(tc.name_marker))
@@ -1204,8 +1205,8 @@ class GnuCompiler(Compiler):
                     '-Wno-enum-compare-switch',
                     '-Wno-pass-failed',
                 ))
-
-                self.c_foptions.append('-faligned-allocation')
+                if not self.target.is_ios:
+                    self.c_foptions.append('$CLANG_ALIGNED_ALLOCATION_FLAG')
 
         if self.tc.is_gcc and self.tc.version_at_least(4, 9):
             self.c_foptions.append('-fno-delete-null-pointer-checks')
@@ -1220,7 +1221,10 @@ class GnuCompiler(Compiler):
 
         if self.build.is_release:
             self.c_flags.append('$OPTIMIZE')
-            self.optimize = '-O3'
+            if self.build.build_type == 'minsizerel':
+                self.optimize = '-Os'
+            else:
+                self.optimize = '-O3'
 
         if self.build.with_ndebug:
             self.c_defines.append('-DNDEBUG')
@@ -1306,11 +1310,15 @@ class GnuCompiler(Compiler):
             "-fdebug-prefix-map=${ARCADIA_BUILD_ROOT}=/-B",
             "-fdebug-prefix-map=${ARCADIA_ROOT}=/-S",
             "-fdebug-prefix-map=$(TOOL_ROOT)=/-T",
+        ]
+        c_debug_map_cl = c_debug_map + [
             "-Xclang", "-fdebug-compilation-dir", "-Xclang", "/tmp",
         ]
         c_debug_map_light = [
             # XXX does not support non-normalized paths
             "-fdebug-prefix-map=${ARCADIA_BUILD_ROOT}=/-B",
+        ]
+        c_debug_map_light_cl = c_debug_map_light + [
             "-Xclang", "-fdebug-compilation-dir", "-Xclang", "/tmp",
         ]
         yasm_debug_map = [
@@ -1321,12 +1329,22 @@ class GnuCompiler(Compiler):
         ]
         emit_big('''
             when ($CONSISTENT_DEBUG == "yes") {{
-                CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__={c_debug}
+                when ($CLANG == "yes") {{
+                    CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__={c_debug_cl}
+                }}
+                otherwise {{
+                    CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__={c_debug}
+                }}
                 YASM_DEBUG_INFO_DISABLE_CACHE__NO_UID__={yasm_debug}
             }}
 
             when ($CONSISTENT_DEBUG_LIGHT == "yes") {{
-                CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__={c_debug_light}
+                when ($CLANG == "yes") {{
+                    CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__={c_debug_light_cl}
+                }}
+                otherwise {{
+                    CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__={c_debug_light}
+                }}
                 YASM_DEBUG_INFO_DISABLE_CACHE__NO_UID__={yasm_debug_light}
             }}
 
@@ -1334,8 +1352,10 @@ class GnuCompiler(Compiler):
                 CL_MACRO_INFO_DISABLE_CACHE__NO_UID__={macro}
             }}
         '''.format(c_debug=' '.join(c_debug_map),
+                   c_debug_cl=' '.join(c_debug_map_cl),
                    yasm_debug=' '.join(yasm_debug_map),
                    c_debug_light=' '.join(c_debug_map_light),  # build_root substitution only
+                   c_debug_light_cl=' '.join(c_debug_map_light_cl),  # build_root substitution only
                    yasm_debug_light=yasm_debug_map[0],  # build_root substitution only
                    macro=' '.join(c_builtins)))
 
@@ -1706,11 +1726,7 @@ class LD(Linker):
             emit('DWARF_COMMAND')
         else:
             emit('DWARF_COMMAND', self.dwarf_command, ld_env_style)
-        if self.target.is_ios and preset('BUILD_IOS_APP'):
-            emit('PACK_IOS', '$YMAKE_PYTHON', '${input:"build/scripts/pack_ios.py"}', '--binary', '$TARGET', '--target', '$TARGET', '--temp-dir', '$BINDIR', '$PEERS' )
-        else:
-            emit('PACK_IOS')
-        emit('LINK_EXE', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_LINK_EXE && $DWARF_COMMAND && $PACK_IOS')
+        emit('LINK_EXE', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_LINK_EXE && $DWARF_COMMAND && $PACK_IOS_CMD')
         emit('LINK_DYN_LIB', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_LINK_DYN_LIB && $DWARF_COMMAND')
         emit('LINK_EXEC_DYN_LIB', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_LINK_EXEC_DYN_LIB && $DWARF_COMMAND')
         emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_SWIG_DLL_JAR_CMD && $DWARF_COMMAND')

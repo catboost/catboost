@@ -14,13 +14,11 @@ bool NFloat16Ops::IsIntrisincsAvailableOnHost() {
 
 
 void NFloat16Ops::UnpackFloat16SequenceIntrisincs(const TFloat16* src, float* dst, size_t len) {
-    Y_ASSERT(size_t(src) % Float16BufferAlignmentRequirementInBytes == 0);
-
     while (len >= 8) {
         __m128i source = _mm_loadu_si128(reinterpret_cast<const __m128i*>(src));
         __m256 cvt = _mm256_cvtph_ps(source);
 
-        _mm256_store_ps(dst, cvt);
+        _mm256_storeu_ps(dst, cvt);
 
         len -= 8;
         dst += 8;
@@ -31,7 +29,7 @@ void NFloat16Ops::UnpackFloat16SequenceIntrisincs(const TFloat16* src, float* ds
         alignas(16) ui16 local[8];
         NSan::Unpoison(local, sizeof(local));
         memcpy(local, src, sizeof(*src) * len);
-        __m128i source = _mm_loadu_si128(reinterpret_cast<const __m128i*>(local));
+        __m128i source = _mm_load_si128(reinterpret_cast<const __m128i*>(local));
         __m256 cvt = _mm256_cvtph_ps(source);
         alignas(32) float localDst[8];
         _mm256_store_ps(localDst, cvt);
@@ -100,4 +98,28 @@ float NFloat16Ops::DotProductOnFloatIntrisincs(const float* f32, const TFloat16*
     alignas(32) float res[8];
     _mm256_store_ps(res, sum);
     return res[0] + res[1] + res[2] + res[3] + res[4] + res[5] + res[6] + res[7];
+}
+
+void NFloat16Ops::PackFloat16SequenceIntrisincs(const float* src, TFloat16* dst, size_t len) {
+    while (len >= 8) {
+        __m256 source = _mm256_loadu_ps(src);
+        __m128i cvt = _mm256_cvtps_ph(source, (_MM_FROUND_TO_NEAREST_INT |_MM_FROUND_NO_EXC));
+
+        _mm_storeu_si128(reinterpret_cast<__m128i*>(dst), cvt);
+
+        len -= 8;
+        dst += 8;
+        src += 8;
+    }
+
+    if (len > 0) {
+        alignas(32) float local[8] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
+        memcpy(local, src, len * sizeof(float));
+        __m256 source = _mm256_load_ps(local);
+        __m128i cvt = _mm256_cvtps_ph(source, (_MM_FROUND_TO_NEAREST_INT |_MM_FROUND_NO_EXC));
+        alignas(16) ui16 localDst[8];
+        _mm_store_si128(reinterpret_cast<__m128i*>(localDst), cvt);
+
+        memcpy(dst, localDst, len * sizeof(TFloat16));
+    }
 }

@@ -18,13 +18,15 @@ private:
         if (S_.size() == S_.capacity()) {
             S_.reserve(FastClp2(S_.capacity() + 1));
         }
-        *ptr = S_.Detach() + S_.size();
-        return S_.capacity() - S_.size();
+        size_t previousSize = S_.size();
+        S_.resize(S_.capacity());
+        *ptr = S_.begin() + previousSize;
+        return S_.size() - previousSize;
     }
 
-    void DoAdvance(size_t len) override {
-        Y_ENSURE(S_.size() + len <= S_.capacity(), "trying to advance past the buffer");
-        S_.ReserveAndResize(S_.size() + len);
+    void DoUndo(size_t len) override {
+        Y_ENSURE(len <= S_.size());
+        S_.resize(S_.size() - len);
     }
 
     TString& S_;

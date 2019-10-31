@@ -28,9 +28,9 @@ namespace NCB {
     }
 
 
-    // can return TAtomicSharedPtr(nullptr) is not target data is available
-    static TAtomicSharedPtr<TVector<float>> ConvertTarget(
-        TMaybeData<TConstArrayRef<TString>> maybeRawTarget,
+    // can be empty if target data is unavailable
+    static TVector<TSharedVector<float>> ConvertTarget(
+        TMaybeData<TConstArrayRef<TVector<TString>>> maybeRawTarget,
         bool isClass,
         bool isMultiClass,
         bool classCountUnknown,
@@ -40,7 +40,7 @@ namespace NCB {
         ui32* classCount)
     {
         if (!maybeRawTarget) {
-            return TAtomicSharedPtr<TVector<float>>();
+            return {};
         }
 
         auto rawTarget = *maybeRawTarget;
@@ -52,11 +52,17 @@ namespace NCB {
             inputClassNames,
             outputClassNames);
 
-        TVector<float> trainingTarget;
+        const auto targetDim = rawTarget.size();
+        TVector<TSharedVector<float>> trainingTarget(targetDim);
+        for (auto targetIdx : xrange(targetDim)) {
+            trainingTarget[targetIdx] = MakeAtomicShared<TVector<float>>(TVector<float>());
+        }
 
         switch (targetConverter.GetTargetPolicy()) {
             case EConvertTargetPolicy::MakeClassNames: {
-                trainingTarget = targetConverter.PostprocessLabels(rawTarget);
+                for (auto targetIdx : xrange(targetDim)) {
+                    *trainingTarget[targetIdx] = targetConverter.PostprocessLabels(rawTarget[targetIdx]);
+                }
                 if (isClass && outputClassNames) {
                     targetConverter.SetOutputClassNames();
                 }
@@ -65,20 +71,25 @@ namespace NCB {
             case EConvertTargetPolicy::CastFloat:
                 if (isClass) {
                     // can't use parallel processing because of UniqueLabels update
-                    trainingTarget.reserve(rawTarget.size());
-                    for (const auto& rawTargetElement : rawTarget) {
-                        trainingTarget.push_back(targetConverter.ConvertLabel(rawTargetElement));
+                    for (auto targetIdx : xrange(targetDim)) {
+                        trainingTarget[targetIdx]->reserve(rawTarget[targetIdx].size());
+                        for (const auto& rawTargetElement : rawTarget[targetIdx]) {
+                            trainingTarget[targetIdx]->push_back(targetConverter.ConvertLabel(rawTargetElement));
+                        }
                     }
                     break;
                 }
             case EConvertTargetPolicy::UseClassNames: {
-                trainingTarget.yresize(rawTarget.size());
-                localExecutor->ExecRangeWithThrow(
-                    [&] (int idx) { trainingTarget[idx] = targetConverter.ConvertLabel(rawTarget[idx]); },
-                    0,
-                    SafeIntegerCast<int>(rawTarget.size()),
-                    NPar::TLocalExecutor::WAIT_COMPLETE
-                );
+                for (auto targetIdx : xrange(targetDim)) {
+                    trainingTarget[targetIdx]->yresize(rawTarget[targetIdx].size());
+                    localExecutor->ExecRangeBlockedWithThrow(
+                        [&] (int idx) { (*trainingTarget[targetIdx])[idx] = targetConverter.ConvertLabel(rawTarget[targetIdx][idx]); },
+                        0,
+                        SafeIntegerCast<int>(rawTarget[targetIdx].size()),
+                        0,
+                        NPar::TLocalExecutor::WAIT_COMPLETE
+                    );
+                }
                 break;
             }
             default: {
@@ -93,47 +104,45 @@ namespace NCB {
             *classCount = targetConverter.GetClassCount();
         }
 
-        return MakeAtomicShared<TVector<float>>(std::move(trainingTarget));
+        return trainingTarget;
     }
 
-
     static void CheckPreprocessedTarget(
-        const TSharedVector<float>& maybeConvertedTarget,
+        const TVector<TSharedVector<float>>& convertedTarget,
         TStringBuf datasetName,
         bool isNonEmptyAndNonConst,
         bool allowConstLabel,
         bool needCheckTarget,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions)
     {
-        if (!maybeConvertedTarget) {
-            return;
-        }
-
-        TConstArrayRef<float> convertedTarget = *maybeConvertedTarget;
-        if (convertedTarget.empty()) {
+        if (convertedTarget.empty() || convertedTarget[0]->empty()) {
             return;
         }
 
         if (needCheckTarget) {
-            for (auto objectIdx : xrange(convertedTarget.size())) {
-                const float value = convertedTarget[objectIdx];
-                if (!IsSafeTarget(value)) {
-                    CATBOOST_WARNING_LOG
-                        << "Got unsafe target "
-                        << LabeledOutput(value)
-                        << " at object #" << objectIdx << " of dataset " << datasetName << Endl;
-                    break;
+            for (auto targetIdx : xrange(convertedTarget.size())) {
+                for (auto objectIdx : xrange(convertedTarget[0]->size())) {
+                    const float value = (*convertedTarget[targetIdx])[objectIdx];
+                    if (!IsSafeTarget(value)) {
+                        CATBOOST_WARNING_LOG
+                            << "Got unsafe target "
+                            << LabeledOutput(value)
+                            << " at object #" << objectIdx << " of dataset " << datasetName << Endl;
+                        break;
+                    }
                 }
             }
         }
 
         for (const auto& metricDescription : metricDescriptions) {
-            ::CheckPreprocessedTarget(
-                convertedTarget,
-                metricDescription,
-                isNonEmptyAndNonConst,
-                allowConstLabel
-            );
+            for (const auto& target : convertedTarget) {
+                ::CheckPreprocessedTarget(
+                    *target,
+                    metricDescription,
+                    isNonEmptyAndNonConst,
+                    allowConstLabel
+                );
+            }
         }
     }
 
@@ -144,7 +153,7 @@ namespace NCB {
         bool isForGpu,
 
         // [objectIdx], should contain integer values, can be empty
-        TAtomicSharedPtr<TVector<float>> targetClasses,
+        TMaybe<TConstArrayRef<float>> targetClasses,
         TConstArrayRef<float> classWeights, // [classIdx], empty if not specified
         NPar::TLocalExecutor* localExecutor)
     {
@@ -167,7 +176,7 @@ namespace NCB {
 
         TConstArrayRef<float> targetClassesArray = *targetClasses; // optimization
 
-        localExecutor->ExecRangeWithThrow(
+        localExecutor->ExecRangeBlockedWithThrow(
             [&] (int i) {
                 // TODO(annaveronika): check class weight not negative.
                 CB_ENSURE(
@@ -179,6 +188,7 @@ namespace NCB {
             },
             0,
             (int)rawWeights.GetSize(),
+            0,
             NPar::TLocalExecutor::WAIT_COMPLETE
         );
 
@@ -205,12 +215,13 @@ namespace NCB {
         TVector<float> groupAdjustedWeights;
         groupAdjustedWeights.yresize(rawWeights.GetSize());
 
-        localExecutor->ExecRangeWithThrow(
+        localExecutor->ExecRangeBlockedWithThrow(
             [&] (int i) {
                 groupAdjustedWeights[i] = rawWeights[i]*rawGroupWeights[i];
             },
             0,
             (int)rawWeights.GetSize(),
+            0,
             NPar::TLocalExecutor::WAIT_COMPLETE
         );
 
@@ -375,7 +386,6 @@ namespace NCB {
         if (isNonEmptyAndNonConst) {
             CB_ENSURE(rawData.GetObjectCount() > 0, "Train dataset is empty");
         }
-
         CB_ENSURE(!metricDescriptions.empty(), "No metrics specified");
 
         auto isAnyOfMetrics = [&](bool predicate(ELossFunction)) {
@@ -429,41 +439,39 @@ namespace NCB {
                 }
                 multiClassTargetData = true;
             }
-        } else if (hasMultiClassOnlyMetrics ||
-            (knownClassCount > 2) ||
-            (inputClassificationInfo.ClassWeights.size() > 2) ||
-            (inputClassificationInfo.ClassNames.size() > 2))
-        {
-            multiClassTargetData = true;
+        } else {
+            multiClassTargetData = (
+                hasMultiClassOnlyMetrics || (knownClassCount > 2) ||
+                (inputClassificationInfo.ClassWeights.size() > 2) ||
+                (inputClassificationInfo.ClassNames.size() > 2)
+            );
         }
-
 
         ui32 classCountInData = 0;
 
         auto maybeConvertedTarget = ConvertTarget(
-            rawData.GetTarget(),
+            rawData.GetMultiTarget(),
             hasClassificationOnlyMetrics || multiClassTargetData,
             multiClassTargetData,
             knownClassCount == 0,
             inputClassificationInfo.ClassNames,
             &outputClassificationInfo->ClassNames,
             localExecutor,
-            &classCountInData);
+            &classCountInData
+        );
 
         if (needTargetDataForCtrs) {
-            CB_ENSURE(maybeConvertedTarget, "CTR features require Target data");
+            CB_ENSURE(!maybeConvertedTarget.empty(), "CTR features require Target data");
         }
         if ((mainLossFunction && IsUserDefined((*mainLossFunction)->GetLossFunction())) ||
             hasUserDefinedMetrics)
         {
-            CB_ENSURE(maybeConvertedTarget, "User defined objective/metrics require Target data");
+            CB_ENSURE(!maybeConvertedTarget.empty(), "User defined objective/metrics require Target data");
         }
 
         // TODO(akhropov): make GPU also support absence of Target data
-        if (isForGpu && !maybeConvertedTarget) {
-            maybeConvertedTarget = MakeAtomicShared<TVector<float>>(
-                TVector<float>(rawData.GetObjectCount(), 0.0f)
-            );
+        if (isForGpu && maybeConvertedTarget.empty()) {
+            maybeConvertedTarget = TVector<TSharedVector<float>>{MakeAtomicShared<TVector<float>>(TVector<float>(rawData.GetObjectCount(), 0.0f))};
         }
 
 
@@ -519,7 +527,7 @@ namespace NCB {
                     realTargetBorder = *inputClassificationInfo.TargetBorder;
                 } else {
                     THashSet<float> uniqueValues;
-                    for (auto target : *maybeConvertedTarget) {
+                    for (auto target : *maybeConvertedTarget[0]) {
                         if (uniqueValues.size() < 3) {
                             uniqueValues.insert(target);
                         } else {
@@ -535,11 +543,10 @@ namespace NCB {
                     outputClassificationInfo->TargetBorder.ConstructInPlace(realTargetBorder);
                     CATBOOST_DEBUG_LOG << "Target border set to " << realTargetBorder << Endl;
                 }
-
-                PrepareTargetBinary(*maybeConvertedTarget, realTargetBorder, &*maybeConvertedTarget);
+                PrepareTargetBinary(*maybeConvertedTarget[0], realTargetBorder, &*maybeConvertedTarget[0]);
             }
 
-            if (maybeConvertedTarget) {
+            if (!maybeConvertedTarget.empty()) {
                 processedTargetData.TargetsClassCount.emplace("", 2);
             }
         }
@@ -555,11 +562,11 @@ namespace NCB {
             );
 
             if (!(*outputClassificationInfo->LabelConverter)->IsInitialized()) {
-                (*outputClassificationInfo->LabelConverter)->Initialize(*maybeConvertedTarget, classCount);
+                (*outputClassificationInfo->LabelConverter)->Initialize(*maybeConvertedTarget[0], classCount);
             }
-            PrepareTargetCompressed(**outputClassificationInfo->LabelConverter, &*maybeConvertedTarget);
+            PrepareTargetCompressed(**outputClassificationInfo->LabelConverter, &*maybeConvertedTarget[0]);
 
-            if (maybeConvertedTarget) {
+            if (!maybeConvertedTarget.empty()) {
                 processedTargetData.TargetsClassCount.emplace("", (**outputClassificationInfo->LabelConverter).GetApproxDimension());
             }
         }
@@ -571,10 +578,9 @@ namespace NCB {
             );
         }
 
-        if (maybeConvertedTarget) {
+        if (!maybeConvertedTarget.empty()) {
             processedTargetData.Targets.emplace("", maybeConvertedTarget);
         }
-
 
         // Weights
         {
@@ -590,7 +596,7 @@ namespace NCB {
                         rawData.GetGroupWeights(),
                         createMultiClassTarget ? classCount : ui32(2),
                         isForGpu,
-                        maybeConvertedTarget,
+                        !maybeConvertedTarget.empty() ? TMaybe<TConstArrayRef<float>>(*maybeConvertedTarget[0]) : Nothing(),
                         rawData.GetTarget() ? inputClassificationInfo.ClassWeights : TConstArrayRef<float>(),
                         localExecutor
                     )
@@ -628,7 +634,7 @@ namespace NCB {
         // GroupInfos
         // TODO(akhropov): always create group data if it is available (for compatibility)
         if (hasGroupwiseMetrics ||
-            (!rawData.GetObjectsGrouping()->IsTrivial() && (maybeConvertedTarget || hasUserDefinedMetrics)))
+            (!rawData.GetObjectsGrouping()->IsTrivial() && (!maybeConvertedTarget.empty() || hasUserDefinedMetrics)))
         {
             bool hasGroupNonPairwiseDataMetrics = isAnyOfMetrics(
                 [](ELossFunction lossFunction) {
@@ -636,10 +642,10 @@ namespace NCB {
                 });
 
             if (hasGroupNonPairwiseDataMetrics ||
-                (!rawData.GetObjectsGrouping()->IsTrivial() && (maybeConvertedTarget || hasUserDefinedMetrics)))
+                (!rawData.GetObjectsGrouping()->IsTrivial() && (!maybeConvertedTarget.empty() || hasUserDefinedMetrics)))
             {
                 CB_ENSURE(
-                    metricsThatRequireTargetCanBeSkipped || maybeConvertedTarget,
+                    metricsThatRequireTargetCanBeSkipped || !maybeConvertedTarget.empty(),
                     (hasGroupNonPairwiseDataMetrics ? "Groupwise" : "User defined")
                     << " loss/metrics require target data"
                 );
@@ -654,7 +660,7 @@ namespace NCB {
 
                 generatedPairs = GeneratePairs(
                     *rawData.GetObjectsGrouping(),
-                    *maybeConvertedTarget,
+                    *maybeConvertedTarget[0],
                     metricDescriptions,
                     rand);
 
@@ -666,7 +672,7 @@ namespace NCB {
             }
 
             if (rawData.GetObjectsGrouping()->IsTrivial() && outputPairsInfo->HasPairs) {
-                ui32 docCount = maybeConvertedTarget->size();
+                ui32 docCount = rawData.GetObjectCount();
                 TVector<ui32> fakeGroupsBounds;
                 ConstructConnectedComponents(docCount, pairs, &fakeGroupsBounds, &outputPairsInfo->PermutationForGrouping, &outputPairsInfo->PairsInPermutedDataset);
                 TVector<TGroupBounds> groups;

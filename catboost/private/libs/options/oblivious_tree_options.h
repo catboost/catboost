@@ -51,5 +51,6 @@ namespace NCatboostOptions {
         TGpuOnlyOption<double> MinDataInLeaf;
 
         TCpuOnlyOption<TMap<ui32, int>> MonotoneConstraints;
+        TCpuOnlyOption <bool> DevLeafwiseApproxes;
     };
 }

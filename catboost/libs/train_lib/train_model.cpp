@@ -173,14 +173,13 @@ static void InitializeAndCheckMetricData(
 
     CB_ENSURE(!metrics.empty(), "Eval metric is not defined");
 
-    const bool lastTestDatasetHasTargetData = (data.Test.size() > 0) && data.Test.back()->MetaInfo.HasTarget;
+    const bool lastTestDatasetHasTargetData = (data.Test.size() > 0) && data.Test.back()->MetaInfo.TargetCount > 0;
 
     const bool hasTest = data.GetTestSampleCount() > 0;
     if (hasTest && metrics[0]->NeedTarget() && !lastTestDatasetHasTargetData) {
         CATBOOST_WARNING_LOG << "Warning: Eval metric " << metrics[0]->GetDescription() <<
             " needs Target data, but test dataset does not have it so it won't be calculated" << Endl;
     }
-
     const bool canCalcEvalMetric = hasTest && (!metrics[0]->NeedTarget() || lastTestDatasetHasTargetData);
 
     if (canCalcEvalMetric) {
@@ -400,7 +399,6 @@ static void Train(
         if (hasTest && ShouldCalcErrorTrackerMetric(iter, metricsData, *ctx) && errorTracker) {
             const auto testErrors = ctx->LearnProgress->MetricsAndTimeHistory.TestMetricsHistory.back();
             const TString& errorTrackerMetricDescription = metrics[metricsData.ErrorTrackerMetricIdx]->GetDescription();
-
             // it is possible that metric has not been calculated because it requires target data
             // that is absent
             if (!testErrors.empty()) {
@@ -488,7 +486,6 @@ static void Train(
             accumulatedTreeShrinkage *= ctx->LearnProgress->ModelShrinkHistory[treeIndex];
         }
     }
-
 }
 
 
@@ -499,6 +496,9 @@ static void SaveModel(
     TMaybe<ui32> initLearnProgressLearnAndTestQuantizedFeaturesCheckSum,
     TFullModel* dstModel
 ) {
+    const auto& target = ctx.LearnProgress->AveragingFold.LearnTarget;
+    CB_ENSURE(target.size() == 1, "Saving of multitarget model is not supported yet");
+
     TPerfectHashedToHashedCatValuesMap perfectHashedToHashedCatValuesMap
         = trainingDataForCpu.Learn->ObjectsData->GetQuantizedFeaturesInfo()
             ->CalcPerfectHashedToHashedCatValuesMap(ctx.LocalExecutor);
@@ -536,7 +536,7 @@ static void SaveModel(
     TDatasetDataForFinalCtrs datasetDataForFinalCtrs;
     datasetDataForFinalCtrs.Data = trainingDataForCpu;
     datasetDataForFinalCtrs.LearnPermutation = &ctx.LearnProgress->AveragingFold.LearnPermutation->GetObjectsIndexing();
-    datasetDataForFinalCtrs.Targets = ctx.LearnProgress->AveragingFold.LearnTarget;
+    datasetDataForFinalCtrs.Targets = target[0];
     datasetDataForFinalCtrs.LearnTargetClass = &ctx.LearnProgress->AveragingFold.LearnTargetClass;
     datasetDataForFinalCtrs.TargetClassesCount = &ctx.LearnProgress->AveragingFold.TargetClassesCount;
 
@@ -1005,12 +1005,12 @@ void TrainModel(
 
     TVector<TString> outputColumns;
     if (!evalOutputFileName.empty() && !pools.Test.empty()) {
-        outputColumns = outputOptions.GetOutputColumns(pools.Test[0]->MetaInfo.HasTarget);
+        outputColumns = outputOptions.GetOutputColumns(pools.Test[0]->MetaInfo.TargetCount);
         for (int testIdx = 0; testIdx < pools.Test.ysize(); ++testIdx) {
             const TDataProvider& testPool = *pools.Test[testIdx];
 
             CB_ENSURE(
-                outputColumns == outputOptions.GetOutputColumns(testPool.MetaInfo.HasTarget),
+                outputColumns == outputOptions.GetOutputColumns(testPool.MetaInfo.TargetCount),
                 "Inconsistent output columns between test sets"
             );
 
@@ -1320,7 +1320,7 @@ void TrainModel(
     ConvertIgnoredFeaturesFromStringToIndices(pools.Learn.Get()->MetaInfo, &plainJsonParams);
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &trainOptionsJson, &outputFilesOptionsJson);
     ConvertMonotoneConstraintsToCanonicalFormat(&trainOptionsJson);
-    ConvertFeatureNamesToIndicesInMonotoneConstraints(pools.Learn.Get()->MetaInfo, &trainOptionsJson);
+    ConvertMonotoneConstraintsFromStringToIndices(pools.Learn.Get()->MetaInfo, &trainOptionsJson);
     CB_ENSURE(!plainJsonParams.Has("node_type") || plainJsonParams["node_type"] == "SingleHost", "CatBoost Python module does not support distributed training");
 
     NCatboostOptions::TOutputFilesOptions outputOptions;

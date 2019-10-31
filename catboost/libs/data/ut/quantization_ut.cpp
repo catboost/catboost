@@ -48,7 +48,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 TQuantizationOptions{true, true}
              })
         {
-            quantizationOptions.MaxSubsetSizeForSlowBuildBordersAlgorithms = 7;
+            quantizationOptions.MaxSubsetSizeForBuildBordersAlgorithms = 7;
 
             TVector<bool> bundleExclusiveFeaturesVariants = {false};
 
@@ -149,7 +149,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             srcData.MetaInfo = metaInfo;
 
-            srcData.TargetData.Target = {"0", "1", "1", "0", "1", "0", "1", "0", "0"};
+            srcData.TargetData.Target = {{"0", "1", "1", "0", "1", "0", "1", "0", "0"}};
             srcData.TargetData.SetTrivialWeights(9);
 
             srcData.CommonObjectsData.FeaturesLayout = srcData.MetaInfo.FeaturesLayout;
@@ -183,20 +183,20 @@ Y_UNIT_TEST_SUITE(Quantization) {
             TExpectedQuantizedData expectedData;
             expectedData.MetaInfo = metaInfo;
             expectedData.Objects.FloatFeatures = {
-                TVector<ui8>{1, 1, 0, 0, 3, 2, 4, 4, 2}, // 0
+                TVector<ui8>{1, 1, 0, 0, 3, 3, 4, 4, 2}, // 0
                 TVector<ui8>{0, 1, 0, 1, 0, 0, 0, 1, 1}, // 1, binary
-                TVector<ui8>{0, 0, 2, 3, 1, 1, 4, 4, 2}, // 2
+                TVector<ui8>{0, 1, 3, 3, 1, 1, 4, 4, 2}, // 2
                 TVector<ui8>{4, 1, 2, 0, 3, 3, 0, 4, 2}, // 3
                 TVector<ui8>{0, 0, 1, 0, 0, 1, 1, 0, 1}, // 4, binary
                 TVector<ui8>{0, 1, 1, 0, 1, 0, 1, 1, 0}, // 5, binary
                 TVector<ui8>{0, 0, 1, 0, 0, 1, 1, 0, 1}, // 6, binary
                 TVector<ui8>{0, 1, 0, 1, 0, 0, 0, 1, 1}, // 7, binary
                 TVector<ui8>{0, 1, 1, 0, 1, 0, 1, 1, 0}, // 8, binary
-                TVector<ui8>{0, 0, 2, 3, 1, 1, 4, 4, 2}, // 9
+                TVector<ui8>{0, 1, 3, 3, 1, 1, 4, 4, 2}, // 9
                 TVector<ui8>{0, 0, 1, 0, 0, 1, 1, 0, 1}, // 10, binary
                 TVector<ui8>{0, 1, 1, 0, 1, 0, 1, 1, 0}, // 11, binary
                 TVector<ui8>{0, 0, 1, 0, 0, 1, 1, 0, 1}, // 12, binary
-                TVector<ui8>{1, 1, 0, 0, 3, 2, 4, 4, 2}, // 13
+                TVector<ui8>{1, 1, 0, 0, 3, 3, 4, 4, 2}, // 13
                 TVector<ui8>{0, 0, 1, 0, 0, 1, 1, 0, 1}, // 14, binary
                 TVector<ui8>{0, 1, 1, 0, 1, 0, 1, 1, 0}, // 15, binary
                 TVector<ui8>{0, 0, 1, 0, 0, 1, 1, 0, 1}, // 16, binary
@@ -215,25 +215,25 @@ Y_UNIT_TEST_SUITE(Quantization) {
             expectedData.Objects.MaxCategoricalFeaturesUniqValuesOnLearn = 0;
 
                 TVector<TVector<float>> borders = {
-                    {0.1149999946f, 0.4449999928f, 0.7849999666f, 1.049999952f}, // 0
+                    {0.1149999946f, 0.4449999928f, 0.615f, 0.935f}, // 0
                     {0.5f}, // 1, binary
-                    {0.1299999952f, 0.1949999928f, 0.875f, 1.565000057f}, // 2
+                    {0.055f, 0.1949999928f, 0.57f, 1.565000057f}, // 2
                     {
                         std::numeric_limits<float>::lowest(),
                         0.0549999997f,
-                        0.1550000012f,
-                        0.6349999905f
+                        0.15f,
+                        0.505f
                     }, // 3
                     {1.f}, // 4, binary
                     {0.15f}, // 5, binary
                     {1.f}, // 6, binary
                     {0.5f}, // 7, binary
                     {0.15f}, // 8, binary
-                    {0.1299999952f, 0.1949999928f, 0.875f, 1.565000057f}, // 9
+                    {0.055f, 0.1949999928f, 0.57f, 1.565000057f}, // 9
                     {1.f}, // 10, binary
                     {0.15f}, // 11, binary
                     {1.f}, // 12, binary
-                    {0.1149999946f, 0.4449999928f, 0.7849999666f, 1.049999952f}, // 13
+                    {0.1149999946f, 0.4449999928f, 0.615f, 0.935f}, // 13
                     {1.f}, // 14, binary
                     {0.15f}, // 15, binary
                     {1.f}, // 16, binary
@@ -332,7 +332,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             srcData.MetaInfo = metaInfo;
 
-            srcData.TargetData.Target = {"0", "1", "1", "0", "1", "0", "1", "0", "0", "1", "0", "0", "0"};
+            srcData.TargetData.Target = {{"0", "1", "1", "0", "1", "0", "1", "0", "0", "1", "0", "0", "0"}};
             srcData.TargetData.SetTrivialWeights(13);
 
             srcData.CommonObjectsData.FeaturesLayout = srcData.MetaInfo.FeaturesLayout;
@@ -447,7 +447,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             srcData.MetaInfo = metaInfo;
 
-            srcData.TargetData.Target = {"0", "1", "1", "0", "1", "0", "1", "0", "0"};
+            srcData.TargetData.Target = {{"0", "1", "1", "0", "1", "0", "1", "0", "0"}};
             srcData.TargetData.SetTrivialWeights(9);
 
             srcData.CommonObjectsData.FeaturesLayout = srcData.MetaInfo.FeaturesLayout;
@@ -488,7 +488,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
             TExpectedQuantizedData expectedData;
             expectedData.MetaInfo = metaInfo;
             expectedData.Objects.FloatFeatures = {
-                TVector<ui8>{1, 1, 0, 0, 3, 2, 4, 4, 2},
+                TVector<ui8>{1, 1, 0, 0, 3, 3, 4, 4, 2},
                 TVector<ui8>{3, 0, 1, 4, 2, 2, 4, 3, 1}
             };
 
@@ -500,11 +500,11 @@ Y_UNIT_TEST_SUITE(Quantization) {
             expectedData.Objects.MaxCategoricalFeaturesUniqValuesOnLearn = 0;
 
                 TVector<TVector<float>> borders = {
-                    {0.1149999946f, 0.4449999928f, 0.7849999666f, 1.049999952f},
+                    {0.1149999946f, 0.4449999928f, 0.615f, 0.935f},
                     {
                         0.0549999997f,
-                        0.1550000012f,
-                        0.6349999905f,
+                        0.15f,
+                        0.505f,
                         std::numeric_limits<float>::max()
                     }
                 };
@@ -579,7 +579,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             srcData.MetaInfo = metaInfo;
 
-            srcData.TargetData.Target = {"0", "1", "1", "0", "1", "0", "1", "0", "0", "1", "0", "0", "0"};
+            srcData.TargetData.Target = {{"0", "1", "1", "0", "1", "0", "1", "0", "0", "1", "0", "0", "0"}};
             srcData.TargetData.SetTrivialWeights(13);
 
             srcData.CommonObjectsData.FeaturesLayout = srcData.MetaInfo.FeaturesLayout;
@@ -840,7 +840,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             srcData.MetaInfo = metaInfo;
 
-            srcData.TargetData.Target = {"0", "1", "1", "0", "1", "0", "1", "0", "0", "1", "0", "0", "0"};
+            srcData.TargetData.Target = {{"0", "1", "1", "0", "1", "0", "1", "0", "0", "1", "0", "0", "0"}};
             srcData.TargetData.SetTrivialWeights(13);
 
             srcData.CommonObjectsData.FeaturesLayout = srcData.MetaInfo.FeaturesLayout;
@@ -918,11 +918,11 @@ Y_UNIT_TEST_SUITE(Quantization) {
             TExpectedQuantizedData expectedData;
             expectedData.MetaInfo = metaInfo;
             expectedData.Objects.FloatFeatures = {
-                TVector<ui8>{1, 2, 0, 0, 3, 2, 3, 4, 2, 1, 0, 1, 4}, // 0, f0
+                TVector<ui8>{1, 2, 0, 1, 4, 4, 4, 4, 3, 2, 0, 1, 4}, // 0, f0
                 TVector<ui8>{0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1}, // 2, f1, binary
                 TVector<ui8>{0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1}, // 5, f2, binary
                 TVector<ui8>{0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0}, // 6, f3, binary
-                TVector<ui8>{4, 1, 2, 0, 3, 2, 0, 4, 1, 3, 3, 2, 4}, // 7, f4
+                TVector<ui8>{4, 1, 2, 0, 3, 2, 0, 4, 2, 3, 3, 2, 4}, // 7, f4
                 TVector<ui8>{0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, 1, 1}, // 12, f5, binary
                 TVector<ui8>{0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1}, // 13, f6, binary
                 TVector<ui8>{0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 0}, // 14, f7, binary
@@ -951,15 +951,15 @@ Y_UNIT_TEST_SUITE(Quantization) {
             );
 
             TVector<TVector<float>> borders = {
-                {0.1149999946f, 0.3199999928f, 0.7849999666f, 1.600000024f}, // 0
+                {0.055f, 0.225f, 0.445f, 0.615f}, // 0
                 {0.5f}, // 1, binary
                 {1.f}, // 2, binary
                 {0.15f}, // 3, binary
                 {
                     std::numeric_limits<float>::lowest(),
-                    0.1149999946f,
-                    0.2649999857f,
-                    0.5600000024f
+                    0.055f,
+                    0.25f,
+                    0.49f
                 }, // 4
                 {1.f}, // 5, binary
                 {0.5f}, // 6, binary
@@ -1140,7 +1140,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             srcData.MetaInfo = metaInfo;
 
-            srcData.TargetData.Target = {"0", "1", "1", "0", "1", "0", "1", "0", "0", "1", "0", "0", "0"};
+            srcData.TargetData.Target = {{"0", "1", "1", "0", "1", "0", "1", "0", "0", "1", "0", "0", "0"}};
             srcData.TargetData.SetTrivialWeights(13);
 
             srcData.CommonObjectsData.FeaturesLayout = srcData.MetaInfo.FeaturesLayout;

@@ -100,3 +100,63 @@ void ConvertIgnoredFeaturesFromStringToIndices(const NCB::TDataMetaInfo& metaInf
         ConvertStringsArrayIntoIndicesArray(metaInfo, &(*catBoostJsonOptions)["ignored_features"]);
     }
 }
+
+static void ConvertMonotoneConstraintsFromStringToIndices(const TMap<TString, ui32>& indicesFromNames, NJson::TJsonValue* treeOptions) {
+    if (indicesFromNames.empty()) {
+        return;
+    }
+    auto& constraintsRef = (*treeOptions)["monotone_constraints"];
+    Y_ASSERT(constraintsRef.GetType() == NJson::EJsonValueType::JSON_MAP);
+    bool needConvert = AnyOf(constraintsRef.GetMap(), [](auto element) {
+        int index = 0;
+        return !TryFromString(element.first, index);
+    });
+    if (needConvert) {
+        NJson::TJsonValue constraintsWithIndices(NJson::EJsonValueType::JSON_MAP);
+        for (const auto& [featureName, value] : constraintsRef.GetMap()) {
+            CB_ENSURE(indicesFromNames.contains(featureName), "Unknown feature name in monotone constraints: " << featureName);
+            constraintsWithIndices.InsertValue(ToString(indicesFromNames.at(featureName)), value);
+        }
+        constraintsRef.Swap(constraintsWithIndices);
+    }
+}
+
+void ConvertMonotoneConstraintsFromStringToIndices(const NCB::TDataMetaInfo& metaInfo, NJson::TJsonValue* catBoostJsonOptions) {
+    auto& treeOptions = (*catBoostJsonOptions)["tree_learner_options"];
+    if (!treeOptions.Has("monotone_constraints")) {
+        return;
+    }
+
+    TMap<TString, ui32> indicesFromNames;
+    ui32 columnIdx = 0;
+    for (const auto& columnInfo : metaInfo.FeaturesLayout->GetExternalFeaturesMetaInfo()) {
+        if (!columnInfo.Name.empty()) {
+            indicesFromNames[columnInfo.Name] = columnIdx;
+        }
+        columnIdx++;
+    }
+    ConvertMonotoneConstraintsFromStringToIndices(indicesFromNames, &treeOptions);
+}
+
+void ConvertMonotoneConstraintsFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* catBoostJsonOptions) {
+    auto& treeOptions = (*catBoostJsonOptions)["tree_learner_options"];
+    if (!treeOptions.Has("monotone_constraints")) {
+        return;
+    }
+
+    TMap<TString, ui32> indicesFromNames;
+    if (poolLoadParams.ColumnarPoolFormatParams.CdFilePath.Inited()) {
+        const TVector<TColumn> columns = ReadCD(poolLoadParams.ColumnarPoolFormatParams.CdFilePath,
+                                                TCdParserDefaults(EColumn::Num));
+        ui32 featureIdx = 0;
+        for (const auto& column : columns) {
+            if (IsFactorColumn(column.Type)) {
+                if (!column.Id.empty()) {
+                    indicesFromNames[column.Id] = featureIdx;
+                }
+                featureIdx++;
+            }
+        }
+    }
+    ConvertMonotoneConstraintsFromStringToIndices(indicesFromNames, &treeOptions);
+}

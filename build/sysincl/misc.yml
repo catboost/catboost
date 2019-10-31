@@ -234,7 +234,9 @@
 # unused legacy include in boost
 - source_filter: "^contrib/deprecated/boost"
   includes:
+    - atomic.h
     - fstream.h
+    - ../include/fenv.h
 
 # libc++ internal implementation details
 - source_filter: "^contrib/deprecated/boost/boost/asio/detail"
@@ -257,6 +259,10 @@
     - sasl/sasl.h
     - sasl/saslutil.h
 
+- source_filter: "^contrib/libs/apr"
+  includes:
+    - atomic.h
+
 - source_filter: "^contrib/libs/(apr|httpd|llvm)"
   includes:
     - uuid.h
@@ -272,10 +278,6 @@
     - unicode/utf16.h
     - unicode/utypes.h
     - unicode/uversion.h
-
-- source_filter: "^contrib/deprecated/boost"
-  includes:
-    - ../include/fenv.h
 
 - source_filter: "^contrib/deprecated/glib"
   includes:
@@ -475,3 +477,11 @@
     - vectorf128.h
     - vectormath_exp.h
     - vectormath_trig.h
+
+- source_filter: "^contrib/libs/libf2c"
+  includes:
+    - local.h
+
+- source_filter: "^contrib/libs/libpq"
+  includes:
+    - local.h

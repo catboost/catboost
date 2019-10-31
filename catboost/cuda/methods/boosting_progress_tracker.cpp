@@ -25,6 +25,7 @@ namespace NCatboostCuda {
                                                        bool testHasTarget,
                                                        ui32 cpuApproxDim,
                                                        bool hasWeights,
+                                                       TMaybe<ui32> learnAndTestCheckSum,
                                                        ITrainingCallbacks* trainingCallbacks)
         : CatboostOptions(catBoostOptions)
         , OutputOptions(outputFilesOptions)
@@ -45,6 +46,7 @@ namespace NCatboostCuda {
         , IsSkipOnTestFlags(GetSkipMetricOnTest(testHasTarget, GetCpuMetrics(Metrics)))
         , CalcEvalMetricOnEveryIteration(forceCalcEvalMetricOnEveryIteration || ErrorTracker.IsActive())
         , HasWeights(hasWeights)
+        , LearnAndTestQuantizedFeaturesCheckSum(learnAndTestCheckSum)
     {
         if (OutputOptions.AllowWriteFiles()) {
             InitializeFileLoggers(CatboostOptions,
@@ -169,6 +171,14 @@ namespace NCatboostCuda {
                 ::Load(in, profileData);
                 ProfileInfo.InitProfileInfo(std::move(profileData));
 
+                TMaybe<ui32> learnAndTestCheckSum;
+                ::Load(in, learnAndTestCheckSum);
+                if (learnAndTestCheckSum.Defined() && LearnAndTestQuantizedFeaturesCheckSum.Defined()) {
+                    CB_ENSURE(
+                        learnAndTestCheckSum.GetRef() == LearnAndTestQuantizedFeaturesCheckSum.GetRef(),
+                        "Saved model's learn and test checksum is different from current model's learn and test checksum");
+                }
+
                 loader(in);
                 TrainingCallbacks->OnSnapshotLoaded(in);
             });
@@ -220,6 +230,7 @@ namespace NCatboostCuda {
                 ::Save(out, CatBoostOptionsStr);
                 ::Save(out, History);
                 ::Save(out, ProfileInfo.DumpProfileInfo());
+                ::Save(out, LearnAndTestQuantizedFeaturesCheckSum);
                 saver(out);
                 TrainingCallbacks->OnSnapshotSaved(out);
             });

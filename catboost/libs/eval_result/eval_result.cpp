@@ -88,7 +88,7 @@ namespace NCB {
             if (TryFromString<EColumn>(ToCanonicalColumnName(name), columnType)) {
                 switch (columnType) {
                     case (EColumn::Label):
-                        CB_ENSURE(pool.MetaInfo.HasTarget > 0, "bad output column name " << name << " (No target/label info in pool)");
+                        CB_ENSURE(pool.MetaInfo.TargetCount > 0, "bad output column name " << name << " (No target/label info in pool)");
                         break;
                     case (EColumn::Baseline):
                         CB_ENSURE(pool.MetaInfo.BaselineCount > 0, "bad output column name " << name << " (No baseline info in pool)");
@@ -184,7 +184,16 @@ namespace NCB {
             EColumn outputType;
             if (TryFromString<EColumn>(ToCanonicalColumnName(outputColumn), outputType)) {
                 if (outputType == EColumn::Label) {
-                    columnPrinter.push_back(MakeHolder<TArrayPrinter<TString>>(*pool.RawTargetData.GetTarget(), outputColumn));
+                    const auto& target = pool.RawTargetData.GetMultiTarget().GetRef();
+                    const auto targetDim = target.size();
+                    for (auto targetIdx : xrange(targetDim)) {
+                        TStringBuilder header;
+                        header << outputColumn;
+                        if (targetDim > 1) {
+                            header << ":dim=" << targetIdx;
+                        }
+                        columnPrinter.push_back(MakeHolder<TArrayPrinter<TString>>(target[targetIdx], header));
+                    }
                     continue;
                 }
                 if (outputType == EColumn::SampleId) {

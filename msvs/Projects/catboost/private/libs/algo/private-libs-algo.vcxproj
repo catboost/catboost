@@ -81,11 +81,12 @@
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\apply.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\approx_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\approx_calcer_helpers.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\approx_calcer_multi.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\approx_calcer_querywise.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\approx_delta_calcer_multi.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\approx_dimension.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\approx_updater_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\bin_tracker.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\build_subset_in_leaf.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\calc_score_cache.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\confusion_matrix.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\ctr_helper.cpp"/>
@@ -120,11 +121,12 @@
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\apply.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\approx_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\approx_calcer_helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\approx_calcer_multi.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\approx_calcer_querywise.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\approx_delta_calcer_multi.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\approx_dimension.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\approx_updater_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\bin_tracker.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\build_subset_in_leaf.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\calc_score_cache.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\confusion_matrix.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\ctr_helper.h"/>
@@ -201,6 +203,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\libs\overfitting_detector\catboost-libs-overfitting_detector.vcxproj">
       <Project>{37000E43-2347-88B9-F125-78F4CA4B2776}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\algo\approx_calcer\libs-algo-approx_calcer.vcxproj">
+      <Project>{0F5235D9-7C61-080A-C810-DA5B714E61C5}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\algo_helpers\private-libs-algo_helpers.vcxproj">
       <Project>{EB3D7653-201F-4D73-1FD4-98AAF0E592AD}</Project>

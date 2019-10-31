@@ -98,4 +98,7 @@ namespace NFloat16Ops {
 
     Y_CONST_FUNCTION
     bool IsIntrisincsAvailableOnHost();
+
+    void PackFloat16SequenceAuto(const float* src, TFloat16* dst, size_t len);
+    void PackFloat16SequenceIntrisincs(const float* src, TFloat16* dst, size_t len);
 }

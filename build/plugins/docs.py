@@ -37,7 +37,6 @@ def onprocess_docs(unit, *args):
 
 
 def generate_dart(unit, as_lib=False):
-
     module_dir = os.path.normpath(unit.path()[3:])
     docs_dir = (unit.get('DOCSDIR') or '').rstrip('/')
     if docs_dir:
@@ -46,6 +45,11 @@ def generate_dart(unit, as_lib=False):
     else:
         docs_dir = module_dir
 
+    build_tool = unit.get('DOCSBUILDER') or 'mkdocs'
+
+    if build_tool not in ['mkdocs', 'yfm']:
+        unit.message(['error', 'Unsupported build tool {}'.format(build_tool)])
+
     docs_config = os.path.normpath(unit.get('DOCSCONFIG') or 'mkdocs.yml')
     if os.path.sep not in docs_config:
         docs_config = os.path.join(module_dir, docs_config)
@@ -53,7 +57,7 @@ def generate_dart(unit, as_lib=False):
         unit.message(['error', 'DOCS_CONFIG value "{}" is outside the project directory and DOCS_DIR'.format(docs_config)])
         return
 
-    if not os.path.exists(unit.resolve('$S/' + docs_config)):
+    if build_tool == 'mkdocs' and not os.path.exists(unit.resolve('$S/' + docs_config)):
         unit.message(['error', 'DOCS_CONFIG value "{}" does not exist'.format(docs_config)])
         return
 
@@ -68,7 +72,11 @@ def generate_dart(unit, as_lib=False):
         'DOCSINCLUDESOURCES': includes,
         'DOCSLIB': as_lib,
         'PEERDIRS': [d[3:] for d in unit.get_module_dirs('PEERDIRS')],
+        'DOCSBUILDER': build_tool,
     }
+
+    if build_tool == 'yfm' and not as_lib and data['PEERDIRS'] != ['build/platform/yfm']:
+        unit.message(['error', 'In module {}: yfm-transform does not support PEERDIRs and source includes. See DOCSTOOLS-12, DOCSTOOLS-13'.format(module_dir)])
 
     dart = 'DOCS_DART: ' + base64.b64encode(json.dumps(data)) + '\n' + DELIM + '\n'
 

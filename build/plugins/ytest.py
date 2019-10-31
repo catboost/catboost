@@ -619,31 +619,25 @@ def add_test_to_dart(unit, test_type, binary_path=None, runner_bin=None):
 
 
 def extract_java_system_properties(unit, args):
-    props = []
-
     if len(args) % 2:
-        print>>sys.stderr, 'wrong use of SYSTEM_PROPERTIES in {}: odd number of arguments'.format(unit.path())  # TODO: configure error
-        return []
+        return [], 'Wrong use of SYSTEM_PROPERTIES in {}: odd number of arguments'.format(unit.path())
 
+    props = []
     for x, y in zip(args[::2], args[1::2]):
         if x == 'FILE':
             if y.startswith('${BINDIR}') or y.startswith('${ARCADIA_BUILD_ROOT}') or y.startswith('/'):
-                print>>sys.stderr, 'wrong use of SYSTEM_PROPERTIES in {}: absolute/build file path {}'.format(unit.path(), y)  # TODO: configure error
-                continue
+                return [], 'Wrong use of SYSTEM_PROPERTIES in {}: absolute/build file path {}'.format(unit.path(), y)
 
             y = _common.rootrel_arc_src(y, unit)
             if not os.path.exists(unit.resolve('$S/' + y)):
-                print>>sys.stderr, 'wrong use of SYSTEM_PROPERTIES in {}: can\'t resolve {}'.format(unit.path(), y)  # TODO: configure error
-                continue
+                return [], 'Wrong use of SYSTEM_PROPERTIES in {}: can\'t resolve {}'.format(unit.path(), y)
 
             y = '${ARCADIA_ROOT}/' + y
-
             props.append({'type': 'file', 'path': y})
-
         else:
             props.append({'type': 'inline', 'key': x, 'value': y})
 
-    return props
+    return props, None
 
 
 def onjava_test(unit, *args):
@@ -651,15 +645,24 @@ def onjava_test(unit, *args):
 
     if unit.get('MODULE_TYPE') == 'JTEST_FOR':
         if not unit.get('UNITTEST_DIR'):
-            print>>sys.stderr, 'skip JTEST_FOR in {}: no args provided'.format(unit.path())  # TODO: configure error
-            return  # do not add such tests into dart
+            ymake.report_configure_error('skip JTEST_FOR in {}: no args provided'.format(unit.path()))
+            return
 
-    path = strip_roots(unit.path())
+    unit_path = unit.path()
+    path = strip_roots(unit_path)
+    test_dir = unit.resolve(unit_path)
 
     test_data = get_values_list(unit, 'TEST_DATA_VALUE')
-    test_data.append('arcadia/build/scripts')
+    test_data.append('arcadia/build/scripts/unpacking_jtest_runner.py')
+    test_data.append('arcadia/build/scripts/run_testng.py')
 
-    props = extract_java_system_properties(unit, get_values_list(unit, 'SYSTEM_PROPERTIES_VALUE'))
+    data, data_files = get_canonical_test_resources(test_dir, unit_path)
+    test_data += data
+
+    props, error_mgs = extract_java_system_properties(unit, get_values_list(unit, 'SYSTEM_PROPERTIES_VALUE'))
+    if error_mgs:
+        ymake.report_configure_error(error_mgs)
+        return
     for prop in props:
         if prop['type'] == 'file':
             test_data.append(prop['path'].replace('${ARCADIA_ROOT}', 'arcadia'))
@@ -704,6 +707,7 @@ def onjava_test(unit, *args):
     data = dump_test(unit, test_record)
     if data:
         unit.set_property(['DART_DATA', data])
+        _add_data_files(unit, data_files, test_dir)
 
 
 def onjava_test_deps(unit, *args):
@@ -770,6 +774,7 @@ def _dump_test(
     else:
         script_rel_path = test_type
 
+    unit_path = unit.path()
     fork_test_files = unit.get('FORK_TEST_FILES_MODE')
     fork_mode = ' '.join(fork_mode) if fork_mode else ''
     use_arcadia_python = unit.get('USE_ARCADIA_PYTHON')
@@ -807,7 +812,7 @@ def _dump_test(
             'PYTHON-PATHS': serialize_list(python_paths),
             'TEST-CWD': test_cwd or '',
             'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
-            'BUILD-FOLDER-PATH': strip_roots(unit.path()),
+            'BUILD-FOLDER-PATH': strip_roots(unit_path),
             'BLOB': unit.get('TEST_BLOB_DATA') or '',
         }
         if binary_path:
@@ -820,10 +825,18 @@ def _dump_test(
         if data:
             unit.set_property(["DART_DATA", data])
             save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
-            if data_files:
-                data_files = [os.path.relpath(i, test_dir) for i in data_files]
-                data_files = [os.path.join(unit.path(), i) for i in data_files]
-                unit.set_property(['DART_DATA_FILES', serialize_list(sorted(data_files))])
+            _add_data_files(unit, data_files, test_dir)
+
+
+def _add_data_files(unit, data_files, test_dir):
+    if not data_files:
+        return
+
+    unit_path = unit.path()
+    data_files = [os.path.relpath(i, test_dir) for i in data_files]
+    data_files = [os.path.join(unit_path, i) for i in data_files]
+
+    unit.set_property(['DART_DATA_FILES', serialize_list(sorted(data_files))])
 
 
 def onsetup_pytest_bin(unit, *args):

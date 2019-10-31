@@ -185,6 +185,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\dbg_output.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\dense_hash_view.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\dispatch_generic_lambda.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\double_array_iterator.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\dynamic_iterator.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\element_range.h"/>

@@ -1,51 +1,68 @@
-1. Добавить в R библиотеку функцию `eval_metrics`
-Это часто используемая функция, в R пока что ее нет. Сама функция написана на питоне, нужно обернуть ее в R.
-То есть задача заключается в том, чтобы научиться писать на R и вызывать оттуда плюсовый код. Примеров в коде достаточно.
+1. `treat_object_as_categorical`
+Currently you have to pass `cat_features` to CatBoost* init function or to fit function.
+Many people ask for automatic detection of categorical features.
+This flag would solve the problem.
+It is suggested to add the flag to Pool init function, CatBoost* init functions and to fit function the same way `cat_features` parameter is added.
 
-2. Model calculation is not able to read features from stdin
-Сейчас применение модели в cmdline режиме можно делать только из файла и писать в файл.
-Нас просят сделать возможность читать из stdin, писать в stdout.
+Tests for all these cases must be provided.
 
-3. Если learning_rate == 0, то CatBoost должен бросать `TCatBoostException`.
-Добавить в валидацию опций.
+2. `allow_float_categories`
+Categorical features are treated in the following way. We first convert them to strings, then calculate hash from the string, then use the hash value in the algorithm.
+For this reason it is only allowed to use data types that can be converted to string in a unique way. Otherwise if you are training from python and applying from C++, you might get different results because of different string representation.
+But if you are only working from python, then it can be safe to use float numbers if user has explicitly confirmed that this is what the user wants.
 
-4. `baseline` in eval-metrics
-Эта функция предполагает, что начальные значения у каждого объекта == 0.
-На самом деле это может быть не правдой, если мы обучаемся из бейзлайна.
-Поэтому в этой функции надо тоже добавить возможность применяться из бейзлайна.
+This flag should also be used in Pool and CatBoost* init functions and in fit function.
 
-5. `--name` в режиме eval-metrics
-Нужно заполнять поле `name` в json со значениями метрик строкой, переданной через этот параметр.
+3. `allow_nan_categories`
+This problem is very similar to #2, but now nan categories are allowed.
+It is suggested that in this case nan value is always converted to "None" string before calculating hashes.
 
-6. multiple eval sets on GPU
-На ЦПУ CatBoost умеет считать метрики для нескольких тестовых датасетов.
-Нужно поддержать эту функциональность на GPU.
+4. Skip invalid parameter configurations in `grid_search` and `randomized_search` methods.
+The python code of running parameter search should chech if configuration is valid. If it is not valid it should be skipped and a warning msg should be printed.
+In case of `randomized_search`, where `n_iter` is number of checked configurations, invalid configurations should not be count as checked ones.
 
-7. Улучшить `eval_metrics`:
-При указании начальной итерации применять всю модель до этой итерации, и уже из этой точки стартовать оценку метрик.
-И разрешить `eval_metrics` шаг больше, чем длина ансамбля - обрезать по длине ансамбля.
+5. Add `model.class_count_` property to CatBoostClassifier class.
+It should return `len(model.class_names_)`
 
-8. Automatic `class_weights`/`scale_pos_weight` 
+6. Add `feature_names_`, `cat_feature_names_`, `num_feature_names_`, `cat_feature_indices_` properties to CatBoost* classes.
 
-9. Allow `skip_train` `loss_function` property in cv method.
+7. Implement a new ranking metric ERR (Expected Reciprocal Rank) and its documentation
 
-10. EvalFeature supports dataframes, not only file
+8. Add CatBoostClassifier `predict_log_proba` method
 
-11. Train from file with header and delimiter. Currently it's only possible to train from tsv file without header.
+9. Better parameter checks:
+if `leaf_estimation_iterations`:5 with RMSE, there should be warning and 1 iteration
 
-12. Pairwise metrics in `mode_eval_metrics`
+10. tutorial on poisson regression using monotonic1 dataset.
+Jupyter notebook should give text explanation of what is the task, examples when it might appear and how it is solved.
 
-13. Rename Custom to UserDefined
-for user defined objectives.
-ELossFunction::Custom -> PythonUserDefinedPerObject и в туториале в названии и описании кастом убрать тоже
+11. In python cv request `loss_function` to be set
+Currently if no `loss_function` is passed, then RMSE is used by default.
+This might be misleading in the following case.
+A user creates CatBoostClassifier and calles `get_params()` from a not trained model. The resulting parameters don't contain the `loss_function` parameter, because the default `loss_function` for CatBoostClassifier depends on number of classes in train dataset. If there are 2 classes, it is Logloss, if there are more than 2 classes, it is MultiClass.
 
-14. Add CatBoost to https://github.com/apple/turicreate
+These parameters are passed to cv function. And it trains an RMSE model, because it is the default loss.
 
-15. `class_names` parameter in Pool constructor
+This is not expected behavoir. So it is better to check that the loss is present among parameters passed to cv method.
 
-16. Validate CoreML model when doing its conversion (MLTOOLS-2761)
+12. Implement CatBoostRanker class
+Currently we only have CatBoostRegressor and CatBoostClassifier.
+It would be nice to implement a class for ranking also.
+The default loss function in this case will be YetiRank.
 
-17. Classification loss for noizy data: see NeurIPS 2018 paper  
-Generalized Cross Entropy Loss for Training Deep Neural Networks with Noisy Labels
+13. Implement a ColumnDescription class in Python that can be used instead of cd file https://catboost.ai/docs/concepts/input-data_column-descfile.html
+when creating Pool from file.
+The class should have init function, methods load and save, and Pool init method should be able to use object of this class instead of cd file during initialization.
 
-18. Add CatBoostClassifier `predict_log_proba` and `decision_function` methods to support better sklearn API
+14. Add `eval_metrics` method to R library. Currently it's only supported in Python package.
+
+15. Add `baseline` parameter to `eval_metrics` function in Python.
+Currently this function assumes that initial value for every sample is 0.
+This might be not the case, if we are traing from some baseline.
+
+16. Automatic `class_weights`/`scale_pos_weight` based on training dataset class appearance frequency.
+Interface: `class_weights`='Auto'
+
+17. Add CatBoost to https://github.com/apple/turicreate
+
+18. Implement Tweedie Regression

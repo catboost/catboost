@@ -202,7 +202,21 @@ static void CreateQuantizedObjectsDataProviderTestData(
 
 static TRawTargetData CreateRawTargetData() {
     TRawTargetData targetData;
-    targetData.Target = TVector<TString>{"0.2", "0.5", "1.0", "0.0", "0.8", "0.3"};
+    targetData.Target = TVector<TVector<TString>>{{"0.2", "0.5", "1.0", "0.0", "0.8", "0.3"}};
+    targetData.Baseline = TVector<TVector<float>>{
+        TVector<float>{0.12f, 0.0f, 0.11f, 0.31f, 0.2f, 0.9f}
+    };
+    targetData.Weights = TWeights<float>{TVector<float>{1.0f, 0.0f, 0.2f, 0.12f, 0.45f, 0.89f}};
+    targetData.GroupWeights = TWeights<float>(6);
+    targetData.Pairs = {TPair{0, 1, 0.1f}, TPair{3, 4, 1.0f}, TPair{3, 5, 2.0f}};
+
+    return targetData;
+}
+
+
+static TRawTargetData CreateRawMultiTargetData() {
+    TRawTargetData targetData;
+    targetData.Target = TVector<TVector<TString>>{{"0.2", "0.5", "1.0", "0.0", "0.8", "0.3"}, {"-0.2", "-0.5", "-1.0", "-0.0", "-0.8", "-0.3"}};
     targetData.Baseline = TVector<TVector<float>>{
         TVector<float>{0.12f, 0.0f, 0.11f, 0.31f, 0.2f, 0.9f}
     };
@@ -215,8 +229,8 @@ static TRawTargetData CreateRawTargetData() {
 
 
 Y_UNIT_TEST_SUITE(TDataProviderTemplate) {
-    template <class TTObjectsDataProvider>
-    void TestEqual() {
+    template <class TTObjectsDataProvider, class TTargetFactory>
+    void TestEqual(TTargetFactory targetFactory) {
         NPar::TLocalExecutor localExecutor;
         localExecutor.RunAdditionalThreads(3);
 
@@ -228,7 +242,7 @@ Y_UNIT_TEST_SUITE(TDataProviderTemplate) {
 
             CreateQuantizedObjectsDataProviderTestData(true, &metaInfo, &objectsGrouping, &objectsData);
 
-            TRawTargetData rawTargetData = CreateRawTargetData();
+            TRawTargetData rawTargetData = targetFactory();
 
             dataProviders[i] = MakeHolder<TDataProviderTemplate<TTObjectsDataProvider>>(
                 std::move(metaInfo),
@@ -246,14 +260,23 @@ Y_UNIT_TEST_SUITE(TDataProviderTemplate) {
     }
 
     Y_UNIT_TEST(Equal) {
-        TestEqual<TQuantizedObjectsDataProvider>();
-        TestEqual<TQuantizedForCPUObjectsDataProvider>();
+        TestEqual<TQuantizedObjectsDataProvider>(CreateRawTargetData);
+        TestEqual<TQuantizedForCPUObjectsDataProvider>(CreateRawMultiTargetData);
     }
 }
 
 
 
 Y_UNIT_TEST_SUITE(TProcessedDataProviderTemplate) {
+
+    TVector<TSharedVector<float>> MakeTarget(const TVector<TVector<float>>& target) {
+        auto processedTarget = TVector<TSharedVector<float>>();
+        processedTarget.reserve(target.size());
+        for (const auto& subTarget : target) {
+            processedTarget.emplace_back(MakeAtomicShared<TVector<float>>(subTarget));
+        }
+        return processedTarget;
+    }
 
     template <class TTObjectsDataProvider>
     void Compare(
@@ -303,10 +326,10 @@ Y_UNIT_TEST_SUITE(TProcessedDataProviderTemplate) {
             TWeights<float>({1.0f, 2.0f, 1.0f, 1.2f, 2.1f, 0.0f})
         );
 
-        TSharedVector<float> targets = ShareVector<float>({0.0f, 0.2f, 0.1f, 0.3f, 0.12f, 0.0f});
+        auto targets = MakeTarget({{0.0f, 0.2f, 0.1f, 0.3f, 0.12f, 0.0f}});
 
         // 3 classes
-        TSharedVector<float> multiClassTargets = ShareVector<float>({1.f, 0.0f, 1.0f, 2.0f, 2.0f, 0.0f});
+        auto multiClassTargets = MakeTarget({{1.f, 0.0f, 1.0f, 2.0f, 2.0f, 0.0f}});
 
         TVector<TSharedVector<float>> baselines = {
             ShareVector<float>({0.1f, 0.2f, 0.4f, 1.0f, 2.1f, 3.3f}),
@@ -403,8 +426,51 @@ Y_UNIT_TEST_SUITE(TProcessedDataProviderTemplate) {
         }
     }
 
+    template <class TTObjectsDataProvider>
+    void TestMultiTargetSerialization() {
+        TProcessedDataProviderTemplate<TTObjectsDataProvider> trainingDataProvider;
+
+        CreateQuantizedObjectsDataProviderTestData(
+            false,
+            &trainingDataProvider.MetaInfo,
+            &trainingDataProvider.ObjectsGrouping,
+            &trainingDataProvider.ObjectsData
+        );
+
+        TSharedWeights<float> weights = Share(
+            TWeights<float>({1.0f, 2.0f, 1.0f, 1.2f, 2.1f, 0.0f})
+        );
+
+        auto targets = MakeTarget({{0.0f, 0.2f, 0.1f, 0.3f, 0.12f, 0.0f}, {-0.0f, -0.2f, -0.1f, -0.3f, -0.12f, -0.0f}});
+
+        TVector<TSharedVector<float>> baselines = {
+            ShareVector<float>({0.1f, 0.2f, 0.4f, 1.0f, 2.1f, 3.3f}),
+            ShareVector<float>({0.0f, 0.11f, 0.04f, 0.12f, 0.6f, 0.82f}),
+            ShareVector<float>({0.22f, 0.71f, 0.0f, 0.05f, 0.0f, 0.0f}),
+        };
+
+        {
+            TProcessedTargetData processedTargetData;
+            processedTargetData.Targets.emplace("", targets);
+            processedTargetData.Weights.emplace("", weights);
+            processedTargetData.Baselines.emplace("", TVector<TSharedVector<float>>(1, baselines[0]));
+
+            trainingDataProvider.TargetData = MakeIntrusive<TTargetDataProvider>(
+                trainingDataProvider.ObjectsGrouping,
+                std::move(processedTargetData)
+            );
+
+            TestSerializationCase(trainingDataProvider);
+        }
+    }
+
     Y_UNIT_TEST(Serialization) {
         TestSerialization<TQuantizedObjectsDataProvider>();
         TestSerialization<TQuantizedForCPUObjectsDataProvider>();
+    }
+
+    Y_UNIT_TEST(MultiTargetSerialization) {
+        TestMultiTargetSerialization<TQuantizedObjectsDataProvider>();
+        TestMultiTargetSerialization<TQuantizedForCPUObjectsDataProvider>();
     }
 }

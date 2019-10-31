@@ -87,6 +87,7 @@
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\logger\priority.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\logger\rotating_file.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\logger\stream.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\logger\sync_page_cache_file.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\logger\system.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\logger\thread.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\library\logger\priority.h">
@@ -126,6 +127,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\library\logger\record.h"/>
     <ClInclude Include="$(SolutionDir)..\library\logger\rotating_file.h"/>
     <ClInclude Include="$(SolutionDir)..\library\logger\stream.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\logger\sync_page_cache_file.h"/>
     <ClInclude Include="$(SolutionDir)..\library\logger\system.h"/>
     <ClInclude Include="$(SolutionDir)..\library\logger\thread.h"/>
   </ItemGroup>

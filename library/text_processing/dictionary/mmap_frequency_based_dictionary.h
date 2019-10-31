@@ -9,7 +9,7 @@ namespace NTextProcessing::NDictionary {
 
     class IMMapDictionaryImpl;
 
-    class TMMapDictionary final : public IDictionary {
+    class TMMapDictionary final : public IDictionary, public TMoveOnly {
     public:
         TMMapDictionary();
         explicit TMMapDictionary(TIntrusiveConstPtr<TDictionary> dictionary);

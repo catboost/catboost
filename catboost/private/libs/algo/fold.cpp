@@ -113,7 +113,7 @@ TFold TFold::BuildDynamicFold(
 
     InitPermutationData(learnData, shuffle, permuteBlockSize, rand, &ff);
 
-    ff.AssignTarget(learnData.TargetData->GetTarget(), targetClassifiers);
+    ff.AssignTarget(learnData.TargetData->GetMultiTarget(), targetClassifiers);
     ff.SetWeights(GetWeights(*learnData.TargetData), learnSampleCount);
 
     TVector<ui32> queryIndices;
@@ -229,7 +229,7 @@ TFold TFold::BuildPlainFold(
 
     InitPermutationData(learnData, shuffle, permuteBlockSize, rand, &ff);
 
-    ff.AssignTarget(learnData.TargetData->GetTarget(), targetClassifiers);
+    ff.AssignTarget(learnData.TargetData->GetMultiTarget(), targetClassifiers);
     ff.SetWeights(GetWeights(*learnData.TargetData), learnSampleCount);
 
     auto maybeGroupInfos = learnData.TargetData->GetGroupInfo();
@@ -303,15 +303,18 @@ void TFold::DropEmptyCTRs() {
 }
 
 void TFold::AssignTarget(
-    TMaybeData<TConstArrayRef<float>> target,
+    TMaybeData<TConstArrayRef<TConstArrayRef<float>>> target,
     const TVector<TTargetClassifier>& targetClassifiers
 ) {
     ui32 learnSampleCount = GetLearnSampleCount();
-    if (target.Defined()) {
-        AssignPermuted(*target, &LearnTarget);
+    if (target && target->size() > 0) {
+        LearnTarget.resize(target->size());
+        for (auto targetIdx : xrange(target->size())) {
+            LearnTarget[targetIdx] = NCB::GetSubset<float>((*target)[targetIdx], LearnPermutation->GetObjectsIndexing());
+        }
     } else {
         // TODO(akhropov): make this field optional
-        LearnTarget.assign(learnSampleCount, 0.0f);
+        LearnTarget = TVector<TVector<float>>{TVector<float>(learnSampleCount, 0.0f)};
     }
 
     int ctrCount = targetClassifiers.ysize();
@@ -319,7 +322,7 @@ void TFold::AssignTarget(
     TargetClassesCount.resize(ctrCount);
     for (int ctrIdx = 0; ctrIdx < ctrCount; ++ctrIdx) {
         for (ui32 z = 0; z < learnSampleCount; ++z) {
-            LearnTargetClass[ctrIdx][z] = targetClassifiers[ctrIdx].GetTargetClass(LearnTarget[z]);
+            LearnTargetClass[ctrIdx][z] = targetClassifiers[ctrIdx].GetTargetClass(LearnTarget[0][z]);
         }
         TargetClassesCount[ctrIdx] = targetClassifiers[ctrIdx].GetClassesCount();
     }

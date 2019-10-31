@@ -214,7 +214,7 @@ namespace NCB {
         const TTrainingDataProvider& trainingData,
         ui32 approxDimension) {
 
-        if (trainingData.MetaInfo.HasTarget) {
+        if (trainingData.MetaInfo.TargetCount > 0) {
             return;
         }
 

@@ -6,10 +6,11 @@ SRCS(
     apply.cpp
     approx_calcer.cpp
     approx_calcer_helpers.cpp
-    approx_calcer_multi.cpp
+    approx_delta_calcer_multi.cpp
     approx_calcer_querywise.cpp
     approx_dimension.cpp
     approx_updater_helpers.cpp
+    build_subset_in_leaf.cpp
     bin_tracker.cpp
     calc_score_cache.cpp
     ctr_helper.cpp
@@ -45,6 +46,7 @@ SRCS(
 )
 
 PEERDIR(
+    catboost/private/libs/algo/approx_calcer
     catboost/private/libs/algo_helpers
     catboost/libs/cat_feature
     catboost/libs/data

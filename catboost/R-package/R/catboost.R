@@ -25,7 +25,7 @@ NULL
 #' }
 #'
 #' Default value: Required argument
-#' @param label The label vector.
+#' @param label The label vector or label matrix
 #' @param cat_features A vector of categorical features indices.
 #' The indices are zero based and can differ from the given in the Column descriptions file.
 #' @param column_description The path to the input file that contains the column descriptions.
@@ -119,8 +119,12 @@ catboost.from_matrix <- function(data, label = NULL, cat_features = NULL, pairs 
 
   if (!is.double(label) && !is.integer(label) && !is.null(label))
       stop("Unsupported label type, expecting double or int, got: ", typeof(label))
-  if (length(label) != nrow(data) && !is.null(label))
-      stop("Data has ", nrow(data), " rows, label has ", length(label), " rows.")
+  if (!is.null(label) && !is.matrix(label))
+      label <- as.matrix(label)
+  if (!is.null(label) && !is.double(label))
+      label <- as.matrix(as.double(as.double(label)), nrow=nrow(label), ncol=ncol(label))
+  if (!is.null(label) && nrow(label) != nrow(data))
+      stop("Data has ", nrow(data), " rows, label has ", nrow(label), " rows.")
 
   if (!all(cat_features == as.integer(cat_features)) && !is.null(cat_features))
       stop("Unsupported cat_features type, expecting integer, got: ", typeof(cat_features))
@@ -168,9 +172,6 @@ catboost.from_matrix <- function(data, label = NULL, cat_features = NULL, pairs 
       stop("Unsupported feature_names type, expecting list, got: ", typeof(feature_names))
   if (length(feature_names) != ncol(data) && !is.null(feature_names))
       stop("Data has ", ncol(data), " columns, feature_names has ", length(feature_names), " columns.")
-
-  if (!is.double(label) && !is.null(label))
-      label <- as.double(label)
 
   pool <- .Call("CatBoostCreateFromMatrix_R",
                 data, label, cat_features, pairs, weight, group_id, group_weight, subgroup_id,

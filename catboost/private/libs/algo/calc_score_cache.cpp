@@ -616,7 +616,8 @@ void TCalcScoreFold::Sample(
         SetSampledControl(indices.ysize(), samplingUnit, fold.LearnQueriesInfo, rand);
     } else {
         BernoulliSampleRate = 0.0f;
-        SetControlNoZeroWeighted(indices.ysize(), fold.SampleWeights.data(), samplingUnit);
+        Y_ASSERT(samplingUnit == ESamplingUnit::Object);
+        SetControlNoZeroWeighted(indices.ysize(), fold.SampleWeights.data());
     }
 
     TVectorSlicing srcBlocks;
@@ -949,25 +950,18 @@ void TCalcScoreFold::SetSampledControl(
             sampleSize += Control[docIdx];
         }
     }
-    CB_ENSURE(sampleSize > 0, "Too few sampling units: please increase sampling rate or disable sampling");
 }
 
 void TCalcScoreFold::SetControlNoZeroWeighted(
     int docCount,
-    const float* sampleWeights,
-    ESamplingUnit samplingUnit
+    const float* sampleWeights
 ) {
-    CB_ENSURE(
-        samplingUnit != ESamplingUnit::Group,
-        "MVS bootstrap is not implemented for groupwise sampling (sampling_unit=Group)"
-    );
     constexpr float EPS = std::numeric_limits<float>::epsilon();
     ui32 sampleSize = 0;
     for (int docIdx = 0; docIdx < docCount; ++docIdx) {
         Control[docIdx] = sampleWeights[docIdx] > EPS;
         sampleSize += Control[docIdx];
     }
-    CB_ENSURE(sampleSize > 0, "Too few sampling units for MVS bootstrap: all sampled weights are less than or equal to " << EPS);
 }
 
 void TCalcScoreFold::CreateBlocksAndUpdateQueriesInfoByControl(

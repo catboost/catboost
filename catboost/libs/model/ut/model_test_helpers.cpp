@@ -23,7 +23,7 @@ TFullModel TrainFloatCatboostModel(int iterations, int seed) {
     dataProviders.Learn = CreateDataProvider(
         [&] (IRawFeaturesOrderDataVisitor* visitor) {
             TDataMetaInfo metaInfo;
-            metaInfo.HasTarget = true;
+            metaInfo.TargetCount = 1;
             metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
                 factorCount,
                 TVector<ui32>{},
@@ -251,7 +251,7 @@ TFullModel TrainCatOnlyModel() {
     dataProviders.Learn = CreateDataProvider(
         [&] (IRawFeaturesOrderDataVisitor* visitor) {
             TDataMetaInfo metaInfo;
-            metaInfo.HasTarget = true;
+            metaInfo.TargetCount = 1;
             metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
                 (ui32)3,
                 TVector<ui32>{0, 1, 2},

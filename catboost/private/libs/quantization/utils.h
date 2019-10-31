@@ -106,15 +106,9 @@ namespace NCB {
 
 
     inline ui32 GetSampleSizeForBorderSelectionType(ui32 vecSize,
-                                                    EBorderSelectionType borderSelectionType,
+                                                    EBorderSelectionType /*borderSelectionType*/,
                                                     ui32 slowSubsetSize = 100000) {
-        switch (borderSelectionType) {
-            case EBorderSelectionType::MinEntropy:
-            case EBorderSelectionType::MaxLogSum:
-                return Min<ui32>(vecSize, slowSubsetSize);
-            default:
-                return vecSize;
-        }
+        return Min<ui32>(vecSize, slowSubsetSize);
     };
 
     TVector<float> BuildBorders(const TVector<float>& floatFeature,

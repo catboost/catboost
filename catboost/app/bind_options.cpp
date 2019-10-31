@@ -749,7 +749,7 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
     const auto bootstrapTypeHelp = TString::Join(
         "Bootstrap type. Change default way of sampling documents weights. Must be one of: ",
         GetEnumAllNames<EBootstrapType>(),
-        ". By default CatBoost uses bayesian bootstrap type");
+        ". By default CatBoost uses Bayesian for GPU and MVS for CPU.");
     parser
         .AddLongOption("bootstrap-type")
         .RequiredArgument("STRING")
@@ -791,7 +791,8 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         .Handler1T<float>([plainJsonPtr](float rate) {
             (*plainJsonPtr)["subsample"] = rate;
         })
-        .Help("Controls sample rate for bagging. Could be used iff bootstrap-type is Poisson, Bernoulli. Possible values are from (0, 1]; 0.66 by default."
+        .Help("Controls sample rate for bagging. Could be used iff bootstrap-type is Poisson, Bernoulli or MVS. \
+            Possible values are from (0, 1]; 0.66 by default for Bernoulli and Poisson, 0.8 by default for MVS."
         );
 
     parser
@@ -816,6 +817,13 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         .Help("Monotone constraints for features. Possible formats: \"(1,0,0,-1)\" or \"0:1,3:-1\" or \"FeatureName1:1,FeatureName2:-1\"")
         .Handler1T<TString>([plainJsonPtr](const TString& monotoneConstraints) {
             (*plainJsonPtr)["monotone_constraints"] = monotoneConstraints;
+        });
+
+    parser
+        .AddLongOption("dev-leafwise-approxes", "Calculate approxes independently in each leaf")
+        .NoArgument()
+        .Handler0([plainJsonPtr]() {
+            (*plainJsonPtr)["dev_leafwise_approxes"] = true;
         });
 }
 

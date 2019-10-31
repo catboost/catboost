@@ -98,6 +98,18 @@ public:
 
 };
 
+inline static TSumMulti MakeZeroDers(
+    int approxDimension,
+    ELeavesEstimation estimationMethod,
+    EHessianType hessianType
+) {
+    if (estimationMethod == ELeavesEstimation::Gradient) {
+        return TSumMulti(approxDimension);
+    } else {
+        return TSumMulti(approxDimension, hessianType);
+    }
+}
+
 inline double CalcAverage(
     double sumDelta,
     double count,

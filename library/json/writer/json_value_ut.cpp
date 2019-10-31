@@ -623,4 +623,28 @@ Y_UNIT_TEST_SUITE(TJsonValueTest) {
         json = std::move(json["hello"]);
         UNIT_ASSERT_VALUES_EQUAL(json.GetString(), longTestString);
     }
+
+    Y_UNIT_TEST(TJsonArrayMapConstructor) {
+        TJsonMap emptyMap;
+        UNIT_ASSERT_VALUES_EQUAL(emptyMap.GetType(), JSON_MAP);
+        UNIT_ASSERT_VALUES_EQUAL(emptyMap.GetMapSafe().size(), 0);
+
+        TJsonArray emptyArray;
+        UNIT_ASSERT_VALUES_EQUAL(emptyArray.GetType(), JSON_ARRAY);
+        UNIT_ASSERT_VALUES_EQUAL(emptyArray.GetArraySafe().size(), 0);
+
+        TJsonMap filled = {
+            {"1", 1},
+            {"2", "2"},
+            {"3", TJsonArray{3}},
+            {"4", TJsonMap{{"5", 5}}},
+        };
+        UNIT_ASSERT_VALUES_EQUAL(filled.GetType(), JSON_MAP);
+        UNIT_ASSERT_VALUES_EQUAL(filled["1"], TJsonValue{1});
+        UNIT_ASSERT_VALUES_EQUAL(filled["2"], TJsonValue{"2"});
+        UNIT_ASSERT_VALUES_EQUAL(filled["3"].GetArraySafe().size(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(filled["3"][0], TJsonValue{3});
+        UNIT_ASSERT_VALUES_EQUAL(filled["4"].GetMapSafe().size(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(filled["4"]["5"], TJsonValue{5});
+    }
 } // TJsonValueTest

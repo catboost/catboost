@@ -3,7 +3,9 @@
 #include "description_utils.h"
 #include "classification_utils.h"
 
+#include <catboost/libs/helpers/dispatch_generic_lambda.h>
 #include <catboost/private/libs/options/enum_helpers.h>
+
 #include <util/generic/string.h>
 #include <util/generic/set.h>
 
@@ -99,22 +101,6 @@ namespace {
     };
 }
 /* Confusion matrix */
-
-template <typename TFunc>
-static auto DispatchGenericLambda(TFunc function) {
-    return function();
-}
-
-template <typename TFunc, typename ...TBools>
-static auto DispatchGenericLambda(TFunc function, bool arg, TBools ...args) {
-    return DispatchGenericLambda([=](auto ...args) {
-        if (arg) {
-            return function(std::true_type(), args...);
-        } else {
-            return function(std::false_type(), args...);
-        }
-    }, args...);
-}
 
 static TMetricHolder BuildConfusionMatrix(
     const TVector<TVector<double>>& approx,

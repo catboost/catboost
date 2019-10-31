@@ -6,7 +6,7 @@
 template <typename T>
 const T ReturnConstTemp();
 
-Y_UNIT_TEST_SUITE(TStringInputTest) {
+Y_UNIT_TEST_SUITE(TStringInputOutputTest) {
     Y_UNIT_TEST(Lvalue) {
         TString str = "Hello, World!";
         TStringInput input(str);
@@ -84,6 +84,31 @@ Y_UNIT_TEST_SUITE(TStringInputTest) {
         UNIT_ASSERT_VALUES_EQUAL(t, "0123456");
         UNIT_ASSERT_VALUES_EQUAL(in0.ReadTo(t, 'z'), 5);
         UNIT_ASSERT_VALUES_EQUAL(t, "89abc");
+    }
+
+    Y_UNIT_TEST(WriteViaNextAndUndo) {
+        TString str1;
+        TStringOutput output(str1);
+        TString str2;
+
+        for (size_t i = 0; i < 10000; ++i) {
+            str2.push_back('a' + (i % 20));
+        }
+
+        size_t written = 0;
+        void* ptr = nullptr;
+        while (written < str2.size()) {
+            size_t bufferSize = output.Next(&ptr);
+            UNIT_ASSERT(ptr && bufferSize > 0);
+            size_t toWrite = Min(bufferSize, str2.size() - written);
+            memcpy(ptr, str2.begin() + written, toWrite);
+            written += toWrite;
+            if (toWrite < bufferSize) {
+                output.Undo(bufferSize - toWrite);
+            }
+        }
+
+        UNIT_ASSERT_STRINGS_EQUAL(str1, str2);
     }
 
     Y_UNIT_TEST(Write) {

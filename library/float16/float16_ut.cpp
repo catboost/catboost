@@ -218,5 +218,19 @@ Y_UNIT_TEST_SUITE(Intrisincs) {
         float res = NFloat16Ops::DotProductOnFloatAuto(f32, f16, len);
         UNIT_ASSERT_DOUBLES_EQUAL(expected_f32f16, res, 1e-2);
     }
+
+    Y_UNIT_TEST(ConvertSequenceFromFloat) {
+        constexpr size_t len = 10;
+        alignas(32) float src[len];
+        alignas(16) TFloat16 dst[len];
+
+        for(size_t i = 0; i < len; ++i) {
+            src[i] = i;
+        }
+        NFloat16Ops::PackFloat16SequenceAuto(src, dst, len);
+        for(size_t i = 0; i < len; ++i) {
+            UNIT_ASSERT_VALUES_EQUAL(dst[i], TFloat16(float(i)));
+        }
+    }
 }
 

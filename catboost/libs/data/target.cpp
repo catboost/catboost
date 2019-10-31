@@ -24,16 +24,22 @@
 using namespace NCB;
 
 
-static void CheckRawTarget(TMaybeData<TConstArrayRef<TString>> rawTarget, ui32 objectCount) {
-    if (rawTarget) {
-        auto targetData = *rawTarget;
-        CheckDataSize(targetData.size(), (size_t)objectCount, "Target", false);
+static void CheckTarget(const TVector<TSharedVector<float>>& target, ui32 objectCount) {
+    for (auto i : xrange(target.size())) {
+        CheckDataSize(target[i]->size(), (size_t)objectCount, "Target[" + ToString(i) + "]", false);
+    }
+}
 
-        for (auto i : xrange(targetData.size())) {
-            CB_ENSURE(!targetData[i].empty(), "Target[" << i << "] is empty");
+
+static void CheckRawTarget(const TVector<TVector<TString>>& target, ui32 objectCount) {
+    for (auto i : xrange(target.size())) {
+        CheckDataSize(target[i].size(), (size_t)objectCount, "Target[" + ToString(i) + "]", false);
+        for (auto j : xrange(target[i].size())) {
+            CB_ENSURE(!target[i][j].empty(), "Target[" << i << ", " << j << "] is empty");
         }
     }
 }
+
 
 static void CheckOneBaseline(TConstArrayRef<float> baseline, size_t idx, ui32 objectCount) {
     CheckDataSize(
@@ -258,7 +264,10 @@ void TRawTargetData::PrepareForInitialization(
     ui32 objectCount,
     ui32 prevTailSize
 ) {
-    NCB::PrepareForInitialization(metaInfo.HasTarget, objectCount, prevTailSize, &Target);
+    Target.resize(metaInfo.TargetCount);
+    for (auto& dim : Target) {
+        NCB::PrepareForInitialization(objectCount, prevTailSize, &dim);
+    }
 
     Baseline.resize(metaInfo.BaselineCount);
     for (auto& dim : Baseline) {
@@ -367,11 +376,12 @@ TRawTargetDataProvider TRawTargetDataProvider::GetSubset(
 
     tasks.emplace_back(
         [&, this]() {
-            subsetData.Target = GetSubsetOfMaybeEmpty<TString>(
-                GetTarget(),
-                objectsSubsetIndexing,
-                localExecutor
-            );
+            if (auto target = GetMultiTarget()) {
+                subsetData.Target.resize(target->size());
+                for (auto targetIdx : xrange(target->size())) {
+                    subsetData.Target[targetIdx] = NCB::GetSubset<TString>((*target)[targetIdx], objectsSubsetIndexing, localExecutor);
+                }
+            }
         }
     );
 
@@ -495,7 +505,18 @@ bool TProcessedTargetData::operator==(const TProcessedTargetData& rhs) const {
     if (!compareHashMaps(
             Targets,
             rhs.Targets,
-            [](const auto& lhs, const auto& rhs) { return *lhs == *rhs; }))
+            [](const auto& lhs, const auto& rhs) {
+                if (lhs.size() != rhs.size()) {
+                    return false;
+                }
+                for (auto i : xrange(lhs.size())) {
+                    if (*(lhs[i]) != *(rhs[i])) {
+                        return false;
+                    }
+                }
+                return true;
+            }
+        ))
     {
         return false;
     }
@@ -548,7 +569,7 @@ void TProcessedTargetData::Check(const TObjectsGrouping& objectsGrouping) const 
     }
 
     for (const auto& [name, targetsData] : Targets) {
-        CheckDataSize(targetsData->size(), (size_t)objectCount, "Target " + name);
+        CheckTarget(targetsData, objectCount);
     }
     for (const auto& [name, weightsData] : Weights) {
         CheckDataSize(weightsData->GetSize(), objectCount, "Weights " + name);
@@ -591,8 +612,29 @@ void TProcessedTargetData::Load(IBinSaver* binSaver) {
     LoadMulti(binSaver, &cache);
 
     LoadMulti(binSaver, &TargetsClassCount);
-    LoadWithCache(cache.Targets, binSaver, &Targets);
     LoadWithCache(cache.Weights, binSaver, &Weights);
+
+    ui32 targetCount = 0;
+    LoadMulti(binSaver, &targetCount);
+    for (ui32 targetIdx : xrange(targetCount)) {
+        Y_UNUSED(targetIdx);
+
+        TString name;
+        ui32 dimensionCount;
+        LoadMulti(binSaver, &name, &dimensionCount);
+
+        TVector<TSharedVector<float>> target;
+        target.reserve(dimensionCount);
+        for (ui32 dimensionIdx : xrange(dimensionCount)) {
+            Y_UNUSED(dimensionIdx);
+
+            ui64 id;
+            LoadMulti(binSaver, &id);
+            target.push_back(cache.Targets.at(id));
+        }
+
+        Targets.emplace(name, std::move(target));
+    }
 
     ui32 baselineCount = 0;
     LoadMulti(binSaver, &baselineCount);
@@ -661,8 +703,18 @@ void TProcessedTargetData::Save(IBinSaver* binSaver) const {
         IBinSaver targetDataWithIdsBinSaver(out2, false);
 
         SaveMulti(&targetDataWithIdsBinSaver, TargetsClassCount);
-        SaveWithCache(Targets, &targetDataWithIdsBinSaver, &cache.Targets);
         SaveWithCache(Weights, &targetDataWithIdsBinSaver, &cache.Weights);
+
+        {
+            SaveMulti(&targetDataWithIdsBinSaver, SafeIntegerCast<ui32>(Targets.size()));
+            for (const auto& [name, dataPart] : Targets) {
+                const ui32 dimensionCount = dataPart.size();
+                SaveMulti(&targetDataWithIdsBinSaver, name, dimensionCount);
+                for (const auto& oneTarget : dataPart) {
+                    AddToCacheAndSaveId(oneTarget, &targetDataWithIdsBinSaver, &cache.Targets);
+                }
+            }
+        }
 
         {
             SaveMulti(&targetDataWithIdsBinSaver, SafeIntegerCast<ui32>(Baselines.size()));
@@ -705,6 +757,14 @@ TTargetDataProvider::TTargetDataProvider(
         }
         BaselineViews.emplace(name, std::move(baselineView));
     }
+
+    for (const auto& [name, targetData] : Data.Targets) {
+        TVector<TConstArrayRef<float>> targetView(targetData.size());
+        for (auto i : xrange(targetData.size())) {
+            targetView[i] = *(targetData[i]);
+        }
+        TargetViews.emplace(name, std::move(targetView));
+    }
 }
 
 bool TTargetDataProvider::operator==(const TTargetDataProvider& rhs) const {
@@ -712,7 +772,7 @@ bool TTargetDataProvider::operator==(const TTargetDataProvider& rhs) const {
 }
 
 
-void GetObjectsFloatDataSubsetImpl(
+static void GetObjectsFloatDataSubsetImpl(
     const TSharedVector<float> src,
     const TObjectsGroupingSubset& objectsGroupingSubset,
     NPar::TLocalExecutor* localExecutor,
@@ -724,7 +784,7 @@ void GetObjectsFloatDataSubsetImpl(
 }
 
 
-void GetObjectWeightsSubsetImpl(
+static void GetObjectWeightsSubsetImpl(
     const TSharedWeights<float> src,
     const TObjectsGroupingSubset& objectsGroupingSubset,
     NPar::TLocalExecutor* localExecutor,
@@ -849,6 +909,7 @@ using TSrcToSubsetDataCache = TTargetSingleTypeDataCache<TSharedDataPtr, TShared
 
 struct TSubsetTargetDataCache {
     TSrcToSubsetDataCache<TSharedVector<float>> Targets;
+
     TSrcToSubsetDataCache<TSharedWeights<float>> Weights;
 
     // multidim baselines are stored as separate pointers for simplicity
@@ -958,7 +1019,9 @@ TIntrusivePtr<TTargetDataProvider> TTargetDataProvider::GetSubset(
     TSubsetTargetDataCache subsetTargetDataCache;
 
     for (const auto& [name, targetsData] : Data.Targets) {
-        subsetTargetDataCache.Targets.emplace(targetsData, TSharedVector<float>());
+        for (const auto& oneTarget : targetsData) {
+            subsetTargetDataCache.Targets.emplace(oneTarget, TSharedVector<float>());
+        }
     }
     for (const auto& [name, weightsData] : Data.Weights) {
         subsetTargetDataCache.Weights.emplace(weightsData, TSharedWeights<float>());
@@ -981,7 +1044,13 @@ TIntrusivePtr<TTargetDataProvider> TTargetDataProvider::GetSubset(
     subsetData.TargetsClassCount = Data.TargetsClassCount;
 
     for (const auto& [name, targetsData] : Data.Targets) {
-        subsetData.Targets.emplace(name, subsetTargetDataCache.Targets.at(targetsData));
+        TVector<TSharedVector<float>> subsetTargetData;
+
+        for (const auto& oneTarget : targetsData) {
+            subsetTargetData.emplace_back(subsetTargetDataCache.Targets.at(oneTarget));
+        }
+
+        subsetData.Targets.emplace(name, std::move(subsetTargetData));
     }
     for (const auto& [name, weightsData] : Data.Weights) {
         subsetData.Weights.emplace(name, subsetTargetDataCache.Weights.at(weightsData));
@@ -1024,5 +1093,3 @@ void TTargetSerialization::SaveNonSharedPart(
 ) {
     targetDataProvider.SaveDataNonSharedPart(binSaver);
 }
-
-

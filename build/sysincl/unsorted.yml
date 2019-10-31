@@ -277,6 +277,8 @@
   - cusolverDn.h
   - cupti.h
   - curand.h
+  - curand_mtgp32_host.h
+  - curand_mtgp32dc_p_11213.h  
   - cusparse.h
   - cooperative_groups.h
   - driver_types.h
@@ -504,6 +506,7 @@
   - ioLib.h
   - iosLib.h
   - resolvLib.h
+  - rtpLib.h
   - pipeDrv.h
   - selectLib.h
   #endif
@@ -546,6 +549,7 @@
   - perliol.h
   #endif
   #if defined(__NetBSD__)
+  - lwp.h
   - perfuse.h
   #endif
   #if V8_OS_QNX
@@ -553,6 +557,7 @@
   #endif
   #if V8_OS_AIX
   - sys/systemcfg.h
+  - sys/thread.h
   #endif
   - mbarrier.h
   - iostream.h
@@ -648,7 +653,6 @@
   - StorageDefs.h
   #endif
   - fpxcp.h
-  - local.h
   - fptrap.h
   - fortran.h
   - agg_allocator.h

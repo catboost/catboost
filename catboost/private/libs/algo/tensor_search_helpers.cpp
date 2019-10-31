@@ -390,6 +390,9 @@ void Bootstrap(
     const bool isPairwiseScoring = IsPairwiseScoring(params.LossFunctionDescription->GetLossFunction());
     const TMaybe<float> mvsReg = params.ObliviousTreeOptions->BootstrapConfig->GetMvsReg();
     bool performRandomChoice = true;
+    if (bootstrapType != EBootstrapType::No && samplingUnit == ESamplingUnit::Group) {
+        CB_ENSURE(!fold->LearnQueriesInfo.empty(), "No groups in dataset. Please disable sampling or use per object sampling");
+    }
     switch (bootstrapType) {
         case EBootstrapType::Bernoulli:
             if (isPairwiseScoring) {
@@ -412,6 +415,10 @@ void Bootstrap(
             }
             break;
         case EBootstrapType::MVS:
+            CB_ENSURE(
+                samplingUnit != ESamplingUnit::Group,
+                "MVS bootstrap is not implemented for groupwise sampling (sampling_unit=Group)"
+            );
             if (!isPairwiseScoring) {
                 performRandomChoice = false;
                 TMvsSampler sampler(learnSampleCount, takenFraction, mvsReg);
@@ -430,6 +437,8 @@ void Bootstrap(
         CalcWeightedData(learnSampleCount, params.BoostingOptions->BoostingType.Get(), localExecutor, fold);
     }
     sampledDocs->Sample(*fold, samplingUnit, indices, rand, localExecutor, performRandomChoice, shouldSortByLeaf, leavesCount);
+    CB_ENSURE(sampledDocs->GetDocCount() > 0, "Too few sampling units (subsample=" << takenFraction
+        << ", bootstrap_type=" << bootstrapType << "): please increase sampling rate or disable sampling");
 }
 
 void CalcWeightedDerivatives(
@@ -442,7 +451,7 @@ void CalcWeightedDerivatives(
 ) {
     TFold::TBodyTail& bt = takenFold->BodyTailArr[bodyTailIdx];
     const TVector<TVector<double>>& approx = bt.Approx;
-    const TVector<float>& target = takenFold->LearnTarget;
+    const TVector<float>& target = takenFold->LearnTarget[0];
     const TVector<float>& weight = takenFold->GetLearnWeights();
     TVector<TVector<double>>* weightedDerivatives = &bt.WeightedDerivatives;
 

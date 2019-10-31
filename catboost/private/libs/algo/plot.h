@@ -115,7 +115,7 @@ private:
 
     void ComputeAdditiveMetric(
         const TVector<TVector<double>>& approx,
-        TConstArrayRef<float> target,
+        NCB::TMaybeData<TConstArrayRef<TConstArrayRef<float>>> target,
         TConstArrayRef<float> weights,
         TConstArrayRef<TQueryInfo> queriesInfo,
         ui32 plotLineIndex
@@ -169,8 +169,9 @@ private:
 private:
     struct TNonAdditiveMetricData {
         TVector<TString> ApproxFiles;
-        TVector<float> Target;
+        TVector<TVector<float>> Target;
         TVector<float> Weights;
+        ui32 CumulativePoolSize = 0;
     };
 
 private:

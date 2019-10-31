@@ -53,7 +53,7 @@ namespace NCB {
         ) const {
             const ui32 totalNumberOfFeatures = TotalNumberOfOutputFeatures() * docCount;
             CB_ENSURE(
-                result.size() == totalNumberOfFeatures,
+                result.size() >= totalNumberOfFeatures,
                 "Proposed result buffer has size (" << result.size()
                     << ") less than text processing produce (" << totalNumberOfFeatures << ')'
             );

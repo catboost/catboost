@@ -47,7 +47,7 @@ namespace NCB {
         TString firstLine;
         CB_ENSURE(LineDataReader->ReadLine(&firstLine), "TLibSvmDataLoader: no data rows");
 
-        DataMetaInfo.HasTarget = true;
+        DataMetaInfo.TargetCount = 1;
         DataMetaInfo.BaselineCount = BaselineReader.GetBaselineCount().GetOrElse(0);
         DataMetaInfo.HasGroupId = DataHasGroupId(firstLine);
         DataMetaInfo.HasGroupWeight = Args.GroupWeightsFilePath.Inited();

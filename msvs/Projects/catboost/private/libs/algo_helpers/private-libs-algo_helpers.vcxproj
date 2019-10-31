@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\approx_calcer_helpers.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\approx_calcer_multi_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\approx_updater_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\custom_objective_descriptor.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\ders_holder.cpp"/>
@@ -88,12 +89,13 @@
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\pairwise_leaves_calculation.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\scoring_helpers.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\approx_calcer_helpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\approx_calcer_multi_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\approx_updater_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\custom_objective_descriptor.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\ders_holder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\error_functions.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\gradient_walker.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\hessian.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\leaf_statistics.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\online_predictor.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\pairwise_leaves_calculation.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\scoring_helpers.h"/>

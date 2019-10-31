@@ -137,9 +137,6 @@ ALLOW .* -> vendor/github.com/mailru/easyjson
 # lz4 compression codec
 ALLOW .* -> vendor/github.com/pierrec/lz4
 
-# simple error handling primitives
-ALLOW .* -> vendor/github.com/pkg/errors
-
 # library for HTML DOM manipulations and searching nodes by CSS selectors
 ALLOW .* -> vendor/github.com/PuerkitoBio/goquery
 
@@ -253,6 +250,7 @@ ALLOW .* -> vendor/github.com/tarm/serial
 
 # generation tool and serialization library for MessagePack
 ALLOW .* -> vendor/github.com/tinylib/msgp
+ALLOW .* -> vendor/github.com/vmihailenco/msgpack
 
 # Generate fancy REST API from grpc api
 ALLOW .* -> vendor/github.com/grpc-ecosystem/grpc-gateway
@@ -345,12 +343,50 @@ ALLOW .* -> vendor/github.com/vishvananda/netns
 # CONTRIB-1545 Go bindings for creating BPF programs.
 ALLOW .* -> vendor/github.com/iovisor/gobpf
 
+# CONTRIB-1561 Go pretty format for numbers
+ALLOW .* -> vendor/github.com/dustin/go-humanize
+
 #
 # Temporary exceptions.
 #
 
 # CONTRIB-1244. resposible: gzuykov@
 ALLOW cloud -> vendor/github.com/rcrowley/go-metrics
+
+# IGNIETFERRO-1287
+ALLOW cloud/compute/snapshot/snapshot/config -> vendor/github.com/pkg/errors
+ALLOW cloud/compute/snapshot/snapshot/lib/chunker -> vendor/github.com/pkg/errors
+ALLOW cloud/compute/snapshot/snapshot/lib/nbd -> vendor/github.com/pkg/errors
+ALLOW contrib/go/patched/hugo -> vendor/github.com/pkg/errors
+ALLOW edadeal/backend/go/charm/internal/pkg/store/pg -> vendor/github.com/pkg/errors
+ALLOW extsearch/video/station/starter -> vendor/github.com/pkg/errors
+ALLOW infra/yp_service_discovery/golang/resolver -> vendor/github.com/pkg/errors
+ALLOW library/go/yandex/solomon/reporters/pusher/httppusher -> vendor/github.com/pkg/errors
+ALLOW locdoc/doc/daas-farm/pkg/daasclient -> vendor/github.com/pkg/errors
+ALLOW locdoc/doc/daas-farm/pkg/menugen -> vendor/github.com/pkg/errors
+ALLOW locdoc/doc/daas-farm/pkg/wikiclient -> vendor/github.com/pkg/errors
+ALLOW locdoc/doc/daas-farm/pkg/wikigen -> vendor/github.com/pkg/errors
+ALLOW market/sre/library/golang/dispenser -> vendor/github.com/pkg/errors
+ALLOW market/sre/services/rtcstats2graphite/src/internal/blogic -> vendor/github.com/pkg/errors
+ALLOW market/sre/services/rtcstats2graphite/src/internal/nanny -> vendor/github.com/pkg/errors
+ALLOW market/sre/services/rtcstats2graphite/src/internal/oops -> vendor/github.com/pkg/errors
+ALLOW market/sre/services/rtcstats2graphite/src/internal/walle -> vendor/github.com/pkg/errors
+ALLOW market/sre/services/rtcstats2graphite/src/internal/yasm -> vendor/github.com/pkg/errors
+ALLOW market/sre/tools/ya-gde/src/cmd/getthefacts -> vendor/github.com/pkg/errors
+ALLOW market/sre/tools/ya-gde/src/pkg/hostinfo -> vendor/github.com/pkg/errors
+ALLOW market/sre/tools/ya-gde/src/pkg/util -> vendor/github.com/pkg/errors
+ALLOW orgvisits/witness -> vendor/github.com/pkg/errors
+ALLOW quasar/go/blackbox -> vendor/github.com/pkg/errors
+ALLOW toolbox/bunker -> vendor/github.com/pkg/errors
+ALLOW toolbox/pg-pinger/pinger -> vendor/github.com/pkg/errors
+ALLOW transfer_manager/go/pkg/abstract -> vendor/github.com/pkg/errors
+ALLOW transfer_manager/go/pkg/server/impl -> vendor/github.com/pkg/errors
+ALLOW yabs/telephony/platform/inventory/api/http -> vendor/github.com/pkg/errors
+ALLOW yabs/telephony/platform/inventory/core -> vendor/github.com/pkg/errors
+ALLOW yabs/telephony/platform/push-service/api/http -> vendor/github.com/pkg/errors
+ALLOW yt/go/guid -> vendor/github.com/pkg/errors
+ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/pkg/errors
+ALLOW yt/jaeger/plugin/cmd/collector -> vendor/github.com/pkg/errors
 
 #
 # Permanent exceptions.

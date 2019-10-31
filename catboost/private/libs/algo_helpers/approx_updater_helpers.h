@@ -163,6 +163,22 @@ inline void AddElementwise<double>(const TVector<double>& value, TVector<double>
 }
 
 template <typename TElementType>
+inline void AddElementwise(TConstArrayRef<TElementType> value, TVector<TElementType>* accumulator) {
+    Y_ASSERT(value.size() == accumulator->size());
+    for (int idx : xrange(value.size())) {
+        AddElementwise(value[idx], &(*accumulator)[idx]);
+    }
+}
+
+template <>
+inline void AddElementwise<double>(TConstArrayRef<double> value, TVector<double>* accumulator) {
+    Y_ASSERT(value.size() == accumulator->size());
+    for (int idx : xrange(value.size())) {
+        (*accumulator)[idx] += value[idx];
+    }
+}
+
+template <typename TElementType>
 inline TVector<TElementType> ScaleElementwise(double scale, const TVector<TElementType>& value) {
     TVector<TElementType> scaledValue(value);
     for (int idx : xrange(value.size())) {

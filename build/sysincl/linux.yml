@@ -95,6 +95,7 @@
   - linux/pci_regs.h
   - linux/pkt_cls.h
   - linux/pkt_sched.h
+  - linux/qrtr.h
   - linux/quota.h
   - linux/random.h
   - linux/reboot.h
@@ -156,6 +157,7 @@
   - sgtty.h
   - sys/bitypes.h
   - sys/cdefs.h
+  - sys/memfd.h
   - sys/queue.h
   - sys/socketvar.h
   - sys/sysctl.h

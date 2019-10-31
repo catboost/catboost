@@ -89,49 +89,62 @@ static TString CompressPath(const TVector<TStringBuf>& replacements, TStringBuf 
 }
 
 int main(int argc, char** argv) {
+    int ind = 0;
     if (argc < 4) {
-        Cerr << "usage: " << argv[0] << "asm_output --prefix? [-? origin_resource ro_resource]+" << Endl;
-
+        Cerr << "usage: " << argv[ind] << "asm_output --prefix? [-? origin_resource ro_resource]+" << Endl;
         return 1;
     }
 
     TVector<TStringBuf> replacements;
 
-    argv++;
-    TFixedBufferFileOutput asmout(*argv);
-    argv++;
+    ind++;
+    TFixedBufferFileOutput asmout(argv[ind]);
+    ind++;
     TString prefix;
-    if (TStringBuf(*argv) == "--prefix") {
+    if (TStringBuf(argv[ind]) == "--prefix") {
         prefix = "_";
-        argv++;
+        ind++;
     }
     else {
         prefix = "";
     }
 
-    while (TStringBuf(*argv).StartsWith("--replace=")) {
-        replacements.push_back(TStringBuf(*argv).SubStr(AsStringBuf("--replace=").Size()));
-        argv++;
+    while (TStringBuf(argv[ind]).StartsWith("--replace=")) {
+        replacements.push_back(TStringBuf(argv[ind]).SubStr(AsStringBuf("--replace=").Size()));
+        ind++;
     }
 
     TAsmWriter aw(asmout, prefix);
     bool raw;
-    while (*argv) {
+    bool error = false;
+    while (ind < argc) {
         TString compressed;
-        if (AsStringBuf("-") == *argv) {
-            argv++;
-            compressed = CompressPath(replacements, TStringBuf(*argv));
+        if (AsStringBuf("-") == argv[ind]) {
+            ind++;
+            if (ind >= argc) {
+                error = true;
+                break;
+            }
+            compressed = CompressPath(replacements, TStringBuf(argv[ind]));
             raw = true;
         }
         else {
-            TUnbufferedFileInput inp(*argv);
+            TUnbufferedFileInput inp(argv[ind]);
             TString data = inp.ReadAll();
             compressed = Compress(TStringBuf(data.data(), data.size()));
             raw = false;
         }
-        argv++;
-        aw.Write(*argv, compressed, raw);
-        argv++;
+        ind++;
+        if (ind >= argc) {
+            error = true;
+            break;
+        }
+        aw.Write(argv[ind], compressed, raw);
+        ind++;
+    }
+    if (error) {
+        Cerr << "Incorrect number of parameters at argument " << ind - 1 << argv[ind-1] << Endl;
+        return 1;
     }
     return 0;
 }

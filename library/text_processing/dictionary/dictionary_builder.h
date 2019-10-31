@@ -8,7 +8,7 @@
 namespace NTextProcessing::NDictionary {
     class IDictionaryBuilderImpl;
 
-    class TDictionaryBuilder {
+    class TDictionaryBuilder: public TMoveOnly {
     public:
         TDictionaryBuilder(TDictionaryBuilder&&);
         ~TDictionaryBuilder();

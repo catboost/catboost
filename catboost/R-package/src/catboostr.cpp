@@ -170,6 +170,13 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
     SEXP dataDim = getAttrib(matrixParam, R_DimSymbol);
     ui32 dataRows = SafeIntegerCast<ui32>(INTEGER(dataDim)[0]);
     ui32 dataColumns = SafeIntegerCast<ui32>(INTEGER(dataDim)[1]);
+    SEXP targetDim = getAttrib(targetParam, R_DimSymbol);
+    ui32 targetRows = 0;
+    ui32 targetColumns = 0;
+    if (targetDim != R_NilValue) {
+        targetRows = SafeIntegerCast<ui32>(INTEGER(targetDim)[0]);
+        targetColumns = SafeIntegerCast<ui32>(INTEGER(targetDim)[1]);
+    }
     SEXP baselineDim = getAttrib(baselineParam, R_DimSymbol);
     size_t baselineRows = 0;
     size_t baselineColumns = 0;
@@ -194,7 +201,7 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
             TVector<ui32>{}, // TODO(d-kruchinin) support text features in R
             featureId);
 
-        metaInfo.HasTarget = targetParam != R_NilValue;
+        metaInfo.TargetCount = targetColumns;
         metaInfo.BaselineCount = baselineColumns;
         metaInfo.HasGroupId = groupIdParam != R_NilValue;
         metaInfo.HasGroupWeight = groupWeightParam != R_NilValue;
@@ -203,7 +210,13 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
 
         visitor->Start(metaInfo, dataRows, EObjectsOrder::Undefined, {});
 
-        TVector<float> target(metaInfo.HasTarget ? dataRows : 0);
+        for (auto targetIdx : xrange(targetColumns)) {
+            TVector<float> target(targetRows);
+            for (auto docIdx : xrange(targetRows)) {
+                target[docIdx] = static_cast<float>(REAL(targetParam)[docIdx + targetRows * targetIdx]);
+            }
+            visitor->AddTarget(targetIdx, target);
+        }
         TVector<float> weights(metaInfo.HasWeights ? dataRows : 0);
         TVector<float> groupWeights(metaInfo.HasGroupWeight ? dataRows : 0);
 
@@ -215,18 +228,12 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
                 visitor->AddSubgroupId(i, static_cast<uint32_t>(INTEGER(subgroupIdParam)[i]));
             }
 
-            if (targetParam != R_NilValue) {
-                target[i] = static_cast<float>(REAL(targetParam)[i]);
-            }
             if (weightParam != R_NilValue) {
                 weights[i] = static_cast<float>(REAL(weightParam)[i]);
             }
             if (groupWeightParam != R_NilValue) {
                 groupWeights[i] = static_cast<float>(REAL(groupWeightParam)[i]);
             }
-        }
-        if (metaInfo.HasTarget) {
-            visitor->AddTarget(target);
         }
         if (metaInfo.HasWeights) {
             visitor->AddWeights(weights);
@@ -365,7 +372,7 @@ SEXP CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
 
     result = PROTECT(allocVector(VECSXP, size));
     ui32 featureCount = pool->MetaInfo.GetFeatureCount();
-    auto target = *pool->RawTargetData.GetTarget();
+    auto target = pool->RawTargetData.GetMultiTarget();
     const auto& weights = pool->RawTargetData.GetWeights();
 
 
@@ -389,24 +396,27 @@ SEXP CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
         = dynamic_cast<const TRawObjectsDataProvider&>(*sliceObjectsData);
 
     TVector<double*> rows;
+    const auto targetCount = pool->MetaInfo.TargetCount;
 
     for (size_t i = offset; i < sliceEnd; ++i) {
         ui32 featureCount = pool->MetaInfo.GetFeatureCount();
-        SEXP row = PROTECT(allocVector(REALSXP, featureCount + 2));
-        REAL(row)[0] = FromString<double>(target[i]);
-        REAL(row)[1] = weights[i];
+        SEXP row = PROTECT(allocVector(REALSXP, featureCount + targetCount + 1));
+        for (auto targetIdx : xrange(targetCount)) {
+            REAL(row)[targetIdx] = FromString<double>((*target)[targetIdx][i]);
+        }
+        REAL(row)[targetCount] = weights[i];
         rows.push_back(REAL(row));
         SET_VECTOR_ELT(result, i - offset, row);
     }
 
     for (auto flatFeatureIdx : xrange(featureCount)) {
         TMaybeData<const TFloatValuesHolder*> maybeFeatureData
-            = rawObjectsData->GetFloatFeature(flatFeatureIdx);
+            = sliceRawObjectsData.GetFloatFeature(flatFeatureIdx);
         if (maybeFeatureData) {
             if (const auto* arrayColumn = dynamic_cast<const TFloatArrayValuesHolder*>(*maybeFeatureData)) {
                 arrayColumn->GetData()->ForEach(
                     [&] (ui32 i, float value) {
-                        rows[i][flatFeatureIdx + 2] = value;
+                        rows[i][flatFeatureIdx + targetCount + 1] = value;
                     }
                 );
             } else {
@@ -414,7 +424,7 @@ SEXP CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
             }
         } else {
             for (auto i : xrange(sliceRawObjectsData.GetObjectCount())) {
-                rows[i][flatFeatureIdx + 2] = 0.0f;
+                rows[i][flatFeatureIdx + targetCount + 1] = 0.0f;
             }
         }
     }

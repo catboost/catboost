@@ -47,7 +47,7 @@ namespace NCB::NModelEvaluation {
         }
     }
 
-    #ifdef ARCADIA_SSE
+    #ifdef _sse3_
 
     template <bool NeedXorMask, size_t SSEBlockCount, int curTreeSize>
     Y_FORCE_INLINE void CalcIndexesSseDepthed(
@@ -167,7 +167,7 @@ namespace NCB::NModelEvaluation {
         }
     }
 
-    #ifdef ARCADIA_SSE
+    #ifdef _sse3_
     template <int SSEBlockCount>
     Y_FORCE_INLINE static void GatherAddLeafSSE(const double* __restrict treeLeafPtr, const ui8* __restrict indexesPtr, __m128d* __restrict writePtr) {
         _mm_prefetch((const char*)(treeLeafPtr + 64), _MM_HINT_T2);
@@ -265,7 +265,7 @@ namespace NCB::NModelEvaluation {
         ui8* __restrict indexesVec = (ui8*)indexesVecUI32;
         const auto treeLeafPtr = trees.GetLeafValues().data();
         auto firstLeafOffsetsPtr = trees.GetFirstLeafOffsets().data();
-    #ifdef ARCADIA_SSE
+    #ifdef _sse3_
         bool allTreesAreShallow = AllOf(
             trees.GetTreeSizes().begin() + treeStart,
             trees.GetTreeSizes().begin() + treeEnd,
@@ -322,7 +322,7 @@ namespace NCB::NModelEvaluation {
         for (size_t treeId = treeStart; treeId < treeEnd; ++treeId) {
             auto curTreeSize = trees.GetTreeSizes()[treeId];
             memset(indexesVec, 0, sizeof(ui32) * docCountInBlock);
-#ifdef ARCADIA_SSE
+#ifdef _sse3_
             if (!CalcLeafIndexesOnly && curTreeSize <= 8) {
                 CalcIndexesSse<NeedXorMask, SSEBlockCount>(binFeatures, docCountInBlock, indexesVec, treeSplitsCurPtr,
                                                            curTreeSize);

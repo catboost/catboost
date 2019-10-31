@@ -9,10 +9,9 @@ void CreateBacktrackingObjective(
     TVector<THolder<IMetric>>* lossFunction) {
     const auto& treeOptions = ctx.Params.ObliviousTreeOptions.Get();
     CreateBacktrackingObjective(
-        ctx.LearnProgress->ApproxDimension,
-        treeOptions.LeavesEstimationIterations.Get(),
-        treeOptions.LeavesEstimationBacktrackingType,
         ctx.Params.MetricOptions->ObjectiveMetric,
+        treeOptions,
+        ctx.LearnProgress->ApproxDimension,
         haveBacktrackingObjective,
         minimizationSign,
         lossFunction);

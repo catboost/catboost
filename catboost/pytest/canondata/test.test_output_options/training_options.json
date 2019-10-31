@@ -200,6 +200,7 @@
         "monotone_constraints" : { },
         "l2_leaf_reg" : 3,
         "depth" : 6,
+        "dev_leafwise_approxes" : false,
         "sparse_features_conflict_fraction" : 0
     },
     "task_type" : "CPU",

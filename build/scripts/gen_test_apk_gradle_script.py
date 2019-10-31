@@ -3,7 +3,7 @@ import os
 import tarfile
 import xml.etree.ElementTree as etree
 
-FLAT_DIRS_REPO_TEMPLATE='repositories {{ flatDir {{ dirs {dirs} }} }}'
+FLAT_DIRS_REPO_TEMPLATE='flatDir {{ dirs {dirs} }}\n'
 MAVEN_REPO_TEMPLATE='maven {{ url "{repo}" }}\n'
 
 TEST_APK_TEMPLATE = """\
@@ -20,12 +20,15 @@ ext.bundles = [
     {bundles}
 ]
 
-{flat_dirs_repo}
-
 buildscript {{
 //    repositories {{
 //        jcenter()
 //    }}
+
+    repositories {{
+        {maven_repos}
+    }}
+
     dependencies {{
         classpath 'com.android.tools.build:gradle:2.3.0+'
     }}
@@ -43,7 +46,10 @@ repositories {{
 //    flatDir {{
 //        dirs System.env.PKG_ROOT + '/bundle'
 //    }}
-{maven_repos}
+
+    {flat_dirs_repo}
+
+    {maven_repos}
 }}
 
 dependencies {{
@@ -104,7 +110,7 @@ def gen_build_script(args):
         return ',\n    '.join('"{}"'.format(x) for x in items)
 
     bundles = []
-    bundles_dirs = set()
+    bundles_dirs = set(args.flat_repos)
     for bundle in args.bundles:
         dir_name, base_name = os.path.split(bundle)
         assert(len(dir_name) > 0 and len(base_name) > 0)
@@ -142,6 +148,7 @@ if __name__ == '__main__':
     parser.add_argument('--jni-libs-dirs', nargs='*', default=[])
     parser.add_argument('--library-name', required=True)
     parser.add_argument('--manifest', required=True)
+    parser.add_argument('--flat-repos', nargs='*', default=[])
     parser.add_argument('--maven-repos', nargs='*', default=[])
     parser.add_argument('--output-dir', required=True)
     parser.add_argument('--peers', nargs='*', default=[])

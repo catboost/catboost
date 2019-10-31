@@ -25,7 +25,7 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
         dataProviders.Learn = CreateDataProvider(
             [&](IRawFeaturesOrderDataVisitor* visitor) {
                 TDataMetaInfo metaInfo;
-                metaInfo.HasTarget = true;
+                metaInfo.TargetCount = 1;
                 metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
                     (ui32)3,
                     TVector<ui32>{},

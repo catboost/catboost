@@ -1021,7 +1021,6 @@ namespace NCB {
         return dst;
     }
 
-
     template <class T, class TMaybePolicy, class TSize=size_t>
     inline TMaybe<TVector<T>, TMaybePolicy> GetSubsetOfMaybeEmpty(
         TMaybe<TConstArrayRef<T>, TMaybePolicy> src,

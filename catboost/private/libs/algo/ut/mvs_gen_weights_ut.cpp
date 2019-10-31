@@ -18,6 +18,7 @@ Y_UNIT_TEST_SUITE(mvs) {
         TFold::TBodyTail bt(0, 0, SampleCountAsInt, SampleCountAsInt, (double)SampleCountAsInt);
 
         bt.WeightedDerivatives.resize(1, TVector<double>(SampleCount));
+        bt.Approx.resize(1, TVector<double>(SampleCount));
 
         for (ui32 j = 0; j < CB_THREAD_LIMIT; ++j) {
             for (ui32 i = 0; i < 20; ++i) {
@@ -58,6 +59,7 @@ Y_UNIT_TEST_SUITE(mvs) {
         TFold::TBodyTail bt(0, 0, SampleCountAsInt, SampleCountAsInt, (double)SampleCountAsInt);
 
         bt.WeightedDerivatives.resize(1, TVector<double>(SampleCount));
+        bt.Approx.resize(1, TVector<double>(SampleCount));
 
         for (ui32 j = 0; j < CB_THREAD_LIMIT; ++j) {
             for (ui32 i = 0; i < 20; ++i) {
@@ -98,6 +100,7 @@ Y_UNIT_TEST_SUITE(mvs) {
         TFold::TBodyTail bt(0, 0, SampleCountAsInt, SampleCountAsInt, (double)SampleCountAsInt);
 
         bt.WeightedDerivatives.resize(1, TVector<double>(SampleCount));
+        bt.Approx.resize(1, TVector<double>(SampleCount));
 
         for (ui32 j = 0; j < CB_THREAD_LIMIT; ++j) {
             for (ui32 i = 1; i < 20; ++i) {

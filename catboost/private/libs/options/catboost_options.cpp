@@ -74,7 +74,7 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
         }
         case ELossFunction::MAE:
         case ELossFunction::Quantile: {
-            if (TaskType == ETaskType::CPU) {
+            if (TaskType == ETaskType::CPU && SystemOptions->IsSingleHost() && !BoostingOptions->ApproxOnFullHistory) {
                 defaultEstimationMethod = ELeavesEstimation::Exact;
                 defaultNewtonIterations = 1;
                 defaultGradientIterations = 1;
@@ -217,6 +217,14 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
     if (treeConfig.LeavesEstimationMethod == ELeavesEstimation::Simple) {
         CB_ENSURE(treeConfig.LeavesEstimationIterations == 1u,
                   "Leaves estimation iterations can't be greater, than 1 for Simple leaf-estimation mode");
+    }
+
+    if (treeConfig.LeavesEstimationMethod == ELeavesEstimation::Exact) {
+        auto loss = lossFunctionConfig.GetLossFunction();
+        CB_ENSURE(loss == ELossFunction::MAE || loss == ELossFunction::Quantile, "Exact method is only available for Qunatile and MAE loss functions.");
+        CB_ENSURE(!BoostingOptions->ApproxOnFullHistory, "ApproxOnFullHistory option is not available within Exact method.");
+        CB_ENSURE(TaskType == ETaskType::CPU, "Exact method is only available on CPU.");
+        CB_ENSURE(SystemOptions->IsSingleHost(), "Exact method is only available in SingleHost mode.");
     }
 
     if (treeConfig.L2Reg == 0.0f) {
@@ -592,27 +600,31 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
     if (leavesEstimation == ELeavesEstimation::Newton) {
         EnsureNewtonIsAvailable(GetTaskType(), LossFunctionDescription);
     }
-
-    const auto bootstrapType = ObliviousTreeOptions->BootstrapConfig->GetBootstrapType();
-    const bool isMvsMultiClass = IsMultiClassOnlyMetric(lossFunction) && bootstrapType == EBootstrapType::MVS;
-    CB_ENSURE(!isMvsMultiClass, "MVS sampling isn't supported for multiclass.");
 }
 
 void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
     const auto lossFunction = LossFunctionDescription->GetLossFunction();
 
-    // TODO(nikitxskv): Support MVS for MultiClass and for MVS.
+    // TODO(nikitxskv): Support MVS for GPU.
     auto& boostingType = BoostingOptions->BoostingType;
     TOption<EBootstrapType>& bootstrapType = ObliviousTreeOptions->BootstrapConfig->GetBootstrapType();
     TOption<float>& subsample = ObliviousTreeOptions->BootstrapConfig->GetTakenFraction();
-    if (!IsMultiClassOnlyMetric(lossFunction) && TaskType == ETaskType::CPU) {
-        if (!bootstrapType.IsSet()) {
+    if (bootstrapType.NotSet()) {
+        if (!IsMultiClassOnlyMetric(lossFunction)
+            && TaskType == ETaskType::CPU
+            && ObliviousTreeOptions->BootstrapConfig->GetSamplingUnit() == ESamplingUnit::Object)
+        {
             bootstrapType.SetDefault(EBootstrapType::MVS);
         }
-        if (!subsample.IsSet()) {
-            subsample.SetDefault(0.8f);
+    }
+    if (subsample.IsSet()) {
+        CB_ENSURE(bootstrapType != EBootstrapType::Bayesian, "Error: default bootstrap type (bayesian) doesn't support taken fraction option");
+    } else {
+        if (bootstrapType == EBootstrapType::MVS) {
+            subsample.SetDefault(0.8);
         }
     }
+
     if (!IsMultiClassOnlyMetric(lossFunction) && TaskType == ETaskType::GPU && !boostingType.IsSet()) {
         boostingType.SetDefault(EBoostingType::Ordered);
     }

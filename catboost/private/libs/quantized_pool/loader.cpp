@@ -228,6 +228,7 @@ void NCB::TCBQuantizedDataLoader::AddQuantizedFeatureChunk(
 void NCB::TCBQuantizedDataLoader::AddChunk(
     const TQuantizedPool::TChunkDescription& chunk,
     const EColumn columnType,
+    const size_t* const targetIdx,
     const size_t* const flatFeatureIdx,
     const size_t* const baselineIdx,
     IQuantizedFeaturesDataVisitor* const visitor) const
@@ -240,14 +241,17 @@ void NCB::TCBQuantizedDataLoader::AddChunk(
 
     switch (columnType) {
         case EColumn::Num: {
+            CB_ENSURE(flatFeatureIdx != nullptr, "Feature not found in index");
             AddQuantizedFeatureChunk(chunk, *flatFeatureIdx, visitor);
             break;
         } case EColumn::Label: {
             // TODO(akhropov): will be raw strings as was decided for new data formats for MLTOOLS-140.
-            visitor->AddTargetPart(GetDatasetOffset(chunk), TUnalignedArrayBuf<float>(quants));
+            CB_ENSURE(targetIdx != nullptr, "Target not found in index");
+            visitor->AddTargetPart(*targetIdx, GetDatasetOffset(chunk), TUnalignedArrayBuf<float>(quants));
             break;
         } case EColumn::Baseline: {
             // TODO(akhropov): switch to storing floats - MLTOOLS-2394
+            CB_ENSURE(baselineIdx != nullptr, "Baseline not found in index");
             TVector<float> tmp;
             AssignUnaligned<double>(quants, &tmp);
             visitor->AddBaselinePart(GetDatasetOffset(chunk), *baselineIdx, TUnalignedArrayBuf<float>(tmp.data(), tmp.size() * sizeof(float)));
@@ -265,6 +269,7 @@ void NCB::TCBQuantizedDataLoader::AddChunk(
             visitor->AddSubgroupIdPart(GetDatasetOffset(chunk), TUnalignedArrayBuf<ui32>(quants));
             break;
         } case EColumn::Categ: {
+            CB_ENSURE(flatFeatureIdx != nullptr, "Feature not found in index");
             AddQuantizedCatFeatureChunk(chunk, *flatFeatureIdx, visitor);
             break;
         }
@@ -331,6 +336,7 @@ void NCB::TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
         {},
         QuantizationSchemaFromProto(QuantizedPool.QuantizationSchema));
 
+    const auto columnIdxToTargetIdx = GetColumnIndexToTargetIndexMap(QuantizedPool);
     const auto columnIdxToFlatIdx = GetColumnIndexToFlatIndexMap(QuantizedPool);
     const auto columnIdxToBaselineIdx = GetColumnIndexToBaselineIndexMap(QuantizedPool);
     const auto chunkRefs = GatherAndSortChunks(QuantizedPool);
@@ -377,7 +383,8 @@ void NCB::TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
         }
 
         const auto* const baselineIdx = columnIdxToBaselineIdx.FindPtr(columnIdx);
-        AddChunk(*chunkRef.Description, columnType, flatFeatureIdx, baselineIdx, visitor);
+        const auto* const targetIdx = columnIdxToTargetIdx.FindPtr(columnIdx);
+        AddChunk(*chunkRef.Description, columnType, targetIdx, flatFeatureIdx, baselineIdx, visitor);
     }
 
     evictor.MaybeEvict(true);

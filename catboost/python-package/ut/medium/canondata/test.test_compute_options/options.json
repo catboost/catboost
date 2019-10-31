@@ -202,6 +202,7 @@
         }, 
         "depth": 6, 
         "dev_efb_max_buckets": 1024, 
+        "dev_leafwise_approxes": false, 
         "dev_score_calc_obj_block_size": 5000000, 
         "l2_leaf_reg": 3, 
         "leaf_estimation_backtracking": "AnyImprovement", 
