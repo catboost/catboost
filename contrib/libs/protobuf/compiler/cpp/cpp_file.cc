@@ -58,7 +58,7 @@ namespace cpp {
 namespace {
 // The list of names that are defined as macros on some platforms. We need to
 // #undef them for the generated code to compile.
-const char* kMacroNames[] = {"major", "minor", "IN"};
+const char* kMacroNames[] = {"major", "minor", "DELETE", "IN", "NEAR"};
 
 bool IsMacroName(const string& name) {
   // Just do a linear search as the number of elements is very small.
