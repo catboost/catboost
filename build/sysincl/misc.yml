@@ -488,3 +488,8 @@
 - source_filter: "^contrib/libs/libpq"
   includes:
     - local.h
+
+- source_filter: "^contrib/libs/tinyalsa"
+  # TinyALSA references linux kernel headers for kernel ALSA interface
+  includes:
+    - sound/asound.h
