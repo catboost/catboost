@@ -21,9 +21,4 @@ a.yandex-team.ru/kikimr/public/sdk/go/ydb/table
 a.yandex-team.ru/kikimr/public/sdk/go/ydb/table_test
 a.yandex-team.ru/kikimr/public/sdk/go/ydb/ydbsql
 a.yandex-team.ru/kikimr/public/sdk/go/ydb/ydbsql_test
-a.yandex-team.ru/library/go/yandex/solomon/admin
-a.yandex-team.ru/library/go/yandex/solomon/admin_test
-a.yandex-team.ru/yt/jaeger
-a.yandex-team.ru/yt/jaeger/plugin/cmd/agent
-a.yandex-team.ru/yt/jaeger/yt-jaeger/cmd
-a.yandex-team.ru/yt/solomon-bridge/cmd/yt-solomon-config
+
