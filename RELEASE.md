@@ -1,3 +1,12 @@
+# Release 0.18.1
+
+## New features:
+- Now `datasets.msrank()` returns _full_ msrank dataset. Previously, it returned the first 10k samples.
+We have added `msrank_10k()` dataset implementing the past behaviour.
+
+## Bug fixes:
+- `get_object_importance()` now respects parameter `top_size`, #1045 by @ibuda
+
 # Release 0.18
 
 - The main feature of the release is huge speedup on small datasets. We now use MVS sampling for CPU regression and binary classification training by default, together with `Plain` boosting scheme for both small and large datasets. This change not only gives the huge speedup but also provides quality improvement!
