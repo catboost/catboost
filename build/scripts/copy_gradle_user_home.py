@@ -14,7 +14,7 @@ def parse_args():
 def main():
     args = parse_args()
 
-    shutil.copytree(args.input, args.output, ignore=lambda _, x: filter(lambda y: y.endswith('.lock'), x))
+    shutil.copytree(args.input, args.output, ignore=lambda _, x: filter(lambda y: y.endswith('.lock') or y.endswith('.bin'), x))
     for root, _, files in os.walk(args.output):
         os.chmod(root, 0o775)
         for f in files:
