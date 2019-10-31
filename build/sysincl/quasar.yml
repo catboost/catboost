@@ -1,15 +1,12 @@
 - source_filter: "^quasar/yandex_io/daemons/(external_libs|local/include/)/asio"
   includes:
-  - __config
   - atomic.h
 - source_filter: "^quasar/yandex_io/daemons/local/include/asio/detail"
   includes:
-  - __config
   - atomic.h
 - source_filter: "^quasar/yandex_io/daemons/local/include/boost"
   includes:
   - ../include/fenv.h
-  - __config
   - _cygwin.h
   - _mingw.h
   - atomic.h

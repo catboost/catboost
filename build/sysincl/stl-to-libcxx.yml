@@ -48,6 +48,10 @@
   includes:
   - __config:   contrib/libs/cxxsupp/libcxx/include/__config
 
+- source_filter: "quasar/yandex_io/daemons/local/include(/boost|)/asio/detail"
+  includes:
+  - __config:   contrib/libs/cxxsupp/libcxx/include/__config
+
 - includes:
   - algorithm:                 contrib/libs/cxxsupp/libcxx/include/algorithm
   - array:                     contrib/libs/cxxsupp/libcxx/include/array

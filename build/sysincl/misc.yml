@@ -242,6 +242,9 @@
 - source_filter: "^contrib/deprecated/boost/boost/asio/detail"
   includes:
   - __config
+- source_filter: "quasar/yandex_io/daemons/local/include(/boost|)/asio/detail"
+  includes:
+  - __config
 
 # windows sdk includes that we do not want to apply for whole arcadia
 - source_filter: "^contrib"
