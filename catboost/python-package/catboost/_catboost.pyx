@@ -4967,3 +4967,6 @@ cpdef compute_training_options(dict options, DataMetaInfo train_meta_info, DataM
         testMetaInfo
     )
     return loads(to_native_str(ToString(trainingOptions)))
+
+
+include "_monoforest.pxi"

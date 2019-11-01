@@ -196,7 +196,7 @@ def make_wheel(wheel_name, pkg_name, ver, arc_root, so_path, custom_requirements
     # Create py files
     python_package_dir = os.path.join(arc_root, 'catboost/python-package')
     os.makedirs(os.path.join(dir_path, pkg_name))
-    for file_name in ['__init__.py', 'version.py', 'core.py', 'datasets.py', 'utils.py', 'eval', 'widget']:
+    for file_name in ['__init__.py', 'version.py', 'core.py', 'datasets.py', 'utils.py', 'eval', 'widget', 'monoforest.py']:
         src = os.path.join(python_package_dir, 'catboost', file_name)
         dst = os.path.join(dir_path, pkg_name, file_name)
         if os.path.isdir(src):
