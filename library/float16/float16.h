@@ -92,7 +92,6 @@ namespace NFloat16Ops {
     constexpr size_t Float32BufferAlignmentRequirementInBytes = 32;
     constexpr size_t Float16BufferAlignmentRequirementInBytes = 16;
 
-    //NOTE: src must be 16 byte aligned, dst must be 32 byte aligned
     void UnpackFloat16SequenceAuto(const TFloat16* src, float* dst, size_t len);
     void UnpackFloat16SequenceIntrisincs(const TFloat16* src, float* dst, size_t len);
 
