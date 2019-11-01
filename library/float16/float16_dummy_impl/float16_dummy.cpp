@@ -2,7 +2,19 @@
 
 #include <util/system/yassert.h>
 
-bool NFloat16Ops::IsIntrisincsAvailableOnHost() {
+bool NFloat16Impl::AreConversionIntrinsicsAvailableOnHost() {
+    return false;
+}
+
+ui16 NFloat16Impl::ConvertFloat32IntoFloat16Intrinsics(float) {
+    Y_FAIL("NFloat16Impl::ConvertFloat32IntoFloat16Intrinsics() is not implemented on this platform");
+}
+
+float NFloat16Impl::ConvertFloat16IntoFloat32Intrinsics(ui16) {
+    Y_FAIL("NFloat16Ops::ConvertFloat16IntoFloat32Intrinsics() is not implemented on this platform");
+}
+
+bool NFloat16Ops::AreIntrinsicsAvailableOnHost() {
     return false;
 }
 

@@ -6,32 +6,40 @@
 namespace NFloat16Impl {
     constexpr ui16 AllBitsMask16 = ui16(-1);
     constexpr ui32 AllBitsMask32 = ui32(-1);
-    constexpr size_t Float16ExponentBits = 5;
-    constexpr size_t Float16MantisaBits = 10;
-    constexpr size_t Float32ExponentBits = 8;
-    constexpr size_t Float32MantisaBits = 23;
-    constexpr i8 FLoat32ExponentOffset = 127;
-    constexpr i8 FLoat16ExponentOffset = 15;
+    constexpr size_t Float16MantissaBits = 10;
+    constexpr size_t Float32MantissaBits = 23;
+    constexpr size_t MantissaBitsDiff = Float32MantissaBits - Float16MantissaBits;
+    constexpr i32 Float32ExponentOffset = 127;
+    constexpr i32 Float16ExponentOffset = 15;
+    constexpr i32 ExponentOffsetDiff = Float32ExponentOffset - Float16ExponentOffset;
 
-    constexpr ui16 ExponentAndSignFloat16Mask = (AllBitsMask16 >> Float16MantisaBits) << Float16MantisaBits;
+    constexpr ui16 ExponentAndSignFloat16Mask = (AllBitsMask16 >> Float16MantissaBits) << Float16MantissaBits;
     constexpr ui16 ExponentFloat16Mask = ExponentAndSignFloat16Mask & (ExponentAndSignFloat16Mask >> 1);
-    constexpr ui32 ExponentAndSignFloat32Mask = (AllBitsMask32 >> Float32MantisaBits) << Float32MantisaBits;
+    constexpr ui32 ExponentAndSignFloat32Mask = (AllBitsMask32 >> Float32MantissaBits) << Float32MantissaBits;
 
-    constexpr ui32 MantisaFloat32Mask = AllBitsMask32 ^ ExponentAndSignFloat32Mask;
-    constexpr ui16 MantisaFloat16Mask = AllBitsMask16 ^ ExponentAndSignFloat16Mask;
+    constexpr ui16 MantissaFloat16Mask = AllBitsMask16 ^ ExponentAndSignFloat16Mask;
 
     constexpr ui32 SignFloat32Mask = AllBitsMask32 ^ (AllBitsMask32 >> 1);
     constexpr ui16 SignFloat16Mask = AllBitsMask16 ^ (AllBitsMask16 >> 1);
     constexpr ui32 ExponentFloat32Mask = ExponentAndSignFloat32Mask ^ SignFloat32Mask;
 
-    Y_CONST_FUNCTION
-    ui16 ConvertFloat32IntoFloat16(float val);
+    constexpr ui16 QuietNanFloat16Mask = 1 << (Float16MantissaBits - 1);
+    constexpr ui32 QuietNanFloat32Mask = 1 << (Float32MantissaBits - 1);
 
     Y_CONST_FUNCTION
-    ui32 ConvertFloat16IntoFloat32Bitly(ui16 f16);
+    bool AreConversionIntrinsicsAvailableOnHost();
 
     Y_CONST_FUNCTION
-    float ConvertFloat16IntoFloat32(ui16 f16);
+    ui16 ConvertFloat32IntoFloat16Auto(float val);
+
+    Y_CONST_FUNCTION
+    float ConvertFloat16IntoFloat32Auto(ui16 f16);
+
+    Y_CONST_FUNCTION
+    ui16 ConvertFloat32IntoFloat16Intrinsics(float val);
+
+    Y_CONST_FUNCTION
+    float ConvertFloat16IntoFloat32Intrinsics(ui16 val);
 }
 
 struct TFloat16 {
@@ -42,20 +50,20 @@ struct TFloat16 {
     constexpr TFloat16() {}
 
     TFloat16(float v) {
-        Data = NFloat16Impl::ConvertFloat32IntoFloat16(v);
+        Data = NFloat16Impl::ConvertFloat32IntoFloat16Auto(v);
     }
 
     TFloat16(const TFloat16&) = default;
 
     TFloat16& operator=(const TFloat16&) = default;
     TFloat16& operator=(float v) {
-        Data = NFloat16Impl::ConvertFloat32IntoFloat16(v);
+        Data = NFloat16Impl::ConvertFloat32IntoFloat16Auto(v);
         return *this;
     }
 
     Y_PURE_FUNCTION
     float AsFloat() const {
-        return NFloat16Impl::ConvertFloat16IntoFloat32(Data);
+        return NFloat16Impl::ConvertFloat16IntoFloat32Auto(Data);
     }
 
     Y_CONST_FUNCTION
@@ -84,11 +92,11 @@ namespace NFloat16Ops {
     constexpr size_t Float32BufferAlignmentRequirementInBytes = 32;
     constexpr size_t Float16BufferAlignmentRequirementInBytes = 16;
 
-    //NOTE: src must be 16 byte aligned, dst must be 32 byte alighned
+    //NOTE: src must be 16 byte aligned, dst must be 32 byte aligned
     void UnpackFloat16SequenceAuto(const TFloat16* src, float* dst, size_t len);
     void UnpackFloat16SequenceIntrisincs(const TFloat16* src, float* dst, size_t len);
 
-    //NOTE: f32 must be 32 byte aligned, f16 must be 16 byte alighned
+    //NOTE: f32 must be 32 byte aligned, f16 must be 16 byte aligned
     //NOTE: result depends on architecture and do not recomended for canonization
     Y_PURE_FUNCTION
     float DotProductOnFloatAuto(const float* f32, const TFloat16* f16, size_t len);
@@ -97,7 +105,7 @@ namespace NFloat16Ops {
     float DotProductOnFloatIntrisincs(const float* f32, const TFloat16* f16, size_t len);
 
     Y_CONST_FUNCTION
-    bool IsIntrisincsAvailableOnHost();
+    bool AreIntrinsicsAvailableOnHost();
 
     void PackFloat16SequenceAuto(const float* src, TFloat16* dst, size_t len);
     void PackFloat16SequenceIntrisincs(const float* src, TFloat16* dst, size_t len);
