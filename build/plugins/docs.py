@@ -64,6 +64,7 @@ def generate_dart(unit, as_lib=False):
     includes = extract_macro_calls(unit, 'DOCSINCLUDESOURCES')
 
     data = {
+        'DOCS_NAME': unit.name(),
         'PATH': module_dir,
         'MODULE_TAG': unit.get('MODULE_TAG'),
         'DOCSDIR': docs_dir,
