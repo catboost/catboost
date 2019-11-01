@@ -493,3 +493,8 @@
   # TinyALSA references linux kernel headers for kernel ALSA interface
   includes:
     - sound/asound.h
+
+- source_filter: "^contrib/libs/breakpad"
+  includes:
+    - asm/ptrace.h
+    - stab.h
