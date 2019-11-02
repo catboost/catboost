@@ -5,6 +5,7 @@ import xml.etree.ElementTree as etree
 
 FLAT_DIRS_REPO_TEMPLATE='flatDir {{ dirs {dirs} }}\n'
 MAVEN_REPO_TEMPLATE='maven {{ url "{repo}" }}\n'
+KEYSTORE_TEMLATE='signingConfigs {{ debug {{ storeFile file("{keystore}") }} }}\n'
 
 TEST_APK_TEMPLATE = """\
 ext.jniLibsDirs = [
@@ -59,6 +60,8 @@ dependencies {{
 }}
 
 android {{
+    {keystore}
+
     compileSdkVersion 28
     buildToolsVersion "28.0.2"
 
@@ -126,6 +129,11 @@ def gen_build_script(args):
 
     maven_repos = ''.join(MAVEN_REPO_TEMPLATE.format(repo=repo) for repo in args.maven_repos)
 
+    if args.keystore:
+        keystore = KEYSTORE_TEMLATE.format(keystore=args.keystore)
+    else:
+        keystore = ''
+
     return TEST_APK_TEMPLATE.format(
         app_id=args.app_id,
         jni_libs_dirs=wrap(args.jni_libs_dirs),
@@ -133,7 +141,8 @@ def gen_build_script(args):
         java_dirs=wrap(args.java_dirs),
         maven_repos=maven_repos,
         bundles=wrap(bundles),
-        flat_dirs_repo=flat_dirs_repo
+        flat_dirs_repo=flat_dirs_repo,
+        keystore=keystore,
     )
 
 
@@ -152,6 +161,7 @@ if __name__ == '__main__':
     parser.add_argument('--maven-repos', nargs='*', default=[])
     parser.add_argument('--output-dir', required=True)
     parser.add_argument('--peers', nargs='*', default=[])
+    parser.add_argument('--keystore', default=None)
     parser.add_argument('--res-dirs', nargs='*', default=[])
     args = parser.parse_args()
 
