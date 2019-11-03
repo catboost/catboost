@@ -154,5 +154,9 @@ namespace NCatboostDistributed {
         OBJECT_NOCOPY_METHODS(TLeafWeightsGetter);
         void DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unused*/, TOutput* leafWeights) const final;
     };
+    class TQuantileLeafDeltasCalcer: public NPar::TMapReduceCmd<TUnusedInitializedParam, TVector<TVector<std::pair<float, float>>>> {
+        OBJECT_NOCOPY_METHODS(TQuantileLeafDeltasCalcer);
+        void DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unused*/, TOutput* leafValues) const final;
+    };
 
 } // NCatboostDistributed

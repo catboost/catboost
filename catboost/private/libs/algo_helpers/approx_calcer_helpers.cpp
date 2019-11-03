@@ -1,12 +1,11 @@
 #include "approx_calcer_helpers.h"
 
-#include <catboost/private/libs/options/catboost_options.h>
-
-double CalcSampleQuantile(
-    TConstArrayRef<float> sample,
-    TConstArrayRef<float> weights,
-    const double alpha,
-    const double delta
+double CalcSampleQuantileWithIndices(
+        TConstArrayRef<float> sample,
+        TConstArrayRef<float> weights,
+        TConstArrayRef<size_t> indices,
+        const double alpha,
+        const double delta
 ) {
     if (sample.empty()) {
         return 0;
@@ -24,13 +23,6 @@ double CalcSampleQuantile(
     if (doublePosition >= sumWeight) {
         return *std::max_element(sample.begin(), sample.end()) + delta;
     }
-
-    TVector<size_t> indices(sampleSize);
-    for (size_t i = 0; i < sampleSize; i++) {
-        indices[i] = i;
-    }
-
-    std::sort(indices.begin(), indices.end(), [&](size_t i, size_t j) { return sample[i] < sample[j]; });
 
     size_t position = 0;
     float sum = 0;
@@ -61,6 +53,36 @@ double CalcSampleQuantile(
     }
     Y_ASSERT(false);
     return 0;
+}
+
+double CalcSampleQuantile(
+    TConstArrayRef<float> sample,
+    TConstArrayRef<float> weights,
+    const double alpha,
+    const double delta
+) {
+    size_t sampleSize = sample.size();
+
+    TVector<size_t> indices(sampleSize);
+    Iota(indices.begin(), indices.end(), 0);
+
+    Sort(indices.begin(), indices.end(), [&](size_t i, size_t j) { return sample[i] < sample[j]; });
+
+    return CalcSampleQuantileWithIndices(sample, weights, indices, alpha, delta);
+}
+
+double CalcSampleQuantileSorted(
+    TConstArrayRef<float> sample,
+    TConstArrayRef<float> weights,
+    const double alpha,
+    const double delta
+) {
+    size_t sampleSize = sample.size();
+
+    TVector<size_t> indices(sampleSize);
+    Iota(indices.begin(), indices.end(), 0);
+
+    return CalcSampleQuantileWithIndices(sample, weights, indices, alpha, delta);
 }
 
 void CreateBacktrackingObjectiveImpl(

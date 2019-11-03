@@ -4989,6 +4989,12 @@
             "uri": "file://test.test_quantile_categorical_Plain_/test.eval"
         }
     ],
+    "test.test_quantile_exact_distributed": [
+        {
+            "checksum": "6ed08862a7074d236f5134f5280a3601",
+            "uri": "file://test.test_quantile_exact_distributed/test_1.eval"
+        }
+    ],
     "test.test_quantile_targets[Ordered-LogLinQuantile]": [
         {
             "checksum": "cb63c47c0385ed636356759db0b9ca54",

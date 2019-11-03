@@ -224,7 +224,6 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
         CB_ENSURE(loss == ELossFunction::MAE || loss == ELossFunction::Quantile, "Exact method is only available for Qunatile and MAE loss functions.");
         CB_ENSURE(!BoostingOptions->ApproxOnFullHistory, "ApproxOnFullHistory option is not available within Exact method.");
         CB_ENSURE(TaskType == ETaskType::CPU, "Exact method is only available on CPU.");
-        CB_ENSURE(SystemOptions->IsSingleHost(), "Exact method is only available in SingleHost mode.");
     }
 
     if (treeConfig.L2Reg == 0.0f) {

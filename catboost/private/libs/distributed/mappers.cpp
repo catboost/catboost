@@ -791,6 +791,35 @@ namespace NCatboostDistributed {
             GetWeights(*GetTrainData(trainData)->TargetData));
     }
 
+    void TQuantileLeafDeltasCalcer::DoMap(
+            NPar::IUserContext* /*unused*/,
+            int /*unused*/,
+            TInput* /*unused*/,
+            TOutput* out
+    ) const {
+        auto& localData = TLocalTensorSearchData::GetRef();
+
+        // (1ll << localData.Depth) != localData.Buckets.size(); ???
+        int leafCount = localData.Buckets.size();
+
+        TVector<double>& approxes = localData.Progress->AvrgApprox[0];
+        TVector<float>& targets = localData.Progress->AveragingFold.LearnTarget[0];
+        TVector<float>& weights = localData.Progress->AveragingFold.SampleWeights;
+
+        Y_ASSERT(targets.size() == approxes.size());
+        Y_ASSERT(weights.size() == approxes.size());
+
+        TVector<TVector<std::pair<float, float>>> answer(leafCount);
+        for (size_t i = 0; i < approxes.size(); i++) {
+            answer[localData.Indices[i]].push_back({targets[i] - approxes[i], weights[i]});
+        }
+        NPar::ParallelFor(0, leafCount, [&](int leaf){
+            Sort(answer[leaf].begin(), answer[leaf].end());
+        });
+
+        *out = answer;
+    }
+
 } // NCatboostDistributed
 
 using namespace NCatboostDistributed;
@@ -827,3 +856,4 @@ REGISTER_SAVELOAD_NM_CLASS(0xd66d4d6, NCatboostDistributed, TApproxReconstructor
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4e0, NCatboostDistributed, TLeafWeightsGetter);
 
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4e1, NCatboostDistributed, TDatasetLoader);
+REGISTER_SAVELOAD_NM_CLASS(0xd66d4e2, NCatboostDistributed, TQuantileLeafDeltasCalcer);

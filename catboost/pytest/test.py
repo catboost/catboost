@@ -3157,6 +3157,19 @@ def test_quantile_categorical(boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
+def test_quantile_exact_distributed():
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+        loss_function='MAE',
+        pool='higgs',
+        train='train_small',
+        test='test_small',
+        cd='train.cd',
+        other_options=(
+            '--leaf-estimation-method', 'Exact'
+        )
+    )))]
+
+
 CUSTOM_LOSS_FUNCTIONS = ['RMSE,MAE', 'Quantile:alpha=0.9', 'MSLE,MedianAbsoluteError,SMAPE',
                          'NumErrors:greater_than=0.01,NumErrors:greater_than=0.1,NumErrors:greater_than=0.5',
                          'FairLoss:smoothness=0.9']

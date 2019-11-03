@@ -63,4 +63,11 @@ double CalcSampleQuantile(
     const double delta
 );
 
+double CalcSampleQuantileSorted(
+    TConstArrayRef<float> sample,
+    TConstArrayRef<float> weights,
+    const double alpha,
+    const double delta
+);
+
 double GetMinimizeSign(const THolder<IMetric>& metric);
