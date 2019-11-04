@@ -242,7 +242,7 @@
 - source_filter: "^contrib/deprecated/boost/boost/asio/detail"
   includes:
   - __config
-- source_filter: "quasar/yandex_io/daemons/local/include(/boost|)/asio/detail"
+- source_filter: "quasar/yandex_io/daemons/external_libs/(boost/include/boost|websocketpp/include)/asio/detail"
   includes:
   - __config
 

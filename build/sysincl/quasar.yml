@@ -1,10 +1,10 @@
-- source_filter: "^quasar/yandex_io/daemons/(external_libs|local/include/)/asio"
+- source_filter: "^quasar/yandex_io/daemons/external_libs/boost/include/boost/asio/detail"
   includes:
   - atomic.h
-- source_filter: "^quasar/yandex_io/daemons/local/include/asio/detail"
+- source_filter: "^quasar/yandex_io/daemons/external_libs/websocketpp/include/asio/detail"
   includes:
   - atomic.h
-- source_filter: "^quasar/yandex_io/daemons/local/include/boost"
+- source_filter: "^quasar/yandex_io/daemons/external_libs/boost/include/boost"
   includes:
   - ../include/fenv.h
   - _cygwin.h
@@ -18,16 +18,16 @@
   - tickLib.h
   - type_traits.h
   - version.h
-- source_filter: "^quasar/yandex_io/daemons/(external_libs|local/include)/json(cpp)?/"
+- source_filter: "^quasar/yandex_io/daemons/external_libs/jsoncpp/include"
   includes:
   - cpptl/config.h
   - cpptl/cpptl_autolink.h
   - cpptl/smallmap.h
   - cpptl/forwards.h
-- source_filter: "^quasar/yandex_io/daemons/(external_libs|local/include(/google)?)/protobuf/(stubs/)?"
+- source_filter: "^quasar/yandex_io/daemons/external_libs/protobuf/include/google/protobuf/stubs"
   includes:
   - atomic.h
-- source_filter: "^quasar/yandex_io/daemons/(external_libs|local/include)/websocketpp"
+- source_filter: "^quasar/yandex_io/daemons/external_libs/websocketpp/include"
   includes:
   - mingw-threads/mingw.thread.h
   - mingw-threads/mingw.mutex.h
@@ -38,7 +38,7 @@
   - cutils/sockets.h
   - cutils/properties.h
   - sys/capability.h
-- source_filter: "^quasar/yandex_io/daemons/local/include/breakpad/third_party/lss"
+- source_filter: "^quasar/yandex_io/daemons/external_libs/breakpad/include/third_party/lss"
   includes:
   - asm/sgidefs.h
 
