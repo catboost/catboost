@@ -16,7 +16,6 @@ TEST_SRCS(
     compile_java.py
     compile_jsrc.py
     configure_file.py
-    copy_gradle_user_home.py
     copy_to_dir.py
     coverage-info.py
     create_jcoverage_report.py
