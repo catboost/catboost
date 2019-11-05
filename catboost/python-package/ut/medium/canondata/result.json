@@ -635,6 +635,14 @@
         "checksum": "70810dbb83b670cc7c4680e4be869ccf",
         "uri": "file://test.test_multiclass_custom_class_labels_from_files_CPU_/predictions.txt"
     },
+    "test.test_multiregression[100]": {
+        "checksum": "be52c247a4997cb1a09be02897ec304e",
+        "uri": "file://test.test_multiregression_100_/predictions.txt"
+    },
+    "test.test_multiregression[500]": {
+        "checksum": "3286b7ad3a177f4182d69bf5f525aafa",
+        "uri": "file://test.test_multiregression_500_/predictions.txt"
+    },
     "test.test_non_ones_weight[CPU]": {
         "checksum": "48ed174f41b753a2166afd6bd8570508",
         "uri": "file://test.test_non_ones_weight_CPU_/model.bin"

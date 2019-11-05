@@ -100,6 +100,7 @@ namespace NCB {
             ObjectsGrouping = std::move(objectsGrouping);
             Data = std::move(data);
             SetBaselineViewFromBaseline();
+            SetTargetViewFromTarget();
         }
 
         bool operator==(const TRawTargetDataProvider& rhs) const {
@@ -115,22 +116,27 @@ namespace NCB {
             return ObjectsGrouping;
         }
 
-        // [objectIdx]
-        TMaybeData<TConstArrayRef<TString>> GetTarget() const {
-            if (Data.Target.size() == 1) {
-                return Data.Target[0];
+        // [targetIdx][objectIdx]
+        TMaybeData<TConstArrayRef<TConstArrayRef<TString>>> GetTarget() const {
+            if (!TargetView.empty()) {
+                return TargetView;
             } else {
                 return Nothing();
             }
         }
 
-        // [targetIdx][objectIdx]
-        TMaybeData<TConstArrayRef<TVector<TString>>> GetMultiTarget() const {
-            if (!Data.Target.empty()) {
-                return Data.Target;
+        TMaybeData<TConstArrayRef<TString>> GetOneDimensionalTarget() const { // [targetIdx][objectIdx]
+            const auto target = GetTarget();
+            if (target) {
+                CB_ENSURE(target->size() == 1, "Attempt to use multi-dimensional target as one-dimensional");
+                return target.GetRef()[0];
             } else {
                 return Nothing();
             }
+        }
+
+        ui32 GetTargetDimension() const {
+            return TargetView.size();
         }
 
         // can return empty array
@@ -189,12 +195,17 @@ namespace NCB {
             BaselineView.assign(Data.Baseline.begin(), Data.Baseline.end());
         }
 
+        void SetTargetViewFromTarget() { // call after setting Data.Target
+            TargetView.assign(Data.Target.begin(), Data.Target.end());
+        }
+
     private:
         TObjectsGroupingPtr ObjectsGrouping;
         TRawTargetData Data;
 
         // for returning from GetBaseline
         TVector<TConstArrayRef<float>> BaselineView; // [approxIdx][objectIdx]
+        TVector<TConstArrayRef<TString>> TargetView; // [targetIdx][objectIdx]
     };
 
     /*
@@ -270,21 +281,31 @@ namespace NCB {
         }
 
         // after preprocessing - enumerating labels if necessary, etc.
-        TMaybeData<TConstArrayRef<float>> GetTarget(const TString& name = "") const { // [objectIdx]
-            const auto targetPtr = MapFindPtr(TargetViews, name);
-            if (targetPtr && targetPtr->size() == 1) {
-                return TConstArrayRef<float>((*targetPtr)[0]);
-            } else {
-                return Nothing();
-            }
-        }
-
-        TMaybeData<TConstArrayRef<TConstArrayRef<float>>> GetMultiTarget(const TString& name = "") const { // [targetIdx][objectIdx]
+        TMaybeData<TConstArrayRef<TConstArrayRef<float>>> GetTarget(const TString& name = "") const { // [targetIdx][objectIdx]
             const auto targetPtr = MapFindPtr(TargetViews, name);
             if (targetPtr && !targetPtr->empty()) {
                 return TConstArrayRef<TConstArrayRef<float>>(*targetPtr);
             } else {
                 return Nothing();
+            }
+        }
+
+        TMaybeData<TConstArrayRef<float>> GetOneDimensionalTarget(const TString& name = "") const { // [targetIdx][objectIdx]
+            const auto target = GetTarget(name);
+            if (target) {
+                CB_ENSURE(target->size() == 1, "Attempt to use multidimintional target as one-dimensional");
+                return target.GetRef()[0];
+            } else {
+                return Nothing();
+            }
+        }
+
+        ui32 GetTargetDimension(const TString& name = "") const {
+            const auto maybeTarget = GetTarget(name);
+            if (maybeTarget) {
+                return maybeTarget->size();
+            } else {
+                return 0;
             }
         }
 
@@ -325,7 +346,7 @@ namespace NCB {
         // for returning from GetBaseline
         // [approxIdx][objectIdx], can be empty
         THashMap<TString, TVector<TConstArrayRef<float>>> BaselineViews;
-        // for returning from GetMultiTarget
+        // for returning from GetTarget
         // [targetIdx][objectIdx]
         THashMap<TString, TVector<TConstArrayRef<float>>> TargetViews;
     };

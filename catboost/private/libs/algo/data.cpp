@@ -250,7 +250,7 @@ namespace NCB {
 
     static TTextClassificationTargetPtr CreateTextClassificationTarget(const TTargetDataProvider& targetDataProvider) {
         const ui32 numClasses = *targetDataProvider.GetTargetClassCount();
-        TConstArrayRef<float> target = *targetDataProvider.GetTarget();
+        TConstArrayRef<float> target = *targetDataProvider.GetOneDimensionalTarget();
         TVector<ui32> classes;
         classes.resize(target.size());
 
@@ -387,7 +387,7 @@ namespace NCB {
             CheckCompatibilityWithEvalMetric(
                 params->MetricOptions->EvalMetric,
                 *trainingData.Test.back(),
-                GetApproxDimension(*params, *labelConverter)
+                GetApproxDimension(*params, *labelConverter, trainingData.Test.back()->TargetData->GetTargetDimension())
             );
         }
 
@@ -396,12 +396,14 @@ namespace NCB {
     }
 
     TConstArrayRef<TString> GetTargetForStratifiedSplit(const TDataProvider& dataProvider) {
-        auto maybeTarget = dataProvider.RawTargetData.GetTarget();
+        auto maybeTarget = dataProvider.RawTargetData.GetOneDimensionalTarget();
         CB_ENSURE(maybeTarget, "Cannot do stratified split: Target data is unavailable");
         return *maybeTarget;
     }
 
     TConstArrayRef<float> GetTargetForStratifiedSplit(const TTrainingDataProvider& dataProvider) {
-        return *dataProvider.TargetData->GetTarget();
+        auto maybeTarget = dataProvider.TargetData->GetOneDimensionalTarget();
+        CB_ENSURE(maybeTarget, "Cannot do stratified split: Target data is unavailable");
+        return *maybeTarget;
     }
 }

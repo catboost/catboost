@@ -1331,6 +1331,30 @@
             "uri": "file://test.test_cv_for_query_Plain_/test.eval"
         }
     ],
+    "test.test_cv_multiregression[Ordered-inverted]": [
+        {
+            "checksum": "5b787b205f4bc442a026ae992f00e04f",
+            "uri": "file://test.test_cv_multiregression_Ordered-inverted_/test.eval"
+        }
+    ],
+    "test.test_cv_multiregression[Ordered]": [
+        {
+            "checksum": "a747c73417d232ffe9e71ca814b35097",
+            "uri": "file://test.test_cv_multiregression_Ordered_/test.eval"
+        }
+    ],
+    "test.test_cv_multiregression[Plain-inverted]": [
+        {
+            "checksum": "08ba565074c8008789b8ca1db920f5f3",
+            "uri": "file://test.test_cv_multiregression_Plain-inverted_/test.eval"
+        }
+    ],
+    "test.test_cv_multiregression[Plain]": [
+        {
+            "checksum": "1889d75e43c8339a0a25a8c1925d3d6d",
+            "uri": "file://test.test_cv_multiregression_Plain_/test.eval"
+        }
+    ],
     "test.test_deep_tree_classification[Ordered-4]": [
         {
             "checksum": "22faa15b280e55354d6e3f9b83b18843",
@@ -1443,6 +1467,30 @@
         {
             "checksum": "c11884178e011417b3d2619435ed5e03",
             "uri": "file://test.test_dist_train_multiclass_weight_calc_block=60_/test_1.eval"
+        }
+    ],
+    "test.test_dist_train_multiregression[calc_block=5000000]": [
+        {
+            "checksum": "dee2c4ed9733105ae5d4d20cc55d51a5",
+            "uri": "file://test.test_dist_train_multiregression_calc_block=5000000_/test_1.eval"
+        }
+    ],
+    "test.test_dist_train_multiregression[calc_block=60]": [
+        {
+            "checksum": "dee2c4ed9733105ae5d4d20cc55d51a5",
+            "uri": "file://test.test_dist_train_multiregression_calc_block=60_/test_1.eval"
+        }
+    ],
+    "test.test_dist_train_multiregression_single[calc_block=5000000]": [
+        {
+            "checksum": "03fcfb92a4d2203dcbfc91764c4135e8",
+            "uri": "file://test.test_dist_train_multiregression_single_calc_block=5000000_/test_1.eval"
+        }
+    ],
+    "test.test_dist_train_multiregression_single[calc_block=60]": [
+        {
+            "checksum": "03fcfb92a4d2203dcbfc91764c4135e8",
+            "uri": "file://test.test_dist_train_multiregression_single_calc_block=60_/test_1.eval"
         }
     ],
     "test.test_dist_train_pairlogit[calc_block=5000000]": [
@@ -3773,6 +3821,118 @@
         {
             "checksum": "bc64e44ce914188b218f709faa66da0e",
             "uri": "file://test.test_multiple_eval_sets_err_log/json.log"
+        }
+    ],
+    "test.test_multiregression[100-Ordered]": [
+        {
+            "checksum": "9d95730b8e5d79f1928ca4a9c94eb598",
+            "uri": "file://test.test_multiregression_100-Ordered_/test.eval"
+        },
+        {
+            "checksum": "8d6c0f038a95bc22df260252f4928df4",
+            "uri": "file://test.test_multiregression_100-Ordered_/test.calc"
+        },
+        {
+            "checksum": "e4bb4f15875a9f919e553034a512f1fd",
+            "uri": "file://test.test_multiregression_100-Ordered_/test.metric"
+        }
+    ],
+    "test.test_multiregression[100-Plain]": [
+        {
+            "checksum": "93b939464ef096c437c4ab75574153ea",
+            "uri": "file://test.test_multiregression_100-Plain_/test.eval"
+        },
+        {
+            "checksum": "7bf169b26964961fc7cfaa59a6e6fe8f",
+            "uri": "file://test.test_multiregression_100-Plain_/test.calc"
+        },
+        {
+            "checksum": "445d9358dd19deb393e81717bd8ced0a",
+            "uri": "file://test.test_multiregression_100-Plain_/test.metric"
+        }
+    ],
+    "test.test_multiregression[500-Ordered]": [
+        {
+            "checksum": "75f8599472dc716b078f55eb29767939",
+            "uri": "file://test.test_multiregression_500-Ordered_/test.eval"
+        },
+        {
+            "checksum": "ae3824fac74a69d633999a3ba329289b",
+            "uri": "file://test.test_multiregression_500-Ordered_/test.calc"
+        },
+        {
+            "checksum": "f88ccaf5b5a17bf5dc716c0b2e56500f",
+            "uri": "file://test.test_multiregression_500-Ordered_/test.metric"
+        }
+    ],
+    "test.test_multiregression[500-Plain]": [
+        {
+            "checksum": "fcb985da9dac47c7debfdf32e91da251",
+            "uri": "file://test.test_multiregression_500-Plain_/test.eval"
+        },
+        {
+            "checksum": "ccaa0b989b4d4718342d8f24ef4ed1d8",
+            "uri": "file://test.test_multiregression_500-Plain_/test.calc"
+        },
+        {
+            "checksum": "470422a998b9ddedc0879c8c9a5a4d2c",
+            "uri": "file://test.test_multiregression_500-Plain_/test.metric"
+        }
+    ],
+    "test.test_multiregression_single[100-Ordered]": [
+        {
+            "checksum": "aec2821c9f6bf1edf439f8367255a977",
+            "uri": "file://test.test_multiregression_single_100-Ordered_/test.eval"
+        },
+        {
+            "checksum": "28225ed0ae7809604f94eb02b37fa9e7",
+            "uri": "file://test.test_multiregression_single_100-Ordered_/test.calc"
+        },
+        {
+            "checksum": "3753a501f5dd16f2f6cce1163f1e27ba",
+            "uri": "file://test.test_multiregression_single_100-Ordered_/test.metric"
+        }
+    ],
+    "test.test_multiregression_single[100-Plain]": [
+        {
+            "checksum": "5cee6e93384a4ed7416ed7c7acf50de2",
+            "uri": "file://test.test_multiregression_single_100-Plain_/test.eval"
+        },
+        {
+            "checksum": "9245c639d086ab7097fef8de8c3e6086",
+            "uri": "file://test.test_multiregression_single_100-Plain_/test.calc"
+        },
+        {
+            "checksum": "ef549a323da3c53d73b2b06cd7aa4169",
+            "uri": "file://test.test_multiregression_single_100-Plain_/test.metric"
+        }
+    ],
+    "test.test_multiregression_single[500-Ordered]": [
+        {
+            "checksum": "dad736df24834844221f824bf46b27fd",
+            "uri": "file://test.test_multiregression_single_500-Ordered_/test.eval"
+        },
+        {
+            "checksum": "9087f577f2d3e66f01bcca6e7ffbe7a7",
+            "uri": "file://test.test_multiregression_single_500-Ordered_/test.calc"
+        },
+        {
+            "checksum": "20a2c6ecc85ffc0e0ef0c14775240b50",
+            "uri": "file://test.test_multiregression_single_500-Ordered_/test.metric"
+        }
+    ],
+    "test.test_multiregression_single[500-Plain]": [
+        {
+            "checksum": "7423ef00ca0325ea3d7b428840ff4ec0",
+            "uri": "file://test.test_multiregression_single_500-Plain_/test.eval"
+        },
+        {
+            "checksum": "206689de08c94c841150ebd3e41ebe62",
+            "uri": "file://test.test_multiregression_single_500-Plain_/test.calc"
+        },
+        {
+            "checksum": "cd16d6bcbbfe91bd861303b8f99d1220",
+            "uri": "file://test.test_multiregression_single_500-Plain_/test.metric"
         }
     ],
     "test.test_mvs_bootstrap[Ordered]": [

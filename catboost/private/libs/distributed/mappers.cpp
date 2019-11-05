@@ -1,5 +1,7 @@
 #include "mappers.h"
 
+#include <catboost/libs/helpers/matrix.h>
+
 #include <catboost/private/libs/algo/approx_calcer.h>
 #include <catboost/private/libs/algo/approx_delta_calcer_multi.h>
 #include <catboost/private/libs/algo/approx_updater_helpers.h>
@@ -596,6 +598,7 @@ namespace NCatboostDistributed {
         TOutput* /*unused*/
     ) const {
         auto& localData = TLocalTensorSearchData::GetRef();
+        const auto& error = BuildError(localData.Params, /*custom objective*/Nothing());
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
         localData.Indices = BuildIndices(
             localData.Progress->AveragingFold,
@@ -619,7 +622,7 @@ namespace NCatboostDistributed {
         Fill(
             localData.MultiBuckets.begin(),
             localData.MultiBuckets.end(),
-            TSumMulti(approxDimension, localData.HessianType));
+            TSumMulti(approxDimension, error->GetHessianType()));
         localData.PairwiseBuckets.SetSizes(splitTree->Data.GetLeafCount(), splitTree->Data.GetLeafCount());
         localData.PairwiseBuckets.FillZero();
         localData.GradientIteration = 0;
@@ -700,15 +703,12 @@ namespace NCatboostDistributed {
         TOutput* sums
     ) const {
         auto& localData = TLocalTensorSearchData::GetRef();
-        const int approxDimension = localData.Progress->ApproxDimension;
-        Y_ASSERT(approxDimension > 1);
         const auto error = BuildError(localData.Params, /*custom objective*/Nothing());
         const auto estimationMethod = localData.Params.ObliviousTreeOptions->LeavesEstimationMethod;
-        CB_ENSURE(localData.Progress->AveragingFold.LearnTarget.size() == 1, "MultiClassification requires exactly one target");
 
         CalcLeafDersMulti(
             localData.Indices,
-            localData.Progress->AveragingFold.LearnTarget[0],
+            To2DConstArrayRef<float>(localData.Progress->AveragingFold.LearnTarget),
             localData.Progress->AveragingFold.GetLearnWeights(),
             localData.Progress->AveragingFold.BodyTailArr[0].Approx,
             localData.ApproxDeltas,
@@ -762,7 +762,7 @@ namespace NCatboostDistributed {
             localData.Progress->AvrgApprox,
             /*approxDelta*/{},
             /*isExpApprox*/false,
-            GetTrainData(trainData)->TargetData->GetTarget(),
+            GetTrainData(trainData)->TargetData->GetTarget().GetOrElse(TConstArrayRef<TConstArrayRef<float>>()),
             GetWeights(*GetTrainData(trainData)->TargetData),
             GetTrainData(trainData)->TargetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>()),
             selectedMetrics,

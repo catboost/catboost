@@ -191,7 +191,7 @@ TRocCurve::TRocCurve(const TFullModel& model, const TVector<TDataProviderPtr>& d
 
             targetDataParts[i] = std::move(processedData.TargetData);
 
-            labels[i] = *(targetDataParts[i]->GetTarget());
+            labels[i] = *targetDataParts[i]->GetOneDimensionalTarget();
         },
         0,
         SafeIntegerCast<int>(datasets.size()),

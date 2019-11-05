@@ -3,7 +3,7 @@
 TVector<TLeafStatistics> BuildSubset(
     TConstArrayRef<TIndexType> leafIndices,
     TConstArrayRef<TVector<double>> approx,
-    TConstArrayRef<float> labels,
+    TConstArrayRef<TVector<float>> labels,
     TConstArrayRef<float> weights,
     TConstArrayRef<float> sampleWeights,
     int leafCount,
@@ -15,7 +15,7 @@ TVector<TLeafStatistics> BuildSubset(
     const int approxDimension = approx.ysize();
     TVector<TLeafStatistics> leafStatistics(
         leafCount,
-        TLeafStatistics(approxDimension, sampleCount, sumWeight));
+        TLeafStatistics(labels.size(), approxDimension, sampleCount, sumWeight));
 
     TVector<int> docIndices;
     docIndices.yresize(sampleCount);
@@ -25,7 +25,7 @@ TVector<TLeafStatistics> BuildSubset(
         docIndices[idx] = objectsCount[leafIndices[idx]]++;
     }
 
-    TVector<TArrayRef<float>> leafLabels(leafCount);
+    TVector<TArrayRef<TArrayRef<float>>> leafLabels(leafCount);
     TVector<TArrayRef<float>> leafWeights(leafCount);
     TVector<TArrayRef<float>> leafSampleWeights(leafCount);
 
@@ -63,7 +63,9 @@ TVector<TLeafStatistics> BuildSubset(
             const int leafIdx = leafIndices[docIdx];
             const int insideIdx = docIndices[docIdx];
 
-            leafLabels[leafIdx][insideIdx] = labels[docIdx];
+            for (auto labelDim : xrange(leafLabels[leafIdx].size())) {
+                leafLabels[leafIdx][labelDim][insideIdx] = labels[labelDim][docIdx];
+            }
             if (!needSampleWeights && !weights.empty()) {
                 leafWeights[leafIdx][insideIdx] = weights[docIdx];
             }
@@ -87,7 +89,7 @@ TVector<TLeafStatistics> BuildSubset(
     return BuildSubset(
         leafIndices,
         ctx->LearnProgress->AveragingFold.BodyTailArr[0].Approx,
-        ctx->LearnProgress->AveragingFold.LearnTarget[0],
+        ctx->LearnProgress->AveragingFold.LearnTarget,
         ctx->LearnProgress->AveragingFold.GetLearnWeights(),
         ctx->LearnProgress->AveragingFold.SampleWeights,
         leafCount,

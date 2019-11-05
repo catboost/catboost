@@ -4,9 +4,10 @@
 
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/interrupt.h>
+#include <catboost/libs/helpers/matrix.h>
 #include <catboost/libs/helpers/query_info_helper.h>
-#include <catboost/private/libs/target/data_providers.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
+#include <catboost/private/libs/target/data_providers.h>
 
 
 extern "C" PyObject* PyCatboostExceptionType;
@@ -107,7 +108,7 @@ TVector<TString> GetMetricNames(const TFullModel& model, const TVector<TString>&
 }
 
 TVector<double> EvalMetricsForUtils(
-    const TVector<float>& label,
+    TConstArrayRef<TVector<float>> label,
     const TVector<TVector<double>>& approx,
     const TString& metricName,
     const TVector<float>& weight,
@@ -126,7 +127,7 @@ TVector<double> EvalMetricsForUtils(
         }
     }
     NCB::TObjectsGrouping objectGrouping = NCB::CreateObjectsGroupingFromGroupIds(
-        label.size(),
+        label[0].size(),
         groupId.empty() ? Nothing() : NCB::TMaybeData<TConstArrayRef<TGroupId>>(groupId)
     );
     if (!pairs.empty()) {
@@ -144,19 +145,25 @@ TVector<double> EvalMetricsForUtils(
     TVector<double> metricResults;
     metricResults.reserve(metrics.size());
 
+    TVector<const IMetric*> metricPtrs;
+    metricPtrs.reserve(metrics.size());
+    for (const auto& metric : metrics) {
+        metricPtrs.push_back(metric.Get());
+    }
+
     auto stats = EvalErrorsWithCaching(
         approx,
         /*approxDelts*/{},
         /*isExpApprox*/false,
-        label,
+        To2DConstArrayRef<float>(label),
         weight,
         queriesInfo,
-        metrics,
+        metricPtrs,
         &executor
     );
 
-    for (auto metricIdx : xrange(metrics.size())) {
-        metricResults.push_back(metrics[metricIdx]->GetFinalError(stats[metricIdx]));
+    for (auto metricIdx : xrange(metricPtrs.size())) {
+        metricResults.push_back(metricPtrs[metricIdx]->GetFinalError(stats[metricIdx]));
     }
     return metricResults;
 }

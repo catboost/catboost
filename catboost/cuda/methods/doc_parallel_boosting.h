@@ -149,7 +149,7 @@ namespace NCatboostCuda {
                     "You can't use boost_from_average with baseline now.");
                 cursors->StartingPoint = NCB::CalcOptimumConstApprox(
                     CatBoostOptions.LossFunctionDescription,
-                    DataProvider->TargetData->GetTarget().GetOrElse(TConstArrayRef<float>()),
+                    DataProvider->TargetData->GetOneDimensionalTarget().GetOrElse(TConstArrayRef<float>()),
                     GetWeights(*DataProvider->TargetData));
             }
 

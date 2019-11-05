@@ -19,12 +19,13 @@ namespace {
         IsMultiClassCompatible         = 1 << 1,
         /** regression **/
         IsRegression                   = 1 << 2,
+        IsMultiRegression              = 1 << 3,
         /** ranking **/
-        IsGroupwise                    = 1 << 3,
-        IsPairwise                     = 1 << 4,
+        IsGroupwise                    = 1 << 4,
+        IsPairwise                     = 1 << 5,
 
         /* various */
-        IsUserDefined                  = 1 << 5
+        IsUserDefined                  = 1 << 6
     };
 
     using EMetricAttributes = TFlags<EMetricAttribute>;
@@ -44,7 +45,8 @@ namespace {
                       || HasFlags(EMetricAttribute::IsMultiClassCompatible)
                       || HasFlags(EMetricAttribute::IsGroupwise)
                       || HasFlags(EMetricAttribute::IsPairwise)
-                      || HasFlags(EMetricAttribute::IsUserDefined),
+                      || HasFlags(EMetricAttribute::IsUserDefined)
+                      || HasFlags(EMetricAttribute::IsMultiRegression),
                       "no type (regression, classification, ranking) for [" + ToString(loss) + "]");
         }
 
@@ -58,7 +60,8 @@ namespace {
                       || HasFlags(EMetricAttribute::IsMultiClassCompatible)
                       || HasFlags(EMetricAttribute::IsGroupwise)
                       || HasFlags(EMetricAttribute::IsPairwise)
-                      || HasFlags(EMetricAttribute::IsUserDefined),
+                      || HasFlags(EMetricAttribute::IsUserDefined)
+                      || HasFlags(EMetricAttribute::IsMultiRegression),
                       "no type (regression, classification, ranking) for [" + ToString(loss) + "]");
         }
 
@@ -125,6 +128,9 @@ MakeRegister(LossInfos,
     ),
     Registree(CtrFactor,
         EMetricAttribute::IsBinaryClassCompatible
+    ),
+    Registree(MultiRMSE,
+        EMetricAttribute::IsMultiRegression
     ),
     Registree(RMSE,
         EMetricAttribute::IsRegression
@@ -414,6 +420,10 @@ static const TVector<ELossFunction> RegressionObjectives = {
     ELossFunction::Huber
 };
 
+static const TVector<ELossFunction> MultiRegressionObjectives = {
+    ELossFunction::MultiRMSE
+};
+
 static const TVector<ELossFunction> ClassificationObjectives = {
     ELossFunction::Logloss,
     ELossFunction::CrossEntropy,
@@ -436,14 +446,16 @@ static const TVector<ELossFunction> RankingObjectives = {
 
 static const TVector<ELossFunction> Objectives = []() {
     TVector<ELossFunction> objectives;
-    for (auto objective : RegressionObjectives) {
-        objectives.push_back(objective);
-    }
-    for (auto objective : ClassificationObjectives) {
-        objectives.push_back(objective);
-    }
-    for (auto objective : RankingObjectives) {
-        objectives.push_back(objective);
+    TVector<const TVector<ELossFunction>*> objectiveLists = {
+        &RegressionObjectives,
+        &MultiRegressionObjectives,
+        &ClassificationObjectives,
+        &RankingObjectives
+    };
+    for (auto objectiveList : objectiveLists) {
+        for (auto objective : *objectiveList) {
+            objectives.push_back(objective);
+        }
     }
     return objectives;
 }();
@@ -507,6 +519,18 @@ bool IsClassificationObjective(ELossFunction loss) {
 
 bool IsRegressionObjective(ELossFunction loss) {
     return IsIn(RegressionObjectives, loss);
+}
+
+bool IsMultiRegressionObjective(ELossFunction loss) {
+    return IsIn(MultiRegressionObjectives, loss);
+}
+
+bool IsMultiRegressionObjective(TStringBuf loss) {
+    return IsMultiRegressionObjective(ParseLossType(loss));
+}
+
+bool IsMultiRegressionMetric(ELossFunction loss) {
+    return GetInfo(loss)->HasFlags(EMetricAttribute::IsMultiRegression);
 }
 
 bool IsRegressionMetric(ELossFunction loss) {

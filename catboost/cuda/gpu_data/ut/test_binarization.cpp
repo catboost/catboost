@@ -25,7 +25,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
                       const TDataPermutation& ctrsPermutation,
                       const NCB::TTrainingDataProvider& dataProvider,
                       const TDataPermutation* onGpuPermutation = nullptr) {
-        auto binarizedTarget = NCB::BinarizeLine<ui8>(*dataProvider.TargetData->GetTarget(),
+        auto binarizedTarget = NCB::BinarizeLine<ui8>(*dataProvider.TargetData->GetOneDimensionalTarget(),
                                                       ENanMode::Forbidden,
                                                       featuresManager.GetTargetBorders());
         ui32 numClasses = 0;
@@ -272,7 +272,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
     void CheckCtrTargets(const TCtrTargets<TMapping>& targets,
                          const TVector<ui32>& binarizedTargetRef,
                          const NCB::TTrainingDataProvider& dataProvider) {
-        auto dataProviderTargets = *dataProvider.TargetData->GetTarget();
+        auto dataProviderTargets = *dataProvider.TargetData->GetOneDimensionalTarget();
         auto dataProviderWeights = GetWeights(*dataProvider.TargetData);
 
         TVector<float> targetsCpu;
@@ -364,7 +364,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
 
         NCB::TOnCpuGridBuilderFactory gridBuilderFactory;
 
-        const auto dataProviderTarget = *dataProvider->TargetData->GetTarget();
+        const auto dataProviderTarget = *dataProvider->TargetData->GetOneDimensionalTarget();
 
         {
             featuresManager->SetTargetBorders(NCB::TBordersBuilder(gridBuilderFactory,
@@ -460,7 +460,7 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
 
         {
             featuresManager->SetTargetBorders(NCB::TBordersBuilder(gridBuilderFactory,
-                                                                   *dataProvider->TargetData->GetTarget())(floatBinarization));
+                                                                   *dataProvider->TargetData->GetOneDimensionalTarget())(floatBinarization));
 
             const auto& targetBorders = featuresManager->GetTargetBorders();
             UNIT_ASSERT_VALUES_EQUAL(targetBorders.size(), 4);

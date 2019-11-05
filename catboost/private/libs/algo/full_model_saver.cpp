@@ -295,8 +295,11 @@ namespace NCB {
             ) {
                 outDatasetDataForFinalCtrs->Data = std::move(TrainingData);
                 outDatasetDataForFinalCtrs->LearnPermutation = Nothing();
-                outDatasetDataForFinalCtrs->Targets =
-                    *outDatasetDataForFinalCtrs->Data.Learn->TargetData->GetTarget();
+
+                // since counters are not implemented for mult-dimensional target
+                if (outDatasetDataForFinalCtrs->Data.Learn->TargetData->GetTargetDimension() == 1) {
+                    outDatasetDataForFinalCtrs->Targets = *outDatasetDataForFinalCtrs->Data.Learn->TargetData->GetOneDimensionalTarget();
+                }
 
                 *outFeatureCombinationToProjection = &FeatureCombinationToProjection;
 

@@ -497,7 +497,6 @@ static void SaveModel(
     TFullModel* dstModel
 ) {
     const auto& target = ctx.LearnProgress->AveragingFold.LearnTarget;
-    CB_ENSURE(target.size() == 1, "Saving of multitarget model is not supported yet");
 
     TPerfectHashedToHashedCatValuesMap perfectHashedToHashedCatValuesMap
         = trainingDataForCpu.Learn->ObjectsData->GetQuantizedFeaturesInfo()
@@ -536,7 +535,9 @@ static void SaveModel(
     TDatasetDataForFinalCtrs datasetDataForFinalCtrs;
     datasetDataForFinalCtrs.Data = trainingDataForCpu;
     datasetDataForFinalCtrs.LearnPermutation = &ctx.LearnProgress->AveragingFold.LearnPermutation->GetObjectsIndexing();
-    datasetDataForFinalCtrs.Targets = target[0];
+    if (target.size() == 1) { // since counters are not implemented for multi-dimensional target
+        datasetDataForFinalCtrs.Targets = target[0];
+    }
     datasetDataForFinalCtrs.LearnTargetClass = &ctx.LearnProgress->AveragingFold.LearnTargetClass;
     datasetDataForFinalCtrs.TargetClassesCount = &ctx.LearnProgress->AveragingFold.TargetClassesCount;
 
@@ -683,12 +684,18 @@ namespace {
                 }
             }
 
-            const auto startingApprox = catboostOptions.BoostingOptions->BoostFromAverage.Get()
-                ? CalcOptimumConstApprox(
+            TMaybe<double> startingApprox;
+            if (catboostOptions.BoostingOptions->BoostFromAverage.Get()) {
+                // TODO(fedorlebed): add boost from average support for multiregression
+                CB_ENSURE(trainingData.Learn->TargetData->GetTargetDimension() != 0, "Target is required for boosting from average");
+                CB_ENSURE(trainingData.Learn->TargetData->GetTargetDimension() == 1, "Multi-dimensional target boosting from average is unimplemented yet");
+
+                startingApprox = CalcOptimumConstApprox(
                     catboostOptions.LossFunctionDescription,
-                    trainingData.Learn->TargetData->GetTarget().GetOrElse(TConstArrayRef<float>()),
-                    GetWeights(*trainingData.Learn->TargetData))
-                : Nothing();
+                    *trainingData.Learn->TargetData->GetOneDimensionalTarget(),
+                    GetWeights(*trainingData.Learn->TargetData)
+                );
+            }
             TLearnContext ctx(
                 catboostOptions,
                 objectiveDescriptor,

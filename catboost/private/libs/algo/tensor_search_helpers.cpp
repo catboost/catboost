@@ -111,6 +111,8 @@ THolder<IDerCalcer> BuildError(
 ) {
     const bool isStoreExpApprox = IsStoreExpApprox(params.LossFunctionDescription->GetLossFunction());
     switch (params.LossFunctionDescription->GetLossFunction()) {
+        case ELossFunction::MultiRMSE:
+            return MakeHolder<TMultiRMSEError>();
         case ELossFunction::Logloss:
         case ELossFunction::CrossEntropy:
             return MakeHolder<TCrossEntropyError>(isStoreExpApprox);
@@ -502,7 +504,38 @@ void CalcWeightedDerivatives(
         blockParams.SetBlockSize(1000);
 
         Y_ASSERT(error.GetErrorType() == EErrorType::PerObjectError);
-        if (approxDimension == 1) {
+        if (const auto multiError = dynamic_cast<const TMultiDerCalcer*>(&error)) {
+            const auto& multiTarget = takenFold->LearnTarget;
+            localExecutor->ExecRangeWithThrow(
+                [&](int blockId) {
+                    TVector<double> curApprox(approxDimension);
+                    TVector<float> curTarget(multiTarget.size());
+                    TVector<double> curDelta(approxDimension);
+                    NPar::TLocalExecutor::BlockedLoopBody(
+                        blockParams,
+                        [&](int docId) {
+                            for (auto dim : xrange(approxDimension)) {
+                                curApprox[dim] = approx[dim][docId];
+                            }
+                            for (auto dim : xrange(multiTarget.size())) {
+                                curTarget[dim] = multiTarget[dim][docId];
+                            }
+                            multiError->CalcDers(
+                                curApprox,
+                                curTarget,
+                                weight.empty() ? 1 : weight[docId],
+                                &curDelta,
+                                nullptr
+                            );
+                            for (int dim = 0; dim < approxDimension; ++dim) {
+                                (*weightedDerivatives)[dim][docId] = curDelta[dim];
+                            }
+                        })(blockId);
+                },
+                0,
+                blockParams.GetBlockCount(),
+                NPar::TLocalExecutor::WAIT_COMPLETE);
+        } else if (approxDimension == 1) {
             localExecutor->ExecRangeWithThrow(
                 [&](int blockId) {
                     const int blockOffset = blockId * blockParams.GetBlockSize();

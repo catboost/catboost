@@ -30,7 +30,7 @@ namespace NCB {
 
     // can be empty if target data is unavailable
     static TVector<TSharedVector<float>> ConvertTarget(
-        TMaybeData<TConstArrayRef<TVector<TString>>> maybeRawTarget,
+        TMaybeData<TConstArrayRef<TConstArrayRef<TString>>> maybeRawTarget,
         bool isClass,
         bool isMultiClass,
         bool classCountUnknown,
@@ -383,6 +383,13 @@ namespace NCB {
         NPar::TLocalExecutor* localExecutor,
         TOutputPairsInfo* outputPairsInfo) {
 
+        if (mainLossFunction) {
+            CB_ENSURE(
+                IsMultiRegressionObjective((*mainLossFunction)->GetLossFunction()) || rawData.GetTargetDimension() <= 1,
+                "Currently only multi-regression objectives work with multidimensional target"
+            );
+        }
+
         if (isNonEmptyAndNonConst) {
             CB_ENSURE(rawData.GetObjectCount() > 0, "Train dataset is empty");
         }
@@ -407,6 +414,7 @@ namespace NCB {
         bool hasClassificationOnlyMetrics = isAnyOfMetrics(IsClassificationOnlyMetric);
         bool hasBinClassOnlyMetrics = isAnyOfMetrics(IsBinaryClassOnlyMetric);
         bool hasMultiClassOnlyMetrics = isAnyOfMetrics(IsMultiClassOnlyMetric);
+        bool hasMultiRegressionMetrics = isAnyOfMetrics(IsMultiRegressionMetric);
         bool hasGroupwiseMetrics = isAnyOfMetrics(IsGroupwiseMetric);
         bool hasUserDefinedMetrics = isAnyOfMetrics(IsUserDefined);
 
@@ -429,15 +437,15 @@ namespace NCB {
                 for (const auto& metricDescription : metricDescriptions) {
                     auto metricLossFunction = metricDescription.GetLossFunction();
                     CB_ENSURE(
-                        IsMultiClassCompatibleMetric(metricLossFunction),
-                        "Non-Multiclassification compatible metric (" << metricLossFunction
+                        IsMultiClassCompatibleMetric(metricLossFunction) || IsMultiRegressionMetric(metricLossFunction),
+                        "Non-Multiclassification and Non-Multiregression compatible metric (" << metricLossFunction
                         << ") specified for a multidimensional model"
                     );
                 }
                 if (!knownClassCount) { // because there might be missing classes in train
                     knownClassCount = *knownModelApproxDimension;
                 }
-                multiClassTargetData = true;
+                multiClassTargetData = !hasMultiRegressionMetrics;
             }
         } else {
             multiClassTargetData = (
@@ -450,7 +458,7 @@ namespace NCB {
         ui32 classCountInData = 0;
 
         auto maybeConvertedTarget = ConvertTarget(
-            rawData.GetMultiTarget(),
+            rawData.GetTarget(),
             hasClassificationOnlyMetrics || multiClassTargetData,
             multiClassTargetData,
             knownClassCount == 0,
@@ -488,7 +496,7 @@ namespace NCB {
             createBinClassTarget = true;
         } else if (hasMultiClassOnlyMetrics) {
             createMultiClassTarget = true;
-        } else {
+        } else if (!hasMultiRegressionMetrics) {
             if (multiClassTargetData || (classCount > 2)) {
                 createMultiClassTarget = true;
             } else if (classCount == 2) {

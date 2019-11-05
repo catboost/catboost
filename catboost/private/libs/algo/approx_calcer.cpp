@@ -483,6 +483,7 @@ static void UpdateApproxDeltasHistorically(
     TArrayRef<TSum> leafDers,
     TVector<double>* approxDeltas,
     TArrayRef<TDers> approxDers) {
+    Y_ASSERT(fold.LearnTarget.size() == 1);
     TVector<TQueryInfo> recalculatedQueriesInfo;
     TVector<float> recalculatedPairwiseWeights;
     const bool shouldGenerateYetiRankPairs = IsYetiRankLossFunction(
@@ -587,6 +588,7 @@ static void CalcApproxDeltaSimple(
     TLearnContext* ctx,
     TVector<TVector<double>>* approxDeltas,
     TVector<TVector<double>>* sumLeafDeltas) {
+    Y_ASSERT(fold.LearnTarget.size() == 1);
     const int scratchSize = Max(
         !ctx->Params.BoostingOptions->ApproxOnFullHistory ? 0 : bt.TailFinish - bt.BodyFinish,
         error.GetErrorType() == EErrorType::PerObjectError ? APPROX_BLOCK_SIZE * CB_THREAD_LIMIT : bt.BodyFinish);
@@ -755,6 +757,7 @@ static void CalcLeafValuesSimple(
     const TVector<int>& treeMonotoneConstraints,
     TLearnContext* ctx,
     TVector<TVector<double>>* sumLeafDeltas) {
+    Y_ASSERT(fold.LearnTarget.size() == 1);
     const int scratchSize = error.GetErrorType() == EErrorType::PerObjectError
                                 ? APPROX_BLOCK_SIZE * CB_THREAD_LIMIT
                                 : fold.GetLearnSampleCount();
@@ -919,7 +922,7 @@ inline void CalcLeafValuesMultiForAllLeaves(
         error,
         fold.LearnQueriesInfo,
         indices,
-        fold.LearnTarget[0],
+        To2DConstArrayRef<float>(fold.LearnTarget),
         fold.GetLearnWeights(),
         ctx->LearnProgress->ApproxDimension,
         fold.GetSumWeight(),
@@ -949,7 +952,8 @@ void CalcLeafValues(
         tree,
         ctx->Params.ObliviousTreeOptions->MonotoneConstraints.Get());
 
-    if (approxDimension == 1) {
+    const bool isMultiRegression = dynamic_cast<const TMultiDerCalcer*>(&error) != nullptr;
+    if (approxDimension == 1 && !isMultiRegression) {
         CalcLeafValuesSimple(leafCount, error, fold, *indices, treeMonotoneConstraints, ctx, leafDeltas);
     } else {
         CalcLeafValuesMultiForAllLeaves(leafCount, error, fold, *indices, ctx, leafDeltas);
@@ -978,13 +982,14 @@ void CalcApproxForLeafStruct(
         randomSeeds = GenRandUI64Vector(fold.BodyTailArr.ysize(), randomSeed);
     }
     approxesDelta->resize(fold.BodyTailArr.ysize());
+    const bool isMultiRegression = dynamic_cast<const TMultiDerCalcer*>(&error) != nullptr;
     ctx->LocalExecutor->ExecRangeWithThrow(
         [&](int bodyTailId) {
             const TFold::TBodyTail& bt = fold.BodyTailArr[bodyTailId];
             TVector<TVector<double>>& approxDeltas = (*approxesDelta)[bodyTailId];
             const double initValue = GetNeutralApprox(error.GetIsExpApprox());
             NCB::FillRank2(initValue, approxDimension, bt.TailFinish, &approxDeltas, ctx->LocalExecutor);
-            if (approxDimension == 1) {
+            if (approxDimension == 1 && !isMultiRegression) {
                 CalcApproxDeltaSimple(
                     fold,
                     bt,

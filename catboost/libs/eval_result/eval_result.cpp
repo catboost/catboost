@@ -184,13 +184,13 @@ namespace NCB {
             EColumn outputType;
             if (TryFromString<EColumn>(ToCanonicalColumnName(outputColumn), outputType)) {
                 if (outputType == EColumn::Label) {
-                    const auto& target = pool.RawTargetData.GetMultiTarget().GetRef();
+                    const auto& target = pool.RawTargetData.GetTarget().GetRef();
                     const auto targetDim = target.size();
                     for (auto targetIdx : xrange(targetDim)) {
                         TStringBuilder header;
                         header << outputColumn;
                         if (targetDim > 1) {
-                            header << ":dim=" << targetIdx;
+                            header << ":Dim=" << targetIdx;
                         }
                         columnPrinter.push_back(MakeHolder<TArrayPrinter<TString>>(target[targetIdx], header));
                     }

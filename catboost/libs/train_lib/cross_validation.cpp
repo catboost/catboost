@@ -563,7 +563,7 @@ void CrossValidate(
 
     TSetLogging inThisScope(loggingLevel);
 
-    ui32 approxDimension = GetApproxDimension(catBoostOptions, labelConverter);
+    ui32 approxDimension = GetApproxDimension(catBoostOptions, labelConverter, trainingData->TargetData->GetTargetDimension());
 
 
     TVector<THolder<IMetric>> metrics = CreateMetrics(
@@ -831,7 +831,7 @@ void CrossValidate(
         TVector<TConstArrayRef<float>> labels;
         for (auto& foldContext : foldContexts) {
             allApproxes.push_back(std::move(foldContext.LastUpdateEvalResult.GetRawValuesRef()[0][0]));
-            labels.push_back(*foldContext.TrainingData.Test[0]->TargetData->GetTarget());
+            labels.push_back(*foldContext.TrainingData.Test[0]->TargetData->GetOneDimensionalTarget());
         }
 
         TRocCurve rocCurve(allApproxes, labels, catBoostOptions.SystemOptions.Get().NumThreads);

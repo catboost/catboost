@@ -13,6 +13,8 @@ namespace NCB {
 
     ui32 GetApproxDimension(
         const NCatboostOptions::TCatBoostOptions& catBoostOptions,
-        const TLabelConverter& labelConverter);
+        const TLabelConverter& labelConverter,
+        ui32 targetDimension
+    );
 
 }

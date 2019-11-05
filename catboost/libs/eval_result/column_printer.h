@@ -262,6 +262,7 @@ namespace NCB {
 
     TVector<TString> CreatePredictionTypeHeader(
         ui32 approxDimension,
+        bool isMultiRegression,
         EPredictionType predictionType,
         const TExternalLabelsHelper& visibleLabelsHelper,
         ui32 startTreeIndex = 0,

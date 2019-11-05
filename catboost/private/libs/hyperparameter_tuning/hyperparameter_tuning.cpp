@@ -777,7 +777,7 @@ namespace {
                     localExecutor,
                     &cvResult);
             }
-            ui32 approxDimension = NCB::GetApproxDimension(catBoostOptions, labelConverter);
+            ui32 approxDimension = NCB::GetApproxDimension(catBoostOptions, labelConverter, data->RawTargetData.GetTargetDimension());
             const TVector<THolder<IMetric>> metrics = CreateMetrics(
                 catBoostOptions.MetricOptions,
                 evalMetricDescriptor,
@@ -982,7 +982,7 @@ namespace {
                 );
             }
 
-            ui32 approxDimension = NCB::GetApproxDimension(catBoostOptions, labelConverter);
+            ui32 approxDimension = NCB::GetApproxDimension(catBoostOptions, labelConverter, data->RawTargetData.GetTargetDimension());
             const TVector<THolder<IMetric>> metrics = CreateMetrics(
                 catBoostOptions.MetricOptions,
                 evalMetricDescriptor,

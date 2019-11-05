@@ -376,7 +376,7 @@ TRawTargetDataProvider TRawTargetDataProvider::GetSubset(
 
     tasks.emplace_back(
         [&, this]() {
-            if (auto target = GetMultiTarget()) {
+            if (auto target = GetTarget()) {
                 subsetData.Target.resize(target->size());
                 for (auto targetIdx : xrange(target->size())) {
                     subsetData.Target[targetIdx] = NCB::GetSubset<TString>((*target)[targetIdx], objectsSubsetIndexing, localExecutor);

@@ -499,8 +499,7 @@ ctypedef TConstArrayRef[TConstArrayRef[float]] TBaselineArrayRef
 
 cdef extern from "catboost/libs/data/target.h" namespace "NCB":
     cdef cppclass TRawTargetDataProvider:
-        TMaybeData[TConstArrayRef[TString]] GetTarget()
-        TMaybeData[TConstArrayRef[TVector[TString]]] GetMultiTarget()
+        TMaybeData[TConstArrayRef[TConstArrayRef[TString]]] GetTarget()
         TMaybeData[TBaselineArrayRef] GetBaseline()
         const TWeights[float]& GetWeights()
         const TWeights[float]& GetGroupWeights()
@@ -864,6 +863,7 @@ cdef extern from "catboost/private/libs/options/enum_helpers.h":
     cdef bool_t IsClassificationObjective(const TString& lossFunction) nogil except +ProcessException
     cdef bool_t IsCvStratifiedObjective(const TString& lossFunction) nogil except +ProcessException
     cdef bool_t IsRegressionObjective(const TString& lossFunction) nogil except +ProcessException
+    cdef bool_t IsMultiRegressionObjective(const TString& lossFunction) nogil except +ProcessException
     cdef bool_t IsGroupwiseMetric(const TString& metricName) nogil except +ProcessException
     cdef bool_t IsMultiClassCompatibleMetric(const TString& metricName) nogil except +ProcessException
     cdef bool_t IsPairwiseMetric(const TString& metricName) nogil except +ProcessException
@@ -1200,7 +1200,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     ) nogil except +ProcessException
 
     cdef TVector[double] EvalMetricsForUtils(
-        const TVector[float]& label,
+        TConstArrayRef[TVector[float]] label,
         const TVector[TVector[double]]& approx,
         const TString& metricName,
         const TVector[float]& weight,
@@ -3546,7 +3546,7 @@ cdef class _PoolBase:
         -------
         labels : list if labels are one-dimensional, np.array of shape (rows, cols) otherwise
         """
-        cdef TMaybeData[TConstArrayRef[TVector[TString]]] maybe_target = self.__pool.Get()[0].RawTargetData.GetMultiTarget()
+        cdef TMaybeData[TConstArrayRef[TConstArrayRef[TString]]] maybe_target = self.__pool.Get()[0].RawTargetData.GetTarget()
         if maybe_target.Defined():
             labels = [
                 [
@@ -4716,14 +4716,15 @@ cdef class _MetricCalcerBase:
 
 
 cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_id_param, subgroup_id_param, pairs_param, thread_count):
-    if (len(label_param) != len(approx_param[0])):
+    if (len(label_param[0]) != len(approx_param[0])):
         raise CatBoostError('Label and approx should have same sizes.')
-    doc_count = len(label_param);
+    doc_count = len(label_param[0]);
 
-    cdef TVector[float] label
-    label.resize(doc_count)
-    for i in range(doc_count):
-        label[i] = float(label_param[i])
+    cdef TVector[TVector[float]] label
+    for labelIdx in range(len(label_param)):
+        label.emplace_back(doc_count)
+        for docIdx in range(doc_count):
+            label[labelIdx][docIdx] = float(label_param[labelIdx][docIdx])
 
     approx_dimention = len(approx_param)
     cdef TVector[TVector[double]] approx
@@ -4771,7 +4772,7 @@ cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_i
 
     thread_count = UpdateThreadCount(thread_count);
 
-    return EvalMetricsForUtils(label, approx, to_arcadia_string(metric), weight, group_id, subgroup_id, pairs, thread_count)
+    return EvalMetricsForUtils(<TConstArrayRef[TVector[float]]>(label), approx, to_arcadia_string(metric), weight, group_id, subgroup_id, pairs, thread_count)
 
 
 cpdef _get_confusion_matrix(model, pool, thread_count):
@@ -4879,6 +4880,10 @@ cpdef is_cv_stratified_objective(loss_name):
 
 cpdef is_regression_objective(loss_name):
     return IsRegressionObjective(to_arcadia_string(loss_name))
+
+
+cpdef is_multiregression_objective(loss_name):
+    return IsMultiRegressionObjective(to_arcadia_string(loss_name))
 
 
 cpdef is_groupwise_metric(metric_name):

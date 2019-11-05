@@ -10,12 +10,23 @@
 #include <util/string/subst.h>
 
 
-ELossFunction ParseLossType(const TStringBuf lossDescription) {
+
+TMaybe<ELossFunction> TryParseLossType(const TStringBuf lossDescription) {
     const TVector<TStringBuf> tokens = StringSplitter(lossDescription).Split(':').Limit(2);
     CB_ENSURE(!tokens.empty(), "custom loss is missing in description: " << lossDescription);
     ELossFunction customLoss;
-    CB_ENSURE(TryFromString<ELossFunction>(tokens[0], customLoss), tokens[0] << " loss is not supported");
-    return customLoss;
+    if (TryFromString<ELossFunction>(tokens[0], customLoss)) {
+        return customLoss;
+    } else {
+        return Nothing();
+    }
+}
+
+ELossFunction ParseLossType(const TStringBuf lossDescription) {
+    const auto maybeLossType = TryParseLossType(lossDescription);
+    const TVector<TStringBuf> tokens = StringSplitter(lossDescription).Split(':').Limit(2);
+    CB_ENSURE(maybeLossType, tokens[0] << " loss is not supported");
+    return *maybeLossType;
 }
 
 TMap<TString, TString> ParseLossParams(const TStringBuf lossDescription) {

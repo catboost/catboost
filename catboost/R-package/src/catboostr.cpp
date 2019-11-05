@@ -372,7 +372,7 @@ SEXP CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
 
     result = PROTECT(allocVector(VECSXP, size));
     ui32 featureCount = pool->MetaInfo.GetFeatureCount();
-    auto target = pool->RawTargetData.GetMultiTarget();
+    auto target = pool->RawTargetData.GetTarget();
     const auto& weights = pool->RawTargetData.GetWeights();
 
 

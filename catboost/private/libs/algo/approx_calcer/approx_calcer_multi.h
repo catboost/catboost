@@ -2,6 +2,8 @@
 
 #include "gradient_walker.h"
 
+#include <catboost/libs/helpers/matrix.h>
+
 #include <catboost/private/libs/algo_helpers/approx_calcer_helpers.h>
 #include <catboost/private/libs/algo_helpers/approx_calcer_multi_helpers.h>
 #include <catboost/private/libs/algo_helpers/approx_updater_helpers.h>
@@ -21,7 +23,7 @@ void CalcLeafValuesMulti(
     const IDerCalcer& error,
     const TVector<TQueryInfo>& queryInfo,
     const TVector<TIndexType>& indices,
-    TConstArrayRef<float> label,
+    TConstArrayRef<TConstArrayRef<float>> label,
     TConstArrayRef<float> weight,
     int approxDimension,
     double sumWeight,
@@ -110,7 +112,7 @@ void CalcLeafValuesMulti(
             approx,
             /*approxDelta*/{},
             /*isExpApprox*/false,
-            label,
+            To2DConstArrayRef<float>(label),
             weight,
             queryInfo,
             *lossFunction[0],

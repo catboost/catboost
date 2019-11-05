@@ -12,6 +12,7 @@ namespace NJson {
 }
 
 ELossFunction ParseLossType(TStringBuf lossDescription);
+TMaybe<ELossFunction> TryParseLossType(TStringBuf lossDescription);
 
 TMap<TString, TString> ParseLossParams(TStringBuf lossDescription);
 

@@ -258,7 +258,7 @@ TLearnContext::TLearnContext(
     ui32 featuresCheckSum = data.CalcFeaturesCheckSum(localExecutor);
     CATBOOST_DEBUG_LOG << "Features checksum calculation time: " << calcHashTimer.Passed() << Endl;
 
-    ui32 approxDimension = GetApproxDimension(Params, labelConverter);
+    ui32 approxDimension = GetApproxDimension(Params, labelConverter, data.Learn->TargetData->GetTargetDimension());
     if (initLearnProgress) {
         CB_ENSURE(
             approxDimension == SafeIntegerCast<ui32>(initLearnProgress->ApproxDimension),
@@ -287,14 +287,19 @@ TLearnContext::TLearnContext(
 
     UpdateCtrsTargetBordersOption(lossFunction, approxDimension, &Params.CatFeatureParams.Get());
 
-    CtrsHelper.InitCtrHelper(
-        Params.CatFeatureParams,
-        *Layout,
-        data.Learn->TargetData->GetTarget(),
-        lossFunction,
-        ObjectiveDescriptor,
-        Params.DataProcessingOptions->AllowConstLabel
-    );
+    // TODO(fedorlebed): add counters support for multiregression
+    if (IsMultiRegressionObjective(lossFunction)) {
+        CB_ENSURE(Params.CatFeatureParams->PerFeatureCtrs->empty(), "Multi-dimensional target counters are unimplemented yet");
+    } else {
+        CtrsHelper.InitCtrHelper(
+            Params.CatFeatureParams,
+            *Layout,
+            data.Learn->TargetData->GetOneDimensionalTarget(),
+            lossFunction,
+            ObjectiveDescriptor,
+            Params.DataProcessingOptions->AllowConstLabel
+        );
+    }
 
     // TODO(akhropov): implement effective RecalcApprox for shrinked models instead of completely new context
     if (initLearnProgress &&

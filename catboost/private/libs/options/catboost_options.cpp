@@ -36,6 +36,12 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
     double defaultL2Reg = 3.0;
 
     switch (lossFunctionConfig.GetLossFunction()) {
+        case ELossFunction::MultiRMSE: {
+            defaultEstimationMethod = ELeavesEstimation::Newton;
+            defaultNewtonIterations = 1;
+            defaultGradientIterations = 1;
+            break;
+        }
         case ELossFunction::RMSE: {
             defaultEstimationMethod = ELeavesEstimation::Newton;
             defaultNewtonIterations = 1;
@@ -610,6 +616,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
     TOption<float>& subsample = ObliviousTreeOptions->BootstrapConfig->GetTakenFraction();
     if (bootstrapType.NotSet()) {
         if (!IsMultiClassOnlyMetric(lossFunction)
+            && !IsMultiRegressionObjective(lossFunction)
             && TaskType == ETaskType::CPU
             && ObliviousTreeOptions->BootstrapConfig->GetSamplingUnit() == ESamplingUnit::Object)
         {

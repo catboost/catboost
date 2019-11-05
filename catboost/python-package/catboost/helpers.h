@@ -49,7 +49,7 @@ TVector<TVector<double>> EvalMetrics(
 TVector<TString> GetMetricNames(const TFullModel& model, const TVector<TString>& metricsDescription);
 
 TVector<double> EvalMetricsForUtils(
-    const TVector<float>& label,
+    TConstArrayRef<TVector<float>> label,
     const TVector<TVector<double>>& approx,
     const TString& metricName,
     const TVector<float>& weight,

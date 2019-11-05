@@ -204,7 +204,8 @@ static void CalcLeafValuesSimple(
 
     TSum leafDer;
 
-    auto labels = statistics->GetLabels();
+    Y_ASSERT(statistics->GetLabels().size() == 1);
+    auto labels = statistics->GetLabels()[0];
     auto weights = statistics->GetWeights();
 
     const auto leafUpdaterFunc = [&](
@@ -319,7 +320,9 @@ void CalcLeafValues(
     if (statistics->GetObjectsCountInLeaf() == 0) {
         return;
     }
-    if (statistics->GetApproxDimension() == 1) {
+
+    const bool isMultiRegression = dynamic_cast<const TMultiDerCalcer*>(&error) != nullptr;
+    if (statistics->GetApproxDimension() == 1 && !isMultiRegression) {
         CalcLeafValuesSimple(
             error,
             params,
@@ -334,7 +337,7 @@ void CalcLeafValues(
             error,
             /*queryInfo*/ {},
             /*indices*/ {},
-            statistics->GetLabels(),
+            To2DConstArrayRef<float>(statistics->GetLabels()),
             statistics->GetWeights(),
             statistics->GetApproxDimension(),
             statistics->GetAllObjectsSumWeight(),

@@ -2,6 +2,8 @@
 
 #include "eval_helpers.h"
 
+#include <catboost/private/libs/options/enum_helpers.h>
+#include <catboost/private/libs/options/loss_description.h>
 #include <util/generic/utility.h>
 #include <util/string/builder.h>
 
@@ -19,12 +21,22 @@ namespace NCB {
         TMaybe<std::pair<size_t, size_t>> evalParameters)
         : VisibleLabelsHelper(visibleLabelsHelper) {
         int begin = 0;
+        const auto maybeLossType = TryParseLossType(lossFunctionName);
+        const bool isMultiRegression = maybeLossType && IsMultiRegressionObjective(*maybeLossType);
         for (const auto& raws : rawValues) {
             CB_ENSURE(VisibleLabelsHelper.IsInitialized() == IsMulticlass(raws),
                       "Inappropriate usage of visible label helper: it MUST be initialized ONLY for multiclass problem");
             const auto& approx = VisibleLabelsHelper.IsInitialized() ? MakeExternalApprox(raws, VisibleLabelsHelper) : raws;
             Approxes.push_back(PrepareEval(predictionType, lossFunctionName, approx, executor));
-            const auto& headers = CreatePredictionTypeHeader(approx.size(), predictionType, VisibleLabelsHelper, begin, evalParameters.Get());
+
+            const auto& headers = CreatePredictionTypeHeader(
+                approx.size(),
+                isMultiRegression,
+                predictionType,
+                VisibleLabelsHelper,
+                begin,
+                evalParameters.Get()
+            );
             Header.insert(Header.end(), headers.begin(), headers.end());
             if (evalParameters) {
                 begin += evalParameters->first;
@@ -63,6 +75,7 @@ namespace NCB {
 
     TVector<TString> CreatePredictionTypeHeader(
         ui32 approxDimension,
+        bool isMultiRegression,
         EPredictionType predictionType,
         const TExternalLabelsHelper& visibleLabelsHelper,
         ui32 startTreeIndex,
@@ -75,7 +88,7 @@ namespace NCB {
             TStringBuilder str;
             str << predictionType;
             if (classCount > 1) {
-                str << ":Class=" << visibleLabelsHelper.GetVisibleClassNameFromClass(classId);
+                str << (isMultiRegression ?  ":Dim=" : ":Class=")  << visibleLabelsHelper.GetVisibleClassNameFromClass(classId);
             }
             if (evalParameters && (evalParameters->first != evalParameters->second)) {
                 str << ":TreesCount=[" << startTreeIndex << "," <<

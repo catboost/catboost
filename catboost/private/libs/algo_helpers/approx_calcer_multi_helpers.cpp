@@ -1,41 +1,65 @@
 #include "approx_calcer_multi_helpers.h"
 
+#include <catboost/libs/helpers/dispatch_generic_lambda.h>
+
 inline void AddDersRangeMulti(
     TConstArrayRef<TIndexType> leafIndices,
-    TConstArrayRef<float> target,
+    TConstArrayRef<TConstArrayRef<float>> target,
     TConstArrayRef<float> weight,
-    TConstArrayRef<TVector<double>> approx, // [dimensionIdx][columnIdx]
-    TConstArrayRef<TVector<double>> approxDeltas, // [dimensionIdx][columnIdx]
+    TConstArrayRef<TVector<double>> approx, // [dimensionIdx][docIdx]
+    TConstArrayRef<TVector<double>> approxDeltas, // [dimensionIdx][docIdx]
     const IDerCalcer& error,
     int rowBegin,
     int rowEnd,
     bool isUpdateWeight,
     TArrayRef<TSumMulti> leafDers // [dimensionIdx]
 ) {
+    const auto* multiError = dynamic_cast<const TMultiDerCalcer*>(&error);
+    const bool isMultiRegression = multiError != nullptr;
+
     const int approxDimension = approx.size();
     const bool useHessian = !leafDers[0].SumDer2.Data.empty();
     THessianInfo curDer2(useHessian * approxDimension, error.GetHessianType());
     TVector<double> curDer(approxDimension);
     constexpr int UnrollMaxCount = 16;
     TVector<TVector<double>> curApprox(UnrollMaxCount, TVector<double>(approxDimension));
-    for (int columnIdx = rowBegin; columnIdx < rowEnd; columnIdx += UnrollMaxCount) {
-        const int unrollCount = Min(UnrollMaxCount, rowEnd - columnIdx);
-        SumTransposedBlocks(columnIdx, columnIdx + unrollCount, approx, approxDeltas, MakeArrayRef(curApprox));
-        for (int unrollIdx : xrange(unrollCount)) {
-            error.CalcDersMulti(curApprox[unrollIdx], target[columnIdx + unrollIdx], weight.empty() ? 1 : weight[columnIdx + unrollIdx], &curDer, useHessian ? &curDer2 : nullptr);
-            TSumMulti& curLeafDers = leafIndices.empty() ? leafDers[0] : leafDers[leafIndices[columnIdx + unrollIdx]];
-            if (useHessian) {
-                curLeafDers.AddDerDer2(curDer, curDer2);
-            } else {
-                curLeafDers.AddDerWeight(curDer, weight.empty() ? 1 : weight[columnIdx + unrollIdx], isUpdateWeight);
+    TVector<TVector<float>> curTarget;
+    if (isMultiRegression) {
+        curTarget = TVector<TVector<float>>(UnrollMaxCount, TVector<float>(target.size()));
+    }
+
+    const auto addDersRangeMultiImpl = [&](auto useWeights, auto useLeafIndices, auto useHessian, auto isMultiRegression) {
+        for (int columnIdx = rowBegin; columnIdx < rowEnd; columnIdx += UnrollMaxCount) {
+            const int unrollCount = Min(UnrollMaxCount, rowEnd - columnIdx);
+            SumTransposedBlocks(columnIdx, columnIdx + unrollCount, approx, approxDeltas, MakeArrayRef(curApprox));
+            if (isMultiRegression) {
+                SumTransposedBlocks(columnIdx, columnIdx + unrollCount, target, /*targetDeltas*/{}, MakeArrayRef(curTarget));
+            }
+            for (int unrollIdx : xrange(unrollCount)) {
+                const double w = useWeights ? weight[columnIdx + unrollIdx] : 1;
+
+                if (isMultiRegression) {
+                    multiError->CalcDers(curApprox[unrollIdx], curTarget[unrollIdx], w, &curDer, useHessian ? &curDer2 : nullptr);
+                } else {
+                    error.CalcDersMulti(curApprox[unrollIdx], target[0][columnIdx + unrollIdx], w, &curDer, useHessian ? &curDer2 : nullptr);
+                }
+
+                TSumMulti& curLeafDers = useLeafIndices ? leafDers[leafIndices[columnIdx + unrollIdx]] : leafDers[0];
+                if (useHessian) {
+                    curLeafDers.AddDerDer2(curDer, curDer2);
+                } else {
+                    curLeafDers.AddDerWeight(curDer, w, isUpdateWeight);
+                }
             }
         }
-    }
+    };
+
+    DispatchGenericLambda(addDersRangeMultiImpl, !weight.empty(), !leafIndices.empty(), useHessian, isMultiRegression);
 }
 
 void CalcLeafDersMulti(
     const TVector<TIndexType>& indices,
-    TConstArrayRef<float> target,
+    TConstArrayRef<TConstArrayRef<float>> target,
     TConstArrayRef<float> weight,
     const TVector<TVector<double>>& approx,
     const TVector<TVector<double>>& approxDeltas,

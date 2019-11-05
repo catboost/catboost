@@ -261,6 +261,47 @@ def load_simple_dataset_as_lists(is_test):
 # Test cases begin here ########################################################
 
 
+@pytest.mark.parametrize('niter', [100, 500])
+def test_multiregression(niter, n=10):
+    xs = np.arange(n).reshape((-1, 1)).astype(np.float32)
+    ys = np.hstack([
+        (xs > 0.5 * n),
+        (xs < 0.5 * n)
+    ]).astype(np.float32)
+
+    model = CatBoostRegressor(loss_function='MultiRMSE', iterations=niter)
+    model.fit(xs, ys)
+    ys_pred = model.predict(xs)
+    model.score(xs, ys)
+
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    np.savetxt(preds_path, np.array(ys_pred), fmt='%.8f')
+
+    assert ys_pred.shape == ys.shape
+    return local_canonical_file(preds_path)
+
+
+@pytest.mark.parametrize('niter', [1, 100, 500])
+def test_save_model_multiregression(niter):
+    train_file = data_file('multiregression', 'train')
+    cd_file = data_file('multiregression', 'train.cd')
+    output_model_path = test_output_path(OUTPUT_MODEL_PATH)
+
+    train_pool = Pool(train_file, column_description=cd_file)
+    test_pool = Pool(train_file, column_description=cd_file)
+
+    model = CatBoost(dict(loss_function='MultiRMSE', iterations=niter))
+    model.fit(train_pool)
+    model.save_model(output_model_path)
+
+    model2 = CatBoost()
+    model2.load_model(output_model_path)
+
+    pred1 = model.predict(test_pool)
+    pred2 = model2.predict(test_pool)
+    assert _check_data(pred1, pred2)
+
+
 def test_load_file():
     assert _check_shape(Pool(TRAIN_FILE, column_description=CD_FILE), 101, 17)
 
@@ -356,6 +397,44 @@ def test_load_ndarray_vs_load_from_file(dataset, order):
 
             assert _have_equal_features(pool_from_file, pool_from_ndarray)
             assert _check_data([float(label) for label in pool_from_file.get_label()], pool_from_ndarray.get_label())
+
+
+@pytest.mark.parametrize('order', ['C', 'F'], ids=['order=C', 'order=F'])
+def test_load_ndarray_vs_load_from_file_multitarget(order):
+    train_file = data_file('multiregression', 'train')
+    cd_file = data_file('multiregression', 'train.cd')
+    dtypes = [np.float32, np.float64]
+
+    n_objects = np.loadtxt(train_file, delimiter='\t').shape[0]
+    columns_metadata = read_cd(cd_file, data_file=train_file, canonize_column_types=True)
+    target_indices = columns_metadata['column_type_to_indices'].get('Label', [])
+    feature_indices = columns_metadata['column_type_to_indices'].get('Num', [])
+
+    pool_from_file = Pool(train_file, column_description=cd_file)
+
+    for dtype in dtypes:
+        features_data = np.empty((n_objects, len(feature_indices)), dtype=dtype, order=order)
+        labels = np.empty((n_objects, len(target_indices)), dtype=dtype, order=order)
+        with open(train_file) as train_input:
+            for line_idx, l in enumerate(train_input.readlines()):
+                elements = l[:-1].split('\t')
+                feature_idx = 0
+                target_idx = 0
+                for column_idx, element in enumerate(elements):
+                    if column_idx in target_indices:
+                        labels[line_idx, target_idx] = float(element)
+                        target_idx += 1
+                    else:
+                        features_data[line_idx, feature_idx] = dtype(element)
+                        feature_idx += 1
+
+        pool_from_ndarray = Pool(features_data, labels)
+        assert _have_equal_features(pool_from_file, pool_from_ndarray)
+        assert np.allclose(
+            [[float(elem) for elem in row] for row in pool_from_file.get_label()],
+            pool_from_ndarray.get_label(),
+            atol=0
+        )
 
 
 @pytest.mark.parametrize(
