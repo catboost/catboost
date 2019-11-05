@@ -160,24 +160,41 @@ namespace NCB {
         };
         TOutputPairsInfo outputPairsInfo;
 
+        const auto targetCreationOptions = MakeTargetCreationOptions(
+            srcData->RawTargetData,
+            GetMetricDescriptions(*params),
+            /*knownModelApproxDimension*/ Nothing(),
+            inputClassificationInfo
+        );
+
+        CB_ENSURE(!isLearnData || srcData->RawTargetData.GetObjectCount() > 0, "Train dataset is empty");
+
         trainingData->TargetData = CreateTargetDataProvider(
             srcData->RawTargetData,
             trainingData->ObjectsData->GetSubgroupIds(),
             /*isForGpu*/ params->GetTaskType() == ETaskType::GPU,
-            isLearnData,
-            datasetName,
-            GetMetricDescriptions(*params),
             &params->LossFunctionDescription.Get(),
-            dataProcessingOptions.AllowConstLabel.Get(),
             /*metricsThatRequireTargetCanBeSkipped*/ !isLearnData,
-            /*needTargetDataForCtrs*/ needTargetDataForCtrs,
             /*knownModelApproxDimension*/ Nothing(),
+            targetCreationOptions,
             inputClassificationInfo,
             &outputClassificationInfo,
             rand,
             localExecutor,
             &outputPairsInfo
         );
+
+        CheckTargetConsistency(
+            trainingData->TargetData,
+            GetMetricDescriptions(*params),
+            &params->LossFunctionDescription.Get(),
+            needTargetDataForCtrs,
+            !isLearnData,
+            datasetName,
+            isLearnData,
+            dataProcessingOptions.AllowConstLabel.Get()
+        );
+
         trainingData->MetaInfo.HasPairs = outputPairsInfo.HasPairs;
         trainingData->MetaInfo.HasWeights |= !inputClassificationInfo.ClassWeights.empty();
         dataProcessingOptions.ClassNames.Get() = outputClassificationInfo.ClassNames;

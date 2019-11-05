@@ -14,6 +14,15 @@
 
 
 namespace NCB {
+    struct TTargetCreationOptions {
+        bool IsClass;
+        bool IsMultiClass;
+        bool CreateBinClassTarget;
+        bool CreateMultiClassTarget;
+        bool CreateGroups;
+        bool CreatePairs;
+        TMaybe<ui32> MaxPairsCount;
+    };
 
     struct TInputClassificationInfo {
         TMaybe<ui32> KnownClassCount;
@@ -39,23 +48,35 @@ namespace NCB {
         }
     };
 
+    TTargetCreationOptions MakeTargetCreationOptions(
+        const TRawTargetDataProvider &rawData,
+        TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
+        TMaybe<ui32> knownModelApproxDimension,
+        const TInputClassificationInfo& inputClassificationInfo);
+
+    void CheckTargetConsistency(
+        TTargetDataProviderPtr targetDataProvider,
+        TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
+        TMaybe<NCatboostOptions::TLossDescription*> mainLossFunction,
+        bool needTargetDataForCtrs,
+        bool metricsThatRequireTargetCanBeSkipped,
+        TStringBuf datasetName,
+        bool isNonEmptyAndNonConst,
+        bool allowConstLabel);
+
     TTargetDataProviderPtr CreateTargetDataProvider(
         const TRawTargetDataProvider& rawData,
         TMaybeData<TConstArrayRef<TSubgroupId>> subgroupIds,
         bool isForGpu,
-        bool isNonEmptyAndNonConst,
-        TStringBuf datasetName,
-        TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions, // must be non-empty
 
         /* used to select whether to convert target to binary or not
          * pass nothing if target providers are created not for training
          * TODO(akhropov): will be removed with proper multi-target support. MLTOOLS-2337.
          */
         TMaybe<NCatboostOptions::TLossDescription*> mainLossFuncion,
-        bool allowConstLabel,
         bool metricsThatRequireTargetCanBeSkipped,
-        bool needTargetDataForCtrs,
         TMaybe<ui32> knownModelApproxDimension,
+        const TTargetCreationOptions& targetCreationOptions,
         const TInputClassificationInfo& inputClassificationInfo,
         TOutputClassificationInfo* outputClassificationInfo,
         TRestorableFastRng64* rand, // for possible pairs generation
