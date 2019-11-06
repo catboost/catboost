@@ -289,6 +289,14 @@ namespace NCB {
         }
     }
 
+    void CheckModelAndDatasetCompatibility(
+        const TFullModel& model,
+        const TObjectsDataProvider& objectsData)
+    {
+        THashMap<ui32, ui32> columnReorderMap;
+        CheckModelAndDatasetCompatibility(model, objectsData, &columnReorderMap);
+    }
+
     TVector<TVector<ui8>> GetFloatFeaturesBordersRemap(
         const TFullModel& model,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo)

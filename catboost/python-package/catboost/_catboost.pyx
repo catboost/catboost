@@ -462,6 +462,11 @@ cdef extern from "catboost/libs/data/columns.h" namespace "NCB":
     cdef cppclass TFloatValuesHolder:
         TMaybeOwningArrayHolder[float] ExtractValues(TLocalExecutor* localExecutor)
 
+cdef extern from "catboost/libs/data/objects.h":
+    cdef void CheckModelAndDatasetCompatibility(
+        const TFullModel& model,
+        const TObjectsDataProvider& objectsData) except +ProcessException
+
 cdef extern from "catboost/libs/data/objects.h" namespace "NCB":
     cdef cppclass TObjectsDataProvider:
         ui32 GetObjectCount()
@@ -848,13 +853,13 @@ cdef extern from "catboost/private/libs/algo_helpers/ders_holder.h":
 cdef extern from "catboost/private/libs/algo/tree_print.h":
     TVector[TString] GetTreeSplitsDescriptions(
         const TFullModel& model,
-        int tree_idx,
+        size_t tree_idx,
         const TDataProviderPtr pool
     ) nogil except +ProcessException
 
     TVector[TString] GetTreeLeafValuesDescriptions(
         const TFullModel& model,
-        int tree_idx,
+        size_t tree_idx,
         int leaves_num
     ) nogil except +ProcessException
 
@@ -4001,6 +4006,7 @@ cdef class _CatBoost:
 
         cdef TVector[TString] feature_id
         if pool:
+            self._check_model_and_dataset_compatibility(pool)
             feature_id = pool.__pool.Get()[0].MetaInfo.FeaturesLayout.Get()[0].GetExternalFeatureIds()
 
         cdef THashMap[ui32, TString] cat_features_hash_to_string
@@ -4098,7 +4104,14 @@ cdef class _CatBoost:
     cpdef _save_borders(self, output_file):
         SaveModelBorders( to_arcadia_string(output_file), dereference(self.__model))
 
-    cpdef _get_tree_splits(self, int tree_idx, _PoolBase pool):
+    cpdef _check_model_and_dataset_compatibility(self, _PoolBase pool):
+        if pool:
+            CheckModelAndDatasetCompatibility(
+                dereference(self.__model),
+                dereference(pool.__pool.Get()[0].ObjectsData.Get())
+            )
+
+    cpdef _get_tree_splits(self, size_t tree_idx, _PoolBase pool):
         cdef TVector[TString] splits = GetTreeSplitsDescriptions(
             dereference(self.__model),
             tree_idx,

@@ -1,6 +1,7 @@
 #include "mode_fstr_helpers.h"
 
 #include <catboost/libs/data/load_data.h>
+#include <catboost/libs/data/model_dataset_compatibility.h>
 #include <catboost/libs/fstr/compare_documents.h>
 #include <catboost/libs/fstr/output_fstr.h>
 #include <catboost/libs/fstr/shap_values.h>
@@ -48,6 +49,7 @@ namespace {
                                            NCB::TDatasetSubset::MakeColumns(),
                                            /*classNames*/ Nothing(),
                                            LocalExecutor.Get());
+                CheckModelAndDatasetCompatibility(Model, *Dataset->ObjectsData.Get());
             }
             return Dataset;
         }

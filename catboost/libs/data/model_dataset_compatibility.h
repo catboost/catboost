@@ -15,6 +15,10 @@ namespace NCB {
         const TObjectsDataProvider& objectsData,
         THashMap<ui32, ui32>* columnIndexesReorderMap);
 
+    void CheckModelAndDatasetCompatibility(
+        const TFullModel& model,
+        const TObjectsDataProvider& objectsData);
+
     TVector<TVector<ui8>> GetFloatFeaturesBordersRemap(  // [flatFeatureIdx][poolFeatureBin]
         const TFullModel& model,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo);

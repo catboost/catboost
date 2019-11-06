@@ -9,6 +9,7 @@
 #include <catboost/private/libs/algo/plot.h>
 #include <catboost/private/libs/algo/yetirank_helpers.h>
 #include <catboost/private/libs/algo/tree_print.h>
+#include <catboost/libs/data/model_dataset_compatibility.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/query_info_helper.h>
@@ -678,7 +679,9 @@ TVector<TVector<double>> GetFeatureImportances(
 {
     TSetLoggingVerboseOrSilent inThisScope(logPeriod);
     CB_ENSURE(model.GetTreeCount(), "Model is not trained");
-
+    if (dataset) {
+        CheckModelAndDatasetCompatibility(model, *dataset->ObjectsData.Get());
+    }
     switch (fstrType) {
         case EFstrType::PredictionValuesChange:
         case EFstrType::LossFunctionChange:
@@ -727,6 +730,7 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
     CB_ENSURE(fstrType == EFstrType::ShapValues, "Only shap values can provide multi approxes.");
 
     CB_ENSURE(dataset, "dataset is not provided");
+    CheckModelAndDatasetCompatibility(model, *dataset->ObjectsData.Get());
 
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
@@ -748,6 +752,7 @@ TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const
     TVector<TString> modelFeatureIds(modelFeaturesLayout.GetExternalFeatureCount());
     if (AllFeatureIdsEmpty(modelFeaturesLayout.GetExternalFeaturesMetaInfo())) {
         if (dataset) {
+            CheckModelAndDatasetCompatibility(model, *dataset->ObjectsData.Get());
             const auto& datasetFeaturesLayout = *dataset->MetaInfo.FeaturesLayout;
             const auto datasetFeaturesMetaInfo = datasetFeaturesLayout.GetExternalFeaturesMetaInfo();
             if (!AllFeatureIdsEmpty(datasetFeaturesMetaInfo)) {

@@ -29,5 +29,5 @@ TString BuildDescription(const NCB::TFeaturesLayout& featuresLayout, const TSpli
 TString BuildDescription(const NCB::TFeaturesLayout& featuresLayout, const TSplit& feature);
 TString BuildDescription(const NCB::TFeaturesLayout& layout, const TModelSplit& feature);
 
-TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, int tree_idx, const NCB::TDataProviderPtr pool);
-TVector<TString> GetTreeLeafValuesDescriptions(const TFullModel& model, int tree_idx, int leaves_num);
+TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, size_t tree_idx, const NCB::TDataProviderPtr pool);
+TVector<TString> GetTreeLeafValuesDescriptions(const TFullModel& model, size_t tree_idx, size_t leaves_num);
