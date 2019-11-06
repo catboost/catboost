@@ -1,9 +1,8 @@
 #pragma once
 
 #include <catboost/private/libs/options/enums.h>
-#include <catboost/libs/helpers/exception.h>
+#include <catboost/private/libs/quantization/utils.h>
 
-#include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/ymath.h>
 
@@ -20,14 +19,6 @@ namespace NCB {
             return ENanMode::Max == nanMode ? borders.size() : 0;
         }
 
-        if (borders.size() <= 50) {
-            size_t index = 0;
-            while (index < borders.size() && borders[index] < value) {
-                ++index;
-            }
-            return index;
-        }
-
-        return LowerBound(borders.begin(), borders.end(), value) - borders.begin();
+        return GetBinFromBorders<size_t>(borders, value);
     }
 }

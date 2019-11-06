@@ -27,8 +27,13 @@ namespace NCB {
         static_assert(std::is_unsigned<TBinType>::value, "TBinType must be an unsigned integer");
 
         ui32 index = 0;
-        while (index < borders.size() && value > borders[index])
-            ++index;
+        if (borders.size() <= 64) {
+            for (float border : borders) {
+                index += (value > border);
+            }
+        } else {
+            index = LowerBound(borders.begin(), borders.end(), value) - borders.begin();
+        }
 
         TBinType resultIndex = static_cast<TBinType>(index);
 
@@ -71,11 +76,7 @@ namespace NCB {
             );
             return (nanMode == ENanMode::Max) ? borders.size() : 0;
         } else {
-            size_t i = 0;
-            while (i < borders.size() && srcValue > borders[i]) {
-                ++i;
-            }
-            return static_cast<TQuantizedBin>(i);
+            return GetBinFromBorders<TQuantizedBin>(borders, srcValue);
         }
     }
 
