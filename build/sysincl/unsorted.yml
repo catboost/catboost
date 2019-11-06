@@ -230,7 +230,6 @@
   - cpptl/forwards.h
   - cpptl/smallmap.h
   - forwards.h
-  - json_tool.h
   - json_valueiterator.inl
   - value.h
   - gnulib/printf.h
@@ -792,7 +791,6 @@
   #if CONTRIB && TRASH
   - macconfig.h
   - amigaconfig.h
-  - json/config.h
   - json_batchallocator.h
   - json_internalarray.inl
   - json_internalmap.inl
