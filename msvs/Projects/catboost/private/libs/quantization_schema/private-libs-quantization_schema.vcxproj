@@ -140,6 +140,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\options\private-libs-options.vcxproj">
       <Project>{AE8B6D87-D33D-8A7F-D668-74C392A7B1DE}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\quantization\private-libs-quantization.vcxproj">
+      <Project>{082F5051-134D-166A-51DB-F98B0CD8AF1C}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\avx2\libs-base64-avx2.vcxproj">
       <Project>{69A3431A-8A49-B198-8E40-2F61C1B0C1BC}</Project>
     </ProjectReference>

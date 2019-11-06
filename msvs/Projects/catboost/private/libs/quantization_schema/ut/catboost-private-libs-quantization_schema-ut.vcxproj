@@ -111,6 +111,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\options\private-libs-options.vcxproj">
       <Project>{AE8B6D87-D33D-8A7F-D668-74C392A7B1DE}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\quantization\private-libs-quantization.vcxproj">
+      <Project>{082F5051-134D-166A-51DB-F98B0CD8AF1C}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\quantization_schema\private-libs-quantization_schema.vcxproj">
       <Project>{615033B0-5579-FBC3-1630-AF28EB4E0D00}</Project>
     </ProjectReference>
