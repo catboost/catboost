@@ -916,6 +916,7 @@ class GnuToolchainOptions(ToolchainOptions):
 
         self.ar = self.params.get('ar')
         self.ar_plugin = self.params.get('ar_plugin')
+        self.inplace_tools = self.params.get('inplace_tools', False)
         self.strip = self.params.get('strip')
         self.objcopy = self.params.get('objcopy')
 
@@ -980,7 +981,6 @@ class GnuToolchain(Toolchain):
             elif target.is_yocto:
                 return '$YOCTO_SDK_RESOURCE_GLOBAL'
             return '$OS_SDK_ROOT_RESOURCE_GLOBAL'
-
 
         super(GnuToolchain, self).__init__(tc, build)
         self.tc = tc
@@ -1062,7 +1062,8 @@ class GnuToolchain(Toolchain):
                     if target.is_macos:
                         self.setup_sdk(project='build/platform/macos_sdk', var='${MACOS_SDK_RESOURCE_GLOBAL}')
 
-                    self.setup_tools(project='build/platform/cctools', var='${CCTOOLS_ROOT_RESOURCE_GLOBAL}', bin='bin', ldlibs=None)
+                    if not self.tc.inplace_tools:
+                        self.setup_tools(project='build/platform/cctools', var='${CCTOOLS_ROOT_RESOURCE_GLOBAL}', bin='bin', ldlibs=None)
 
                 if target.is_linux:
                     if not tc.os_sdk_local:
@@ -1080,7 +1081,6 @@ class GnuToolchain(Toolchain):
 
                 if target.is_yocto:
                     self.setup_sdk(project='build/platform/yocto_sdk', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
-
 
     def setup_sdk(self, project, var):
         self.platform_projects.append(project)
@@ -1598,8 +1598,8 @@ class LD(Linker):
             self.use_stdlib = None
 
         self.ld_sdk = select(default=None, selectors=[
-            (target.is_macos, '-Wl,-sdk_version,10.12'),
-            (target.is_ios, '-Wl,-sdk_version,9.0'),
+            (target.is_macos, '-Wl,-sdk_version,10.15'),
+            (target.is_ios, '-Wl,-sdk_version,13.1'),
         ])
 
         if self.ld_sdk:
