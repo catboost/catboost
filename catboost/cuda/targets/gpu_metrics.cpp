@@ -667,7 +667,7 @@ namespace NCatboostCuda {
             } else if (ShouldConsiderWeightsByDefault(metrics.back())) {
                 metrics.back()->GetUseWeights() = true;
                 CATBOOST_INFO_LOG << "Note: eval_metric is using sample weights by default. " <<
-                                  "Set MetricName:use_weights=False to calculate unweighted metric.";
+                                  "Set MetricName:use_weights=False to calculate unweighted metric." << Endl;
             }
         }
         usedDescriptions.insert(metrics.back()->GetCpuMetric().GetDescription());
