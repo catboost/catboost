@@ -4564,6 +4564,12 @@
                         "os": "LINUX"
                     },
                     "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
                 }
             ]
         }
@@ -6263,7 +6269,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 534441118,
+                "sandbox_id": 543017832,
                 "match": "SEDEM archive"
             },
             "executable": {
