@@ -87,7 +87,7 @@ Y_UNIT_TEST_SUITE(TLeafIndexCalcerOnPool) {
     Y_UNIT_TEST(TestFloat) {
         auto model = SimpleFloatModel();
         CheckLeafIndexCalcer(model, DEFAULT_FEATURES, /*expectedLeafIndexes*/ xrange<ui32>(8));
-        model.ObliviousTrees.GetMutable()->ConvertObliviousToAsymmetric();
+        model.ModelTrees.GetMutable()->ConvertObliviousToAsymmetric();
         CheckLeafIndexCalcer(model, DEFAULT_FEATURES, /*expectedLeafIndexes*/ xrange<ui32>(8));
     }
 
@@ -99,7 +99,7 @@ Y_UNIT_TEST_SUITE(TLeafIndexCalcerOnPool) {
             expectedLeafIndexes.push_back(sampleId);
         }
         CheckLeafIndexCalcer(model, DEFAULT_FEATURES, expectedLeafIndexes);
-        model.ObliviousTrees.GetMutable()->ConvertObliviousToAsymmetric();
+        model.ModelTrees.GetMutable()->ConvertObliviousToAsymmetric();
         CheckLeafIndexCalcer(model, DEFAULT_FEATURES, expectedLeafIndexes);
     }
 
@@ -119,7 +119,7 @@ Y_UNIT_TEST_SUITE(TLeafIndexCalcerOnPool) {
             features.push_back(std::move(sampleFeatures));
         }
         CheckLeafIndexCalcer(model, features, expectedLeafIndexes);
-        model.ObliviousTrees.GetMutable()->ConvertObliviousToAsymmetric();
+        model.ModelTrees.GetMutable()->ConvertObliviousToAsymmetric();
         CheckLeafIndexCalcer(model, features, expectedLeafIndexes);
     }
 
@@ -127,7 +127,7 @@ Y_UNIT_TEST_SUITE(TLeafIndexCalcerOnPool) {
         auto model = MultiValueFloatModel();
         TVector<TVector<float>> features(DEFAULT_FEATURES.begin(), DEFAULT_FEATURES.begin() + 4);
         CheckLeafIndexCalcer(model, features, /*expectedLeafIndexes*/ xrange(4));
-        model.ObliviousTrees.GetMutable()->ConvertObliviousToAsymmetric();
+        model.ModelTrees.GetMutable()->ConvertObliviousToAsymmetric();
         CheckLeafIndexCalcer(model, features, /*expectedLeafIndexes*/ xrange(4));
     }
 

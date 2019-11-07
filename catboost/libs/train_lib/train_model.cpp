@@ -502,7 +502,7 @@ static void SaveModel(
         = trainingDataForCpu.Learn->ObjectsData->GetQuantizedFeaturesInfo()
             ->CalcPerfectHashedToHashedCatValuesMap(ctx.LocalExecutor);
 
-    TObliviousTrees obliviousTrees;
+    TModelTrees modelTrees;
     THashMap<TFeatureCombination, TProjection> featureCombinationToProjectionMap;
     {
         TObliviousTreeBuilder builder(ctx.LearnProgress->FloatFeatures, ctx.LearnProgress->CatFeatures, {}, ctx.LearnProgress->ApproxDimension);
@@ -517,12 +517,12 @@ static void SaveModel(
             }
             builder.AddTree(modelSplits, ctx.LearnProgress->LeafValues[treeId], ctx.LearnProgress->TreeStats[treeId].LeafWeightsSum);
         }
-        builder.Build(&obliviousTrees);
+        builder.Build(&modelTrees);
     }
 
 
 //    TODO(kirillovs,espetrov): return this code after fixing R and Python wrappers
-//    for (auto& oheFeature : obliviousTrees.OneHotFeatures) {
+//    for (auto& oheFeature : modelTrees.OneHotFeatures) {
 //        for (const auto& value : oheFeature.Values) {
 //            oheFeature.StringValues.push_back(pools.Learn->CatFeaturesHashToString.at(value));
 //        }
@@ -570,9 +570,9 @@ static void SaveModel(
             modelPtr = &*fullModel;
         }
 
-        *modelPtr->ObliviousTrees.GetMutable() = std::move(obliviousTrees);
+        *modelPtr->ModelTrees.GetMutable() = std::move(modelTrees);
         if (ctx.LearnProgress->StartingApprox) {
-            modelPtr->ObliviousTrees.GetMutable()->AddNumberToAllTreeLeafValues(0, *ctx.LearnProgress->StartingApprox);
+            modelPtr->ModelTrees.GetMutable()->AddNumberToAllTreeLeafValues(0, *ctx.LearnProgress->StartingApprox);
         }
         modelPtr->UpdateDynamicData();
         coreModelToFullModelConverter.WithCoreModelFrom(modelPtr);

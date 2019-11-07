@@ -3,7 +3,7 @@
 namespace NMonoForest {
     TCatBoostGrid::TCatBoostGrid(const TFullModel& model) {
         int nextInternalFeatureIdx = 0;
-        for (const auto& floatFeature : model.ObliviousTrees->GetFloatFeatures()) {
+        for (const auto& floatFeature : model.ModelTrees->GetFloatFeatures()) {
             FeatureTypes.emplace_back(EFeatureType::Float);
             InternalToExternalFeature.emplace_back(floatFeature.Position.FlatIndex);
             FloatFeatureToInternalFeature[floatFeature.Position.Index] = nextInternalFeatureIdx;
@@ -11,8 +11,8 @@ namespace NMonoForest {
             nextInternalFeatureIdx++;
         }
 
-        const auto& catFeatures = model.ObliviousTrees->GetCatFeatures();
-        for (const auto& oneHotFeature : model.ObliviousTrees->GetOneHotFeatures()) {
+        const auto& catFeatures = model.ModelTrees->GetCatFeatures();
+        for (const auto& oneHotFeature : model.ModelTrees->GetOneHotFeatures()) {
             FeatureTypes.emplace_back(EFeatureType::OneHot);
             InternalToExternalFeature.emplace_back(
                 catFeatures[oneHotFeature.CatFeatureIndex].Position.FlatIndex);
@@ -25,9 +25,9 @@ namespace NMonoForest {
         }
 
         // TODO: support other feature types
-        CB_ENSURE(model.ObliviousTrees->GetCtrFeatures().empty(), "CTRs are not supported");
-        CB_ENSURE(model.ObliviousTrees->GetTextFeatures().empty(), "TextFeatures are not supported");
-        CB_ENSURE(model.ObliviousTrees->GetEstimatedFeatures().empty(),
+        CB_ENSURE(model.ModelTrees->GetCtrFeatures().empty(), "CTRs are not supported");
+        CB_ENSURE(model.ModelTrees->GetTextFeatures().empty(), "TextFeatures are not supported");
+        CB_ENSURE(model.ModelTrees->GetEstimatedFeatures().empty(),
                   "EstimatedFeatures are not supported");
 
         BorderToIdx.resize(FeatureCount());

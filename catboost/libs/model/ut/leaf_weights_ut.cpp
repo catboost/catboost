@@ -104,7 +104,7 @@ static TFullModel SaveLoadCoreML(const TFullModel& trainedModel) {
 }
 
 static void CheckWeights(const TWeights<float>& docWeights, const TFullModel& model) {
-    if (model.ObliviousTrees->GetLeafWeights().empty()) {
+    if (model.ModelTrees->GetLeafWeights().empty()) {
         return;
     }
 
@@ -113,10 +113,10 @@ static void CheckWeights(const TWeights<float>& docWeights, const TFullModel& mo
         trueWeightSum += docWeights[i];
     }
 
-    const auto weights = model.ObliviousTrees->GetLeafWeights();
-    const auto treeSizes = model.ObliviousTrees->GetTreeSizes();
-    const int approxDimension = model.ObliviousTrees->GetDimensionsCount();
-    auto leafOffsetPtr = model.ObliviousTrees->GetFirstLeafOffsets();
+    const auto weights = model.ModelTrees->GetLeafWeights();
+    const auto treeSizes = model.ModelTrees->GetTreeSizes();
+    const int approxDimension = model.ModelTrees->GetDimensionsCount();
+    auto leafOffsetPtr = model.ModelTrees->GetFirstLeafOffsets();
     for (size_t treeIdx = 0; treeIdx < model.GetTreeCount(); ++treeIdx) {
         double weightSumInTree = 0;
         const size_t offset = leafOffsetPtr[treeIdx] / approxDimension;
@@ -131,7 +131,7 @@ static void RunTestWithParams(EWeightsMode addWeights, ETargetDimMode multiclass
     TDataProviderPtr floatPool = SmallFloatPool(addWeights, multiclass);
     TFullModel trainedModel = TrainModelOnPool(floatPool, multiclass);
     if (clearWeightsInModel) {
-        trainedModel.ObliviousTrees.GetMutable()->ClearLeafWeights();
+        trainedModel.ModelTrees.GetMutable()->ClearLeafWeights();
     }
     TFullModel deserializedModel;
     if (exportToCBM) {
@@ -142,7 +142,7 @@ static void RunTestWithParams(EWeightsMode addWeights, ETargetDimMode multiclass
     if (exportToCBM) {
         CheckWeights(floatPool->RawTargetData.GetWeights(), deserializedModel);
     } else {
-        UNIT_ASSERT(deserializedModel.ObliviousTrees->GetLeafWeights().empty());
+        UNIT_ASSERT(deserializedModel.ModelTrees->GetLeafWeights().empty());
     }
 }
 

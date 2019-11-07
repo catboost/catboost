@@ -20,7 +20,7 @@ namespace {
         {
             Result->QuantizedData = TMaybeOwningArrayHolder<ui8>::CreateOwning(
                 TVector<ui8>(
-                    Model.ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount()
+                    Model.ModelTrees->GetEffectiveBinaryFeaturesBucketsCount()
                         * (ObjectsEnd - ObjectsStart)));
         }
 
@@ -30,11 +30,11 @@ namespace {
             const auto docCount = ObjectsEnd - ObjectsStart;
             const auto blockSize = Min(docCount, FORMULA_EVALUATION_BLOCK_SIZE);
             TVector<ui32> transposedHash(blockSize * Model.GetUsedCatFeaturesCount());
-            TVector<float> ctrs(Model.ObliviousTrees->GetUsedModelCtrs().size() * blockSize);
-            TVector<float> estimatedFeatures(Model.ObliviousTrees->GetEstimatedFeatures().size() * blockSize);
+            TVector<float> ctrs(Model.ModelTrees->GetUsedModelCtrs().size() * blockSize);
+            TVector<float> estimatedFeatures(Model.ModelTrees->GetEstimatedFeatures().size() * blockSize);
 
             BinarizeFeatures(
-                *Model.ObliviousTrees,
+                *Model.ModelTrees,
                 Model.CtrProvider,
                 Model.TextProcessingCollection,
                 rawFeatureAccessor.GetFloatAccessor(),
@@ -52,7 +52,7 @@ namespace {
         void Visit(const TQuantizedFeaturesBlockIterator& quantizedFeaturesBlockIterator) override {
             TQuantizedFeatureAccessor quantizedFeatureAccessor = quantizedFeaturesBlockIterator.GetAccessor();
             AssignFeatureBins(
-               *Model.ObliviousTrees,
+               *Model.ModelTrees,
                quantizedFeatureAccessor.GetFloatAccessor(),
                quantizedFeatureAccessor.GetCatAccessor(),
                0,

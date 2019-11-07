@@ -49,8 +49,8 @@ namespace NCB {
             return Nothing();
         }
         TVector<TConstArrayRef<float>> bordersInInitModel;
-        bordersInInitModel.reserve((*initModel)->ObliviousTrees.GetMutable()->GetFloatFeatures().size());
-        for (const auto& floatFeature : (*initModel)->ObliviousTrees.GetMutable()->GetFloatFeatures()) {
+        bordersInInitModel.reserve((*initModel)->ModelTrees.GetMutable()->GetFloatFeatures().size());
+        for (const auto& floatFeature : (*initModel)->ModelTrees.GetMutable()->GetFloatFeatures()) {
             bordersInInitModel.emplace_back(floatFeature.Borders.begin(), floatFeature.Borders.end());
         }
         return bordersInInitModel;

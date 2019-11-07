@@ -5,7 +5,7 @@ namespace NMonoForest {
     THolder<IModelImporter<TObliviousTree>> MakeCatBoostImporter(const TFullModel& model) {
         TCatBoostGrid grid(model);
 
-        const auto& trees = *model.ObliviousTrees.Get();
+        const auto& trees = *model.ModelTrees.Get();
         CB_ENSURE(trees.IsOblivious());
 
         const auto& treeSizes = trees.GetTreeSizes();

@@ -751,7 +751,7 @@ SEXP CatBoostShrinkModel_R(SEXP modelParam, SEXP treeCountStartParam, SEXP treeC
 SEXP CatBoostDropUnusedFeaturesFromModel_R(SEXP modelParam) {
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
-    model->ObliviousTrees.GetMutable()->DropUnusedFeatures();
+    model->ModelTrees.GetMutable()->DropUnusedFeatures();
     R_API_END();
     return ScalarLogical(1);
 }

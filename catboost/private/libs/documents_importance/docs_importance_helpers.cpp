@@ -71,7 +71,7 @@ void TDocumentImportancesEvaluator::UpdateFinalFirstDerivatives(const TVector<TV
 
 TVector<ui32> TDocumentImportancesEvaluator::GetLeafIdToUpdate(ui32 treeId, const TVector<double>& jacobian) {
     TVector<ui32> leafIdToUpdate;
-    const ui32 leafCount = 1 << Model.ObliviousTrees->GetTreeSizes()[treeId];
+    const ui32 leafCount = 1 << Model.ModelTrees->GetTreeSizes()[treeId];
 
     if (UpdateMethod.UpdateType == EUpdateType::AllPoints) {
         leafIdToUpdate.resize(leafCount);

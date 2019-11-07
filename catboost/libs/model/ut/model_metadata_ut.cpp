@@ -2,11 +2,11 @@
 
 #include <catboost/libs/model/model.h>
 
-Y_UNIT_TEST_SUITE(TObliviousTreesMetadata) {
+Y_UNIT_TEST_SUITE(TModelTreesMetadata) {
 
     Y_UNIT_TEST(TestMetadataUpdate) {
         TFullModel model;
-        TObliviousTrees* trees = model.ObliviousTrees.GetMutable();
+        TModelTrees* trees = model.ModelTrees.GetMutable();
         trees->SetFloatFeatures(
             {
                 TFloatFeature {

@@ -90,15 +90,15 @@ namespace NCB {
         columnIndexesReorderMap->clear();
         THashSet<TString> modelFeatureIdSet;
         AddUsedFeatureIdsToSet(
-            model.ObliviousTrees->GetFloatFeatures(),
+            model.ModelTrees->GetFloatFeatures(),
             &modelFeatureIdSet
         );
         AddUsedFeatureIdsToSet(
-            model.ObliviousTrees->GetCatFeatures(),
+            model.ModelTrees->GetCatFeatures(),
             &modelFeatureIdSet
         );
         AddUsedFeatureIdsToSet(
-            model.ObliviousTrees->GetTextFeatures(),
+            model.ModelTrees->GetTextFeatures(),
             &modelFeatureIdSet
         );
         size_t featureNameIntersection = 0;
@@ -126,20 +126,20 @@ namespace NCB {
                 datasetTextFeatureFlatIndexes
             );
             CheckFeatureTypes(
-                model.ObliviousTrees->GetFloatFeatures(),
+                model.ModelTrees->GetFloatFeatures(),
                 datasetFeatureNamesMap,
                 datasetFloatFeatureIndexes,
                 columnIndexesReorderMap
             );
         }
         CheckFeatureTypes(
-            model.ObliviousTrees->GetCatFeatures(),
+            model.ModelTrees->GetCatFeatures(),
             datasetFeatureNamesMap,
             datasetCatFeatureFlatIndexes,
             columnIndexesReorderMap
         );
         CheckFeatureTypes(
-            model.ObliviousTrees->GetTextFeatures(),
+            model.ModelTrees->GetTextFeatures(),
             datasetFeatureNamesMap,
             datasetTextFeatureFlatIndexes,
             columnIndexesReorderMap
@@ -185,7 +185,7 @@ namespace NCB {
 
         const auto& datasetFeaturesMetaInfo = datasetFeaturesLayout.GetExternalFeaturesMetaInfo();
 
-        for (const TCatFeature& catFeature : model.ObliviousTrees->GetCatFeatures()) {
+        for (const TCatFeature& catFeature : model.ModelTrees->GetCatFeatures()) {
             if (!catFeature.UsedInModel()) {
                 continue;
             }
@@ -218,7 +218,7 @@ namespace NCB {
                 {catFeature.Position.FlatIndex, catFeature.Position.FlatIndex});
         }
 
-        for (const TFloatFeature& floatFeature : model.ObliviousTrees->GetFloatFeatures()) {
+        for (const TFloatFeature& floatFeature : model.ModelTrees->GetFloatFeatures()) {
             if (!floatFeature.UsedInModel()) {
                 continue;
             }
@@ -255,7 +255,7 @@ namespace NCB {
         }
 
         // TODO(d-kruchinin, akhropov): refactor this - remove duplicates, create generic solution
-        for (const TTextFeature& textFeature : model.ObliviousTrees->GetTextFeatures()) {
+        for (const TTextFeature& textFeature : model.ModelTrees->GetTextFeatures()) {
             if (!textFeature.UsedInModel()) {
                 continue;
             }
@@ -301,8 +301,8 @@ namespace NCB {
         const TFullModel& model,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo)
     {
-        TVector<TVector<ui8>> floatBinsRemap(model.ObliviousTrees->GetFloatFeatures().size());
-        for (const auto& feature: model.ObliviousTrees->GetFloatFeatures()) {
+        TVector<TVector<ui8>> floatBinsRemap(model.ModelTrees->GetFloatFeatures().size());
+        for (const auto& feature: model.ModelTrees->GetFloatFeatures()) {
             if (feature.Borders.empty()) {
                 continue;
             }

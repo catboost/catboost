@@ -79,7 +79,7 @@ static void MarkUsedFeatures(
     }
 }
 
-void TCommonModelBuilderHelper::ProcessSplitsSet(const TSet<TModelSplit>& modelSplitSet, TObliviousTrees* trees) {
+void TCommonModelBuilderHelper::ProcessSplitsSet(const TSet<TModelSplit>& modelSplitSet, TModelTrees* trees) {
     trees->SetApproxDimension(ApproxDimension);
     for (auto& feature : FloatFeatures) {
         feature.Borders.clear();
@@ -147,8 +147,8 @@ void TObliviousTreeBuilder::AddTree(const TVector<TModelSplit>& modelSplits,
     Trees.emplace_back(modelSplits);
 }
 
-void TObliviousTreeBuilder::Build(TObliviousTrees* result) {
-    *result = TObliviousTrees{};
+void TObliviousTreeBuilder::Build(TModelTrees* result) {
+    *result = TModelTrees{};
     TSet<TModelSplit> modelSplitSet;
     for (const auto& tree : Trees) {
         for (const auto& split : tree) {
@@ -184,8 +184,8 @@ void TNonSymmetricTreeModelBuilder::AddTree(THolder<TNonSymmetricTreeNode> head)
     TreeSizes.push_back(FlatSplitsVector.size() - prevSize);
 }
 
-void TNonSymmetricTreeModelBuilder::Build(TObliviousTrees* result) {
-    *result = TObliviousTrees{};
+void TNonSymmetricTreeModelBuilder::Build(TModelTrees* result) {
+    *result = TModelTrees{};
     ProcessSplitsSet(ModelSplitSet, result);
     Y_ASSERT(FlatSplitsVector.size() == FlatNodeValueIndexes.size());
     Y_ASSERT(FlatNodeValueIndexes.size() == FlatNonSymmetricStepNodes.size());

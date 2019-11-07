@@ -60,7 +60,7 @@ public:
     TCPUCatboostAsymmetryModule(const TFullModel& model) {
         CB_ENSURE(model.IsOblivious(), "model is already asymmetrical");
         TFullModel asymmetricalModel = model;
-        asymmetricalModel.ObliviousTrees.GetMutable()->ConvertObliviousToAsymmetric();
+        asymmetricalModel.ModelTrees.GetMutable()->ConvertObliviousToAsymmetric();
         ModelEvaluator = NCB::NModelEvaluation::CreateEvaluator(EFormulaEvaluatorType::CPU, model);
         BaseName = "catboost cpu asymmetrical";
     }

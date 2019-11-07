@@ -263,7 +263,7 @@ namespace NCB::NModelEvaluation {
 */
     template <typename TFloatFeatureAccessor, typename TCatFeatureAccessor, typename TTextFeatureAccessor>
     inline void BinarizeFeatures(
-        const TObliviousTrees& trees,
+        const TModelTrees& trees,
         const TIntrusivePtr<ICtrProvider>& ctrProvider,
         const TIntrusivePtr<TTextProcessingCollection>& textProcessingCollection,
         TFloatFeatureAccessor floatAccessor,
@@ -455,7 +455,7 @@ namespace NCB::NModelEvaluation {
 */
     template <typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
     inline void AssignFeatureBins(
-        const TObliviousTrees& trees,
+        const TModelTrees& trees,
         TFloatFeatureAccessor floatAccessor,
         TCatFeatureAccessor /*catAccessor*/,
         size_t start,

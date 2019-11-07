@@ -74,7 +74,7 @@ Y_UNIT_TEST_SUITE(TObliviousTreeModel) {
     Y_UNIT_TEST(TestFlatCalcFloat) {
         auto model = SimpleFloatModel();
         CheckFlatCalcResult(model, xrange<double>(8), xrange<ui32>(8));
-        model.ObliviousTrees.GetMutable()->ConvertObliviousToAsymmetric();
+        model.ModelTrees.GetMutable()->ConvertObliviousToAsymmetric();
         CheckFlatCalcResult(model, xrange<double>(8), xrange<ui32>(8));
     }
 
@@ -88,7 +88,7 @@ Y_UNIT_TEST_SUITE(TObliviousTreeModel) {
             expectedPredicts.push_back(11.0 * sampleId);
         }
         CheckFlatCalcResult(model, expectedPredicts, expectedLeafIndexes);
-        model.ObliviousTrees.GetMutable()->ConvertObliviousToAsymmetric();
+        model.ModelTrees.GetMutable()->ConvertObliviousToAsymmetric();
         CheckFlatCalcResult(model, expectedPredicts, expectedLeafIndexes);
     }
 
@@ -111,7 +111,7 @@ Y_UNIT_TEST_SUITE(TObliviousTreeModel) {
         }
         const auto features = GetFeatureRef(data);
         CheckFlatCalcResult(model, expectedPredicts, expectedLeafIndexes, features);
-        model.ObliviousTrees.GetMutable()->ConvertObliviousToAsymmetric();
+        model.ModelTrees.GetMutable()->ConvertObliviousToAsymmetric();
         CheckFlatCalcResult(model, expectedPredicts, expectedLeafIndexes, features);
     }
 
@@ -125,7 +125,7 @@ Y_UNIT_TEST_SUITE(TObliviousTreeModel) {
             03., 13., 23.,
         };
         CheckFlatCalcResult(model, expectedPredicts, xrange(4), features);
-        model.ObliviousTrees.GetMutable()->ConvertObliviousToAsymmetric();
+        model.ModelTrees.GetMutable()->ConvertObliviousToAsymmetric();
         CheckFlatCalcResult(model, expectedPredicts, xrange(4), features);
     }
 
@@ -237,7 +237,7 @@ Y_UNIT_TEST_SUITE(TObliviousTreeModel) {
             numEstimatedFeatures
         );
 
-        model.ObliviousTrees.GetMutable()->ConvertObliviousToAsymmetric();
+        model.ModelTrees.GetMutable()->ConvertObliviousToAsymmetric();
 
         CheckCalcTextResult(
             model,

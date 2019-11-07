@@ -760,7 +760,7 @@ cdef extern from "catboost/libs/model/model.h":
         TFeaturePosition Position
         TString FeatureId
 
-    cdef cppclass TObliviousTrees:
+    cdef cppclass TModelTrees:
         int GetDimensionCount() except +ProcessException
         TConstArrayRef[double] GetLeafValues() except +ProcessException
         TConstArrayRef[double] GetLeafWeights() except +ProcessException
@@ -773,12 +773,12 @@ cdef extern from "catboost/libs/model/model.h":
         void ConvertObliviousToAsymmetric() except +ProcessException
 
     cdef cppclass TCOWTreeWrapper:
-        const TObliviousTrees& operator*() except +ProcessException
-        const TObliviousTrees* Get() except +ProcessException
-        TObliviousTrees* GetMutable() except +ProcessException
+        const TModelTrees& operator*() except +ProcessException
+        const TModelTrees* Get() except +ProcessException
+        TModelTrees* GetMutable() except +ProcessException
 
     cdef cppclass TFullModel:
-        TCOWTreeWrapper ObliviousTrees
+        TCOWTreeWrapper ModelTrees
         THashMap[TString, TString] ModelInfo
 
         bool_t operator==(const TFullModel& other) except +ProcessException
@@ -3839,22 +3839,22 @@ cdef class _CatBoost:
         return None
 
     cpdef _has_leaf_weights_in_model(self):
-        return not self.__model.ObliviousTrees.Get().GetLeafWeights().empty()
+        return not self.__model.ModelTrees.Get().GetLeafWeights().empty()
 
     cpdef _get_cat_feature_indices(self):
-        cdef TConstArrayRef[TCatFeature] arrayView = self.__model.ObliviousTrees.Get().GetCatFeatures()
+        cdef TConstArrayRef[TCatFeature] arrayView = self.__model.ModelTrees.Get().GetCatFeatures()
         return [feature.Position.FlatIndex for feature in arrayView]
 
     cpdef _get_text_feature_indices(self):
-        cdef TConstArrayRef[TTextFeature] arrayView = self.__model.ObliviousTrees.Get().GetTextFeatures()
+        cdef TConstArrayRef[TTextFeature] arrayView = self.__model.ModelTrees.Get().GetTextFeatures()
         return [feature.Position.FlatIndex for feature in arrayView]
 
     cpdef _get_float_feature_indices(self):
-        cdef TConstArrayRef[TFloatFeature] arrayView = self.__model.ObliviousTrees.Get().GetFloatFeatures()
+        cdef TConstArrayRef[TFloatFeature] arrayView = self.__model.ModelTrees.Get().GetFloatFeatures()
         return [feature.Position.FlatIndex for feature in arrayView]
 
     cpdef _get_borders(self):
-        cdef TConstArrayRef[TFloatFeature] arrayView = self.__model.ObliviousTrees.Get().GetFloatFeatures()
+        cdef TConstArrayRef[TFloatFeature] arrayView = self.__model.ModelTrees.Get().GetFloatFeatures()
         return dict([(feature.Position.FlatIndex, feature.Borders) for feature in arrayView])
 
     cpdef _base_predict(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, bool_t verbose):
@@ -3993,7 +3993,7 @@ cdef class _CatBoost:
         return self.__model.IsOblivious()
 
     cpdef _base_drop_unused_features(self):
-        self.__model.ObliviousTrees.GetMutable().DropUnusedFeatures()
+        self.__model.ModelTrees.GetMutable().DropUnusedFeatures()
 
     cpdef _load_model(self, model_file, format):
         cdef TFullModel tmp_model
@@ -4284,30 +4284,30 @@ cdef class _CatBoost:
         return res
 
     cpdef _get_leaf_values(self):
-        return _constarrayref_of_double_to_np_array(self.__model.ObliviousTrees.Get().GetLeafValues())
+        return _constarrayref_of_double_to_np_array(self.__model.ModelTrees.Get().GetLeafValues())
 
     cpdef _get_leaf_weights(self):
-        result = np.empty(self.__model.ObliviousTrees.Get().GetLeafValues().size(), dtype=_npfloat64)
+        result = np.empty(self.__model.ModelTrees.Get().GetLeafValues().size(), dtype=_npfloat64)
         cdef size_t curr_index = 0
-        cdef TConstArrayRef[double] arrayView = self.__model.ObliviousTrees.Get().GetLeafWeights()
+        cdef TConstArrayRef[double] arrayView = self.__model.ModelTrees.Get().GetLeafWeights()
         for val in arrayView:
             result[curr_index] = val
             curr_index += 1
-        assert curr_index == 0 or curr_index == self.__model.ObliviousTrees.Get().GetLeafValues().size(), (
+        assert curr_index == 0 or curr_index == self.__model.ModelTrees.Get().GetLeafValues().size(), (
             "wrong number of leaf weights")
         return result
 
     cpdef _get_tree_leaf_counts(self):
-        return _vector_of_uints_to_np_array(self.__model.ObliviousTrees.Get().GetTreeLeafCounts())
+        return _vector_of_uints_to_np_array(self.__model.ModelTrees.Get().GetTreeLeafCounts())
 
     cpdef _set_leaf_values(self, new_leaf_values):
         assert isinstance(new_leaf_values, np.ndarray), "expected numpy.ndarray."
         assert new_leaf_values.dtype == np.float64, "leaf values should have type np.float64 (double)."
         assert len(new_leaf_values.shape) == 1, "leaf values should be a 1d-vector."
-        assert new_leaf_values.shape[0] == self.__model.ObliviousTrees.Get().GetLeafValues().size(), (
+        assert new_leaf_values.shape[0] == self.__model.ModelTrees.Get().GetLeafValues().size(), (
             "count of leaf values should be equal to the leaf count.")
         cdef TVector[double] model_leafs = new_leaf_values
-        self.__model.ObliviousTrees.GetMutable().SetLeafValues(model_leafs)
+        self.__model.ModelTrees.GetMutable().SetLeafValues(model_leafs)
 
     cpdef _set_feature_names(self, feature_names):
             cdef TVector[TString] feature_names_vector
@@ -4316,7 +4316,7 @@ cdef class _CatBoost:
             SetModelExternalFeatureNames(feature_names_vector, self.__model)
 
     cpdef _convert_oblivious_to_asymmetric(self):
-        self.__model.ObliviousTrees.GetMutable().ConvertObliviousToAsymmetric()
+        self.__model.ModelTrees.GetMutable().ConvertObliviousToAsymmetric()
 
 
 

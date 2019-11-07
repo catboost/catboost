@@ -38,7 +38,7 @@ namespace NCB{
                                 learnProgress.TreeStats[treeId].LeafWeightsSum);
             }
             TFullModel model;
-            builder.Build(model.ObliviousTrees.GetMutable());
+            builder.Build(model.ModelTrees.GetMutable());
             model.ModelInfo["params"] = learnProgress.SerializedTrainParams;
             return model;
         }

@@ -89,7 +89,7 @@ static bool EstimatedFeatureIdsAreEqual(const TEstimatedFeature& lhs, const TEst
         == std::tie(rhs.SourceFeatureId, rhs.CalcerId, rhs.LocalId);
 }
 
-void TObliviousTrees::ProcessSplitsSet(
+void TModelTrees::ProcessSplitsSet(
     const TSet<TModelSplit>& modelSplitSet,
     const TVector<size_t>& floatFeaturesInternalIndexesMap,
     const TVector<size_t>& catFeaturesInternalIndexesMap,
@@ -142,7 +142,7 @@ void TObliviousTrees::ProcessSplitsSet(
     }
 }
 
-void TObliviousTrees::TruncateTrees(size_t begin, size_t end) {
+void TModelTrees::TruncateTrees(size_t begin, size_t end) {
     //TODO(eermishkina): support non symmetric trees
     CB_ENSURE(IsOblivious(), "Truncate support only symmetric trees");
     CB_ENSURE(begin <= end, "begin tree index should be not greater than end tree index.");
@@ -173,8 +173,8 @@ void TObliviousTrees::TruncateTrees(size_t begin, size_t end) {
     builder.Build(this);
 }
 
-flatbuffers::Offset<NCatBoostFbs::TObliviousTrees>
-TObliviousTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
+flatbuffers::Offset<NCatBoostFbs::TModelTrees>
+TModelTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
     std::vector<flatbuffers::Offset<NCatBoostFbs::TCatFeature>> catFeaturesOffsets;
     for (const auto& catFeature : CatFeatures) {
         catFeaturesOffsets.push_back(catFeature.FBSerialize(serializer.FlatbufBuilder));
@@ -207,7 +207,7 @@ TObliviousTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
             nonSymmetricStep.RightSubtreeDiff
         });
     }
-    return NCatBoostFbs::CreateTObliviousTreesDirect(
+    return NCatBoostFbs::CreateTModelTreesDirect(
         serializer.FlatbufBuilder,
         ApproxDimension,
         &TreeSplits,
@@ -226,7 +226,7 @@ TObliviousTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
     );
 }
 
-void TObliviousTrees::UpdateRuntimeData() const {
+void TModelTrees::UpdateRuntimeData() const {
     struct TFeatureSplitId {
         ui32 FeatureIdx = 0;
         ui32 SplitIdx = 0;
@@ -374,14 +374,14 @@ void TObliviousTrees::UpdateRuntimeData() const {
     }
 }
 
-void TObliviousTrees::DropUnusedFeatures() {
+void TModelTrees::DropUnusedFeatures() {
     EraseIf(FloatFeatures, [](const TFloatFeature& feature) { return !feature.UsedInModel();});
     EraseIf(CatFeatures, [](const TCatFeature& feature) { return !feature.UsedInModel(); });
     EraseIf(TextFeatures, [](const TTextFeature& feature) { return !feature.UsedInModel(); });
     UpdateRuntimeData();
 }
 
-void TObliviousTrees::ConvertObliviousToAsymmetric() {
+void TModelTrees::ConvertObliviousToAsymmetric() {
     if (!IsOblivious()) {
         return;
     }
@@ -421,7 +421,7 @@ void TObliviousTrees::ConvertObliviousToAsymmetric() {
     UpdateRuntimeData();
 }
 
-TVector<ui32> TObliviousTrees::GetTreeLeafCounts() const {
+TVector<ui32> TModelTrees::GetTreeLeafCounts() const {
     const auto& firstLeafOfsets = GetFirstLeafOffsets();
     Y_ASSERT(IsSorted(firstLeafOfsets.begin(), firstLeafOfsets.end()));
     TVector<ui32> treeLeafCounts;
@@ -439,7 +439,7 @@ TVector<ui32> TObliviousTrees::GetTreeLeafCounts() const {
     return treeLeafCounts;
 }
 
-void TObliviousTrees::AddNumberToAllTreeLeafValues(ui32 treeId, double numberToAdd) {
+void TModelTrees::AddNumberToAllTreeLeafValues(ui32 treeId, double numberToAdd) {
     const auto& firstLeafOfsets = GetFirstLeafOffsets();
     if (numberToAdd == 0 || firstLeafOfsets.size() <= treeId) {
         return;
@@ -451,7 +451,7 @@ void TObliviousTrees::AddNumberToAllTreeLeafValues(ui32 treeId, double numberToA
     }
 }
 
-void TObliviousTrees::FBDeserialize(const NCatBoostFbs::TObliviousTrees* fbObj) {
+void TModelTrees::FBDeserialize(const NCatBoostFbs::TModelTrees* fbObj) {
     ApproxDimension = fbObj->ApproxDimension();
     if (fbObj->TreeSplits()) {
         TreeSplits.assign(fbObj->TreeSplits()->begin(), fbObj->TreeSplits()->end());
@@ -591,7 +591,7 @@ void TFullModel::Save(IOutputStream* s) const {
     using namespace NCatBoostFbs;
     ::Save(s, GetModelFormatDescriptor());
     TModelPartsCachingSerializer serializer;
-    auto obliviousTreesOffset = ObliviousTrees->FBSerialize(serializer);
+    auto modelTreesOffset = ModelTrees->FBSerialize(serializer);
     std::vector<flatbuffers::Offset<TKeyValue>> infoMap;
     for (const auto& key_value : ModelInfo) {
         auto keyValueOffset = CreateTKeyValue(
@@ -617,7 +617,7 @@ void TFullModel::Save(IOutputStream* s) const {
     auto coreOffset = CreateTModelCoreDirect(
         serializer.FlatbufBuilder,
         CURRENT_CORE_FORMAT_STRING,
-        obliviousTreesOffset,
+        modelTreesOffset,
         infoMap.empty() ? nullptr : &infoMap,
         modelPartIds.empty() ? nullptr : &modelPartIds
     );
@@ -651,8 +651,8 @@ void TFullModel::Load(IInputStream* s) {
         fbModelCore->FormatVersion() && fbModelCore->FormatVersion()->str() == CURRENT_CORE_FORMAT_STRING,
         "Unsupported model format: " << fbModelCore->FormatVersion()->str()
     );
-    if (fbModelCore->ObliviousTrees()) {
-        ObliviousTrees.GetMutable()->FBDeserialize(fbModelCore->ObliviousTrees());
+    if (fbModelCore->ModelTrees()) {
+        ModelTrees.GetMutable()->FBDeserialize(fbModelCore->ModelTrees());
     }
     ModelInfo.clear();
     if (fbModelCore->InfoMap()) {
@@ -687,12 +687,12 @@ void TFullModel::Load(IInputStream* s) {
 }
 
 void TFullModel::UpdateDynamicData() {
-    ObliviousTrees->UpdateRuntimeData();
+    ModelTrees->UpdateRuntimeData();
     if (CtrProvider) {
         CtrProvider->SetupBinFeatureIndexes(
-            ObliviousTrees->GetFloatFeatures(),
-            ObliviousTrees->GetOneHotFeatures(),
-            ObliviousTrees->GetCatFeatures());
+            ModelTrees->GetFloatFeatures(),
+            ModelTrees->GetOneHotFeatures(),
+            ModelTrees->GetCatFeatures());
     }
     with_lock(CurrentEvaluatorLock) {
         Evaluator.Reset();
@@ -702,7 +702,7 @@ void TFullModel::UpdateDynamicData() {
 TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model) {
     TVector<int> featuresIdxs;
     TVector<TString> featuresNames;
-    const TObliviousTrees& forest = *model.ObliviousTrees;
+    const TModelTrees& forest = *model.ModelTrees;
 
     for (const TFloatFeature& feature : forest.GetFloatFeatures()) {
         featuresIdxs.push_back(feature.Position.FlatIndex);
@@ -733,7 +733,7 @@ TVector<TString> GetModelUsedFeaturesNames(const TFullModel& model) {
 }
 
 void SetModelExternalFeatureNames(const TVector<TString>& featureNames, TFullModel* model) {
-    TObliviousTrees& forest = *(model->ObliviousTrees.GetMutable());
+    TModelTrees& forest = *(model->ModelTrees.GetMutable());
     CB_ENSURE(
         (forest.GetFloatFeatures().empty() || featureNames.ysize() > forest.GetFloatFeatures().back().Position.FlatIndex) &&
         (forest.GetCatFeatures().empty() || featureNames.ysize() > forest.GetCatFeatures().back().Position.FlatIndex),
@@ -823,8 +823,8 @@ void TFullModel::UpdateEstimatedFeaturesIndices(TVector<TEstimatedFeature>&& new
         "UpdateEstimatedFeatureIndices called when TextProcessingCollection is not defined"
     );
 
-    ObliviousTrees.GetMutable()->SetEstimatedFeatures(std::move(newEstimatedFeatures));
-    ObliviousTrees->UpdateRuntimeData();
+    ModelTrees.GetMutable()->SetEstimatedFeatures(std::move(newEstimatedFeatures));
+    ModelTrees->UpdateRuntimeData();
 }
 
 namespace {
@@ -885,7 +885,7 @@ namespace {
 }
 
 static void StreamModelTreesToBuilder(
-    const TObliviousTrees& trees,
+    const TModelTrees& trees,
     double leafMultiplier,
     TObliviousTreeBuilder* builder,
     bool streamLeafWeights)
@@ -994,7 +994,7 @@ TFullModel SumModels(
         //TODO(eermishkina): support non symmetric trees
         CB_ENSURE(model->IsOblivious(), "Models summation supported only for symmetric trees");
         CB_ENSURE(
-            model->ObliviousTrees->GetTextFeatures().empty(),
+            model->ModelTrees->GetTextFeatures().empty(),
             "Models summation is not supported for models with text features"
         );
         CB_ENSURE(
@@ -1004,14 +1004,14 @@ TFullModel SumModels(
         );
         maxFlatFeatureVectorSize = Max(
             maxFlatFeatureVectorSize,
-            model->ObliviousTrees->GetFlatFeatureVectorExpectedSize()
+            model->ModelTrees->GetFlatFeatureVectorExpectedSize()
         );
         ctrProviders.push_back(model->CtrProvider);
         // empty model does not disable LeafWeights:
-        if (model->ObliviousTrees->GetLeafWeights().size() < model->GetTreeCount()) {
+        if (model->ModelTrees->GetLeafWeights().size() < model->GetTreeCount()) {
             allModelsHaveLeafWeights = false;
         }
-        if (!model->ObliviousTrees->GetLeafWeights().empty()) {
+        if (!model->ModelTrees->GetLeafWeights().empty()) {
             someModelHasLeafWeights = true;
         }
     }
@@ -1021,10 +1021,10 @@ TFullModel SumModels(
     }
     TVector<TFlatFeature> flatFeatureInfoVector(maxFlatFeatureVectorSize);
     for (const auto& model : modelVector) {
-        for (const auto& floatFeature : model->ObliviousTrees->GetFloatFeatures()) {
+        for (const auto& floatFeature : model->ModelTrees->GetFloatFeatures()) {
             flatFeatureInfoVector[floatFeature.Position.FlatIndex].SetOrCheck(floatFeature);
         }
-        for (const auto& catFeature : model->ObliviousTrees->GetCatFeatures()) {
+        for (const auto& catFeature : model->ModelTrees->GetCatFeatures()) {
             flatFeatureInfoVector[catFeature.Position.FlatIndex].SetOrCheck(catFeature);
         }
     }
@@ -1035,14 +1035,14 @@ TFullModel SumModels(
     TObliviousTreeBuilder builder(merger.MergedFloatFeatures, merger.MergedCatFeatures, {}, approxDimension);
     for (const auto modelId : xrange(modelVector.size())) {
         StreamModelTreesToBuilder(
-            *modelVector[modelId]->ObliviousTrees,
+            *modelVector[modelId]->ModelTrees,
             weights[modelId],
             &builder,
             allModelsHaveLeafWeights
         );
     }
     TFullModel result;
-    builder.Build(result.ObliviousTrees.GetMutable());
+    builder.Build(result.ModelTrees.GetMutable());
     for (const auto modelIdx : xrange(modelVector.size())) {
         TStringBuilder keyPrefix;
         keyPrefix << "model" << modelIdx << ":";
@@ -1063,7 +1063,7 @@ void SaveModelBorders(
 
     TOFStream out(file);
 
-    for (const auto& feature : model.ObliviousTrees->GetFloatFeatures()) {
+    for (const auto& feature : model.ModelTrees->GetFloatFeatures()) {
         NCB::OutputFeatureBorders(
             feature.Position.FlatIndex,
             feature.Borders,
@@ -1078,7 +1078,7 @@ DEFINE_DUMPER(TRepackedBin, FeatureIndex, XorMask, SplitIdx)
 DEFINE_DUMPER(TNonSymmetricTreeStepNode, LeftSubtreeDiff, RightSubtreeDiff)
 
 DEFINE_DUMPER(
-    TObliviousTrees::TRuntimeData,
+    TModelTrees::TRuntimeData,
     UsedFloatFeaturesCount,
     UsedCatFeaturesCount,
     MinimalSufficientFloatFeaturesVectorSize,
@@ -1090,7 +1090,7 @@ DEFINE_DUMPER(
     TreeFirstLeafOffsets
 )
 
-//DEFINE_DUMPER(TObliviousTrees),
+//DEFINE_DUMPER(TModelTrees),
 //    TreeSplits, TreeSizes,
 //    TreeStartOffsets, NonSymmetricStepNodes,
 //    NonSymmetricNodeIdToLeafId, LeafValues);

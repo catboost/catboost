@@ -204,7 +204,7 @@ static inline ui32 UpdateCheckSumImpl(ui32 init, const TCtrFeature& ctrFeature) 
 
 
 static ui32 CalcCoreModelCheckSum(const TFullModel& model) {
-    const auto& trees = *model.ObliviousTrees;
+    const auto& trees = *model.ModelTrees;
 
     return UpdateCheckSum(
         ui32(0),
