@@ -190,7 +190,7 @@ namespace {
         inline void Add(TStringBuf name, TDecoderConstructor d, TEncoderConstructor e) {
             Strings.emplace_back(name);
             Codecs[Strings.back()] = TCodec{d, e};
-            BestCodecs.emplace_back(Strings.back().data());
+            BestCodecs.emplace_back(Strings.back());
         }
 
         static inline TCodecFactory& Instance() noexcept {
@@ -220,7 +220,7 @@ namespace {
 
         TVector<TString> Strings;
         THashMap<TStringBuf, TCodec> Codecs;
-        TVector<const char*> BestCodecs;
+        TVector<TStringBuf> BestCodecs;
     };
 }
 
@@ -520,18 +520,19 @@ bool THttpInput::AcceptEncoding(const TString& coding) const {
     return Impl_->AcceptEncoding(coding);
 }
 
-TString THttpInput::BestCompressionScheme(const char** codings, size_t len) const {
-    if (codings == nullptr || len == 0) {
+TString THttpInput::BestCompressionScheme(TArrayRef<const TStringBuf> codings) const {
+    if (codings.empty()) {
         return "identity";
     }
 
     if (AcceptEncoding("*")) {
-        return codings[0];
+        return TString(codings[0]);
     }
 
-    for (size_t i = 0; i < len; ++i) {
-        if (AcceptEncoding(codings[i])) {
-            return codings[i];
+    for (const auto& coding : codings) {
+        TString s(coding);
+        if (AcceptEncoding(s)) {
+            return s;
         }
     }
 
@@ -539,10 +540,7 @@ TString THttpInput::BestCompressionScheme(const char** codings, size_t len) cons
 }
 
 TString THttpInput::BestCompressionScheme() const {
-    auto& bestCodecs = TCodecFactory::Instance().BestCodecs;
-    const char** codings = static_cast<const char**>(bestCodecs.data());
-
-    return BestCompressionScheme(codings, bestCodecs.size());
+    return BestCompressionScheme(TCodecFactory::Instance().BestCodecs);
 }
 
 bool THttpInput::GetContentLength(ui64& value) const noexcept {
@@ -607,8 +605,6 @@ public:
         , Output_(Slave_)
         , Request_(request)
         , Version_(1100)
-        , ComprSchemas_(nullptr)
-        , ComprSchemasLen_(0)
         , KeepAliveEnabled_(false)
         , BodyEncodingEnabled_(true)
         , Finished_(false)
@@ -689,9 +685,8 @@ public:
         return Headers_;
     }
 
-    inline void EnableCompression(const char** schemas, size_t len) {
+    inline void EnableCompression(TArrayRef<const TStringBuf> schemas) {
         ComprSchemas_ = schemas;
-        ComprSchemasLen_ = len;
     }
 
     inline void EnableKeepAlive(bool enable) {
@@ -703,7 +698,7 @@ public:
     }
 
     inline bool IsCompressionEnabled() const noexcept {
-        return ComprSchemas_ && ComprSchemasLen_;
+        return !ComprSchemas_.empty();
     }
 
     inline bool IsKeepAliveEnabled() const noexcept {
@@ -872,7 +867,7 @@ private:
 
         if (IsHttpResponse()) {
             if (Request_ && IsCompressionEnabled() && HasResponseBody()) {
-                TString scheme = Request_->BestCompressionScheme(ComprSchemas_, ComprSchemasLen_);
+                TString scheme = Request_->BestCompressionScheme(ComprSchemas_);
                 if (scheme != "identity") {
                     AddOrReplaceHeader(THttpInputHeader("Content-Encoding", scheme));
                     RemoveHeader("Content-Length");
@@ -893,12 +888,12 @@ private:
     inline TString BuildAcceptEncoding() const {
         TString ret;
 
-        for (size_t i = 0; i < ComprSchemasLen_; ++i) {
+        for (const auto& coding : ComprSchemas_) {
             if (ret) {
                 ret += ", ";
             }
 
-            ret += ComprSchemas_[i];
+            ret += coding;
         }
 
         return ret;
@@ -964,8 +959,7 @@ private:
     THttpInput* Request_;
     size_t Version_;
 
-    const char** ComprSchemas_;
-    size_t ComprSchemasLen_;
+    TArrayRef<const TStringBuf> ComprSchemas_;
 
     bool KeepAliveEnabled_;
 
@@ -1010,17 +1004,16 @@ const THttpHeaders& THttpOutput::SentHeaders() const noexcept {
 }
 
 void THttpOutput::EnableCompression(bool enable) {
-    const auto& bestCodings = TCodecFactory::Instance().BestCodecs;
-
     if (enable) {
-        EnableCompression((const char**)bestCodings.data(), bestCodings.size());
+        EnableCompression(TCodecFactory::Instance().BestCodecs);
     } else {
-        EnableCompression(nullptr, 0);
+        TArrayRef<TStringBuf> codings;
+        EnableCompression(codings);
     }
 }
 
-void THttpOutput::EnableCompression(const char** schemas, size_t count) {
-    Impl_->EnableCompression(schemas, count);
+void THttpOutput::EnableCompression(TArrayRef<const TStringBuf> schemas) {
+    Impl_->EnableCompression(schemas);
 }
 
 void THttpOutput::EnableKeepAlive(bool enable) {
@@ -1093,6 +1086,6 @@ void SendMinimalHttpRequest(TSocket& s, const TStringBuf& host, const TStringBuf
     output.Finish();
 }
 
-TArrayRef<const char*> SupportedCodings() {
+TArrayRef<TStringBuf> SupportedCodings() {
     return TCodecFactory::Instance().BestCodecs;
 }
