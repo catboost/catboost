@@ -6,10 +6,12 @@
 #include <catboost/private/libs/data_util/line_data_reader.h>
 #include <catboost/libs/helpers/exception.h>
 
+#include <util/generic/maybe.h>
 #include <util/generic/ptr.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
 #include <util/generic/ylimits.h>
+#include <util/system/mutex.h>
 #include <util/system/types.h>
 
 
@@ -54,15 +56,7 @@ namespace NCB {
 
         TVector<TColumn> CreateColumnsDescription(ui32 columnsCount);
 
-        ui32 GetObjectCount() override {
-            const ui64 dataLineCount = LineDataReader->GetDataLineCount();
-            CB_ENSURE(
-                dataLineCount <= Max<ui32>(), "CatBoost does not support datasets with more than "
-                << Max<ui32>() << " objects"
-            );
-            // cast is safe - was checked above
-            return (ui32)dataLineCount;
-        }
+        ui32 GetObjectCountSynchronized() override;
 
         void StartBuilder(
             bool inBlock,
@@ -78,6 +72,10 @@ namespace NCB {
         char FieldDelimiter;
         THolder<NCB::ILineDataReader> LineDataReader;
         TBaselineReader BaselineReader;
+
+        // cached
+        TMutex ObjectCountMutex;
+        TMaybe<ui32> ObjectCount;
     };
 
 }

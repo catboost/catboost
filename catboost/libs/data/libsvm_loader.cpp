@@ -17,6 +17,7 @@
 #include <util/generic/xrange.h>
 #include <util/stream/file.h>
 #include <util/string/split.h>
+#include <util/system/guard.h>
 #include <util/system/types.h>
 
 
@@ -81,6 +82,20 @@ namespace NCB {
         if (BaselineReader.Inited()) {
             AsyncBaselineRowProcessor.ReadBlockAsync(GetReadBaselineFunc());
         }
+    }
+
+    ui32 TLibSvmDataLoader::GetObjectCountSynchronized() {
+        TGuard g(ObjectCountMutex);
+        if (!ObjectCount) {
+            const ui64 dataLineCount = LineDataReader->GetDataLineCount();
+            CB_ENSURE(
+                dataLineCount <= Max<ui32>(), "CatBoost does not support datasets with more than "
+                << Max<ui32>() << " objects"
+            );
+            // cast is safe - was checked above
+            ObjectCount = (ui32)dataLineCount;
+        }
+        return *ObjectCount;
     }
 
     void TLibSvmDataLoader::StartBuilder(

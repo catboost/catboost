@@ -8,11 +8,11 @@
 #include <library/object_factory/object_factory.h>
 #include <library/string_utils/csv/csv.h>
 
-#include <util/generic/maybe.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/vector.h>
 #include <util/stream/file.h>
 #include <util/string/split.h>
+#include <util/system/guard.h>
 #include <util/system/types.h>
 
 
@@ -77,6 +77,19 @@ namespace NCB {
         return Args.CdProvider->GetColumnsDescription(columnsCount);
     }
 
+    ui32 TCBDsvDataLoader::GetObjectCountSynchronized() {
+        TGuard g(ObjectCountMutex);
+        if (!ObjectCount) {
+            const ui64 dataLineCount = LineDataReader->GetDataLineCount();
+            CB_ENSURE(
+                dataLineCount <= Max<ui32>(), "CatBoost does not support datasets with more than "
+                << Max<ui32>() << " objects"
+            );
+            // cast is safe - was checked above
+            ObjectCount = (ui32)dataLineCount;
+        }
+        return *ObjectCount;
+    }
 
     void TCBDsvDataLoader::StartBuilder(bool inBlock,
                                           ui32 objectCount, ui32 /*offset*/,
