@@ -165,6 +165,6 @@ unsigned ParseHttpRetCode(const TStringBuf& ret);
 /// Отправляет HTTP-серверу запрос с минимумом необходимых заголовков.
 void SendMinimalHttpRequest(TSocket& s, const TStringBuf& host, const TStringBuf& request, const TStringBuf& agent = "YandexSomething/1.0", const TStringBuf& from = "webadmin@yandex.ru");
 
-TArrayRef<TStringBuf> SupportedCodings();
+TArrayRef<const TStringBuf> SupportedCodings();
 
 /// @}

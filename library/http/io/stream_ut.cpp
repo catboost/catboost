@@ -14,7 +14,7 @@
 #include <util/stream/zlib.h>
 #include <util/stream/null.h>
 
-Y_UNIT_TEST_SUITE(THttpTest) {
+Y_UNIT_TEST_SUITE(THttpStreamTest) {
     class TTestHttpServer: public THttpServer::ICallBack {
         class TRequest: public THttpClientRequestEx {
         public:
@@ -708,4 +708,4 @@ Y_UNIT_TEST_SUITE(THttpTest) {
         UNIT_ASSERT_VALUES_EQUAL(res.size(), DoTestHttpOutputSize(res, false));
         UNIT_ASSERT_VALUES_UNEQUAL(res.size(), DoTestHttpOutputSize(res, true));
     }
-} // THttpTest suite
+} // THttpStreamTest suite
