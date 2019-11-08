@@ -82,7 +82,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\borders_io.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\checksum.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\clear_array.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\compare.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\compression.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\connected_components.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\cpu_random.cpp"/>
@@ -178,7 +177,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\borders_io.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\checksum.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\clear_array.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\compare.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\compression.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\connected_components.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\cpu_random.h"/>
