@@ -273,6 +273,7 @@ static void MergeBuckets(const TVector<const TCtrValueTable*>& tables, TCtrValue
                     }
                 }
             }
+            target->TargetClassesCount = targetClassesCount;
         }
         break;
 

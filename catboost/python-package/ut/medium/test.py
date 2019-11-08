@@ -4808,7 +4808,9 @@ def test_model_merging():
     model_cbm = test_output_path('model.bin')
     merged_model.save_model(model_cbm)
     CatBoostClassifier().load_model(model_cbm).save_model(model_json, format='json')
-    CatBoostClassifier().load_model(model_json, format='json')
+    loaded_sum = CatBoostClassifier().load_model(model_json, format='json')
+    loaded_merged_pred = loaded_sum.predict(test_pool, prediction_type='RawFormulaVal')
+    assert np.all(abs(pred - loaded_merged_pred) < 1e-15)
 
 
 def test_tree_depth_pairwise(task_type):

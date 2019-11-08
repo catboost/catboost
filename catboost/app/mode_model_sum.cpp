@@ -1,6 +1,7 @@
 #include "modes.h"
 
 #include <catboost/libs/model/model.h>
+#include <catboost/libs/model/model_export/model_exporter.h>
 
 #include <library/getopt/small/last_getopt.h>
 
@@ -9,6 +10,7 @@
 int mode_model_sum(int argc, const char* argv[]) {
     TVector<std::pair<TString, double>> modelPathsWithWeights;
     TString outputModelPath;
+    EModelType outputModelFormat = EModelType::CatboostBinary;
     ECtrTableMergePolicy ctrMergePolicy = ECtrTableMergePolicy::IntersectingCountersAverage;
 
     auto parser = NLastGetopt::TOpts();
@@ -26,7 +28,11 @@ int mode_model_sum(int argc, const char* argv[]) {
         .Required()
         .RequiredArgument("PATH")
         .StoreResult(&outputModelPath);
-
+    parser.AddLongOption("output-model-format")
+        .OptionalArgument("output model format")
+        .Handler1T<TString>([&outputModelFormat](const TString& format) {
+            outputModelFormat = FromString<EModelType>(format);
+        });
     parser.AddLongOption("ctr-merge-policy",
          TString::Join(
             "One of ",
@@ -44,6 +50,6 @@ int mode_model_sum(int argc, const char* argv[]) {
         weights.emplace_back(weight);
     }
     TFullModel result = SumModels(modelPtrs, weights, ctrMergePolicy);
-    OutputModel(result, outputModelPath);
+    NCB::ExportModel(result, outputModelPath, outputModelFormat);
     return 0;
 }
