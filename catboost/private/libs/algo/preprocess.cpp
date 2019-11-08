@@ -142,10 +142,6 @@ static bool NeedShuffle(
     if (catBoostOptions.DataProcessingOptions->HasTimeFlag) {
         return false;
     }
-    // TODO(akhropov): make it universal ?
-    if (catBoostOptions.GetTaskType() == ETaskType::CPU) {
-        return true;
-    }
 
     if (catFeatureCount == 0) {
         NCatboostOptions::TCatBoostOptions updatedOpitons(catBoostOptions);

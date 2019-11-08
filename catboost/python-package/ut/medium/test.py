@@ -1237,7 +1237,7 @@ def test_onnx_export(problem_type):
             'onnx_graph_name': 'CatBoostModel_for_%s' % problem_type
         }
     )
-    return compare_canonical_models(output_onnx_model_path)
+    return compare_canonical_models(output_onnx_model_path, diff_limit=1e-18)
 
 
 @pytest.mark.parametrize('problem_type', ['binclass', 'multiclass', 'regression'])
