@@ -79,9 +79,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\library\http\io\chunk.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\http\io\compression.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\http\io\headers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\http\io\stream.cpp"/>
     <ClInclude Include="$(SolutionDir)..\library\http\io\chunk.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\http\io\compression.h"/>
     <ClInclude Include="$(SolutionDir)..\library\http\io\headers.h"/>
     <ClInclude Include="$(SolutionDir)..\library\http\io\stream.h"/>
   </ItemGroup>
