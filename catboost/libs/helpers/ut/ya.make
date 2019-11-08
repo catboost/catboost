@@ -7,7 +7,6 @@ SIZE(MEDIUM)
 SRCS(
     array_subset_ut.cpp
     checksum_ut.cpp
-    compare_ut.cpp
     compression_ut.cpp
     dbg_output_ut.cpp
     double_array_iterator_ut.cpp

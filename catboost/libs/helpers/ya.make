@@ -7,7 +7,6 @@ SRCS(
     borders_io.cpp
     checksum.cpp
     clear_array.cpp
-    compare.cpp
     compression.cpp
     connected_components.cpp
     cpu_random.cpp
