@@ -104,9 +104,11 @@ namespace NCB {
 
 
     template <>
-    bool CompareModels<onnx::ModelProto>(const onnx::ModelProto& model1, const onnx::ModelProto& model2, TString* diffString) {
+    bool CompareModels<onnx::ModelProto>(const onnx::ModelProto& model1, const onnx::ModelProto& model2, double diffLimit, TString* diffString) {
         google::protobuf::util::DefaultFieldComparator fieldComparator;
         fieldComparator.set_treat_nan_as_equal(true);
+        fieldComparator.set_float_comparison(google::protobuf::util::DefaultFieldComparator::APPROXIMATE);
+        fieldComparator.SetDefaultFractionAndMargin(diffLimit, diffLimit);
 
         auto ignoreCriteria = MakeHolder<TOnnxModelIgnoreFields>();
 

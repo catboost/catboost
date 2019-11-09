@@ -126,13 +126,13 @@ static bool CompareModelInfo(const THashMap<TString, TString>& modelInfo1, const
 
 // returns Nothing() if both lhs and rhs are not of TModel type
 template <class TModel>
-TMaybe<int> ProcessSubType(const TStringBuf modelTypeName, const TStringBuf modelPath1, const TStringBuf modelPath2) {
+TMaybe<int> ProcessSubType(const TStringBuf modelTypeName, const TStringBuf modelPath1, const TStringBuf modelPath2, double diffLimit) {
     TMaybe<TModel> model1 = TryLoadModel<TModel>(modelPath1);
     TMaybe<TModel> model2 = TryLoadModel<TModel>(modelPath2);
 
     if (model1 && model2) {
         TString diffString;
-        bool modelsAreEqual = CompareModels<TModel>(*model1, *model2, &diffString);
+        bool modelsAreEqual = CompareModels<TModel>(*model1, *model2, diffLimit, &diffString);
         if (modelsAreEqual) {
             Clog << "Models are equal" << Endl;
             return 0;
@@ -187,12 +187,12 @@ int main(int argc, char** argv) {
     TOptsParseResult args(&opts, argc, argv);
     TVector<TString> freeArgs = args.GetFreeArgs();
 
-    TMaybe<int> subTypeResult = ProcessSubType<onnx::ModelProto>("ONNX", freeArgs[0], freeArgs[1]);
+    TMaybe<int> subTypeResult = ProcessSubType<onnx::ModelProto>("ONNX", freeArgs[0], freeArgs[1], diffLimit);
     if (subTypeResult) {
         return *subTypeResult;
     }
 
-    subTypeResult = ProcessSubType<TPmmlModel>("PMML", freeArgs[0], freeArgs[1]);
+    subTypeResult = ProcessSubType<TPmmlModel>("PMML", freeArgs[0], freeArgs[1], diffLimit);
     if (subTypeResult) {
         return *subTypeResult;
     }
