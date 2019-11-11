@@ -958,7 +958,7 @@ def _build_train_pool(X, y, cat_features, text_features, pairs, sample_weight, g
         train_pool = X
         if any(v is not None for v in [cat_features, text_features, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline]):
             raise CatBoostError("cat_features, text_features, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline should have the None type when X has catboost.Pool type.")
-        if X.get_label() is None and X.num_pairs() == 0:
+        if (not X.has_label()) and X.num_pairs() == 0:
             raise CatBoostError("Label in X has not been initialized.")
         if y is not None:
             raise CatBoostError("Incorrect value of y: X is catboost.Pool object, y must be initialized inside catboost.Pool.")
@@ -3986,11 +3986,11 @@ class CatBoostClassifier(CatBoost):
         accuracy : float
         """
         if isinstance(X, Pool):
-            if X.get_label() is None:
-                raise CatBoostError("Label in X has not initialized.")
             if y is not None:
                 raise CatBoostError("Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool.")
             y = X.get_label()
+            if y is None:
+                raise CatBoostError("Label in X has not initialized.")
         if isinstance(y, DataFrame):
             if len(y.columns) != 1:
                 raise CatBoostError("y is DataFrame and has {} columns, but must have exactly one.".format(len(y.columns)))
@@ -4326,11 +4326,11 @@ class CatBoostRegressor(CatBoost):
         R^2 : float
         """
         if isinstance(X, Pool):
-            if X.get_label() is None:
-                raise CatBoostError("Label in X has not initialized.")
             if y is not None:
                 raise CatBoostError("Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool.")
             y = X.get_label()
+            if y is None:
+                raise CatBoostError("Label in X has not initialized.")
         elif y is None:
             raise CatBoostError("y should be specified.")
         y = np.array(y, dtype=np.float64)

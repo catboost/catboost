@@ -3543,6 +3543,15 @@ cdef class _PoolBase:
 
         return data
 
+
+    cpdef has_label(self):
+        """
+        Returns
+        -------
+        True if Pool has label data
+        """
+        return self.__pool.Get()[0].MetaInfo.TargetCount > 0
+
     cpdef get_label(self):
         """
         Get labels from Pool.
