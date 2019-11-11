@@ -19,6 +19,7 @@ SRCS(
     polymorphic_type_containers_ut.cpp
     resource_constrained_executor_ut.cpp
     resource_holder_ut.cpp
+    sample_ut.cpp
     serialization_ut.cpp
     short_vector_ops_ut.cpp
     sparse_array_ut.cpp

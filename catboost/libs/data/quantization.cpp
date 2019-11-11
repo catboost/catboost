@@ -13,6 +13,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
+#include <catboost/libs/helpers/sample.h>
 #include <catboost/libs/helpers/resource_constrained_executor.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/private/libs/labels/label_converter.h>
@@ -93,16 +94,50 @@ namespace NCB {
     }
 
     struct TSubsetIndexingForBuildBorders {
-        // for dense features, already composed with rawDataProvider's Subset
-        TAtomicSharedPtr<TFeaturesArraySubsetIndexing> ComposedSubset;
+        // for dense features, already composed with rawDataProvider's Subset, incremental
+        TFeaturesArraySubsetIndexing ComposedSubset;
 
         // for sparse features
         TMaybe<TFeaturesArraySubsetInvertedIndexing> InvertedSubset;
+
+    public:
+        TSubsetIndexingForBuildBorders() = default;
+
+        // composedSubset is not necessarily incremental
+        TSubsetIndexingForBuildBorders(
+            const TFeaturesArraySubsetIndexing& srcIndexing,
+            const TFeaturesArraySubsetIndexing& subsetIndexing,
+            NPar::TLocalExecutor* localExecutor
+        ) {
+            // non-incremental
+            TFeaturesArraySubsetIndexing composedIndexing = Compose(srcIndexing, subsetIndexing);
+
+            // convert to incremental
+            if (HoldsAlternative<TFullSubset<ui32>>(composedIndexing)) {
+                ComposedSubset = std::move(composedIndexing);
+            } else {
+                TVector<ui32> composedIndices;
+                composedIndices.yresize(composedIndexing.Size());
+                TArrayRef<ui32> composedIndicesRef = composedIndices;
+
+                composedIndexing.ParallelForEach(
+                    [=] (ui32 objectIdx, ui32 srcObjectIdx) {
+                        composedIndicesRef[objectIdx] = srcObjectIdx;
+                    },
+                    localExecutor
+                );
+
+                Sort(composedIndices);
+
+                ComposedSubset = TFeaturesArraySubsetIndexing(std::move(composedIndices));
+            }
+            InvertedSubset = GetInvertedIndexing(subsetIndexing, srcIndexing.Size(), localExecutor);
+        }
     };
 
     // TODO(akhropov): maybe use different sample selection logic for sparse data
     static TSubsetIndexingForBuildBorders GetSubsetForBuildBorders(
-        TAtomicSharedPtr<TFeaturesArraySubsetIndexing> srcIndexing,
+        const TFeaturesArraySubsetIndexing& srcIndexing,
         const TFeaturesLayout& featuresLayoutForQuantization,
         const TQuantizedFeaturesInfo& quantizedFeaturesInfo,
         EObjectsOrder srcObjectsOrder,
@@ -110,10 +145,8 @@ namespace NCB {
         TRestorableFastRng64* rand,
         NPar::TLocalExecutor* localExecutor
     ) {
-        TSubsetIndexingForBuildBorders result;
-
         if (NeedToCalcBorders(featuresLayoutForQuantization, quantizedFeaturesInfo)) {
-            const ui32 objectCount = srcIndexing->Size();
+            const ui32 objectCount = srcIndexing.Size();
             const ui32 sampleSize = GetSampleSizeForBorderSelectionType(
                 objectCount,
                 /*TODO(kirillovs): iterate through all per feature binarization settings and select smallest
@@ -122,8 +155,8 @@ namespace NCB {
                 quantizedFeaturesInfo.GetFloatFeatureBinarization(Max<ui32>()).BorderSelectionType,
                 options.MaxSubsetSizeForBuildBordersAlgorithms
             );
+            TFeaturesArraySubsetIndexing subsetIndexing;
             if (sampleSize < objectCount) {
-                TFeaturesArraySubsetIndexing subsetIndexing;
                 if (srcObjectsOrder == EObjectsOrder::RandomShuffled) {
                     // just get first sampleSize elements
                     TVector<TSubsetBlock<ui32>> blocks = {TSubsetBlock<ui32>({0, sampleSize}, 0)};
@@ -131,32 +164,16 @@ namespace NCB {
                         TRangesSubset<ui32>(sampleSize, std::move(blocks))
                     );
                 } else {
-                    TIndexedSubset<ui32> randomShuffle;
-                    randomShuffle.yresize(objectCount);
-                    std::iota(randomShuffle.begin(), randomShuffle.end(), 0);
-                    if (options.CpuCompatibilityShuffleOverFullData) {
-                        Shuffle(randomShuffle.begin(), randomShuffle.end(), *rand);
-                    } else {
-                        for (auto i : xrange(sampleSize)) {
-                            std::swap(randomShuffle[i], randomShuffle[rand->Uniform(i, objectCount)]);
-                        }
-                    }
-                    randomShuffle.resize(sampleSize);
+                    TIndexedSubset<ui32> randomShuffle = SampleIndices<ui32>(objectCount, sampleSize, rand);
                     subsetIndexing = TFeaturesArraySubsetIndexing(std::move(randomShuffle));
                 }
-                result.ComposedSubset = MakeAtomicShared<TFeaturesArraySubsetIndexing>(
-                    Compose(
-                        *srcIndexing,
-                        subsetIndexing
-                    )
-                );
-                result.InvertedSubset = GetInvertedIndexing(subsetIndexing, objectCount, localExecutor);
             } else {
-                result.ComposedSubset = srcIndexing;
-                result.InvertedSubset.ConstructInPlace(TFullSubset<ui32>(objectCount));
+                subsetIndexing = TFeaturesArraySubsetIndexing(TFullSubset<ui32>(objectCount));
             }
+            return TSubsetIndexingForBuildBorders(srcIndexing, subsetIndexing, localExecutor);
+        } else {
+            return TSubsetIndexingForBuildBorders();
         }
-        return result;
     }
 
     template <class T, EFeatureValuesType FeatureValuesType>
@@ -263,7 +280,7 @@ namespace NCB {
 
         Y_VERIFY(binarizationOptions.BorderCount > 0);
 
-        const ui32 sampleCount = subsetIndexingForBuildBorders.ComposedSubset->Size();
+        const ui32 sampleCount = subsetIndexingForBuildBorders.ComposedSubset.Size();
 
         // featureValues.Values will not contain nans
         NSplitSelection::TFeatureValues featureValues{TVector<float>()};
@@ -282,7 +299,7 @@ namespace NCB {
             ITypedArraySubsetPtr<float> srcFeatureData = denseSrcFeature->GetData();
 
             ITypedArraySubsetPtr<float> srcDataForBuildBorders = srcFeatureData->CloneWithNewSubsetIndexing(
-                subsetIndexingForBuildBorders.ComposedSubset.Get()
+                &subsetIndexingForBuildBorders.ComposedSubset
             );
 
             // does not contain nans
@@ -2208,7 +2225,7 @@ namespace NCB {
             TObjectsGroupingPtr objectsGrouping = rawDataProvider->ObjectsGrouping;
 
             TSubsetIndexingForBuildBorders subsetIndexingForBuildBorders = GetSubsetForBuildBorders(
-                srcObjectsCommonData.SubsetIndexing,
+                *srcObjectsCommonData.SubsetIndexing,
                 *featuresLayout,
                 *quantizedFeaturesInfo,
                 srcObjectsCommonData.Order,

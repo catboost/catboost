@@ -37,6 +37,7 @@ SRCS(
     resource_constrained_executor.cpp
     resource_holder.cpp
     restorable_rng.cpp
+    sample.cpp
     serialization.cpp
     set.cpp
     short_vector_ops.cpp
