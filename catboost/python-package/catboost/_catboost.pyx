@@ -3699,8 +3699,8 @@ cdef class _CatBoost:
     def __eq__(self, _CatBoost other):
         return dereference(self.__model) == dereference(other.__model)
 
-    def __neq__(self, _CatBoost other):
-        return self.__model != other.__model
+    def __ne__(self, _CatBoost other):
+        return dereference(self.__model) != dereference(other.__model)
 
     cpdef _reserve_test_evals(self, num_tests):
         self.__test_evals.resize(num_tests)
