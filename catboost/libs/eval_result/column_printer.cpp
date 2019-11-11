@@ -17,12 +17,12 @@ namespace NCB {
         const TVector<TVector<TVector<double>>>& rawValues,
         const EPredictionType predictionType,
         const TString& lossFunctionName,
+        ui32 targetDimension,
         const TExternalLabelsHelper& visibleLabelsHelper,
         TMaybe<std::pair<size_t, size_t>> evalParameters)
         : VisibleLabelsHelper(visibleLabelsHelper) {
         int begin = 0;
-        const auto maybeLossType = TryParseLossType(lossFunctionName);
-        const bool isMultiRegression = maybeLossType && IsMultiRegressionObjective(*maybeLossType);
+        const bool isMultiTarget = targetDimension > 1;
         for (const auto& raws : rawValues) {
             CB_ENSURE(VisibleLabelsHelper.IsInitialized() == IsMulticlass(raws),
                       "Inappropriate usage of visible label helper: it MUST be initialized ONLY for multiclass problem");
@@ -31,7 +31,7 @@ namespace NCB {
 
             const auto& headers = CreatePredictionTypeHeader(
                 approx.size(),
-                isMultiRegression,
+                isMultiTarget,
                 predictionType,
                 VisibleLabelsHelper,
                 begin,
@@ -75,7 +75,7 @@ namespace NCB {
 
     TVector<TString> CreatePredictionTypeHeader(
         ui32 approxDimension,
-        bool isMultiRegression,
+        bool isMultiTarget,
         EPredictionType predictionType,
         const TExternalLabelsHelper& visibleLabelsHelper,
         ui32 startTreeIndex,
@@ -88,7 +88,7 @@ namespace NCB {
             TStringBuilder str;
             str << predictionType;
             if (classCount > 1) {
-                str << (isMultiRegression ?  ":Dim=" : ":Class=")  << visibleLabelsHelper.GetVisibleClassNameFromClass(classId);
+                str << (isMultiTarget ?  ":Dim=" : ":Class=")  << visibleLabelsHelper.GetVisibleClassNameFromClass(classId);
             }
             if (evalParameters && (evalParameters->first != evalParameters->second)) {
                 str << ":TreesCount=[" << startTreeIndex << "," <<

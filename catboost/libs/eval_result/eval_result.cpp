@@ -178,7 +178,7 @@ namespace NCB {
             EPredictionType type;
             if (TryFromString<EPredictionType>(outputColumn, type)) {
                 columnPrinter.push_back(MakeHolder<TEvalPrinter>(executor, evalResult.GetRawValuesConstRef(), type, lossFunctionName,
-                                                                 visibleLabelsHelper, evalParameters));
+                                                                 pool.RawTargetData.GetTargetDimension(), visibleLabelsHelper, evalParameters));
                 continue;
             }
             EColumn outputType;
