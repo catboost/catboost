@@ -111,6 +111,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\resource_constrained_executor.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\resource_holder.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\restorable_rng.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\sample.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\serialization.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\set.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\short_vector_ops.cpp"/>
@@ -207,6 +208,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\resource_constrained_executor.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\resource_holder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\restorable_rng.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\sample.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\serialization.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\set.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\short_vector_ops.h"/>
