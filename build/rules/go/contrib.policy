@@ -4,4 +4,7 @@
 # CSADMIN-26541. responsible: maxk@, g:marketsre
 ALLOW market/sre/tools/config-primer/src/internal/blogic -> contrib/go/patched/hugo
 
+# CONTRIB-1581. responsible: grihabor@, g:strm-admin
+ALLOW strm/plgo/pkg/cdn -> contrib/go/patched/hashring
+
 DENY .* -> contrib/go/patched/
