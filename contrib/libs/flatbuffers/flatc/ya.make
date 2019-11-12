@@ -29,6 +29,7 @@ SRCS(
     idl_gen_python.cpp
     idl_gen_go.cpp
     idl_gen_json_schema.cpp
+    idl_gen_cpp_yandex_maps_iter.cpp
 )
 
 END()
