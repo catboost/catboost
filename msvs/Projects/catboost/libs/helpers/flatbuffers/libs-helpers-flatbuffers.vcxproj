@@ -103,7 +103,7 @@ exit /b %1
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/helpers/flatbuffers/guid.fbs.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\catboost\libs\helpers\flatbuffers\guid.fbs;$(SolutionDir)..\build\scripts\stdout2stderr.py;$(SolutionDir)$(Configuration)\contrib\tools\flatc\flatc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers\guid.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers\guid.bfbs;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers\guid.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers\guid.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers\guid.bfbs;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

@@ -103,7 +103,7 @@ exit /b %1
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/model/flatbuffers/ctr_data.fbs.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\catboost\libs\model\flatbuffers\ctr_data.fbs;$(SolutionDir)..\build\scripts\stdout2stderr.py;$(SolutionDir)$(Configuration)\contrib\tools\flatc\flatc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\ctr_data.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\ctr_data.bfbs;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\ctr_data.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\ctr_data.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\ctr_data.bfbs;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\model\flatbuffers\features.fbs">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -130,7 +130,7 @@ exit /b %1
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/model/flatbuffers/features.fbs.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\catboost\libs\model\flatbuffers\features.fbs;$(SolutionDir)..\build\scripts\stdout2stderr.py;$(SolutionDir)$(Configuration)\contrib\tools\flatc\flatc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\features.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\features.bfbs;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\features.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\features.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\features.bfbs;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\model\flatbuffers\model.fbs">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -157,7 +157,7 @@ exit /b %1
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/model/flatbuffers/model.fbs.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\catboost\libs\model\flatbuffers\model.fbs;$(SolutionDir)..\build\scripts\stdout2stderr.py;$(SolutionDir)$(Configuration)\contrib\tools\flatc\flatc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\model.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\model.bfbs;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\model.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\model.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\model\flatbuffers\model.bfbs;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

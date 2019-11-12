@@ -103,7 +103,7 @@ exit /b %1
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/idl/pool/flat/quantized_chunk_t.fbs.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\catboost\idl\pool\flat\quantized_chunk_t.fbs;$(SolutionDir)..\build\scripts\stdout2stderr.py;$(SolutionDir)$(Configuration)\contrib\tools\flatc\flatc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\flat\quantized_chunk_t.fbs.h;$(SolutionDir)$(Configuration)\catboost\idl\pool\flat\quantized_chunk_t.bfbs;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\flat\quantized_chunk_t.fbs.h;$(SolutionDir)$(Configuration)\catboost\idl\pool\flat\quantized_chunk_t.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\idl\pool\flat\quantized_chunk_t.bfbs;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

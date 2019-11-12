@@ -103,7 +103,7 @@ exit /b %1
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/library/text_processing/dictionary/idl/dictionary_meta_info.fbs.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\library\text_processing\dictionary\idl\dictionary_meta_info.fbs;$(SolutionDir)..\build\scripts\stdout2stderr.py;$(SolutionDir)$(Configuration)\contrib\tools\flatc\flatc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\text_processing\dictionary\idl\dictionary_meta_info.fbs.h;$(SolutionDir)$(Configuration)\library\text_processing\dictionary\idl\dictionary_meta_info.bfbs;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\text_processing\dictionary\idl\dictionary_meta_info.fbs.h;$(SolutionDir)$(Configuration)\library\text_processing\dictionary\idl\dictionary_meta_info.iter.fbs.h;$(SolutionDir)$(Configuration)\library\text_processing\dictionary\idl\dictionary_meta_info.bfbs;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
