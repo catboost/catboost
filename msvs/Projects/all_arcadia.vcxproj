@@ -282,6 +282,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\feature_estimator\private-libs-feature_estimator.vcxproj">
       <Project>29D5DF37-EE16-EE4D-D67A-36EB7D0B5736</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\feature_estimator\ut\catboost-private-libs-feature_estimator-ut.vcxproj">
+      <Project>F3CAD554-9B2A-D12C-C3EC-E60A408B4A37</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\functools\private-libs-functools.vcxproj">
       <Project>DA3CA223-F5CD-A8D5-08DD-830BB28E5F6D</Project>
     </ProjectReference>
@@ -341,6 +344,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\text_processing\private-libs-text_processing.vcxproj">
       <Project>2FD7974D-753A-8A5B-1DDD-D82AF77A73A1</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\text_processing\ut\catboost-private-libs-text_processing-ut.vcxproj">
+      <Project>D3805C63-5255-18AC-D79A-F2EA37145E63</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\text_processing\ut\lib\text_processing-ut-lib.vcxproj">
       <Project>D5B17AA8-A27C-F971-3059-CC2F24B7DD5C</Project>
