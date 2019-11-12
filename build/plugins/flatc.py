@@ -15,9 +15,8 @@ class FlatcBase(iw.CustomCommand):
 
     def output(self):
         base_path = common.tobuilddir(common.stripext(self._path))
-        return [
-            (base_path + self.extension(), []),
-            (base_path + self.schema_extension(), ['noauto'])]
+        return [(base_path + extension, []) for extension in self.extensions()] +\
+            [(base_path + self.schema_extension(), ['noauto'])]
 
     def run(self, binary):
         return self.do_run(binary, self._path)
@@ -28,7 +27,11 @@ class FlatcBase(iw.CustomCommand):
                 yield '-I'
                 yield self.resolve_path(x)
         output_dir = os.path.dirname(self.resolve_path(common.get(self.output, 0)))
-        cmd = common.get_interpreter_path() + ['$S/build/scripts/stdout2stderr.py', binary, '--cpp', '--keep-prefix', '--gen-mutable', '--schema', '-b'] + list(incls()) + ['-o', output_dir, path]
+        cmd = (common.get_interpreter_path() +
+               ['$S/build/scripts/stdout2stderr.py', binary, '--cpp', '--keep-prefix', '--gen-mutable', '--schema', '-b'] +
+               self.extra_arguments() +
+               list(incls()) +
+               ['-o', output_dir, path])
         self.call(cmd)
 
 
@@ -43,11 +46,14 @@ class Flatc(FlatcBase):
     def tools(self):
         return ['contrib/tools/flatc']
 
-    def extension(self):
-        return ".fbs.h"
+    def extensions(self):
+        return [".fbs.h", ".iter.fbs.h"]
 
     def schema_extension(self):
         return ".bfbs"
+
+    def extra_arguments(self):
+        return ['--yandex-maps-iter']
 
 
 class Flatc64(FlatcBase):
@@ -61,11 +67,14 @@ class Flatc64(FlatcBase):
     def tools(self):
         return ['contrib/tools/flatc64']
 
-    def extension(self):
-        return ".fbs64.h"
+    def extensions(self):
+        return [".fbs64.h"]
 
     def schema_extension(self):
         return ".bfbs64"
+
+    def extra_arguments(self):
+        return []
 
 
 def init():
