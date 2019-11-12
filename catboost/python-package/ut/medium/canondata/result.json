@@ -24,7 +24,7 @@
         "uri": "file://test.test_classification_ctr_CPU_/model.bin"
     },
     "test.test_compute_options": {
-        "checksum": "0a0022e7ba2e7d83869978053ff4c377",
+        "checksum": "d16908a7e205ed6a4e728b1be2e57d3a",
         "uri": "file://test.test_compute_options/options.json"
     },
     "test.test_continue_learning_with_changing_dataset": {

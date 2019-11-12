@@ -26,6 +26,10 @@ namespace NCatboostOptions {
             TMaybe<TDictionaryBuilderOptions> dictionaryBuilderOptions = Nothing()
         );
 
+        static i32 DefaultMaxDictionarySize() {
+            return 50000;
+        }
+
         void Save(NJson::TJsonValue* optionsJson) const;
         void Load(const NJson::TJsonValue& options);
         bool operator==(const TTextColumnDictionaryOptions& rhs) const;
@@ -40,7 +44,10 @@ namespace NCatboostOptions {
     struct TFeatureCalcerDescription {
     public:
         TFeatureCalcerDescription();
-        explicit TFeatureCalcerDescription(EFeatureCalcerType featureCalcerType);
+        explicit TFeatureCalcerDescription(
+            EFeatureCalcerType featureCalcerType,
+            NJson::TJsonValue calcerOptions = NJson::TJsonValue()
+        );
         TFeatureCalcerDescription& operator=(EFeatureCalcerType featureCalcerType);
         void Save(NJson::TJsonValue* optionsJson) const;
         void Load(const NJson::TJsonValue& options);
@@ -49,6 +56,7 @@ namespace NCatboostOptions {
 
     public:
         TOption<EFeatureCalcerType> CalcerType;
+        TOption<NJson::TJsonValue> CalcerOptions;
     };
 
     struct TTextFeatureProcessing {
@@ -86,6 +94,7 @@ namespace NCatboostOptions {
         const TVector<TTextColumnDictionaryOptions>& GetDictionaries() const;
         const TVector<TTextFeatureProcessing>& GetFeatureProcessing(ui32 textFeatureIdx) const;
         void SetDefaultMinTokenOccurrence(ui64 minTokenOccurrence);
+        void SetDefaultMaxDictionarySize(ui32 maxDictionarySize);
 
         static TVector<TTextColumnDictionaryOptions> GetDefaultDictionaries();
         static TMap<EFeatureCalcerType, TVector<TString>> GetDefaultCalcerDictionaries();

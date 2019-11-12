@@ -72,8 +72,8 @@ Y_UNIT_TEST_SUITE(EmbeddingTest) {
         auto embedding = GenerateEmbedding(1000, 100, &rng, &builder);
         DumpEmbedding(embedding, "embedding.txt");
 
-        auto dict = new TDictionaryProxy(builder.FinishBuilding());
-        auto embeddingFromFile = LoadEmbedding("embedding.txt", *dict);
+        auto dict = TDictionaryProxy(builder.FinishBuilding());
+        auto embeddingFromFile = LoadEmbedding("embedding.txt", dict);
 
         TVector<float> testVec;
 
@@ -83,11 +83,11 @@ Y_UNIT_TEST_SUITE(EmbeddingTest) {
         int i = 0;
 
         for (const auto& [word, vec] : embedding) {
-            UNIT_ASSERT(dict->Apply(word) != dict->GetUnknownTokenId());
+            UNIT_ASSERT(dict.Apply(word) != dict.GetUnknownTokenId());
             TText text;
-            dict->Apply({word}, &text);
+            dict.Apply({word}, &text);
             auto id = text.begin()->first;
-            UNIT_ASSERT(dict->Apply(word) == id);
+            UNIT_ASSERT(dict.Apply(word) == id);
 
             embeddingFromFile->Apply(text, &testVec);
             TVector<float> ref;

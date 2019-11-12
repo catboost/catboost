@@ -2699,7 +2699,7 @@ def test_text_processing_options(dictionaries, loss_function):
     dictionaries_names = ','.join(dictionaries.keys())
     dictionaries_description = ';'.join([key + ':' + value for key, value in dictionaries.items()])
 
-    text_processing = [calcer + ':' + dictionaries_names for calcer in ['BM25', 'BoW', 'NaiveBayes']]
+    text_processing = [calcer + '+' + dictionaries_names for calcer in ['BM25', 'BoW', 'NaiveBayes']]
     text_processing = '|'.join(text_processing)
 
     pool_name = 'rotten_tomatoes'

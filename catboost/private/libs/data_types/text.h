@@ -1,7 +1,7 @@
 #pragma once
 
 #include <library/containers/dense_hash/dense_hash.h>
-
+#include <util/stream/output.h>
 
 namespace NCB {
 
@@ -59,9 +59,23 @@ namespace NCB {
     public:
         TText() : TBase() {}
 
+        TText(std::initializer_list<std::pair<TTokenId, ui32>> initializerList)
+            : TBase()
+        {
+            for (const auto& value: initializerList) {
+                insert(value);
+            }
+        }
+
         bool operator!=(const TText& rhs) const {
             return !(*this == rhs);
         }
     };
+}
 
+template <>
+inline void Out<NCB::TText>(IOutputStream& stream, const NCB::TText& text) {
+    for (const auto& [tokenId, count] : text) {
+        stream << "TokenId=" << static_cast<ui32>(tokenId) << ", Count=" << count << Endl;
+    }
 }

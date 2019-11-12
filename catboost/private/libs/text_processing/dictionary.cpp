@@ -38,6 +38,11 @@ namespace NCB {
         return TTokenId(DictionaryImpl->GetUnknownTokenId());
     }
 
+    TVector<TTokenId> TDictionaryProxy::GetTopTokens(ui32 topSize) const {
+        topSize = Min(topSize, DictionaryImpl->Size());
+        return xrange(topSize);
+    }
+
     void TDictionaryProxy::Save(IOutputStream* stream) const {
         WriteMagic(DictionaryMagic.data(), MagicSize, Alignment, stream);
         Guid.Save(stream);

@@ -2078,7 +2078,8 @@ namespace NCB {
         TConstArrayRef<THolder<TStringTextValuesHolder>> textFeatures,
         const TFeaturesArraySubsetIndexing* dstSubsetIndexing,
         const TTextDigitizers& textDigitizers,
-        TArrayRef<THolder<TTokenizedTextValuesHolder>> dstQuantizedFeatures
+        TArrayRef<THolder<TTokenizedTextValuesHolder>> dstQuantizedFeatures,
+        NPar::TLocalExecutor* localExecutor
     ) {
         textDigitizers.Apply(
             [textFeatures](ui32 textFeatureIdx) {
@@ -2092,7 +2093,8 @@ namespace NCB {
                     TTextColumn::CreateOwning(std::move(tokenizedFeature)),
                     dstSubsetIndexing
                 );
-            }
+            },
+            localExecutor
         );
     }
 
@@ -2396,7 +2398,8 @@ namespace NCB {
                         rawDataProvider->ObjectsData->Data.TextFeatures,
                         subsetIndexing.Get(),
                         quantizedFeaturesInfo->GetTextDigitizers(),
-                        data->ObjectsData.Data.TextFeatures
+                        data->ObjectsData.Data.TextFeatures,
+                        localExecutor
                     );
 
                     AddTokenizedFeaturesToFeatureLayout(

@@ -163,7 +163,7 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
                 "  \"bagging_temperature\": 36.6,\n"
 
                 "  \"dictionaries\": [\"BiGram:token_level_type=Letter,gram_order=2\", \"Word:token_level_type=Word\"],\n"
-                "  \"text_processing\": [\"TextFeature~BoW:BiGram,Word|NaiveBayes:Word\"],\n"
+                "  \"text_processing\": [\"TextFeature~BoW+BiGram,Word|NaiveBayes+Word\"],\n"
 
                 "  \"per_float_feature_quantization\": [\"1:border_count=4\", \"2:nan_mode=Max,border_type=MinEntropy\"]\n"
 
@@ -191,7 +191,7 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
             TString refBootstrapType = "Bernoulli";
             double refBaggingTemperature = 36.6;
 
-            TVector<TString> refTextProcessing = {"TextFeature~BoW:BiGram,Word|NaiveBayes:Word"};
+            TVector<TString> refTextProcessing = {"TextFeature~BoW+BiGram,Word|NaiveBayes+Word"};
             TVector<TString> refDictionaries = {
                 "BiGram:token_level_type=Letter,gram_order=2",
                 "Word:token_level_type=Word"

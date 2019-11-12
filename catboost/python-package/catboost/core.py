@@ -3580,7 +3580,7 @@ class CatBoostClassifier(CatBoost):
 
     text_processing : list of strings,
         Each string is a text feature preprocessing description. Description should be written in format
-        [TextFeatureId~]NaiveBayes:DictionaryName1|BoW:LetterGramDictionary,BiGramDictionary
+        [TextFeatureId~]NaiveBayes+DictionaryName1|BoW+LetterGramDictionary,BiGramDictionary
         Where dictionaries names were taken from 'dictionaries' parameter and NaiveBayes,BoW is feature
         calcers which will be computed on corresponding, preprocessed by dictionaries, text features.
     """

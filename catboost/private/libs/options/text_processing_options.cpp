@@ -1,6 +1,7 @@
 #include "text_processing_options.h"
 #include "json_helper.h"
 
+#include <util/generic/cast.h>
 #include <util/generic/hash_set.h>
 #include <util/string/builder.h>
 #include <util/string/cast.h>
@@ -84,7 +85,7 @@ namespace NCatboostOptions {
             "dictionary_builder_options",
         TDictionaryBuilderOptions{
            /*OccurrenceLowerBound*/ 3,
-           /*MaxDictionarySize*/ -1
+           /*MaxDictionarySize*/ DefaultMaxDictionarySize()
         })
     {}
 
@@ -125,15 +126,32 @@ namespace NCatboostOptions {
     }
 
     TFeatureCalcerDescription::TFeatureCalcerDescription()
-        : CalcerType("calcer_type", EFeatureCalcerType::NaiveBayes) {}
+        : CalcerType("calcer_type", EFeatureCalcerType::NaiveBayes)
+        , CalcerOptions("calcer_options", NJson::TJsonValue())
+    {}
 
-    TFeatureCalcerDescription::TFeatureCalcerDescription(EFeatureCalcerType featureCalcerType)
-        : TFeatureCalcerDescription() {
+    TFeatureCalcerDescription::TFeatureCalcerDescription(
+        EFeatureCalcerType featureCalcerType,
+        NJson::TJsonValue calcerOptions
+    )
+        : TFeatureCalcerDescription()
+    {
         CalcerType.Set(featureCalcerType);
+        if (calcerOptions.IsDefined()) {
+            CalcerOptions.Set(calcerOptions);
+        }
     }
 
     void TFeatureCalcerDescription::Save(NJson::TJsonValue* optionsJson) const {
-        optionsJson->SetValue(ToString(CalcerType.Get()));
+        TStringBuilder calcerDescription;
+        calcerDescription << ToString(CalcerType.Get()) << ':';
+
+        for (auto& [key, value]: CalcerOptions->GetMap()) {
+            calcerDescription << key << '=' << value << ',';
+        }
+        calcerDescription.pop_back();
+
+        optionsJson->SetValue(ToString(calcerDescription));
     }
 
     void TFeatureCalcerDescription::Load(const NJson::TJsonValue& options) {
@@ -142,10 +160,26 @@ namespace NCatboostOptions {
         }
 
         const TString& calcerDescription = options.GetString();
-        if (EFeatureCalcerType calcerType; TryFromString<EFeatureCalcerType>(calcerDescription, calcerType)) {
+        TStringBuf calcerDescriptionStrBuf = calcerDescription;
+
+        TStringBuf calcerTypeString;
+        TStringBuf calcerOptionsString;
+        calcerDescriptionStrBuf.Split(':', calcerTypeString, calcerOptionsString);
+
+        if (EFeatureCalcerType calcerType; TryFromString<EFeatureCalcerType>(calcerTypeString, calcerType)) {
             CalcerType.Set(calcerType);
         } else {
-            CB_ENSURE(false, "Unknown feature estimator type " << calcerDescription);
+            CB_ENSURE(false, "Unknown feature estimator type " << calcerTypeString);
+        }
+
+        CalcerOptions->SetType(NJson::EJsonValueType::JSON_MAP);
+        if (!calcerOptionsString.empty()) {
+            for (TStringBuf optionString: StringSplitter(calcerOptionsString).Split(',')) {
+                TStringBuf name;
+                TStringBuf value;
+                optionString.Split('=', name, value);
+                CalcerOptions->InsertValue(name, value);
+            }
         }
     }
 
@@ -233,7 +267,7 @@ namespace NCatboostOptions {
         return {
             "BiGram",
             NTextProcessing::NDictionary::TDictionaryOptions{
-                NTextProcessing::NDictionary::ETokenLevelType::Letter,
+                NTextProcessing::NDictionary::ETokenLevelType::Word,
                 2
             }
         };
@@ -386,7 +420,7 @@ static void ParseTextProcessingOptionsFromString(
     for (TStringBuf textProcessingUnit: StringSplitter(featureDescription).Split('|').SkipEmpty()) {
         TStringBuf calcer;
         TStringBuf dictionaries;
-        textProcessingUnit.Split(':', calcer, dictionaries);
+        textProcessingUnit.Split('+', calcer, dictionaries);
 
         NJson::TJsonValue unitJson(NJson::EJsonValueType::JSON_MAP);
         unitJson["feature_calcer"] = calcer;
@@ -475,7 +509,7 @@ static TString FeatureProcessingDescriptionToString(
         descriptionBuilder << textFeatureId << '~';
 
         for (auto& featureCalcerProcessing: options.GetArray()) {
-            descriptionBuilder << featureCalcerProcessing["feature_calcer"].GetString() << ':';
+            descriptionBuilder << featureCalcerProcessing["feature_calcer"].GetString() << '+';
 
             for (auto& dictionaryName: featureCalcerProcessing["dictionaries_names"].GetArray()) {
                 descriptionBuilder << dictionaryName.GetString() << ',';

@@ -1057,7 +1057,7 @@ def test_fit_with_texts(task_type):
             'Word:token_level_type=Word,min_token_occurrence=1'
         ],
         'text_processing': [
-            'NaiveBayes:Word|BoW:UniGram,BiGram|BM25:Word'
+            'NaiveBayes+Word|BoW+UniGram,BiGram|BM25+Word'
         ],
         'iterations': 100,
         'loss_function': 'MultiClass',
