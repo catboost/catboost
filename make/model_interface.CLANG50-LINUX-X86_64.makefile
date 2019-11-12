@@ -991,6 +991,7 @@ $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a\
         $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/code_generators.cpp.pic.o\
         $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/flatc.cpp.pic.o\
         $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp.cpp.pic.o\
+        $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp_yandex_maps_iter.cpp.pic.o\
         $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_fbs.cpp.pic.o\
         $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_general.cpp.pic.o\
         $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_go.cpp.pic.o\
@@ -1001,7 +1002,7 @@ $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc'
 	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/generate_mf.py' --build-root '$(BUILD_ROOT)' --module-name libs-flatbuffers-flatc -o contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a.mf -t LIBRARY -Ya,lics APACHE2 -Ya,peers
-	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/code_generators.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/flatc.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_fbs.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_general.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_python.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_go.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_json_schema.cpp.pic.o'
+	'$(PYTHON)' '$(SOURCE_ROOT)/build/scripts/link_lib.py' ar AR '$(BUILD_ROOT)' None '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/liblibs-flatbuffers-flatc.a' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/code_generators.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/flatc.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_fbs.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_general.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_python.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_go.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_json_schema.cpp.pic.o' '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp_yandex_maps_iter.cpp.pic.o'
 
 $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/code_generators.cpp.pic.o\
         ::\
@@ -1023,6 +1024,13 @@ $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp.cpp.pic.o\
 
 	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src'
 	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_cpp.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_libunwind_ -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
+
+$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp_yandex_maps_iter.cpp.pic.o\
+        ::\
+        $(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_cpp_yandex_maps_iter.cpp\
+
+	mkdir -p '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src'
+	${CXX} --target=x86_64-linux-gnu -c -o '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp_yandex_maps_iter.cpp.pic.o' '$(SOURCE_ROOT)/contrib/libs/flatbuffers/src/idl_gen_cpp_yandex_maps_iter.cpp' '-I$(BUILD_ROOT)' '-I$(SOURCE_ROOT)' '-I$(SOURCE_ROOT)/contrib/libs/flatbuffers/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxx/include' '-I$(SOURCE_ROOT)/contrib/libs/cxxsupp/libcxxrt' -pipe -m64 -O3 -fPIC -fexceptions -W -Wall -Wno-parentheses -DFAKEID=5020880 '-DARCADIA_ROOT=$(SOURCE_ROOT)' '-DARCADIA_BUILD_ROOT=$(BUILD_ROOT)' -D_THREAD_SAFE -D_PTHREADS -D_REENTRANT -D_LIBCPP_ENABLE_CXX17_REMOVED_FEATURES -D_LARGEFILE_SOURCE -D__STDC_CONSTANT_MACROS -D__STDC_FORMAT_MACROS -D_FILE_OFFSET_BITS=64 -D_GNU_SOURCE -DNDEBUG -D__LONG_LONG_SUPPORTED -DSSE_ENABLED=1 -DSSE3_ENABLED=1 -DSSSE3_ENABLED=1 -DSSE41_ENABLED=1 -DSSE42_ENABLED=1 -DPOPCNT_ENABLED=1 -DCX16_ENABLED=1 -DCATBOOST_OPENSOURCE=yes -D_libunwind_ -nostdinc++ -msse2 -msse3 -mssse3 -msse4.1 -msse4.2 -mpopcnt -mcx16 -std=c++1z -Woverloaded-virtual -Wno-invalid-offsetof -Wno-attributes -Wno-dynamic-exception-spec -Wno-register -Wimport-preprocessor-directive-pedantic -Wno-c++17-extensions -Wno-exceptions -Wno-inconsistent-missing-override -Wno-undefined-var-template -DCATBOOST_OPENSOURCE=yes -nostdinc++
 
 $(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_fbs.cpp.pic.o\
         ::\
@@ -22333,6 +22341,7 @@ clean\
 	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/code_generators.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/flatc.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp.cpp.pic.o'
+	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_cpp_yandex_maps_iter.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_fbs.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_general.cpp.pic.o'
 	rm -f '$(BUILD_ROOT)/contrib/libs/flatbuffers/flatc/__/src/idl_gen_go.cpp.pic.o'
