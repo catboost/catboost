@@ -8,6 +8,10 @@ VERSION(1.2.11)
 
 LICENSE(Zlib)
 
+ADDINCL(
+    GLOBAL contrib/libs/zlib/include
+)
+
 NO_COMPILER_WARNINGS()
 
 NO_UTIL()
