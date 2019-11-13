@@ -304,6 +304,7 @@
 
 - source_filter: "^contrib/libs/freetype"
   includes:
+    - hb-ot.h
     - hb-ft.h
     - hb.h
 

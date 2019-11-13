@@ -578,7 +578,6 @@
   - win32.h
   - bsd/stdlib.h
   - bsd/unistd.h
-  - hb-ot.h
   - fontconfig/fcfreetype.h
   - sys/videoio.h
   - libv4l2.h
