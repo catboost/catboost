@@ -1693,8 +1693,7 @@ class CatBoost(_CatBoostBase):
         if loss and is_groupwise_metric(loss):
             pass  # too expensive
         elif len(self.get_text_feature_indices()) > 0:
-            warnings.warn("Feature importances is not implemented for text features, fstr's will be empty")
-            pass
+            pass  # is not implemented yet
         else:
             if not self._object._has_leaf_weights_in_model():
                 if allow_clear_pool:
