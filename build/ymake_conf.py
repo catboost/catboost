@@ -1086,7 +1086,7 @@ class GnuToolchain(Toolchain):
             if self.tc.is_from_arcadia and target.is_yocto_lg:
                 self.c_flags_platform.extend(['-march=armv7ve', '-mfpu=neon-vfpv4', '-mfloat-abi=hard', '-mcpu=cortex-a7'])
                 self.setup_sdk(project='build/platform/yocto_armv7a_lg_sdk', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
- 
+
 
     def setup_sdk(self, project, var):
         self.platform_projects.append(project)
@@ -2582,6 +2582,7 @@ class Cuda(object):
 
     def cuda_windows_host_compiler(self):
         vc_version = {
+            '10.1': '14.13.26128',  # (not latest)
             '10.0': '14.13.26128',  # (not latest)
             '9.2': '14.13.26128',
             '9.1': '14.11.25503',
