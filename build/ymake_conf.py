@@ -80,8 +80,9 @@ class Platform(object):
         self.is_cygwin = self.os == 'cygwin'
         self.is_freebsd = self.os == 'freebsd'
         self.is_yocto = self.os == 'yocto'
+        self.is_yocto_lg = self.os == 'yocto_lg' and self.is_armv7
 
-        self.is_posix = self.is_linux or self.is_apple or self.is_android or self.is_cygwin or self.is_freebsd or self.is_yocto
+        self.is_posix = self.is_linux or self.is_apple or self.is_android or self.is_cygwin or self.is_freebsd or self.is_yocto or self.is_yocto_lg
 
     @staticmethod
     def from_json(data):
@@ -978,7 +979,7 @@ class GnuToolchain(Toolchain):
         def get_os_sdk(target):
             if target.is_macos:
                 return '$MACOS_SDK_RESOURCE_GLOBAL/MacOSX10.11.sdk'
-            elif target.is_yocto:
+            elif target.is_yocto or target.is_yocto_lg:
                 return '$YOCTO_SDK_RESOURCE_GLOBAL'
             return '$OS_SDK_ROOT_RESOURCE_GLOBAL'
 
@@ -1081,6 +1082,11 @@ class GnuToolchain(Toolchain):
 
                 if target.is_yocto:
                     self.setup_sdk(project='build/platform/yocto_sdk', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
+        elif self.tc.is_gcc and self.tc.version_at_least(6, 3):
+            if self.tc.is_from_arcadia and target.is_yocto_lg:
+                self.c_flags_platform.extend(['-march=armv7ve', '-mfpu=neon-vfpv4', '-mfloat-abi=hard', '-mcpu=cortex-a7'])
+                self.setup_sdk(project='build/platform/yocto_armv7a_lg_sdk', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
+ 
 
     def setup_sdk(self, project, var):
         self.platform_projects.append(project)
@@ -1435,7 +1441,7 @@ class Linker(object):
         if self.tc.is_from_arcadia and self.build.host.is_linux and not (self.build.target.is_apple or self.build.target.is_android or self.build.target.is_windows):
             if self.tc.is_clang and not (is_positive('USE_LTO') or self.build.target.is_linux_armv8 or self.build.target.is_ppc64le):  # TODO: try to enable PPC64 with LLD>=6
                 self.type = Linker.LLD
-            elif self.tc.is_gcc and self.build.target.is_linux_armv7:
+            elif self.tc.is_gcc and (self.build.target.is_linux_armv7 or self.build.target.is_yocto_lg):
                 self.type = Linker.BFD
             else:
                 self.type = Linker.GOLD
@@ -1573,7 +1579,7 @@ class LD(Linker):
             self.rdynamic = '-rdynamic'
             self.use_stdlib = '-nodefaultlibs'
 
-        if target.is_linux or target.is_android or target.is_freebsd or target.is_cygwin:
+        if target.is_linux or target.is_android or target.is_freebsd or target.is_cygwin or target.is_yocto_lg:
             self.start_group = '-Wl,--start-group'
             self.end_group = '-Wl,--end-group'
             self.whole_archive = '-Wl,--whole-archive'

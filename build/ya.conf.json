@@ -2404,6 +2404,15 @@
                         "os": "LINUX",
                         "arch": "armv7a"
                     }
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                  },
+                    "target": {
+                        "os": "YOCTO_LG",
+                        "arch": "armv7a"
+                    }
                 }
             ],
             "params": {
