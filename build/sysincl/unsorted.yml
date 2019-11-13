@@ -88,7 +88,6 @@
   - file.h
   - flags.h
   - floatingpoint.h
-  - fontconfig/fontconfig.h
   - fp.h
   - fp_class.h
   - fsio.h
@@ -578,7 +577,6 @@
   - win32.h
   - bsd/stdlib.h
   - bsd/unistd.h
-  - fontconfig/fcfreetype.h
   - sys/videoio.h
   - libv4l2.h
   - soundcard.h

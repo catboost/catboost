@@ -148,6 +148,7 @@
 
 - source_filter: "^contrib/libs/ffmpeg-3"
   includes:
+    - fontconfig/fontconfig.h
     - fribidi.h
     - stdatomic.h:   contrib/libs/ffmpeg-3.4.1/compat/atomics/win32/stdatomic.h
     - nppi.h:        contrib/libs/ffmpeg-3/libavfilter/vf_scale_npp.c
