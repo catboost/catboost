@@ -686,6 +686,7 @@ cdef extern from "catboost/libs/data/data_provider_builders.h" namespace "NCB":
 
     cdef void CreateDataProviderBuilderAndVisitor[IVisitor](
         const TDataProviderBuilderOptions& options,
+        TLocalExecutor* localExecutor,
         THolder[IDataProviderBuilder]* dataProviderBuilder,
         IVisitor** loader
     ) except +ProcessException
@@ -693,12 +694,19 @@ cdef extern from "catboost/libs/data/data_provider_builders.h" namespace "NCB":
 
 cdef class Py_FeaturesOrderBuilderVisitor:
     cdef TDataProviderBuilderOptions options
+    cdef TLocalExecutor local_executor
     cdef THolder[IDataProviderBuilder] data_provider_builder
     cdef IRawFeaturesOrderDataVisitor* builder_visitor
     cdef const TFeaturesLayout* features_layout
 
-    def __cinit__(self):
-        CreateDataProviderBuilderAndVisitor(self.options, &self.data_provider_builder, &self.builder_visitor)
+    def __cinit__(self, thread_count):
+        self.local_executor.RunAdditionalThreads(thread_count - 1)
+        CreateDataProviderBuilderAndVisitor(
+            self.options,
+            &self.local_executor,
+            &self.data_provider_builder,
+            &self.builder_visitor
+        )
         #self.features_layout = features_layout
 
     cdef get_raw_features_order_data_visitor(self, IRawFeaturesOrderDataVisitor** builder_visitor):
@@ -3115,10 +3123,11 @@ cdef class _PoolBase:
         group_weight,
         subgroup_id,
         pairs_weight,
-        baseline):
+        baseline,
+        thread_count):
 
         cdef TFeaturesLayout* features_layout = data_meta_info.FeaturesLayout.Get()
-        cdef Py_FeaturesOrderBuilderVisitor py_builder_visitor = Py_FeaturesOrderBuilderVisitor()
+        cdef Py_FeaturesOrderBuilderVisitor py_builder_visitor = Py_FeaturesOrderBuilderVisitor(thread_count)
         cdef IRawFeaturesOrderDataVisitor* builder_visitor = py_builder_visitor.builder_visitor
         py_builder_visitor.set_features_layout(data_meta_info.FeaturesLayout.Get())
 
@@ -3224,15 +3233,18 @@ cdef class _PoolBase:
         group_weight,
         subgroup_id,
         pairs_weight,
-        baseline):
+        baseline,
+        thread_count):
 
         self.__data_holder = None # free previously used resources
 
         cdef TDataProviderBuilderOptions options
+        cdef TLocalExecutor local_executor
         cdef THolder[IDataProviderBuilder] data_provider_builder
         cdef IRawObjectsOrderDataVisitor* builder_visitor
 
-        CreateDataProviderBuilderAndVisitor(options, &data_provider_builder, &builder_visitor)
+        local_executor.RunAdditionalThreads(thread_count - 1)
+        CreateDataProviderBuilderAndVisitor(options, &local_executor, &data_provider_builder, &builder_visitor)
 
         cdef TVector[TIntrusivePtr[IResourceHolder]] resource_holders
         builder_visitor[0].Start(
@@ -3271,9 +3283,11 @@ cdef class _PoolBase:
 
 
     cpdef _init_pool(self, data, label, cat_features, text_features, pairs, weight, group_id, group_weight,
-                     subgroup_id, pairs_weight, baseline, feature_names):
+                     subgroup_id, pairs_weight, baseline, feature_names, thread_count):
         if group_weight is not None and weight is not None:
             raise CatBoostError('Pool must have either weight or group_weight.')
+
+        thread_count = UpdateThreadCount(thread_count)
 
         cdef TDataMetaInfo data_meta_info
         if label is not None:
@@ -3316,7 +3330,8 @@ cdef class _PoolBase:
                 group_weight,
                 subgroup_id,
                 pairs_weight,
-                baseline
+                baseline,
+                thread_count
             )
         else:
             self._init_objects_order_layout_pool(
@@ -3329,7 +3344,8 @@ cdef class _PoolBase:
                 group_weight,
                 subgroup_id,
                 pairs_weight,
-                baseline
+                baseline,
+                thread_count
             )
 
     cpdef _save(self, fname):

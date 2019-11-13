@@ -2,6 +2,7 @@
 
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/libs/data/data_provider_builders.h>
+#include <library/threading/local_executor/local_executor.h>
 #include <util/generic/singleton.h>
 #include <util/stream/file.h>
 #include <util/string/builder.h>
@@ -33,6 +34,7 @@ static TDataProviderPtr MakeDataProvider(
     IRawFeaturesOrderDataVisitor* builderVisitor;
 
     CreateDataProviderBuilderAndVisitor(builderOptions,
+                                        &NPar::LocalExecutor(),
                                         &dataProviderBuilder,
                                         &builderVisitor);
 

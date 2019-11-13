@@ -319,8 +319,7 @@ class Pool(_PoolBase):
             Must be None if 'data' parameter has FeaturesData type
 
         thread_count : int, optional (default=-1)
-            Thread count to read data from file.
-            Use only with reading data from file.
+            Thread count for data processing.
             If -1, then the number of threads is set to the number of CPU cores.
 
         """
@@ -369,7 +368,7 @@ class Pool(_PoolBase):
                             " but 'text_features' parameter specifies nonzero number of text features"
                         )
 
-                self._init(data, label, cat_features, text_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names)
+                self._init(data, label, cat_features, text_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, thread_count)
         super(Pool, self).__init__()
 
     def _check_files(self, data, column_description, pairs):
@@ -883,7 +882,8 @@ class Pool(_PoolBase):
         subgroup_id,
         pairs_weight,
         baseline,
-        feature_names
+        feature_names,
+        thread_count
     ):
         """
         Initialize Pool from array like data.
@@ -949,7 +949,7 @@ class Pool(_PoolBase):
             baseline = self._if_pandas_to_numpy(baseline)
             baseline = np.reshape(baseline, (samples_count, -1))
             self._check_baseline_shape(baseline, samples_count)
-        self._init_pool(data, label, cat_features, text_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names)
+        self._init_pool(data, label, cat_features, text_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, thread_count)
 
 
 def _build_train_pool(X, y, cat_features, text_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description):
