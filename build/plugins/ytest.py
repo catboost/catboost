@@ -876,7 +876,7 @@ def get_canonical_test_resources(test_dir, unit_path):
 
     if CANON_RESULT_FILE_NAME in files:
         return _get_canonical_data_resources_v2(os.path.join(canon_data_dir, CANON_RESULT_FILE_NAME), unit_path)
-    return _get_canonical_data_resources_v1(canon_data_dir, dirs, unit_path)
+    return ([], [])
 
 
 def _load_canonical_file(filename, unit_path):
@@ -930,17 +930,3 @@ def _get_external_resources_from_canon_data(data):
 
 def _get_canonical_data_resources_v2(filename, unit_path):
     return (_get_external_resources_from_canon_data(_load_canonical_file(filename, unit_path)), [filename])
-
-
-# TODO migrate all canondata to v2 canonization + remove v1 canonization support
-def _get_canonical_data_resources_v1(test_dir, subdirs, unit_path):
-    res = set()
-    files = []
-
-    for dirname in subdirs:
-        filename = os.path.join(test_dir, dirname, CANON_RESULT_FILE_NAME)
-        files.append(filename)
-        if os.path.exists(filename):
-            res.update(_get_external_resources_from_canon_data(_load_canonical_file(filename, unit_path)))
-
-    return (res, files)
