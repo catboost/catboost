@@ -285,7 +285,10 @@
         },
         "stress-ng": {
             "description": "stress load tester"
-        }
+        },
+        "lkvm": {
+            "description": "kvmtool is a userland tool for creating and controlling KVM guests"
+        },
     },
     "toolchain": {
         "msvc2017-i686": {
@@ -4488,6 +4491,22 @@
                 }
             ]
         },
+        "lkvm": {
+            "tools": {
+                "lkvm": {
+                    "bottle": "kvmtool",
+                    "executable": "lkvm"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "vmexec": {
             "tools": {
                 "vmexec": {
@@ -6238,6 +6257,20 @@
                 "stress-ng": [
                     "stress-ng",
                     "stress-ng"
+                ]
+            }
+        },
+        "kvmtool": {
+            "formula": {
+                "sandbox_id": [
+                    547591282
+                ],
+                "match": "infra/kernel/tools/kvmtool"
+            },
+            "executable": {
+                "lkvm": [
+                    "kvmtool",
+                    "lkvm"
                 ]
             }
         },
