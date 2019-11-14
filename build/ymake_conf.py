@@ -1154,7 +1154,7 @@ class GnuCompiler(Compiler):
             # Arcadia have API 14 for 32-bit Androids.
             self.c_defines.append('-D_FILE_OFFSET_BITS=64')
 
-        if self.target.is_linux or self.target.is_cygwin:
+        if self.target.is_linux or self.target.is_cygwin or self.target.is_yocto_lg:
             self.c_defines.append('-D_GNU_SOURCE')
 
         if self.target.is_ios:
@@ -1560,7 +1560,7 @@ class LD(Linker):
         self.link_pie_executables = target.is_android
 
         self.thread_library = select([
-            (target.is_linux or target.is_macos, '-lpthread'),
+            (target.is_linux or target.is_macos or target.is_yocto_lg, '-lpthread'),
             (target.is_freebsd, '-lthr')
         ])
 
