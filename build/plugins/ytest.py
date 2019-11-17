@@ -309,13 +309,6 @@ def get_values_list(unit, key):
     return [r for r in res if r and r not in ['""', "''"]]
 
 
-def strip_roots(path):
-    for prefix in ["$B/", "$S/"]:
-        if path.startswith(prefix):
-            return path[len(prefix):]
-    return path
-
-
 def get_unit_list_variable(unit, name):
     items = unit.get(name)
     if items:
@@ -337,7 +330,7 @@ def match_coverage_extractor_requirements(unit):
         # build doesn't imply clang coverage, which supports segment extraction from the binaries
         unit.get("CLANG_COVERAGE") == "yes",
         # contrib wasn't requested
-        implies(strip_roots(unit.path()).startswith("contrib/"), unit.get("ENABLE_CONTRIB_COVERAGE") == "yes"),
+        implies(_common.strip_roots(unit.path()).startswith("contrib/"), unit.get("ENABLE_CONTRIB_COVERAGE") == "yes"),
     ])
 
 
@@ -347,7 +340,7 @@ def onadd_ytest(unit, *args):
     flat_args, spec_args = _common.sort_by_keywords(keywords, args)
 
     if flat_args[1] == "fuzz.test":
-        unit.ondata("arcadia/fuzzing/{}/corpus.json".format(strip_roots(unit.path())))
+        unit.ondata("arcadia/fuzzing/{}/corpus.json".format(_common.strip_roots(unit.path())))
     elif flat_args[1] == "coverage.extractor" and not match_coverage_extractor_requirements(unit):
         # XXX
         # Current ymake implementation doesn't allow to call macro inside the 'when' body
@@ -368,8 +361,8 @@ def onadd_ytest(unit, *args):
         'TESTED-PROJECT-NAME': unit.name(),
         'TESTED-PROJECT-FILENAME': unit.filename(),
         'SOURCE-FOLDER-PATH': unit.resolve(unit.path()),
-        'BUILD-FOLDER-PATH': strip_roots(unit.path()),
-        'BINARY-PATH': strip_roots(os.path.join(unit.path(), unit.filename())),
+        'BUILD-FOLDER-PATH': _common.strip_roots(unit.path()),
+        'BINARY-PATH': _common.strip_roots(os.path.join(unit.path(), unit.filename())),
         'CUSTOM-DEPENDENCIES': ' '.join(spec_args.get('DEPENDS', []) + get_values_list(unit, 'TEST_DEPENDS_VALUE')),
         'TEST-RECIPES': prepare_recipes(unit.get("TEST_RECIPES_VALUE")),
         'TEST-ENV': prepare_env(unit.get("TEST_ENV_VALUE")),
@@ -540,7 +533,7 @@ def onadd_check_py_imports(unit, *args):
         'USE_ARCADIA_PYTHON': use_arcadia_python or '',
         'OLD_PYTEST': 'no',
         'PYTHON-PATHS': '',
-        'FILES': serialize_list(["{}/{}".format(strip_roots(unit.path()), unit.filename())])
+        'FILES': serialize_list(["{}/{}".format(_common.strip_roots(unit.path()), unit.filename())])
     }
     if unit.get('NO_CHECK_IMPORTS_FOR_VALUE') != "None":
         test_record["NO-CHECK"] = serialize_list(get_values_list(unit, 'NO_CHECK_IMPORTS_FOR_VALUE') or ["*"])
@@ -649,7 +642,7 @@ def onjava_test(unit, *args):
             return
 
     unit_path = unit.path()
-    path = strip_roots(unit_path)
+    path = _common.strip_roots(unit_path)
     test_dir = unit.resolve(unit_path)
 
     test_data = get_values_list(unit, 'TEST_DATA_VALUE')
@@ -713,7 +706,7 @@ def onjava_test(unit, *args):
 def onjava_test_deps(unit, *args):
     assert unit.get('MODULE_TYPE') is not None
 
-    path = strip_roots(unit.path())
+    path = _common.strip_roots(unit.path())
 
     test_record = {
         'SOURCE-FOLDER-PATH': path,
@@ -812,11 +805,11 @@ def _dump_test(
             'PYTHON-PATHS': serialize_list(python_paths),
             'TEST-CWD': test_cwd or '',
             'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
-            'BUILD-FOLDER-PATH': strip_roots(unit_path),
+            'BUILD-FOLDER-PATH': _common.strip_roots(unit_path),
             'BLOB': unit.get('TEST_BLOB_DATA') or '',
         }
         if binary_path:
-            test_record['BINARY-PATH'] = strip_roots(binary_path)
+            test_record['BINARY-PATH'] = _common.strip_roots(binary_path)
         if runner_bin:
             test_record['TEST-RUNNER-BIN'] = runner_bin
         if yt_spec:
@@ -883,7 +876,7 @@ def get_canonical_test_resources(test_dir, unit_path):
 
     if CANON_RESULT_FILE_NAME in files:
         return _get_canonical_data_resources_v2(os.path.join(canon_data_dir, CANON_RESULT_FILE_NAME), unit_path)
-    return _get_canonical_data_resources_v1(canon_data_dir, dirs, unit_path)
+    return ([], [])
 
 
 def _load_canonical_file(filename, unit_path):
@@ -937,17 +930,3 @@ def _get_external_resources_from_canon_data(data):
 
 def _get_canonical_data_resources_v2(filename, unit_path):
     return (_get_external_resources_from_canon_data(_load_canonical_file(filename, unit_path)), [filename])
-
-
-# TODO migrate all canondata to v2 canonization + remove v1 canonization support
-def _get_canonical_data_resources_v1(test_dir, subdirs, unit_path):
-    res = set()
-    files = []
-
-    for dirname in subdirs:
-        filename = os.path.join(test_dir, dirname, CANON_RESULT_FILE_NAME)
-        files.append(filename)
-        if os.path.exists(filename):
-            res.update(_get_external_resources_from_canon_data(_load_canonical_file(filename, unit_path)))
-
-    return (res, files)

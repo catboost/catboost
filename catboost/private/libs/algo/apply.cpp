@@ -210,7 +210,7 @@ void TModelCalcerOnPool::ApplyModelMulti(
     const ui32 docCount = ObjectsData->GetObjectCount();
     auto approxDimension = Model->GetDimensionsCount();
     TVector<double>& approxFlat = *flatApproxBuffer;
-    approxFlat.resize(static_cast<unsigned long>(docCount * approxDimension)); // TODO(annaveronika): yresize?
+    approxFlat.yresize(static_cast<unsigned long>(docCount * approxDimension));
 
     if (end == 0) {
         end = Model->GetTreeCount();

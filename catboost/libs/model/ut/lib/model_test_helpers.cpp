@@ -166,7 +166,7 @@ TDataProviderPtr GetMultiClassPool() {
 
 TFullModel SimpleFloatModel(size_t treeCount) {
     TFullModel model;
-    TObliviousTrees* trees = model.ObliviousTrees.GetMutable();
+    TModelTrees* trees = model.ModelTrees.GetMutable();
     trees->SetFloatFeatures(
         {
             TFloatFeature{
@@ -276,7 +276,7 @@ TFullModel SimpleTextModel(
         }
     }
 
-    treeBuilder.Build(model.ObliviousTrees.GetMutable());
+    treeBuilder.Build(model.ModelTrees.GetMutable());
     model.UpdateDynamicData();
 
     return model;
@@ -284,7 +284,7 @@ TFullModel SimpleTextModel(
 
 TFullModel SimpleDeepTreeModel(size_t treeDepth) {
     TFullModel model;
-    TObliviousTrees* trees = model.ObliviousTrees.GetMutable();
+    TModelTrees* trees = model.ModelTrees.GetMutable();
     for (size_t featureIndex : xrange(treeDepth)) {
         const auto feature = TFloatFeature(false, featureIndex, featureIndex, {0.5f}, "");
         trees->AddFloatFeature(feature);
@@ -362,7 +362,7 @@ TFullModel SimpleAsymmetricModel() {
     builder.AddTree(std::move(treeHead));
 
     TFullModel model;
-    builder.Build(model.ObliviousTrees.GetMutable());
+    builder.Build(model.ModelTrees.GetMutable());
     model.UpdateDynamicData();
     return model;
 }
@@ -418,7 +418,7 @@ TFullModel TrainCatOnlyModel() {
 
 TFullModel MultiValueFloatModel() {
     TFullModel model;
-    TObliviousTrees* trees = model.ObliviousTrees.GetMutable();
+    TModelTrees* trees = model.ModelTrees.GetMutable();
     trees->SetFloatFeatures(
         {
             TFloatFeature{

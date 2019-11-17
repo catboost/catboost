@@ -72,6 +72,7 @@ _metric_description_or_str_to_str = _catboost._metric_description_or_str_to_str
 is_classification_objective = _catboost.is_classification_objective
 is_cv_stratified_objective = _catboost.is_cv_stratified_objective
 is_regression_objective = _catboost.is_regression_objective
+is_multiregression_objective = _catboost.is_multiregression_objective
 is_groupwise_metric = _catboost.is_groupwise_metric
 _PreprocessParams = _catboost._PreprocessParams
 _check_train_params = _catboost._check_train_params
@@ -318,8 +319,7 @@ class Pool(_PoolBase):
             Must be None if 'data' parameter has FeaturesData type
 
         thread_count : int, optional (default=-1)
-            Thread count to read data from file.
-            Use only with reading data from file.
+            Thread count for data processing.
             If -1, then the number of threads is set to the number of CPU cores.
 
         """
@@ -368,7 +368,7 @@ class Pool(_PoolBase):
                             " but 'text_features' parameter specifies nonzero number of text features"
                         )
 
-                self._init(data, label, cat_features, text_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names)
+                self._init(data, label, cat_features, text_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, thread_count)
         super(Pool, self).__init__()
 
     def _check_files(self, data, column_description, pairs):
@@ -882,7 +882,8 @@ class Pool(_PoolBase):
         subgroup_id,
         pairs_weight,
         baseline,
-        feature_names
+        feature_names,
+        thread_count
     ):
         """
         Initialize Pool from array like data.
@@ -948,7 +949,7 @@ class Pool(_PoolBase):
             baseline = self._if_pandas_to_numpy(baseline)
             baseline = np.reshape(baseline, (samples_count, -1))
             self._check_baseline_shape(baseline, samples_count)
-        self._init_pool(data, label, cat_features, text_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names)
+        self._init_pool(data, label, cat_features, text_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, thread_count)
 
 
 def _build_train_pool(X, y, cat_features, text_features, pairs, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, column_description):
@@ -957,7 +958,7 @@ def _build_train_pool(X, y, cat_features, text_features, pairs, sample_weight, g
         train_pool = X
         if any(v is not None for v in [cat_features, text_features, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline]):
             raise CatBoostError("cat_features, text_features, sample_weight, group_id, group_weight, subgroup_id, pairs_weight, baseline should have the None type when X has catboost.Pool type.")
-        if X.get_label() is None and X.num_pairs() == 0:
+        if (not X.has_label()) and X.num_pairs() == 0:
             raise CatBoostError("Label in X has not been initialized.")
         if y is not None:
             raise CatBoostError("Incorrect value of y: X is catboost.Pool object, y must be initialized inside catboost.Pool.")
@@ -1194,7 +1195,7 @@ class _CatBoostBase(object):
     def __eq__(self, other):
         return self._is_comparable_to(other) and self._object == other._object
 
-    def __neq__(self, other):
+    def __ne__(self, other):
         return not self._is_comparable_to(other) or self._object != other._object
 
     def copy(self):
@@ -1346,6 +1347,9 @@ class _CatBoostBase(object):
 
     def _is_regression_objective(self, loss_function):
         return isinstance(loss_function, str) and is_regression_objective(loss_function)
+
+    def _is_multiregression_objective(self, loss_function):
+        return isinstance(loss_function, str) and is_multiregression_objective(loss_function)
 
     def get_metadata(self):
         return self._object._get_metadata_wrapper()
@@ -1689,8 +1693,7 @@ class CatBoost(_CatBoostBase):
         if loss and is_groupwise_metric(loss):
             pass  # too expensive
         elif len(self.get_text_feature_indices()) > 0:
-            warnings.warn("Feature importances is not implemented for text features, fstr's will be empty")
-            pass
+            pass  # is not implemented yet
         else:
             if not self._object._has_leaf_weights_in_model():
                 if allow_clear_pool:
@@ -3576,7 +3579,7 @@ class CatBoostClassifier(CatBoost):
 
     text_processing : list of strings,
         Each string is a text feature preprocessing description. Description should be written in format
-        [TextFeatureId~]NaiveBayes:DictionaryName1|BoW:LetterGramDictionary,BiGramDictionary
+        [TextFeatureId~]NaiveBayes+DictionaryName1|BoW+LetterGramDictionary,BiGramDictionary
         Where dictionaries names were taken from 'dictionaries' parameter and NaiveBayes,BoW is feature
         calcers which will be computed on corresponding, preprocessed by dictionaries, text features.
     """
@@ -3982,11 +3985,11 @@ class CatBoostClassifier(CatBoost):
         accuracy : float
         """
         if isinstance(X, Pool):
-            if X.get_label() is None:
-                raise CatBoostError("Label in X has not initialized.")
             if y is not None:
                 raise CatBoostError("Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool.")
             y = X.get_label()
+            if y is None:
+                raise CatBoostError("Label in X has not initialized.")
         if isinstance(y, DataFrame):
             if len(y.columns) != 1:
                 raise CatBoostError("y is DataFrame and has {} columns, but must have exactly one.".format(len(y.columns)))
@@ -4322,11 +4325,11 @@ class CatBoostRegressor(CatBoost):
         R^2 : float
         """
         if isinstance(X, Pool):
-            if X.get_label() is None:
-                raise CatBoostError("Label in X has not initialized.")
             if y is not None:
                 raise CatBoostError("Wrong initializing y: X is catboost.Pool object, y must be initialized inside catboost.Pool.")
             y = X.get_label()
+            if y is None:
+                raise CatBoostError("Label in X has not initialized.")
         elif y is None:
             raise CatBoostError("y should be specified.")
         y = np.array(y, dtype=np.float64)
@@ -4344,9 +4347,10 @@ class CatBoostRegressor(CatBoost):
         return 1 - residual_sum_of_squares / total_sum_of_squares
 
     def _check_is_regressor_loss(self, loss_function):
-        if isinstance(loss_function, str) and not self._is_regression_objective(loss_function):
+        is_regression = self._is_regression_objective(loss_function) or self._is_multiregression_objective(loss_function)
+        if isinstance(loss_function, str) and not is_regression:
             raise CatBoostError("Invalid loss_function='{}': for regressor use "
-                                "RMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE, Lq or custom objective object".format(loss_function))
+                                "RMSE, MultiRMSE, MAE, Quantile, LogLinQuantile, Poisson, MAPE, Lq or custom objective object".format(loss_function))
 
 
 def train(pool=None, params=None, dtrain=None, logging_level=None, verbose=None, iterations=None,

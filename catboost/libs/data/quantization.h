@@ -46,9 +46,6 @@ namespace NCB {
 
         TMaybe<float> DefaultValueFractionToEnableSparseStorage = Nothing();
         ESparseArrayIndexingType SparseArrayIndexingType = ESparseArrayIndexingType::Indices;
-
-        // TODO(akhropov): remove after checking global tests consistency
-        bool CpuCompatibilityShuffleOverFullData = true;
     };
 
     /*

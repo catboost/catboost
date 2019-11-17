@@ -24,9 +24,9 @@ Y_UNIT_TEST_SUITE(TTextOptionsTest) {
             "      \"WordDictOccur5:min_token_occurrence=5,token_level_type=Word\",\n"
             "      \"WordDictOccur10:min_token_occurrence=10,token_level_type=Word\"],\n"
             "   \"text_processing\": ["
-            "      \"BoW:UniGram,BiGram,TriGram|NaiveBayes:UniGram,BiGram,TriGram\",\n"
-            "      \"0~BoW:Letter,Word|NaiveBayes:Word\",\n"
-            "      \"1~NaiveBayes:WordDictOccur2,WordDictOccur5|BM25:WordDictOccur2,WordDictOccur10\",\n"
+            "      \"BoW+UniGram,BiGram,TriGram|NaiveBayes+UniGram,BiGram,TriGram\",\n"
+            "      \"0~BoW+Letter,Word|NaiveBayes+Word\",\n"
+            "      \"1~NaiveBayes+WordDictOccur2,WordDictOccur5|BM25+WordDictOccur2,WordDictOccur10\",\n"
             "   ]\n"
             "}";
 

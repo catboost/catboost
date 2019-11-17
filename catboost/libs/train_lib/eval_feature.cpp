@@ -646,7 +646,7 @@ static void EvaluateFeaturesImpl(
     const auto& metrics = CreateMetrics(
         dataSpecificOptions.MetricOptions,
         evalMetricDescriptor,
-        GetApproxDimension(dataSpecificOptions, labelConverter),
+        GetApproxDimension(dataSpecificOptions, labelConverter, trainingData->TargetData->GetTargetDimension()),
         trainingData->MetaInfo.HasWeights);
     CheckMetrics(metrics, dataSpecificOptions.LossFunctionDescription.Get().GetLossFunction());
 

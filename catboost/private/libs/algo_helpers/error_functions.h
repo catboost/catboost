@@ -169,6 +169,53 @@ private:
     const EHessianType HessianType;
 };
 
+class TMultiDerCalcer : public IDerCalcer {
+public:
+    static constexpr int MaxDerivativeOrder = 2;
+
+    explicit TMultiDerCalcer(EHessianType hessianType = EHessianType::Symmetric)
+        : IDerCalcer(/*isExpApprox*/false, MaxDerivativeOrder, EErrorType::PerObjectError, hessianType)
+    {
+    }
+
+    virtual void CalcDers(
+        TConstArrayRef<double> approx,
+        TConstArrayRef<float> target,
+        float weight,
+        TVector<double>* der,
+        THessianInfo* der2
+    ) const = 0;
+};
+
+class TMultiRMSEError final : public TMultiDerCalcer {
+public:
+    explicit TMultiRMSEError()
+        : TMultiDerCalcer(EHessianType::Diagonal) {
+    }
+
+    void CalcDers(
+        TConstArrayRef<double> approx,
+        TConstArrayRef<float> target,
+        float weight,
+        TVector<double>* der,
+        THessianInfo* der2
+    ) const override {
+        const int dim = target.size();
+        for (auto i : xrange(dim)) {
+            (*der)[i] = weight * (target[i] - approx[i]);
+        }
+
+        if (der2 != nullptr) {
+            Y_ASSERT(der2->HessianType == EHessianType::Diagonal &&
+                     der2->ApproxDimension == dim);
+
+            for (auto i : xrange(dim)) {
+                der2->Data[i] = -weight;
+            }
+        }
+    }
+};
+
 class TCrossEntropyError final : public IDerCalcer {
 public:
     explicit TCrossEntropyError(bool isExpApprox)

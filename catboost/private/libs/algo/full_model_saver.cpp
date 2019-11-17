@@ -260,7 +260,7 @@ namespace NCB {
 
     static bool NeedTargetClasses(const TFullModel& coreModel) {
         return AnyOf(
-            coreModel.ObliviousTrees->GetUsedModelCtrs(),
+            coreModel.ModelTrees->GetUsedModelCtrs(),
             [](const TModelCtr& modelCtr) {
                 return NeedTargetClassifier(modelCtr.Base.CtrType);
             }
@@ -295,8 +295,11 @@ namespace NCB {
             ) {
                 outDatasetDataForFinalCtrs->Data = std::move(TrainingData);
                 outDatasetDataForFinalCtrs->LearnPermutation = Nothing();
-                outDatasetDataForFinalCtrs->Targets =
-                    *outDatasetDataForFinalCtrs->Data.Learn->TargetData->GetTarget();
+
+                // since counters are not implemented for mult-dimensional target
+                if (outDatasetDataForFinalCtrs->Data.Learn->TargetData->GetTargetDimension() == 1) {
+                    outDatasetDataForFinalCtrs->Targets = *outDatasetDataForFinalCtrs->Data.Learn->TargetData->GetOneDimensionalTarget();
+                }
 
                 *outFeatureCombinationToProjection = &FeatureCombinationToProjection;
 
@@ -484,7 +487,7 @@ namespace NCB {
 
         if (
             FinalFeatureCalcerComputationMode == EFinalFeatureCalcersComputationMode::Default &&
-            !dstModel->ObliviousTrees->GetEstimatedFeatures().empty()
+            !dstModel->ModelTrees->GetEstimatedFeatures().empty()
         ) {
             CB_ENSURE_INTERNAL(
                 FeatureEstimators,
@@ -500,8 +503,8 @@ namespace NCB {
                 *FeatureEstimators,
                 textDigitizers,
                 TVector<TEstimatedFeature>(
-                    dstModel->ObliviousTrees->GetEstimatedFeatures().begin(),
-                    dstModel->ObliviousTrees->GetEstimatedFeatures().end()
+                    dstModel->ModelTrees->GetEstimatedFeatures().begin(),
+                    dstModel->ModelTrees->GetEstimatedFeatures().end()
                 ),
                 &textProcessingCollection,
                 &remappedEstimatedFeatures,
@@ -543,7 +546,7 @@ namespace NCB {
             CalcFinalCtrs(
                 datasetDataForFinalCtrs,
                 *featureCombinationToProjectionMap,
-                dstModel->ObliviousTrees->GetUsedModelCtrBases(),
+                dstModel->ModelTrees->GetUsedModelCtrBases(),
                 [&dstModel, &lock](TCtrValueTable&& table) {
                     with_lock(lock) {
                         dstModel->CtrProvider->AddCtrCalcerData(std::move(table));
@@ -554,7 +557,7 @@ namespace NCB {
             dstModel->UpdateDynamicData();
         } else {
             dstModel->CtrProvider = new TStaticCtrOnFlightSerializationProvider(
-                dstModel->ObliviousTrees->GetUsedModelCtrBases(),
+                dstModel->ModelTrees->GetUsedModelCtrBases(),
                 [this,
                  datasetDataForFinalCtrs = std::move(datasetDataForFinalCtrs),
                  featureCombinationToProjectionMap] (
@@ -640,8 +643,8 @@ namespace NCB {
         TConstArrayRef<EModelType> formats,
         bool addFileFormatExtension
     ) {
-        const TConstArrayRef<TFloatFeature> floatFeatures = fullModel.ObliviousTrees->GetFloatFeatures();
-        const TConstArrayRef<TCatFeature> catFeatures = fullModel.ObliviousTrees->GetCatFeatures();
+        const TConstArrayRef<TFloatFeature> floatFeatures = fullModel.ModelTrees->GetFloatFeatures();
+        const TConstArrayRef<TCatFeature> catFeatures = fullModel.ModelTrees->GetCatFeatures();
         TFeaturesLayout featuresLayout(
             TVector<TFloatFeature>(floatFeatures.begin(), floatFeatures.end()),
             TVector<TCatFeature>(catFeatures.begin(), catFeatures.end())

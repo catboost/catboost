@@ -54,7 +54,7 @@ namespace NCatboostCuda {
                 dataSetsHolder.DirectTarget = ctrsTarget.WeightedTarget.SliceView(ctrsTarget.LearnSlice);
             } else {
                 dataSetsHolder.DirectTarget.Reset(learnMapping);
-                dataSetsHolder.DirectTarget.Write(*DataProvider.TargetData->GetTarget());
+                dataSetsHolder.DirectTarget.Write(*DataProvider.TargetData->GetOneDimensionalTarget());
             }
         }
 
@@ -285,7 +285,7 @@ namespace NCatboostCuda {
         TMirrorBuffer<ui32> inverseIndices = indices.CopyView();
 
         auto targets = TMirrorBuffer<float>::CopyMapping(indices);
-        targets.Write(*LinkedTest->TargetData->GetTarget());
+        targets.Write(*LinkedTest->TargetData->GetOneDimensionalTarget());
         auto weights = TMirrorBuffer<float>::CopyMapping(indices);
         weights.Write(GetWeights(*LinkedTest->TargetData));
 

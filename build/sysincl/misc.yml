@@ -148,11 +148,12 @@
 
 - source_filter: "^contrib/libs/ffmpeg-3"
   includes:
+    - fontconfig/fontconfig.h
     - fribidi.h
     - stdatomic.h:   contrib/libs/ffmpeg-3.4.1/compat/atomics/win32/stdatomic.h
     - nppi.h:        contrib/libs/ffmpeg-3/libavfilter/vf_scale_npp.c
 
-- source_filter: "^contrib/libs/(gc-profiler|v8-profiler)"
+- source_filter: "^contrib/libs/v8-profiler"
   includes:
     - nan.h:         contrib/libs/node_nan/nan.h
 
@@ -242,6 +243,9 @@
 - source_filter: "^contrib/deprecated/boost/boost/asio/detail"
   includes:
   - __config
+- source_filter: "quasar/yandex_io/daemons/external_libs/(boost/include/boost|websocketpp/include)/asio/detail"
+  includes:
+  - __config
 
 # windows sdk includes that we do not want to apply for whole arcadia
 - source_filter: "^contrib"
@@ -301,6 +305,7 @@
 
 - source_filter: "^contrib/libs/freetype"
   includes:
+    - hb-ot.h
     - hb-ft.h
     - hb.h
 
@@ -485,3 +490,13 @@
 - source_filter: "^contrib/libs/libpq"
   includes:
     - local.h
+
+- source_filter: "^contrib/libs/tinyalsa"
+  # TinyALSA references linux kernel headers for kernel ALSA interface
+  includes:
+    - sound/asound.h
+
+- source_filter: "^contrib/libs/breakpad"
+  includes:
+    - asm/ptrace.h
+    - stab.h

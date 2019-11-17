@@ -12,6 +12,7 @@ RECURSE(
     distributed
     documents_importance
     feature_estimator
+    feature_estimator/ut
     functools
     hyperparameter_tuning
     index_range
@@ -30,5 +31,7 @@ RECURSE(
     target
     text_features
     text_features/ut
+    text_processing
+    text_processing/ut
     validate_fb
 )

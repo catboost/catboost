@@ -252,7 +252,7 @@ namespace NCB::NModelEvaluation {
 
     template <bool IsSingleClassModel, bool NeedXorMask, int SSEBlockCount, bool CalcLeafIndexesOnly = false>
     Y_FORCE_INLINE void CalcTreesBlockedImpl(
-        const TObliviousTrees& trees,
+        const TModelTrees& trees,
         const ui8* __restrict binFeatures,
         const size_t docCountInBlock,
         TCalcerIndexType* __restrict indexesVecUI32,
@@ -357,7 +357,7 @@ namespace NCB::NModelEvaluation {
 
     template <bool IsSingleClassModel, bool NeedXorMask, bool CalcLeafIndexesOnly = false>
     Y_FORCE_INLINE void CalcTreesBlocked(
-        const TObliviousTrees& trees,
+        const TModelTrees& trees,
         const TCPUEvaluatorQuantizedData* quantizedData,
         size_t docCountInBlock,
         TCalcerIndexType* __restrict indexesVec,
@@ -409,7 +409,7 @@ namespace NCB::NModelEvaluation {
 
     template <bool IsSingleClassModel, bool NeedXorMask, bool calcIndexesOnly = false>
     inline void CalcTreesSingleDocImpl(
-        const TObliviousTrees& trees,
+        const TModelTrees& trees,
         const TCPUEvaluatorQuantizedData* quantizedData,
         size_t,
         TCalcerIndexType* __restrict indexesVec,
@@ -457,7 +457,7 @@ namespace NCB::NModelEvaluation {
 
     template <bool NeedXorMask>
     Y_FORCE_INLINE void CalcIndexesNonSymmetric(
-        const TObliviousTrees& trees,
+        const TModelTrees& trees,
         const ui8* __restrict binFeatures,
         const size_t firstDocId,
         const size_t docCountInBlock,
@@ -487,7 +487,7 @@ namespace NCB::NModelEvaluation {
 #if defined(_sse4_1_)
     template <bool IsSingleClassModel, bool NeedXorMask, bool CalcLeafIndexesOnly = false>
     inline void CalcNonSymmetricTrees(
-        const TObliviousTrees& trees,
+        const TModelTrees& trees,
         const TCPUEvaluatorQuantizedData* quantizedData,
         size_t docCountInBlock,
         TCalcerIndexType* __restrict indexes,
@@ -652,7 +652,7 @@ namespace NCB::NModelEvaluation {
 #else
     template <bool IsSingleClassModel, bool NeedXorMask, bool CalcLeafIndexesOnly = false>
     inline void CalcNonSymmetricTrees(
-        const TObliviousTrees& trees,
+        const TModelTrees& trees,
         const TCPUEvaluatorQuantizedData* quantizedData,
         size_t docCountInBlock,
         TCalcerIndexType* __restrict indexesVec,
@@ -697,7 +697,7 @@ namespace NCB::NModelEvaluation {
 
     template <bool IsSingleClassModel, bool NeedXorMask, bool CalcIndexesOnly>
     inline void CalcNonSymmetricTreesSingle(
-        const TObliviousTrees& trees,
+        const TModelTrees& trees,
         const TCPUEvaluatorQuantizedData* quantizedData,
         size_t,
         TCalcerIndexType* __restrict indexesVec,
@@ -780,7 +780,7 @@ namespace NCB::NModelEvaluation {
     };
 
     TTreeCalcFunction GetCalcTreesFunction(
-        const TObliviousTrees& trees,
+        const TModelTrees& trees,
         size_t docCountInBlock,
         bool calcIndexesOnly
     ) {

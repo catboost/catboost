@@ -36,6 +36,7 @@ namespace NCB {
         ui32 Size() const;
 
         TTokenId GetUnknownTokenId() const;
+        TVector<TTokenId> GetTopTokens(ui32 topSize) const;
 
         void Save(IOutputStream* stream) const;
         void Load(IInputStream* stream);
@@ -65,6 +66,16 @@ namespace NCB {
             }
         }
 
+        template <class F>
+        void ForEach(F&& visitor, NPar::TLocalExecutor* localExecutor) const {
+            NPar::ParallelFor(
+                *localExecutor,
+                0,
+                Size(),
+                [&](ui32 i) { visitor(i, TextFeature[i]); }
+            );
+        }
+
         ui32 Size() const {
             return TextFeature.size();
         }
@@ -85,6 +96,11 @@ namespace NCB {
             TextFeature->ForEach(
                 [&visitor](ui32 index, TStringBuf phrase){visitor(index, phrase);}
             );
+        }
+
+        template <class F>
+        void ForEach(F&& visitor, NPar::TLocalExecutor* localExecutor) const {
+            TextFeature->ParallelForEach(visitor, localExecutor);
         }
 
         ui32 Size() const {

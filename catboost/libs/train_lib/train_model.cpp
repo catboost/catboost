@@ -497,13 +497,12 @@ static void SaveModel(
     TFullModel* dstModel
 ) {
     const auto& target = ctx.LearnProgress->AveragingFold.LearnTarget;
-    CB_ENSURE(target.size() == 1, "Saving of multitarget model is not supported yet");
 
     TPerfectHashedToHashedCatValuesMap perfectHashedToHashedCatValuesMap
         = trainingDataForCpu.Learn->ObjectsData->GetQuantizedFeaturesInfo()
             ->CalcPerfectHashedToHashedCatValuesMap(ctx.LocalExecutor);
 
-    TObliviousTrees obliviousTrees;
+    TModelTrees modelTrees;
     THashMap<TFeatureCombination, TProjection> featureCombinationToProjectionMap;
     {
         TObliviousTreeBuilder builder(ctx.LearnProgress->FloatFeatures, ctx.LearnProgress->CatFeatures, {}, ctx.LearnProgress->ApproxDimension);
@@ -518,12 +517,12 @@ static void SaveModel(
             }
             builder.AddTree(modelSplits, ctx.LearnProgress->LeafValues[treeId], ctx.LearnProgress->TreeStats[treeId].LeafWeightsSum);
         }
-        builder.Build(&obliviousTrees);
+        builder.Build(&modelTrees);
     }
 
 
 //    TODO(kirillovs,espetrov): return this code after fixing R and Python wrappers
-//    for (auto& oheFeature : obliviousTrees.OneHotFeatures) {
+//    for (auto& oheFeature : modelTrees.OneHotFeatures) {
 //        for (const auto& value : oheFeature.Values) {
 //            oheFeature.StringValues.push_back(pools.Learn->CatFeaturesHashToString.at(value));
 //        }
@@ -536,7 +535,9 @@ static void SaveModel(
     TDatasetDataForFinalCtrs datasetDataForFinalCtrs;
     datasetDataForFinalCtrs.Data = trainingDataForCpu;
     datasetDataForFinalCtrs.LearnPermutation = &ctx.LearnProgress->AveragingFold.LearnPermutation->GetObjectsIndexing();
-    datasetDataForFinalCtrs.Targets = target[0];
+    if (target.size() == 1) { // since counters are not implemented for multi-dimensional target
+        datasetDataForFinalCtrs.Targets = target[0];
+    }
     datasetDataForFinalCtrs.LearnTargetClass = &ctx.LearnProgress->AveragingFold.LearnTargetClass;
     datasetDataForFinalCtrs.TargetClassesCount = &ctx.LearnProgress->AveragingFold.TargetClassesCount;
 
@@ -569,9 +570,9 @@ static void SaveModel(
             modelPtr = &*fullModel;
         }
 
-        *modelPtr->ObliviousTrees.GetMutable() = std::move(obliviousTrees);
+        *modelPtr->ModelTrees.GetMutable() = std::move(modelTrees);
         if (ctx.LearnProgress->StartingApprox) {
-            modelPtr->ObliviousTrees.GetMutable()->AddNumberToAllTreeLeafValues(0, *ctx.LearnProgress->StartingApprox);
+            modelPtr->ModelTrees.GetMutable()->AddNumberToAllTreeLeafValues(0, *ctx.LearnProgress->StartingApprox);
         }
         modelPtr->UpdateDynamicData();
         coreModelToFullModelConverter.WithCoreModelFrom(modelPtr);
@@ -683,12 +684,18 @@ namespace {
                 }
             }
 
-            const auto startingApprox = catboostOptions.BoostingOptions->BoostFromAverage.Get()
-                ? CalcOptimumConstApprox(
+            TMaybe<double> startingApprox;
+            if (catboostOptions.BoostingOptions->BoostFromAverage.Get()) {
+                // TODO(fedorlebed): add boost from average support for multiregression
+                CB_ENSURE(trainingData.Learn->TargetData->GetTargetDimension() != 0, "Target is required for boosting from average");
+                CB_ENSURE(trainingData.Learn->TargetData->GetTargetDimension() == 1, "Multi-dimensional target boosting from average is unimplemented yet");
+
+                startingApprox = CalcOptimumConstApprox(
                     catboostOptions.LossFunctionDescription,
-                    trainingData.Learn->TargetData->GetTarget().GetOrElse(TConstArrayRef<float>()),
-                    GetWeights(*trainingData.Learn->TargetData))
-                : Nothing();
+                    *trainingData.Learn->TargetData->GetOneDimensionalTarget(),
+                    GetWeights(*trainingData.Learn->TargetData)
+                );
+            }
             TLearnContext ctx(
                 catboostOptions,
                 objectiveDescriptor,

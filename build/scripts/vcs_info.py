@@ -55,6 +55,7 @@ def get_default_json():
     "ARCADIA_SOURCE_URL": "",
     "BRANCH": "math",
     "BUILD_DATE": "",
+    "BUILD_TIMESTAMP": 0,
     "BUILD_HOST": "localhost",
     "BUILD_USER": "nobody",
     "PROGRAM_VERSION": "Arc info:\\n    Branch: math\\n    Commit: 0577215664901532860606512090082402431042\\n    Author: ordinal\\n    Summary: No VCS\\n\\n",
@@ -208,6 +209,8 @@ def print_java_mf(info):
         lines += wrap('SVN-Arcroot: ', info['SVN_ARCROOT'])
         lines += wrap('SVN-Time: ', info['SVN_TIME'])
     lines += wrap('Build-Date: ', info['BUILD_DATE'])
+    if 'BUILD_TIMESTAMP' in info:
+        lines += wrap('Build-Timestamp: ', str(info['BUILD_TIMESTAMP']))
     return lines, names
 
 

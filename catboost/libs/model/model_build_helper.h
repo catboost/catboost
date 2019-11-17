@@ -12,7 +12,7 @@ public:
         const TVector<TCatFeature>& allCategoricalFeatures,
         const TVector<TTextFeature>& allTextFeatures,
         int approxDimension);
-    void ProcessSplitsSet(const TSet<TModelSplit>& modelSplitSet, TObliviousTrees* tree);
+    void ProcessSplitsSet(const TSet<TModelSplit>& modelSplitSet, TModelTrees* tree);
 public:
     int ApproxDimension = 1;
     TVector<TFloatFeature> FloatFeatures;
@@ -46,7 +46,7 @@ public:
 
         AddTree(modelSplits, treeLeafValues, TVector<double>());
     }
-    void Build(TObliviousTrees* result);
+    void Build(TModelTrees* result);
 private:
     TVector<TVector<TModelSplit>> Trees;
     TVector<double> LeafValues;
@@ -86,7 +86,7 @@ public:
         int approxDimension
     );
     void AddTree(THolder<TNonSymmetricTreeNode> head);
-    void Build(TObliviousTrees* result);
+    void Build(TModelTrees* result);
 private:
     ui32 AddTreeNode(const TNonSymmetricTreeNode& node);
     void InsertNodeValue(const TNonSymmetricTreeNode& node);

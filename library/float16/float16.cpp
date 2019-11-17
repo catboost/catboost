@@ -1,96 +1,104 @@
 #include "float16.h"
+#include <util/generic/cast.h>
 #include <util/system/yassert.h>
 #include <util/stream/output.h>
 
+namespace {
+    // Generates a float32 with a given exponent and other bits set to zero
+    // We do this a lot in conversion functions, so a short name helps
+    constexpr ui32 AsExp32(ui32 e) {
+        return e << NFloat16Impl::Float32MantissaBits;
+    }
+}
 
-static ui16 ConvertFloat32IntoFloat16Simple(float val) {
-    using namespace NFloat16Impl;
-    union {
-        float fVal;
-        ui32 bitView;
-    } d;
-    d.fVal = val;
-    const ui32& bitView = d.bitView;
-
-    ui32 sign = SignFloat32Mask & bitView;
-    ui16 resSign = (sign >> (
-            Float32ExponentBits + Float32MantisaBits - Float16ExponentBits - Float16MantisaBits
-    ));
-
-    if ( (bitView ^ sign) == 0) {//zero or minus-zero
-        return 0;
+ui16 NFloat16Impl::ConvertFloat32IntoFloat16Auto(float val) {
+    if (AreConversionIntrinsicsAvailableOnHost()) {
+        return ConvertFloat32IntoFloat16Intrinsics(val);
     }
 
-    ui8 exponent = i8((bitView ^ sign) >> Float32MantisaBits);
+    // This is basically float_to_half_fast3_rtne() from https://gist.github.com/rygorous/2156668
+    // modified to match the NaN handling of `vcvtps2ph` on x86 and `fcvt` on ARM
 
-    ui32 mantisa = (bitView & MantisaFloat32Mask);
-    ui16 represantableMantisa = mantisa >> (Float32MantisaBits - Float16MantisaBits);
+    auto res32 = BitCast<ui32>(val);
+    const auto sign = res32 & SignFloat32Mask;
+    res32 ^= sign;
 
-    if (exponent == 0) {
-        if (represantableMantisa == 0) {
-            return resSign;
-        } else {
-            ui8 resExponent = i8(-(Float32MantisaBits - Float16MantisaBits)) + FLoat16ExponentOffset;
-            return resSign | (resExponent << Float16MantisaBits) | represantableMantisa;
+    ui16 res = 0;
+
+    if (res32 >= AsExp32(Float32ExponentOffset + Float16ExponentOffset + 1)) {
+        // `val` was an Inf or a NaN, set all exponent bits to one
+        res = ExponentFloat16Mask;
+        if (res32 > ExponentFloat32Mask) {
+            // The NaN payload has to be truncated, and the "quiet NaN" bit has to be set
+            // See Table 14-9 "Non-Numerical Behavior for VCVTPH2PS, VCVTPS2PH" in
+            // "Intel® 64 and IA-32 Architectures Software Developer's Manual"
+            res |= (res32 >> MantissaBitsDiff) & MantissaFloat16Mask;
+            res |= QuietNanFloat16Mask;
         }
     } else {
-        i8 centeredExponent = exponent - FLoat32ExponentOffset;
-        if (centeredExponent > FLoat16ExponentOffset) {
-            return ExponentFloat16Mask | resSign;
+        if (res32 < AsExp32(ExponentOffsetDiff + 1)) {
+            // Align the bits of our mantissa that are representable in float16 at the very
+            // bottom of the 32-bit number using regular floating point addition
+            // (see the "Conversion" section in http://www.chrishecker.com/images/f/fb/Gdmfp.pdf)
+            constexpr ui32 denormMagic = AsExp32(Float32ExponentOffset - 1);
+            const auto afterMagic = BitCast<float>(res32) + BitCast<float>(denormMagic);
+            res = static_cast<ui16>(BitCast<ui32>(afterMagic) - denormMagic);
+        } else {
+            const ui32 mantissaLastBit = (res32 >> MantissaBitsDiff) & 1;
+            // Adjust the exponent to use the fp16 offset
+            res32 += AsExp32(static_cast<ui32>(-ExponentOffsetDiff));
+            // `val` is a normal float32 number which might not be exactly representable as float16,
+            // so we need to round it correctly using standard round-to-nearest-even
+            // In terms of Table 2.1 in "Handbook of Floating-Point Arithmetic" by Jean-Michel Muller et al.,
+            // this line changes the result when round = 1, sticky = 1
+            res32 += 0b1111'1111'1111;
+            // This line changes the result when round = 0, sticky = 1 and the original mantissa is odd
+            res32 += mantissaLastBit;
+            res = static_cast<ui16>(res32 >> MantissaBitsDiff);
         }
-        if (centeredExponent < -FLoat16ExponentOffset + 1) {
-            return resSign;
+    }
+
+    return res | static_cast<ui16>(sign >> 16);
+}
+
+float NFloat16Impl::ConvertFloat16IntoFloat32Auto(ui16 f16) {
+    if (AreConversionIntrinsicsAvailableOnHost()) {
+        return ConvertFloat16IntoFloat32Intrinsics(f16);
+    }
+
+    // The easy case: all float16 numbers can be losslessly converted to float32
+    // This is basically half_to_float() from https://gist.github.com/rygorous/2156668
+    // The only major difference is that this version converts signaling NaNs to quiet NaNs
+    // to match the behavior of `vcvtph2ps` on x86 and `fcvt` on ARM
+
+    const auto sign = f16 & SignFloat16Mask;
+    auto res = static_cast<ui32>(f16 ^ sign) << MantissaBitsDiff;
+
+    ui32 unadjustedExponent = res & (ExponentFloat16Mask << MantissaBitsDiff);
+    // For normal numbers, all we have to do is adjust the exponent to use the fp32 offset
+    res += AsExp32(ExponentOffsetDiff);
+
+    if (unadjustedExponent == (ExponentFloat16Mask << MantissaBitsDiff)) {
+        // This was an Inf or a NaN, so we need another adjustment to set all exponent bits to one
+        res += AsExp32(ExponentOffsetDiff);
+        if (res > ExponentFloat32Mask) {
+            // This was a NaN, so we need to explicitly set the "quiet NaN" bit
+            res |= QuietNanFloat32Mask;
         }
-        return resSign | ( (centeredExponent + FLoat16ExponentOffset) << Float16MantisaBits) | represantableMantisa;
+    } else if (unadjustedExponent == 0) {
+        // `f16` was either denormal or zero (i.e., a number of form 2**-14 * 0.xxxxxxxxxx)
+        res += AsExp32(1);
+        // `res` now represents 2**-14 * 1.xxxxxxxxxx0...000 as float32
+        // Ergo, if we subtract 2**-14 * 1.00000000000...000 from it, the floating point machinery
+        // will automatically take care of the final exponent adjustment to make the result normalized
+        res = BitCast<ui32>(BitCast<float>(res) - BitCast<float>(AsExp32(ExponentOffsetDiff + 1)));
     }
+
+    return BitCast<float>(res | (static_cast<ui32>(sign) << 16));
 }
-
-ui16 NFloat16Impl::ConvertFloat32IntoFloat16(float val) {
-    ui16 res = ConvertFloat32IntoFloat16Simple(val);
-    if (res == (1 << FLoat16ExponentOffset)) {
-        res = 0;
-    }
-    return res;
-}
-
-
-ui32 NFloat16Impl::ConvertFloat16IntoFloat32Bitly(ui16 f16) {
-    ui16 sign = f16 & SignFloat16Mask;
-    ui32 resSign = ui32(sign) << (
-        Float32ExponentBits + Float32MantisaBits - Float16ExponentBits - Float16MantisaBits
-    );
-
-    if ( (f16 ^ sign) == 0) {
-        return resSign;
-    }
-    ui8 exponent = (f16 ^ sign) >> Float16MantisaBits;
-    i8 centeredExponent = exponent - FLoat16ExponentOffset;
-    ui32 mantisa = ui32(f16 & MantisaFloat16Mask) << (Float32MantisaBits - Float16MantisaBits);
-
-    if (exponent == 0) {
-        return resSign | mantisa;
-    }
-    if (centeredExponent == FLoat16ExponentOffset + 1) {
-        return resSign | ExponentFloat32Mask; // +- infinity
-    }
-
-    return resSign | (ui32(centeredExponent + FLoat32ExponentOffset) << Float32MantisaBits) | mantisa;
-};
-
-
-float NFloat16Impl::ConvertFloat16IntoFloat32(ui16 f16) {
-    union {
-        float fVal;
-        ui32 bitView;
-    } res;
-    res.bitView = ConvertFloat16IntoFloat32Bitly(f16);
-
-    return res.fVal;
-}
-
 
 void NFloat16Ops::UnpackFloat16SequenceAuto(const TFloat16* src, float* dst, size_t len) {
-    if (IsIntrisincsAvailableOnHost()) {
+    if (AreIntrinsicsAvailableOnHost()) {
         UnpackFloat16SequenceIntrisincs(src, dst, len);
     } else {
         while(len > 0) {
@@ -106,7 +114,7 @@ float NFloat16Ops::DotProductOnFloatAuto(const float* f32, const TFloat16* f16, 
     Y_ASSERT(size_t(f16) % Float16BufferAlignmentRequirementInBytes == 0);
     Y_ASSERT(size_t(f32) % Float32BufferAlignmentRequirementInBytes == 0);
 
-    if (IsIntrisincsAvailableOnHost()) {
+    if (AreIntrinsicsAvailableOnHost()) {
         return DotProductOnFloatIntrisincs(f32, f16, len);
     }
     float res = 0;
@@ -125,7 +133,7 @@ void Out<TFloat16>(IOutputStream& out, typename TTypeTraits<TFloat16>::TFuncPara
 }
 
 void NFloat16Ops::PackFloat16SequenceAuto(const float* src, TFloat16* dst, size_t len) {
-    if (IsIntrisincsAvailableOnHost()) {
+    if (AreIntrinsicsAvailableOnHost()) {
         PackFloat16SequenceIntrisincs(src, dst, len);
     } else {
         while (len > 0) {

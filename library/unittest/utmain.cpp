@@ -750,19 +750,20 @@ int UTMAIN(int argc, char** argv) {
 
         TTestFactory::Instance().SetProcessor(&processor);
 
+        unsigned ret;
         for (;;) {
-            const unsigned ret = TTestFactory::Instance().Execute();
-
+            ret = TTestFactory::Instance().Execute();
             if (!processor.GetIsForked() && ret && processor.GetPrintSummary()) {
                 Cerr << "SOME TESTS FAILED!!!!" << Endl;
             }
 
-            if (ret || !processor.IsLoop()) {
-                return ret;
+            if (0 != ret || !processor.IsLoop()) {
+                break;
             }
         }
 
         NPlugin::OnStopMain(argc, argv);
+        return ret;
 #ifndef UT_SKIP_EXCEPTIONS
     } catch (...) {
         Cerr << "caught exception in test suite(" << CurrentExceptionMessage() << ")" << Endl;

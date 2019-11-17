@@ -19,6 +19,7 @@ RECURSE(
     model/ut
     model_interface
     overfitting_detector
+    monoforest
     train_lib
     train_lib/ut
     train_interface

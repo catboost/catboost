@@ -19,7 +19,7 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
     Y_UNIT_TEST(TestSerializeDeserializeFullModel) {
         TFullModel trainedModel = TrainFloatCatboostModel();
         DoSerializeDeserialize(trainedModel);
-        trainedModel.ObliviousTrees.GetMutable()->ConvertObliviousToAsymmetric();
+        trainedModel.ModelTrees.GetMutable()->ConvertObliviousToAsymmetric();
         DoSerializeDeserialize(trainedModel);
     }
 
@@ -29,7 +29,7 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
         trainedModel.Save(&strStream);
         ExportModel(trainedModel, "model.coreml", EModelType::AppleCoreML);
         TFullModel deserializedModel = ReadModel("model.coreml", EModelType::AppleCoreML);
-        UNIT_ASSERT_EQUAL(trainedModel.ObliviousTrees->GetLeafValues(), deserializedModel.ObliviousTrees->GetLeafValues());
-        UNIT_ASSERT_EQUAL(trainedModel.ObliviousTrees->GetTreeSplits(), deserializedModel.ObliviousTrees->GetTreeSplits());
+        UNIT_ASSERT_EQUAL(trainedModel.ModelTrees->GetLeafValues(), deserializedModel.ModelTrees->GetLeafValues());
+        UNIT_ASSERT_EQUAL(trainedModel.ModelTrees->GetTreeSplits(), deserializedModel.ModelTrees->GetTreeSplits());
     }
 }

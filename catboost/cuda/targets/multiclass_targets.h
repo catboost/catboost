@@ -143,7 +143,7 @@ namespace NCatboostCuda {
                                "dataProvider.TargetData must contain class count for target");
             NumClasses = *targetClassCount;
 
-            TConstArrayRef<float> target = *dataProvider.TargetData->GetTarget();
+            TConstArrayRef<float> target = *dataProvider.TargetData->GetOneDimensionalTarget();
             TVector<float> tmp(target.begin(), target.end());
             SortUnique(tmp);
             Y_VERIFY(NumClasses >= tmp.size());

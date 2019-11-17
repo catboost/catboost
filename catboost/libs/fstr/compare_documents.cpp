@@ -15,26 +15,26 @@ static void CalcIndicatorCoefficients(
     TArrayRef<ui32> treeLeafIdxes,
     TVector<TVector<double>>* floatFeatureImpact
 ) {
-    const auto treeSplitOffsets = model.ObliviousTrees->GetTreeStartOffsets();
-    floatFeatureImpact->resize(model.ObliviousTrees->GetFloatFeatures().size());
+    const auto treeSplitOffsets = model.ModelTrees->GetTreeStartOffsets();
+    floatFeatureImpact->resize(model.ModelTrees->GetFloatFeatures().size());
 
     for (ui32 featureIdx = 0; featureIdx < floatFeatureImpact->size(); ++featureIdx) {
-        (*floatFeatureImpact)[featureIdx].resize(model.ObliviousTrees->GetFloatFeatures()[featureIdx].Borders.size() + 1);
+        (*floatFeatureImpact)[featureIdx].resize(model.ModelTrees->GetFloatFeatures()[featureIdx].Borders.size() + 1);
     }
 
-    const auto& binSplits = model.ObliviousTrees->GetBinFeatures();
+    const auto& binSplits = model.ModelTrees->GetBinFeatures();
 
     size_t offset = 0;
-    for (size_t treeId = 0; treeId < model.ObliviousTrees->GetTreeCount(); ++treeId) {
-        double leafValue = model.ObliviousTrees->GetLeafValues()[offset + treeLeafIdxes[treeId]];
-        const size_t treeDepth = model.ObliviousTrees->GetTreeSizes().at(treeId);
+    for (size_t treeId = 0; treeId < model.ModelTrees->GetTreeCount(); ++treeId) {
+        double leafValue = model.ModelTrees->GetLeafValues()[offset + treeLeafIdxes[treeId]];
+        const size_t treeDepth = model.ModelTrees->GetTreeSizes().at(treeId);
         for (size_t depthIdx = 0; depthIdx < treeDepth; ++depthIdx) {
             size_t leafIdx = treeLeafIdxes[treeId] ^ (1 << depthIdx);
-            double diff = model.ObliviousTrees->GetLeafValues()[offset + leafIdx] - leafValue;
+            double diff = model.ModelTrees->GetLeafValues()[offset + leafIdx] - leafValue;
             if (abs(diff) < 1e-12) {
                 continue;
             }
-            const auto splitIdx = model.ObliviousTrees->GetTreeSplits()[treeSplitOffsets[treeId] + depthIdx];
+            const auto splitIdx = model.ModelTrees->GetTreeSplits()[treeSplitOffsets[treeId] + depthIdx];
             auto split = binSplits[splitIdx];
             Y_ASSERT(split.Type == ESplitType::FloatFeature);
             int featureIdx = split.FloatFeature.FloatFeature;
@@ -62,7 +62,7 @@ static TVector<double> GetPredictionDiffSingle(
     );
     TVector<double> impact(layout.GetExternalFeatureCount());
 
-    for (const auto& feature: model.ObliviousTrees->GetFloatFeatures()) {
+    for (const auto& feature: model.ModelTrees->GetFloatFeatures()) {
         int featureIdx = feature.Position.Index;
         double diff = 0;
         auto externalIdx = feature.Position.FlatIndex;
@@ -89,7 +89,7 @@ TVector<TVector<double>> GetPredictionDiff(
     NPar::TLocalExecutor* localExecutor
 ) {
     CB_ENSURE(model.IsOblivious(), "Is not supported for non symmetric trees");
-    CB_ENSURE(model.ObliviousTrees->GetDimensionsCount() == 1,  "Is not supported for multiclass");
+    CB_ENSURE(model.ModelTrees->GetDimensionsCount() == 1,  "Is not supported for multiclass");
     CB_ENSURE(dataProvider.GetObjectCount() == 2, "PredictionDiff requires 2 documents for compare");
     CB_ENSURE(model.GetNumCatFeatures() == 0, "Model with categorical features are not supported ");
 
@@ -97,12 +97,12 @@ TVector<TVector<double>> GetPredictionDiff(
 
     const auto *const rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(dataProvider.ObjectsData.Get());
 
-    const auto& binSplits = model.ObliviousTrees->GetBinFeatures();
+    const auto& binSplits = model.ModelTrees->GetBinFeatures();
 
     TVector<TVector<ui32>> docBorders(dataProvider.GetObjectCount());
     TVector<ui32> borderIdxForSplit(binSplits.size(), std::numeric_limits<ui32>::infinity());
     ui32 splitIdx = 0;
-    for (const auto& feature : model.ObliviousTrees->GetFloatFeatures()) {
+    for (const auto& feature : model.ModelTrees->GetFloatFeatures()) {
         TMaybeData<const TFloatValuesHolder*> featureData
             = rawObjectsData->GetFloatFeature(feature.Position.FlatIndex);
 

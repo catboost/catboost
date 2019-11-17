@@ -196,7 +196,7 @@ namespace NCB {
     protected:
         template <class TReadDataFunc, class TReadBaselineFunc>
         void Do(TReadDataFunc readFunc, TReadBaselineFunc readBaselineFunc, IRawObjectsOrderDataVisitor* visitor) {
-            StartBuilder(false, GetObjectCount(), 0, visitor);
+            StartBuilder(false, GetObjectCountSynchronized(), 0, visitor);
             while (AsyncRowProcessor.ReadBlock(readFunc)) {
                 CB_ENSURE(!Args.BaselineFilePath.Inited() || AsyncBaselineRowProcessor.ReadBlock(readBaselineFunc), "Failed to read baseline");
                 ProcessBlock(visitor);
@@ -226,8 +226,8 @@ namespace NCB {
             return true;
         }
 
-
-        virtual ui32 GetObjectCount() = 0;
+        // Some implementations use caching with synchronized access
+        virtual ui32 GetObjectCountSynchronized() = 0;
 
         virtual void StartBuilder(bool inBlock,
                                   ui32 objectCount, ui32 offset,
@@ -237,8 +237,9 @@ namespace NCB {
 
         virtual void FinalizeBuilder(bool inBlock, IRawObjectsOrderDataVisitor* visitor) {
             if (!inBlock) {
-                SetGroupWeights(Args.GroupWeightsFilePath, GetObjectCount(), Args.DatasetSubset, visitor);
-                SetPairs(Args.PairsFilePath, GetObjectCount(), Args.DatasetSubset, visitor);
+                const ui32 objectCount = GetObjectCountSynchronized();
+                SetGroupWeights(Args.GroupWeightsFilePath, objectCount, Args.DatasetSubset, visitor);
+                SetPairs(Args.PairsFilePath, objectCount, Args.DatasetSubset, visitor);
             }
             visitor->Finish();
         }

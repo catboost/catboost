@@ -226,17 +226,17 @@
         "crypta": {
             "description": "Run Crypta client"
         },
-        "go_1.12.10": {
-            "description": "Run go tool (1.12.10)"
-        },
-        "gofmt_1.12.10": {
-            "description": "Run gofmt tool (1.12.10)"
-        },
-        "go": {
+        "go_1.13.3": {
             "description": "Run go tool (1.13.3)"
         },
-        "gofmt": {
+        "gofmt_1.13.3": {
             "description": "Run gofmt tool (1.13.3)"
+        },
+        "go": {
+            "description": "Run go tool (1.13.4)"
+        },
+        "gofmt": {
+            "description": "Run gofmt tool (1.13.4)"
         },
         "godoc": {
             "description": "Arcadia version of godoc"
@@ -285,7 +285,10 @@
         },
         "stress-ng": {
             "description": "stress load tester"
-        }
+        },
+        "lkvm": {
+            "description": "kvmtool is a userland tool for creating and controlling KVM guests"
+        },
     },
     "toolchain": {
         "msvc2017-i686": {
@@ -1899,6 +1902,99 @@
                 "gcc_version": "8.0"
             }
         },
+        "xcode_11_1": {
+            "tools": {
+                "c++": {
+                    "bottle": "xcode_11_1",
+                    "executable": "c++"
+                },
+                "cc": {
+                    "bottle": "xcode_11_1",
+                    "executable": "cc"
+                },
+                "llvm-cov": {
+                    "bottle": "xcode_11_1",
+                    "executable": "llvm-cov"
+                },
+                "llvm-profdata": {
+                    "bottle": "xcode_11_1",
+                    "executable": "llvm-profdata"
+                },
+                "nm": {
+                    "bottle": "xcode_11_1",
+                    "executable": "llvm-nm"
+                },
+                "strip": {
+                    "bottle": "xcode_11_1",
+                    "executable": "strip"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "DARWIN",
+                        "arch": "x86_64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "i386"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "x86_64"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "armv7"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "target": {
+                        "os": "IOS",
+                        "arch": "arm64"
+                    },
+                    "default": false
+                }
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/usr/bin/clang",
+                "cxx_compiler": "$(CLANG)/usr/bin/clang++",
+                "ar": "$(CLANG)/usr/bin/ar",
+                "inplace_tools": true,
+                "gcc_version": "8.0",
+                "dwarf_tool": {
+                    "DARWIN": "$(CLANG)/usr/bin/dsymutil -flat"
+                }
+            }
+        },
         "clang6-android-x86": {
             "name": "clang6",
             "tools": {
@@ -2309,6 +2405,15 @@
                     },
                     "target": {
                         "os": "LINUX",
+                        "arch": "armv7a"
+                    }
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "YOCTO_LG",
                         "arch": "armv7a"
                     }
                 }
@@ -4190,59 +4295,19 @@
                 }
             ]
         },
-        "golang_1_12_10": {
-            "tools": {
-                "golang_1.12.10": {
-                    "bottle": "golang_1.12.10",
-                    "executable": "golang_1.12.10"
-                },
-                "go_1.12.10": {
-                    "bottle": "golang_1.12.10",
-                    "executable": "go_1.12.10"
-                },
-                "gofmt_1.12.10": {
-                    "bottle": "golang_1.12.10",
-                    "executable": "gofmt_1.12.10"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "WIN"
-                    },
-                    "default": true
-                }
-            ],
-            "params": {
-                "type": "golang",
-                "version": "1.12.10"
-            }
-        },
         "golang_1_13_3": {
             "tools": {
-                "golang": {
+                "golang_1.13.3": {
                     "bottle": "golang_1.13.3",
-                    "executable": "golang"
+                    "executable": "golang_1.13.3"
                 },
-                "go": {
+                "go_1.13.3": {
                     "bottle": "golang_1.13.3",
-                    "executable": "go"
+                    "executable": "go_1.13.3"
                 },
-                "gofmt": {
+                "gofmt_1.13.3": {
                     "bottle": "golang_1.13.3",
-                    "executable": "gofmt"
+                    "executable": "gofmt_1.13.3"
                 }
             },
             "platforms": [
@@ -4268,6 +4333,46 @@
             "params": {
                 "type": "golang",
                 "version": "1.13.3"
+            }
+        },
+        "golang_1_13_4": {
+            "tools": {
+                "golang": {
+                    "bottle": "golang_1.13.4",
+                    "executable": "golang"
+                },
+                "go": {
+                    "bottle": "golang_1.13.4",
+                    "executable": "go"
+                },
+                "gofmt": {
+                    "bottle": "golang_1.13.4",
+                    "executable": "gofmt"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                }
+            ],
+            "params": {
+                "type": "golang",
+                "version": "1.13.4"
             }
         },
         "godoc": {
@@ -4386,6 +4491,22 @@
                 }
             ]
         },
+        "lkvm": {
+            "tools": {
+                "lkvm": {
+                    "bottle": "kvmtool",
+                    "executable": "lkvm"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "vmexec": {
             "tools": {
                 "vmexec": {
@@ -4471,6 +4592,12 @@
                         "os": "LINUX"
                     },
                     "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
                 }
             ]
         }
@@ -4507,7 +4634,7 @@
         "ymake": {
             "formula": {
                 "sandbox_id": [
-                    537525027
+                    543829399
                 ],
                 "match": "ymake"
             },
@@ -4531,7 +4658,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    535142219
+                    542602407
                 ],
                 "match": "arc"
             },
@@ -4875,6 +5002,46 @@
                 "llvm-strip": [
                     "bin",
                     "llvm-strip"
+                ]
+            }
+        },
+        "xcode_11_1": {
+            "formula": {
+                "sandbox_id": [
+                    542909976
+                ],
+                "match": "toolchain"
+            },
+            "executable": {
+                "c++": [
+                    "usr",
+                    "bin",
+                    "clang++"
+                ],
+                "cc": [
+                    "usr",
+                    "bin",
+                    "clang"
+                ],
+                "llvm-cov": [
+                    "usr",
+                    "bin",
+                    "llvm-cov"
+                ],
+                "llvm-profdata": [
+                    "usr",
+                    "bin",
+                    "llvm-profdata"
+                ],
+                "llvm-nm": [
+                    "usr",
+                    "bin",
+                    "llvm-nm"
+                ],
+                "strip": [
+                    "usr",
+                    "bin",
+                    "strip"
                 ]
             }
         },
@@ -5516,7 +5683,7 @@
         "dctl": {
             "formula": {
                 "sandbox_id": [
-                    536971419
+                    547276417
                 ],
                 "match": "dctl"
             },
@@ -5873,7 +6040,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 539018972,
+                "sandbox_id": 547398069,
                 "match": "horadric"
             },
             "executable": {
@@ -5981,32 +6148,32 @@
                 ]
             }
         },
-        "golang_1.12.10": {
-            "formula": {
-                "sandbox_id": [
-                    515671143,
-                    515671864,
-                    515672655
-                ],
-                "match": "GOLANG"
-            },
-            "executable": {
-                "go_1.12.10": [
-                    "bin",
-                    "go"
-                ],
-                "gofmt_1.12.10": [
-                    "bin",
-                    "gofmt"
-                ]
-            }
-        },
         "golang_1.13.3": {
             "formula": {
                 "sandbox_id": [
                     530246999,
                     530247347,
                     530247605
+                ],
+                "match": "GOLANG"
+            },
+            "executable": {
+                "go_1.13.3": [
+                    "bin",
+                    "go"
+                ],
+                "gofmt_1.13.3": [
+                    "bin",
+                    "gofmt"
+                ]
+            }
+        },
+        "golang_1.13.4": {
+            "formula": {
+                "sandbox_id": [
+                    539864839,
+                    539865212,
+                    539865520
                 ],
                 "match": "GOLANG"
             },
@@ -6093,6 +6260,20 @@
                 ]
             }
         },
+        "kvmtool": {
+            "formula": {
+                "sandbox_id": [
+                    547591282
+                ],
+                "match": "infra/kernel/tools/kvmtool"
+            },
+            "executable": {
+                "lkvm": [
+                    "kvmtool",
+                    "lkvm"
+                ]
+            }
+        },
         "vmexec": {
             "formula": {
                 "sandbox_id": [
@@ -6130,7 +6311,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 534441118,
+                "sandbox_id": 546739548,
                 "match": "SEDEM archive"
             },
             "executable": {

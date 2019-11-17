@@ -35,20 +35,20 @@ static void AssertModelSumEqualSliced(TDataProviderPtr dataProvider) {
         {&evalResult});
 
     auto bigResult = ApplyModelMulti(bigModel, *(dataProvider->ObjectsData));
-    bigModel.ObliviousTrees.GetMutable()->DropUnusedFeatures();
+    bigModel.ModelTrees.GetMutable()->DropUnusedFeatures();
     TVector<TFullModel> partModels;
     TVector<const TFullModel*> modelPtrs;
     TVector<double> modelWeights(5, 1.0);
     for (size_t i = 0; i < 5; ++i) {
         auto partModel = bigModel.CopyTreeRange(i * 20, (i + 1) * 20);
-        partModel.ObliviousTrees.GetMutable()->DropUnusedFeatures();
+        partModel.ModelTrees.GetMutable()->DropUnusedFeatures();
         partModels.emplace_back(partModel);
     }
     for (auto& model : partModels) {
         modelPtrs.push_back(&model);
     }
     auto mergedModel = SumModels(modelPtrs, modelWeights);
-    UNIT_ASSERT_EQUAL(*mergedModel.ObliviousTrees, *bigModel.ObliviousTrees);
+    UNIT_ASSERT_EQUAL(*mergedModel.ModelTrees, *bigModel.ModelTrees);
 
     auto mergedResult = ApplyModelMulti(mergedModel, *dataProvider->ObjectsData);
     UNIT_ASSERT_VALUES_EQUAL(bigResult.ysize(), mergedResult.ysize());
@@ -66,20 +66,20 @@ Y_UNIT_TEST_SUITE(TModelSummTests) {
 
     Y_UNIT_TEST(FloatModelMergeTest) {
         auto bigModel = TrainFloatCatboostModel(40);
-        bigModel.ObliviousTrees.GetMutable()->DropUnusedFeatures();
+        bigModel.ModelTrees.GetMutable()->DropUnusedFeatures();
         TVector<TFullModel> partModels;
         TVector<const TFullModel*> modelPtrs;
         TVector<double> modelWeights(5, 1.0);
         for (size_t i = 0; i < 5; ++i) {
             auto partModel = bigModel.CopyTreeRange(i * 8, (i + 1) * 8);
-            partModel.ObliviousTrees.GetMutable()->DropUnusedFeatures();
+            partModel.ModelTrees.GetMutable()->DropUnusedFeatures();
             partModels.emplace_back(partModel);
         }
         for (auto& model : partModels) {
             modelPtrs.push_back(&model);
         }
         auto mergedModel = SumModels(modelPtrs, modelWeights);
-        UNIT_ASSERT_EQUAL(*mergedModel.ObliviousTrees, *bigModel.ObliviousTrees);
+        UNIT_ASSERT_EQUAL(*mergedModel.ModelTrees, *bigModel.ModelTrees);
     }
 
     Y_UNIT_TEST(SumEqualSliced) {

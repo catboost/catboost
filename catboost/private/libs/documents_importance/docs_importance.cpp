@@ -3,6 +3,7 @@
 #include "docs_importance_helpers.h"
 #include "enums.h"
 
+#include <catboost/libs/data/model_dataset_compatibility.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
@@ -104,7 +105,7 @@ static TDStrResult GetFinalDocumentImportances(
                 result.Scores[testDocId].push_back(preprocessedImportancesRef[indices[i]]);
                 result.Indices[testDocId].push_back(indices[i]);
                 ++currentSize;
-            }            
+            }
         }
     }
     return result;
@@ -122,6 +123,8 @@ TDStrResult GetDocumentImportances(
     int logPeriod
 ) {
     CB_ENSURE(model.GetTreeCount(), "Model is not trained");
+    CheckModelAndDatasetCompatibility(model, *trainData.ObjectsData.Get());
+    CheckModelAndDatasetCompatibility(model, *testData.ObjectsData.Get());
     if (topSize == -1) {
         topSize = SafeIntegerCast<int>(trainData.ObjectsData->GetObjectCount());
     } else {
@@ -167,4 +170,3 @@ TDStrResult GetDocumentImportances(
         = leafInfluenceEvaluator.GetDocumentImportances(*testProcessedData, logPeriod);
     return GetFinalDocumentImportances(documentImportances, dstrType, topSize, importanceValuesSign);
 }
-

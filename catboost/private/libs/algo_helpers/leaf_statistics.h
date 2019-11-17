@@ -5,24 +5,29 @@
 
 class TLeafStatistics {
 private:
+    int TargetDimension;
     int ApproxDimension;
     int AllObjectsCount;
     double AllObjectsSumWeight;
 
     TVector<float> Weights;
     TVector<float> SampleWeights; // used only double for Quantile regression
-    TVector<float> Labels;
+    TVector<TVector<float>> Labels;
     TVector<TVector<double>> Approx;
     TVector<double> LeafValues;
 
     int ObjectsCount;
     int LeafIdx;
 
+    TVector<TArrayRef<float>> LabelsView;
+    TVector<TConstArrayRef<float>> ConstLabelsView;
+
 public:
     TLeafStatistics() = default;
 
-    TLeafStatistics(int approxDimension, int allObjectsCount, double sumWeight)
-        : ApproxDimension(approxDimension)
+    TLeafStatistics(int targetDimension, int approxDimension, int allObjectsCount, double sumWeight)
+        : TargetDimension(targetDimension)
+        , ApproxDimension(approxDimension)
         , AllObjectsCount(allObjectsCount)
         , AllObjectsSumWeight(sumWeight)
         , LeafValues(TVector<double>(approxDimension, 0))
@@ -40,7 +45,15 @@ public:
 
     void Resize(int objectsCount, bool needSampleWeights, bool hasWeights) {
         ObjectsCount = objectsCount;
-        Labels.yresize(objectsCount);
+        Labels.resize(TargetDimension);
+        LabelsView.resize(TargetDimension);
+        ConstLabelsView.resize(TargetDimension);
+        for (int dimIdx = 0; dimIdx < TargetDimension; ++dimIdx) {
+            Labels[dimIdx].yresize(objectsCount);
+            LabelsView[dimIdx] = Labels[dimIdx];
+            ConstLabelsView[dimIdx] = Labels[dimIdx];
+        }
+
         if (!needSampleWeights && hasWeights) {
             Weights.yresize(objectsCount);
         }
@@ -86,12 +99,12 @@ public:
         return SampleWeights;
     }
 
-    TConstArrayRef<float> GetLabels() const {
-        return Labels;
+    TConstArrayRef<TConstArrayRef<float>> GetLabels() const {
+        return ConstLabelsView;
     }
 
-    TArrayRef<float> GetLabels() {
-        return Labels;
+    TArrayRef<TArrayRef<float>> GetLabels() {
+        return LabelsView;
     }
 
     TVector<double>* GetLeafValuesRef() {

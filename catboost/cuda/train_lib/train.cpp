@@ -150,7 +150,7 @@ namespace NCatboostCuda {
 
         const auto& featuresLayout = *dataProvider.MetaInfo.FeaturesLayout;
 
-        auto binarizedTarget = NCB::BinarizeLine<ui8>(*dataProvider.TargetData->GetTarget(), ENanMode::Forbidden, borders);
+        auto binarizedTarget = NCB::BinarizeLine<ui8>(*dataProvider.TargetData->GetOneDimensionalTarget(), ENanMode::Forbidden, borders);
 
         TAdaptiveLock lock;
 
@@ -318,6 +318,8 @@ namespace NCatboostCuda {
             CB_ENSURE(!initModel && !initLearnProgress, "Training continuation for GPU is not yet supported");
             Y_UNUSED(initModelApplyCompatiblePools);
             CB_ENSURE_INTERNAL(!dstLearnProgress, "Returning learn progress for GPU is not yet supported");
+            CB_ENSURE(!IsMultiRegressionObjective(catboostOptions.LossFunctionDescription->LossFunction),
+                      "Catboost does not support multitarget on GPU yet");
 
             NCatboostOptions::TCatBoostOptions updatedCatboostOptions(catboostOptions);
 
@@ -360,14 +362,18 @@ namespace NCatboostCuda {
             featuresManager.SetTargetBorders(
                 NCB::TBordersBuilder(
                     gridBuilderFactory,
-                    *trainingData.Learn->TargetData->GetTarget())(featuresManager.GetTargetBinarizationDescription()));
+                    *trainingData.Learn->TargetData->GetOneDimensionalTarget())(featuresManager.GetTargetBinarizationDescription()));
 
             TSetLogging inThisScope(updatedCatboostOptions.LoggingLevel);
             auto deviceRequestConfig = CreateDeviceRequestConfig(updatedCatboostOptions);
             auto stopCudaManagerGuard = StartCudaManager(deviceRequestConfig,
                                                          updatedCatboostOptions.LoggingLevel);
 
-            ui32 approxDimension = GetApproxDimension(updatedCatboostOptions, labelConverter);
+            ui32 approxDimension = GetApproxDimension(
+                updatedCatboostOptions,
+                labelConverter,
+                trainingData.Learn->TargetData->GetTargetDimension()
+            );
 
             TVector<TVector<double>> rawValues(approxDimension);
 
@@ -433,8 +439,8 @@ namespace NCatboostCuda {
             auto targetClassifiers = CreateTargetClassifiers(featuresManager);
 
             EFinalFeatureCalcersComputationMode featureCalcerComputationMode = outputOptions.GetFinalFeatureCalcerComputationMode();
-            if (modelPtr->ObliviousTrees->GetTextFeatures().empty() ||
-                modelPtr->ObliviousTrees->GetEstimatedFeatures().empty()
+            if (modelPtr->ModelTrees->GetTextFeatures().empty() ||
+                modelPtr->ModelTrees->GetEstimatedFeatures().empty()
             ) {
                 featureCalcerComputationMode = EFinalFeatureCalcersComputationMode::Skip;
             }
@@ -478,6 +484,8 @@ namespace NCatboostCuda {
             NPar::TLocalExecutor* localExecutor) const override {
 
             CB_ENSURE(trainingData.Test.size() == 1, "Model based evaluation requires exactly one eval set on GPU");
+            CB_ENSURE(!IsMultiRegressionObjective(catboostOptions.LossFunctionDescription->LossFunction),
+                      "Catboost does not support multitarget on GPU yet");
 
             NCatboostOptions::TCatBoostOptions updatedCatboostOptions(catboostOptions);
 
@@ -500,14 +508,18 @@ namespace NCatboostCuda {
             featuresManager.SetTargetBorders(
                 NCB::TBordersBuilder(
                     gridBuilderFactory,
-                    *trainingData.Learn->TargetData->GetTarget())(featuresManager.GetTargetBinarizationDescription()));
+                    *trainingData.Learn->TargetData->GetOneDimensionalTarget())(featuresManager.GetTargetBinarizationDescription()));
 
             TSetLogging inThisScope(updatedCatboostOptions.LoggingLevel);
             auto deviceRequestConfig = CreateDeviceRequestConfig(updatedCatboostOptions);
             auto stopCudaManagerGuard = StartCudaManager(deviceRequestConfig,
                                                          updatedCatboostOptions.LoggingLevel);
 
-            ui32 approxDimension = GetApproxDimension(updatedCatboostOptions, labelConverter);
+            ui32 approxDimension = GetApproxDimension(
+                updatedCatboostOptions,
+                labelConverter,
+                trainingData.Learn->TargetData->GetTargetDimension()
+            );
 
             ModelBasedEvalImpl(
                 updatedCatboostOptions,

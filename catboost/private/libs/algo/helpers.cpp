@@ -102,11 +102,13 @@ double CalcMetric(
         approx[0].size() == targetData->GetObjectCount(),
         "Approx size and object count must be equal"
     );
-    auto target = targetData->GetTarget().GetOrElse(TConstArrayRef<float>());
-    auto weights = GetWeights(*targetData);
-    auto queryInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
+    const auto target = targetData->GetTarget().GetOrElse(TConstArrayRef<TConstArrayRef<float>>());
+    const auto weights = GetWeights(*targetData);
+    const auto queryInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
     const auto& additiveStats = EvalErrors(
         approx,
+        /*approxDelta*/{},
+        /*isExpApprox*/false,
         target,
         weights,
         queryInfo,
@@ -186,7 +188,7 @@ void CalcErrors(
                     ctx->LearnProgress->AvrgApprox,
                     /*approxDelta*/{},
                     /*isExpApprox*/false,
-                    targetData->GetTarget(),
+                    targetData->GetTarget().GetOrElse(TConstArrayRef<TConstArrayRef<float>>()),
                     weights,
                     queryInfo,
                     trainMetrics,
@@ -220,7 +222,7 @@ void CalcErrors(
                 ctx->LearnProgress->TestApprox[testIdx],
                 /*approxDelta*/{},
                 /*isExpApprox*/false,
-                maybeTarget,
+                maybeTarget.GetOrElse(TConstArrayRef<TConstArrayRef<float>>()),
                 weights,
                 queryInfo,
                 testMetrics,

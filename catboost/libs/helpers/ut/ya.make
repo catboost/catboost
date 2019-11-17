@@ -7,7 +7,6 @@ SIZE(MEDIUM)
 SRCS(
     array_subset_ut.cpp
     checksum_ut.cpp
-    compare_ut.cpp
     compression_ut.cpp
     dbg_output_ut.cpp
     double_array_iterator_ut.cpp
@@ -20,6 +19,7 @@ SRCS(
     polymorphic_type_containers_ut.cpp
     resource_constrained_executor_ut.cpp
     resource_holder_ut.cpp
+    sample_ut.cpp
     serialization_ut.cpp
     short_vector_ops_ut.cpp
     sparse_array_ut.cpp

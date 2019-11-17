@@ -961,9 +961,9 @@ namespace NCB {
             }
         }
         //target
-        const auto& label = dataProvider->RawTargetData.GetTarget();
+        const auto& label = dataProvider->RawTargetData.GetOneDimensionalTarget();
         if (label) {
-            const auto& targetString = label.GetRef();
+            const auto& targetString = *label;
             TVector<float> targetFloat(targetString.size());
 
             for (auto targetIdx : xrange(targetString.size())) {

@@ -474,7 +474,7 @@ TVector<TIndexType> BuildIndicesForBinTree(
     const NCB::NModelEvaluation::IQuantizedData* quantizedFeatures,
     size_t treeId) {
 
-    if (model.ObliviousTrees->GetEffectiveBinaryFeaturesBucketsCount() == 0) {
+    if (model.ModelTrees->GetEffectiveBinaryFeaturesBucketsCount() == 0) {
         return TVector<TIndexType>();
     }
     TVector<TIndexType> indexesVec(quantizedFeatures->GetObjectsCount());

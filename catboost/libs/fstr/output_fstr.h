@@ -88,12 +88,12 @@ inline void CalcAndOutputFstr(const TFullModel& model,
                               EFstrType type) {
     const NCB::TFeaturesLayout layout(
         TVector<TFloatFeature>(
-            model.ObliviousTrees->GetFloatFeatures().begin(),
-            model.ObliviousTrees->GetFloatFeatures().end()
+            model.ModelTrees->GetFloatFeatures().begin(),
+            model.ModelTrees->GetFloatFeatures().end()
         ),
         TVector<TCatFeature>(
-            model.ObliviousTrees->GetCatFeatures().begin(),
-            model.ObliviousTrees->GetCatFeatures().end()
+            model.ModelTrees->GetCatFeatures().begin(),
+            model.ModelTrees->GetCatFeatures().end()
         )
     );
 
@@ -118,12 +118,12 @@ inline void CalcAndOutputInteraction(
 {
     const NCB::TFeaturesLayout layout(
         TVector<TFloatFeature>(
-            model.ObliviousTrees->GetFloatFeatures().begin(),
-            model.ObliviousTrees->GetFloatFeatures().end()
+            model.ModelTrees->GetFloatFeatures().begin(),
+            model.ModelTrees->GetFloatFeatures().end()
         ),
         TVector<TCatFeature>(
-            model.ObliviousTrees->GetCatFeatures().begin(),
-            model.ObliviousTrees->GetCatFeatures().end()
+            model.ModelTrees->GetCatFeatures().begin(),
+            model.ModelTrees->GetCatFeatures().end()
         )
     );
 

@@ -185,6 +185,7 @@ namespace NCB {
             const TVector<TVector<TVector<double>>>& rawValues,
             const EPredictionType predictionType,
             const TString& lossFunctionName,
+            ui32 targetDimension,
             const TExternalLabelsHelper& visibleLabelsHelper,
             TMaybe<std::pair<size_t, size_t>> evalParameters = TMaybe<std::pair<size_t, size_t>>());
         void OutputValue(IOutputStream* outStream, size_t docIndex) override;
@@ -262,6 +263,7 @@ namespace NCB {
 
     TVector<TString> CreatePredictionTypeHeader(
         ui32 approxDimension,
+        bool isMultiTarget,
         EPredictionType predictionType,
         const TExternalLabelsHelper& visibleLabelsHelper,
         ui32 startTreeIndex = 0,

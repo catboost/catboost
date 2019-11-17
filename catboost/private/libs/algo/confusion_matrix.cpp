@@ -69,9 +69,6 @@ TVector<double> MakeConfusionMatrix(const TFullModel& model, const TDataProvider
         &localExecutor
     );
 
-    CB_ENSURE(processedData.TargetData->GetTarget(), "Calculating confusion matrix requires target");
-
-    TConstArrayRef<float> labels = *(processedData.TargetData->GetTarget());
     TVector<TVector<double>> approxes = ApplyModelMulti(
         model,
         *processedData.ObjectsData,
@@ -81,5 +78,5 @@ TVector<double> MakeConfusionMatrix(const TFullModel& model, const TDataProvider
         &localExecutor
     );
 
-    return MakeConfusionMatrix(approxes, labels, &localExecutor);
+    return MakeConfusionMatrix(approxes, *processedData.TargetData->GetOneDimensionalTarget(), &localExecutor);
 }

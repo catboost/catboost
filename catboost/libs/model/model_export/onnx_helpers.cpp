@@ -72,9 +72,9 @@ void NCB::NOnnx::InitMetadata(
     }
 
     // If categorical features are present save cat_features to metadata_props as well
-    if (!model.ObliviousTrees->GetCatFeatures().empty()) {
+    if (!model.ModelTrees->GetCatFeatures().empty()) {
         TVector<int> catFeaturesIndices;
-        for (const auto& catFeature : model.ObliviousTrees->GetCatFeatures()) {
+        for (const auto& catFeature : model.ModelTrees->GetCatFeatures()) {
             catFeaturesIndices.push_back(catFeature.Position.FlatIndex);
         }
 
@@ -86,7 +86,7 @@ void NCB::NOnnx::InitMetadata(
 
 
 static bool IsClassifierModel(const TFullModel& model) {
-    if (model.ObliviousTrees->GetDimensionsCount() > 1) { // multiclass
+    if (model.ModelTrees->GetDimensionsCount() > 1) { // multiclass
         return true;
     }
 
@@ -116,7 +116,7 @@ static void GetClassLabels(
     classLabelsInt64->clear();
     classLabelsString->clear();
 
-    if (model.ObliviousTrees->GetDimensionsCount() > 1) {  // is multiclass?
+    if (model.ModelTrees->GetDimensionsCount() > 1) {  // is multiclass?
         if (model.ModelInfo.contains("multiclass_params")) {
             const auto& multiclassParamsJsonAsString = model.ModelInfo.at("multiclass_params");
             TMulticlassLabelOptions multiclassOptions;
@@ -131,7 +131,7 @@ static void GetClassLabels(
                 return;
             }
         }
-        classLabelsInt64->resize(model.ObliviousTrees->GetDimensionsCount());
+        classLabelsInt64->resize(model.ModelTrees->GetDimensionsCount());
         std::iota(classLabelsInt64->begin(), classLabelsInt64->end(), 0);
     } else { // binclass
         if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, "params")) {
@@ -363,7 +363,7 @@ public:
 
 
 static void AddTree(
-    const TObliviousTrees& trees,
+    const TModelTrees& trees,
     i64 treeIdx,
     bool isClassifierModel,
     TTreesAttributes* treesAttributes) {
@@ -468,7 +468,7 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
 
     const bool isClassifierModel = IsClassifierModel(model);
 
-    const TObliviousTrees& trees = *model.ObliviousTrees;
+    const TModelTrees& trees = *model.ModelTrees;
 
     onnxGraph->set_name(onnxGraphName.GetOrElse("CatBoostModel"));
 
@@ -713,7 +713,7 @@ static void ConfigureSymmetricTrees(const onnx::GraphProto& onnxGraph, TFullMode
         treeBuilder.AddTree(BuildNonSymmetricTree(tree, 0));
     }
 
-    treeBuilder.Build(fullModel->ObliviousTrees.GetMutable());
+    treeBuilder.Build(fullModel->ModelTrees.GetMutable());
 
     fullModel->UpdateDynamicData();
 }

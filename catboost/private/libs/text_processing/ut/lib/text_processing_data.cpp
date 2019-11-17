@@ -83,7 +83,7 @@ void NCBTest::CreateTextDataForTest(
         },
         {
             3,
-            "letter_trigram_dictionary",
+            "word_bigram_dictionary",
             {EFeatureCalcerType::BoW, EFeatureCalcerType::NaiveBayes, EFeatureCalcerType::BM25}
         }
     };
@@ -98,15 +98,15 @@ void NCBTest::CreateTextDataForTest(
         letterBiGramDictionaryOptions.TokenLevelType = NTextProcessing::NDictionary::ETokenLevelType::Letter;
         letterBiGramDictionaryOptions.GramOrder = 2;
 
-        NTextProcessing::NDictionary::TDictionaryOptions letterTriGramDictionaryOptions;
-        letterBiGramDictionaryOptions.TokenLevelType = NTextProcessing::NDictionary::ETokenLevelType::Letter;
-        letterBiGramDictionaryOptions.GramOrder = 3;
+        NTextProcessing::NDictionary::TDictionaryOptions wordBiGramDictionaryOptions;
+        letterBiGramDictionaryOptions.TokenLevelType = NTextProcessing::NDictionary::ETokenLevelType::Word;
+        letterBiGramDictionaryOptions.GramOrder = 2;
 
         dictionariesOptions = {
             {"default_dictionary", TDictionaryOptions{}},
             {"letter_unigram_dictionary", letterGramDictionaryOptions},
             {"letter_bigram_dictionary", letterBiGramDictionaryOptions},
-            {"letter_trigram_dictionary", letterTriGramDictionaryOptions}
+            {"word_bigram_dictionary", wordBiGramDictionaryOptions}
         };
     }
 
@@ -121,7 +121,12 @@ void NCBTest::CreateTextDataForTest(
                 const ui32 textFeatureId = textProcessingDescription.TextFeatureIdx;
                 const TDictionaryOptions& dictionaryOptions = dictionariesOptions[dictionaryName];
 
-                TTextColumnDictionaryOptions textColumnDictionaryOptions{dictionaryName, dictionaryOptions};
+                TDictionaryBuilderOptions dictionaryBuilderOptions{1, -1};
+                TTextColumnDictionaryOptions textColumnDictionaryOptions{
+                    dictionaryName,
+                    dictionaryOptions,
+                    dictionaryBuilderOptions
+                };
                 textColumnDictionariesOptions.push_back(textColumnDictionaryOptions);
 
                 TDictionaryPtr dictionary = CreateDictionary(
@@ -149,13 +154,15 @@ void NCBTest::CreateTextDataForTest(
             tokenizedFeatures->resize(tokenizedFeatureIdx);
         }
 
+        NPar::TLocalExecutor localExecutor;
         textDigitizers->Apply(
             [&](ui32 textFeatureIdx) {
                 return TIterableTextFeature(features->at(textFeatureIdx));
             },
             [&](ui32 tokenizedFeatureIdx, const TVector<TText>& tokenizedFeature) {
                 tokenizedFeatures->at(tokenizedFeatureIdx) = tokenizedFeature;
-            }
+            },
+            &localExecutor
         );
 
         *textProcessingOptions = TTextProcessingOptions(

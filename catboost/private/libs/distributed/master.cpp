@@ -13,6 +13,7 @@
 #include <library/par/par_settings.h>
 
 #include <util/system/yassert.h>
+#include <catboost/private/libs/algo_helpers/approx_calcer_helpers.h>
 
 
 using namespace NCatboostDistributed;
@@ -354,37 +355,83 @@ void MapSetApproxes(
     const int gradientIterations = ctx->Params.ObliviousTreeOptions->LeavesEstimationIterations;
     const int approxDimension = ctx->LearnProgress->ApproxDimension;
     const int leafCount = splitTree.GetLeafCount();
-    TVector<TSum> buckets(leafCount, TSum(approxDimension, error.GetHessianType()));
-    averageLeafValues->resize(approxDimension, TVector<double>(leafCount));
-    for (int it = 0; it < gradientIterations; ++it) {
-        for (auto& bucket : buckets) {
-            bucket.SetZeroDers();
+    const auto lossFunction = ctx->Params.LossFunctionDescription;
+    const auto estimationMethod = ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod;
+    if (estimationMethod == ELeavesEstimation::Exact) {
+        averageLeafValues->resize(approxDimension, TVector<double>(leafCount));
+        double alpha;
+        double delta;
+        if (lossFunction->GetLossFunction() == ELossFunction::Quantile) {
+            const auto& quantileError = dynamic_cast<const TQuantileError&>(error);
+            alpha = quantileError.Alpha;
+            delta = quantileError.Delta;
+        } else {
+            alpha = 0.5;
+            delta = DBL_EPSILON;
         }
 
-        TPairwiseBuckets pairwiseBuckets;
-        TApproxDefs::SetPairwiseBucketsSize(leafCount, &pairwiseBuckets);
-        const auto bucketsFromAllWorkers = ApplyMapper<TBucketUpdater>(workerCount, TMasterEnvironment::GetRef().SharedTrainData);
-        // reduce across workers
+        const auto quantileLeafDeltasCalcer = ApplyMapper<TQuantileLeafDeltasCalcer>(workerCount, TMasterEnvironment::GetRef().SharedTrainData);
+
+        TVector<TVector<double>> leafValues(approxDimension, TVector<double>(leafCount));
+
+        TVector<TVector<std::pair<float, float>>> leafSamples(leafCount);
+        TVector<std::pair<float, float>> tmp;
         for (int workerIdx = 0; workerIdx < workerCount; ++workerIdx) {
-            const auto& workerBuckets = bucketsFromAllWorkers[workerIdx].Data.first;
-            for (int leafIdx = 0; leafIdx < leafCount; ++leafIdx) {
-                if (ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Gradient) {
-                    buckets[leafIdx].AddDerWeight(
-                        workerBuckets[leafIdx].SumDer,
-                        workerBuckets[leafIdx].SumWeights,
-                        /* updateWeight */ it == 0);
-                } else {
-                    Y_ASSERT(
-                        ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Newton);
-                    buckets[leafIdx].AddDerDer2(workerBuckets[leafIdx].SumDer, workerBuckets[leafIdx].SumDer2);
-                }
+            const auto& workerSamples = quantileLeafDeltasCalcer[workerIdx];
+            Y_ASSERT(leafCount == (int) workerSamples.size());
+            for (int i = 0; i < leafCount; i++) {
+                tmp.resize(leafSamples[i].size() + workerSamples[i].size());
+                std::merge(leafSamples[i].begin(), leafSamples[i].end(), workerSamples[i].begin(), workerSamples[i].end(), tmp.begin());
+                leafSamples[i].resize(leafSamples[i].size() + workerSamples[i].size());
+                std::copy(tmp.begin(), tmp.end(), leafSamples[i].begin());
             }
-            TApproxDefs::AddPairwiseBuckets(bucketsFromAllWorkers[workerIdx].Data.second, &pairwiseBuckets);
         }
-        const auto leafValues = TApproxDefs::CalcLeafValues(buckets, pairwiseBuckets, *ctx);
+
+        NPar::ParallelFor(0, leafCount, [&](int i) {
+            TVector<float> sample;
+            TVector<float> weights;
+            for (auto p: leafSamples[i]) {
+                sample.push_back(p.first);
+                weights.push_back(p.second);
+            }
+            leafValues[0][i] = CalcSampleQuantileSorted(sample, weights, alpha, delta);
+        });
+
         AddElementwise(leafValues, averageLeafValues);
-        // calc model and update approx deltas on workers
         ApplyMapper<TDeltaUpdater>(workerCount, TMasterEnvironment::GetRef().SharedTrainData, leafValues);
+    } else {
+        TVector<TSum> buckets(leafCount, TSum(approxDimension, error.GetHessianType()));
+        averageLeafValues->resize(approxDimension, TVector<double>(leafCount));
+        for (int it = 0; it < gradientIterations; ++it) {
+            for (auto &bucket : buckets) {
+                bucket.SetZeroDers();
+            }
+
+            TPairwiseBuckets pairwiseBuckets;
+            TApproxDefs::SetPairwiseBucketsSize(leafCount, &pairwiseBuckets);
+            const auto bucketsFromAllWorkers = ApplyMapper<TBucketUpdater>(workerCount, TMasterEnvironment::GetRef().SharedTrainData);
+            // reduce across workers
+            for (int workerIdx = 0; workerIdx < workerCount; ++workerIdx) {
+                const auto &workerBuckets = bucketsFromAllWorkers[workerIdx].Data.first;
+                for (int leafIdx = 0; leafIdx < leafCount; ++leafIdx) {
+                    if (ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Gradient) {
+                        buckets[leafIdx].AddDerWeight(
+                                workerBuckets[leafIdx].SumDer,
+                                workerBuckets[leafIdx].SumWeights,
+                                /* updateWeight */ it == 0);
+                    } else {
+                        Y_ASSERT(
+                                ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Newton);
+                        buckets[leafIdx].AddDerDer2(workerBuckets[leafIdx].SumDer, workerBuckets[leafIdx].SumDer2);
+                    }
+                }
+                TApproxDefs::AddPairwiseBuckets(bucketsFromAllWorkers[workerIdx].Data.second, &pairwiseBuckets);
+            }
+            const auto leafValues = TApproxDefs::CalcLeafValues(buckets, pairwiseBuckets, *ctx);
+            AddElementwise(leafValues, averageLeafValues);
+            // calc model and update approx deltas on workers
+            ApplyMapper<TDeltaUpdater>(workerCount, TMasterEnvironment::GetRef().SharedTrainData, leafValues);
+        }
     }
 
     // [workerIdx][dimIdx][leafIdx]

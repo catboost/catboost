@@ -92,6 +92,12 @@ int main(int argc, const char *argv[]) {
     { flatbuffers::GenerateJsonSchema, nullptr, "--jsonschema", "JsonSchema",
       true, nullptr, flatbuffers::IDLOptions::kJsonSchema,
       "Generate Json schema", flatbuffers::GeneralMakeRule },
+    { flatbuffers::GenerateCPPYandexMapsIter, nullptr, "--yandex-maps-iter", "C++Iter",
+      true, nullptr,
+      flatbuffers::IDLOptions::kCppYandexMapsIter,
+      "Generate C++ template headers for tables/structs",
+      flatbuffers::GeneralMakeRule },
+
   };
 
   flatbuffers::FlatCompiler::InitParams params;

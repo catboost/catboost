@@ -14,7 +14,7 @@
 #include <util/stream/zlib.h>
 #include <util/stream/null.h>
 
-Y_UNIT_TEST_SUITE(THttpTest) {
+Y_UNIT_TEST_SUITE(THttpStreamTest) {
     class TTestHttpServer: public THttpServer::ICallBack {
         class TRequest: public THttpClientRequestEx {
         public:
@@ -443,7 +443,7 @@ Y_UNIT_TEST_SUITE(THttpTest) {
 
     Y_UNIT_TEST(CodecsPriority) {
         TMemoryInput request("GET / HTTP/1.1\r\nAccept-Encoding: gzip, br\r\n\r\n");
-        TVector<const char*> codecs = {"br", "gzip"};
+        TVector<TStringBuf> codecs = {"br", "gzip"};
 
         THttpInput i(&request);
         TString result;
@@ -451,7 +451,7 @@ Y_UNIT_TEST_SUITE(THttpTest) {
         THttpOutput httpOut(&out, &i);
 
         httpOut.EnableKeepAlive(true);
-        httpOut.EnableCompression(static_cast<const char**>(codecs.data()), 1);
+        httpOut.EnableCompression(codecs);
         httpOut << "HTTP/1.1 200 OK\r\n";
         char answer[] = "Mary had a little lamb.";
         httpOut << "Content-Length: " << strlen(answer) << "\r\n"
@@ -466,7 +466,7 @@ Y_UNIT_TEST_SUITE(THttpTest) {
 
     Y_UNIT_TEST(CodecsPriority2) {
         TMemoryInput request("GET / HTTP/1.1\r\nAccept-Encoding: gzip, br\r\n\r\n");
-        TVector<const char*> codecs = {"gzip", "br"};
+        TVector<TStringBuf> codecs = {"gzip", "br"};
 
         THttpInput i(&request);
         TString result;
@@ -474,7 +474,7 @@ Y_UNIT_TEST_SUITE(THttpTest) {
         THttpOutput httpOut(&out, &i);
 
         httpOut.EnableKeepAlive(true);
-        httpOut.EnableCompression(static_cast<const char**>(codecs.data()), 2);
+        httpOut.EnableCompression(codecs);
         httpOut << "HTTP/1.1 200 OK\r\n";
         char answer[] = "Mary had a little lamb.";
         httpOut << "Content-Length: " << strlen(answer) << "\r\n"
@@ -708,4 +708,4 @@ Y_UNIT_TEST_SUITE(THttpTest) {
         UNIT_ASSERT_VALUES_EQUAL(res.size(), DoTestHttpOutputSize(res, false));
         UNIT_ASSERT_VALUES_UNEQUAL(res.size(), DoTestHttpOutputSize(res, true));
     }
-} // THttpTest suite
+} // THttpStreamTest suite

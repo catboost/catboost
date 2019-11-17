@@ -7,7 +7,7 @@
 
 // TODO(kirillovs): move to NCB::NModelEvaluation
 class TCtrValueTable;
-struct TObliviousTrees;
+struct TModelTrees;
 class TFullModel;
 
 namespace NCB { // split due to CUDA-compiler inability to support nested namespace definitions
@@ -48,7 +48,7 @@ namespace NCatBoostFbs {
     //model.fbs
     struct TKeyValue;
     struct TNonSymmetricTreeStepNode;
-    struct TObliviousTrees;
+    struct TModelTrees;
     struct TModelCore;
 }
 

@@ -4,6 +4,7 @@ UNITTEST()
 SIZE(MEDIUM)
 
 SRCS(
+    dictionary_ut.cpp
     text_dataset_ut.cpp
 )
 

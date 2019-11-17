@@ -28,7 +28,7 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
     targets.Reset(dataSetsHolder.LearnDocPerDevicesSplit->Mapping);
     weights.Reset(dataSetsHolder.LearnDocPerDevicesSplit->Mapping);
 
-    targets.Write(learnLoadBalancingPermutation.Gather(*DataProvider.TargetData->GetTarget()));
+    targets.Write(learnLoadBalancingPermutation.Gather(*DataProvider.TargetData->GetOneDimensionalTarget()));
     weights.Write(learnLoadBalancingPermutation.Gather(GetWeights(*DataProvider.TargetData)));
 
     for (ui32 permutationId = 0; permutationId < permutationCount; ++permutationId) {
@@ -50,7 +50,7 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
         testTargets.Reset(dataSetsHolder.TestDocPerDevicesSplit->Mapping);
         testWeights.Reset(dataSetsHolder.TestDocPerDevicesSplit->Mapping);
 
-        testTargets.Write(testLoadBalancingPermutation.Gather(*LinkedTest->TargetData->GetTarget()));
+        testTargets.Write(testLoadBalancingPermutation.Gather(*LinkedTest->TargetData->GetOneDimensionalTarget()));
         testWeights.Write(testLoadBalancingPermutation.Gather(GetWeights(*LinkedTest->TargetData)));
 
         dataSetsHolder.TestDataSet = new TDocParallelDataSet(*LinkedTest,

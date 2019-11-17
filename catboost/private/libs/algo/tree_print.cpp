@@ -4,6 +4,7 @@
 #include "split.h"
 
 #include <catboost/libs/data/features_layout.h>
+#include <catboost/libs/data/model_dataset_compatibility.h>
 #include <catboost/libs/data/objects.h>
 
 #include <util/string/builder.h>
@@ -167,20 +168,24 @@ TString BuildDescription(const NCB::TFeaturesLayout& layout, const TModelSplit& 
     return result;
 }
 
-TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, int tree_idx, const NCB::TDataProviderPtr pool) {
+TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, size_t tree_idx, const NCB::TDataProviderPtr pool) {
     //TODO: support non symmetric trees
     CB_ENSURE(model.IsOblivious(), "Is not supported for non symmetric trees");
+    CB_ENSURE(tree_idx < model.GetTreeCount(),
+        "Requested tree splits description for tree " << tree_idx << ", but model has " << model.GetTreeCount());
+
+    CheckModelAndDatasetCompatibility(model, *pool->ObjectsData.Get());
 
     TVector<TString> splits;
 
-    int tree_num = model.GetTreeCount();
-    int tree_split_end;
-    TVector<TModelSplit> bin_features = model.ObliviousTrees->GetBinFeatures();
+    size_t tree_num = model.GetTreeCount();
+    size_t tree_split_end;
+    TVector<TModelSplit> bin_features = model.ModelTrees->GetBinFeatures();
 
     if (tree_idx + 1 < tree_num) {
-        tree_split_end = model.ObliviousTrees->GetTreeStartOffsets()[tree_idx + 1];
+        tree_split_end = model.ModelTrees->GetTreeStartOffsets()[tree_idx + 1];
     } else {
-        tree_split_end = model.ObliviousTrees->GetTreeSplits().size();
+        tree_split_end = model.ModelTrees->GetTreeSplits().size();
     }
 
     THashMap<ui32, TString> cat_features_hash;
@@ -190,14 +195,14 @@ TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, int tree_idx
         featuresLayout = *(pool.Get()->MetaInfo.FeaturesLayout.Get());
     } else {
         TVector<ui32> catFeaturesExternalIndexes;
-        for (const auto& feature: model.ObliviousTrees->GetCatFeatures()) {
+        for (const auto& feature: model.ModelTrees->GetCatFeatures()) {
             catFeaturesExternalIndexes.push_back(feature.Position.FlatIndex);
         }
         featuresLayout = NCB::TFeaturesLayout(model.GetNumFloatFeatures() + model.GetNumCatFeatures(), catFeaturesExternalIndexes, {}, {});
     }
 
-    for (int split_idx = model.ObliviousTrees->GetTreeStartOffsets()[tree_idx]; split_idx < tree_split_end; ++split_idx) {
-        TModelSplit bin_feature = bin_features[model.ObliviousTrees->GetTreeSplits()[split_idx]];
+    for (size_t split_idx = model.ModelTrees->GetTreeStartOffsets()[tree_idx]; split_idx < tree_split_end; ++split_idx) {
+        TModelSplit bin_feature = bin_features[model.ModelTrees->GetTreeSplits()[split_idx]];
         TString feature_description = BuildDescription(featuresLayout, bin_feature);
 
         if (bin_feature.Type == ESplitType::OneHotFeature) {
@@ -212,30 +217,30 @@ TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, int tree_idx
     return splits;
 }
 
-TVector<TString> GetTreeLeafValuesDescriptions(const TFullModel& model, int tree_idx, int leaves_num) {
+TVector<TString> GetTreeLeafValuesDescriptions(const TFullModel& model, size_t tree_idx, size_t leaves_num) {
     //TODO: support non symmetric trees
     CB_ENSURE(model.IsOblivious(), "Is not supported for non symmetric trees");
 
-    int leaf_offset = 0;
+    size_t leaf_offset = 0;
     TVector<double> leaf_values;
 
-    for (int idx = 0; idx < tree_idx; ++idx) {
-        leaf_offset += (1uLL <<  model.ObliviousTrees->GetTreeSizes()[idx]) * model.GetDimensionsCount();
+    for (size_t idx = 0; idx < tree_idx; ++idx) {
+        leaf_offset += (1uLL <<  model.ModelTrees->GetTreeSizes()[idx]) * model.GetDimensionsCount();
     }
-    int tree_leaf_count = (1uLL <<  model.ObliviousTrees->GetTreeSizes()[tree_idx]) * model.GetDimensionsCount();
+    size_t tree_leaf_count = (1uLL <<  model.ModelTrees->GetTreeSizes()[tree_idx]) * model.GetDimensionsCount();
 
-    for (int idx = 0; idx < tree_leaf_count; ++idx) {
-        leaf_values.push_back(model.ObliviousTrees->GetLeafValues()[leaf_offset + idx]);
+    for (size_t idx = 0; idx < tree_leaf_count; ++idx) {
+        leaf_values.push_back(model.ModelTrees->GetLeafValues()[leaf_offset + idx]);
     }
 
     std::reverse(leaf_values.begin(), leaf_values.end());
 
     TVector<TString> leaf_descriptions;
-    int values_per_list = leaf_values.size() / leaves_num;
+    size_t values_per_list = leaf_values.size() / leaves_num;
 
-    for (int leaf_idx = 0; leaf_idx < leaves_num; ++leaf_idx) {
+    for (size_t leaf_idx = 0; leaf_idx < leaves_num; ++leaf_idx) {
         TStringBuilder description;
-        for (int internal_idx = 0; internal_idx < values_per_list; ++internal_idx) {
+        for (size_t internal_idx = 0; internal_idx < values_per_list; ++internal_idx) {
             double value = leaf_values[leaf_idx + internal_idx * leaves_num];
             description << "val = " << FloatToString(value, EFloatToStringMode::PREC_POINT_DIGITS, 3) << "\n";
         }

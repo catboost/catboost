@@ -126,13 +126,13 @@ static bool CompareModelInfo(const THashMap<TString, TString>& modelInfo1, const
 
 // returns Nothing() if both lhs and rhs are not of TModel type
 template <class TModel>
-TMaybe<int> ProcessSubType(const TStringBuf modelTypeName, const TStringBuf modelPath1, const TStringBuf modelPath2) {
+TMaybe<int> ProcessSubType(const TStringBuf modelTypeName, const TStringBuf modelPath1, const TStringBuf modelPath2, double diffLimit) {
     TMaybe<TModel> model1 = TryLoadModel<TModel>(modelPath1);
     TMaybe<TModel> model2 = TryLoadModel<TModel>(modelPath2);
 
     if (model1 && model2) {
         TString diffString;
-        bool modelsAreEqual = CompareModels<TModel>(*model1, *model2, &diffString);
+        bool modelsAreEqual = CompareModels<TModel>(*model1, *model2, diffLimit, &diffString);
         if (modelsAreEqual) {
             Clog << "Models are equal" << Endl;
             return 0;
@@ -187,12 +187,12 @@ int main(int argc, char** argv) {
     TOptsParseResult args(&opts, argc, argv);
     TVector<TString> freeArgs = args.GetFreeArgs();
 
-    TMaybe<int> subTypeResult = ProcessSubType<onnx::ModelProto>("ONNX", freeArgs[0], freeArgs[1]);
+    TMaybe<int> subTypeResult = ProcessSubType<onnx::ModelProto>("ONNX", freeArgs[0], freeArgs[1], diffLimit);
     if (subTypeResult) {
         return *subTypeResult;
     }
 
-    subTypeResult = ProcessSubType<TPmmlModel>("PMML", freeArgs[0], freeArgs[1]);
+    subTypeResult = ProcessSubType<TPmmlModel>("PMML", freeArgs[0], freeArgs[1], diffLimit);
     if (subTypeResult) {
         return *subTypeResult;
     }
@@ -206,8 +206,8 @@ int main(int argc, char** argv) {
         return 0;
     }
     TSubmodelComparison result;
-    const TObliviousTrees& trees1 = *model1.ObliviousTrees;
-    const TObliviousTrees& trees2 = *model2.ObliviousTrees;
+    const TModelTrees& trees1 = *model1.ModelTrees;
+    const TModelTrees& trees2 = *model2.ModelTrees;
     if (true) {
         if (trees1.GetFloatFeatures().size() != trees2.GetFloatFeatures().size()) {
             Clog << "FloatFeatures size differ: "
@@ -267,44 +267,44 @@ int main(int argc, char** argv) {
     }
     if (true) {
         if (trees1.GetDimensionsCount() != trees2.GetDimensionsCount()) {
-            Clog << "ObliviousTrees.ApproxDimension differs" << Endl;
+            Clog << "ModelTrees.ApproxDimension differs" << Endl;
             result.StructureIsDifferent = true;
         }
         if (trees1.GetTreeSplits().size() != trees2.GetTreeSplits().size()) {
-            Clog << "ObliviousTrees.TreeSplits differs" << Endl;
+            Clog << "ModelTrees.TreeSplits differs" << Endl;
             result.StructureIsDifferent = true;
         } else {
             for (size_t i = 0; i < !result.StructureIsDifferent && i < trees1.GetTreeSplits().size(); ++i) {
                 const auto treeSplit1 = trees1.GetTreeSplits()[i];
                 const auto treeSplit2 = trees2.GetTreeSplits()[i];
                 if (treeSplit1 != treeSplit2) {
-                    Clog << "ObliviousTrees.TreeSplits differs" << Endl;
+                    Clog << "ModelTrees.TreeSplits differs" << Endl;
                     result.StructureIsDifferent = true;
                 }
             }
         }
         if (trees1.GetTreeSizes().size() != trees2.GetTreeSizes().size()) {
-            Clog << "ObliviousTrees.TreeSizes differs" << Endl;
+            Clog << "ModelTrees.TreeSizes differs" << Endl;
             result.StructureIsDifferent = true;
         } else {
             for (size_t i = 0; i < !result.StructureIsDifferent && i < trees1.GetTreeSizes().size(); ++i) {
                 const auto treeSize1 = trees1.GetTreeSizes()[i];
                 const auto treeSize2 = trees2.GetTreeSizes()[i];
                 if (treeSize1 != treeSize2) {
-                    Clog << "ObliviousTrees.TreeSizes differs" << Endl;
+                    Clog << "ModelTrees.TreeSizes differs" << Endl;
                     result.StructureIsDifferent = true;
                 }
             }
         }
         if (trees1.GetTreeStartOffsets().size() != trees2.GetTreeStartOffsets().size()) {
-            Clog << "ObliviousTrees.TreeStartOffsets differs" << Endl;
+            Clog << "ModelTrees.TreeStartOffsets differs" << Endl;
             result.StructureIsDifferent = true;
         } else {
             for (size_t i = 0; i < !result.StructureIsDifferent && i < trees1.GetTreeStartOffsets().size(); ++i) {
                 const auto treeStartOffset1 = trees1.GetTreeStartOffsets()[i];
                 const auto treeStartOffset2 = trees2.GetTreeStartOffsets()[i];
                 if (treeStartOffset1 != treeStartOffset2) {
-                    Clog << "ObliviousTrees.TreeStartOffsets differs" << Endl;
+                    Clog << "ModelTrees.TreeStartOffsets differs" << Endl;
                     result.StructureIsDifferent = true;
                 }
             }
@@ -313,7 +313,7 @@ int main(int argc, char** argv) {
             Y_ASSERT(trees1.GetLeafValues().size() == trees2.GetLeafValues().size());
             for (int i = 0; i < trees1.GetLeafValues().ysize(); ++i) {
                 if (result.Update(Diff(trees1.GetLeafValues()[i], trees2.GetLeafValues()[i]))) {
-                    Clog << "ObliviousTrees.LeafValues[" << i << "] differ: "
+                    Clog << "ModelTrees.LeafValues[" << i << "] differ: "
                         << trees1.GetLeafValues()[i] << " vs " << trees2.GetLeafValues()[i]
                         << ", diff = " << result.MaxElementwiseDiff << Endl;
                 }
@@ -323,7 +323,7 @@ int main(int argc, char** argv) {
             Y_ASSERT(trees1.GetLeafWeights().size() == trees2.GetLeafWeights().size());
             for (int i = 0; i < trees1.GetLeafWeights().ysize(); ++i) {
                 if (result.Update(Diff(trees1.GetLeafWeights()[i], trees2.GetLeafWeights()[i]))) {
-                    Clog << "ObliviousTrees.LeafWeights[" << i << "] differ: "
+                    Clog << "ModelTrees.LeafWeights[" << i << "] differ: "
                         << trees1.GetLeafWeights()[i] << " vs " << trees2.GetLeafWeights()[i]
                         << ", diff = " << result.MaxElementwiseDiff << Endl;
                 }

@@ -2,6 +2,7 @@
 
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/libs/data/data_provider_builders.h>
+#include <library/threading/local_executor/local_executor.h>
 #include <util/generic/singleton.h>
 #include <util/stream/file.h>
 #include <util/string/builder.h>
@@ -33,6 +34,7 @@ static TDataProviderPtr MakeDataProvider(
     IRawFeaturesOrderDataVisitor* builderVisitor;
 
     CreateDataProviderBuilderAndVisitor(builderOptions,
+                                        &NPar::LocalExecutor(),
                                         &dataProviderBuilder,
                                         &builderVisitor);
 
@@ -107,7 +109,7 @@ EXPORT void FreeHandle(ResultHandle* modelHandle) {
 
 EXPORT int TreesCount(ResultHandle handle) {
     if (handle != nullptr) {
-        return (int) RESULT_PTR(handle)->ObliviousTrees->GetTreeCount();
+        return (int) RESULT_PTR(handle)->ModelTrees->GetTreeCount();
     }
     return 0;
 }
@@ -121,7 +123,7 @@ EXPORT int OutputDim(ResultHandle handle) {
 
 EXPORT int TreeDepth(ResultHandle handle, int treeIndex) {
     if (handle) {
-        return (int) RESULT_PTR(handle)->ObliviousTrees->GetTreeSizes()[treeIndex];
+        return (int) RESULT_PTR(handle)->ModelTrees->GetTreeSizes()[treeIndex];
     }
     return 0;
 }
@@ -135,32 +137,32 @@ EXPORT bool CopyTree(
     float* weights) {
     if (handle) {
         try {
-            const auto obliviousTrees = RESULT_PTR(handle)->ObliviousTrees.GetMutable();
+            const auto modelTrees = RESULT_PTR(handle)->ModelTrees.GetMutable();
 
-            size_t treeLeafCount = (1uLL << obliviousTrees->GetTreeSizes()[treeIndex]) * obliviousTrees->GetDimensionsCount();
-            auto srcLeafValues = obliviousTrees->GetFirstLeafPtrForTree(treeIndex);
-            const auto& srcWeights = obliviousTrees->GetLeafWeights();
+            size_t treeLeafCount = (1uLL << modelTrees->GetTreeSizes()[treeIndex]) * modelTrees->GetDimensionsCount();
+            auto srcLeafValues = modelTrees->GetFirstLeafPtrForTree(treeIndex);
+            const auto& srcWeights = modelTrees->GetLeafWeights();
 
             for (size_t idx = 0; idx < treeLeafCount; ++idx) {
                 leaves[idx] = (float) srcLeafValues[idx];
             }
 
-            const size_t weightOffset = obliviousTrees->GetFirstLeafOffsets()[treeIndex] / obliviousTrees->GetDimensionsCount();
-            for (size_t idx = 0; idx < (1uLL << obliviousTrees->GetTreeSizes()[treeIndex]); ++idx) {
+            const size_t weightOffset = modelTrees->GetFirstLeafOffsets()[treeIndex] / modelTrees->GetDimensionsCount();
+            for (size_t idx = 0; idx < (1uLL << modelTrees->GetTreeSizes()[treeIndex]); ++idx) {
                 weights[idx] = (float) srcWeights[idx + weightOffset];
             }
 
             int treeSplitEnd;
-            if (treeIndex + 1 < obliviousTrees->GetTreeStartOffsets().ysize()) {
-                treeSplitEnd = obliviousTrees->GetTreeStartOffsets()[treeIndex + 1];
+            if (treeIndex + 1 < modelTrees->GetTreeStartOffsets().ysize()) {
+                treeSplitEnd = modelTrees->GetTreeStartOffsets()[treeIndex + 1];
             } else {
-                treeSplitEnd = obliviousTrees->GetTreeSplits().ysize();
+                treeSplitEnd = modelTrees->GetTreeSplits().ysize();
             }
-            const auto& binFeatures = obliviousTrees->GetBinFeatures();
+            const auto& binFeatures = modelTrees->GetBinFeatures();
 
-            const auto offset = obliviousTrees->GetTreeStartOffsets()[treeIndex];
+            const auto offset = modelTrees->GetTreeStartOffsets()[treeIndex];
             for (int idx = offset; idx < treeSplitEnd; ++idx) {
-                auto split = binFeatures[obliviousTrees->GetTreeSplits()[idx]];
+                auto split = binFeatures[modelTrees->GetTreeSplits()[idx]];
                 CB_ENSURE(split.Type == ESplitType::FloatFeature);
                 features[idx - offset] = split.FloatFeature.FloatFeature;
                 conditions[idx - offset] = split.FloatFeature.Split;

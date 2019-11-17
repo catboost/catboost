@@ -3,7 +3,6 @@
 
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/helpers/checksum.h>
-#include <catboost/libs/helpers/compare.h>
 #include <catboost/libs/helpers/math_utils.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/parallel_tasks.h>

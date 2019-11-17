@@ -57,7 +57,7 @@ namespace NCB {
             )
                 : ObjectsData(objectsData)
             {
-                size_t flatFeatureCount = model.ObliviousTrees->GetFlatFeatureVectorExpectedSize();
+                size_t flatFeatureCount = model.ModelTrees->GetFlatFeatureVectorExpectedSize();
                 FloatBlockIterators.resize(flatFeatureCount);
                 CatBlockIterators.resize(flatFeatureCount);
                 TextBlockIterators.resize(flatFeatureCount);

@@ -12,6 +12,6 @@ namespace NCB {
 
     // returns true if models are equal
     template <class TModel>
-    bool CompareModels(const TModel& model1, const TModel& model2, TString* diffString);
+    bool CompareModels(const TModel& model1, const TModel& model2, double diffLimit, TString* diffString);
 
 }

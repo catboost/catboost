@@ -418,6 +418,7 @@ struct IDLOptions {
     kLua = 1 << 12,
     kLobster = 1 << 13,
     kRust = 1 << 14,
+    kCppYandexMapsIter= 1 << 15,
     kMAX
   };
 
@@ -884,6 +885,15 @@ extern bool GenerateGeneral(const Parser &parser,
 extern std::string GenerateFBS(const Parser &parser,
                                const std::string &file_name);
 extern bool GenerateFBS(const Parser &parser,
+                        const std::string &path,
+                        const std::string &file_name);
+
+// Generate a C++ header for reading with templated file iterator from
+// the definitions in the Parser object.
+// See idl_gen_cpp_yandex_maps_iter.cpp.
+extern std::string GenerateCPPYandexMapsIter(const Parser &parser,
+                               const std::string &include_guard_ident);
+extern bool GenerateCPPYandexMapsIter(const Parser &parser,
                         const std::string &path,
                         const std::string &file_name);
 

@@ -6,6 +6,7 @@
 
 #include <catboost/libs/data/util.h>
 
+#include <catboost/libs/helpers/matrix.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
 #include <util/generic/hash.h>
@@ -21,8 +22,12 @@ using namespace NCB::NDataNewUT;
 
 
 Y_UNIT_TEST_SUITE(TRawTargetData) {
-    bool Equal(TConstArrayRef<TVector<TString>>& matrixA, TConstArrayRef<TVector<TString>>& matrixB) {
+    bool Equal(TConstArrayRef<TConstArrayRef<TString>>& matrixA, TConstArrayRef<TConstArrayRef<TString>>& matrixB) {
         return matrixA == matrixB;
+    }
+
+    bool Equal(TConstArrayRef<TString>& vectorA, TConstArrayRef<TString>& vectorB) {
+        return vectorA == vectorB;
     }
 
     // rawTargetData passed by value intentionally to be moved into created provider
@@ -77,7 +82,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
                 auto rawTargetDataProvider = CreateProviderSimple(target.size(), rawTargetData);
 
-                UNIT_ASSERT(Equal(*rawTargetDataProvider.GetTarget(), target));
+                UNIT_ASSERT(Equal(*rawTargetDataProvider.GetOneDimensionalTarget(), target));
             }
         }
 
@@ -114,7 +119,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
                 auto rawTargetDataProvider = CreateProviderSimple(docCount, rawTargetData);
 
-                UNIT_ASSERT(Equal(*rawTargetDataProvider.GetMultiTarget(), target));
+                UNIT_ASSERT(Equal(*rawTargetDataProvider.GetTarget(), To2DConstArrayRef<TString>(target)));
             }
         }
 

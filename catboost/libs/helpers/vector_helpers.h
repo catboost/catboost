@@ -138,3 +138,28 @@ inline void SumTransposedBlocks(
         }
     }
 }
+
+template <typename T>
+inline void SumTransposedBlocks(
+    int srcColumnBegin,
+    int srcColumnEnd,
+    TConstArrayRef<TConstArrayRef<T>> srcA,
+    TConstArrayRef<TConstArrayRef<T>> srcB,
+    TArrayRef<TVector<T>> dst
+) {
+    Y_ASSERT(srcColumnEnd - srcColumnBegin <= IntegerCast<int>(dst.size()));
+    if (srcB.empty()) {
+        for (int srcRowIdx : xrange(srcA.size())) {
+            for (int srcColumnIdx : xrange(srcColumnBegin, srcColumnEnd)) {
+                dst[srcColumnIdx - srcColumnBegin][srcRowIdx] = srcA[srcRowIdx][srcColumnIdx];
+            }
+        }
+    } else {
+        Y_ASSERT(srcA.size() == srcB.size());
+        for (int srcRowIdx : xrange(srcA.size())) {
+            for (int srcColumnIdx : xrange(srcColumnBegin, srcColumnEnd)) {
+                dst[srcColumnIdx - srcColumnBegin][srcRowIdx] = srcA[srcRowIdx][srcColumnIdx] + srcB[srcRowIdx][srcColumnIdx];
+            }
+        }
+    }
+}

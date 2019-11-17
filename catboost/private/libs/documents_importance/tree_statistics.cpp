@@ -40,7 +40,7 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
     for (ui32 treeId = 0; treeId < treeCount; ++treeId) {
         processTreesProfile.StartIterationBlock();
 
-        LeafCount = 1 << model.ObliviousTrees->GetTreeSizes()[treeId];
+        LeafCount = 1 << model.ModelTrees->GetTreeSizes()[treeId];
         LeafIndices = BuildIndicesForBinTree(model, binarizedFeatures.Get(), treeId);
 
         TVector<TVector<ui32>> leavesDocId(LeafCount);
@@ -62,7 +62,7 @@ TVector<TTreeStatistics> ITreeStatisticsEvaluator::EvaluateTreeStatistics(
                 lossFunction,
                 leafEstimationMethod,
                 localApproxes,
-                *processedData.TargetData->GetTarget(),
+                *processedData.TargetData->GetOneDimensionalTarget(),
                 &FirstDerivatives,
                 &SecondDerivatives,
                 &ThirdDerivatives

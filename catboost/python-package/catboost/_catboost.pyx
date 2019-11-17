@@ -462,6 +462,11 @@ cdef extern from "catboost/libs/data/columns.h" namespace "NCB":
     cdef cppclass TFloatValuesHolder:
         TMaybeOwningArrayHolder[float] ExtractValues(TLocalExecutor* localExecutor)
 
+cdef extern from "catboost/libs/data/objects.h":
+    cdef void CheckModelAndDatasetCompatibility(
+        const TFullModel& model,
+        const TObjectsDataProvider& objectsData) except +ProcessException
+
 cdef extern from "catboost/libs/data/objects.h" namespace "NCB":
     cdef cppclass TObjectsDataProvider:
         ui32 GetObjectCount()
@@ -499,8 +504,7 @@ ctypedef TConstArrayRef[TConstArrayRef[float]] TBaselineArrayRef
 
 cdef extern from "catboost/libs/data/target.h" namespace "NCB":
     cdef cppclass TRawTargetDataProvider:
-        TMaybeData[TConstArrayRef[TString]] GetTarget()
-        TMaybeData[TConstArrayRef[TVector[TString]]] GetMultiTarget()
+        TMaybeData[TConstArrayRef[TConstArrayRef[TString]]] GetTarget()
         TMaybeData[TBaselineArrayRef] GetBaseline()
         const TWeights[float]& GetWeights()
         const TWeights[float]& GetGroupWeights()
@@ -682,6 +686,7 @@ cdef extern from "catboost/libs/data/data_provider_builders.h" namespace "NCB":
 
     cdef void CreateDataProviderBuilderAndVisitor[IVisitor](
         const TDataProviderBuilderOptions& options,
+        TLocalExecutor* localExecutor,
         THolder[IDataProviderBuilder]* dataProviderBuilder,
         IVisitor** loader
     ) except +ProcessException
@@ -689,12 +694,19 @@ cdef extern from "catboost/libs/data/data_provider_builders.h" namespace "NCB":
 
 cdef class Py_FeaturesOrderBuilderVisitor:
     cdef TDataProviderBuilderOptions options
+    cdef TLocalExecutor local_executor
     cdef THolder[IDataProviderBuilder] data_provider_builder
     cdef IRawFeaturesOrderDataVisitor* builder_visitor
     cdef const TFeaturesLayout* features_layout
 
-    def __cinit__(self):
-        CreateDataProviderBuilderAndVisitor(self.options, &self.data_provider_builder, &self.builder_visitor)
+    def __cinit__(self, thread_count):
+        self.local_executor.RunAdditionalThreads(thread_count - 1)
+        CreateDataProviderBuilderAndVisitor(
+            self.options,
+            &self.local_executor,
+            &self.data_provider_builder,
+            &self.builder_visitor
+        )
         #self.features_layout = features_layout
 
     cdef get_raw_features_order_data_visitor(self, IRawFeaturesOrderDataVisitor** builder_visitor):
@@ -756,7 +768,7 @@ cdef extern from "catboost/libs/model/model.h":
         TFeaturePosition Position
         TString FeatureId
 
-    cdef cppclass TObliviousTrees:
+    cdef cppclass TModelTrees:
         int GetDimensionCount() except +ProcessException
         TConstArrayRef[double] GetLeafValues() except +ProcessException
         TConstArrayRef[double] GetLeafWeights() except +ProcessException
@@ -769,12 +781,12 @@ cdef extern from "catboost/libs/model/model.h":
         void ConvertObliviousToAsymmetric() except +ProcessException
 
     cdef cppclass TCOWTreeWrapper:
-        const TObliviousTrees& operator*() except +ProcessException
-        const TObliviousTrees* Get() except +ProcessException
-        TObliviousTrees* GetMutable() except +ProcessException
+        const TModelTrees& operator*() except +ProcessException
+        const TModelTrees* Get() except +ProcessException
+        TModelTrees* GetMutable() except +ProcessException
 
     cdef cppclass TFullModel:
-        TCOWTreeWrapper ObliviousTrees
+        TCOWTreeWrapper ModelTrees
         THashMap[TString, TString] ModelInfo
 
         bool_t operator==(const TFullModel& other) except +ProcessException
@@ -849,13 +861,13 @@ cdef extern from "catboost/private/libs/algo_helpers/ders_holder.h":
 cdef extern from "catboost/private/libs/algo/tree_print.h":
     TVector[TString] GetTreeSplitsDescriptions(
         const TFullModel& model,
-        int tree_idx,
+        size_t tree_idx,
         const TDataProviderPtr pool
     ) nogil except +ProcessException
 
     TVector[TString] GetTreeLeafValuesDescriptions(
         const TFullModel& model,
-        int tree_idx,
+        size_t tree_idx,
         int leaves_num
     ) nogil except +ProcessException
 
@@ -864,6 +876,7 @@ cdef extern from "catboost/private/libs/options/enum_helpers.h":
     cdef bool_t IsClassificationObjective(const TString& lossFunction) nogil except +ProcessException
     cdef bool_t IsCvStratifiedObjective(const TString& lossFunction) nogil except +ProcessException
     cdef bool_t IsRegressionObjective(const TString& lossFunction) nogil except +ProcessException
+    cdef bool_t IsMultiRegressionObjective(const TString& lossFunction) nogil except +ProcessException
     cdef bool_t IsGroupwiseMetric(const TString& metricName) nogil except +ProcessException
     cdef bool_t IsMultiClassCompatibleMetric(const TString& metricName) nogil except +ProcessException
     cdef bool_t IsPairwiseMetric(const TString& metricName) nogil except +ProcessException
@@ -1200,7 +1213,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     ) nogil except +ProcessException
 
     cdef TVector[double] EvalMetricsForUtils(
-        const TVector[float]& label,
+        TConstArrayRef[TVector[float]] label,
         const TVector[TVector[double]]& approx,
         const TString& metricName,
         const TVector[float]& weight,
@@ -3110,10 +3123,11 @@ cdef class _PoolBase:
         group_weight,
         subgroup_id,
         pairs_weight,
-        baseline):
+        baseline,
+        thread_count):
 
         cdef TFeaturesLayout* features_layout = data_meta_info.FeaturesLayout.Get()
-        cdef Py_FeaturesOrderBuilderVisitor py_builder_visitor = Py_FeaturesOrderBuilderVisitor()
+        cdef Py_FeaturesOrderBuilderVisitor py_builder_visitor = Py_FeaturesOrderBuilderVisitor(thread_count)
         cdef IRawFeaturesOrderDataVisitor* builder_visitor = py_builder_visitor.builder_visitor
         py_builder_visitor.set_features_layout(data_meta_info.FeaturesLayout.Get())
 
@@ -3219,15 +3233,18 @@ cdef class _PoolBase:
         group_weight,
         subgroup_id,
         pairs_weight,
-        baseline):
+        baseline,
+        thread_count):
 
         self.__data_holder = None # free previously used resources
 
         cdef TDataProviderBuilderOptions options
+        cdef TLocalExecutor local_executor
         cdef THolder[IDataProviderBuilder] data_provider_builder
         cdef IRawObjectsOrderDataVisitor* builder_visitor
 
-        CreateDataProviderBuilderAndVisitor(options, &data_provider_builder, &builder_visitor)
+        local_executor.RunAdditionalThreads(thread_count - 1)
+        CreateDataProviderBuilderAndVisitor(options, &local_executor, &data_provider_builder, &builder_visitor)
 
         cdef TVector[TIntrusivePtr[IResourceHolder]] resource_holders
         builder_visitor[0].Start(
@@ -3266,9 +3283,11 @@ cdef class _PoolBase:
 
 
     cpdef _init_pool(self, data, label, cat_features, text_features, pairs, weight, group_id, group_weight,
-                     subgroup_id, pairs_weight, baseline, feature_names):
+                     subgroup_id, pairs_weight, baseline, feature_names, thread_count):
         if group_weight is not None and weight is not None:
             raise CatBoostError('Pool must have either weight or group_weight.')
+
+        thread_count = UpdateThreadCount(thread_count)
 
         cdef TDataMetaInfo data_meta_info
         if label is not None:
@@ -3311,7 +3330,8 @@ cdef class _PoolBase:
                 group_weight,
                 subgroup_id,
                 pairs_weight,
-                baseline
+                baseline,
+                thread_count
             )
         else:
             self._init_objects_order_layout_pool(
@@ -3324,7 +3344,8 @@ cdef class _PoolBase:
                 group_weight,
                 subgroup_id,
                 pairs_weight,
-                baseline
+                baseline,
+                thread_count
             )
 
     cpdef _save(self, fname):
@@ -3538,6 +3559,15 @@ cdef class _PoolBase:
 
         return data
 
+
+    cpdef has_label(self):
+        """
+        Returns
+        -------
+        True if Pool has label data
+        """
+        return self.__pool.Get()[0].MetaInfo.TargetCount > 0
+
     cpdef get_label(self):
         """
         Get labels from Pool.
@@ -3546,7 +3576,7 @@ cdef class _PoolBase:
         -------
         labels : list if labels are one-dimensional, np.array of shape (rows, cols) otherwise
         """
-        cdef TMaybeData[TConstArrayRef[TVector[TString]]] maybe_target = self.__pool.Get()[0].RawTargetData.GetMultiTarget()
+        cdef TMaybeData[TConstArrayRef[TConstArrayRef[TString]]] maybe_target = self.__pool.Get()[0].RawTargetData.GetTarget()
         if maybe_target.Defined():
             labels = [
                 [
@@ -3694,8 +3724,8 @@ cdef class _CatBoost:
     def __eq__(self, _CatBoost other):
         return dereference(self.__model) == dereference(other.__model)
 
-    def __neq__(self, _CatBoost other):
-        return self.__model != other.__model
+    def __ne__(self, _CatBoost other):
+        return dereference(self.__model) != dereference(other.__model)
 
     cpdef _reserve_test_evals(self, num_tests):
         self.__test_evals.resize(num_tests)
@@ -3834,22 +3864,22 @@ cdef class _CatBoost:
         return None
 
     cpdef _has_leaf_weights_in_model(self):
-        return not self.__model.ObliviousTrees.Get().GetLeafWeights().empty()
+        return not self.__model.ModelTrees.Get().GetLeafWeights().empty()
 
     cpdef _get_cat_feature_indices(self):
-        cdef TConstArrayRef[TCatFeature] arrayView = self.__model.ObliviousTrees.Get().GetCatFeatures()
+        cdef TConstArrayRef[TCatFeature] arrayView = self.__model.ModelTrees.Get().GetCatFeatures()
         return [feature.Position.FlatIndex for feature in arrayView]
 
     cpdef _get_text_feature_indices(self):
-        cdef TConstArrayRef[TTextFeature] arrayView = self.__model.ObliviousTrees.Get().GetTextFeatures()
+        cdef TConstArrayRef[TTextFeature] arrayView = self.__model.ModelTrees.Get().GetTextFeatures()
         return [feature.Position.FlatIndex for feature in arrayView]
 
     cpdef _get_float_feature_indices(self):
-        cdef TConstArrayRef[TFloatFeature] arrayView = self.__model.ObliviousTrees.Get().GetFloatFeatures()
+        cdef TConstArrayRef[TFloatFeature] arrayView = self.__model.ModelTrees.Get().GetFloatFeatures()
         return [feature.Position.FlatIndex for feature in arrayView]
 
     cpdef _get_borders(self):
-        cdef TConstArrayRef[TFloatFeature] arrayView = self.__model.ObliviousTrees.Get().GetFloatFeatures()
+        cdef TConstArrayRef[TFloatFeature] arrayView = self.__model.ModelTrees.Get().GetFloatFeatures()
         return dict([(feature.Position.FlatIndex, feature.Borders) for feature in arrayView])
 
     cpdef _base_predict(self, _PoolBase pool, str prediction_type, int ntree_start, int ntree_end, int thread_count, bool_t verbose):
@@ -3988,7 +4018,7 @@ cdef class _CatBoost:
         return self.__model.IsOblivious()
 
     cpdef _base_drop_unused_features(self):
-        self.__model.ObliviousTrees.GetMutable().DropUnusedFeatures()
+        self.__model.ModelTrees.GetMutable().DropUnusedFeatures()
 
     cpdef _load_model(self, model_file, format):
         cdef TFullModel tmp_model
@@ -4001,6 +4031,7 @@ cdef class _CatBoost:
 
         cdef TVector[TString] feature_id
         if pool:
+            self._check_model_and_dataset_compatibility(pool)
             feature_id = pool.__pool.Get()[0].MetaInfo.FeaturesLayout.Get()[0].GetExternalFeatureIds()
 
         cdef THashMap[ui32, TString] cat_features_hash_to_string
@@ -4098,7 +4129,14 @@ cdef class _CatBoost:
     cpdef _save_borders(self, output_file):
         SaveModelBorders( to_arcadia_string(output_file), dereference(self.__model))
 
-    cpdef _get_tree_splits(self, int tree_idx, _PoolBase pool):
+    cpdef _check_model_and_dataset_compatibility(self, _PoolBase pool):
+        if pool:
+            CheckModelAndDatasetCompatibility(
+                dereference(self.__model),
+                dereference(pool.__pool.Get()[0].ObjectsData.Get())
+            )
+
+    cpdef _get_tree_splits(self, size_t tree_idx, _PoolBase pool):
         cdef TVector[TString] splits = GetTreeSplitsDescriptions(
             dereference(self.__model),
             tree_idx,
@@ -4271,30 +4309,30 @@ cdef class _CatBoost:
         return res
 
     cpdef _get_leaf_values(self):
-        return _constarrayref_of_double_to_np_array(self.__model.ObliviousTrees.Get().GetLeafValues())
+        return _constarrayref_of_double_to_np_array(self.__model.ModelTrees.Get().GetLeafValues())
 
     cpdef _get_leaf_weights(self):
-        result = np.empty(self.__model.ObliviousTrees.Get().GetLeafValues().size(), dtype=_npfloat64)
+        result = np.empty(self.__model.ModelTrees.Get().GetLeafValues().size(), dtype=_npfloat64)
         cdef size_t curr_index = 0
-        cdef TConstArrayRef[double] arrayView = self.__model.ObliviousTrees.Get().GetLeafWeights()
+        cdef TConstArrayRef[double] arrayView = self.__model.ModelTrees.Get().GetLeafWeights()
         for val in arrayView:
             result[curr_index] = val
             curr_index += 1
-        assert curr_index == 0 or curr_index == self.__model.ObliviousTrees.Get().GetLeafValues().size(), (
+        assert curr_index == 0 or curr_index == self.__model.ModelTrees.Get().GetLeafValues().size(), (
             "wrong number of leaf weights")
         return result
 
     cpdef _get_tree_leaf_counts(self):
-        return _vector_of_uints_to_np_array(self.__model.ObliviousTrees.Get().GetTreeLeafCounts())
+        return _vector_of_uints_to_np_array(self.__model.ModelTrees.Get().GetTreeLeafCounts())
 
     cpdef _set_leaf_values(self, new_leaf_values):
         assert isinstance(new_leaf_values, np.ndarray), "expected numpy.ndarray."
         assert new_leaf_values.dtype == np.float64, "leaf values should have type np.float64 (double)."
         assert len(new_leaf_values.shape) == 1, "leaf values should be a 1d-vector."
-        assert new_leaf_values.shape[0] == self.__model.ObliviousTrees.Get().GetLeafValues().size(), (
+        assert new_leaf_values.shape[0] == self.__model.ModelTrees.Get().GetLeafValues().size(), (
             "count of leaf values should be equal to the leaf count.")
         cdef TVector[double] model_leafs = new_leaf_values
-        self.__model.ObliviousTrees.GetMutable().SetLeafValues(model_leafs)
+        self.__model.ModelTrees.GetMutable().SetLeafValues(model_leafs)
 
     cpdef _set_feature_names(self, feature_names):
             cdef TVector[TString] feature_names_vector
@@ -4303,7 +4341,7 @@ cdef class _CatBoost:
             SetModelExternalFeatureNames(feature_names_vector, self.__model)
 
     cpdef _convert_oblivious_to_asymmetric(self):
-        self.__model.ObliviousTrees.GetMutable().ConvertObliviousToAsymmetric()
+        self.__model.ModelTrees.GetMutable().ConvertObliviousToAsymmetric()
 
 
 
@@ -4716,14 +4754,15 @@ cdef class _MetricCalcerBase:
 
 
 cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_id_param, subgroup_id_param, pairs_param, thread_count):
-    if (len(label_param) != len(approx_param[0])):
+    if (len(label_param[0]) != len(approx_param[0])):
         raise CatBoostError('Label and approx should have same sizes.')
-    doc_count = len(label_param);
+    doc_count = len(label_param[0]);
 
-    cdef TVector[float] label
-    label.resize(doc_count)
-    for i in range(doc_count):
-        label[i] = float(label_param[i])
+    cdef TVector[TVector[float]] label
+    for labelIdx in range(len(label_param)):
+        label.emplace_back(doc_count)
+        for docIdx in range(doc_count):
+            label[labelIdx][docIdx] = float(label_param[labelIdx][docIdx])
 
     approx_dimention = len(approx_param)
     cdef TVector[TVector[double]] approx
@@ -4771,7 +4810,7 @@ cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_i
 
     thread_count = UpdateThreadCount(thread_count);
 
-    return EvalMetricsForUtils(label, approx, to_arcadia_string(metric), weight, group_id, subgroup_id, pairs, thread_count)
+    return EvalMetricsForUtils(<TConstArrayRef[TVector[float]]>(label), approx, to_arcadia_string(metric), weight, group_id, subgroup_id, pairs, thread_count)
 
 
 cpdef _get_confusion_matrix(model, pool, thread_count):
@@ -4881,6 +4920,10 @@ cpdef is_regression_objective(loss_name):
     return IsRegressionObjective(to_arcadia_string(loss_name))
 
 
+cpdef is_multiregression_objective(loss_name):
+    return IsMultiRegressionObjective(to_arcadia_string(loss_name))
+
+
 cpdef is_groupwise_metric(metric_name):
     return IsGroupwiseMetric(to_arcadia_string(metric_name))
 
@@ -4967,3 +5010,6 @@ cpdef compute_training_options(dict options, DataMetaInfo train_meta_info, DataM
         testMetaInfo
     )
     return loads(to_native_str(ToString(trainingOptions)))
+
+
+include "_monoforest.pxi"

@@ -134,12 +134,14 @@
                 {
                     "dictionary_id": "BiGram", 
                     "gram_order": "2", 
-                    "min_token_occurrence": "50", 
-                    "token_level_type": "Letter"
+                    "max_dict_size": "50000", 
+                    "min_token_occurrence": "5", 
+                    "token_level_type": "Word"
                 }, 
                 {
                     "dictionary_id": "Word", 
-                    "min_token_occurrence": "50", 
+                    "max_dict_size": "50000", 
+                    "min_token_occurrence": "5", 
                     "token_level_type": "Word"
                 }
             ], 

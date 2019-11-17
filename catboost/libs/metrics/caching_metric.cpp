@@ -5,7 +5,6 @@
 
 #include <catboost/libs/helpers/dispatch_generic_lambda.h>
 #include <catboost/private/libs/options/enum_helpers.h>
-
 #include <util/generic/string.h>
 #include <util/generic/set.h>
 
@@ -835,7 +834,7 @@ TVector<TMetricHolder> EvalErrorsWithCaching(
     const TVector<TVector<double>>& approx,
     const TVector<TVector<double>>& approxDelta,
     bool isExpApprox,
-    NCB::TMaybeData<TConstArrayRef<float>> target,
+    TConstArrayRef<TConstArrayRef<float>> target,
     TConstArrayRef<float> weight,
     TConstArrayRef<TQueryInfo> queriesInfo,
     TConstArrayRef<const IMetric*> metrics,
@@ -846,25 +845,35 @@ TVector<TMetricHolder> EvalErrorsWithCaching(
     const auto queryCount = queriesInfo.size();
 
     const auto calcCaching = [&](auto metric, auto from, auto to, auto *cache) {
-        return metric->Eval(approx, approxDelta, isExpApprox, target.GetOrElse(TConstArrayRef<float>()),
+        CB_ENSURE(!metric->NeedTarget() || target.size() == 1, "Metric [" + metric->GetDescription() + "] requires "
+                  << (target.size() > 1 ? "one-dimensional" : "") <<  "target");
+        return metric->Eval(approx, approxDelta, isExpApprox, metric->NeedTarget() ? target[0] : TConstArrayRef<float>(),
                             weight, queriesInfo, from, to, cache);
     };
     const auto calcNonCaching = [&](auto metric, auto from, auto to) {
-        return metric->Eval(approx, approxDelta, isExpApprox, target.GetOrElse(TConstArrayRef<float>()),
+        CB_ENSURE(!metric->NeedTarget() || target.size() == 1, "Metric [" + metric->GetDescription() + "] requires "
+                  << (target.size() > 1 ? "one-dimensional" : "") <<  "target");
+        return metric->Eval(approx, approxDelta, isExpApprox, metric->NeedTarget() ? target[0] : TConstArrayRef<float>(),
                             weight, queriesInfo, from, to, *localExecutor);
+    };
+    const auto calcMultiRegression = [&](auto metric, auto from, auto to) {
+        CB_ENSURE(!metric->NeedTarget() || target.size() > 0, "Metric [" + metric->GetDescription() + "] requires target");
+        CB_ENSURE(!isExpApprox, "Metric [" << metric->GetDescription() << "] does not support exponentiated approxes");
+        return metric->Eval(approx, approxDelta, target,
+                            weight, from, to, *localExecutor);
     };
 
     TVector<TMetricHolder> errors;
     errors.reserve(metrics.size());
 
     NPar::TLocalExecutor::TExecRangeParams objectwiseBlockParams(0, objectCount);
-    if (target) {
+    if (!target.empty()) {
         const auto objectwiseEffectiveBlockCount = Min(threadCount, int(ceil(double(objectCount) / GetMinBlockSize(objectCount))));
         objectwiseBlockParams.SetBlockCount(objectwiseEffectiveBlockCount);
     }
 
     NPar::TLocalExecutor::TExecRangeParams querywiseBlockParams(0, queryCount);
-    if (queriesInfo) {
+    if (!queriesInfo.empty()) {
         const auto querywiseEffectiveBlockCount = Min(threadCount, int(ceil(double(queryCount) / GetMinBlockSize(objectCount))));
         querywiseBlockParams.SetBlockCount(querywiseEffectiveBlockCount);
     }
@@ -878,9 +887,10 @@ TVector<TMetricHolder> EvalErrorsWithCaching(
     for (auto i : xrange(metrics.size())) {
         auto metric = metrics[i];
         auto cachingMetric = dynamic_cast<const TCachingMetric*>(metrics[i]);
-        const bool isObjectwise = metric->GetErrorType() == EErrorType::PerObjectError;
-        CB_ENSURE(!metric->NeedTarget() || target, "Metric [" + metric->GetDescription() + "] requires target");
+        auto multiMetric = dynamic_cast<const TMultiRegressionMetric*>(metrics[i]);
+        Y_ASSERT(cachingMetric == nullptr || multiMetric == nullptr);
 
+        const bool isObjectwise = metric->GetErrorType() == EErrorType::PerObjectError;
         if (cachingMetric && metric->IsAdditiveMetric()) {
             const auto blockSize = isObjectwise ? objectwiseBlockParams.GetBlockSize() : querywiseBlockParams.GetBlockSize();
             const auto blockCount = isObjectwise ? objectwiseBlockParams.GetBlockCount() : querywiseBlockParams.GetBlockCount();
@@ -902,8 +912,13 @@ TVector<TMetricHolder> EvalErrorsWithCaching(
             errors.push_back(error);
         } else {
             const auto end = isObjectwise ? objectCount : queryCount;
-            auto error = cachingMetric ? calcCaching(cachingMetric, 0, end, &nonAdditiveCache) : calcNonCaching(metric, 0, end);
-            errors.push_back(error);
+            if (cachingMetric) {
+                errors.push_back(calcCaching(cachingMetric, 0, end, &nonAdditiveCache));
+            } else if (multiMetric) {
+                errors.push_back(calcMultiRegression(multiMetric, 0, end));
+            } else {
+                errors.push_back(calcNonCaching(metric, 0, end));
+            }
         }
     }
 

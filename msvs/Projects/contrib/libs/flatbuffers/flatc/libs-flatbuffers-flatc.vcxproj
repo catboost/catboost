@@ -81,6 +81,7 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\code_generators.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\flatc.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_cpp.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_cpp_yandex_maps_iter.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_fbs.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_general.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\flatbuffers\src\idl_gen_go.cpp"/>

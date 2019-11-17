@@ -63,7 +63,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -87,6 +87,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\text_processing\tokenizer.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\text_processing\dictionary.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\text_processing\embedding.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\text_processing\embedding_loader.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\text_processing\text_column_builder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\text_processing\text_dataset.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\text_processing\text_digitizers.h"/>

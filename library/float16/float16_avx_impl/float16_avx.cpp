@@ -8,10 +8,33 @@
 #include <util/system/yassert.h>
 #include <util/system/sanitizers.h>
 
-bool NFloat16Ops::IsIntrisincsAvailableOnHost() {
-    return NX86::CachedHaveF16C() && NX86::CachedHaveAVX();
+bool NFloat16Impl::AreConversionIntrinsicsAvailableOnHost() {
+#ifdef _MSC_VER
+    return false;
+#else
+    return NFloat16Ops::AreIntrinsicsAvailableOnHost();
+#endif
 }
 
+ui16 NFloat16Impl::ConvertFloat32IntoFloat16Intrinsics(float val) {
+#ifdef _MSC_VER
+    Y_FAIL("MSVC doesn't have _cvtss_sh(), so NFloat16Impl::ConvertFloat32IntoFloat16Intrinsics() is not implemented");
+#else
+    return _cvtss_sh(val, _MM_FROUND_TO_NEAREST_INT);
+#endif
+}
+
+float NFloat16Impl::ConvertFloat16IntoFloat32Intrinsics(ui16 val) {
+#ifdef _MSC_VER
+    Y_FAIL("MSVC doesn't have _cvtsh_ss(), so NFloat16Impl::ConvertFloat16IntoFloat32Intrinsics() is not implemented");
+#else
+    return _cvtsh_ss(val);
+#endif
+}
+
+bool NFloat16Ops::AreIntrinsicsAvailableOnHost() {
+    return NX86::CachedHaveF16C() && NX86::CachedHaveAVX();
+}
 
 void NFloat16Ops::UnpackFloat16SequenceIntrisincs(const TFloat16* src, float* dst, size_t len) {
     while (len >= 8) {
@@ -37,7 +60,6 @@ void NFloat16Ops::UnpackFloat16SequenceIntrisincs(const TFloat16* src, float* ds
         memcpy(dst, localDst, len * sizeof(float));
     }
 }
-
 
 float NFloat16Ops::DotProductOnFloatIntrisincs(const float* f32, const TFloat16* f16, size_t len) {
     Y_ASSERT(size_t(f16) % Float16BufferAlignmentRequirementInBytes == 0);

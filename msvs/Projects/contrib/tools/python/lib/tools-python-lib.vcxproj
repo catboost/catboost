@@ -63,7 +63,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/tools/python/src/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/tools/python/src/Include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)../contrib/libs/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -85,7 +85,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjcm9kYXRhClJPRGF0YQpxACmBcQF9cQIoVQpfaW5jbF9kaXJzcQNdcQQoVQIkU3EFVQIkQnEGVSMkUy9jb250cmliL3Rvb2xzL3B5dGhvbi9zcmMvSW5jbHVkZXEHVSYkUy9jb250cmliL2xpYnMvY3h4c3VwcC9saWJjeHgvaW5jbHVkZXEIVSkkUy9jb250cmliL2xpYnMvZG91YmxlLWNvbnZlcnNpb24vaW5jbHVkZXEJVR8kUy9jb250cmliL2xpYnMvb3BlbnNzbC9pbmNsdWRlcQplVQVfdHlwZXELVQZ4ODZfNjRxDFUEX2ZtdHENVQV3aW42NHEOVQlfcGxhdGZvcm1xD11xEFUFV0lOMzJxEWFVB19wcmVmaXhxElUAcRNVDF9wcmVfaW5jbHVkZXEUXXEVVQZfZmxhZ3NxFl1xF1UFX3BhdGhxGFU4JEIvY29udHJpYi90b29scy9weXRob24vbGliL3B5dGhvbl9mcm96ZW5fbW9kdWxlcy5yb2RhdGFxGXWFcRpiLg==" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe"
+"python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjcm9kYXRhClJPRGF0YQpxACmBcQF9cQIoVQpfaW5jbF9kaXJzcQNdcQQoVQIkU3EFVQIkQnEGVSMkUy9jb250cmliL3Rvb2xzL3B5dGhvbi9zcmMvSW5jbHVkZXEHVSYkUy9jb250cmliL2xpYnMvY3h4c3VwcC9saWJjeHgvaW5jbHVkZXEIVRwkUy9jb250cmliL2xpYnMvemxpYi9pbmNsdWRlcQlVKSRTL2NvbnRyaWIvbGlicy9kb3VibGUtY29udmVyc2lvbi9pbmNsdWRlcQpVHyRTL2NvbnRyaWIvbGlicy9vcGVuc3NsL2luY2x1ZGVxC2VVBV90eXBlcQxVBng4Nl82NHENVQRfZm10cQ5VBXdpbjY0cQ9VCV9wbGF0Zm9ybXEQXXERVQVXSU4zMnESYVUHX3ByZWZpeHETVQBxFFUMX3ByZV9pbmNsdWRlcRVdcRZVBl9mbGFnc3EXXXEYVQVfcGF0aHEZVTgkQi9jb250cmliL3Rvb2xzL3B5dGhvbi9saWIvcHl0aG9uX2Zyb3plbl9tb2R1bGVzLnJvZGF0YXEadYVxG2Iu" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -96,7 +96,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\tools\python\lib
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjcm9kYXRhClJPRGF0YQpxACmBcQF9cQIoVQpfaW5jbF9kaXJzcQNdcQQoVQIkU3EFVQIkQnEGVSMkUy9jb250cmliL3Rvb2xzL3B5dGhvbi9zcmMvSW5jbHVkZXEHVSYkUy9jb250cmliL2xpYnMvY3h4c3VwcC9saWJjeHgvaW5jbHVkZXEIVSkkUy9jb250cmliL2xpYnMvZG91YmxlLWNvbnZlcnNpb24vaW5jbHVkZXEJVR8kUy9jb250cmliL2xpYnMvb3BlbnNzbC9pbmNsdWRlcQplVQVfdHlwZXELVQZ4ODZfNjRxDFUEX2ZtdHENVQV3aW42NHEOVQlfcGxhdGZvcm1xD11xEFUFV0lOMzJxEWFVB19wcmVmaXhxElUAcRNVDF9wcmVfaW5jbHVkZXEUXXEVVQZfZmxhZ3NxFl1xF1UFX3BhdGhxGFU4JEIvY29udHJpYi90b29scy9weXRob24vbGliL3B5dGhvbl9mcm96ZW5fbW9kdWxlcy5yb2RhdGFxGXWFcRpiLg==" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe"
+"python" "$(SolutionDir)../build/plugins/_unpickler.py" "--src-root" "$(SolutionDir).." "--build-root" "$(SolutionDir)$(Configuration)" "--data" "gAJjcm9kYXRhClJPRGF0YQpxACmBcQF9cQIoVQpfaW5jbF9kaXJzcQNdcQQoVQIkU3EFVQIkQnEGVSMkUy9jb250cmliL3Rvb2xzL3B5dGhvbi9zcmMvSW5jbHVkZXEHVSYkUy9jb250cmliL2xpYnMvY3h4c3VwcC9saWJjeHgvaW5jbHVkZXEIVRwkUy9jb250cmliL2xpYnMvemxpYi9pbmNsdWRlcQlVKSRTL2NvbnRyaWIvbGlicy9kb3VibGUtY29udmVyc2lvbi9pbmNsdWRlcQpVHyRTL2NvbnRyaWIvbGlicy9vcGVuc3NsL2luY2x1ZGVxC2VVBV90eXBlcQxVBng4Nl82NHENVQRfZm10cQ5VBXdpbjY0cQ9VCV9wbGF0Zm9ybXEQXXERVQVXSU4zMnESYVUHX3ByZWZpeHETVQBxFFUMX3ByZV9pbmNsdWRlcRVdcRZVBl9mbGFnc3EXXXEYVQVfcGF0aHEZVTgkQi9jb250cmliL3Rvb2xzL3B5dGhvbi9saWIvcHl0aG9uX2Zyb3plbl9tb2R1bGVzLnJvZGF0YXEadYVxG2Iu" "--tools" "1" "$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

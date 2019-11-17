@@ -13,7 +13,7 @@ struct TNonSymmetricTreeStepNode {
     RightSubtreeDiff: uint16;
 }
 
-table TObliviousTrees {
+table TModelTrees {
     ApproxDimension:int;
     TreeSplits:[int];
     TreeSizes:[int];
@@ -36,7 +36,7 @@ table TObliviousTrees {
 
 table TModelCore {
     FormatVersion:string;
-    ObliviousTrees:TObliviousTrees;
+    ModelTrees:TModelTrees;
     InfoMap:[TKeyValue];
 
     ModelPartIds:[string]; // contains info about model structures, laying after ModelCore

@@ -55,7 +55,12 @@ namespace NCB {
         }
 
         template <class TSourceTextAccessor, class TDigitizedTextWriter>
-        void Apply(TSourceTextAccessor&& sourceTextAccessor, TDigitizedTextWriter&& digitizedTextWriter) const {
+        void Apply(
+            TSourceTextAccessor&& sourceTextAccessor,
+            TDigitizedTextWriter&& digitizedTextWriter,
+            NPar::TLocalExecutor* localExecutor
+        ) const {
+            TVector<std::pair<ui32, ui32>> sourceToDestinationPairs;
             for (const auto& [sourceTextIdx, digitizedSetIndices]: SourceToDestinationIndexes) {
                 const auto sourceText = sourceTextAccessor(sourceTextIdx);
 
@@ -66,7 +71,8 @@ namespace NCB {
                     sourceText.ForEach(
                         [&](ui32 index, TStringBuf phrase) {
                             textColumnBuilder.AddText(index, phrase);
-                        }
+                        },
+                        localExecutor
                     );
 
                     digitizedTextWriter(digitizedTextIdx, textColumnBuilder.Build());

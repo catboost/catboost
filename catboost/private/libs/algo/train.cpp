@@ -390,7 +390,11 @@ void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnCont
                 ctx->LocalExecutor
             );
         } else {
-            if (ctx->LearnProgress->ApproxDimension == 1) {
+            const bool isMultiRegression = dynamic_cast<const TMultiDerCalcer*>(error.Get()) != nullptr;
+
+            if (isMultiRegression) {
+                MapSetApproxesMulti(*error, bestSplitTree, data.Test, &treeValues, &sumLeafWeights, ctx);
+            } else if (ctx->LearnProgress->ApproxDimension == 1) {
                 MapSetApproxesSimple(*error, bestSplitTree, data.Test, &treeValues, &sumLeafWeights, ctx);
             } else {
                 MapSetApproxesMulti(*error, bestSplitTree, data.Test, &treeValues, &sumLeafWeights, ctx);

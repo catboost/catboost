@@ -256,6 +256,8 @@ def eval_metric(label, approx, metric, weight=None, group_id=None, subgroup_id=N
     -------
     metric results : list with metric values.
     """
+    if len(label) > 0 and not isinstance(label[0], ARRAY_TYPES):
+        label = [label]
     if len(approx) == 0:
         approx = [[]]
     if not isinstance(approx[0], ARRAY_TYPES):

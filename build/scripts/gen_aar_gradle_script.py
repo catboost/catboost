@@ -4,6 +4,7 @@ import tarfile
 
 FLAT_DIRS_REPO_TEMPLATE='flatDir {{ dirs {dirs} }}\n'
 MAVEN_REPO_TEMPLATE='maven {{ url "{repo}" }}\n'
+KEYSTORE_TEMLATE='signingConfigs {{ debug {{ storeFile file("{keystore}") }} }}\n'
 
 AAR_TEMPLATE = """\
 ext.jniLibsDirs = [
@@ -50,7 +51,6 @@ buildDir = "$projectDir/build"
 if (!ext.has("packageSuffix"))
     ext.packageSuffix = ""
 
-
 buildscript {{
 //     repositories {{
 //         jcenter()
@@ -86,6 +86,8 @@ repositories {{
 }}
 
 android {{
+    {keystore}
+
     compileSdkVersion compileVersion
     buildToolsVersion buildVersion
 
@@ -185,6 +187,11 @@ def gen_build_script(args):
 
     maven_repos = ''.join(MAVEN_REPO_TEMPLATE.format(repo=repo) for repo in args.maven_repos)
 
+    if args.keystore:
+        keystore = KEYSTORE_TEMLATE.format(keystore=args.keystore)
+    else:
+        keystore = ''
+
     return AAR_TEMPLATE.format(
         jni_libs_dirs=wrap(args.jni_libs_dirs),
         res_dirs=wrap(args.res_dirs),
@@ -197,6 +204,7 @@ def gen_build_script(args):
         maven_repos=maven_repos,
         bundles=wrap(bundles),
         flat_dirs_repo=flat_dirs_repo,
+        keystore=keystore,
     )
 
 
@@ -216,6 +224,7 @@ if __name__ == '__main__':
     parser.add_argument('--bundle-name', nargs='?', default='default-bundle-name')
     parser.add_argument('--res-dirs', nargs='*', default=[])
     parser.add_argument('--peers', nargs='*', default=[])
+    parser.add_argument('--keystore', default=None)
     args = parser.parse_args()
 
     if args.proguard_rules is None:

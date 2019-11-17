@@ -82,8 +82,8 @@ struct TNonSymmetricTreeStepNode {
     }
 };
 
-// TODO(kirillovs): rename to TModelTrees after adding non symmetric trees support
-struct TObliviousTrees {
+
+struct TModelTrees {
 public:
     /**
      * This structure stores model runtime data. Should be kept up to date
@@ -125,7 +125,7 @@ public:
     };
 
 public:
-    bool operator==(const TObliviousTrees& other) const {
+    bool operator==(const TModelTrees& other) const {
         return std::tie(
             ApproxDimension,
             TreeSplits,
@@ -156,7 +156,7 @@ public:
             other.EstimatedFeatures);
     }
 
-    bool operator!=(const TObliviousTrees& other) const {
+    bool operator!=(const TModelTrees& other) const {
         return !(*this == other);
     }
 
@@ -171,14 +171,14 @@ public:
      * @param serializer our caching flatbuffers serializator
      * @return offset in flatbuffer
      */
-    flatbuffers::Offset<NCatBoostFbs::TObliviousTrees> FBSerialize(
+    flatbuffers::Offset<NCatBoostFbs::TModelTrees> FBSerialize(
         TModelPartsCachingSerializer& serializer) const;
 
     /**
      * Deserialize from flatbuffers object
      * @param fbObj
      */
-    void FBDeserialize(const NCatBoostFbs::TObliviousTrees* fbObj);
+    void FBDeserialize(const NCatBoostFbs::TModelTrees* fbObj);
 
     /**
      * Internal usage only.
@@ -554,25 +554,25 @@ private:
 
 class TCOWTreeWrapper {
 public:
-    const TObliviousTrees& operator*() const {
+    const TModelTrees& operator*() const {
         return *Trees;
     }
-    const TObliviousTrees* operator->() const {
+    const TModelTrees* operator->() const {
         return Trees.Get();
     }
 
-    const TObliviousTrees* Get() const {
+    const TModelTrees* Get() const {
         return Trees.Get();
     }
 
-    TObliviousTrees* GetMutable() {
+    TModelTrees* GetMutable() {
         if (Trees.RefCount() > 1) {
-            Trees = MakeAtomicShared<TObliviousTrees>(*Trees);
+            Trees = MakeAtomicShared<TModelTrees>(*Trees);
         }
         return Trees.Get();
     }
 private:
-    TAtomicSharedPtr<TObliviousTrees> Trees = MakeAtomicShared<TObliviousTrees>();
+    TAtomicSharedPtr<TModelTrees> Trees = MakeAtomicShared<TModelTrees>();
 };
 
 /*!
@@ -585,7 +585,7 @@ class TFullModel {
 public:
     using TFeatureLayout = NCB::NModelEvaluation::TFeatureLayout;
 public:
-    TCOWTreeWrapper ObliviousTrees;
+    TCOWTreeWrapper ModelTrees;
     /**
      * Model information key-value storage.
      */
@@ -616,7 +616,7 @@ public:
     }
 
     bool operator==(const TFullModel& other) const {
-        return *ObliviousTrees == *other.ObliviousTrees;
+        return *ModelTrees == *other.ModelTrees;
     }
 
     bool operator!=(const TFullModel& other) const {
@@ -627,7 +627,7 @@ public:
     void Swap(TFullModel& other) {
         with_lock(CurrentEvaluatorLock) {
             with_lock(other.CurrentEvaluatorLock) {
-                DoSwap(ObliviousTrees, other.ObliviousTrees);
+                DoSwap(ModelTrees, other.ModelTrees);
                 DoSwap(ModelInfo, other.ModelInfo);
                 DoSwap(CtrProvider, other.CtrProvider);
                 DoSwap(FormulaEvaluatorType, other.FormulaEvaluatorType);
@@ -655,14 +655,14 @@ public:
      * @return Number of trees in model.
      */
     size_t GetTreeCount() const {
-        return ObliviousTrees->GetTreeCount();
+        return ModelTrees->GetTreeCount();
     }
 
     /**
      * @return Number of dimensions in model.
      */
     size_t GetDimensionsCount() const {
-        return ObliviousTrees->GetDimensionsCount();
+        return ModelTrees->GetDimensionsCount();
     }
 
     /**
@@ -671,9 +671,9 @@ public:
      * @param end
      */
     void Truncate(size_t begin, size_t end) {
-        ObliviousTrees.GetMutable()->TruncateTrees(begin, end);
+        ModelTrees.GetMutable()->TruncateTrees(begin, end);
         if (CtrProvider) {
-            CtrProvider->DropUnusedTables(ObliviousTrees->GetUsedModelCtrBases());
+            CtrProvider->DropUnusedTables(ModelTrees->GetUsedModelCtrBases());
         }
         UpdateDynamicData();
     }
@@ -682,54 +682,54 @@ public:
      * @return Minimal float features vector length sufficient for this model
      */
     size_t GetMinimalSufficientFloatFeaturesVectorSize() const {
-        return ObliviousTrees->GetMinimalSufficientFloatFeaturesVectorSize();
+        return ModelTrees->GetMinimalSufficientFloatFeaturesVectorSize();
     }
     /**
      * @return Number of float features that are really used in trees
      */
     size_t GetUsedFloatFeaturesCount() const {
-        return ObliviousTrees->GetUsedFloatFeaturesCount();
+        return ModelTrees->GetUsedFloatFeaturesCount();
     }
 
     /**
      * @return Number of text features that are really used in trees
      */
     size_t GetUsedTextFeaturesCount() const {
-        return ObliviousTrees->GetUsedTextFeaturesCount();
+        return ModelTrees->GetUsedTextFeaturesCount();
     }
 
     /**
      * @return Expected float features vector length for this model
      */
     size_t GetNumFloatFeatures() const {
-        return ObliviousTrees->GetNumFloatFeatures();
+        return ModelTrees->GetNumFloatFeatures();
     }
 
     /**
      * @return Expected categorical features vector length for this model
      */
     size_t GetMinimalSufficientCatFeaturesVectorSize() const {
-        return ObliviousTrees->GetMinimalSufficientCatFeaturesVectorSize();
+        return ModelTrees->GetMinimalSufficientCatFeaturesVectorSize();
     }
     /**
     * @return Number of float features that are really used in trees
     */
     size_t GetUsedCatFeaturesCount() const {
-        return ObliviousTrees->GetUsedCatFeaturesCount();
+        return ModelTrees->GetUsedCatFeaturesCount();
     }
 
     /**
      * @return Expected categorical features vector length for this model
      */
     size_t GetNumCatFeatures() const {
-        return ObliviousTrees->GetNumCatFeatures();
+        return ModelTrees->GetNumCatFeatures();
     }
 
     /**
      * Check whether model trees are oblivious
      */
     bool IsOblivious() const {
-        return ObliviousTrees->IsOblivious();
+        return ModelTrees->IsOblivious();
     }
 
     /**
@@ -748,9 +748,9 @@ public:
     // If no ctr features present it will return true
     bool HasValidCtrProvider() const {
         if (!CtrProvider) {
-            return ObliviousTrees->GetUsedModelCtrs().empty();
+            return ModelTrees->GetUsedModelCtrs().empty();
         }
-        return CtrProvider->HasNeededCtrs(ObliviousTrees->GetUsedModelCtrs());
+        return CtrProvider->HasNeededCtrs(ModelTrees->GetUsedModelCtrs());
     }
 
     //! Check if TFullModel instance has valid Text processing collection
@@ -1075,7 +1075,7 @@ public:
 
     /**
      * Internal usage only.
-     * Update indexes between TextProcessingCollection and Estimated features in ObliviousTrees
+     * Update indexes between TextProcessingCollection and Estimated features in ModelTrees
      */
     void UpdateEstimatedFeaturesIndices(TVector<TEstimatedFeature>&& newEstimatedFeatures);
 };

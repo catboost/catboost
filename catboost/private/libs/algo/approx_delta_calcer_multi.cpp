@@ -5,42 +5,15 @@
 #include "index_calcer.h"
 #include "learn_context.h"
 
+#include <catboost/libs/helpers/matrix.h>
+#include <catboost/libs/helpers/dispatch_generic_lambda.h>
+
 #include <catboost/private/libs/algo/approx_calcer/gradient_walker.h>
 #include <catboost/private/libs/algo_helpers/approx_calcer_multi_helpers.h>
 #include <catboost/private/libs/algo_helpers/error_functions.h>
 #include <catboost/private/libs/algo_helpers/online_predictor.h>
 
 #include <library/threading/local_executor/local_executor.h>
-
-inline static void AddDerNewtonMulti(
-    const IDerCalcer& error,
-    const TVector<double>& approx,
-    float target,
-    double weight,
-    bool /*isUpdateWeight*/,
-    TVector<double>* curDer,
-    THessianInfo* curDer2,
-    TSumMulti* curLeafDers
-) {
-    Y_ASSERT(curDer != nullptr && curDer2 != nullptr);
-    error.CalcDersMulti(approx, target, weight, curDer, curDer2);
-    curLeafDers->AddDerDer2(*curDer, *curDer2);
-}
-
-inline static void AddDerGradientMulti(
-    const IDerCalcer& error,
-    const TVector<double>& approx,
-    float target,
-    double weight,
-    bool isUpdateWeight,
-    TVector<double>* curDer,
-    THessianInfo* /*curDer2*/,
-    TSumMulti* curLeafDers
-) {
-    Y_ASSERT(curDer != nullptr);
-    error.CalcDersMulti(approx, target, weight, curDer, nullptr);
-    curLeafDers->AddDerWeight(*curDer, weight, isUpdateWeight);
-}
 
 void CalcApproxDeltaMulti(
     const TFold& fold,
@@ -52,11 +25,12 @@ void CalcApproxDeltaMulti(
     TVector<TVector<double>>* approxDelta,
     TVector<TVector<double>>* sumLeafDeltas
 ) {
-    CB_ENSURE(!error.GetIsExpApprox(), "Multi-class does not support exponentiated approxes");
+    CB_ENSURE(!error.GetIsExpApprox(), "Multi-class and multi-regression does not support exponentiated approxes");
 
+    const auto multiError = dynamic_cast<const TMultiDerCalcer*>(&error);
     const auto& treeLearnerOptions = ctx->Params.ObliviousTreeOptions.Get();
     const int gradientIterations = treeLearnerOptions.LeavesEstimationIterations;
-    const TVector<float>& target = fold.LearnTarget[0];
+    const TVector<TVector<float>>& target = fold.LearnTarget;
     const TVector<float>& weight = fold.GetLearnWeights();
     const int approxDimension = approxDelta->ysize();
     const ELeavesEstimation estimationMethod = treeLearnerOptions.LeavesEstimationMethod;
@@ -71,7 +45,7 @@ void CalcApproxDeltaMulti(
     ) {
         CalcLeafDersMulti(
             indices,
-            target,
+            To2DConstArrayRef<float>(target),
             weight,
             bt.Approx,
             approxDeltas,
@@ -108,39 +82,43 @@ void CalcApproxDeltaMulti(
         TVector<double> curDelta(approxDimension);
         TVector<double> curDer(approxDimension);
         THessianInfo curDer2(approxDimension * useHessian, error.GetHessianType());
-        for (int z = bt.BodyFinish; z < bt.TailFinish; ++z) {
-            for (int dim = 0; dim < approxDimension; ++dim) {
-                curApprox[dim] = bt.Approx[dim][z] + (*approxDeltas)[dim][z];
+
+        auto updateApproxesImpl = [&](auto useHessian, auto isMultiRegression, auto useWeights) {
+            for (int docIdx = bt.BodyFinish; docIdx < bt.TailFinish; ++docIdx) {
+                const double w = useWeights ? weight[docIdx] : 1;
+                for (auto dim : xrange(approxDimension)) {
+                    curApprox[dim] = bt.Approx[dim][docIdx] + (*approxDeltas)[dim][docIdx];
+                }
+                TVector<float> curTarget(fold.LearnTarget.size());
+                for (auto dim : xrange(curTarget.size())) {
+                    curTarget[dim] = fold.LearnTarget[dim][docIdx];
+                }
+                TSumMulti& curLeafDers = leafDers[indices[docIdx]];
+                if (useHessian) {
+                    if (isMultiRegression) {
+                        multiError->CalcDers(curApprox, curTarget, w, &curDer, &curDer2);
+                    } else {
+                        error.CalcDersMulti(curApprox, target[0][docIdx], w, &curDer, &curDer2);
+                    }
+                    curLeafDers.AddDerDer2(curDer, curDer2);
+                    CalcDeltaNewtonMulti(curLeafDers, l2Regularizer, bt.BodySumWeight, bt.BodyFinish, &curDelta);
+                } else {
+                    Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
+                    if (isMultiRegression) {
+                        multiError->CalcDers(curApprox, curTarget, w, &curDer, /*der2*/nullptr);
+                    } else {
+                        error.CalcDersMulti(curApprox, target[0][docIdx], w, &curDer, /*der2*/nullptr);
+                    }
+                    curLeafDers.AddDerWeight(curDer, w, /*isUpdateWeights*/true);
+                    CalcDeltaGradientMulti(curLeafDers, l2Regularizer, bt.BodySumWeight, bt.BodyFinish, &curDelta);
+                }
+                for (auto dim : xrange(approxDimension)) {
+                    (*approxDeltas)[dim][docIdx] = (*approxDeltas)[dim][docIdx] + curDelta[dim];
+                }
             }
-            TSumMulti& curLeafDers = leafDers[indices[z]];
-            if (useHessian) {
-                AddDerNewtonMulti(
-                    error,
-                    curApprox,
-                    target[z],
-                    weight.empty() ? 1 : weight[z],
-                    /*isUpdateWeight*/true,
-                    &curDer,
-                    &curDer2,
-                    &curLeafDers);
-                CalcDeltaNewtonMulti(curLeafDers, l2Regularizer, bt.BodySumWeight, bt.BodyFinish, &curDelta);
-            } else {
-                Y_ASSERT(estimationMethod == ELeavesEstimation::Gradient);
-                AddDerGradientMulti(
-                    error,
-                    curApprox,
-                    target[z],
-                    weight.empty() ? 1 : weight[z],
-                    /*isUpdateWeight*/true,
-                    &curDer,
-                    &curDer2,
-                    &curLeafDers);
-                CalcDeltaGradientMulti(curLeafDers, l2Regularizer, bt.BodySumWeight, bt.BodyFinish, &curDelta);
-            }
-            for (int dim = 0; dim < approxDimension; ++dim) {
-                (*approxDeltas)[dim][z] = (*approxDeltas)[dim][z] + curDelta[dim];
-            }
-        }
+        };
+
+        DispatchGenericLambda(updateApproxesImpl, useHessian, /*isMultiRegression*/multiError != nullptr, !weight.empty());
     };
 
     bool haveBacktrackingObjective;
@@ -150,7 +128,10 @@ void CalcApproxDeltaMulti(
 
     const auto lossCalcerFunc = [&] (const TVector<TVector<double>>& approxDeltas) {
         TConstArrayRef<TQueryInfo> bodyTailQueryInfo(fold.LearnQueriesInfo.begin(), bt.BodyQueryFinish);
-        TConstArrayRef<float> bodyTailTarget(fold.LearnTarget[0].begin(), bt.BodyFinish);
+        TVector<TConstArrayRef<float>> bodyTailTarget;
+        for (auto i : xrange(fold.LearnTarget.size())) {
+            bodyTailTarget.emplace_back(fold.LearnTarget[i].begin(), bt.BodyFinish);
+        }
         const auto& additiveStats = EvalErrors(
             bt.Approx,
             approxDeltas,

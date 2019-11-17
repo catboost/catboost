@@ -2,6 +2,7 @@
 
 #include "apply.h"
 
+#include <catboost/libs/helpers/matrix.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/logging/logging.h>
@@ -77,13 +78,11 @@ void TMetricsPlotCalcer::ComputeAdditiveMetric(
     TConstArrayRef<TQueryInfo> queriesInfo,
     ui32 plotLineIndex
 ) {
-    CB_ENSURE(!target || target->size() == 1, "Multitarget metrics are not supported yet");
-
     auto results = EvalErrorsWithCaching(
         approx,
         /*approxDelts*/{},
         /*isExpApprox*/false,
-        target ? target.GetRef()[0] : TMaybeData<TConstArrayRef<float>>(),
+        target.GetOrElse(TConstArrayRef<TConstArrayRef<float>>()),
         weights,
         queriesInfo,
         AdditiveMetrics,
@@ -129,7 +128,7 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSetForNonAdditiveMetrics(
         NonAdditiveMetricsData.CumulativePoolSize = newPoolSize;
         NonAdditiveMetricsData.Weights.reserve(newPoolSize);
 
-        if (const auto target = processedData.TargetData->GetMultiTarget()) {
+        if (const auto target = processedData.TargetData->GetTarget()) {
             const ui32 targetDim = target->size();
             if (NonAdditiveMetricsData.Target.empty()) {
                 NonAdditiveMetricsData.Target = TVector<TVector<float>>(targetDim);
@@ -257,7 +256,7 @@ TMetricsPlotCalcer& TMetricsPlotCalcer::ProceedDataSet(
         Load(docCount, LastApproxes.Get(), &CurApproxBuffer);
     }
 
-    const auto target = *processedData.TargetData->GetMultiTarget();
+    const auto target = *processedData.TargetData->GetTarget();
     const auto weights = GetWeights(*processedData.TargetData);
     const auto groupInfos = processedData.TargetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
 
@@ -300,7 +299,7 @@ void TMetricsPlotCalcer::ComputeNonAdditiveMetrics(ui32 begin, ui32 end) {
             approx,
             /*approxDelts*/{},
             /*isExpApprox*/false,
-            !target.empty() ? target[0] : TMaybeData<TConstArrayRef<float>>(),
+            To2DConstArrayRef<float>(target),
             weights,
             {},
             NonAdditiveMetrics,
@@ -318,15 +317,15 @@ void TMetricsPlotCalcer::ComputeNonAdditiveMetrics(ui32 begin, ui32 end) {
 }
 
 static TVector<TVector<float>> BuildTargets(const TVector<TProcessedDataProvider>& datasetParts) {
-    const auto targetDim = datasetParts.empty() ? 0 : datasetParts[0].TargetData->GetMultiTarget()->size();
+    const auto targetDim = datasetParts.empty() ? 0 : datasetParts[0].TargetData->GetTargetDimension();
 
     auto result = TVector<TVector<float>>(targetDim);
     for (auto targetIdx : xrange(targetDim)) {
         result[targetIdx].reserve(GetDocCount(datasetParts));
     }
     for (const auto& datasetPart : datasetParts) {
-        CB_ENSURE(datasetPart.TargetData->GetMultiTarget()->size() == targetDim, "Inconsistent target dimensionality between dataset parts");
-        const auto target = *datasetPart.TargetData->GetMultiTarget();
+        CB_ENSURE(datasetPart.TargetData->GetTargetDimension() == targetDim, "Inconsistent target dimensionality between dataset parts");
+        const auto target = *datasetPart.TargetData->GetTarget();
         for (auto targetIdx : xrange(targetDim)) {
             result[targetIdx].insert(result[targetIdx].end(), target[targetIdx].begin(), target[targetIdx].end());
         }
@@ -392,7 +391,7 @@ void TMetricsPlotCalcer::ComputeNonAdditiveMetrics(const TVector<TProcessedDataP
             curApprox,
             /*approxDelts*/{},
             /*isExpApprox*/false,
-            allTargets[0],
+            To2DConstArrayRef<float>(allTargets),
             allWeights,
             {},
             NonAdditiveMetrics,

@@ -5,6 +5,7 @@
 #include <catboost/private/libs/text_processing/embedding.h>
 
 #include <catboost/private/libs/options/enum_helpers.h>
+#include <catboost/private/libs/options/json_helper.h>
 
 #include <util/generic/set.h>
 
@@ -129,14 +130,30 @@ namespace {
     public:
         TBagOfWordsEstimator(
             TTextDataSetPtr learnTexts,
-            TArrayRef<TTextDataSetPtr> testTexts)
+            TArrayRef<TTextDataSetPtr> testTexts,
+            const NJson::TJsonValue& options)
             : LearnTexts({learnTexts})
             , TestTexts(testTexts.begin(), testTexts.end())
             , Dictionary(learnTexts->GetDictionary())
-        {}
+            , TopTokensCount("top_tokens_count", 2000)
+        {
+            NCatboostOptions::CheckedLoad(options, &TopTokensCount);
+            CB_ENSURE(
+                TopTokensCount > 0,
+                "Parameter top_tokens_count for BagOfWords should be greater than zero"
+            );
+            const ui32 dictionarySize = Dictionary.Size();
+            CB_ENSURE(
+                dictionarySize > 0,
+                "Dictionary size is 0, check out data or try to decrease min_token_occurrence parameter"
+            );
+            if (TopTokensCount > dictionarySize) {
+                TopTokensCount = dictionarySize;
+            }
+        }
 
         TEstimatedFeaturesMeta FeaturesMeta() const override {
-            const ui32 featureCount = Dictionary.Size();
+            const ui32 featureCount = TopTokensCount;
             TEstimatedFeaturesMeta meta;
             meta.Type = TVector<EFeatureCalcerType>(featureCount, EFeatureCalcerType::BoW);
             meta.FeaturesCount = featureCount;
@@ -162,7 +179,17 @@ namespace {
             Y_UNUSED(executor);
 
             TBagOfWordsCalcer calcer(Id(), Dictionary.Size());
-            calcer.TrimFeatures(featureIndices);
+
+            TVector<TTokenId> topTokens = Dictionary.GetTopTokens(TopTokensCount);
+
+            TVector<ui32> remappedFeatureIndices;
+            remappedFeatureIndices.reserve(featureIndices.size());
+
+            for (ui32 featureIdx: featureIndices) {
+                remappedFeatureIndices.push_back(static_cast<ui32>(topTokens[featureIdx]));
+            }
+
+            calcer.TrimFeatures(MakeConstArrayRef(remappedFeatureIndices));
             return MakeHolder<TBagOfWordsCalcer>(std::move(calcer));
         }
 
@@ -171,28 +198,59 @@ namespace {
         void Calc(NPar::TLocalExecutor& executor,
                   TConstArrayRef<TTextDataSetPtr> dataSets,
                   TConstArrayRef<TCalculatedFeatureVisitor> visitors) const {
-            const ui32 featuresCount = Dictionary.Size();
 
             // TODO(d-kruchinin, noxoomo) better implementation:
             // add MaxRam option + bit mask compression for block on m features
             // estimation of all features in one pass
+            THashSet<TTokenId> topTokensSet;
+            for (TTokenId tokenId: Dictionary.GetTopTokens(TopTokensCount)) {
+                topTokensSet.insert(tokenId);
+            }
 
             for (ui32 id = 0; id < dataSets.size(); ++id) {
                 const auto& ds = *dataSets[id];
                 const ui64 samplesCount = ds.SamplesCount();
 
-                //one-by-one, we don't want to acquire unnecessary RAM for very sparse features
-                TVector<float> singleFeature(samplesCount);
-                for (ui32 tokenId = 0; tokenId < featuresCount; ++tokenId) {
-                    NPar::ParallelFor(
-                        executor, 0, samplesCount, [&](ui32 line) {
-                            const bool hasToken = ds.GetText(line).Has(TTokenId(tokenId));
-                            singleFeature[line] = static_cast<float>(hasToken);
+                const ui32 blockSize = sizeof(ui32);
+                const ui32 numFeatureBins = (TopTokensCount + blockSize - 1) / blockSize;
+                TVector<ui32> features(samplesCount * numFeatureBins);
+                NPar::ParallelFor(
+                    executor, 0, samplesCount, [&](ui32 line) {
+                        for (const auto& [tokenId, count] : ds.GetText(line)) {
+                            Y_UNUSED(count);
+                            if (topTokensSet.contains(tokenId)) {
+                                SetFeatureValue(tokenId, line, samplesCount, MakeArrayRef(features));
+                            }
                         }
+                    }
+                );
+                for (ui32 featureBin: xrange(numFeatureBins)) {
+                    TVector<ui32> featureIds = xrange(
+                        featureBin * blockSize,
+                        Min((featureBin + 1) * blockSize, TopTokensCount.Get())
                     );
-                    visitors[id](tokenId, singleFeature);
+                    visitors[id](
+                        featureIds,
+                        TConstArrayRef<ui32>(
+                            features.data() + featureBin * samplesCount,
+                            samplesCount
+                        )
+                    );
                 }
             }
+        }
+
+    private:
+        void SetFeatureValue(
+            ui32 featureIndex,
+            ui32 docIndex,
+            ui32 samplesCount,
+            TArrayRef<ui32> features
+        ) const {
+            const ui32 binIndex = featureIndex / sizeof(ui32);
+            const ui32 offset = featureIndex % sizeof(ui32);
+            ui32& featurePack = features[binIndex * samplesCount + docIndex];
+            featurePack |= 1 << offset;
         }
 
     private:
@@ -200,6 +258,7 @@ namespace {
         TVector<TTextDataSetPtr> TestTexts;
         const TDictionaryProxy& Dictionary;
         const TGuid Guid = CreateGuid();
+        NCatboostOptions::TOption<ui32> TopTokensCount;
     };
 }
 
@@ -248,14 +307,19 @@ TVector<TFeatureEstimatorPtr> NCB::CreateEstimators(
     TArrayRef<TTextDataSetPtr> testText) {
 
     Y_UNUSED(embedding);
-    TSet<EFeatureCalcerType> typesSet;
-    for (auto& calcerDescription: featureCalcerDescription) {
-        typesSet.insert(calcerDescription.CalcerType);
-    }
 
     TVector<TFeatureEstimatorPtr> estimators;
-    if (typesSet.contains(EFeatureCalcerType::BoW)) {
-        estimators.push_back(new TBagOfWordsEstimator(learnTexts, testText));
+    for (auto& calcerDescription: featureCalcerDescription) {
+        if (calcerDescription.CalcerType == EFeatureCalcerType::BoW) {
+            estimators.push_back(
+                new TBagOfWordsEstimator(
+                    learnTexts,
+                    testText,
+                    calcerDescription.CalcerOptions
+                )
+            );
+        }
     }
+
     return estimators;
 }

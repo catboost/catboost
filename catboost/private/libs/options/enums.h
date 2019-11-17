@@ -191,7 +191,10 @@ enum class ELossFunction {
     MAP,
     NDCG,
     DCG,
-    FilteredDCG
+    FilteredDCG,
+
+    /* multi-regression */
+    MultiRMSE
 };
 
 enum class ERankingType {

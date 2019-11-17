@@ -20,7 +20,7 @@ TVector<TMetricHolder> EvalErrorsWithCaching(
     const TVector<TVector<double>>& approx,
     const TVector<TVector<double>>& approxDelta,
     bool isExpApprox,
-    NCB::TMaybeData<TConstArrayRef<float>> target,
+    TConstArrayRef<TConstArrayRef<float>> target,
     TConstArrayRef<float> weight,
     TConstArrayRef<TQueryInfo> queriesInfo,
     TConstArrayRef<const IMetric *> metrics,
@@ -31,25 +31,20 @@ inline static TVector<TMetricHolder> EvalErrorsWithCaching(
     const TVector<TVector<double>>& approx,
     const TVector<TVector<double>>& approxDelta,
     bool isExpApprox,
-    NCB::TMaybeData<TConstArrayRef<float>> target,
+    TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
     TConstArrayRef<TQueryInfo> queriesInfo,
-    TConstArrayRef<THolder<IMetric>> metrics,
+    TConstArrayRef<const IMetric*> metrics,
     NPar::TLocalExecutor *localExecutor
 ) {
-    TVector<const IMetric *> metricPtrs;
-    metricPtrs.reserve(metrics.size());
-    for (const auto& metric : metrics) {
-        metricPtrs.push_back(metric.Get());
-    }
     return EvalErrorsWithCaching(
         approx,
         approxDelta,
         isExpApprox,
-        target,
+        TConstArrayRef<TConstArrayRef<float>>(&target, 1),
         weight,
         queriesInfo,
-        metricPtrs,
+        metrics,
         localExecutor
     );
 }

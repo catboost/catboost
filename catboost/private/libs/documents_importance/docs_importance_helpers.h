@@ -63,7 +63,7 @@ public:
         if (paramsJson["boost_from_average"].GetBoolean()) {
             startingApprox = NCB::CalcOptimumConstApprox(
                 NCatboostOptions::ParseLossDescription(ToString(LossFunction)),
-                processedData.TargetData->GetTarget().GetOrElse(TConstArrayRef<float>()),
+                processedData.TargetData->GetOneDimensionalTarget().GetOrElse(TConstArrayRef<float>()),
                 GetWeights(*processedData.TargetData)
             );
         }

@@ -13,3 +13,12 @@ inline void MakeZeroAverage(TVector<T>* res) {
         (*res)[i] -= average;
     }
 }
+
+template <typename T, typename T2DArrayLike>
+inline static TVector<TConstArrayRef<T>> To2DConstArrayRef(const T2DArrayLike& array) {
+    auto arrayView = TVector<TConstArrayRef<T>>();
+    for (const auto& subArray : array) {
+        arrayView.emplace_back(subArray);
+    }
+    return arrayView;
+}

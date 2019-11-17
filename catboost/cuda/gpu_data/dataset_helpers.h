@@ -236,53 +236,72 @@ namespace NCatboostCuda {
         }
 
         void Write(const TVector<ui32>& featureIds) {
-            THashSet<ui32> featuresToEstimate = TakeFeaturesToEstimate(featureIds);
+            using namespace std::placeholders;
+            THashSet<ui32> genericFeaturesToEstimate = TakeFeaturesToEstimate(featureIds);
+            Write(
+                genericFeaturesToEstimate,
+                std::bind(&TEstimatorsExecutor::ExecEstimators, EstimatorsExecutor, _1, _2, _3)
+            );
 
-            if (!featuresToEstimate.empty()) {
-                auto estimators = GetEstimators(featuresToEstimate);
-
-                auto binarizedWriter = [&](
-                    ui32 dataSetId,
-                    TConstArrayRef<ui8> binarizedFeature,
-                    TEstimatedFeature feature,
-                    ui8 binCount
-                ) {
-                    const auto featureId = FeaturesManager.GetId(feature);
-                    if (featuresToEstimate.contains(featureId)) {
-                        IndexBuilder.template Write<ui8>(dataSetId,
-                                                         featureId,
-                                                         binCount,
-                                                         binarizedFeature);
-                    }
-                    CheckInterrupted(); // check after long-lasting operation
-                };
-
-                TEstimatorsExecutor::TBinarizedFeatureVisitor learnWriter = std::bind(binarizedWriter,
-                    DataSetId,
-                    std::placeholders::_1,
-                    std::placeholders::_2,
-                    std::placeholders::_3);
-
-                TMaybe<TEstimatorsExecutor::TBinarizedFeatureVisitor> testWriter;
-                if (TestDataSetId) {
-                    testWriter = std::bind(binarizedWriter,
-                                           *TestDataSetId,
-                                           std::placeholders::_1,
-                                           std::placeholders::_2,
-                                           std::placeholders::_3);
-                }
-                EstimatorsExecutor.ExecEstimators(estimators, learnWriter, testWriter);
-            }
+            THashSet<ui32> binaryFeaturesToEstimate = TakeFeaturesToEstimate(featureIds, true);
+            Write(
+                binaryFeaturesToEstimate,
+                std::bind(&TEstimatorsExecutor::ExecBinaryFeaturesEstimators, EstimatorsExecutor, _1, _2, _3)
+            );
         }
 
     private:
-        THashSet<ui32> TakeFeaturesToEstimate(const TVector<ui32>& featureIds) {
+        template <class ExecEstimatorsFunc>
+        void Write(const THashSet<ui32>& featureIds, ExecEstimatorsFunc&& execEstimators) {
+            if (featureIds.empty()) {
+                return;
+            }
+            auto estimators = GetEstimators(featureIds);
+
+            auto binarizedWriter = [&](
+                ui32 dataSetId,
+                TConstArrayRef<ui8> binarizedFeature,
+                TEstimatedFeature feature,
+                ui8 binCount
+            ) {
+                const auto featureId = FeaturesManager.GetId(feature);
+                if (featureIds.contains(featureId)) {
+                    IndexBuilder.template Write<ui8>(dataSetId,
+                                                     featureId,
+                                                     binCount,
+                                                     binarizedFeature);
+                }
+                CheckInterrupted(); // check after long-lasting operation
+            };
+
+            TEstimatorsExecutor::TBinarizedFeatureVisitor learnWriter = std::bind(binarizedWriter,
+                                                                                  DataSetId,
+                                                                                  std::placeholders::_1,
+                                                                                  std::placeholders::_2,
+                                                                                  std::placeholders::_3);
+
+            TMaybe<TEstimatorsExecutor::TBinarizedFeatureVisitor> testWriter;
+            if (TestDataSetId) {
+                testWriter = std::bind(binarizedWriter,
+                                       *TestDataSetId,
+                                       std::placeholders::_1,
+                                       std::placeholders::_2,
+                                       std::placeholders::_3);
+            }
+            execEstimators(estimators, learnWriter, testWriter);
+        }
+
+        THashSet<ui32> TakeFeaturesToEstimate(const TVector<ui32>& featureIds, bool takeBinaryFeatures = false) {
             THashSet<ui32> result;
             for (const auto& feature : featureIds) {
                 if (FeaturesManager.IsEstimatedFeature(feature)) {
-                    result.insert(feature);
-                } else {
-                    continue;
+                    const ui32 featureBinCount = FeaturesManager.GetBinCount(feature);
+                    if (
+                        (takeBinaryFeatures && (featureBinCount == 2)) ||
+                        (!takeBinaryFeatures && (featureBinCount > 2))
+                    ) {
+                        result.insert(feature);
+                    }
                 }
             }
             return result;

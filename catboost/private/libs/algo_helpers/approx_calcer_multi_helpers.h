@@ -37,7 +37,7 @@ inline void AddDersRangeMulti(
 
 void CalcLeafDersMulti(
     const TVector<TIndexType>& indices,
-    TConstArrayRef<float> target,
+    TConstArrayRef<TConstArrayRef<float>> target,
     TConstArrayRef<float> weight,
     const TVector<TVector<double>>& approx,
     const TVector<TVector<double>>& approxDeltas,

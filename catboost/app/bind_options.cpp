@@ -941,7 +941,7 @@ static void BindTextFeaturesParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonVa
     parser.AddLongOption("text-processing")
         .RequiredArgument("DESC[;DESC...]")
         .Help("Semicolon separated list of text processing descriptions. Description should be written in format "
-              "[TextFeatureId~]NaiveBayes:DictionaryName1|BoW:LetterGramDictionary,BiGramDictionary")
+              "[TextFeatureId~]NaiveBayes+DictionaryName1|BoW+LetterGramDictionary,BiGramDictionary")
         .Handler1T<TString>([plainJsonPtr](const TString& estimatorsLine) {
             for (const auto& oneConfig : StringSplitter(estimatorsLine).Split(';').SkipEmpty()) {
                 (*plainJsonPtr)["text_processing"].AppendValue(oneConfig.Token());

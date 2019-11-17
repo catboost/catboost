@@ -88,7 +88,6 @@
   - file.h
   - flags.h
   - floatingpoint.h
-  - fontconfig/fontconfig.h
   - fp.h
   - fp_class.h
   - fsio.h
@@ -230,7 +229,6 @@
   - cpptl/forwards.h
   - cpptl/smallmap.h
   - forwards.h
-  - json_tool.h
   - json_valueiterator.inl
   - value.h
   - gnulib/printf.h
@@ -579,8 +577,6 @@
   - win32.h
   - bsd/stdlib.h
   - bsd/unistd.h
-  - hb-ot.h
-  - fontconfig/fcfreetype.h
   - sys/videoio.h
   - libv4l2.h
   - soundcard.h
@@ -792,7 +788,6 @@
   #if CONTRIB && TRASH
   - macconfig.h
   - amigaconfig.h
-  - json/config.h
   - json_batchallocator.h
   - json_internalarray.inl
   - json_internalmap.inl

@@ -372,7 +372,7 @@ SEXP CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
 
     result = PROTECT(allocVector(VECSXP, size));
     ui32 featureCount = pool->MetaInfo.GetFeatureCount();
-    auto target = pool->RawTargetData.GetMultiTarget();
+    auto target = pool->RawTargetData.GetTarget();
     const auto& weights = pool->RawTargetData.GetWeights();
 
 
@@ -751,7 +751,7 @@ SEXP CatBoostShrinkModel_R(SEXP modelParam, SEXP treeCountStartParam, SEXP treeC
 SEXP CatBoostDropUnusedFeaturesFromModel_R(SEXP modelParam) {
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
-    model->ObliviousTrees.GetMutable()->DropUnusedFeatures();
+    model->ModelTrees.GetMutable()->DropUnusedFeatures();
     R_API_END();
     return ScalarLogical(1);
 }

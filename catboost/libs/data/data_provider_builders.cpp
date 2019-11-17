@@ -1003,7 +1003,7 @@ namespace NCB {
             TArrayRef<TString> target = Data.TargetData.Target[flatTargetIdx];
 
             LocalExecutor->ExecRange(
-                [&](int objectIdx) {
+                [=](int objectIdx) {
                     target[objectIdx] = ToString(value[objectIdx]);
                 },
                 *ObjectCalcParams,

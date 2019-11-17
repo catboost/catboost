@@ -159,7 +159,11 @@ namespace NCB {
         NPar::TLocalExecutor* const executor,
         TProfileInfo* const profile
     ) {
-        loadOptions.Validate();
+        if (readTestData) {
+            loadOptions.Validate();
+        } else {
+            loadOptions.ValidateLearn();
+        }
 
         TDataProviders dataProviders;
 

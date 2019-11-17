@@ -27,8 +27,7 @@ TVector<TVector<double>> TDocumentImportancesEvaluator::GetDocumentImportances(
         leafIndices[treeId] = BuildIndicesForBinTree(Model, binarizedFeatures.Get(), treeId);
     }, NPar::TLocalExecutor::TExecRangeParams(0, TreeCount), NPar::TLocalExecutor::WAIT_COMPLETE);
 
-
-    UpdateFinalFirstDerivatives(leafIndices, *processedData.TargetData->GetTarget());
+    UpdateFinalFirstDerivatives(leafIndices, *processedData.TargetData->GetOneDimensionalTarget());
     TVector<TVector<double>> documentImportances(DocCount, TVector<double>(processedData.GetObjectCount()));
     const size_t docBlockSize = 1000;
     TImportanceLogger documentsLogger(DocCount, "documents processed", "Processing documents...", logPeriod);
@@ -72,7 +71,7 @@ void TDocumentImportancesEvaluator::UpdateFinalFirstDerivatives(const TVector<TV
 
 TVector<ui32> TDocumentImportancesEvaluator::GetLeafIdToUpdate(ui32 treeId, const TVector<double>& jacobian) {
     TVector<ui32> leafIdToUpdate;
-    const ui32 leafCount = 1 << Model.ObliviousTrees->GetTreeSizes()[treeId];
+    const ui32 leafCount = 1 << Model.ModelTrees->GetTreeSizes()[treeId];
 
     if (UpdateMethod.UpdateType == EUpdateType::AllPoints) {
         leafIdToUpdate.resize(leafCount);

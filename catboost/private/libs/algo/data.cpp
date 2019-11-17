@@ -49,8 +49,8 @@ namespace NCB {
             return Nothing();
         }
         TVector<TConstArrayRef<float>> bordersInInitModel;
-        bordersInInitModel.reserve((*initModel)->ObliviousTrees.GetMutable()->GetFloatFeatures().size());
-        for (const auto& floatFeature : (*initModel)->ObliviousTrees.GetMutable()->GetFloatFeatures()) {
+        bordersInInitModel.reserve((*initModel)->ModelTrees.GetMutable()->GetFloatFeatures().size());
+        for (const auto& floatFeature : (*initModel)->ModelTrees.GetMutable()->GetFloatFeatures()) {
             bordersInInitModel.emplace_back(floatFeature.Borders.begin(), floatFeature.Borders.end());
         }
         return bordersInInitModel;
@@ -160,24 +160,41 @@ namespace NCB {
         };
         TOutputPairsInfo outputPairsInfo;
 
+        const auto targetCreationOptions = MakeTargetCreationOptions(
+            srcData->RawTargetData,
+            GetMetricDescriptions(*params),
+            /*knownModelApproxDimension*/ Nothing(),
+            inputClassificationInfo
+        );
+
+        CB_ENSURE(!isLearnData || srcData->RawTargetData.GetObjectCount() > 0, "Train dataset is empty");
+
         trainingData->TargetData = CreateTargetDataProvider(
             srcData->RawTargetData,
             trainingData->ObjectsData->GetSubgroupIds(),
             /*isForGpu*/ params->GetTaskType() == ETaskType::GPU,
-            isLearnData,
-            datasetName,
-            GetMetricDescriptions(*params),
             &params->LossFunctionDescription.Get(),
-            dataProcessingOptions.AllowConstLabel.Get(),
             /*metricsThatRequireTargetCanBeSkipped*/ !isLearnData,
-            /*needTargetDataForCtrs*/ needTargetDataForCtrs,
             /*knownModelApproxDimension*/ Nothing(),
+            targetCreationOptions,
             inputClassificationInfo,
             &outputClassificationInfo,
             rand,
             localExecutor,
             &outputPairsInfo
         );
+
+        CheckTargetConsistency(
+            trainingData->TargetData,
+            GetMetricDescriptions(*params),
+            &params->LossFunctionDescription.Get(),
+            needTargetDataForCtrs,
+            !isLearnData,
+            datasetName,
+            isLearnData,
+            dataProcessingOptions.AllowConstLabel.Get()
+        );
+
         trainingData->MetaInfo.HasPairs = outputPairsInfo.HasPairs;
         trainingData->MetaInfo.HasWeights |= !inputClassificationInfo.ClassWeights.empty();
         dataProcessingOptions.ClassNames.Get() = outputClassificationInfo.ClassNames;
@@ -250,7 +267,7 @@ namespace NCB {
 
     static TTextClassificationTargetPtr CreateTextClassificationTarget(const TTargetDataProvider& targetDataProvider) {
         const ui32 numClasses = *targetDataProvider.GetTargetClassCount();
-        TConstArrayRef<float> target = *targetDataProvider.GetTarget();
+        TConstArrayRef<float> target = *targetDataProvider.GetOneDimensionalTarget();
         TVector<ui32> classes;
         classes.resize(target.size());
 
@@ -387,7 +404,7 @@ namespace NCB {
             CheckCompatibilityWithEvalMetric(
                 params->MetricOptions->EvalMetric,
                 *trainingData.Test.back(),
-                GetApproxDimension(*params, *labelConverter)
+                GetApproxDimension(*params, *labelConverter, trainingData.Test.back()->TargetData->GetTargetDimension())
             );
         }
 
@@ -396,12 +413,14 @@ namespace NCB {
     }
 
     TConstArrayRef<TString> GetTargetForStratifiedSplit(const TDataProvider& dataProvider) {
-        auto maybeTarget = dataProvider.RawTargetData.GetTarget();
+        auto maybeTarget = dataProvider.RawTargetData.GetOneDimensionalTarget();
         CB_ENSURE(maybeTarget, "Cannot do stratified split: Target data is unavailable");
         return *maybeTarget;
     }
 
     TConstArrayRef<float> GetTargetForStratifiedSplit(const TTrainingDataProvider& dataProvider) {
-        return *dataProvider.TargetData->GetTarget();
+        auto maybeTarget = dataProvider.TargetData->GetOneDimensionalTarget();
+        CB_ENSURE(maybeTarget, "Cannot do stratified split: Target data is unavailable");
+        return *maybeTarget;
     }
 }

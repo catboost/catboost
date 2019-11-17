@@ -188,3 +188,10 @@ def filter_out_by_keyword(test_data, keyword):
 def generate_chunks(lst, chunk_size):
     for i in xrange(0, len(lst), chunk_size):
         yield lst[i:(i + chunk_size)]
+
+
+def strip_roots(path):
+    for prefix in ["$B/", "$S/"]:
+        if path.startswith(prefix):
+            return path[len(prefix):]
+    return path

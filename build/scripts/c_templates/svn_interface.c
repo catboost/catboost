@@ -133,6 +133,15 @@ const char* GetProgramBuildDate() {
 #endif
 }
 
+int GetProgramBuildTimestamp() {
+#if defined(BUILD_TIMESTAMP)
+    return BUILD_TIMESTAMP;
+#else
+    return 0;
+#endif
+}
+
+
 const char* GetVCS() {
 #if defined(VCS)
     return VCS;

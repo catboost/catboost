@@ -63,7 +63,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/double-conversion/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -82,7 +82,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\borders_io.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\checksum.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\clear_array.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\compare.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\compression.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\connected_components.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\cpu_random.cpp"/>
@@ -112,6 +111,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\resource_constrained_executor.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\resource_holder.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\restorable_rng.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\sample.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\serialization.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\set.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\short_vector_ops.cpp"/>
@@ -145,7 +145,7 @@ exit /b %1
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/helpers/flatbuffers/guid.fbs.h	</Message>
       <AdditionalInputs>$(SolutionDir)..\catboost\libs\helpers\flatbuffers\guid.fbs;$(SolutionDir)..\build\scripts\stdout2stderr.py;$(SolutionDir)$(Configuration)\contrib\tools\flatc\flatc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers\guid.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers\guid.bfbs;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers\guid.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers\guid.iter.fbs.h;$(SolutionDir)$(Configuration)\catboost\libs\helpers\flatbuffers\guid.bfbs;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\helpers\sparse_array.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -178,7 +178,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\borders_io.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\checksum.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\clear_array.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\compare.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\compression.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\connected_components.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\cpu_random.h"/>
@@ -209,6 +208,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\resource_constrained_executor.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\resource_holder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\restorable_rng.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\sample.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\serialization.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\set.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\short_vector_ops.h"/>

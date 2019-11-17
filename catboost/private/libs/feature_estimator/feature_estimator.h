@@ -15,7 +15,39 @@
  */
 namespace NCB {
 
-    using TCalculatedFeatureVisitor = std::function<void(ui32, TConstArrayRef<float>)>;
+    class TCalculatedFeatureVisitor {
+    public:
+        using TSingleFeatureWriter = std::function<void(ui32, TConstArrayRef<float>)>;
+        using TPackedFeatureWriter = std::function<void(TConstArrayRef<ui32>, TConstArrayRef<ui32>)>;
+
+        explicit TCalculatedFeatureVisitor(TSingleFeatureWriter&& singleFeatureWriter)
+            : SingleFeatureWriter(std::move(singleFeatureWriter))
+        {}
+
+        explicit TCalculatedFeatureVisitor(TPackedFeatureWriter&& packedFeatureWriter)
+            : PackedFeatureWriter(std::move(packedFeatureWriter))
+        {}
+
+        void operator()(ui32 featureIndex, TConstArrayRef<float> values) const {
+            CB_ENSURE(
+                SingleFeatureWriter.Defined(),
+                "Attempt to call single feature writer on packed feature writer"
+            );
+            (*SingleFeatureWriter)(featureIndex, values);
+        }
+
+        void operator()(TConstArrayRef<ui32> featureIds, TConstArrayRef<ui32> packedValues) const {
+            CB_ENSURE(
+                PackedFeatureWriter.Defined(),
+                "Attempt to call packed feature writer on single feature writer"
+            );
+            (*PackedFeatureWriter)(featureIds, packedValues);
+        }
+
+    private:
+        TMaybe<TSingleFeatureWriter> SingleFeatureWriter;
+        TMaybe<TPackedFeatureWriter> PackedFeatureWriter;
+    };
 
     //We need this so we could prepare GPU layout before computation of features
     struct TEstimatedFeaturesMeta {

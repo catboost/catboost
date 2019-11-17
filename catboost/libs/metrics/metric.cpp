@@ -15,9 +15,10 @@
 #include "description_utils.h"
 #include "enums.h"
 
+#include <catboost/libs/helpers/dispatch_generic_lambda.h>
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/helpers/short_vector_ops.h>
+#include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/loss_description.h>
@@ -294,6 +295,63 @@ TString TCtrFactorMetric::GetDescription() const {
 void TCtrFactorMetric::GetBestValue(EMetricBestValue* valueType, float* bestValue) const {
     *valueType = EMetricBestValue::FixedValue;
     *bestValue = 1;
+}
+
+/* MultiRMSE */
+namespace {
+    struct TMultiRMSEMetric: public TAdditiveMultiRegressionMetric<TMultiRMSEMetric> {
+        TMetricHolder EvalSingleThread(
+            TConstArrayRef<TVector<double>> approx,
+            TConstArrayRef<TVector<double>> approxDelta,
+            TConstArrayRef<TConstArrayRef<float>> target,
+            TConstArrayRef<float> weight,
+            int begin,
+            int end
+        ) const;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+    };
+}
+
+TMetricHolder TMultiRMSEMetric::EvalSingleThread(
+    TConstArrayRef<TVector<double>> approx,
+    TConstArrayRef<TVector<double>> approxDelta,
+    TConstArrayRef<TConstArrayRef<float>> target,
+    TConstArrayRef<float> weight,
+    int begin,
+    int end
+) const {
+    const auto evalImpl = [&](bool useWeights, bool hasDelta) {
+        const auto realApprox = [&](int dim, int idx) { return approx[dim][idx] + (hasDelta ? approxDelta[dim][idx] : 0); };
+        const auto realWeight = [&](int idx) { return useWeights ? weight[idx] : 1; };
+
+        TMetricHolder error(2);
+        for (auto dim : xrange(target.size())) {
+            for (auto i : xrange(begin, end)) {
+                error.Stats[0] += realWeight(i) * Sqr(realApprox(dim, i) - target[dim][i]);
+            }
+        }
+        for (auto i : xrange(begin, end)) {
+            error.Stats[1] += realWeight(i);
+        }
+        return error;
+    };
+
+    return DispatchGenericLambda(evalImpl, !weight.empty(), !approxDelta.empty());
+}
+
+double TMultiRMSEMetric::GetFinalError(const TMetricHolder& error) const {
+    return error.Stats[1] == 0 ? 0 : sqrt(error.Stats[0] / error.Stats[1]);
+}
+
+TString TMultiRMSEMetric::GetDescription() const {
+    return BuildDescription(ELossFunction::MultiRMSE, UseWeights);
+
+}
+
+void TMultiRMSEMetric::GetBestValue(EMetricBestValue* valueType, float* /*bestValue*/) const {
+    *valueType = EMetricBestValue::Min;
 }
 
 /* RMSE */
@@ -3811,6 +3869,9 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
     TVector<THolder<IMetric>> result;
     TSet<TString> validParams;
     switch (metric) {
+        case ELossFunction::MultiRMSE:
+            result.push_back(MakeHolder<TMultiRMSEMetric>());
+            break;
         case ELossFunction::Logloss:
             result.push_back(MakeCrossEntropyMetric(ELossFunction::Logloss, border));
             validParams = {"border"};
@@ -4396,6 +4457,25 @@ TMetricHolder EvalErrors(
 }
 
 
+TMetricHolder EvalErrors(
+        const TVector<TVector<double>>& approx,
+        const TVector<TVector<double>>& approxDelta,
+        bool isExpApprox,
+        TConstArrayRef<TConstArrayRef<float>> target,
+        TConstArrayRef<float> weight,
+        TConstArrayRef<TQueryInfo> queriesInfo,
+        const IMetric& error,
+        NPar::TLocalExecutor* localExecutor
+) {
+    if (const auto multiMetric = dynamic_cast<const TMultiRegressionMetric*>(&error)) {
+        CB_ENSURE(!isExpApprox, "Exponentiated approxes are not supported for multi-regression");
+        return multiMetric->Eval(approx, approxDelta, target, weight, /*begin*/0, /*end*/target[0].size(), *localExecutor);
+    } else {
+        Y_ASSERT(target.size() == 1);
+        return EvalErrors(approx, approxDelta, isExpApprox, target[0], weight, queriesInfo, error, localExecutor);
+    }
+}
+
 static inline double BestQueryShift(const double* cursor,
                                     const float* targets,
                                     const float* weights,
@@ -4559,6 +4639,11 @@ void CheckMetric(const ELossFunction metric, const ELossFunction modelLoss) {
     if (metric == ELossFunction::PythonUserDefinedPerObject || modelLoss == ELossFunction::PythonUserDefinedPerObject) {
         return;
     }
+
+    CB_ENSURE(
+        IsMultiRegressionMetric(metric) == IsMultiRegressionMetric(modelLoss),
+        "metric [" + ToString(metric) + "] and loss [" + ToString(modelLoss) + "] are incompatible"
+    );
 
     /* [loss -> metric]
      * ranking             -> ranking compatible

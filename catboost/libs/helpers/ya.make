@@ -7,7 +7,6 @@ SRCS(
     borders_io.cpp
     checksum.cpp
     clear_array.cpp
-    compare.cpp
     compression.cpp
     connected_components.cpp
     cpu_random.cpp
@@ -38,6 +37,7 @@ SRCS(
     resource_constrained_executor.cpp
     resource_holder.cpp
     restorable_rng.cpp
+    sample.cpp
     serialization.cpp
     set.cpp
     short_vector_ops.cpp

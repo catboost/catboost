@@ -117,10 +117,12 @@ Y_UNIT_TEST_SUITE(TestFeatureEstimators) {
         Iota(learnPermutation.begin(), learnPermutation.end(), 0);
 
         TVector<float> learn(learnTexts->SamplesCount());
-        TCalculatedFeatureVisitor learnVisitor = [&](ui32 featureId, TConstArrayRef<float> features) {
-            Y_UNUSED(featureId);
-            for (ui32 sampleId : xrange(features.size())) {
-                learn[sampleId] = features[sampleId];
+        TCalculatedFeatureVisitor learnVisitor{
+            [&](ui32 featureId, TConstArrayRef<float> features) {
+                Y_UNUSED(featureId);
+                for (ui32 sampleId : xrange(features.size())) {
+                    learn[sampleId] = features[sampleId];
+                }
             }
         };
         TVector<TCalculatedFeatureVisitor> testVisitors;
@@ -155,6 +157,14 @@ Y_UNIT_TEST_SUITE(TestFeatureEstimators) {
         TFastRng<ui64> rng(42);
         TVector<TText> texts;
         texts.yresize(numSamples);
+
+        TTextColumnDictionaryOptions columnDictionaryOptions;
+        columnDictionaryOptions.DictionaryBuilderOptions->OccurrenceLowerBound = 1;
+        NTextProcessing::NDictionary::TDictionaryBuilder dictionaryBuilder(
+            columnDictionaryOptions.DictionaryBuilderOptions,
+            columnDictionaryOptions.DictionaryOptions
+        );
+
         for (ui32 sampleId: xrange(numSamples)) {
             Y_UNUSED(sampleId);
             TText text;
@@ -162,24 +172,19 @@ Y_UNIT_TEST_SUITE(TestFeatureEstimators) {
                 double real1 = rng.GenRandReal1();
                 if (real1 > 0.5) {
                     text.insert({tokenId, static_cast<ui32>(real1 * 10)});
+                    dictionaryBuilder.Add(ToString(tokenId));
                 }
             }
             texts[sampleId] = text;
         }
 
-        TTextColumnDictionaryOptions columnDictionaryOptions;
-        TDictionaryPtr dictionary = new TDictionaryProxy(
-            NTextProcessing::NDictionary::TDictionaryBuilder(
-                columnDictionaryOptions.DictionaryBuilderOptions,
-                columnDictionaryOptions.DictionaryOptions
-            ).FinishBuilding()
-        );
+        TDictionaryPtr dictionary = new TDictionaryProxy(dictionaryBuilder.FinishBuilding());
 
         TTextColumn textColumn = TTextColumn::CreateOwning(std::move(texts));
         TTextDataSetPtr learnTexts = MakeIntrusive<TTextDataSet>(textColumn, dictionary);
         TVector<TTextDataSetPtr> testText;
 
-        TVector<ui32> learnPermutation(learnTexts->SamplesCount());
+        TVector<ui32> learnPermutation(numSamples);
         Iota(learnPermutation.begin(), learnPermutation.end(), 0);
 
         NPar::TLocalExecutor localExecutor;
@@ -213,11 +218,13 @@ Y_UNIT_TEST_SUITE(TestFeatureEstimators) {
             auto& calcer = calcers.at(calcerType);
             auto& visitor = visitors.at(calcerType);
 
-            TVector<float> learn(learnTexts->SamplesCount() * calcer->FeatureCount());
+            TVector<float> learn(numSamples * calcer->FeatureCount());
 
-            TCalculatedFeatureVisitor learnVisitor = [&](ui32 featureId, TConstArrayRef<float> features) {
-                for (ui32 sampleId : xrange(features.size())) {
-                    learn[featureId * learnTexts->SamplesCount() + sampleId] = features[sampleId];
+            TCalculatedFeatureVisitor learnVisitor{
+                [&](ui32 featureId, TConstArrayRef<float> features) {
+                    for (ui32 sampleId : xrange(numSamples)) {
+                        learn[featureId * numSamples + sampleId] = features[sampleId];
+                    }
                 }
             };
             TVector<TCalculatedFeatureVisitor> testVisitors;
@@ -234,6 +241,47 @@ Y_UNIT_TEST_SUITE(TestFeatureEstimators) {
                 visitor->Update(target->Classes[line], learnTexts->GetText(line), calcer.Get());
 
                 for (ui32 featureId: xrange(calcer->FeatureCount())) {
+                    UNIT_ASSERT_EQUAL(features[featureId], learn[featureId * numSamples + line]);
+                }
+            }
+        }
+
+        { // Test BagOfWords
+            TFeatureCalcerDescription bowParams(EFeatureCalcerType::BoW);
+
+            TVector<TFeatureEstimatorPtr> estimators = CreateEstimators(
+                {bowParams},
+                embeddingPtr,
+                learnTexts,
+                testText
+            );
+
+            TBagOfWordsCalcer bagOfWordsCalcer(CreateGuid(), learnTexts->GetDictionary().Size());
+
+            TVector<float> learn;
+            learn.resize(numSamples * bagOfWordsCalcer.FeatureCount());
+            TCalculatedFeatureVisitor learnVisitor{
+                [&](TConstArrayRef<ui32> featureIds, TConstArrayRef<ui32> features) {
+                    for (ui32 i: xrange(featureIds.size())) {
+                        const ui32 featureId = featureIds[i];
+                        for (ui32 sampleId : xrange(numSamples)) {
+                            bool featureValue = (features[sampleId] & (1 << i)) > 0;
+                            learn[featureId * numSamples + sampleId] = static_cast<float>(featureValue);
+                        }
+                    }
+                }
+            };
+            TVector<TCalculatedFeatureVisitor> testVisitors;
+
+            estimators[0]->ComputeFeatures(
+                learnVisitor,
+                MakeConstArrayRef(testVisitors),
+                &localExecutor
+            );
+
+            for (ui32 line : learnPermutation) {
+                TVector<float> features = bagOfWordsCalcer.TTextFeatureCalcer::Compute(learnTexts->GetText(line));
+                for (ui32 featureId: xrange(bagOfWordsCalcer.FeatureCount())) {
                     UNIT_ASSERT_EQUAL(features[featureId], learn[featureId * numSamples + line]);
                 }
             }

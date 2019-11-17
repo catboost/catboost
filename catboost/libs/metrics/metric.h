@@ -143,12 +143,51 @@ private:
     TMap<TString, TString> Hints;
 };
 
+struct TMultiRegressionMetric: public TMetric {
+    virtual TMetricHolder Eval(
+        TConstArrayRef<TVector<double>> approx,
+        TConstArrayRef<TVector<double>> approxDelta,
+        TConstArrayRef<TConstArrayRef<float>> target,
+        TConstArrayRef<float> weight,
+        int begin,
+        int end,
+        NPar::TLocalExecutor& executor
+    ) const = 0;
+    TMetricHolder Eval(
+        const TVector<TVector<double>>& /*approx*/,
+        TConstArrayRef<float> /*target*/,
+        TConstArrayRef<float> /*weight*/,
+        TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+        int /*begin*/,
+        int /*end*/,
+        NPar::TLocalExecutor& /*executor*/
+    ) const override {
+        CB_ENSURE(false, "Multiregression metrics should not be used like regular metric");
+    }
+    TMetricHolder Eval(
+        const TVector<TVector<double>>& /*approx*/,
+        const TVector<TVector<double>>& /*approxDelta*/,
+        bool /*isExpApprox*/,
+        TConstArrayRef<float> /*target*/,
+        TConstArrayRef<float> /*weight*/,
+        TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+        int /*begin*/,
+        int /*end*/,
+        NPar::TLocalExecutor& /*executor*/
+    ) const override {
+        CB_ENSURE(false, "Multiregression metrics should not be used like regular metric");
+    }
+    EErrorType GetErrorType() const override final {
+        return EErrorType::PerObjectError;
+    }
+};
+
 static inline int GetMinBlockSize(int objectCount) {
     return objectCount < 100000 ? 1000 : 10000;
 }
 
 template <typename TEvalFunction>
-static TMetricHolder ParallelEvalMetric(TEvalFunction eval, int minBlockSize, int begin, int end, NPar::TLocalExecutor& executor) {
+static inline TMetricHolder ParallelEvalMetric(TEvalFunction eval, int minBlockSize, int begin, int end, NPar::TLocalExecutor& executor) {
     NPar::TLocalExecutor::TExecRangeParams blockParams(begin, end);
 
     const int threadCount = executor.GetThreadCount() + 1;
@@ -173,6 +212,31 @@ static TMetricHolder ParallelEvalMetric(TEvalFunction eval, int minBlockSize, in
     return result;
 
 }
+
+template <typename TImpl>
+struct TAdditiveMultiRegressionMetric: public TMultiRegressionMetric {
+    TMetricHolder Eval(
+        TConstArrayRef<TVector<double>> approx,
+        TConstArrayRef<TVector<double>> approxDelta,
+        TConstArrayRef<TConstArrayRef<float>> target,
+        TConstArrayRef<float> weight,
+        int begin,
+        int end,
+        NPar::TLocalExecutor& executor
+    ) const override {
+        const auto evalMetric = [&](int from, int to) {
+            return static_cast<const TImpl*>(this)->EvalSingleThread(
+                approx, approxDelta, target, UseWeights.IsIgnored() || UseWeights ? weight : TVector<float>{}, from, to
+            );
+        };
+
+        return ParallelEvalMetric(evalMetric, GetMinBlockSize(end - begin), begin, end, executor);
+    }
+
+    bool IsAdditiveMetric() const override final {
+        return true;
+    }
+};
 
 template <class TImpl>
 struct TAdditiveMetric: public TMetric {
@@ -384,6 +448,37 @@ TMetricHolder EvalErrors(
     const IMetric& error,
     NPar::TLocalExecutor* localExecutor
 );
+
+TMetricHolder EvalErrors(
+    const TVector<TVector<double>>& approx,
+    const TVector<TVector<double>>& approxDelta,
+    bool isExpApprox,
+    TConstArrayRef<TConstArrayRef<float>> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> queriesInfo,
+    const IMetric& error,
+    NPar::TLocalExecutor* localExecutor
+);
+
+inline static TMetricHolder EvalErrors(
+    const TVector<TVector<double>>& approx,
+    TConstArrayRef<TConstArrayRef<float>> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> queriesInfo,
+    const IMetric& error,
+    NPar::TLocalExecutor* localExecutor
+) {
+    return EvalErrors(
+        approx,
+        /*approxDelta*/{},
+        /*isExpApprox*/false,
+        target,
+        weight,
+        queriesInfo,
+        error,
+        localExecutor
+    );
+}
 
 inline bool IsMaxOptimal(const IMetric& metric) {
     EMetricBestValue bestValueType;

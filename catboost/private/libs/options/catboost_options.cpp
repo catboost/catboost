@@ -36,6 +36,12 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
     double defaultL2Reg = 3.0;
 
     switch (lossFunctionConfig.GetLossFunction()) {
+        case ELossFunction::MultiRMSE: {
+            defaultEstimationMethod = ELeavesEstimation::Newton;
+            defaultNewtonIterations = 1;
+            defaultGradientIterations = 1;
+            break;
+        }
         case ELossFunction::RMSE: {
             defaultEstimationMethod = ELeavesEstimation::Newton;
             defaultNewtonIterations = 1;
@@ -224,7 +230,6 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
         CB_ENSURE(loss == ELossFunction::MAE || loss == ELossFunction::Quantile, "Exact method is only available for Qunatile and MAE loss functions.");
         CB_ENSURE(!BoostingOptions->ApproxOnFullHistory, "ApproxOnFullHistory option is not available within Exact method.");
         CB_ENSURE(TaskType == ETaskType::CPU, "Exact method is only available on CPU.");
-        CB_ENSURE(SystemOptions->IsSingleHost(), "Exact method is only available in SingleHost mode.");
     }
 
     if (treeConfig.L2Reg == 0.0f) {
@@ -611,6 +616,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
     TOption<float>& subsample = ObliviousTreeOptions->BootstrapConfig->GetTakenFraction();
     if (bootstrapType.NotSet()) {
         if (!IsMultiClassOnlyMetric(lossFunction)
+            && !IsMultiRegressionObjective(lossFunction)
             && TaskType == ETaskType::CPU
             && ObliviousTreeOptions->BootstrapConfig->GetSamplingUnit() == ESamplingUnit::Object)
         {

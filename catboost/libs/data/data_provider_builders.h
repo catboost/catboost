@@ -63,13 +63,14 @@ namespace NCB {
     public:
         TDataProviderClosure(
             EDatasetVisitorType visitorType,
-            const TDataProviderBuilderOptions& options
+            const TDataProviderBuilderOptions& options,
+            NPar::TLocalExecutor* localExecutor
         ) {
             DataProviderBuilder = CreateDataProviderBuilder(
                 visitorType,
                 options,
                 TDatasetSubset::MakeColumns(),
-                &NPar::LocalExecutor()
+                localExecutor
             );
             CB_ENSURE_INTERNAL(
                 DataProviderBuilder.Get(),
@@ -101,12 +102,14 @@ namespace NCB {
     template <class IVisitor>
     void CreateDataProviderBuilderAndVisitor(
         const TDataProviderBuilderOptions& options,
+        NPar::TLocalExecutor* localExecutor,
         THolder<IDataProviderBuilder>* dataProviderBuilder,
         IVisitor** builderVisitor
     ) {
         auto dataProviderClosure = MakeHolder<TDataProviderClosure>(
             IVisitor::Type,
-            options
+            options,
+            localExecutor
         );
         *builderVisitor = dataProviderClosure->template GetVisitor<IVisitor>();
         *dataProviderBuilder = dataProviderClosure.Release();
@@ -121,7 +124,7 @@ namespace NCB {
         TLoader&& loader,
         const TDataProviderBuilderOptions& options = TDataProviderBuilderOptions()
     ) {
-        TDataProviderClosure dataProviderClosure(IVisitor::Type, options);
+        TDataProviderClosure dataProviderClosure(IVisitor::Type, options, &NPar::LocalExecutor());
         loader(dataProviderClosure.GetVisitor<IVisitor>());
         return dataProviderClosure.GetResult();
     }

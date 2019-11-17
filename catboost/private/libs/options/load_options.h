@@ -49,6 +49,7 @@ namespace NCatboostOptions {
 
         void Validate() const;
         void Validate(TMaybe<ETaskType> taskType) const;
+        void ValidateLearn() const;
 
         SAVELOAD(
             CvParams, ColumnarPoolFormatParams, LearnSetPath, TestSetPaths,

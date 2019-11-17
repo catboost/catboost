@@ -20,7 +20,7 @@
 namespace NCB::NModelEvaluation {
 
     using TTreeCalcFunction = std::function<void(
-        const TObliviousTrees& obliviousTrees,
+        const TModelTrees& ModelTrees,
         const TCPUEvaluatorQuantizedData*,
         size_t docCountInBlock,
         TCalcerIndexType* __restrict indexesVec,
@@ -30,7 +30,7 @@ namespace NCB::NModelEvaluation {
 
 
     TTreeCalcFunction GetCalcTreesFunction(
-        const TObliviousTrees& trees,
+        const TModelTrees& trees,
         size_t docCountInBlock,
         bool calcIndexesOnly = false);
 
@@ -47,7 +47,7 @@ namespace NCB::NModelEvaluation {
         typename TFunctor
     >
     inline void ProcessDocsInBlocks(
-        const TObliviousTrees& trees,
+        const TModelTrees& trees,
         const TIntrusivePtr<ICtrProvider>& ctrProvider,
         TFloatFeatureAccessor floatFeatureAccessor,
         TCatFeatureAccessor catFeaturesAccessor,
@@ -83,7 +83,7 @@ namespace NCB::NModelEvaluation {
         typename TFunctor
     >
     inline void ProcessDocsInBlocks(
-        const TObliviousTrees& trees,
+        const TModelTrees& trees,
         const TIntrusivePtr<ICtrProvider>& ctrProvider,
         const TIntrusivePtr<TTextProcessingCollection>& textProcessingCollection,
         TFloatFeatureAccessor floatFeatureAccessor,
@@ -154,7 +154,7 @@ namespace NCB::NModelEvaluation {
 
     template <typename TFloatFeatureAccessor, typename TCatFeatureAccessor>
     inline void CalcLeafIndexesGeneric(
-        const TObliviousTrees& trees,
+        const TModelTrees& trees,
         const TIntrusivePtr<ICtrProvider>& ctrProvider,
         TFloatFeatureAccessor floatFeatureAccessor,
         TCatFeatureAccessor catFeaturesAccessor,

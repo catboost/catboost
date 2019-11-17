@@ -203,7 +203,7 @@ namespace NCB {
     }
 
     template <>
-    bool CompareModels(const TPmmlModel& model1, const TPmmlModel& model2, TString* diffString) {
+    bool CompareModels(const TPmmlModel& model1, const TPmmlModel& model2, double, TString* diffString) {
         TXmlComparisonContext comparisonContext;
         comparisonContext.IgnoredPaths.emplace("/PMML/Header/Timestamp");
         comparisonContext.IgnoredAttributes.emplace("/PMML/Header/Application", THashSet<TString>{"version"});

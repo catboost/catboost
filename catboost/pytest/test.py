@@ -1,3 +1,4 @@
+from itertools import permutations
 import yatest.common
 from yatest.common import ExecutionTimeoutError, ExecutionError
 import pytest
@@ -48,7 +49,6 @@ LOSS_FUNCTIONS = ['RMSE', 'Logloss', 'MAE', 'CrossEntropy', 'Quantile', 'LogLinQ
 
 LEAF_ESTIMATION_METHOD = ['Gradient', 'Newton']
 
-
 # test both parallel in and non-parallel modes
 # default block size (5000000) is too big to run in parallel on these tests
 SCORE_CALC_OBJ_BLOCK_SIZES = ['60', '5000000']
@@ -57,6 +57,310 @@ SCORE_CALC_OBJ_BLOCK_SIZES_IDS = ['calc_block=60', 'calc_block=5000000']
 
 def diff_tool(threshold=None):
     return get_limited_precision_dsv_diff_tool(threshold, True)
+
+
+@pytest.mark.parametrize('is_inverted', [False, True], ids=['', 'inverted'])
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_cv_multiregression(is_inverted, boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--use-best-model', 'false',
+        '--loss-function', 'MultiRMSE',
+        '-f', data_file('multiregression', 'train'),
+        '--column-description', data_file('multiregression', 'train.cd'),
+        '--boosting-type', boosting_type,
+        '-i', '10',
+        '-w', '0.03',
+        '-T', '4',
+        '-m', output_model_path,
+        '--cv', format_crossvalidation(is_inverted, 2, 10),
+        '--cv-rand', '42',
+        '--eval-file', output_eval_path,
+    )
+    yatest.common.execute(cmd)
+    return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_dist_train_multiregression(dev_score_calc_obj_block_size):
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+        loss_function='MultiRMSE',
+        pool='multiregression',
+        train='train',
+        test='test',
+        cd='train.cd',
+        dev_score_calc_obj_block_size=dev_score_calc_obj_block_size)))]
+
+
+@pytest.mark.parametrize(
+    'dev_score_calc_obj_block_size',
+    SCORE_CALC_OBJ_BLOCK_SIZES,
+    ids=SCORE_CALC_OBJ_BLOCK_SIZES_IDS
+)
+def test_dist_train_multiregression_single(dev_score_calc_obj_block_size):
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+        loss_function='MultiRMSE',
+        pool='multiregression',
+        train='train',
+        test='test',
+        cd='train_single.cd',
+        dev_score_calc_obj_block_size=dev_score_calc_obj_block_size)))]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('n_trees', [100, 500])
+def test_multiregression(boosting_type, n_trees):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    output_calc_path = yatest.common.test_output_path('test.calc')
+    output_metric_path = yatest.common.test_output_path('test.metric')
+
+    cmd_fit = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'MultiRMSE',
+        '--boosting-type', boosting_type,
+        '-f', data_file('multiregression', 'train'),
+        '-t', data_file('multiregression', 'test'),
+        '--column-description', data_file('multiregression', 'train.cd'),
+        '-i', '{}'.format(n_trees),
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
+    )
+    yatest.common.execute(cmd_fit)
+
+    cmd_calc = (
+        CATBOOST_PATH,
+        'calc',
+        '--column-description', data_file('multiregression', 'train.cd'),
+        '-T', '4',
+        '-m', output_model_path,
+        '--input-path', data_file('multiregression', 'test'),
+        '-o', output_calc_path
+    )
+    yatest.common.execute(cmd_calc)
+
+    cmd_metric = (
+        CATBOOST_PATH,
+        'eval-metrics',
+        '--column-description', data_file('multiregression', 'train.cd'),
+        '-T', '4',
+        '-m', output_model_path,
+        '--input-path', data_file('multiregression', 'test'),
+        '-o', output_metric_path,
+        '--metrics', 'MultiRMSE'
+    )
+    yatest.common.execute(cmd_metric)
+    return [
+        local_canonical_file(output_eval_path),
+        local_canonical_file(output_calc_path),
+        local_canonical_file(output_metric_path)
+    ]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('n_trees', [100, 500])
+@pytest.mark.parametrize('target_count', [1, 2, 3])
+def test_multiregression_target_permutation_invariance(boosting_type, n_trees, target_count):
+    np.random.seed(42)
+
+    X_COUNT = 200
+    X_DIM = 5
+
+    x = np.random.randn(X_COUNT, X_DIM)
+    y = np.stack([
+        np.sin(np.sum([np.pi * x[:, j] * (1 if np.random.randn() > 0 else -1) for j in range(X_DIM)], axis=0))
+        for i in range(target_count)
+    ], axis=1)
+
+    test_size = X_COUNT // 2
+    x_test, y_test = x[:test_size], y[:test_size]
+    x_train, y_train = x[test_size:], y[test_size:]
+
+    train_file = yatest.common.test_output_path('train')
+    test_file = yatest.common.test_output_path('test')
+
+    get_eval_path = lambda i: yatest.common.test_output_path('test_{}.eval'.format(i))
+    get_model_path = lambda i: yatest.common.test_output_path('model_{}.bin'.format(i))
+    get_cd_path = lambda i: yatest.common.test_output_path('cd_{}'.format(i))
+
+    with open(get_cd_path(target_count), 'w') as cd:
+        cd.write(''.join(('{}\tTarget\tm\n'.format(i) for i in range(target_count))))
+
+    evals = []
+    for perm in permutations(range(target_count)):
+        inv_perm = range(target_count)
+        for i, j in enumerate(perm):
+            inv_perm[j] = i
+
+        np.savetxt(train_file, np.hstack([y_train[:, perm], x_train]), delimiter='\t')
+        np.savetxt(test_file, np.hstack([y_test[:, perm], x_test]), delimiter='\t')
+
+        fit_cmd = (
+            CATBOOST_PATH,
+            'fit',
+            '--loss-function', 'MultiRMSE',
+            '--boosting-type', boosting_type,
+            '-f', train_file,
+            '-t', test_file,
+            '--column-description', get_cd_path(target_count),
+            '-i', '{}'.format(n_trees),
+            '-T', '4',
+            '-m', get_model_path(target_count),
+            '--eval-file', get_eval_path(target_count),
+            '--use-best-model', 'false',
+        )
+        yatest.common.execute(fit_cmd)
+        eval = np.loadtxt(get_eval_path(target_count), delimiter='\t', skiprows=1, usecols=range(1, target_count + 1)).reshape((-1, target_count))
+        evals.append(eval[:, inv_perm])
+
+    for eva in evals:
+        assert np.allclose(eva, evals[0])
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('n_trees', [10, 100, 1000])
+@pytest.mark.parametrize('target_count', [1, 2, 3])
+def test_compare_multiregression_with_regression(boosting_type, n_trees, target_count):
+    np.random.seed(42)
+    ERR_PERC = 0.1
+
+    X_COUNT = 200
+    X_DIM = 5
+
+    x = np.random.randn(X_COUNT, X_DIM)
+    y = np.stack([
+        np.sin(np.sum([np.pi * x[:, j] * (1 if np.random.randn() > 0 else -1) for j in range(X_DIM)], axis=0))
+        for i in range(target_count)
+    ], axis=1)
+
+    test_size = X_COUNT // 2
+    x_test, y_test = x[:test_size], y[:test_size]
+    x_train, y_train = x[test_size:], y[test_size:]
+
+    train_file = yatest.common.test_output_path('train')
+    test_file = yatest.common.test_output_path('test')
+    np.savetxt(train_file, np.hstack([y_train, x_train]), delimiter='\t')
+    np.savetxt(test_file, np.hstack([y_test, x_test]), delimiter='\t')
+
+    get_eval_path = lambda i: yatest.common.test_output_path('test_{}.eval'.format(i))
+    get_model_path = lambda i: yatest.common.test_output_path('model_{}.bin'.format(i))
+    get_cd_path = lambda i: yatest.common.test_output_path('cd_{}'.format(i))
+
+    with open(get_cd_path(target_count), 'w') as cd:
+        cd.write(''.join(('{}\tTarget\tm\n'.format(i) for i in range(target_count))))
+
+    fit_cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'MultiRMSE',
+        '--boosting-type', boosting_type,
+        '-f', train_file,
+        '-t', test_file,
+        '--column-description', get_cd_path(target_count),
+        '-i', '{}'.format(n_trees),
+        '-T', '4',
+        '-m', get_model_path(target_count),
+        '--eval-file', get_eval_path(target_count),
+        '--use-best-model', 'false',
+    )
+    yatest.common.execute(fit_cmd)
+
+    for i in range(target_count):
+        with open(get_cd_path(i), 'w') as cd:
+            cd.write(''.join((('{}\tTarget\n'.format(j) if j == i else '{}\tAuxiliary\n'.format(j)) for j in range(target_count))))
+
+        rmse_fit_cmd = (
+            CATBOOST_PATH,
+            'fit',
+            '--loss-function', 'RMSE',
+            '--boosting-type', boosting_type,
+            '-f', train_file,
+            '-t', test_file,
+            '--column-description', get_cd_path(i),
+            '-i', '{}'.format(n_trees),
+            '-T', '4',
+            '-m', get_model_path(i),
+            '--eval-file', get_eval_path(i),
+            '--use-best-model', 'false',
+        )
+        yatest.common.execute(rmse_fit_cmd)
+
+    multirmse_eval = np.loadtxt(get_eval_path(target_count), delimiter='\t', skiprows=1, usecols=range(1, target_count + 1))
+    rmse_eval = np.stack([
+        np.loadtxt(get_eval_path(i), delimiter='\t', skiprows=1, usecols=1)
+        for i in range(target_count)
+    ], axis=1)
+
+    # cannot compare approxes because they are very different due to different boosting algorithms
+    multi_rmse_loss = np.mean((multirmse_eval - y_test)**2)
+    rmse_loss = np.mean((rmse_eval - y_test)**2)
+
+    assert rmse_loss.shape == multi_rmse_loss.shape
+    assert multi_rmse_loss < rmse_loss * (1 + ERR_PERC)
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('n_trees', [100, 500])
+def test_multiregression_single(boosting_type, n_trees):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    output_calc_path = yatest.common.test_output_path('test.calc')
+    output_metric_path = yatest.common.test_output_path('test.metric')
+
+    cmd_fit = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'MultiRMSE',
+        '--boosting-type', boosting_type,
+        '-f', data_file('multiregression', 'train'),
+        '-t', data_file('multiregression', 'test'),
+        '--column-description', data_file('multiregression', 'train_single.cd'),
+        '-i', '{}'.format(n_trees),
+        '-T', '4',
+        '-m', output_model_path,
+        '--eval-file', output_eval_path,
+        '--use-best-model', 'false',
+    )
+    yatest.common.execute(cmd_fit)
+
+    cmd_calc = (
+        CATBOOST_PATH,
+        'calc',
+        '--column-description', data_file('multiregression', 'train_single.cd'),
+        '-T', '4',
+        '-m', output_model_path,
+        '--input-path', data_file('multiregression', 'test'),
+        '-o', output_calc_path
+    )
+    yatest.common.execute(cmd_calc)
+
+    cmd_metric = (
+        CATBOOST_PATH,
+        'eval-metrics',
+        '--column-description', data_file('multiregression', 'train_single.cd'),
+        '-T', '4',
+        '-m', output_model_path,
+        '--input-path', data_file('multiregression', 'test'),
+        '-o', output_metric_path,
+        '--metrics', 'MultiRMSE'
+    )
+    yatest.common.execute(cmd_metric)
+    return [
+        local_canonical_file(output_eval_path),
+        local_canonical_file(output_calc_path),
+        local_canonical_file(output_metric_path)
+    ]
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -3155,6 +3459,19 @@ def test_quantile_categorical(boosting_type):
     yatest.common.execute(cmd)
 
     return [local_canonical_file(output_eval_path)]
+
+
+def test_quantile_exact_distributed():
+    return [local_canonical_file(run_dist_train(make_deterministic_train_cmd(
+        loss_function='MAE',
+        pool='higgs',
+        train='train_small',
+        test='test_small',
+        cd='train.cd',
+        other_options=(
+            '--leaf-estimation-method', 'Exact'
+        )
+    )))]
 
 
 CUSTOM_LOSS_FUNCTIONS = ['RMSE,MAE', 'Quantile:alpha=0.9', 'MSLE,MedianAbsoluteError,SMAPE',

@@ -35,7 +35,7 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
             : FeaturesManager(featuresManager)
             , DataProvider(dataProvider)
         {
-            BinarizedTarget = NCB::BinarizeLine<ui8>(*dataProvider.TargetData->GetTarget(), ENanMode::Forbidden, featuresManager.GetTargetBorders());
+            BinarizedTarget = NCB::BinarizeLine<ui8>(*dataProvider.TargetData->GetOneDimensionalTarget(), ENanMode::Forbidden, featuresManager.GetTargetBorders());
             NumClasses = 0;
             {
                 std::array<bool, 255> seen;
