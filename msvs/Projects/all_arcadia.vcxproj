@@ -483,9 +483,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\fmath\contrib-libs-fmath.vcxproj">
       <Project>90F91270-0728-ADD6-69B3-0B2735FE25FB</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\freetype\contrib-libs-freetype.vcxproj">
-      <Project>8278AC52-EAF3-9F61-AC3E-80DB8105528D</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\gamma_function_apache_math_port\contrib-libs-gamma_function_apache_math_port.vcxproj">
       <Project>80882C98-2659-8885-5B61-34A8E4283441</Project>
     </ProjectReference>
@@ -494,9 +491,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libf2c\contrib-libs-libf2c.vcxproj">
       <Project>ACC03840-E215-DC54-B209-59FA03988A57</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libpng\contrib-libs-libpng.vcxproj">
-      <Project>3694C2D6-3014-1EE3-570D-C1545C2E18C5</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\lz4\contrib-libs-lz4.vcxproj">
       <Project>3E6BC25C-7681-5FB8-F139-A03845C5F910</Project>
@@ -549,9 +543,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\python\pycontrib-libs-python.vcxproj">
       <Project>FAF7DF94-9999-63CD-ABB9-ED295B68DFD7</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\qhull\contrib-libs-qhull.vcxproj">
-      <Project>D17CDA35-BBFB-9CB1-7DE2-862989C7B224</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\rapidjson\contrib-libs-rapidjson.vcxproj">
       <Project>9CDB08FB-219D-3356-E006-1AC8AECC636E</Project>
     </ProjectReference>
@@ -594,15 +585,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\attrs\pycontrib-python-attrs.vcxproj">
       <Project>B19D597D-A363-F744-6165-C68C1835DD61</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\backports\functools_lru_cache\pypython-backports-functools_lru_cache.vcxproj">
-      <Project>F2327B60-48D4-156E-8EF9-CC75082589DF</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\cycler\py3contrib-python-cycler.vcxproj">
-      <Project>1492CE2B-0B55-E7A8-C0CA-579C7D702420</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\cycler\pycontrib-python-cycler.vcxproj">
-      <Project>EFC3F6E4-D6DB-B30D-7A94-BB206A0785D3</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\dateutil\py3dateutil.vcxproj">
       <Project>4F62D972-C51F-BBC3-4B6A-266C6674E907</Project>
     </ProjectReference>
@@ -615,53 +597,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\funcsigs\pycontrib-python-funcsigs.vcxproj">
       <Project>7E6B0B75-8CFD-8357-FA3A-F2B353EDA5DF</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\functools32\pycontrib-python-functools32.vcxproj">
-      <Project>4CFE0B2E-A680-6F18-AE33-0A9C83C6AC3E</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\graphviz\py3contrib-python-graphviz.vcxproj">
       <Project>330DC72E-A843-8BC7-F0CD-1868368EA271</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\graphviz\pycontrib-python-graphviz.vcxproj">
       <Project>F7A1107D-8D70-ACE8-DC3B-C262EC7A87FA</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\kiwisolver\py3contrib-python-kiwisolver.vcxproj">
-      <Project>D004F8B0-667D-C51D-EC54-9F76B57CCB58</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\kiwisolver\pycontrib-python-kiwisolver.vcxproj">
-      <Project>EC64FE87-29E6-D399-21CA-C57E3907A783</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\matplotlib\extern\agg24-svn\matplotlib-extern-agg24-svn.vcxproj">
-      <Project>60602F11-F70E-9F22-A507-B7E6A2A5D015</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\matplotlib\extern\ttconv\py3matplotlib-extern-ttconv.vcxproj">
-      <Project>C7BB7130-FA90-16CC-7862-47F31027C0B4</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\matplotlib\extern\ttconv\pymatplotlib-extern-ttconv.vcxproj">
-      <Project>B06187A4-D7BF-5B5B-1847-95EFCB8760F2</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\matplotlib\py2\matplotlib\tri\pypy2-matplotlib-tri.vcxproj">
-      <Project>7B162D71-6B75-B919-F21B-45FBF257F63B</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\matplotlib\py2\pypython-matplotlib-py2.vcxproj">
-      <Project>82AE9021-96F6-6DF5-C04D-AF53862285EC</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\matplotlib\py2\src\pymatplotlib-py2-src.vcxproj">
-      <Project>E83167AA-E353-16A6-1150-690AFE6605E4</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\matplotlib\py3\pypython-matplotlib-py3.vcxproj">
-      <Project>DCAD6ACE-2ADB-7971-FFDF-C0AAA5804679</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\matplotlib\py3\src\pymatplotlib-py3-src.vcxproj">
-      <Project>90BAED71-24FD-74E6-19CA-B764F12086C0</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\matplotlib\py3contrib-python-matplotlib.vcxproj">
-      <Project>64E0326B-432A-14DE-E203-5EFC33CE69B0</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\matplotlib\pycontrib-python-matplotlib.vcxproj">
-      <Project>C957865B-9043-DD12-3B94-3425A2E193A0</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\mock\pycontrib-python-mock.vcxproj">
-      <Project>BFE53090-30B2-4A92-BB98-DFBB6A543B70</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\more-itertools\pycontrib-python-more-itertools.vcxproj">
       <Project>BC62290A-1F8B-7962-8C00-63BFE8DAE2A0</Project>
@@ -722,12 +662,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\py\pycontrib-python-py.vcxproj">
       <Project>965E6429-AE78-1C06-E2DA-1B781FCDB7AA</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pyparsing\py3contrib-python-pyparsing.vcxproj">
-      <Project>B24E0792-4271-FE10-2755-0DB1369D0EE3</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pyparsing\pycontrib-python-pyparsing.vcxproj">
-      <Project>CAA5C16F-0EB7-06E7-A793-BEC259BA54A0</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\pytest\pycontrib-python-pytest.vcxproj">
       <Project>FA513E53-9CE5-854C-5402-D210B2FFD326</Project>
