@@ -6644,8 +6644,9 @@ def test_pairwise_bernoulli_bootstrap(subsample, sampling_unit, loss_function, d
         '--use-best-model', 'false',
     )
     yatest.common.execute(cmd, env=dict(MKL_CBWR='SSE4_2'))
+    eps = 0 if yatest.common.context.sanitize is None else 0.1
 
-    return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
+    return [local_canonical_file(output_eval_path, diff_tool=diff_tool(eps))]
 
 
 @pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'MultiClass', 'QuerySoftMax', 'QueryRMSE'])
