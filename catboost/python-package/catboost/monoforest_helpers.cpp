@@ -1,18 +1,22 @@
 #include "monoforest_helpers.h"
 
 #include <catboost/libs/monoforest/helpers.h>
+#include <catboost/libs/monoforest/interpretation.h>
 #include <catboost/libs/monoforest/model_import.h>
 #include <catboost/libs/monoforest/polynom.h>
 
 namespace NMonoForest {
-    TVector<THumanReadableMonom> ConvertFullModelToPolynom(const TFullModel& fullModel) {
-        const auto importer = MakeCatBoostImporter(fullModel);
-        TAdditiveModel<TObliviousTree> additiveModel = importer->GetModel();
+    static TPolynom BuildPolynom(const TAdditiveModel<TObliviousTree>& additiveModel) {
         TPolynomBuilder polynomBuilder;
         for (auto idx : xrange(additiveModel.Size())) {
             polynomBuilder.AddTree(additiveModel.GetWeakModel(idx));
         }
-        TPolynom polynom = polynomBuilder.Build();
+        return polynomBuilder.Build();
+    }
+
+    TVector<THumanReadableMonom> ConvertFullModelToPolynom(const TFullModel& fullModel) {
+        const auto importer = MakeCatBoostImporter(fullModel);
+        const TPolynom polynom = BuildPolynom(importer->GetModel());
         TVector<THumanReadableMonom> monoms;
         monoms.reserve(polynom.MonomsEnsemble.size());
         const IGrid& grid = importer->GetGrid();
@@ -34,12 +38,13 @@ namespace NMonoForest {
 
     TString ConvertFullModelToPolynomString(const TFullModel& fullModel) {
         const auto importer = MakeCatBoostImporter(fullModel);
-        TAdditiveModel<TObliviousTree> additiveModel = importer->GetModel();
-        TPolynomBuilder polynomBuilder;
-        for (auto idx : xrange(additiveModel.Size())) {
-            polynomBuilder.AddTree(additiveModel.GetWeakModel(idx));
-        }
-        TPolynom polynom = polynomBuilder.Build();
+        const TPolynom polynom = BuildPolynom(importer->GetModel());
         return ToHumanReadableString(polynom, importer->GetGrid());
+    }
+
+    TVector<TFeatureExplanation> ExplainFeatures(const TFullModel& fullModel) {
+        const auto importer = MakeCatBoostImporter(fullModel);
+        const TPolynom polynom = BuildPolynom(importer->GetModel());
+        return ExplainFeatures(polynom, importer->GetGrid());
     }
 }

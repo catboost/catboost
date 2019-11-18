@@ -3937,13 +3937,13 @@
     ],
     "test.test_mvs_bootstrap[Ordered]": [
         {
-            "checksum": "99d49260da5de9fd8a8b2c97b98bef26",
+            "checksum": "1abf524c3bfeb64971fa160f54190b1a",
             "uri": "file://test.test_mvs_bootstrap_Ordered_/test.eval"
         }
     ],
     "test.test_mvs_bootstrap[Plain]": [
         {
-            "checksum": "da34b249184ef3508a7dad48a05553d6",
+            "checksum": "6e9cfddfbd81c6aa7fffc471dd8c3769",
             "uri": "file://test.test_mvs_bootstrap_Plain_/test.eval"
         }
     ],

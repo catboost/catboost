@@ -136,6 +136,9 @@ def fetch(resource_id, custom_fetcher):
     except Exception as e:
         raise ResourceInfoError(str(e))
 
+    if resource_info.get('state', 'DELETED') != 'READY':
+        raise ResourceInfoError("Resource {} is not READY".format(resource_id))
+
     logging.info('Resource %s info %s', str(resource_id), json.dumps(resource_info))
 
     resource_file_name = os.path.basename(resource_info["file_name"])

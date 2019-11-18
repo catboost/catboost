@@ -47,8 +47,8 @@ def __getattr__(name):
         obj = getattr(_collections_abc, name)
         import warnings
         warnings.warn("Using or importing the ABCs from 'collections' instead "
-                      "of from 'collections.abc' is deprecated, "
-                      "and in 3.8 it will stop working",
+                      "of from 'collections.abc' is deprecated since Python 3.3,"
+                      "and in 3.9 it will stop working",
                       DeprecationWarning, stacklevel=2)
         globals()[name] = obj
         return obj
@@ -444,7 +444,7 @@ def namedtuple(typename, field_names, *, rename=False, defaults=None, module=Non
         '__slots__': (),
         '_fields': field_names,
         '_field_defaults': field_defaults,
-        # alternate spelling for backward compatiblity
+        # alternate spelling for backward compatibility
         '_fields_defaults': field_defaults,
         '__new__': __new__,
         '_make': _make,

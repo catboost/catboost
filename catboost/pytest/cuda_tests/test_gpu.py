@@ -162,6 +162,26 @@ def test_boosting_type(boosting_type):
     return [local_canonical_file(output_eval_path)]
 
 
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_rsm_with_default_value(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+
+    params = {
+        '--use-best-model': 'false',
+        '--loss-function': 'Logloss',
+        '-f': data_file('adult', 'train_small'),
+        '-t': data_file('adult', 'test_small'),
+        '--column-description': data_file('adult', 'train.cd'),
+        '--boosting-type': boosting_type,
+        '-i': '10',
+        '-w': '0.03',
+        '-T': '4',
+        '--rsm': 1,
+        '-m': output_model_path,
+    }
+    fit_catboost_gpu(params)
+
+
 def combine_dicts(first, *vargs):
     combined = first.copy()
     for rest in vargs:

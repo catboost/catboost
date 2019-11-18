@@ -4111,40 +4111,41 @@ def test_overfit_detector_with_resume_from_snapshot_and_metric_period(boosting_t
 
         # must be always run first without snapshot then with it to properly test assertions
         for with_resume_from_snapshot in [False, True]:
-            model = CatBoostClassifier(
-                use_best_model=False,
-                boosting_type=boosting_type,
-                thread_count=4,
-                learning_rate=0.2,
-                od_type=overfitting_detector_type,
-                metric_period=metric_period,
-                leaf_estimation_iterations=10,
-                max_ctr_complexity=4,
-            )
+            params = {
+                'use_best_model': False,
+                'boosting_type': boosting_type,
+                'thread_count': 4,
+                'learning_rate': 0.2,
+                'od_type': overfitting_detector_type,
+                'metric_period': metric_period,
+                'leaf_estimation_iterations': 10,
+                'max_ctr_complexity': 4
+            }
             if overfitting_detector_type == 'IncToDec':
-                model.set_params(od_wait=OD_WAIT, od_pval=0.5)
+                params['od_wait'] = OD_WAIT
+                params['od_pval'] = 0.5
             elif overfitting_detector_type == 'Iter':
-                model.set_params(od_wait=OD_WAIT)
+                params['od_wait'] = OD_WAIT
             if with_resume_from_snapshot:
-                model.set_params(
-                    save_snapshot=True,
-                    snapshot_file=test_output_path(
-                        'snapshot_with_metric_period={}_od_type={}'.format(
-                            metric_period, overfitting_detector_type
-                        )
+                params['save_snapshot'] = True
+                params['snapshot_file'] = test_output_path(
+                    'snapshot_with_metric_period={}_od_type={}'.format(
+                        metric_period, overfitting_detector_type
                     )
                 )
-                model.set_params(iterations=FIRST_ITERATIONS)
+                params['iterations'] = FIRST_ITERATIONS
+                small_model = CatBoostClassifier(**params)
                 with tempfile.TemporaryFile('w+') as stdout_part:
                     with DelayedTee(sys.stdout, stdout_part):
-                        model.fit(train_pool, eval_set=test_pool)
+                        small_model.fit(train_pool, eval_set=test_pool)
                     first_training_stdout_len = sum(1 for line in stdout_part)
                 # overfitting detector has not stopped learning yet
-                assert model.tree_count_ == FIRST_ITERATIONS
+                assert small_model.tree_count_ == FIRST_ITERATIONS
             else:
-                model.set_params(save_snapshot=False)
+                params['save_snapshot'] = False
 
-            model.set_params(iterations=FINAL_ITERATIONS)
+            params['iterations'] = FINAL_ITERATIONS
+            model = CatBoostClassifier(**params)
             with tempfile.TemporaryFile('w+') as stdout_part:
                 with DelayedTee(sys.stdout, stdout_part):
                     model.fit(train_pool, eval_set=test_pool)
@@ -6402,3 +6403,14 @@ def test_bootstrap_defaults():
     params = model.get_all_params()
     assert params['bootstrap_type'] == 'Bayesian'
     assert 'subsample' not in params
+
+
+def test_monoforest_regression():
+    train_pool = Pool(HIGGS_TRAIN_FILE, column_description=HIGGS_CD_FILE)
+    model = CatBoostRegressor(loss_function='RMSE', iterations=10)
+    model.fit(train_pool)
+    from catboost.monoforest import to_polynom_string, plot_features_strength
+    poly = to_polynom_string(model)
+    assert poly, "Unexpected empty poly"
+    plot = plot_features_strength(model)
+    assert plot, "Unexpected empty plot"

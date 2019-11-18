@@ -127,10 +127,6 @@ namespace NCB {
         return TargetPolicy;
     }
 
-    const TVector<TString>& TTargetConverter::GetInputClassNames() const {
-        return InputClassNames;
-    }
-
     ui32 TTargetConverter::GetClassCount() const {
         CB_ENSURE_INTERNAL(IsClassTarget, "GetClassCount is valid only for class targets");
         switch (TargetPolicy) {

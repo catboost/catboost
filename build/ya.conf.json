@@ -2413,7 +2413,7 @@
                         "os": "LINUX"
                     },
                     "target": {
-                        "os": "YOCTO_LG",
+                        "os": "YOCTO_LG_WK7Y",
                         "arch": "armv7a"
                     }
                 }
@@ -2428,6 +2428,57 @@
                 "gcc_version": "6.3",
                 "strip": "$(GCC)/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/bin/strip",
                 "objcopy": "$(GCC)/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/bin/objcopy"
+            }
+        },
+        "gcc73-armv7a-jbl-portable-music": {
+            "name": "gcc73",
+            "tools": {
+                "cc": {
+                    "bottle": "gcc73-armv7a-jbl-portable-music",
+                    "executable": "cc"
+                },
+                "c++": {
+                    "bottle": "gcc73-armv7a-jbl-portable-music",
+                    "executable": "c++"
+                },
+                "gcov": {
+                    "bottle": "gcc73-armv7a-jbl-portable-music",
+                    "executable": "gcov"
+                },
+                "c++filt": {
+                    "bottle": "gcc73-armv7a-jbl-portable-music",
+                    "executable": "c++filt"
+                },
+                "strip": {
+                    "bottle": "gcc73-armv7a-jbl-portable-music",
+                    "executable": "strip"
+                },
+                "nm": {
+                    "bottle": "gcc73-armv7a-jbl-portable-music",
+                    "executable": "nm"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                  },
+                    "target": {
+                        "os": "YOCTO_JBL_PORTABLE_MUSIC",
+                        "arch": "armv7a"
+                    }
+                }
+            ],
+            "params": {
+                "type": "gnu",
+                "match_root": "GCC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-gcc",
+                "cxx_compiler": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-g++",
+                "ar": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-ar",
+                "gcc_version": "7.3",
+                "strip": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-strip",
+                "objcopy": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-objcopy"
             }
         },
         "bloat": {
@@ -5283,6 +5334,46 @@
                 ]
             }
         },
+        "gcc73-armv7a-jbl-portable-music": {
+            "formula": {
+                "sandbox_id": [
+                    "549987302"
+                ],
+                "match": "GCC"
+            },
+            "executable": {
+                "c++": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi-g++"
+                ],
+                "cc": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi-gcc"
+                ],
+                "gcov": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi-gcov"
+                ],
+                "c++filt": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi-c++filt"
+                ],
+                "strip": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi-strip"
+                ],
+                "nm": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi-nm"
+                ]
+            }
+        },
         "cuda": {
             "formula": {
                 "sandbox_id": [
@@ -6128,7 +6219,7 @@
         },
         "ya-tc": {
             "formula": {
-                "sandbox_id": 523661954,
+                "sandbox_id": 549352842,
                 "match": "ya-tc"
             },
             "executable": {

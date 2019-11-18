@@ -62,6 +62,15 @@ def _is_exception(obj):
     )
 
 
+def _extract_mock(obj):
+    # Autospecced functions will return a FunctionType with "mock" attribute
+    # which is the actual mock object that needs to be used.
+    if isinstance(obj, FunctionTypes) and hasattr(obj, 'mock'):
+        return obj.mock
+    else:
+        return obj
+
+
 def _get_signature_object(func, as_instance, eat_self):
     """
     Given an arbitrary, possibly callable object, try to create a suitable
@@ -323,13 +332,7 @@ class _CallList(list):
 
 
 def _check_and_set_parent(parent, value, name, new_name):
-    # function passed to create_autospec will have mock
-    # attribute attached to which parent must be set
-    if isinstance(value, FunctionTypes):
-        try:
-            value = value.mock
-        except AttributeError:
-            pass
+    value = _extract_mock(value)
 
     if not _is_instance_mock(value):
         return False
@@ -433,10 +436,12 @@ class NonCallableMock(Base):
         Attach a mock as an attribute of this one, replacing its name and
         parent. Calls to the attached mock will be recorded in the
         `method_calls` and `mock_calls` attributes of this one."""
-        mock._mock_parent = None
-        mock._mock_new_parent = None
-        mock._mock_name = ''
-        mock._mock_new_name = None
+        inner_mock = _extract_mock(mock)
+
+        inner_mock._mock_parent = None
+        inner_mock._mock_new_parent = None
+        inner_mock._mock_name = ''
+        inner_mock._mock_new_name = None
 
         setattr(self, attribute, mock)
 
@@ -766,6 +771,35 @@ class NonCallableMock(Base):
         return message % (expected_string, actual_string)
 
 
+    def _get_call_signature_from_name(self, name):
+        """
+        * If call objects are asserted against a method/function like obj.meth1
+        then there could be no name for the call object to lookup. Hence just
+        return the spec_signature of the method/function being asserted against.
+        * If the name is not empty then remove () and split by '.' to get
+        list of names to iterate through the children until a potential
+        match is found. A child mock is created only during attribute access
+        so if we get a _SpecState then no attributes of the spec were accessed
+        and can be safely exited.
+        """
+        if not name:
+            return self._spec_signature
+
+        sig = None
+        names = name.replace('()', '').split('.')
+        children = self._mock_children
+
+        for name in names:
+            child = children.get(name)
+            if child is None or isinstance(child, _SpecState):
+                break
+            else:
+                children = child._mock_children
+                sig = child._spec_signature
+
+        return sig
+
+
     def _call_matcher(self, _call):
         """
         Given a call (or simply an (args, kwargs) tuple), return a
@@ -773,7 +807,12 @@ class NonCallableMock(Base):
         This is a best effort method which relies on the spec's signature,
         if available, or falls back on the arguments themselves.
         """
-        sig = self._spec_signature
+
+        if isinstance(_call, tuple) and len(_call) > 2:
+            sig = self._get_call_signature_from_name(_call[0])
+        else:
+            sig = self._spec_signature
+
         if sig is not None:
             if len(_call) == 2:
                 name = ''
@@ -856,13 +895,20 @@ class NonCallableMock(Base):
         If `any_order` is True then the calls can be in any order, but
         they must all appear in `mock_calls`."""
         expected = [self._call_matcher(c) for c in calls]
-        cause = expected if isinstance(expected, Exception) else None
+        cause = next((e for e in expected if isinstance(e, Exception)), None)
         all_calls = _CallList(self._call_matcher(c) for c in self.mock_calls)
         if not any_order:
             if expected not in all_calls:
+                if cause is None:
+                    problem = 'Calls not found.'
+                else:
+                    problem = ('Error processing expected calls.\n'
+                               'Errors: {}').format(
+                                   [e if isinstance(e, Exception) else None
+                                    for e in expected])
                 raise AssertionError(
-                    'Calls not found.\nExpected: %r\n'
-                    'Actual: %r' % (_CallList(calls), self.mock_calls)
+                    '%s\nExpected: %r\nActual: %r' % (
+                        problem, _CallList(calls), self.mock_calls)
                 ) from cause
             return
 
@@ -1837,10 +1883,10 @@ def _set_return_value(mock, method, name):
         method.return_value = fixed
         return
 
-    return_calulator = _calculate_return_value.get(name)
-    if return_calulator is not None:
+    return_calculator = _calculate_return_value.get(name)
+    if return_calculator is not None:
         try:
-            return_value = return_calulator(mock)
+            return_value = return_calculator(mock)
         except AttributeError:
             # XXXX why do we return AttributeError here?
             #      set it as a side_effect instead?

@@ -31,8 +31,6 @@ namespace NCB {
 
         EConvertTargetPolicy GetTargetPolicy() const;
 
-        const TVector<TString>& GetInputClassNames() const;
-
         // call after all processing
         ui32 GetClassCount() const;
     private:

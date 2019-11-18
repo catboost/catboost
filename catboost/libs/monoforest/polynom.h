@@ -10,6 +10,11 @@ namespace NMonoForest {
     struct TPolynom {
         THashMap<TMonomStructure, TMonomStat> MonomsEnsemble;
 
+        size_t Dimension() const {
+            Y_ASSERT(!MonomsEnsemble.empty());
+            return MonomsEnsemble.begin()->second.Value.size();
+        }
+
         Y_SAVELOAD_DEFINE(MonomsEnsemble);
     };
 

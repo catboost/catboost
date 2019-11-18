@@ -2,6 +2,7 @@
 
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/monoforest/enums.h>
+#include <catboost/libs/monoforest/interpretation.h>
 
 #include <util/generic/fwd.h>
 
@@ -18,6 +19,10 @@ namespace NMonoForest {
         double Weight;
     };
 
+    // to manage with weak support of namespaces in Cython
+    using EMonoForestFeatureType = EFeatureType;
+
     TVector<THumanReadableMonom> ConvertFullModelToPolynom(const TFullModel& fullModel);
     TString ConvertFullModelToPolynomString(const TFullModel& fullModel);
+    TVector<TFeatureExplanation> ExplainFeatures(const TFullModel& fullModel);
 }
