@@ -6,11 +6,11 @@ LIBRARY()
 SRCS(
     flatbuffers/feature_calcers.fbs
     flatbuffers/text_processing_collection.fbs
-    bm25.cpp
-    bow.cpp
+    GLOBAL bm25.cpp
+    GLOBAL bow.cpp
     embedding_online_features.cpp
     feature_calcer.cpp
-    naive_bayesian.cpp
+    GLOBAL naive_bayesian.cpp
     text_feature_calcers.cpp
     text_processing_collection.cpp
 )
