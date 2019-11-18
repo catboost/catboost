@@ -6,7 +6,6 @@
 
 #include <util/system/cpu_id.h>
 #include <util/system/yassert.h>
-#include <util/system/sanitizers.h>
 
 bool NFloat16Impl::AreConversionIntrinsicsAvailableOnHost() {
 #ifdef _MSC_VER
@@ -49,8 +48,7 @@ void NFloat16Ops::UnpackFloat16SequenceIntrisincs(const TFloat16* src, float* ds
     }
 
     if (len > 0) {
-        alignas(16) ui16 local[8];
-        NSan::Unpoison(local, sizeof(local));
+        alignas(16) ui16 local[8] = {};
         memcpy(local, src, sizeof(*src) * len);
         __m128i source = _mm_load_si128(reinterpret_cast<const __m128i*>(local));
         __m256 cvt = _mm256_cvtph_ps(source);
@@ -100,10 +98,9 @@ float NFloat16Ops::DotProductOnFloatIntrisincs(const float* f32, const TFloat16*
     }
 
     if (len > 0) {
-        alignas(16) TFloat16 localF16[8];
-        alignas(32) float localF32[8] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
+        alignas(16) TFloat16 localF16[8] = {};
+        alignas(32) float localF32[8] = {};
 
-        NSan::Unpoison(localF16, sizeof(localF16));
         memcpy(localF16, f16, sizeof(*f16) * len);
         memcpy(localF32, f32, sizeof(*f32) * len);
 
@@ -135,7 +132,7 @@ void NFloat16Ops::PackFloat16SequenceIntrisincs(const float* src, TFloat16* dst,
     }
 
     if (len > 0) {
-        alignas(32) float local[8] = {0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f};
+        alignas(32) float local[8] = {};
         memcpy(local, src, len * sizeof(float));
         __m256 source = _mm256_load_ps(local);
         __m128i cvt = _mm256_cvtps_ph(source, (_MM_FROUND_TO_NEAREST_INT |_MM_FROUND_NO_EXC));
