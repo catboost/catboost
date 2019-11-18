@@ -3469,7 +3469,8 @@ def test_quantile_exact_distributed():
         test='test_small',
         cd='train.cd',
         other_options=(
-            '--leaf-estimation-method', 'Exact'
+            '--leaf-estimation-method', 'Exact',
+            '--boost-from-average', 'False'
         )
     )))]
 
