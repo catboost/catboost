@@ -74,6 +74,14 @@ inline void ResizeRank2(Int1 dim1, Int2 dim2, TVector<TVector<T>>& vvt) {
     }
 }
 
+template <typename Int1, typename Int2, typename T>
+inline void AllocateRank2(Int1 dim1, Int2 dim2, TVector<TVector<T>>& vvt) {
+    vvt.resize(dim1);
+    for (auto& vt : vvt) {
+        vt.yresize(dim2);
+    }
+}
+
 template <class T1, class T2>
 void Assign(TConstArrayRef<T1> arrayRef, TVector<T2>* v) {
     v->assign(arrayRef.begin(), arrayRef.end());

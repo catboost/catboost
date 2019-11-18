@@ -113,7 +113,7 @@ TFold TFold::BuildDynamicFold(
 
     InitPermutationData(learnData, shuffle, permuteBlockSize, rand, &ff);
 
-    ff.AssignTarget(learnData.TargetData->GetTarget(), targetClassifiers);
+    ff.AssignTarget(learnData.TargetData->GetTarget(), targetClassifiers, localExecutor);
     ff.SetWeights(GetWeights(*learnData.TargetData), learnSampleCount);
 
     TVector<ui32> queryIndices;
@@ -184,8 +184,8 @@ TFold TFold::BuildDynamicFold(
                 &bt.Approx
             );
         }
-        bt.WeightedDerivatives.resize(approxDimension, TVector<double>(bt.TailFinish));
-        bt.SampleWeightedDerivatives.resize(approxDimension, TVector<double>(bt.TailFinish));
+        AllocateRank2(approxDimension, bt.TailFinish, bt.WeightedDerivatives);
+        AllocateRank2(approxDimension, bt.TailFinish, bt.SampleWeightedDerivatives);
         if (hasPairwiseWeights) {
             bt.PairwiseWeights.resize(bt.TailFinish);
             bt.PairwiseWeights.insert(
@@ -229,7 +229,7 @@ TFold TFold::BuildPlainFold(
 
     InitPermutationData(learnData, shuffle, permuteBlockSize, rand, &ff);
 
-    ff.AssignTarget(learnData.TargetData->GetTarget(), targetClassifiers);
+    ff.AssignTarget(learnData.TargetData->GetTarget(), targetClassifiers, localExecutor);
     ff.SetWeights(GetWeights(*learnData.TargetData), learnSampleCount);
 
     auto maybeGroupInfos = learnData.TargetData->GetGroupInfo();
@@ -261,8 +261,8 @@ TFold TFold::BuildPlainFold(
         TVector<double>(
             learnSampleCount,
             startingApprox ? ExpApproxIf(storeExpApproxes, *startingApprox) : GetNeutralApprox(storeExpApproxes)));
-    bt.WeightedDerivatives.resize(approxDimension, TVector<double>(learnSampleCount));
-    bt.SampleWeightedDerivatives.resize(approxDimension, TVector<double>(learnSampleCount));
+    AllocateRank2(approxDimension, learnSampleCount, bt.WeightedDerivatives);
+    AllocateRank2(approxDimension, learnSampleCount, bt.SampleWeightedDerivatives);
     if (hasPairwiseWeights) {
         bt.PairwiseWeights.resize(learnSampleCount);
         CalcPairwiseWeights(ff.LearnQueriesInfo, bt.TailQueryFinish, &bt.PairwiseWeights);
@@ -304,26 +304,37 @@ void TFold::DropEmptyCTRs() {
 
 void TFold::AssignTarget(
     TMaybeData<TConstArrayRef<TConstArrayRef<float>>> target,
-    const TVector<TTargetClassifier>& targetClassifiers
+    const TVector<TTargetClassifier>& targetClassifiers,
+    NPar::TLocalExecutor* localExecutor
 ) {
     ui32 learnSampleCount = GetLearnSampleCount();
     if (target && target->size() > 0) {
-        LearnTarget.resize(target->size());
-        for (auto targetIdx : xrange(target->size())) {
-            LearnTarget[targetIdx] = NCB::GetSubset<float>((*target)[targetIdx], LearnPermutation->GetObjectsIndexing());
-        }
+        LearnTarget.yresize(target->size());
+        NPar::ParallelFor(
+            *localExecutor,
+            0,
+            target->size(),
+            [&] (ui32 targetIdx) {
+                LearnTarget[targetIdx] = NCB::GetSubset<float>((*target)[targetIdx], LearnPermutation->GetObjectsIndexing());
+            }
+        );
     } else {
         // TODO(akhropov): make this field optional
         LearnTarget = TVector<TVector<float>>{TVector<float>(learnSampleCount, 0.0f)};
     }
 
     int ctrCount = targetClassifiers.ysize();
-    LearnTargetClass.assign(ctrCount, TVector<int>(learnSampleCount));
+    AllocateRank2(ctrCount, learnSampleCount, LearnTargetClass);
     TargetClassesCount.resize(ctrCount);
     for (int ctrIdx = 0; ctrIdx < ctrCount; ++ctrIdx) {
-        for (ui32 z = 0; z < learnSampleCount; ++z) {
-            LearnTargetClass[ctrIdx][z] = targetClassifiers[ctrIdx].GetTargetClass(LearnTarget[0][z]);
-        }
+        NPar::ParallelFor(
+            *localExecutor,
+            0,
+            learnSampleCount,
+            [&] (ui32 z) {
+                LearnTargetClass[ctrIdx][z] = targetClassifiers[ctrIdx].GetTargetClass(LearnTarget[0][z]);
+            }
+        );
         TargetClassesCount[ctrIdx] = targetClassifiers[ctrIdx].GetClassesCount();
     }
 }
