@@ -4,6 +4,7 @@
 #include <catboost/libs/model/model_export/model_exporter.h>
 
 #include <library/getopt/small/last_getopt.h>
+#include <library/getopt/small/last_getopt_support.h>
 
 #include <util/generic/serialized_enum.h>
 
@@ -21,8 +22,12 @@ int mode_model_sum(int argc, const char* argv[]) {
         });
     parser.AddLongOption("model-with-weight", "Model path with custom weight")
         .RequiredArgument("PATH=WEIGHT")
-        .KVHandler([&modelPathsWithWeights](TString modelPath, TString weight) {
-            modelPathsWithWeights.emplace_back(std::make_pair(modelPath, FromString<double>(weight)));
+        .Handler1T<TStringBuf>([&modelPathsWithWeights](auto path_weight) {
+            TStringBuf path, weight;
+            if (!path_weight.TryRSplit('=', path, weight)) {
+                throw NLastGetopt::TUsageException() << "bad option value `" << path_weight << "`, expected PATH=WEIGHT";
+            }
+            modelPathsWithWeights.emplace_back(std::make_pair(path, FromString<double>(weight)));
         });
     parser.AddLongOption('o', "output-path")
         .Required()
