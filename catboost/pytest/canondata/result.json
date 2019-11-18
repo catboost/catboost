@@ -5139,13 +5139,13 @@
     ],
     "test.test_quantile_categorical[Ordered]": [
         {
-            "checksum": "e1d75099fe3c28915998745188215bfc",
+            "checksum": "8d4051ddbd5a12d8ae1b1e86d14cf192",
             "uri": "file://test.test_quantile_categorical_Ordered_/test.eval"
         }
     ],
     "test.test_quantile_categorical[Plain]": [
         {
-            "checksum": "1d4a968e67b104207baec069182c1387",
+            "checksum": "a004e4b6d765ab1584da357ab5c8c6de",
             "uri": "file://test.test_quantile_categorical_Plain_/test.eval"
         }
     ],
@@ -5163,7 +5163,7 @@
     ],
     "test.test_quantile_targets[Ordered-Quantile]": [
         {
-            "checksum": "543f9ae6070f41b8050fb605299a1bf9",
+            "checksum": "e7e53b2cf592d50a464bf41d749ff280",
             "uri": "file://test.test_quantile_targets_Ordered-Quantile_/test.eval"
         }
     ],
@@ -5175,31 +5175,31 @@
     ],
     "test.test_quantile_targets[Plain-Quantile]": [
         {
-            "checksum": "b263433953d2454aa69a3e453f2cf57b",
+            "checksum": "27325249cf8776f70e35629ba7f75c17",
             "uri": "file://test.test_quantile_targets_Plain-Quantile_/test.eval"
         }
     ],
     "test.test_quantile_targets_exact[Ordered]": [
         {
-            "checksum": "543f9ae6070f41b8050fb605299a1bf9",
+            "checksum": "e7e53b2cf592d50a464bf41d749ff280",
             "uri": "file://test.test_quantile_targets_exact_Ordered_/test.eval"
         }
     ],
     "test.test_quantile_targets_exact[Plain]": [
         {
-            "checksum": "b263433953d2454aa69a3e453f2cf57b",
+            "checksum": "27325249cf8776f70e35629ba7f75c17",
             "uri": "file://test.test_quantile_targets_exact_Plain_/test.eval"
         }
     ],
     "test.test_quantile_weights[Ordered]": [
         {
-            "checksum": "ba991c9cb5afc04291898d882d0401bc",
+            "checksum": "d4f22225748f0ebf25b0a7c4f24d5241",
             "uri": "file://test.test_quantile_weights_Ordered_/test.eval"
         }
     ],
     "test.test_quantile_weights[Plain]": [
         {
-            "checksum": "bc8061966b898332988c1d32b12a3cd3",
+            "checksum": "6c0967aad8159e5ca1d197600611a6dd",
             "uri": "file://test.test_quantile_weights_Plain_/test.eval"
         }
     ],

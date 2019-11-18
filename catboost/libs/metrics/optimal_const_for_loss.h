@@ -32,7 +32,7 @@ namespace NCB {
         const auto& params = lossDescription.GetLossParams();
         auto it = params.find("alpha");
         double alpha = it == params.end() ? 0.5 : FromString<double>(it->second);
-        it = params.find("alpha");
+        it = params.find("delta");
         double delta = it == params.end() ? 1e-6 : FromString<double>(it->second);
 
         const TVector<float> defaultWeights(target.size(), 1);
