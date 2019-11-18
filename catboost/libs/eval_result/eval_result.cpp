@@ -184,7 +184,7 @@ namespace NCB {
             EColumn outputType;
             if (TryFromString<EColumn>(ToCanonicalColumnName(outputColumn), outputType)) {
                 if (outputType == EColumn::Label) {
-                    const auto& target = pool.RawTargetData.GetTarget().GetRef();
+                    const auto target = pool.RawTargetData.GetTarget().GetRef();
                     const auto targetDim = target.size();
                     for (auto targetIdx : xrange(targetDim)) {
                         TStringBuilder header;
