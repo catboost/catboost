@@ -182,6 +182,27 @@ def test_rsm_with_default_value(boosting_type):
     fit_catboost_gpu(params)
 
 
+@pytest.mark.xfail(reason='Need fixing')
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_rsm_with_pairwise(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+
+    params = {
+        '--use-best-model': 'false',
+        '--loss-function': 'PairLogitPairwise',
+        '-f': data_file('querywise', 'train'),
+        '--learn-pairs': data_file('querywise', 'train.pairs'),
+        '--column-description': data_file('querywise', 'train.cd'),
+        '--boosting-type': boosting_type,
+        '-i': '10',
+        '-w': '0.03',
+        '-T': '4',
+        '--rsm': 0.5,
+        '-m': output_model_path,
+    }
+    fit_catboost_gpu(params)
+
+
 def combine_dicts(first, *vargs):
     combined = first.copy()
     for rest in vargs:
@@ -2237,6 +2258,35 @@ def test_convert_model_to_json_without_cat_features():
     yatest.common.execute(calc_cmd)
     assert (compare_evals_with_precision(output_eval_path, formula_predict_path))
     return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
+
+
+@pytest.mark.parametrize('loss_function', ('YetiRankPairwise', 'PairLogitPairwise'))
+def test_pairwise(loss_function):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    train_file = data_file('querywise', 'train')
+    test_file = data_file('querywise', 'test')
+    train_pairs = data_file('querywise', 'train.pairs')
+    test_pairs = data_file('querywise', 'test.pairs')
+    cd_file = data_file('querywise', 'train.cd')
+
+    params = [
+        '--loss-function', loss_function,
+        '-f', train_file,
+        '-t', test_file,
+        '--learn-pairs', train_pairs,
+        '--test-pairs', test_pairs,
+        '--column-description', cd_file,
+        '-i', '10',
+        '-T', '4',
+        '-m', output_model_path,
+    ]
+
+    fit_catboost_gpu(params)
+    apply_catboost(output_model_path, test_file, cd_file, output_eval_path)
+    diff_precision = 1e-2 if loss_function == 'YetiRankPairwise' else 1e-5
+    return [local_canonical_file(output_eval_path, diff_tool=diff_tool(diff_precision))]
 
 
 @pytest.mark.parametrize(

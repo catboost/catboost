@@ -214,7 +214,7 @@ namespace NCatboostCuda {
     }
 
     void TObliviousTreeLeavesEstimator::Regularize(TVector<float>* point) {
-        RegulalizeImpl(LeavesEstimationConfig, LeafWeights, point);
+        RegularizeImpl(LeavesEstimationConfig, TConstArrayRef<double>(LeafWeights.begin(), LeafWeights.begin() + PointDim()), point);
     }
 
     void TObliviousTreeLeavesEstimator::NormalizeDerivatives(TVector<double>& derOrDer2) {

@@ -3059,6 +3059,18 @@
             "uri": "file://test_gpu.test_pairs_generation/predictions_test.tsv"
         }
     ],
+    "test_gpu.test_pairwise[PairLogitPairwise]": [
+        {
+            "checksum": "ac89b0b10e5237af037b4b0f08f0d5c0",
+            "uri": "file://test_gpu.test_pairwise_PairLogitPairwise_/test.eval"
+        }
+    ],
+    "test_gpu.test_pairwise[YetiRankPairwise]": [
+        {
+            "checksum": "6a04f03b65a1c5f8fc870b336d93fd72",
+            "uri": "file://test_gpu.test_pairwise_YetiRankPairwise_/test.eval"
+        }
+    ],
     "test_gpu.test_permutation_block[Ordered]": [
         {
             "checksum": "f2c4c9d55c1fbf1c000356b2d973f17c",

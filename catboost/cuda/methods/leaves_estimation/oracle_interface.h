@@ -34,7 +34,8 @@ namespace NCatboostCuda {
                                                         ui32 binCount) const = 0;
     };
 
-    inline void RegulalizeImpl(const TLeavesEstimationConfig& config, const TVector<double>& binWeights, TVector<float>* point, ui32 approxDim = 1) {
+    inline void RegularizeImpl(const TLeavesEstimationConfig& config, const TConstArrayRef<double> binWeights, TVector<float>* point, ui32 approxDim = 1) {
+        Y_ENSURE(binWeights.size() * approxDim == point->size(), "Inappropriate point and weight vector sizes");
         for (size_t bin = 0; bin < binWeights.size(); ++bin) {
             if (binWeights[bin] < config.MinLeafWeight) {
                 for (ui32 dim = 0; dim < approxDim; ++dim) {
