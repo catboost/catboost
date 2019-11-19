@@ -26,7 +26,7 @@ The following column types are supported:
 
 Default value: Required argument}
 
-\item{label}{The label vector.}
+\item{label}{The label vector or label matrix}
 
 \item{cat_features}{A vector of categorical features indices.
 The indices are zero based and can differ from the given in the Column descriptions file.}
