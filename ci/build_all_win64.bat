@@ -1,7 +1,6 @@
 @echo on
 
 set WIN_COMMON_FLAGS=-k -DOS_SDK=local -DCUDA_ROOT="%CUDA_PATH%" -DUSE_ARCADIA_CUDA_HOST_COMPILER=no --host-platform-flag USE_ARCADIA_CUDA_HOST_COMPILER=no -DCUDA_HOST_COMPILER="C:/VC_FOR_CUDA/VC/Tools/MSVC/14.13.26128/bin/Hostx64/x64/cl.exe"
-set WIN_COMMON_FLAGS=%WIN_COMMON_FLAGS% -DSTRIP
 
 call "%VS_VARS_PATH%\vcvars64.bat" -vcvars_ver=14.16
 if %errorlevel% neq 0 exit /b %errorlevel%

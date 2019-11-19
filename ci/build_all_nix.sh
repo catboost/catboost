@@ -29,7 +29,6 @@ function os_sdk {
 }
 
 lnx_common_flags="-DNO_DEBUGINFO $(os_sdk) $CUDA_ARG"
-lnx_common_flags="$lnx_common_flags -DSTRIP"
 
 python ya make -r $lnx_common_flags -o . catboost/app
 python ya make -r $lnx_common_flags -o . catboost/libs/model_interface
