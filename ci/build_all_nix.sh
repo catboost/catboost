@@ -28,10 +28,10 @@ function os_sdk {
     esac
 }
 
-lnx_common_flags="-DNO_DEBUGINFO $(os_sdk) $CUDA_ARG"
+lnx_common_flags="-DNO_DEBUGINFO $CUDA_ARG"
 
-python ya make -r $lnx_common_flags -o . catboost/app
-python ya make -r $lnx_common_flags -o . catboost/libs/model_interface
+python ya make -r $lnx_common_flags $(os_sdk) -o . catboost/app
+python ya make -r $lnx_common_flags $(os_sdk) -o . catboost/libs/model_interface
 
 echo "Starting R package build"
 cd catboost/R-package
@@ -47,7 +47,7 @@ cp -r inst catboost
 cp -r man catboost
 cp -r tests catboost
 
-python ../../ya make -r $lnx_common_flags -T src
+python ../../ya make -r $lnx_common_flags $(os_sdk) -T src
 
 mkdir -p catboost/inst/libs
 cp $(readlink src/libcatboostr.so) catboost/inst/libs
@@ -59,19 +59,19 @@ cd ../python-package
 PY27=2.7.14
 pyenv install -s $PY27
 pyenv shell $PY27
-python mk_wheel.py $lnx_common_flags -DPYTHON_CONFIG=$(pyenv prefix)/bin/python2-config
+python mk_wheel.py $lnx_common_flags $(os_sdk) -DPYTHON_CONFIG=$(pyenv prefix)/bin/python2-config
 
 PY35=3.5.5
 pyenv install -s $PY35
 pyenv shell $PY35
-python mk_wheel.py $lnx_common_flags -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
+python mk_wheel.py $lnx_common_flags $(os_sdk) -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
 
 PY36=3.6.6
 pyenv install -s $PY36
 pyenv shell $PY36
-python mk_wheel.py $lnx_common_flags -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
+python mk_wheel.py $lnx_common_flags $(os_sdk) -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
 
 PY37=3.7.0
 pyenv install -s $PY37
 pyenv shell $PY37
-python mk_wheel.py $lnx_common_flags -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
+python mk_wheel.py $lnx_common_flags $(os_sdk) -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
