@@ -574,8 +574,9 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
     if (BoostingOptions->BoostFromAverage.Get()) {
         // we may adjust non-set BoostFromAverage in data dependant tuning
         CB_ENSURE(EqualToOneOf(lossFunction, ELossFunction::RMSE, ELossFunction::Logloss,
-            ELossFunction::CrossEntropy, ELossFunction::Quantile, ELossFunction::MAE),
-            "You can use boost_from_average only for these loss functions now: RMSE, Logloss, CrossEntropy, Quantile or MAE.");
+            ELossFunction::CrossEntropy, ELossFunction::Quantile, ELossFunction::MAE, ELossFunction::MAPE),
+            "You can use boost_from_average only for these loss functions now: " <<
+            "RMSE, Logloss, CrossEntropy, Quantile, MAE or MAPE.");
         CB_ENSURE(SystemOptions->IsSingleHost(), "You can use boost_from_average only on single host now.");
     }
 

@@ -40,6 +40,19 @@ namespace NCB {
         return CalcSampleQuantile(target, weights.empty() ? MakeConstArrayRef(defaultWeights) : weights, alpha, delta);
     }
 
+    inline float CalculateOptimalConstApproxForMAPE(
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weights
+    ) {
+        TVector<float> weightsWithTarget = weights.empty()
+            ? TVector<float>(target.size(), 1.0)
+            : TVector<float>(weights.begin(), weights.end());
+        for (auto idx : xrange(target.size())) {
+            weightsWithTarget[idx] /= Max(1.0f, Abs(target[idx]));
+        }
+        return CalcSampleQuantile(target, weightsWithTarget, 0.5, 1e-6);
+    }
+
     //TODO(isaf27): add baseline to CalcOptimumConstApprox
     inline TMaybe<double> CalcOptimumConstApprox(
         const NCatboostOptions::TLossDescription& lossDescription,
@@ -61,6 +74,8 @@ namespace NCB {
             case ELossFunction::MAE: {
                 return CalculateWeightedTargetQuantile(target, weights, lossDescription);
             }
+            case ELossFunction::MAPE:
+                return CalculateOptimalConstApproxForMAPE(target, weights);
             default:
                 return Nothing();
         }
