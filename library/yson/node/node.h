@@ -121,6 +121,8 @@ public:
     bool IsEntity() const;
     bool IsNull() const;
     bool IsUndefined() const;
+    // Returns true if TNode is neither Null, nor Undefined
+    bool HasValue() const;
 
     template<typename T>
     bool IsOfType() const noexcept;
