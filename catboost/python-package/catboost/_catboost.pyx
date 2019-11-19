@@ -3537,7 +3537,7 @@ cdef class _PoolBase:
 
         Returns
         -------
-        feature matrix : np.array of shape (rows, cols)
+        feature matrix : np.ndarray of shape (object_count, feature_count)
         """
         cdef int thread_count = UpdateThreadCount(-1)
         cdef TLocalExecutor local_executor
@@ -3574,7 +3574,7 @@ cdef class _PoolBase:
 
         Returns
         -------
-        labels : list if labels are one-dimensional, np.array of shape (rows, cols) otherwise
+        labels : list if labels are one-dimensional, np.ndarray of shape (object_count, labels_count) otherwise
         """
         cdef TMaybeData[TConstArrayRef[TConstArrayRef[TString]]] maybe_target = self.__pool.Get()[0].RawTargetData.GetTarget()
         if maybe_target.Defined():
@@ -3638,7 +3638,7 @@ cdef class _PoolBase:
 
         Returns
         -------
-        baseline : np.array
+        baseline : np.ndarray of shape (object_count, baseline_count)
         """
         cdef TMaybeData[TBaselineArrayRef] maybe_baseline = self.__pool.Get()[0].RawTargetData.GetBaseline()
         cdef TBaselineArrayRef baseline
