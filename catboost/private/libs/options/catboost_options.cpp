@@ -80,7 +80,8 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
         }
         case ELossFunction::MAE:
         case ELossFunction::Quantile: {
-            if (TaskType == ETaskType::CPU && SystemOptions->IsSingleHost() && !BoostingOptions->ApproxOnFullHistory) {
+            if (TaskType == ETaskType::CPU && SystemOptions->IsSingleHost()
+                && !BoostingOptions->ApproxOnFullHistory && treeConfig.MonotoneConstraints.Get().empty()) {
                 defaultEstimationMethod = ELeavesEstimation::Exact;
                 defaultNewtonIterations = 1;
                 defaultGradientIterations = 1;
@@ -594,6 +595,9 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         );
         CB_ENSURE(
             SystemOptions->IsSingleHost(), "Monotone constraints is unsupported for distributed learning."
+        );
+        CB_ENSURE(ObliviousTreeOptions->LeavesEstimationMethod != ELeavesEstimation::Exact,
+            "Monotone constraints are unsupported for Exact leaves estimation method."
         );
         const THashSet<int> validMonotoneConstraintValues = {-1, 0, 1};
         for (auto [featureIdx, constraint] : monotoneConstraints) {
