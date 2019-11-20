@@ -2030,8 +2030,8 @@ cdef _get_object_count(data):
 # num_feature_values and cat_feature values cannot be const due to
 # https://github.com/cython/cython/issues/2485
 def _set_features_order_data_features_data(
-    numpy_num_dtype [:,:] num_feature_values,
-    object [:,:] cat_feature_values,
+    numpy_num_dtype [::1,:] num_feature_values,
+    object [::1,:] cat_feature_values,
     Py_FeaturesOrderBuilderVisitor py_builder_visitor
 ):
     cdef IRawFeaturesOrderDataVisitor* builder_visitor
@@ -2078,7 +2078,7 @@ def _set_features_order_data_features_data(
 
 # feature_values cannot be const due to https://github.com/cython/cython/issues/2485
 def _set_features_order_data_ndarray(
-    numpy_num_dtype [:,:] feature_values,
+    numpy_num_dtype [::1,:] feature_values,
     bool_t [:] is_cat_feature_mask,
     bool_t [:] is_text_feature_mask,
     Py_FeaturesOrderBuilderVisitor py_builder_visitor
@@ -2148,6 +2148,8 @@ cdef create_num_factor_data(
         )
         return []
     elif column_values.dtype in numpy_num_dtype_list: # Cython cannot use fused type lists in normal code
+        if not column_values.flags.c_contiguous:
+            column_values = np.ascontiguousarray(column_values, dtype=np.float32)
         py_num_factor_data = make_non_owning_type_cast_array_holder(column_values)
         py_num_factor_data.get_result(result)
         return [column_values]
@@ -2824,7 +2826,7 @@ def _set_features_order_data_scipy_sparse_csc_matrix(
     if (numpy_num_dtype is np.float32_t) or (numpy_num_dtype is np.float64_t):
         is_float_value = True
 
-    new_data_holders = [data]
+    new_data_holders = []
 
     for feature_idx in range(feature_count):
         feature_nonzero_count = indptr[feature_idx + 1] - indptr[feature_idx]
@@ -2863,7 +2865,7 @@ def _set_features_order_data_scipy_sparse_csc_matrix(
                 )
             )
         else:
-            create_num_factor_data(
+            new_data_holders += create_num_factor_data(
                 feature_idx,
                 np.asarray(data[indptr[feature_idx]:indptr[feature_idx + 1]]),
                 &num_factor_data
@@ -3402,7 +3404,8 @@ cdef class _PoolBase:
         if isinstance(data, FeaturesData):
             if ((data.num_feature_data is not None) and
                 data.num_feature_data.flags.aligned and
-                data.num_feature_data.flags.f_contiguous
+                data.num_feature_data.flags.f_contiguous and
+                (len(data.num_feature_data) != 0)
                ):
                 do_use_raw_data_in_features_order = True
         elif isinstance(data, pd.DataFrame):
@@ -3411,7 +3414,7 @@ cdef class _PoolBase:
             do_use_raw_data_in_features_order = True
         else:
             if isinstance(data, np.ndarray) and (data.dtype in numpy_num_dtype_list):
-                if data.flags.aligned and data.flags.f_contiguous:
+                if data.flags.aligned and data.flags.f_contiguous and (len(data) != 0):
                     do_use_raw_data_in_features_order = True
 
         if do_use_raw_data_in_features_order:

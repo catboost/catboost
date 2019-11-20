@@ -593,6 +593,32 @@ def test_load_dumps():
 
 
 @pytest.mark.parametrize(
+    'features_type',
+    ['numpy.ndarray', 'pandas.DataFrame'],
+    ids=['features_type=numpy.ndarray', 'features_type=pandas.DataFrame']
+)
+def test_pool_from_slices(features_type):
+    full_size = (100, 30)
+    subset_size = (20, 17)
+
+    prng = np.random.RandomState(seed=20191120)
+
+    for start_offsets in ((0, 0), (5, 3)):
+        full_features_data = np.round(prng.normal(size=full_size), decimals=3)
+        full_label = _generate_nontrivial_binary_target(full_size[0], prng=prng)
+
+        subset_features_data = full_features_data[start_offsets[0]:subset_size[0], start_offsets[1]:subset_size[1]]
+        subset_label = full_label[start_offsets[0]:subset_size[0]]
+
+        if features_type == 'numpy.ndarray':
+            pool = Pool(subset_features_data, subset_label)
+        else:
+            pool = Pool(DataFrame(subset_features_data), subset_label)
+        assert _check_data(pool.get_features(), subset_features_data)
+        assert _check_data([float(value) for value in pool.get_label()], subset_label)
+
+
+@pytest.mark.parametrize(
     'cat_features_specified',
     [False, True],
     ids=['cat_features_specified=False', 'cat_features_specified=True']
