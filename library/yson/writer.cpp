@@ -341,7 +341,7 @@ namespace NYT {
     ////////////////////////////////////////////////////////////////////////////////
 
     void ReformatYsonStream(
-        IZeroCopyInput* input,
+        IInputStream* input,
         IOutputStream* output,
         EYsonFormat format,
         EYsonType type) {

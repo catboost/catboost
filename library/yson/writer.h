@@ -79,7 +79,7 @@ namespace NYT {
     ////////////////////////////////////////////////////////////////////////////////
 
     void ReformatYsonStream(
-        IZeroCopyInput* input,
+        IInputStream* input,
         IOutputStream* output,
         EYsonFormat format = YF_BINARY,
         EYsonType type = YT_NODE);
