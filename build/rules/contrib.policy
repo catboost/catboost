@@ -140,3 +140,8 @@ DENY .* -> contrib/deprecated/python/diff2html
 # usage restriction
 ALLOW yweb/antimalware/ -> contrib/libs/sophos
 DENY .* -> contrib/libs/sophos
+
+# contrib/python/backports should not be used in new projects because we want
+# to start new projects on Py3
+ALLOW contrib/python/backports/tempfile ->  contrib/python/backports/weakref
+DENY .* ->  contrib/python/backports/weakref
