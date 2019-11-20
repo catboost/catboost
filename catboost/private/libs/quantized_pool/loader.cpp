@@ -333,6 +333,7 @@ void NCB::TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
         DataMetaInfo,
         ObjectCount,
         ObjectsOrder,
+        /*targetDataTypeIsString*/ !DataMetaInfo.ClassNames.empty(),
         {},
         QuantizationSchemaFromProto(QuantizedPool.QuantizationSchema));
 

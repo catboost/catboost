@@ -149,7 +149,8 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             srcData.MetaInfo = metaInfo;
 
-            srcData.TargetData.Target = {{"0", "1", "1", "0", "1", "0", "1", "0", "0"}};
+            TVector<TVector<TString>> rawTarget{{"0", "1", "1", "0", "1", "0", "1", "0", "0"}};
+            srcData.TargetData.Target.assign(rawTarget.begin(), rawTarget.end());
             srcData.TargetData.SetTrivialWeights(9);
 
             srcData.CommonObjectsData.FeaturesLayout = srcData.MetaInfo.FeaturesLayout;
@@ -332,7 +333,8 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             srcData.MetaInfo = metaInfo;
 
-            srcData.TargetData.Target = {{"0", "1", "1", "0", "1", "0", "1", "0", "0", "1", "0", "0", "0"}};
+            TVector<TVector<TString>> rawTarget{{"0", "1", "1", "0", "1", "0", "1", "0", "0", "1", "0", "0", "0"}};
+            srcData.TargetData.Target.assign(rawTarget.begin(), rawTarget.end());
             srcData.TargetData.SetTrivialWeights(13);
 
             srcData.CommonObjectsData.FeaturesLayout = srcData.MetaInfo.FeaturesLayout;
@@ -447,7 +449,8 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             srcData.MetaInfo = metaInfo;
 
-            srcData.TargetData.Target = {{"0", "1", "1", "0", "1", "0", "1", "0", "0"}};
+            TVector<TVector<TString>> rawTarget{{"0", "1", "1", "0", "1", "0", "1", "0", "0"}};
+            srcData.TargetData.Target.assign(rawTarget.begin(), rawTarget.end());
             srcData.TargetData.SetTrivialWeights(9);
 
             srcData.CommonObjectsData.FeaturesLayout = srcData.MetaInfo.FeaturesLayout;
@@ -579,7 +582,8 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             srcData.MetaInfo = metaInfo;
 
-            srcData.TargetData.Target = {{"0", "1", "1", "0", "1", "0", "1", "0", "0", "1", "0", "0", "0"}};
+            TVector<TVector<TString>> rawTarget{{"0", "1", "1", "0", "1", "0", "1", "0", "0", "1", "0", "0", "0"}};
+            srcData.TargetData.Target.assign(rawTarget.begin(), rawTarget.end());
             srcData.TargetData.SetTrivialWeights(13);
 
             srcData.CommonObjectsData.FeaturesLayout = srcData.MetaInfo.FeaturesLayout;
@@ -840,7 +844,8 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             srcData.MetaInfo = metaInfo;
 
-            srcData.TargetData.Target = {{"0", "1", "1", "0", "1", "0", "1", "0", "0", "1", "0", "0", "0"}};
+            TVector<TVector<TString>> rawTarget{{"0", "1", "1", "0", "1", "0", "1", "0", "0", "1", "0", "0", "0"}};
+            srcData.TargetData.Target.assign(rawTarget.begin(), rawTarget.end());
             srcData.TargetData.SetTrivialWeights(13);
 
             srcData.CommonObjectsData.FeaturesLayout = srcData.MetaInfo.FeaturesLayout;
@@ -1140,7 +1145,8 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             srcData.MetaInfo = metaInfo;
 
-            srcData.TargetData.Target = {{"0", "1", "1", "0", "1", "0", "1", "0", "0", "1", "0", "0", "0"}};
+            TVector<TVector<TString>> rawTarget{{"0", "1", "1", "0", "1", "0", "1", "0", "0", "1", "0", "0", "0"}};
+            srcData.TargetData.Target.assign(rawTarget.begin(), rawTarget.end());
             srcData.TargetData.SetTrivialWeights(13);
 
             srcData.CommonObjectsData.FeaturesLayout = srcData.MetaInfo.FeaturesLayout;

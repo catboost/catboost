@@ -215,7 +215,10 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
             for (auto docIdx : xrange(targetRows)) {
                 target[docIdx] = static_cast<float>(REAL(targetParam)[docIdx + targetRows * targetIdx]);
             }
-            visitor->AddTarget(targetIdx, target);
+            visitor->AddTarget(
+                targetIdx,
+                MakeIntrusive<TTypeCastArrayHolder<float, float>>(std::move(target))
+            );
         }
         TVector<float> weights(metaInfo.HasWeights ? dataRows : 0);
         TVector<float> groupWeights(metaInfo.HasGroupWeight ? dataRows : 0);
@@ -401,13 +404,32 @@ SEXP CatBoostPoolSlice_R(SEXP poolParam, SEXP sizeParam, SEXP offsetParam) {
     for (size_t i = offset; i < sliceEnd; ++i) {
         ui32 featureCount = pool->MetaInfo.GetFeatureCount();
         SEXP row = PROTECT(allocVector(REALSXP, featureCount + targetCount + 1));
-        for (auto targetIdx : xrange(targetCount)) {
-            REAL(row)[targetIdx] = FromString<double>((*target)[targetIdx][i]);
-        }
         REAL(row)[targetCount] = weights[i];
         rows.push_back(REAL(row));
         SET_VECTOR_ELT(result, i - offset, row);
     }
+
+    for (auto targetIdx : xrange(targetCount)) {
+        if (const ITypedSequencePtr<float>* typedSequence
+                = GetIf<ITypedSequencePtr<float>>(&((*target)[targetIdx])))
+        {
+            TIntrusivePtr<ITypedArraySubset<float>> subset = (*typedSequence)->GetSubset(
+                &objectsGroupingSubset.GetObjectsIndexing()
+            );
+            subset->ForEach(
+                [&rows, targetIdx] (ui32 i, float value) {
+                    rows[i][targetIdx] = value;
+                }
+            );
+        } else {
+            TConstArrayRef<TString> stringTargetPart = Get<TVector<TString>>((*target)[targetIdx]);
+
+            for (size_t i = offset; i < sliceEnd; ++i) {
+                rows[i - offset][targetIdx] = FromString<double>(stringTargetPart[i]);
+            }
+        }
+    }
+
 
     for (auto flatFeatureIdx : xrange(featureCount)) {
         TMaybeData<const TFloatValuesHolder*> maybeFeatureData

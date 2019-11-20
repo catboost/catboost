@@ -19,6 +19,7 @@
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/array_size.h>
+#include <util/generic/cast.h>
 #include <util/generic/deque.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/string.h>
@@ -961,20 +962,69 @@ namespace NCB {
             }
         }
         //target
-        const auto& label = dataProvider->RawTargetData.GetOneDimensionalTarget();
-        if (label) {
-            const auto& targetString = *label;
-            TVector<float> targetFloat(targetString.size());
+        const ERawTargetType rawTargetType = dataProvider->RawTargetData.GetTargetType();
+        switch (rawTargetType) {
+            case ERawTargetType::Float:
+                {
+                    CB_ENSURE(
+                        dataProvider->RawTargetData.GetTargetDimension() == 1,
+                        "Multidimensional targets are not currently supported"
+                    );
+                    TVector<float> targetFloat;
+                    targetFloat.yresize(dataProvider->GetObjectCount());
+                    TArrayRef<float> targetFloatRef = targetFloat;
+                    dataProvider->RawTargetData.GetFloatTarget(
+                        TArrayRef<TArrayRef<float>>(&targetFloatRef, 1)
+                    );
 
-            for (auto targetIdx : xrange(targetString.size())) {
-                CB_ENSURE(TryFromString<float>(targetString[targetIdx], targetFloat[targetIdx]),
-                    "Cannot parse label element at index " << targetIdx << " as float: " << targetString[targetIdx]);
-            }
+                    srcData->Target = GenerateSrcColumn<float>(
+                        TConstArrayRef<float>(targetFloat),
+                        EColumn::Label
+                    );
+                    columnNames.push_back("Target");
+                }
+                break;
+            case ERawTargetType::String:
+                /* TODO(akhropov): Properly support string targets: MLTOOLS-2393.
+                 * This is temporary solution for compatibility for saving pools loaded from files.
+                 */
+                {
+                    CB_ENSURE(
+                        dataProvider->RawTargetData.GetTargetDimension() == 1,
+                        "Multidimensional targets are not currently supported"
+                    );
 
-            srcData->Target = GenerateSrcColumn<float>(TConstArrayRef<float>(targetFloat), EColumn::Label);
-            columnNames.push_back("Target");
+                    TVector<TConstArrayRef<TString>> targetAsStrings;
+                    dataProvider->RawTargetData.GetStringTargetRef(&targetAsStrings);
+
+                    TVector<float> targetFloat;
+                    targetFloat.yresize(dataProvider->GetObjectCount());
+                    TArrayRef<float> targetFloatRef = targetFloat;
+                    TConstArrayRef<TString> targetAsStringsRef = targetAsStrings[0];
+
+                    localExecutor->ExecRangeBlockedWithThrow(
+                        [targetFloatRef, targetAsStringsRef] (int i) {
+                            CB_ENSURE(
+                                TryFromString(targetAsStringsRef[i], targetFloatRef[i]),
+                                "String target type is not currently supported"
+                            );
+                        },
+                        0,
+                        SafeIntegerCast<int>(dataProvider->GetObjectCount()),
+                        /*batchSizeOrZeroForAutoBatchSize*/ 0,
+                        NPar::TLocalExecutor::WAIT_COMPLETE
+                    );
+
+                    srcData->Target = GenerateSrcColumn<float>(
+                        TConstArrayRef<float>(targetFloat),
+                        EColumn::Label
+                    );
+                    columnNames.push_back("Target");
+                }
+                break;
+            case ERawTargetType::None:
+                break;
         }
-
         //baseline
         const auto& baseline = dataProvider->RawTargetData.GetBaseline();
         if (baseline) {

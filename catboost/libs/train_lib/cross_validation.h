@@ -63,6 +63,15 @@ TVector<NCB::TArraySubsetIndexing<ui32>> CalcTrainSubsets(
 
 TVector<NCB::TArraySubsetIndexing<ui32>> TransformToVectorArrayIndexing(const TVector<TVector<ui32>>& vectorData);
 
+TVector<NCB::TArraySubsetIndexing<ui32>> StratifiedSplitToFolds(
+    const NCB::TDataProvider& dataProvider,
+    ui32 partCount);
+
+TVector<NCB::TArraySubsetIndexing<ui32>> StratifiedSplitToFolds(
+    const NCB::TTrainingDataProvider& trainingDataProvider,
+    ui32 partCount);
+
+
 template <class TDataProvidersTemplate> // TDataProvidersTemplate<...> or TTrainingDataProvidersTemplate<...>
 TVector<TDataProvidersTemplate> PrepareCvFolds(
     typename TDataProvidersTemplate::TDataPtr srcData,
@@ -97,11 +106,7 @@ TVector<TDataProvidersTemplate> PrepareCvFolds(
         testSubsets = trainAndTestSubsets.second;
     } else {
         if (cvParams.Stratified) {
-            testSubsets = NCB::StratifiedSplitToFolds(
-                *srcData->ObjectsGrouping,
-                NCB::GetTargetForStratifiedSplit(*srcData),
-                cvParams.FoldCount
-            );
+            testSubsets = StratifiedSplitToFolds(*srcData, cvParams.FoldCount);
         } else {
             testSubsets = NCB::Split(*srcData->ObjectsGrouping, cvParams.FoldCount, oldCvStyleSplit);
         }

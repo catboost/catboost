@@ -202,7 +202,8 @@ static void CreateQuantizedObjectsDataProviderTestData(
 
 static TRawTargetData CreateRawTargetData() {
     TRawTargetData targetData;
-    targetData.Target = TVector<TVector<TString>>{{"0.2", "0.5", "1.0", "0.0", "0.8", "0.3"}};
+    TVector<TVector<TString>> rawTarget{{"0.2", "0.5", "1.0", "0.0", "0.8", "0.3"}};
+    targetData.Target.assign(rawTarget.begin(), rawTarget.end());
     targetData.Baseline = TVector<TVector<float>>{
         TVector<float>{0.12f, 0.0f, 0.11f, 0.31f, 0.2f, 0.9f}
     };
@@ -216,7 +217,8 @@ static TRawTargetData CreateRawTargetData() {
 
 static TRawTargetData CreateRawMultiTargetData() {
     TRawTargetData targetData;
-    targetData.Target = TVector<TVector<TString>>{{"0.2", "0.5", "1.0", "0.0", "0.8", "0.3"}, {"-0.2", "-0.5", "-1.0", "-0.0", "-0.8", "-0.3"}};
+    TVector<TVector<TString>> rawTarget{{"0.2", "0.5", "1.0", "0.0", "0.8", "0.3"}, {"-0.2", "-0.5", "-1.0", "-0.0", "-0.8", "-0.3"}};
+    targetData.Target.assign(rawTarget.begin(), rawTarget.end());
     targetData.Baseline = TVector<TVector<float>>{
         TVector<float>{0.12f, 0.0f, 0.11f, 0.31f, 0.2f, 0.9f}
     };

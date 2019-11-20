@@ -29,6 +29,7 @@
 #include <util/generic/maybe.h>
 #include <util/stream/labeled.h>
 #include <util/string/cast.h>
+#include <util/system/compiler.h>
 #include <util/system/hp_timer.h>
 
 #include <cmath>
@@ -934,4 +935,49 @@ TVector<NCB::TArraySubsetIndexing<ui32>> TransformToVectorArrayIndexing(
         );
     }
     return result;
+}
+
+TVector<TArraySubsetIndexing<ui32>> StratifiedSplitToFolds(
+    const TDataProvider& dataProvider,
+    ui32 partCount
+) {
+    CB_ENSURE(
+        dataProvider.MetaInfo.TargetCount > 0,
+        "Cannot do stratified split: Target data is unavailable"
+    );
+    CB_ENSURE(
+        dataProvider.MetaInfo.TargetCount == 1,
+        "Cannot do stratified split: Target data is multi-dimensional"
+    );
+
+    switch (dataProvider.RawTargetData.GetTargetType()) {
+        case ERawTargetType::Float: {
+            TVector<float> rawTargetData;
+            rawTargetData.yresize(dataProvider.GetObjectCount());
+            TArrayRef<float> rawTargetDataRef = rawTargetData;
+            dataProvider.RawTargetData.GetFloatTarget(TArrayRef<TArrayRef<float>>(&rawTargetDataRef, 1));
+            return NCB::StratifiedSplitToFolds<float>(
+                *dataProvider.ObjectsGrouping,
+                rawTargetData,
+                partCount);
+        }
+        case ERawTargetType::String: {
+            TVector<TConstArrayRef<TString>> rawTargetData;
+            dataProvider.RawTargetData.GetStringTargetRef(&rawTargetData);
+            return NCB::StratifiedSplitToFolds(*dataProvider.ObjectsGrouping, rawTargetData[0], partCount);
+        }
+        default:
+            Y_UNREACHABLE();
+    }
+    Y_UNREACHABLE();
+}
+
+TVector<TArraySubsetIndexing<ui32>> StratifiedSplitToFolds(
+    const NCB::TTrainingDataProvider& trainingDataProvider,
+    ui32 partCount
+) {
+    TMaybeData<TConstArrayRef<float>> maybeTarget
+        = trainingDataProvider.TargetData->GetOneDimensionalTarget();
+    CB_ENSURE(maybeTarget, "Cannot do stratified split: Target data is unavailable");
+    return NCB::StratifiedSplitToFolds(*trainingDataProvider.ObjectsGrouping, *maybeTarget, partCount);
 }

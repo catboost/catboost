@@ -15,6 +15,7 @@
 #include <util/memory/blob.h>
 #include <util/random/random.h>
 #include <util/stream/file.h>
+#include <util/string/printf.h>
 #include <util/system/mktemp.h>
 
 #include <library/unittest/registar.h>
@@ -161,7 +162,8 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
 
             expectedData.ObjectsGrouping = TObjectsGrouping(5);
 
-            expectedData.Target.Target = {{"0.12", "0", "0.45", "0.1", "0.22"}};
+            TVector<TVector<TString>> rawTarget{{"0.12", "0", "0.45", "0.1", "0.22"}};
+            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.SetTrivialWeights(5);
 
             simpleTestCase.ExpectedData = std::move(expectedData);
@@ -288,7 +290,8 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
                 TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
             );
 
-            expectedData.Target.Target = {{"0.12", "0", "0.45", "0.1", "0.22", "0.42"}};
+            TVector<TVector<TString>> rawTarget{{"0.12", "0", "0.45", "0.1", "0.22", "0.42"}};
+            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Weights = TWeights<float>(
                 TVector<float>{0.12f, 0.18f, 1.0f, 0.45f, 1.0f, 0.9f}
             );
@@ -533,7 +536,8 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
                 TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
             );
 
-            expectedData.Target.Target = {{"0.12", "0", "0.45", "0.1", "0.22", "0.42"}};
+            TVector<TVector<TString>> rawTarget{{"0.12", "0", "0.45", "0.1", "0.22", "0.42"}};
+            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Weights = TWeights<float>(6);
             expectedData.Target.GroupWeights = TWeights<float>(
                 TVector<float>{1.0f, 1.0f, 0.0f, 0.5f, 0.5f, 0.5f}
@@ -649,7 +653,8 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
                 TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
             );
 
-            expectedData.Target.Target = {{"0.12", "0", "0.45", "0.1", "0.22", "0.42"}};
+            TVector<TVector<TString>> rawTarget{{"0.12", "0", "0.45", "0.1", "0.22", "0.42"}};
+            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Weights = TWeights<float>(6);
             expectedData.Target.GroupWeights = TWeights<float>(6);
 
@@ -738,17 +743,17 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
         srcData.Target = NCB::GenerateSrcColumn<float>(target, EColumn::Label);
 
         size_t sumOfStringSizes = 0;
-        expectedData.Target.Target = {
+        TVector<TVector<TString>> rawTarget{
             GenerateData<TString>(
                 srcData.DocumentCount,
                 [&] (ui32 i) {
-                    auto targetString = ToString(target[i]);
+                    auto targetString = Sprintf("%.9e", target[i]);
                     sumOfStringSizes += targetString.size();
                     return targetString;
                 }
             )
         };
-
+        expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
 
         TDataColumnsMetaInfo dataColumnsMetaInfo;
         dataColumnsMetaInfo.Columns = {

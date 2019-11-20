@@ -412,15 +412,4 @@ namespace NCB {
         return trainingData;
     }
 
-    TConstArrayRef<TString> GetTargetForStratifiedSplit(const TDataProvider& dataProvider) {
-        auto maybeTarget = dataProvider.RawTargetData.GetOneDimensionalTarget();
-        CB_ENSURE(maybeTarget, "Cannot do stratified split: Target data is unavailable");
-        return *maybeTarget;
-    }
-
-    TConstArrayRef<float> GetTargetForStratifiedSplit(const TTrainingDataProvider& dataProvider) {
-        auto maybeTarget = dataProvider.TargetData->GetOneDimensionalTarget();
-        CB_ENSURE(maybeTarget, "Cannot do stratified split: Target data is unavailable");
-        return *maybeTarget;
-    }
 }

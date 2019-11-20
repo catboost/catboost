@@ -192,7 +192,23 @@ namespace NCB {
                         if (targetDim > 1) {
                             header << ":Dim=" << targetIdx;
                         }
-                        columnPrinter.push_back(MakeHolder<TArrayPrinter<TString>>(target[targetIdx], header));
+                        if (const ITypedSequencePtr<float>* typedSequence
+                                = GetIf<ITypedSequencePtr<float>>(&(target[targetIdx])))
+                        {
+                            columnPrinter.push_back(
+                                MakeHolder<TArrayPrinter<float>>(
+                                    ToVector(**typedSequence),
+                                    header
+                                )
+                            );
+                        } else {
+                            columnPrinter.push_back(
+                                MakeHolder<TArrayPrinter<TString>>(
+                                    Get<TVector<TString>>(target[targetIdx]),
+                                    header
+                                )
+                            );
+                        }
                     }
                     continue;
                 }

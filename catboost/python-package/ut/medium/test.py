@@ -542,7 +542,7 @@ def test_load_series():
     cat_features = pool.get_cat_feature_indices()
     pool2 = Pool(data, labels, cat_features)
     assert _have_equal_features(pool, pool2)
-    assert [int(label) for label in pool.get_label()] == pool2.get_label()
+    assert _check_data([int(label) for label in pool.get_label()], pool2.get_label())
 
 
 def test_pool_cat_features():
@@ -589,7 +589,7 @@ def test_load_dumps():
         f.write(text)
     pool2 = Pool('test_data_dumps')
     assert _check_data(pool1.get_features(), pool2.get_features())
-    assert pool1.get_label() == [int(label) for label in pool2.get_label()]
+    assert _check_data(pool1.get_label(), [int(label) for label in pool2.get_label()])
 
 
 @pytest.mark.parametrize(
@@ -3865,7 +3865,7 @@ def test_slice_pool():
     ]
     for rindex in rindexes:
         sliced_pool = pool.slice(rindex)
-        assert sliced_pool.get_label() == list(rindex)
+        assert _check_data(sliced_pool.get_label(), list(rindex))
 
 
 def test_fit_and_predict_on_sliced_pools(task_type):

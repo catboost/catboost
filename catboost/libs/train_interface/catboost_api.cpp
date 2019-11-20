@@ -61,7 +61,9 @@ static TDataProviderPtr MakeDataProvider(
     }
 
 
-    builderVisitor->AddTarget(labels);
+    builderVisitor->AddTarget(
+        MakeIntrusive<TTypeCastArrayHolder<float, float>>(
+            TMaybeOwningConstArrayHolder<float>::CreateNonOwning(labels)));
     if (weights.data() != nullptr) {
         builderVisitor->AddWeights(weights);
     }

@@ -65,7 +65,8 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(3);
-            expectedData.Target.Target = TVector<TVector<TString>>{{"0", "1", "0"}};
+            TVector<TVector<TString>> rawTarget{{"0", "1", "0"}};
+            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Weights = TWeights<float>(3);
             expectedData.Target.GroupWeights = TWeights<float>(3);
 
@@ -143,7 +144,8 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(3);
-            expectedData.Target.Target = TVector<TVector<TString>>{{"0", "1", "0"}};
+            TVector<TVector<TString>> rawTarget{{"0", "1", "0"}};
+            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Weights = TWeights<float>(3);
             expectedData.Target.GroupWeights = TWeights<float>(3);
 
@@ -204,7 +206,8 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
             expectedData.ObjectsGrouping = TObjectsGrouping(
                 TVector<TGroupBounds>{{0, 1}, {1, 3}}
             );
-            expectedData.Target.Target = TVector<TVector<TString>>{{"0", "1", "0"}};
+            TVector<TVector<TString>> rawTarget{{"0", "1", "0"}};
+            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Weights = TWeights<float>(3);
             expectedData.Target.GroupWeights = TWeights<float>(3);
 

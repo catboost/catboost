@@ -2,12 +2,14 @@
 
 #include "array_subset.h"
 #include "dynamic_iterator.h"
+#include "exception.h"
 #include "maybe_owning_array_holder.h"
 
 #include <catboost/private/libs/index_range/index_range.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
+#include <util/generic/array_ref.h>
 #include <util/generic/cast.h>
 #include <util/generic/maybe.h>
 #include <util/generic/ptr.h>
@@ -366,6 +368,27 @@ namespace NCB {
 
     template <class T>
     using ITypedSequencePtr = TIntrusivePtr<ITypedSequence<T>>;
+
+    /* dst points to preallocated buffer, such interface allows to write data to external storage
+     * like numpy.ndarray
+     */
+    template <class T>
+    void ToArray(const ITypedSequence<T>& typedSequence, TArrayRef<T> dst) {
+        CB_ENSURE_INTERNAL(
+            (size_t)typedSequence.GetSize() == dst.size(),
+            "ToArray for ITypedSequence: Wrong dst array size"
+        );
+        size_t i = 0;
+        typedSequence.ForEach([&i, dst] (T value) { dst[i++] = value; });
+    }
+
+    template <class T>
+    TVector<T> ToVector(const ITypedSequence<T>& typedSequence) {
+        TVector<T> dst;
+        dst.yresize(typedSequence.GetSize());
+        ToArray<T>(typedSequence, dst);
+        return dst;
+    }
 
 
     template <class TInterfaceValue, class TStoredValue>
