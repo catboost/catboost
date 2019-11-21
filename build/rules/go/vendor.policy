@@ -75,6 +75,10 @@ ALLOW .* -> vendor/github.com/heetch/confita
 ALLOW .* -> vendor/github.com/iancoleman/strcase
 
 # PostgreSQL driver and toolkit for Go
+ALLOW .* -> vendor/github.com/jackc/pgx/v4
+ALLOW .* -> vendor/github.com/jackc/pgconn
+ALLOW .* -> vendor/github.com/jackc/pgtype
+# v3 is to be deprecated in the future
 ALLOW .* -> vendor/github.com/jackc/pgx
 
 # database/sql wrapper with a lot of helper functions
