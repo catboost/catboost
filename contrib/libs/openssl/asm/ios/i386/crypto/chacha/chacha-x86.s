@@ -1,0 +1,528 @@
+.text
+.globl	_ChaCha20_ctr32
+.align	4
+_ChaCha20_ctr32:
+L_ChaCha20_ctr32_begin:
+	pushl	%ebp
+	pushl	%ebx
+	pushl	%esi
+	pushl	%edi
+	xorl	%eax,%eax
+	cmpl	28(%esp),%eax
+	je	L000no_data
+	call	Lpic_point
+Lpic_point:
+	popl	%eax
+	movl	L_OPENSSL_ia32cap_P$non_lazy_ptr-Lpic_point(%eax),%ebp
+	testl	$16777216,(%ebp)
+	jz	L001x86
+	testl	$512,4(%ebp)
+	jz	L001x86
+	jmp	Lssse3_shortcut
+L001x86:
+	movl	32(%esp),%esi
+	movl	36(%esp),%edi
+	subl	$132,%esp
+	movl	(%esi),%eax
+	movl	4(%esi),%ebx
+	movl	8(%esi),%ecx
+	movl	12(%esi),%edx
+	movl	%eax,80(%esp)
+	movl	%ebx,84(%esp)
+	movl	%ecx,88(%esp)
+	movl	%edx,92(%esp)
+	movl	16(%esi),%eax
+	movl	20(%esi),%ebx
+	movl	24(%esi),%ecx
+	movl	28(%esi),%edx
+	movl	%eax,96(%esp)
+	movl	%ebx,100(%esp)
+	movl	%ecx,104(%esp)
+	movl	%edx,108(%esp)
+	movl	(%edi),%eax
+	movl	4(%edi),%ebx
+	movl	8(%edi),%ecx
+	movl	12(%edi),%edx
+	subl	$1,%eax
+	movl	%eax,112(%esp)
+	movl	%ebx,116(%esp)
+	movl	%ecx,120(%esp)
+	movl	%edx,124(%esp)
+	jmp	L002entry
+.align	4,0x90
+L003outer_loop:
+	movl	%ebx,156(%esp)
+	movl	%eax,152(%esp)
+	movl	%ecx,160(%esp)
+L002entry:
+	movl	$1634760805,%eax
+	movl	$857760878,4(%esp)
+	movl	$2036477234,8(%esp)
+	movl	$1797285236,12(%esp)
+	movl	84(%esp),%ebx
+	movl	88(%esp),%ebp
+	movl	104(%esp),%ecx
+	movl	108(%esp),%esi
+	movl	116(%esp),%edx
+	movl	120(%esp),%edi
+	movl	%ebx,20(%esp)
+	movl	%ebp,24(%esp)
+	movl	%ecx,40(%esp)
+	movl	%esi,44(%esp)
+	movl	%edx,52(%esp)
+	movl	%edi,56(%esp)
+	movl	92(%esp),%ebx
+	movl	124(%esp),%edi
+	movl	112(%esp),%edx
+	movl	80(%esp),%ebp
+	movl	96(%esp),%ecx
+	movl	100(%esp),%esi
+	addl	$1,%edx
+	movl	%ebx,28(%esp)
+	movl	%edi,60(%esp)
+	movl	%edx,112(%esp)
+	movl	$10,%ebx
+	jmp	L004loop
+.align	4,0x90
+L004loop:
+	addl	%ebp,%eax
+	movl	%ebx,128(%esp)
+	movl	%ebp,%ebx
+	xorl	%eax,%edx
+	roll	$16,%edx
+	addl	%edx,%ecx
+	xorl	%ecx,%ebx
+	movl	52(%esp),%edi
+	roll	$12,%ebx
+	movl	20(%esp),%ebp
+	addl	%ebx,%eax
+	xorl	%eax,%edx
+	movl	%eax,(%esp)
+	roll	$8,%edx
+	movl	4(%esp),%eax
+	addl	%edx,%ecx
+	movl	%edx,48(%esp)
+	xorl	%ecx,%ebx
+	addl	%ebp,%eax
+	roll	$7,%ebx
+	xorl	%eax,%edi
+	movl	%ecx,32(%esp)
+	roll	$16,%edi
+	movl	%ebx,16(%esp)
+	addl	%edi,%esi
+	movl	40(%esp),%ecx
+	xorl	%esi,%ebp
+	movl	56(%esp),%edx
+	roll	$12,%ebp
+	movl	24(%esp),%ebx
+	addl	%ebp,%eax
+	xorl	%eax,%edi
+	movl	%eax,4(%esp)
+	roll	$8,%edi
+	movl	8(%esp),%eax
+	addl	%edi,%esi
+	movl	%edi,52(%esp)
+	xorl	%esi,%ebp
+	addl	%ebx,%eax
+	roll	$7,%ebp
+	xorl	%eax,%edx
+	movl	%esi,36(%esp)
+	roll	$16,%edx
+	movl	%ebp,20(%esp)
+	addl	%edx,%ecx
+	movl	44(%esp),%esi
+	xorl	%ecx,%ebx
+	movl	60(%esp),%edi
+	roll	$12,%ebx
+	movl	28(%esp),%ebp
+	addl	%ebx,%eax
+	xorl	%eax,%edx
+	movl	%eax,8(%esp)
+	roll	$8,%edx
+	movl	12(%esp),%eax
+	addl	%edx,%ecx
+	movl	%edx,56(%esp)
+	xorl	%ecx,%ebx
+	addl	%ebp,%eax
+	roll	$7,%ebx
+	xorl	%eax,%edi
+	roll	$16,%edi
+	movl	%ebx,24(%esp)
+	addl	%edi,%esi
+	xorl	%esi,%ebp
+	roll	$12,%ebp
+	movl	20(%esp),%ebx
+	addl	%ebp,%eax
+	xorl	%eax,%edi
+	movl	%eax,12(%esp)
+	roll	$8,%edi
+	movl	(%esp),%eax
+	addl	%edi,%esi
+	movl	%edi,%edx
+	xorl	%esi,%ebp
+	addl	%ebx,%eax
+	roll	$7,%ebp
+	xorl	%eax,%edx
+	roll	$16,%edx
+	movl	%ebp,28(%esp)
+	addl	%edx,%ecx
+	xorl	%ecx,%ebx
+	movl	48(%esp),%edi
+	roll	$12,%ebx
+	movl	24(%esp),%ebp
+	addl	%ebx,%eax
+	xorl	%eax,%edx
+	movl	%eax,(%esp)
+	roll	$8,%edx
+	movl	4(%esp),%eax
+	addl	%edx,%ecx
+	movl	%edx,60(%esp)
+	xorl	%ecx,%ebx
+	addl	%ebp,%eax
+	roll	$7,%ebx
+	xorl	%eax,%edi
+	movl	%ecx,40(%esp)
+	roll	$16,%edi
+	movl	%ebx,20(%esp)
+	addl	%edi,%esi
+	movl	32(%esp),%ecx
+	xorl	%esi,%ebp
+	movl	52(%esp),%edx
+	roll	$12,%ebp
+	movl	28(%esp),%ebx
+	addl	%ebp,%eax
+	xorl	%eax,%edi
+	movl	%eax,4(%esp)
+	roll	$8,%edi
+	movl	8(%esp),%eax
+	addl	%edi,%esi
+	movl	%edi,48(%esp)
+	xorl	%esi,%ebp
+	addl	%ebx,%eax
+	roll	$7,%ebp
+	xorl	%eax,%edx
+	movl	%esi,44(%esp)
+	roll	$16,%edx
+	movl	%ebp,24(%esp)
+	addl	%edx,%ecx
+	movl	36(%esp),%esi
+	xorl	%ecx,%ebx
+	movl	56(%esp),%edi
+	roll	$12,%ebx
+	movl	16(%esp),%ebp
+	addl	%ebx,%eax
+	xorl	%eax,%edx
+	movl	%eax,8(%esp)
+	roll	$8,%edx
+	movl	12(%esp),%eax
+	addl	%edx,%ecx
+	movl	%edx,52(%esp)
+	xorl	%ecx,%ebx
+	addl	%ebp,%eax
+	roll	$7,%ebx
+	xorl	%eax,%edi
+	roll	$16,%edi
+	movl	%ebx,28(%esp)
+	addl	%edi,%esi
+	xorl	%esi,%ebp
+	movl	48(%esp),%edx
+	roll	$12,%ebp
+	movl	128(%esp),%ebx
+	addl	%ebp,%eax
+	xorl	%eax,%edi
+	movl	%eax,12(%esp)
+	roll	$8,%edi
+	movl	(%esp),%eax
+	addl	%edi,%esi
+	movl	%edi,56(%esp)
+	xorl	%esi,%ebp
+	roll	$7,%ebp
+	decl	%ebx
+	jnz	L004loop
+	movl	160(%esp),%ebx
+	addl	$1634760805,%eax
+	addl	80(%esp),%ebp
+	addl	96(%esp),%ecx
+	addl	100(%esp),%esi
+	cmpl	$64,%ebx
+	jb	L005tail
+	movl	156(%esp),%ebx
+	addl	112(%esp),%edx
+	addl	120(%esp),%edi
+	xorl	(%ebx),%eax
+	xorl	16(%ebx),%ebp
+	movl	%eax,(%esp)
+	movl	152(%esp),%eax
+	xorl	32(%ebx),%ecx
+	xorl	36(%ebx),%esi
+	xorl	48(%ebx),%edx
+	xorl	56(%ebx),%edi
+	movl	%ebp,16(%eax)
+	movl	%ecx,32(%eax)
+	movl	%esi,36(%eax)
+	movl	%edx,48(%eax)
+	movl	%edi,56(%eax)
+	movl	4(%esp),%ebp
+	movl	8(%esp),%ecx
+	movl	12(%esp),%esi
+	movl	20(%esp),%edx
+	movl	24(%esp),%edi
+	addl	$857760878,%ebp
+	addl	$2036477234,%ecx
+	addl	$1797285236,%esi
+	addl	84(%esp),%edx
+	addl	88(%esp),%edi
+	xorl	4(%ebx),%ebp
+	xorl	8(%ebx),%ecx
+	xorl	12(%ebx),%esi
+	xorl	20(%ebx),%edx
+	xorl	24(%ebx),%edi
+	movl	%ebp,4(%eax)
+	movl	%ecx,8(%eax)
+	movl	%esi,12(%eax)
+	movl	%edx,20(%eax)
+	movl	%edi,24(%eax)
+	movl	28(%esp),%ebp
+	movl	40(%esp),%ecx
+	movl	44(%esp),%esi
+	movl	52(%esp),%edx
+	movl	60(%esp),%edi
+	addl	92(%esp),%ebp
+	addl	104(%esp),%ecx
+	addl	108(%esp),%esi
+	addl	116(%esp),%edx
+	addl	124(%esp),%edi
+	xorl	28(%ebx),%ebp
+	xorl	40(%ebx),%ecx
+	xorl	44(%ebx),%esi
+	xorl	52(%ebx),%edx
+	xorl	60(%ebx),%edi
+	leal	64(%ebx),%ebx
+	movl	%ebp,28(%eax)
+	movl	(%esp),%ebp
+	movl	%ecx,40(%eax)
+	movl	160(%esp),%ecx
+	movl	%esi,44(%eax)
+	movl	%edx,52(%eax)
+	movl	%edi,60(%eax)
+	movl	%ebp,(%eax)
+	leal	64(%eax),%eax
+	subl	$64,%ecx
+	jnz	L003outer_loop
+	jmp	L006done
+L005tail:
+	addl	112(%esp),%edx
+	addl	120(%esp),%edi
+	movl	%eax,(%esp)
+	movl	%ebp,16(%esp)
+	movl	%ecx,32(%esp)
+	movl	%esi,36(%esp)
+	movl	%edx,48(%esp)
+	movl	%edi,56(%esp)
+	movl	4(%esp),%ebp
+	movl	8(%esp),%ecx
+	movl	12(%esp),%esi
+	movl	20(%esp),%edx
+	movl	24(%esp),%edi
+	addl	$857760878,%ebp
+	addl	$2036477234,%ecx
+	addl	$1797285236,%esi
+	addl	84(%esp),%edx
+	addl	88(%esp),%edi
+	movl	%ebp,4(%esp)
+	movl	%ecx,8(%esp)
+	movl	%esi,12(%esp)
+	movl	%edx,20(%esp)
+	movl	%edi,24(%esp)
+	movl	28(%esp),%ebp
+	movl	40(%esp),%ecx
+	movl	44(%esp),%esi
+	movl	52(%esp),%edx
+	movl	60(%esp),%edi
+	addl	92(%esp),%ebp
+	addl	104(%esp),%ecx
+	addl	108(%esp),%esi
+	addl	116(%esp),%edx
+	addl	124(%esp),%edi
+	movl	%ebp,28(%esp)
+	movl	156(%esp),%ebp
+	movl	%ecx,40(%esp)
+	movl	152(%esp),%ecx
+	movl	%esi,44(%esp)
+	xorl	%esi,%esi
+	movl	%edx,52(%esp)
+	movl	%edi,60(%esp)
+	xorl	%eax,%eax
+	xorl	%edx,%edx
+L007tail_loop:
+	movb	(%esi,%ebp,1),%al
+	movb	(%esp,%esi,1),%dl
+	leal	1(%esi),%esi
+	xorb	%dl,%al
+	movb	%al,-1(%ecx,%esi,1)
+	decl	%ebx
+	jnz	L007tail_loop
+L006done:
+	addl	$132,%esp
+L000no_data:
+	popl	%edi
+	popl	%esi
+	popl	%ebx
+	popl	%ebp
+	ret
+.globl	_ChaCha20_ssse3
+.align	4
+_ChaCha20_ssse3:
+L_ChaCha20_ssse3_begin:
+	pushl	%ebp
+	pushl	%ebx
+	pushl	%esi
+	pushl	%edi
+Lssse3_shortcut:
+	movl	20(%esp),%edi
+	movl	24(%esp),%esi
+	movl	28(%esp),%ecx
+	movl	32(%esp),%edx
+	movl	36(%esp),%ebx
+	movl	%esp,%ebp
+	subl	$524,%esp
+	andl	$-64,%esp
+	movl	%ebp,512(%esp)
+	leal	Lssse3_data-Lpic_point(%eax),%eax
+	movdqu	(%ebx),%xmm3
+L0081x:
+	movdqa	32(%eax),%xmm0
+	movdqu	(%edx),%xmm1
+	movdqu	16(%edx),%xmm2
+	movdqa	(%eax),%xmm6
+	movdqa	16(%eax),%xmm7
+	movl	%ebp,48(%esp)
+	movdqa	%xmm0,(%esp)
+	movdqa	%xmm1,16(%esp)
+	movdqa	%xmm2,32(%esp)
+	movdqa	%xmm3,48(%esp)
+	movl	$10,%edx
+	jmp	L009loop1x
+.align	4,0x90
+L010outer1x:
+	movdqa	80(%eax),%xmm3
+	movdqa	(%esp),%xmm0
+	movdqa	16(%esp),%xmm1
+	movdqa	32(%esp),%xmm2
+	paddd	48(%esp),%xmm3
+	movl	$10,%edx
+	movdqa	%xmm3,48(%esp)
+	jmp	L009loop1x
+.align	4,0x90
+L009loop1x:
+	paddd	%xmm1,%xmm0
+	pxor	%xmm0,%xmm3
+.byte	102,15,56,0,222
+	paddd	%xmm3,%xmm2
+	pxor	%xmm2,%xmm1
+	movdqa	%xmm1,%xmm4
+	psrld	$20,%xmm1
+	pslld	$12,%xmm4
+	por	%xmm4,%xmm1
+	paddd	%xmm1,%xmm0
+	pxor	%xmm0,%xmm3
+.byte	102,15,56,0,223
+	paddd	%xmm3,%xmm2
+	pxor	%xmm2,%xmm1
+	movdqa	%xmm1,%xmm4
+	psrld	$25,%xmm1
+	pslld	$7,%xmm4
+	por	%xmm4,%xmm1
+	pshufd	$78,%xmm2,%xmm2
+	pshufd	$57,%xmm1,%xmm1
+	pshufd	$147,%xmm3,%xmm3
+	nop
+	paddd	%xmm1,%xmm0
+	pxor	%xmm0,%xmm3
+.byte	102,15,56,0,222
+	paddd	%xmm3,%xmm2
+	pxor	%xmm2,%xmm1
+	movdqa	%xmm1,%xmm4
+	psrld	$20,%xmm1
+	pslld	$12,%xmm4
+	por	%xmm4,%xmm1
+	paddd	%xmm1,%xmm0
+	pxor	%xmm0,%xmm3
+.byte	102,15,56,0,223
+	paddd	%xmm3,%xmm2
+	pxor	%xmm2,%xmm1
+	movdqa	%xmm1,%xmm4
+	psrld	$25,%xmm1
+	pslld	$7,%xmm4
+	por	%xmm4,%xmm1
+	pshufd	$78,%xmm2,%xmm2
+	pshufd	$147,%xmm1,%xmm1
+	pshufd	$57,%xmm3,%xmm3
+	decl	%edx
+	jnz	L009loop1x
+	paddd	(%esp),%xmm0
+	paddd	16(%esp),%xmm1
+	paddd	32(%esp),%xmm2
+	paddd	48(%esp),%xmm3
+	cmpl	$64,%ecx
+	jb	L011tail
+	movdqu	(%esi),%xmm4
+	movdqu	16(%esi),%xmm5
+	pxor	%xmm4,%xmm0
+	movdqu	32(%esi),%xmm4
+	pxor	%xmm5,%xmm1
+	movdqu	48(%esi),%xmm5
+	pxor	%xmm4,%xmm2
+	pxor	%xmm5,%xmm3
+	leal	64(%esi),%esi
+	movdqu	%xmm0,(%edi)
+	movdqu	%xmm1,16(%edi)
+	movdqu	%xmm2,32(%edi)
+	movdqu	%xmm3,48(%edi)
+	leal	64(%edi),%edi
+	subl	$64,%ecx
+	jnz	L010outer1x
+	jmp	L012done
+L011tail:
+	movdqa	%xmm0,(%esp)
+	movdqa	%xmm1,16(%esp)
+	movdqa	%xmm2,32(%esp)
+	movdqa	%xmm3,48(%esp)
+	xorl	%eax,%eax
+	xorl	%edx,%edx
+	xorl	%ebp,%ebp
+L013tail_loop:
+	movb	(%esp,%ebp,1),%al
+	movb	(%esi,%ebp,1),%dl
+	leal	1(%ebp),%ebp
+	xorb	%dl,%al
+	movb	%al,-1(%edi,%ebp,1)
+	decl	%ecx
+	jnz	L013tail_loop
+L012done:
+	movl	512(%esp),%esp
+	popl	%edi
+	popl	%esi
+	popl	%ebx
+	popl	%ebp
+	ret
+.align	6,0x90
+Lssse3_data:
+.byte	2,3,0,1,6,7,4,5,10,11,8,9,14,15,12,13
+.byte	3,0,1,2,7,4,5,6,11,8,9,10,15,12,13,14
+.long	1634760805,857760878,2036477234,1797285236
+.long	0,1,2,3
+.long	4,4,4,4
+.long	1,0,0,0
+.long	4,0,0,0
+.long	0,-1,-1,-1
+.align	6,0x90
+.byte	67,104,97,67,104,97,50,48,32,102,111,114,32,120,56,54
+.byte	44,32,67,82,89,80,84,79,71,65,77,83,32,98,121,32
+.byte	60,97,112,112,114,111,64,111,112,101,110,115,115,108,46,111
+.byte	114,103,62,0
+.section __IMPORT,__pointers,non_lazy_symbol_pointers
+L_OPENSSL_ia32cap_P$non_lazy_ptr:
+.indirect_symbol	_OPENSSL_ia32cap_P
+.long	0
+.comm	_OPENSSL_ia32cap_P,16,2

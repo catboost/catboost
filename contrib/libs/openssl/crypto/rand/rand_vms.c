@@ -19,13 +19,13 @@
 # include <descrip.h>
 # include <dvidef.h>
 # include <jpidef.h>
-# include <rmidef.h>
+# error include <rmidef.h>
 # include <syidef.h>
 # include <ssdef.h>
 # include <starlet.h>
-# include <efndef.h>
+# error include <efndef.h>
 # include <gen64def.h>
-# include <iosbdef.h>
+# error include <iosbdef.h>
 # include <iledef.h>
 # include <lib$routines.h>
 # ifdef __DECC

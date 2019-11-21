@@ -1,4 +1,12 @@
-#if defined(__APPLE__) && defined(__x86_64__)
+#if defined(__APPLE__) && defined(__IOS__) && defined(__i386__)
+#   include "opensslconf-ios-i386.h"
+#elif defined(__APPLE__) && defined(__IOS__) && defined(__x86_64__)
+#   include "opensslconf-ios-x86_64.h"
+#elif defined(__APPLE__) && defined(__IOS__) && defined(__arm__)
+#   include "opensslconf-ios-armv7.h"
+#elif defined(__APPLE__) && defined(__IOS__) && defined(__aarch64__)
+#   include "opensslconf-ios-arm64.h"
+#elif defined(__APPLE__) && defined(__x86_64__)
 #   include "opensslconf-osx.h"
 #elif defined(__linux__) && defined(__aarch64__)
 #   include "opensslconf-linux_aarch64.h"
