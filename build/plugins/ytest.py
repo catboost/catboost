@@ -346,6 +346,8 @@ def onadd_ytest(unit, *args):
         # Current ymake implementation doesn't allow to call macro inside the 'when' body
         # that's why we add ADD_YTEST(coverage.extractor) to every PROGRAM entry and check requirements later
         return
+    elif flat_args[1] == "no.test":
+        return
 
     fork_mode = []
     if 'FORK_SUBTESTS' in spec_args:
