@@ -10,7 +10,7 @@ namespace NCatboostCuda {
 
     void TBinOptimizedOracle::Regularize(TVector<float>* point) {
         const ui32 approxDim = SingleBinDim();
-        RegularizeImpl(LeavesEstimationConfig, TConstArrayRef<double>(WeightsCpu.begin(), WeightsCpu.begin() + PointDim()), point, approxDim);
+        RegularizeImpl(LeavesEstimationConfig, TConstArrayRef<double>(WeightsCpu.begin(), WeightsCpu.begin() + PointDim() / approxDim), point, approxDim);
     }
 
     TVector<float> TBinOptimizedOracle::MakeEstimationResult(const TVector<float>& point) const {
