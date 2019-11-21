@@ -72,14 +72,14 @@ void SetTrainDataFromQuantizedPool(
     ApplyMapper<TDatasetLoader>(
         workerCount,
         TMasterEnvironment::GetRef().SharedTrainData,
-        MakeEnvelope(TDatasetLoaderParams{
+        TDatasetLoaderParams{
             poolLoadOptions,
             ToString(trainParams),
             objectsOrder,
             objectsGrouping,
             featuresLayout,
             rand->GenRand()
-        })
+        }
     );
 }
 
@@ -128,7 +128,7 @@ void MapBuildPlainFold(TLearnContext* ctx) {
     ApplyMapper<TPlainFoldBuilder>(
         workerCount,
         TMasterEnvironment::GetRef().SharedTrainData,
-        MakeEnvelope(TPlainFoldBuilderParams({
+        TPlainFoldBuilderParams({
             ctx->CtrsHelper.GetTargetClassifiers(),
             ctx->LearnProgress->Rand.GenRand(),
             ctx->LearnProgress->ApproxDimension,
@@ -136,7 +136,7 @@ void MapBuildPlainFold(TLearnContext* ctx) {
             plainFold.GetLearnSampleCount(),
             plainFold.GetSumWeight(),
             ctx->LearnProgress->HessianType
-        }))
+        })
     );
 }
 
@@ -145,7 +145,7 @@ void MapRestoreApproxFromTreeStruct(TLearnContext* ctx) {
     ApplyMapper<TApproxReconstructor>(
         TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount(),
         TMasterEnvironment::GetRef().SharedTrainData,
-        MakeEnvelope(std::make_pair(ctx->LearnProgress->TreeStruct, ctx->LearnProgress->LeafValues)));
+        std::make_pair(ctx->LearnProgress->TreeStruct, ctx->LearnProgress->LeafValues));
 }
 
 void MapTensorSearchStart(TLearnContext* ctx) {
@@ -173,7 +173,7 @@ void MapGenericCalcScore(
     auto allStatsFromAllWorkers = ApplyMapper<TScoreCalcMapper>(
         workerCount,
         TMasterEnvironment::GetRef().SharedTrainData,
-        MakeEnvelope(candidateList));
+        candidateList);
     const int candidateCount = candidateList.ysize();
     const ui64 randSeed = ctx->LearnProgress->Rand.GenRand();
     // set best split for each candidate
@@ -187,9 +187,9 @@ void MapGenericCalcScore(
             TVector<TVector<double>> allScores(subcandidateCount);
             for (int subcandidateIdx = 0; subcandidateIdx < subcandidateCount; ++subcandidateIdx) {
                 // reduce across workers
-                auto& reducedStats = allStatsFromAllWorkers[0].Data[candidateIdx][subcandidateIdx];
+                auto& reducedStats = allStatsFromAllWorkers[0][candidateIdx][subcandidateIdx];
                 for (int workerIdx = 1; workerIdx < workerCount; ++workerIdx) {
-                    const auto& stats = allStatsFromAllWorkers[workerIdx].Data[candidateIdx][subcandidateIdx];
+                    const auto& stats = allStatsFromAllWorkers[workerIdx][candidateIdx][subcandidateIdx];
                     reducedStats.Add(stats);
                 }
                 const auto& splitInfo = subCandidates[subcandidateIdx];
@@ -281,7 +281,7 @@ void MapRemoteCalcScore(
 void MapSetIndices(const TSplit& bestSplit, TLearnContext* ctx) {
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     const int workerCount = TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount();
-    ApplyMapper<TLeafIndexSetter>(workerCount, TMasterEnvironment::GetRef().SharedTrainData, MakeEnvelope(bestSplit));
+    ApplyMapper<TLeafIndexSetter>(workerCount, TMasterEnvironment::GetRef().SharedTrainData, bestSplit);
 }
 
 int MapGetRedundantSplitIdx(TLearnContext* ctx) {
@@ -290,11 +290,11 @@ int MapGetRedundantSplitIdx(TLearnContext* ctx) {
     TVector<TEmptyLeafFinder::TOutput> isLeafEmptyFromAllWorkers
         = ApplyMapper<TEmptyLeafFinder>(workerCount, TMasterEnvironment::GetRef().SharedTrainData); // poll workers
     for (int workerIdx = 1; workerIdx < workerCount; ++workerIdx) {
-        for (int leafIdx = 0; leafIdx < isLeafEmptyFromAllWorkers[0].Data.ysize(); ++leafIdx) {
-            isLeafEmptyFromAllWorkers[0].Data[leafIdx] &= isLeafEmptyFromAllWorkers[workerIdx].Data[leafIdx];
+        for (int leafIdx = 0; leafIdx < isLeafEmptyFromAllWorkers[0].ysize(); ++leafIdx) {
+            isLeafEmptyFromAllWorkers[0][leafIdx] &= isLeafEmptyFromAllWorkers[workerIdx][leafIdx];
         }
     }
-    return GetRedundantSplitIdx(isLeafEmptyFromAllWorkers[0].Data);
+    return GetRedundantSplitIdx(isLeafEmptyFromAllWorkers[0]);
 }
 
 void MapCalcErrors(TLearnContext* ctx) {
@@ -351,7 +351,7 @@ void MapSetApproxes(
 
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
     const int workerCount = TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount();
-    ApplyMapper<TCalcApproxStarter>(workerCount, TMasterEnvironment::GetRef().SharedTrainData, MakeEnvelope(splitTree));
+    ApplyMapper<TCalcApproxStarter>(workerCount, TMasterEnvironment::GetRef().SharedTrainData, splitTree);
     const int gradientIterations = ctx->Params.ObliviousTreeOptions->LeavesEstimationIterations;
     const int approxDimension = ctx->LearnProgress->ApproxDimension;
     const int leafCount = splitTree.GetLeafCount();
@@ -412,7 +412,7 @@ void MapSetApproxes(
             const auto bucketsFromAllWorkers = ApplyMapper<TBucketUpdater>(workerCount, TMasterEnvironment::GetRef().SharedTrainData);
             // reduce across workers
             for (int workerIdx = 0; workerIdx < workerCount; ++workerIdx) {
-                const auto &workerBuckets = bucketsFromAllWorkers[workerIdx].Data.first;
+                const auto &workerBuckets = bucketsFromAllWorkers[workerIdx].first;
                 for (int leafIdx = 0; leafIdx < leafCount; ++leafIdx) {
                     if (ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod == ELeavesEstimation::Gradient) {
                         buckets[leafIdx].AddDerWeight(
@@ -425,7 +425,7 @@ void MapSetApproxes(
                         buckets[leafIdx].AddDerDer2(workerBuckets[leafIdx].SumDer, workerBuckets[leafIdx].SumDer2);
                     }
                 }
-                TApproxDefs::AddPairwiseBuckets(bucketsFromAllWorkers[workerIdx].Data.second, &pairwiseBuckets);
+                TApproxDefs::AddPairwiseBuckets(bucketsFromAllWorkers[workerIdx].second, &pairwiseBuckets);
             }
             const auto leafValues = TApproxDefs::CalcLeafValues(buckets, pairwiseBuckets, *ctx);
             AddElementwise(leafValues, averageLeafValues);

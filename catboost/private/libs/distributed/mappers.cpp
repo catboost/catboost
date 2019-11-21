@@ -89,21 +89,21 @@ namespace NCatboostDistributed {
     ) const {
         auto& localData = TLocalTensorSearchData::GetRef();
         if (localData.Rand == nullptr) {
-            localData.Rand = new TRestorableFastRng64(params->Data.RandomSeed + hostId);
+            localData.Rand = new TRestorableFastRng64(params->RandomSeed + hostId);
         }
 
         const int workerCount = ctx->GetHostIdCount();
         CATBOOST_DEBUG_LOG << "Worker count " << workerCount << Endl;
-        const auto workerParts = WorkaroundSplit(params->Data.ObjectsGrouping, workerCount);
+        const auto workerParts = WorkaroundSplit(params->ObjectsGrouping, workerCount);
         const ui32 loadStart = workerParts[hostId].Begin;
         const ui32 loadEnd = workerParts[hostId].End;
 
-        const auto poolLoadOptions = params->Data.PoolLoadOptions;
+        const auto poolLoadOptions = params->PoolLoadOptions;
         TProfileInfo profile;
         CATBOOST_DEBUG_LOG << "Load quantized pool section for worker " << hostId << "..." << Endl;
         auto pools = NCB::ReadTrainDatasets(
             poolLoadOptions,
-            params->Data.ObjectsOrder,
+            params->ObjectsOrder,
             /*readTest*/false,
             NCB::TDatasetSubset::MakeRange(loadStart, loadEnd),
             &localData.ClassNamesFromDataset,
@@ -112,10 +112,10 @@ namespace NCatboostDistributed {
         );
 
         NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::CPU);
-        catBoostOptions.Load(GetJson(params->Data.TrainOptions));
+        catBoostOptions.Load(GetJson(params->TrainOptions));
         TLabelConverter labelConverter;
         auto quantizedFeaturesInfo = MakeIntrusive<NCB::TQuantizedFeaturesInfo>(
-            params->Data.FeaturesLayout,
+            params->FeaturesLayout,
             catBoostOptions.DataProcessingOptions.Get().IgnoredFeatures.Get(),
             catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
             catBoostOptions.DataProcessingOptions->PerFloatFeatureQuantization.Get(),
@@ -150,10 +150,10 @@ namespace NCatboostDistributed {
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
         auto& localData = TLocalTensorSearchData::GetRef();
         if (localData.Rand == nullptr) { // may be set by TDatasetLoader
-            localData.Rand = new TRestorableFastRng64(params->Data.RandomSeed + hostId);
+            localData.Rand = new TRestorableFastRng64(params->RandomSeed + hostId);
         }
 
-        auto trainParamsJson = GetJson(params->Data.TrainParams);
+        auto trainParamsJson = GetJson(params->TrainParams);
         UpdateUndefinedClassNames(localData.ClassNamesFromDataset, &trainParamsJson);
         localData.Params.Load(trainParamsJson);
 
@@ -172,13 +172,13 @@ namespace NCatboostDistributed {
             /*isForWorkerLocalData*/ true,
             /*isSingleHost*/ false,
             trainingDataProviders,
-            params->Data.ApproxDimension,
+            params->ApproxDimension,
             TLabelConverter(), // unused in case of localData
-            params->Data.RandomSeed + hostId,
+            params->RandomSeed + hostId,
             /*initRand*/ localData.Rand.Get(),
             foldsCreationParams,
             /*datasetsCanContainBaseline*/ true,
-            params->Data.TargetClassifiers,
+            params->TargetClassifiers,
             /*featuresCheckSum*/ 0, // unused in case of localData
             /*foldCreationParamsCheckSum*/ 0,
             ParseMemorySizeDescription(trainParams.SystemOptions->CpuUsedRamLimit.Get()),
@@ -187,7 +187,7 @@ namespace NCatboostDistributed {
             &NPar::LocalExecutor());
         Y_ASSERT(localData.Progress->AveragingFold.BodyTailArr.ysize() == 1);
 
-        localData.HessianType = params->Data.HessianType;
+        localData.HessianType = params->HessianType;
 
         localData.StoreExpApprox = foldsCreationParams.StoreExpApproxes;
 
@@ -220,8 +220,8 @@ namespace NCatboostDistributed {
                 trainParams.ObliviousTreeOptions->MaxDepth);
         }
         localData.Indices.yresize(plainFold.GetLearnSampleCount());
-        localData.AllDocCount = params->Data.AllDocCount;
-        localData.SumAllWeights = params->Data.SumAllWeights;
+        localData.AllDocCount = params->AllDocCount;
+        localData.SumAllWeights = params->SumAllWeights;
     }
 
     void TApproxReconstructor::DoMap(
@@ -236,8 +236,8 @@ namespace NCatboostDistributed {
         auto& localData = TLocalTensorSearchData::GetRef();
         Y_ASSERT(IsPlainMode(localData.Params.BoostingOptions->BoostingType));
 
-        const auto& forest = valuedForest->Data.first;
-        const auto& leafValues = valuedForest->Data.second;
+        const auto& forest = valuedForest->first;
+        const auto& leafValues = valuedForest->second;
         Y_ASSERT(forest.size() == leafValues.size());
 
         auto maybeBaseline = GetTrainData(trainData)->TargetData->GetBaseline();
@@ -393,7 +393,7 @@ namespace NCatboostDistributed {
         auto calcStats3D = [&](const TCandidateInfo& candidate, TStats3D* stats3D) {
             CalcStats3D(trainData, candidate, stats3D);
         };
-        MapCandidateList(calcStats3D, candidateList->Data, &bucketStats->Data);
+        MapCandidateList(calcStats3D, *candidateList, bucketStats);
     }
 
     void TPairwiseScoreCalcer::DoMap(
@@ -407,7 +407,7 @@ namespace NCatboostDistributed {
         auto calcPairwiseStats = [&](const TCandidateInfo& candidate, TPairwiseStats* pairwiseStats) {
             CalcPairwiseStats(trainData, localData.FlatPairs, candidate, pairwiseStats);
         };
-        MapCandidateList(calcPairwiseStats, candidateList->Data, &bucketStats->Data);
+        MapCandidateList(calcPairwiseStats, *candidateList, bucketStats);
     }
 
     // buckets -> workerPairwiseStats
@@ -520,11 +520,11 @@ namespace NCatboostDistributed {
         TInput* bestSplit,
         TOutput* /*unused*/
     ) const {
-        Y_ASSERT(bestSplit->Data.Type != ESplitType::OnlineCtr);
+        Y_ASSERT(bestSplit->Type != ESplitType::OnlineCtr);
         auto& localData = TLocalTensorSearchData::GetRef();
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
         SetPermutedIndices(
-            bestSplit->Data,
+            *bestSplit,
             *GetTrainData(trainData)->ObjectsData,
             localData.Depth + 1,
             localData.Progress->AveragingFold,
@@ -548,7 +548,7 @@ namespace NCatboostDistributed {
         TOutput* isLeafEmpty
     ) const {
         auto& localData = TLocalTensorSearchData::GetRef();
-        isLeafEmpty->Data = GetIsLeafEmpty(localData.Depth + 1, localData.Indices);
+        *isLeafEmpty = GetIsLeafEmpty(localData.Depth + 1, localData.Indices);
         ++localData.Depth; // tree level completed
     }
 
@@ -588,7 +588,7 @@ namespace NCatboostDistributed {
             &localData.Buckets,
             &localData.PairwiseBuckets,
             &weightedDers);
-        sums->Data = std::make_pair(localData.Buckets, localData.PairwiseBuckets);
+        *sums = std::make_pair(localData.Buckets, localData.PairwiseBuckets);
     }
 
     void TCalcApproxStarter::DoMap(
@@ -602,7 +602,7 @@ namespace NCatboostDistributed {
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
         localData.Indices = BuildIndices(
             localData.Progress->AveragingFold,
-            splitTree->Data,
+            *splitTree,
             GetTrainData(trainData),
             /*testDataPtrs*/{ },
             &NPar::LocalExecutor());
@@ -616,14 +616,14 @@ namespace NCatboostDistributed {
         for (auto& dimensionDelta : localData.ApproxDeltas) {
             Fill(dimensionDelta.begin(), dimensionDelta.end(), GetNeutralApprox(localData.StoreExpApprox));
         }
-        localData.Buckets.resize(splitTree->Data.GetLeafCount());
+        localData.Buckets.resize(splitTree->GetLeafCount());
         Fill(localData.Buckets.begin(), localData.Buckets.end(), TSum());
-        localData.MultiBuckets.resize(splitTree->Data.GetLeafCount());
+        localData.MultiBuckets.resize(splitTree->GetLeafCount());
         Fill(
             localData.MultiBuckets.begin(),
             localData.MultiBuckets.end(),
             TSumMulti(approxDimension, error->GetHessianType()));
-        localData.PairwiseBuckets.SetSizes(splitTree->Data.GetLeafCount(), splitTree->Data.GetLeafCount());
+        localData.PairwiseBuckets.SetSizes(splitTree->GetLeafCount(), splitTree->GetLeafCount());
         localData.PairwiseBuckets.FillZero();
         localData.GradientIteration = 0;
     }
@@ -718,7 +718,7 @@ namespace NCatboostDistributed {
             estimationMethod,
             &NPar::LocalExecutor(),
             &localData.MultiBuckets);
-        sums->Data = std::make_pair(localData.MultiBuckets, TUnusedInitializedParam());
+        *sums = std::make_pair(localData.MultiBuckets, TUnusedInitializedParam());
     }
 
     void TDeltaMultiUpdater::DoMap(
@@ -836,12 +836,6 @@ REGISTER_SAVELOAD_NM_CLASS(0xd66d487, NCatboostDistributed, TEmptyLeafFinder);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d488, NCatboostDistributed, TCalcApproxStarter);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d489, NCatboostDistributed, TDeltaSimpleUpdater);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d48a, NCatboostDistributed, TApproxUpdater);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d48b, NCatboostDistributed, TEnvelope, TCandidateList);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d48c, NCatboostDistributed, TEnvelope, TStats5D);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d48d, NCatboostDistributed, TEnvelope, TIsLeafEmpty);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d48e, NCatboostDistributed, TEnvelope, TCandidateInfo);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d48f, NCatboostDistributed, TEnvelope, TSplitTree);
-REGISTER_SAVELOAD_TEMPL1_NM_CLASS(0xd66d490, NCatboostDistributed, TEnvelope, TSums);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d50f, NCatboostDistributed, TBucketSimpleUpdater);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4af, NCatboostDistributed, TDerivativeSetter);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4b2, NCatboostDistributed, TDeltaMultiUpdater);
