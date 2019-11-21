@@ -10,6 +10,7 @@ from copy import deepcopy
 from collections import Sequence, defaultdict
 import functools
 import traceback
+import numbers
 
 import sys
 if sys.version_info >= (3, 3):
@@ -503,8 +504,17 @@ ctypedef TConstArrayRef[TConstArrayRef[float]] TBaselineArrayRef
 
 
 cdef extern from "catboost/libs/data/target.h" namespace "NCB":
+    cdef cppclass ERawTargetType:
+        bool_t operator==(ERawTargetType)
+
+    cdef ERawTargetType ERawTargetType_Float "NCB::ERawTargetType::Float"
+    cdef ERawTargetType ERawTargetType_String "NCB::ERawTargetType::String"
+    cdef ERawTargetType ERawTargetType_None "NCB::ERawTargetType::None"
+
     cdef cppclass TRawTargetDataProvider:
-        TMaybeData[TConstArrayRef[TConstArrayRef[TString]]] GetTarget()
+        ERawTargetType GetTargetType()
+        void GetFloatTarget(TArrayRef[TArrayRef[float]] dst)
+        void GetStringTargetRef(TVector[TConstArrayRef[TString]]* dst)
         TMaybeData[TBaselineArrayRef] GetBaseline()
         const TWeights[float]& GetWeights()
         const TWeights[float]& GetGroupWeights()
@@ -606,6 +616,7 @@ cdef extern from "catboost/libs/data/visitor.h" namespace "NCB":
             bool_t haveUnknownNumberOfSparseFeatures,
             ui32 objectCount,
             EObjectsOrder objectsOrder,
+            bool_t targetDataTypeIsString,
             TVector[TIntrusivePtr[IResourceHolder]] resourceHolders
         ) except +ProcessException
 
@@ -665,9 +676,9 @@ cdef extern from "catboost/libs/data/visitor.h" namespace "NCB":
         void AddTextFeature(ui32 flatFeatureIdx, TConstArrayRef[TStringBuf] feature) except +ProcessException
 
         void AddTarget(TConstArrayRef[TString] value) except +ProcessException
-        void AddTarget(TConstArrayRef[float] value) except +ProcessException
+        void AddTarget(ITypedSequencePtr[float] value) except +ProcessException
         void AddTarget(ui32 flatTargetIdx, TConstArrayRef[TString] value) except +ProcessException
-        void AddTarget(ui32 flatTargetIdx, TConstArrayRef[float] value) except +ProcessException
+        void AddTarget(ui32 flatTargetIdx, ITypedSequencePtr[float] value) except +ProcessException
         void AddBaseline(ui32 baselineIdx, TConstArrayRef[float] value) except +ProcessException
         void AddWeights(TConstArrayRef[float] value) except +ProcessException
         void AddGroupWeights(TConstArrayRef[float] value) except +ProcessException
@@ -690,6 +701,35 @@ cdef extern from "catboost/libs/data/data_provider_builders.h" namespace "NCB":
         THolder[IDataProviderBuilder]* dataProviderBuilder,
         IVisitor** loader
     ) except +ProcessException
+
+
+cdef class Py_ObjectsOrderBuilderVisitor:
+    cdef TDataProviderBuilderOptions options
+    cdef TLocalExecutor local_executor
+    cdef THolder[IDataProviderBuilder] data_provider_builder
+    cdef IRawObjectsOrderDataVisitor* builder_visitor
+    cdef const TFeaturesLayout* features_layout
+
+    def __cinit__(self, thread_count):
+        self.local_executor.RunAdditionalThreads(thread_count - 1)
+        CreateDataProviderBuilderAndVisitor(
+            self.options,
+            &self.local_executor,
+            &self.data_provider_builder,
+            &self.builder_visitor
+        )
+
+    cdef get_raw_objects_order_data_visitor(self, IRawObjectsOrderDataVisitor** builder_visitor):
+        builder_visitor[0] = self.builder_visitor
+
+    cdef set_features_layout(self, const TFeaturesLayout* features_layout):
+        self.features_layout = features_layout
+
+    cdef get_features_layout(self, const TFeaturesLayout** features_layout):
+        features_layout[0] = self.features_layout
+
+    def __dealloc__(self):
+        pass
 
 
 cdef class Py_FeaturesOrderBuilderVisitor:
@@ -1990,8 +2030,8 @@ cdef _get_object_count(data):
 # num_feature_values and cat_feature values cannot be const due to
 # https://github.com/cython/cython/issues/2485
 def _set_features_order_data_features_data(
-    numpy_num_dtype [:,:] num_feature_values,
-    object [:,:] cat_feature_values,
+    numpy_num_dtype [::1,:] num_feature_values,
+    object [::1,:] cat_feature_values,
     Py_FeaturesOrderBuilderVisitor py_builder_visitor
 ):
     cdef IRawFeaturesOrderDataVisitor* builder_visitor
@@ -2038,7 +2078,7 @@ def _set_features_order_data_features_data(
 
 # feature_values cannot be const due to https://github.com/cython/cython/issues/2485
 def _set_features_order_data_ndarray(
-    numpy_num_dtype [:,:] feature_values,
+    numpy_num_dtype [::1,:] feature_values,
     bool_t [:] is_cat_feature_mask,
     bool_t [:] is_text_feature_mask,
     Py_FeaturesOrderBuilderVisitor py_builder_visitor
@@ -2108,6 +2148,8 @@ cdef create_num_factor_data(
         )
         return []
     elif column_values.dtype in numpy_num_dtype_list: # Cython cannot use fused type lists in normal code
+        if not column_values.flags.c_contiguous:
+            column_values = np.ascontiguousarray(column_values, dtype=np.float32)
         py_num_factor_data = make_non_owning_type_cast_array_holder(column_values)
         py_num_factor_data.get_result(result)
         return [column_values]
@@ -2784,7 +2826,7 @@ def _set_features_order_data_scipy_sparse_csc_matrix(
     if (numpy_num_dtype is np.float32_t) or (numpy_num_dtype is np.float64_t):
         is_float_value = True
 
-    new_data_holders = [data]
+    new_data_holders = []
 
     for feature_idx in range(feature_count):
         feature_nonzero_count = indptr[feature_idx + 1] - indptr[feature_idx]
@@ -2823,7 +2865,7 @@ def _set_features_order_data_scipy_sparse_csc_matrix(
                 )
             )
         else:
-            create_num_factor_data(
+            new_data_holders += create_num_factor_data(
                 feature_idx,
                 np.asarray(data[indptr[feature_idx]:indptr[feature_idx + 1]]),
                 &num_factor_data
@@ -2935,27 +2977,6 @@ cdef TString obj_to_arcadia_string(obj):
         return to_arcadia_string(str(obj))
 
 
-cdef _set_label(label, IRawObjectsOrderDataVisitor* builder_visitor):
-    for i in range(len(label)):
-        for j in range(len(label[i])):
-            builder_visitor[0].AddTarget(
-                <ui32>j,
-                <ui32>i,
-                obj_to_arcadia_string(label[i][j])
-            )
-
-
-cdef _set_label_features_order(label, IRawFeaturesOrderDataVisitor* builder_visitor):
-    cdef TVector[TString] labelVector
-    labelVector.reserve(len(label))
-
-    for j in range(len(label[0])):
-        labelVector.clear()
-        for i in range(len(label)):
-            labelVector.push_back(obj_to_arcadia_string(label[i][j]))
-        builder_visitor[0].AddTarget(<ui32>j, <TConstArrayRef[TString]>labelVector)
-
-
 ctypedef fused IBuilderVisitor:
     IRawObjectsOrderDataVisitor
     IRawFeaturesOrderDataVisitor
@@ -3057,9 +3078,28 @@ cdef _set_baseline_features_order(baseline, IRawFeaturesOrderDataVisitor* builde
         builder_visitor[0].AddBaseline(baseline_idx, <TConstArrayRef[float]>one_dim_baseline)
 
 
+def _set_label_from_num_nparray_objects_order(
+    numpy_num_dtype[:,:] label,
+    Py_ObjectsOrderBuilderVisitor py_builder_visitor
+):
+    cdef IRawObjectsOrderDataVisitor* builder_visitor = py_builder_visitor.builder_visitor
+    cdef ui32 object_count = label.shape[0]
+    cdef ui32 target_count = label.shape[1]
+    cdef ui32 target_idx
+    cdef ui32 object_idx
+
+    for target_idx in range(target_count):
+        for object_idx in range(object_count):
+            builder_visitor[0].AddTarget(target_idx, object_idx, <float>label[object_idx][target_idx])
+
+
 cdef class _PoolBase:
     cdef TDataProviderPtr __pool
     cdef object target_type
+    
+    # possibly hold list of references to data to allow using views to them in __pool
+    # also useful to simplify get_label
+    cdef object __target_data_holders # [target_idx]
 
     # possibly hold reference or list of references to data to allow using views to them in __pool
     cdef object __data_holders
@@ -3067,6 +3107,7 @@ cdef class _PoolBase:
     def __cinit__(self):
         self.__pool = TDataProviderPtr()
         self.target_type = None
+        self.__target_data_holders = None
         self.__data_holders = None
 
     def __dealloc__(self):
@@ -3077,6 +3118,67 @@ cdef class _PoolBase:
 
     def __eq__(self, _PoolBase other):
         return dereference(self.__pool.Get()) == dereference(other.__pool.Get())
+
+    def _set_label_objects_order(self, label, Py_ObjectsOrderBuilderVisitor py_builder_visitor):
+        cdef IRawObjectsOrderDataVisitor* builder_visitor = py_builder_visitor.builder_visitor
+        cdef ui32 object_count = len(label)
+        cdef ui32 target_count = len(label[0])
+        cdef ui32 target_idx
+        cdef ui32 object_idx
+        
+        self.target_type = type(label[0][0])
+        if isinstance(label[0][0], numbers.Number):
+            if isinstance(label, np.ndarray) and (self.target_type in numpy_num_dtype_list):
+                _set_label_from_num_nparray_objects_order(label, py_builder_visitor)
+            else:
+                for target_idx in range(target_count):
+                    for object_idx in range(object_count):
+                        builder_visitor[0].AddTarget(
+                            target_idx,
+                            object_idx,
+                            <float>(label[object_idx][target_idx])
+                        )
+        else:
+            for target_idx in range(target_count):
+                for object_idx in range(object_count):
+                    builder_visitor[0].AddTarget(
+                        target_idx,
+                        object_idx,
+                        obj_to_arcadia_string(label[object_idx][target_idx])
+                    )
+
+    cdef _set_label_features_order(self, label, IRawFeaturesOrderDataVisitor* builder_visitor):
+        cdef Py_ITypedSequencePtr py_num_target_data
+        cdef ITypedSequencePtr[np.float32_t] num_target_data
+        cdef np.ndarray target_array
+        cdef TVector[TString] string_target_data
+        cdef ui32 object_count = len(label)
+        cdef ui32 target_count = len(label[0])
+        cdef ui32 target_idx
+        cdef ui32 object_idx
+
+        self.target_type = type(label[0][0])
+        if isinstance(label[0][0], numbers.Number):
+            self.__target_data_holders = []
+            for target_idx in range(target_count):
+                if isinstance(label, np.ndarray):
+                    target_array = np.ascontiguousarray(label[:, target_idx])
+                else:
+                    target_array = np.empty(object_count, dtype=np.float32)
+                    for object_idx in range(object_count):
+                        target_array[object_idx] = label[object_idx][target_idx]
+
+                self.__target_data_holders.append(target_array)
+                py_num_target_data = make_non_owning_type_cast_array_holder(target_array)
+                py_num_target_data.get_result(&num_target_data)
+                builder_visitor[0].AddTarget(target_idx, num_target_data)
+        else:
+            string_target_data.reserve(object_count)
+            for target_idx in range(target_count):
+                string_target_data.clear()
+                for object_idx in range(object_count):
+                    string_target_data.push_back(obj_to_arcadia_string(label[object_idx][target_idx]))
+                builder_visitor[0].AddTarget(target_idx, <TConstArrayRef[TString]>string_target_data)
 
 
     cpdef _read_pool(self, pool_file, cd_file, pairs_file, delimiter, bool_t has_header, int thread_count):
@@ -3199,8 +3301,7 @@ cdef class _PoolBase:
             )
 
         if label is not None:
-            _set_label_features_order(label, builder_visitor)
-            self.target_type = type(label[0][0])
+            self._set_label_features_order(label, builder_visitor)
         if pairs is not None:
             _set_pairs(pairs, pairs_weight, builder_visitor)
         elif pairs_weight is not None:
@@ -3236,15 +3337,11 @@ cdef class _PoolBase:
         baseline,
         thread_count):
 
+        cdef Py_ObjectsOrderBuilderVisitor py_builder_visitor = Py_ObjectsOrderBuilderVisitor(thread_count)
+        cdef IRawObjectsOrderDataVisitor* builder_visitor = py_builder_visitor.builder_visitor
+        py_builder_visitor.set_features_layout(data_meta_info.FeaturesLayout.Get())
+
         self.__data_holder = None # free previously used resources
-
-        cdef TDataProviderBuilderOptions options
-        cdef TLocalExecutor local_executor
-        cdef THolder[IDataProviderBuilder] data_provider_builder
-        cdef IRawObjectsOrderDataVisitor* builder_visitor
-
-        local_executor.RunAdditionalThreads(thread_count - 1)
-        CreateDataProviderBuilderAndVisitor(options, &local_executor, &data_provider_builder, &builder_visitor)
 
         cdef TVector[TIntrusivePtr[IResourceHolder]] resource_holders
         builder_visitor[0].Start(
@@ -3253,6 +3350,7 @@ cdef class _PoolBase:
             False,
             _get_object_count(data),
             EObjectsOrder_Undefined,
+            (label is not None) and (not isinstance(label[0][0], numbers.Number)),
             resource_holders
         )
         builder_visitor[0].StartNextBlock(_get_object_count(data))
@@ -3260,8 +3358,7 @@ cdef class _PoolBase:
         _set_data(data, data_meta_info.FeaturesLayout.Get(), builder_visitor)
 
         if label is not None:
-            _set_label(label, builder_visitor)
-            self.target_type = type(label[0][0])
+            self._set_label_objects_order(label, py_builder_visitor)
         if pairs is not None:
             _set_pairs(pairs, pairs_weight, builder_visitor)
         elif pairs_weight is not None:
@@ -3279,7 +3376,7 @@ cdef class _PoolBase:
 
         builder_visitor[0].Finish()
 
-        self.__pool = data_provider_builder.Get()[0].GetResult()
+        self.__pool = py_builder_visitor.data_provider_builder.Get()[0].GetResult()
 
 
     cpdef _init_pool(self, data, label, cat_features, text_features, pairs, weight, group_id, group_weight,
@@ -3307,7 +3404,8 @@ cdef class _PoolBase:
         if isinstance(data, FeaturesData):
             if ((data.num_feature_data is not None) and
                 data.num_feature_data.flags.aligned and
-                data.num_feature_data.flags.f_contiguous
+                data.num_feature_data.flags.f_contiguous and
+                (len(data.num_feature_data) != 0)
                ):
                 do_use_raw_data_in_features_order = True
         elif isinstance(data, pd.DataFrame):
@@ -3316,7 +3414,7 @@ cdef class _PoolBase:
             do_use_raw_data_in_features_order = True
         else:
             if isinstance(data, np.ndarray) and (data.dtype in numpy_num_dtype_list):
-                if data.flags.aligned and data.flags.f_contiguous:
+                if data.flags.aligned and data.flags.f_contiguous and (len(data) != 0):
                     do_use_raw_data_in_features_order = True
 
         if do_use_raw_data_in_features_order:
@@ -3537,7 +3635,7 @@ cdef class _PoolBase:
 
         Returns
         -------
-        feature matrix : np.array of shape (rows, cols)
+        feature matrix : np.ndarray of shape (object_count, feature_count)
         """
         cdef int thread_count = UpdateThreadCount(-1)
         cdef TLocalExecutor local_executor
@@ -3574,24 +3672,61 @@ cdef class _PoolBase:
 
         Returns
         -------
-        labels : list if labels are one-dimensional, np.array of shape (rows, cols) otherwise
+        labels : list if labels are one-dimensional, np.ndarray of shape (object_count, labels_count) otherwise
         """
-        cdef TMaybeData[TConstArrayRef[TConstArrayRef[TString]]] maybe_target = self.__pool.Get()[0].RawTargetData.GetTarget()
-        if maybe_target.Defined():
-            labels = [
-                [
-                    self.target_type(to_native_str(target_string))
-                    for target_string in target
-                ]
-                for target in maybe_target.GetRef()
-            ]
-
-            if len(labels) == 1:
-                return labels[0]
+        cdef ERawTargetType raw_target_type
+        cdef TVector[TArrayRef[float]] num_target_references
+        cdef TVector[TConstArrayRef[TString]] string_target_references
+        cdef ui32 target_count = self.__pool.Get()[0].MetaInfo.TargetCount
+        cdef ui32 object_count = self.__pool.Get()[0].GetObjectCount()
+        cdef np.ndarray[np.float32_t, ndim=1] float_target_1d
+        cdef np.ndarray[np.float32_t, ndim=2] float_target_2d
+        cdef ui32 target_idx
+        
+        if self.__target_data_holders:
+            if len(self.__target_data_holders) == 1:
+                return self.__target_data_holders[0]
             else:
-                return np.array(labels).T
+                return np.array(self.__target_data_holders).T
         else:
-            return None
+            raw_target_type = self.__pool.Get()[0].RawTargetData.GetTargetType()
+            if raw_target_type == ERawTargetType_Float:
+                num_target_references.resize(target_count)
+                if target_count == 1:
+                    float_target_1d = np.empty(object_count, dtype=np.float32)
+                    num_target_references[0] = TArrayRef[float](&float_target_1d[0], object_count)
+                    self.__pool.Get()[0].RawTargetData.GetFloatTarget(
+                        <TArrayRef[TArrayRef[float]]>num_target_references
+                    )
+                    return float_target_1d.astype(self.target_type)
+                else:
+                    float_target_2d = np.empty((object_count, target_count), dtype=np.float32, order='F')
+                    for target_idx in range(target_count):
+                        num_target_references[target_idx] = TArrayRef[float](
+                            &float_target_2d[0, target_idx],
+                            object_count
+                        )
+                    self.__pool.Get()[0].RawTargetData.GetFloatTarget(
+                        <TArrayRef[TArrayRef[float]]>num_target_references
+                    )
+                    return float_target_2d.astype(self.target_type)
+            elif raw_target_type == ERawTargetType_String:
+                string_target_references.resize(target_count)
+                self.__pool.Get()[0].RawTargetData.GetStringTargetRef(&string_target_references)
+                labels = [
+                    [
+                        self.target_type(to_native_str(target_string))
+                        for target_string in target
+                    ]
+                    for target in string_target_references
+                ]
+    
+                if target_count == 1:
+                    return labels[0]
+                else:
+                    return np.array(labels).T
+            else:
+                return None
 
     cpdef get_cat_feature_indices(self):
         """
@@ -3638,7 +3773,7 @@ cdef class _PoolBase:
 
         Returns
         -------
-        baseline : np.array
+        baseline : np.ndarray of shape (object_count, baseline_count)
         """
         cdef TMaybeData[TBaselineArrayRef] maybe_baseline = self.__pool.Get()[0].RawTargetData.GetBaseline()
         cdef TBaselineArrayRef baseline

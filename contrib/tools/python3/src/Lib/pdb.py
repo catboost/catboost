@@ -159,16 +159,14 @@ class Pdb(bdb.Bdb, cmd.Cmd):
         self.allow_kbdint = False
         self.nosigint = nosigint
 
-        # Read $HOME/.pdbrc and ./.pdbrc
+        # Read ~/.pdbrc and ./.pdbrc
         self.rcLines = []
         if readrc:
-            if 'HOME' in os.environ:
-                envHome = os.environ['HOME']
-                try:
-                    with open(os.path.join(envHome, ".pdbrc")) as rcFile:
-                        self.rcLines.extend(rcFile)
-                except OSError:
-                    pass
+            try:
+                with open(os.path.expanduser('~/.pdbrc')) as rcFile:
+                    self.rcLines.extend(rcFile)
+            except OSError:
+                pass
             try:
                 with open(".pdbrc") as rcFile:
                     self.rcLines.extend(rcFile)
@@ -1659,7 +1657,7 @@ To let the script run up to a given line X in the debugged file, use
 def main():
     import getopt
 
-    opts, args = getopt.getopt(sys.argv[1:], 'mhc:', ['--help', '--command='])
+    opts, args = getopt.getopt(sys.argv[1:], 'mhc:', ['help', 'command='])
 
     if not args:
         print(_usage)

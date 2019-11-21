@@ -186,6 +186,16 @@ Y_UNIT_TEST_SUITE(TTypeCastArrayHolder) {
             UNIT_ASSERT_VALUES_EQUAL(v.size(), expectedI);
         }
 
+        // ToArray
+        {
+            TVector<TInterfaceValue> extractedValues;
+            extractedValues.yresize(typedSequencePtr->GetSize());
+            ToArray<TInterfaceValue>(*typedSequencePtr, extractedValues);
+            UNIT_ASSERT_VALUES_EQUAL(extractedValues, expectedV);
+        }
+
+        UNIT_ASSERT_VALUES_EQUAL(ToVector(*typedSequencePtr), expectedV);
+
 
         TIntrusivePtr<ITypedArraySubset<TInterfaceValue>> typedArraySubsetHolder = typedSequencePtr->GetSubset(
             &arraySubsetIndexing

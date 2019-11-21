@@ -6,6 +6,7 @@ SRCS(
     additive_model.cpp
     grid.cpp
     helpers.cpp
+    interpretation.cpp
     model_import.cpp
     monom.cpp
     oblivious_tree.cpp

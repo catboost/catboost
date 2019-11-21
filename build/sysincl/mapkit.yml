@@ -29,6 +29,8 @@
   - QtWidgets/QHBoxLayout
   - QtWidgets/QHeaderView
   - QtWidgets/QLabel
+  - QtWidgets/QLayout
+  - QtWidgets/QFileDialog
   - QtWidgets/QLineEdit
   - QtWidgets/QMessageBox
   - QtWidgets/QOpenGLWidget

@@ -9,6 +9,7 @@
 #include <catboost/private/libs/data_types/query.h>
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/polymorphic_type_containers.h>
 #include <catboost/libs/helpers/serialization.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
@@ -22,6 +23,7 @@
 #include <util/generic/maybe.h>
 #include <util/generic/ptr.h>
 #include <util/generic/string.h>
+#include <util/generic/variant.h>
 #include <util/generic/vector.h>
 #include <util/system/types.h>
 #include <util/str_stl.h>
@@ -52,10 +54,20 @@ namespace NCB {
         bool mustContainPairData = false
     );
 
+
+    using TRawTarget = TVariant<ITypedSequencePtr<float>, TVector<TString>>;
+
+    enum ERawTargetType {
+        Float,
+        String,
+        None
+    };
+
+
     // for use while building
     struct TRawTargetData {
     public:
-        TVector<TVector<TString>> Target; // [targetIdx][objectIdx], can be empty (if pairs are used)
+        TVector<TRawTarget> Target; // [targetIdx], can be empty (if pairs are used)
         TVector<TVector<float>> Baseline; // [approxIdx][objectIdx], can be empty
 
         // if not specified in source data - do not forget to set as trivial, it is checked
@@ -100,7 +112,6 @@ namespace NCB {
             ObjectsGrouping = std::move(objectsGrouping);
             Data = std::move(data);
             SetBaselineViewFromBaseline();
-            SetTargetViewFromTarget();
         }
 
         bool operator==(const TRawTargetDataProvider& rhs) const {
@@ -116,27 +127,34 @@ namespace NCB {
             return ObjectsGrouping;
         }
 
-        // [targetIdx][objectIdx]
-        TMaybeData<TConstArrayRef<TConstArrayRef<TString>>> GetTarget() const {
-            if (!TargetView.empty()) {
-                return TargetView;
+        TMaybeData<TConstArrayRef<TRawTarget>> GetTarget() const { // [targetIdx]
+            if (!Data.Target.empty()) {
+                return Data.Target;
             } else {
                 return Nothing();
             }
         }
 
-        TMaybeData<TConstArrayRef<TString>> GetOneDimensionalTarget() const { // [targetIdx][objectIdx]
+        ERawTargetType GetTargetType() const;
+
+        // use external result buffers to allow to write result to external data structures like numpy.ndarray
+        void GetFloatTarget(TArrayRef<TArrayRef<float>> dst) const;
+
+        // dst is filled with references to internal buffer
+        void GetStringTargetRef(TVector<TConstArrayRef<TString>>* dst) const;
+
+        TMaybeData<const TRawTarget*> GetOneDimensionalTarget() const {
             const auto target = GetTarget();
             if (target) {
                 CB_ENSURE(target->size() == 1, "Attempt to use multi-dimensional target as one-dimensional");
-                return target.GetRef()[0];
+                return &(target.GetRef()[0]);
             } else {
                 return Nothing();
             }
         }
 
         ui32 GetTargetDimension() const {
-            return TargetView.size();
+            return Data.Target.size();
         }
 
         // can return empty array
@@ -195,17 +213,12 @@ namespace NCB {
             BaselineView.assign(Data.Baseline.begin(), Data.Baseline.end());
         }
 
-        void SetTargetViewFromTarget() { // call after setting Data.Target
-            TargetView.assign(Data.Target.begin(), Data.Target.end());
-        }
-
     private:
         TObjectsGroupingPtr ObjectsGrouping;
         TRawTargetData Data;
 
         // for returning from GetBaseline
         TVector<TConstArrayRef<float>> BaselineView; // [approxIdx][objectIdx]
-        TVector<TConstArrayRef<TString>> TargetView; // [targetIdx][objectIdx]
     };
 
     /*

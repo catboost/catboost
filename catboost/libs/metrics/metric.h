@@ -183,7 +183,7 @@ struct TMultiRegressionMetric: public TMetric {
 };
 
 static inline int GetMinBlockSize(int objectCount) {
-    return objectCount < 100000 ? 1000 : 10000;
+    return 10000 < objectCount && objectCount < 100000 ? 1000 : 10000;
 }
 
 template <typename TEvalFunction>

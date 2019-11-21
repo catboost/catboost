@@ -6,7 +6,7 @@
 # or some combination of them depending on the build flags.
 
 # We want musl to resolve itself without these sysincls, but its test must have them
-- source_filter: "^(?!(contrib/libs/musl|contrib/tools/yasm)).*|^contrib/libs/musl/tests"
+- source_filter: "^(?!(contrib/libs/libunistring|contrib/libs/musl|contrib/tools/yasm)).*|^contrib/libs/musl/tests"
   includes:
   - complex.h:  contrib/libs/cxxsupp/libcxx/include/complex.h
   - ctype.h:    contrib/libs/cxxsupp/libcxx/include/ctype.h

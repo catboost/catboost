@@ -49,6 +49,4 @@ namespace NCB {
         TRestorableFastRng64* rand,
         TMaybe<TFullModel*> initModel = Nothing());
 
-    TConstArrayRef<TString> GetTargetForStratifiedSplit(const NCB::TDataProvider& dataProvider);
-    TConstArrayRef<float> GetTargetForStratifiedSplit(const NCB::TTrainingDataProvider& dataProvider);
 }

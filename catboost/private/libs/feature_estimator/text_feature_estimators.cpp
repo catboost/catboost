@@ -137,7 +137,9 @@ namespace {
             , Dictionary(learnTexts->GetDictionary())
             , TopTokensCount("top_tokens_count", 2000)
         {
-            NCatboostOptions::CheckedLoad(options, &TopTokensCount);
+            if (options.Has(TopTokensCount.GetName())) {
+                TopTokensCount.Set(FromString<ui32>(options[TopTokensCount.GetName()].GetString()));
+            }
             CB_ENSURE(
                 TopTokensCount > 0,
                 "Parameter top_tokens_count for BagOfWords should be greater than zero"

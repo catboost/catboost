@@ -55,6 +55,14 @@ namespace NCB {
         const ui64 loadedBytes = stream->Load(buffer.Get(), bufferSize);
         CB_ENSURE(loadedBytes == bufferSize, "Failed to deserialize: Couldn't read calcer flatbuffer");
 
+        {
+            flatbuffers::Verifier verifier{buffer.Get(), static_cast<size_t>(bufferSize)};
+            CB_ENSURE(
+                NCatBoostFbs::VerifyTFeatureCalcerBuffer(verifier),
+                "Flatbuffers model verification failed"
+            );
+        }
+
         auto calcer = flatbuffers::GetRoot<NCatBoostFbs::TFeatureCalcer>(buffer.Get());
         ActiveFeatureIndices = TVector<ui32>(
             calcer->ActiveFeatureIndices()->begin(),

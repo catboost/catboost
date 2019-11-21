@@ -31,11 +31,21 @@ static void CheckTarget(const TVector<TSharedVector<float>>& target, ui32 object
 }
 
 
-static void CheckRawTarget(const TVector<TVector<TString>>& target, ui32 objectCount) {
+static void CheckRawTarget(const TVector<TRawTarget>& target, ui32 objectCount) {
     for (auto i : xrange(target.size())) {
-        CheckDataSize(target[i].size(), (size_t)objectCount, "Target[" + ToString(i) + "]", false);
-        for (auto j : xrange(target[i].size())) {
-            CB_ENSURE(!target[i][j].empty(), "Target[" << i << ", " << j << "] is empty");
+        if (const ITypedSequencePtr<float>* typedSequence = GetIf<ITypedSequencePtr<float>>(&target[i])) {
+            CheckDataSize(
+                (*typedSequence)->GetSize(),
+                objectCount,
+                "Target[" + ToString(i) + "]",
+                false
+            );
+        } else {
+            const TVector<TString>& stringVector = Get<TVector<TString>>(target[i]);
+            CheckDataSize(stringVector.size(), (size_t)objectCount, "Target[" + ToString(i) + "]", false);
+            for (auto j : xrange(stringVector.size())) {
+                CB_ENSURE(!stringVector[j].empty(), "Target[" << i << ", " << j << "] is empty");
+            }
         }
     }
 }
@@ -210,8 +220,51 @@ static void CheckGroupWeights(const TWeights<float>& groupWeights, const TObject
 }
 
 
+bool EqualAsFloatTarget(const ITypedSequencePtr<float>& lhs, const TVector<TString>& rhs) {
+    bool haveUnequalElements = false;
+    size_t i = 0;
+    lhs->ForEach(
+        [&] (float lhsElement) {
+            if (!FuzzyEquals(lhsElement, FromString<float>(rhs[i++]))) {
+                haveUnequalElements = true;
+            }
+        }
+    );
+    return !haveUnequalElements;
+}
+
+bool Equal(const TRawTarget& lhs, const TRawTarget& rhs) {
+    if (const ITypedSequencePtr<float>* lhsTypedSequence = GetIf<ITypedSequencePtr<float>>(&lhs)) {
+        if (const ITypedSequencePtr<float>* rhsTypedSequence = GetIf<ITypedSequencePtr<float>>(&rhs)) {
+            return (*lhsTypedSequence)->EqualTo(**rhsTypedSequence, /*strict*/ false);
+        } else {
+            return EqualAsFloatTarget(*lhsTypedSequence, Get<TVector<TString>>(rhs));
+        }
+    } else {
+        const TVector<TString>& lhsStringVector = Get<TVector<TString>>(lhs);
+        if (const TVector<TString>* rhsStringVector = GetIf<TVector<TString>>(&rhs)) {
+            return lhsStringVector == *rhsStringVector;
+        } else {
+            return EqualAsFloatTarget(Get<ITypedSequencePtr<float>>(rhs), lhsStringVector);
+        }
+    }
+}
+
+bool Equal(const TVector<TRawTarget>& lhs, const TVector<TRawTarget>& rhs) {
+    if (lhs.size() != rhs.size()) {
+        return false;
+    }
+    for (auto i : xrange(lhs.size())) {
+        if (!Equal(lhs[i], rhs[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+
 bool TRawTargetData::operator==(const TRawTargetData& rhs) const {
-    return (Target == rhs.Target) && (Baseline == rhs.Baseline) && (Weights == rhs.Weights) &&
+    return Equal(Target, rhs.Target) && (Baseline == rhs.Baseline) && (Weights == rhs.Weights) &&
         (GroupWeights == rhs.GroupWeights) && EqualAsMultiSets(Pairs, rhs.Pairs);
 }
 
@@ -264,10 +317,8 @@ void TRawTargetData::PrepareForInitialization(
     ui32 objectCount,
     ui32 prevTailSize
 ) {
+    // Target is properly initialized at the end of building
     Target.resize(metaInfo.TargetCount);
-    for (auto& dim : Target) {
-        NCB::PrepareForInitialization(objectCount, prevTailSize, &dim);
-    }
 
     Baseline.resize(metaInfo.BaselineCount);
     for (auto& dim : Baseline) {
@@ -279,6 +330,30 @@ void TRawTargetData::PrepareForInitialization(
     SetTrivialWeights(objectCount);
 
     Pairs.clear();
+}
+
+
+ERawTargetType TRawTargetDataProvider::GetTargetType() const {
+    if (Data.Target.empty()) {
+        return ERawTargetType::None;
+    }
+    return HoldsAlternative<ITypedSequencePtr<float>>(Data.Target[0]) ?
+          ERawTargetType::Float
+        : ERawTargetType::String;
+}
+
+void TRawTargetDataProvider::GetFloatTarget(TArrayRef<TArrayRef<float>> dst) const {
+    CB_ENSURE(dst.size() == Data.Target.size());
+    for (auto targetIdx : xrange(Data.Target.size())) {
+        ToArray(*Get<ITypedSequencePtr<float>>(Data.Target[targetIdx]), dst[targetIdx]);
+    }
+}
+
+void TRawTargetDataProvider::GetStringTargetRef(TVector<TConstArrayRef<TString>>* dst) const {
+    dst->resize(Data.Target.size());
+    for (auto targetIdx : xrange(Data.Target.size())) {
+        (*dst)[targetIdx] = Get<TVector<TString>>(Data.Target[targetIdx]);
+    }
 }
 
 
@@ -307,6 +382,29 @@ void TRawTargetDataProvider::SetBaseline(TConstArrayRef<TConstArrayRef<float>> b
     Data.Baseline = std::move(newBaselineStorage);
 
     SetBaselineViewFromBaseline();
+}
+
+static void GetRawTargetSubset(
+    const TRawTarget& src,
+    const TArraySubsetIndexing<ui32>& subset,
+    NPar::TLocalExecutor* localExecutor,
+    TRawTarget* dst
+) {
+    if (const ITypedSequencePtr<float>* srcTypedSequence = GetIf<ITypedSequencePtr<float>>(&src)) {
+        ITypedArraySubsetPtr<float> typedArraySubset = (*srcTypedSequence)->GetSubset(&subset);
+        TVector<float> dstData;
+        dstData.yresize(subset.Size());
+        TArrayRef<float> dstDataRef = dstData;
+        typedArraySubset->ParallelForEach(
+            [dstDataRef] (ui32 idx, float value) { dstDataRef[idx] = value; },
+            localExecutor
+        );
+        (*dst) = (ITypedSequencePtr<float>)MakeIntrusive<TTypeCastArrayHolder<float, float>>(
+            std::move(dstData)
+        );
+    } else {
+        (*dst) = GetSubset<TString>(Get<TVector<TString>>(src), subset, localExecutor);
+    }
 }
 
 
@@ -374,16 +472,22 @@ TRawTargetDataProvider TRawTargetDataProvider::GetSubset(
 
     TVector<std::function<void()>> tasks;
 
-    tasks.emplace_back(
-        [&, this]() {
-            if (auto target = GetTarget()) {
-                subsetData.Target.resize(target->size());
-                for (auto targetIdx : xrange(target->size())) {
-                    subsetData.Target[targetIdx] = NCB::GetSubset<TString>((*target)[targetIdx], objectsSubsetIndexing, localExecutor);
+    if (TMaybeData<TConstArrayRef<TRawTarget>> maybeTarget = GetTarget()) {
+        TConstArrayRef<TRawTarget> target = *maybeTarget;
+        subsetData.Target.resize(target.size());
+        for (auto targetIdx : xrange(target.size())) {
+            tasks.emplace_back(
+                [&, target, targetIdx]() {
+                    GetRawTargetSubset(
+                        target[targetIdx],
+                        objectsSubsetIndexing,
+                        localExecutor,
+                        &subsetData.Target[targetIdx]
+                    );
                 }
-            }
+            );
         }
-    );
+    }
 
     tasks.emplace_back(
         [&, this]() {

@@ -2413,7 +2413,7 @@
                         "os": "LINUX"
                     },
                     "target": {
-                        "os": "YOCTO_LG",
+                        "os": "YOCTO_LG_WK7Y",
                         "arch": "armv7a"
                     }
                 }
@@ -2428,6 +2428,57 @@
                 "gcc_version": "6.3",
                 "strip": "$(GCC)/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/bin/strip",
                 "objcopy": "$(GCC)/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/bin/objcopy"
+            }
+        },
+        "gcc73-armv7a-jbl-portable-music": {
+            "name": "gcc73",
+            "tools": {
+                "cc": {
+                    "bottle": "gcc73-armv7a-jbl-portable-music",
+                    "executable": "cc"
+                },
+                "c++": {
+                    "bottle": "gcc73-armv7a-jbl-portable-music",
+                    "executable": "c++"
+                },
+                "gcov": {
+                    "bottle": "gcc73-armv7a-jbl-portable-music",
+                    "executable": "gcov"
+                },
+                "c++filt": {
+                    "bottle": "gcc73-armv7a-jbl-portable-music",
+                    "executable": "c++filt"
+                },
+                "strip": {
+                    "bottle": "gcc73-armv7a-jbl-portable-music",
+                    "executable": "strip"
+                },
+                "nm": {
+                    "bottle": "gcc73-armv7a-jbl-portable-music",
+                    "executable": "nm"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                  },
+                    "target": {
+                        "os": "YOCTO_JBL_PORTABLE_MUSIC",
+                        "arch": "armv7a"
+                    }
+                }
+            ],
+            "params": {
+                "type": "gnu",
+                "match_root": "GCC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-gcc",
+                "cxx_compiler": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-g++",
+                "ar": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-ar",
+                "gcc_version": "7.3",
+                "strip": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-strip",
+                "objcopy": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-objcopy"
             }
         },
         "bloat": {
@@ -4633,9 +4684,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [
-                    543829399
-                ],
+                "sandbox_id": [549960971],
                 "match": "ymake"
             },
             "executable": {
@@ -4696,7 +4745,7 @@
         "tvmknife": {
             "formula": {
                 "sandbox_id": [
-                    516485784
+                    551762728
                 ],
                 "match": "tvmknife"
             },
@@ -5283,6 +5332,46 @@
                 ]
             }
         },
+        "gcc73-armv7a-jbl-portable-music": {
+            "formula": {
+                "sandbox_id": [
+                    "549987302"
+                ],
+                "match": "GCC"
+            },
+            "executable": {
+                "c++": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi-g++"
+                ],
+                "cc": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi-gcc"
+                ],
+                "gcov": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi-gcov"
+                ],
+                "c++filt": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi-c++filt"
+                ],
+                "strip": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi-strip"
+                ],
+                "nm": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi-nm"
+                ]
+            }
+        },
         "cuda": {
             "formula": {
                 "sandbox_id": [
@@ -5392,7 +5481,7 @@
         "scriptgen": {
             "formula": {
                 "sandbox_id": [
-                    406604422
+                    551377586
                 ],
                 "match": "SCRIPTGEN"
             }
@@ -6128,7 +6217,7 @@
         },
         "ya-tc": {
             "formula": {
-                "sandbox_id": 523661954,
+                "sandbox_id": 549352842,
                 "match": "ya-tc"
             },
             "executable": {
@@ -6139,7 +6228,7 @@
         },
         "crypta": {
             "formula": {
-                "sandbox_id": 338864172,
+                "sandbox_id": 550700694,
                 "match": "crypta"
             },
             "executable": {
@@ -6311,7 +6400,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 546739548,
+                "sandbox_id": 551310943,
                 "match": "SEDEM archive"
             },
             "executable": {

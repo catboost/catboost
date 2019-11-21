@@ -403,4 +403,7 @@ ALLOW yt/jaeger/plugin -> vendor/github.com/gogo
 # CONTRIB-1496 RTP/RTCP stack for Go. responsible: rmcf@
 ALLOW yabs/telephony/platform/internal/rtp -> vendor/github.com/wernerd/GoRTP
 
+# CONTRIB-1518 client for monkey-patched Apache Pulsar by TuyaInc. responsible: jock@
+ALLOW quasar/iot/adapters/tuya_adapter -> vendor/github.com/TuyaInc/tuya_pulsar_sdk_go
+
 DENY .* -> vendor/

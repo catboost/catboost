@@ -53,7 +53,9 @@ Y_UNIT_TEST_SUITE(TTrainTest) {
                         MakeIntrusive<TTypeCastArrayHolder<float, float>>(TVector<float>(features[factorId]))
                     );
                 }
-                visitor->AddTarget(target);
+                visitor->AddTarget(
+                    MakeIntrusive<TTypeCastArrayHolder<float, float>>(std::move(target))
+                );
 
                 visitor->Finish();
             }

@@ -11,6 +11,7 @@
 
 #include <util/generic/hash.h>
 #include <util/generic/xrange.h>
+#include <util/system/types.h>
 
 #include <utility>
 
@@ -67,23 +68,50 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
         CreateProviderSimple(0, rawTargetData);
     }
 
+    void TestStringRawTarget(const TVector<TString>& rawTarget) {
+        TRawTargetData rawTargetData;
+        rawTargetData.Target = {rawTarget};
+        rawTargetData.SetTrivialWeights(rawTarget.size());
+
+        auto rawTargetDataProvider = CreateProviderSimple(rawTarget.size(), rawTargetData);
+
+        const TVector<TString>* rawTargetStringData = GetIf<TVector<TString>>(
+            *rawTargetDataProvider.GetOneDimensionalTarget()
+        );
+        UNIT_ASSERT(rawTargetStringData);
+        UNIT_ASSERT_VALUES_EQUAL(*rawTargetStringData, rawTarget);
+    }
+
+    template <class T>
+    void TestNumericRawTarget(TVector<T>&& rawTarget, const TVector<float>& expectedTarget) {
+        const ui32 objectCount = (ui32)rawTarget.size();
+        TRawTargetData rawTargetData;
+        rawTargetData.SetTrivialWeights(objectCount);
+        rawTargetData.Target.resize(1);
+        rawTargetData.Target[0]
+            = (ITypedSequencePtr<float>)MakeIntrusive<TTypeCastArrayHolder<float, T>>(std::move(rawTarget));
+
+        auto rawTargetDataProvider = CreateProviderSimple(objectCount, rawTargetData);
+
+        const ITypedSequencePtr<float>* rawTargetFloatData = GetIf<ITypedSequencePtr<float>>(
+            *rawTargetDataProvider.GetOneDimensionalTarget()
+        );
+        UNIT_ASSERT(rawTargetFloatData);
+        UNIT_ASSERT_VALUES_EQUAL(ToVector(**rawTargetFloatData), expectedTarget);
+    }
+
     Y_UNIT_TEST(Target) {
         {
-            TVector<TVector<TString>> goodTargets;
-            goodTargets.push_back({});
-            goodTargets.push_back({"0", "1", "0", "1"});
-            goodTargets.push_back({"0.0", "1.0", "3.8"});
-            goodTargets.push_back({"male", "male", "male", "female"});
+            TestStringRawTarget({"0", "1", "0", "1"});
+            TestStringRawTarget({"0.0", "1.0", "3.8"});
+            TestStringRawTarget({"male", "male", "male", "female"});
+        }
 
-            for (const auto& target : goodTargets) {
-                TRawTargetData rawTargetData;
-                rawTargetData.Target = {target};
-                rawTargetData.SetTrivialWeights(target.size());
-
-                auto rawTargetDataProvider = CreateProviderSimple(target.size(), rawTargetData);
-
-                UNIT_ASSERT(Equal(*rawTargetDataProvider.GetOneDimensionalTarget(), target));
-            }
+        {
+            TestNumericRawTarget<float>({0.0f, 0.12f, 0.1f, 0.0f}, {0.0f, 0.12f, 0.1f, 0.0f});
+            TestNumericRawTarget<double>({0.0, 0.12, 0.1, 0.0}, {0.0f, 0.12f, 0.1f, 0.0f});
+            TestNumericRawTarget<int>({0, 1, -1, -3}, {0.0f, 1.0f, -1.f, -3.0f});
+            TestNumericRawTarget<ui64>({15, 0, 100, 34567}, {15.0f, 0.0f, 100.0f, 34567.0f});
         }
 
         {
@@ -92,7 +120,8 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
             for (const auto& target : badTargets) {
                 TRawTargetData rawTargetData;
-                rawTargetData.Target = {target};
+                rawTargetData.Target.resize(1);
+                rawTargetData.Target[0] = target;
                 rawTargetData.SetTrivialWeights(target.size());
 
                 UNIT_ASSERT_EXCEPTION(
@@ -114,12 +143,22 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
             for (const auto& target : goodMultiTargets) {
                 const auto docCount = target.empty() ? 0 : target[0].size();
                 TRawTargetData rawTargetData;
-                rawTargetData.Target = target;
+                rawTargetData.Target.assign(target.begin(), target.end());
                 rawTargetData.SetTrivialWeights(docCount);
 
                 auto rawTargetDataProvider = CreateProviderSimple(docCount, rawTargetData);
+                TMaybeData<TConstArrayRef<TRawTarget>> maybeTargetData = rawTargetDataProvider.GetTarget();
+                if (target.empty()) {
+                    UNIT_ASSERT(!maybeTargetData.Defined());
+                } else {
+                    UNIT_ASSERT(maybeTargetData.Defined());
+                    TConstArrayRef<TRawTarget> targetData = *maybeTargetData;
+                    UNIT_ASSERT_VALUES_EQUAL(targetData.size(), target.size());
 
-                UNIT_ASSERT(Equal(*rawTargetDataProvider.GetTarget(), To2DConstArrayRef<TString>(target)));
+                    for (auto i : xrange(target.size())) {
+                        UNIT_ASSERT_EQUAL(Get<TVector<TString>>(targetData[i]), target[i]);
+                    }
+                }
             }
         }
 
@@ -130,7 +169,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
             for (const auto& target : badMultiTargets) {
                 const auto docCount = target.empty() ? 0 : target[0].size();
                 TRawTargetData rawTargetData;
-                rawTargetData.Target = target;
+                rawTargetData.Target.assign(target.begin(), target.end());
                 rawTargetData.SetTrivialWeights(docCount);
 
                 UNIT_ASSERT_EXCEPTION(
@@ -512,7 +551,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
         {
             TRawTargetData rawTargetData;
-            rawTargetData.Target = {{"0", "1", "1", "0", "1", "0"}};
+            rawTargetData.Target = { TVector<TString>{"0", "1", "1", "0", "1", "0"} };
             rawTargetData.SetTrivialWeights(6);
             rawTargetData.Baseline = {
                 {0.0f, 0.1f, 0.3f, 0.2f, 0.35f, 0.8f},
@@ -524,7 +563,9 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
         {
             TRawTargetData rawTargetData;
-            rawTargetData.Target = {{"0.0", "1.0", "1.0", "0.0", "1.0", "0.0", "1.0f", "0.5", "0.8"}};
+            rawTargetData.Target = {
+                TVector<TString>{"0.0", "1.0", "1.0", "0.0", "1.0", "0.0", "1.0f", "0.5", "0.8"}
+            };
             rawTargetData.Baseline = {{0.0f, 0.1f, 0.3f, 0.2f, 0.35f, 0.8f, 0.12f, 0.67f, 0.87f}};
             rawTargetData.Weights = TWeights<float>({1.0f, 1.0f, 2.0f, 3.0f, 0.0f, 1.0f, 0.8f, 0.9f, 0.1f});
             rawTargetData.GroupWeights = TWeights<float>(
@@ -567,7 +608,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
         {
             TRawTargetData rawTargetData;
-            rawTargetData.Target = {{"1", "0"}};
+            rawTargetData.Target = { TVector<TString>{"1", "0"} };
             rawTargetData.SetTrivialWeights(2);
             rawTargetData.Baseline = {
                 {0.3f, 0.2f},
@@ -582,7 +623,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
         {
             TRawTargetData rawTargetData;
-            rawTargetData.Target = {{"1.0", "0.0", "1.0", "0.0"}};
+            rawTargetData.Target = { TVector<TString>{"1.0", "0.0", "1.0", "0.0"} };
             rawTargetData.Baseline = {{0.3f, 0.2f, 0.35f, 0.8f}};
             rawTargetData.Weights = TWeights<float>({2.0f, 3.0f, 0.0f, 1.0f});
             rawTargetData.GroupWeights = TWeights<float>({2.0f, 2.1f, 2.1f, 2.1f});
@@ -660,7 +701,10 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
         {
             TRawTargetData rawTargetData;
-            rawTargetData.Target = {{"0", "1", "1", "0", "1", "0"}, {"1", "0", "0", "1", "0", "1"}};
+            rawTargetData.Target = {
+                TVector<TString>{"0", "1", "1", "0", "1", "0"},
+                TVector<TString>{"1", "0", "0", "1", "0", "1"}
+            };
             rawTargetData.SetTrivialWeights(6);
             rawTargetData.Baseline = {
                 {0.0f, 0.1f, 0.3f, 0.2f, 0.35f, 0.8f},
@@ -673,8 +717,8 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
         {
             TRawTargetData rawTargetData;
             rawTargetData.Target = {
-                {"0.0", "1.0", "1.0", "0.0", "1.0", "0.0", "1.0f", "0.5", "0.8"},
-                {"-0.0", "-1.0", "-1.0", "-0.0", "-1.0", "-0.0", "-1.0f", "-0.5", "-0.8"}
+                TVector<TString>{"0.0", "1.0", "1.0", "0.0", "1.0", "0.0", "1.0f", "0.5", "0.8"},
+                TVector<TString>{"-0.0", "-1.0", "-1.0", "-0.0", "-1.0", "-0.0", "-1.0f", "-0.5", "-0.8"}
             };
             rawTargetData.Baseline = {{0.0f, 0.1f, 0.3f, 0.2f, 0.35f, 0.8f, 0.12f, 0.67f, 0.87f}};
             rawTargetData.Weights = TWeights<float>({1.0f, 1.0f, 2.0f, 3.0f, 0.0f, 1.0f, 0.8f, 0.9f, 0.1f});
@@ -718,7 +762,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
         {
             TRawTargetData rawTargetData;
-            rawTargetData.Target = {{"1", "0"}, {"0", "1"}};
+            rawTargetData.Target = {TVector<TString>{"1", "0"}, TVector<TString>{"0", "1"}};
             rawTargetData.SetTrivialWeights(2);
             rawTargetData.Baseline = {
                 {0.3f, 0.2f},
@@ -733,7 +777,10 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
         {
             TRawTargetData rawTargetData;
-            rawTargetData.Target = {{"1.0", "0.0", "1.0", "0.0"}, {"-1.0", "-0.0", "-1.0", "-0.0"}};
+            rawTargetData.Target = {
+                TVector<TString>{"1.0", "0.0", "1.0", "0.0"},
+                TVector<TString>{"-1.0", "-0.0", "-1.0", "-0.0"}
+            };
             rawTargetData.Baseline = {{0.3f, 0.2f, 0.35f, 0.8f}};
             rawTargetData.Weights = TWeights<float>({2.0f, 3.0f, 0.0f, 1.0f});
             rawTargetData.GroupWeights = TWeights<float>({2.0f, 2.1f, 2.1f, 2.1f});

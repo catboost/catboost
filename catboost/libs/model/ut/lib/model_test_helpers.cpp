@@ -47,7 +47,7 @@ TFullModel TrainFloatCatboostModel(int iterations, int seed) {
             for (auto& val : vec) {
                 val = rng.GenRandReal1();
             }
-            visitor->AddTarget(vec);
+            visitor->AddTarget(MakeIntrusive<TTypeCastArrayHolder<float, float>>(std::move(vec)));
 
             visitor->Finish();
         }
@@ -387,7 +387,9 @@ TFullModel TrainCatOnlyModel() {
             visitor->AddCatFeature(1, TConstArrayRef<TStringBuf>{"d", "e", "f"});
             visitor->AddCatFeature(2, TConstArrayRef<TStringBuf>{"g", "h", "k"});
 
-            visitor->AddTarget({1.0f, 0.0f, 0.2f});
+            visitor->AddTarget(
+                MakeIntrusive<TTypeCastArrayHolder<float, float>>(TVector<float>{1.0f, 0.0f, 0.2f})
+            );
 
             visitor->Finish();
         }

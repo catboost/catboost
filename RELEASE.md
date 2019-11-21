@@ -1,3 +1,16 @@
+# Release 0.19.1
+
+## New features:
+- With this release we support `Text` features for *classification on GPU*. To specify text columns use `text_features` parameter. Achieve better quality by using text information of your dataset. See more in [Learning CatBoost with text features](https://github.com/catboost/tutorials/blob/master/text_features/text_features_in_catboost.ipynb)
+- `MultiRMSE` loss function is now available on CPU. Labels for the multi regression mode should be specified in separate `Label` columns
+- MonoForest framework for model analysis, based on our NeurIPS 2019 [paper](https://papers.nips.cc/paper/9530-monoforest-framework-for-tree-ensemble-analysis). Learn more in [MonoForest tutorial](https://github.com/catboost/tutorials/tree/master/model_analysis/monoforest_tutorial.ipynb)
+- `boost_from_average` is now `True` by default for `Quantile` and `MAE` loss functions, which improves the resulting quality
+
+## Speedups:
+- Huge reduction of preprocessing time for datasets loaded from files and for datasets with many samples (> 10 million), which was a bottleneck for GPU training
+- 3x speedup for small datasets
+
+
 # Release 0.18.1
 
 ## New features:

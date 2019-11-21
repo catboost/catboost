@@ -87,6 +87,14 @@ inline void CalcPairwiseWeights(
     }
 }
 
+inline ui32 AdjustBlockSize(ui32 objectCount, ui32 regularBlockSize) {
+    return (objectCount < 10000) ? 10000 : regularBlockSize;
+}
+
+inline ui32 AdjustBlockCountLimit(ui32 objectCount, ui32 regularBlockCount) {
+    return (objectCount < 10000) ? 1 : regularBlockCount;
+}
+
 template <typename TUpdateFunc>
 inline void UpdateApprox(
     const TUpdateFunc& updateFunc,
@@ -100,13 +108,19 @@ inline void UpdateApprox(
 
         // deltaDim.size() < approxDim.size(), if delta is leaf values
         TArrayRef<double> approxDim((*approx)[dimensionIdx]);
-        NPar::ParallelFor(
-            *localExecutor,
-            0,
-            approxDim.size(),
+        if (approxDim.empty()) {
+            continue;
+        }
+
+        NPar::TLocalExecutor::TExecRangeParams blockParams(0, approxDim.size());
+        blockParams.SetBlockCount(AdjustBlockCountLimit(approxDim.size(), localExecutor->GetThreadCount() + 1));
+        localExecutor->ExecRange(
             [=, &updateFunc](int idx) {
                 updateFunc(deltaDim, approxDim, idx);
-            });
+            },
+            blockParams,
+            NPar::TLocalExecutor::WAIT_COMPLETE
+        );
     }
 }
 

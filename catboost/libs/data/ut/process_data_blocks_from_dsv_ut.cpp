@@ -269,10 +269,10 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
         };
 
         expectedData.ObjectsGrouping = TObjectsGrouping(10);
-
-        expectedData.Target.Target = TVector<TVector<TString>>{{
-            "0.12", "0.22", "0.34", "0.42", "0.01", "0.0", "0.11", "0.21", "0.92", "0.04"
-        }};
+        TVector<TVector<TString>> rawTarget{
+            {"0.12", "0.22", "0.34", "0.42", "0.01", "0.0", "0.11", "0.21", "0.92", "0.04"}
+        };
+        expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
         expectedData.Target.Baseline = {
             {0.0f, 0.12f, 0.1f, 0.17f, 0.2f, 0.1f, 0.11f, 0.81f, 0.32f, 0.01f},
             {0.1f, 0.23f, 0.11f, 0.29f, 0.12f, 0.2f, 0.33f, 0.31f, 0.13f, 0.19f}
@@ -311,7 +311,8 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
 
             expectedData.ObjectsGrouping = TObjectsGrouping(4);
 
-            expectedData.Target.Target = TVector<TVector<TString>>{{"0.12", "0.22", "0.34", "0.42"}};
+            TVector<TVector<TString>> rawTarget{{"0.12", "0.22", "0.34", "0.42"}};
+            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Baseline = {{0.0f, 0.12f, 0.1f, 0.17f}, {0.1f, 0.23f, 0.11f, 0.29f}};
             expectedData.Target.Weights = TWeights<float>({0.5f, 0.22f, 0.67f, 0.8f});
             expectedData.Target.GroupWeights = TWeights<float>(4);
@@ -336,7 +337,8 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
 
             expectedData.ObjectsGrouping = TObjectsGrouping(4);
 
-            expectedData.Target.Target = TVector<TVector<TString>>{{"0.01", "0.0", "0.11", "0.21"}};
+            TVector<TVector<TString>> rawTarget{{"0.01", "0.0", "0.11", "0.21"}};
+            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Baseline = {{0.2f, 0.1f, 0.11f, 0.81f}, {0.12f, 0.2f, 0.33f, 0.31f}};
             expectedData.Target.Weights = TWeights<float>({1.0f, 0.89f, 0.8f, 0.72f});
             expectedData.Target.GroupWeights = TWeights<float>(4);
@@ -361,7 +363,8 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
 
             expectedData.ObjectsGrouping = TObjectsGrouping(2);
 
-            expectedData.Target.Target = TVector<TVector<TString>>{{"0.92", "0.04"}};
+            TVector<TVector<TString>> rawTarget{{"0.92", "0.04"}};
+            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Baseline = {{0.32f, 0.01f}, {0.13f, 0.19f}};
             expectedData.Target.Weights = TWeights<float>({0.66f, 0.51f});
             expectedData.Target.GroupWeights = TWeights<float>(2);
@@ -424,10 +427,10 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
             expectedData.ObjectsGrouping = TObjectsGrouping(
                 TVector<TGroupBounds>{{0, 3}, {3, 6}, {6, 8}, {8, 9}}
             );
-
-            expectedData.Target.Target = TVector<TVector<TString>>{{
+            TVector<TVector<TString>> rawTarget{{
                 "0.12", "0.22", "0.34", "0.42", "0.01", "0.0", "0.11", "0.21", "0.92"
             }};
+            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Baseline = {
                 {0.0f, 0.12f, 0.1f, 0.17f, 0.2f, 0.1f, 0.11f, 0.81f, 0.32f},
                 {0.1f, 0.23f, 0.11f, 0.29f, 0.12f, 0.2f, 0.33f, 0.31f, 0.13f}
@@ -463,7 +466,8 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
                 TVector<TGroupBounds>{{0, 1}}
             );
 
-            expectedData.Target.Target = TVector<TVector<TString>>{{"0.04"}};
+            TVector<TVector<TString>> rawTarget{{"0.04"}};
+            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Baseline = {{0.01f}, {0.19f}};
             expectedData.Target.Weights = TWeights<float>(TVector<float>{0.51f});
             expectedData.Target.GroupWeights = TWeights<float>(TVector<float>{0.5f});
@@ -501,7 +505,8 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
 
             expectedData.ObjectsGrouping = TObjectsGrouping(TVector<TGroupBounds>{{0, 3}});
 
-            expectedData.Target.Target = TVector<TVector<TString>>{{"0.12", "0.22", "0.34"}};
+            TVector<TVector<TString>> rawTarget{{"0.12", "0.22", "0.34"}};
+            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Baseline = {{0.0f, 0.12f, 0.1f}, {0.1f, 0.23f, 0.11f}};
             expectedData.Target.Weights = TWeights<float>({0.5f, 0.22f, 0.67f});
             expectedData.Target.GroupWeights = TWeights<float>({1.0f, 1.0f, 1.0f});
@@ -528,7 +533,8 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
 
             expectedData.ObjectsGrouping = TObjectsGrouping(TVector<TGroupBounds>{{0, 3}});
 
-            expectedData.Target.Target = TVector<TVector<TString>>{{"0.42", "0.01", "0.0"}};
+            TVector<TVector<TString>> rawTarget{{"0.42", "0.01", "0.0"}};
+            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Baseline = {{0.17f, 0.2f, 0.1f}, {0.29f, 0.12f, 0.2f}};
             expectedData.Target.Weights = TWeights<float>({0.8f, 1.0f, 0.89f});
             expectedData.Target.GroupWeights = TWeights<float>({0.0f, 0.0f, 0.0f}, "GroupWeights", true);
@@ -559,7 +565,8 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
 
             expectedData.ObjectsGrouping = TObjectsGrouping(TVector<TGroupBounds>{{0, 2}, {2, 3}});
 
-            expectedData.Target.Target = TVector<TVector<TString>>{{"0.11", "0.21", "0.92"}};
+            TVector<TVector<TString>> rawTarget{{"0.11", "0.21", "0.92"}};
+            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Baseline = {{0.11f, 0.81f, 0.32f}, {0.33f, 0.31f, 0.13f}};
             expectedData.Target.Weights = TWeights<float>({0.8f, 0.72f, 0.66f});
             expectedData.Target.GroupWeights = TWeights<float>({0.2f, 0.2f, 0.3f});
@@ -588,7 +595,8 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
                 TVector<TGroupBounds>{{0, 1}}
             );
 
-            expectedData.Target.Target = TVector<TVector<TString>>{{"0.04"}};
+            TVector<TVector<TString>> rawTarget{{"0.04"}};
+            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Baseline = {{0.01f}, {0.19f}};
             expectedData.Target.Weights = TWeights<float>(TVector<float>{0.51f});
             expectedData.Target.GroupWeights = TWeights<float>(TVector<float>{0.5f});

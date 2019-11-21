@@ -503,11 +503,11 @@ class CppIterGenerator : public BaseGenerator {
         break;
       }
       case BASE_TYPE_STRING: {
-        code_ += "{{PRE}}verifier.VerifyString({{NAME}}())\\";
+        code_ += "{{PRE}}verifier.Verify({{NAME}}())\\";
         break;
       }
       case BASE_TYPE_VECTOR: {
-        code_ += "{{PRE}}verifier.VerifyVector({{NAME}}())\\";
+        code_ += "{{PRE}}verifier.Verify({{NAME}}())\\";
 
         switch (field.value.type.element) {
           case BASE_TYPE_STRING: {

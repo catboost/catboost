@@ -4,10 +4,11 @@
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/defaults_helper.h>
 
-#include <util/system/types.h>
-#include <util/generic/ymath.h>
+#include <util/generic/algorithm.h>
 #include <util/generic/maybe.h>
+#include <util/generic/ymath.h>
 #include <util/string/builder.h>
+#include <util/system/types.h>
 
 
 static double Round(double number, int precision) {
@@ -217,8 +218,10 @@ static void AdjustBoostFromAverageDefaultValue(
     }
     if (catBoostOptions->SystemOptions->IsSingleHost()
         && !continueFromModel
-        // boost from average is enabled by default only for RMSE now
-        && catBoostOptions->LossFunctionDescription->GetLossFunction() == ELossFunction::RMSE
+        // boost from average is enabled by default only for RMSE, MAE, Quantile and MAPE now
+        && EqualToOneOf(
+            catBoostOptions->LossFunctionDescription->GetLossFunction(),
+            ELossFunction::RMSE, ELossFunction::MAE, ELossFunction::Quantile, ELossFunction::MAPE)
     ) {
         catBoostOptions->BoostingOptions->BoostFromAverage.Set(true);
     }

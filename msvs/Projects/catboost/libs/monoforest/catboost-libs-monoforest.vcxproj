@@ -81,6 +81,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\monoforest\additive_model.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\monoforest\grid.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\monoforest\helpers.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\monoforest\interpretation.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\monoforest\model_import.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\monoforest\monom.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\monoforest\oblivious_tree.cpp"/>
@@ -90,6 +91,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\monoforest\enums.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\monoforest\grid.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\monoforest\helpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\monoforest\interpretation.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\monoforest\model_import.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\monoforest\monom.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\monoforest\oblivious_tree.h"/>

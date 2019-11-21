@@ -80,7 +80,8 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
         }
         case ELossFunction::MAE:
         case ELossFunction::Quantile: {
-            if (TaskType == ETaskType::CPU && SystemOptions->IsSingleHost() && !BoostingOptions->ApproxOnFullHistory) {
+            if (TaskType == ETaskType::CPU && SystemOptions->IsSingleHost()
+                && !BoostingOptions->ApproxOnFullHistory && treeConfig.MonotoneConstraints.Get().empty()) {
                 defaultEstimationMethod = ELeavesEstimation::Exact;
                 defaultNewtonIterations = 1;
                 defaultGradientIterations = 1;
@@ -573,8 +574,10 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
 
     if (BoostingOptions->BoostFromAverage.Get()) {
         // we may adjust non-set BoostFromAverage in data dependant tuning
-        CB_ENSURE(EqualToOneOf(lossFunction, ELossFunction::RMSE, ELossFunction::Logloss, ELossFunction::CrossEntropy),
-            "You can use boost_from_average only for these loss functions now: RMSE, Logloss or CrossEntropy.");
+        CB_ENSURE(EqualToOneOf(lossFunction, ELossFunction::RMSE, ELossFunction::Logloss,
+            ELossFunction::CrossEntropy, ELossFunction::Quantile, ELossFunction::MAE, ELossFunction::MAPE),
+            "You can use boost_from_average only for these loss functions now: " <<
+            "RMSE, Logloss, CrossEntropy, Quantile, MAE or MAPE.");
         CB_ENSURE(SystemOptions->IsSingleHost(), "You can use boost_from_average only on single host now.");
     }
 
@@ -592,6 +595,9 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         );
         CB_ENSURE(
             SystemOptions->IsSingleHost(), "Monotone constraints is unsupported for distributed learning."
+        );
+        CB_ENSURE(ObliviousTreeOptions->LeavesEstimationMethod != ELeavesEstimation::Exact,
+            "Monotone constraints are unsupported for Exact leaves estimation method."
         );
         const THashSet<int> validMonotoneConstraintValues = {-1, 0, 1};
         for (auto [featureIdx, constraint] : monotoneConstraints) {

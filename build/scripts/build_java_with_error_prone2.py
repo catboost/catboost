@@ -29,7 +29,7 @@ def get_java_version(exe):
         if m:
             parts = m.groups()[0].split(".")
             return parts[1] if parts[0] == "1" else parts[0]
-        m = re.match('openjdk version "(.+)"', line)
+        m = re.match('openjdk version "(\d+).*"', line)
         if m:
             parts = m.groups()[0].split(".")
             return parts[0]

@@ -2,7 +2,7 @@
 
 PY23_LIBRARY()
 
-VERSION(1.12.0)
+VERSION(1.13.0)
 
 LICENSE(
     MIT
@@ -16,8 +16,13 @@ PY_SRCS(
 RESOURCE_FILES(
     PREFIX contrib/python/six/
     .dist-info/METADATA
+    .dist-info/top_level.txt
 )
 
 NO_LINT()
 
 END()
+
+RECURSE_FOR_TESTS(
+    tests
+)

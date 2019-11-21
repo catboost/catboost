@@ -45,6 +45,7 @@ namespace NCB {
             : InBlock(false)
             , ObjectCount(0)
             , CatFeatureCount(0)
+            , TargetDataTypeIsString(false)
             , Cursor(NotSet)
             , NextCursor(0)
             , Options(options)
@@ -59,6 +60,7 @@ namespace NCB {
             bool haveUnknownNumberOfSparseFeatures,
             ui32 objectCount,
             EObjectsOrder objectsOrder,
+            bool targetDataTypeIsString,
 
             // keep necessary resources for data to be available (memory mapping for a file for example)
             TVector<TIntrusivePtr<IResourceHolder>> resourceHolders
@@ -110,6 +112,13 @@ namespace NCB {
             prepareFeaturesStorage(FloatFeaturesStorage);
             prepareFeaturesStorage(CatFeaturesStorage);
             prepareFeaturesStorage(TextFeaturesStorage);
+
+            TargetDataTypeIsString = targetDataTypeIsString;
+            if (TargetDataTypeIsString) {
+                PrepareForInitialization(Data.MetaInfo.TargetCount, ObjectCount, prevTailSize, &StringTarget);
+            } else {
+                PrepareForInitialization(Data.MetaInfo.TargetCount, ObjectCount, prevTailSize, &FloatTarget);
+            }
 
             if (metaInfo.HasWeights) {
                 PrepareForInitialization(ObjectCount, prevTailSize, &WeightsBuffer);
@@ -252,10 +261,6 @@ namespace NCB {
 
         // TRawTargetData
 
-        /* if raw data contains target data as strings (label is a synonym for target)
-            prefer passing it as TString to avoid unnecessary memory copies
-            even if these strings represent float or ints
-        */
         void AddTarget(ui32 localObjectIdx, const TString& value) override {
             AddTarget(0, localObjectIdx, value);
         }
@@ -263,10 +268,12 @@ namespace NCB {
             AddTarget(0, localObjectIdx, value);
         }
         void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, const TString& value) override {
-            Data.TargetData.Target[flatTargetIdx][Cursor + localObjectIdx] = value;
+            Y_ASSERT(TargetDataTypeIsString);
+            StringTarget[flatTargetIdx][Cursor + localObjectIdx] = value;
         }
         void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, float value) override {
-            Data.TargetData.Target[flatTargetIdx][Cursor + localObjectIdx] = ToString(value);
+            Y_ASSERT(!TargetDataTypeIsString);
+            FloatTarget[flatTargetIdx][Cursor + localObjectIdx] = value;
         }
         void AddBaseline(ui32 localObjectIdx, ui32 baselineIdx, float value) override {
             Data.TargetData.Baseline[baselineIdx][Cursor + localObjectIdx] = value;
@@ -326,7 +333,19 @@ namespace NCB {
             CB_ENSURE_INTERNAL(!ResultTaken, "Attempt to GetResult several times");
 
             if (InBlock && Data.MetaInfo.HasGroupId) {
-                // copy, not move weights buffers
+                // copy, not move target & weights buffers
+                if (TargetDataTypeIsString) {
+                    for (auto targetIdx : xrange(Data.MetaInfo.TargetCount)) {
+                        Data.TargetData.Target[targetIdx] = StringTarget[targetIdx];
+                    }
+                } else {
+                    for (auto targetIdx : xrange(Data.MetaInfo.TargetCount)) {
+                        Data.TargetData.Target[targetIdx] =
+                            (ITypedSequencePtr<float>)MakeIntrusive<TTypeCastArrayHolder<float, float>>(
+                                TVector<float>(FloatTarget[targetIdx])
+                            );
+                    }
+                }
                 if (Data.MetaInfo.HasWeights) {
                     Data.TargetData.Weights = TWeights<float>(TVector<float>(WeightsBuffer));
                 }
@@ -334,6 +353,18 @@ namespace NCB {
                     Data.TargetData.GroupWeights = TWeights<float>(TVector<float>(GroupWeightsBuffer));
                 }
             } else {
+                if (TargetDataTypeIsString) {
+                    for (auto targetIdx : xrange(Data.MetaInfo.TargetCount)) {
+                        Data.TargetData.Target[targetIdx] = std::move(StringTarget[targetIdx]);
+                    }
+                } else {
+                    for (auto targetIdx : xrange(Data.MetaInfo.TargetCount)) {
+                        Data.TargetData.Target[targetIdx] =
+                            (ITypedSequencePtr<float>)MakeIntrusive<TTypeCastArrayHolder<float, float>>(
+                                std::move(FloatTarget[targetIdx])
+                            );
+                    }
+                }
                 if (Data.MetaInfo.HasWeights) {
                     Data.TargetData.Weights = TWeights<float>(std::move(WeightsBuffer));
                 }
@@ -814,6 +845,12 @@ namespace NCB {
 
         TRawBuilderData Data;
 
+        bool TargetDataTypeIsString;
+
+        // will be moved to Data.RawTargetData at GetResult
+        TVector<TVector<TString>> StringTarget;
+        TVector<TVector<float>> FloatTarget;
+
         // will be moved to Data.RawTargetData at GetResult
         TVector<float> WeightsBuffer;
         TVector<float> GroupWeightsBuffer;
@@ -993,22 +1030,14 @@ namespace NCB {
         void AddTarget(TConstArrayRef<TString> value) override {
             AddTarget(0, value);
         }
-        void AddTarget(TConstArrayRef<float> value) override {
-            AddTarget(0, value);
+        void AddTarget(ITypedSequencePtr<float> value) override {
+            AddTarget(0, std::move(value));
         }
         void AddTarget(ui32 flatTargetIdx, TConstArrayRef<TString> value) override {
-            Data.TargetData.Target[flatTargetIdx].assign(value.begin(), value.end());
+            Data.TargetData.Target[flatTargetIdx] = TVector<TString>(value.begin(), value.end());
         }
-        void AddTarget(ui32 flatTargetIdx, TConstArrayRef<float> value) override {
-            TArrayRef<TString> target = Data.TargetData.Target[flatTargetIdx];
-
-            LocalExecutor->ExecRange(
-                [=](int objectIdx) {
-                    target[objectIdx] = ToString(value[objectIdx]);
-                },
-                *ObjectCalcParams,
-                NPar::TLocalExecutor::WAIT_COMPLETE
-            );
+        void AddTarget(ui32 flatTargetIdx, ITypedSequencePtr<float> value) override {
+            Data.TargetData.Target[flatTargetIdx] = std::move(value);
         }
         void AddBaseline(ui32 baselineIdx, TConstArrayRef<float> value) override {
             Data.TargetData.Baseline[baselineIdx].assign(value.begin(), value.end());
@@ -1171,6 +1200,7 @@ namespace NCB {
             NPar::TLocalExecutor* localExecutor
         )
             : ObjectCount(0)
+            , TargetDataTypeIsString(false)
             , Options(options)
             , DatasetSubset(loadSubset)
             , LocalExecutor(localExecutor)
@@ -1182,6 +1212,7 @@ namespace NCB {
             const TDataMetaInfo& metaInfo,
             ui32 objectCount,
             EObjectsOrder objectsOrder,
+            bool targetDataTypeIsString,
 
             // keep necessary resources for data to be available (memory mapping for a file for example)
             TVector<TIntrusivePtr<IResourceHolder>> resourceHolders,
@@ -1268,6 +1299,23 @@ namespace NCB {
                 );
             }
 
+            TargetDataTypeIsString = targetDataTypeIsString;
+            if (TargetDataTypeIsString) {
+                PrepareForInitialization(
+                    Data.MetaInfo.TargetCount,
+                    ObjectCount,
+                    /*prevTailSize*/ 0,
+                    &StringTarget
+                );
+            } else {
+                PrepareForInitialization(
+                    Data.MetaInfo.TargetCount,
+                    ObjectCount,
+                    /*prevTailSize*/ 0,
+                    &FloatTarget
+                );
+            }
+
             if (metaInfo.HasWeights) {
                 WeightsBuffer.yresize(objectCount);
             }
@@ -1343,26 +1391,28 @@ namespace NCB {
         }
 
         void AddTargetPart(ui32 flatTargetIdx, ui32 objectOffset, TMaybeOwningConstArrayHolder<TString> targetPart) override {
+            Y_ASSERT(TargetDataTypeIsString);
             Copy(
                 (*targetPart).begin(),
                 (*targetPart).end(),
-                std::next(Data.TargetData.Target[flatTargetIdx].begin(), objectOffset)
+                std::next(StringTarget[flatTargetIdx].begin(), objectOffset)
             );
         }
 
         void AddTargetPart(ui32 flatTargetIdx, ui32 objectOffset, TUnalignedArrayBuf<float> targetPart) override {
-            auto& target = Data.TargetData.Target[flatTargetIdx];
             if (Data.MetaInfo.ClassNames) {
+                Y_ASSERT(TargetDataTypeIsString);
+                auto& target = StringTarget[flatTargetIdx];
                 for (auto it = targetPart.GetIterator(); !it.AtEnd(); it.Next(), ++objectOffset) {
                     target[objectOffset] = Data.MetaInfo.ClassNames[int(it.Cur())];
                 }
             } else {
-                TString zero{"0"};
-                TString one{"1"};
-                for (auto it = targetPart.GetIterator(); !it.AtEnd(); it.Next(), ++objectOffset) {
-                    const auto cur = it.Cur();
-                    target[objectOffset] = cur == 0.f ? zero : cur == 1.f ? one : ToString(cur);
-                }
+                Y_ASSERT(!TargetDataTypeIsString);
+                TArrayRef<float> dstPart(
+                    FloatTarget[flatTargetIdx].data() + objectOffset,
+                    targetPart.GetSize()
+                );
+                targetPart.WriteTo(&dstPart);
             }
         }
 
@@ -1419,6 +1469,18 @@ namespace NCB {
             CB_ENSURE_INTERNAL(!InProcess, "Attempt to GetResult before finishing processing");
             CB_ENSURE_INTERNAL(!ResultTaken, "Attempt to GetResult several times");
 
+            if (TargetDataTypeIsString) {
+                for (auto targetIdx : xrange(Data.MetaInfo.TargetCount)) {
+                    Data.TargetData.Target[targetIdx] = std::move(StringTarget[targetIdx]);
+                }
+            } else {
+                for (auto targetIdx : xrange(Data.MetaInfo.TargetCount)) {
+                    Data.TargetData.Target[targetIdx] =
+                        (ITypedSequencePtr<float>)MakeIntrusive<TTypeCastArrayHolder<float, float>>(
+                            std::move(FloatTarget[targetIdx])
+                        );
+                }
+            }
             if (Data.MetaInfo.HasWeights) {
                 Data.TargetData.Weights = TWeights<float>(std::move(WeightsBuffer));
             }
@@ -1840,6 +1902,12 @@ namespace NCB {
          * it contains it as a subset
          */
         TQuantizedForCPUBuilderData Data;
+
+        bool TargetDataTypeIsString;
+
+        // will be moved to Data.RawTargetData at GetResult
+        TVector<TVector<TString>> StringTarget;
+        TVector<TVector<float>> FloatTarget;
 
         // will be moved to Data.RawTargetData at GetResult
         TVector<float> WeightsBuffer;

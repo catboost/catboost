@@ -50,6 +50,28 @@ Y_UNIT_TEST_SUITE(YtNodeTest) {
         UNIT_ASSERT(nodeEntity.IsEntity());
     }
 
+    Y_UNIT_TEST(TestPredicates) {
+        const TNode undefinedNode;
+        UNIT_ASSERT(undefinedNode.IsUndefined());
+        UNIT_ASSERT(!undefinedNode.IsNull());
+        UNIT_ASSERT(!undefinedNode.HasValue());
+
+        const TNode nullNode = TNode::CreateEntity();
+        UNIT_ASSERT(!nullNode.IsUndefined());
+        UNIT_ASSERT(nullNode.IsNull());
+        UNIT_ASSERT(!nullNode.HasValue());
+
+        const TNode intNode(int(64));
+        UNIT_ASSERT(!intNode.IsUndefined());
+        UNIT_ASSERT(!intNode.IsNull());
+        UNIT_ASSERT(intNode.HasValue());
+
+        const TNode stringNode("blah");
+        UNIT_ASSERT(!stringNode.IsUndefined());
+        UNIT_ASSERT(!stringNode.IsNull());
+        UNIT_ASSERT(stringNode.HasValue());
+    }
+
     Y_UNIT_TEST(TestComplexConstructors) {
         const TNode listNode = TNode::CreateList({"one", 2, "tree"});
         const auto expectedListValue = std::vector<TNode>({"one", 2, "tree"});

@@ -78,6 +78,7 @@ namespace NCB {
             bool haveUnknownNumberOfSparseFeatures,
             ui32 objectCount,
             EObjectsOrder objectsOrder,
+            bool targetDataTypeIsString,
 
             // keep necessary resources for data to be available (memory mapping for a file for example)
             TVector<TIntrusivePtr<IResourceHolder>> resourceHolders
@@ -121,10 +122,6 @@ namespace NCB {
 
         // TRawTargetData
 
-        /* if raw data contains target data as strings (label is a synonym for target)
-            prefer passing it as TString to avoid unnecessary memory copies
-            even if these strings represent float or ints
-        */
         virtual void AddTarget(ui32 localObjectIdx, const TString& value) = 0;
         virtual void AddTarget(ui32 localObjectIdx, float value) = 0;
         virtual void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, const TString& value) = 0;
@@ -192,9 +189,9 @@ namespace NCB {
         // TRawTargetData
 
         virtual void AddTarget(TConstArrayRef<TString> value) = 0;
-        virtual void AddTarget(TConstArrayRef<float> value) = 0;
+        virtual void AddTarget(ITypedSequencePtr<float> value) = 0;
         virtual void AddTarget(ui32 flatTargetIdx, TConstArrayRef<TString> value) = 0;
-        virtual void AddTarget(ui32 flatTargetIdx, TConstArrayRef<float> value) = 0;
+        virtual void AddTarget(ui32 flatTargetIdx, ITypedSequencePtr<float> value) = 0;
         virtual void AddBaseline(ui32 baselineIdx, TConstArrayRef<float> value) = 0;
         virtual void AddWeights(TConstArrayRef<float> value) = 0;
         virtual void AddGroupWeights(TConstArrayRef<float> value) = 0;
@@ -219,6 +216,7 @@ namespace NCB {
             const TDataMetaInfo& metaInfo,
             ui32 objectCount,
             EObjectsOrder objectsOrder,
+            bool targetDataTypeIsString,
 
             // keep necessary resources for data to be available (memory mapping for a file for example)
             TVector<TIntrusivePtr<IResourceHolder>> resourceHolders,
@@ -254,10 +252,6 @@ namespace NCB {
 
         // TRawTargetData
 
-        /* if raw data contains target data as strings (label is a synonym for target)
-            prefer passing it as TString to avoid unnecessary memory copies
-            even if these strings represent float or ints
-        */
         virtual void AddTargetPart(ui32 objectOffset, TUnalignedArrayBuf<float> targetPart) = 0;
         virtual void AddTargetPart(ui32 objectOffset, TMaybeOwningConstArrayHolder<TString> targetPart) = 0;
         virtual void AddTargetPart(ui32 flatTargetIdx, ui32 objectOffset, TUnalignedArrayBuf<float> targetPart) = 0;

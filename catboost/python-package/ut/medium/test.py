@@ -542,7 +542,7 @@ def test_load_series():
     cat_features = pool.get_cat_feature_indices()
     pool2 = Pool(data, labels, cat_features)
     assert _have_equal_features(pool, pool2)
-    assert [int(label) for label in pool.get_label()] == pool2.get_label()
+    assert _check_data([int(label) for label in pool.get_label()], pool2.get_label())
 
 
 def test_pool_cat_features():
@@ -589,7 +589,33 @@ def test_load_dumps():
         f.write(text)
     pool2 = Pool('test_data_dumps')
     assert _check_data(pool1.get_features(), pool2.get_features())
-    assert pool1.get_label() == [int(label) for label in pool2.get_label()]
+    assert _check_data(pool1.get_label(), [int(label) for label in pool2.get_label()])
+
+
+@pytest.mark.parametrize(
+    'features_type',
+    ['numpy.ndarray', 'pandas.DataFrame'],
+    ids=['features_type=numpy.ndarray', 'features_type=pandas.DataFrame']
+)
+def test_pool_from_slices(features_type):
+    full_size = (100, 30)
+    subset_size = (20, 17)
+
+    prng = np.random.RandomState(seed=20191120)
+
+    for start_offsets in ((0, 0), (5, 3)):
+        full_features_data = np.round(prng.normal(size=full_size), decimals=3)
+        full_label = _generate_nontrivial_binary_target(full_size[0], prng=prng)
+
+        subset_features_data = full_features_data[start_offsets[0]:subset_size[0], start_offsets[1]:subset_size[1]]
+        subset_label = full_label[start_offsets[0]:subset_size[0]]
+
+        if features_type == 'numpy.ndarray':
+            pool = Pool(subset_features_data, subset_label)
+        else:
+            pool = Pool(DataFrame(subset_features_data), subset_label)
+        assert _check_data(pool.get_features(), subset_features_data)
+        assert _check_data([float(value) for value in pool.get_label()], subset_label)
 
 
 @pytest.mark.parametrize(
@@ -3865,7 +3891,7 @@ def test_slice_pool():
     ]
     for rindex in rindexes:
         sliced_pool = pool.slice(rindex)
-        assert sliced_pool.get_label() == list(rindex)
+        assert _check_data(sliced_pool.get_label(), list(rindex))
 
 
 def test_fit_and_predict_on_sliced_pools(task_type):
@@ -4111,40 +4137,41 @@ def test_overfit_detector_with_resume_from_snapshot_and_metric_period(boosting_t
 
         # must be always run first without snapshot then with it to properly test assertions
         for with_resume_from_snapshot in [False, True]:
-            model = CatBoostClassifier(
-                use_best_model=False,
-                boosting_type=boosting_type,
-                thread_count=4,
-                learning_rate=0.2,
-                od_type=overfitting_detector_type,
-                metric_period=metric_period,
-                leaf_estimation_iterations=10,
-                max_ctr_complexity=4,
-            )
+            params = {
+                'use_best_model': False,
+                'boosting_type': boosting_type,
+                'thread_count': 4,
+                'learning_rate': 0.2,
+                'od_type': overfitting_detector_type,
+                'metric_period': metric_period,
+                'leaf_estimation_iterations': 10,
+                'max_ctr_complexity': 4
+            }
             if overfitting_detector_type == 'IncToDec':
-                model.set_params(od_wait=OD_WAIT, od_pval=0.5)
+                params['od_wait'] = OD_WAIT
+                params['od_pval'] = 0.5
             elif overfitting_detector_type == 'Iter':
-                model.set_params(od_wait=OD_WAIT)
+                params['od_wait'] = OD_WAIT
             if with_resume_from_snapshot:
-                model.set_params(
-                    save_snapshot=True,
-                    snapshot_file=test_output_path(
-                        'snapshot_with_metric_period={}_od_type={}'.format(
-                            metric_period, overfitting_detector_type
-                        )
+                params['save_snapshot'] = True
+                params['snapshot_file'] = test_output_path(
+                    'snapshot_with_metric_period={}_od_type={}'.format(
+                        metric_period, overfitting_detector_type
                     )
                 )
-                model.set_params(iterations=FIRST_ITERATIONS)
+                params['iterations'] = FIRST_ITERATIONS
+                small_model = CatBoostClassifier(**params)
                 with tempfile.TemporaryFile('w+') as stdout_part:
                     with DelayedTee(sys.stdout, stdout_part):
-                        model.fit(train_pool, eval_set=test_pool)
+                        small_model.fit(train_pool, eval_set=test_pool)
                     first_training_stdout_len = sum(1 for line in stdout_part)
                 # overfitting detector has not stopped learning yet
-                assert model.tree_count_ == FIRST_ITERATIONS
+                assert small_model.tree_count_ == FIRST_ITERATIONS
             else:
-                model.set_params(save_snapshot=False)
+                params['save_snapshot'] = False
 
-            model.set_params(iterations=FINAL_ITERATIONS)
+            params['iterations'] = FINAL_ITERATIONS
+            model = CatBoostClassifier(**params)
             with tempfile.TemporaryFile('w+') as stdout_part:
                 with DelayedTee(sys.stdout, stdout_part):
                     model.fit(train_pool, eval_set=test_pool)
@@ -6402,3 +6429,14 @@ def test_bootstrap_defaults():
     params = model.get_all_params()
     assert params['bootstrap_type'] == 'Bayesian'
     assert 'subsample' not in params
+
+
+def test_monoforest_regression():
+    train_pool = Pool(HIGGS_TRAIN_FILE, column_description=HIGGS_CD_FILE)
+    model = CatBoostRegressor(loss_function='RMSE', iterations=10)
+    model.fit(train_pool)
+    from catboost.monoforest import to_polynom_string, plot_features_strength
+    poly = to_polynom_string(model)
+    assert poly, "Unexpected empty poly"
+    plot = plot_features_strength(model)
+    assert plot, "Unexpected empty plot"

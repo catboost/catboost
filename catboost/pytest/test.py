@@ -3469,7 +3469,8 @@ def test_quantile_exact_distributed():
         test='test_small',
         cd='train.cd',
         other_options=(
-            '--leaf-estimation-method', 'Exact'
+            '--leaf-estimation-method', 'Exact',
+            '--boost-from-average', 'False'
         )
     )))]
 
@@ -6643,9 +6644,10 @@ def test_pairwise_bernoulli_bootstrap(subsample, sampling_unit, loss_function, d
         '--eval-file', output_eval_path,
         '--use-best-model', 'false',
     )
-    yatest.common.execute(cmd)
+    yatest.common.execute(cmd, env=dict(MKL_CBWR='SSE4_2'))
+    eps = 0 if yatest.common.context.sanitize is None else 0.1
 
-    return [local_canonical_file(output_eval_path)]
+    return [local_canonical_file(output_eval_path, diff_tool=diff_tool(eps))]
 
 
 @pytest.mark.parametrize('loss_function', ['Logloss', 'RMSE', 'MultiClass', 'QuerySoftMax', 'QueryRMSE'])

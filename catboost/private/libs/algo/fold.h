@@ -152,7 +152,8 @@ public:
 private:
     void AssignTarget(
         NCB::TMaybeData<TConstArrayRef<TConstArrayRef<float>>> target,
-        const TVector<TTargetClassifier>& targetClassifiers
+        const TVector<TTargetClassifier>& targetClassifiers,
+        NPar::TLocalExecutor* localExecutor
     );
 
     void SetWeights(TConstArrayRef<float> weights, ui32 learnSampleCount);

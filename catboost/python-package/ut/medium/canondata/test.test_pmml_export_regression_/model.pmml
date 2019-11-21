@@ -3,9 +3,9 @@
 <Header copyright="(c) catboost team" description="CatBoostModel_for_regression" modelVersion="1">
 <Application name="CatBoost" version="Svn info:
     URL: svn+ssh://arcadia.yandex.ru/arc/trunk/arcadia
-    Last Changed Rev: 5896771
-    Last Changed Author: elsol
-    Last Changed Date: 2019-11-07T10:14:55.139626Z
+    Last Changed Rev: 5921895
+    Last Changed Author: robot-vcssync
+    Last Changed Date: 2019-11-14T06:45:01.426846Z
 
 Other info:
     Build by: espetrov
@@ -16,7 +16,7 @@ Other info:
         Linux park.search.yandex.net 4.4.68-33 #1 SMP Mon May 15 15:50:23 UTC 2017 x86_64
 
     "/>
-<Timestamp>2019-11-07T12:17:43Z</Timestamp>
+<Timestamp>2019-11-14T14:24:43Z</Timestamp>
 </Header>
 <DataDictionary>
 <DataField name="feature_3" optype="continuous" dataType="float"/>

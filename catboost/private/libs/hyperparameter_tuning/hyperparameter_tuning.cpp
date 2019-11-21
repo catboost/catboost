@@ -226,9 +226,9 @@ namespace {
         }
     }
 
-    template <class TDataProvidersTemplate>
-    TDataProvidersTemplate PrepareTrainTestSplit(
-        typename TDataProvidersTemplate::TDataPtr srcData,
+
+    NCB::TTrainingDataProviders PrepareTrainTestSplit(
+        NCB::TTrainingDataProviderPtr srcData,
         const TTrainTestSplitParams& trainTestSplitParams,
         ui64 cpuUsedRamLimit,
         NPar::TLocalExecutor* localExecutor) {
@@ -241,9 +241,13 @@ namespace {
         NCB::TArraySubsetIndexing<ui32> testIndices;
 
         if (trainTestSplitParams.Stratified) {
-            StratifiedTrainTestSplit(
+            NCB::TMaybeData<TConstArrayRef<float>> maybeTarget
+                = srcData->TargetData->GetOneDimensionalTarget();
+            CB_ENSURE(maybeTarget, "Cannot do stratified split: Target data is unavailable");
+
+            NCB::StratifiedTrainTestSplit(
                 *srcData->ObjectsGrouping,
-                NCB::GetTargetForStratifiedSplit(*srcData),
+                *maybeTarget,
                 trainTestSplitParams.TrainPart,
                 &trainIndices,
                 &testIndices
@@ -256,7 +260,7 @@ namespace {
                 &testIndices
             );
         }
-        return NCB::CreateTrainTestSubsets<TDataProvidersTemplate>(
+        return NCB::CreateTrainTestSubsets<NCB::TTrainingDataProviders>(
             srcData,
             std::move(trainIndices),
             std::move(testIndices),
@@ -465,7 +469,7 @@ namespace {
 
         if (isNeedSplit) {
             // Train-test split
-            *result = PrepareTrainTestSplit<NCB::TTrainingDataProviders>(
+            *result = PrepareTrainTestSplit(
                 quantizedData,
                 trainTestSplitParams,
                 cpuUsedRamLimit,

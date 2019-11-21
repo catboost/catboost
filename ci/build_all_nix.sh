@@ -17,6 +17,7 @@ function python_version {
         Python*3.5*) echo 3.5 ;;
         Python*3.6*) echo 3.6 ;;
         Python*3.7*) echo 3.7 ;;
+        Python*3.8*) echo 3.8 ;;
         *) echo "Cannot determine python version" ; exit 1 ;;
     esac
 }
@@ -28,8 +29,10 @@ function os_sdk {
     esac
 }
 
-python ya make -r -DNO_DEBUGINFO $(os_sdk) $CUDA_ARG -o . catboost/app
-python ya make -r -DNO_DEBUGINFO $(os_sdk) $CUDA_ARG -o . catboost/libs/model_interface
+lnx_common_flags="-DNO_DEBUGINFO $CUDA_ARG"
+
+python ya make -r $lnx_common_flags $(os_sdk) -o . catboost/app
+python ya make -r $lnx_common_flags $(os_sdk) -o . catboost/libs/model_interface
 
 echo "Starting R package build"
 cd catboost/R-package
@@ -45,7 +48,7 @@ cp -r inst catboost
 cp -r man catboost
 cp -r tests catboost
 
-python ../../ya make -r -DNO_DEBUGINFO -T src $(os_sdk) $CUDA_ARG
+python ../../ya make -r $lnx_common_flags $(os_sdk) -T src
 
 mkdir -p catboost/inst/libs
 cp $(readlink src/libcatboostr.so) catboost/inst/libs
@@ -57,19 +60,24 @@ cd ../python-package
 PY27=2.7.14
 pyenv install -s $PY27
 pyenv shell $PY27
-python mk_wheel.py $(os_sdk) $CUDA_ARG -DPYTHON_CONFIG=$(pyenv prefix)/bin/python2-config
+python mk_wheel.py $lnx_common_flags $(os_sdk) -DPYTHON_CONFIG=$(pyenv prefix)/bin/python2-config
 
 PY35=3.5.5
 pyenv install -s $PY35
 pyenv shell $PY35
-python mk_wheel.py $(os_sdk) $CUDA_ARG -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
+python mk_wheel.py $lnx_common_flags $(os_sdk) -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
 
 PY36=3.6.6
 pyenv install -s $PY36
 pyenv shell $PY36
-python mk_wheel.py $(os_sdk) $CUDA_ARG -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
+python mk_wheel.py $lnx_common_flags $(os_sdk) -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
 
 PY37=3.7.0
 pyenv install -s $PY37
 pyenv shell $PY37
-python mk_wheel.py $(os_sdk) $CUDA_ARG -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
+python mk_wheel.py $lnx_common_flags $(os_sdk) -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
+
+PY38=3.8.0
+pyenv install -s $PY38
+pyenv shell $PY38
+python mk_wheel.py $lnx_common_flags $(os_sdk) -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config

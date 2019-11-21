@@ -84,7 +84,7 @@ void UpdateApproxDeltas(
     const double* leafDeltasData = leafDeltas->data();
 
     NPar::TLocalExecutor::TExecRangeParams blockParams(0, docCount);
-    blockParams.SetBlockSize(1000);
+    blockParams.SetBlockSize(AdjustBlockSize(docCount, /*regularBlockSize*/1000));
 
     const auto getUpdateApproxBlockLambda = [&](auto boolConst) -> std::function<void(int)> {
         return [=](int blockIdx) {
@@ -115,10 +115,9 @@ static void CalcApproxDers(
     TArrayRef<TDers> approxDers,
     TLearnContext* ctx) {
     NPar::TLocalExecutor::TExecRangeParams blockParams(sampleStart, sampleFinish);
-    blockParams.SetBlockSize(APPROX_BLOCK_SIZE);
+    blockParams.SetBlockSize(AdjustBlockSize(sampleFinish - sampleStart, APPROX_BLOCK_SIZE));
     ctx->LocalExecutor->ExecRangeWithThrow(
         [&](int blockId) {
-            // espetrov: OK for small datasets
             const int blockOffset = sampleStart + blockId * blockParams.GetBlockSize();
             error.CalcDersRange(
                 blockOffset,
@@ -167,7 +166,7 @@ static void CalcLeafDers(
     TArrayRef<TSum> leafDers,
     TArrayRef<TDers> weightedDers) {
     NPar::TLocalExecutor::TExecRangeParams blockParams(0, sampleCount);
-    blockParams.SetBlockCount(CB_THREAD_LIMIT);
+    blockParams.SetBlockCount(AdjustBlockCountLimit(sampleCount, CB_THREAD_LIMIT));
 
     const int leafCount = leafDers.size();
     TVector<TVector<TDers>> blockBucketDers(

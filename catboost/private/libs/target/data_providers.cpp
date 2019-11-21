@@ -30,7 +30,7 @@ namespace NCB {
 
     // can be empty if target data is unavailable
     static TVector<TSharedVector<float>> ConvertTarget(
-        TMaybeData<TConstArrayRef<TConstArrayRef<TString>>> maybeRawTarget,
+        TMaybeData<TConstArrayRef<TRawTarget>> maybeRawTarget,
         bool isClass,
         bool isMultiClass,
         bool classCountUnknown,
@@ -58,48 +58,11 @@ namespace NCB {
             trainingTarget[targetIdx] = MakeAtomicShared<TVector<float>>(TVector<float>());
         }
 
-        switch (targetConverter.GetTargetPolicy()) {
-            case EConvertTargetPolicy::MakeClassNames: {
-                for (auto targetIdx : xrange(targetDim)) {
-                    *trainingTarget[targetIdx] = targetConverter.PostprocessLabels(rawTarget[targetIdx]);
-                }
-                if (isClass && outputClassNames) {
-                    targetConverter.SetOutputClassNames();
-                }
-                break;
-            }
-            case EConvertTargetPolicy::CastFloat:
-                if (isClass) {
-                    // can't use parallel processing because of UniqueLabels update
-                    for (auto targetIdx : xrange(targetDim)) {
-                        trainingTarget[targetIdx]->reserve(rawTarget[targetIdx].size());
-                        for (const auto& rawTargetElement : rawTarget[targetIdx]) {
-                            trainingTarget[targetIdx]->push_back(targetConverter.ConvertLabel(rawTargetElement));
-                        }
-                    }
-                    break;
-                }
-            case EConvertTargetPolicy::UseClassNames: {
-                for (auto targetIdx : xrange(targetDim)) {
-                    trainingTarget[targetIdx]->yresize(rawTarget[targetIdx].size());
-                    localExecutor->ExecRangeBlockedWithThrow(
-                        [&] (int idx) { (*trainingTarget[targetIdx])[idx] = targetConverter.ConvertLabel(rawTarget[targetIdx][idx]); },
-                        0,
-                        SafeIntegerCast<int>(rawTarget[targetIdx].size()),
-                        0,
-                        NPar::TLocalExecutor::WAIT_COMPLETE
-                    );
-                }
-                break;
-            }
-            default: {
-                CB_ENSURE(
-                    false,
-                    "Unsupported convert target policy "
-                    << ToString<EConvertTargetPolicy>(targetConverter.GetTargetPolicy())
-                );
-            }
+        // TODO(akhropov): Process multidimensional target columns in parallel when possible
+        for (auto targetIdx : xrange(targetDim)) {
+            *trainingTarget[targetIdx] = targetConverter.Process(rawTarget[targetIdx], localExecutor);
         }
+
         if (isMultiClass && classCountUnknown) {
             *classCount = targetConverter.GetClassCount();
         }

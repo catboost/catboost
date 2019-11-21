@@ -54,7 +54,9 @@ static TDataProviderPtr SmallFloatPool(EWeightsMode addWeights, ETargetDimMode m
             if (multiclass) {
                 visitor->AddTarget(TVector<TString>{"1", "0", "2"});
             } else {
-                visitor->AddTarget(TVector<float>{1.0f, 0.0f, 0.2f});
+                visitor->AddTarget(
+                    MakeIntrusive<TTypeCastArrayHolder<float, float>>(TVector<float>{1.0f, 0.0f, 0.2f})
+                );
             }
             if (addWeights) {
                 visitor->AddWeights({1.0f, 2.0f, 0.5f});

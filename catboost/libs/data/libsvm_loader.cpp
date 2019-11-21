@@ -110,6 +110,7 @@ namespace NCB {
             /*haveUnknownNumberOfSparseFeatures*/ true,
             objectCount,
             Args.ObjectsOrder,
+            /*targetDataTypeIsString*/ false,
             {}
         );
 
