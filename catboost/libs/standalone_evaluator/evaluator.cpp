@@ -71,7 +71,7 @@ namespace NCatboostStandalone {
     }
 
     void TZeroCopyEvaluator::SetModelPtr(const NCatBoostFbs::TModelCore* core) {
-        ObliviousTrees = core->ObliviousTrees();
+        ObliviousTrees = core->ModelTrees();
         if (ObliviousTrees == nullptr) {
             throw std::runtime_error(
                 "trying to initialize TZeroCopyEvaluator from coreModel without oblivious trees");
