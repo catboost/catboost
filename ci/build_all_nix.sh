@@ -17,6 +17,7 @@ function python_version {
         Python*3.5*) echo 3.5 ;;
         Python*3.6*) echo 3.6 ;;
         Python*3.7*) echo 3.7 ;;
+        Python*3.8*) echo 3.8 ;;
         *) echo "Cannot determine python version" ; exit 1 ;;
     esac
 }
@@ -74,4 +75,9 @@ python mk_wheel.py $lnx_common_flags $(os_sdk) -DPYTHON_CONFIG=$(pyenv prefix)/b
 PY37=3.7.0
 pyenv install -s $PY37
 pyenv shell $PY37
+python mk_wheel.py $lnx_common_flags $(os_sdk) -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config
+
+PY38=3.8.0
+pyenv install -s $PY38
+pyenv shell $PY38
 python mk_wheel.py $lnx_common_flags $(os_sdk) -DPYTHON_CONFIG=$(pyenv prefix)/bin/python3-config

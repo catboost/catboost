@@ -34,6 +34,11 @@ echo c:\Python%PyV%\python.exe
 c:\Python%PyV%\python.exe mk_wheel.py %WIN_COMMON_FLAGS% -DPYTHON_INCLUDE="/I c:/Python%PyV%/include/" -DPYTHON_LIBRARIES="c:/Python%PyV%/libs/python%PyV%.lib"
 if %errorlevel% neq 0 exit /b %errorlevel%
 
+set PyV=38
+echo c:\Python%PyV%\python.exe
+c:\Python%PyV%\python.exe mk_wheel.py %WIN_COMMON_FLAGS% -DPYTHON_INCLUDE="/I c:/Python%PyV%/include/" -DPYTHON_LIBRARIES="c:/Python%PyV%/libs/python%PyV%.lib"
+if %errorlevel% neq 0 exit /b %errorlevel%
+
 echo Building R-package
 
 cd ..\..
