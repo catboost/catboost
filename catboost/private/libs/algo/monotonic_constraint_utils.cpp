@@ -1,56 +1,38 @@
 #include "monotonic_constraint_utils.h"
 
-namespace {
-    void BuildMonotonicLag(
-        const TVector<int>& monotonicConstraint,
-        TVector<ui32>& monotonicLag,
-        TVector<ui32>& nonMonotonicLag
-    ) {
-        for (ui32 i = 0; i < monotonicConstraint.size(); ++i) {
-            if (monotonicConstraint[i] != 0) {
-                monotonicLag.push_back(i);
-            } else {
-                nonMonotonicLag.push_back(i);
-            }
-        }
-    }
-
-    ui32 BuildMask(const TVector<int>& monotonicConstraint) {
-        ui32 mask = 0;
-        for (ui32 i = 0; i < monotonicConstraint.size(); ++i) {
-            if (monotonicConstraint[i] == -1) {
-                mask += (1 << i);
-            }
-        }
-        return mask;
-    }
-
-    ui32 MutateIntWLag(const TVector<ui32>& lag, const ui32 number) {
-        ui32 result = 0;
-        for (ui32 i = 0; i < lag.size(); ++i) {
-            result += ((number >> i) & 1u) << lag[i];
-        }
-        return result;
-    }
-}
 
 TVector<ui32> BuildLinearOrderOnLeafsOfMonotonicSubtree(
     const TVector<int>& treeMonotonicConstraints,
-    const ui32 monotonicSubtreeIndex
+    ui32 monotonicSubtreeIndex
 ) {
-    TVector<ui32> monotonicLag;
-    TVector<ui32> nonMonotonicLag;
-    BuildMonotonicLag(treeMonotonicConstraints, monotonicLag, nonMonotonicLag);
-
-    ui32 splitTreeSample = MutateIntWLag(nonMonotonicLag, monotonicSubtreeIndex);
-
-    ui32 mask = BuildMask(treeMonotonicConstraints);
-
-    TVector<ui32> result(1 << monotonicLag.size());
-    for (ui32 i = 0; i < result.size(); ++i) {
-        result[i] = MutateIntWLag(monotonicLag, i) ^ mask + splitTreeSample;
+    ui32 currDepthBitMask = 1u;
+    ui32 leastLeafIndex = 0u;
+    TVector<ui32> monotonicSplitBitMasks;
+    for (int constraint : treeMonotonicConstraints) {
+        if (constraint == 0) {
+            if (monotonicSubtreeIndex & 1u) {
+                leastLeafIndex |= currDepthBitMask;
+            }
+            monotonicSubtreeIndex = monotonicSubtreeIndex >> 1;
+        } else {
+            monotonicSplitBitMasks.push_back(currDepthBitMask);
+            if (constraint == -1) {
+                leastLeafIndex |= currDepthBitMask;
+            }
+        }
+        currDepthBitMask = currDepthBitMask << 1;
     }
-    return result;
+    Y_ASSERT(monotonicSubtreeIndex == 0u);
+    const ui32 monotonicSplitCount = monotonicSplitBitMasks.size();
+    TVector<ui32> leafOrder(1u << monotonicSplitCount, leastLeafIndex);
+    for (ui32 leafRank = 0u; leafRank < leafOrder.size(); ++leafRank) {
+        for (ui32 monotonicDepth = 0u; monotonicDepth < monotonicSplitCount; ++monotonicDepth) {
+            if ((leafRank >> (monotonicSplitCount - 1 - monotonicDepth)) & 1u) {
+                leafOrder[leafRank] ^= monotonicSplitBitMasks[monotonicDepth];
+            }
+        }
+    }
+    return leafOrder;
 }
 
 TVector<TVector<ui32>> BuildMonotonicLinearOrdersOnLeafs(const TVector<int>& treeMonotonicConstraints) {
@@ -69,44 +51,71 @@ TVector<TVector<ui32>> BuildMonotonicLinearOrdersOnLeafs(const TVector<int>& tre
     return result;
 }
 
+namespace {
+    class TIsotonicLevelSet {
+    /* Level set of a function f is a set of the form {x : f(x) = v} for some value v.
+     * This class describes a level set of the function that represents the solution of
+     * one-dimensional isotonic regression.
+     */
+    public:
+        TIsotonicLevelSet(int begin, double weight, double value)
+            : Begin_(begin)
+            , End_(begin + 1)
+            , Weight(weight)
+            , SumWeightedValue(weight * value) {
+        }
+
+        void MergeLeft(const TIsotonicLevelSet& leftSet) {
+            Y_ASSERT(leftSet.End_ == Begin_);
+            Begin_ = leftSet.Begin_;
+            Weight = leftSet.Weight + Weight;
+            SumWeightedValue = leftSet.SumWeightedValue + SumWeightedValue;
+        }
+
+        double Average() const {
+            return SumWeightedValue / Weight;
+        }
+
+        int Begin() const {
+            return Begin_;
+        }
+
+        int End() const {
+            return End_;
+        }
+    private:
+        int Begin_ = 0;
+        int End_ = 0;
+        double Weight = 0.0;
+        double SumWeightedValue = 0.0;
+    };
+}
+
 void CalcOneDimensionalIsotonicRegression(
     const TVector<double>& values,
-    const TVector<double>& weight,
+    const TVector<double>& weights,
     const TVector<ui32>& indexOrder,
     TVector<double>* solution
 ) {
     const int size = indexOrder.size();
-
-    TVector<double> activeValues(size, 0);
-    TVector<double> activeWeight(size, 0);
-    TVector<int> activeIndices(size + 1, 0);
-
-    activeValues[0] = values[indexOrder[0]];
-    activeWeight[0] = weight[indexOrder[0]];
-    int current = 0;
-    activeIndices[0] = -1;
-    activeIndices[1] = 0;
-
-    for (int i = 1; i < size; ++i) {
-        current += 1;
-        activeValues[current] = values[indexOrder[i]];
-        activeWeight[current] = weight[indexOrder[i]];
-        while (current > 0 && activeValues[current] < activeValues[current - 1]) {
-            activeValues[current - 1] = (
-                activeValues[current - 1] * activeWeight[current - 1] + activeValues[current] * activeWeight[current]
-            ) / (activeWeight[current - 1] + activeWeight[current]);
-            activeWeight[current - 1] = activeWeight[current - 1] + activeWeight[current];
-            current -= 1;
+    TVector<TIsotonicLevelSet> levelSets;
+    for (int pointRank = 0; pointRank < size; ++pointRank) {
+        auto pointIndex = indexOrder[pointRank];
+        TIsotonicLevelSet newLevelSet(pointRank, weights[pointIndex], values[pointIndex]);
+        while (!levelSets.empty() && levelSets.back().Average() >= newLevelSet.Average()) {
+            newLevelSet.MergeLeft(levelSets.back());
+            levelSets.pop_back();
         }
-        activeIndices[current + 1] = i;
+        levelSets.push_back(newLevelSet);
     }
-
-    for (int i = 0; i <= current; ++i) {
-        for (int l = activeIndices[i] + 1; l <= activeIndices[i + 1]; ++l) {
-            (*solution)[indexOrder[l]] = activeValues[i];
+    for (const auto& levelSet : levelSets) {
+        const double levelSetValue = levelSet.Average();
+        for (int pointRank = levelSet.Begin(); pointRank < levelSet.End(); ++pointRank) {
+            (*solution)[indexOrder[pointRank]] = levelSetValue;
         }
     }
 }
+
 
 TVector<int> GetTreeMonotoneConstraints(const TSplitTree& tree, const TMap<ui32, int>& monotoneConstraints) {
     TVector<int> treeMonotoneConstraints(tree.GetDepth(), 0);
@@ -123,7 +132,6 @@ TVector<int> GetTreeMonotoneConstraints(const TSplitTree& tree, const TMap<ui32,
     }
     return treeMonotoneConstraints;
 }
-
 
 bool CheckMonotonicity(const TVector<ui32>& indexOrder, const TVector<double>& values) {
     for (ui32 i = 0; i + 1 < indexOrder.size(); ++i) {

@@ -28,7 +28,7 @@ TVector<TVector<ui32>> BuildMonotonicLinearOrdersOnLeafs(const TVector<int>& tre
  */
 void CalcOneDimensionalIsotonicRegression(
     const TVector<double>& values,
-    const TVector<double>& weight,
+    const TVector<double>& weights,
     const TVector<ui32>& indexOrder,
     TVector<double>* solution
 );
