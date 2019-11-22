@@ -59,6 +59,8 @@ RECURSE(
     json/writer/ut
     json/yson
     json/yson/ut
+    langs
+    langs/ut
     lcs
     lcs/ut
     lfalloc
