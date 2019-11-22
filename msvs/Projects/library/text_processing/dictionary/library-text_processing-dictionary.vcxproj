@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\app_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\bpe_builder.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\bpe_dictionary.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\bpe_helpers.cpp"/>
@@ -121,6 +122,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\library\text_processing\dictionary\types.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\text_processing\dictionary\types.h_serialized.cpp;</Outputs>
     </CustomBuild>
+    <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\app_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\bpe_builder.h"/>
     <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\bpe_dictionary.h"/>
     <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\bpe_helpers.h"/>
