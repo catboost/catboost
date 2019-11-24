@@ -14,9 +14,9 @@ performance_test:
   tags:
     - performance
   before_script:
-    - pip2 install catboost/python-package/catboost-*.whl --user
-    - pip2 install xgboost matplotlib tqdm scipy lightgbm pandas numpy scikit_learn --user
-    - pip2 install icc-rt tbb tbb4py --user
+    - pip2 install -U catboost/python-package/catboost-*.whl --user
+    - pip2 install -U xgboost matplotlib tqdm scipy lightgbm pandas numpy scikit_learn --user
+    - pip2 install -U icc-rt tbb tbb4py --user
     
   script:
     - cd catboost/benchmarks/training_speed
