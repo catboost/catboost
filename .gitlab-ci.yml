@@ -16,11 +16,11 @@ performance_test:
   before_script:
     - pip2 install catboost/python-package/catboost-*.whl --user
     - pip2 install xgboost matplotlib tqdm scipy lightgbm pandas numpy scikit_learn --user
-    - pip2 install tbb --user
+    - pip2 install icc-rt tbb tbb4py --user
     
   script:
     - cd catboost/benchmarks/training_speed
-    - python -m tbb benchmark.py --iterations 10
+    - python -m tbb --ipc -a --allocator-huge-pages -v benchmark.py --iterations 10
   artifacts:
     paths:
       - catboost/benchmarks/training_speed/common-table.txt
