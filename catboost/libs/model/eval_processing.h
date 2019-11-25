@@ -97,7 +97,7 @@ inline void CalcLogSigmoid(const TConstArrayRef<double> approx, TArrayRef<double
     FastExpInplace(target.data(), target.size());
     InvertSign(approx, target);
     for (auto& val : target) {
-        val = -log(1. + val);
+        val = -std::log(1. + val);
     }
 }
 
