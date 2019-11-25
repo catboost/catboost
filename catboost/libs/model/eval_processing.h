@@ -31,6 +31,27 @@ inline void CalcSoftmax(const TConstArrayRef<double> approx, TVector<double>* so
     CalcSoftmax(approx, *softmax);
 }
 
+inline void CalcLogSoftmax(const TConstArrayRef<double> approx, TArrayRef<double> logSoftmax) {
+    double maxApprox = *MaxElement(approx.begin(), approx.end());
+    for (size_t dim = 0; dim < approx.size(); ++dim) {
+        logSoftmax[dim] = approx[dim] - maxApprox;
+    }
+    FastExpInplace(logSoftmax.data(), logSoftmax.ysize());
+    double logSumExpApprox = 0;
+    for (auto curLogSoftmax : logSoftmax) {
+        logSumExpApprox += curLogSoftmax;
+    }
+    logSumExpApprox = std::log(logSumExpApprox);
+
+    for (size_t dim = 0; dim < approx.size(); ++dim) {
+        logSoftmax[dim] = approx[dim] - maxApprox - logSumExpApprox;
+    }
+}
+
+inline void CalcLogSoftmax(const TConstArrayRef<double> approx, TVector<double>* softmax) {
+    CalcLogSoftmax(approx, *softmax);
+}
+
 //approx and target could overlap
 inline void CalcSigmoid(const TConstArrayRef<double> approx, TArrayRef<double> target) {
     Y_ASSERT(approx.size() == target.size());
@@ -50,6 +71,43 @@ inline TVector<double> CalcSigmoid(const TConstArrayRef<double> approx) {
     //CalcSigmoid(approx, probabilities);
     for (size_t i = 0; i < approx.size(); ++i) {
         probabilities[i] = 1. / (1. + exp(-approx[i]));
+    }
+    return probabilities;
+}
+
+//approx and target could overlap
+// TODO: reuse in CalcSigmoid
+inline void InvertSign(const TConstArrayRef<double> approx, TArrayRef<double> target) {
+     Y_ASSERT(approx.size() == target.size());
+     for (size_t i = 0; i < approx.size(); ++i) {
+         target[i] = -approx[i];
+     }
+}
+
+inline TVector<double> InvertSign(const TConstArrayRef<double> approx) {
+    TVector<double> target;
+    target.yresize(approx.size());
+    InvertSign(approx, target);
+    return target;
+}
+
+//approx and target could overlap
+inline void CalcLogSigmoid(const TConstArrayRef<double> approx, TArrayRef<double> target) {
+    Y_ASSERT(approx.size() == target.size());
+    FastExpInplace(target.data(), target.size());
+    InvertSign(approx, target);
+    for (auto& val : target) {
+        val = -log(1. + val);
+    }
+}
+
+inline TVector<double> CalcLogSigmoid(const TConstArrayRef<double> approx) {
+    TVector<double> probabilities;
+    probabilities.yresize(approx.size());
+    // TODO(kirillovs): uncomment with canonization in next refactoring step
+    //CalcLogSigmoid(approx, probabilities);
+    for (size_t i = 0; i < approx.size(); ++i) {
+        probabilities[i] = -std::log(1. + std::exp(-approx[i]));
     }
     return probabilities;
 }
