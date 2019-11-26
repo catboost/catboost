@@ -41,13 +41,17 @@ SRCS(
 
     fixdfti.c
     fixsfti.c
+    fixtfdi.c
     fixtfsi.c
     fixunsdfti.c
+    fixunstfsi.c
+    fixunstfdi.c
     floatditf.c
     floatsitf.c
     floattidf.c
     floattisf.c
     floatunditf.c
+    floatunsitf.c
     floatuntidf.c
     floatuntisf.c
 
