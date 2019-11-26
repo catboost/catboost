@@ -2541,6 +2541,58 @@
                 "objcopy": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-objcopy"
             }
         },
+        "gcc53-aarch64-lightcomm-mt8516": {
+            "name": "gcc53",
+            "tools": {
+                "cc": {
+                    "bottle": "gcc53-aarch64-lightcomm-mt8516",
+                    "executable": "cc"
+                },
+                "c++": {
+                    "bottle": "gcc53-aarch64-lightcomm-mt8516",
+                    "executable": "c++"
+                },
+                "gcov": {
+                    "bottle": "gcc53-aarch64-lightcomm-mt8516",
+                    "executable": "gcov"
+                },
+                "c++filt": {
+                    "bottle": "gcc53-aarch64-lightcomm-mt8516",
+                    "executable": "c++filt"
+                },
+                "strip": {
+                    "bottle": "gcc53-aarch64-lightcomm-mt8516",
+                    "executable": "strip"
+                },
+                "nm": {
+                    "bottle": "gcc53-aarch64-lightcomm-mt8516",
+                    "executable": "nm"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                  },
+                    "target": {
+                        "os": "YOCTO_LIGHTCOMM",
+                        "arch": "aarch64"
+                    }
+                }
+            ],
+            "params": {
+                "type": "gnu",
+                "match_root": "GCC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(GCC)/usr/bin/aarch64-poky-linux/aarch64-poky-linux-gcc",
+                "cxx_compiler": "$(GCC)/usr/bin/aarch64-poky-linux/aarch64-poky-linux-g++",
+                "ar": "$(GCC)/usr/bin/aarch64-poky-linux/aarch64-poky-linux-ar",
+                "gcc_version": "7.3",
+                "strip": "$(GCC)/usr/bin/aarch64-poky-linux/aarch64-poky-linux-strip",
+                "objcopy": "$(GCC)/usr/bin/aarch64-poky-linux/aarch64-poky-linux-objcopy",
+                "isystem": ["$(GCC)/usr/lib/aarch64-poky-linux/gcc/aarch64-poky-linux/5.3.0/include", "$(GCC)/usr/lib/aarch64-poky-linux/gcc/aarch64-poky-linux/5.3.0/include-fixed"]
+            }
+        },
         "bloat": {
             "tools": {
                 "bloat": {
@@ -5475,6 +5527,52 @@
                     "usr",
                     "bin",
                     "arm-poky-linux-gnueabi-nm"
+                ]
+            }
+        },
+        "gcc53-aarch64-lightcomm-mt8516": {
+            "formula": {
+                "sandbox_id": [
+                    "555140553"
+                ],
+                "match": "GCC"
+            },
+            "executable": {
+                "c++": [
+                    "usr",
+                    "bin",
+                    "aarch64-poky-linux",
+                    "aarch64-poky-linux-g++"
+                ],
+                "cc": [
+                    "usr",
+                    "bin",
+                    "aarch64-poky-linux",
+                    "aarch64-poky-linux-gcc"
+                ],
+                "gcov": [
+                    "usr",
+                    "bin",
+                    "aarch64-poky-linux",
+                    "aarch64-poky-linux-gcov"
+                ],
+                "c++filt": [
+                    "usr",
+                    "bin",
+                    "aarch64-poky-linux",
+                    "aarch64-poky-linux-c++filt"
+                ],
+"strip": [
+                    "usr",
+                    "bin",
+                    "aarch64-poky-linux",
+                    "aarch64-poky-linux-strip"
+                ],
+                "nm": [
+                    "usr",
+                    "bin",
+                    "aarch64-poky-linux",
+                    "aarch64-poky-linux-nm"
                 ]
             }
         },
