@@ -412,5 +412,6 @@ ALLOW yabs/telephony/platform/internal/rtp -> vendor/github.com/wernerd/GoRTP
 
 # CONTRIB-1518 client for monkey-patched Apache Pulsar by TuyaInc. responsible: jock@
 ALLOW quasar/iot/adapters/tuya_adapter -> vendor/github.com/TuyaInc/tuya_pulsar_sdk_go
+ALLOW quasar/iot/adapters/tuya_adapter/server -> vendor/github.com/sirupsen/logrus
 
 DENY .* -> vendor/
