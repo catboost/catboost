@@ -116,7 +116,14 @@ namespace NCB {
                 );
             }
 
-            trainingData->ObjectsData = quantizedObjectsDataProviderPtr;
+            if (params->DataProcessingOptions.Get().IgnoredFeatures.IsSet()) {
+                trainingData->ObjectsData = dynamic_cast<TQuantizedObjectsDataProvider*>(
+                    quantizedObjectsDataProviderPtr->GetFeaturesSubset(
+                        params->DataProcessingOptions.Get().IgnoredFeatures,
+                        localExecutor).Get());
+            } else {
+                trainingData->ObjectsData = quantizedObjectsDataProviderPtr;
+            }
             trainingData->ObjectsData->GetQuantizedFeaturesInfo()->SetAllowWriteFiles(allowWriteFiles);
         } else {
             trainingData->ObjectsData = GetQuantizedObjectsData(
@@ -129,6 +136,11 @@ namespace NCB {
                 rand,
                 GetInitialBorders(initModel));
         }
+
+        CB_ENSURE(
+            trainingData->ObjectsData->GetFeaturesLayout()->HasAvailableAndNotIgnoredFeatures(),
+            "All features are either constant or ignored.");
+
         //(TODO)
         // because some features can become unavailable/ignored due to quantization
         trainingData->MetaInfo.FeaturesLayout = trainingData->ObjectsData->GetFeaturesLayout();

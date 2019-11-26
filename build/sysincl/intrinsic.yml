@@ -18,6 +18,7 @@
   - ia64intrin.h
   - immintrin.h
   - intrin.h
+  - intrinsics.h
   - lzcntintrin.h
   - mm3dnow.h
   - mmintrin.h

@@ -229,7 +229,7 @@ namespace NCatboostCuda {
                                                                 const TFeatureEstimators& featureEstimators,
                                                                 TBinarizedFeaturesManager& featuresManager,
                                                                 ui32 approxDimension,
-                                                                const THolder<ITrainingCallbacks>& trainingCallbacks,
+                                                                ITrainingCallbacks* trainingCallbacks,
                                                                 NPar::TLocalExecutor* localExecutor,
                                                                 TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                 TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
@@ -299,7 +299,7 @@ namespace NCatboostCuda {
             const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
             TTrainingDataProviders trainingData,
             const TLabelConverter& labelConverter,
-            const THolder<ITrainingCallbacks>& trainingCallbacks,
+            ITrainingCallbacks* trainingCallbacks,
             TMaybe<TFullModel*> initModel,
             THolder<TLearnProgress> initLearnProgress,
             NCB::TDataProviders initModelApplyCompatiblePools,

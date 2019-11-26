@@ -26,6 +26,8 @@ SRCS(
     fftpack_litemodule.c
 )
 
+NO_LINT()
+
 PY_SRCS(
     NAMESPACE numpy.fft
     __init__.py

@@ -2370,6 +2370,66 @@
                 "gcc_version": "6.0"
             }
         },
+        "gcc49-android-armv8a": {
+            "name": "gcc49",
+            "tools": {
+                "cc": {
+                    "bottle": "gcc49-android-armv8",
+                    "executable": "cc"
+                },
+                "c++": {
+                    "bottle": "gcc49-android-armv8",
+                    "executable": "c++"
+                },
+                "gcov": {
+                    "bottle": "gcc49-android-armv8",
+                    "executable": "gcov"
+                },
+                "strip": {
+                    "bottle": "gcc49-android-armv8",
+                    "executable": "strip"
+                },
+                "nm": {
+                    "bottle": "gcc49-android-armv8",
+                    "executable": "nm"
+                },
+                "clang-format": {
+                    "bottle": "gcc49-android-armv8",
+                    "executable": "clang-format"
+                },
+                "clang-tidy": {
+                    "bottle": "gcc49-android-armv8",
+                    "executable": "clang-tidy"
+                },
+                "llvm-symbolizer": {
+                    "bottle": "gcc49-android-armv8",
+                    "executable": "llvm-symbolizer"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "armv8a"
+                    }
+                }
+            ],
+            "params": {
+                "type": "gnu",
+                "match_root": "GCC",
+                "werror_mode": "compiler_specific",
+                "gcc_version": "4.9",
+                "cxx_std": "c++1y",
+                "c_compiler": "$(GCC)/bin/aarch64-linux-android-gcc",
+                "cxx_compiler": "$(GCC)/bin/aarch64-linux-android-g++",
+                "ar": "$(GCC)/bin/aarch64-linux-android-ar",
+                "strip": "$(GCC)/bin/aarch64-linux-android-strip",
+                "objcopy": "$(GCC)/bin/aarch64-linux-android-objcopy"
+            }
+        },
         "gcc63-armv7a": {
             "name": "gcc63",
             "tools": {
@@ -4684,7 +4744,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [549960971],
+                "sandbox_id": [552977342],
                 "match": "ymake"
             },
             "executable": {
@@ -5298,6 +5358,52 @@
                 ]
             }
         },
+        "gcc49-android-armv8": {
+            "formula": {
+                "sandbox_id": [
+                    554529118
+                ],
+                "match": "NDK"
+            },
+            "executable": {
+                "c++": [
+                    "bin",
+                    "aarch64-linux-android-g++"
+                ],
+                "cc": [
+                    "bin",
+                    "aarch64-linux-android-gcc"
+                ],
+                "strip": [
+                    "bin",
+                    "aarch64-linux-android-strip"
+                ],
+                "c++filt": [
+                    "bin",
+                    "aarch64-linux-android-c++filt"
+                ],
+                "nm": [
+                    "bin",
+                    "aarch64-linux-android-nm"
+                ],
+                "gcov": [
+                    "bin",
+                    "aarch64-linux-android-gcov"
+                ],
+                "clang-format": [
+                    "bin",
+                    "clang-format"
+                ],
+                "clang-tidy": [
+                    "bin",
+                    "clang-tidy"
+                ],
+                "llvm-symbolizer": [
+                    "bin",
+                    "llvm-symbolizer"
+                ]
+            }
+        },
         "gcc63-armv7a": {
             "formula": {
                 "sandbox_id": [
@@ -5335,7 +5441,7 @@
         "gcc73-armv7a-jbl-portable-music": {
             "formula": {
                 "sandbox_id": [
-                    "549987302"
+                    "554980592"
                 ],
                 "match": "GCC"
             },
@@ -6310,7 +6416,7 @@
         "qyp": {
             "formula": {
                 "sandbox_id": [
-                    523033576
+                    555082780
                 ],
                 "match": "infra/qyp/vmctl/bin/vmctl"
             },
@@ -6400,7 +6506,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 551310943,
+                "sandbox_id": 553379431,
                 "match": "SEDEM archive"
             },
             "executable": {

@@ -97,7 +97,7 @@ ALLOW .* -> vendor/github.com/kentik/patricia
 ALLOW .* -> vendor/github.com/kshvakov/clickhouse
 
 # High performance, minimalist web framework
-ALLOW .* -> vendor/github.com/labstack/echo
+ALLOW .* -> vendor/github.com/labstack/echo/v4
 
 # fluent SQL builder
 ALLOW .* -> vendor/github.com/Masterminds/squirrel
@@ -234,6 +234,9 @@ ALLOW .* -> vendor/google.golang.org/grpc
 # Usefull GRPC interceptors
 ALLOW .* -> vendor/github.com/grpc-ecosystem/go-grpc-middleware
 
+# Protobuf and gRPC reflection
+ALLOW .* -> vendor/github.com/jhump/protoreflect
+
 # Job Scheduling Package
 ALLOW .* -> vendor/github.com/jasonlvhit/gocron
 
@@ -346,6 +349,9 @@ ALLOW .* -> vendor/github.com/iovisor/gobpf
 
 # CONTRIB-1561 Go pretty format for numbers
 ALLOW .* -> vendor/github.com/dustin/go-humanize
+
+# CONTRIB-1596 embedded key/value database
+ALLOW .* -> vendor/go.etcd.io/bbolt
 
 #
 # Temporary exceptions.

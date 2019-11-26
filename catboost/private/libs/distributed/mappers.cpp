@@ -6,10 +6,11 @@
 #include <catboost/private/libs/algo/approx_delta_calcer_multi.h>
 #include <catboost/private/libs/algo/approx_updater_helpers.h>
 #include <catboost/private/libs/algo/data.h>
-#include <catboost/private/libs/algo/scoring.h>
 #include <catboost/private/libs/algo/learn_context.h>
 #include <catboost/private/libs/algo/online_ctr.h>
 #include <catboost/private/libs/algo/preprocess.h>
+#include <catboost/private/libs/algo/scoring.h>
+#include <catboost/private/libs/algo/split.h>
 #include <catboost/private/libs/algo_helpers/approx_calcer_helpers.h>
 #include <catboost/private/libs/algo_helpers/approx_calcer_multi_helpers.h>
 #include <catboost/private/libs/algo_helpers/error_functions.h>
@@ -616,14 +617,14 @@ namespace NCatboostDistributed {
         for (auto& dimensionDelta : localData.ApproxDeltas) {
             Fill(dimensionDelta.begin(), dimensionDelta.end(), GetNeutralApprox(localData.StoreExpApprox));
         }
-        localData.Buckets.resize(splitTree->GetLeafCount());
+        localData.Buckets.resize(GetLeafCount(*splitTree));
         Fill(localData.Buckets.begin(), localData.Buckets.end(), TSum());
-        localData.MultiBuckets.resize(splitTree->GetLeafCount());
+        localData.MultiBuckets.resize(GetLeafCount(*splitTree));
         Fill(
             localData.MultiBuckets.begin(),
             localData.MultiBuckets.end(),
             TSumMulti(approxDimension, error->GetHessianType()));
-        localData.PairwiseBuckets.SetSizes(splitTree->GetLeafCount(), splitTree->GetLeafCount());
+        localData.PairwiseBuckets.SetSizes(GetLeafCount(*splitTree), GetLeafCount(*splitTree));
         localData.PairwiseBuckets.FillZero();
         localData.GradientIteration = 0;
     }

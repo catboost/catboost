@@ -76,15 +76,13 @@ int mode_eval_feature(int argc, const char* argv[]) {
         /*profile*/nullptr
     );
 
-    TFeatureEvaluationSummary featureEvalSummary;
-    EvaluateFeatures(
+    const auto featureEvalSummary = EvaluateFeatures(
         catBoostFlatJsonOptions,
         featureEvalOptions,
         /*objectiveDescriptor*/Nothing(),
         /*evalMetricDescriptor*/Nothing(),
         poolLoadParams.CvParams,
-        pools.Learn,
-        &featureEvalSummary
+        pools.Learn
     );
 
     if (featureEvalOptions.EvalFeatureFileName->length() > 0) {

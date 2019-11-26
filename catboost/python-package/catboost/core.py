@@ -59,6 +59,8 @@ def get_catboost_bin_module():
     return _catboost
 
 
+_typeof = type
+
 _catboost = get_catboost_bin_module()
 _PoolBase = _catboost._PoolBase
 _CatBoost = _catboost._CatBoost
@@ -2291,8 +2293,7 @@ class CatBoost(_CatBoostBase):
 
         if type == EFstrType.PredictionDiff:
             if data is None and isinstance(data, Pool):
-                from __builtin__ import type as typeof
-                raise CatBoostError("Invalid data type={}, must be list or np.array".format(typeof(data)))
+                raise CatBoostError("Invalid data type={}, must be list or np.array".format(_typeof(data)))
 
             data, _ = self._process_predict_input_data(data, "get_feature_importance")
             if data.num_row() != 2:
@@ -2300,8 +2301,7 @@ class CatBoost(_CatBoostBase):
 
         else:
             if data is not None and not isinstance(data, Pool):
-                from __builtin__ import type as typeof
-                raise CatBoostError("Invalid data type={}, must be catboost.Pool.".format(typeof(data)))
+                raise CatBoostError("Invalid data type={}, must be catboost.Pool.".format(_typeof(data)))
 
         need_meta_info = type == EFstrType.PredictionValuesChange
         empty_data_is_ok = need_meta_info and self._object._has_leaf_weights_in_model() or type == EFstrType.Interaction

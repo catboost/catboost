@@ -18,6 +18,7 @@ PEERDIR(
     contrib/python/scipy/scipy/odr
 )
 
+NO_LINT()
 
 PY_SRCS(
     NAMESPACE scipy

@@ -15,7 +15,7 @@ namespace NCatboostCuda {
                                                                const NCB::TFeatureEstimators& featureEstimators,
                                                                TGpuAwareRandom& random,
                                                                ui32 approxDimension,
-                                                               const THolder<ITrainingCallbacks>& trainingCallbacks,
+                                                               ITrainingCallbacks* trainingCallbacks,
                                                                NPar::TLocalExecutor* localExecutor,
                                                                TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
@@ -79,7 +79,7 @@ namespace NCatboostCuda {
                                                                         const NCB::TFeatureEstimators& featureEstimators,
                                                                         TGpuAwareRandom& random,
                                                                         ui32 approxDimension,
-                                                                        const THolder<ITrainingCallbacks>& trainingCallbacks,
+                                                                        ITrainingCallbacks* trainingCallbacks,
                                                                         NPar::TLocalExecutor* localExecutor,
                                                                         TVector<TVector<double>>* testMultiApprox, // [dim][objectIdx]
                                                                         TMetricsAndTimeLeftHistory* metricsAndTimeHistory) const {

@@ -876,6 +876,9 @@ class ToolchainOptions(object):
         # TODO(somov): Убрать чтение настройки из os.environ.
         self.werror_mode = preset('WERROR_MODE') or os.environ.get('WERROR_MODE') or self.params.get('werror_mode') or 'compiler_specific'
 
+        # default C++ standard is set here, some older toolchains might need to redefine it
+        self.cxx_std = self.params.get('cxx_std', 'c++1z')
+
         self._env = tc_json.get('env', {})
 
         logger.debug('c_compiler=%s', self.c_compiler)
@@ -1091,7 +1094,7 @@ class GnuToolchain(Toolchain):
                 elif target.is_yocto_jbl_portable_music:
                     self.c_flags_platform.extend(['-march=armv7ve', '-mfpu=neon-vfpv4', '-mfloat-abi=hard', '-mcpu=cortex-a7'])
                     self.setup_sdk(project='build/platform/yocto_sdk/yocto_armv7a_jbl_portable_music_sdk', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
- 
+
     def setup_sdk(self, project, var):
         self.platform_projects.append(project)
         self.c_flags_platform.append('--sysroot={}'.format(var))
@@ -1272,7 +1275,7 @@ class GnuCompiler(Compiler):
             }''')
 
         append('CFLAGS', self.c_flags, '$DEBUG_INFO_FLAGS', '$PICFLAGS', self.c_foptions, '$C_WARNING_OPTS', '$GCC_PREPROCESSOR_OPTS', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL')
-        append('CXXFLAGS', '$CFLAGS', '-std=c++1z', '$CXX_WARNING_OPTS', '$USER_CXXFLAGS')
+        append('CXXFLAGS', '$CFLAGS', '-std=' + self.tc.cxx_std, '$CXX_WARNING_OPTS', '$USER_CXXFLAGS')
         append('CONLYFLAGS', '$USER_CONLYFLAGS')
         emit('CXX_COMPILER_UNQUOTED', self.tc.cxx_compiler)
         emit('CXX_COMPILER', '${quo:CXX_COMPILER_UNQUOTED}')

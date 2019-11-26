@@ -19,7 +19,7 @@ else:
     from collections import Iterable
 
 import numpy as np
-cimport numpy as np
+cimport numpy as np  # noqa
 
 import pandas as pd
 import scipy.sparse
@@ -3057,7 +3057,7 @@ def _set_label_from_num_nparray_objects_order(
 cdef class _PoolBase:
     cdef TDataProviderPtr __pool
     cdef object target_type
-    
+
     # possibly hold list of references to data to allow using views to them in __pool
     # also useful to simplify get_label
     cdef object __target_data_holders # [target_idx]
@@ -3086,7 +3086,7 @@ cdef class _PoolBase:
         cdef ui32 target_count = len(label[0])
         cdef ui32 target_idx
         cdef ui32 object_idx
-        
+
         self.target_type = type(label[0][0])
         if isinstance(label[0][0], numbers.Number):
             if isinstance(label, np.ndarray) and (self.target_type in numpy_num_dtype_list):
@@ -3643,7 +3643,7 @@ cdef class _PoolBase:
         cdef np.ndarray[np.float32_t, ndim=1] float_target_1d
         cdef np.ndarray[np.float32_t, ndim=2] float_target_2d
         cdef ui32 target_idx
-        
+
         if self.__target_data_holders:
             if len(self.__target_data_holders) == 1:
                 return self.__target_data_holders[0]
@@ -3681,7 +3681,7 @@ cdef class _PoolBase:
                     ]
                     for target in string_target_references
                 ]
-    
+
                 if target_count == 1:
                     return labels[0]
                 else:
@@ -5109,3 +5109,4 @@ cpdef compute_training_options(dict options, DataMetaInfo train_meta_info, DataM
 
 
 include "_monoforest.pxi"
+include "library/text_processing/tokenizer/tokenizer.pxi"

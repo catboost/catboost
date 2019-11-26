@@ -10,6 +10,8 @@ PEERDIR(
     contrib/python/scipy/scipy/fftpack/src
 )
 
+NO_LINT()
+
 PY_SRCS(
     NAMESPACE scipy.fftpack
 

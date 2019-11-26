@@ -75,9 +75,9 @@ static void ShrinkModel(int itCount, const TCtrHelper& ctrsHelper, TLearnProgres
     }
     progress->UsedCtrSplits.clear();
     for (const auto& tree: progress->TreeStruct) {
-        for (const auto& split: tree.GetCtrSplits()) {
-            TProjection projection = split.Projection;
-            ECtrType ctrType = ctrsHelper.GetCtrInfo(projection)[split.CtrIdx].Type;
+        for (const auto& ctr : GetUsedCtrs(tree)) {
+            TProjection projection = ctr.Projection;
+            ECtrType ctrType = ctrsHelper.GetCtrInfo(projection)[ctr.CtrIdx].Type;
             progress->UsedCtrSplits.insert(std::make_pair(ctrType, projection));
         }
     }
@@ -233,7 +233,7 @@ static bool ShouldCalcErrorTrackerMetric(ui32 iter, const TMetricsData& metricsD
 static void ProcessHistoryMetrics(
     const TTrainingForCPUDataProviders& data,
     const TLearnContext& ctx,
-    const THolder<ITrainingCallbacks>& trainingCallbacks,
+    ITrainingCallbacks* trainingCallbacks,
     TMetricsData* metricsData,
     TLoggingData* loggingData,
     bool* continueTraining) {
@@ -337,7 +337,7 @@ static void CalcErrors(
 static void Train(
     const TTrainModelInternalOptions& internalOptions,
     const TTrainingForCPUDataProviders& data,
-    const THolder<ITrainingCallbacks>& trainingCallbacks,
+    ITrainingCallbacks* trainingCallbacks,
     TLearnContext* ctx,
     TVector<TVector<TVector<double>>>* testMultiApprox // [test][dim][docIdx]
 ) {
@@ -346,11 +346,11 @@ static void Train(
     TMetricsData metricsData;
     InitializeAndCheckMetricData(internalOptions, data, *ctx, &metricsData);
 
-    const auto onSnapshotLoadedCallback = [&] (IInputStream* in) {
-        trainingCallbacks->OnSnapshotLoaded(in);
+    const auto onLoadSnapshotCallback = [&] (IInputStream* in) {
+        trainingCallbacks->OnLoadSnapshot(in);
     };
 
-    if (ctx->TryLoadProgress(onSnapshotLoadedCallback) && ctx->Params.SystemOptions->IsMaster()) {
+    if (ctx->TryLoadProgress(onLoadSnapshotCallback) && ctx->Params.SystemOptions->IsMaster()) {
         MapRestoreApproxFromTreeStruct(ctx);
     }
 
@@ -368,8 +368,8 @@ static void Train(
     const bool hasTest = data.GetTestSampleCount() > 0;
     const auto& metrics = metricsData.Metrics;
     auto& errorTracker = metricsData.ErrorTracker;
-    const auto onSnapshotSavedCallback = [&] (IOutputStream* out) {
-        trainingCallbacks->OnSnapshotSaved(out);
+    const auto onSaveSnapshotCallback = [&] (IOutputStream* out) {
+        trainingCallbacks->OnSaveSnapshot(out);
     };
 
     for (ui32 iter = ctx->LearnProgress->GetCurrentTrainingIterationCount();
@@ -386,7 +386,7 @@ static void Train(
 
         if (timer.Passed() > ctx->OutputOptions.GetSnapshotSaveInterval()) {
             profile.AddOperation("Save snapshot");
-            ctx->SaveProgress(onSnapshotSavedCallback);
+            ctx->SaveProgress(onSaveSnapshotCallback);
             timer.Reset();
         }
 
@@ -448,7 +448,7 @@ static void Train(
         continueTraining = trainingCallbacks->IsContinueTraining(ctx->LearnProgress->MetricsAndTimeHistory);
     }
 
-    ctx->SaveProgress(onSnapshotSavedCallback);
+    ctx->SaveProgress(onSaveSnapshotCallback);
 
     if (hasTest) {
         (*testMultiApprox) = ctx->LearnProgress->TestApprox;
@@ -508,7 +508,11 @@ static void SaveModel(
         TObliviousTreeBuilder builder(ctx.LearnProgress->FloatFeatures, ctx.LearnProgress->CatFeatures, {}, ctx.LearnProgress->ApproxDimension);
         for (size_t treeId = 0; treeId < ctx.LearnProgress->TreeStruct.size(); ++treeId) {
             TVector<TModelSplit> modelSplits;
-            for (const auto& split : ctx.LearnProgress->TreeStruct[treeId].Splits) {
+            CB_ENSURE_INTERNAL(
+                HoldsAlternative<TSplitTree>(ctx.LearnProgress->TreeStruct[treeId]),
+                "SaveModel is unimplemented for non-symmetric trees yet");
+            TVector<TSplit> splits = Get<TSplitTree>(ctx.LearnProgress->TreeStruct[treeId]).Splits;
+            for (const auto& split : splits) {
                 auto modelSplit = split.GetModelSplit(ctx, perfectHashedToHashedCatValuesMap);
                 modelSplits.push_back(modelSplit);
                 if (modelSplit.Type == ESplitType::OnlineCtr) {
@@ -624,7 +628,7 @@ namespace {
             const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
             TTrainingDataProviders trainingData,
             const TLabelConverter& labelConverter,
-            const THolder<ITrainingCallbacks>& trainingCallbacks,
+            ITrainingCallbacks* trainingCallbacks,
             TMaybe<TFullModel*> initModel,
             THolder<TLearnProgress> initLearnProgress,
             TDataProviders initModelApplyCompatiblePools,
@@ -918,7 +922,9 @@ static void TrainModel(
     // Eval metric may not be set. If that's the case, we assign it to objective metric
     InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
 
-    CreateDirIfNotExist(outputOptions.GetTrainDir());
+    if (outputOptions.AllowWriteFiles()) {
+        CreateDirIfNotExist(outputOptions.GetTrainDir());
+    }
 
     if (outputOptions.NeedSaveBorders()) {
         SaveBordersAndNanModesToFileInMatrixnetFormat(
@@ -926,6 +932,7 @@ static void TrainModel(
             *trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo());
     }
 
+    const auto defaultTrainingCallbacks = MakeHolder<ITrainingCallbacks>();
     modelTrainerHolder->TrainModel(
         TTrainModelInternalOptions(),
         catBoostOptions,
@@ -934,7 +941,7 @@ static void TrainModel(
         evalMetricDescriptor,
         std::move(trainingData),
         labelConverter,
-        MakeHolder<ITrainingCallbacks>(),
+        defaultTrainingCallbacks.Get(),
         std::move(initModel),
         std::move(initLearnProgress),
         needInitModelApplyCompatiblePools ? std::move(pools) : TDataProviders(),
@@ -1227,7 +1234,9 @@ static void ModelBasedEval(
         &catBoostOptions
     );
     InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
-    CreateDirIfNotExist(updatedOutputOptions.GetTrainDir());
+    if (outputOptions.AllowWriteFiles()) {
+        CreateDirIfNotExist(outputOptions.GetTrainDir());
+    }
 
     modelTrainerHolder->ModelBasedEval(
         catBoostOptions,

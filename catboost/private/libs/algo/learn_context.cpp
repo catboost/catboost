@@ -374,20 +374,20 @@ TLearnContext::~TLearnContext() {
     }
 }
 
-void TLearnContext::SaveProgress(std::function<void(IOutputStream*)> onSnapshotSaved) {
+void TLearnContext::SaveProgress(std::function<void(IOutputStream*)> onSaveSnapshot) {
     if (!OutputOptions.SaveSnapshot()) {
         return;
     }
     TProgressHelper(ToString(ETaskType::CPU)).Write(
         Files.SnapshotFile,
         [&](IOutputStream* out) {
+            onSaveSnapshot(out);
             ::SaveMany(out, *LearnProgress, Profile.DumpProfileInfo());
-            onSnapshotSaved(out);
         }
     );
 }
 
-bool TLearnContext::TryLoadProgress(std::function<void(IInputStream*)> onSnapshotLoaded) {
+bool TLearnContext::TryLoadProgress(std::function<void(IInputStream*)> onLoadSnapshot) {
     if (!OutputOptions.SaveSnapshot() || !NFs::Exists(Files.SnapshotFile)) {
         return false;
     }
@@ -395,13 +395,14 @@ bool TLearnContext::TryLoadProgress(std::function<void(IInputStream*)> onSnapsho
         TProgressHelper(ToString(ETaskType::CPU)).CheckedLoad(
             Files.SnapshotFile,
             [&](TIFStream* in) {
+                onLoadSnapshot(in);
+
                 // use progress copy to avoid partial deserialization of corrupted progress file
                 THolder<TLearnProgress> learnProgressRestored = MakeHolder<TLearnProgress>(*LearnProgress);
                 TProfileInfoData ProfileRestored;
 
                 // fail here does nothing with real LearnProgress
                 ::LoadMany(in, *learnProgressRestored, ProfileRestored);
-                onSnapshotLoaded(in);
 
                 const bool paramsCompatible = NCatboostOptions::IsParamsCompatible(
                     learnProgressRestored->SerializedTrainParams,
@@ -416,11 +417,9 @@ bool TLearnContext::TryLoadProgress(std::function<void(IInputStream*)> onSnapsho
                        == LearnProgress->LearnAndTestQuantizedFeaturesCheckSum);
                 CB_ENSURE(
                     poolCompatible,
-                    "Current learn and test datasets differ from the datasets used for snapshot"
-                    LabeledOutput(
-                        learnProgressRestored->LearnAndTestQuantizedFeaturesCheckSum,
-                        LearnProgress->LearnAndTestQuantizedFeaturesCheckSum
-                    )
+                    "Current learn and test datasets differ from the datasets used for snapshot "
+                    << LabeledOutput(learnProgressRestored->LearnAndTestQuantizedFeaturesCheckSum) << ' '
+                    << LabeledOutput(LearnProgress->LearnAndTestQuantizedFeaturesCheckSum)
                 );
 
                 LearnProgress = std::move(learnProgressRestored);

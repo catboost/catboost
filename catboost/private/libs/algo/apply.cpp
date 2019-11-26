@@ -20,11 +20,11 @@ using namespace NCB;
 using NPar::TLocalExecutor;
 
 
-TLocalExecutor::TExecRangeParams GetBlockParams(int executorThreadCount, int docCount, int begin, int end) {
+static TLocalExecutor::TExecRangeParams GetBlockParams(int executorThreadCount, int docCount, int treeCount) {
     const int threadCount = executorThreadCount + 1; // one for current thread
 
     // for 1 iteration it will be 7k docs, for 10k iterations it will be 100 docs.
-    const int minBlockSize = ceil(10000.0 / sqrt(end - begin + 1));
+    const int minBlockSize = ceil(10000.0 / sqrt(treeCount + 1));
     const int effectiveBlockCount = Min(threadCount, (docCount + minBlockSize - 1) / minBlockSize);
 
     TLocalExecutor::TExecRangeParams blockParams(0, docCount);
@@ -124,7 +124,7 @@ TVector<TVector<double>> ApplyModelMulti(
     if (docCount > 0) {
         end = end == 0 ? model.GetTreeCount() : Min<int>(end, model.GetTreeCount());
         const int executorThreadCount = executor ? executor->GetThreadCount() : 0;
-        auto blockParams = GetBlockParams(executorThreadCount, docCount, begin, end);
+        auto blockParams = GetBlockParams(executorThreadCount, docCount, end - begin);
 
         TApplyVisitor visitor(model, begin, end, approxesFlat);
 
@@ -349,7 +349,6 @@ void TLeafIndexCalcerOnPool::CalcNextBatch() {
 
 
 namespace {
-    // don't use from different threads because of TransposedLeafIndicesBuffer
     class TLeafCalcerVisitor final : public IQuantizedBlockVisitor {
     public:
         TLeafCalcerVisitor(
@@ -401,7 +400,7 @@ TVector<ui32> CalcLeafIndexesMulti(
 
     if (objCount > 0) {
         const int executorThreadCount = executor ? executor->GetThreadCount() : 0;
-        auto blockParams = GetBlockParams(executorThreadCount, objCount, treeStart, treeEnd);
+        auto blockParams = GetBlockParams(executorThreadCount, objCount, treeEnd - treeStart);
 
         const ui32 subBlockSize = ui32(NModelEvaluation::FORMULA_EVALUATION_BLOCK_SIZE * 64);
 

@@ -107,6 +107,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\polymorphic_type_containers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\power_hash.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\progress_helper.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\quantile.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\query_info_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\resource_constrained_executor.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\helpers\resource_holder.cpp"/>
@@ -204,6 +205,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\polymorphic_type_containers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\power_hash.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\progress_helper.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\quantile.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\query_info_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\resource_constrained_executor.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\helpers\resource_holder.h"/>

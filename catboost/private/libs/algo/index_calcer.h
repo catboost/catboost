@@ -11,6 +11,7 @@
 class TFold;
 struct TSplit;
 struct TSplitTree;
+struct TNonSymmetricTreeStructure;
 
 namespace NCB {
     class TObjectsDataProvider;
@@ -36,7 +37,7 @@ int GetRedundantSplitIdx(const TVector<bool>& isLeafEmpty);
 
 TVector<TIndexType> BuildIndices(
     const TFold& fold, // can be empty
-    const TSplitTree& tree,
+    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,
     NCB::TTrainingForCPUDataProviderPtr learnData, // can be nullptr
     TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData, // can be empty
     NPar::TLocalExecutor* localExecutor);

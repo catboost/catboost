@@ -9,7 +9,7 @@ SRCS(
     mvs_gen_weights_ut.cpp
     text_collection_builder_ut.cpp
     monotonic_constraints_ut.cpp
-    quantile_ut.cpp
+    nonsymmetric_index_calcer_ut.cpp
 )
 
 PEERDIR(

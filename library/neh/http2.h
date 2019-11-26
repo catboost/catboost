@@ -18,6 +18,10 @@ namespace NNeh {
         //connect timeout
         static TDuration ConnectTimeout;
 
+        //input and output timeouts
+        static TDuration InputDeadline;
+        static TDuration OutputDeadline;
+
         //when detected slow connection, will be runned concurrent parallel connection
         //not used, if SymptomSlowConnect > ConnectTimeout
         static TDuration SymptomSlowConnect;

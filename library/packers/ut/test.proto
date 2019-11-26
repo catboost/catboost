@@ -1,0 +1,11 @@
+package NProtoPackerTest;
+
+message TTestMessage {
+    required string RequiredString = 1;
+    optional string OptionalString = 2;
+
+    required int32 RequiredInt32 = 3;
+    optional int32 OptionalInt32 = 4;
+
+    repeated string RepeatedStrings = 5;
+}

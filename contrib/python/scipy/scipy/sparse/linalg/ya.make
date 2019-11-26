@@ -8,6 +8,8 @@ PEERDIR(
     contrib/python/scipy/scipy/sparse/linalg/eigen
 )
 
+NO_LINT()
+
 PY_SRCS(
     NAMESPACE scipy.sparse.linalg
 

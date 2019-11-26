@@ -78,7 +78,11 @@ NCB::TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& arg
     );
 
     CATBOOST_DEBUG_LOG << "allIgnoredFeatures.size() " << allIgnoredFeatures.size() << Endl;
-    ProcessIgnoredFeaturesList(allIgnoredFeatures, &DataMetaInfo, &IsFeatureIgnored);
+    ProcessIgnoredFeaturesList(
+        allIgnoredFeatures,
+        /*allFeaturesIgnoredMessage*/ "All features are either constant or ignored",
+        &DataMetaInfo,
+        &IsFeatureIgnored);
 }
 
 namespace {

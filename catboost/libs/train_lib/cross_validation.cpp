@@ -328,7 +328,7 @@ void TrainBatch(
         evalMetricDescriptor,
         foldContext->TrainingData,
         labelConverter,
-        cvCallbacks,
+        cvCallbacks.Get(),
         /*initModel*/ Nothing(),
         std::move(foldContext->LearnProgress),
         /*initModelApplyCompatiblePools*/ TDataProviders(),
@@ -374,7 +374,7 @@ void Train(
     const TLabelConverter& labelConverter,
     const TVector<THolder<IMetric>>& metrics,
     bool isErrorTrackerActive,
-    const THolder<ITrainingCallbacks>& trainingCallbacks,
+    ITrainingCallbacks* trainingCallbacks,
     TFoldContext* foldContext,
     IModelTrainer* modelTrainer,
     NPar::TLocalExecutor* localExecutor
@@ -645,35 +645,27 @@ void CrossValidate(
     }
 
     if (outputFileOptions.AllowWriteFiles()) {
-        // TODO(akhropov): compatibility name
-        TString namesPrefix = "fold_0_";
-
-        TOutputFiles outputFiles(outputFileOptions, namesPrefix);
-
         TVector<TString> learnSetNames, testSetNames;
         for (auto foldIdx : xrange(cvParams.FoldCount)) {
             learnSetNames.push_back("fold_" + ToString(foldIdx) + "_learn");
             testSetNames.push_back("fold_" + ToString(foldIdx) + "_test");
         }
-        AddFileLoggers(
-            /*detailedProfile*/false,
-            outputFiles.LearnErrorLogFile,
-            outputFiles.TestErrorLogFile,
-            outputFiles.TimeLeftLogFile,
-            outputFiles.JsonLogFile,
-            outputFiles.ProfileLogFile,
-            outputFileOptions.GetTrainDir(),
-            GetJsonMeta(
-                catBoostOptions.BoostingOptions->IterationCount.Get(),
-                outputFileOptions.GetName(),
-                GetConstPointers(metrics),
-                learnSetNames,
-                testSetNames,
-                /*parametersName=*/ "",
-                ELaunchMode::CV),
-            outputFileOptions.GetMetricPeriod(),
-            &logger
-        );
+        const auto& metricsMetaJson = GetJsonMeta(
+            catBoostOptions.BoostingOptions->IterationCount.Get(),
+            outputFileOptions.GetName(),
+            GetConstPointers(metrics),
+            learnSetNames,
+            testSetNames,
+            /*parametersName=*/ "",
+            ELaunchMode::CV);
+        // TODO(akhropov): compatibility name
+        const TString namesPrefix = "fold_0_";
+        InitializeFileLoggers(
+            outputFileOptions,
+            metricsMetaJson,
+            namesPrefix,
+            /*isDetailedProfile*/false,
+            &logger);
     }
 
     AddConsoleLogger(
