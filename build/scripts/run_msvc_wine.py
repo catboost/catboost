@@ -494,6 +494,12 @@ def run_main():
 
 
 def main():
+    prefix_suffix = os.environ.pop('WINEPREFIX_SUFFIX', None)
+    if prefix_suffix is not None:
+        prefix = os.environ.pop('WINEPREFIX', None)
+        if prefix is not None:
+            os.environ['WINEPREFIX'] = os.path.join(prefix, prefix_suffix)
+
     # just in case
     signal.alarm(2000)
 
