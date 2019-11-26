@@ -617,6 +617,8 @@
   - tpf/sysapi.h
   #endif
   - asm/page.h
+  - asm/ptrace.h
+  - asm/sgidefs.h
   - wrl\client.h
   - wrl\event.h
   - wrl\wrappers\corewrappers.h
