@@ -521,7 +521,6 @@ migrations:
       - a.yandex-team.ru/strm/gorshok/pkg/content/parsers_test
       - a.yandex-team.ru/strm/gorshok/pkg/sandbox
       - a.yandex-team.ru/strm/gorshok/pkg/server
-      - a.yandex-team.ru/strm/plgo/cmd/strm-playlist
       - a.yandex-team.ru/strm/plgo/pkg/algorithm
       - a.yandex-team.ru/strm/plgo/pkg/algorithm_test
       - a.yandex-team.ru/strm/plgo/pkg/balancer
