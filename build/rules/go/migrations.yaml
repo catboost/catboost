@@ -523,8 +523,6 @@ migrations:
       - a.yandex-team.ru/strm/gorshok/pkg/server
       - a.yandex-team.ru/strm/plgo/pkg/algorithm
       - a.yandex-team.ru/strm/plgo/pkg/algorithm_test
-      - a.yandex-team.ru/strm/plgo/pkg/balancer
-      - a.yandex-team.ru/strm/plgo/pkg/balancer_test
       - a.yandex-team.ru/strm/plgo/pkg/channel
       - a.yandex-team.ru/strm/plgo/pkg/channel_test
       - a.yandex-team.ru/strm/plgo/pkg/common
