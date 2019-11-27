@@ -7870,8 +7870,8 @@ def test_metric_description(dataset_has_weights, eval_metric_loss, eval_metric_u
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
         '--eval-metric', eval_metric,
-        '--custom-metric', custom_metric
-        )
+        '--custom-metric', custom_metric,
+    )
     should_fail = not dataset_has_weights and (eval_metric_use_weights is not None or custom_metric_use_weights is not None)
     try:
         yatest.common.execute(cmd)
@@ -7950,3 +7950,40 @@ def test_group_features():
     ]
     yatest.common.execute(calc_cmd)
     return [local_canonical_file(learn_error_path), local_canonical_file(test_predictions_path)]
+
+
+def test_model_sum():
+    model_path = yatest.common.test_output_path('model.bin')
+    model_eval = yatest.common.test_output_path('model_eval.txt')
+    yatest.common.execute([
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '--cd', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-m', model_path,
+        '-t', data_file('adult', 'test_small'),
+        '--eval-file', model_eval,
+        '--output-columns', 'SampleId,RawFormulaVal',
+    ])
+
+    sum_path = yatest.common.test_output_path('sum.bin')
+    yatest.common.execute([
+        CATBOOST_PATH,
+        'model-sum',
+        '--model-with-weight', '{}={}'.format(model_path, 0.75),
+        '--model-with-weight', '{}={}'.format(model_path, 0.25),
+        '--output-path', sum_path,
+    ])
+
+    sum_eval = yatest.common.test_output_path('sum_eval.txt')
+    yatest.common.execute([
+        CATBOOST_PATH,
+        'calc',
+        '-m', sum_path,
+        '--input-path', data_file('adult', 'test_small'),
+        '--cd', data_file('adult', 'train.cd'),
+        '--output-path', sum_eval,
+    ])
+    yatest.common.execute(get_limited_precision_dsv_diff_tool(0) + [model_eval, sum_eval])
