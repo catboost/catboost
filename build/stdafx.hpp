@@ -248,7 +248,7 @@
 #include <util/generic/queue.h>
 #include <util/generic/adaptor.h>
 #include <util/string/escape.h>
-#include <util/string/scan.h>
+#include <library/string_utils/scan/scan.h>
 #include <util/string/type.h>
 #include <util/string/join.h>
 #include <util/string/vector.h>
