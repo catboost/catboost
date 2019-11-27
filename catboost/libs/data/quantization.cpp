@@ -2687,7 +2687,8 @@ namespace NCB {
                 params->DataProcessingOptions->FloatFeaturesBinarization.Get(),
                 params->DataProcessingOptions->PerFloatFeatureQuantization.Get(),
                 params->DataProcessingOptions->TextProcessingOptions.Get(),
-                /*allowNansInTestOnly*/true
+                /*allowNansInTestOnly*/true,
+                allowWriteFiles
             );
 
             if (bordersFile) {
