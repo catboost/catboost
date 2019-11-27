@@ -20,6 +20,8 @@ namespace NTextProcessing::NTokenizer {
         void TokenizeWithoutCopy(TStringBuf inputString, TVector<TStringBuf>* tokens) const;
         TVector<TStringBuf> TokenizeWithoutCopy(TStringBuf inputString) const;
 
+        TTokenizerOptions GetOptions() const;
+
     private:
         TTokenizerOptions Options;
         THolder<ILemmerImplementation> Lemmer;

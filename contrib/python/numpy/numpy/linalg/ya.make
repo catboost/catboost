@@ -29,6 +29,8 @@ SRCS(
     umath_linalg.c
 )
 
+NO_LINT()
+
 PY_SRCS(
     NAMESPACE numpy.linalg
     __init__.py

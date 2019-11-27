@@ -18,6 +18,7 @@
   - ia64intrin.h
   - immintrin.h
   - intrin.h
+  - intrinsics.h
   - lzcntintrin.h
   - mm3dnow.h
   - mmintrin.h
@@ -29,9 +30,11 @@
   - rdseedintrin.h
   - rtmintrin.h
   - sanitizer/asan_interface.h
+  - sanitizer/common_interface_defs.h
   - sanitizer/coverage_interface.h
   - sanitizer/lsan_interface.h
   - sanitizer/msan_interface.h
+  - sanitizer/tsan_interface.h
   - sanitizer/tsan_interface_atomic.h
   - smmintrin.h
   - tbmintrin.h

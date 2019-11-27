@@ -20,6 +20,7 @@ namespace NCB {
 
     void ProcessIgnoredFeaturesList(
         TConstArrayRef<ui32> ignoredFeatures, // [flatFeatureIdx]
+        TMaybe<TString> allFeaturesIgnoredMessage,
         TDataMetaInfo* dataMetaInfo, // inout, must be inited, only ignored flags are updated
         TVector<bool>* ignoredFeaturesMask // [flatFeatureIdx], out
     ) {
@@ -44,10 +45,11 @@ namespace NCB {
             ignoredFeaturesInDataCount += (*ignoredFeaturesMask)[ignoredFeatureFlatIdx] == false;
             (*ignoredFeaturesMask)[ignoredFeatureFlatIdx] = true;
         }
-        CB_ENSURE(featureCount > ignoredFeaturesInDataCount, "All features are requested to be ignored");
-        CB_ENSURE_INTERNAL(featureCount >= ignoredFeaturesInDataCount,
-            "Too many ignored features: feature count is " << featureCount
-            << " ignored features count is " << ignoredFeaturesInDataCount);
+        CB_ENSURE(
+            featureCount > ignoredFeaturesInDataCount,
+            (allFeaturesIgnoredMessage.Defined() ?
+                *allFeaturesIgnoredMessage
+                : "All features are requested to be ignored"));
     }
 
 

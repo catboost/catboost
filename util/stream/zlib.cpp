@@ -185,10 +185,13 @@ namespace {
 }
 
 class TZLibCompress::TImpl: public TAdditionalStorage<TImpl>, private TZLibCommon {
-    template <class T>
-    static inline T Type(T type) {
+    static inline ZLib::StreamType Type(ZLib::StreamType type) {
         if (type == ZLib::Auto) {
             return ZLib::ZLib;
+        }
+
+        if (type >= ZLib::Invalid) {
+            ythrow TZLibError() << "invalid compression type: " << static_cast<unsigned long>(type);
         }
 
         return type;

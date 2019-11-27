@@ -79,6 +79,6 @@ def apply_catboost_model(float_features, cat_features=[], ntree_start=0, ntree_e
         result += model.leaf_values[current_tree_leaf_values_index + index]
         tree_splits_index += current_tree_depth
         current_tree_leaf_values_index += (1 << current_tree_depth)
-    return result
+    return model.scale * result + model.bias
 
 

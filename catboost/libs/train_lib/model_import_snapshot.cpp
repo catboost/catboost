@@ -27,9 +27,15 @@ namespace NCB{
                                           learnProgress.ApproxDimension);
             TVector<TModelSplit> modelSplits;
             for (ui32 treeId = 0; treeId < learnProgress.TreeStruct.size(); ++treeId) {
-                modelSplits.resize(learnProgress.TreeStruct[treeId].Splits.size());
+                // TODO(ilyzhin) implement it
+                CB_ENSURE_INTERNAL(
+                    HoldsAlternative<TSplitTree>(learnProgress.TreeStruct[treeId]),
+                    "ReadModel is unimplemented for non-symmetric trees yet");
+
+                const TSplitTree& tree = Get<TSplitTree>(learnProgress.TreeStruct[treeId]);
+                modelSplits.resize(tree.Splits.size());
                 auto iter = modelSplits.begin();
-                for (const TSplit& split : learnProgress.TreeStruct[treeId].Splits) {
+                for (const TSplit& split : tree.Splits) {
                     iter->FloatFeature.FloatFeature = split.FeatureIdx;
                     iter->FloatFeature.Split = learnProgress.FloatFeatures[split.FeatureIdx].Borders[split.BinBorder];
                     ++iter;

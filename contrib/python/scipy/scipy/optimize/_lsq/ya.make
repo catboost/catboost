@@ -6,6 +6,8 @@ ADDINCL(
     contrib/python/scipy
 )
 
+NO_LINT()
+
 PY_SRCS(
     NAMESPACE scipy.optimize._lsq
 

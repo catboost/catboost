@@ -51,7 +51,7 @@ namespace NCB {
         Out << "        treeSplitsPtr += currentTreeDepth;" << '\n';
         Out << "        leafValuesForCurrentTreePtr += (1 << currentTreeDepth);" << '\n';
         Out << "    }" << '\n';
-        Out << "    return result;" << '\n';
+        Out << "    return model.Scale * result + model.Bias;" << '\n';
         Out << "}" << '\n';
 
         // Also emit the API with catFeatures, for uniformity
@@ -87,6 +87,8 @@ namespace NCB {
         Out << "    /* Aggregated array of leaf values for trees. Each tree is represented by a separate line: */" << '\n';
         Out << "    double LeafValues[" << model.ModelTrees->GetLeafValues().size() << "] = {" << OutputLeafValues(model, TIndent(1));
         Out << "    };" << '\n';
+        Out << "    double Scale = " << model.GetScaleAndBias().Scale << ";" << '\n';
+        Out << "    double Bias = " << model.GetScaleAndBias().Bias << ";" << '\n';
         Out << "} CatboostModelStatic;" << '\n';
         Out << '\n';
     }
@@ -302,6 +304,8 @@ namespace NCB {
         Out << indent << "/* Aggregated array of leaf values for trees. Each tree is represented by a separate line: */" << '\n';
         Out << indent << "double LeafValues[" << model.ModelTrees->GetLeafValues().size() << "] = {" << OutputLeafValues(model, indent);
         Out << indent << "};" << '\n';
+        Out << indent << "double Scale = " << model.GetScaleAndBias().Scale << ";" << '\n';
+        Out << indent << "double Bias = " << model.GetScaleAndBias().Bias << ";" << '\n';
 
         WriteModelCTRs(Out, model, indent);
 

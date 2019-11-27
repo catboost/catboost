@@ -10,6 +10,7 @@
 class IDerCalcer;
 class TLearnContext;
 struct TSplitTree;
+struct TNonSymmetricTreeStructure;
 
 namespace NCatboostOptions {
     class TCatBoostOptions;
@@ -61,7 +62,7 @@ void CalcLeafValues(
     const NCB::TTrainingForCPUDataProviders& data,
     const IDerCalcer& error,
     const TFold& fold,
-    const TSplitTree& tree,
+    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,
     TLearnContext* ctx,
     TVector<TVector<double>>* leafDeltas,
     TVector<TIndexType>* indices
@@ -72,7 +73,7 @@ void CalcApproxForLeafStruct(
     const NCB::TTrainingForCPUDataProviders& data,
     const IDerCalcer& error,
     const TFold& fold,
-    const TSplitTree& tree,
+    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,
     ui64 randomSeed,
     TLearnContext* ctx,
     TVector<TVector<TVector<double>>>* approxesDelta // [bodyTailId][approxDim][docIdxInPermuted]

@@ -33,6 +33,7 @@ SRCS(
     power_hash.cpp
     progress_helper.cpp
     permutation.cpp
+    quantile.cpp
     query_info_helper.cpp
     resource_constrained_executor.cpp
     resource_holder.cpp

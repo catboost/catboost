@@ -1,5 +1,7 @@
 RECURSE(
     2d_array
+    compact_vector
+    compact_vector/ut
     dense_hash
     dense_hash/dense_hash_benchmark
     dense_hash/ut

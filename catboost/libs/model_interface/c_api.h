@@ -7,7 +7,8 @@
 extern "C" {
 #endif
 
-#ifdef _WIN32
+
+#if defined(_WIN32) && !defined(CATBOOST_API_STATIC_LIB)
 #ifdef _WINDLL
 #define EXPORT __declspec(dllexport)
 #else

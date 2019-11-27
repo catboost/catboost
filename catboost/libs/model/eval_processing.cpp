@@ -6,11 +6,14 @@ NCB::NModelEvaluation::TEvalResultProcessor::TEvalResultProcessor(
     size_t docCount,
     TArrayRef<double> results,
     NCB::NModelEvaluation::EPredictionType predictionType,
-    ui32 approxDimension, ui32 blockSize,
+    TScaleAndBias scaleAndBias,
+    ui32 approxDimension,
+    ui32 blockSize,
     TMaybe<double> binclassProbabilityBorder
 )
     : Results(results)
     , PredictionType(predictionType)
+    , ScaleAndBias(scaleAndBias)
     , ApproxDimension(approxDimension)
     , BlockSize(blockSize)
 {
@@ -27,5 +30,8 @@ NCB::NModelEvaluation::TEvalResultProcessor::TEvalResultProcessor(
         double probabilityBorder = *binclassProbabilityBorder;
         CB_ENSURE(probabilityBorder > 0 && probabilityBorder < 1, "probability border should be in (0;1)");
         BinclassRawValueBorder = -log((1 / probabilityBorder) - 1);
+    }
+    if (ApproxDimension > 1) {
+        CB_ENSURE(ScaleAndBias.IsIdentity(), "Normalizing a multiclass model makes no sense");
     }
 }

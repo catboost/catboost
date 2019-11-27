@@ -40,18 +40,18 @@ Y_UNIT_TEST_SUITE(BuildOrderTest) {
             const TVector<int> treeMonotonicConstraints{1, -1};
             UNIT_ASSERT_EQUAL(
                 BuildLinearOrderOnLeafsOfMonotonicSubtree(treeMonotonicConstraints, 0u),
-                (TVector<ui32>{2u, 3u, 0u, 1u})
+                (TVector<ui32>{2u, 0u, 3u, 1u})
             );
         }
         {
             const TVector<int> treeMonotonicConstraints{-1, 0, 1};
             UNIT_ASSERT_EQUAL(
                 BuildLinearOrderOnLeafsOfMonotonicSubtree(treeMonotonicConstraints, 0u),
-                (TVector<ui32>{1u, 0u, 5u, 4u})
+                (TVector<ui32>{1u, 5u, 0u, 4u})
             );
             UNIT_ASSERT_EQUAL(
                 BuildLinearOrderOnLeafsOfMonotonicSubtree(treeMonotonicConstraints, 1u),
-                (TVector<ui32>{3u, 2u, 7u, 6u})
+                (TVector<ui32>{3u, 7u, 2u, 6u})
             );
         }
     }
@@ -59,15 +59,25 @@ Y_UNIT_TEST_SUITE(BuildOrderTest) {
     Y_UNIT_TEST(AllOnes) {
         const size_t treeDepth = 6u;
         const size_t leafCount = 1u << treeDepth;
-        const TVector<int> treeMonotonicConstraints(treeDepth, 1);
         TVector<ui32> expectedOrder(leafCount, 0u);
-        for (ui32 i : xrange<ui32>(leafCount)) {
-            expectedOrder[i] = i;
+        {
+            const TVector<int> treeMonotonicConstraints(treeDepth, 1);
+            for (ui32 i : xrange<ui32>(leafCount)) {
+                expectedOrder[i] = ReverseBits(i, treeDepth);
+            }
+            UNIT_ASSERT_EQUAL(
+                BuildLinearOrderOnLeafsOfMonotonicSubtree(treeMonotonicConstraints, 0u),
+                expectedOrder
+            );
         }
-        UNIT_ASSERT_EQUAL(
-            BuildLinearOrderOnLeafsOfMonotonicSubtree(treeMonotonicConstraints, 0u),
-            expectedOrder
-        );
+        {
+            const TVector<int> treeMonotonicConstraints(treeDepth, -1);
+            Reverse(expectedOrder.begin(), expectedOrder.end());
+            UNIT_ASSERT_EQUAL(
+                BuildLinearOrderOnLeafsOfMonotonicSubtree(treeMonotonicConstraints, 0u),
+                expectedOrder
+            );
+        }
     }
 }
 

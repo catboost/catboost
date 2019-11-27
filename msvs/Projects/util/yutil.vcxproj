@@ -270,8 +270,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\util\digest\murmur.h"/>
     <ClInclude Include="$(SolutionDir)..\util\digest\numeric.h"/>
     <ClInclude Include="$(SolutionDir)..\util\digest\sequence.h"/>
-    <ClInclude Include="$(SolutionDir)..\util\draft\holder_vector.h"/>
-    <ClInclude Include="$(SolutionDir)..\util\draft\ip.h"/>
     <ClInclude Include="$(SolutionDir)..\util\folder\dirent_win.h"/>
     <ClInclude Include="$(SolutionDir)..\util\folder\dirut.h"/>
     <ClInclude Include="$(SolutionDir)..\util\folder\filelist.h"/>

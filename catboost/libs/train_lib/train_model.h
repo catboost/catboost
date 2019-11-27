@@ -57,9 +57,10 @@ public:
     virtual bool IsContinueTraining(const TMetricsAndTimeLeftHistory& /*history*/) {
         return true;
     }
-    virtual void OnSnapshotSaved(IOutputStream* /*snapshot*/) {
+    virtual void OnSaveSnapshot(IOutputStream* /*snapshot*/) {
     }
-    virtual void OnSnapshotLoaded(IInputStream* /*snapshot*/) {
+    virtual bool OnLoadSnapshot(IInputStream* /*snapshot*/) {
+        return true;
     }
 
     virtual ~ITrainingCallbacks() = default;
@@ -76,7 +77,7 @@ public:
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         NCB::TTrainingDataProviders trainingData,
         const TLabelConverter& labelConverter,
-        const THolder<ITrainingCallbacks>& trainingCallbacks,
+        ITrainingCallbacks* trainingCallbacks,
         TMaybe<TFullModel*> initModel,
         THolder<TLearnProgress> initLearnProgress, // can be nullptr, can be modified if non-nullptr
 

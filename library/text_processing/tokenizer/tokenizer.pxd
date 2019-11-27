@@ -45,3 +45,4 @@ cdef extern from "library/text_processing/tokenizer/tokenizer.h"  namespace "NTe
         TTokenizer(TTokenizerOptions options) except +
         void Tokenize(TStringBuf inputString, TVector[TString]* tokens, TVector[ETokenType]* tokenTypes) except +
         TVector[TString] Tokenize(TStringBuf inputString) except +
+        TTokenizerOptions GetOptions() except +

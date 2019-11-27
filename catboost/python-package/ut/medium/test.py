@@ -5812,6 +5812,12 @@ def test_pool_is_quantized():
     assert not raw_pool.is_quantized()
 
 
+def test_quantized_pool_with_all_features_ignored():
+    quantized_pool = Pool(data=get_quantized_path(QUANTIZED_TRAIN_FILE), column_description=QUANTIZED_CD_FILE)
+    with pytest.raises(CatBoostError):
+        CatBoostClassifier(ignored_features=list(range(100))).fit(quantized_pool)
+
+
 def test_pool_quantize():
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
@@ -6440,3 +6446,26 @@ def test_monoforest_regression():
     assert poly, "Unexpected empty poly"
     plot = plot_features_strength(model)
     assert plot, "Unexpected empty plot"
+
+
+def test_text_processing_tokenizer():
+    from catboost.text_processing import Tokenizer
+    assert Tokenizer(lowercasing=True).tokenize('Aba caba') == ['aba', 'caba']
+
+
+def test_text_processing_dictionary():
+    from catboost.text_processing import Dictionary
+
+    dictionary = Dictionary(occurence_lower_bound=0).fit([
+        ['aba', 'caba'],
+        ['ala', 'caba'],
+        ['caba', 'aba']
+    ])
+
+    assert dictionary.size == 3
+    assert dictionary.get_top_tokens(2) == ['caba', 'aba']
+    assert dictionary.apply([['ala', 'caba'], ['aba']]) == [[2, 0], [1]]
+
+    dictionary_path = test_output_path('dictionary.tsv')
+    dictionary.save(dictionary_path)
+    return compare_canonical_models(dictionary_path)

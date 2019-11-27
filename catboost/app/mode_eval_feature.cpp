@@ -45,9 +45,6 @@ int mode_eval_feature(int argc, const char* argv[]) {
 
     CopyIgnoredFeaturesToPoolParams(catBoostJsonOptions, &poolLoadParams);
 
-    NCatboostOptions::TOutputFilesOptions outputOptions;
-    outputOptions.Load(outputOptionsJson);
-
     const auto taskType = NCatboostOptions::GetTaskType(catBoostJsonOptions);
     NCatboostOptions::TCatBoostOptions catBoostOptions(taskType);
     catBoostOptions.Load(catBoostJsonOptions);
@@ -76,15 +73,13 @@ int mode_eval_feature(int argc, const char* argv[]) {
         /*profile*/nullptr
     );
 
-    TFeatureEvaluationSummary featureEvalSummary;
-    EvaluateFeatures(
+    const auto featureEvalSummary = EvaluateFeatures(
         catBoostFlatJsonOptions,
         featureEvalOptions,
         /*objectiveDescriptor*/Nothing(),
         /*evalMetricDescriptor*/Nothing(),
         poolLoadParams.CvParams,
-        pools.Learn,
-        &featureEvalSummary
+        pools.Learn
     );
 
     if (featureEvalOptions.EvalFeatureFileName->length() > 0) {

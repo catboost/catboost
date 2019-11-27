@@ -17,6 +17,7 @@ SRCS(
     maybe_owning_array_holder_ut.cpp
     permutation_ut.cpp
     polymorphic_type_containers_ut.cpp
+    quantile_ut.cpp
     resource_constrained_executor_ut.cpp
     resource_holder_ut.cpp
     sample_ut.cpp

@@ -130,7 +130,7 @@ def onjava_module(unit, *args):
 
     for dm_paths in data['DEPENDENCY_MANAGEMENT']:
         for p in dm_paths:
-            unit.onpeerdir(p)
+            unit.on_ghost_peerdir(p)
 
     if not data['EXTERNAL_JAR']:
         has_processor = extract_macro_calls(unit, 'GENERATE_VCS_JAVA_INFO_NODEP', args_delim)

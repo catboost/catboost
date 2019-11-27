@@ -325,3 +325,26 @@ void InitializeFileLoggers(
 
 
 }
+
+
+void InitializeFileLoggers(
+    const NCatboostOptions::TOutputFilesOptions& outputFileOptions,
+    const NJson::TJsonValue& metricsMetaJson,
+    const TString& namesPrefix,
+    bool isDetailedProfile,
+    TLogger* logger
+) {
+    TOutputFiles outputFiles(outputFileOptions, namesPrefix);
+    AddFileLoggers(
+        isDetailedProfile,
+        outputFiles.LearnErrorLogFile,
+        outputFiles.TestErrorLogFile,
+        outputFiles.TimeLeftLogFile,
+        outputFiles.JsonLogFile,
+        outputFiles.ProfileLogFile,
+        outputFileOptions.GetTrainDir(),
+        metricsMetaJson,
+        outputFileOptions.GetMetricPeriod(),
+        logger
+    );
+}

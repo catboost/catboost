@@ -89,7 +89,7 @@ namespace {
         {LANG_CHU, SCRIPT_CYRILLIC, "Church Slavonic", "chu", "cu", nullptr},
         {LANG_CHI, SCRIPT_HAN, "Chinese", "chi", "zh", "zho"},
         {LANG_JPN, SCRIPT_HIRAGANA, "Japanese", "jpn", "ja", nullptr},
-        {LANG_IND, SCRIPT_LATIN, "Indonesian", "ind", "id", nullptr},
+        {LANG_IND, SCRIPT_LATIN, "Indonesian", "ind", "id", "in"}, // 'in' is old ISO-639 code
         {LANG_MAY, SCRIPT_LATIN, "Malay", "may", "ms", "msa"},
         {LANG_THA, SCRIPT_THAI, "Thai", "tha", "th", nullptr},
         {LANG_VIE, SCRIPT_LATIN, "Vietnamese", "vie", "vi", nullptr},

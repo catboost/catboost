@@ -82,8 +82,9 @@ class Platform(object):
         self.is_yocto = self.os == 'yocto'
         self.is_yocto_lg_wk7y = self.os == 'yocto_lg_wk7y' and self.is_armv7
         self.is_yocto_jbl_portable_music = self.os == 'yocto_jbl_portable_music' and self.is_armv7
+        self.is_yocto_aacrh64_lightcomm_mt8516 = self.os == 'yocto_lightcomm' and self.is_armv8
 
-        self.is_posix = self.is_linux or self.is_apple or self.is_android or self.is_cygwin or self.is_freebsd or self.is_yocto or self.is_yocto_lg_wk7y or self.is_yocto_jbl_portable_music
+        self.is_posix = self.is_linux or self.is_apple or self.is_android or self.is_cygwin or self.is_freebsd or self.is_yocto or self.is_yocto_lg_wk7y or self.is_yocto_jbl_portable_music or self.is_yocto_aacrh64_lightcomm_mt8516
 
     @staticmethod
     def from_json(data):
@@ -876,6 +877,9 @@ class ToolchainOptions(object):
         # TODO(somov): Убрать чтение настройки из os.environ.
         self.werror_mode = preset('WERROR_MODE') or os.environ.get('WERROR_MODE') or self.params.get('werror_mode') or 'compiler_specific'
 
+        # default C++ standard is set here, some older toolchains might need to redefine it
+        self.cxx_std = self.params.get('cxx_std', 'c++1z')
+
         self._env = tc_json.get('env', {})
 
         logger.debug('c_compiler=%s', self.c_compiler)
@@ -921,6 +925,7 @@ class GnuToolchainOptions(ToolchainOptions):
         self.inplace_tools = self.params.get('inplace_tools', False)
         self.strip = self.params.get('strip')
         self.objcopy = self.params.get('objcopy')
+        self.isystem = self.params.get('isystem')
 
         self.dwarf_tool = self.target.find_in_dict(self.params.get('dwarf_tool'))
 
@@ -980,7 +985,7 @@ class GnuToolchain(Toolchain):
         def get_os_sdk(target):
             if target.is_macos:
                 return '$MACOS_SDK_RESOURCE_GLOBAL/MacOSX10.11.sdk'
-            elif target.is_yocto or target.is_yocto_lg_wk7y or target.is_yocto_jbl_portable_music:
+            elif target.is_yocto or target.is_yocto_lg_wk7y or target.is_yocto_jbl_portable_music or target.is_yocto_aacrh64_lightcomm_mt8516:
                 return '$YOCTO_SDK_RESOURCE_GLOBAL'
             return '$OS_SDK_ROOT_RESOURCE_GLOBAL'
 
@@ -1032,6 +1037,10 @@ class GnuToolchain(Toolchain):
 
             if target_triple:
                 self.c_flags_platform.append('--target={}'.format(target_triple))
+
+        if self.tc.isystem:
+            for root in list(self.tc.isystem):
+                self.c_flags_platform.extend(['-isystem', root])
 
         if self.tc.is_clang or self.tc.is_gcc and self.tc.version_at_least(8, 2):
             target_flags = select(default=[], selectors=[
@@ -1091,6 +1100,8 @@ class GnuToolchain(Toolchain):
                 elif target.is_yocto_jbl_portable_music:
                     self.c_flags_platform.extend(['-march=armv7ve', '-mfpu=neon-vfpv4', '-mfloat-abi=hard', '-mcpu=cortex-a7'])
                     self.setup_sdk(project='build/platform/yocto_sdk/yocto_armv7a_jbl_portable_music_sdk', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
+                elif target.is_yocto_aacrh64_lightcomm_mt8516:
+                    self.setup_sdk(project='build/platform/yocto_sdk/yocto_aarch64_lightcomm_mt8516', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
  
     def setup_sdk(self, project, var):
         self.platform_projects.append(project)
@@ -1158,7 +1169,7 @@ class GnuCompiler(Compiler):
             # Arcadia have API 14 for 32-bit Androids.
             self.c_defines.append('-D_FILE_OFFSET_BITS=64')
 
-        if self.target.is_linux or self.target.is_cygwin or self.target.is_yocto_lg_wk7y or self.target.is_yocto_jbl_portable_music:
+        if self.target.is_linux or self.target.is_cygwin or self.target.is_yocto_lg_wk7y or self.target.is_yocto_jbl_portable_music or self.target.is_yocto_aacrh64_lightcomm_mt8516:
             self.c_defines.append('-D_GNU_SOURCE')
 
         if self.target.is_ios:
@@ -1272,7 +1283,7 @@ class GnuCompiler(Compiler):
             }''')
 
         append('CFLAGS', self.c_flags, '$DEBUG_INFO_FLAGS', '$PICFLAGS', self.c_foptions, '$C_WARNING_OPTS', '$GCC_PREPROCESSOR_OPTS', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL')
-        append('CXXFLAGS', '$CFLAGS', '-std=c++1z', '$CXX_WARNING_OPTS', '$USER_CXXFLAGS')
+        append('CXXFLAGS', '$CFLAGS', '-std=' + self.tc.cxx_std, '$CXX_WARNING_OPTS', '$USER_CXXFLAGS')
         append('CONLYFLAGS', '$USER_CONLYFLAGS')
         emit('CXX_COMPILER_UNQUOTED', self.tc.cxx_compiler)
         emit('CXX_COMPILER', '${quo:CXX_COMPILER_UNQUOTED}')
@@ -1445,7 +1456,7 @@ class Linker(object):
         if self.tc.is_from_arcadia and self.build.host.is_linux and not (self.build.target.is_apple or self.build.target.is_android or self.build.target.is_windows):
             if self.tc.is_clang and not (is_positive('USE_LTO') or self.build.target.is_linux_armv8 or self.build.target.is_ppc64le):  # TODO: try to enable PPC64 with LLD>=6
                 self.type = Linker.LLD
-            elif self.tc.is_gcc and (self.build.target.is_linux_armv7 or self.build.target.is_yocto_lg_wk7y or self.build.target.is_yocto_jbl_portable_music):
+            elif self.tc.is_gcc and (self.build.target.is_linux_armv7 or self.build.target.is_yocto_lg_wk7y or self.build.target.is_yocto_jbl_portable_music or self.build.target.is_yocto_aacrh64_lightcomm_mt8516):
                 self.type = Linker.BFD
             else:
                 self.type = Linker.GOLD
@@ -1564,7 +1575,7 @@ class LD(Linker):
         self.link_pie_executables = target.is_android
 
         self.thread_library = select([
-            (target.is_linux or target.is_macos or target.is_yocto_lg_wk7y or self.target.is_yocto_jbl_portable_music, '-lpthread'),
+            (target.is_linux or target.is_macos or target.is_yocto_lg_wk7y or self.target.is_yocto_jbl_portable_music or target.is_yocto_aacrh64_lightcomm_mt8516, '-lpthread'),
             (target.is_freebsd, '-lthr')
         ])
 
@@ -1583,7 +1594,7 @@ class LD(Linker):
             self.rdynamic = '-rdynamic'
             self.use_stdlib = '-nodefaultlibs'
 
-        if target.is_linux or target.is_android or target.is_freebsd or target.is_cygwin or target.is_yocto_lg_wk7y or target.is_yocto_jbl_portable_music:
+        if target.is_linux or target.is_android or target.is_freebsd or target.is_cygwin or target.is_yocto_lg_wk7y or target.is_yocto_jbl_portable_music or target.is_yocto_aacrh64_lightcomm_mt8516:
             self.start_group = '-Wl,--start-group'
             self.end_group = '-Wl,--end-group'
             self.whole_archive = '-Wl,--whole-archive'
@@ -1843,7 +1854,7 @@ class MSVCToolchainOptions(ToolchainOptions):
             def prefix(_type, _path):
                 if not self.under_wine:
                     return _path
-                return '{wine} {type} ${{ARCADIA_ROOT}} ${{ARCADIA_BUILD_ROOT}} {path}'.format(wine='${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140', type=_type, path=_path)
+                return '{wine} {type} $WINE_ENV ${{ARCADIA_ROOT}} ${{ARCADIA_BUILD_ROOT}} {path}'.format(wine='${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140', type=_type, path=_path)
 
             self.masm_compiler = prefix('masm', os.path.join(bindir, tools_name, asm_name))
             self.link = prefix('link', os.path.join(bindir, tools_name, 'link.exe'))
@@ -1894,6 +1905,9 @@ class MSVCToolchain(MSVC, Toolchain):
         # TODO(somov): Заглушка для тех мест, где C_FLAGS_PLATFORM используется
         # для любых платформ. Нужно унифицировать с GnuToolchain.
         emit('C_FLAGS_PLATFORM')
+
+        if self.tc.under_wine:
+            emit('WINE_ENV', format_env({'WINEPREFIX_SUFFIX': '4.0'}))
 
 
 class MSVCCompiler(MSVC, Compiler):

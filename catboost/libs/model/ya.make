@@ -13,6 +13,7 @@ SRCS(
     GLOBAL model_import_interface.cpp
     model.cpp
     online_ctr.cpp
+    scale_and_bias.cpp
     static_ctr_provider.cpp
     model_build_helper.cpp
     cpu/evaluator_impl.cpp

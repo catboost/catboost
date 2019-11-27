@@ -460,8 +460,8 @@ static void AddTreeCtrs(
     binAndOneHotFeaturesTree.OneHotFeatures = currentTree.GetOneHotFeatures();
     seenProj.insert(binAndOneHotFeaturesTree);
 
-    for (const auto& ctrSplit : currentTree.GetCtrSplits()) {
-        seenProj.insert(ctrSplit.Projection);
+    for (const auto& ctr : currentTree.GetUsedCtrs()) {
+        seenProj.insert(ctr.Projection);
     }
 
     TSeenProjHash addedProjHash;
@@ -834,35 +834,22 @@ static void SelectBestCandidate(
     }
 }
 
-void GreedyTensorSearch(
+TSplitTree GreedyTensorSearchOblivious(
     const TTrainingForCPUDataProviders& data,
     double modelLength,
     TProfileInfo& profile,
+    TVector<TIndexType>* indices,
     TFold* fold,
-    TLearnContext* ctx,
-    TSplitTree* resSplitTree) {
+    TLearnContext* ctx) {
 
     TSplitTree currentSplitTree;
-    TrimOnlineCTRcache({fold});
 
     ui32 learnSampleCount = data.Learn->ObjectsData->GetObjectCount();
     ui32 testSampleCount = data.GetTestSampleCount();
-    TVector<TIndexType> indices(learnSampleCount); // always for all documents
     CATBOOST_INFO_LOG << "\n";
 
     const bool useLeafwiseScoring = IsLeafwiseScoringApplicable(ctx->Params);
-
-    if (!ctx->Params.SystemOptions->IsSingleHost()) {
-        MapTensorSearchStart(ctx);
-    }
-
     const bool isSamplingPerTree = IsSamplingPerTree(ctx->Params.ObliviousTreeOptions);
-    if (isSamplingPerTree) {
-        DoBootstrap(indices, fold, ctx, /* leavesCount */ 1);
-        if (ctx->UseTreeLevelCaching()) {
-            ctx->PrevTreeLevelStats.GarbageCollect();
-        }
-    }
 
     for (ui32 curDepth = 0; curDepth < ctx->Params.ObliviousTreeOptions->MaxDepth; ++curDepth) {
         TCandidatesContext candidatesContext;
@@ -902,7 +889,7 @@ void GreedyTensorSearch(
         CheckInterrupted(); // check after long-lasting operation
 
         if (!isSamplingPerTree) {  // sampling per tree level
-            DoBootstrap(indices, fold, ctx, /* leavesCount */ 1u << curDepth);
+            DoBootstrap(*indices, fold, ctx, /* leavesCount */ 1u << curDepth);
         }
         profile.AddOperation(TStringBuilder() << "Bootstrap, depth " << curDepth);
 
@@ -958,13 +945,13 @@ void GreedyTensorSearch(
                 *data.Learn->ObjectsData,
                 curDepth + 1,
                 *fold,
-                &indices,
+                indices,
                 ctx->LocalExecutor);
             if (isSamplingPerTree) {
                 if (useLeafwiseScoring) {
-                    ctx->SampledDocs.UpdateIndicesInLeafwiseSortedFold(indices, ctx->LocalExecutor);
+                    ctx->SampledDocs.UpdateIndicesInLeafwiseSortedFold(*indices, ctx->LocalExecutor);
                 } else {
-                    ctx->SampledDocs.UpdateIndices(indices, ctx->LocalExecutor);
+                    ctx->SampledDocs.UpdateIndices(*indices, ctx->LocalExecutor);
                 }
                 if (ctx->UseTreeLevelCaching() && !useLeafwiseScoring) {
                     ctx->SmallestSplitSideDocs.SelectSmallestSplitSide(
@@ -984,7 +971,7 @@ void GreedyTensorSearch(
 
         int redundantIdx = -1;
         if (ctx->Params.SystemOptions->IsSingleHost()) {
-            redundantIdx = GetRedundantSplitIdx(GetIsLeafEmpty(curDepth + 1, indices));
+            redundantIdx = GetRedundantSplitIdx(GetIsLeafEmpty(curDepth + 1, *indices));
         } else {
             redundantIdx = MapGetRedundantSplitIdx(ctx);
         }
@@ -994,5 +981,65 @@ void GreedyTensorSearch(
             break;
         }
     }
-    *resSplitTree = std::move(currentSplitTree);
+    return currentSplitTree;
+}
+
+TNonSymmetricTreeStructure GreedyTensorSearchNonSymmetric(
+    const TTrainingForCPUDataProviders& /*data*/,
+    double /*modelLength*/,
+    TProfileInfo& /*profile*/,
+    TVector<TIndexType>* /*indices*/,
+    TFold* /*fold*/,
+    TLearnContext* /*ctx*/) {
+
+    TNonSymmetricTreeStructure currentStructure;
+
+    // TODO(ilyzhin) implement it
+    Y_UNREACHABLE();
+
+    return currentStructure;
+}
+
+
+void GreedyTensorSearch(
+    const TTrainingForCPUDataProviders& data,
+    double modelLength,
+    TProfileInfo& profile,
+    TFold* fold,
+    TLearnContext* ctx,
+    TVariant<TSplitTree, TNonSymmetricTreeStructure>* resTreeStructure) {
+
+    TrimOnlineCTRcache({fold});
+
+    ui32 learnSampleCount = data.Learn->ObjectsData->GetObjectCount();
+    TVector<TIndexType> indices(learnSampleCount); // always for all documents
+
+    if (!ctx->Params.SystemOptions->IsSingleHost()) {
+        MapTensorSearchStart(ctx);
+    }
+
+    if (IsSamplingPerTree(ctx->Params.ObliviousTreeOptions)) {
+        DoBootstrap(indices, fold, ctx, /* leavesCount */ 1);
+        if (ctx->UseTreeLevelCaching()) {
+            ctx->PrevTreeLevelStats.GarbageCollect();
+        }
+    }
+
+    if (ctx->Params.ObliviousTreeOptions.Get().GrowPolicy == EGrowPolicy::SymmetricTree) {
+        *resTreeStructure = GreedyTensorSearchOblivious(
+            data,
+            modelLength,
+            profile,
+            &indices,
+            fold,
+            ctx);
+    } else {
+        *resTreeStructure = GreedyTensorSearchNonSymmetric(
+            data,
+            modelLength,
+            profile,
+            &indices,
+            fold,
+            ctx);
+    }
 }
