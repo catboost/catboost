@@ -161,8 +161,9 @@ namespace NCatboostCuda {
 
         try {
             TProgressHelper(GpuProgressLabel()).CheckedLoad(OutputFiles.SnapshotFile, [&](TIFStream* in) {
-                TrainingCallbacks->OnLoadSnapshot(in);
-
+                if (!TrainingCallbacks->OnLoadSnapshot(in)) {
+                    return;
+                }
                 TString taskOptionsStr;
                 ::Load(in, taskOptionsStr);
                 const bool paramsCompatible = NCatboostOptions::IsParamsCompatible(CatBoostOptionsStr, taskOptionsStr);
@@ -227,7 +228,8 @@ namespace NCatboostCuda {
 
     void TBoostingProgressTracker::MaybeSaveSnapshot(std::function<void(IOutputStream*)> saver) {
         if (IsTimeToSaveSnapshot()) {
-            TProgressHelper(GpuProgressLabel()).Write(OutputFiles.SnapshotFile, [&](IOutputStream* out) {
+            const auto snapshotBackup = OutputFiles.SnapshotFile + ".bak";
+            TProgressHelper(GpuProgressLabel()).Write(snapshotBackup, [&](IOutputStream* out) {
                 TrainingCallbacks->OnSaveSnapshot(out);
                 ::Save(out, CatBoostOptionsStr);
                 ::Save(out, History);
@@ -235,6 +237,7 @@ namespace NCatboostCuda {
                 ::Save(out, LearnAndTestQuantizedFeaturesCheckSum);
                 saver(out);
             });
+            TFsPath(snapshotBackup).ForceRenameTo(OutputFiles.SnapshotFile);
             LastSnapshotTime = Now();
         }
     }

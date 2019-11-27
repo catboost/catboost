@@ -636,7 +636,10 @@ public:
         ::SaveMany(snapshot, FoldRangeBegin, FeatureSetIndex, IsTest, FoldIndex, options);
     }
 
-    void OnLoadSnapshot(IInputStream* snapshot) override {
+    bool OnLoadSnapshot(IInputStream* snapshot) override {
+        if (!IsNextLoadValid) {
+            return false;
+        }
         Summary->Load(snapshot);
         NJson::TJsonValue options;
         ::LoadMany(snapshot, FoldRangeBegin, FeatureSetIndex, IsTest, FoldIndex, options);
@@ -644,28 +647,27 @@ public:
         evalFeatureOptions.Load(options);
         CB_ENSURE(evalFeatureOptions == EvalFeatureOptions, "Current feaure evaluation options differ from options in snapshot");
         EvalFeatureOptions = evalFeatureOptions;
+        IsNextLoadValid = false;
+        return true;
     }
 
     void ResetIterationIndex() {
         IterationIdx = 0;
     }
 
-    bool TryLoadSnapshot(ETaskType taskType, const TString& snapshotFile) {
-        if (!NFs::Exists(snapshotFile)) {
-            return false;
-        }
+    void LoadSnapshot(ETaskType taskType, const TString& snapshotFile) {
         TProgressHelper progressHelper(ToString(taskType));
+        IsNextLoadValid = true;
         progressHelper.CheckedLoad(
             snapshotFile,
             [&](TIFStream* input) {
                 OnLoadSnapshot(input);
             });
-        IsApplyingSnapshot = true;
-        return true;
+        IsNextLoadValid = true;
     }
 
     bool HaveTrainResultsInSnapshot(ui32 foldRangeBegin, ui32 featureSetIdx, bool isTest, ui32 foldIdx) {
-        if (!IsApplyingSnapshot) {
+        if (!IsNextLoadValid) {
             return false;
         }
         CB_ENSURE_INTERNAL(
@@ -673,12 +675,7 @@ public:
             "No fold range begin, or feature set index, or baseline flag, or fold index in snapshot");
         const std::array<ui32, 4> progress = { foldRangeBegin, featureSetIdx, isTest, foldIdx };
         const std::array<ui32, 4> progressFromSnapshot = { *FoldRangeBegin, *FeatureSetIndex, *IsTest, *FoldIndex };
-        if (progress < progressFromSnapshot) {
-            return true;
-        }
-        IterationIdx = 0;
-        IsApplyingSnapshot = false;
-        return false;
+        return progress < progressFromSnapshot;
     }
 
     ui32 GetAbsoluteOffset() const {
@@ -696,16 +693,8 @@ private:
     const ui32 IterationCount;
     NCatboostOptions::TFeatureEvalOptions EvalFeatureOptions;
     TFeatureEvaluationSummary* const Summary;
-    bool IsApplyingSnapshot = false;
+    bool IsNextLoadValid = false;
 };
-
-static void SwitchBackupExtension(const TString& snapshotFile) {
-    if (NFs::Exists(snapshotFile)) {
-        TFsPath(snapshotFile).ForceRenameTo(snapshotFile + ".bak");
-    } else if (NFs::Exists(snapshotFile + ".bak")) {
-        TFsPath(snapshotFile + ".bak").ForceRenameTo(snapshotFile);
-    }
-}
 
 static void EvaluateFeaturesImpl(
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
@@ -846,6 +835,7 @@ static void EvaluateFeaturesImpl(
             callbacks->FeatureSetIndex = featureSetIdx;
             callbacks->IsTest = isTest;
             callbacks->FoldIndex = offsetInRange + foldIdx;
+            callbacks->ResetIterationIndex();
             foldContext.OutputOptions.SetSaveSnapshotFlag(outputFileOptions.SaveSnapshot());
             Train(
                 dataSpecificOptions,
@@ -860,17 +850,11 @@ static void EvaluateFeaturesImpl(
                 modelTrainerHolder.Get(),
                 &NPar::LocalExecutor());
 
-            if (outputFileOptions.SaveSnapshot()) {
-                SwitchBackupExtension(outputFileOptions.GetSnapshotFilename());
-            }
-
             if (testFoldsData) {
                 CalcMetricsForTest(metrics, approxDimension, testFoldsData[foldIdx].Test[0], &foldContext);
             }
 
             results->AppendFeatureSetMetrics(isTest, featureSetIdx, foldContext.MetricValuesOnTest);
-
-            callbacks->ResetIterationIndex();
 
             CATBOOST_INFO_LOG << "Fold " << foldContext.FoldIdx << ": model built in " <<
                 FloatToString(timer.Passed(), PREC_NDIGITS, 2) << " sec" << Endl;
@@ -1001,11 +985,8 @@ TFeatureEvaluationSummary EvaluateFeatures(
         featureEvalOptions,
         &summary);
 
-    if (outputFileOptions.SaveSnapshot()) {
-        if (!callbacks->TryLoadSnapshot(taskType, absoluteSnapshotPath)) {
-            SwitchBackupExtension(absoluteSnapshotPath);
-            callbacks->TryLoadSnapshot(taskType, absoluteSnapshotPath);
-        }
+    if (outputFileOptions.SaveSnapshot() && NFs::Exists(absoluteSnapshotPath)) {
+        callbacks->LoadSnapshot(taskType, absoluteSnapshotPath);
     }
 
     auto foldRangePart = featureEvalOptions;

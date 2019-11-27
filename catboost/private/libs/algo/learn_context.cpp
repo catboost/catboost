@@ -378,16 +378,18 @@ void TLearnContext::SaveProgress(std::function<void(IOutputStream*)> onSaveSnaps
     if (!OutputOptions.SaveSnapshot()) {
         return;
     }
+    const auto snapshotBackup = Files.SnapshotFile + ".bak";
     TProgressHelper(ToString(ETaskType::CPU)).Write(
-        Files.SnapshotFile,
+        snapshotBackup,
         [&](IOutputStream* out) {
             onSaveSnapshot(out);
             ::SaveMany(out, *LearnProgress, Profile.DumpProfileInfo());
         }
     );
+    TFsPath(snapshotBackup).ForceRenameTo(Files.SnapshotFile);
 }
 
-bool TLearnContext::TryLoadProgress(std::function<void(IInputStream*)> onLoadSnapshot) {
+bool TLearnContext::TryLoadProgress(std::function<bool(IInputStream*)> onLoadSnapshot) {
     if (!OutputOptions.SaveSnapshot() || !NFs::Exists(Files.SnapshotFile)) {
         return false;
     }
@@ -395,8 +397,9 @@ bool TLearnContext::TryLoadProgress(std::function<void(IInputStream*)> onLoadSna
         TProgressHelper(ToString(ETaskType::CPU)).CheckedLoad(
             Files.SnapshotFile,
             [&](TIFStream* in) {
-                onLoadSnapshot(in);
-
+                if (!onLoadSnapshot(in)) {
+                    return;
+                }
                 // use progress copy to avoid partial deserialization of corrupted progress file
                 THolder<TLearnProgress> learnProgressRestored = MakeHolder<TLearnProgress>(*LearnProgress);
                 TProfileInfoData ProfileRestored;

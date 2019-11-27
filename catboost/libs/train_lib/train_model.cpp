@@ -347,7 +347,7 @@ static void Train(
     InitializeAndCheckMetricData(internalOptions, data, *ctx, &metricsData);
 
     const auto onLoadSnapshotCallback = [&] (IInputStream* in) {
-        trainingCallbacks->OnLoadSnapshot(in);
+        return trainingCallbacks->OnLoadSnapshot(in);
     };
 
     if (ctx->TryLoadProgress(onLoadSnapshotCallback) && ctx->Params.SystemOptions->IsMaster()) {

@@ -45,9 +45,6 @@ int mode_eval_feature(int argc, const char* argv[]) {
 
     CopyIgnoredFeaturesToPoolParams(catBoostJsonOptions, &poolLoadParams);
 
-    NCatboostOptions::TOutputFilesOptions outputOptions;
-    outputOptions.Load(outputOptionsJson);
-
     const auto taskType = NCatboostOptions::GetTaskType(catBoostJsonOptions);
     NCatboostOptions::TCatBoostOptions catBoostOptions(taskType);
     catBoostOptions.Load(catBoostJsonOptions);

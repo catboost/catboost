@@ -59,7 +59,8 @@ public:
     }
     virtual void OnSaveSnapshot(IOutputStream* /*snapshot*/) {
     }
-    virtual void OnLoadSnapshot(IInputStream* /*snapshot*/) {
+    virtual bool OnLoadSnapshot(IInputStream* /*snapshot*/) {
+        return true;
     }
 
     virtual ~ITrainingCallbacks() = default;
