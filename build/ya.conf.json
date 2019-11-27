@@ -2430,31 +2430,31 @@
                 "objcopy": "$(GCC)/bin/aarch64-linux-android-objcopy"
             }
         },
-        "gcc63-armv7a": {
+        "gcc63-armv7a-linkplay-a98": {
             "name": "gcc63",
             "tools": {
                 "cc": {
-                    "bottle": "gcc63-armv7a",
+                    "bottle": "gcc63-armv7a-linkplay-a98",
                     "executable": "cc"
                 },
                 "c++": {
-                    "bottle": "gcc63-armv7a",
+                    "bottle": "gcc63-armv7a-linkplay-a98",
                     "executable": "c++"
                 },
                 "gcov": {
-                    "bottle": "gcc63-armv7a",
+                    "bottle": "gcc63-armv7a-linkplay-a98",
                     "executable": "gcov"
                 },
                 "c++filt": {
-                    "bottle": "gcc63-armv7a",
+                    "bottle": "gcc63-armv7a-linkplay-a98",
                     "executable": "c++filt"
                 },
                 "strip": {
-                    "bottle": "gcc63-armv7a",
+                    "bottle": "gcc63-armv7a-linkplay-a98",
                     "executable": "strip"
                 },
                 "nm": {
-                    "bottle": "gcc63-armv7a",
+                    "bottle": "gcc63-armv7a-linkplay-a98",
                     "executable": "nm"
                 }
             },
@@ -2465,15 +2465,6 @@
                     },
                     "target": {
                         "os": "LINUX",
-                        "arch": "armv7a"
-                    }
-                },
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "target": {
-                        "os": "YOCTO_LG_WK7Y",
                         "arch": "armv7a"
                     }
                 }
@@ -2488,6 +2479,57 @@
                 "gcc_version": "6.3",
                 "strip": "$(GCC)/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/bin/strip",
                 "objcopy": "$(GCC)/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/bin/objcopy"
+            }
+        },
+        "gcc63-armv7a-lg-wk7y": {
+            "name": "gcc63",
+            "tools": {
+                "cc": {
+                    "bottle": "gcc63-armv7a-lg-wk7y",
+                    "executable": "cc"
+                },
+                "c++": {
+                    "bottle": "gcc63-armv7a-lg-wk7y",
+                    "executable": "c++"
+                },
+                "gcov": {
+                    "bottle": "gcc63-armv7a-lg-wk7y",
+                    "executable": "gcov"
+                },
+                "c++filt": {
+                    "bottle": "gcc63-armv7a-lg-wk7y",
+                    "executable": "c++filt"
+                },
+                "strip": {
+                    "bottle": "gcc63-armv7a-lg-wk7y",
+                    "executable": "strip"
+                },
+                "nm": {
+                    "bottle": "gcc63-armv7a-lg-wk7y",
+                    "executable": "nm"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "YOCTO_LG_WK7Y",
+                        "arch": "armv7a"
+                    }
+                }
+            ],
+            "params": {
+                "type": "gnu",
+                "match_root": "GCC",
+                "werror_mode": "compiler_specific",
+                "gcc_version": "6.3",
+                "c_compiler": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-gcc",
+                "cxx_compiler": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-g++",
+                "ar": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-ar",
+                "strip": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-strip",
+                "objcopy": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-objcopy"
             }
         },
         "gcc73-armv7a-jbl-portable-music": {
@@ -5456,7 +5498,7 @@
                 ]
             }
         },
-        "gcc63-armv7a": {
+        "gcc63-armv7a-linkplay-a98": {
             "formula": {
                 "sandbox_id": [
                     "306585614"
@@ -5487,6 +5529,52 @@
                 "nm": [
                     "bin",
                     "arm-linux-gnueabihf-nm"
+                ]
+            }
+        },
+        "gcc63-armv7a-lg-wk7y": {
+            "formula": {
+                "sandbox_id": [
+                    "555947382"
+                ],
+                "match": "GCC"
+            },
+            "executable": {
+                "c++": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi",
+                    "arm-poky-linux-gnueabi-g++"
+                ],
+                "cc": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi",
+                    "arm-poky-linux-gnueabi-gcc"
+                ],
+                "gcov": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi",
+                    "arm-poky-linux-gnueabi-gcov"
+                ],
+                "c++filt": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi",
+                    "arm-poky-linux-gnueabi-c++filt"
+                ],
+                "strip": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi",
+                    "arm-poky-linux-gnueabi--strip"
+                ],
+                "nm": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi",
+                    "arm-poky-linux-gnueabi-nm"
                 ]
             }
         },
