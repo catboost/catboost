@@ -28,6 +28,7 @@ PEERDIR(
     catboost/private/libs/target
     library/containers/2d_array
     library/json/writer
+    library/text_processing/tokenizer
     contrib/python/graphviz
     contrib/python/numpy
     contrib/python/pandas
@@ -76,6 +77,7 @@ IF(NOT OS_ANDROID OR PYTHON2)
         core.py
         datasets.py
         monoforest.py
+        text_processing.py
         utils.py
         dev_utils.py
         _catboost.pyx

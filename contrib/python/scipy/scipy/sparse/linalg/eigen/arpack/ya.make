@@ -15,6 +15,8 @@ SRCS(
     _arpack-f2pywrappers.f
 )
 
+NO_LINT()
+
 PY_SRCS(
     NAMESPACE scipy.sparse.linalg.eigen.arpack
 

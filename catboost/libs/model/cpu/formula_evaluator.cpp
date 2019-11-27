@@ -22,15 +22,17 @@ namespace NCB::NModelEvaluation {
         ) {
             const size_t blockSize = Min(FORMULA_EVALUATION_BLOCK_SIZE, docCount);
             auto calcTrees = GetCalcTreesFunction(trees, blockSize);
-            std::fill(results.begin(), results.end(), 0.0);
             if (trees.GetTreeCount() == 0) {
+                Fill(results.begin(), results.end(), trees.GetScaleAndBias().Bias);
                 return;
             }
+            Fill(results.begin(), results.end(), 0.0);
             TVector<TCalcerIndexType> indexesVec(blockSize);
             TEvalResultProcessor resultProcessor(
                 docCount,
                 results,
                 predictionType,
+                trees.GetScaleAndBias(),
                 trees.GetDimensionsCount(),
                 blockSize
             );
@@ -452,7 +454,9 @@ namespace NCB::NModelEvaluation {
                         treeEnd,
                         resultPtr
                     );
-                    resultPtr += subBlock.GetObjectsCount() * ModelTrees->GetDimensionsCount();
+                    size_t items = subBlock.GetObjectsCount() * ModelTrees->GetDimensionsCount();
+                    ApplyScaleAndBias(ModelTrees->GetScaleAndBias(), TArrayRef<double>(resultPtr, resultPtr + items));
+                    resultPtr += items;
                 }
             }
 

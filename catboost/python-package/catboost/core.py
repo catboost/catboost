@@ -59,6 +59,8 @@ def get_catboost_bin_module():
     return _catboost
 
 
+_typeof = type
+
 _catboost = get_catboost_bin_module()
 _PoolBase = _catboost._PoolBase
 _CatBoost = _catboost._CatBoost
@@ -2297,7 +2299,7 @@ class CatBoost(_CatBoostBase):
                 else:
                     from __builtin__ import type as typeof
                     raise CatBoostError("Invalid data type={}, must be catboost.Pool.".format(typeof(data)))
-
+                    
             data, _ = self._process_predict_input_data(data, "get_feature_importance")
             if data.num_row() != 2:
                 raise CatBoostError("{} requires a pair of documents, found {}".format(type, data.num_row()))

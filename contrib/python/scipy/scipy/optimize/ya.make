@@ -4,6 +4,8 @@ PY23_LIBRARY()
 
 NO_COMPILER_WARNINGS()
 
+NO_LINT()
+
 PY_SRCS(
     NAMESPACE scipy.optimize
 

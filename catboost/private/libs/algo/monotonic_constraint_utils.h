@@ -28,11 +28,20 @@ TVector<TVector<ui32>> BuildMonotonicLinearOrdersOnLeafs(const TVector<int>& tre
  */
 void CalcOneDimensionalIsotonicRegression(
     const TVector<double>& values,
-    const TVector<double>& weight,
+    const TVector<double>& weights,
     const TVector<ui32>& indexOrder,
     TVector<double>* solution
 );
 
 TVector<int> GetTreeMonotoneConstraints(const TSplitTree& tree, const TMap<ui32, int>& monotoneConstraints);
+
+inline TVector<int> GetTreeMonotoneConstraints(const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree, const TMap<ui32, int>& monotoneConstraints) {
+    if (HoldsAlternative<TSplitTree>(tree)) {
+        return GetTreeMonotoneConstraints(Get<TSplitTree>(tree), monotoneConstraints);
+    } else {
+        CB_ENSURE_INTERNAL(monotoneConstraints.empty(), "Monotone constraints are unsupported for non-symmetric trees yet");
+        return {};
+    }
+}
 
 bool CheckMonotonicity(const TVector<ui32>& indexOrder, const TVector<double>& values);

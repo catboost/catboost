@@ -37,6 +37,8 @@ namespace NCatboostStandalone {
         const NCatBoostFbs::TModelTrees* ObliviousTrees = nullptr;
         size_t BinaryFeatureCount = 0;
         int FloatFeatureCount = 0;
+        double Scale = 1;
+        double Bias = 0;
     };
 
     class TOwningEvaluator : public TZeroCopyEvaluator {

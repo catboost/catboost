@@ -4,7 +4,7 @@ LIBRARY()
 
 
 
-VERSION(1.4.2)
+VERSION(1.4.4)
 
 LICENSE(BSD-3-Clause)
 

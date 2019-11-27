@@ -41,4 +41,7 @@
 - source_filter: "^quasar/yandex_io/daemons/external_libs/breakpad/include/third_party/lss"
   includes:
   - asm/sgidefs.h
+- source_filter: "^quasar/yandex_io/daemons/src/platforms/elari_a98/wm_peripheral.h"
+  includes:
+  - linux/socket.h
 

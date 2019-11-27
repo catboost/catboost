@@ -65,7 +65,12 @@ namespace NCB {
 
         AsyncRowProcessor.AddFirstLine(std::move(firstLine));
 
-        ProcessIgnoredFeaturesList(Args.IgnoredFeatures, &DataMetaInfo, &FeatureIgnored);
+        ProcessIgnoredFeaturesList(
+            Args.IgnoredFeatures,
+            /*allFeaturesIgnoredMessage*/ Nothing(),
+            &DataMetaInfo,
+            &FeatureIgnored
+        );
 
         AsyncRowProcessor.ReadBlockAsync(GetReadFunc());
         if (BaselineReader.Inited()) {

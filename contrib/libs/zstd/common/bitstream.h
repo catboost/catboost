@@ -57,6 +57,8 @@ extern "C" {
 =========================================*/
 #if defined(__BMI__) && defined(__GNUC__)
 #  include <immintrin.h>   /* support for bextr (experimental) */
+#elif defined(__ICCARM__)
+#  include <intrinsics.h>
 #endif
 
 #define STREAM_ACCUMULATOR_MIN_32  25

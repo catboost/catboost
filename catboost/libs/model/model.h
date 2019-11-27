@@ -5,6 +5,7 @@
 #include "evaluation_interface.h"
 #include "features.h"
 #include "online_ctr.h"
+#include "scale_and_bias.h"
 #include "split.h"
 
 #include <catboost/libs/helpers/exception.h>
@@ -82,7 +83,6 @@ struct TNonSymmetricTreeStepNode {
     }
 };
 
-
 struct TModelTrees {
 public:
     /**
@@ -139,7 +139,8 @@ public:
             TextFeatures,
             OneHotFeatures,
             CtrFeatures,
-            EstimatedFeatures)
+            EstimatedFeatures,
+            ScaleAndBias)
           == std::tie(
             other.ApproxDimension,
             other.TreeSplits,
@@ -153,7 +154,8 @@ public:
             other.TextFeatures,
             other.OneHotFeatures,
             other.CtrFeatures,
-            other.EstimatedFeatures);
+            other.EstimatedFeatures,
+            other.ScaleAndBias);
     }
 
     bool operator!=(const TModelTrees& other) const {
@@ -492,7 +494,13 @@ public:
 
     TVector<ui32> GetTreeLeafCounts() const;
 
-    //TODO(kirillovs): Remove this method and add Bias to the model instead.
+    TScaleAndBias GetScaleAndBias() const {
+        return ScaleAndBias;
+    }
+
+    void SetScaleAndBias(const TScaleAndBias&);
+
+    //TODO(dbakshee): Remove this method and add Bias to the model instead.
     void AddNumberToAllTreeLeafValues(ui32 treeId, double numberToAdd);
 
 private:
@@ -548,6 +556,9 @@ private:
     TVector<TTextFeature> TextFeatures;
     //! Computed on text features used in model
     TVector<TEstimatedFeature> EstimatedFeatures;
+
+    //! For computing final formula result as `Scale * sumTrees + Bias`
+    TScaleAndBias ScaleAndBias;
 
     mutable TMaybe<TRuntimeData> RuntimeData;
 };
@@ -756,6 +767,16 @@ public:
     //! Check if TFullModel instance has valid Text processing collection
     bool HasValidTextProcessingCollection() const {
         return (bool) TextProcessingCollection;
+    }
+
+    //! Get normalization parameters used to compute final formula from sum of trees
+    TScaleAndBias GetScaleAndBias() const {
+        return ModelTrees->GetScaleAndBias();
+    }
+
+    //! Set normalization parameters for computing final formula from sum of trees
+    void SetScaleAndBias(const TScaleAndBias& scaleAndBias) {
+        ModelTrees.GetMutable()->SetScaleAndBias(scaleAndBias);
     }
 
     /**

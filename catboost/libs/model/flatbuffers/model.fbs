@@ -32,6 +32,8 @@ table TModelTrees {
 
     TextFeatures:[TTextFeature];
     EstimatedFeatures:[TEstimatedFeature];
+    Scale:double = 1;
+    Bias:double = 0;
 }
 
 table TModelCore {

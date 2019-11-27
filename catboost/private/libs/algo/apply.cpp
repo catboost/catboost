@@ -6,6 +6,7 @@
 #include <catboost/libs/data/model_dataset_compatibility.h>
 #include <catboost/libs/eval_result/eval_helpers.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/model/cpu/evaluator.h>
 
@@ -20,17 +21,25 @@ using namespace NCB;
 using NPar::TLocalExecutor;
 
 
-TLocalExecutor::TExecRangeParams GetBlockParams(int executorThreadCount, int docCount, int begin, int end) {
+static TLocalExecutor::TExecRangeParams GetBlockParams(int executorThreadCount, int docCount, int treeCount) {
     const int threadCount = executorThreadCount + 1; // one for current thread
 
     // for 1 iteration it will be 7k docs, for 10k iterations it will be 100 docs.
-    const int minBlockSize = ceil(10000.0 / sqrt(end - begin + 1));
+    const int minBlockSize = ceil(10000.0 / sqrt(treeCount + 1));
     const int effectiveBlockCount = Min(threadCount, (docCount + minBlockSize - 1) / minBlockSize);
 
     TLocalExecutor::TExecRangeParams blockParams(0, docCount);
     blockParams.SetBlockCount(effectiveBlockCount);
     return blockParams;
 };
+
+static inline void FixupTreeEnd(size_t treeCount_, int treeBegin, int* treeEnd) {
+    int treeCount = SafeIntegerCast<int>(treeCount_);
+    if (treeBegin == 0 && *treeEnd == 0) *treeEnd = treeCount;
+    CB_ENSURE(0 <= treeBegin && treeBegin <= treeCount, "Out of range treeBegin=" << treeBegin);
+    CB_ENSURE(0 <= *treeEnd && *treeEnd <= treeCount, "Out of range treeEnd=" << *treeEnd);
+    CB_ENSURE(treeBegin < *treeEnd, "Empty tree range [" << treeBegin << ", " << *treeEnd << ")");
+}
 
 namespace {
     class IQuantizedBlockVisitor {
@@ -79,11 +88,13 @@ namespace {
             const TFullModel& model,
             int treeBegin,
             int treeEnd,
+            ui32 approxesFlatBeginAt,
             TArrayRef<double> approxesFlat)
             : ModelEvaluator(model.GetCurrentEvaluator())
             , ApproxDimension(model.GetDimensionsCount())
             , TreeBegin(treeBegin)
             , TreeEnd(treeEnd)
+            , ApproxesFlatBeginAt(approxesFlatBeginAt)
             , ApproxesFlat(approxesFlat)
         {}
 
@@ -97,7 +108,7 @@ namespace {
                 TreeBegin,
                 TreeEnd,
                 MakeArrayRef(
-                    ApproxesFlat.data() + objectBlockStart * ApproxDimension,
+                    ApproxesFlat.data() + (objectBlockStart - ApproxesFlatBeginAt) * ApproxDimension,
                     (objectBlockEnd - objectBlockStart) * ApproxDimension));
         }
 
@@ -106,6 +117,7 @@ namespace {
         size_t ApproxDimension;
         int TreeBegin;
         int TreeEnd;
+        ui32 ApproxesFlatBeginAt;
         TArrayRef<double> ApproxesFlat;
     };
 }
@@ -122,11 +134,11 @@ TVector<TVector<double>> ApplyModelMulti(
     const int approxesDimension = model.GetDimensionsCount();
     TVector<double> approxesFlat(docCount * approxesDimension);
     if (docCount > 0) {
-        end = end == 0 ? model.GetTreeCount() : Min<int>(end, model.GetTreeCount());
+        FixupTreeEnd(model.GetTreeCount(), begin, &end);
         const int executorThreadCount = executor ? executor->GetThreadCount() : 0;
-        auto blockParams = GetBlockParams(executorThreadCount, docCount, begin, end);
+        auto blockParams = GetBlockParams(executorThreadCount, docCount, end - begin);
 
-        TApplyVisitor visitor(model, begin, end, approxesFlat);
+        TApplyVisitor visitor(model, begin, end, 0, approxesFlat);
 
         const ui32 subBlockSize = ui32(NModelEvaluation::FORMULA_EVALUATION_BLOCK_SIZE * 64);
 
@@ -200,6 +212,50 @@ TVector<TVector<double>> ApplyModelMulti(
     return approxes;
 }
 
+TMinMax<double> ApplyModelForMinMax(
+    const TFullModel& model,
+    const NCB::TObjectsDataProvider& objectsData,
+    int treeBegin,
+    int treeEnd,
+    NPar::TLocalExecutor* executor)
+{
+    CB_ENSURE(model.GetTreeCount(), "Bad usage: empty model");
+    CB_ENSURE(model.GetDimensionsCount() == 1, "Bad usage: multiclass/multiregression model, dim=" << model.GetDimensionsCount());
+    FixupTreeEnd(model.GetTreeCount(), treeBegin, &treeEnd);
+    CB_ENSURE(objectsData.GetObjectCount(), "Bad usage: empty dataset");
+
+    const ui32 docCount = objectsData.GetObjectCount();
+    TMinMax<double> result{+DBL_MAX, -DBL_MAX};
+    TMutex result_guard;
+
+    if (docCount > 0) {
+        const int executorThreadCount = executor ? executor->GetThreadCount() : 0;
+        auto blockParams = GetBlockParams(executorThreadCount, docCount, treeEnd - treeBegin);
+
+        const ui32 subBlockSize = ui32(NModelEvaluation::FORMULA_EVALUATION_BLOCK_SIZE * 64);
+
+        const auto applyOnBlock = [&](int blockId) {
+            const int blockFirstIdx = blockParams.FirstId + blockId * blockParams.GetBlockSize();
+            const int blockLastIdx = Min(blockParams.LastId, blockFirstIdx + blockParams.GetBlockSize());
+
+            TVector<double> blockResult;
+            blockResult.yresize(blockLastIdx - blockFirstIdx);
+            TApplyVisitor visitor(model, treeBegin, treeEnd, blockFirstIdx, blockResult);
+
+            BlockedEvaluation(model, objectsData, (ui32)blockFirstIdx, (ui32)blockLastIdx, subBlockSize, &visitor);
+
+            auto minMax = CalcMinMax(blockResult.begin(), blockResult.end());
+            GuardedUpdateMinMax(minMax, &result, result_guard);
+        };
+        if (executor) {
+            executor->ExecRangeWithThrow(applyOnBlock, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE);
+        } else {
+            applyOnBlock(0);
+        }
+    }
+    return result;
+}
+
 void TModelCalcerOnPool::ApplyModelMulti(
     const EPredictionType predictionType,
     int begin,
@@ -212,11 +268,7 @@ void TModelCalcerOnPool::ApplyModelMulti(
     TVector<double>& approxFlat = *flatApproxBuffer;
     approxFlat.yresize(static_cast<unsigned long>(docCount * approxDimension));
 
-    if (end == 0) {
-        end = Model->GetTreeCount();
-    } else {
-        end = Min<int>(end, Model->GetTreeCount());
-    }
+    FixupTreeEnd(Model->GetTreeCount(), begin, &end);
 
     Executor->ExecRangeWithThrow(
         [&, this](int blockId) {
@@ -300,8 +352,8 @@ TLeafIndexCalcerOnPool::TLeafIndexCalcerOnPool(
     , CurrBatchSize(Min(DocCount, NModelEvaluation::FORMULA_EVALUATION_BLOCK_SIZE))
     , CurrDocIndex(0)
 {
-    CB_ENSURE(treeStart >= 0);
-    CB_ENSURE(treeEnd >= 0);
+    FixupTreeEnd(model.GetTreeCount(), treeStart, &treeEnd);
+    CB_ENSURE(TreeEnd == size_t(treeEnd));
 
     CurrentBatchLeafIndexes.yresize(CurrBatchSize * (TreeEnd - TreeStart));
 
@@ -349,7 +401,6 @@ void TLeafIndexCalcerOnPool::CalcNextBatch() {
 
 
 namespace {
-    // don't use from different threads because of TransposedLeafIndicesBuffer
     class TLeafCalcerVisitor final : public IQuantizedBlockVisitor {
     public:
         TLeafCalcerVisitor(
@@ -391,17 +442,13 @@ TVector<ui32> CalcLeafIndexesMulti(
     int treeEnd,
     NPar::TLocalExecutor* executor /* = nullptr */)
 {
-    CB_ENSURE(treeStart >= 0);
-    CB_ENSURE(treeEnd >= 0);
-    CB_ENSURE(treeEnd >= treeStart);
-    const int totalTreeCount = SafeIntegerCast<int>(model.GetTreeCount());
-    treeEnd = treeEnd == 0 ? totalTreeCount : Min<int>(treeEnd, totalTreeCount);
+    FixupTreeEnd(model.GetTreeCount(), treeStart, &treeEnd);
     const size_t objCount = objectsData->GetObjectCount();
     TVector<ui32> result(objCount * (treeEnd - treeStart), 0);
 
     if (objCount > 0) {
         const int executorThreadCount = executor ? executor->GetThreadCount() : 0;
-        auto blockParams = GetBlockParams(executorThreadCount, objCount, treeStart, treeEnd);
+        auto blockParams = GetBlockParams(executorThreadCount, objCount, treeEnd - treeStart);
 
         const ui32 subBlockSize = ui32(NModelEvaluation::FORMULA_EVALUATION_BLOCK_SIZE * 64);
 

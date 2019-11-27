@@ -7703,6 +7703,126 @@ def test_eval_feature():
         local_canonical_file(os.path.join('Testing_set_0_fold_2', test_err_log), diff_tool=diff_tool()),
     ]
 
+
+@pytest.mark.parametrize('eval_mode', ['OneVsNone', 'OneVsAll', 'OneVsOthers'])
+@pytest.mark.parametrize('features_to_eval', ['2-5', '2-5;10-15'], ids=['one_set', 'two_sets'])
+@pytest.mark.parametrize('offset', [0, 2])
+def test_eval_feature_snapshot(eval_mode, features_to_eval, offset):
+    test_err_log = 'test_error.log'
+    fstr_file = 'fstrs'
+    fold_count = 2
+    snapshot_interval = 1
+
+    def make_cmd(summary, train_dir):
+        return (
+            CATBOOST_PATH,
+            'eval-feature',
+            '--loss-function', 'RMSE',
+            '-f', data_file('querywise', 'train'),
+            '--cd', data_file('querywise', 'train.cd'),
+            '-i', '200',
+            '-T', '4',
+            '-w', '0.1',
+            '--boost-from-average', 'False',
+            '--permutations', '1',
+            '--snapshot-interval', str(snapshot_interval),
+            '--features-to-evaluate', features_to_eval,
+            '--feature-eval-mode', eval_mode,
+            '--feature-eval-output-file', summary,
+            '--offset', str(offset),
+            '--fold-count', str(fold_count),
+            '--fold-size-unit', 'Group',
+            '--fold-size', '40',
+            '--test-err-log', test_err_log,
+            '--train-dir', train_dir,
+            '--fstr-file', fstr_file,
+        )
+
+    reference_summary = yatest.common.test_output_path('reference_feature.eval')
+    reference_dir = yatest.common.test_output_path('reference')
+    yatest.common.execute(make_cmd(summary=reference_summary, train_dir=reference_dir))
+
+    snapshot_summary = yatest.common.test_output_path('snapshot_feature.eval')
+    snapshot_dir = yatest.common.test_output_path('snapshot')
+    snapshot = yatest.common.test_output_path('eval_feature.snapshot')
+    eval_with_snapshot_cmd = make_cmd(summary=snapshot_summary, train_dir=snapshot_dir) + ('--snapshot-file', snapshot,)
+
+    def stop_after_timeout(cmd, timeout):
+        try:
+            yatest.common.execute(cmd, timeout=timeout)
+        except ExecutionTimeoutError:
+            pass
+
+    resume_from_snapshot_count = 15
+    for idx in range(resume_from_snapshot_count):
+        timeout = 0.5 if idx % 2 == 0 else snapshot_interval + 0.1
+        stop_after_timeout(cmd=eval_with_snapshot_cmd, timeout=timeout)
+        yatest.common.execute(['rm', '-rf', snapshot_dir])
+    yatest.common.execute(eval_with_snapshot_cmd)
+
+    assert filecmp.cmp(reference_summary, snapshot_summary)
+
+    pj = os.path.join
+    set_count = len(features_to_eval.split(';'))
+    if eval_mode == 'OneVsOthers':
+        baseline = 'Baseline_set_{set_idx}_fold_{fold_idx}'
+        for set_idx in range(set_count):
+            for fold_idx in range(offset, offset + fold_count):
+                fold = baseline.format(fold_idx=fold_idx, set_idx=set_idx)
+                assert filecmp.cmp(pj(reference_dir, fold, test_err_log), pj(snapshot_dir, fold, test_err_log))
+                assert filecmp.cmp(pj(reference_dir, fold, fstr_file), pj(snapshot_dir, fold, fstr_file))
+    else:
+        baseline = 'Baseline_fold_{fold_idx}'
+        for fold_idx in range(offset, offset + fold_count):
+            fold = baseline.format(fold_idx=fold_idx)
+            assert filecmp.cmp(pj(reference_dir, fold, test_err_log), pj(snapshot_dir, fold, test_err_log))
+            assert filecmp.cmp(pj(reference_dir, fold, fstr_file), pj(snapshot_dir, fold, fstr_file))
+
+    testing = 'Testing_set_{set_idx}_fold_{fold_idx}'
+    for set_idx in range(set_count):
+        for fold_idx in range(offset, offset + fold_count):
+            fold = testing.format(fold_idx=fold_idx, set_idx=set_idx)
+            assert filecmp.cmp(pj(reference_dir, fold, test_err_log), pj(snapshot_dir, fold, test_err_log))
+            assert filecmp.cmp(pj(reference_dir, fold, fstr_file), pj(snapshot_dir, fold, fstr_file))
+
+
+def test_eval_feature_snapshot_wrong_options():
+    summary = yatest.common.test_output_path('eval_feature_summary')
+    snapshot = yatest.common.test_output_path('eval_feature_snapshot')
+
+    def make_cmd(fold_size):
+        return (
+            CATBOOST_PATH,
+            'eval-feature',
+            '--loss-function', 'RMSE',
+            '-f', data_file('querywise', 'train'),
+            '--cd', data_file('querywise', 'train.cd'),
+            '-i', '600',
+            '-T', '4',
+            '-w', '0.1',
+            '--permutations', '1',
+            '--snapshot-interval', '1',
+            '--features-to-evaluate', '2-5',
+            '--feature-eval-mode', 'OneVsAll',
+            '--feature-eval-output-file', summary,
+            '--offset', '0',
+            '--fold-count', '5',
+            '--fold-size-unit', 'Group',
+            '--fold-size', str(fold_size),
+            '--snapshot-file', snapshot
+        )
+
+    def stop_after_timeout(cmd, timeout):
+        try:
+            yatest.common.execute(cmd, timeout=timeout)
+        except ExecutionTimeoutError:
+            pass
+
+    stop_after_timeout(cmd=make_cmd(fold_size=40), timeout=3)
+    with pytest.raises(yatest.common.ExecutionError):
+        yatest.common.execute(make_cmd(fold_size=20))
+
+
 TEST_METRIC_DESCRIPTION_METRICS_LIST = ['Logloss', 'Precision', 'AUC']
 @pytest.mark.parametrize('dataset_has_weights', [True, False], ids=['dataset_has_weights=True', 'dataset_has_weights=False'])
 @pytest.mark.parametrize('eval_metric_loss', TEST_METRIC_DESCRIPTION_METRICS_LIST,
@@ -7750,8 +7870,8 @@ def test_metric_description(dataset_has_weights, eval_metric_loss, eval_metric_u
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
         '--eval-metric', eval_metric,
-        '--custom-metric', custom_metric
-        )
+        '--custom-metric', custom_metric,
+    )
     should_fail = not dataset_has_weights and (eval_metric_use_weights is not None or custom_metric_use_weights is not None)
     try:
         yatest.common.execute(cmd)
@@ -7830,3 +7950,40 @@ def test_group_features():
     ]
     yatest.common.execute(calc_cmd)
     return [local_canonical_file(learn_error_path), local_canonical_file(test_predictions_path)]
+
+
+def test_model_sum():
+    model_path = yatest.common.test_output_path('model.bin')
+    model_eval = yatest.common.test_output_path('model_eval.txt')
+    yatest.common.execute([
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '--cd', data_file('adult', 'train.cd'),
+        '-i', '10',
+        '-m', model_path,
+        '-t', data_file('adult', 'test_small'),
+        '--eval-file', model_eval,
+        '--output-columns', 'SampleId,RawFormulaVal',
+    ])
+
+    sum_path = yatest.common.test_output_path('sum.bin')
+    yatest.common.execute([
+        CATBOOST_PATH,
+        'model-sum',
+        '--model-with-weight', '{}={}'.format(model_path, 0.75),
+        '--model-with-weight', '{}={}'.format(model_path, 0.25),
+        '--output-path', sum_path,
+    ])
+
+    sum_eval = yatest.common.test_output_path('sum_eval.txt')
+    yatest.common.execute([
+        CATBOOST_PATH,
+        'calc',
+        '-m', sum_path,
+        '--input-path', data_file('adult', 'test_small'),
+        '--cd', data_file('adult', 'train.cd'),
+        '--output-path', sum_eval,
+    ])
+    yatest.common.execute(get_limited_precision_dsv_diff_tool(0) + [model_eval, sum_eval])

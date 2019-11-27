@@ -143,6 +143,7 @@ namespace NCB {
                     NJson::TJsonValue params;
                     NJson::ReadJsonTree(&is, &params);
 
+                    CB_ENSURE(model.GetScaleAndBias().IsIdentity(), "Exporting CoreML model with scale/bias is not supported");
                     OutputModelCoreML(model, modelFileName, params, catFeaturesHashToString);
                 }
                 break;
@@ -162,6 +163,7 @@ namespace NCB {
                     NJson::TJsonValue params;
                     NJson::ReadJsonTree(&is, &params);
 
+                    CB_ENSURE(model.GetScaleAndBias().IsIdentity(), "Exporting ONNX model with scale/bias is not supported");
                     OutputModelOnnx(model, modelFileName, params);
                 }
                 break;
@@ -171,6 +173,7 @@ namespace NCB {
                     NJson::TJsonValue params;
                     NJson::ReadJsonTree(&is, &params);
 
+                    CB_ENSURE(model.GetScaleAndBias().IsIdentity(), "Exporting PMML model with scale/bias is not supported");
                     NCB::NPmml::OutputModel(model, modelFileName, params, catFeaturesHashToString);
                 }
                 break;

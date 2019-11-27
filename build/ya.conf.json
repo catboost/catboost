@@ -288,7 +288,7 @@
         },
         "lkvm": {
             "description": "kvmtool is a userland tool for creating and controlling KVM guests"
-        },
+        }
     },
     "toolchain": {
         "msvc2017-i686": {
@@ -415,8 +415,8 @@
                 "type": "msvc",
                 "match_root": "MSVC",
                 "werror_mode": "compiler_specific",
-                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 c ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x86/cl.exe",
-                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 cxx ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x86/cl.exe",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 c $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x86/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 cxx $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x86/cl.exe",
                 "version": "2017",
                 "wine": "yes"
             }
@@ -448,8 +448,8 @@
                 "type": "msvc",
                 "match_root": "MSVC",
                 "werror_mode": "compiler_specific",
-                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 c ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x64/cl.exe",
-                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 cxx ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x64/cl.exe",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 c $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x64/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 cxx $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x64/cl.exe",
                 "version": "2017",
                 "wine": "yes"
             }
@@ -482,8 +482,8 @@
                 "type": "msvc",
                 "match_root": "MSVC",
                 "werror_mode": "compiler_specific",
-                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 c ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/arm/cl.exe",
-                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 cxx ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/arm/cl.exe",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 c $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/arm/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 cxx $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/arm/cl.exe",
                 "version": "2017",
                 "wine": "yes"
             }
@@ -607,8 +607,8 @@
                 "type": "msvc",
                 "match_root": "MSVC",
                 "werror_mode": "compiler_specific",
-                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 c ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x86/cl.exe",
-                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 cxx ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x86/cl.exe",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 c $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x86/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 cxx $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x86/cl.exe",
                 "version": "2019",
                 "wine": "yes"
             }
@@ -639,8 +639,8 @@
                 "type": "msvc",
                 "match_root": "MSVC",
                 "werror_mode": "compiler_specific",
-                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 c ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x64/cl.exe",
-                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 cxx ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x64/cl.exe",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 c $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x64/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 cxx $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/x64/cl.exe",
                 "version": "2019",
                 "wine": "yes"
             }
@@ -672,8 +672,8 @@
                 "type": "msvc",
                 "match_root": "MSVC",
                 "werror_mode": "compiler_specific",
-                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 c ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/arm/cl.exe",
-                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 cxx ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/arm/cl.exe",
+                "c_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 c $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/arm/cl.exe",
+                "cxx_compiler": "${YMAKE_PYTHON} ${input:\"build/scripts/run_msvc_wine.py\"} $(WINE_TOOL-sbr:1093314933)/bin/wine64 -v140 cxx $WINE_ENV ${ARCADIA_ROOT} ${ARCADIA_BUILD_ROOT} $(MSVC)/bin/Hostx64/arm/cl.exe",
                 "version": "2019",
                 "wine": "yes"
             }
@@ -2370,31 +2370,91 @@
                 "gcc_version": "6.0"
             }
         },
-        "gcc63-armv7a": {
-            "name": "gcc63",
+        "gcc49-android-armv8a": {
+            "name": "gcc49",
             "tools": {
                 "cc": {
-                    "bottle": "gcc63-armv7a",
+                    "bottle": "gcc49-android-armv8",
                     "executable": "cc"
                 },
                 "c++": {
-                    "bottle": "gcc63-armv7a",
+                    "bottle": "gcc49-android-armv8",
                     "executable": "c++"
                 },
                 "gcov": {
-                    "bottle": "gcc63-armv7a",
+                    "bottle": "gcc49-android-armv8",
                     "executable": "gcov"
                 },
-                "c++filt": {
-                    "bottle": "gcc63-armv7a",
-                    "executable": "c++filt"
-                },
                 "strip": {
-                    "bottle": "gcc63-armv7a",
+                    "bottle": "gcc49-android-armv8",
                     "executable": "strip"
                 },
                 "nm": {
-                    "bottle": "gcc63-armv7a",
+                    "bottle": "gcc49-android-armv8",
+                    "executable": "nm"
+                },
+                "clang-format": {
+                    "bottle": "gcc49-android-armv8",
+                    "executable": "clang-format"
+                },
+                "clang-tidy": {
+                    "bottle": "gcc49-android-armv8",
+                    "executable": "clang-tidy"
+                },
+                "llvm-symbolizer": {
+                    "bottle": "gcc49-android-armv8",
+                    "executable": "llvm-symbolizer"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "ANDROID",
+                        "arch": "armv8a"
+                    }
+                }
+            ],
+            "params": {
+                "type": "gnu",
+                "match_root": "GCC",
+                "werror_mode": "compiler_specific",
+                "gcc_version": "4.9",
+                "cxx_std": "c++1y",
+                "c_compiler": "$(GCC)/bin/aarch64-linux-android-gcc",
+                "cxx_compiler": "$(GCC)/bin/aarch64-linux-android-g++",
+                "ar": "$(GCC)/bin/aarch64-linux-android-ar",
+                "strip": "$(GCC)/bin/aarch64-linux-android-strip",
+                "objcopy": "$(GCC)/bin/aarch64-linux-android-objcopy"
+            }
+        },
+        "gcc63-armv7a-linkplay-a98": {
+            "name": "gcc63",
+            "tools": {
+                "cc": {
+                    "bottle": "gcc63-armv7a-linkplay-a98",
+                    "executable": "cc"
+                },
+                "c++": {
+                    "bottle": "gcc63-armv7a-linkplay-a98",
+                    "executable": "c++"
+                },
+                "gcov": {
+                    "bottle": "gcc63-armv7a-linkplay-a98",
+                    "executable": "gcov"
+                },
+                "c++filt": {
+                    "bottle": "gcc63-armv7a-linkplay-a98",
+                    "executable": "c++filt"
+                },
+                "strip": {
+                    "bottle": "gcc63-armv7a-linkplay-a98",
+                    "executable": "strip"
+                },
+                "nm": {
+                    "bottle": "gcc63-armv7a-linkplay-a98",
                     "executable": "nm"
                 }
             },
@@ -2405,15 +2465,6 @@
                     },
                     "target": {
                         "os": "LINUX",
-                        "arch": "armv7a"
-                    }
-                },
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "target": {
-                        "os": "YOCTO_LG_WK7Y",
                         "arch": "armv7a"
                     }
                 }
@@ -2428,6 +2479,57 @@
                 "gcc_version": "6.3",
                 "strip": "$(GCC)/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/bin/strip",
                 "objcopy": "$(GCC)/gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf/arm-linux-gnueabihf/bin/objcopy"
+            }
+        },
+        "gcc63-armv7a-lg-wk7y": {
+            "name": "gcc63",
+            "tools": {
+                "cc": {
+                    "bottle": "gcc63-armv7a-lg-wk7y",
+                    "executable": "cc"
+                },
+                "c++": {
+                    "bottle": "gcc63-armv7a-lg-wk7y",
+                    "executable": "c++"
+                },
+                "gcov": {
+                    "bottle": "gcc63-armv7a-lg-wk7y",
+                    "executable": "gcov"
+                },
+                "c++filt": {
+                    "bottle": "gcc63-armv7a-lg-wk7y",
+                    "executable": "c++filt"
+                },
+                "strip": {
+                    "bottle": "gcc63-armv7a-lg-wk7y",
+                    "executable": "strip"
+                },
+                "nm": {
+                    "bottle": "gcc63-armv7a-lg-wk7y",
+                    "executable": "nm"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "YOCTO_LG_WK7Y",
+                        "arch": "armv7a"
+                    }
+                }
+            ],
+            "params": {
+                "type": "gnu",
+                "match_root": "GCC",
+                "werror_mode": "compiler_specific",
+                "gcc_version": "6.3",
+                "c_compiler": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-gcc",
+                "cxx_compiler": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-g++",
+                "ar": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-ar",
+                "strip": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-strip",
+                "objcopy": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-objcopy"
             }
         },
         "gcc73-armv7a-jbl-portable-music": {
@@ -2479,6 +2581,58 @@
                 "gcc_version": "7.3",
                 "strip": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-strip",
                 "objcopy": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-objcopy"
+            }
+        },
+        "gcc53-aarch64-lightcomm-mt8516": {
+            "name": "gcc53",
+            "tools": {
+                "cc": {
+                    "bottle": "gcc53-aarch64-lightcomm-mt8516",
+                    "executable": "cc"
+                },
+                "c++": {
+                    "bottle": "gcc53-aarch64-lightcomm-mt8516",
+                    "executable": "c++"
+                },
+                "gcov": {
+                    "bottle": "gcc53-aarch64-lightcomm-mt8516",
+                    "executable": "gcov"
+                },
+                "c++filt": {
+                    "bottle": "gcc53-aarch64-lightcomm-mt8516",
+                    "executable": "c++filt"
+                },
+                "strip": {
+                    "bottle": "gcc53-aarch64-lightcomm-mt8516",
+                    "executable": "strip"
+                },
+                "nm": {
+                    "bottle": "gcc53-aarch64-lightcomm-mt8516",
+                    "executable": "nm"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                  },
+                    "target": {
+                        "os": "YOCTO_LIGHTCOMM",
+                        "arch": "aarch64"
+                    }
+                }
+            ],
+            "params": {
+                "type": "gnu",
+                "match_root": "GCC",
+                "werror_mode": "compiler_specific",
+                "c_compiler": "$(GCC)/usr/bin/aarch64-poky-linux/aarch64-poky-linux-gcc",
+                "cxx_compiler": "$(GCC)/usr/bin/aarch64-poky-linux/aarch64-poky-linux-g++",
+                "ar": "$(GCC)/usr/bin/aarch64-poky-linux/aarch64-poky-linux-ar",
+                "gcc_version": "7.3",
+                "strip": "$(GCC)/usr/bin/aarch64-poky-linux/aarch64-poky-linux-strip",
+                "objcopy": "$(GCC)/usr/bin/aarch64-poky-linux/aarch64-poky-linux-objcopy",
+                "isystem": ["$(GCC)/usr/lib/aarch64-poky-linux/gcc/aarch64-poky-linux/5.3.0/include", "$(GCC)/usr/lib/aarch64-poky-linux/gcc/aarch64-poky-linux/5.3.0/include-fixed"]
             }
         },
         "bloat": {
@@ -4684,7 +4838,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [549960971],
+                "sandbox_id": [555589654],
                 "match": "ymake"
             },
             "executable": {
@@ -4707,7 +4861,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    542602407
+                    556377719
                 ],
                 "match": "arc"
             },
@@ -5298,7 +5452,53 @@
                 ]
             }
         },
-        "gcc63-armv7a": {
+        "gcc49-android-armv8": {
+            "formula": {
+                "sandbox_id": [
+                    554529118
+                ],
+                "match": "NDK"
+            },
+            "executable": {
+                "c++": [
+                    "bin",
+                    "aarch64-linux-android-g++"
+                ],
+                "cc": [
+                    "bin",
+                    "aarch64-linux-android-gcc"
+                ],
+                "strip": [
+                    "bin",
+                    "aarch64-linux-android-strip"
+                ],
+                "c++filt": [
+                    "bin",
+                    "aarch64-linux-android-c++filt"
+                ],
+                "nm": [
+                    "bin",
+                    "aarch64-linux-android-nm"
+                ],
+                "gcov": [
+                    "bin",
+                    "aarch64-linux-android-gcov"
+                ],
+                "clang-format": [
+                    "bin",
+                    "clang-format"
+                ],
+                "clang-tidy": [
+                    "bin",
+                    "clang-tidy"
+                ],
+                "llvm-symbolizer": [
+                    "bin",
+                    "llvm-symbolizer"
+                ]
+            }
+        },
+        "gcc63-armv7a-linkplay-a98": {
             "formula": {
                 "sandbox_id": [
                     "306585614"
@@ -5332,10 +5532,56 @@
                 ]
             }
         },
+        "gcc63-armv7a-lg-wk7y": {
+            "formula": {
+                "sandbox_id": [
+                    "555947382"
+                ],
+                "match": "GCC"
+            },
+            "executable": {
+                "c++": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi",
+                    "arm-poky-linux-gnueabi-g++"
+                ],
+                "cc": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi",
+                    "arm-poky-linux-gnueabi-gcc"
+                ],
+                "gcov": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi",
+                    "arm-poky-linux-gnueabi-gcov"
+                ],
+                "c++filt": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi",
+                    "arm-poky-linux-gnueabi-c++filt"
+                ],
+                "strip": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi",
+                    "arm-poky-linux-gnueabi--strip"
+                ],
+                "nm": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi",
+                    "arm-poky-linux-gnueabi-nm"
+                ]
+            }
+        },
         "gcc73-armv7a-jbl-portable-music": {
             "formula": {
                 "sandbox_id": [
-                    "549987302"
+                    "554980592"
                 ],
                 "match": "GCC"
             },
@@ -5369,6 +5615,52 @@
                     "usr",
                     "bin",
                     "arm-poky-linux-gnueabi-nm"
+                ]
+            }
+        },
+        "gcc53-aarch64-lightcomm-mt8516": {
+            "formula": {
+                "sandbox_id": [
+                    "555140553"
+                ],
+                "match": "GCC"
+            },
+            "executable": {
+                "c++": [
+                    "usr",
+                    "bin",
+                    "aarch64-poky-linux",
+                    "aarch64-poky-linux-g++"
+                ],
+                "cc": [
+                    "usr",
+                    "bin",
+                    "aarch64-poky-linux",
+                    "aarch64-poky-linux-gcc"
+                ],
+                "gcov": [
+                    "usr",
+                    "bin",
+                    "aarch64-poky-linux",
+                    "aarch64-poky-linux-gcov"
+                ],
+                "c++filt": [
+                    "usr",
+                    "bin",
+                    "aarch64-poky-linux",
+                    "aarch64-poky-linux-c++filt"
+                ],
+"strip": [
+                    "usr",
+                    "bin",
+                    "aarch64-poky-linux",
+                    "aarch64-poky-linux-strip"
+                ],
+                "nm": [
+                    "usr",
+                    "bin",
+                    "aarch64-poky-linux",
+                    "aarch64-poky-linux-nm"
                 ]
             }
         },
@@ -6310,7 +6602,7 @@
         "qyp": {
             "formula": {
                 "sandbox_id": [
-                    523033576
+                    555082780
                 ],
                 "match": "infra/qyp/vmctl/bin/vmctl"
             },
@@ -6400,7 +6692,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 551310943,
+                "sandbox_id": 555849153,
                 "match": "SEDEM archive"
             },
             "executable": {

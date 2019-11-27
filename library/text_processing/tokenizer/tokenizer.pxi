@@ -94,6 +94,62 @@ cdef class Tokenizer:
         sub_tokens_policy=None,
         languages=None,
     ):
+        """
+        Tokenizer.
+
+        Parameters
+        ----------
+        lowercasing : bool, optional (default=None)
+            Convert tokens to lower case.
+
+        lemmatizing : bool, optional (default=None)
+            Perform lemmatization on tokens.
+
+        number_process_policy : string, optional (default=None)
+            The strategy to process numeric tokens. Possible values:
+                - 'Skip' - Skip all numeric tokens.
+                - 'LeaveAsIs' - Leave all numeric tokens as is.
+                - 'Replace' - Replace all numeric tokens with a single special token.
+                    This token you can specify with the `number_token` parameter.
+
+        number_token : string, optional (default=None)
+            The special token that is used to replace all numeric tokens with.
+            This option can be used if the selected numeric tokens processing strategy is 'Replace'.
+
+        separator_type : string, optional (default=None)
+            The tokenization method. Possible values:
+                - 'ByDelimiter' - Split by delimiter.
+                - 'BySense' - Split the string by sense.
+
+        delimiter : string, optional (default=None)
+            The symbol that is considered to be the delimiter.
+            Should be used if the separator_type parameter is set to BySense.
+
+        split_by_set : bool, optional (default=None)
+            Use each single character in the `delimiter` option as an individual delimiter.
+            This parameter allows to use multiple delimiters.
+
+        skip_empty : bool, optional (default=None)
+            Skip all empty tokens.
+
+        token_types : list of strings, optional (default=None)
+            The types of tokens that should be kept after the tokenization.
+            Should be used if the separator_type parameter is set to BySense.
+            Possible values: 'Word', 'Digit', 'Punctuation','SentenceBreak', 'ParagraphBreak', 'Unknown'.
+
+        sub_tokens_policy : string, optional (default=None)
+            The subtokens processing policy.
+            Should be used if the `separator_type` parameter is set to 'BySense'.
+            Possible values:
+                - 'SingleToken' - All subtokens are interpreted as a single token.
+                - 'SeveralTokens' - All subtokens are interpreted as several tokens.
+
+        languages : list of strings, optional (default=None)
+            The list of languages to use.
+            Should be used if the `separator_type` parameter is set to 'BySense'.
+            Leave the value of this parameter empty to use all available languages (significantly slows down the procedure).
+        """
+
         cdef TTokenizerOptions tokenizer_options = CreateTokenizerOptions(
             lowercasing,
             lemmatizing,
@@ -111,11 +167,26 @@ cdef class Tokenizer:
         cdef TTokenizer* tokenizerPtr = new TTokenizer(tokenizer_options)
         self.__tokenizer = THolder[TTokenizer](tokenizerPtr)
 
-    def tokenize(self, s, types=False):
-        if not s:
+    def tokenize(self, string, types=False):
+        """
+        Tokenize input string.
+
+        Parameters
+        ----------
+        string : string
+            Input string.
+
+        types : bool, optional (default=None)
+            Need to return token types also.
+
+        Returns
+        ----------
+        tokens: list of strings or list of tuples (token, token_type) if `types` == True.
+        """
+        if not string:
             return []
-        assert isinstance(s, string_types)
-        cdef TString arc_string = to_arcadia_string(s)
+        assert isinstance(string, string_types)
+        cdef TString arc_string = to_arcadia_string(string)
         cdef TVector[TString] tokens
         cdef TVector[ETokenType] tokenTypes
         dereference(self.__tokenizer.Get()).Tokenize(arc_string, &tokens, &tokenTypes)

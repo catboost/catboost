@@ -1,0 +1,4 @@
+RECURSE(
+    normalization
+    normalization/ut
+)

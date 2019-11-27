@@ -36,7 +36,7 @@ TErrorTracker BuildErrorTracker(
 static void UpdateLearningFold(
     const NCB::TTrainingForCPUDataProviders& data,
     const IDerCalcer& error,
-    const TSplitTree& bestSplitTree,
+    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& bestTree,
     ui64 randomSeed,
     TFold* fold,
     TLearnContext* ctx
@@ -47,7 +47,7 @@ static void UpdateLearningFold(
         data,
         error,
         *fold,
-        bestSplitTree,
+        bestTree,
         randomSeed,
         ctx,
         &approxDelta
@@ -137,21 +137,21 @@ static void ScaleAllApproxes(
 void CalcApproxesLeafwise(
     const NCB::TTrainingForCPUDataProviders& data,
     const IDerCalcer& error,
-    const TSplitTree& bestSplitTree,
+    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,
     TLearnContext* ctx,
     TVector<TVector<double>>* treeValues,
     TVector<TIndexType>* indices
 ) {
     *indices = BuildIndices(
         ctx->LearnProgress->AveragingFold,
-        bestSplitTree,
+        tree,
         data.Learn,
         data.Test,
         ctx->LocalExecutor
     );
     auto statistics = BuildSubset(
         *indices,
-        bestSplitTree.GetLeafCount(),
+        GetLeafCount(tree),
         ctx
     );
 
@@ -161,7 +161,7 @@ void CalcApproxesLeafwise(
         const int scratchSize = APPROX_BLOCK_SIZE * CB_THREAD_LIMIT;
         weightedDers.yresize(scratchSize);
     }
-    for (int leafIdx = 0; leafIdx < bestSplitTree.GetLeafCount(); ++leafIdx) {
+    for (int leafIdx = 0; leafIdx < GetLeafCount(tree); ++leafIdx) {
         CalcLeafValues(
             error,
             ctx->Params,
@@ -212,7 +212,7 @@ void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnCont
         }
     }
 
-    TSplitTree bestSplitTree;
+    TVariant<TSplitTree, TNonSymmetricTreeStructure> bestTree;
     {
         TFold* takenFold = &ctx->LearnProgress->Folds[ctx->LearnProgress->Rand.GenRand() % foldCount];
         const TVector<ui64> randomSeeds = GenRandUI64Vector(
@@ -247,7 +247,7 @@ void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnCont
             profile,
             takenFold,
             ctx,
-            &bestSplitTree
+            &bestTree
         );
     }
     CheckInterrupted(); // check after long-lasting operation
@@ -277,12 +277,8 @@ void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnCont
 
             TVector<TLocalJobData> parallelJobsData;
             THashSet<TProjection> seenProjections;
-            for (const auto& split : bestSplitTree.Splits) {
-                if (split.Type != ESplitType::OnlineCtr) {
-                    continue;
-                }
-
-                const auto& proj = split.Ctr.Projection;
+            for (const auto& ctr : GetUsedCtrs(bestTree)) {
+                const auto& proj = ctr.Projection;
                 if (seenProjections.contains(proj)) {
                     continue;
                 }
@@ -318,7 +314,7 @@ void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnCont
                     UpdateLearningFold(
                         data,
                         *error,
-                        bestSplitTree,
+                        bestTree,
                         randomSeeds[foldId],
                         trainFolds[foldId],
                         ctx
@@ -344,7 +340,7 @@ void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnCont
                 CalcApproxesLeafwise(
                     data,
                     *error,
-                    bestSplitTree,
+                    bestTree,
                     ctx,
                     &treeValues,
                     &indices
@@ -354,7 +350,7 @@ void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnCont
                     data,
                     *error,
                     ctx->LearnProgress->AveragingFold,
-                    bestSplitTree,
+                    bestTree,
                     ctx,
                     &treeValues,
                     &indices
@@ -393,18 +389,18 @@ void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnCont
             const bool isMultiRegression = dynamic_cast<const TMultiDerCalcer*>(error.Get()) != nullptr;
 
             if (isMultiRegression) {
-                MapSetApproxesMulti(*error, bestSplitTree, data.Test, &treeValues, &sumLeafWeights, ctx);
+                MapSetApproxesMulti(*error, bestTree, data.Test, &treeValues, &sumLeafWeights, ctx);
             } else if (ctx->LearnProgress->ApproxDimension == 1) {
-                MapSetApproxesSimple(*error, bestSplitTree, data.Test, &treeValues, &sumLeafWeights, ctx);
+                MapSetApproxesSimple(*error, bestTree, data.Test, &treeValues, &sumLeafWeights, ctx);
             } else {
-                MapSetApproxesMulti(*error, bestSplitTree, data.Test, &treeValues, &sumLeafWeights, ctx);
+                MapSetApproxesMulti(*error, bestTree, data.Test, &treeValues, &sumLeafWeights, ctx);
             }
         }
 
         ctx->LearnProgress->TreeStats.emplace_back();
         ctx->LearnProgress->TreeStats.back().LeafWeightsSum = std::move(sumLeafWeights);
         ctx->LearnProgress->LeafValues.push_back(std::move(treeValues));
-        ctx->LearnProgress->TreeStruct.push_back(std::move(bestSplitTree));
+        ctx->LearnProgress->TreeStruct.push_back(std::move(bestTree));
 
         profile.AddOperation("Update final approxes");
         CheckInterrupted(); // check after long-lasting operation

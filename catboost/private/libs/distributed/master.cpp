@@ -1,6 +1,8 @@
 #include "master.h"
 #include "mappers.h"
 
+#include <catboost/libs/data/load_data.h>
+#include <catboost/libs/helpers/quantile.h>
 #include <catboost/private/libs/algo/approx_updater_helpers.h>
 #include <catboost/private/libs/algo/data.h>
 #include <catboost/private/libs/algo/index_calcer.h>
@@ -8,12 +10,10 @@
 #include <catboost/private/libs/algo/scoring.h>
 #include <catboost/private/libs/algo_helpers/approx_calcer_multi_helpers.h>
 #include <catboost/private/libs/algo_helpers/error_functions.h>
-#include <catboost/libs/data/load_data.h>
 
 #include <library/par/par_settings.h>
 
 #include <util/system/yassert.h>
-#include <catboost/private/libs/algo_helpers/approx_calcer_helpers.h>
 
 
 using namespace NCatboostDistributed;
@@ -337,7 +337,7 @@ void MapCalcErrors(TLearnContext* ctx) {
 template <typename TApproxDefs>
 void MapSetApproxes(
     const IDerCalcer& error,
-    const TSplitTree& splitTree,
+    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
     TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData,
     TVector<TVector<double>>* averageLeafValues,
     TVector<double>* sumLeafWeights,
@@ -354,7 +354,7 @@ void MapSetApproxes(
     ApplyMapper<TCalcApproxStarter>(workerCount, TMasterEnvironment::GetRef().SharedTrainData, splitTree);
     const int gradientIterations = ctx->Params.ObliviousTreeOptions->LeavesEstimationIterations;
     const int approxDimension = ctx->LearnProgress->ApproxDimension;
-    const int leafCount = splitTree.GetLeafCount();
+    const int leafCount = GetLeafCount(splitTree);
     const auto lossFunction = ctx->Params.LossFunctionDescription;
     const auto estimationMethod = ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod;
     if (estimationMethod == ELeavesEstimation::Exact) {
@@ -531,7 +531,7 @@ public:
 
 void MapSetApproxesSimple(
     const IDerCalcer& error,
-    const TSplitTree& splitTree,
+    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
     TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData,
     TVector<TVector<double>>* averageLeafValues,
     TVector<double>* sumLeafWeights,
@@ -542,7 +542,7 @@ void MapSetApproxesSimple(
 
 void MapSetApproxesMulti(
     const IDerCalcer& error,
-    const TSplitTree& splitTree,
+    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
     TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData,
     TVector<TVector<double>>* averageLeafValues,
     TVector<double>* sumLeafWeights,

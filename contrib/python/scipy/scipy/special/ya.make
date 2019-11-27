@@ -29,6 +29,8 @@ PEERDIR(
     contrib/python/scipy/scipy/special/specfun
 )
 
+NO_LINT()
+
 PY_SRCS(
     NAMESPACE scipy.special
 

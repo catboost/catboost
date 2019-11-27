@@ -2,6 +2,7 @@
 
 #include <catboost/private/libs/app_helpers/mode_calc_helpers.h>
 #include <catboost/private/libs/app_helpers/mode_fstr_helpers.h>
+#include <catboost/private/libs/app_helpers/mode_normalize_model_helpers.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/private/libs/init/init_reg.h>
 #include <catboost/libs/logging/logging.h>
@@ -38,6 +39,18 @@ static int mode_fstr(int argc, const char** argv) {
     return modeFstrImplementaion->mode_fstr(argc, argv);
 }
 
+static int mode_normalize_model(int argc, const char** argv) {
+    THolder<NCB::IModeNormalizeModelImplementation> impl;
+    if (NCB::TModeNormalizeModelImplementationFactory::Has(NCB::EImplementationType::YandexSpecific)) {
+        impl = NCB::TModeNormalizeModelImplementationFactory::Construct(NCB::EImplementationType::YandexSpecific);
+    } else {
+        CB_ENSURE(NCB::TModeNormalizeModelImplementationFactory::Has(NCB::EImplementationType::OpenSource),
+            "Missing normalize-model implementation");
+        impl = NCB::TModeNormalizeModelImplementationFactory::Construct(NCB::EImplementationType::OpenSource);
+    }
+    return impl->mode_normalize_model(argc, argv);
+}
+
 int main(int argc, const char* argv[]) {
     try {
         NCB::TCmdLineInit::Do(argc, argv);
@@ -55,6 +68,7 @@ int main(int argc, const char* argv[]) {
         modChooser.AddMode("run-worker", mode_run_worker, "run worker");
         modChooser.AddMode("roc", mode_roc, "evaluate data for roc curve");
         modChooser.AddMode("model-based-eval", mode_model_based_eval, "model-based eval");
+        modChooser.AddMode("normalize-model", mode_normalize_model, "normalize model on a pool");
         modChooser.DisableSvnRevisionOption();
         modChooser.SetVersionHandler(PrintProgramSvnVersion);
         return modChooser.Run(argc, argv);

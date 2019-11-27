@@ -19,7 +19,9 @@ PEERDIR(
     catboost/libs/cat_feature
     catboost/libs/data
     catboost/libs/helpers
+    catboost/libs/metrics
     catboost/libs/model
+    catboost/private/libs/lapack
     catboost/private/libs/options
 )
 

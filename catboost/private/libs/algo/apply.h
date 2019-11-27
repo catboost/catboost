@@ -3,9 +3,9 @@
 #include "features_data_helpers.h"
 
 #include <catboost/libs/data/objects.h>
-#include <catboost/private/libs/options/enums.h>
+#include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/model/fwd.h>
-
+#include <catboost/private/libs/options/enums.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -45,6 +45,13 @@ TVector<TVector<double>> ApplyModelMulti(
     int begin = 0,
     int end = 0,
     int threadCount = 1);
+
+TMinMax<double> ApplyModelForMinMax(
+    const TFullModel& model,
+    const NCB::TObjectsDataProvider& objectsData,
+    int treeBegin = 0,
+    int treeEnd = 0,
+    NPar::TLocalExecutor* executor = nullptr);
 
 /*
  * Tradeoff memory for speed

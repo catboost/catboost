@@ -199,7 +199,6 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\common\mem.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\common\pool.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\common\threading.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\common\xxhash.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\common\zstd_errors.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\common\zstd_internal.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\hist.h"/>

@@ -1,10 +1,10 @@
 #pragma once
 
-#include <catboost/private/libs/algo_helpers/custom_objective_descriptor.h>
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/metrics/metric.h>
-#include <catboost/private/libs/options/feature_eval_options.h>
 #include <catboost/libs/train_lib/cross_validation.h>
+#include <catboost/private/libs/algo_helpers/custom_objective_descriptor.h>
+#include <catboost/private/libs/options/feature_eval_options.h>
 
 #include <library/json/json_value.h>
 
@@ -19,14 +19,15 @@ struct TFeatureEvaluationSummary {
     TVector<TString> MetricNames; // [metric count]
     TVector<TVector<ui32>> FeatureSets; // [feature set count][]
 
-    TVector<TVector<TVector<double>>> BestBaselineMetrics; // [feature set count][metric count][fold count]
-    TVector<TVector<TVector<double>>> BestTestedMetrics; // [feature set count][metric count][fold count]
+    TVector<TVector<TVector<TMetricsAndTimeLeftHistory>>> MetricsHistory; // [is test][feature set count][fold count]
+    TVector<TVector<TVector<TVector<std::pair<double, TString>>>>> FeatureStrengths; // [is test][feature set count][fold count][feature index]
+    TVector<TVector<TVector<TVector<std::pair<double, TString>>>>> RegularFeatureStrengths; // [is test][feature set count][fold count][feature index]
+
+    TVector<TVector<TVector<TVector<double>>>> BestMetrics; // [is test][feature set count][metric count][fold count]
     TVector<TVector<ui32>> BestBaselineIterations; // [feature set count][fold count]
 
     TVector<double> WxTest; // [feature set count]
     TVector<TVector<double>> AverageMetricDelta; // [feature set count][metric count]
-
-    ui32 FoldRangeOffset;
 
 public:
     bool HasHeaderInfo() const;
@@ -36,20 +37,39 @@ public:
         const TVector<TVector<ui32>>& featureSets);
 
     void AppendFeatureSetMetrics(
+        bool isBaseline,
         ui32 featureSetIdx,
-        const TVector<TFoldContext>& baselineFoldContexts,
-        const TVector<TFoldContext>& testedFoldContexts);
+        const TVector<TVector<double>>& metricValuesOnTest);
 
     void CalcWxTestAndAverageDelta();
+    void CreateLogs(
+        const NCatboostOptions::TOutputFilesOptions& outputFileOptions,
+        const NCatboostOptions::TFeatureEvalOptions& featureEvalOptions,
+        const TVector<THolder<IMetric>>& metrics,
+        ui32 iterationCount,
+        bool isTest,
+        ui32 foldRangeOffset,
+        ui32 offsetFromOptions);
+
+    Y_SAVELOAD_DEFINE(
+        MetricTypes,
+        MetricNames,
+        FeatureSets,
+        MetricsHistory,
+        FeatureStrengths,
+        RegularFeatureStrengths,
+        BestMetrics,
+        BestBaselineIterations,
+        WxTest,
+        AverageMetricDelta);
 };
 
 TString ToString(const TFeatureEvaluationSummary& summary);
 
-void EvaluateFeatures(
+TFeatureEvaluationSummary EvaluateFeatures(
     const NJson::TJsonValue& plainJsonParams,
     const NCatboostOptions::TFeatureEvalOptions& featureEvalOptions,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     const TCvDataPartitionParams& cvParams,
-    NCB::TDataProviderPtr data,
-    TFeatureEvaluationSummary* results);
+    NCB::TDataProviderPtr data);

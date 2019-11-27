@@ -9,16 +9,50 @@
 
 #include <utility>
 
+inline TVector<std::pair<double, TString>> ExpandFeatureDescriptions(
+    const NCB::TFeaturesLayout& layout,
+    const TVector<std::pair<double, TFeature>>& effect
+) {
+    TVector<std::pair<double, TString>> result;
+    result.reserve(effect.size());
+    for (const auto& effectWithSplit : effect) {
+        result.emplace_back(effectWithSplit.first, effectWithSplit.second.BuildDescription(layout));
+    }
+    return result;
+}
+
+inline TVector<std::pair<double, TString>> ExpandFeatureDescriptions(
+    const NCB::TFeaturesLayout& layout,
+    const TVector<TFeatureEffect>& regularEffect
+) {
+    TVector<std::pair<double, TString>> result;
+    result.reserve(regularEffect.size());
+    for (const auto& initialFeatureScore : regularEffect) {
+        const auto& description = BuildFeatureDescription(
+            layout,
+            initialFeatureScore.Feature.Index,
+            initialFeatureScore.Feature.Type);
+        result.emplace_back(initialFeatureScore.Score, description);
+    }
+    return result;
+}
+
+inline void OutputStrengthDescriptions(
+    const TVector<std::pair<double, TString>>& strengthDescriptions,
+    const TString& path
+) {
+    TFileOutput out(path);
+    for (const auto& strengthDescription : strengthDescriptions) {
+        out << strengthDescription.first << "\t" << strengthDescription.second << Endl;
+    }
+}
 
 inline void OutputFstr(
     const NCB::TFeaturesLayout& layout,
     const TVector<std::pair<double, TFeature>>& effect,
     const TString& path)
 {
-    TFileOutput out(path);
-    for (const auto& effectWithSplit : effect) {
-        out << effectWithSplit.first << "\t" << effectWithSplit.second.BuildDescription(layout) << Endl;
-    }
+    OutputStrengthDescriptions(ExpandFeatureDescriptions(layout, effect), path);
 }
 
 inline void OutputRegularFstr(
@@ -26,14 +60,7 @@ inline void OutputRegularFstr(
     const TVector<TFeatureEffect>& regularEffect,
     const TString& path)
 {
-    TFileOutput out(path);
-    for (const auto& initialFeatureScore : regularEffect) {
-        out << initialFeatureScore.Score << "\t"
-            << BuildFeatureDescription(
-                layout,
-                initialFeatureScore.Feature.Index,
-                initialFeatureScore.Feature.Type) << Endl;
-    }
+    OutputStrengthDescriptions(ExpandFeatureDescriptions(layout, regularEffect), path);
 }
 
 inline void OutputInteraction(

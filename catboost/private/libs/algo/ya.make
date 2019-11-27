@@ -27,6 +27,7 @@ SRCS(
     model_quantization_adapter.cpp
     monotonic_constraint_utils.cpp
     mvs.cpp
+    nonsymmetric_index_calcer.cpp
     online_ctr.cpp
     plot.cpp
     preprocess.cpp

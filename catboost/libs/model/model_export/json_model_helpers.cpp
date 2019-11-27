@@ -455,6 +455,13 @@ static NJson::TJsonValue ConvertCtrsToJson(const TStaticCtrProvider* ctrProvider
     return jsonValue;
 }
 
+static TJsonValue GetScaleAndBiasJson(const TFullModel& model) {
+    TJsonValue jsonValue;
+    jsonValue.AppendValue(model.GetScaleAndBias().Scale);
+    jsonValue.AppendValue(model.GetScaleAndBias().Bias);
+    return jsonValue;
+}
+
 TJsonValue ConvertModelToJson(const TFullModel& model, const TVector<TString>* featureId, const THashMap<ui32, TString>* catFeaturesHashToString) {
     TJsonValue jsonModel;
     TJsonValue modelInfo;
@@ -477,6 +484,7 @@ TJsonValue ConvertModelToJson(const TFullModel& model, const TVector<TString>* f
     if (ctrProvider) {
         jsonModel.InsertValue("ctr_data", ConvertCtrsToJson(ctrProvider, model.ModelTrees->GetUsedModelCtrs()));
     }
+    jsonModel.InsertValue("scale_and_bias", GetScaleAndBiasJson(model));
     return jsonModel;
 }
 
@@ -542,6 +550,12 @@ void ConvertJsonToCatboostModel(const TJsonValue& jsonModel, TFullModel* fullMod
     if (jsonModel.Has("ctr_data")) {
         auto ctrData = CtrDataFromJson(jsonModel["ctr_data"]);
         fullModel->CtrProvider = new TStaticCtrProvider(ctrData);
+    }
+    if (jsonModel.Has("scale_and_bias")) {
+        const auto& scaleAndBias = jsonModel["scale_and_bias"].GetArray();
+        double scale = scaleAndBias[0].GetDouble();
+        double bias = scaleAndBias[1].GetDouble();
+        fullModel->SetScaleAndBias({scale, bias});
     }
 
     fullModel->UpdateDynamicData();

@@ -102,6 +102,7 @@
   - linux/rtc.h
   - linux/rtnetlink.h
   - linux/sched.h
+  - linux/seccomp.h
   - linux/securebits.h
   - linux/smb.h
   - linux/sockios.h

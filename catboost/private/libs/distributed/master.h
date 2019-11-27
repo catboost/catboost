@@ -63,7 +63,7 @@ TVector<typename TMapper::TOutput> ApplyMapper(
 
 void MapSetApproxesSimple(
     const IDerCalcer& error,
-    const TSplitTree& splitTree,
+    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
     TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData,
     TVector<TVector<double>>* averageLeafValues,
     TVector<double>* sumLeafWeights,
@@ -71,7 +71,7 @@ void MapSetApproxesSimple(
 
 void MapSetApproxesMulti(
     const IDerCalcer& error,
-    const TSplitTree& splitTree,
+    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
     TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData,
     TVector<TVector<double>>* averageLeafValues,
     TVector<double>* sumLeafWeights,

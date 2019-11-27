@@ -87,5 +87,5 @@ double ApplyCatboostModel(
         leafValuesPtr += (1 << currentTreeDepth);
         treePtr += currentTreeDepth;
     }
-    return result;
+    return model.Scale * result + model.Bias;
 }

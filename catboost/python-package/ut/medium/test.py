@@ -5812,6 +5812,12 @@ def test_pool_is_quantized():
     assert not raw_pool.is_quantized()
 
 
+def test_quantized_pool_with_all_features_ignored():
+    quantized_pool = Pool(data=get_quantized_path(QUANTIZED_TRAIN_FILE), column_description=QUANTIZED_CD_FILE)
+    with pytest.raises(CatBoostError):
+        CatBoostClassifier(ignored_features=list(range(100))).fit(quantized_pool)
+
+
 def test_pool_quantize():
     train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
@@ -6440,3 +6446,8 @@ def test_monoforest_regression():
     assert poly, "Unexpected empty poly"
     plot = plot_features_strength(model)
     assert plot, "Unexpected empty plot"
+
+
+def test_text_processing_tokenizer():
+    from catboost.text_processing import Tokenizer
+    assert Tokenizer(lowercasing=True).tokenize('Aba caba') == ['aba', 'caba']

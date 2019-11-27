@@ -15,6 +15,7 @@ SRCS(
     mode_metadata.cpp
     mode_model_based_eval.cpp
     mode_model_sum.cpp
+    mode_normalize_model.cpp
     mode_ostr.cpp
     mode_roc.cpp
     mode_run_worker.cpp
@@ -35,6 +36,7 @@ PEERDIR(
     catboost/libs/logging
     catboost/libs/metrics
     catboost/libs/model
+    catboost/libs/model/model_export
     catboost/private/libs/options
     catboost/private/libs/target
     catboost/libs/train_lib
@@ -44,6 +46,7 @@ PEERDIR(
     library/logger
     library/svnversion
     library/text_processing/dictionary
+    library/threading/local_executor
 )
 
 IF(HAVE_CUDA)

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fwd.h"
+#include "scale_and_bias.h"
 
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
@@ -61,9 +62,11 @@ namespace NCB::NModelEvaluation {
             size_t docCount,
             TArrayRef<double> results,
             EPredictionType predictionType,
+            TScaleAndBias scaleAndBias,
             ui32 approxDimension,
             ui32 blockSize,
-            TMaybe<double> binclassProbabilityBorder = Nothing());
+            TMaybe<double> binclassProbabilityBorder = Nothing()
+        );
 
         inline TArrayRef<double> GetResultBlockView(ui32 blockId, ui32 dimension) {
             return Results.Slice(
@@ -82,7 +85,16 @@ namespace NCB::NModelEvaluation {
             return GetResultBlockView(blockId, ApproxDimension);
         }
 
+        inline void ApplyScaleAndBias(ui32 blockId) {
+            if (ScaleAndBias.IsIdentity()) {
+                return;
+            }
+            Y_ASSERT(ApproxDimension == 1);
+            ::ApplyScaleAndBias(ScaleAndBias, GetResultBlockView(blockId, 1));
+        }
+
         inline void PostprocessBlock(ui32 blockId) {
+            ApplyScaleAndBias(blockId);
             if (PredictionType == EPredictionType::RawFormulaVal) {
                 return;
             }
@@ -117,6 +129,7 @@ namespace NCB::NModelEvaluation {
     private:
         TArrayRef<double> Results;
         EPredictionType PredictionType;
+        TScaleAndBias ScaleAndBias;
         ui32 ApproxDimension;
         ui32 BlockSize;
 

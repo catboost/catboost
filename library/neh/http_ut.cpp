@@ -8,6 +8,7 @@
 
 #include <library/unittest/registar.h>
 #include <library/unittest/env.h>
+#include <library/unittest/tests_data.h>
 
 #include <util/generic/buffer.h>
 #include <util/network/endpoint.h>
@@ -174,5 +175,84 @@ Y_UNIT_TEST_SUITE(NehHttp) {
         UNIT_ASSERT_C(selret == 1, "select should return one fd that is ready to return 0 on recv call");
         const ssize_t nReadBytes = recv(s, buf.Data(), buf.Size(), 0);
         UNIT_ASSERT_C(nReadBytes == 0, "connection must be closed, but we did not get 0 as return value from it.");
+    }
+
+    Y_UNIT_TEST(TInputOutputDeadline) {
+        // InputDeadline test
+        {
+            TServ serv = CreateServices();
+
+            static constexpr size_t inputDeadline = 500;
+
+            THttp2Options::Set("InputDeadline", ToString(inputDeadline) + "ms");
+            UNIT_ASSERT_C(THttp2Options::InputDeadline == TDuration::MilliSeconds(inputDeadline), "InputDeadline was not set");
+
+            // Request to immediate-answering server
+            static constexpr size_t serverDelay1 = 0;
+            TMessage noDelayMessage = TMessage::FromString("http://localhost:" + ToString(serv.ServerPort) + "/pipeline?" + ToString(serverDelay1));
+            TResponseRef noDelayResponse = Request(noDelayMessage)->Wait();
+            UNIT_ASSERT_C(!noDelayResponse->IsError(), noDelayResponse->GetErrorText());
+            UNIT_ASSERT_VALUES_EQUAL(noDelayResponse->Data, ToString(serverDelay1));
+
+            // Request to delayed-answering server
+            static constexpr size_t serverDelay2 = 2500;
+            TMessage delayMessage = TMessage::FromString("http://localhost:" + ToString(serv.ServerPort) + "/pipeline?" + ToString(serverDelay2));
+            TResponseRef delayResponse = Request(delayMessage)->Wait();
+            UNIT_ASSERT_C(delayResponse->IsError(), "Request was finished successfuly after deadline");
+            // On windows error text is empty (?)
+            if (!delayResponse->GetErrorText().empty()) {
+                UNIT_ASSERT_VALUES_EQUAL(delayResponse->GetErrorText(), "Connection timed out");
+            }
+
+            THttp2Options::InputDeadline = TDuration::Max();
+        }
+
+        // OutputDeadline test
+        {
+            // Create dummy socket that will listen but not read
+            ui16 serverPort = TPortManager().GetTcpPort();
+            TNetworkAddress serverAddr("localhost", serverPort);
+            TEndpoint serverEp(new NAddr::TAddrInfo(&*serverAddr.Begin()));
+            TSocketHolder serverSocket(socket(serverEp.SockAddr()->sa_family, SOCK_STREAM, 0));
+            UNIT_ASSERT_C(serverSocket != INVALID_SOCKET, "can't create server socket");
+            UNIT_ASSERT_C(bind(serverSocket, serverEp.SockAddr(), serverEp.SockAddrLen()) != SOCKET_ERROR, "can't bind server socket")
+            UNIT_ASSERT_C(listen(serverSocket, 2) != SOCKET_ERROR, "can't listen on server socket");
+
+            // Test system for max send buf size
+            TSocket testSocket(socket(serverEp.SockAddr()->sa_family, SOCK_STREAM, 0));
+            UNIT_ASSERT_C(testSocket != INVALID_SOCKET, "can't create test socket");
+            UNIT_ASSERT_C(connect(testSocket, serverEp.SockAddr(), serverEp.SockAddrLen()) != -1, "can't establish test connection");
+            SetNonBlock(testSocket);
+            TString bigMessage(32 * 1024 * 1024, 'A');
+            size_t bigMessageOffset = 0;
+            ssize_t bytesSent = 0;
+            do {
+                bigMessageOffset += bytesSent;
+                if (bigMessageOffset >= bigMessage.size()) {
+                    bigMessage += bigMessage;
+                }
+                bytesSent = testSocket.Send(bigMessage.c_str() + bigMessageOffset, bigMessage.size() - bigMessageOffset);
+            } while (bytesSent >= 0);
+            // Double it's size to be sure that it will cause blocking write/send syscall
+            bigMessage += bigMessage;
+            testSocket.Close();
+
+            static constexpr size_t outputDeadline = 500;
+
+            THttp2Options::Set("OutputDeadline", ToString(outputDeadline) + "ms");
+            UNIT_ASSERT_C(THttp2Options::OutputDeadline == TDuration::MilliSeconds(outputDeadline), "OutputDeadline was not set");
+            TMessage msg("http://localhost:" + ToString(serverPort), bigMessage);
+            TInstant requestStartTime = Now();
+            TResponseRef res = Request(msg)->Wait();
+            TInstant requestEndTime = Now();
+            UNIT_ASSERT_C((requestEndTime - requestStartTime) >= TDuration::MilliSeconds(outputDeadline), "Request was finished before deadline");
+            UNIT_ASSERT_C(res->IsError(), "Request was finished successfuly after deadline");
+            // On windows error text is empty (?)
+            if (!res->GetErrorText().empty()) {
+                UNIT_ASSERT_VALUES_EQUAL(res->GetErrorText(), "Connection timed out");
+            }
+
+            THttp2Options::OutputDeadline = TDuration::Max();
+        }
     }
 }

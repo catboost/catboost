@@ -4,6 +4,7 @@
 #include "gradient_walker.h"
 
 #include <catboost/libs/helpers/dispatch_generic_lambda.h>
+#include <catboost/libs/helpers/quantile.h>
 #include <catboost/private/libs/algo_helpers/approx_calcer_helpers.h>
 #include <catboost/private/libs/algo_helpers/approx_updater_helpers.h>
 #include <catboost/private/libs/algo_helpers/error_functions.h>

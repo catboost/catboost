@@ -419,7 +419,7 @@ public:
         return result;
     }
 
-    TVector<TCtr> GetCtrSplits() const {
+    TVector<TCtr> GetUsedCtrs() const {
         TVector<TCtr> result;
         for (const auto& split : Splits) {
             if (split.Type == ESplitType::OnlineCtr) {
@@ -429,6 +429,109 @@ public:
         return result;
     }
 };
+
+/*
+ * TSplitNode is node in non-symmetric tree
+ * It is used in model training (in other places non-symmetric tree can have another layout).
+ * Here negative values of Left and Right means leaves, non-negative values - split nodes.
+ * To get leaf index from negative value of Left or Right, we use ~ operator.
+ */
+struct TSplitNode {
+    TSplit Split;
+    int Left = -1;
+    int Right = -1;
+
+    TSplitNode() = default;
+    TSplitNode(const TSplit& split, int left, int right)
+        : Split(split), Left(left), Right(right)
+    {
+    }
+
+    SAVELOAD(Split, Left, Right);
+    Y_SAVELOAD_DEFINE(Split, Left, Right);
+};
+
+struct TNonSymmetricTreeStructure {
+    TVector<TSplitNode> Nodes;
+    TVector<int> LeafParent;
+
+public:
+    SAVELOAD(Nodes, LeafParent);
+    Y_SAVELOAD_DEFINE(Nodes, LeafParent);
+
+    TNonSymmetricTreeStructure()
+        : LeafParent((size_t)1, -1)
+    {
+    }
+
+    int GetRoot() const {
+        return Nodes.empty() ? -1 : 0;
+    }
+
+    TConstArrayRef<TSplitNode> GetNodes() const {
+        return Nodes;
+    }
+
+    void AddSplit(const TSplit& split, int leafIdx) {
+        Y_ASSERT(0 <= leafIdx && leafIdx < SafeIntegerCast<int>(GetLeafCount()));
+        int newLeafIdx = GetLeafCount();
+        int newNodeIdx = Nodes.size();
+        int parent = LeafParent[leafIdx];
+        if (parent >= 0) {
+            if (Nodes[parent].Left == ~leafIdx) {
+                Nodes[parent].Left = newNodeIdx;
+            } else {
+                Nodes[parent].Right = newNodeIdx;
+            }
+        }
+        Nodes.emplace_back(split, ~leafIdx, ~newLeafIdx);
+        LeafParent[leafIdx] = newNodeIdx;
+        LeafParent.emplace_back(newNodeIdx);
+    }
+
+    inline int GetNodesCount() const {
+        return Nodes.ysize();
+    }
+
+    inline int GetLeafCount() const {
+        return Nodes.ysize() + 1;
+    }
+
+    TVector<TSplit> GetSplits() const {
+        TVector<TSplit> splits;
+        splits.reserve(Nodes.size());
+        for (const auto& node : Nodes) {
+            splits.push_back(node.Split);
+        }
+        return splits;
+    }
+
+    TVector<TCtr> GetUsedCtrs() const {
+        TVector<TCtr> result;
+        for (const auto& node : Nodes) {
+            if (node.Split.Type == ESplitType::OnlineCtr) {
+                result.push_back(node.Split.Ctr);
+            }
+        }
+        return result;
+    }
+};
+
+inline TVector<TCtr> GetUsedCtrs(const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree) {
+    if (HoldsAlternative<TSplitTree>(tree)) {
+        return Get<TSplitTree>(tree).GetUsedCtrs();
+    } else {
+        return Get<TNonSymmetricTreeStructure>(tree).GetUsedCtrs();
+    }
+}
+
+inline int GetLeafCount(const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree) {
+    if (HoldsAlternative<TSplitTree>(tree)) {
+        return Get<TSplitTree>(tree).GetLeafCount();
+    } else {
+        return Get<TNonSymmetricTreeStructure>(tree).GetLeafCount();
+    }
+}
 
 struct TTreeStats {
     TVector<double> LeafWeightsSum;

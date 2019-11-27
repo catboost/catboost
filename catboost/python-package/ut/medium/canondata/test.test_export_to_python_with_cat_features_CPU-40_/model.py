@@ -153,6 +153,8 @@ class catboost_model(object):
         0, 0.001499703425293173, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -0.00465157416511051, 0, 0, 0, 0.0007675022597914941, 0, 0, 0, -0.0008908000259571789, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.00104622135477477, 0, 0, 0, 0, 0, 0.003037205228089335, 0, -0.006516759644949582, 0, 0, 0, 0, 0, 0.003404685275805944, 0, 0, 0, 0.002045180161167835, 0, 0, -0.008611111284682666, -0.0004349151690924567, -0.003504794474085023, -0.00871460306489466, 0.001285562548747507, 0.002397425351600856, 0, 0.001235963558174883,
         -0.003311534804984139, 0.002131146575385555, -0.009557357065961952, -0.001009532838437842, 0.001131055119270364, 0.002338358210649318, -0.005376863658646115, 0
     ]
+    scale = 1
+    bias = 0
     model_ctrs = catboost_model_ctrs_container(
         used_model_ctrs_count = 15,
         compressed_model_ctrs = [
@@ -487,7 +489,7 @@ def apply_catboost_model(float_features, cat_features=[], ntree_start=0, ntree_e
         result += model.leaf_values[current_tree_leaf_values_index + index]
         tree_splits_index += current_tree_depth
         current_tree_leaf_values_index += (1 << current_tree_depth)
-    return result
+    return model.scale * result + model.bias
 
 
 

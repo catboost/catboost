@@ -40,6 +40,7 @@ PEERDIR(
     catboost/private/libs/target
     library/containers/2d_array
     library/json/writer
+    library/text_processing/tokenizer
 )
 
 SRCS(

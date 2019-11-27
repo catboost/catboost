@@ -80,6 +80,8 @@ static TDuration FixTimeoutForSanitizer(const TDuration timeout) {
 }
 
 TDuration THttp2Options::ConnectTimeout = FixTimeoutForSanitizer(TDuration::MilliSeconds(1000));
+TDuration THttp2Options::InputDeadline = TDuration::Max();
+TDuration THttp2Options::OutputDeadline = TDuration::Max();
 TDuration THttp2Options::SymptomSlowConnect = FixTimeoutForSanitizer(TDuration::MilliSeconds(10));
 size_t THttp2Options::InputBufferSize = 16 * 1024;
 bool THttp2Options::KeepInputBufferForCachedConnections = false;
@@ -105,6 +107,8 @@ bool THttp2Options::Set(TStringBuf name, TStringBuf value) {
     }
 
     HTTP2_TRY_SET(TDuration, ConnectTimeout)
+    else HTTP2_TRY_SET(TDuration, InputDeadline)
+    else HTTP2_TRY_SET(TDuration, OutputDeadline)
     else HTTP2_TRY_SET(TDuration, SymptomSlowConnect) else HTTP2_TRY_SET(size_t, InputBufferSize) else HTTP2_TRY_SET(bool, KeepInputBufferForCachedConnections) else HTTP2_TRY_SET(size_t, AsioThreads) else HTTP2_TRY_SET(size_t, AsioServerThreads) else HTTP2_TRY_SET(bool, EnsureSendingCompleteByAck) else HTTP2_TRY_SET(int, Backlog) else HTTP2_TRY_SET(TDuration, ServerInputDeadline) else HTTP2_TRY_SET(TDuration, ServerOutputDeadline) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMax) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMin) else HTTP2_TRY_SET(bool, ServerUseDirectWrite) else HTTP2_TRY_SET(bool, UseResponseAsErrorMessage) else HTTP2_TRY_SET(bool, FullHeadersAsErrorMessage) else HTTP2_TRY_SET(bool, ErrorDetailsAsResponseBody) else HTTP2_TRY_SET(bool, RedirectionNotError) else HTTP2_TRY_SET(bool, TcpKeepAlive) else {
         return false;
     }
@@ -675,7 +679,7 @@ namespace {
                 StartRead();
             } else {
                 NAsio::TTcpSocket::TSendedData sd(bfs.Release());
-                AS_.AsyncWrite(sd, std::bind(&THttpConn::OnWrite, THttpConnRef(this), _1, _2, _3));
+                AS_.AsyncWrite(sd, std::bind(&THttpConn::OnWrite, THttpConnRef(this), _1, _2, _3), THttp2Options::OutputDeadline);
             }
         }
 
@@ -694,7 +698,7 @@ namespace {
         inline void StartRead() {
             if (!InAsyncRead_ && !Canceled_) {
                 InAsyncRead_ = true;
-                AS_.AsyncPollRead(std::bind(&THttpConn::OnCanRead, THttpConnRef(this), _1, _2));
+                AS_.AsyncPollRead(std::bind(&THttpConn::OnCanRead, THttpConnRef(this), _1, _2), THttp2Options::InputDeadline);
             }
         }
 
@@ -734,7 +738,7 @@ namespace {
                         }
                     }
                     //continue async. read from socket
-                    ctx.ContinueUseHandler();
+                    ctx.ContinueUseHandler(THttp2Options::InputDeadline);
 
                     return;
                 }
@@ -763,7 +767,7 @@ namespace {
                     Buff_.Destroy();
                 }
                 //continue async. read from socket
-                ctx.ContinueUseHandler();
+                ctx.ContinueUseHandler(THttp2Options::InputDeadline);
 
                 PutSelfToCache();
             } catch (...) {

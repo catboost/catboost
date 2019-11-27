@@ -4,16 +4,14 @@
 
 #include <catboost/private/libs/algo/apply.h>
 #include <catboost/private/libs/algo/approx_dimension.h>
-#include <catboost/private/libs/algo/calc_score_cache.h>
 #include <catboost/private/libs/algo/data.h>
 #include <catboost/private/libs/algo/helpers.h>
-#include <catboost/private/libs/algo/learn_context.h>
 #include <catboost/private/libs/algo/preprocess.h>
-#include <catboost/private/libs/algo/roc_curve.h>
 #include <catboost/private/libs/algo/train.h>
 #include <catboost/libs/fstr/output_fstr.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
+#include <catboost/libs/helpers/progress_helper.h>
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/helpers/wx_test.h>
@@ -29,10 +27,8 @@
 #include <catboost/private/libs/options/output_file_options.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 
-#include <util/folder/tempdir.h>
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
-#include <util/generic/mapfindptr.h>
 #include <util/generic/scope.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
@@ -43,6 +39,7 @@
 #include <util/string/join.h>
 #include <util/string/builder.h>
 #include <util/system/hp_timer.h>
+#include <util/ysaveload.h>
 
 #include <cmath>
 #include <numeric>
@@ -114,73 +111,24 @@ static ui32 GetBestIterationInFold(
 }
 
 
-static TVector<ui32> GetBestIterations(
-    const TVector<EMetricBestValue>& bestValueType,
-    const TVector<TFoldContext>& folds
-) {
-    TVector<ui32> bestIterations; // [foldIdx]
-    for (const auto& fold : folds) {
-        bestIterations.push_back(GetBestIterationInFold(
-            bestValueType,
-            fold.MetricValuesOnTest));
-    }
-    return bestIterations;
-}
-
-static TVector<double> GetMetricValues(
-    ui32 metricIdx,
-    const TVector<ui32>& bestIterations,
-    const TVector<TFoldContext>& folds
-) {
-    Y_ASSERT(bestIterations.size() == folds.size());
-    TVector<double> metricValues;
-    for (ui32 foldIdx : xrange(folds.size())) {
-        metricValues.push_back(
-            folds[foldIdx].MetricValuesOnTest[bestIterations[foldIdx]][metricIdx]
-        );
-    }
-    return metricValues;
-}
-
 void TFeatureEvaluationSummary::AppendFeatureSetMetrics(
+    bool isTest,
     ui32 featureSetIdx,
-    const TVector<TFoldContext>& baselineFolds,
-    const TVector<TFoldContext>& testedFolds
+    const TVector<TVector<double>>& metricValuesOnFold
 ) {
     const auto featureSetCount = FeatureSets.size();
     CB_ENSURE_INTERNAL(featureSetIdx < featureSetCount, "Feature set index is too large");
-
-    BestBaselineIterations.resize(featureSetCount);
-    BestBaselineMetrics.resize(featureSetCount);
-    BestTestedMetrics.resize(featureSetCount);
-
-    CB_ENSURE_INTERNAL(baselineFolds.size() == testedFolds.size(), "Different number of baseline and tested folds");
-
-    const auto bestBaselineIterations = GetBestIterations(MetricTypes, baselineFolds);
-    BestBaselineIterations[featureSetIdx].insert(
-        BestBaselineIterations[featureSetIdx].end(),
-        bestBaselineIterations.begin(),
-        bestBaselineIterations.end()
-    );
-    const auto bestTestedIterations = GetBestIterations(MetricTypes, testedFolds);
+    const ui32 bestIteration = GetBestIterationInFold(MetricTypes, metricValuesOnFold);
+    if (!isTest) {
+        BestBaselineIterations[featureSetIdx].push_back(bestIteration);
+    }
+    auto& bestMetrics = BestMetrics[isTest];
+    auto& featureSetBestMetrics = bestMetrics[featureSetIdx];
     const auto metricCount = MetricTypes.size();
+    featureSetBestMetrics.resize(metricCount);
     for (auto metricIdx : xrange(metricCount)) {
-        const auto& foldsBaselineMetric = GetMetricValues(metricIdx, bestBaselineIterations, baselineFolds);
-        auto& baselineMetrics = BestBaselineMetrics[featureSetIdx];
-        baselineMetrics.resize(metricCount);
-        baselineMetrics[metricIdx].insert(
-            baselineMetrics[metricIdx].end(),
-            foldsBaselineMetric.begin(),
-            foldsBaselineMetric.end()
-        );
-        const auto& foldsTestedMetric = GetMetricValues(metricIdx, bestTestedIterations, testedFolds);
-        auto& testedMetrics = BestTestedMetrics[featureSetIdx];
-        testedMetrics.resize(metricCount);
-        testedMetrics[metricIdx].insert(
-            testedMetrics[metricIdx].end(),
-            foldsTestedMetric.begin(),
-            foldsTestedMetric.end()
-        );
+        const double bestMetric = metricValuesOnFold[bestIteration][metricIdx];
+        featureSetBestMetrics[metricIdx].push_back(bestMetric);
     }
 }
 
@@ -193,8 +141,8 @@ void TFeatureEvaluationSummary::CalcWxTestAndAverageDelta() {
     AverageMetricDelta.resize(featureSetCount);
     constexpr ui32 LossIdx = 0;
     for (auto featureSetIdx : xrange(featureSetCount)) {
-        const auto& baselineMetrics = BestBaselineMetrics[featureSetIdx];
-        const auto& testedMetrics = BestTestedMetrics[featureSetIdx];
+        const auto& baselineMetrics = BestMetrics[/*isTest*/0][featureSetIdx];
+        const auto& testedMetrics = BestMetrics[/*isTest*/1][featureSetIdx];
         WxTest[featureSetIdx] = ::WxTest(baselineMetrics[LossIdx], testedMetrics[LossIdx]).PValue;
 
         const auto foldCount = baselineMetrics.size();
@@ -208,6 +156,127 @@ void TFeatureEvaluationSummary::CalcWxTestAndAverageDelta() {
             }
         }
         AverageMetricDelta[featureSetIdx] = averageDelta;
+    }
+}
+
+
+static void CreateLogFromHistory(
+    const NCatboostOptions::TOutputFilesOptions& outputFileOptions,
+    const TVector<THolder<IMetric>>& metrics,
+    const TMetricsAndTimeLeftHistory& metricsHistory,
+    ui32 iterationCount,
+    TLogger* logger
+) {
+    const TVector<bool> skipMetricOnTrain = GetSkipMetricOnTrain(metrics);
+    const TString learnToken = "learn";
+    const TString testToken = "test";
+    CB_ENSURE_INTERNAL(
+        outputFileOptions.GetMetricPeriod() == 1,
+        "Feature evaluation requires metric_period=1");
+    constexpr int errorTrackerMetricIdx = 0;
+    for (ui32 iteration = 0; iteration < iterationCount; ++iteration) {
+        TOneInterationLogger oneIterLogger(*logger);
+        for (int metricIdx = 0; metricIdx < metrics.ysize(); ++metricIdx) {
+            const auto& metric = metrics[metricIdx];
+            const auto& metricDescription = metric->GetDescription();
+            if (!skipMetricOnTrain[metricIdx]) {
+                const double metricOnLearn = metricsHistory.LearnMetricsHistory[iteration].at(metricDescription);
+                oneIterLogger.OutputMetric(
+                    learnToken,
+                    TMetricEvalResult(metricDescription, metricOnLearn, metricIdx == errorTrackerMetricIdx)
+                );
+            }
+            const double metricOnTest = metricsHistory.TestMetricsHistory[iteration][0].at(metricDescription);
+            oneIterLogger.OutputMetric(
+                testToken,
+                TMetricEvalResult(metricDescription, metricOnTest, metricIdx == errorTrackerMetricIdx)
+            );
+        }
+    }
+}
+
+static TString MakeFoldDirName(
+    const NCatboostOptions::TFeatureEvalOptions& featureEvalOptions,
+    bool isTest,
+    ui32 featureSetIdx,
+    ui32 foldIdx
+) {
+    auto foldDir = TStringBuilder();
+    if (!isTest) {
+        foldDir << "Baseline_";
+        const auto evalMode = featureEvalOptions.FeatureEvalMode;
+        const auto featureSetCount = featureEvalOptions.FeaturesToEvaluate->size();
+        if (featureSetCount > 0 && evalMode == NCB::EFeatureEvalMode::OneVsOthers) {
+            foldDir << "set_" << featureSetIdx << "_";
+        }
+    } else {
+        foldDir << "Testing_set_" << featureSetIdx << "_";
+    }
+    foldDir << "fold_" << foldIdx;
+    return foldDir;
+}
+
+void TFeatureEvaluationSummary::CreateLogs(
+    const NCatboostOptions::TOutputFilesOptions& outputFileOptions,
+    const NCatboostOptions::TFeatureEvalOptions& featureEvalOptions,
+    const TVector<THolder<IMetric>>& metrics,
+    ui32 iterationCount,
+    bool isTest,
+    ui32 foldRangeBegin,
+    ui32 absoluteOffset
+) {
+    const ui32 featureSetCount = FeatureSets.size();
+    const auto topLevelTrainDir = outputFileOptions.GetTrainDir();
+    const auto& metricsHistory = MetricsHistory[isTest];
+    const auto& featureStrengths = FeatureStrengths[isTest];
+    const auto& regularFeatureStrengths = RegularFeatureStrengths[isTest];
+    const auto& metricsMetaJson = GetJsonMeta(
+        iterationCount,
+        outputFileOptions.GetName(),
+        GetConstPointers(metrics),
+        /*learnSetNames*/{"learn"},
+        /*testSetNames*/{"test"},
+        /*parametersName=*/ "",
+        ELaunchMode::CV);
+    const ui32 absoluteBegin = foldRangeBegin + featureEvalOptions.Offset;
+    const ui32 absoluteEnd = absoluteBegin + featureEvalOptions.FoldCount;
+    const bool useSetZeroAlways = !isTest && featureEvalOptions.FeatureEvalMode != NCB::EFeatureEvalMode::OneVsOthers;
+    for (ui32 setIdx : xrange(featureSetCount)) {
+        for (ui32 absoluteFoldIdx : xrange(absoluteBegin, absoluteEnd)) {
+            const auto foldDir = MakeFoldDirName(
+                featureEvalOptions,
+                isTest,
+                setIdx,
+                absoluteFoldIdx);
+            auto options = outputFileOptions;
+            options.SetTrainDir(JoinFsPaths(topLevelTrainDir, foldDir));
+            TLogger logger;
+            InitializeFileLoggers(
+                options,
+                metricsMetaJson,
+                /*namesPrefix*/"",
+                /*isDetailedProfile*/false,
+                &logger);
+            CreateLogFromHistory(
+                options,
+                metrics,
+                metricsHistory[useSetZeroAlways ? 0 : setIdx][absoluteFoldIdx - absoluteOffset],
+                iterationCount,
+                &logger
+            );
+            const auto fstrPath = options.CreateFstrIternalFullPath();
+            if (!fstrPath.empty()) {
+                OutputStrengthDescriptions(
+                    featureStrengths[useSetZeroAlways ? 0 : setIdx][absoluteFoldIdx - absoluteOffset],
+                    fstrPath);
+            }
+            const auto regularFstrPath = options.CreateFstrRegularFullPath();
+            if (!regularFstrPath.empty()) {
+                OutputStrengthDescriptions(
+                    regularFeatureStrengths[useSetZeroAlways ? 0 : setIdx][absoluteFoldIdx - absoluteOffset],
+                    regularFstrPath);
+            }
+        }
     }
 }
 
@@ -227,6 +296,12 @@ void TFeatureEvaluationSummary::SetHeaderInfo(
         MetricNames.push_back(metric->GetDescription());
     }
     FeatureSets = featureSets;
+    const ui32 featureSetCount = featureSets.size();
+    ResizeRank2(2, featureSetCount, MetricsHistory);
+    ResizeRank2(2, featureSetCount, FeatureStrengths);
+    ResizeRank2(2, featureSetCount, RegularFeatureStrengths);
+    ResizeRank2(2, featureSetCount, BestMetrics);
+    BestBaselineIterations.resize(featureSetCount);
 }
 
 
@@ -254,15 +329,15 @@ static void PrepareFolds(
         // always inverted
         CB_ENSURE(cvParams.Type == ECrossValidation::Inverted, "Feature evaluation requires inverted cross-validation");
     } else {
-        const ui32 foldSize = featureEvalOptions.FoldSize.Get();
+        const ui32 foldSize = featureEvalOptions.FoldSize;
         CB_ENSURE(foldSize > 0, "Fold size must be positive integer");
         // group subsets, groups maybe trivial
         const auto isObjectwise = IsObjectwiseEval(featureEvalOptions);
         testSubsets = isObjectwise
             ? NCB::SplitByObjects(objectsGrouping, foldSize)
             : NCB::SplitByGroups(objectsGrouping, foldSize);
-        const ui32 offset = featureEvalOptions.Offset.Get();
-        CB_ENSURE_INTERNAL(offset + foldCount <= testSubsets.size(), "Dataset permutation logic failed");
+        const ui32 offsetInRange = featureEvalOptions.Offset;
+        CB_ENSURE_INTERNAL(offsetInRange + foldCount <= testSubsets.size(), "Dataset permutation logic failed");
     }
     // group subsets, maybe trivial
     TVector<NCB::TArraySubsetIndexing<ui32>> trainSubsets
@@ -320,11 +395,11 @@ static void PrepareFolds(
     NCB::ExecuteTasksInParallel(&tasks, localExecutor);
 
     if (!cvParams.Initialized()) {
-        const ui32 offset = featureEvalOptions.Offset.Get();
-        TVector<TDataProvidersTemplate>(foldsData->begin() + offset, foldsData->end()).swap(*foldsData);
+        const ui32 offsetInRange = featureEvalOptions.Offset;
+        TVector<TDataProvidersTemplate>(foldsData->begin() + offsetInRange, foldsData->end()).swap(*foldsData);
         foldsData->resize(foldCount);
         if (testFoldsData != foldsData) {
-            TVector<TDataProvidersTemplate>(testFoldsData->begin() + offset, testFoldsData->end()).swap(*testFoldsData);
+            TVector<TDataProvidersTemplate>(testFoldsData->begin() + offsetInRange, testFoldsData->end()).swap(*testFoldsData);
             testFoldsData->resize(foldCount);
         }
     }
@@ -450,9 +525,6 @@ static void LoadOptions(
     catBoostOptions->Load(jsonParams);
     outputFileOptions->Load(outputJsonParams);
 
-    // TODO(akhropov): implement snapshots in CV. MLTOOLS-3439.
-    CB_ENSURE(!outputFileOptions->SaveSnapshot(), "Saving snapshots in feature evaluation mode is not supported yet");
-
     if (outputFileOptions->GetMetricPeriod() > 1) {
         CATBOOST_WARNING_LOG << "Warning: metric_period is ignored because "
             "feature evaluation needs metric values on each iteration" << Endl;
@@ -463,91 +535,165 @@ static void LoadOptions(
 
 static void CalcMetricsForTest(
     const TVector<THolder<IMetric>>& metrics,
-    const TVector<TTrainingDataProviders>& quantizedData,
-    TVector<TFoldContext>* foldContexts
+    ui32 approxDimension,
+    TTrainingDataProviders::TTrainingDataProviderTemplatePtr testData,
+    TFoldContext* foldContext
 ) {
+    CB_ENSURE_INTERNAL(
+        foldContext->FullModel.Defined(), "No model in fold " << foldContext->FoldIdx);
+    const auto treeCount = foldContext->FullModel->GetTreeCount();
+    const ui32 iterationCount = foldContext->MetricValuesOnTrain.size();
+    CB_ENSURE_INTERNAL(
+        iterationCount == treeCount,
+        "Fold " << foldContext->FoldIdx << ": model size (" << treeCount <<
+        ") differs from iteration count (" << iterationCount << ")");
+
     const auto metricCount = metrics.size();
-    for (auto foldIdx : xrange(foldContexts->size())) {
-        THPTimer timer;
-        CB_ENSURE(
-            quantizedData[foldIdx].Test.size() == 1,
-            "Need exactly one test dataset in test fold " << (*foldContexts)[foldIdx].FoldIdx);
-        auto& metricValuesOnTest = (*foldContexts)[foldIdx].MetricValuesOnTest;
-        CB_ENSURE(
-            metricValuesOnTest.empty(),
-            "Fold " << (*foldContexts)[foldIdx].FoldIdx << " already has metric values");
-        const auto treeCount = (*foldContexts)[foldIdx].FullModel->GetTreeCount();
-        ResizeRank2(treeCount, metricCount, metricValuesOnTest);
+    auto& metricValuesOnTest = foldContext->MetricValuesOnTest;
+    ResizeRank2(treeCount, metricCount, metricValuesOnTest);
 
-        const auto& testData = quantizedData[foldIdx].Test[0];
-        const auto classCount = testData->TargetData->GetTargetClassCount().GetOrElse(1);
-        const auto docCount = testData->GetObjectCount();
-        TVector<TVector<double>> approx;
-        ResizeRank2(classCount, docCount, approx);
-        TVector<TVector<double>> partialApprox;
-        ResizeRank2(classCount, docCount, partialApprox);
-        TVector<double> flatApproxBuffer;
-        flatApproxBuffer.yresize(docCount * classCount);
+    const auto docCount = testData->GetObjectCount();
+    TVector<TVector<double>> approx;
+    ResizeRank2(approxDimension, docCount, approx);
+    TVector<TVector<double>> partialApprox;
+    ResizeRank2(approxDimension, docCount, partialApprox);
+    TVector<double> flatApproxBuffer;
+    flatApproxBuffer.yresize(docCount * approxDimension);
 
-        TModelCalcerOnPool modelCalcer(
-            (*foldContexts)[foldIdx].FullModel.GetRef(),
-            testData->ObjectsData,
-            &NPar::LocalExecutor());
-        for (auto treeIdx : xrange(treeCount)) {
-            // TODO(kirillovs):
-            //     apply (1) all models to the entire dataset on CPU or (2) GPU,
-            // TODO(espetrov):
-            //     calculate error for each model,
-            //     error on test fold idx = error on entire dataset for model idx - error on learn fold idx
-            //     refactor using the Visitor pattern
-            modelCalcer.ApplyModelMulti(
-                EPredictionType::RawFormulaVal,
-                treeIdx,
-                treeIdx + 1,
-                &flatApproxBuffer,
-                &partialApprox);
-            for (auto classIdx : xrange(classCount)) {
-                for (auto docIdx : xrange(docCount)) {
-                    approx[classIdx][docIdx] += partialApprox[classIdx][docIdx];
-                }
-            }
-            for (auto metricIdx : xrange(metricCount)) {
-                metricValuesOnTest[treeIdx][metricIdx] = CalcMetric(
-                    *metrics[metricIdx],
-                    testData->TargetData,
-                    approx,
-                    &NPar::LocalExecutor()
-                );
+    TModelCalcerOnPool modelCalcer(
+        foldContext->FullModel.GetRef(),
+        testData->ObjectsData,
+        &NPar::LocalExecutor());
+    for (auto treeIdx : xrange(treeCount)) {
+        // TODO(kirillovs):
+        //     apply (1) all models to the entire dataset on CPU or (2) GPU,
+        // TODO(espetrov):
+        //     calculate error for each model,
+        //     error on test fold idx = error on entire dataset for model idx - error on learn fold idx
+        //     refactor using the Visitor pattern
+        modelCalcer.ApplyModelMulti(
+            EPredictionType::RawFormulaVal,
+            treeIdx,
+            treeIdx + 1,
+            &flatApproxBuffer,
+            &partialApprox);
+        for (auto dimensionIdx : xrange(approxDimension)) {
+            for (auto docIdx : xrange(docCount)) {
+                approx[dimensionIdx][docIdx] += partialApprox[dimensionIdx][docIdx];
             }
         }
-        CATBOOST_INFO_LOG << "Fold "
-            << (*foldContexts)[foldIdx].FoldIdx << ": metrics calculated in "
-            << FloatToString(timer.Passed(), PREC_NDIGITS, 2) << " sec" << Endl;
+        for (auto metricIdx : xrange(metricCount)) {
+            metricValuesOnTest[treeIdx][metricIdx] = CalcMetric(
+                *metrics[metricIdx],
+                testData->TargetData,
+                approx,
+                &NPar::LocalExecutor()
+            );
+        }
     }
 }
 
 
-class TEvalFeatureCallbacks : public ITrainingCallbacks {
+class TFeatureEvaluationCallbacks : public ITrainingCallbacks {
 public:
-    explicit TEvalFeatureCallbacks(ui32 iterationCount)
+    TFeatureEvaluationCallbacks(
+        ui32 iterationCount,
+        const NCatboostOptions::TFeatureEvalOptions& evalFeatureOptions,
+        TFeatureEvaluationSummary* summary)
     : IterationCount(iterationCount)
+    , EvalFeatureOptions(evalFeatureOptions)
+    , Summary(summary)
     {
     }
 
-    bool IsContinueTraining(const TMetricsAndTimeLeftHistory& /*unused*/) override {
+    bool IsContinueTraining(const TMetricsAndTimeLeftHistory& history) override {
         ++IterationIdx;
+        if (IterationIdx == IterationCount) {
+            auto& foldsFromHistory = Summary->MetricsHistory[*IsTest][*FeatureSetIndex];
+            const ui32 absoluteFoldIdx = *FoldRangeBegin + *FoldIndex;
+            if (foldsFromHistory.size() > absoluteFoldIdx - GetAbsoluteOffset()) {
+                CATBOOST_INFO_LOG << "Snapshot already contains metrics for fold " << absoluteFoldIdx << Endl;
+            } else {
+                CB_ENSURE_INTERNAL(
+                    foldsFromHistory.size() == absoluteFoldIdx - GetAbsoluteOffset(),
+                    "No metrics for fold " << absoluteFoldIdx - 1);
+                foldsFromHistory.emplace_back(history);
+            }
+        }
         constexpr double HeartbeatSeconds = 1;
         if (TrainTimer.Passed() > HeartbeatSeconds) {
-            TrainTimer.Reset();
             TSetLogging infomationMode(ELoggingLevel::Info);
             CATBOOST_INFO_LOG << "Train iteration " << IterationIdx << " of " << IterationCount << Endl;
+            TrainTimer.Reset();
         }
         return /*continue training*/true;
     }
+
+    void OnSaveSnapshot(IOutputStream* snapshot) override {
+        Summary->Save(snapshot);
+        NJson::TJsonValue options;
+        EvalFeatureOptions.Save(&options);
+        ::SaveMany(snapshot, FoldRangeBegin, FeatureSetIndex, IsTest, FoldIndex, options);
+    }
+
+    bool OnLoadSnapshot(IInputStream* snapshot) override {
+        if (!IsNextLoadValid) {
+            return false;
+        }
+        Summary->Load(snapshot);
+        NJson::TJsonValue options;
+        ::LoadMany(snapshot, FoldRangeBegin, FeatureSetIndex, IsTest, FoldIndex, options);
+        NCatboostOptions::TFeatureEvalOptions evalFeatureOptions;
+        evalFeatureOptions.Load(options);
+        CB_ENSURE(evalFeatureOptions == EvalFeatureOptions, "Current feaure evaluation options differ from options in snapshot");
+        EvalFeatureOptions = evalFeatureOptions;
+        IsNextLoadValid = false;
+        return true;
+    }
+
+    void ResetIterationIndex() {
+        IterationIdx = 0;
+    }
+
+    void LoadSnapshot(ETaskType taskType, const TString& snapshotFile) {
+        TProgressHelper progressHelper(ToString(taskType));
+        IsNextLoadValid = true;
+        progressHelper.CheckedLoad(
+            snapshotFile,
+            [&](TIFStream* input) {
+                OnLoadSnapshot(input);
+            });
+        IsNextLoadValid = true;
+    }
+
+    bool HaveTrainResultsInSnapshot(ui32 foldRangeBegin, ui32 featureSetIdx, bool isTest, ui32 foldIdx) {
+        if (!IsNextLoadValid) {
+            return false;
+        }
+        CB_ENSURE_INTERNAL(
+            FoldRangeBegin.Defined() && FeatureSetIndex.Defined() && IsTest.Defined() && FoldIndex.Defined(),
+            "No fold range begin, or feature set index, or baseline flag, or fold index in snapshot");
+        const std::array<ui32, 4> progress = { foldRangeBegin, featureSetIdx, isTest, foldIdx };
+        const std::array<ui32, 4> progressFromSnapshot = { *FoldRangeBegin, *FeatureSetIndex, *IsTest, *FoldIndex };
+        return progress < progressFromSnapshot;
+    }
+
+    ui32 GetAbsoluteOffset() const {
+        return EvalFeatureOptions.Offset;
+    }
+
+    TMaybe<ui32> FoldRangeBegin;
+    TMaybe<ui32> FeatureSetIndex;
+    TMaybe<bool> IsTest;
+    TMaybe<ui32> FoldIndex;
+
 private:
     THPTimer TrainTimer;
     ui32 IterationIdx = 0;
-    ui32 IterationCount;
+    const ui32 IterationCount;
+    NCatboostOptions::TFeatureEvalOptions EvalFeatureOptions;
+    TFeatureEvaluationSummary* const Summary;
+    bool IsNextLoadValid = false;
 };
 
 static void EvaluateFeaturesImpl(
@@ -556,8 +702,10 @@ static void EvaluateFeaturesImpl(
     const NCatboostOptions::TFeatureEvalOptions& featureEvalOptions,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
+    ui32 foldRangeBegin,
     const TCvDataPartitionParams& cvParams,
     TDataProviderPtr data,
+    TFeatureEvaluationCallbacks* callbacks,
     TFeatureEvaluationSummary* results
 ) {
     const ui32 foldCount = cvParams.Initialized() ? cvParams.FoldCount : featureEvalOptions.FoldCount.Get();
@@ -608,7 +756,6 @@ static void EvaluateFeaturesImpl(
     InitializeEvalMetricIfNotSet(dataSpecificOptions.MetricOptions->ObjectiveMetric,
                                  &dataSpecificOptions.MetricOptions->EvalMetric);
 
-    // disable overfitting detector on folds training, it will work on average values
     const auto overfittingDetectorOptions = dataSpecificOptions.BoostingOptions->OverfittingDetector;
     dataSpecificOptions.BoostingOptions->OverfittingDetector->OverfittingDetectorType = EOverfittingDetectorType::None;
 
@@ -617,13 +764,6 @@ static void EvaluateFeaturesImpl(
     dataSpecificOptions.LoggingLevel = ELoggingLevel::Silent;
 
     const auto taskType = catBoostOptions.GetTaskType();
-    if (taskType == ETaskType::GPU) {
-        CB_ENSURE(
-            TTrainerFactory::Has(ETaskType::GPU),
-            "Can't load GPU learning library. "
-            "Module was not compiled or driver  is incompatible with package. "
-            "Please install latest NVDIA driver and check again");
-    }
     THolder<IModelTrainer> modelTrainerHolder = TTrainerFactory::Construct(taskType);
 
     TSetLogging inThisScope(loggingLevel);
@@ -643,10 +783,14 @@ static void EvaluateFeaturesImpl(
 
     UpdatePermutationBlockSize(taskType, foldsData, &dataSpecificOptions);
 
+    const ui32 approxDimension = GetApproxDimension(
+        dataSpecificOptions,
+        labelConverter,
+        trainingData->TargetData->GetTargetDimension());
     const auto& metrics = CreateMetrics(
         dataSpecificOptions.MetricOptions,
         evalMetricDescriptor,
-        GetApproxDimension(dataSpecificOptions, labelConverter, trainingData->TargetData->GetTargetDimension()),
+        approxDimension,
         trainingData->MetaInfo.HasWeights);
     CheckMetrics(metrics, dataSpecificOptions.LossFunctionDescription.Get().GetLossFunction());
 
@@ -658,94 +802,90 @@ static void EvaluateFeaturesImpl(
         results->SetHeaderInfo(metrics, featureEvalOptions.FeaturesToEvaluate);
     }
 
-    const ui32 iterationCount = dataSpecificOptions.BoostingOptions->IterationCount;
-    const THolder<ITrainingCallbacks> evalFeatureCallbacks = MakeHolder<TEvalFeatureCallbacks>(iterationCount);
-
+    const ui32 offsetInRange = cvParams.Initialized() ? 0 : featureEvalOptions.Offset.Get();
     const auto trainFullModels = [&] (
-        const TString& trainDirPrefix,
-        TVector<TTrainingDataProviders>* foldsData,
-        TVector<TFoldContext>* foldContexts) {
-        Y_ASSERT(foldContexts->empty());
-        const ui32 offset = cvParams.Initialized() ? 0 : featureEvalOptions.Offset.Get();
+        bool isTest,
+        ui32 featureSetIdx,
+        TVector<TTrainingDataProviders>* foldsData) {
+
+        const auto topLevelTrainDir = outputFileOptions.GetTrainDir();
+        const bool isCalcFstr = !outputFileOptions.CreateFstrIternalFullPath().empty();
+        const bool isCalcRegularFstr = !outputFileOptions.CreateFstrRegularFullPath().empty();
         for (auto foldIdx : xrange(foldCount)) {
-            foldContexts->emplace_back(
-                offset + foldIdx,
+            const bool haveTrainResults = callbacks->HaveTrainResultsInSnapshot(
+                foldRangeBegin,
+                featureSetIdx,
+                isTest,
+                offsetInRange + foldIdx);
+            if (haveTrainResults) {
+                continue;
+            }
+
+            THPTimer timer;
+
+            TFoldContext foldContext(
+                foldRangeBegin + offsetInRange + foldIdx,
                 taskType,
                 outputFileOptions,
                 std::move((*foldsData)[foldIdx]),
                 rand.GenRand(),
-                /*hasFullModel*/true
-            );
-        }
-
-        const auto topLevelTrainDir = outputFileOptions.GetTrainDir();
-        const bool isCalcFstr = outputFileOptions.CreateFstrRegularFullPath() || outputFileOptions.CreateFstrIternalFullPath();
-
-        for (auto foldIdx : xrange(foldCount)) {
-            THPTimer timer;
-            TErrorTracker errorTracker = CreateErrorTracker(
-                overfittingDetectorOptions,
-                bestPossibleValue,
-                bestValueType,
-                /*hasTest*/(*foldsData)[foldIdx].Test.size());
-
-            const auto foldTrainDir = trainDirPrefix + "fold_" + ToString((*foldContexts)[foldIdx].FoldIdx + results->FoldRangeOffset);
+                /*hasFullModel*/true);
+            const auto foldDir = MakeFoldDirName(featureEvalOptions, isTest, featureSetIdx, foldContext.FoldIdx);
+            callbacks->FoldRangeBegin = foldRangeBegin;
+            callbacks->FeatureSetIndex = featureSetIdx;
+            callbacks->IsTest = isTest;
+            callbacks->FoldIndex = offsetInRange + foldIdx;
+            callbacks->ResetIterationIndex();
+            foldContext.OutputOptions.SetSaveSnapshotFlag(outputFileOptions.SaveSnapshot());
             Train(
                 dataSpecificOptions,
-                JoinFsPaths(topLevelTrainDir, foldTrainDir),
+                JoinFsPaths(topLevelTrainDir, foldDir),
                 objectiveDescriptor,
                 evalMetricDescriptor,
                 labelConverter,
                 metrics,
-                errorTracker.IsActive(),
-                evalFeatureCallbacks,
-                &(*foldContexts)[foldIdx],
+                /*isErrorTrackerActive*/false,
+                callbacks,
+                &foldContext,
                 modelTrainerHolder.Get(),
-                &NPar::LocalExecutor()
-            );
-            CB_ENSURE(
-                (*foldContexts)[foldIdx].FullModel.Defined(),
-                "Fold " << (*foldContexts)[foldIdx].FoldIdx << ": model is missing"
-            );
-            const auto treeCount = (*foldContexts)[foldIdx].FullModel->GetTreeCount();
-            CB_ENSURE(
-                iterationCount == treeCount,
-                "Fold " << (*foldContexts)[foldIdx].FoldIdx << ": model size (" << treeCount <<
-                ") differs from iteration count (" << iterationCount << ")"
-            );
-            CATBOOST_INFO_LOG << "Fold " << (*foldContexts)[foldIdx].FoldIdx << ": model built in " <<
+                &NPar::LocalExecutor());
+
+            if (testFoldsData) {
+                CalcMetricsForTest(metrics, approxDimension, testFoldsData[foldIdx].Test[0], &foldContext);
+            }
+
+            results->AppendFeatureSetMetrics(isTest, featureSetIdx, foldContext.MetricValuesOnTest);
+
+            CATBOOST_INFO_LOG << "Fold " << foldContext.FoldIdx << ": model built in " <<
                 FloatToString(timer.Passed(), PREC_NDIGITS, 2) << " sec" << Endl;
 
-            if (isCalcFstr) {
-                auto foldOutputOptions = outputFileOptions;
-                foldOutputOptions.SetTrainDir(JoinFsPaths(topLevelTrainDir, foldTrainDir));
-                const auto foldRegularFstrPath = foldOutputOptions.CreateFstrRegularFullPath();
-                const auto foldInternalFstrPath = foldOutputOptions.CreateFstrIternalFullPath();
-                const auto& model = (*foldContexts)[foldIdx].FullModel.GetRef();
-                CalcAndOutputFstr(
-                    model,
-                    /*dataset*/nullptr,
-                    &NPar::LocalExecutor(),
-                    foldRegularFstrPath ? &foldRegularFstrPath : nullptr,
-                    foldInternalFstrPath ? &foldInternalFstrPath : nullptr,
-                    outputFileOptions.GetFstrType());
+            if (isCalcFstr || isCalcRegularFstr) {
+                const auto& model = foldContext.FullModel.GetRef();
+                const auto& floatFeatures = model.ModelTrees->GetFloatFeatures();
+                const auto& catFeatures = model.ModelTrees->GetCatFeatures();
+                const NCB::TFeaturesLayout layout(
+                    TVector<TFloatFeature>(floatFeatures.begin(), floatFeatures.end()),
+                    TVector<TCatFeature>(catFeatures.begin(), catFeatures.end())
+                );
+                const auto fstrType = outputFileOptions.GetFstrType();
+                const auto effect = CalcFeatureEffect(model, /*dataset*/nullptr, fstrType, &NPar::LocalExecutor());
+                results->FeatureStrengths[isTest][featureSetIdx].emplace_back(ExpandFeatureDescriptions(layout, effect));
+                if (isCalcRegularFstr) {
+                    const auto regularEffect = CalcRegularFeatureEffect(
+                        effect,
+                        model.GetNumCatFeatures(),
+                        model.GetNumFloatFeatures());
+                    results->RegularFeatureStrengths[isTest][featureSetIdx].emplace_back(
+                        ExpandFeatureDescriptions(layout, regularEffect));
+                }
             }
-        }
 
-        for (auto foldIdx : xrange(foldCount)) {
-            (*foldsData)[foldIdx] = std::move((*foldContexts)[foldIdx].TrainingData);
-        }
-
-        if (testFoldsData) {
-            CalcMetricsForTest(metrics, testFoldsData, foldContexts);
+            (*foldsData)[foldIdx] = std::move(foldContext.TrainingData);
         }
     };
 
-    TVector<TFoldContext> baselineFoldContexts;
-
     if (featureEvalOptions.FeaturesToEvaluate->empty()) {
-        auto baselineDirPrefix = TStringBuilder() << "Baseline_";
-        trainFullModels(baselineDirPrefix, &foldsData, &baselineFoldContexts);
+        trainFullModels(/*isTest*/false, /*featureSetIdx*/-1, &foldsData);
         return;
     }
 
@@ -759,86 +899,120 @@ static void EvaluateFeaturesImpl(
                 ETrainingKind::Baseline,
                 featureSetIdx,
                 foldsData);
-            baselineFoldContexts.clear();
-            auto baselineDirPrefix = TStringBuilder() << "Baseline_";
-            if (!useCommonBaseline) {
-                baselineDirPrefix << "set_" << featureSetIdx << "_";
-            }
-            trainFullModels(baselineDirPrefix, &newFoldsData, &baselineFoldContexts);
+            trainFullModels(/*isTest*/false, featureSetIdx, &newFoldsData);
+        } else {
+            results->BestMetrics[/*isTest*/0][featureSetIdx] = results->BestMetrics[/*isTest*/0][0];
+            results->BestBaselineIterations[featureSetIdx] = results->BestBaselineIterations[0];
         }
 
-        TVector<TFoldContext> testedFoldContexts;
         auto newFoldsData = UpdateIgnoredFeaturesInLearn(
             taskType,
             featureEvalOptions,
             ETrainingKind::Testing,
             featureSetIdx,
             foldsData);
-        const auto testingDirPrefix = TStringBuilder() << "Testing_set_" << featureSetIdx << "_";
-        trainFullModels(testingDirPrefix, &newFoldsData, &testedFoldContexts);
-
-        results->AppendFeatureSetMetrics(featureSetIdx, baselineFoldContexts, testedFoldContexts);
+        trainFullModels(/*isTest*/true, featureSetIdx, &newFoldsData);
+    }
+    if (outputFileOptions.AllowWriteFiles()) {
+        for (auto isTest : {false, true}) {
+            results->CreateLogs(
+                outputFileOptions,
+                featureEvalOptions,
+                metrics,
+                catBoostOptions.BoostingOptions->IterationCount,
+                isTest,
+                foldRangeBegin,
+                callbacks->GetAbsoluteOffset());
+        }
     }
 }
 
-void EvaluateFeatures(
+static TString MakeAbsolutePath(const TString& path) {
+    if (TFsPath(path).IsAbsolute()) {
+        return path;
+    }
+    return JoinFsPaths(TFsPath::Cwd(), path);
+}
+
+TFeatureEvaluationSummary EvaluateFeatures(
     const NJson::TJsonValue& plainJsonParams,
     const NCatboostOptions::TFeatureEvalOptions& featureEvalOptions,
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     const TCvDataPartitionParams& cvParams,
-    TDataProviderPtr data,
-    TFeatureEvaluationSummary* summary
+    TDataProviderPtr data
 ) {
     const auto taskType = NCatboostOptions::GetTaskType(plainJsonParams);
+    if (taskType == ETaskType::GPU) {
+        CB_ENSURE(
+            TTrainerFactory::Has(ETaskType::GPU),
+            "Can't load GPU learning library. "
+            "Module was not compiled or driver  is incompatible with package. "
+            "Please install latest NVDIA driver and check again");
+    }
     NCatboostOptions::TCatBoostOptions catBoostOptions(taskType);
     NCatboostOptions::TOutputFilesOptions outputFileOptions;
     LoadOptions(plainJsonParams, &catBoostOptions, &outputFileOptions);
+    const auto& absoluteSnapshotPath = MakeAbsolutePath(outputFileOptions.GetSnapshotFilename());
+    outputFileOptions.SetSnapshotFilename(absoluteSnapshotPath);
 
     const ui32 foldCount = cvParams.Initialized() ? cvParams.FoldCount : featureEvalOptions.FoldCount.Get();
     CB_ENSURE(foldCount > 0, "Fold count must be positive integer");
 
     const auto isObjectwise = IsObjectwiseEval(featureEvalOptions);
-    const ui32 foldSize = featureEvalOptions.FoldSize.Get();
+    const ui32 foldSize = featureEvalOptions.FoldSize;
     const auto& objectsGrouping = *data->ObjectsGrouping;
     const auto datasetSize = isObjectwise ? objectsGrouping.GetObjectCount() : objectsGrouping.GetGroupCount();
     const ui32 disjointFoldCount = CeilDiv(datasetSize, foldSize);
-    const auto offset = featureEvalOptions.Offset.Get();
+    const ui32 offset = featureEvalOptions.Offset;
 
     if (disjointFoldCount < offset + foldCount) {
         CB_ENSURE(
             cvParams.Shuffle,
             "Dataset contains too few objects or groups to evaluate features without shuffling. "
-            "Please decrease fold size to at most " << datasetSize / foldCount << ", or "
+            "Please decrease fold size to at most " << datasetSize / (offset + foldCount) << ", or "
             "enable dataset shuffling in cross-validation "
             "(specify cv_no_suffle=False in Python or remove --cv-no-shuffle from command line).");
     }
-    auto foldRange = featureEvalOptions;
-    foldRange.Offset = offset % disjointFoldCount;
-    foldRange.FoldCount = Min(disjointFoldCount - offset % disjointFoldCount, foldCount);
 
     const auto foldRangeRandomSeeds = GenRandUI64Vector(CeilDiv(offset + foldCount, disjointFoldCount), catBoostOptions.RandomSeed);
     auto foldRangeRandomSeed = catBoostOptions;
 
+    TFeatureEvaluationSummary summary;
+
+    const auto callbacks = MakeHolder<TFeatureEvaluationCallbacks>(
+        catBoostOptions.BoostingOptions->IterationCount,
+        featureEvalOptions,
+        &summary);
+
+    if (outputFileOptions.SaveSnapshot() && NFs::Exists(absoluteSnapshotPath)) {
+        callbacks->LoadSnapshot(taskType, absoluteSnapshotPath);
+    }
+
+    auto foldRangePart = featureEvalOptions;
+    foldRangePart.Offset = offset % disjointFoldCount;
+    foldRangePart.FoldCount = Min(disjointFoldCount - offset % disjointFoldCount, foldCount);
     ui32 foldRangeIdx = offset / disjointFoldCount;
     ui32 processedFoldCount = 0;
     while (processedFoldCount < foldCount) {
         foldRangeRandomSeed.RandomSeed = foldRangeRandomSeeds[foldRangeIdx];
-        summary->FoldRangeOffset = foldRangeIdx * disjointFoldCount;
         EvaluateFeaturesImpl(
             foldRangeRandomSeed,
             outputFileOptions,
-            foldRange,
+            foldRangePart,
             objectiveDescriptor,
             evalMetricDescriptor,
+            /*foldRangeBegin*/ foldRangeIdx * disjointFoldCount,
             cvParams,
             data,
-            summary
+            callbacks.Get(),
+            &summary
         );
         ++foldRangeIdx;
-        processedFoldCount += foldRange.FoldCount.Get();
-        foldRange.Offset = 0;
-        foldRange.FoldCount = Min(disjointFoldCount, foldCount - processedFoldCount);
+        processedFoldCount += foldRangePart.FoldCount.Get();
+        foldRangePart.Offset = 0;
+        foldRangePart.FoldCount = Min(disjointFoldCount, foldCount - processedFoldCount);
     }
-    summary->CalcWxTestAndAverageDelta();
+    summary.CalcWxTestAndAverageDelta();
+    return summary;
 }
