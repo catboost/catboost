@@ -6451,3 +6451,21 @@ def test_monoforest_regression():
 def test_text_processing_tokenizer():
     from catboost.text_processing import Tokenizer
     assert Tokenizer(lowercasing=True).tokenize('Aba caba') == ['aba', 'caba']
+
+
+def test_text_processing_dictionary():
+    from catboost.text_processing import Dictionary
+
+    dictionary = Dictionary(occurence_lower_bound=0).fit([
+        ['aba', 'caba'],
+        ['ala', 'caba'],
+        ['caba', 'aba']
+    ])
+
+    assert dictionary.size == 3
+    assert dictionary.get_top_tokens(2) == ['caba', 'aba']
+    assert dictionary.apply([['ala', 'caba'], ['aba']]) == [[2, 0], [1]]
+
+    dictionary_path = test_output_path('dictionary.tsv')
+    dictionary.save(dictionary_path)
+    return compare_canonical_models(dictionary_path)

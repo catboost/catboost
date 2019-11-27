@@ -271,3 +271,7 @@ TVector<TStringBuf> NTokenizer::TTokenizer::TokenizeWithoutCopy(TStringBuf input
     TokenizeWithoutCopy(inputString, &tokens);
     return tokens;
 }
+
+NTokenizer::TTokenizerOptions NTokenizer::TTokenizer::GetOptions() const {
+    return Options;
+}

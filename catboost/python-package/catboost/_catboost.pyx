@@ -2784,7 +2784,7 @@ def _set_features_order_data_scipy_sparse_csc_matrix(
 
     cdef TString factor_string_buf
     cdef TVector[TString] cat_feature_values
-    
+
     cdef bool_t is_float_value = False
 
     if (numpy_num_dtype is np.float32_t) or (numpy_num_dtype is np.float64_t):
@@ -5109,4 +5109,4 @@ cpdef compute_training_options(dict options, DataMetaInfo train_meta_info, DataM
 
 
 include "_monoforest.pxi"
-include "library/text_processing/tokenizer/tokenizer.pxi"
+include "_text_processing.pxi"
