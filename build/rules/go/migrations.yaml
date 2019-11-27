@@ -528,9 +528,6 @@ migrations:
       - a.yandex-team.ru/strm/plgo/pkg/live_test
       - a.yandex-team.ru/strm/plgo/pkg/pinger
       - a.yandex-team.ru/strm/plgo/pkg/pinger_test
-      - a.yandex-team.ru/strm/plgo/pkg/signature/generate_sign_url
-      - a.yandex-team.ru/strm/plgo/pkg/signature
-      - a.yandex-team.ru/strm/plgo/pkg/signature_test
       - a.yandex-team.ru/strm/plgo/pkg/viewport
       - a.yandex-team.ru/strm/plgo/pkg/viewport_test
       - a.yandex-team.ru/strm/trns_manager/pkg/liveinfo
