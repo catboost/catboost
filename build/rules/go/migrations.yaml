@@ -524,8 +524,6 @@ migrations:
       - a.yandex-team.ru/strm/plgo/pkg/algorithm
       - a.yandex-team.ru/strm/plgo/pkg/algorithm_test
       - a.yandex-team.ru/strm/plgo/pkg/common
-      - a.yandex-team.ru/strm/plgo/pkg/live
-      - a.yandex-team.ru/strm/plgo/pkg/live_test
       - a.yandex-team.ru/strm/plgo/pkg/pinger
       - a.yandex-team.ru/strm/plgo/pkg/pinger_test
       - a.yandex-team.ru/strm/plgo/pkg/viewport
