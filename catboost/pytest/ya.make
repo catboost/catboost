@@ -3,8 +3,9 @@
 PYTEST()
 
 TEST_SRCS(
-    test.py
     large_dist_test.py
+    test.py
+    test_modes.py
 )
 
 DEPENDS(
