@@ -526,9 +526,6 @@ migrations:
       - a.yandex-team.ru/strm/plgo/pkg/channel
       - a.yandex-team.ru/strm/plgo/pkg/channel_test
       - a.yandex-team.ru/strm/plgo/pkg/common
-      - a.yandex-team.ru/strm/plgo/pkg/kaltura
-      - a.yandex-team.ru/strm/plgo/pkg/kaltura/handlers
-      - a.yandex-team.ru/strm/plgo/pkg/kaltura/handlers_test
       - a.yandex-team.ru/strm/plgo/pkg/live
       - a.yandex-team.ru/strm/plgo/pkg/live_test
       - a.yandex-team.ru/strm/plgo/pkg/pinger
