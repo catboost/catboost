@@ -88,6 +88,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_metadata.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_model_based_eval.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_model_sum.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\app\mode_normalize_model.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_ostr.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_roc.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\app\mode_run_worker.cpp"/>

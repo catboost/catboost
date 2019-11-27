@@ -81,6 +81,7 @@
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\private\libs\app_helpers\implementation_type_enum.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\app_helpers\mode_calc_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\app_helpers\mode_fstr_helpers.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\app_helpers\mode_normalize_model_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\app_helpers\proceed_pool_in_blocks.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\catboost\private\libs\app_helpers\implementation_type_enum.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -111,6 +112,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\app_helpers\mode_calc_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\app_helpers\mode_fstr_helpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\app_helpers\mode_normalize_model_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\app_helpers\proceed_pool_in_blocks.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
