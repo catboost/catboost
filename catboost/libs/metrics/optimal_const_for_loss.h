@@ -1,12 +1,17 @@
 #pragma once
 
 #include <catboost/libs/helpers/math_utils.h>
-#include <catboost/private/libs/algo_helpers/approx_calcer_helpers.h>
+#include <catboost/libs/helpers/quantile.h>
 #include <catboost/private/libs/options/enums.h>
+#include <catboost/private/libs/options/loss_description.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>
+#include <util/generic/vector.h>
+#include <util/generic/xrange.h>
+#include <util/generic/ymath.h>
+#include <util/string/cast.h>
 
 
 namespace NCB {

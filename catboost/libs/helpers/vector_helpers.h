@@ -6,6 +6,7 @@
 #include <util/generic/cast.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
+#include <util/system/mutex.h>
 
 #include <algorithm>
 
@@ -54,6 +55,9 @@ template <typename T>
 inline TMinMax<T> CalcMinMax(TConstArrayRef<T> array) {
     return CalcMinMax(array.begin(), array.end());
 }
+
+template <typename T>
+void GuardedUpdateMinMax(const TMinMax<T>& value, TMinMax<T> volatile* target, TMutex& guard);
 
 inline bool IsConst(TConstArrayRef<float> array) {
     if (array.empty()) {

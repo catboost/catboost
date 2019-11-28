@@ -54,6 +54,7 @@
 
 - includes:
   - algorithm:                 contrib/libs/cxxsupp/libcxx/include/algorithm
+  - any:                       contrib/libs/cxxsupp/libcxx/include/any
   - array:                     contrib/libs/cxxsupp/libcxx/include/array
   - atomic:                    contrib/libs/cxxsupp/libcxx/include/atomic
   - bitset:                    contrib/libs/cxxsupp/libcxx/include/bitset

@@ -25,6 +25,7 @@
 #include <util/generic/variant.h>
 #include <util/generic/xrange.h>
 #include <util/generic/ylimits.h>
+#include <util/generic/ymath.h>
 #include <util/string/builder.h>
 #include <util/stream/str.h>
 
@@ -222,7 +223,9 @@ TModelTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
         &fbsNonSymmetricTreeStepNode,
         &NonSymmetricNodeIdToLeafId,
         &textFeaturesOffsets,
-        &estimatedFeaturesOffsets
+        &estimatedFeaturesOffsets,
+        GetScaleAndBias().Scale,
+        GetScaleAndBias().Bias
     );
 }
 
@@ -360,7 +363,7 @@ void TModelTrees::UpdateRuntimeData() const {
         const auto& featureIndex = splitIds[binSplit];
         Y_ENSURE(
             featureIndex.FeatureIdx <= 0xffff,
-            "To many features in model, ask catboost team for support"
+            "Too many features in model, ask catboost team for support"
         );
         TRepackedBin rb;
         rb.FeatureIndex = featureIndex.FeatureIdx;
@@ -439,6 +442,11 @@ TVector<ui32> TModelTrees::GetTreeLeafCounts() const {
     return treeLeafCounts;
 }
 
+void TModelTrees::SetScaleAndBias(const TScaleAndBias& scaleAndBias) {
+    CB_ENSURE(IsValidFloat(scaleAndBias.Scale) && IsValidFloat(scaleAndBias.Bias), "Invalid scale " << scaleAndBias.Scale << " or bias " << scaleAndBias.Bias);
+    ScaleAndBias = scaleAndBias;
+}
+
 void TModelTrees::AddNumberToAllTreeLeafValues(ui32 treeId, double numberToAdd) {
     const auto& firstLeafOfsets = GetFirstLeafOffsets();
     if (numberToAdd == 0 || firstLeafOfsets.size() <= treeId) {
@@ -497,6 +505,7 @@ void TModelTrees::FBDeserialize(const NCatBoostFbs::TModelTrees* fbObj) {
     if (fbObj->LeafWeights() && fbObj->LeafWeights()->size() > 0) {
             LeafWeights.assign(fbObj->LeafWeights()->begin(), fbObj->LeafWeights()->end());
     }
+    SetScaleAndBias({fbObj->Scale(), fbObj->Bias()});
 }
 
 void TFullModel::CalcFlat(
@@ -884,7 +893,7 @@ namespace {
     };
 }
 
-static void StreamModelTreesToBuilder(
+static void StreamModelTreesWithoutScaleAndBiasToBuilder(
     const TModelTrees& trees,
     double leafMultiplier,
     TObliviousTreeBuilder* builder,
@@ -975,6 +984,19 @@ static void SumModelsParams(
         }
     }
 
+    if (!AllOf(modelVector, [&](const TFullModel* model) {
+            return model->GetScaleAndBias().IsIdentity();
+        }))
+    {
+        NJson::TJsonValue summandScaleAndBiases;
+        for (const auto& model : modelVector) {
+            NJson::TJsonValue scaleAndBias;
+            scaleAndBias.InsertValue("scale", model->GetScaleAndBias().Scale);
+            scaleAndBias.InsertValue("bias", model->GetScaleAndBias().Bias);
+            summandScaleAndBiases.AppendValue(scaleAndBias);
+        }
+        (*modelInfo)["summand_scale_and_biases"] = summandScaleAndBiases.GetString();
+    }
 }
 
 TFullModel SumModels(
@@ -1033,10 +1055,13 @@ TFullModel SumModels(
         Visit(merger, flatFeature.FeatureVariant);
     }
     TObliviousTreeBuilder builder(merger.MergedFloatFeatures, merger.MergedCatFeatures, {}, approxDimension);
+    double totalBias = 0;
     for (const auto modelId : xrange(modelVector.size())) {
-        StreamModelTreesToBuilder(
+        TScaleAndBias normer = modelVector[modelId]->GetScaleAndBias();
+        totalBias += weights[modelId] * normer.Bias;
+        StreamModelTreesWithoutScaleAndBiasToBuilder(
             *modelVector[modelId]->ModelTrees,
-            weights[modelId],
+            weights[modelId] * normer.Scale,
             &builder,
             allModelsHaveLeafWeights
         );
@@ -1053,6 +1078,7 @@ TFullModel SumModels(
     result.CtrProvider = MergeCtrProvidersData(ctrProviders, ctrMergePolicy);
     result.UpdateDynamicData();
     result.ModelInfo["model_guid"] = CreateGuidAsString();
+    result.SetScaleAndBias({1, totalBias});
     SumModelsParams(modelVector, &result.ModelInfo);
     return result;
 }

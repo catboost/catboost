@@ -4,6 +4,7 @@ RECURSE(
     accurate_accumulate
     accurate_accumulate/benchmark
     accurate_accumulate/benchmark/metrics
+    archive/ut
     binsaver
     binsaver/ut_util
     binsaver/ut
@@ -22,6 +23,11 @@ RECURSE(
     chromium_trace/ut
     colorizer
     colorizer/ut
+    comptrie
+    comptrie/loader
+    comptrie/loader/ut
+    comptrie/ut
+    comptrie/benchmark
     containers
     coroutine
     cppparser
@@ -37,6 +43,8 @@ RECURSE(
     dot_product
     dot_product/bench
     dot_product/ut
+    enumbitset
+    enumbitset/ut
     fast_exp
     fast_exp/benchmark
     fast_exp/ut
@@ -59,6 +67,13 @@ RECURSE(
     json/writer/ut
     json/yson
     json/yson/ut
+    langmask
+    langmask/proto
+    langmask/python
+    langmask/serialization
+    langmask/ut
+    langs
+    langs/ut
     lcs
     lcs/ut
     lfalloc
@@ -79,7 +94,10 @@ RECURSE(
     netliba
     object_factory
     object_factory/ut
+    on_disk
     openssl
+    packers
+    packers/ut
     par
     pop_count
     pop_count/benchmark
@@ -99,6 +117,13 @@ RECURSE(
     testing
     text_processing
     threading
+    token
+    token/serialization
+    token/serialization/ut
+    token/ut
+    tokenizer
+    tokenizer/ut
+    unicode
     unittest
     unittest/fat
     unittest/main

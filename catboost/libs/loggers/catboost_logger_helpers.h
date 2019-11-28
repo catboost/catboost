@@ -130,3 +130,10 @@ void InitializeFileLoggers(const NCatboostOptions::TCatBoostOptions& catboostOpt
                            int metricPeriod,
                            TLogger* logger);
 
+
+void InitializeFileLoggers(
+    const NCatboostOptions::TOutputFilesOptions& outputFileOptions,
+    const NJson::TJsonValue& metricsMetaJson,
+    const TString& namesPrefix,
+    bool isDetailedProfile,
+    TLogger* logger);

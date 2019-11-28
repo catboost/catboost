@@ -11,16 +11,17 @@
 #include "split.h"
 #include "yetirank_helpers.h"
 
+#include <catboost/libs/data/data_provider.h>
+#include <catboost/libs/helpers/parallel_tasks.h>
+#include <catboost/libs/helpers/quantile.h>
+#include <catboost/libs/logging/logging.h>
+#include <catboost/libs/logging/profile_info.h>
+#include <catboost/libs/metrics/metric.h>
 #include <catboost/private/libs/algo/approx_calcer/approx_calcer_multi.h>
 #include <catboost/private/libs/algo/approx_calcer/gradient_walker.h>
 #include <catboost/private/libs/algo_helpers/approx_calcer_helpers.h>
 #include <catboost/private/libs/algo_helpers/error_functions.h>
 #include <catboost/private/libs/algo_helpers/pairwise_leaves_calculation.h>
-#include <catboost/libs/data/data_provider.h>
-#include <catboost/libs/helpers/parallel_tasks.h>
-#include <catboost/libs/logging/logging.h>
-#include <catboost/libs/logging/profile_info.h>
-#include <catboost/libs/metrics/metric.h>
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/functools/forward_as_const.h>
@@ -938,14 +939,15 @@ void CalcLeafValues(
     const NCB::TTrainingForCPUDataProviders& data,
     const IDerCalcer& error,
     const TFold& fold,
-    const TSplitTree& tree,
+    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,
     TLearnContext* ctx,
     TVector<TVector<double>>* leafDeltas,
     TVector<TIndexType>* indices) {
+
     *indices = BuildIndices(fold, tree, data.Learn, data.Test, ctx->LocalExecutor);
     const int approxDimension = ctx->LearnProgress->AveragingFold.GetApproxDimension();
     Y_VERIFY(fold.GetLearnSampleCount() == data.Learn->GetObjectCount());
-    const int leafCount = tree.GetLeafCount();
+    const int leafCount = GetLeafCount(tree);
 
     const auto treeMonotoneConstraints = GetTreeMonotoneConstraints(
         tree,
@@ -964,14 +966,14 @@ void CalcApproxForLeafStruct(
     const NCB::TTrainingForCPUDataProviders& data,
     const IDerCalcer& error,
     const TFold& fold,
-    const TSplitTree& tree,
+    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,
     ui64 randomSeed,
     TLearnContext* ctx,
     TVector<TVector<TVector<double>>>* approxesDelta // [bodyTailId][approxDim][docIdxInPermuted]
 ) {
     const TVector<TIndexType> indices = BuildIndices(fold, tree, data.Learn, data.Test, ctx->LocalExecutor);
     const int approxDimension = ctx->LearnProgress->ApproxDimension;
-    const int leafCount = tree.GetLeafCount();
+    const int leafCount = GetLeafCount(tree);
     const auto treeMonotoneConstraints = GetTreeMonotoneConstraints(
         tree,
         ctx->Params.ObliviousTreeOptions->MonotoneConstraints.Get());

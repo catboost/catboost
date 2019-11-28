@@ -414,7 +414,10 @@ namespace {
             quantizedFeaturesInfo = MakeIntrusive<NCB::TQuantizedFeaturesInfo>(
                 *(featuresLayout.Get()),
                 MakeConstArrayRef(ignoredFeatureNums),
-                commonFloatFeaturesBinarization
+                commonFloatFeaturesBinarization,
+                /*perFloatFeatureQuantization*/TMap<ui32, NCatboostOptions::TBinarizationOptions>(),
+                /*floatFeaturesAllowNansInTestOnly*/true,
+                allowWriteFiles
             );
             // Quantizing training data
             *result = GetTrainingData(
@@ -964,6 +967,7 @@ namespace {
                 internalOptions.ForceCalcEvalMetricOnEveryIteration = false;
                 internalOptions.OffsetMetricPeriodByInitModelSize = true;
                 outputFileOptions.SetAllowWriteFiles(false);
+                const auto defaultTrainingCallbacks = MakeHolder<ITrainingCallbacks>();
                 // Training model
                 modelTrainerHolder->TrainModel(
                     internalOptions,
@@ -973,7 +977,7 @@ namespace {
                     evalMetricDescriptor,
                     trainTestData,
                     labelConverter,
-                    MakeHolder<ITrainingCallbacks>(), // TODO(ilikepugs): MLTOOLS-3540
+                    defaultTrainingCallbacks.Get(), // TODO(ilikepugs): MLTOOLS-3540
                     /*initModel*/ Nothing(),
                     /*initLearnProgress*/ nullptr,
                     /*initModelApplyCompatiblePools*/ NCB::TDataProviders(),

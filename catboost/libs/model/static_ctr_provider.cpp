@@ -182,7 +182,7 @@ static void MergeBuckets(const TVector<const TCtrValueTable*>& tables, TCtrValue
     THashSet<NCatboost::TBucket::THashType> uniqueHashes;
     for (const auto& table : tables) {
         indexViewers.emplace_back(table->GetIndexHashViewer());
-        for (const auto& bucket : indexViewers.back().GetBuckets()) {
+        for (const auto bucket : indexViewers.back().GetBuckets()) {
             if (bucket.Hash != NCatboost::TBucket::InvalidHashValue) {
                 uniqueHashes.insert(bucket.Hash);
             }

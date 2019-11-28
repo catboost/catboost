@@ -51,7 +51,7 @@ namespace NCatboostCuda {
         const NCatboostOptions::TOutputFilesOptions& outputOptions,
         const NCB::TTrainingDataProvider* test,
         ui32 approxDimension,
-        const THolder<ITrainingCallbacks>& trainingCallbacks,
+        ITrainingCallbacks* trainingCallbacks,
         bool hasWeights,
         TMaybe<ui32> learnAndTestCheckSum
     ) {
@@ -63,7 +63,7 @@ namespace NCatboostCuda {
             approxDimension,
             hasWeights,
             learnAndTestCheckSum,
-            trainingCallbacks.Get());
+            trainingCallbacks);
     }
 
     template <class TBoosting>
@@ -76,7 +76,7 @@ namespace NCatboostCuda {
                                                                          const NCB::TFeatureEstimators& featureEstimators,
                                                                          TGpuAwareRandom& random,
                                                                          ui32 approxDimension,
-                                                                         const THolder<ITrainingCallbacks>& trainingCallbacks,
+                                                                         ITrainingCallbacks* trainingCallbacks,
                                                                          NPar::TLocalExecutor* localExecutor,
                                                                          TVector<TVector<double>>* testMultiApprox, // [dim][docIdx]
                                                                          TMetricsAndTimeLeftHistory* metricsAndTimeHistory) {
@@ -153,7 +153,7 @@ namespace NCatboostCuda {
             outputOptions,
             &test,
             approxDimension,
-            defaultTrainingCallcbacks,
+            defaultTrainingCallcbacks.Get(),
             learn.MetaInfo.HasWeights,
             /*learnAndTestCheckSum*/ Nothing());
 

@@ -9,6 +9,7 @@ class TFold;
 class TLearnContext;
 class TProfileInfo;
 struct TSplitTree;
+struct TNonSymmetricTreeStructure;
 
 
 void TrimOnlineCTRcache(const TVector<TFold*>& folds);
@@ -19,4 +20,4 @@ void GreedyTensorSearch(
     TProfileInfo& profile,
     TFold* fold,
     TLearnContext* ctx,
-    TSplitTree* resSplitTree);
+    TVariant<TSplitTree, TNonSymmetricTreeStructure>* resSplitTree);

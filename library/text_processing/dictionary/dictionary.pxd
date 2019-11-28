@@ -24,6 +24,11 @@ cdef extern from "util/stream/file.h" nogil:
 
 
 cdef extern from "library/text_processing/dictionary/types.h" namespace "NTextProcessing::NDictionary" nogil:
+    cdef cppclass EDictionaryType:
+        bool_t operator==(EDictionaryType)
+    cdef EDictionaryType EDictionaryType_FrequencyBased "NTextProcessing::NDictionary::EDictionaryType::FrequencyBased"
+    cdef EDictionaryType EDictionaryType_Bpe "NTextProcessing::NDictionary::EDictionaryType::Bpe"
+
     cdef cppclass ETokenLevelType:
         pass
 

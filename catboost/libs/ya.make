@@ -18,6 +18,7 @@ RECURSE(
     model/model_export/ut
     model/ut
     model_interface
+    model_interface/static
     overfitting_detector
     monoforest
     train_lib
@@ -29,11 +30,5 @@ IF (HAVE_CUDA)
     RECURSE(
     cuda_wrappers
     model/cuda
-)
-ENDIF()
-
-IF (NOT OS_WINDOWS)
-    RECURSE(
-    model_interface/static
 )
 ENDIF()

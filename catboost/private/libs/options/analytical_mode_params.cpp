@@ -14,7 +14,7 @@ using namespace NCB;
 TString NCB::BuildModelFormatHelpMessage() {
     return TString::Join(
         "Alters format of output file for the model. ",
-        "Supported values {", GetEnumAllNames<EModelType>(), "}",
+        "Supported values {", GetEnumAllNames<EModelType>(), "} ",
         "Default is ", ToString(EModelType::CatboostBinary), ".");
 }
 

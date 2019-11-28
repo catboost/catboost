@@ -6,6 +6,8 @@ NO_CHECK_IMPORTS(
     scipy.misc.pilutil
 )
 
+NO_LINT()
+
 PY_SRCS(
     NAMESPACE scipy.misc
 

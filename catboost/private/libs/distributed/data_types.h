@@ -33,26 +33,6 @@ namespace NCatboostDistributed {
         char Zero = 0;
     };
 
-    template <typename TData>
-    struct TEnvelope : public IObjectBase {
-        TData Data;
-
-    public:
-        TEnvelope() = default;
-        explicit TEnvelope(const TData& data)
-            : Data(data)
-        {
-        }
-
-        SAVELOAD(Data);
-        OBJECT_NOCOPY_METHODS(TEnvelope);
-    };
-
-    template <typename TData>
-    TEnvelope<TData> MakeEnvelope(const TData& data) {
-        return TEnvelope<TData>(data);
-    }
-
     using TStats5D = TVector<TVector<TStats3D>>; // [cand][subCand][bodyTail & approxDim][leaf][bucket]
     using TStats4D = TVector<TStats3D>; // [subCand][bodyTail & approxDim][leaf][bucket]
     using TIsLeafEmpty = TVector<bool>;

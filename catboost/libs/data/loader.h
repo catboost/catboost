@@ -15,6 +15,7 @@
 #include <library/object_factory/object_factory.h>
 #include <library/threading/local_executor/local_executor.h>
 
+#include <util/generic/maybe.h>
 #include <util/generic/strbuf.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
@@ -138,10 +139,14 @@ namespace NCB {
      * init ignored features information in dataMetaInfo and ignoredFeaturesMask
      * from ignoredFeaturesFlatIndices
      *
+     * it is possible to redefine default message when all features are ignored by specifying non-Nothing()
+     *   allFeaturesIgnoredMessage parameter
+     *
      * note that ignoredFeaturesFlatIndices can contain indices beyond featuresCount in dataMetaInfo
      */
     void ProcessIgnoredFeaturesList(
         TConstArrayRef<ui32> ignoredFeatures, // [flatFeatureIdx]
+        TMaybe<TString> allFeaturesIgnoredMessage,
         TDataMetaInfo* dataMetaInfo, // inout, must be inited, only ignored flags are updated
         TVector<bool>* ignoredFeaturesMask // [flatFeatureIdx]
     );

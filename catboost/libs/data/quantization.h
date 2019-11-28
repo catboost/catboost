@@ -132,7 +132,7 @@ namespace NCB {
     );
 
     TQuantizedObjectsDataProviderPtr GetQuantizedObjectsData(
-        NCatboostOptions::TCatBoostOptions* params,
+        const NCatboostOptions::TCatBoostOptions& params,
         TDataProviderPtr srcData,
         const TMaybe<TString>& bordersFile,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,

@@ -11,7 +11,7 @@ template <class T, class TCounter = TDefaultLFCounter>
 class TAutoLockFreeQueue;
 
 template <class T>
-class TLockFreeStackeue;
+class TLockFreeStack;
 
 class IThreadFactory;
 

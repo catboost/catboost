@@ -2,6 +2,7 @@
 
 #include "features_data_helpers.h"
 #include "fold.h"
+#include "nonsymmetric_index_calcer.h"
 #include "online_ctr.h"
 #include "scoring.h"
 #include "split.h"
@@ -382,6 +383,26 @@ static TVector<const TOnlineCTR*> GetOnlineCtrs(const TFold& fold, const TSplitT
     return onlineCtrs;
 }
 
+static TVector<const TOnlineCTR*> GetOnlineCtrs(const TFold& fold, const TNonSymmetricTreeStructure& tree) {
+    const auto nodes = tree.GetNodes();
+    TVector<const TOnlineCTR*> onlineCtrs(nodes.size());
+    for (auto nodeIdx : xrange(nodes.size())) {
+        const auto& split = nodes[nodeIdx].Split;
+        if (split.Type == ESplitType::OnlineCtr) {
+            onlineCtrs[nodeIdx] = &fold.GetCtr(split.Ctr.Projection);
+        }
+    }
+    return onlineCtrs;
+}
+
+static TVector<const TOnlineCTR*> GetOnlineCtrs(const TFold& fold, const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree) {
+    if (HoldsAlternative<TSplitTree>(tree)) {
+        return GetOnlineCtrs(fold, Get<TSplitTree>(tree));
+    } else {
+        return GetOnlineCtrs(fold, Get<TNonSymmetricTreeStructure>(tree));
+    }
+}
+
 static void BuildIndicesForDataset(
     const TSplitTree& tree,
     const TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
@@ -423,9 +444,39 @@ static void BuildIndicesForDataset(
         MakeArrayRef(indices, sampleCount));
 }
 
+static void BuildIndicesForDataset(
+    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& treeVariant,
+    const TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
+    const NCB::TFeaturesArraySubsetIndexing& featuresArraySubsetIndexing,
+    ui32 sampleCount,
+    const TVector<const TOnlineCTR*>& onlineCtrs,
+    ui32 docOffset,
+    NPar::TLocalExecutor* localExecutor,
+    TIndexType* indices) {
+
+    const auto buildIndices = [&](auto tree) {
+        BuildIndicesForDataset(
+            tree,
+            objectsDataProvider,
+            featuresArraySubsetIndexing,
+            sampleCount,
+            onlineCtrs,
+            docOffset,
+            localExecutor,
+            indices);
+    };
+
+    if (HoldsAlternative<TSplitTree>(treeVariant)) {
+        buildIndices(Get<TSplitTree>(treeVariant));
+    } else {
+        buildIndices(Get<TNonSymmetricTreeStructure>(treeVariant));
+    }
+}
+
+
 TVector<TIndexType> BuildIndices(
     const TFold& fold,
-    const TSplitTree& tree,
+    const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,
     NCB::TTrainingForCPUDataProviderPtr learnData, // can be nullptr
     TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData, // can be empty
     NPar::TLocalExecutor* localExecutor) {

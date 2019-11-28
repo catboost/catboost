@@ -219,6 +219,8 @@ namespace NCB {
         Out << '\n';
         Out << indent << "## Aggregated array of leaf values for trees. Each tree is represented by a separate line:" << '\n';
         Out << indent << "leaf_values = [" << OutputLeafValues(model, indent) << indent << "]" << '\n';
+        Out << indent << "scale = " << model.GetScaleAndBias().Scale << '\n';
+        Out << indent << "bias = " << model.GetScaleAndBias().Bias << '\n';
 
         if (!model.ModelTrees->GetUsedModelCtrs().empty()) {
             WriteModelCTRs(Out, model, indent);

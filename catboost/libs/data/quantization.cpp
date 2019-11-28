@@ -2623,7 +2623,7 @@ namespace NCB {
 
 
     TQuantizedObjectsDataProviderPtr GetQuantizedObjectsData(
-        NCatboostOptions::TCatBoostOptions* params,
+        const NCatboostOptions::TCatBoostOptions& params,
         TDataProviderPtr srcData,
         const TMaybe<TString>& bordersFile,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
@@ -2633,29 +2633,29 @@ namespace NCB {
         const TInitialBorders& initialBorders) {
 
         TQuantizationOptions quantizationOptions;
-        quantizationOptions.GroupFeaturesForCpu = params->DataProcessingOptions->DevGroupFeatures.GetUnchecked();
-        if (params->GetTaskType() == ETaskType::CPU) {
+        quantizationOptions.GroupFeaturesForCpu = params.DataProcessingOptions->DevGroupFeatures.GetUnchecked();
+        if (params.GetTaskType() == ETaskType::CPU) {
             quantizationOptions.GpuCompatibleFormat = false;
 
             quantizationOptions.ExclusiveFeaturesBundlingOptions.MaxBuckets
-                = params->ObliviousTreeOptions->DevExclusiveFeaturesBundleMaxBuckets.Get();
+                = params.ObliviousTreeOptions->DevExclusiveFeaturesBundleMaxBuckets.Get();
             quantizationOptions.ExclusiveFeaturesBundlingOptions.MaxConflictFraction
-                = params->ObliviousTreeOptions->SparseFeaturesConflictFraction.Get();
+                = params.ObliviousTreeOptions->SparseFeaturesConflictFraction.Get();
 
             /* TODO(kirillovs): Sparse features support for GPU
              * TODO(akhropov): Enable when sparse column scoring is supported
 
             float defaultValueFractionToEnableSparseStorage
-                = params->DataProcessingOptions->DevDefaultValueFractionToEnableSparseStorage.Get();
+                = params.DataProcessingOptions->DevDefaultValueFractionToEnableSparseStorage.Get();
             if (defaultValueFractionToEnableSparseStorage > 0.0f) {
                 quantizationOptions.DefaultValueFractionToEnableSparseStorage
                     = defaultValueFractionToEnableSparseStorage;
                 quantizationOptions.SparseArrayIndexingType
-                    = params->DataProcessingOptions->DevSparseArrayIndexingType.Get();
+                    = params.DataProcessingOptions->DevSparseArrayIndexingType.Get();
             }
             */
         } else {
-            Y_ASSERT(params->GetTaskType() == ETaskType::GPU);
+            Y_ASSERT(params.GetTaskType() == ETaskType::GPU);
 
             /*
              * if there're any cat features format should be CPU-compatible to enable final CTR
@@ -2677,17 +2677,18 @@ namespace NCB {
             }
         }
         quantizationOptions.CpuRamLimit
-            = ParseMemorySizeDescription(params->SystemOptions->CpuUsedRamLimit.Get());
+            = ParseMemorySizeDescription(params.SystemOptions->CpuUsedRamLimit.Get());
         quantizationOptions.AllowWriteFiles = allowWriteFiles;
 
         if (!quantizedFeaturesInfo) {
             quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
                 *srcData->MetaInfo.FeaturesLayout,
-                params->DataProcessingOptions->IgnoredFeatures.Get(),
-                params->DataProcessingOptions->FloatFeaturesBinarization.Get(),
-                params->DataProcessingOptions->PerFloatFeatureQuantization.Get(),
-                params->DataProcessingOptions->TextProcessingOptions.Get(),
-                /*allowNansInTestOnly*/true
+                params.DataProcessingOptions->IgnoredFeatures.Get(),
+                params.DataProcessingOptions->FloatFeaturesBinarization.Get(),
+                params.DataProcessingOptions->PerFloatFeatureQuantization.Get(),
+                params.DataProcessingOptions->TextProcessingOptions.Get(),
+                /*allowNansInTestOnly*/true,
+                allowWriteFiles
             );
 
             if (bordersFile) {
@@ -2746,7 +2747,7 @@ namespace NCB {
         TLabelConverter labelConverter;
 
         return GetQuantizedObjectsData(
-            &catBoostOptions,
+            catBoostOptions,
             srcData,
             Nothing(),
             quantizedFeaturesInfo,

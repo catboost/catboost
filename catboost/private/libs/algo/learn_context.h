@@ -82,7 +82,7 @@ struct TLearnProgress {
 
     TString SerializedTrainParams; // TODO(kirillovs): do something with this field
 
-    TVector<TSplitTree> TreeStruct;
+    TVector<TVariant<TSplitTree, TNonSymmetricTreeStructure>> TreeStruct;
     TVector<TTreeStats> TreeStats;
     TVector<TVector<TVector<double>>> LeafValues; // [numTree][dim][bucketId]
     /* Vector of multipliers that were applied to approxes at each iteration.
@@ -193,8 +193,8 @@ public:
 
     ~TLearnContext();
 
-    void SaveProgress(std::function<void(IOutputStream*)> onSnapshotSaved = [] (IOutputStream* /*snapshot*/) {});
-    bool TryLoadProgress(std::function<void(IInputStream*)> onSnapshotLoaded = [] (IInputStream* /*snapshot*/) {});
+    void SaveProgress(std::function<void(IOutputStream*)> onSaveSnapshot = [] (IOutputStream* /*snapshot*/) {});
+    bool TryLoadProgress(std::function<bool(IInputStream*)> onLoadSnapshot = [] (IInputStream* /*snapshot*/) { return true; });
     bool UseTreeLevelCaching() const;
     bool GetHasWeights() const;
 

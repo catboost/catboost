@@ -1,19 +1,20 @@
 #include <library/unittest/registar.h>
 
-#include <catboost/private/libs/algo/approx_calcer.cpp>
+#include <catboost/libs/helpers/quantile.h>
+#include <catboost/private/libs/options/restrictions.h>
 
-#include <catboost/libs/data/data_provider_builders.h>
-#include <catboost/libs/eval_result/eval_result.h>
-#include <catboost/libs/train_lib/train_model.h>
+#include <util/generic/array_ref.h>
+#include <util/generic/fwd.h>
+#include <util/generic/vector.h>
 
-using namespace NCB;
+#include <cfloat>
 
 Y_UNIT_TEST_SUITE(TCalcQuantile) {
 
     const TVector<float> weightsNoWeights = {1, 1, 1, 1, 1, 1, 1, 1};
     const TVector<float> weightsHasWeights = {0.2, 0.4, 0.13, 0.43, 0.74, 0.3, 0.44, 0.37};
     const TVector<float> sampleOrderedNoWeights = {0, 2, 10, 37, 40, 500, 501, 600};
-    TVector<float> sampleUnorderedNoWeights = {600, 40, 2, 500, 0, 37, 10, 501};
+    const TVector<float> sampleUnorderedNoWeights = {600, 40, 2, 500, 0, 37, 10, 501};
     const double eps = 1e-6;
 
     Y_UNIT_TEST(TCalcQuantileSampleOrderedNoWeights1) {
@@ -200,19 +201,5 @@ Y_UNIT_TEST_SUITE(TCalcQuantile) {
     Y_UNIT_TEST(TCalcQuantileSampleOrderedWeights3) {
         TVector<float> sample =    {0,     1,      2,      3,      4,      5,      6,      7};
         UNIT_ASSERT_DOUBLES_EQUAL(CalcSampleQuantile(sample, weightsHasWeights, 0.52, eps), 4 + eps, 1e-6);
-    }
-
-    Y_UNIT_TEST(TCalcQuantileLeafDeltas) {
-        TVector<TIndexType> indices = {0, 1, 1, 0, 1, 1, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1};
-        TVector<float> targets = {5, 21, 24, 7, 30, 28, 4, 1, 9, 23, 22, 3, 27, 8, 10, 25, 2, 29, 6, 26};
-        size_t sampleCount = indices.size();
-        TVector<double> approxes(sampleCount);
-        TVector<float> weights1(sampleCount, 1);
-        TVector<double> leafDeltas(2);
-        double alpha = 0.5;
-        double delta = 1e-6;
-        CalcQuantileLeafDeltas(2, indices, alpha, delta, sampleCount, MakeConstArrayRef(approxes), MakeConstArrayRef(targets), MakeConstArrayRef(weights1), &leafDeltas);
-        UNIT_ASSERT_DOUBLES_EQUAL(leafDeltas[0], 5 + eps, 1e-6);
-        UNIT_ASSERT_DOUBLES_EQUAL(leafDeltas[1], 25 + eps, 1e-6);
     }
 }

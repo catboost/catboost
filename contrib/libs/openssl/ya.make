@@ -39,7 +39,6 @@ CFLAGS(
     -DSHA1_ASM
     -DSHA256_ASM
     -DSHA512_ASM
-    -DVPAES_ASM
 )
 
 IF (NOT OS_WINDOWS)
@@ -100,8 +99,6 @@ IF (ARCH_TYPE_32)
 ENDIF()
 
 SRCS(
-    engines/e_capi.c
-    engines/e_padlock.c
     ssl/bio_ssl.c
     ssl/d1_lib.c
     ssl/d1_msg.c
@@ -148,6 +145,32 @@ SRCS(
     ssl/tls_srp.c
 )
 
+IF (OS_IOS)
+    IF (ARCH_ARM64)
+        SET(IOS_ARM64 yes)
+    ELSEIF(ARCH_ARM7)
+        SET(IOS_ARMV7 yes)
+    ELSEIF(ARCH_86_86)
+        SET(IOS_X86_64 yes)
+    ELSEIF(ARCH_I386)
+        SET(IOS_I386 yes)
+    ELSE()
+    ENDIF()
+ENDIF()
+
+IF (NOT IOS_ARMV7)
+    CFLAGS(
+        -DVPAES_ASM
+    )
+ENDIF()
+
+IF (NOT IOS_ARM64 AND NOT IOS_ARMV7)
+    SRCS(
+        engines/e_capi.c
+        engines/e_padlock.c
+    )
+ENDIF()
+
 IF (OS_LINUX AND ARCH_AARCH64 OR OS_LINUX AND ARCH_X86_64 OR OS_LINUX AND ARCH_PPC64LE)
     SRCS(
         engines/e_afalg.c
@@ -169,6 +192,34 @@ ENDIF()
 IF (OS_WINDOWS AND ARCH_X86_64)
     SRCS(
         asm/windows/engines/e_padlock-x86_64.asm
+    )
+ENDIF()
+
+IF (OS_IOS AND ARCH_X86_64)
+    CFLAGS(
+        -DPADLOCK_ASM
+        -D_REENTRANT
+    )
+    SRCS(
+        asm/ios/x86_64/engines/e_padlock-x86_64.s
+        engines/e_capi.c
+        engines/e_dasync.c
+        engines/e_ossltest.c
+        engines/e_padlock.c
+    )
+ENDIF()
+
+IF (OS_IOS AND ARCH_I386)
+    CFLAGS(
+        -DPADLOCK_ASM
+        -D_REENTRANT
+    )
+    SRCS(
+        asm/ios/i386/engines/e_padlock-x86.s
+        engines/e_capi.c
+        engines/e_dasync.c
+        engines/e_ossltest.c
+        engines/e_padlock.c
     )
 ENDIF()
 

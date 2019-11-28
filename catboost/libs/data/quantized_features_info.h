@@ -63,7 +63,7 @@ namespace NCB {
             NCatboostOptions::TBinarizationOptions commonFloatFeaturesBinarization,
             TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeatureQuantization=TMap<ui32, NCatboostOptions::TBinarizationOptions>(),
             bool floatFeaturesAllowNansInTestOnly = true,
-            bool allowWriteFiles = true);
+            bool allowWriteFiles = false);
 
         TQuantizedFeaturesInfo(
             const TFeaturesLayout& featuresLayout,
@@ -72,7 +72,7 @@ namespace NCB {
             TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeatureQuantization,
             const NCatboostOptions::TTextProcessingOptions& textFeaturesProcessing,
             bool floatFeaturesAllowNansInTestOnly = true,
-            bool allowWriteFiles = true);
+            bool allowWriteFiles = false);
 
         bool EqualTo(const TQuantizedFeaturesInfo& rhs, bool ignoreSparsity = false) const;
 

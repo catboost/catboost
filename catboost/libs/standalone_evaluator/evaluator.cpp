@@ -60,7 +60,7 @@ namespace NCatboostStandalone {
         }
         switch(predictionType) {
         case EPredictionType::RawValue:
-            return result;
+            return Scale * result + Bias;
         case EPredictionType::Probability:
             return Sigmoid(result);
         case EPredictionType::Class:
@@ -71,7 +71,9 @@ namespace NCatboostStandalone {
     }
 
     void TZeroCopyEvaluator::SetModelPtr(const NCatBoostFbs::TModelCore* core) {
-        ObliviousTrees = core->ObliviousTrees();
+        ObliviousTrees = core->ModelTrees();
+        Scale = core->Scale;
+        Bias = core->Bias;
         if (ObliviousTrees == nullptr) {
             throw std::runtime_error(
                 "trying to initialize TZeroCopyEvaluator from coreModel without oblivious trees");

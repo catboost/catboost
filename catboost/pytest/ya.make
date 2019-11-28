@@ -3,8 +3,9 @@
 PYTEST()
 
 TEST_SRCS(
-    test.py
     large_dist_test.py
+    test.py
+    test_modes.py
 )
 
 DEPENDS(
@@ -13,7 +14,7 @@ DEPENDS(
 
 FORK_SUBTESTS()
 FORK_TEST_FILES()
-SPLIT_FACTOR(60)
+SPLIT_FACTOR(240)
 
 SIZE(MEDIUM)
 
