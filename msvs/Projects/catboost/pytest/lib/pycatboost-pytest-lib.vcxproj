@@ -931,6 +931,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\svnversion\library-svnversion.vcxproj">
       <Project>{EB1297E8-310F-2F45-45A8-54D412024564}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\text_processing\app_helpers\library-text_processing-app_helpers.vcxproj">
+      <Project>{FF14E7A5-1CC9-9D01-3998-5EF437196723}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\text_processing\dictionary\idl\text_processing-dictionary-idl.vcxproj">
       <Project>{939B289A-1787-7277-2983-EC29354F300F}</Project>
     </ProjectReference>
