@@ -3,7 +3,6 @@
 LIBRARY()
 
 SRCS(
-    app_helpers.cpp
     bpe_builder.cpp
     bpe_dictionary.cpp
     bpe_helpers.cpp
