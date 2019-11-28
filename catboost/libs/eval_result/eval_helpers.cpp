@@ -10,8 +10,8 @@
 #include <util/generic/xrange.h>
 #include <util/string/cast.h>
 
-#include <limits>
 #include <cmath>
+#include <limits>
 
 template <typename Function>
 static TVector<TVector<double>> CalcSomeSoftmax(
@@ -199,40 +199,36 @@ void PrepareEval(const EPredictionType predictionType,
 
     switch (predictionType) {
         case EPredictionType::LogProbability:
-            if (IsMulticlass(approx)) {
-                if (lossFunctionName == "MultiClassOneVsAll") {
-                    result->resize(approx.size());
-                    for (auto dim : xrange(approx.size())) {
-                        (*result)[dim] = CalcLogSigmoid(approx[dim]);
-                    }
-                } else {
-                    if (lossFunctionName.empty()) {
-                        CATBOOST_WARNING_LOG << "Optimized loss function was not saved in the model. Probabilities will be calculated \
-                                                 under the assumption that it is MultiClass loss function" << Endl;
-                    }
-                    *result = CalcLogSoftmax(approx, executor);
-                }
-            } else {
-                *result = {CalcLogSigmoid(InvertSign(approx[0])), CalcLogSigmoid(approx[0])};
-            }
-            break;
-
         case EPredictionType::Probability:
             if (IsMulticlass(approx)) {
                 if (lossFunctionName == "MultiClassOneVsAll") {
                     result->resize(approx.size());
-                    for (auto dim : xrange(approx.size())) {
-                        (*result)[dim] = CalcSigmoid(approx[dim]);
+                    if (predictionType == EPredictionType::Probability) {
+                        for (auto dim : xrange(approx.size())) {
+                            (*result)[dim] = CalcSigmoid(approx[dim]);
+                        }
+                    } else {
+                        for (auto dim : xrange(approx.size())) {
+                            (*result)[dim] = CalcLogSigmoid(approx[dim]);
+                        }
                     }
                 } else {
                     if (lossFunctionName.empty()) {
                         CATBOOST_WARNING_LOG << "Optimized loss function was not saved in the model. Probabilities will be calculated \
                                                  under the assumption that it is MultiClass loss function" << Endl;
                     }
-                    *result = CalcSoftmax(approx, executor);
+                    if (predictionType == EPredictionType::Probability) {
+                        *result = CalcSoftmax(approx, executor);
+                    } else {
+                        *result = CalcLogSoftmax(approx, executor);
+                    }
                 }
             } else {
-                *result = {CalcSigmoid(approx[0])};
+                if (predictionType == EPredictionType::Probability) {
+                    *result = {CalcSigmoid(approx[0])};
+                } else {
+                    *result = {CalcLogSigmoid(InvertSign(approx[0])), CalcLogSigmoid(approx[0])};
+                }
             }
             break;
         case EPredictionType::Class:

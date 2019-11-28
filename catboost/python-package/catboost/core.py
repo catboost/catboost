@@ -3921,7 +3921,7 @@ class CatBoostClassifier(CatBoost):
                 return two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
                 with log probability for every class for each object.
         """
-        return self._predict(data, 'LogProbability', ntree_start, ntree_end, thread_count, verbose, 'predict_proba')
+        return self._predict(data, 'LogProbability', ntree_start, ntree_end, thread_count, verbose, 'predict_log_proba')
 
     def staged_predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
         """
@@ -4060,7 +4060,7 @@ class CatBoostClassifier(CatBoost):
                 return two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
                 with log probability for every class for each object.
         """
-        return self._staged_predict(data, 'LogProbability', ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict_proba')
+        return self._staged_predict(data, 'LogProbability', ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict_log_proba')
 
     def score(self, X, y=None):
         """

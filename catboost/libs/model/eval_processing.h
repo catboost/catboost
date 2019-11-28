@@ -53,11 +53,24 @@ inline void CalcLogSoftmax(const TConstArrayRef<double> approx, TVector<double>*
 }
 
 //approx and target could overlap
+inline void InvertSign(const TConstArrayRef<double> approx, TArrayRef<double> target) {
+     Y_ASSERT(approx.size() == target.size());
+     for (size_t i = 0; i < approx.size(); ++i) {
+         target[i] = -approx[i];
+     }
+}
+
+inline TVector<double> InvertSign(const TConstArrayRef<double> approx) {
+    TVector<double> target;
+    target.yresize(approx.size());
+    InvertSign(approx, target);
+    return target;
+}
+
+//approx and target could overlap
 inline void CalcSigmoid(const TConstArrayRef<double> approx, TArrayRef<double> target) {
     Y_ASSERT(approx.size() == target.size());
-    for (size_t i = 0; i < approx.size(); ++i) {
-        target[i] = -approx[i];
-    }
+    InvertSign(approx, target);
     FastExpInplace(target.data(), target.size());
     for (auto& val : target) {
         val = 1. / (1. + val);
@@ -76,26 +89,10 @@ inline TVector<double> CalcSigmoid(const TConstArrayRef<double> approx) {
 }
 
 //approx and target could overlap
-// TODO: reuse in CalcSigmoid
-inline void InvertSign(const TConstArrayRef<double> approx, TArrayRef<double> target) {
-     Y_ASSERT(approx.size() == target.size());
-     for (size_t i = 0; i < approx.size(); ++i) {
-         target[i] = -approx[i];
-     }
-}
-
-inline TVector<double> InvertSign(const TConstArrayRef<double> approx) {
-    TVector<double> target;
-    target.yresize(approx.size());
-    InvertSign(approx, target);
-    return target;
-}
-
-//approx and target could overlap
 inline void CalcLogSigmoid(const TConstArrayRef<double> approx, TArrayRef<double> target) {
     Y_ASSERT(approx.size() == target.size());
-    FastExpInplace(target.data(), target.size());
     InvertSign(approx, target);
+    FastExpInplace(target.data(), target.size());
     for (auto& val : target) {
         val = -std::log(1. + val);
     }
