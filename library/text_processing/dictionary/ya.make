@@ -24,7 +24,6 @@ PEERDIR(
     library/containers/flat_hash
     library/json
     library/text_processing/dictionary/idl
-    library/text_processing/tokenizer
     library/threading/local_executor
 )
 
