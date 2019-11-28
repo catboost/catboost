@@ -130,7 +130,7 @@ TContMachineContext::TSan::TSan() noexcept
 }
 
 TContMachineContext::TSan::TSan(const TContClosure& c) noexcept
-    : NSan::TFiberContext(c.Stack.data(), c.Stack.size())
+    : NSan::TFiberContext(c.Stack.data(), c.Stack.size(), c.ContName)
     , TL(c.TrampoLine)
 {
 }
@@ -142,7 +142,7 @@ void TContMachineContext::TSan::DoRunNaked() {
 }
 
 TContMachineContext::TContMachineContext(const TContClosure& c)
-#if defined(_asan_enabled_)
+#if defined(_asan_enabled_) || defined(_tsan_enabled_)
     : San_(c)
 #endif
 {
@@ -178,7 +178,7 @@ TContMachineContext::TContMachineContext(const TContClosure& c)
 
 void TContMachineContext::SwitchTo(TContMachineContext* next) noexcept {
     if (Y_LIKELY(__mysetjmp(Buf_) == 0)) {
-#if defined(_asan_enabled_)
+#if defined(_asan_enabled_) || defined(_tsan_enabled_)
         next->San_.BeforeSwitch();
 #endif
         __mylongjmp(next->Buf_, 1);
