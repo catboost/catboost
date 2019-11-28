@@ -2529,7 +2529,8 @@
                 "cxx_compiler": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-g++",
                 "ar": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-ar",
                 "strip": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-strip",
-                "objcopy": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-objcopy"
+                "objcopy": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-objcopy",
+                "isystem": ["$(GCC)/usr/lib/arm-poky-linux-gnueabi/gcc/arm-poky-linux-gnueabi/6.3.0/include", "$(GCC)/usr/lib/arm-poky-linux-gnueabi/gcc/arm-poky-linux-gnueabi/6.3.0/include-fixed"]
             }
         },
         "gcc73-armv7a-jbl-portable-music": {
