@@ -1841,8 +1841,8 @@ class CatBoost(_CatBoostBase):
     def _validate_prediction_type(self, prediction_type):
         if not isinstance(prediction_type, STRING_TYPES):
             raise CatBoostError("Invalid prediction_type type={}: must be str().".format(type(prediction_type)))
-        if prediction_type not in ('Class', 'RawFormulaVal', 'Probability'):
-            raise CatBoostError("Invalid value of prediction_type={}: must be Class, RawFormulaVal or Probability.".format(prediction_type))
+        if prediction_type not in ('Class', 'RawFormulaVal', 'Probability', 'LogProbability'):
+            raise CatBoostError("Invalid value of prediction_type={}: must be Class, RawFormulaVal, Probability, LogProbability.".format(prediction_type))
 
     def _predict(self, data, prediction_type, ntree_start, ntree_end, thread_count, verbose, parent_method_name):
         verbose = verbose or self.get_param('verbose')
@@ -3810,6 +3810,7 @@ class CatBoostClassifier(CatBoost):
             - 'RawFormulaVal' : return raw formula value.
             - 'Class' : return majority vote class.
             - 'Probability' : return probability for every class.
+            - 'LogProbability' : return log probability for every class.
 
         ntree_start: int, optional (default=0)
             Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
@@ -3833,11 +3834,15 @@ class CatBoostClassifier(CatBoost):
                 - 'RawFormulaVal' : return raw formula value.
                 - 'Class' : return majority vote class.
                 - 'Probability' : return one-dimensional numpy.ndarray with probability for every class.
+                - 'LogProbability' : return one-dimensional numpy.ndarray with
+                  log probability for every class.
             otherwise numpy.ndarray, with values that depend on prediction_type value:
                 - 'RawFormulaVal' : one-dimensional array of raw formula value for each object.
                 - 'Class' : one-dimensional array of majority vote class for each object.
                 - 'Probability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
                   with probability for every class for each object.
+                - 'LogProbability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
+                  with log probability for every class for each object.
         """
         return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict')
 
@@ -3879,6 +3884,45 @@ class CatBoostClassifier(CatBoost):
         """
         return self._predict(data, 'Probability', ntree_start, ntree_end, thread_count, verbose, 'predict_proba')
 
+
+    def predict_log_proba(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
+        """
+        Predict class log probability with data.
+
+        Parameters
+        ----------
+        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+                or catboost.FeaturesData
+            Data to apply model on.
+            If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
+            as a list of features for a single object.
+
+        ntree_start: int, optional (default=0)
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
+
+        ntree_end: int, optional (default=0)
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
+            If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
+
+        thread_count : int (default=-1)
+            The number of threads to use when applying the model.
+            Allows you to optimize the speed of execution. This parameter doesn't affect results.
+            If -1, then the number of threads is set to the number of CPU cores.
+
+        verbose : bool
+            If True, writes the evaluation metric measured set to stderr.
+
+        Returns
+        -------
+        prediction :
+            If data is for a single object
+                return one-dimensional numpy.ndarray with log probability for every class.
+            otherwise
+                return two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
+                with log probability for every class for each object.
+        """
+        return self._predict(data, 'LogProbability', ntree_start, ntree_end, thread_count, verbose, 'predict_log_proba')
+
     def staged_predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
         """
         Predict target at each stage for data.
@@ -3896,6 +3940,7 @@ class CatBoostClassifier(CatBoost):
             - 'RawFormulaVal' : return raw formula value.
             - 'Class' : return majority vote class.
             - 'Probability' : return probability for every class.
+            - 'LogProbability' : return log probability for every class.
 
         ntree_start: int, optional (default=0)
             Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
@@ -3922,11 +3967,15 @@ class CatBoostClassifier(CatBoost):
                 - 'RawFormulaVal' : return raw formula value.
                 - 'Class' : return majority vote class.
                 - 'Probability' : return one-dimensional numpy.ndarray with probability for every class.
+                - 'LogProbability' : return one-dimensional numpy.ndarray with
+                  log probability for every class.
             otherwise numpy.ndarray, with values that depend on prediction_type value:
                 - 'RawFormulaVal' : one-dimensional array of raw formula value for each object.
                 - 'Class' : one-dimensional array of majority vote class for each object.
                 - 'Probability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
                   with probability for every class for each object.
+                - 'LogProbability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
+                  with log probability for every class for each object.
         """
         return self._staged_predict(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict')
 
@@ -3970,6 +4019,48 @@ class CatBoostClassifier(CatBoost):
                 with probability for every class for each object.
         """
         return self._staged_predict(data, 'Probability', ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict_proba')
+
+
+    def staged_predict_log_proba(self, data, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
+        """
+        Predict classification target at each stage for data.
+
+        Parameters
+        ----------
+        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+                or catboost.FeaturesData
+            Data to apply model on.
+            If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
+            as a list of features for a single object.
+
+        ntree_start: int, optional (default=0)
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+
+        ntree_end: int, optional (default=0)
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
+
+        eval_period: int, optional (default=1)
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+
+        thread_count : int (default=-1)
+            The number of threads to use when applying the model.
+            Allows you to optimize the speed of execution. This parameter doesn't affect results.
+            If -1, then the number of threads is set to the number of CPU cores.
+
+        verbose : bool
+            If True, writes the evaluation metric measured set to stderr.
+
+        Returns
+        -------
+        prediction : generator for each iteration that generates:
+            If data is for a single object
+                return one-dimensional numpy.ndarray with log probability for every class.
+            otherwise
+                return two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
+                with log probability for every class for each object.
+        """
+        return self._staged_predict(data, 'LogProbability', ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict_log_proba')
 
     def score(self, X, y=None):
         """

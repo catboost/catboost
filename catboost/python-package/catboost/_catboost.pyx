@@ -317,6 +317,7 @@ cdef extern from "catboost/private/libs/options/enums.h":
 
     cdef EPredictionType EPredictionType_Class "EPredictionType::Class"
     cdef EPredictionType EPredictionType_Probability "EPredictionType::Probability"
+    cdef EPredictionType EPredictionType_LogProbability "EPredictionType::LogProbability"
     cdef EPredictionType EPredictionType_RawFormulaVal "EPredictionType::RawFormulaVal"
 
     cdef cppclass EFstrType:
@@ -1646,6 +1647,8 @@ cdef transform_predictions(TVector[TVector[double]] predictions, EPredictionType
 
         if predictionType == EPredictionType_Probability:
             return np.transpose([1 - pred_single_dim, pred_single_dim])
+        elif predictionType == EPredictionType_LogProbability:
+            return np.transpose(_convert_to_visible_labels(predictionType, predictions, thread_count, model)) 
         return pred_single_dim
 
     assert(approx_dimension > 1)
