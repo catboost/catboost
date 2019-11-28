@@ -2,9 +2,9 @@ build:
   stage: build
   script:
     - cd catboost/python-package/catboost 
-    - ../../../ya make -r -DDEBUGINFO -DOS_SDK=local -DUSE_ARCADIA_PYTHON=no -DUSE_SYSTEM_PYTHON=2.7 -DHAVE_CUDA=no
+    - nice -19 ../../../ya make -r -DDEBUGINFO -DOS_SDK=local -DUSE_ARCADIA_PYTHON=no -DUSE_SYSTEM_PYTHON=2.7 -DHAVE_CUDA=no
     - cd ../
-    - python mk_wheel.py -r -DDEBUGINFO -DOS_SDK=local -DUSE_ARCADIA_PYTHON=no -DUSE_SYSTEM_PYTHON=2.7 -DHAVE_CUDA=no
+    - nice -19 python mk_wheel.py -r -DDEBUGINFO -DOS_SDK=local -DUSE_ARCADIA_PYTHON=no -DUSE_SYSTEM_PYTHON=2.7 -DHAVE_CUDA=no
   artifacts:
     paths:
       - catboost/python-package/catboost-*.whl
