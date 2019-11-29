@@ -589,6 +589,11 @@ namespace NCatboostCuda {
                     ignoredFeatures.erase(feature);
                 }
                 TBinarizedFeaturesManager featureManager(FeaturesManager, {ignoredFeatures.begin(), ignoredFeatures.end()});
+                if (featureManager.GetDataProviderFeatureIds().empty()) {
+                    CATBOOST_WARNING_LOG << "Feature set " << featureSetIdx
+                        << " is not evaluated because it consists of ignored or constant features" << Endl;
+                    continue;
+                }
                 auto inputData = CreateInputData(permutationCount, &featureManager);
                 auto weak = MakeWeakLearner<TWeakLearner>(featureManager, CatBoostOptions);
 
