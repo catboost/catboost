@@ -144,7 +144,7 @@ def on_go_process_srcs(unit):
         for f in go_files:
             if f.endswith('_test.go'):
                 continue
-            cover_var = 'GoCover_' + base64.b32encode(f).rstrip('=')
+            cover_var = 'GoCover' + base64.b32encode(f).rstrip('=')
             cover_file = unit.resolve_arc_path(f)
             unit.on_go_gen_cover_go([cover_file, cover_var])
             if cover_file.startswith('$S/'):
