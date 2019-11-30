@@ -2530,7 +2530,10 @@
                 "ar": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-ar",
                 "strip": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-strip",
                 "objcopy": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-objcopy",
-                "isystem": ["$(GCC)/usr/lib/arm-poky-linux-gnueabi/gcc/arm-poky-linux-gnueabi/6.3.0/include", "$(GCC)/usr/lib/arm-poky-linux-gnueabi/gcc/arm-poky-linux-gnueabi/6.3.0/include-fixed"]
+                "isystem": [
+                    "$(GCC)/usr/lib/arm-poky-linux-gnueabi/gcc/arm-poky-linux-gnueabi/6.3.0/include",
+                    "$(GCC)/usr/lib/arm-poky-linux-gnueabi/gcc/arm-poky-linux-gnueabi/6.3.0/include-fixed"
+                ]
             }
         },
         "gcc73-armv7a-jbl-portable-music": {
@@ -6427,7 +6430,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 557213441,
+                "sandbox_id": 557754942,
                 "match": "horadric"
             },
             "executable": {
