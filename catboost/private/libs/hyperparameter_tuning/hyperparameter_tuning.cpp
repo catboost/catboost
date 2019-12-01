@@ -414,7 +414,10 @@ namespace {
             quantizedFeaturesInfo = MakeIntrusive<NCB::TQuantizedFeaturesInfo>(
                 *(featuresLayout.Get()),
                 MakeConstArrayRef(ignoredFeatureNums),
-                commonFloatFeaturesBinarization
+                commonFloatFeaturesBinarization,
+                /*perFloatFeatureQuantization*/TMap<ui32, NCatboostOptions::TBinarizationOptions>(),
+                /*floatFeaturesAllowNansInTestOnly*/true,
+                allowWriteFiles
             );
             // Quantizing training data
             *result = GetTrainingData(

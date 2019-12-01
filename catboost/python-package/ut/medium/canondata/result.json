@@ -809,6 +809,10 @@
         "checksum": "a3f7a88c8fce7c14b118018be74105bf",
         "uri": "file://test.test_staged_predict_CPU_/predictions.npy"
     },
+    "test.test_text_processing_dictionary": {
+        "checksum": "e8ee998c425ee47e0ea7c749875568da",
+        "uri": "file://test.test_text_processing_dictionary/dictionary.tsv"
+    },
     "test.test_util_eval_metric[Logloss]": {
         "checksum": "0779ae985d0a7dbddec543e531e535da",
         "uri": "file://test.test_util_eval_metric_Logloss_/predictions.npy"

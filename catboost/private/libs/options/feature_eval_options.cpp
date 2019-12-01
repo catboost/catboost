@@ -26,10 +26,10 @@ void NCatboostOptions::TFeatureEvalOptions::Save(NJson::TJsonValue* options) con
 
 bool NCatboostOptions::TFeatureEvalOptions::operator==(const TFeatureEvalOptions& rhs) const {
     const auto& options = std::tie(
-        FeaturesToEvaluate, FeatureEvalMode, EvalFeatureFileName,
+        FeaturesToEvaluate, FeatureEvalMode,
         Offset, FoldCount, FoldSizeUnit, FoldSize);
     const auto& rhsOptions = std::tie(
-        rhs.FeaturesToEvaluate, rhs.FeatureEvalMode, rhs.EvalFeatureFileName,
+        rhs.FeaturesToEvaluate, rhs.FeatureEvalMode,
         rhs.Offset, rhs.FoldCount, rhs.FoldSizeUnit, rhs.FoldSize);
     return options == rhsOptions;
 }

@@ -308,6 +308,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\quote\library-string_utils-quote.vcxproj">
       <Project>{075BADF5-1D74-1D82-2261-20891F7B1B30}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\scan\library-string_utils-scan.vcxproj">
+      <Project>{3EBC1D40-BAA8-5D8A-8385-635FD3E56F31}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\url\library-string_utils-url.vcxproj">
       <Project>{F79D59BA-A429-102B-7C71-A1F895119240}</Project>
     </ProjectReference>

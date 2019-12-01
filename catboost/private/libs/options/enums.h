@@ -215,6 +215,7 @@ enum class ECounterCalc {
 
 enum class EPredictionType {
     Probability,
+    LogProbability,
     Class,
     RawFormulaVal,
     InternalRawFormulaVal

@@ -127,7 +127,7 @@ namespace NCB {
             trainingData->ObjectsData->GetQuantizedFeaturesInfo()->SetAllowWriteFiles(allowWriteFiles);
         } else {
             trainingData->ObjectsData = GetQuantizedObjectsData(
-                params,
+                *params,
                 srcData,
                 bordersFile,
                 quantizedFeaturesInfo,

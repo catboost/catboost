@@ -1,3 +1,20 @@
+# Release 0.20
+
+New submodule for text processing!
+It contains two classes to help you make text features ready for training:
+- [Tokenizer](https://github.com/catboost/catboost/blob/afb8331a638de280ba2aee3831ac9df631e254a0/library/text_processing/tokenizer/tokenizer.pxi#L77) -- use this class to split text into tokens (automatic lowercase and punctuation removal)
+- [Dictionary](https://github.com/catboost/catboost/tree/master/library/text_processing/dictionary) -- with this class you create a dictionary which maps tokens to numeric identifiers. You then use these identifiers as new features.
+
+## New features:
+- Enabled `boost_from_average` for `MAPE` loss function
+
+## Bug fixes:
+- Fixed `Pool` creation from `pandas.DataFrame` with discontinuous columns, #1079
+- Fixed `standalone_evaluator`, PR #1083
+
+## Speedups:
+- Huge speedup of preprocessing in python-package for datasets with many samples (>10 mln)
+
 # Release 0.19.1
 
 ## New features:

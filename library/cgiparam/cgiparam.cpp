@@ -1,8 +1,9 @@
 #include "cgiparam.h"
 
-#include <util/generic/singleton.h>
-#include <util/string/scan.h>
+#include <library/string_utils/scan/scan.h>
 #include <library/string_utils/quote/quote.h>
+
+#include <util/generic/singleton.h>
 
 TCgiParameters::TCgiParameters(std::initializer_list<std::pair<TString, TString>> il) {
     for (const auto& item : il) {

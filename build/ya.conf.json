@@ -2529,7 +2529,11 @@
                 "cxx_compiler": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-g++",
                 "ar": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-ar",
                 "strip": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-strip",
-                "objcopy": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-objcopy"
+                "objcopy": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-objcopy",
+                "isystem": [
+                    "$(GCC)/usr/lib/arm-poky-linux-gnueabi/gcc/arm-poky-linux-gnueabi/6.3.0/include",
+                    "$(GCC)/usr/lib/arm-poky-linux-gnueabi/gcc/arm-poky-linux-gnueabi/6.3.0/include-fixed"
+                ]
             }
         },
         "gcc73-armv7a-jbl-portable-music": {
@@ -2564,7 +2568,7 @@
                 {
                     "host": {
                         "os": "LINUX"
-                  },
+                    },
                     "target": {
                         "os": "YOCTO_JBL_PORTABLE_MUSIC",
                         "arch": "armv7a"
@@ -2615,7 +2619,7 @@
                 {
                     "host": {
                         "os": "LINUX"
-                  },
+                    },
                     "target": {
                         "os": "YOCTO_LIGHTCOMM",
                         "arch": "aarch64"
@@ -2632,7 +2636,10 @@
                 "gcc_version": "7.3",
                 "strip": "$(GCC)/usr/bin/aarch64-poky-linux/aarch64-poky-linux-strip",
                 "objcopy": "$(GCC)/usr/bin/aarch64-poky-linux/aarch64-poky-linux-objcopy",
-                "isystem": ["$(GCC)/usr/lib/aarch64-poky-linux/gcc/aarch64-poky-linux/5.3.0/include", "$(GCC)/usr/lib/aarch64-poky-linux/gcc/aarch64-poky-linux/5.3.0/include-fixed"]
+                "isystem": [
+                    "$(GCC)/usr/lib/aarch64-poky-linux/gcc/aarch64-poky-linux/5.3.0/include",
+                    "$(GCC)/usr/lib/aarch64-poky-linux/gcc/aarch64-poky-linux/5.3.0/include-fixed"
+                ]
             }
         },
         "bloat": {
@@ -4838,7 +4845,9 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [555589654],
+                "sandbox_id": [
+                    552977342
+                ],
                 "match": "ymake"
             },
             "executable": {
@@ -4861,7 +4870,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    556377719
+                    557843592
                 ],
                 "match": "arc"
             },
@@ -5535,7 +5544,7 @@
         "gcc63-armv7a-lg-wk7y": {
             "formula": {
                 "sandbox_id": [
-                    "555947382"
+                    "557978109"
                 ],
                 "match": "GCC"
             },
@@ -5650,7 +5659,7 @@
                     "aarch64-poky-linux",
                     "aarch64-poky-linux-c++filt"
                 ],
-"strip": [
+                "strip": [
                     "usr",
                     "bin",
                     "aarch64-poky-linux",
@@ -6421,7 +6430,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 547398069,
+                "sandbox_id": 559367176,
                 "match": "horadric"
             },
             "executable": {
@@ -6692,7 +6701,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 555849153,
+                "sandbox_id": 557338083,
                 "match": "SEDEM archive"
             },
             "executable": {

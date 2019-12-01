@@ -44,4 +44,7 @@
 - source_filter: "^quasar/yandex_io/daemons/src/platforms/elari_a98/wm_peripheral.h"
   includes:
   - linux/socket.h
-
+- source_filter: "^quasar/yandex_io/daemons/external_libs/libsrtp/"
+  includes:
+  - alloc.h: quasar/yandex_io/daemons/external_libs/libsrtp/crypto/include/alloc.h
+  - err.h: quasar/yandex_io/daemons/external_libs/libsrtp/crypto/include/err.h

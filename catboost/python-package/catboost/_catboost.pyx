@@ -317,6 +317,7 @@ cdef extern from "catboost/private/libs/options/enums.h":
 
     cdef EPredictionType EPredictionType_Class "EPredictionType::Class"
     cdef EPredictionType EPredictionType_Probability "EPredictionType::Probability"
+    cdef EPredictionType EPredictionType_LogProbability "EPredictionType::LogProbability"
     cdef EPredictionType EPredictionType_RawFormulaVal "EPredictionType::RawFormulaVal"
 
     cdef cppclass EFstrType:
@@ -1646,6 +1647,8 @@ cdef transform_predictions(TVector[TVector[double]] predictions, EPredictionType
 
         if predictionType == EPredictionType_Probability:
             return np.transpose([1 - pred_single_dim, pred_single_dim])
+        elif predictionType == EPredictionType_LogProbability:
+            return np.transpose(_convert_to_visible_labels(predictionType, predictions, thread_count, model)) 
         return pred_single_dim
 
     assert(approx_dimension > 1)
@@ -2784,7 +2787,7 @@ def _set_features_order_data_scipy_sparse_csc_matrix(
 
     cdef TString factor_string_buf
     cdef TVector[TString] cat_feature_values
-    
+
     cdef bool_t is_float_value = False
 
     if (numpy_num_dtype is np.float32_t) or (numpy_num_dtype is np.float64_t):
@@ -5109,4 +5112,4 @@ cpdef compute_training_options(dict options, DataMetaInfo train_meta_info, DataM
 
 
 include "_monoforest.pxi"
-include "library/text_processing/tokenizer/tokenizer.pxi"
+include "_text_processing.pxi"

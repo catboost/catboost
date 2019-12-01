@@ -15,9 +15,8 @@ public:
         , MaxBufferSize_{maxBufferSize}
         , MaxPendingCacheSize_{maxPendingCacheSize}
         , Buffer_{maxBufferSize}
-        , WrittenPtr_{0}
-        , PageAlignedWrittenPtr_{0}
-        , GuaranteedWrittenPtr_{0} {
+    {
+        ResetPtrs();
     }
 
     ~TImpl() noexcept {
@@ -55,19 +54,23 @@ public:
 
         File_.LinkTo(OpenFile(File_.GetName()));
 
-        WrittenPtr_ = 0;
-        PageAlignedWrittenPtr_ = 0;
-        GuaranteedWrittenPtr_ = 0;
+        ResetPtrs();
     }
 
 private:
+    void ResetPtrs() {
+        WrittenPtr_ = File_.GetLength();
+        PageAlignedWrittenPtr_ = AlignDown(WrittenPtr_, GetPageSize());
+        GuaranteedWrittenPtr_ = WrittenPtr_;
+    }
+
     static TFile OpenFile(const TString& path) {
         return TFile{path, OpenAlways | WrOnly | ForAppend | Seq | NoReuse};
     }
 
     static i64 GetPageSize() {
         static const i64 pageSize = NSystemInfo::GetPageSize();
-        Y_ASSUME(pageSize > 0 && (pageSize & (pageSize - 1)) == 0);
+        Y_ASSUME(IsPowerOf2(pageSize));
         return pageSize;
     }
 

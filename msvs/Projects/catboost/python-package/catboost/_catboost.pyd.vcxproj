@@ -636,11 +636,17 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\relaxed_escaper\library-string_utils-relaxed_escaper.vcxproj">
       <Project>{91423FEC-8B3D-547B-2674-3740D83114B5}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\scan\library-string_utils-scan.vcxproj">
+      <Project>{3EBC1D40-BAA8-5D8A-8385-635FD3E56F31}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\url\library-string_utils-url.vcxproj">
       <Project>{F79D59BA-A429-102B-7C71-A1F895119240}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\svnversion\library-svnversion.vcxproj">
       <Project>{EB1297E8-310F-2F45-45A8-54D412024564}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\text_processing\app_helpers\library-text_processing-app_helpers.vcxproj">
+      <Project>{FF14E7A5-1CC9-9D01-3998-5EF437196723}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\text_processing\dictionary\idl\text_processing-dictionary-idl.vcxproj">
       <Project>{939B289A-1787-7277-2983-EC29354F300F}</Project>

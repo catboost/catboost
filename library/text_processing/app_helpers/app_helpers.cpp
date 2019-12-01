@@ -1,8 +1,8 @@
-#include "bpe_builder.h"
-#include "dictionary_builder.h"
 #include "app_helpers.h"
-#include "options.h"
 
+#include <library/text_processing/dictionary/bpe_builder.h>
+#include <library/text_processing/dictionary/dictionary_builder.h>
+#include <library/text_processing/dictionary/options.h>
 #include <library/text_processing/tokenizer/tokenizer.h>
 #include <library/containers/flat_hash/flat_hash.h>
 

@@ -233,7 +233,6 @@ JOIN_SRCS(
     string/hex.cpp
     string/join.cpp
     string/printf.cpp
-    string/scan.cpp
     string/split.cpp
     string/strip.cpp
     string/strspn.cpp

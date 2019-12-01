@@ -41,6 +41,7 @@ PEERDIR(
     library/containers/2d_array
     library/json/writer
     library/text_processing/tokenizer
+    library/text_processing/app_helpers
 )
 
 SRCS(

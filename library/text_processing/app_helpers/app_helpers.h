@@ -1,7 +1,6 @@
 #pragma once
 
-#include "bpe_dictionary.h"
-
+#include <library/text_processing/dictionary/bpe_dictionary.h>
 #include <library/text_processing/tokenizer/options.h>
 
 namespace NTextProcessing::NDictionary {

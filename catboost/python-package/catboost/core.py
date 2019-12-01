@@ -238,30 +238,30 @@ class Pool(_PoolBase):
     ):
         """
         Pool is an internal data structure that is used by CatBoost.
-        You can construct Pool from list, numpy.array, pandas.DataFrame, pandas.Series.
+        You can construct Pool from list, numpy.ndarray, pandas.DataFrame, pandas.Series.
 
         Parameters
         ----------
-        data : list or numpy.array or pandas.DataFrame or pandas.Series or FeaturesData or string
+        data : list or numpy.ndarray or pandas.DataFrame or pandas.Series or FeaturesData or string
             Data source of Pool.
-            If list or numpy.arrays or pandas.DataFrame or pandas.Series, giving 2 dimensional array like data.
+            If list or numpy.ndarrays or pandas.DataFrame or pandas.Series, giving 2 dimensional array like data.
             If FeaturesData - see FeaturesData description for details, 'cat_features' and 'feature_names'
               parameters must be equal to None in this case
             If string, giving the path to the file with data in catboost format.
               If path starts with "quantized://", the file has to contain quantized dataset saved with Pool.save().
 
-        label : list or numpy.arrays or pandas.DataFrame or pandas.Series, optional (default=None)
+        label : list or numpy.ndarrays or pandas.DataFrame or pandas.Series, optional (default=None)
             Label of the training data.
             If not None, giving 1 or 2 dimensional array like data with floats.
             If data is a file, then label must be in the file, that is label must be equals to None
 
-        cat_features : list or numpy.array, optional (default=None)
+        cat_features : list or numpy.ndarray, optional (default=None)
             If not None, giving the list of Categ features indices or names.
             If it contains feature names, Pool's feature names must be defined: either by passing 'feature_names'
               parameter or if data is pandas.DataFrame (feature names are initialized from it's column names)
             Must be None if 'data' parameter has FeaturesData type
 
-        text_features : list or numpy.array, optional (default=None)
+        text_features : list or numpy.ndarray, optional (default=None)
             If not None, giving the list of Text features indices or names.
             If it contains feature names, Pool's feature names must be defined: either by passing 'feature_names'
               parameter or if data is pandas.DataFrame (feature names are initialized from it's column names)
@@ -275,9 +275,9 @@ class Pool(_PoolBase):
             If None, Label column is 0 (zero) as default, all data columns are Num as default.
             If string, giving the path to the file with ColumnsDescription in column_description format.
 
-        pairs : list or numpy.array or pandas.DataFrame or string
+        pairs : list or numpy.ndarray or pandas.DataFrame or string
             The pairs description.
-            If list or numpy.arrays or pandas.DataFrame, giving 2 dimensional.
+            If list or numpy.ndarrays or pandas.DataFrame, giving 2 dimensional.
             The shape should be Nx2, where N is the pairs' count. The first element of the pair is
             the index of winner object in the training set. The second element of the pair is
             the index of loser object in the training set.
@@ -290,27 +290,27 @@ class Pool(_PoolBase):
         has_header : bool optional (default=False)
             If True, read column names from first line.
 
-        weight : list or numpy.array, optional (default=None)
+        weight : list or numpy.ndarray, optional (default=None)
             Weight for each instance.
             If not None, giving 1 dimensional array like data.
 
-        group_id : list or numpy.array, optional (default=None)
+        group_id : list or numpy.ndarray, optional (default=None)
             group id for each instance.
             If not None, giving 1 dimensional array like data.
 
-        group_weight : list or numpy.array, optional (default=None)
+        group_weight : list or numpy.ndarray, optional (default=None)
             Group weight for each instance.
             If not None, giving 1 dimensional array like data.
 
-        subgroup_id : list or numpy.array, optional (default=None)
+        subgroup_id : list or numpy.ndarray, optional (default=None)
             subgroup id for each instance.
             If not None, giving 1 dimensional array like data.
 
-        pairs_weight : list or numpy.array, optional (default=None)
+        pairs_weight : list or numpy.ndarray, optional (default=None)
             Weight for each pair.
             If not None, giving 1 dimensional array like pairs.
 
-        baseline : list or numpy.array, optional (default=None)
+        baseline : list or numpy.ndarray, optional (default=None)
             Baseline for each instance.
             If not None, giving 2 dimensional array like data.
 
@@ -579,7 +579,7 @@ class Pool(_PoolBase):
 
     def slice(self, rindex):
         if not isinstance(rindex, ARRAY_TYPES):
-            raise CatBoostError("Invalid rindex type={} : must be list or numpy.array".format(type(rindex)))
+            raise CatBoostError("Invalid rindex type={} : must be list or numpy.ndarray".format(type(rindex)))
         slicedPool = Pool(None)
         slicedPool._take_slice(self, rindex)
         return slicedPool
@@ -1716,54 +1716,54 @@ class CatBoost(_CatBoostBase):
 
         Parameters
         ----------
-        X : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series
              or string.
             If not catboost.Pool or catboost.FeaturesData it must be 2 dimensional Feature matrix
              or string - file with dataset.
 
              Must be non-empty (contain > 0 objects)
 
-        y : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
+        y : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
             Labels, 1 dimensional array like.
             Use only if X is not catboost.Pool.
 
-        cat_features : list or numpy.array, optional (default=None)
+        cat_features : list or numpy.ndarray, optional (default=None)
             If not None, giving the list of Categ columns indices.
             Use only if X is not catboost.Pool and not catboost.FeaturesData
 
-        text_features: list or numpy.array, optional (default=None)
+        text_features: list or numpy.ndarray, optional (default=None)
             If not none, giving the list of Text columns indices.
             Use only if X is not catboost.Pool and not catboost.FeaturesData
 
-        pairs : list or numpy.array or pandas.DataFrame
+        pairs : list or numpy.ndarray or pandas.DataFrame
             The pairs description.
-            If list or numpy.arrays or pandas.DataFrame, giving 2 dimensional.
+            If list or numpy.ndarrays or pandas.DataFrame, giving 2 dimensional.
             The shape should be Nx2, where N is the pairs' count. The first element of the pair is
             the index of the winner object in the training set. The second element of the pair is
             the index of the loser object in the training set.
 
-        sample_weight : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
+        sample_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
             Instance weights, 1 dimensional array like.
 
-        group_id : list or numpy.array, optional (default=None)
+        group_id : list or numpy.ndarray, optional (default=None)
             group id for each instance.
             If not None, giving 1 dimensional array like data.
             Use only if X is not catboost.Pool.
 
-        group_weight : list or numpy.array, optional (default=None)
+        group_weight : list or numpy.ndarray, optional (default=None)
             Group weight for each instance.
             If not None, giving 1 dimensional array like data.
 
-        subgroup_id : list or numpy.array, optional (default=None)
+        subgroup_id : list or numpy.ndarray, optional (default=None)
             subgroup id for each instance.
             If not None, giving 1 dimensional array like data.
             Use only if X is not catboost.Pool.
 
-        pairs_weight : list or numpy.array, optional (default=None)
+        pairs_weight : list or numpy.ndarray, optional (default=None)
             Weight for each pair.
             If not None, giving 1 dimensional array like pairs.
 
-        baseline : list or numpy.array, optional (default=None)
+        baseline : list or numpy.ndarray, optional (default=None)
             If not None, giving 2 dimensional array like data.
             Use only if X is not catboost.Pool.
 
@@ -1841,8 +1841,8 @@ class CatBoost(_CatBoostBase):
     def _validate_prediction_type(self, prediction_type):
         if not isinstance(prediction_type, STRING_TYPES):
             raise CatBoostError("Invalid prediction_type type={}: must be str().".format(type(prediction_type)))
-        if prediction_type not in ('Class', 'RawFormulaVal', 'Probability'):
-            raise CatBoostError("Invalid value of prediction_type={}: must be Class, RawFormulaVal or Probability.".format(prediction_type))
+        if prediction_type not in ('Class', 'RawFormulaVal', 'Probability', 'LogProbability'):
+            raise CatBoostError("Invalid value of prediction_type={}: must be Class, RawFormulaVal, Probability, LogProbability.".format(prediction_type))
 
     def _predict(self, data, prediction_type, ntree_start, ntree_end, thread_count, verbose, parent_method_name):
         verbose = verbose or self.get_param('verbose')
@@ -1860,7 +1860,7 @@ class CatBoost(_CatBoostBase):
 
         Parameters
         ----------
-        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
                 or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
@@ -1921,7 +1921,7 @@ class CatBoost(_CatBoostBase):
 
         Parameters
         ----------
-        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
                 or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
@@ -1980,7 +1980,7 @@ class CatBoost(_CatBoostBase):
 
         Parameters
         ----------
-        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
                 or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
@@ -2011,7 +2011,7 @@ class CatBoost(_CatBoostBase):
 
         Parameters
         ----------
-        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
                 or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
@@ -2211,7 +2211,7 @@ class CatBoost(_CatBoostBase):
             Data to get feature importance.
             If type in ('Shap', 'PredictionValuesChange') data is a dataset. For every object in this dataset feature importances will be calculated.
             If type == 'PredictionValuesChange', data is None or train dataset (in case if model was explicitly trained with flag store no leaf weights).
-            If type == 'PredictionDiff' data is list of list of np.array shape (2, n_features).
+            If type == 'PredictionDiff' data is list of list of np.ndarray shape (2, n_features).
 
         type : EFstrType or string (converted to EFstrType), optional
                     (default=EFstrType.FeatureImportance)
@@ -2266,8 +2266,8 @@ class CatBoost(_CatBoostBase):
             - PredictionValuesChange, LossFunctionChange, PredictionDiff with prettified=True
                 list of length [n_features] with (feature_id (string), feature_importance (float)) pairs, sorted by feature_importance in descending order
             - ShapValues
-                np.array of shape (n_objects, n_features + 1) with Shap values (float) for (object, feature).
-                In case of multiclass the returned value is np.array of shape
+                np.ndarray of shape (n_objects, n_features + 1) with Shap values (float) for (object, feature).
+                In case of multiclass the returned value is np.ndarray of shape
                 (n_objects, classes_count, n_features + 1). For each object it contains Shap values (float).
                 Values are calculated for RawFormulaVal predictions.
             - Interaction
@@ -2293,25 +2293,15 @@ class CatBoost(_CatBoostBase):
 
         if type == EFstrType.PredictionDiff:
             if data is None and isinstance(data, Pool):
-                if sys.version_info[0] >= 3:
-                    from builtins import type as typeof
-                    raise CatBoostError("Invalid data type={}, must be list or np.array".format(typeof(data)))
-                else:
-                    from __builtin__ import type as typeof
-                    raise CatBoostError("Invalid data type={}, must be catboost.Pool.".format(typeof(data)))
-                    
+                raise CatBoostError("Invalid data type={}, must be list or np.ndarray".format(_typeof(data)))
+
             data, _ = self._process_predict_input_data(data, "get_feature_importance")
             if data.num_row() != 2:
                 raise CatBoostError("{} requires a pair of documents, found {}".format(type, data.num_row()))
 
         else:
             if data is not None and not isinstance(data, Pool):
-                if sys.version_info[0] >= 3:
-                    from builtins import type as typeof
-                    raise CatBoostError("Invalid data type={}, must be catboost.Pool.".format(typeof(data)))
-                else:
-                    from __builtin__ import type as typeof
-                    raise CatBoostError("Invalid data type={}, must be catboost.Pool.".format(typeof(data)))
+                raise CatBoostError("Invalid data type={}, must be catboost.Pool.".format(typeof(data)))
 
         need_meta_info = type == EFstrType.PredictionValuesChange
         empty_data_is_ok = need_meta_info and self._object._has_leaf_weights_in_model() or type == EFstrType.Interaction
@@ -2487,7 +2477,7 @@ class CatBoost(_CatBoostBase):
                 * pmml_copyright : string
                 * pmml_description : string
                 * pmml_model_version : string
-        pool : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series or catboost.FeaturesData
+        pool : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series or catboost.FeaturesData
             Training pool.
         """
         if not self.is_fitted():
@@ -2603,7 +2593,7 @@ class CatBoost(_CatBoostBase):
     def plot_predictions(self, data, features_to_change, plot=True, plot_file=None):
         """
         To use this function, you should install plotly.
-        data: numpy.array or pandas.DataFrame or catboost.Pool
+        data: numpy.ndarray or pandas.DataFrame or catboost.Pool
         feature:
             Float features indexes in pd.DataFrame for which you want vary prediction value.
         plot: bool
@@ -2740,9 +2730,9 @@ class CatBoost(_CatBoostBase):
 
         Parameters
         ----------
-        data: numpy.array or pandas.DataFrame or catboost.Pool
+        data: numpy.ndarray or pandas.DataFrame or catboost.Pool
             Data to compute statistics on
-        target: numpy.array or pandas.Series or None
+        target: numpy.ndarray or pandas.Series or None
             Target corresponding to data
             Use only if data is not catboost.Pool.
         feature: None, int, string, or list of int or strings
@@ -2751,8 +2741,8 @@ class CatBoost(_CatBoostBase):
         prediction_type: str
             Prediction type used for counting mean_prediction: 'Class', 'Probability' or 'RawFormulaVal'.
             If not specified, is derived from the model.
-        cat_feature_values: list or numpy.array or pandas.Series or
-                            dict: int or string to list or numpy.array or pandas.Series
+        cat_feature_values: list or numpy.ndarray or pandas.Series or
+                            dict: int or string to list or numpy.ndarray or pandas.Series
             Contains categorical feature values you need to get statistics on.
             Use dict, when parameter 'feature' is a list to specify cat values for different features.
             When parameter 'feature' is int or str, you can just pass list of cat values.
@@ -3043,10 +3033,10 @@ class CatBoost(_CatBoostBase):
             dictionary in the list are explored.
             This enables searching over any sequence of parameter settings.
 
-        X: numpy.array or pandas.DataFrame or catboost.Pool
+        X: numpy.ndarray or pandas.DataFrame or catboost.Pool
             Data to compute statistics on
 
-        y: numpy.array or pandas.Series or None
+        y: numpy.ndarray or pandas.Series or None
             Target corresponding to data
             Use only if data is not catboost.Pool.
 
@@ -3138,10 +3128,10 @@ class CatBoost(_CatBoostBase):
             Distributions must provide a rvs method for sampling (such as those from scipy.stats.distributions).
             If a list is given, it is sampled uniformly.
 
-        X: numpy.array or pandas.DataFrame or catboost.Pool
+        X: numpy.ndarray or pandas.DataFrame or catboost.Pool
             Data to compute statistics on
 
-        y: numpy.array or pandas.Series or None
+        y: numpy.ndarray or pandas.Series or None
             Target corresponding to data
             Use only if data is not catboost.Pool.
 
@@ -3480,7 +3470,7 @@ class CatBoostClassifier(CatBoost):
     mvs-reg : float, [default is set automatically at each iteration based on gradient distribution]
         Regularization parameter for MVS sampling algorithm
 
-    monotone_constraints : list or numpy.array or string or dict, [default=None]
+    monotone_constraints : list or numpy.ndarray or string or dict, [default=None]
         Monotone constraints for features.
 
     sampling_frequency : string, [default=PerTree]
@@ -3559,11 +3549,11 @@ class CatBoostClassifier(CatBoost):
     early_stopping_rounds : int
         Synonym for od_wait. Only one of these parameters should be set.
 
-    cat_features : list or numpy.array, [default=None]
+    cat_features : list or numpy.ndarray, [default=None]
         If not None, giving the list of Categ features indices or names (names are represented as strings).
         If it contains feature names, feature names must be defined for the training dataset passed to 'fit'.
 
-    text_features : list or numpy.array, [default=None]
+    text_features : list or numpy.ndarray, [default=None]
         If not None, giving the list of Text features indices or names (names are represented as strings).
         If it contains feature names, feature names must be defined for the training dataset passed to 'fit'.
 
@@ -3718,25 +3708,25 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        X : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series
             If not catboost.Pool, 2 dimensional Feature matrix or string - file with dataset.
 
-        y : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
+        y : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
             Labels, 1 dimensional array like.
             Use only if X is not catboost.Pool.
 
-        cat_features : list or numpy.array, optional (default=None)
+        cat_features : list or numpy.ndarray, optional (default=None)
             If not None, giving the list of Categ columns indices.
             Use only if X is not catboost.Pool.
 
-        text_features : list or numpy.array, optional (default=None)
+        text_features : list or numpy.ndarray, optional (default=None)
             If not None, giving the list of Text columns indices.
             Use only if X is not catboost.Pool.
 
-        sample_weight : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
+        sample_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
             Instance weights, 1 dimensional array like.
 
-        baseline : list or numpy.array, optional (default=None)
+        baseline : list or numpy.ndarray, optional (default=None)
             If not None, giving 2 dimensional array like data.
             Use only if X is not catboost.Pool.
 
@@ -3809,7 +3799,7 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
                 or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
@@ -3820,6 +3810,7 @@ class CatBoostClassifier(CatBoost):
             - 'RawFormulaVal' : return raw formula value.
             - 'Class' : return majority vote class.
             - 'Probability' : return probability for every class.
+            - 'LogProbability' : return log probability for every class.
 
         ntree_start: int, optional (default=0)
             Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
@@ -3843,11 +3834,15 @@ class CatBoostClassifier(CatBoost):
                 - 'RawFormulaVal' : return raw formula value.
                 - 'Class' : return majority vote class.
                 - 'Probability' : return one-dimensional numpy.ndarray with probability for every class.
+                - 'LogProbability' : return one-dimensional numpy.ndarray with
+                  log probability for every class.
             otherwise numpy.ndarray, with values that depend on prediction_type value:
                 - 'RawFormulaVal' : one-dimensional array of raw formula value for each object.
                 - 'Class' : one-dimensional array of majority vote class for each object.
                 - 'Probability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
                   with probability for every class for each object.
+                - 'LogProbability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
+                  with log probability for every class for each object.
         """
         return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict')
 
@@ -3857,7 +3852,7 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
                 or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
@@ -3889,13 +3884,52 @@ class CatBoostClassifier(CatBoost):
         """
         return self._predict(data, 'Probability', ntree_start, ntree_end, thread_count, verbose, 'predict_proba')
 
+
+    def predict_log_proba(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
+        """
+        Predict class log probability with data.
+
+        Parameters
+        ----------
+        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+                or catboost.FeaturesData
+            Data to apply model on.
+            If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
+            as a list of features for a single object.
+
+        ntree_start: int, optional (default=0)
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
+
+        ntree_end: int, optional (default=0)
+            Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
+            If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
+
+        thread_count : int (default=-1)
+            The number of threads to use when applying the model.
+            Allows you to optimize the speed of execution. This parameter doesn't affect results.
+            If -1, then the number of threads is set to the number of CPU cores.
+
+        verbose : bool
+            If True, writes the evaluation metric measured set to stderr.
+
+        Returns
+        -------
+        prediction :
+            If data is for a single object
+                return one-dimensional numpy.ndarray with log probability for every class.
+            otherwise
+                return two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
+                with log probability for every class for each object.
+        """
+        return self._predict(data, 'LogProbability', ntree_start, ntree_end, thread_count, verbose, 'predict_log_proba')
+
     def staged_predict(self, data, prediction_type='Class', ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
         """
         Predict target at each stage for data.
 
         Parameters
         ----------
-        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
                 or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
@@ -3906,6 +3940,7 @@ class CatBoostClassifier(CatBoost):
             - 'RawFormulaVal' : return raw formula value.
             - 'Class' : return majority vote class.
             - 'Probability' : return probability for every class.
+            - 'LogProbability' : return log probability for every class.
 
         ntree_start: int, optional (default=0)
             Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
@@ -3932,11 +3967,15 @@ class CatBoostClassifier(CatBoost):
                 - 'RawFormulaVal' : return raw formula value.
                 - 'Class' : return majority vote class.
                 - 'Probability' : return one-dimensional numpy.ndarray with probability for every class.
+                - 'LogProbability' : return one-dimensional numpy.ndarray with
+                  log probability for every class.
             otherwise numpy.ndarray, with values that depend on prediction_type value:
                 - 'RawFormulaVal' : one-dimensional array of raw formula value for each object.
                 - 'Class' : one-dimensional array of majority vote class for each object.
                 - 'Probability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
                   with probability for every class for each object.
+                - 'LogProbability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
+                  with log probability for every class for each object.
         """
         return self._staged_predict(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict')
 
@@ -3946,7 +3985,7 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
                 or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
@@ -3981,15 +4020,57 @@ class CatBoostClassifier(CatBoost):
         """
         return self._staged_predict(data, 'Probability', ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict_proba')
 
+
+    def staged_predict_log_proba(self, data, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
+        """
+        Predict classification target at each stage for data.
+
+        Parameters
+        ----------
+        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+                or catboost.FeaturesData
+            Data to apply model on.
+            If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
+            as a list of features for a single object.
+
+        ntree_start: int, optional (default=0)
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+
+        ntree_end: int, optional (default=0)
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+            If value equals to 0 this parameter is ignored and ntree_end equal to tree_count_.
+
+        eval_period: int, optional (default=1)
+            Model is applied on the interval [ntree_start, ntree_end) with the step eval_period (zero-based indexing).
+
+        thread_count : int (default=-1)
+            The number of threads to use when applying the model.
+            Allows you to optimize the speed of execution. This parameter doesn't affect results.
+            If -1, then the number of threads is set to the number of CPU cores.
+
+        verbose : bool
+            If True, writes the evaluation metric measured set to stderr.
+
+        Returns
+        -------
+        prediction : generator for each iteration that generates:
+            If data is for a single object
+                return one-dimensional numpy.ndarray with log probability for every class.
+            otherwise
+                return two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
+                with log probability for every class for each object.
+        """
+        return self._staged_predict(data, 'LogProbability', ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict_log_proba')
+
     def score(self, X, y=None):
         """
         Calculate accuracy.
 
         Parameters
         ----------
-        X : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series
             Data to apply model on.
-        y : list or numpy.array
+        y : list or numpy.ndarray
             True labels.
 
         Returns
@@ -4166,21 +4247,21 @@ class CatBoostRegressor(CatBoost):
 
         Parameters
         ----------
-        X : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series
             If not catboost.Pool, 2 dimensional Feature matrix or string - file with dataset.
 
-        y : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
+        y : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
             Labels, 1 dimensional array like.
             Use only if X is not catboost.Pool.
 
-        cat_features : list or numpy.array, optional (default=None)
+        cat_features : list or numpy.ndarray, optional (default=None)
             If not None, giving the list of Categ columns indices.
             Use only if X is not catboost.Pool.
 
-        sample_weight : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
+        sample_weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
             Instance weights, 1 dimensional array like.
 
-        baseline : list or numpy.array, optional (default=None)
+        baseline : list or numpy.ndarray, optional (default=None)
             If not None, giving 2 dimensional array like data.
             Use only if X is not catboost.Pool.
 
@@ -4254,7 +4335,7 @@ class CatBoostRegressor(CatBoost):
 
         Parameters
         ----------
-        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
                 or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
@@ -4289,7 +4370,7 @@ class CatBoostRegressor(CatBoost):
 
         Parameters
         ----------
-        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
                 or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
@@ -4327,9 +4408,9 @@ class CatBoostRegressor(CatBoost):
 
         Parameters
         ----------
-        X : catboost.Pool or list or numpy.array or pandas.DataFrame or pandas.Series
+        X : catboost.Pool or list or numpy.ndarray or pandas.DataFrame or pandas.Series
             Data to apply model on.
-        y : list or numpy.array
+        y : list or numpy.ndarray
             True labels.
 
         Returns

@@ -221,28 +221,28 @@ def eval_metric(label, approx, metric, weight=None, group_id=None, subgroup_id=N
 
     Parameters
     ----------
-    label : list or numpy.arrays or pandas.DataFrame or pandas.Series
+    label : list or numpy.ndarrays or pandas.DataFrame or pandas.Series
         Object labels.
 
-    approx : list or numpy.arrays or pandas.DataFrame or pandas.Series
+    approx : list or numpy.ndarrays or pandas.DataFrame or pandas.Series
         Object approxes.
 
     metric : string
         Metric name.
 
-    weight : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
+    weight : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
         Object weights.
 
-    group_id : list or numpy.array or pandas.DataFrame or pandas.Series, optional (default=None)
+    group_id : list or numpy.ndarray or pandas.DataFrame or pandas.Series, optional (default=None)
         Object group ids.
 
-    subgroup_id : list or numpy.array, optional (default=None)
+    subgroup_id : list or numpy.ndarray, optional (default=None)
         subgroup id for each instance.
         If not None, giving 1 dimensional array like data.
 
-    pairs : list or numpy.array or pandas.DataFrame or string
+    pairs : list or numpy.ndarray or pandas.DataFrame or string
         The pairs description.
-        If list or numpy.arrays or pandas.DataFrame, giving 2 dimensional.
+        If list or numpy.ndarrays or pandas.DataFrame, giving 2 dimensional.
         The shape should be Nx2, where N is the pairs' count. The first element of the pair is
         the index of winner object in the training set. The second element of the pair is
         the index of loser object in the training set.

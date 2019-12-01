@@ -1,0 +1,5 @@
+{"end_of_word_token_policy":"Insert","skip_step":"0","start_token_id":"0","token_level_type":"Word","dictionary_format":"id_count_token","end_of_sentence_token_policy":"Skip","gram_order":"1"}
+3
+0	3	caba
+1	2	aba
+2	1	ala
