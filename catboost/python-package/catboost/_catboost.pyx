@@ -214,8 +214,15 @@ cdef class Py_ITypedSequencePtr:
         pass
 
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def make_non_owning_type_cast_array_holder(np.ndarray[numpy_num_dtype, ndim=1] array):
 
-def make_non_owning_type_cast_array_holder(numpy_num_dtype[:] array):
+    """
+        older buffer interface is used instead of memory views because of 
+        https://github.com/cython/cython/issues/1772, https://github.com/cython/cython/issues/2485
+    """
+
     cdef const numpy_num_dtype* array_begin = <const numpy_num_dtype*>nullptr
     cdef const numpy_num_dtype* array_end = <const numpy_num_dtype*>nullptr
 
@@ -2030,13 +2037,19 @@ cdef _get_object_count(data):
     else:
         return np.shape(data)[0]
 
-# num_feature_values and cat_feature values cannot be const due to
-# https://github.com/cython/cython/issues/2485
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def _set_features_order_data_features_data(
-    numpy_num_dtype [::1,:] num_feature_values,
-    object [::1,:] cat_feature_values,
+    np.ndarray[numpy_num_dtype, ndim=2] num_feature_values,
+    np.ndarray[object, ndim=2] cat_feature_values,
     Py_FeaturesOrderBuilderVisitor py_builder_visitor
 ):
+
+    """
+        older buffer interface is used instead of memory views because of 
+        https://github.com/cython/cython/issues/1772, https://github.com/cython/cython/issues/2485
+    """
+
     cdef IRawFeaturesOrderDataVisitor* builder_visitor
     py_builder_visitor.get_raw_features_order_data_visitor(&builder_visitor)
 
@@ -2079,13 +2092,20 @@ def _set_features_order_data_features_data(
         builder_visitor[0].AddCatFeature(dst_feature_idx, <TConstArrayRef[TString]>cat_factor_data)
         dst_feature_idx += 1
 
-# feature_values cannot be const due to https://github.com/cython/cython/issues/2485
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def _set_features_order_data_ndarray(
-    numpy_num_dtype [::1,:] feature_values,
+    np.ndarray[numpy_num_dtype, ndim=2] feature_values,
     bool_t [:] is_cat_feature_mask,
     bool_t [:] is_text_feature_mask,
     Py_FeaturesOrderBuilderVisitor py_builder_visitor
 ):
+
+    """
+        older buffer interface is used instead of memory views because of 
+        https://github.com/cython/cython/issues/1772, https://github.com/cython/cython/issues/2485
+    """
+
     cdef IRawFeaturesOrderDataVisitor* builder_visitor
     py_builder_visitor.get_raw_features_order_data_visitor(&builder_visitor)
 
@@ -2218,27 +2238,31 @@ cdef get_text_factor_bytes_representation(
 
 # returns new data holders array
 cdef get_canonical_type_indexing_array(np.ndarray indices, TMaybeOwningConstArrayHolder[ui32] * result):
-    cdef const np.int32_t[::1] ind_view_i32
-    cdef const np.int64_t[::1] ind_view_i64
+
+    """
+        older buffer interface is used instead of memory views because of 
+        https://github.com/cython/cython/issues/1772, https://github.com/cython/cython/issues/2485
+    """
+    cdef np.ndarray[np.int32_t, ndim=1] indices_i32
+    cdef np.ndarray[np.int64_t, ndim=1] indices_i64
 
     if len(indices) == 0:
         result[0] = TMaybeOwningConstArrayHolder[ui32].CreateNonOwning(TConstArrayRef[ui32]())
         return []
     elif indices.dtype == np.int32:
-        #indices.setflags(write=0)
-        ind_view_i32 = np.ascontiguousarray(indices, dtype=np.int32)
+        indices_i32 = np.ascontiguousarray(indices, dtype=np.int32)
         result[0] = TMaybeOwningConstArrayHolder[ui32].CreateNonOwning(
-            TConstArrayRef[ui32](<ui32*>&ind_view_i32[0], len(indices))
+            TConstArrayRef[ui32](<ui32*>&indices_i32[0], len(indices_i32))
         )
-        return [indices]
+        return [indices_i32]
     elif indices.dtype == np.int64:
-        ind_view_i64 = np.ascontiguousarray(indices, dtype=np.int64)
+        indices_i64 = np.ascontiguousarray(indices, dtype=np.int64)
         result[0] = CreateConstOwningWithMaybeTypeCast[ui32, i64](
             TMaybeOwningArrayHolder[i64].CreateNonOwning(
-                TArrayRef[i64](<i64*>&ind_view_i64[0], len(indices))
+                TArrayRef[i64](<i64*>&indices_i64[0], len(indices_i64))
             )
         )
-        return []
+        return [indices_i64]
     else:
         raise CatBoostError('unsupported index dtype = {}'.format(indices.dtype))
 
@@ -3042,10 +3066,19 @@ cdef _set_baseline_features_order(baseline, IRawFeaturesOrderDataVisitor* builde
         builder_visitor[0].AddBaseline(baseline_idx, <TConstArrayRef[float]>one_dim_baseline)
 
 
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def _set_label_from_num_nparray_objects_order(
-    numpy_num_dtype[:,:] label,
+    np.ndarray[numpy_num_dtype, ndim=2] label,
     Py_ObjectsOrderBuilderVisitor py_builder_visitor
 ):
+
+    """
+        older buffer interface is used instead of memory views because of 
+        https://github.com/cython/cython/issues/1772, https://github.com/cython/cython/issues/2485
+    """
+
     cdef IRawObjectsOrderDataVisitor* builder_visitor = py_builder_visitor.builder_visitor
     cdef ui32 object_count = label.shape[0]
     cdef ui32 target_count = label.shape[1]
@@ -3210,20 +3243,12 @@ cdef class _PoolBase:
         if isinstance(data, FeaturesData):
             new_data_holders = data
 
-            # needed because of https://github.com/cython/cython/issues/1772
-            if data.num_feature_data is not None:
-                data.num_feature_data.setflags(write=1)
-
-            # needed because of https://github.com/cython/cython/issues/2485
-            if data.cat_feature_data is not None:
-                data.cat_feature_data.setflags(write=1)
-
             _set_features_order_data_features_data(
                 data.num_feature_data,
                 data.cat_feature_data,
                 py_builder_visitor)
 
-            # set after _set_features_order_data_features_data call because we can't pass const data to it
+            # prevent inadvent modification of pool data
             if data.num_feature_data is not None:
                 data.num_feature_data.setflags(write=0)
             if data.cat_feature_data is not None:
@@ -3247,9 +3272,6 @@ cdef class _PoolBase:
             cat_features_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Categorical)
             text_features_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Text)
 
-            # needed because of https://github.com/cython/cython/issues/1772
-            data.setflags(write=1)
-
             _set_features_order_data_ndarray(
                 data,
                 <bool_t[:features_layout[0].GetExternalFeatureCount()]>cat_features_mask.data(),
@@ -3257,7 +3279,7 @@ cdef class _PoolBase:
                 py_builder_visitor
             )
 
-            # set after _set_features_order_data_np call because we can't pass const data to it
+            # prevent inadvent modification of pool data
             data.setflags(write=0)
         else:
             raise CatBoostError(
