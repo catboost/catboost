@@ -578,7 +578,7 @@ namespace NCatboostCuda {
                 outputOptions->SetMetricPeriod(1);
                 const auto trainDir = JoinFsPaths(
                     outputOptions->GetTrainDir(),
-                    ModelBasedEvalConfig.GetExperimentName(featureSetIdx, experimentIdx)
+                    NCatboostOptions::GetExperimentName(featureSetIdx, experimentIdx)
                 );
                 outputOptions->SetTrainDir(trainDir);
                 outputOptions->SetSnapshotFilename(catboostOptions->ModelBasedEvalOptions->BaselineModelSnapshot.Get());

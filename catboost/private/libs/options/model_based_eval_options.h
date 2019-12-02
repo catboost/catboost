@@ -23,8 +23,6 @@ namespace NCatboostOptions {
 
         void Validate() const;
 
-        TString GetExperimentName(ui32 featureSetIdx, ui32 experimentIdx) const;
-
         TOption<TVector<TVector<ui32>>> FeaturesToEvaluate;
         TOption<TString> BaselineModelSnapshot;
         TOption<int> Offset;
@@ -32,4 +30,6 @@ namespace NCatboostOptions {
         TOption<int> ExperimentSize;
         TOption<bool> UseEvaluatedFeaturesInBaselineModel;
     };
+
+    TString GetExperimentName(ui32 featureSetIdx, ui32 foldIdx);
 }

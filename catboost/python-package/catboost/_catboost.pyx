@@ -341,6 +341,10 @@ cdef extern from "catboost/private/libs/options/enums.h":
     cdef ECrossValidation ECrossValidation_Inverted "ECrossValidation::Inverted"
 
 
+cdef extern from "catboost/private/libs/options/model_based_eval_options.h" namespace "NCatboostOptions" nogil:
+    cdef TString GetExperimentName(ui32 featureSetIdx, ui32 foldIdx) except +ProcessException
+
+
 cdef extern from "catboost/private/libs/quantization_schema/schema.h" namespace "NCB":
     cdef cppclass TPoolQuantizationSchema:
         pass
@@ -1655,7 +1659,7 @@ cdef transform_predictions(TVector[TVector[double]] predictions, EPredictionType
         if predictionType == EPredictionType_Probability:
             return np.transpose([1 - pred_single_dim, pred_single_dim])
         elif predictionType == EPredictionType_LogProbability:
-            return np.transpose(_convert_to_visible_labels(predictionType, predictions, thread_count, model)) 
+            return np.transpose(_convert_to_visible_labels(predictionType, predictions, thread_count, model))
         return pred_single_dim
 
     assert(approx_dimension > 1)
@@ -5063,6 +5067,13 @@ cpdef is_minimizable_metric(metric_name):
 
 cpdef is_maximizable_metric(metric_name):
     return IsMaxOptimal(to_arcadia_string(metric_name))
+
+
+cpdef get_experiment_name(ui32 feature_set_idx, ui32 fold_idx):
+    cdef TString experiment_name = GetExperimentName(feature_set_idx, fold_idx)
+    cdef const char* c_experiment_name_string = experiment_name.c_str()
+    cpdef bytes py_experiment_name_str = c_experiment_name_string[:experiment_name.size()]
+    return py_experiment_name_str
 
 
 cpdef _check_train_params(dict params):
