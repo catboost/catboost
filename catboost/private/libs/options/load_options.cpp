@@ -4,7 +4,7 @@
 
 void NCatboostOptions::TColumnarPoolFormatParams::Validate() const {
     if (CdFilePath.Inited()) {
-        CB_ENSURE(CheckExists(CdFilePath), "CD-file doesn't exist");
+        CB_ENSURE(CheckExists(CdFilePath), "CD-file '" << CdFilePath << "' doesn't exist");
     }
 }
 
@@ -26,17 +26,17 @@ void NCatboostOptions::TPoolLoadParams::Validate(TMaybe<ETaskType> taskType) con
     }
 
     if (TestPairsFilePath.Inited()) {
-        CB_ENSURE(CheckExists(TestPairsFilePath), "Error: test pairs file doesn't exist");
+        CB_ENSURE(CheckExists(TestPairsFilePath), "Error: test pairs file '" << TestPairsFilePath << "' doesn't exist");
     }
 
     if (TestGroupWeightsFilePath.Inited()) {
         CB_ENSURE(CheckExists(TestGroupWeightsFilePath),
-                "Error: test group weights file doesn't exist");
+                "Error: test group weights file '" << TestGroupWeightsFilePath << "' doesn't exist");
     }
 
     if (TestBaselineFilePath.Inited()) {
         CB_ENSURE(CheckExists(TestBaselineFilePath),
-                  "Error: test baseline file doesn't exist");
+                  "Error: test baseline file '" << TestBaselineFilePath << "' doesn't exist");
     }
 }
 
@@ -44,19 +44,19 @@ void NCatboostOptions::TPoolLoadParams::ValidateLearn() const {
     ColumnarPoolFormatParams.Validate();
 
     CB_ENSURE(LearnSetPath.Inited(), "Error: provide learn dataset");
-    CB_ENSURE(CheckExists(LearnSetPath), "Error: features path doesn't exist");
+    CB_ENSURE(CheckExists(LearnSetPath), "Error: features path '" << LearnSetPath << "' doesn't exist");
     ValidatePoolParams(LearnSetPath, ColumnarPoolFormatParams);
 
     if (PairsFilePath.Inited()) {
-        CB_ENSURE(CheckExists(PairsFilePath), "Error: pairs file doesn't exist");
+        CB_ENSURE(CheckExists(PairsFilePath), "Error: pairs file '" << PairsFilePath << "' doesn't exist");
     }
 
     if (GroupWeightsFilePath.Inited()) {
-        CB_ENSURE(CheckExists(GroupWeightsFilePath), "Error: group weights file doesn't exist");
+        CB_ENSURE(CheckExists(GroupWeightsFilePath), "Error: group weights file '" << GroupWeightsFilePath << "' doesn't exist");
     }
 
     if (BaselineFilePath.Inited()) {
-        CB_ENSURE(CheckExists(BaselineFilePath), "Error: baseline file doesn't exist");
+        CB_ENSURE(CheckExists(BaselineFilePath), "Error: baseline file '" << BaselineFilePath << "' doesn't exist");
     }
 }
 
