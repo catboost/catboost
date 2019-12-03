@@ -108,6 +108,9 @@ ALLOW .* -> vendor/github.com/mattn/go-isatty
 # go-sqlite3 for golang
 ALLOW .* -> vendor/github.com/mattn/go-sqlite3
 
+# functions to get fixed width of the character or string
+ALLOW .* -> vendor/github.com/mattn/go-runewidth
+
 # complete and usable DNS library
 ALLOW .* -> vendor/github.com/miekg/dns
 
@@ -349,6 +352,9 @@ ALLOW .* -> vendor/github.com/iovisor/gobpf
 
 # CONTRIB-1561 Go pretty format for numbers
 ALLOW .* -> vendor/github.com/dustin/go-humanize
+
+# CONTRIB-1615 Go pretty table formatter similar to python PrettyTable
+ALLOW .* -> vendor/github.com/olekukonko/tablewriter
 
 # CONTRIB-1596 embedded key/value database
 ALLOW .* -> vendor/go.etcd.io/bbolt
