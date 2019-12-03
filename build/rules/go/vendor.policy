@@ -108,9 +108,6 @@ ALLOW .* -> vendor/github.com/mattn/go-isatty
 # go-sqlite3 for golang
 ALLOW .* -> vendor/github.com/mattn/go-sqlite3
 
-# functions to get fixed width of the character or string
-ALLOW .* -> vendor/github.com/mattn/go-runewidth
-
 # complete and usable DNS library
 ALLOW .* -> vendor/github.com/miekg/dns
 
