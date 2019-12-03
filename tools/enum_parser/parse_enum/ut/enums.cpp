@@ -8,10 +8,35 @@
 #include <util/generic/serialized_enum.h>
 #include <library/unittest/registar.h>
 
+#include <util/generic/ptr.h>
+#include <util/generic/singleton.h>
 
 
 void FunctionUsingEFwdEnum(EFwdEnum) {
 }
+
+class TEnumSerializationInitializer {
+public:
+    TEnumSerializationInitializer() {
+        UNIT_ASSERT_VALUES_EQUAL(ToString(EDestructionPriorityTest::first), "first");
+    }
+    ~TEnumSerializationInitializer() {
+        UNIT_ASSERT_VALUES_EQUAL(ToString(EDestructionPriorityTest::second), "second");
+    }
+};
+
+class TEnumSerializationInitializerHolder {
+public:
+    TEnumSerializationInitializerHolder() {
+    }
+
+    ~TEnumSerializationInitializerHolder() {
+    }
+
+    void Init() { Ptr.Reset(new TEnumSerializationInitializer); }
+private:
+    THolder<TEnumSerializationInitializer> Ptr;
+};
 
 
 Y_UNIT_TEST_SUITE(TEnumGeneratorTest) {
@@ -162,5 +187,9 @@ Y_UNIT_TEST_SUITE(TEnumGeneratorTest) {
 
         UNIT_ASSERT(names.contains(HThree));
         UNIT_ASSERT_VALUES_EQUAL(names.at(HThree), "HThree");
+    }
+
+    Y_UNIT_TEST(EnumSerializerDestructionPriority) {
+        Singleton<TEnumSerializationInitializerHolder>()->Init();
     }
 };

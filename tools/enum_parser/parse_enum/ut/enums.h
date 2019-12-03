@@ -172,6 +172,12 @@ enum ENonLiteralValues {
 
 #undef MACRO
 
+
+enum EDestructionPriorityTest {
+    first,
+    second
+};
+
 /*
  * Still unsupported features:
  *
