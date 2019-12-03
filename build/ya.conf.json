@@ -1990,7 +1990,7 @@
                 "werror_mode": "all",
                 "c_compiler": "$(CLANG)/usr/bin/clang",
                 "cxx_compiler": "$(CLANG)/usr/bin/clang++",
-                "ar": "$(CLANG)/usr/bin/ar",
+                "ar": "$(CLANG)/usr/bin/libtool",
                 "inplace_tools": true,
                 "gcc_version": "8.0",
                 "dwarf_tool": {
