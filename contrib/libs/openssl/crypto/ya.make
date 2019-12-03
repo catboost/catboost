@@ -32,7 +32,7 @@ IF (OS_IOS)
         SET(IOS_ARM64 yes)
     ELSEIF(ARCH_ARM7)
         SET(IOS_ARMV7 yes)
-    ELSEIF(ARCH_86_86)
+    ELSEIF(ARCH_X86_64)
         SET(IOS_X86_64 yes)
     ELSEIF(ARCH_I386)
         SET(IOS_I386 yes)
@@ -45,7 +45,7 @@ IF (OS_ANDROID)
         SET(ANDROID_ARM64 yes)
     ELSEIF(ARCH_ARM7)
         SET(ANDROID_ARMV7 yes)
-    ELSEIF(ARCH_86_86)
+    ELSEIF(ARCH_X86_64)
         SET(ANDROID_X86_64 yes)
     ELSEIF(ARCH_I686)
         SET(ANDROID_I686 yes)
@@ -1271,7 +1271,7 @@ IF (OS_ANDROID AND ARCH_ARM64)
         armcap.c
         bn/bn_asm.c
         camellia/camellia.c
-        camellia/camellia.c
+        camellia/cmll_cbc.c
         dso/dso_dlfcn.c
         rand/rand_vms.c
         rc4/rc4_enc.c
