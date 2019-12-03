@@ -201,6 +201,9 @@
         "horadric": {
             "description": "Run horadric generator"
         },
+        "zcli": {
+            "description": "Run zcli (console client for zephyr)"
+        },
         "run_python_udf": {
             "description": "run_python_udf tool"
         },
@@ -4323,6 +4326,34 @@
                 }
             ]
         },
+        "zcli": {
+            "tools": {
+                "zcli": {
+                    "bottle": "zcli",
+                    "executable": "zcli"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "python3": {
             "tools": {
                 "python3": {
@@ -6436,6 +6467,17 @@
             "executable": {
                 "horadric": [
                     "horadric"
+                ]
+            }
+        },
+        "zcli": {
+            "formula": {
+                "sandbox_id": 559933291,
+                "match": "zcli"
+            },
+            "executable": {
+                "zcli": [
+                    "zcli"
                 ]
             }
         },
