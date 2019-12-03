@@ -10,11 +10,14 @@ def get_args():
     parser.add_argument('--obj', required=True)
     parser.add_argument('--lib', required=True)
     parser.add_argument('--arch', required=True)
+    parser.add_argument('--with-own-obj', action='store_true', default=False)
 
     groups = {}
     args_list = groups.setdefault('default', [])
     for arg in sys.argv[1:]:
-        if arg.startswith(YA_ARG_PREFIX):
+        if arg == '--with-own-obj':
+            groups['default'].append(arg)
+        elif arg.startswith(YA_ARG_PREFIX):
             group_name = arg[len(YA_ARG_PREFIX):]
             args_list = groups.setdefault(group_name, [])
         else:
@@ -51,6 +54,8 @@ def main():
 
     do_link = linker + ['-o', obj_output, '-Wl,-r', '-nodefaultlibs', '-nostartfiles', load_all] + global_srcs + auto_input
     do_archive = archiver + [lib_output] + peers
+    if args.with_own_obj:
+        do_archive += auto_input
 
     def call(c):
         print >> sys.stderr, ' '.join(c)
