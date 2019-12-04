@@ -11,11 +11,14 @@ def get_args():
     parser.add_argument('--lib', required=True)
     parser.add_argument('--arch', required=True)
     parser.add_argument('--with-own-obj', action='store_true', default=False)
+    parser.add_argument('--with-global-srcs', action='store_true', default=False)
 
     groups = {}
     args_list = groups.setdefault('default', [])
     for arg in sys.argv[1:]:
         if arg == '--with-own-obj':
+            groups['default'].append(arg)
+        elif arg == '--with-global-srcs':
             groups['default'].append(arg)
         elif arg.startswith(YA_ARG_PREFIX):
             group_name = arg[len(YA_ARG_PREFIX):]
@@ -56,6 +59,8 @@ def main():
     do_archive = archiver + [lib_output] + peers
     if args.with_own_obj:
         do_archive += auto_input
+    if args.with_global_srcs:
+        do_archive += global_srcs
 
     def call(c):
         print >> sys.stderr, ' '.join(c)

@@ -1102,7 +1102,7 @@ class GnuToolchain(Toolchain):
                     self.setup_sdk(project='build/platform/yocto_sdk/yocto_armv7a_jbl_portable_music_sdk', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
                 elif target.is_yocto_aacrh64_lightcomm_mt8516:
                     self.setup_sdk(project='build/platform/yocto_sdk/yocto_aarch64_lightcomm_mt8516', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
- 
+
     def setup_sdk(self, project, var):
         self.platform_projects.append(project)
         self.c_flags_platform.append('--sysroot={}'.format(var))
@@ -1764,7 +1764,7 @@ class LD(Linker):
         # TODO(somov): Проверить, не нужны ли здесь все остальные флаги компоновки (LDFLAGS и т. д.).
         emit('LINK_FAT_OBJECT', '$GENERATE_MF &&',
              '$YMAKE_PYTHON ${input:"build/scripts/link_fat_obj.py"} --obj=$TARGET --lib=${output:REALPRJNAME.a}', arch_flag,
-             '-Ya,input $AUTO_INPUT -Ya,global_srcs $SRCS_GLOBAL -Ya,peers $PEERS',
+             '-Ya,input $AUTO_INPUT $VCS_C_OBJ_WRAP -Ya,global_srcs $SRCS_GLOBAL -Ya,peers $PEERS',
              '-Ya,linker $CXX_COMPILER $C_FLAGS_PLATFORM', self.ld_sdk, '-Ya,archiver', archiver,
              '$TOOLCHAIN_ENV ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}')
 
