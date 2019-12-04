@@ -200,8 +200,6 @@ migrations:
       - a.yandex-team.ru/infra/ya_salt/server/pkg/sync
       - a.yandex-team.ru/infra/ya_salt/server/pkg/sync/tests
       - a.yandex-team.ru/infra/ya_salt/server/pkg/types
-      - a.yandex-team.ru/kikimr/juggler/checks/ydb_join_check
-      - a.yandex-team.ru/kikimr/juggler/checks/ydb_simple_check_go
       - a.yandex-team.ru/kikimr/public/sdk/go/persqueue
       - a.yandex-team.ru/kikimr/public/sdk/go/persqueue_test
       - a.yandex-team.ru/kikimr/public/sdk/go/ydb/table
