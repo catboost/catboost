@@ -163,12 +163,10 @@ void TFeatureEvaluationSummary::CalcWxTestAndAverageDelta() {
 static void CreateLogFromHistory(
     const NCatboostOptions::TOutputFilesOptions& outputFileOptions,
     const TVector<THolder<IMetric>>& metrics,
-    const TMetricsAndTimeLeftHistory& metricsHistory,
+    const TFeatureEvaluationSummary::TMetricsHistory& metricsHistory,
     ui32 iterationCount,
     TLogger* logger
 ) {
-    const TVector<bool> skipMetricOnTrain = GetSkipMetricOnTrain(metrics);
-    const TString learnToken = "learn";
     const TString testToken = "test";
     CB_ENSURE_INTERNAL(
         outputFileOptions.GetMetricPeriod() == 1,
@@ -179,14 +177,7 @@ static void CreateLogFromHistory(
         for (int metricIdx = 0; metricIdx < metrics.ysize(); ++metricIdx) {
             const auto& metric = metrics[metricIdx];
             const auto& metricDescription = metric->GetDescription();
-            if (!skipMetricOnTrain[metricIdx]) {
-                const double metricOnLearn = metricsHistory.LearnMetricsHistory[iteration].at(metricDescription);
-                oneIterLogger.OutputMetric(
-                    learnToken,
-                    TMetricEvalResult(metricDescription, metricOnLearn, metricIdx == errorTrackerMetricIdx)
-                );
-            }
-            const double metricOnTest = metricsHistory.TestMetricsHistory[iteration][0].at(metricDescription);
+            const double metricOnTest = metricsHistory[iteration][metricIdx];
             oneIterLogger.OutputMetric(
                 testToken,
                 TMetricEvalResult(metricDescription, metricOnTest, metricIdx == errorTrackerMetricIdx)
@@ -606,20 +597,8 @@ public:
     {
     }
 
-    bool IsContinueTraining(const TMetricsAndTimeLeftHistory& history) override {
+    bool IsContinueTraining(const TMetricsAndTimeLeftHistory& /*history*/) override {
         ++IterationIdx;
-        if (IterationIdx == IterationCount) {
-            auto& foldsFromHistory = Summary->MetricsHistory[*IsTest][*FeatureSetIndex];
-            const ui32 absoluteFoldIdx = *FoldRangeBegin + *FoldIndex;
-            if (foldsFromHistory.size() > absoluteFoldIdx - GetAbsoluteOffset()) {
-                CATBOOST_INFO_LOG << "Snapshot already contains metrics for fold " << absoluteFoldIdx << Endl;
-            } else {
-                CB_ENSURE_INTERNAL(
-                    foldsFromHistory.size() == absoluteFoldIdx - GetAbsoluteOffset(),
-                    "No metrics for fold " << absoluteFoldIdx - 1);
-                foldsFromHistory.emplace_back(history);
-            }
-        }
         constexpr double HeartbeatSeconds = 1;
         if (TrainTimer.Passed() > HeartbeatSeconds) {
             TSetLogging infomationMode(ELoggingLevel::Info);
@@ -666,7 +645,7 @@ public:
         IsNextLoadValid = true;
     }
 
-    bool HaveTrainResultsInSnapshot(ui32 foldRangeBegin, ui32 featureSetIdx, bool isTest, ui32 foldIdx) {
+    bool HaveEvalFeatureSummary(ui32 foldRangeBegin, ui32 featureSetIdx, bool isTest, ui32 foldIdx) {
         if (!IsNextLoadValid) {
             return false;
         }
@@ -812,12 +791,13 @@ static void EvaluateFeaturesImpl(
         const bool isCalcFstr = !outputFileOptions.CreateFstrIternalFullPath().empty();
         const bool isCalcRegularFstr = !outputFileOptions.CreateFstrRegularFullPath().empty();
         for (auto foldIdx : xrange(foldCount)) {
-            const bool haveTrainResults = callbacks->HaveTrainResultsInSnapshot(
+            const bool haveSummary = callbacks->HaveEvalFeatureSummary(
                 foldRangeBegin,
                 featureSetIdx,
                 isTest,
                 offsetInRange + foldIdx);
-            if (haveTrainResults) {
+
+            if (haveSummary) {
                 continue;
             }
 
@@ -854,6 +834,7 @@ static void EvaluateFeaturesImpl(
                 CalcMetricsForTest(metrics, approxDimension, testFoldsData[foldIdx].Test[0], &foldContext);
             }
 
+            results->MetricsHistory[isTest][featureSetIdx].emplace_back(foldContext.MetricValuesOnTest);
             results->AppendFeatureSetMetrics(isTest, featureSetIdx, foldContext.MetricValuesOnTest);
 
             CATBOOST_INFO_LOG << "Fold " << foldContext.FoldIdx << ": model built in " <<
