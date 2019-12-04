@@ -6288,7 +6288,7 @@ def test_multiclass_train_on_constant_data(task_type):
 @pytest.mark.parametrize(
     'loss_function',
     ['Logloss', 'CrossEntropy'],
-    ids=['label_type=%s' % s for s in ['Logloss', 'CrossEntropy']]
+    ids=['loss_function=%s' % s for s in ['Logloss', 'CrossEntropy']]
 )
 def test_classes_attribute_binclass(label_type, loss_function):
     params = {'loss_function': loss_function, 'iterations': 2}
