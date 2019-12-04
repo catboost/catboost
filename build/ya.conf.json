@@ -2470,6 +2470,15 @@
                         "os": "LINUX",
                         "arch": "armv7a"
                     }
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv7a_neon"
+                    }
                 }
             ],
             "params": {

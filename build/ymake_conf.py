@@ -53,7 +53,7 @@ class Platform(object):
         self.is_armv7 = self.arch in ('armv7', 'armv7a', 'armv7a_neon', 'arm')
         self.is_armv8 = self.arch in ('armv8', 'armv8a', 'arm64', 'aarch64')
         self.is_arm = self.is_armv7 or self.is_armv8
-        self.is_arm_neon = self.arch == 'armv7a_neon'
+        self.is_armv7_neon = self.arch == 'armv7a_neon'
 
         self.is_ppc64le = self.arch == 'ppc64le'
 
@@ -110,6 +110,7 @@ class Platform(object):
             (self.is_i686, 'ARCH_I686'),
             (self.is_x86_64, 'ARCH_X86_64'),
             (self.is_armv7, 'ARCH_ARM7'),
+            (self.is_armv7_neon, 'ARCH_ARM7_NEON'),
             (self.is_armv8, 'ARCH_ARM64'),
             (self.is_arm, 'ARCH_ARM'),
             (self.is_linux_armv8, 'ARCH_AARCH64'),
@@ -1042,6 +1043,9 @@ class GnuToolchain(Toolchain):
             for root in list(self.tc.isystem):
                 self.c_flags_platform.extend(['-isystem', root])
 
+        if target.is_armv7_neon:
+            self.c_flags_platform.append('-mfpu=neon')
+
         if self.tc.is_clang or self.tc.is_gcc and self.tc.version_at_least(8, 2):
             target_flags = select(default=[], selectors=[
                 (target.is_linux and target.is_ppc64le, ['-mcpu=power9', '-mtune=power9', '-maltivec']),
@@ -1062,8 +1066,6 @@ class GnuToolchain(Toolchain):
 
             if target.is_android:
                 self.c_flags_platform.append('-fPIE')
-                if target.is_arm_neon:
-                    self.c_flags_platform.append('-mfpu=neon')
                 self.c_flags_platform.append('-fsigned-char')
 
             if self.tc.is_from_arcadia:
