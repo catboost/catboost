@@ -123,10 +123,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/cuda_wrappers/arch.cu.obj	$B/catboost/libs/cuda_wrappers/kernel.cu.obj	$B/catboost/libs/cuda_wrappers/kernel_helpers.cu.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\compile_cuda.py;$(SolutionDir)..\catboost\libs\cuda_wrappers\arch.cu;$(SolutionDir)..\build\platform\cuda\cuda_runtime_include.h;$(SolutionDir)$(Configuration)\tools\mtime0\mtime0.dll;$(SolutionDir)..\catboost\libs\cuda_wrappers\kernel.cu;$(SolutionDir)..\catboost\libs\cuda_wrappers\kernel_helpers.cu;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\compile_cuda.py;$(SolutionDir)..\catboost\libs\cuda_wrappers\arch.cu;$(SolutionDir)$(Configuration)\tools\mtime0\mtime0.dll;$(SolutionDir)..\catboost\libs\cuda_wrappers\kernel.cu;$(SolutionDir)..\catboost\libs\cuda_wrappers\kernel_helpers.cu;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\cuda_wrappers\arch.cu.obj;$(SolutionDir)$(Configuration)\catboost\libs\cuda_wrappers\kernel.cu.obj;$(SolutionDir)$(Configuration)\catboost\libs\cuda_wrappers\kernel_helpers.cu.obj;</Outputs>
     </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\build\platform\cuda\cuda_runtime_include.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\cuda_wrappers\base.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\cuda_wrappers\cuda_event.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\cuda_wrappers\cuda_vec.h"/>

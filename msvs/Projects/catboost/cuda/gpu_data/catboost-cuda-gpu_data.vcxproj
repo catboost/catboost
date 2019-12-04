@@ -141,7 +141,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/cuda/gpu_data/kernel/binarize.cu.obj	$B/catboost/cuda/gpu_data/kernel/query_helper.cu.obj	$B/catboost/cuda/gpu_data/kernel/split.cu.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\compile_cuda.py;$(SolutionDir)..\catboost\cuda\gpu_data\kernel\binarize.cu;$(SolutionDir)..\build\platform\cuda\cuda_runtime_include.h;$(SolutionDir)$(Configuration)\tools\mtime0\mtime0.dll;$(SolutionDir)..\catboost\cuda\gpu_data\kernel\query_helper.cu;$(SolutionDir)..\catboost\cuda\gpu_data\kernel\split.cu;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\compile_cuda.py;$(SolutionDir)..\catboost\cuda\gpu_data\kernel\binarize.cu;$(SolutionDir)$(Configuration)\tools\mtime0\mtime0.dll;$(SolutionDir)..\catboost\cuda\gpu_data\kernel\query_helper.cu;$(SolutionDir)..\catboost\cuda\gpu_data\kernel\split.cu;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\cuda\gpu_data\kernel\binarize.cu.obj;$(SolutionDir)$(Configuration)\catboost\cuda\gpu_data\kernel\query_helper.cu.obj;$(SolutionDir)$(Configuration)\catboost\cuda\gpu_data\kernel\split.cu.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\cuda\gpu_data\grid_policy.h">
@@ -171,7 +171,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\catboost\cuda\gpu_data\grid_policy.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\cuda\gpu_data\grid_policy.h_serialized.cpp;</Outputs>
     </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\build\platform\cuda\cuda_runtime_include.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\batch_binarized_ctr_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\bootstrap.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\gpu_data\cat_features_dataset.h"/>

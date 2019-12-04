@@ -111,10 +111,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/cuda/models/kernel/add_model_value.cu.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\compile_cuda.py;$(SolutionDir)..\catboost\cuda\models\kernel\add_model_value.cu;$(SolutionDir)..\build\platform\cuda\cuda_runtime_include.h;$(SolutionDir)$(Configuration)\tools\mtime0\mtime0.dll;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\compile_cuda.py;$(SolutionDir)..\catboost\cuda\models\kernel\add_model_value.cu;$(SolutionDir)$(Configuration)\tools\mtime0\mtime0.dll;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\cuda\models\kernel\add_model_value.cu.obj;</Outputs>
     </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\build\platform\cuda\cuda_runtime_include.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\add_bin_values.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\add_doc_parallel.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\models\add_non_symmetric_tree_doc_parallel.h"/>
