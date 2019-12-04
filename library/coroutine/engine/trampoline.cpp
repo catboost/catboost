@@ -130,7 +130,7 @@ namespace NCoro {
 
     TTrampoline::TTrampoline(ui32 stackSize, TStack::EGuard guard, TContFunc f, TCont* cont, void* arg) noexcept
         : Stack_(stackSize, guard)
-        , Clo_{this, Stack_.Get()}
+        , Clo_{this, Stack_.Get(), cont->Name()}
         , Ctx_(Clo_)
         , Func_(f)
         , Cont_(cont)

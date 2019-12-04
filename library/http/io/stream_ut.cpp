@@ -665,6 +665,27 @@ Y_UNIT_TEST_SUITE(THttpStreamTest) {
         UNIT_ASSERT(!result.Contains(AsStringBuf("0\r\n")))
     }
 
+    Y_UNIT_TEST(TestHttpOutputDisableCompressionHeader) {
+        TMemoryInput request("GET / HTTP/1.1\r\nAccept-Encoding: gzip\r\n\r\n");
+        const TString data = "qqqqqqqqqqqqqqqqqqqqqqqqqqqqqq";
+
+        THttpInput httpInput(&request);
+        TString result;
+
+        {
+            TStringOutput output(result);
+            THttpOutput httpOutput(&output, &httpInput);
+            httpOutput.EnableCompressionHeader(false);
+            httpOutput << "HTTP/1.1 200 OK\r\n"
+                   "content-encoding: gzip\r\n"
+                   "\r\n" + data;
+            httpOutput.Finish();
+        }
+
+        UNIT_ASSERT(result.Contains("content-encoding: gzip"));
+        UNIT_ASSERT(result.Contains(data));
+    }
+
     size_t DoTestHttpOutputSize(const TString& res, bool enableCompession) {
         TTestHttpServer serverImpl(res);
         TPortManager pm;

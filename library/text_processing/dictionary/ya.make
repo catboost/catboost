@@ -3,7 +3,6 @@
 LIBRARY()
 
 SRCS(
-    app_helpers.cpp
     bpe_builder.cpp
     bpe_dictionary.cpp
     bpe_helpers.cpp
@@ -25,7 +24,6 @@ PEERDIR(
     library/containers/flat_hash
     library/json
     library/text_processing/dictionary/idl
-    library/text_processing/tokenizer
     library/threading/local_executor
 )
 

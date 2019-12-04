@@ -53,7 +53,7 @@ class Platform(object):
         self.is_armv7 = self.arch in ('armv7', 'armv7a', 'armv7a_neon', 'arm')
         self.is_armv8 = self.arch in ('armv8', 'armv8a', 'arm64', 'aarch64')
         self.is_arm = self.is_armv7 or self.is_armv8
-        self.is_arm_neon = self.arch == 'armv7a_neon'
+        self.is_armv7_neon = self.arch == 'armv7a_neon'
 
         self.is_ppc64le = self.arch == 'ppc64le'
 
@@ -110,6 +110,7 @@ class Platform(object):
             (self.is_i686, 'ARCH_I686'),
             (self.is_x86_64, 'ARCH_X86_64'),
             (self.is_armv7, 'ARCH_ARM7'),
+            (self.is_armv7_neon, 'ARCH_ARM7_NEON'),
             (self.is_armv8, 'ARCH_ARM64'),
             (self.is_arm, 'ARCH_ARM'),
             (self.is_linux_armv8, 'ARCH_AARCH64'),
@@ -1042,6 +1043,9 @@ class GnuToolchain(Toolchain):
             for root in list(self.tc.isystem):
                 self.c_flags_platform.extend(['-isystem', root])
 
+        if target.is_armv7_neon:
+            self.c_flags_platform.append('-mfpu=neon')
+
         if self.tc.is_clang or self.tc.is_gcc and self.tc.version_at_least(8, 2):
             target_flags = select(default=[], selectors=[
                 (target.is_linux and target.is_ppc64le, ['-mcpu=power9', '-mtune=power9', '-maltivec']),
@@ -1062,8 +1066,6 @@ class GnuToolchain(Toolchain):
 
             if target.is_android:
                 self.c_flags_platform.append('-fPIE')
-                if target.is_arm_neon:
-                    self.c_flags_platform.append('-mfpu=neon')
                 self.c_flags_platform.append('-fsigned-char')
 
             if self.tc.is_from_arcadia:
@@ -1102,7 +1104,7 @@ class GnuToolchain(Toolchain):
                     self.setup_sdk(project='build/platform/yocto_sdk/yocto_armv7a_jbl_portable_music_sdk', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
                 elif target.is_yocto_aacrh64_lightcomm_mt8516:
                     self.setup_sdk(project='build/platform/yocto_sdk/yocto_aarch64_lightcomm_mt8516', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
- 
+
     def setup_sdk(self, project, var):
         self.platform_projects.append(project)
         self.c_flags_platform.append('--sysroot={}'.format(var))
@@ -1764,7 +1766,7 @@ class LD(Linker):
         # TODO(somov): Проверить, не нужны ли здесь все остальные флаги компоновки (LDFLAGS и т. д.).
         emit('LINK_FAT_OBJECT', '$GENERATE_MF &&',
              '$YMAKE_PYTHON ${input:"build/scripts/link_fat_obj.py"} --obj=$TARGET --lib=${output:REALPRJNAME.a}', arch_flag,
-             '-Ya,input $AUTO_INPUT -Ya,global_srcs $SRCS_GLOBAL -Ya,peers $PEERS',
+             '-Ya,input $AUTO_INPUT $VCS_C_OBJ_WRAP -Ya,global_srcs $SRCS_GLOBAL -Ya,peers $PEERS',
              '-Ya,linker $CXX_COMPILER $C_FLAGS_PLATFORM', self.ld_sdk, '-Ya,archiver', archiver,
              '$TOOLCHAIN_ENV ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}')
 

@@ -18,6 +18,9 @@ public:
     void WaitWriteOneShot(SOCKET sock, void* cookie);
     void WaitReadWriteOneShot(SOCKET sock, void* cookie);
 
+    void WaitReadWriteEdgeTriggered(SOCKET sock, void* cookie);
+    void RestartReadWriteEdgeTriggered(SOCKET sock, void* cookie, bool empty = true);
+
     void Unwait(SOCKET sock);
 
     size_t WaitD(void** events, size_t len, const TInstant& deadLine);

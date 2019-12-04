@@ -12,7 +12,6 @@ SRCS(
     GLOBAL pfound_f.cpp
     GLOBAL pair_logit_pairwise.cpp
     GLOBAL multiclass.cpp
-    GLOBAL pointwise_region.cpp
     GLOBAL multiclass_region.cpp
     GLOBAL querywise_region.cpp
     GLOBAL pointwise_non_symmetric.cpp

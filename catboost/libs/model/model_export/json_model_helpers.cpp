@@ -37,6 +37,7 @@ static void WriteJsonWithCatBoostPrecision(const TJsonValue& value, IOutputStrea
     config.FormatOutput = true;
     config.FloatNDigits = 9;
     config.DoubleNDigits = 17;
+    config.SortKeys = true;
     WriteJson(out, &value, config);
 }
 

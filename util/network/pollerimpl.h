@@ -33,7 +33,10 @@
 enum EContPoll {
     CONT_POLL_READ = 1,
     CONT_POLL_WRITE = 2,
-    CONT_POLL_ONE_SHOT = 4
+    CONT_POLL_ONE_SHOT = 4,         // Disable after first event
+    CONT_POLL_MODIFY = 8,           // Modify already added event
+    CONT_POLL_EDGE_TRIGGERED = 16,  // Notify only about new events
+    CONT_POLL_BACKLOG_EMPTY = 32,   // Backlog is empty (seen end of request, EAGAIN or truncated read)
 };
 
 static inline bool IsSocket(SOCKET fd) noexcept {
@@ -103,11 +106,24 @@ public:
 
     inline void SetImpl(void* data, int fd, int what) {
         TEvent e[2];
+        int flags = EV_ADD;
+
+        if (what & CONT_POLL_EDGE_TRIGGERED) {
+            if (what & CONT_POLL_BACKLOG_EMPTY) {
+                // When backlog is empty, edge-triggered does not need restart.
+                return;
+            }
+            flags |= EV_CLEAR;
+        }
+
+        if (what & CONT_POLL_ONE_SHOT) {
+            flags |= EV_ONESHOT;
+        }
 
         Zero(e);
 
-        EV_SET(e + 0, fd, EVFILT_READ, EV_ADD | ((what & CONT_POLL_READ) ? EV_ENABLE : EV_DISABLE) | ((what & CONT_POLL_ONE_SHOT) ? EV_ONESHOT : 0), 0, 0, data);
-        EV_SET(e + 1, fd, EVFILT_WRITE, EV_ADD | ((what & CONT_POLL_WRITE) ? EV_ENABLE : EV_DISABLE) | ((what & CONT_POLL_ONE_SHOT) ? EV_ONESHOT : 0), 0, 0, data);
+        EV_SET(e + 0, fd, EVFILT_READ, flags | ((what & CONT_POLL_READ) ? EV_ENABLE : EV_DISABLE), 0, 0, data);
+        EV_SET(e + 1, fd, EVFILT_WRITE, flags | ((what & CONT_POLL_WRITE) ? EV_ENABLE : EV_DISABLE), 0, 0, data);
 
         if (Kevent(Fd_, e, 2, nullptr, 0, nullptr) == -1) {
             ythrow TSystemError() << "kevent add failed";
@@ -208,10 +224,29 @@ public:
 
         Zero(e);
 
-        e.events = CalcWhat(what);
+        if (what & CONT_POLL_EDGE_TRIGGERED) {
+            if (what & CONT_POLL_BACKLOG_EMPTY) {
+                // When backlog is empty, edge-triggered does not need restart.
+                return;
+            }
+            e.events |= EPOLLET;
+        }
+
+        if (what & CONT_POLL_ONE_SHOT) {
+            e.events |= EPOLLONESHOT;
+        }
+
+        if (what & CONT_POLL_READ) {
+            e.events |= EPOLLIN;
+        }
+
+        if (what & CONT_POLL_WRITE) {
+            e.events |= EPOLLOUT;
+        }
+
         e.data.ptr = data;
 
-        if (epoll_ctl(Fd_, EPOLL_CTL_ADD, fd, &e) == -1) {
+        if ((what & CONT_POLL_MODIFY) || epoll_ctl(Fd_, EPOLL_CTL_ADD, fd, &e) == -1) {
             if (epoll_ctl(Fd_, EPOLL_CTL_MOD, fd, &e) == -1) {
                 ythrow TSystemError() << "epoll add failed";
             }
@@ -261,25 +296,6 @@ public:
     }
 
 private:
-    static inline int CalcWhat(int w) noexcept {
-        int ret = 0;
-
-        if (w & CONT_POLL_READ) {
-            ret |= EPOLLIN;
-        }
-
-        if (w & CONT_POLL_WRITE) {
-            ret |= EPOLLOUT;
-        }
-
-        if (w & CONT_POLL_ONE_SHOT) {
-            ret |= EPOLLONESHOT;
-        }
-
-        return ret;
-    }
-
-private:
     int Fd_;
 };
 #endif
@@ -318,6 +334,10 @@ struct TSelectPollerNoTemplate {
         inline void Set(void* d, int s) noexcept {
             Data_ = d;
             Filter_ = s;
+        }
+
+        inline void Clear(int c) noexcept {
+            Filter_ &= ~c;
         }
 
         inline int Filter() const noexcept {
@@ -494,9 +514,9 @@ public:
 
         TEvent* eventsStart = events;
 
-        for (typename TFds::const_iterator it = Fds_.begin(); it != Fds_.end(); ++it) {
+        for (typename TFds::iterator it = Fds_.begin(); it != Fds_.end(); ++it) {
             const SOCKET fd = it->first;
-            const THandle& handle = it->second;
+            THandle& handle = it->second;
 
             if (FD_ISSET(fd, errFds)) {
                 (events++)->Error(handle.Data(), EIO);
@@ -523,6 +543,12 @@ public:
                     if (handle.Filter() & CONT_POLL_ONE_SHOT) {
                         *keysToDeleteEnd = fd;
                         ++keysToDeleteEnd;
+                    }
+
+                    if (handle.Filter() & CONT_POLL_EDGE_TRIGGERED) {
+                        // Emulate edge-triggered for level-triggered select().
+                        // User must restart waiting this event when needed.
+                        handle.Clear(what);
                     }
                 }
             }

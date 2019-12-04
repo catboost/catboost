@@ -767,7 +767,8 @@ void TLearnProgress::Save(IOutputStream* s) const {
         LearnAndTestQuantizedFeaturesCheckSum,
         SeparateInitModelTreesSize,
         SeparateInitModelCheckSum,
-        Rand
+        Rand,
+        StartingApprox
     );
 }
 
@@ -801,7 +802,8 @@ void TLearnProgress::Load(IInputStream* s) {
         LearnAndTestQuantizedFeaturesCheckSum,
         SeparateInitModelTreesSize,
         SeparateInitModelCheckSum,
-        Rand
+        Rand,
+        StartingApprox
     );
 }
 

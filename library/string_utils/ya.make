@@ -11,6 +11,7 @@ RECURSE(
     quote/ut
     relaxed_escaper
     relaxed_escaper/ut
+    scan
     url
     url/ut
     ztstrbuf

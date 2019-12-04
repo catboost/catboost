@@ -6288,7 +6288,7 @@ def test_multiclass_train_on_constant_data(task_type):
 @pytest.mark.parametrize(
     'loss_function',
     ['Logloss', 'CrossEntropy'],
-    ids=['label_type=%s' % s for s in ['Logloss', 'CrossEntropy']]
+    ids=['loss_function=%s' % s for s in ['Logloss', 'CrossEntropy']]
 )
 def test_classes_attribute_binclass(label_type, loss_function):
     params = {'loss_function': loss_function, 'iterations': 2}
@@ -6469,3 +6469,63 @@ def test_text_processing_dictionary():
     dictionary_path = test_output_path('dictionary.tsv')
     dictionary.save(dictionary_path)
     return compare_canonical_models(dictionary_path)
+
+
+def test_log_proba():
+    # multiclass with softmax
+    pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
+    classifier = CatBoostClassifier(iterations=50, thread_count=8, devices='0')
+    classifier.fit(pool)
+    pred = classifier.predict(pool, prediction_type='Probability')
+    log_pred = classifier.predict(pool, prediction_type='LogProbability')
+    assert np.allclose(log_pred, np.log(pred))
+
+    # multiclass OneVsAll
+    pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
+    classifier = CatBoostClassifier(iterations=50, thread_count=8, loss_function='MultiClassOneVsAll', devices='0')
+    classifier.fit(pool)
+    pred = classifier.predict(pool, prediction_type='Probability')
+    log_pred = classifier.predict(pool, prediction_type='LogProbability')
+    assert np.allclose(log_pred, np.log(pred))
+
+    # binary classification
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    classifier = CatBoostClassifier(iterations=2)
+    classifier.fit(pool)
+    pred = classifier.predict(pool, prediction_type='Probability')
+    log_pred_1 = classifier.predict(pool, prediction_type='LogProbability')
+    log_pred_2 = classifier.predict_log_proba(pool)
+    assert np.allclose(log_pred_1, np.log(pred))
+    assert np.allclose(log_pred_1, log_pred_2)
+
+
+def test_staged_log_proba():
+    # multiclass with softmax
+    pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
+    classifier = CatBoostClassifier(iterations=50, thread_count=8, devices='0')
+    classifier.fit(pool)
+    pred_it = classifier.staged_predict(pool, prediction_type='Probability')
+    log_pred_it = classifier.staged_predict(pool, prediction_type='LogProbability')
+    for pred, log_pred in zip(pred_it, log_pred_it):
+        assert np.allclose(log_pred, np.log(pred))
+
+    # multiclass OneVsAll
+    pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
+    classifier = CatBoostClassifier(iterations=50, thread_count=8, loss_function='MultiClassOneVsAll', devices='0')
+    classifier.fit(pool)
+    pred_it = classifier.staged_predict(pool, prediction_type='Probability')
+    log_pred_it = classifier.staged_predict(pool, prediction_type='LogProbability')
+    for pred, log_pred in zip(pred_it, log_pred_it):
+        assert np.allclose(log_pred, np.log(pred))
+
+    # binary classification
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    classifier = CatBoostClassifier(iterations=2)
+    classifier.fit(pool)
+    pred_it = classifier.staged_predict(pool, prediction_type='Probability')
+    log_pred_it_1 = classifier.staged_predict(pool, prediction_type='LogProbability')
+    log_pred_it_2 = classifier.staged_predict_log_proba(pool)
+    for pred, log_pred_1, log_pred_2 in zip(pred_it, log_pred_it_1, log_pred_it_2):
+        assert np.allclose(log_pred_1, np.log(pred))
+        assert np.allclose(log_pred_1, log_pred_2)
+        assert np.allclose(log_pred_1, log_pred_2)

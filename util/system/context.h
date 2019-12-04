@@ -54,6 +54,7 @@ struct ITrampoLine {
 struct TContClosure {
     ITrampoLine* TrampoLine;
     TArrayRef<char> Stack;
+    const char* ContName = nullptr;
 };
 
 #if defined(USE_UCONTEXT_CONT)
@@ -146,7 +147,7 @@ private:
         ITrampoLine* TL;
     };
 
-#if defined(_asan_enabled_)
+#if defined(_asan_enabled_) || defined(_tsan_enabled_)
     TSan San_;
 #endif
 };

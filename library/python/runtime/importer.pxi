@@ -132,6 +132,7 @@ class ResourceImporter(object):
         abspath = resfs_resolve(path)
         if abspath:
             return file_bytes(abspath)
+        path = path.replace('\\', '/')
         data = resfs_read(path, builtin=True)
         if data is None:
             raise IOError(path)  # Y_PYTHON_ENTRY_POINT=:resource_files

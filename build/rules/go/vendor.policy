@@ -350,6 +350,9 @@ ALLOW .* -> vendor/github.com/iovisor/gobpf
 # CONTRIB-1561 Go pretty format for numbers
 ALLOW .* -> vendor/github.com/dustin/go-humanize
 
+# CONTRIB-1615 Go pretty table formatter similar to python PrettyTable
+ALLOW .* -> vendor/github.com/olekukonko/tablewriter
+
 # CONTRIB-1596 embedded key/value database
 ALLOW .* -> vendor/go.etcd.io/bbolt
 

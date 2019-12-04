@@ -7,6 +7,7 @@ PACKAGE()
 PEERDIR(
     library/deprecated/enum_codegen
     library/deprecated/split
+    library/string_utils/scan
 )
 
 END()

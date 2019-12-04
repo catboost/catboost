@@ -201,6 +201,9 @@
         "horadric": {
             "description": "Run horadric generator"
         },
+        "zcli": {
+            "description": "Run zcli (console client for zephyr)"
+        },
         "run_python_udf": {
             "description": "run_python_udf tool"
         },
@@ -1987,7 +1990,7 @@
                 "werror_mode": "all",
                 "c_compiler": "$(CLANG)/usr/bin/clang",
                 "cxx_compiler": "$(CLANG)/usr/bin/clang++",
-                "ar": "$(CLANG)/usr/bin/ar",
+                "ar": "$(CLANG)/usr/bin/libtool",
                 "inplace_tools": true,
                 "gcc_version": "8.0",
                 "dwarf_tool": {
@@ -2467,6 +2470,15 @@
                         "os": "LINUX",
                         "arch": "armv7a"
                     }
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv7a_neon"
+                    }
                 }
             ],
             "params": {
@@ -2529,7 +2541,11 @@
                 "cxx_compiler": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-g++",
                 "ar": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-ar",
                 "strip": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-strip",
-                "objcopy": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-objcopy"
+                "objcopy": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-objcopy",
+                "isystem": [
+                    "$(GCC)/usr/lib/arm-poky-linux-gnueabi/gcc/arm-poky-linux-gnueabi/6.3.0/include",
+                    "$(GCC)/usr/lib/arm-poky-linux-gnueabi/gcc/arm-poky-linux-gnueabi/6.3.0/include-fixed"
+                ]
             }
         },
         "gcc73-armv7a-jbl-portable-music": {
@@ -2564,7 +2580,7 @@
                 {
                     "host": {
                         "os": "LINUX"
-                  },
+                    },
                     "target": {
                         "os": "YOCTO_JBL_PORTABLE_MUSIC",
                         "arch": "armv7a"
@@ -2615,7 +2631,7 @@
                 {
                     "host": {
                         "os": "LINUX"
-                  },
+                    },
                     "target": {
                         "os": "YOCTO_LIGHTCOMM",
                         "arch": "aarch64"
@@ -2632,7 +2648,10 @@
                 "gcc_version": "7.3",
                 "strip": "$(GCC)/usr/bin/aarch64-poky-linux/aarch64-poky-linux-strip",
                 "objcopy": "$(GCC)/usr/bin/aarch64-poky-linux/aarch64-poky-linux-objcopy",
-                "isystem": ["$(GCC)/usr/lib/aarch64-poky-linux/gcc/aarch64-poky-linux/5.3.0/include", "$(GCC)/usr/lib/aarch64-poky-linux/gcc/aarch64-poky-linux/5.3.0/include-fixed"]
+                "isystem": [
+                    "$(GCC)/usr/lib/aarch64-poky-linux/gcc/aarch64-poky-linux/5.3.0/include",
+                    "$(GCC)/usr/lib/aarch64-poky-linux/gcc/aarch64-poky-linux/5.3.0/include-fixed"
+                ]
             }
         },
         "bloat": {
@@ -4316,6 +4335,34 @@
                 }
             ]
         },
+        "zcli": {
+            "tools": {
+                "zcli": {
+                    "bottle": "zcli",
+                    "executable": "zcli"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "python3": {
             "tools": {
                 "python3": {
@@ -4838,7 +4885,9 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [552977342],
+                "sandbox_id": [
+                    559374142
+                ],
                 "match": "ymake"
             },
             "executable": {
@@ -4861,7 +4910,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    542602407
+                    557843592
                 ],
                 "match": "arc"
             },
@@ -5535,7 +5584,7 @@
         "gcc63-armv7a-lg-wk7y": {
             "formula": {
                 "sandbox_id": [
-                    "555947382"
+                    "557978109"
                 ],
                 "match": "GCC"
             },
@@ -5650,7 +5699,7 @@
                     "aarch64-poky-linux",
                     "aarch64-poky-linux-c++filt"
                 ],
-"strip": [
+                "strip": [
                     "usr",
                     "bin",
                     "aarch64-poky-linux",
@@ -6421,12 +6470,23 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 547398069,
+                "sandbox_id": 560523700,
                 "match": "horadric"
             },
             "executable": {
                 "horadric": [
                     "horadric"
+                ]
+            }
+        },
+        "zcli": {
+            "formula": {
+                "sandbox_id": 559933291,
+                "match": "zcli"
+            },
+            "executable": {
+                "zcli": [
+                    "zcli"
                 ]
             }
         },
@@ -6509,7 +6569,7 @@
         },
         "ya-tc": {
             "formula": {
-                "sandbox_id": 549352842,
+                "sandbox_id": 560372435,
                 "match": "ya-tc"
             },
             "executable": {
@@ -6692,7 +6752,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 555849153,
+                "sandbox_id": 557338083,
                 "match": "SEDEM archive"
             },
             "executable": {

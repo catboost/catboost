@@ -40,6 +40,10 @@ namespace NCatboostDistributed {
         OBJECT_NOCOPY_METHODS(TBootstrapMaker);
         void DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unused*/, TOutput* /*unused*/) const final;
     };
+    class TDerivativesStDevFromZeroCalcer: public NPar::TMapReduceCmd<TUnusedInitializedParam, double> {
+        OBJECT_NOCOPY_METHODS(TDerivativesStDevFromZeroCalcer);
+        void DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unused*/, TOutput* /*unused*/) const final;
+    };
 
     // [cand][subcand]
     class TScoreCalcer: public NPar::TMapReduceCmd<TCandidateList, TStats5D> {

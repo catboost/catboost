@@ -226,10 +226,6 @@ namespace NCB {
             return RuntimeTextProcessingOptions.TokenizedFeatureCount();
         }
 
-        ETokenizerType GetTokenizerType() const {
-            return RuntimeTextProcessingOptions.GetTokenizerType();
-        }
-
     private:
         template <EFeatureType FeatureType>
         void CheckCorrectPerTypeFeatureIdx(TFeatureIdx<FeatureType> perTypeFeatureIdx) const {

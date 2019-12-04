@@ -215,6 +215,7 @@ enum class ECounterCalc {
 
 enum class EPredictionType {
     Probability,
+    LogProbability,
     Class,
     RawFormulaVal,
     InternalRawFormulaVal
@@ -319,11 +320,6 @@ enum class EFeatureCalcerType : ui32 {
     GaussianHomoscedasticModel,
     GaussianHeteroscedasticModel,
     EmbeddingDistanceToClass
-};
-
-enum class ETokenizerType {
-    Naive,
-    UserDefined
 };
 
 namespace NCB {

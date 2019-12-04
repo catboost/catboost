@@ -157,6 +157,8 @@
   - oleacc.h
   - oleauto.h
   - olectl.h
+  - packon.h
+  - packoff.h
   - p2p.h
   - pdh.h
   - pdhmsg.h

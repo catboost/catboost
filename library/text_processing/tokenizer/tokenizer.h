@@ -3,6 +3,8 @@
 #include "lemmer_impl.h"
 #include "options.h"
 
+#include <util/generic/ptr.h>
+
 namespace NTextProcessing::NTokenizer {
 
     class TTokenizer : public TMoveOnly {
