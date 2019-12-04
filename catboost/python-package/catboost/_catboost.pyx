@@ -1427,7 +1427,7 @@ cdef _2d_vector_of_double_to_np_array(const TVector[TVector[double]]& vectors):
     return result
 
 
-cdef _3d_vector_of_double_to_np_array(TVector[TVector[TVector[double]]]& vectors):
+cdef _3d_vector_of_double_to_np_array(const TVector[TVector[TVector[double]]]& vectors):
     cdef size_t subvec_size = vectors[0].size() if not vectors.empty() else 0
     cdef size_t sub_subvec_size = vectors[0][0].size() if subvec_size != 0 else 0
     result = np.empty([vectors.size(), subvec_size, sub_subvec_size], dtype=_npfloat64)
@@ -1439,19 +1439,19 @@ cdef _3d_vector_of_double_to_np_array(TVector[TVector[TVector[double]]]& vectors
                 result[i][j][k] = vectors[i][j][k]
     return result
 
-cdef _vector_of_uints_to_np_array(TVector[ui32]& vec):
+cdef _vector_of_uints_to_np_array(const TVector[ui32]& vec):
     result = np.empty(vec.size(), dtype=np.uint32)
     for i in xrange(vec.size()):
         result[i] = vec[i]
     return result
 
-cdef _vector_of_ints_to_np_array(TVector[int]& vec):
+cdef _vector_of_ints_to_np_array(const TVector[int]& vec):
     result = np.empty(vec.size(), dtype=np.int)
     for i in xrange(vec.size()):
         result[i] = vec[i]
     return result
 
-cdef _vector_of_uints_to_2d_np_array(TVector[ui32]& vec, int row_count, int column_count):
+cdef _vector_of_uints_to_2d_np_array(const TVector[ui32]& vec, int row_count, int column_count):
     assert vec.size() == row_count * column_count
     result = np.empty((row_count, column_count), dtype=np.uint32)
     for row_num in xrange(row_count):
@@ -1459,13 +1459,13 @@ cdef _vector_of_uints_to_2d_np_array(TVector[ui32]& vec, int row_count, int colu
             result[row_num][col_num] = vec[row_num * column_count + col_num]
     return result
 
-cdef _vector_of_floats_to_np_array(TVector[float]& vec):
+cdef _vector_of_floats_to_np_array(const TVector[float]& vec):
     result = np.empty(vec.size(), dtype=_npfloat32)
     for i in xrange(vec.size()):
         result[i] = vec[i]
     return result
 
-cdef _vector_of_size_t_to_np_array(TVector[size_t]& vec):
+cdef _vector_of_size_t_to_np_array(const TVector[size_t]& vec):
     result = np.empty(vec.size(), dtype=np.uint32)
     for i in xrange(vec.size()):
         result[i] = vec[i]
@@ -1650,7 +1650,7 @@ cdef EPredictionType string_to_prediction_type(prediction_type_str) except *:
         raise CatBoostError("Unknown prediction type {}.".format(prediction_type_str))
     return prediction_type
 
-cdef transform_predictions(TVector[TVector[double]] predictions, EPredictionType predictionType, int thread_count, TFullModel* model):
+cdef transform_predictions(const TVector[TVector[double]]& predictions, EPredictionType predictionType, int thread_count, TFullModel* model):
     approx_dimension = model.GetDimensionsCount()
 
     if approx_dimension == 1:
