@@ -3,23 +3,23 @@ RuntimeErrorTraceback (most recent call last)
 <string> in <module>()
 
 library/python/runtime/importer.pxi in __res.ResourceImporter.run_main()
-    263             raise Exception(entry_point + ' not found')
-    264 
---> 265         self.load_module(entry_point, fix_name='__main__')
+    264             raise Exception(entry_point + ' not found')
+    265 
+--> 266         self.load_module(entry_point, fix_name='__main__')
         global self.load_module = undefined
         global entry_point = undefined
         global fix_name = undefined
-    266 
     267 
+    268 
 
 library/python/runtime/importer.pxi in __res.ResourceImporter.load_module()
-    234 
-    235         try:
---> 236             exec code in mod.__dict__
+    235 
+    236         try:
+--> 237             exec code in mod.__dict__
         global code = undefined
         global mod.__dict__ = undefined
-    237             old_mod = sys.modules[mod_name]
-    238         finally:
+    238             old_mod = sys.modules[mod_name]
+    239         finally:
 
 library/python/runtime/test/traceback/__main__.py in <module>()
       4 
