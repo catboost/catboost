@@ -767,9 +767,12 @@ static void CalcScores(
     TLearnContext* ctx) {
 
     ui32 learnSampleCount = data.Learn->ObjectsData->GetObjectCount();
+    const double derivativesStDevFromZero = ctx->Params.SystemOptions->IsSingleHost()
+        ? CalcDerivativesStDevFromZero(*fold, ctx->Params.BoostingOptions->BoostingType, ctx->LocalExecutor)
+        : MapCalcDerivativesStDevFromZero(learnSampleCount, ctx);
     const auto scoreStDev =
         ctx->Params.ObliviousTreeOptions->RandomStrength
-        * CalcDerivativesStDevFromZero(*fold, ctx->Params.BoostingOptions->BoostingType, ctx->LocalExecutor)
+        * derivativesStDevFromZero
         * CalcDerivativesStDevFromZeroMultiplier(learnSampleCount, modelLength);
     if (!ctx->Params.SystemOptions->IsSingleHost()) {
         if (IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction())) {

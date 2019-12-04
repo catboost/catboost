@@ -27,6 +27,7 @@ void MapBuildPlainFold(TLearnContext* ctx);
 void MapRestoreApproxFromTreeStruct(TLearnContext* ctx);
 void MapTensorSearchStart(TLearnContext* ctx);
 void MapBootstrap(TLearnContext* ctx);
+double MapCalcDerivativesStDevFromZero(ui32 learnSampleCount, TLearnContext* ctx);
 void MapCalcScore(
     double scoreStDev,
     int depth,

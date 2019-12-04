@@ -158,6 +158,15 @@ void MapBootstrap(TLearnContext* ctx) {
     ApplyMapper<TBootstrapMaker>(TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount(), TMasterEnvironment::GetRef().SharedTrainData);
 }
 
+double MapCalcDerivativesStDevFromZero(ui32 learnSampleCount, TLearnContext* ctx) {
+    Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
+    const TVector<double> sumsFromWorkers = ApplyMapper<TDerivativesStDevFromZeroCalcer>(
+        TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount(),
+        TMasterEnvironment::GetRef().SharedTrainData);
+    const double sum2 = Accumulate(sumsFromWorkers, 0.0);
+    return sqrt(sum2 / learnSampleCount);
+}
+
 template <typename TScoreCalcMapper, typename TGetScore>
 void MapGenericCalcScore(
     TGetScore getScore,

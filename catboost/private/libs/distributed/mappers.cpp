@@ -16,6 +16,7 @@
 #include <catboost/private/libs/algo_helpers/error_functions.h>
 #include <catboost/libs/data/load_data.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/private/libs/index_range/index_range.h>
@@ -298,6 +299,26 @@ namespace NCatboostDistributed {
             &NPar::LocalExecutor(),
             &localData.Progress->Rand);
         localData.FlatPairs = UnpackPairsFromQueries(localData.Progress->AveragingFold.LearnQueriesInfo);
+    }
+
+    void TDerivativesStDevFromZeroCalcer::DoMap(
+        NPar::IUserContext* /*ctx*/,
+        int /*hostId*/,
+        TInput* /*unused*/,
+        TOutput* outSum2
+    ) const {
+        auto& localData = TLocalTensorSearchData::GetRef();
+
+        const auto& bodyTailArr = localData.Progress->AveragingFold.BodyTailArr;
+        Y_ASSERT(bodyTailArr.size() == 1);
+        const auto& weightedDerivatives = bodyTailArr.front().WeightedDerivatives;
+        Y_ASSERT(weightedDerivatives.size() > 0);
+
+        double sum2 = 0;
+        for (const auto& perDimensionWeightedDerivatives : weightedDerivatives) {
+            sum2 += NCB::L2NormSquared<double>(perDimensionWeightedDerivatives, &NPar::LocalExecutor());
+        }
+        *outSum2 = sum2;
     }
 
     template <typename TMapFunc, typename TInputType, typename TOutputType>
@@ -829,6 +850,7 @@ REGISTER_SAVELOAD_NM_CLASS(0xd66d481, NCatboostDistributed, TTrainData);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d482, NCatboostDistributed, TPlainFoldBuilder);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d483, NCatboostDistributed, TTensorSearchStarter);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d484, NCatboostDistributed, TBootstrapMaker);
+REGISTER_SAVELOAD_NM_CLASS(0xd66d584, NCatboostDistributed, TDerivativesStDevFromZeroCalcer);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d485, NCatboostDistributed, TScoreCalcer);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d585, NCatboostDistributed, TRemoteBinCalcer);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d685, NCatboostDistributed, TRemoteScoreCalcer);
