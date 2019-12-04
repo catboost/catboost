@@ -1,27 +1,19 @@
 #pragma once
 
-#include <catboost/private/libs/options/enums.h>
-#include <util/generic/array_ref.h>
-#include <util/generic/fwd.h>
-#include <util/generic/maybe.h>
-#include <util/generic/ptr.h>
-#include <util/generic/strbuf.h>
-#include <util/generic/vector.h>
-#include <util/generic/xrange.h>
+#include <library/text_processing/tokenizer/tokenizer.h>
 
 namespace NCB {
 
-    //TODO(noxoomo, nikitxskv): move to library after text-processing tokenizer will be available
-    class ITokenizer : public TThrRefBase {
+    class TTokenizer : public TThrRefBase {
     public:
-        virtual void Tokenize(TStringBuf inputString, TVector<TStringBuf>* tokens) const = 0;
+        void Tokenize(TStringBuf inputString, TVector<TStringBuf>* tokens);
+    private:
+        NTextProcessing::NTokenizer::TTokenizer TokenizerImpl;
     };
 
-    using TTokenizerPtr = TIntrusivePtr<ITokenizer>;
+    using TTokenizerPtr = TIntrusivePtr<TTokenizer>;
 
-    TVector<TVector<TStringBuf>> Tokenize(TConstArrayRef<TStringBuf> textFeature, const TTokenizerPtr& tokenizer);
-
-    TTokenizerPtr CreateTokenizer(ETokenizerType tokenizerType = ETokenizerType::Naive);
+    TTokenizerPtr CreateTokenizer();
 }
 
 
