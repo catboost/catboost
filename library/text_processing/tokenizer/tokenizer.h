@@ -24,9 +24,12 @@ namespace NTextProcessing::NTokenizer {
 
         TTokenizerOptions GetOptions() const;
 
+        bool NeedToModifyTokens() const;
+
     private:
         TTokenizerOptions Options;
         THolder<ILemmerImplementation> Lemmer;
+        bool NeedToModifyTokensFlag = false;
     };
 
 }

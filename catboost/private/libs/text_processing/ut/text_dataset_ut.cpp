@@ -11,25 +11,25 @@ using namespace NCB;
 Y_UNIT_TEST_SUITE(TestTextDataset) {
     const TTokenizerPtr tokenizer = CreateTokenizer();
     Y_UNIT_TEST(TestNaiveTokenizer) {
-        TVector<TStringBuf> tokens;
+        TTokensWithBuffer tokens;
 
         tokenizer->Tokenize("", &tokens);
-        UNIT_ASSERT_VALUES_EQUAL(tokens.size(), 0);
+        UNIT_ASSERT_VALUES_EQUAL(tokens.View.size(), 0);
 
         tokenizer->Tokenize(" ", &tokens);
-        UNIT_ASSERT_VALUES_EQUAL(tokens.size(), 0);
+        UNIT_ASSERT_VALUES_EQUAL(tokens.View.size(), 0);
 
         tokenizer->Tokenize("         ", &tokens);
-        UNIT_ASSERT_VALUES_EQUAL(tokens.size(), 0);
+        UNIT_ASSERT_VALUES_EQUAL(tokens.View.size(), 0);
 
         tokenizer->Tokenize("a", &tokens);
-        UNIT_ASSERT_VALUES_EQUAL(tokens.size(), 1);
-        UNIT_ASSERT_VALUES_EQUAL(tokens[0], "a");
+        UNIT_ASSERT_VALUES_EQUAL(tokens.View.size(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(tokens.View[0], "a");
 
         tokenizer->Tokenize("a   a  ", &tokens);
-        UNIT_ASSERT_VALUES_EQUAL(tokens.size(), 2);
-        UNIT_ASSERT_VALUES_EQUAL(tokens[0], "a");
-        UNIT_ASSERT_VALUES_EQUAL(tokens[1], "a");
+        UNIT_ASSERT_VALUES_EQUAL(tokens.View.size(), 2);
+        UNIT_ASSERT_VALUES_EQUAL(tokens.View[0], "a");
+        UNIT_ASSERT_VALUES_EQUAL(tokens.View[1], "a");
     }
 
     Y_UNIT_TEST(TestTextDatasetBuilder) {
