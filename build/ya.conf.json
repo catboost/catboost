@@ -274,6 +274,9 @@
         "vmexec": {
             "description": "VMEXEC run script inside qemu-vm"
         },
+        "yd-migrate": {
+            "description": "Run deploy migration"
+        },
         "yfm": {
             "description": "YFM-extended markdown processor for Cloud deploy"
         },
@@ -3527,6 +3530,28 @@
                 }
             ]
         },
+        "yd-migrate": {
+            "tools": {
+                "yd-migrate": {
+                    "bottle": "yd-migrate",
+                    "executable": "yd-migrate"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "dctl": {
             "tools": {
                 "dctl": {
@@ -6107,6 +6132,19 @@
             "executable": {
                 "yp": [
                     "yp"
+                ]
+            }
+        },
+        "yd-migrate": {
+            "formula": {
+                "sandbox_id": [
+                    561361752
+                ],
+                "match": "deploy_migrate/bin"
+            },
+            "executable": {
+                "yd-migrate": [
+                    "migrate"
                 ]
             }
         },
