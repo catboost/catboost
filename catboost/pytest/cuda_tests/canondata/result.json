@@ -1055,61 +1055,61 @@
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW,NaiveBayes,BM25-Ordered]": [
         {
-            "checksum": "f7de1da58a2af680877d1f191d4f615f",
+            "checksum": "7a83b5ee93a9f839f5a3583a95c9741c",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-Ordered_/learn.tsv"
         },
         {
-            "checksum": "1abc3ad4d1de5874b81242635dd85d02",
+            "checksum": "8360399b22d62a45ea42c1520d7a8ca6",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-Ordered_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW,NaiveBayes,BM25-Plain]": [
         {
-            "checksum": "c86cded24a0d8a5cd37ebdd30dd68917",
+            "checksum": "dd69e204f25b9a66d9bc75189774f902",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-Plain_/learn.tsv"
         },
         {
-            "checksum": "a045d93592010cf49b55e481d0ca8410",
+            "checksum": "5835d8ab3073a5ab43b3470dcd3c0c97",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-Plain_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW,NaiveBayes-Ordered]": [
         {
-            "checksum": "7c14e5919d4c711e62fca6ce3df3f6ee",
+            "checksum": "98698d37ac6a645e0bbd9e5dafc9727a",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes-Ordered_/learn.tsv"
         },
         {
-            "checksum": "142868a2f4542f7cbfd7d8f9f90e3442",
+            "checksum": "06a344ac54d69d9e55147d3261bbb335",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes-Ordered_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW,NaiveBayes-Plain]": [
         {
-            "checksum": "7bf931bbc8424bacbedec82a1f4d23cb",
+            "checksum": "136108163fdfe809e3b3408c681b57f3",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes-Plain_/learn.tsv"
         },
         {
-            "checksum": "83883704f31b74654f0960b6fba2052c",
+            "checksum": "6194616d5ac4e05f31705ac2c7b773e7",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW_NaiveBayes-Plain_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW-Ordered]": [
         {
-            "checksum": "e46e6352ec815313b3858d0d5fd9db19",
+            "checksum": "2e4654280bd7c68c632a9ed40222ed05",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW-Ordered_/learn.tsv"
         },
         {
-            "checksum": "c152eb11a84c3ecf5cdf9f5b9b42f344",
+            "checksum": "fde286e1362d945e279c83e6ff563539",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW-Ordered_/test.tsv"
         }
     ],
     "test_gpu.test_fit_binclass_with_text_features[BoW-Plain]": [
         {
-            "checksum": "658b8838d504508d78b625efe1374219",
+            "checksum": "b54583d1ffa6ef1bd8e0aa4c53fb5995",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW-Plain_/learn.tsv"
         },
         {
-            "checksum": "7472c5a9924518a0a2b48ad1d16b6911",
+            "checksum": "5747a2b27d90c2494ab3889307192787",
             "uri": "file://test_gpu.test_fit_binclass_with_text_features_BoW-Plain_/test.tsv"
         }
     ],
@@ -1141,7 +1141,7 @@
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClass-BM25]": [
         {
-            "checksum": "21504e9e71ca3ed390c391d3048e70d8",
+            "checksum": "3bca5beddaa45303523a2535f8857bed",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BM25_/learn.tsv"
         },
         {
@@ -1151,41 +1151,41 @@
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClass-BoW,NaiveBayes,BM25]": [
         {
-            "checksum": "f4e7071e8d91236a651306497b84edcf",
+            "checksum": "4744cbccb0cf33d2842ba77c42457ec4",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_BM25_/learn.tsv"
         },
         {
-            "checksum": "6c5a747628df3b1374ae12b30403941e",
+            "checksum": "0f5645106e6052bc283fc5dd67fe86b8",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_BM25_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClass-BoW,NaiveBayes]": [
         {
-            "checksum": "e581f3b134a34cf6b2378f52d5f97370",
+            "checksum": "083fd0f61bc5f2fd6c48c5bb0b837815",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_/learn.tsv"
         },
         {
-            "checksum": "ce2a56a6f35d2d2e806dfa26821ab62d",
+            "checksum": "733229ebe539bec9e21bb2756698fe4c",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClass-BoW]": [
         {
-            "checksum": "125b47f529f177b6e45b8739ca7a0024",
+            "checksum": "0ade69eee52912d3bfd3e475f5265f33",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_/learn.tsv"
         },
         {
-            "checksum": "b92870a0a5414443b4003920beaaac5b",
+            "checksum": "e323bd280397e48e199d06a29965c9f8",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClass-NaiveBayes]": [
         {
-            "checksum": "b3efda742bbea448e10ed079e7d496ec",
+            "checksum": "9b77c107a88ac431c81987b716e8864a",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-NaiveBayes_/learn.tsv"
         },
         {
-            "checksum": "9c7aba1a5ed69aaf7f33c65099e0653d",
+            "checksum": "8399ee2bfa17a5d9865b8e7b71c94633",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-NaiveBayes_/test.tsv"
         }
     ],
@@ -1195,37 +1195,37 @@
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BM25_/learn.tsv"
         },
         {
-            "checksum": "76ba5d3753cf4a86fced363299922d4f",
+            "checksum": "7e88cda589969d218011874947b311d0",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BM25_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW,NaiveBayes,BM25]": [
         {
-            "checksum": "ae61b40b6dd5946af8f2b7d8957fabfb",
+            "checksum": "afb05ae56366ce10e84e472ed305a4d0",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes_BM25_/learn.tsv"
         },
         {
-            "checksum": "ea94eab54a0855a200616d3d742318e8",
+            "checksum": "7dbd7b93ec165df5a2e67a7774ad2edf",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes_BM25_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW,NaiveBayes]": [
         {
-            "checksum": "7694556e3ae3240feee421ee03a946d6",
+            "checksum": "63104a106649b41756c29c86c558801a",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes_/learn.tsv"
         },
         {
-            "checksum": "7d4fdc6b8dde010f95f7f564582780d6",
+            "checksum": "6c47d408d1620ec44a2359c60cbc2eb9",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes_/test.tsv"
         }
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW]": [
         {
-            "checksum": "40eca2c5794d28c6fe6a3a257cfd94cb",
+            "checksum": "1fbcee1632e1aa54dda0c14cc02a7eb1",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_/learn.tsv"
         },
         {
-            "checksum": "b2fb05e3640e15887c4093f06206ec50",
+            "checksum": "400e16dff12ae41ffef65b38e3886b32",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_/test.tsv"
         }
     ],
@@ -1235,7 +1235,7 @@
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-NaiveBayes_/learn.tsv"
         },
         {
-            "checksum": "e6ebdc93d6360c85f080f4daec749436",
+            "checksum": "d2fe51e6958af7184c5b73c6f169402c",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-NaiveBayes_/test.tsv"
         }
     ],
@@ -3343,31 +3343,31 @@
     ],
     "test_gpu.test_shrink_model_with_text_features[Depthwise]": [
         {
-            "checksum": "27c4ce1fd844ba364b7d3c67d22c5a18",
+            "checksum": "f3e1ec1692f5aae6414ec0dac95e92c1",
             "uri": "file://test_gpu.test_shrink_model_with_text_features_Depthwise_/learn.tsv"
         },
         {
-            "checksum": "ad40cbf16e0ffab9f2a5a0b3032d7532",
+            "checksum": "1e40379daa8b72d0d310578c4912cc85",
             "uri": "file://test_gpu.test_shrink_model_with_text_features_Depthwise_/test.tsv"
         }
     ],
     "test_gpu.test_shrink_model_with_text_features[Lossguide]": [
         {
-            "checksum": "b4a9f7980c178dc72495f62a70d45316",
+            "checksum": "8f11d13be3d6be04e4819ade2442f445",
             "uri": "file://test_gpu.test_shrink_model_with_text_features_Lossguide_/learn.tsv"
         },
         {
-            "checksum": "a42a91c0d9a873da1e184c2fbb367e44",
+            "checksum": "d776fc3d5b4a663e21b523eb677bb2a1",
             "uri": "file://test_gpu.test_shrink_model_with_text_features_Lossguide_/test.tsv"
         }
     ],
     "test_gpu.test_shrink_model_with_text_features[SymmetricTree]": [
         {
-            "checksum": "e25d9e0d32e610d4aa9455b6d5bf519c",
+            "checksum": "d7830604cbafc31a25d003c64d7f2efc",
             "uri": "file://test_gpu.test_shrink_model_with_text_features_SymmetricTree_/learn.tsv"
         },
         {
-            "checksum": "997d88956dae519c999bc571506c2a14",
+            "checksum": "0f5645106e6052bc283fc5dd67fe86b8",
             "uri": "file://test_gpu.test_shrink_model_with_text_features_SymmetricTree_/test.tsv"
         }
     ],
