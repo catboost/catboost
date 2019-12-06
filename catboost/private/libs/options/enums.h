@@ -326,6 +326,7 @@ namespace NCB {
     enum class EFeatureEvalMode {
         OneVsNone,
         OneVsOthers,
-        OneVsAll
+        OneVsAll,
+        OthersVsAll
     };
 }

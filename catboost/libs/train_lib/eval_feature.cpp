@@ -448,15 +448,19 @@ static TVector<TTrainingDataProviders> UpdateIgnoredFeaturesInLearn(
     const auto& testedFeatures = options.FeaturesToEvaluate.Get();
     const auto featureEvalMode = options.FeatureEvalMode;
     if (trainingKind == ETrainingKind::Testing) {
-        for (ui32 featureSetIdx : xrange(testedFeatures.size())) {
-            if (featureSetIdx != testedFeatureSetIdx) {
-                ignoredFeatures.insert(
-                    ignoredFeatures.end(),
-                    testedFeatures[featureSetIdx].begin(),
-                    testedFeatures[featureSetIdx].end());
+        if (featureEvalMode == NCB::EFeatureEvalMode::OthersVsAll) {
+            ignoredFeatures = testedFeatures[testedFeatureSetIdx];
+        } else {
+            for (ui32 featureSetIdx : xrange(testedFeatures.size())) {
+                if (featureSetIdx != testedFeatureSetIdx) {
+                    ignoredFeatures.insert(
+                        ignoredFeatures.end(),
+                        testedFeatures[featureSetIdx].begin(),
+                        testedFeatures[featureSetIdx].end());
+                }
             }
         }
-    } else if (featureEvalMode == NCB::EFeatureEvalMode::OneVsAll) {
+    } else if (EqualToOneOf(featureEvalMode, NCB::EFeatureEvalMode::OneVsAll, NCB::EFeatureEvalMode::OthersVsAll)) {
         // no additional ignored features
     } else if (featureEvalMode == NCB::EFeatureEvalMode::OneVsOthers) {
         ignoredFeatures = testedFeatures[testedFeatureSetIdx];

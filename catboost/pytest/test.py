@@ -7659,52 +7659,67 @@ def test_equal_feature_names():
         ))
 
 
-def test_eval_feature():
+def enumerate_eval_feature_output_dirs(eval_mode, set_count, offset, fold_count):
+    if eval_mode == 'OneVsOthers':
+        baseline = 'Baseline_set_{set_idx}_fold_{fold_idx}'
+    else:
+        baseline = 'Baseline_fold_{fold_idx}'
+    testing = 'Testing_set_{set_idx}_fold_{fold_idx}'
+    dirs = []
+    for set_idx in range(set_count):
+        for fold_idx in range(offset, offset + fold_count):
+            fold = baseline.format(fold_idx=fold_idx, set_idx=set_idx)
+            if fold not in dirs:
+                dirs += [fold]
+            fold = testing.format(fold_idx=fold_idx, set_idx=set_idx)
+            dirs += [fold]
+    return dirs
+
+
+@pytest.mark.parametrize('eval_mode', ['OneVsNone', 'OneVsAll', 'OneVsOthers', 'OthersVsAll'])
+@pytest.mark.parametrize('features_to_eval', ['0-6', '0-6;7-13'], ids=['one_set', 'two_sets'])
+@pytest.mark.parametrize('offset', [0, 2])
+def test_eval_feature(eval_mode, features_to_eval, offset):
     output_eval_path = yatest.common.test_output_path('feature.eval')
     test_err_log = 'test_error.log'
+    fstr_file = 'fstrs'
+    train_dir = yatest.common.test_output_path('')
+    fold_count = 2
     cmd = (
         CATBOOST_PATH,
         'eval-feature',
         '--loss-function', 'RMSE',
         '-f', data_file('higgs', 'train_small'),
         '--cd', data_file('higgs', 'train.cd'),
-        '--features-to-evaluate', '0-6;7-13;14-20;21-27',
-        '--feature-eval-mode', 'OneVsOthers',
+        '--features-to-evaluate', features_to_eval,
+        '--feature-eval-mode', eval_mode,
         '-i', '30',
         '-T', '4',
         '-w', '0.7',
         '--feature-eval-output-file', output_eval_path,
-        '--offset', '2',
-        '--fold-count', '2',
+        '--offset', str(offset),
+        '--fold-count', str(fold_count),
         '--fold-size-unit', 'Object',
         '--fold-size', '20',
         '--test-err-log', test_err_log,
-        '--train-dir', '.'
+        '--train-dir', train_dir,
+        '--fstr-file', fstr_file,
     )
 
     yatest.common.execute(cmd)
 
-    return [
-        local_canonical_file(os.path.join('Baseline_set_3_fold_3', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('Baseline_set_3_fold_2', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('Baseline_set_2_fold_3', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('Baseline_set_2_fold_2', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('Baseline_set_1_fold_3', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('Baseline_set_1_fold_2', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('Baseline_set_0_fold_3', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('Baseline_set_0_fold_2', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('Testing_set_3_fold_3', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('Testing_set_3_fold_2', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('Testing_set_2_fold_3', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('Testing_set_2_fold_2', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('Testing_set_1_fold_3', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('Testing_set_1_fold_2', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('Testing_set_0_fold_3', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('Testing_set_0_fold_2', test_err_log), diff_tool=diff_tool()),
-    ]
+    pj = os.path.join
+    set_count = len(features_to_eval.split(';'))
+    artifacts = [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
+    for output_dir in enumerate_eval_feature_output_dirs(eval_mode, set_count, offset, fold_count):
+        artifacts += [
+            local_canonical_file(pj(train_dir, output_dir, test_err_log), diff_tool=diff_tool()),
+            local_canonical_file(pj(train_dir, output_dir, fstr_file), diff_tool=diff_tool()),
+        ]
+    return artifacts
 
 
-@pytest.mark.parametrize('eval_mode', ['OneVsNone', 'OneVsAll', 'OneVsOthers'])
+@pytest.mark.parametrize('eval_mode', ['OneVsNone', 'OneVsAll', 'OneVsOthers', 'OthersVsAll'])
 @pytest.mark.parametrize('features_to_eval', ['2-5', '2-5;10-15'], ids=['one_set', 'two_sets'])
 @pytest.mark.parametrize('offset', [0, 2])
 def test_eval_feature_snapshot(eval_mode, features_to_eval, offset):
@@ -7764,26 +7779,9 @@ def test_eval_feature_snapshot(eval_mode, features_to_eval, offset):
 
     pj = os.path.join
     set_count = len(features_to_eval.split(';'))
-    if eval_mode == 'OneVsOthers':
-        baseline = 'Baseline_set_{set_idx}_fold_{fold_idx}'
-        for set_idx in range(set_count):
-            for fold_idx in range(offset, offset + fold_count):
-                fold = baseline.format(fold_idx=fold_idx, set_idx=set_idx)
-                assert filecmp.cmp(pj(reference_dir, fold, test_err_log), pj(snapshot_dir, fold, test_err_log))
-                assert filecmp.cmp(pj(reference_dir, fold, fstr_file), pj(snapshot_dir, fold, fstr_file))
-    else:
-        baseline = 'Baseline_fold_{fold_idx}'
-        for fold_idx in range(offset, offset + fold_count):
-            fold = baseline.format(fold_idx=fold_idx)
-            assert filecmp.cmp(pj(reference_dir, fold, test_err_log), pj(snapshot_dir, fold, test_err_log))
-            assert filecmp.cmp(pj(reference_dir, fold, fstr_file), pj(snapshot_dir, fold, fstr_file))
-
-    testing = 'Testing_set_{set_idx}_fold_{fold_idx}'
-    for set_idx in range(set_count):
-        for fold_idx in range(offset, offset + fold_count):
-            fold = testing.format(fold_idx=fold_idx, set_idx=set_idx)
-            assert filecmp.cmp(pj(reference_dir, fold, test_err_log), pj(snapshot_dir, fold, test_err_log))
-            assert filecmp.cmp(pj(reference_dir, fold, fstr_file), pj(snapshot_dir, fold, fstr_file))
+    for output_dir in enumerate_eval_feature_output_dirs(eval_mode, set_count, offset, fold_count):
+        assert filecmp.cmp(pj(reference_dir, output_dir, test_err_log), pj(snapshot_dir, output_dir, test_err_log))
+        assert filecmp.cmp(pj(reference_dir, output_dir, fstr_file), pj(snapshot_dir, output_dir, fstr_file))
 
 
 def test_eval_feature_snapshot_wrong_options():

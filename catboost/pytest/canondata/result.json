@@ -1691,70 +1691,772 @@
             "uri": "file://test.test_empty_eval_Plain_/test.eval"
         }
     ],
-    "test.test_eval_feature": [
+    "test.test_eval_feature[0-one_set-OneVsAll]": [
         {
-            "checksum": "e39db127f31ccc87ca4623fc353c8561",
-            "uri": "file://test.test_eval_feature/test_error.log"
+            "checksum": "906621e8c67cd1d3487f0d81be9f9a9f",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsAll_/feature.eval"
         },
         {
-            "checksum": "c9bd0b110d0479777e778f03e832201c",
-            "uri": "file://test.test_eval_feature/test_error.log.1"
+            "checksum": "67c3efcc62733a7e357858bb5e85c3d5",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsAll_/test_error.log"
         },
         {
-            "checksum": "630e4feb8d34eca4ad578a9d43071721",
-            "uri": "file://test.test_eval_feature/test_error.log.2"
+            "checksum": "9665944e40785cd0deb6b59e517931a1",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsAll_/fstrs"
         },
         {
-            "checksum": "394df43a51613b672447dc1ee71eb886",
-            "uri": "file://test.test_eval_feature/test_error.log.3"
+            "checksum": "67c3efcc62733a7e357858bb5e85c3d5",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsAll_/test_error.log.1"
         },
         {
-            "checksum": "832a78888a72dc02640921a5bd6f4ce9",
-            "uri": "file://test.test_eval_feature/test_error.log.4"
+            "checksum": "9665944e40785cd0deb6b59e517931a1",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsAll_/fstrs.1"
         },
         {
-            "checksum": "8beb4413e83be254f98e887918986b60",
-            "uri": "file://test.test_eval_feature/test_error.log.5"
+            "checksum": "4a607b797d8afb20131bd29207e02f29",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsAll_/test_error.log.2"
         },
         {
-            "checksum": "cc796989eaeeebe490729f48fd296b31",
-            "uri": "file://test.test_eval_feature/test_error.log.6"
+            "checksum": "45b53ea22aac003a5bbef20a14fcc8ab",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsAll_/fstrs.2"
+        },
+        {
+            "checksum": "4a607b797d8afb20131bd29207e02f29",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsAll_/test_error.log.3"
+        },
+        {
+            "checksum": "45b53ea22aac003a5bbef20a14fcc8ab",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsAll_/fstrs.3"
+        }
+    ],
+    "test.test_eval_feature[0-one_set-OneVsNone]": [
+        {
+            "checksum": "47b8550de765e7392d4e37d2797bb709",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsNone_/feature.eval"
+        },
+        {
+            "checksum": "8baf6eee6d019523494468242b94de13",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsNone_/test_error.log"
+        },
+        {
+            "checksum": "d786f1f5cd8b0a761a689cadcb708972",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsNone_/fstrs"
+        },
+        {
+            "checksum": "67c3efcc62733a7e357858bb5e85c3d5",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsNone_/test_error.log.1"
+        },
+        {
+            "checksum": "9665944e40785cd0deb6b59e517931a1",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsNone_/fstrs.1"
+        },
+        {
+            "checksum": "94e450c157ecf8c8337c3ae368313707",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsNone_/test_error.log.2"
+        },
+        {
+            "checksum": "061ed2007cbd1f1fa473f11be3261e73",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsNone_/fstrs.2"
+        },
+        {
+            "checksum": "4a607b797d8afb20131bd29207e02f29",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsNone_/test_error.log.3"
+        },
+        {
+            "checksum": "45b53ea22aac003a5bbef20a14fcc8ab",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsNone_/fstrs.3"
+        }
+    ],
+    "test.test_eval_feature[0-one_set-OneVsOthers]": [
+        {
+            "checksum": "47b8550de765e7392d4e37d2797bb709",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsOthers_/feature.eval"
+        },
+        {
+            "checksum": "8baf6eee6d019523494468242b94de13",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsOthers_/test_error.log"
+        },
+        {
+            "checksum": "d786f1f5cd8b0a761a689cadcb708972",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsOthers_/fstrs"
+        },
+        {
+            "checksum": "67c3efcc62733a7e357858bb5e85c3d5",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsOthers_/test_error.log.1"
+        },
+        {
+            "checksum": "9665944e40785cd0deb6b59e517931a1",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsOthers_/fstrs.1"
+        },
+        {
+            "checksum": "94e450c157ecf8c8337c3ae368313707",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsOthers_/test_error.log.2"
+        },
+        {
+            "checksum": "061ed2007cbd1f1fa473f11be3261e73",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsOthers_/fstrs.2"
+        },
+        {
+            "checksum": "4a607b797d8afb20131bd29207e02f29",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsOthers_/test_error.log.3"
+        },
+        {
+            "checksum": "45b53ea22aac003a5bbef20a14fcc8ab",
+            "uri": "file://test.test_eval_feature_0-one_set-OneVsOthers_/fstrs.3"
+        }
+    ],
+    "test.test_eval_feature[0-one_set-OthersVsAll]": [
+        {
+            "checksum": "6799064cc29e8b088c454301f79ca223",
+            "uri": "file://test.test_eval_feature_0-one_set-OthersVsAll_/feature.eval"
+        },
+        {
+            "checksum": "67c3efcc62733a7e357858bb5e85c3d5",
+            "uri": "file://test.test_eval_feature_0-one_set-OthersVsAll_/test_error.log"
+        },
+        {
+            "checksum": "9665944e40785cd0deb6b59e517931a1",
+            "uri": "file://test.test_eval_feature_0-one_set-OthersVsAll_/fstrs"
+        },
+        {
+            "checksum": "8baf6eee6d019523494468242b94de13",
+            "uri": "file://test.test_eval_feature_0-one_set-OthersVsAll_/test_error.log.1"
+        },
+        {
+            "checksum": "d786f1f5cd8b0a761a689cadcb708972",
+            "uri": "file://test.test_eval_feature_0-one_set-OthersVsAll_/fstrs.1"
+        },
+        {
+            "checksum": "4a607b797d8afb20131bd29207e02f29",
+            "uri": "file://test.test_eval_feature_0-one_set-OthersVsAll_/test_error.log.2"
+        },
+        {
+            "checksum": "45b53ea22aac003a5bbef20a14fcc8ab",
+            "uri": "file://test.test_eval_feature_0-one_set-OthersVsAll_/fstrs.2"
+        },
+        {
+            "checksum": "94e450c157ecf8c8337c3ae368313707",
+            "uri": "file://test.test_eval_feature_0-one_set-OthersVsAll_/test_error.log.3"
+        },
+        {
+            "checksum": "061ed2007cbd1f1fa473f11be3261e73",
+            "uri": "file://test.test_eval_feature_0-one_set-OthersVsAll_/fstrs.3"
+        }
+    ],
+    "test.test_eval_feature[0-two_sets-OneVsAll]": [
+        {
+            "checksum": "3b8ea500b8297dc622c95c401c0283a4",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsAll_/feature.eval"
+        },
+        {
+            "checksum": "67c3efcc62733a7e357858bb5e85c3d5",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsAll_/test_error.log"
+        },
+        {
+            "checksum": "9665944e40785cd0deb6b59e517931a1",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsAll_/fstrs"
+        },
+        {
+            "checksum": "43b545706699771dded5b7ebc25ae14f",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsAll_/test_error.log.1"
+        },
+        {
+            "checksum": "9bc317558c41bbf21e2728d20332356d",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsAll_/fstrs.1"
+        },
+        {
+            "checksum": "4a607b797d8afb20131bd29207e02f29",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsAll_/test_error.log.2"
+        },
+        {
+            "checksum": "45b53ea22aac003a5bbef20a14fcc8ab",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsAll_/fstrs.2"
+        },
+        {
+            "checksum": "7ae112728777cc15c7050c9a037491e6",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsAll_/test_error.log.3"
+        },
+        {
+            "checksum": "3584d505670b39a4e5ac1c5895029363",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsAll_/fstrs.3"
+        },
+        {
+            "checksum": "8baf6eee6d019523494468242b94de13",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsAll_/test_error.log.4"
+        },
+        {
+            "checksum": "d786f1f5cd8b0a761a689cadcb708972",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsAll_/fstrs.4"
+        },
+        {
+            "checksum": "94e450c157ecf8c8337c3ae368313707",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsAll_/test_error.log.5"
+        },
+        {
+            "checksum": "061ed2007cbd1f1fa473f11be3261e73",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsAll_/fstrs.5"
+        }
+    ],
+    "test.test_eval_feature[0-two_sets-OneVsNone]": [
+        {
+            "checksum": "eedbc5c0648528a2c04bb72861140d53",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsNone_/feature.eval"
+        },
+        {
+            "checksum": "bb22ea82e3faaff5dea1e712de809082",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsNone_/test_error.log"
+        },
+        {
+            "checksum": "6cfdb95d247192158df93c65cb2d7eea",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsNone_/fstrs"
+        },
+        {
+            "checksum": "43b545706699771dded5b7ebc25ae14f",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsNone_/test_error.log.1"
+        },
+        {
+            "checksum": "9bc317558c41bbf21e2728d20332356d",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsNone_/fstrs.1"
+        },
+        {
+            "checksum": "228462f493bf6f672e1cc20fcd6ed4a8",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsNone_/test_error.log.2"
+        },
+        {
+            "checksum": "8f5eb5651e296126cf84a2ffdbcfe7fa",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsNone_/fstrs.2"
+        },
+        {
+            "checksum": "7ae112728777cc15c7050c9a037491e6",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsNone_/test_error.log.3"
+        },
+        {
+            "checksum": "3584d505670b39a4e5ac1c5895029363",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsNone_/fstrs.3"
+        },
+        {
+            "checksum": "8baf6eee6d019523494468242b94de13",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsNone_/test_error.log.4"
+        },
+        {
+            "checksum": "d786f1f5cd8b0a761a689cadcb708972",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsNone_/fstrs.4"
+        },
+        {
+            "checksum": "94e450c157ecf8c8337c3ae368313707",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsNone_/test_error.log.5"
+        },
+        {
+            "checksum": "061ed2007cbd1f1fa473f11be3261e73",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsNone_/fstrs.5"
+        }
+    ],
+    "test.test_eval_feature[0-two_sets-OneVsOthers]": [
+        {
+            "checksum": "63ba86c9e6b23ddf5d84224189e3cf67",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsOthers_/feature.eval"
+        },
+        {
+            "checksum": "8baf6eee6d019523494468242b94de13",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsOthers_/test_error.log"
+        },
+        {
+            "checksum": "d786f1f5cd8b0a761a689cadcb708972",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsOthers_/fstrs"
+        },
+        {
+            "checksum": "43b545706699771dded5b7ebc25ae14f",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsOthers_/test_error.log.1"
+        },
+        {
+            "checksum": "9bc317558c41bbf21e2728d20332356d",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsOthers_/fstrs.1"
+        },
+        {
+            "checksum": "94e450c157ecf8c8337c3ae368313707",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsOthers_/test_error.log.2"
+        },
+        {
+            "checksum": "061ed2007cbd1f1fa473f11be3261e73",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsOthers_/fstrs.2"
+        },
+        {
+            "checksum": "7ae112728777cc15c7050c9a037491e6",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsOthers_/test_error.log.3"
+        },
+        {
+            "checksum": "3584d505670b39a4e5ac1c5895029363",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsOthers_/fstrs.3"
+        },
+        {
+            "checksum": "43b545706699771dded5b7ebc25ae14f",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsOthers_/test_error.log.4"
+        },
+        {
+            "checksum": "9bc317558c41bbf21e2728d20332356d",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsOthers_/fstrs.4"
+        },
+        {
+            "checksum": "8baf6eee6d019523494468242b94de13",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsOthers_/test_error.log.5"
+        },
+        {
+            "checksum": "d786f1f5cd8b0a761a689cadcb708972",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsOthers_/fstrs.5"
+        },
+        {
+            "checksum": "7ae112728777cc15c7050c9a037491e6",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsOthers_/test_error.log.6"
+        },
+        {
+            "checksum": "3584d505670b39a4e5ac1c5895029363",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsOthers_/fstrs.6"
+        },
+        {
+            "checksum": "94e450c157ecf8c8337c3ae368313707",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsOthers_/test_error.log.7"
+        },
+        {
+            "checksum": "061ed2007cbd1f1fa473f11be3261e73",
+            "uri": "file://test.test_eval_feature_0-two_sets-OneVsOthers_/fstrs.7"
+        }
+    ],
+    "test.test_eval_feature[0-two_sets-OthersVsAll]": [
+        {
+            "checksum": "8f7d2e59bf30364184913350be3f52b5",
+            "uri": "file://test.test_eval_feature_0-two_sets-OthersVsAll_/feature.eval"
+        },
+        {
+            "checksum": "67c3efcc62733a7e357858bb5e85c3d5",
+            "uri": "file://test.test_eval_feature_0-two_sets-OthersVsAll_/test_error.log"
+        },
+        {
+            "checksum": "9665944e40785cd0deb6b59e517931a1",
+            "uri": "file://test.test_eval_feature_0-two_sets-OthersVsAll_/fstrs"
+        },
+        {
+            "checksum": "8baf6eee6d019523494468242b94de13",
+            "uri": "file://test.test_eval_feature_0-two_sets-OthersVsAll_/test_error.log.1"
+        },
+        {
+            "checksum": "d786f1f5cd8b0a761a689cadcb708972",
+            "uri": "file://test.test_eval_feature_0-two_sets-OthersVsAll_/fstrs.1"
+        },
+        {
+            "checksum": "4a607b797d8afb20131bd29207e02f29",
+            "uri": "file://test.test_eval_feature_0-two_sets-OthersVsAll_/test_error.log.2"
+        },
+        {
+            "checksum": "45b53ea22aac003a5bbef20a14fcc8ab",
+            "uri": "file://test.test_eval_feature_0-two_sets-OthersVsAll_/fstrs.2"
+        },
+        {
+            "checksum": "94e450c157ecf8c8337c3ae368313707",
+            "uri": "file://test.test_eval_feature_0-two_sets-OthersVsAll_/test_error.log.3"
+        },
+        {
+            "checksum": "061ed2007cbd1f1fa473f11be3261e73",
+            "uri": "file://test.test_eval_feature_0-two_sets-OthersVsAll_/fstrs.3"
+        },
+        {
+            "checksum": "43b545706699771dded5b7ebc25ae14f",
+            "uri": "file://test.test_eval_feature_0-two_sets-OthersVsAll_/test_error.log.4"
+        },
+        {
+            "checksum": "9bc317558c41bbf21e2728d20332356d",
+            "uri": "file://test.test_eval_feature_0-two_sets-OthersVsAll_/fstrs.4"
+        },
+        {
+            "checksum": "7ae112728777cc15c7050c9a037491e6",
+            "uri": "file://test.test_eval_feature_0-two_sets-OthersVsAll_/test_error.log.5"
+        },
+        {
+            "checksum": "3584d505670b39a4e5ac1c5895029363",
+            "uri": "file://test.test_eval_feature_0-two_sets-OthersVsAll_/fstrs.5"
+        }
+    ],
+    "test.test_eval_feature[2-one_set-OneVsAll]": [
+        {
+            "checksum": "ddfcb63fa2208e285ce7dbbac3fc4d66",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsAll_/feature.eval"
+        },
+        {
+            "checksum": "ac2e255646d8ed7de0e02f7e2a2b5e38",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsAll_/test_error.log"
+        },
+        {
+            "checksum": "c0002e03cca123003d64668fb15637a2",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsAll_/fstrs"
+        },
+        {
+            "checksum": "ac2e255646d8ed7de0e02f7e2a2b5e38",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsAll_/test_error.log.1"
+        },
+        {
+            "checksum": "c0002e03cca123003d64668fb15637a2",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsAll_/fstrs.1"
+        },
+        {
+            "checksum": "d07642ed1d5946b6d08de6850d023b9e",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsAll_/test_error.log.2"
+        },
+        {
+            "checksum": "9b88db1ad4a45833f2bb5633f0419f06",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsAll_/fstrs.2"
+        },
+        {
+            "checksum": "d07642ed1d5946b6d08de6850d023b9e",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsAll_/test_error.log.3"
+        },
+        {
+            "checksum": "9b88db1ad4a45833f2bb5633f0419f06",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsAll_/fstrs.3"
+        }
+    ],
+    "test.test_eval_feature[2-one_set-OneVsNone]": [
+        {
+            "checksum": "da93e48656d52d5010a828d5ab8dbfc4",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsNone_/feature.eval"
         },
         {
             "checksum": "cbe1f901ba88f8ae6b4784913edba211",
-            "uri": "file://test.test_eval_feature/test_error.log.7"
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsNone_/test_error.log"
         },
         {
-            "checksum": "f6a8533a50a77b3c2c70764fc1bc2418",
-            "uri": "file://test.test_eval_feature/test_error.log.8"
+            "checksum": "77885329e02a5a9f02c7410bf3c709e4",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsNone_/fstrs"
         },
         {
-            "checksum": "21a0d8a2f86489bcea7fae452f9ceae6",
-            "uri": "file://test.test_eval_feature/test_error.log.9"
+            "checksum": "ac2e255646d8ed7de0e02f7e2a2b5e38",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsNone_/test_error.log.1"
         },
         {
-            "checksum": "39f94837e6fbd4c9db55c802dd86050e",
-            "uri": "file://test.test_eval_feature/test_error.log.10"
+            "checksum": "c0002e03cca123003d64668fb15637a2",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsNone_/fstrs.1"
         },
         {
-            "checksum": "379ddaa0b8ac15720762872baa127c8a",
-            "uri": "file://test.test_eval_feature/test_error.log.11"
+            "checksum": "cc796989eaeeebe490729f48fd296b31",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsNone_/test_error.log.2"
         },
         {
-            "checksum": "cefcbc5a4e1678e07945b5518a104feb",
-            "uri": "file://test.test_eval_feature/test_error.log.12"
+            "checksum": "f004f2c3b63a2e45d18dabf6e305b084",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsNone_/fstrs.2"
         },
         {
-            "checksum": "5aaf674d7901011d1d9370e13e5d019f",
-            "uri": "file://test.test_eval_feature/test_error.log.13"
+            "checksum": "d07642ed1d5946b6d08de6850d023b9e",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsNone_/test_error.log.3"
         },
         {
-            "checksum": "7b47a10e695292c2f91f6be5002f2caa",
-            "uri": "file://test.test_eval_feature/test_error.log.14"
+            "checksum": "9b88db1ad4a45833f2bb5633f0419f06",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsNone_/fstrs.3"
+        }
+    ],
+    "test.test_eval_feature[2-one_set-OneVsOthers]": [
+        {
+            "checksum": "da93e48656d52d5010a828d5ab8dbfc4",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsOthers_/feature.eval"
         },
         {
-            "checksum": "ec0059c0af0e4602e6cd11b6e9d9f1db",
-            "uri": "file://test.test_eval_feature/test_error.log.15"
+            "checksum": "cbe1f901ba88f8ae6b4784913edba211",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsOthers_/test_error.log"
+        },
+        {
+            "checksum": "77885329e02a5a9f02c7410bf3c709e4",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsOthers_/fstrs"
+        },
+        {
+            "checksum": "ac2e255646d8ed7de0e02f7e2a2b5e38",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsOthers_/test_error.log.1"
+        },
+        {
+            "checksum": "c0002e03cca123003d64668fb15637a2",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsOthers_/fstrs.1"
+        },
+        {
+            "checksum": "cc796989eaeeebe490729f48fd296b31",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsOthers_/test_error.log.2"
+        },
+        {
+            "checksum": "f004f2c3b63a2e45d18dabf6e305b084",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsOthers_/fstrs.2"
+        },
+        {
+            "checksum": "d07642ed1d5946b6d08de6850d023b9e",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsOthers_/test_error.log.3"
+        },
+        {
+            "checksum": "9b88db1ad4a45833f2bb5633f0419f06",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsOthers_/fstrs.3"
+        }
+    ],
+    "test.test_eval_feature[2-one_set-OthersVsAll]": [
+        {
+            "checksum": "6f1bf2a891058728b996eb62a711066b",
+            "uri": "file://test.test_eval_feature_2-one_set-OthersVsAll_/feature.eval"
+        },
+        {
+            "checksum": "ac2e255646d8ed7de0e02f7e2a2b5e38",
+            "uri": "file://test.test_eval_feature_2-one_set-OthersVsAll_/test_error.log"
+        },
+        {
+            "checksum": "c0002e03cca123003d64668fb15637a2",
+            "uri": "file://test.test_eval_feature_2-one_set-OthersVsAll_/fstrs"
+        },
+        {
+            "checksum": "cbe1f901ba88f8ae6b4784913edba211",
+            "uri": "file://test.test_eval_feature_2-one_set-OthersVsAll_/test_error.log.1"
+        },
+        {
+            "checksum": "77885329e02a5a9f02c7410bf3c709e4",
+            "uri": "file://test.test_eval_feature_2-one_set-OthersVsAll_/fstrs.1"
+        },
+        {
+            "checksum": "d07642ed1d5946b6d08de6850d023b9e",
+            "uri": "file://test.test_eval_feature_2-one_set-OthersVsAll_/test_error.log.2"
+        },
+        {
+            "checksum": "9b88db1ad4a45833f2bb5633f0419f06",
+            "uri": "file://test.test_eval_feature_2-one_set-OthersVsAll_/fstrs.2"
+        },
+        {
+            "checksum": "cc796989eaeeebe490729f48fd296b31",
+            "uri": "file://test.test_eval_feature_2-one_set-OthersVsAll_/test_error.log.3"
+        },
+        {
+            "checksum": "f004f2c3b63a2e45d18dabf6e305b084",
+            "uri": "file://test.test_eval_feature_2-one_set-OthersVsAll_/fstrs.3"
+        }
+    ],
+    "test.test_eval_feature[2-two_sets-OneVsAll]": [
+        {
+            "checksum": "948761217702b1858c55a97505faf6b9",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/feature.eval"
+        },
+        {
+            "checksum": "ac2e255646d8ed7de0e02f7e2a2b5e38",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/test_error.log"
+        },
+        {
+            "checksum": "c0002e03cca123003d64668fb15637a2",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/fstrs"
+        },
+        {
+            "checksum": "8beb4413e83be254f98e887918986b60",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/test_error.log.1"
+        },
+        {
+            "checksum": "bb5131ec9167427ed8d0284088e6602a",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/fstrs.1"
+        },
+        {
+            "checksum": "d07642ed1d5946b6d08de6850d023b9e",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/test_error.log.2"
+        },
+        {
+            "checksum": "9b88db1ad4a45833f2bb5633f0419f06",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/fstrs.2"
+        },
+        {
+            "checksum": "832a78888a72dc02640921a5bd6f4ce9",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/test_error.log.3"
+        },
+        {
+            "checksum": "5b697f81ddc508f6d03fca85ec1c6320",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/fstrs.3"
+        },
+        {
+            "checksum": "cbe1f901ba88f8ae6b4784913edba211",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/test_error.log.4"
+        },
+        {
+            "checksum": "77885329e02a5a9f02c7410bf3c709e4",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/fstrs.4"
+        },
+        {
+            "checksum": "cc796989eaeeebe490729f48fd296b31",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/test_error.log.5"
+        },
+        {
+            "checksum": "f004f2c3b63a2e45d18dabf6e305b084",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/fstrs.5"
+        }
+    ],
+    "test.test_eval_feature[2-two_sets-OneVsNone]": [
+        {
+            "checksum": "710fb875cb80ac274bf6917c5c095a7a",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/feature.eval"
+        },
+        {
+            "checksum": "52ce9ca8590f6acc5cd4d2dbeec30150",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/test_error.log"
+        },
+        {
+            "checksum": "4609965ca9165041a6d2b05f4e5700b9",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/fstrs"
+        },
+        {
+            "checksum": "8beb4413e83be254f98e887918986b60",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/test_error.log.1"
+        },
+        {
+            "checksum": "bb5131ec9167427ed8d0284088e6602a",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/fstrs.1"
+        },
+        {
+            "checksum": "ba1f1fba4c5ed98b05935212ea4efa9a",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/test_error.log.2"
+        },
+        {
+            "checksum": "65a66410810cf644457c49b58d072ec4",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/fstrs.2"
+        },
+        {
+            "checksum": "832a78888a72dc02640921a5bd6f4ce9",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/test_error.log.3"
+        },
+        {
+            "checksum": "5b697f81ddc508f6d03fca85ec1c6320",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/fstrs.3"
+        },
+        {
+            "checksum": "cbe1f901ba88f8ae6b4784913edba211",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/test_error.log.4"
+        },
+        {
+            "checksum": "77885329e02a5a9f02c7410bf3c709e4",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/fstrs.4"
+        },
+        {
+            "checksum": "cc796989eaeeebe490729f48fd296b31",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/test_error.log.5"
+        },
+        {
+            "checksum": "f004f2c3b63a2e45d18dabf6e305b084",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/fstrs.5"
+        }
+    ],
+    "test.test_eval_feature[2-two_sets-OneVsOthers]": [
+        {
+            "checksum": "31a329190d9da9f8ecb07c036b1a67fb",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/feature.eval"
+        },
+        {
+            "checksum": "cbe1f901ba88f8ae6b4784913edba211",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/test_error.log"
+        },
+        {
+            "checksum": "77885329e02a5a9f02c7410bf3c709e4",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/fstrs"
+        },
+        {
+            "checksum": "8beb4413e83be254f98e887918986b60",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/test_error.log.1"
+        },
+        {
+            "checksum": "bb5131ec9167427ed8d0284088e6602a",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/fstrs.1"
+        },
+        {
+            "checksum": "cc796989eaeeebe490729f48fd296b31",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/test_error.log.2"
+        },
+        {
+            "checksum": "f004f2c3b63a2e45d18dabf6e305b084",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/fstrs.2"
+        },
+        {
+            "checksum": "832a78888a72dc02640921a5bd6f4ce9",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/test_error.log.3"
+        },
+        {
+            "checksum": "5b697f81ddc508f6d03fca85ec1c6320",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/fstrs.3"
+        },
+        {
+            "checksum": "8beb4413e83be254f98e887918986b60",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/test_error.log.4"
+        },
+        {
+            "checksum": "bb5131ec9167427ed8d0284088e6602a",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/fstrs.4"
+        },
+        {
+            "checksum": "cbe1f901ba88f8ae6b4784913edba211",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/test_error.log.5"
+        },
+        {
+            "checksum": "77885329e02a5a9f02c7410bf3c709e4",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/fstrs.5"
+        },
+        {
+            "checksum": "832a78888a72dc02640921a5bd6f4ce9",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/test_error.log.6"
+        },
+        {
+            "checksum": "5b697f81ddc508f6d03fca85ec1c6320",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/fstrs.6"
+        },
+        {
+            "checksum": "cc796989eaeeebe490729f48fd296b31",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/test_error.log.7"
+        },
+        {
+            "checksum": "f004f2c3b63a2e45d18dabf6e305b084",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/fstrs.7"
+        }
+    ],
+    "test.test_eval_feature[2-two_sets-OthersVsAll]": [
+        {
+            "checksum": "d3a97e9c40e12abaa596fbcec56ec389",
+            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/feature.eval"
+        },
+        {
+            "checksum": "ac2e255646d8ed7de0e02f7e2a2b5e38",
+            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/test_error.log"
+        },
+        {
+            "checksum": "c0002e03cca123003d64668fb15637a2",
+            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/fstrs"
+        },
+        {
+            "checksum": "cbe1f901ba88f8ae6b4784913edba211",
+            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/test_error.log.1"
+        },
+        {
+            "checksum": "77885329e02a5a9f02c7410bf3c709e4",
+            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/fstrs.1"
+        },
+        {
+            "checksum": "d07642ed1d5946b6d08de6850d023b9e",
+            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/test_error.log.2"
+        },
+        {
+            "checksum": "9b88db1ad4a45833f2bb5633f0419f06",
+            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/fstrs.2"
+        },
+        {
+            "checksum": "cc796989eaeeebe490729f48fd296b31",
+            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/test_error.log.3"
+        },
+        {
+            "checksum": "f004f2c3b63a2e45d18dabf6e305b084",
+            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/fstrs.3"
+        },
+        {
+            "checksum": "8beb4413e83be254f98e887918986b60",
+            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/test_error.log.4"
+        },
+        {
+            "checksum": "bb5131ec9167427ed8d0284088e6602a",
+            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/fstrs.4"
+        },
+        {
+            "checksum": "832a78888a72dc02640921a5bd6f4ce9",
+            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/test_error.log.5"
+        },
+        {
+            "checksum": "5b697f81ddc508f6d03fca85ec1c6320",
+            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/fstrs.5"
         }
     ],
     "test.test_eval_metrics[Accuracy-1]": [
