@@ -357,9 +357,11 @@ def test_load_ndarray_vs_load_from_file(dataset, order):
     target_column_idx = columns_metadata['column_type_to_indices']['Label'][0]
     cat_column_indices = columns_metadata['column_type_to_indices'].get('Categ', [])
     text_column_indices = columns_metadata['column_type_to_indices'].get('Text', [])
-    n_features = len(cat_column_indices) + \
-                 len(text_column_indices) + \
-                 len(columns_metadata['column_type_to_indices'].get('Num', []))
+    n_features = (
+        + len(cat_column_indices)
+        + len(text_column_indices)
+        + len(columns_metadata['column_type_to_indices'].get('Num', []))
+    )
     feature_names = get_only_features_names(columns_metadata)
 
     pool_from_file = Pool(train_file, column_description=cd_file)
@@ -1146,7 +1148,11 @@ def test_convert_model_to_json(task_type, pool, parameters):
     pred1 = model.predict(test_pool)
     pred2 = model2.predict(test_pool)
     assert _check_data(pred1, pred2)
-    subprocess.check_call((model_diff_tool, output_model_path, converted_model_path, '--diff-limit', '0.000001'))
+    subprocess.check_call((
+        model_diff_tool, output_model_path, converted_model_path,
+        '--diff-limit', '0.000001',
+        '--ignore-keys', '.*TargetBorderClassifierIdx',
+    ))
     return compare_canonical_models(converted_model_path)
 
 
