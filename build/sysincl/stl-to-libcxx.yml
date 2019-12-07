@@ -30,6 +30,8 @@
 - includes:
   - atomic.h:
     - contrib/libs/cxxsupp/libcxxrt/atomic.h
+  - charconv:
+    - contrib/libs/cxxsupp/libcxx/include/charconv
   - cxxabi.h:
     - contrib/libs/cxxsupp/libcxx/include/cxxabi.h
     - contrib/libs/cxxsupp/libcxxrt/cxxabi.h
@@ -88,6 +90,7 @@
   - cwctype:                   contrib/libs/cxxsupp/libcxx/include/cwctype
   - deque:                     contrib/libs/cxxsupp/libcxx/include/deque
   - exception:                 contrib/libs/cxxsupp/libcxx/include/exception
+  - experimental/optional:     contrib/libs/cxxsupp/libcxx/include/experimental/optional
   - experimental/string_view:  contrib/libs/cxxsupp/libcxx/include/experimental/string_view
   - ext/hash_map:              contrib/libs/cxxsupp/libcxx/include/ext/hash_map
   - ext/hash_set:              contrib/libs/cxxsupp/libcxx/include/ext/hash_set
