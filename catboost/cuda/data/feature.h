@@ -70,7 +70,16 @@ namespace NCatboostCuda {
 
         Y_SAVELOAD_DEFINE(FeatureId, BinIdx, SplitType);
     };
+}
 
+template <>
+struct THash<NCatboostCuda::TBinarySplit> {
+    inline size_t operator()(const NCatboostCuda::TBinarySplit& value) const {
+        return value.GetHash();
+    }
+};
+
+namespace NCatboostCuda {
     template <class TVectorType>
     inline void Unique(TVectorType& vector) {
         ui64 size = std::unique(vector.begin(), vector.end()) - vector.begin();
@@ -179,7 +188,16 @@ namespace NCatboostCuda {
         TVector<TBinarySplit> Splits;
         TVector<ui32> CatFeatures;
     };
+}
 
+template <>
+struct THash<NCatboostCuda::TFeatureTensor> {
+    inline size_t operator()(const NCatboostCuda::TFeatureTensor& tensor) const {
+        return tensor.GetHash();
+    }
+};
+
+namespace NCatboostCuda {
     struct TCtr {
         TFeatureTensor FeatureTensor;
         NCB::TCtrConfig Configuration;
@@ -217,8 +235,16 @@ namespace NCatboostCuda {
 
         Y_SAVELOAD_DEFINE(FeatureTensor, Configuration);
     };
+}
 
+template <>
+struct THash<NCatboostCuda::TCtr> {
+    inline size_t operator()(const NCatboostCuda::TCtr& value) const {
+        return value.GetHash();
+    }
+};
 
+namespace NCatboostCuda {
     struct TEstimatedFeature {
         NCB::TEstimatorId EstimatorId;
         ui32 LocalFeatureId = 0;
@@ -250,31 +276,7 @@ namespace NCatboostCuda {
 
 
     };
-
-
-
 }
-
-template <>
-struct THash<NCatboostCuda::TBinarySplit> {
-    inline size_t operator()(const NCatboostCuda::TBinarySplit& value) const {
-        return value.GetHash();
-    }
-};
-
-template <>
-struct THash<NCatboostCuda::TFeatureTensor> {
-    inline size_t operator()(const NCatboostCuda::TFeatureTensor& tensor) const {
-        return tensor.GetHash();
-    }
-};
-
-template <>
-struct THash<NCatboostCuda::TCtr> {
-    inline size_t operator()(const NCatboostCuda::TCtr& value) const {
-        return value.GetHash();
-    }
-};
 
 template <>
 struct THash<NCatboostCuda::TEstimatedFeature> {
