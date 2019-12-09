@@ -108,7 +108,7 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/cuda/ctrs/kernel/ctr_calcers.cu.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\compile_cuda.py;$(SolutionDir)..\catboost\cuda\ctrs\kernel\ctr_calcers.cu;$(SolutionDir)$(Configuration)\tools\mtime0\mtime0.dll;</AdditionalInputs>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\compile_cuda.py;$(SolutionDir)..\catboost\cuda\ctrs\kernel\ctr_calcers.cu;$(SolutionDir)..\build\platform\cuda\cuda_runtime_include.h;$(SolutionDir)$(Configuration)\tools\mtime0\mtime0.dll;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\cuda\ctrs\kernel\ctr_calcers.cu.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\cuda\ctrs\ctr.h">
@@ -138,6 +138,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)..\catboost\cuda\ctrs\ctr.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\cuda\ctrs\ctr.h_serialized.cpp;</Outputs>
     </CustomBuild>
+    <ClInclude Include="$(SolutionDir)..\build\platform\cuda\cuda_runtime_include.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\ctrs\ctr_bins_builder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\ctrs\ctr_calcers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\ctrs\ctr_kernels.h"/>
