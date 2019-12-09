@@ -5,6 +5,7 @@
 
 #include <catboost/libs/helpers/dispatch_generic_lambda.h>
 #include <catboost/libs/metrics/optimal_const_for_loss.h>
+#include <catboost/libs/metrics/optimal_const_for_loss.h>
 #include <catboost/private/libs/algo_helpers/approx_calcer_helpers.h>
 #include <catboost/private/libs/algo_helpers/approx_updater_helpers.h>
 #include <catboost/private/libs/algo_helpers/error_functions.h>

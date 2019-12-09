@@ -367,44 +367,80 @@ void MapSetApproxes(
     const auto lossFunction = ctx->Params.LossFunctionDescription;
     const auto estimationMethod = ctx->Params.ObliviousTreeOptions->LeavesEstimationMethod;
     if (estimationMethod == ELeavesEstimation::Exact) {
+        Y_ASSERT(EqualToOneOf(lossFunction->GetLossFunction(), ELossFunction::Quantile, ELossFunction::MAE, ELossFunction::MAPE));
         averageLeafValues->resize(approxDimension, TVector<double>(leafCount));
-        double alpha;
-        double delta;
-        if (lossFunction->GetLossFunction() == ELossFunction::Quantile) {
-            const auto& quantileError = dynamic_cast<const TQuantileError&>(error);
-            alpha = quantileError.Alpha;
-            delta = quantileError.Delta;
-        } else {
-            alpha = 0.5;
-            delta = DBL_EPSILON;
+        double alpha = 0.5;
+        double delta = 0.0;
+        if (const auto quantileError = dynamic_cast<const TQuantileError*>(&error)) {
+            alpha = quantileError->Alpha;
+            delta = quantileError->Delta;
         }
 
-        const auto quantileLeafDeltasCalcer = ApplyMapper<TQuantileLeafDeltasCalcer>(workerCount, TMasterEnvironment::GetRef().SharedTrainData);
+        TVector<TUnusedInitializedParam> emptyInput(1);
+
+        TVector<TVector<TMinMax<double>>> searchIntervals;
+        NPar::RunMapReduce(TMasterEnvironment::GetRef().SharedTrainData.Get(), new TQuantileExactApproxStarter(), &emptyInput, &searchIntervals);
+
+        TVector<double> totalLeafWeights;
+        NPar::RunMapReduce(TMasterEnvironment::GetRef().SharedTrainData.Get(), new TLeafWeightsGetter(), &emptyInput, &totalLeafWeights);
+
+        TVector<double> neededLeftWeigths(leafCount);
+        for (auto leaf : xrange(leafCount)) {
+            neededLeftWeigths[leaf] = alpha * totalLeafWeights[leaf];
+        }
+
+        constexpr int BINARY_SEARCH_ITERATIONS = 100;
+        TVector<TVector<double>> pivots(approxDimension, TVector<double>(leafCount));
+        TVector<TVector<double>> leftWeights(approxDimension, TVector<double>(leafCount));
+        for (auto iter : xrange(BINARY_SEARCH_ITERATIONS)) {
+            Y_UNUSED(iter);
+            // calc new pivots
+            for (auto dimension : xrange(approxDimension)) {
+                for (auto leaf : xrange(leafCount)) {
+                    const double leftValue = searchIntervals[dimension][leaf].Min;
+                    const double rightValue = searchIntervals[dimension][leaf].Max;
+                    pivots[dimension][leaf] = (leftValue + rightValue) / 2;
+                }
+            }
+            TVector<TVector<TVector<double>>> splitCmdInput(1, pivots);
+            NPar::RunMapReduce(TMasterEnvironment::GetRef().SharedTrainData.Get(), new TQuantileArraySplitter(), &splitCmdInput, &leftWeights);
+            for (auto dimension : xrange(approxDimension)) {
+                for (auto leaf : xrange(leafCount)) {
+                    if (leftWeights[dimension][leaf] < neededLeftWeigths[leaf]) {
+                        searchIntervals[dimension][leaf].Min = pivots[dimension][leaf];
+                    } else {
+                        searchIntervals[dimension][leaf].Max = pivots[dimension][leaf];
+                    }
+                }
+            }
+        }
 
         TVector<TVector<double>> leafValues(approxDimension, TVector<double>(leafCount));
-
-        TVector<TVector<std::pair<float, float>>> leafSamples(leafCount);
-        TVector<std::pair<float, float>> tmp;
-        for (int workerIdx = 0; workerIdx < workerCount; ++workerIdx) {
-            const auto& workerSamples = quantileLeafDeltasCalcer[workerIdx];
-            Y_ASSERT(leafCount == (int) workerSamples.size());
-            for (int i = 0; i < leafCount; i++) {
-                tmp.resize(leafSamples[i].size() + workerSamples[i].size());
-                std::merge(leafSamples[i].begin(), leafSamples[i].end(), workerSamples[i].begin(), workerSamples[i].end(), tmp.begin());
-                leafSamples[i].resize(leafSamples[i].size() + workerSamples[i].size());
-                std::copy(tmp.begin(), tmp.end(), leafSamples[i].begin());
+        for (auto dimension : xrange(approxDimension)) {
+            for (auto leaf : xrange(leafCount)) {
+                if (totalLeafWeights[leaf] > 0) {
+                    leafValues[dimension][leaf] = searchIntervals[dimension][leaf].Max;
+                }
             }
         }
 
-        NPar::ParallelFor(0, leafCount, [&](int i) {
-            TVector<float> sample;
-            TVector<float> weights;
-            for (auto p: leafSamples[i]) {
-                sample.push_back(p.first);
-                weights.push_back(p.second);
+        // specific adjust according to delta parameter of Quantile loss
+        if (delta > 0) {
+            TVector<TVector<TVector<double>>> cmdInput(1, leafValues);
+            TVector<TVector<double>> equalSumWeights;
+            NPar::RunMapReduce(TMasterEnvironment::GetRef().SharedTrainData.Get(), new TQuantileEqualWeightsCalcer(), &cmdInput, &equalSumWeights);
+            for (auto dimension : xrange(approxDimension)) {
+                for (auto leaf : xrange(leafCount)) {
+                    if (totalLeafWeights[leaf] > 0) {
+                        if (leftWeights[dimension][leaf] + alpha * equalSumWeights[dimension][leaf] >= neededLeftWeigths[leaf] - DBL_EPSILON) {
+                            leafValues[dimension][leaf] -= delta;
+                        } else {
+                            leafValues[dimension][leaf] += delta;
+                        }
+                    }
+                }
             }
-            leafValues[0][i] = CalcSampleQuantileSorted(sample, weights, alpha, delta);
-        });
+        }
 
         AddElementwise(leafValues, averageLeafValues);
         ApplyMapper<TDeltaUpdater>(workerCount, TMasterEnvironment::GetRef().SharedTrainData, leafValues);

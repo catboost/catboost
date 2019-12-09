@@ -3,90 +3,124 @@
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
+#include <util/generic/xrange.h>
 #include <util/generic/ymath.h>
 
+#include <algorithm>
 
-double CalcSampleQuantileWithIndices(
-    TConstArrayRef<float> sample,
-    TConstArrayRef<float> weights,
-    TConstArrayRef<size_t> indices,
-    const double alpha,
-    const double delta
+namespace {
+    struct TValueWithWeight {
+        float Value;
+        float Weight;
+    };
+}
+
+static double CalcSampleQuantileBinarySearch(
+    TConstArrayRef<float> sampleRef,
+    TConstArrayRef<float> weightsRef,
+    const double alpha
 ) {
-    if (sample.empty()) {
-        return 0;
-    }
-    size_t sampleSize = sample.size();
+    constexpr int BINARY_SEARCH_ITERATIONS = 100;
 
-    double sumWeight = 0;
-    for (size_t i = 0; i < sampleSize; i++) {
-        sumWeight += weights[i];
-    }
-    double doublePosition = sumWeight * alpha;
-    if (doublePosition <= 0) {
-        return *MinElement(sample.begin(), sample.end()) - delta;
-    }
-    if (doublePosition >= sumWeight) {
-        return *MaxElement(sample.begin(), sample.end()) + delta;
-    }
+    const double totalWeight = Accumulate(weightsRef, 0.0);
+    const double needWeight = totalWeight * alpha;
 
-    size_t position = 0;
-    float sum = 0;
-    while (sum < doublePosition && position < sampleSize) {
-        size_t j = position;
-        float step = 0;
-        while (j < sampleSize && Abs(sample[indices[j]] - sample[indices[position]]) < DBL_EPSILON) {
-            step += weights[indices[j]];
-            j++;
-        }
-        if (sum + alpha * step >= doublePosition - DBL_EPSILON) {
-            return sample[indices[position]] - delta;
-        }
-        if (sum + step >= doublePosition + DBL_EPSILON) {
-            return sample[indices[position]] + delta;
-        }
+    const auto minMaxSamples = MinMaxElement(sampleRef.begin(), sampleRef.end());
+    double lQ = *minMaxSamples.first - DBL_EPSILON;
+    double rQ = *minMaxSamples.second;
 
-        sum += step;
-        position = j;
-
-        if (sum >= doublePosition - DBL_EPSILON) {
-            if (position >= sampleSize) {
-                return sample[indices[position - 1]] + delta;
+    const size_t sampleSize = sampleRef.size();
+    TVector<TValueWithWeight> elements;
+    elements.yresize(sampleSize);
+    for (auto i : xrange(sampleSize)) {
+        elements[i] = {sampleRef[i], weightsRef[i]};
+    }
+    /*
+     * We will support the following invariant:
+     * total weight of elements with sample values <= lQ is strictly less than needWeight
+     * total weight of elements with sample values <= rQ is greater or equal than needWeight
+     * elements with indices < l are less or equal than q
+     * elements with indices > r are greater than q
+     */
+    int l = 0, r = sampleSize;
+    double collectedLeftWeight = 0;
+    for (auto it : xrange(BINARY_SEARCH_ITERATIONS)) {
+        Y_UNUSED(it);
+        const double q = (lQ + rQ) / 2;
+        auto partitionIt = std::partition(
+            elements.begin() + l,
+            elements.begin() + r,
+            [q](const TValueWithWeight& element) {
+                return element.Value <= q;
             }
-            return (sample[indices[position - 1]] + delta) * alpha + (sample[indices[position]] - delta) * (1 - alpha);
-        }
+        );
+        const double partitionLeftWeight = Accumulate(
+            elements.begin() + l,
+            partitionIt,
+            0.0,
+            [](double sum, const TValueWithWeight& element) {
+                return sum + element.Weight;
+            }
+        );
+        const int partitionPoint = partitionIt - elements.begin();
 
+        if (collectedLeftWeight + partitionLeftWeight < needWeight - DBL_EPSILON) {
+            l = partitionPoint;
+            lQ = q;
+            collectedLeftWeight += partitionLeftWeight;
+        } else {
+            r = partitionPoint;
+            rQ = q;
+        }
     }
-    Y_ASSERT(false);
-    return 0;
+    return rQ;
+}
+
+static double CalcSampleQuantileLinearSearch(
+    TConstArrayRef<float> sampleRef,
+    TConstArrayRef<float> weightsRef,
+    const double alpha
+) {
+    const int sampleSize = sampleRef.size();
+    TVector<TValueWithWeight> elements;
+    elements.yresize(sampleSize);
+    for (auto i : xrange(sampleSize)) {
+        elements[i] = {sampleRef[i], weightsRef[i]};
+    }
+    Sort(elements, [](const TValueWithWeight& elem1, const TValueWithWeight& elem2) {
+        return elem1.Value < elem2.Value;
+    });
+    const double totalWeight = Accumulate(weightsRef, 0.0);
+    const double needWeight = totalWeight * alpha;
+    double sumWeight = 0;
+    for (const auto& element : elements) {
+        sumWeight += element.Weight;
+        if (sumWeight >= needWeight - DBL_EPSILON) {
+            return element.Value;
+        }
+    }
+    return elements.back().Value;
 }
 
 double CalcSampleQuantile(
-    TConstArrayRef<float> sample,
-    TConstArrayRef<float> weights,
-    const double alpha,
-    const double delta
+    TConstArrayRef<float> sampleRef,
+    TConstArrayRef<float> weightsRef,
+    const double alpha
 ) {
-    size_t sampleSize = sample.size();
-
-    TVector<size_t> indices(sampleSize);
-    Iota(indices.begin(), indices.end(), 0);
-
-    Sort(indices.begin(), indices.end(), [&](size_t i, size_t j) { return sample[i] < sample[j]; });
-
-    return CalcSampleQuantileWithIndices(sample, weights, indices, alpha, delta);
-}
-
-double CalcSampleQuantileSorted(
-    TConstArrayRef<float> sample,
-    TConstArrayRef<float> weights,
-    const double alpha,
-    const double delta
-) {
-    size_t sampleSize = sample.size();
-
-    TVector<size_t> indices(sampleSize);
-    Iota(indices.begin(), indices.end(), 0);
-
-    return CalcSampleQuantileWithIndices(sample, weights, indices, alpha, delta);
+    if (sampleRef.empty()) {
+        return 0.0;
+    }
+    if (alpha <= 0) {
+        return *MinElement(sampleRef.begin(), sampleRef.end());
+    }
+    Y_ASSERT(0 <= alpha && alpha <= 1);
+    TVector<float> defaultWeights;
+    if (weightsRef.empty()) {
+        defaultWeights.resize(sampleRef.size(), 1.0);
+        weightsRef = defaultWeights;
+    }
+    Y_ASSERT(sampleRef.size() == weightsRef.size());
+    return sampleRef.size() < 100
+        ? CalcSampleQuantileLinearSearch(sampleRef, weightsRef, alpha)
+        : CalcSampleQuantileBinarySearch(sampleRef, weightsRef, alpha);
 }

@@ -121,6 +121,14 @@ namespace NCatboostDistributed {
         TArray2D<double> PairwiseBuckets;
         int GradientIteration;
 
+        // data used by Exact approx calcer
+        TVector<TVector<TVector<std::pair<double, double>>>> ExactDiff; // [dim][leaf][]
+        TVector<TVector<TMinMax<int>>> SplitBounds; // [dim][leaf]
+        TVector<TVector<double>> LastPivot; // [dim][leaf]
+        TVector<TVector<int>> LastPartitionPoint; // [dim][leaf]
+        TVector<TVector<double>> CollectedLeftSumWeight; // [dim][leaf]
+        TVector<TVector<double>> LastSplitLeftSumWeight; // [dim][leaf]
+
         ui32 AllDocCount;
         double SumAllWeights;
         EHessianType HessianType = EHessianType::Symmetric;
