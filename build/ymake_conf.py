@@ -487,7 +487,8 @@ class Build(object):
 
     @property
     def is_sanitized(self):
-        return preset('SANITIZER_TYPE')
+        sanitizer = preset('SANITIZER_TYPE')
+        return bool(sanitizer) and not is_negative_str(sanitizer)
 
     @property
     def with_ndebug(self):
@@ -2531,7 +2532,7 @@ class Cuda(object):
         }
 
         if not self.cuda_use_clang.value:
-            cmd = '$YMAKE_PYTHON ${input:"build/scripts/compile_cuda.py"} ${tool:"tools/mtime0"} $NVCC $NVCC_FLAGS -c ${input:SRC} -o ${output;suf=${OBJ_SUF}${NVCC_OBJ_EXT}:SRC} %(skip_nocxxinc)s %(includes)s --cflags $C_FLAGS_PLATFORM $CFLAGS $SRCFLAGS $CUDA_HOST_COMPILER_ENV ${kv;hide:"p CC"} ${kv;hide:"pc light-green"}'
+            cmd = '$YMAKE_PYTHON ${input:"build/scripts/compile_cuda.py"} ${tool:"tools/mtime0"} $NVCC $NVCC_FLAGS -c ${input:SRC} -o ${output;suf=${OBJ_SUF}${NVCC_OBJ_EXT}:SRC} %(skip_nocxxinc)s %(includes)s --cflags $C_FLAGS_PLATFORM $CFLAGS $SRCFLAGS ${input;hide:"build/platform/cuda/cuda_runtime_include.h"} $CUDA_HOST_COMPILER_ENV ${kv;hide:"p CC"} ${kv;hide:"pc light-green"}'
         else:
             cmd = '$CXX_COMPILER --cuda-path=$CUDA_ROOT $C_FLAGS_PLATFORM -c ${input:SRC} -o ${output;suf=${OBJ_SUF}${NVCC_OBJ_EXT}:SRC} %(includes)s $CXXFLAGS $SRCFLAGS $TOOLCHAIN_ENV ${kv;hide:"p CU"} ${kv;hide:"pc green"}'
 
@@ -2561,11 +2562,13 @@ class Cuda(object):
         return False
 
     def auto_have_cuda(self):
+        if self.build.is_sanitized:
+            return False
         return self.cuda_root.from_user or self.use_arcadia_cuda.value and self.have_cuda_in_arcadia()
 
     def auto_cuda_version(self):
         if self.use_arcadia_cuda.value:
-            return '9.1'
+            return '10.1'
 
         if not self.have_cuda.value:
             return None
