@@ -249,7 +249,7 @@ void GenerateEnum(
 
     // Instance
     out << "        static inline const TNameBufs& Instance() {\n";
-    out << "            return *Singleton<TNameBufs>();\n";
+    out << "            return *SingletonWithPriority<TNameBufs, 0>();\n"; // destroy enum serializers last, because it may be used from destructor of another global object
     out << "        }\n";
     out << "    };\n\n";
 
