@@ -12,6 +12,7 @@
 #include <library/threading/local_executor/local_executor.h>
 #include <library/unittest/registar.h>
 
+#include <util/folder/dirut.h>
 #include <util/generic/xrange.h>
 
 using namespace NCB;
@@ -95,7 +96,7 @@ Y_UNIT_TEST_SUITE(NonSymmetricIndexCalcerTest) {
             Nothing(),
             true,
             false,
-            true,
+            GetSystemTempDir(),
             nullptr,
             &catBoostOptions,
             &labelConverter,

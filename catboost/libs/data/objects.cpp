@@ -984,10 +984,7 @@ void NCB::TQuantizedObjectsData::PrepareForInitialization(
             TConstArrayRef<ui32>(),
             binarizationOptions,
             perFloatFeatureQuantization,
-            /*floatFeaturesAllowNansInTestOnly*/true,
-
-            // be conservative here, it will be reset using SetAllowWriteFiles later if needed
-            /*allowWriteFiles*/false
+            /*floatFeaturesAllowNansInTestOnly*/true
         );
     }
 }

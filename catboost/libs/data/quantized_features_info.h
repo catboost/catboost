@@ -19,6 +19,7 @@
 #include <library/dbg_output/dump.h>
 #include <library/threading/local_executor/local_executor.h>
 
+#include <util/generic/fwd.h>
 #include <util/generic/guid.h>
 #include <util/generic/map.h>
 #include <util/generic/ptr.h>
@@ -62,8 +63,7 @@ namespace NCB {
             TConstArrayRef<ui32> ignoredFeatures,
             NCatboostOptions::TBinarizationOptions commonFloatFeaturesBinarization,
             TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeatureQuantization=TMap<ui32, NCatboostOptions::TBinarizationOptions>(),
-            bool floatFeaturesAllowNansInTestOnly = true,
-            bool allowWriteFiles = false);
+            bool floatFeaturesAllowNansInTestOnly = true);
 
         TQuantizedFeaturesInfo(
             const TFeaturesLayout& featuresLayout,
@@ -71,8 +71,7 @@ namespace NCB {
             NCatboostOptions::TBinarizationOptions commonFloatFeaturesBinarization,
             TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeatureQuantization,
             const NCatboostOptions::TTextProcessingOptions& textFeaturesProcessing,
-            bool floatFeaturesAllowNansInTestOnly = true,
-            bool allowWriteFiles = false);
+            bool floatFeaturesAllowNansInTestOnly = true);
 
         bool EqualTo(const TQuantizedFeaturesInfo& rhs, bool ignoreSparsity = false) const;
 
@@ -192,16 +191,12 @@ namespace NCB {
             CatFeaturesPerfectHash.UpdateFeaturePerfectHash(catFeatureIdx, std::move(perfectHash));
         };
 
-        void SetAllowWriteFiles(bool allowWriteFiles) {
-            CatFeaturesPerfectHash.SetAllowWriteFiles(allowWriteFiles);
-        }
-
         void LoadCatFeaturePerfectHashToRam() const {
             CatFeaturesPerfectHash.Load();
         }
 
-        void UnloadCatFeaturePerfectHashFromRamIfPossible() const {
-            CatFeaturesPerfectHash.FreeRamIfPossible();
+        void UnloadCatFeaturePerfectHashFromRam(const TString& tmpDir) const {
+            CatFeaturesPerfectHash.FreeRam(tmpDir);
         }
 
         TPerfectHashedToHashedCatValuesMap CalcPerfectHashedToHashedCatValuesMap(

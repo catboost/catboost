@@ -10,6 +10,7 @@
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>
+#include <catboost/libs/train_lib/dir_helper.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 
 #include <util/generic/algorithm.h>
@@ -387,6 +388,7 @@ namespace {
 
     bool QuantizeDataIfNeeded(
         bool allowWriteFiles,
+        const TString& tmpDir,
         NCB::TFeaturesLayoutPtr featuresLayout,
         NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
         NCB::TDataProviderPtr data,
@@ -416,8 +418,7 @@ namespace {
                 MakeConstArrayRef(ignoredFeatureNums),
                 commonFloatFeaturesBinarization,
                 /*perFloatFeatureQuantization*/TMap<ui32, NCatboostOptions::TBinarizationOptions>(),
-                /*floatFeaturesAllowNansInTestOnly*/true,
-                allowWriteFiles
+                /*floatFeaturesAllowNansInTestOnly*/true
             );
             // Quantizing training data
             *result = GetTrainingData(
@@ -425,9 +426,9 @@ namespace {
                 /*isLearnData*/ true,
                 /*datasetName*/ TStringBuf(),
                 /*bordersFile*/ Nothing(),  // Already at quantizedFeaturesInfo
-                /*unloadCatFeaturePerfectHashFromRamIfPossible*/ true,
+                /*unloadCatFeaturePerfectHashFromRam*/ allowWriteFiles,
                 /*ensureConsecutiveLearnFeaturesDataForCpu*/ true,
-                allowWriteFiles,
+                tmpDir,
                 quantizedFeaturesInfo,
                 catBoostOptions,
                 labelConverter,
@@ -442,6 +443,7 @@ namespace {
 
     bool QuantizeAndSplitDataIfNeeded(
         bool allowWriteFiles,
+        const TString& tmpDir,
         const TTrainTestSplitParams& trainTestSplitParams,
         ui64 cpuUsedRamLimit,
         NCB::TFeaturesLayoutPtr featuresLayout,
@@ -458,6 +460,7 @@ namespace {
         NCB::TTrainingDataProviderPtr quantizedData;
         bool isNeedSplit = QuantizeDataIfNeeded(
             allowWriteFiles,
+            tmpDir,
             featuresLayout,
             quantizedFeaturesInfo,
             data,
@@ -751,6 +754,11 @@ namespace {
             NCatboostOptions::TOutputFilesOptions outputFileOptions;
             outputFileOptions.Load(outputJsonParams);
 
+            TString tmpDir;
+            if (outputFileOptions.AllowWriteFiles()) {
+                NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputFileOptions.GetTrainDir(), &tmpDir);
+            }
+
             InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
             NCB::TFeaturesLayoutPtr featuresLayout = data->MetaInfo.FeaturesLayout;
             NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo;
@@ -761,6 +769,7 @@ namespace {
                 TSetLogging inThisScope(catBoostOptions.LoggingLevel);
                 QuantizeDataIfNeeded(
                     outputFileOptions.AllowWriteFiles(),
+                    tmpDir,
                     featuresLayout,
                     quantizedFeaturesInfo,
                     data,
@@ -935,6 +944,11 @@ namespace {
             outputFileOptions.Load(outputJsonParams);
             static const bool allowWriteFiles = outputFileOptions.AllowWriteFiles();
 
+            TString tmpDir;
+            if (outputFileOptions.AllowWriteFiles()) {
+                NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputFileOptions.GetTrainDir(), &tmpDir);
+            }
+
             InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
             NCB::TFeaturesLayoutPtr featuresLayout = data->MetaInfo.FeaturesLayout;
             NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo;
@@ -944,6 +958,7 @@ namespace {
                 TSetLogging inThisScope(catBoostOptions.LoggingLevel);
                 QuantizeAndSplitDataIfNeeded(
                     allowWriteFiles,
+                    tmpDir,
                     trainTestSplitParams,
                     cpuUsedRamLimit,
                     featuresLayout,

@@ -67,16 +67,14 @@ namespace NCB {
         TConstArrayRef<ui32> ignoredFeatures,
         NCatboostOptions::TBinarizationOptions commonFloatFeaturesBinarization,
         TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeatureQuantization,
-        bool floatFeaturesAllowNansInTestOnly,
-        bool allowWriteFiles)
+        bool floatFeaturesAllowNansInTestOnly)
         : TQuantizedFeaturesInfo(
             featuresLayout,
             ignoredFeatures,
             commonFloatFeaturesBinarization,
             perFloatFeatureQuantization,
             NCatboostOptions::TTextProcessingOptions(),
-            floatFeaturesAllowNansInTestOnly,
-            allowWriteFiles
+            floatFeaturesAllowNansInTestOnly
         )
     {}
 
@@ -96,16 +94,12 @@ namespace NCB {
         NCatboostOptions::TBinarizationOptions commonFloatFeaturesBinarization,
         TMap<ui32, NCatboostOptions::TBinarizationOptions> perFloatFeatureQuantization,
         const NCatboostOptions::TTextProcessingOptions& textFeaturesProcessing,
-        bool floatFeaturesAllowNansInTestOnly,
-        bool allowWriteFiles)
+        bool floatFeaturesAllowNansInTestOnly)
         : FeaturesLayout(MakeIntrusive<TFeaturesLayout>(featuresLayout))
         , CommonFloatFeaturesBinarization(std::move(commonFloatFeaturesBinarization))
         , PerFloatFeatureQuantization(std::move(perFloatFeatureQuantization))
         , FloatFeaturesAllowNansInTestOnly(floatFeaturesAllowNansInTestOnly)
-        , CatFeaturesPerfectHash(
-            featuresLayout.GetCatFeatureCount(),
-            TString::Join("cat_feature_index.", CreateGuidAsString(), ".tmp"),
-            allowWriteFiles)
+        , CatFeaturesPerfectHash(featuresLayout.GetCatFeatureCount())
         , RuntimeTextProcessingOptions(GetAvailableTextFeatureIndices(featuresLayout), textFeaturesProcessing)
         , TextDigitizers()
     {
@@ -288,8 +282,6 @@ namespace NCB {
             SafeIntegerCast<int>(featuresLayout.GetCatFeatureCount()),
             NPar::TLocalExecutor::WAIT_COMPLETE
         );
-
-        UnloadCatFeaturePerfectHashFromRamIfPossible();
 
         return result;
     }

@@ -121,9 +121,7 @@ namespace NCatboostDistributed {
             params->FeaturesLayout,
             catBoostOptions.DataProcessingOptions.Get().IgnoredFeatures.Get(),
             catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
-            catBoostOptions.DataProcessingOptions->PerFloatFeatureQuantization.Get(),
-            /*allowNansInTestOnly*/true,
-            /*allowWriteFiles*/false
+            catBoostOptions.DataProcessingOptions->PerFloatFeatureQuantization.Get()
         );
 
         CATBOOST_DEBUG_LOG << "Create train data for worker " << hostId << "..." << Endl;
@@ -133,6 +131,7 @@ namespace NCatboostDistributed {
                 /*borders*/ Nothing(), // borders are already loaded to quantizedFeaturesInfo
                 /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/ true,
                 /*allowWriteFiles*/ false,
+                /*tmpDir*/ TString(), // does not matter, because allowWritingFiles == false
                 quantizedFeaturesInfo,
                 &catBoostOptions,
                 &labelConverter,

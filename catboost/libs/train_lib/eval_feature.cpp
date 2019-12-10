@@ -1,4 +1,6 @@
 #include "eval_feature.h"
+
+#include "dir_helper.h"
 #include "train_model.h"
 #include "options_helper.h"
 
@@ -713,14 +715,20 @@ static void EvaluateFeaturesImpl(
     TLabelConverter labelConverter;
     TMaybe<float> targetBorder = catBoostOptions.DataProcessingOptions->TargetBorder;
     NCatboostOptions::TCatBoostOptions dataSpecificOptions(catBoostOptions);
+
+    TString tmpDir;
+    if (outputFileOptions.AllowWriteFiles()) {
+        NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputFileOptions.GetTrainDir(), &tmpDir);
+    }
+
     TTrainingDataProviderPtr trainingData = GetTrainingData(
         std::move(data),
         /*isLearnData*/ true,
         TStringBuf(),
         Nothing(), // TODO(akhropov): allow loading borders and nanModes in CV?
-        /*unloadCatFeaturePerfectHashFromRamIfPossible*/ true,
+        /*unloadCatFeaturePerfectHashFromRam*/ outputFileOptions.AllowWriteFiles(),
         /*ensureConsecutiveLearnFeaturesDataForCpu*/ false,
-        outputFileOptions.AllowWriteFiles(),
+        tmpDir,
         /*quantizedFeaturesInfo*/ nullptr,
         &dataSpecificOptions,
         &labelConverter,
