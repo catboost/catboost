@@ -53,7 +53,7 @@ if __name__ == "__main__":
         usage()
     varDict = {}
     for x in sys.argv[3:]:
-        key, value = str(x).split('=')
+        key, value = str(x).split('=', 1)
         varDict[key] = value
 
     main(sys.argv[1], sys.argv[2], varDict)
