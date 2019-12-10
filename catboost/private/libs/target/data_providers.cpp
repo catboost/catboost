@@ -260,8 +260,7 @@ namespace NCB {
 
         auto groupsBounds = objectsGrouping.GetNonTrivialGroups();
 
-        TVector<TQueryInfo> result;
-        result.reserve(groupsBounds.size());
+        TVector<TQueryInfo> result(groupsBounds.begin(), groupsBounds.end());
 
         TVector<ui32> objectToGroupIdxMap; // [objectIdx]->groupIdx  initialized only for pairs
         if (!pairs.empty()) {
@@ -269,8 +268,8 @@ namespace NCB {
         }
 
         for (auto groupIdx : xrange((ui32)groupsBounds.size())) {
-            result.emplace_back(groupsBounds[groupIdx].Begin, groupsBounds[groupIdx].End);
-            auto& group = result.back();
+            auto& group = result[groupIdx];
+
             if (group.GetSize()) {
                 group.Weight = groupWeights[group.Begin];
                 if (subgroupIds) {

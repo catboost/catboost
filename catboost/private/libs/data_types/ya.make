@@ -4,6 +4,7 @@ LIBRARY()
 
 SRCS(
     pair.cpp
+    query.cpp
     text.cpp
 )
 

@@ -144,13 +144,17 @@ TObjectsGroupingSubset NCB::GetGroupingSubsetFromObjectsSubset(
         auto nontrivialSrcGroups = objectsGrouping->GetNonTrivialGroups();
 
         TIndexedSubset<ui32> groupsSubset;
+        if (objectsSubset.IsFullSubset()) {
+            Y_ASSERT(subsetOrder == EObjectsOrder::Ordered);
+            return GetSubset(objectsGrouping, TArraySubsetIndexing<ui32>(TFullSubset<ui32>(nontrivialSrcGroups.size())), subsetOrder);;
+        }
         ui32 subsetCurrentGroupOffset = 0;
 
         constexpr TStringBuf INVARIANT_MESSAGE = AsStringBuf(
             " subset groups invariant (if group is present in the subset all it's member objects"
             " must present and be in the same order within a group). This constraint might be"
             " relaxed in the future.");
-
+        // TODO(kirillovs): get rid of N * log(N)
         objectsSubset.ForEach(
             [&](ui32 idx, ui32 srcIdx) {
                 if (groupsSubset.empty()) {

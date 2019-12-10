@@ -6,15 +6,24 @@
 
 void NCatboostCuda::TDataPermutation::FillOrder(TVector<ui32>& order) const {
     if (Index != IdentityPermutationId()) {
-        const auto seed = 1664525 * GetPermutationId() + 1013904223 + BlockSize;
         if (DataProvider->MetaInfo.HasGroupId) {
-            QueryConsistentShuffle(seed, BlockSize, *DataProvider->ObjectsData->GetGroupIds(), &order);
+            GenerateQueryDocsOrder(GetSeed(), BlockSize, DataProvider->ObjectsGrouping->GetNonTrivialGroups(), &order);
         } else {
-            Shuffle(seed, BlockSize, DataProvider->GetObjectCount(), &order);
+            Shuffle(GetSeed(), BlockSize, DataProvider->GetObjectCount(), &order);
         }
     } else {
         order.resize(DataProvider->GetObjectCount());
         std::iota(order.begin(), order.end(), 0);
+    }
+}
+
+void NCatboostCuda::TDataPermutation::FillGroupOrder(TVector<ui32>& groupOrder) const {
+    CB_ENSURE_INTERNAL(DataProvider->MetaInfo.HasGroupId, "FillGroupOrder supports only datasets with group ids");
+    if (Index != IdentityPermutationId()) {
+        Shuffle(GetSeed(), BlockSize, DataProvider->ObjectsGrouping->GetGroupCount(), &groupOrder);
+    } else {
+        groupOrder.yresize(DataProvider->ObjectsGrouping->GetGroupCount());
+        std::iota(groupOrder.begin(), groupOrder.end(), 0);
     }
 }
 

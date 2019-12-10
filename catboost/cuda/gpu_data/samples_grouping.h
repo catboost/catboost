@@ -3,6 +3,7 @@
 #include <catboost/cuda/cuda_lib/cuda_base.h>
 #include <catboost/cuda/cuda_lib/slice.h>
 #include <catboost/cuda/data/data_utils.h>
+#include <catboost/cuda/data/permutation.h>
 #include <catboost/libs/data/objects_grouping.h>
 #include <catboost/private/libs/data_types/query.h>
 #include <util/system/types.h>
@@ -59,43 +60,46 @@ namespace NCatboostCuda {
     //zero-based group indices
     class TQueriesGrouping: public IQueriesGrouping {
     public:
-        TQueriesGrouping(TConstArrayRef<ui32> objectPermutation,
-                         const NCB::TObjectsGrouping& objectsGrouping,
+        TQueriesGrouping(const TDataPermutation& permutation,
                          TConstArrayRef<TQueryInfo> groupInfos,
                          bool hasPairs) {
-            QueryIds.resize(objectPermutation.size());
+            TVector<ui32> groupOrder;
+            permutation.FillGroupOrder(groupOrder);
+            QueryIds.resize(permutation.GetDocCount());
+            QuerySizes.resize(groupOrder.size());
+            QueryOffsets.resize(groupOrder.size());
+            if (hasPairs) {
+                QueryPairOffsets.resize(groupOrder.size());
+            }
 
             size_t atLeastTwoDocQueriesCount = 0;
+            ui32 groupIdx = 0;
+            ui32 groupStartIdx = 0;
 
-            {
-                ui32 groupIdx = 0;
-                ui32 groupStartIdx = 0;
-                while (groupStartIdx < objectPermutation.size()) {
-                    ui32 srcGroupIdx = objectsGrouping.GetGroupIdxForObject(objectPermutation[groupStartIdx]);
-                    const auto& groupInfo = groupInfos[srcGroupIdx];
-                    CB_ENSURE(groupInfo.GetSize(), "Error: empty group");
-                    QuerySizes.push_back(groupInfo.GetSize());
-                    QueryOffsets.push_back(groupStartIdx);
-                    for (ui32 j = 0; j < groupInfo.GetSize(); ++j) {
-                        QueryIds[groupStartIdx + j] = groupIdx;
-                    }
-                    atLeastTwoDocQueriesCount += groupInfo.GetSize() > 1;
+            for (size_t groupId : xrange(groupOrder.size())) {
+                const auto& groupInfo = groupInfos[groupOrder[groupId]];
+                CB_ENSURE(groupInfo.GetSize(), "Error: empty group");
+                QuerySizes[groupId] = groupInfo.GetSize();
+                QueryOffsets[groupId] = groupStartIdx;
+                for (ui32 j = 0; j < groupInfo.GetSize(); ++j) {
+                    QueryIds[groupStartIdx + j] = groupIdx;
+                }
+                atLeastTwoDocQueriesCount += groupInfo.GetSize() > 1;
 
-                    if (hasPairs) {
-                        QueryPairOffsets.push_back(FlatQueryPairs.size());
-                        for (auto winnerId : xrange(groupInfo.Competitors.size())) {
-                            for (const auto& localPair : groupInfo.Competitors[winnerId]) {
-                                uint2 gpuPair;
-                                gpuPair.x = groupStartIdx + winnerId;
-                                gpuPair.y = groupStartIdx + localPair.Id;
-                                FlatQueryPairs.push_back(gpuPair);
-                                QueryPairWeights.push_back(localPair.Weight);
-                            }
+                if (hasPairs) {
+                    QueryPairOffsets[groupId] = FlatQueryPairs.size();
+                    for (auto winnerId : xrange(groupInfo.Competitors.size())) {
+                        for (const auto& localPair : groupInfo.Competitors[winnerId]) {
+                            uint2 gpuPair;
+                            gpuPair.x = groupStartIdx + winnerId;
+                            gpuPair.y = groupStartIdx + localPair.Id;
+                            FlatQueryPairs.push_back(gpuPair);
+                            QueryPairWeights.push_back(localPair.Weight);
                         }
                     }
-                    groupStartIdx += groupInfo.GetSize();
-                    ++groupIdx;
                 }
+                groupStartIdx += groupInfo.GetSize();
+                ++groupIdx;
             }
             CB_ENSURE(atLeastTwoDocQueriesCount, "Error: all groups have size 1");
         }

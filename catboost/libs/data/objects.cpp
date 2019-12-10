@@ -144,32 +144,7 @@ TObjectsGrouping NCB::CreateObjectsGroupingFromGroupIds(
 
     CheckDataSize(groupIdsData.size(), (size_t)objectCount, "group Ids", false);
 
-    TVector<TGroupBounds> groupBounds;
-    {
-        TVector<TGroupId> groupGroupIds;
-
-        ui32 lastGroupBegin = 0;
-        TGroupId lastGroupId = groupIdsData[0];
-        groupGroupIds.emplace_back(lastGroupId);
-
-        // using ui32 for counters/indices here is safe because groupIdsData' size was checked above
-        for (auto objectIdx : xrange(ui32(1), ui32(groupIdsData.size()))) {
-            if (groupIdsData[objectIdx] != lastGroupId) {
-                lastGroupId = groupIdsData[objectIdx];
-                groupGroupIds.emplace_back(lastGroupId);
-                groupBounds.emplace_back(lastGroupBegin, objectIdx);
-                lastGroupBegin = objectIdx;
-            }
-        }
-        groupBounds.emplace_back(lastGroupBegin, ui32(groupIdsData.size()));
-
-        // check that there're no groupId duplicates
-        Sort(groupGroupIds);
-        auto it = std::adjacent_find(groupGroupIds.begin(), groupGroupIds.end());
-        CB_ENSURE(it == groupGroupIds.end(), "group Ids are not consecutive");
-    }
-
-    return TObjectsGrouping(std::move(groupBounds), true);
+    return TObjectsGrouping(GroupSamples(groupIdsData), true);
 }
 
 
