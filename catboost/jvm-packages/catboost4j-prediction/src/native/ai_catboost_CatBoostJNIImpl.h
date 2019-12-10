@@ -75,6 +75,14 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetUsedC
 
 /*
  * Class:     ai_catboost_CatBoostJNIImpl
+ * Method:    catBoostModelGetFlatFeatureVectorExpectedSize
+ * Signature: (J[I)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetFlatFeatureVectorExpectedSize
+  (JNIEnv *, jclass, jlong, jintArray);
+
+/*
+ * Class:     ai_catboost_CatBoostJNIImpl
  * Method:    catBoostModelGetTreeCount
  * Signature: (J[I)Ljava/lang/String;
  */

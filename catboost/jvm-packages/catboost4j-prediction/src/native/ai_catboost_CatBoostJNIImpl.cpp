@@ -4,6 +4,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/model.h>
 
+#include <util/generic/cast.h>
 #include <util/generic/scope.h>
 #include <util/generic/singleton.h>
 #include <util/generic/string.h>
@@ -223,6 +224,21 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetUsedC
 
     const jint usedCatFeatureCount = model->GetUsedCatFeaturesCount();
     jenv->SetIntArrayRegion(jusedCatFeatureCount, 0, 1, &usedCatFeatureCount);
+
+    Y_END_JNI_API_CALL();
+}
+
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetFlatFeatureVectorExpectedSize
+  (JNIEnv* jenv, jclass, jlong jhandle, jintArray jfeatureVectorExpectedSize) {
+    Y_BEGIN_JNI_API_CALL();
+
+    const auto* const model = ToConstFullModelPtr(jhandle);
+    CB_ENSURE(model, "got nullptr model pointer");
+
+    const jint featureVectorExpectedSize = SafeIntegerCast<jint>(
+        model->ModelTrees->GetFlatFeatureVectorExpectedSize()
+    );
+    jenv->SetIntArrayRegion(jfeatureVectorExpectedSize, 0, 1, &featureVectorExpectedSize);
 
     Y_END_JNI_API_CALL();
 }
