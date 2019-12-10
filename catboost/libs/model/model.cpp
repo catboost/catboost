@@ -148,6 +148,8 @@ void TModelTrees::TruncateTrees(size_t begin, size_t end) {
     CB_ENSURE(IsOblivious(), "Truncate support only symmetric trees");
     CB_ENSURE(begin <= end, "begin tree index should be not greater than end tree index.");
     CB_ENSURE(end <= TreeSplits.size(), "end tree index should be not greater than tree count.");
+    CB_ENSURE(GetScaleAndBias().Bias == 0, "Truncating trees with non-zero bias makes no sense");
+    auto savedScaleAndBias = GetScaleAndBias();
     TObliviousTreeBuilder builder(FloatFeatures, CatFeatures, TextFeatures, ApproxDimension);
     const auto& leafOffsets = RuntimeData->TreeFirstLeafOffsets;
     for (size_t treeIdx = begin; treeIdx < end; ++treeIdx) {
@@ -172,6 +174,7 @@ void TModelTrees::TruncateTrees(size_t begin, size_t end) {
         );
     }
     builder.Build(this);
+    this->SetScaleAndBias(savedScaleAndBias);
 }
 
 flatbuffers::Offset<NCatBoostFbs::TModelTrees>

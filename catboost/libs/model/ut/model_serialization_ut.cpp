@@ -23,6 +23,14 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
         DoSerializeDeserialize(trainedModel);
     }
 
+    Y_UNIT_TEST(TestSerializeDeserializeFullModelWithScaleAndBias) {
+        TFullModel trainedModel = TrainFloatCatboostModel();
+        trainedModel.SetScaleAndBias({0.5, 0.125});
+        DoSerializeDeserialize(trainedModel);
+        trainedModel.ModelTrees.GetMutable()->ConvertObliviousToAsymmetric();
+        DoSerializeDeserialize(trainedModel);
+    }
+
     Y_UNIT_TEST(TestSerializeDeserializeCoreML) {
         TFullModel trainedModel = TrainFloatCatboostModel();
         TStringStream strStream;

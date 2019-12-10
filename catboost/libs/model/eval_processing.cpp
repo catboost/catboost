@@ -32,6 +32,6 @@ NCB::NModelEvaluation::TEvalResultProcessor::TEvalResultProcessor(
         BinclassRawValueBorder = -log((1 / probabilityBorder) - 1);
     }
     if (ApproxDimension > 1) {
-        CB_ENSURE(ScaleAndBias.IsIdentity(), "Normalizing a multiclass model makes no sense");
+        CB_ENSURE_IDENTITY(ScaleAndBias, "normalizing a multiclass model");
     }
 }

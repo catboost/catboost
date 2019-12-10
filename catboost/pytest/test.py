@@ -2434,6 +2434,15 @@ FSTR_TYPES = ['PredictionValuesChange', 'InternalFeatureImportance', 'InternalIn
 @pytest.mark.parametrize('fstr_type', FSTR_TYPES)
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_fstr(fstr_type, boosting_type):
+    return do_test_fstr(fstr_type, boosting_type, normalize=False)
+
+
+@pytest.mark.parametrize('fstr_type', FSTR_TYPES)
+def test_fstr_normalized_model(fstr_type):
+    return do_test_fstr(fstr_type, 'Plain', normalize=True)
+
+
+def do_test_fstr(fstr_type, boosting_type, normalize):
     model_path = yatest.common.test_output_path('model.bin')
     output_fstr_path = yatest.common.test_output_path('fstr.tsv')
     pool = 'adult' if fstr_type != 'PredictionDiff' else 'higgs'
@@ -2476,13 +2485,40 @@ def test_fstr(fstr_type, boosting_type):
         '-o', output_fstr_path,
         '--fstr-type', fstr_type
     )
+
+    if normalize:
+        make_model_normalized(model_path)
+        if fstr_type != 'PredictionValuesChange':
+            with pytest.raises(yatest.common.ExecutionError):
+                yatest.common.execute(fstr_cmd)
+            return
+
     yatest.common.execute(fstr_cmd)
 
     return local_canonical_file(output_fstr_path)
 
 
+def make_model_normalized(model_path):
+    yatest.common.execute([
+        CATBOOST_PATH,
+        'normalize-model',
+        '--model-path', model_path,
+        '--output-model', model_path,
+        '--set-scale', '0.5',
+        '--set-bias', '0.125',
+    ])
+
+
 @pytest.mark.parametrize('loss_function', ['QueryRMSE', 'PairLogit', 'YetiRank', 'PairLogitPairwise', 'YetiRankPairwise'])
 def test_loss_change_fstr(loss_function):
+    return do_test_loss_change_fstr(loss_function, normalize=False)
+
+
+def test_loss_change_fstr_normalized():
+    return do_test_loss_change_fstr('QueryRMSE', normalize=True)
+
+
+def do_test_loss_change_fstr(loss_function, normalize):
     model_path = yatest.common.test_output_path('model.bin')
     output_fstr_path = yatest.common.test_output_path('fstr.tsv')
     train_fstr_path = yatest.common.test_output_path('t_fstr.tsv')
@@ -2525,6 +2561,12 @@ def test_loss_change_fstr(loss_function):
         '--fstr-type', 'LossFunctionChange',
     )
     fstr_cmd = add_loss_specific_params(fstr_cmd_prefix, fstr_mode=True)
+    if normalize:
+        make_model_normalized(model_path)
+        with pytest.raises(yatest.common.ExecutionError):
+            yatest.common.execute(fstr_cmd)
+        return
+
     yatest.common.execute(fstr_cmd)
 
     fit_otuput = np.loadtxt(train_fstr_path, dtype='float', delimiter='\t')

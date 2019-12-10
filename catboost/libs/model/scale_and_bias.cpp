@@ -1,3 +1,4 @@
+#include  "model.h"
 #include  "scale_and_bias.h"
 
 void ApplyScaleAndBias(const TScaleAndBias& scaleAndBias, TArrayRef<double> data) {

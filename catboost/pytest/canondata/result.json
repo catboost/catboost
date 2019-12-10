@@ -3101,6 +3101,10 @@
         "checksum": "603d799ab3cb56a0c62be65145c7e65a",
         "uri": "file://test.test_fstr_Plain-ShapValues_/fstr.tsv"
     },
+    "test.test_fstr_normalized_model[PredictionValuesChange]": {
+        "checksum": "bc93cf3b9ab272c93cff69a1d1b915dc",
+        "uri": "file://test.test_fstr_normalized_model_PredictionValuesChange_/fstr.tsv"
+    },
     "test.test_gradient[calc_block=5000000-Ordered]": [
         {
             "checksum": "9414df1a8d4199f50c25c50b16a7d31a",
