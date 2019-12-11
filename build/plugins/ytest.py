@@ -450,6 +450,8 @@ def onadd_check(unit, *args):
     test_dir = unit.resolve(os.path.join(unit.path()))
 
     test_timeout = ''
+    fork_mode = ''
+
     if check_type in ["PEP8", "PYFLAKES", "PY_FLAKES", "PEP8_2", "PYFLAKES_2"]:
         script_rel_path = "py.lint.pylint"
     elif check_type in ["PEP8_3", "PYFLAKES_3"]:
@@ -468,6 +470,7 @@ def onadd_check(unit, *args):
         flat_args[1] = allowed_levels[check_level]
         script_rel_path = "java.style"
         test_timeout = '120'
+        fork_mode = unit.get('TEST_FORK_MODE') or ''
     elif check_type == "gofmt":
         script_rel_path = check_type
         go_files = flat_args[1:]
@@ -487,7 +490,7 @@ def onadd_check(unit, *args):
         'TEST-DATA': '',
         'SPLIT-FACTOR': '',
         'TEST_PARTITION': 'SEQUENTIAL',
-        'FORK-MODE': '',
+        'FORK-MODE': fork_mode,
         'FORK-TEST-FILES': '',
         'SIZE': 'SMALL',
         'TAG': '',
@@ -497,6 +500,7 @@ def onadd_check(unit, *args):
         'PYTHON-PATHS': '',
         'FILES': serialize_list(flat_args[1:])
     }
+
     data = dump_test(unit, test_record)
     if data:
         unit.set_property(["DART_DATA", data])

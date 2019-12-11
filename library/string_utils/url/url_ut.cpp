@@ -142,6 +142,30 @@ Y_UNIT_TEST_SUITE(TUtilUrlTest) {
         UNIT_ASSERT_STRINGS_EQUAL(path, "/");
     }
 
+    Y_UNIT_TEST(TestSeparateUrlFromQueryAndFragment) {
+        TStringBuf sanitizedUrl, query, fragment;
+
+        SeparateUrlFromQueryAndFragment("https://yandex.ru/yandsearch", sanitizedUrl, query, fragment);
+        UNIT_ASSERT_STRINGS_EQUAL(sanitizedUrl, "https://yandex.ru/yandsearch");
+        UNIT_ASSERT_STRINGS_EQUAL(query, "");
+        UNIT_ASSERT_STRINGS_EQUAL(fragment, "");
+
+        SeparateUrlFromQueryAndFragment("https://yandex.ru/yandsearch?param1=val1&param2=val2", sanitizedUrl, query, fragment);
+        UNIT_ASSERT_STRINGS_EQUAL(sanitizedUrl, "https://yandex.ru/yandsearch");
+        UNIT_ASSERT_STRINGS_EQUAL(query, "param1=val1&param2=val2");
+        UNIT_ASSERT_STRINGS_EQUAL(fragment, "");
+
+        SeparateUrlFromQueryAndFragment("https://yandex.ru/yandsearch#fragment", sanitizedUrl, query, fragment);
+        UNIT_ASSERT_STRINGS_EQUAL(sanitizedUrl, "https://yandex.ru/yandsearch");
+        UNIT_ASSERT_STRINGS_EQUAL(query, "");
+        UNIT_ASSERT_STRINGS_EQUAL(fragment, "fragment");
+
+        SeparateUrlFromQueryAndFragment("https://yandex.ru/yandsearch?param1=val1&param2=val2#fragment", sanitizedUrl, query, fragment);
+        UNIT_ASSERT_STRINGS_EQUAL(sanitizedUrl, "https://yandex.ru/yandsearch");
+        UNIT_ASSERT_STRINGS_EQUAL(query, "param1=val1&param2=val2");
+        UNIT_ASSERT_STRINGS_EQUAL(fragment, "fragment");
+    }
+
     Y_UNIT_TEST(TestGetSchemeHostAndPort) {
         { // all components are present
             TStringBuf scheme("unknown"), host("unknown");

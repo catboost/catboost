@@ -2599,8 +2599,7 @@ namespace NCB {
             dataProcessingOptions.FloatFeaturesBinarization.Get(),
             dataProcessingOptions.PerFloatFeatureQuantization.Get(),
             dataProcessingOptions.TextProcessingOptions.Get(),
-            floatFeaturesAllowNansInTestOnly,
-            options.AllowWriteFiles
+            floatFeaturesAllowNansInTestOnly
         );
 
         result.Learn = Quantize(
@@ -2627,7 +2626,6 @@ namespace NCB {
         TDataProviderPtr srcData,
         const TMaybe<TString>& bordersFile,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
-        bool allowWriteFiles,
         NPar::TLocalExecutor* localExecutor,
         TRestorableFastRng64* rand,
         const TInitialBorders& initialBorders) {
@@ -2678,7 +2676,6 @@ namespace NCB {
         }
         quantizationOptions.CpuRamLimit
             = ParseMemorySizeDescription(params.SystemOptions->CpuUsedRamLimit.Get());
-        quantizationOptions.AllowWriteFiles = allowWriteFiles;
 
         if (!quantizedFeaturesInfo) {
             quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
@@ -2687,8 +2684,7 @@ namespace NCB {
                 params.DataProcessingOptions->FloatFeaturesBinarization.Get(),
                 params.DataProcessingOptions->PerFloatFeatureQuantization.Get(),
                 params.DataProcessingOptions->TextProcessingOptions.Get(),
-                /*allowNansInTestOnly*/true,
-                allowWriteFiles
+                /*allowNansInTestOnly*/true
             );
 
             if (bordersFile) {
@@ -2733,8 +2729,6 @@ namespace NCB {
         NCatboostOptions::TOutputFilesOptions outputFileOptions;
         outputFileOptions.Load(outputJsonParams);
 
-        const bool allowWriteFiles = outputFileOptions.AllowWriteFiles();
-
         const ui32 allDataObjectCount = srcData->ObjectsData->GetObjectCount();
 
         CB_ENSURE(allDataObjectCount != 0, "Pool is empty");
@@ -2751,7 +2745,6 @@ namespace NCB {
             srcData,
             Nothing(),
             quantizedFeaturesInfo,
-            allowWriteFiles,
             &localExecutor,
             &rand);
     }

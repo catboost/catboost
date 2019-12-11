@@ -32,17 +32,34 @@ namespace NCB {
     inline float CalculateWeightedTargetQuantile(
         TConstArrayRef<float> target,
         TConstArrayRef<float> weights,
-        const NCatboostOptions::TLossDescription& lossDescription
+        double alpha,
+        double delta
     ) {
-        const auto& params = lossDescription.GetLossParams();
-        auto it = params.find("alpha");
-        double alpha = it == params.end() ? 0.5 : FromString<double>(it->second);
-        it = params.find("delta");
-        double delta = it == params.end() ? 1e-6 : FromString<double>(it->second);
-
         const TVector<float> defaultWeights(target.size(), 1);
+        const auto weightsRef = weights.empty() ? MakeConstArrayRef(defaultWeights) : weights;
+        double q = CalcSampleQuantile(target, weightsRef, alpha);
 
-        return CalcSampleQuantile(target, weights.empty() ? MakeConstArrayRef(defaultWeights) : weights, alpha, delta);
+        // specific adjust according to delta parameter
+        if (delta > 0) {
+            const double totalWeight = weights.empty() ? static_cast<double>(target.size()) : Accumulate(weights, 0.0);
+            const double needWeight = totalWeight * alpha;
+            double lessWeight = 0;
+            double equalWeight = 0;
+            for (auto i : xrange(target.size())) {
+                if (target[i] < q) {
+                    lessWeight += weightsRef[i];
+                } else if (target[i] == q) {
+                    equalWeight += weightsRef[i];
+                }
+            }
+            if (lessWeight + equalWeight * alpha >= needWeight - DBL_EPSILON) {
+                q -= delta;
+            } else {
+                q += delta;
+            }
+        }
+
+        return q;
     }
 
     inline float CalculateOptimalConstApproxForMAPE(
@@ -55,7 +72,7 @@ namespace NCB {
         for (auto idx : xrange(target.size())) {
             weightsWithTarget[idx] /= Max(1.0f, Abs(target[idx]));
         }
-        return CalcSampleQuantile(target, weightsWithTarget, 0.5, 1e-6);
+        return CalcSampleQuantile(target, weightsWithTarget, 0.5);
     }
 
     //TODO(isaf27): add baseline to CalcOptimumConstApprox
@@ -77,7 +94,12 @@ namespace NCB {
             }
             case ELossFunction::Quantile:
             case ELossFunction::MAE: {
-                return CalculateWeightedTargetQuantile(target, weights, lossDescription);
+                const auto& params = lossDescription.GetLossParams();
+                auto it = params.find("alpha");
+                double alpha = it == params.end() ? 0.5 : FromString<double>(it->second);
+                it = params.find("delta");
+                double delta = it == params.end() ? 1e-6 : FromString<double>(it->second);
+                return CalculateWeightedTargetQuantile(target, weights, alpha, delta);
             }
             case ELossFunction::MAPE:
                 return CalculateOptimalConstApproxForMAPE(target, weights);

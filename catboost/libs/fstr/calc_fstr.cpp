@@ -420,6 +420,9 @@ TVector<std::pair<double, TFeature>> CalcFeatureEffect(
         NPar::TLocalExecutor* localExecutor)
 {
     type = GetFeatureImportanceType(model, bool(dataset), type);
+    if (type != EFstrType::PredictionValuesChange) {
+        CB_ENSURE_IDENTITY(model.GetScaleAndBias(), "feature effect");
+    }
     if (type == EFstrType::LossFunctionChange) {
         CB_ENSURE(dataset, "dataset is not provided");
         return CalcFeatureEffectLossChange(model, *dataset.Get(), localExecutor);
@@ -524,6 +527,7 @@ TVector<TInternalFeatureInteraction> CalcInternalFeatureInteraction(const TFullM
     if (model.GetTreeCount() == 0) {
         return TVector<TInternalFeatureInteraction>();
     }
+    CB_ENSURE_IDENTITY(model.GetScaleAndBias(), "feature interaction");
 
     TVector<TFeature> features;
     THashMap<TFeature, int, TFeatureHash> featureToIdx = GetFeatureToIdxMap(model, &features);
@@ -681,6 +685,9 @@ TVector<TVector<double>> GetFeatureImportances(
     CB_ENSURE(model.GetTreeCount(), "Model is not trained");
     if (dataset) {
         CheckModelAndDatasetCompatibility(model, *dataset->ObjectsData.Get());
+    }
+    if (fstrType != EFstrType::PredictionValuesChange) {
+        CB_ENSURE_IDENTITY(model.GetScaleAndBias(), "feature importance");
     }
     switch (fstrType) {
         case EFstrType::PredictionValuesChange:

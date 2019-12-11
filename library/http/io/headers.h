@@ -4,6 +4,7 @@
 #include <util/generic/strbuf.h>
 #include <util/generic/deque.h>
 #include <util/generic/vector.h>
+#include <util/string/cast.h>
 
 class IInputStream;
 class IOutputStream;

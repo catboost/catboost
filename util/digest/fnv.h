@@ -9,7 +9,7 @@
 
 namespace NFnvPrivate {
     template <class It>
-    inline ui32 FnvHash32(It b, It e, ui32 init) {
+    constexpr ui32 FnvHash32(It b, It e, ui32 init) {
         while (b != e) {
             init = (init * FNV32PRIME) ^ (unsigned char)*b++;
         }
@@ -18,7 +18,7 @@ namespace NFnvPrivate {
     }
 
     template <class It>
-    inline ui64 FnvHash64(It b, It e, ui64 init) {
+    constexpr ui64 FnvHash64(It b, It e, ui64 init) {
         while (b != e) {
             init = (init * FNV64PRIME) ^ (unsigned char)*b++;
         }
@@ -34,7 +34,7 @@ namespace NFnvPrivate {
     struct TFnvHelper<t> {                                    \
         static const ui##t Init = FNV##t##INIT;               \
         template <class It>                                   \
-        static inline ui##t FnvHash(It b, It e, ui##t init) { \
+        static constexpr ui##t FnvHash(It b, It e, ui##t init) { \
             return FnvHash##t(b, e, init);                    \
         }                                                     \
     };
@@ -46,28 +46,28 @@ namespace NFnvPrivate {
 }
 
 template <class T, class It>
-static inline T FnvHash(It b, It e, T init) {
+static constexpr T FnvHash(It b, It e, T init) {
     static_assert(sizeof(*b) == 1, "expect sizeof(*b) == 1");
 
     return (T)NFnvPrivate::TFnvHelper<8 * sizeof(T)>::FnvHash(b, e, init);
 }
 
 template <class T, class It>
-static inline T FnvHash(It b, It e) {
+static constexpr T FnvHash(It b, It e) {
     return FnvHash<T>(b, e, (T)NFnvPrivate::TFnvHelper<8 * sizeof(T)>::Init);
 }
 
 template <class T>
-static inline T FnvHash(const void* buf, size_t len, T init) {
+static constexpr T FnvHash(const void* buf, size_t len, T init) {
     return FnvHash<T>((const unsigned char*)buf, (const unsigned char*)buf + len, init);
 }
 
 template <class T>
-static inline T FnvHash(const void* buf, size_t len) {
+static constexpr T FnvHash(const void* buf, size_t len) {
     return FnvHash<T>((const unsigned char*)buf, (const unsigned char*)buf + len);
 }
 
 template <class T, class Buf>
-static inline T FnvHash(const Buf& buf) {
+static constexpr T FnvHash(const Buf& buf) {
     return FnvHash<T>(buf.data(), buf.size() * sizeof(*buf.data()));
 }

@@ -77,7 +77,9 @@
       <RandomizedBaseAddress Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</RandomizedBaseAddress>
     </Link>
   </ItemDefinitionGroup>
-  <ItemGroup/>
+  <ItemGroup>
+    <ClInclude Include="$(SolutionDir)..\build\platform\cuda\cuda_runtime_include.h"/>
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup/>

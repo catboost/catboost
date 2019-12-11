@@ -2,8 +2,10 @@
 
 #include <catboost/private/libs/index_range/index_range.h>
 
+#include "groupid.h"
 #include "pair.h"
 
+#include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
 #include <util/system/yassert.h>
 
@@ -15,6 +17,12 @@ using TGroupBounds = NCB::TIndexRange<ui32>;
 
 struct TQueryInfo : public TGroupBounds {
     TQueryInfo() = default;
+
+    TQueryInfo(const TGroupBounds& bounds)
+        : TGroupBounds(bounds)
+        , Weight(1.0f)
+    {
+    }
 
     TQueryInfo(ui32 begin, ui32 end)
         : TGroupBounds(begin, end)
@@ -34,3 +42,5 @@ struct TQueryInfo : public TGroupBounds {
     TVector<TVector<TCompetitor>> Competitors;
     SAVELOAD(Begin, End, Weight, SubgroupId, Competitors);
 };
+
+TVector<TGroupBounds> GroupSamples(TConstArrayRef<TGroupId> qid);

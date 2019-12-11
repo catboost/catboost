@@ -25,3 +25,5 @@ struct TScaleAndBias {
 };
 
 void ApplyScaleAndBias(const TScaleAndBias& scaleAndBias, TArrayRef<double> data);
+
+#define CB_ENSURE_IDENTITY(scaleAndBias, forWhat) CB_ENSURE(scaleAndBias.IsIdentity(), "Non-identity {Scale,Bias} for " << forWhat << " is not supported")

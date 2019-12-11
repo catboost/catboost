@@ -42,7 +42,6 @@ namespace NCB {
         bool PackBinaryFeaturesForCpu = true;
         bool GroupFeaturesForCpu = false;
         TFeaturesGroupingOptions FeaturesGroupingOptions{};
-        bool AllowWriteFiles = true;
 
         TMaybe<float> DefaultValueFractionToEnableSparseStorage = Nothing();
         ESparseArrayIndexingType SparseArrayIndexingType = ESparseArrayIndexingType::Indices;
@@ -136,7 +135,6 @@ namespace NCB {
         TDataProviderPtr srcData,
         const TMaybe<TString>& bordersFile,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
-        bool allowWriteFiles,
         NPar::TLocalExecutor* localExecutor,
         TRestorableFastRng64* rand,
         const TInitialBorders& initialBorders = Nothing()

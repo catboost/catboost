@@ -121,14 +121,12 @@ namespace NCB {
             dictionaryOptions.DictionaryOptions
         );
 
-        TVector<TStringBuf> tokens;
-        const auto& tokenize = [&tokenizer, &tokens](ui32 /*index*/, TStringBuf phrase) {
-            TVector<TStringBuf> phraseTokens;
-            tokenizer->Tokenize(phrase, &phraseTokens);
-            tokens.insert(tokens.end(), phraseTokens.begin(), phraseTokens.end());
+        TTokensWithBuffer tokens;
+        const auto& tokenize = [&](ui32 /*index*/, TStringBuf phrase) {
+            tokenizer->Tokenize(phrase, &tokens);
+            dictionaryBuilder.Add(tokens.View);
         };
         textFeature.ForEach(tokenize);
-        dictionaryBuilder.Add(tokens);
 
         return new TDictionaryProxy(dictionaryBuilder.FinishBuilding());
     }

@@ -356,6 +356,9 @@ ALLOW .* -> vendor/github.com/olekukonko/tablewriter
 # CONTRIB-1596 embedded key/value database
 ALLOW .* -> vendor/go.etcd.io/bbolt
 
+# CONTRIB-1616 Gountries provides structured countries data
+ALLOW .* -> vendor/github.com/pariz/gountries
+
 #
 # Temporary exceptions.
 #

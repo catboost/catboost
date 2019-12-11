@@ -23,6 +23,7 @@
 
 #include <util/generic/ymath.h>
 
+#include <limits>
 #include <utility>
 
 
@@ -120,9 +121,7 @@ namespace NCatboostDistributed {
             params->FeaturesLayout,
             catBoostOptions.DataProcessingOptions.Get().IgnoredFeatures.Get(),
             catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
-            catBoostOptions.DataProcessingOptions->PerFloatFeatureQuantization.Get(),
-            /*allowNansInTestOnly*/true,
-            /*allowWriteFiles*/false
+            catBoostOptions.DataProcessingOptions->PerFloatFeatureQuantization.Get()
         );
 
         CATBOOST_DEBUG_LOG << "Create train data for worker " << hostId << "..." << Endl;
@@ -132,6 +131,7 @@ namespace NCatboostDistributed {
                 /*borders*/ Nothing(), // borders are already loaded to quantizedFeaturesInfo
                 /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/ true,
                 /*allowWriteFiles*/ false,
+                /*tmpDir*/ TString(), // does not matter, because allowWritingFiles == false
                 quantizedFeaturesInfo,
                 &catBoostOptions,
                 &labelConverter,
@@ -813,33 +813,195 @@ namespace NCatboostDistributed {
             GetWeights(*GetTrainData(trainData)->TargetData));
     }
 
-    void TQuantileLeafDeltasCalcer::DoMap(
-            NPar::IUserContext* /*unused*/,
-            int /*unused*/,
-            TInput* /*unused*/,
-            TOutput* out
+    void TLeafWeightsGetter::DoReduce(TVector<TOutput>* inLeafWeightsFromWorkers, TOutput* outTotalLeafWeights) const {
+        const auto& leafWeightsFromWorkers = *inLeafWeightsFromWorkers;
+        TOutput totalLeafWeights = leafWeightsFromWorkers[0];
+        for (auto i : xrange(1, SafeIntegerCast<int>(leafWeightsFromWorkers.size()))) {
+            AddElementwise(leafWeightsFromWorkers[i], &totalLeafWeights);
+        }
+        *outTotalLeafWeights = std::move(totalLeafWeights);
+    }
+
+    /*
+     * Prepares data structures for exact quantile approx calculation.
+     * Returns Min and Max values of target for binary search of quantile.
+     */
+    void TQuantileExactApproxStarter::DoMap(
+        NPar::IUserContext* /*ctx*/,
+        int /*hostId*/,
+        TInput* /*input*/,
+        TOutput* outMinMaxDiffs
     ) const {
         auto& localData = TLocalTensorSearchData::GetRef();
+        const int leafCount = localData.Buckets.size();
+        const int approxDimension = localData.Progress->AvrgApprox.size();
+        const auto& target = localData.Progress->AveragingFold.LearnTarget;
+        const auto& weights = localData.Progress->AveragingFold.GetLearnWeights();
+        const auto& avrgFoldIndexing = localData.Progress->AveragingFold.LearnPermutation.Get()->GetObjectsIndexing();
 
-        // (1ll << localData.Depth) != localData.Buckets.size(); ???
-        int leafCount = localData.Buckets.size();
+        localData.ExactDiff.yresize(approxDimension);
+        localData.SplitBounds.yresize(approxDimension);
+        localData.LastPivot.yresize(approxDimension);
+        localData.LastPartitionPoint.yresize(approxDimension);
+        localData.CollectedLeftSumWeight.yresize(approxDimension);
+        localData.LastSplitLeftSumWeight.yresize(approxDimension);
 
-        TVector<double>& approxes = localData.Progress->AvrgApprox[0];
-        TVector<float>& targets = localData.Progress->AveragingFold.LearnTarget[0];
-        TVector<float>& weights = localData.Progress->AveragingFold.SampleWeights;
+        TOutput minMaxDiffs(approxDimension);
+        for (auto dimension : xrange(approxDimension)) {
+            localData.ExactDiff[dimension].yresize(leafCount);
+            for (auto leaf : xrange(leafCount)) {
+                localData.ExactDiff[dimension][leaf].clear();
+            }
+            minMaxDiffs[dimension].assign(leafCount, {std::numeric_limits<double>::max(), std::numeric_limits<double>::min()});
+            avrgFoldIndexing.ForEach([&](int idx, int srcIdx) {
+                const double diff = target[dimension][srcIdx] - localData.Progress->AvrgApprox[dimension][srcIdx];
+                const double weight = weights.empty() ? 1.0 : weights[srcIdx];
+                const TIndexType leaf = localData.Indices[idx];
+                localData.ExactDiff[dimension][leaf].emplace_back(diff, weight);
+                minMaxDiffs[dimension][leaf].Min = Min(minMaxDiffs[dimension][leaf].Min, diff);
+                minMaxDiffs[dimension][leaf].Max = Max(minMaxDiffs[dimension][leaf].Max, diff);
+            });
 
-        Y_ASSERT(targets.size() == approxes.size());
-        Y_ASSERT(weights.size() == approxes.size());
-
-        TVector<TVector<std::pair<float, float>>> answer(leafCount);
-        for (size_t i = 0; i < approxes.size(); i++) {
-            answer[localData.Indices[i]].push_back({targets[i] - approxes[i], weights[i]});
+            localData.SplitBounds[dimension].yresize(leafCount);
+            localData.LastPartitionPoint[dimension].yresize(leafCount);
+            localData.LastPivot[dimension].yresize(leafCount);
+            localData.CollectedLeftSumWeight[dimension].yresize(leafCount);
+            localData.LastSplitLeftSumWeight[dimension].yresize(leafCount);
+            for (auto leaf : xrange(leafCount)) {
+                const int objectCount = localData.ExactDiff[dimension][leaf].size();
+                localData.SplitBounds[dimension][leaf] = {0, objectCount};
+                localData.LastPivot[dimension][leaf] = std::numeric_limits<double>::max();
+                localData.LastPartitionPoint[dimension][leaf] = objectCount;
+                localData.CollectedLeftSumWeight[dimension][leaf]= 0;
+                localData.LastSplitLeftSumWeight[dimension][leaf] = 0;
+            }
         }
-        NPar::ParallelFor(0, leafCount, [&](int leaf){
-            Sort(answer[leaf].begin(), answer[leaf].end());
-        });
 
-        *out = answer;
+        *outMinMaxDiffs = std::move(minMaxDiffs);
+    }
+
+    void TQuantileExactApproxStarter::DoReduce(TVector<TOutput>* inMinMaxDiffsFromWorkers,
+                                               TOutput* reducedMinMaxDiffs) const {
+        const auto& minMaxDiffsFromWorkers = *inMinMaxDiffsFromWorkers;
+        TOutput result = minMaxDiffsFromWorkers[0];
+        for (auto worker : xrange(1, SafeIntegerCast<int>(minMaxDiffsFromWorkers.size()))) {
+            const auto& resultFromWorker = minMaxDiffsFromWorkers[worker];
+            for (auto dimension : xrange(result.size())) {
+                for (auto leaf : xrange(result[dimension].size())) {
+                    result[dimension][leaf].Min = Min(result[dimension][leaf].Min, resultFromWorker[dimension][leaf].Min);
+                    result[dimension][leaf].Max = Max(result[dimension][leaf].Max, resultFromWorker[dimension][leaf].Max);
+                }
+            }
+        }
+        *reducedMinMaxDiffs = std::move(result);
+    }
+
+    /*
+     * Split exact diff arrays by pivots
+     * Returns weights of left parts after splitting
+     */
+    void TQuantileArraySplitter::DoMap(
+        NPar::IUserContext* /*ctx*/,
+        int /*hostId*/,
+        TInput* pivots,
+        TOutput* outLeftRightWeights
+    ) const {
+        auto& localData = TLocalTensorSearchData::GetRef();
+        const auto leafCount = localData.Buckets.size();
+        const auto& pivotsRef = *pivots;
+        const auto approxDimension = pivotsRef.size();
+        TOutput leftWeights(approxDimension);
+        for (auto dimension : xrange(approxDimension)) {
+            leftWeights[dimension].assign(leafCount, 0);
+            for (auto leaf : xrange(leafCount)) {
+                auto& lastPivot = localData.LastPivot[dimension][leaf];
+                auto& lastPartitionPoint = localData.LastPartitionPoint[dimension][leaf];
+                auto& splitBounds = localData.SplitBounds[dimension][leaf];
+                auto& exactDiff = localData.ExactDiff[dimension][leaf];
+                auto& collectedLeftSumWeight = localData.CollectedLeftSumWeight[dimension][leaf];
+                auto& lastLeftSumWeight = localData.LastSplitLeftSumWeight[dimension][leaf];
+
+                const double curPivot = pivotsRef[dimension][leaf];
+                if (curPivot < lastPivot) {
+                    splitBounds.Max = lastPartitionPoint;
+                } else {
+                    splitBounds.Min = lastPartitionPoint;
+                    collectedLeftSumWeight += lastLeftSumWeight;
+                }
+                lastPivot = curPivot;
+                const auto partitionBegin = exactDiff.begin() + splitBounds.Min;
+                const auto partitionEnd = exactDiff.begin() + splitBounds.Max;
+                const auto partitionIt = std::partition(
+                    partitionBegin,
+                    partitionEnd,
+                    [curPivot](const std::pair<double, double>& diff) {
+                        return diff.first <= curPivot;
+                    });
+                int curPartitionPoint = partitionIt - exactDiff.begin();
+                lastLeftSumWeight = Accumulate(partitionBegin, partitionIt, 0.0, [](double totalWeight, const std::pair<double, double>& diff) {
+                    return totalWeight + diff.second;
+                });
+                leftWeights[dimension][leaf] = collectedLeftSumWeight + lastLeftSumWeight;
+                lastPartitionPoint = curPartitionPoint;
+            }
+        }
+        *outLeftRightWeights = std::move(leftWeights);
+    }
+
+    void TQuantileArraySplitter::DoReduce(
+        TVector<TOutput>* inLeftWeightsFromWorkers,
+        TOutput* outTotalLeftWeights
+    ) const {
+        const auto& leftWeightsFromWorkers = *inLeftWeightsFromWorkers;
+        TOutput totalLeftWeights = leftWeightsFromWorkers[0];
+        for (auto worker : xrange(1, SafeIntegerCast<int>(leftWeightsFromWorkers.size()))) {
+            for (auto dimension : xrange(totalLeftWeights.size())) {
+                AddElementwise(leftWeightsFromWorkers[worker][dimension], &totalLeftWeights[dimension]);
+            }
+        }
+        *outTotalLeftWeights = std::move(totalLeftWeights);
+    }
+
+    /*
+     * Calculates weight of elements equal to pivots
+     * Needed to adjusting quantile value according to 'delta' parameter of Quantile metric
+     */
+    void TQuantileEqualWeightsCalcer::DoMap(
+        NPar::IUserContext* /*ctx*/,
+        int /*hostId*/,
+        TInput* inPivots,
+        TOutput* outEqualSumWeights
+    ) const {
+        auto& localData = TLocalTensorSearchData::GetRef();
+        const auto& pivots = *inPivots;
+        const auto approxDimension = pivots.size();
+        const auto leafCount = pivots[0].size();
+        TOutput equalSumWeights(approxDimension, TVector<double>(leafCount, 0.0));
+        for (auto dimension : xrange(approxDimension)) {
+            for (auto leaf : xrange(leafCount)) {
+                const auto pivot = pivots[dimension][leaf];
+                const auto& exactDiff = localData.ExactDiff[dimension][leaf];
+                double sumWeights = 0;
+                for (const auto [diff, weight] : exactDiff) {
+                    if (diff == pivot) {
+                        sumWeights += weight;
+                    }
+                }
+                equalSumWeights[dimension][leaf] = sumWeights;
+            }
+        }
+        *outEqualSumWeights = std::move(equalSumWeights);
+    }
+
+    void TQuantileEqualWeightsCalcer::DoReduce(TVector<TOutput>* inEqualSumWeightsFromWorkers, TOutput* outTotalEqualSumWeights) const {
+        const auto& equalSumWeightsFromWorkers = *inEqualSumWeightsFromWorkers;
+        TOutput totalEqualSumWeights = equalSumWeightsFromWorkers[0];
+        for (auto worker : xrange(1, SafeIntegerCast<int>(equalSumWeightsFromWorkers.size()))) {
+            for (auto dimension : xrange(totalEqualSumWeights.size())) {
+                AddElementwise(equalSumWeightsFromWorkers[worker][dimension], &totalEqualSumWeights[dimension]);
+            }
+        }
+        *outTotalEqualSumWeights = std::move(totalEqualSumWeights);
     }
 
 } // NCatboostDistributed
@@ -873,4 +1035,6 @@ REGISTER_SAVELOAD_NM_CLASS(0xd66d4d6, NCatboostDistributed, TApproxReconstructor
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4e0, NCatboostDistributed, TLeafWeightsGetter);
 
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4e1, NCatboostDistributed, TDatasetLoader);
-REGISTER_SAVELOAD_NM_CLASS(0xd66d4e2, NCatboostDistributed, TQuantileLeafDeltasCalcer);
+REGISTER_SAVELOAD_NM_CLASS(0xd66d4e3, NCatboostDistributed, TQuantileExactApproxStarter);
+REGISTER_SAVELOAD_NM_CLASS(0xd66d4e4, NCatboostDistributed, TQuantileArraySplitter);
+REGISTER_SAVELOAD_NM_CLASS(0xd66d4e5, NCatboostDistributed, TQuantileEqualWeightsCalcer);

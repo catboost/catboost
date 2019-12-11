@@ -49,6 +49,11 @@ class CatBoostJNIImpl {
             @NotNull int[] catFeatureCount);
 
     @Nullable
+    final static native String catBoostModelGetFlatFeatureVectorExpectedSize(
+            long handle,
+            @NotNull int[] featureVectorExpectedSize);
+
+    @Nullable
     final static native String catBoostModelGetTreeCount(
             long handle,
             @NotNull int[] treeCount);

@@ -1,3 +1,14 @@
+# Release 0.20.1
+
+## New features:
+- Have `leaf_estimation_method=Exact` the default for MAPE loss
+- Add `CatBoostClassifier.predict_log_proba()`, PR #1095
+
+## Bug fixes:
+- Fix usability of read-only numpy arrays, #1101
+- Fix python3 compatibility for `get_feature_importance`, PR #1090
+- Fix loading model from snapshot for `boost_from_average` mode
+
 # Release 0.20
 
 New submodule for text processing!

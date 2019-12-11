@@ -189,6 +189,18 @@ void SplitUrlToHostAndPath(const TStringBuf url, TString& host, TString& path) {
     path = pathBuf;
 }
 
+void SeparateUrlFromQueryAndFragment(const TStringBuf url, TStringBuf& sanitizedUrl, TStringBuf& query, TStringBuf& fragment) {
+    TStringBuf urlWithoutFragment;
+    if (!url.TrySplit('#', urlWithoutFragment, fragment)) {
+        fragment = "";
+        urlWithoutFragment = url;
+    }
+    if (!urlWithoutFragment.TrySplit('?', sanitizedUrl, query)) {
+        query = "";
+        sanitizedUrl = urlWithoutFragment;
+    }
+}
+
 bool TryGetSchemeHostAndPort(const TStringBuf url, TStringBuf& scheme, TStringBuf& host, ui16& port) {
     const size_t schemeSize = GetSchemePrefixSize(url);
     if (schemeSize != 0) {

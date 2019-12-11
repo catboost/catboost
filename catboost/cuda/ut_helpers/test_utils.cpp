@@ -9,6 +9,8 @@
 #include <catboost/libs/helpers/cpu_random.h>
 #include <util/stream/str.h>
 
+#include <util/folder/dirut.h>
+
 using namespace std;
 
 void GenerateTestPool(TBinarizedPool& pool,
@@ -174,9 +176,9 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
                                          true,
                                          "learn",
                                          Nothing(),
-                                         /*unloadCatFeaturePerfectHashFromRamIfPossible*/ true,
+                                         /*unloadCatFeaturePerfectHashFromRam*/ true,
                                          /*ensureConsecutiveFeaturesDataForCpu*/ false, // irrelevant for GPU
-                                         /*allowWriteFiles*/ true,
+                                         /*tmpDir*/ GetSystemTempDir(),
                                          nullptr,
                                          &catBoostOptions,
                                          &labelConverter,

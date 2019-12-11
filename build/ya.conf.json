@@ -274,6 +274,9 @@
         "vmexec": {
             "description": "VMEXEC run script inside qemu-vm"
         },
+        "yd-migrate": {
+            "description": "Run deploy migration"
+        },
         "yfm": {
             "description": "YFM-extended markdown processor for Cloud deploy"
         },
@@ -3527,6 +3530,28 @@
                 }
             ]
         },
+        "yd-migrate": {
+            "tools": {
+                "yd-migrate": {
+                    "bottle": "yd-migrate",
+                    "executable": "yd-migrate"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "dctl": {
             "tools": {
                 "dctl": {
@@ -4886,7 +4911,7 @@
         "ymake": {
             "formula": {
                 "sandbox_id": [
-                    559374142
+                    564412426
                 ],
                 "match": "ymake"
             },
@@ -4910,7 +4935,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    557843592
+                    565263953
                 ],
                 "match": "arc"
             },
@@ -6110,6 +6135,19 @@
                 ]
             }
         },
+        "yd-migrate": {
+            "formula": {
+                "sandbox_id": [
+                    561361752
+                ],
+                "match": "deploy_migrate/bin"
+            },
+            "executable": {
+                "yd-migrate": [
+                    "migrate"
+                ]
+            }
+        },
         "dctl": {
             "formula": {
                 "sandbox_id": [
@@ -6470,7 +6508,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 560523700,
+                "sandbox_id": 565403219,
                 "match": "horadric"
             },
             "executable": {
@@ -6730,7 +6768,7 @@
         },
         "yfm": {
             "formula": {
-                "sandbox_id": 504784382,
+                "sandbox_id": 565724455,
                 "match": "yfm"
             },
             "executable": {
@@ -6752,7 +6790,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 557338083,
+                "sandbox_id": 565446940,
                 "match": "SEDEM archive"
             },
             "executable": {

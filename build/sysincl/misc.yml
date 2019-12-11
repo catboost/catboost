@@ -59,6 +59,17 @@
     - wchar.h:       contrib/libs/libunistring/wchar.h
     - wctype.h:      contrib/libs/libunistring/wctype.h
 
+- source_filter: "^contrib/libs/gsasl"
+  includes:
+    - stdlib.h:      contrib/libs/gsasl/gl/stdlib.h
+    - stdio.h:       contrib/libs/gsasl/gl/stdio.h
+    - unistd.h:      contrib/libs/gsasl/gl/unistd.h
+    - string.h:      contrib/libs/gsasl/gl/string.h
+    - minmax.h:      contrib/libs/gsasl/gl/minmax.h
+    - sys/types.h:   contrib/libs/gsasl/gl/sys/types.h
+    - wchar.h:       contrib/libs/gsasl/gl/wchar.h
+    - alloca.h:      contrib/libs/gsasl/gl/alloca.h
+
 - source_filter: "^contrib/libs/libidn2/"
   includes:
     - error.h:  contrib/libs/libidn2/gl/error.h

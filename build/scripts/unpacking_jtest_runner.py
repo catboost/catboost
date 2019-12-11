@@ -2,9 +2,11 @@ import io
 import json
 import optparse
 import os
+import sys
 import subprocess
 import time
 import zipfile
+import platform
 
 # This script changes test run classpath by unpacking tests.jar -> tests-dir. The goal
 # is to launch tests with the same classpath as maven does.
@@ -89,12 +91,25 @@ def main():
         dump_suite_event(metrics, opts.trace_file)
 
     # fix java classpath
-    i = args.index('-classpath')
-    args[i + 1] = args[i + 1].replace(opts.tests_jar_path, dest)
-    args = fix_cmd(args[:i]) + args[i:]
+    cp_idx = args.index('-classpath')
+    if args[cp_idx + 1].startswith('@'):
+        real_name = args[cp_idx + 1][1:]
+        fixed_name = os.path.join(os.path.dirname(real_name), 'fixed.bfg.txt')
+        with open(fixed_name, 'w') as fixed:
+            with open(real_name) as origin:
+                fixed.write(os.pathsep.join([i.strip().replace(opts.tests_jar_path, dest) for i in origin]))
+        args = fix_cmd(args[:cp_idx + 1]) + ['@' + fixed_name] + args[cp_idx + 2:]
+    else:
+        args[cp_idx + 1] = args[cp_idx + 1].replace(opts.tests_jar_path, dest)
+        args = fix_cmd(args[:cp_idx]) + args[cp_idx:]
 
     # run java cmd
-    os.execv(args[0], args)
+    if platform.system() == 'Windows':
+        p = subprocess.Popen(args)
+        p.communicate()
+        sys.exit(p.returncode)
+    else:
+        os.execv(args[0], args)
 
 
 if __name__ == '__main__':

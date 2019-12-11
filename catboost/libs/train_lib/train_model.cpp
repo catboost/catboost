@@ -1,6 +1,7 @@
 #include "train_model.h"
 #include "options_helper.h"
 #include "cross_validation.h"
+#include "dir_helper.h"
 
 #include <catboost/private/libs/algo/approx_dimension.h>
 #include <catboost/private/libs/algo/data.h>
@@ -53,16 +54,6 @@
 
 using namespace NCB;
 
-static void CreateDirIfNotExist(const TString& path) {
-    TFsPath trainDirPath(path);
-    try {
-        if (!path.empty() && !trainDirPath.Exists()) {
-            trainDirPath.MkDir();
-        }
-    } catch (...) {
-        ythrow TCatBoostException() << "Can't create working dir: " << path;
-    }
-}
 
 static void ShrinkModel(int itCount, const TCtrHelper& ctrsHelper, TLearnProgress* progress) {
     itCount += SafeIntegerCast<int>(progress->InitTreesSize);
@@ -497,10 +488,16 @@ static void SaveModel(
     TFullModel* dstModel
 ) {
     const auto& target = ctx.LearnProgress->AveragingFold.LearnTarget;
+    const TQuantizedFeaturesInfo& quantizedFeaturesInfo
+        = *(trainingDataForCpu.Learn->ObjectsData->GetQuantizedFeaturesInfo());
 
     TPerfectHashedToHashedCatValuesMap perfectHashedToHashedCatValuesMap
-        = trainingDataForCpu.Learn->ObjectsData->GetQuantizedFeaturesInfo()
-            ->CalcPerfectHashedToHashedCatValuesMap(ctx.LocalExecutor);
+        = quantizedFeaturesInfo.CalcPerfectHashedToHashedCatValuesMap(ctx.LocalExecutor);
+    if (ctx.OutputOptions.AllowWriteFiles()) {
+        TString tmpDir;
+        NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(ctx.OutputOptions.GetTrainDir(), &tmpDir);
+        quantizedFeaturesInfo.UnloadCatFeaturePerfectHashFromRam(tmpDir);
+    }
 
     TModelTrees modelTrees;
     THashMap<TFeatureCombination, TProjection> featureCombinationToProjectionMap;
@@ -837,8 +834,7 @@ static void TrainModel(
             catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
             catBoostOptions.DataProcessingOptions->PerFloatFeatureQuantization.Get(),
             catBoostOptions.DataProcessingOptions->TextProcessingOptions.Get(),
-            /*allowNansInTestOnly*/true,
-            outputOptions.AllowWriteFiles()
+            /*allowNansInTestOnly*/true
         );
         /* TODO(akhropov): reuse float features quantization data from initLearnProgress if data quantization
          * options and raw data is the same
@@ -874,12 +870,19 @@ static void TrainModel(
     const bool needInitModelApplyCompatiblePools = initModel.Defined();
 
     const bool isQuantizedLearn = dynamic_cast<TQuantizedObjectsDataProvider*>(pools.Learn->ObjectsData.Get());
+
+    TString tmpDir;
+    if (outputOptions.AllowWriteFiles()) {
+        NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputOptions.GetTrainDir(), &tmpDir);
+    }
+
     TTrainingDataProviders trainingData = GetTrainingData(
         needInitModelApplyCompatiblePools ? pools : std::move(pools),
         /* borders */ Nothing(), // borders are already loaded to quantizedFeaturesInfo
         /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/
             !IsDistributedShared(poolLoadOptions, catBoostOptions),
         outputOptions.AllowWriteFiles(),
+        tmpDir,
         quantizedFeaturesInfo,
         &catBoostOptions,
         &labelConverter,
@@ -920,10 +923,6 @@ static void TrainModel(
 
     // Eval metric may not be set. If that's the case, we assign it to objective metric
     InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
-
-    if (outputOptions.AllowWriteFiles()) {
-        CreateDirIfNotExist(outputOptions.GetTrainDir());
-    }
 
     if (outputOptions.NeedSaveBorders()) {
         SaveBordersAndNanModesToFileInMatrixnetFormat(
@@ -1046,8 +1045,7 @@ void TrainModel(
         catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
         catBoostOptions.DataProcessingOptions->PerFloatFeatureQuantization.Get(),
         catBoostOptions.DataProcessingOptions->TextProcessingOptions.Get(),
-        /*allowNansInTestOnly*/true,
-        outputOptions.AllowWriteFiles()
+        /*allowNansInTestOnly*/true
     );
     if (loadOptions.BordersFile) {
         LoadBordersAndNanModesFromFromFileInMatrixnetFormat(
@@ -1177,8 +1175,7 @@ static void ModelBasedEval(
             catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
             catBoostOptions.DataProcessingOptions->PerFloatFeatureQuantization.Get(),
             catBoostOptions.DataProcessingOptions->TextProcessingOptions.Get(),
-            /*allowNansInTestOnly*/true,
-            outputOptions.AllowWriteFiles()
+            /*allowNansInTestOnly*/true
         );
     }
 
@@ -1208,11 +1205,17 @@ static void ModelBasedEval(
 
     TLabelConverter labelConverter;
 
+    TString tmpDir;
+    if (outputOptions.AllowWriteFiles()) {
+        NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputOptions.GetTrainDir(), &tmpDir);
+    }
+
     TTrainingDataProviders trainingData = GetTrainingData(
         std::move(pools),
         /* borders */ Nothing(), // borders are already loaded to quantizedFeaturesInfo
         /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/ true,
         outputOptions.AllowWriteFiles(),
+        tmpDir,
         quantizedFeaturesInfo,
         &catBoostOptions,
         &labelConverter,
@@ -1233,9 +1236,6 @@ static void ModelBasedEval(
         &catBoostOptions
     );
     InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
-    if (outputOptions.AllowWriteFiles()) {
-        CreateDirIfNotExist(outputOptions.GetTrainDir());
-    }
 
     modelTrainerHolder->ModelBasedEval(
         catBoostOptions,
@@ -1284,8 +1284,7 @@ void ModelBasedEval(
         catBoostOptions.DataProcessingOptions->FloatFeaturesBinarization.Get(),
         catBoostOptions.DataProcessingOptions->PerFloatFeatureQuantization.Get(),
         catBoostOptions.DataProcessingOptions->TextProcessingOptions.Get(),
-        /*allowNansInTestOnly*/true,
-        outputOptions.AllowWriteFiles()
+        /*allowNansInTestOnly*/true
     );
     if (loadOptions.BordersFile) {
         LoadBordersAndNanModesFromFromFileInMatrixnetFormat(

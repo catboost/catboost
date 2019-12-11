@@ -226,6 +226,10 @@ NTokenizer::TTokenizer::TTokenizer(const NTokenizer::TTokenizerOptions& options)
         Y_ENSURE(!Options.Lemmatizing, "Lemmer isn't implemented yet.");
         Lemmer = TLemmerImplementationFactory::Construct(EImplementationType::Trivial, {});
     }
+
+    NeedToModifyTokensFlag |= Options.SeparatorType == NTokenizer::ESeparatorType::BySense;
+    NeedToModifyTokensFlag |= IsWordChanged(Options);
+    NeedToModifyTokensFlag |= Options.NumberProcessPolicy == ETokenProcessPolicy::Replace;
 }
 
 void NTokenizer::TTokenizer::Tokenize(
@@ -253,14 +257,8 @@ TVector<TString> NTokenizer::TTokenizer::Tokenize(TStringBuf inputString) const 
 }
 
 void NTokenizer::TTokenizer::TokenizeWithoutCopy(TStringBuf inputString, TVector<TStringBuf>* tokens) const {
-    Y_ENSURE(Options.SeparatorType == NTokenizer::ESeparatorType::ByDelimiter,
-        "TokenizeWithoutCopy method is supported only with ByDelimiter SeparatorType.");
-    Y_ENSURE(!IsWordChanged(Options),
-        "TokenizeWithoutCopy method isn't supported with Lemmatizing or Lowercasing options.");
-    Y_ENSURE(Options.NumberProcessPolicy != ETokenProcessPolicy::Replace,
-        "TokenizeWithoutCopy method isn't supported with Replace NumberProcessPolicy.");
+    Y_ASSERT(!NeedToModifyTokensFlag);
     SplitByDelimiter(inputString, Options.Delimiter, Options.SplitBySet, Options.SkipEmpty, tokens);
-
     if (Options.NumberProcessPolicy == ETokenProcessPolicy::Skip) {
         FilterNumbers(tokens);
     }
@@ -274,4 +272,8 @@ TVector<TStringBuf> NTokenizer::TTokenizer::TokenizeWithoutCopy(TStringBuf input
 
 NTokenizer::TTokenizerOptions NTokenizer::TTokenizer::GetOptions() const {
     return Options;
+}
+
+bool NTokenizer::TTokenizer::NeedToModifyTokens() const {
+    return NeedToModifyTokensFlag;
 }

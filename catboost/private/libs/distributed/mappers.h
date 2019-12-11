@@ -2,6 +2,7 @@
 
 #include "data_types.h"
 
+#include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/private/libs/algo/tensor_search_helpers.h>
 
 #include <library/par/par.h>
@@ -157,10 +158,22 @@ namespace NCatboostDistributed {
     class TLeafWeightsGetter: public NPar::TMapReduceCmd<TUnusedInitializedParam, TVector<double>> {
         OBJECT_NOCOPY_METHODS(TLeafWeightsGetter);
         void DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unused*/, TOutput* leafWeights) const final;
+        void DoReduce(TVector<TOutput>* leafWeightsFromWorkers, TOutput* totalLeafWeights) const final;
     };
-    class TQuantileLeafDeltasCalcer: public NPar::TMapReduceCmd<TUnusedInitializedParam, TVector<TVector<std::pair<float, float>>>> {
-        OBJECT_NOCOPY_METHODS(TQuantileLeafDeltasCalcer);
-        void DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unused*/, TOutput* leafValues) const final;
+    class TQuantileExactApproxStarter: public NPar::TMapReduceCmd<TUnusedInitializedParam, TVector<TVector<TMinMax<double>>>> {
+        OBJECT_NOCOPY_METHODS(TQuantileExactApproxStarter);
+        void DoMap(NPar::IUserContext* ctx, int hostId, TInput* leafCount, TOutput* minMaxDiffs) const final;
+        void DoReduce(TVector<TOutput>* minMaxDiffsFromWorkers, TOutput* reducedMinMaxDiffs) const final;
+    };
+    class TQuantileArraySplitter: public NPar::TMapReduceCmd<TVector<TVector<double>>, TVector<TVector<double>>> {
+        OBJECT_NOCOPY_METHODS(TQuantileArraySplitter);
+        void DoMap(NPar::IUserContext* ctx, int hostId, TInput* pivots, TOutput* leftSumWeights) const final;
+        void DoReduce(TVector<TOutput>* leftRightWeightsFromWorkers, TOutput* totalLeftSumWeights) const final;
+    };
+    class TQuantileEqualWeightsCalcer: public NPar::TMapReduceCmd<TVector<TVector<double>>, TVector<TVector<double>>> {
+        OBJECT_NOCOPY_METHODS(TQuantileEqualWeightsCalcer);
+        void DoMap(NPar::IUserContext* ctx, int hostId, TInput* pivots, TOutput* equalSumWeights) const final;
+        void DoReduce(TVector<TOutput>* equalSumWeightsFromWorkers, TOutput* totalEqualSumWeights) const final;
     };
 
 } // NCatboostDistributed

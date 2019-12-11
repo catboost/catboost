@@ -78,7 +78,35 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\0dfb0742f9ae3f6497b7e8e93d.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\195ddfb1f03ab168e2faedad4e.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_0dfb0742f9ae3f6497b7e8e93d.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_0dfb0742f9ae3f6497b7e8e93d.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_0dfb0742f9ae3f6497b7e8e93d.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_0dfb0742f9ae3f6497b7e8e93d.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_0dfb0742f9ae3f6497b7e8e93d.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/MarkupSafe/_0dfb0742f9ae3f6497b7e8e93d.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_0dfb0742f9ae3f6497b7e8e93d.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_0dfb0742f9ae3f6497b7e8e93d.py2.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_195ddfb1f03ab168e2faedad4e.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
@@ -110,6 +138,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/0dfb0742f9ae3f6497b7e8e93d.cpp" "_991ab375b01fb058c00b48ed13=resfs/src/resfs/file/contrib/python/MarkupSafe/.dist-info/LICENSE.txt" "_f84c292617216b175b4f26a809=resfs/file/contrib/python/MarkupSafe/.dist-info/LICENSE.txt" "_f333d1c27456ecd9121c5baa97=resfs/src/resfs/file/contrib/python/MarkupSafe/.dist-info/METADATA" "_e26dd5db72eedf252ac01e5553=resfs/file/contrib/python/MarkupSafe/.dist-info/METADATA" "_9fd848a135a13de0e7b2beeef0=resfs/src/resfs/file/contrib/python/MarkupSafe/.dist-info/top_level.txt" "_a18e076bf3ff63da8383957881=resfs/file/contrib/python/MarkupSafe/.dist-info/top_level.txt"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/195ddfb1f03ab168e2faedad4e.cpp" "_4ec1fa06da302f49a701819547=/py_modules/markupsafe._compat" "_b0a3e66b8e9cd52247de5dc39e=resfs/src//py_modules/markupsafe._compat" "_890abb0f7618e7e01c005b29a0=/py_code/markupsafe._compat" "_b21ed89e0ebbb288553ff45705=/py_modules/markupsafe._constants" "_6a8e2f228f91ecc14da63df7b6=resfs/src//py_modules/markupsafe._constants" "_c3be656713a8bf98214ba8fbb8=/py_code/markupsafe._constants" "_a51e33c70c5581472de0a66e4d=/py_modules/markupsafe.__init__" "_9d6eb7c7bb84712c62345b278f=resfs/src//py_modules/markupsafe.__init__" "_3c06b853fb2a185c5af261457e=/py_code/markupsafe.__init__" "_46a0f74bf9f551e880ba4434b1=/py_modules/markupsafe._native" "_609a47e296a01d472c756764a3=resfs/src//py_modules/markupsafe._native" "_12f7a8e5cbf8d61706a5c5fb62=/py_code/markupsafe._native"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -121,6 +153,10 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
 if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/0dfb0742f9ae3f6497b7e8e93d.cpp" "_991ab375b01fb058c00b48ed13=resfs/src/resfs/file/contrib/python/MarkupSafe/.dist-info/LICENSE.txt" "_f84c292617216b175b4f26a809=resfs/file/contrib/python/MarkupSafe/.dist-info/LICENSE.txt" "_f333d1c27456ecd9121c5baa97=resfs/src/resfs/file/contrib/python/MarkupSafe/.dist-info/METADATA" "_e26dd5db72eedf252ac01e5553=resfs/file/contrib/python/MarkupSafe/.dist-info/METADATA" "_9fd848a135a13de0e7b2beeef0=resfs/src/resfs/file/contrib/python/MarkupSafe/.dist-info/top_level.txt" "_a18e076bf3ff63da8383957881=resfs/file/contrib/python/MarkupSafe/.dist-info/top_level.txt"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
+if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/195ddfb1f03ab168e2faedad4e.cpp" "_4ec1fa06da302f49a701819547=/py_modules/markupsafe._compat" "_b0a3e66b8e9cd52247de5dc39e=resfs/src//py_modules/markupsafe._compat" "_890abb0f7618e7e01c005b29a0=/py_code/markupsafe._compat" "_b21ed89e0ebbb288553ff45705=/py_modules/markupsafe._constants" "_6a8e2f228f91ecc14da63df7b6=resfs/src//py_modules/markupsafe._constants" "_c3be656713a8bf98214ba8fbb8=/py_code/markupsafe._constants" "_a51e33c70c5581472de0a66e4d=/py_modules/markupsafe.__init__" "_9d6eb7c7bb84712c62345b278f=resfs/src//py_modules/markupsafe.__init__" "_3c06b853fb2a185c5af261457e=/py_code/markupsafe.__init__" "_46a0f74bf9f551e880ba4434b1=/py_modules/markupsafe._native" "_609a47e296a01d472c756764a3=resfs/src//py_modules/markupsafe._native" "_12f7a8e5cbf8d61706a5c5fb62=/py_code/markupsafe._native"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
@@ -129,9 +165,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/MarkupSafe/195ddfb1f03ab168e2faedad4e.cpp	</Message>
+      <Message>$B/contrib/python/MarkupSafe/0dfb0742f9ae3f6497b7e8e93d.cpp	$B/contrib/python/MarkupSafe/195ddfb1f03ab168e2faedad4e.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\195ddfb1f03ab168e2faedad4e.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\0dfb0742f9ae3f6497b7e8e93d.cpp;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\195ddfb1f03ab168e2faedad4e.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -183,6 +219,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/contrib/python/MarkupSafe/markupsafe/__init__.py.yapyc	$B/contrib/python/MarkupSafe/markupsafe/_compat.py.yapyc	$B/contrib/python/MarkupSafe/markupsafe/_constants.py.yapyc	$B/contrib/python/MarkupSafe/markupsafe/_native.py.yapyc	</Message>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\contrib\python\MarkupSafe\markupsafe\__init__.py;$(SolutionDir)..\contrib\python\MarkupSafe\markupsafe\_compat.py;$(SolutionDir)..\contrib\python\MarkupSafe\markupsafe\_constants.py;$(SolutionDir)..\contrib\python\MarkupSafe\markupsafe\_native.py;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\markupsafe\__init__.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\markupsafe\_compat.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\markupsafe\_constants.py.yapyc;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\markupsafe\_native.py.yapyc;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\contrib\python\MarkupSafe\.dist-info\LICENSE.txt">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_0dfb0742f9ae3f6497b7e8e93d.yasm" "-" "contrib/python/MarkupSafe/.dist-info/LICENSE.txt" "_991ab375b01fb058c00b48ed13.rodata" "$(SolutionDir)../contrib/python/MarkupSafe/.dist-info/LICENSE.txt" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_f84c292617216b175b4f26a809.rodata" "-" "contrib/python/MarkupSafe/.dist-info/METADATA" "_f333d1c27456ecd9121c5baa97.rodata" "$(SolutionDir)../contrib/python/MarkupSafe/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_e26dd5db72eedf252ac01e5553.rodata" "-" "contrib/python/MarkupSafe/.dist-info/top_level.txt" "_9fd848a135a13de0e7b2beeef0.rodata" "$(SolutionDir)../contrib/python/MarkupSafe/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_a18e076bf3ff63da8383957881.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\MarkupSafe
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_0dfb0742f9ae3f6497b7e8e93d.yasm" "-" "contrib/python/MarkupSafe/.dist-info/LICENSE.txt" "_991ab375b01fb058c00b48ed13.rodata" "$(SolutionDir)../contrib/python/MarkupSafe/.dist-info/LICENSE.txt" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_f84c292617216b175b4f26a809.rodata" "-" "contrib/python/MarkupSafe/.dist-info/METADATA" "_f333d1c27456ecd9121c5baa97.rodata" "$(SolutionDir)../contrib/python/MarkupSafe/.dist-info/METADATA" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_e26dd5db72eedf252ac01e5553.rodata" "-" "contrib/python/MarkupSafe/.dist-info/top_level.txt" "_9fd848a135a13de0e7b2beeef0.rodata" "$(SolutionDir)../contrib/python/MarkupSafe/.dist-info/top_level.txt" "$(SolutionDir)$(Configuration)/contrib/python/MarkupSafe/_a18e076bf3ff63da8383957881.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/MarkupSafe/_0dfb0742f9ae3f6497b7e8e93d.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\python\MarkupSafe\.dist-info\LICENSE.txt;$(SolutionDir)..\contrib\python\MarkupSafe\.dist-info\METADATA;$(SolutionDir)..\contrib\python\MarkupSafe\.dist-info\top_level.txt;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_0dfb0742f9ae3f6497b7e8e93d.yasm;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_f84c292617216b175b4f26a809.rodata;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_e26dd5db72eedf252ac01e5553.rodata;$(SolutionDir)$(Configuration)\contrib\python\MarkupSafe\_a18e076bf3ff63da8383957881.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\python\MarkupSafe\markupsafe\_compat.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

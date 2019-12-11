@@ -1,4 +1,6 @@
 #include "eval_feature.h"
+
+#include "dir_helper.h"
 #include "train_model.h"
 #include "options_helper.h"
 
@@ -448,15 +450,19 @@ static TVector<TTrainingDataProviders> UpdateIgnoredFeaturesInLearn(
     const auto& testedFeatures = options.FeaturesToEvaluate.Get();
     const auto featureEvalMode = options.FeatureEvalMode;
     if (trainingKind == ETrainingKind::Testing) {
-        for (ui32 featureSetIdx : xrange(testedFeatures.size())) {
-            if (featureSetIdx != testedFeatureSetIdx) {
-                ignoredFeatures.insert(
-                    ignoredFeatures.end(),
-                    testedFeatures[featureSetIdx].begin(),
-                    testedFeatures[featureSetIdx].end());
+        if (featureEvalMode == NCB::EFeatureEvalMode::OthersVsAll) {
+            ignoredFeatures = testedFeatures[testedFeatureSetIdx];
+        } else {
+            for (ui32 featureSetIdx : xrange(testedFeatures.size())) {
+                if (featureSetIdx != testedFeatureSetIdx) {
+                    ignoredFeatures.insert(
+                        ignoredFeatures.end(),
+                        testedFeatures[featureSetIdx].begin(),
+                        testedFeatures[featureSetIdx].end());
+                }
             }
         }
-    } else if (featureEvalMode == NCB::EFeatureEvalMode::OneVsAll) {
+    } else if (EqualToOneOf(featureEvalMode, NCB::EFeatureEvalMode::OneVsAll, NCB::EFeatureEvalMode::OthersVsAll)) {
         // no additional ignored features
     } else if (featureEvalMode == NCB::EFeatureEvalMode::OneVsOthers) {
         ignoredFeatures = testedFeatures[testedFeatureSetIdx];
@@ -709,14 +715,20 @@ static void EvaluateFeaturesImpl(
     TLabelConverter labelConverter;
     TMaybe<float> targetBorder = catBoostOptions.DataProcessingOptions->TargetBorder;
     NCatboostOptions::TCatBoostOptions dataSpecificOptions(catBoostOptions);
+
+    TString tmpDir;
+    if (outputFileOptions.AllowWriteFiles()) {
+        NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputFileOptions.GetTrainDir(), &tmpDir);
+    }
+
     TTrainingDataProviderPtr trainingData = GetTrainingData(
         std::move(data),
         /*isLearnData*/ true,
         TStringBuf(),
         Nothing(), // TODO(akhropov): allow loading borders and nanModes in CV?
-        /*unloadCatFeaturePerfectHashFromRamIfPossible*/ true,
+        /*unloadCatFeaturePerfectHashFromRam*/ outputFileOptions.AllowWriteFiles(),
         /*ensureConsecutiveLearnFeaturesDataForCpu*/ false,
-        outputFileOptions.AllowWriteFiles(),
+        tmpDir,
         /*quantizedFeaturesInfo*/ nullptr,
         &dataSpecificOptions,
         &labelConverter,

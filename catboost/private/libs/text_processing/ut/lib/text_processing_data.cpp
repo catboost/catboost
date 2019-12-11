@@ -46,7 +46,7 @@ void NCBTest::CreateTextDataForTest(
         };
         TVector<TString> feature3 = {
             "aabbaaccaba",
-            "aa",
+            "aa bb",
             "bb",
             "aaacc"
         };
