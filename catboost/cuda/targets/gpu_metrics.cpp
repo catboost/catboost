@@ -643,7 +643,7 @@ namespace NCatboostCuda {
             for (auto&& metric : createdObjectiveMetrics) {
                 const auto& useWeights = metric->GetUseWeights();
                 if (!useWeights.IsIgnored() && !useWeights.IsUserDefined()){
-                    metric->GetUseWeights() = true;
+                    metric->GetUseWeights().SetDefaultValue(true);
                 }
             }
         }
@@ -665,7 +665,7 @@ namespace NCatboostCuda {
             if (!haveEvalMetricFromUser) {
                 metrics.back()->GetUseWeights() = createdObjectiveMetrics.back()->GetUseWeights();
             } else if (ShouldConsiderWeightsByDefault(metrics.back())) {
-                metrics.back()->GetUseWeights() = true;
+                metrics.back()->GetUseWeights().SetDefaultValue(true);
                 CATBOOST_INFO_LOG << "Note: eval_metric is using sample weights by default. " <<
                                   "Set MetricName:use_weights=False to calculate unweighted metric." << Endl;
             }

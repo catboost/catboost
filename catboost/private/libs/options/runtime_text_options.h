@@ -45,7 +45,6 @@ namespace NCatboostOptions {
         const TTextColumnDictionaryOptions& GetDictionaryOptions(TStringBuf dictionaryId) const;
         const TTokenizedFeatureDescription& GetTokenizedFeatureDescription(ui32 tokenizedFeatureIdx) const;
         const TVector<TTokenizedFeatureDescription>& GetTokenizedFeatureDescriptions() const;
-        ETokenizerType GetTokenizerType() const;
 
         ui32 TokenizedFeatureCount() const;
         void UpdateDefaultProcessing(ui32 textFeatureId);

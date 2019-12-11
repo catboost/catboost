@@ -15,6 +15,7 @@ void TCont::TJoinWait::Wake() noexcept {
 
 TCont::TCont(ui32 stackSize, NCoro::TStack::EGuard stackGuard, TContExecutor& executor, TContFunc func, void* arg, const char* name) noexcept
     : Executor_(executor)
+    , Name_(name)
     , Trampoline_(
         stackSize,
         stackGuard,
@@ -22,7 +23,6 @@ TCont::TCont(ui32 stackSize, NCoro::TStack::EGuard stackGuard, TContExecutor& ex
         this,
         arg
     )
-    , Name_(name)
 {}
 
 

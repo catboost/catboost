@@ -32,17 +32,18 @@ static void FromJson(const TJsonValue& value, TString* result) {
     *result = value.GetString();
 }
 
-static void WriteJsonWithCatBoostPrecision(const TJsonValue& value, IOutputStream* out) {
+static void WriteJsonWithCatBoostPrecision(const TJsonValue& value, bool formatOutput, IOutputStream* out) {
     TJsonWriterConfig config;
-    config.FormatOutput = true;
+    config.FormatOutput = formatOutput;
     config.FloatNDigits = 9;
     config.DoubleNDigits = 17;
+    config.SortKeys = true;
     WriteJson(out, &value, config);
 }
 
-static TString WriteJsonWithCatBoostPrecision(const TJsonValue& value) {
+static TString WriteJsonWithCatBoostPrecision(const TJsonValue& value, bool formatOutput) {
     TStringStream ss;
-    WriteJsonWithCatBoostPrecision(value, &ss);
+    WriteJsonWithCatBoostPrecision(value, formatOutput, &ss);
     return ss.Str();
 }
 
@@ -144,12 +145,12 @@ static TJsonValue ToJson(const TModelCtrBase& modelCtrBase) {
 }
 
 TString ModelCtrBaseToStr(const TModelCtrBase& modelCtrBase) {
-    return WriteJsonWithCatBoostPrecision(ToJson(modelCtrBase));
+    return WriteJsonWithCatBoostPrecision(ToJson(modelCtrBase), false);
 }
 
 static TModelCtrBase ModelCtrBaseFromJson(const TJsonValue& jsonValue) {
     TModelCtrBase modelCtrBase;
-    modelCtrBase.CtrType = FromString<ECtrType >(jsonValue["type"].GetString());
+    modelCtrBase.CtrType = FromString<ECtrType>(jsonValue["type"].GetString());
     modelCtrBase.Projection = FeatureCombinationFromJson(jsonValue["identifier"]);
     return modelCtrBase;
 }
@@ -564,5 +565,5 @@ void ConvertJsonToCatboostModel(const TJsonValue& jsonModel, TFullModel* fullMod
 void OutputModelJson(const TFullModel& model, const TString& outputPath, const TVector<TString>* featureId, const THashMap<ui32, TString>* catFeaturesHashToString) {
     TOFStream out(outputPath);
     auto jsonModel = ConvertModelToJson(model, featureId, catFeaturesHashToString);
-    WriteJsonWithCatBoostPrecision(jsonModel, &out);
+    WriteJsonWithCatBoostPrecision(jsonModel, true, &out);
 }

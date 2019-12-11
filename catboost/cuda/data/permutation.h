@@ -28,10 +28,11 @@ namespace NCatboostCuda {
         TDataPermutation(TDataPermutation&& other) = default;
 
         void FillOrder(TVector<ui32>& order) const;
+        void FillGroupOrder(TVector<ui32>& queryOrder) const;
         template <class T>
         TVector<T> Gather(TConstArrayRef<T> src) const {
             TVector<T> result;
-            result.resize(src.size());
+            result.yresize(src.size());
 
             TVector<ui32> order;
             FillOrder(order);
@@ -71,6 +72,10 @@ namespace NCatboostCuda {
 
         ui64 GetDocCount() const {
             return DataProvider->GetObjectCount();
+        }
+    private:
+        ui64 GetSeed() const {
+            return 1664525 * GetPermutationId() + 1013904223 + BlockSize;
         }
     };
 

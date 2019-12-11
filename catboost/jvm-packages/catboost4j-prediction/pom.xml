@@ -70,6 +70,8 @@
                                 <argument>--no-src-links</argument>
                                 <argument>-DOS_SDK=local</argument>
                                 <argument>-DHAVE_CUDA=no</argument>
+                                <argument>-DUSE_SYSTEM_JDK=yes</argument>
+                                <argument>-DJAVA_HOME=${java.home}</argument>>
                             </arguments>
                             <workingDirectory>${user.dir}</workingDirectory>
                         </configuration>

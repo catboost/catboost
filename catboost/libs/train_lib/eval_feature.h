@@ -19,7 +19,8 @@ struct TFeatureEvaluationSummary {
     TVector<TString> MetricNames; // [metric count]
     TVector<TVector<ui32>> FeatureSets; // [feature set count][]
 
-    TVector<TVector<TVector<TMetricsAndTimeLeftHistory>>> MetricsHistory; // [is test][feature set count][fold count]
+    using TMetricsHistory = TVector<TVector<double>>; // [iteration count][metric count]
+    TVector<TVector<TVector<TMetricsHistory>>> MetricsHistory; // [is test][feature set count][fold count]
     TVector<TVector<TVector<TVector<std::pair<double, TString>>>>> FeatureStrengths; // [is test][feature set count][fold count][feature index]
     TVector<TVector<TVector<TVector<std::pair<double, TString>>>>> RegularFeatureStrengths; // [is test][feature set count][fold count][feature index]
 

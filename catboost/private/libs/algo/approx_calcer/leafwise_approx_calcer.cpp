@@ -4,12 +4,14 @@
 #include "gradient_walker.h"
 
 #include <catboost/libs/helpers/dispatch_generic_lambda.h>
-#include <catboost/libs/helpers/quantile.h>
+#include <catboost/libs/metrics/optimal_const_for_loss.h>
+#include <catboost/libs/metrics/optimal_const_for_loss.h>
 #include <catboost/private/libs/algo_helpers/approx_calcer_helpers.h>
 #include <catboost/private/libs/algo_helpers/approx_updater_helpers.h>
 #include <catboost/private/libs/algo_helpers/error_functions.h>
 #include <catboost/private/libs/algo_helpers/online_predictor.h>
 #include <catboost/private/libs/algo_helpers/pairwise_leaves_calculation.h>
+#include <catboost/private/libs/options/loss_description.h>
 
 #include <util/stream/output.h>
 
@@ -171,11 +173,11 @@ static void UpdateApproxDeltas(
         NPar::TLocalExecutor::WAIT_COMPLETE);
 }
 
-static void CalcQuantileLeafDeltas(
+static void CalcExactLeafDeltas(
+    const NCatboostOptions::TLossDescription& lossDescription,
     TConstArrayRef<float> labels,
     TConstArrayRef<float> weights,
     int objectsCount,
-    const TQuantileError& error,
     TConstArrayRef<double> approxes,
     double& leafDelta
 ) {
@@ -184,7 +186,7 @@ static void CalcQuantileLeafDeltas(
     for (int i = 0; i < objectsCount; i++) {
         samples[i] = labels[i] - approxes[i];
     }
-    leafDelta = CalcSampleQuantile(samples, weights, error.Alpha, error.Delta);
+    leafDelta = *NCB::CalcOptimumConstApprox(lossDescription, samples, weights);
 }
 
 static void CalcLeafValuesSimple(
@@ -216,16 +218,13 @@ static void CalcLeafValuesSimple(
                                  ) {
         leafDer.SetZeroDers();
 
-        // If loss function is Quantile update leafDeltas specifically for it
         if (estimationMethod == ELeavesEstimation::Exact) {
-            CB_ENSURE(params.LossFunctionDescription->GetLossFunction() == ELossFunction::Quantile);
             CB_ENSURE(!params.BoostingOptions->ApproxOnFullHistory);
-            const auto& quantileError = dynamic_cast<const TQuantileError&>(error);
-            CalcQuantileLeafDeltas(
+            CalcExactLeafDeltas(
+                params.LossFunctionDescription,
                 labels,
                 statistics->GetSampleWeights(),
                 statistics->GetObjectsCountInLeaf(),
-                quantileError,
                 statistics->GetApprox(0),
                 (*leafDeltas)[0]);
             return;

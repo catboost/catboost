@@ -291,6 +291,18 @@
         "1227963521": "https://storage.mds.yandex.net/get-devtools-opensource/471749/1227963521", 
         "1227963582": "https://storage.mds.yandex.net/get-devtools-opensource/233854/1227963582", 
         "1227963725": "https://storage.mds.yandex.net/get-devtools-opensource/479623/1227963725", 
+        "1236516197": "https://storage.mds.yandex.net/get-devtools-opensource/479623/1236516197", 
+        "1236516325": "https://storage.mds.yandex.net/get-devtools-opensource/479623/1236516325", 
+        "1236516455": "https://storage.mds.yandex.net/get-devtools-opensource/233854/1236516455", 
+        "1246255411": "https://storage.mds.yandex.net/get-devtools-opensource/479623/1246255411", 
+        "1246255648": "https://storage.mds.yandex.net/get-devtools-opensource/471749/1246255648", 
+        "1246255846": "https://storage.mds.yandex.net/get-devtools-opensource/479623/1246255846", 
+        "1246267394": "https://storage.mds.yandex.net/get-devtools-opensource/471749/1246267394", 
+        "1246267517": "https://storage.mds.yandex.net/get-devtools-opensource/233854/1246267517", 
+        "1246267700": "https://storage.mds.yandex.net/get-devtools-opensource/233854/1246267700", 
+        "1248114021": "https://storage.mds.yandex.net/get-devtools-opensource/250854/1248114021", 
+        "1248114174": "https://storage.mds.yandex.net/get-devtools-opensource/250854/1248114174", 
+        "1248114289": "https://storage.mds.yandex.net/get-devtools-opensource/250854/1248114289", 
         "173608101": "https://storage.mds.yandex.net/get-devtools-opensource/233854/173608101", 
         "173608113": "https://storage.mds.yandex.net/get-devtools-opensource/233854/173608113", 
         "173608117": "https://storage.mds.yandex.net/get-devtools-opensource/233854/173608117", 
@@ -1657,6 +1669,16 @@
             "darwin": "1227963582", 
             "linux_musl": "1227963725", 
             "win32": "1227963521"
+        }, 
+        "559374142": {
+            "darwin": "1236516325", 
+            "linux_musl": "1236516455", 
+            "win32": "1236516197"
+        }, 
+        "564412426": {
+            "darwin": "1248114174", 
+            "linux_musl": "1248114289", 
+            "win32": "1248114021"
         }, 
         "74052635": {
             "cygwin": "173608101", 

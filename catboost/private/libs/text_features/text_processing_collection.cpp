@@ -13,14 +13,14 @@
 
 namespace NCB {
     static void CalcFeatures(
-        const TVector<TVector<TStringBuf>>& tokens,
+        const TVector<TTokensWithBuffer>& tokens,
         const TDictionaryProxy& dictionary,
         const TTextFeatureCalcer& calcer,
         TArrayRef<float> result
     ) {
         const ui64 docCount = tokens.size();
         for (ui32 docId: xrange(docCount)) {
-            TText text = dictionary.Apply(tokens[docId]);
+            TText text = dictionary.Apply(tokens[docId].View);
 
             calcer.Compute(
                 text,
@@ -40,7 +40,7 @@ namespace NCB {
             "Proposed result buffer has size less than text processing produce"
         );
 
-        TVector<TVector<TStringBuf>> tokens;
+        TVector<TTokensWithBuffer> tokens;
         tokens.yresize(docCount);
         for (ui32 docId: xrange(docCount)) {
             Tokenizer->Tokenize(textFeature[docId], &tokens[docId]);

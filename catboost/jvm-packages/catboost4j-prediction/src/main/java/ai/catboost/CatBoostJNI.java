@@ -49,6 +49,12 @@ class CatBoostJNI {
             final @NotNull int[] catFeatureCount) throws CatBoostError {
         CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetUsedCategoricalFeatureCount(handle, catFeatureCount));
     }
+    
+    final void catBoostModelGetFlatFeatureVectorExpectedSize(
+            final long handle,
+            final @NotNull int[] featureVectorExpectedSize) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetFlatFeatureVectorExpectedSize(handle, featureVectorExpectedSize));
+    }
 
     final void catBoostModelGetTreeCount(
             final long handle,

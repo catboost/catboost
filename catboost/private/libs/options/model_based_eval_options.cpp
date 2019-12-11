@@ -4,6 +4,8 @@
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/logging_level.h>
 
+#include <util/string/builder.h>
+
 NCatboostOptions::TModelBasedEvalOptions::TModelBasedEvalOptions(ETaskType /*taskType*/)
     : FeaturesToEvaluate("features_to_evaluate", TVector<TVector<ui32>>())
     , BaselineModelSnapshot("baseline_model_snapshot", "baseline_model_snapshot")
@@ -68,6 +70,6 @@ void NCatboostOptions::TModelBasedEvalOptions::Validate() const {
     CB_ENSURE(ExperimentCount * ExperimentSize <= Offset, "Offset must be greater than or equal to ExperimentCount * ExperimentSize");
 }
 
-TString NCatboostOptions::TModelBasedEvalOptions::GetExperimentName(ui32 featureSetIdx, ui32 experimentIdx) const {
-    return "feature_set" + ToString(featureSetIdx) + "_fold" + ToString(experimentIdx);
+TString NCatboostOptions::GetExperimentName(ui32 featureSetIdx, ui32 experimentIdx) {
+    return TStringBuilder() << "feature_set" << featureSetIdx << "_fold" << experimentIdx;
 }

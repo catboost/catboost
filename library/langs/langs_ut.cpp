@@ -52,7 +52,7 @@ private:
                     !strcmp(name, "koi") || !strcmp(name, "pap") ||
                     !strcmp(name, "uz-Cyrl") || !strcmp(name, "kk-Latn") ||
                     !strncmp(name, "bas-", 4) ||
-                    !strcmp(name, "tr-ipa"));
+                    !strcmp(name, "tr-ipa") || !strcmp(name, "emj"));
 
         if (strlen(name))
             TestName(language, name);

@@ -16,6 +16,13 @@ PY_SRCS(
 
 NO_LINT()
 
+RESOURCE_FILES(
+    PREFIX contrib/python/MarkupSafe/
+    .dist-info/LICENSE.txt
+    .dist-info/METADATA
+    .dist-info/top_level.txt
+)
+
 END()
 
 RECURSE_FOR_TESTS(

@@ -22,7 +22,7 @@ public:
     void Pwrite(const void* buffer, ui32 byteCount, ui64 offset);
 
     inline bool IsOpen() const {
-        return File.IsOpen();
+        return true;
     }
 
     inline ui64 GetWritePosition() const {
@@ -33,8 +33,8 @@ public:
         return FlushedBytes + DataLen;
     }
 
-    inline TFileHandle& GetHandle() {
-        return File;
+    inline FHANDLE GetHandle() {
+        return File.GetHandle();
     }
 
 private:
@@ -53,7 +53,7 @@ private:
     void SetDirectIO(bool value);
 
 private:
-    TFileHandle File;
+    TFile File;
     size_t Alignment;
     size_t BufLen;
     size_t DataLen;

@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\data_types\pair.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\data_types\query.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\data_types\text.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\data_types\groupid.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\data_types\pair.h"/>

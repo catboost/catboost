@@ -513,6 +513,7 @@ public:
         , Version_(1100)
         , KeepAliveEnabled_(false)
         , BodyEncodingEnabled_(true)
+        , CompressionHeaderEnabled_(true)
         , Finished_(false)
     {
     }
@@ -603,6 +604,10 @@ public:
         BodyEncodingEnabled_ = enable;
     }
 
+    inline void EnableCompressionHeader(bool enable) {
+        CompressionHeaderEnabled_ = enable;
+    }
+
     inline bool IsCompressionEnabled() const noexcept {
         return !ComprSchemas_.empty();
     }
@@ -613,6 +618,10 @@ public:
 
     inline bool IsBodyEncodingEnabled() const noexcept {
         return BodyEncodingEnabled_;
+    }
+
+    inline bool IsCompressionHeaderEnabled() const noexcept {
+        return CompressionHeaderEnabled_;
     }
 
     inline bool CanBeKeepAlive() const noexcept {
@@ -817,7 +826,7 @@ private:
 
             if (hl == AsStringBuf("connection")) {
                 keepAlive = to_lower(header.Value()) == AsStringBuf("keep-alive");
-            } else if (hl == AsStringBuf("content-encoding")) {
+            } else if (IsCompressionHeaderEnabled() && hl == AsStringBuf("content-encoding")) {
                 encoder = TCompressionCodecFactory::Instance().FindEncoder(to_lower(header.Value()));
             } else if (hl == AsStringBuf("transfer-encoding")) {
                 chunked = to_lower(header.Value()) == AsStringBuf("chunked");
@@ -868,8 +877,8 @@ private:
     TArrayRef<const TStringBuf> ComprSchemas_;
 
     bool KeepAliveEnabled_;
-
     bool BodyEncodingEnabled_;
+    bool CompressionHeaderEnabled_;
 
     bool Finished_;
 
@@ -930,6 +939,10 @@ void THttpOutput::EnableBodyEncoding(bool enable) {
     Impl_->EnableBodyEncoding(enable);
 }
 
+void THttpOutput::EnableCompressionHeader(bool enable) {
+    Impl_->EnableCompressionHeader(enable);
+}
+
 bool THttpOutput::IsKeepAliveEnabled() const noexcept {
     return Impl_->IsKeepAliveEnabled();
 }
@@ -940,6 +953,10 @@ bool THttpOutput::IsBodyEncodingEnabled() const noexcept {
 
 bool THttpOutput::IsCompressionEnabled() const noexcept {
     return Impl_->IsCompressionEnabled();
+}
+
+bool THttpOutput::IsCompressionHeaderEnabled() const noexcept {
+    return Impl_->IsCompressionHeaderEnabled();
 }
 
 bool THttpOutput::CanBeKeepAlive() const noexcept {

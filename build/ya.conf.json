@@ -201,6 +201,9 @@
         "horadric": {
             "description": "Run horadric generator"
         },
+        "zcli": {
+            "description": "Run zcli (console client for zephyr)"
+        },
         "run_python_udf": {
             "description": "run_python_udf tool"
         },
@@ -270,6 +273,9 @@
         },
         "vmexec": {
             "description": "VMEXEC run script inside qemu-vm"
+        },
+        "yd-migrate": {
+            "description": "Run deploy migration"
         },
         "yfm": {
             "description": "YFM-extended markdown processor for Cloud deploy"
@@ -1987,7 +1993,7 @@
                 "werror_mode": "all",
                 "c_compiler": "$(CLANG)/usr/bin/clang",
                 "cxx_compiler": "$(CLANG)/usr/bin/clang++",
-                "ar": "$(CLANG)/usr/bin/ar",
+                "ar": "$(CLANG)/usr/bin/libtool",
                 "inplace_tools": true,
                 "gcc_version": "8.0",
                 "dwarf_tool": {
@@ -2467,6 +2473,15 @@
                         "os": "LINUX",
                         "arch": "armv7a"
                     }
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv7a_neon"
+                    }
                 }
             ],
             "params": {
@@ -2529,7 +2544,11 @@
                 "cxx_compiler": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-g++",
                 "ar": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-ar",
                 "strip": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-strip",
-                "objcopy": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-objcopy"
+                "objcopy": "$(GCC)/usr/bin/arm-poky-linux-gnueabi/arm-poky-linux-gnueabi-objcopy",
+                "isystem": [
+                    "$(GCC)/usr/lib/arm-poky-linux-gnueabi/gcc/arm-poky-linux-gnueabi/6.3.0/include",
+                    "$(GCC)/usr/lib/arm-poky-linux-gnueabi/gcc/arm-poky-linux-gnueabi/6.3.0/include-fixed"
+                ]
             }
         },
         "gcc73-armv7a-jbl-portable-music": {
@@ -3511,6 +3530,28 @@
                 }
             ]
         },
+        "yd-migrate": {
+            "tools": {
+                "yd-migrate": {
+                    "bottle": "yd-migrate",
+                    "executable": "yd-migrate"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "dctl": {
             "tools": {
                 "dctl": {
@@ -4319,6 +4360,34 @@
                 }
             ]
         },
+        "zcli": {
+            "tools": {
+                "zcli": {
+                    "bottle": "zcli",
+                    "executable": "zcli"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "python3": {
             "tools": {
                 "python3": {
@@ -4842,7 +4911,7 @@
         "ymake": {
             "formula": {
                 "sandbox_id": [
-                    552977342
+                    564412426
                 ],
                 "match": "ymake"
             },
@@ -4866,7 +4935,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    542602407
+                    565263953
                 ],
                 "match": "arc"
             },
@@ -5540,7 +5609,7 @@
         "gcc63-armv7a-lg-wk7y": {
             "formula": {
                 "sandbox_id": [
-                    "555947382"
+                    "557978109"
                 ],
                 "match": "GCC"
             },
@@ -6066,6 +6135,19 @@
                 ]
             }
         },
+        "yd-migrate": {
+            "formula": {
+                "sandbox_id": [
+                    561361752
+                ],
+                "match": "deploy_migrate/bin"
+            },
+            "executable": {
+                "yd-migrate": [
+                    "migrate"
+                ]
+            }
+        },
         "dctl": {
             "formula": {
                 "sandbox_id": [
@@ -6426,12 +6508,23 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 557125928,
+                "sandbox_id": 565403219,
                 "match": "horadric"
             },
             "executable": {
                 "horadric": [
                     "horadric"
+                ]
+            }
+        },
+        "zcli": {
+            "formula": {
+                "sandbox_id": 559933291,
+                "match": "zcli"
+            },
+            "executable": {
+                "zcli": [
+                    "zcli"
                 ]
             }
         },
@@ -6514,7 +6607,7 @@
         },
         "ya-tc": {
             "formula": {
-                "sandbox_id": 549352842,
+                "sandbox_id": 560372435,
                 "match": "ya-tc"
             },
             "executable": {
@@ -6675,7 +6768,7 @@
         },
         "yfm": {
             "formula": {
-                "sandbox_id": 504784382,
+                "sandbox_id": 565724455,
                 "match": "yfm"
             },
             "executable": {
@@ -6697,7 +6790,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 555849153,
+                "sandbox_id": 565446940,
                 "match": "SEDEM archive"
             },
             "executable": {

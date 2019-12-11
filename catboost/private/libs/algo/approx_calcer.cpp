@@ -17,6 +17,7 @@
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/libs/metrics/metric.h>
+#include <catboost/libs/metrics/optimal_const_for_loss.h>
 #include <catboost/private/libs/algo/approx_calcer/approx_calcer_multi.h>
 #include <catboost/private/libs/algo/approx_calcer/gradient_walker.h>
 #include <catboost/private/libs/algo_helpers/approx_calcer_helpers.h>
@@ -24,6 +25,7 @@
 #include <catboost/private/libs/algo_helpers/pairwise_leaves_calculation.h>
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/private/libs/options/enum_helpers.h>
+#include <catboost/private/libs/options/loss_description.h>
 #include <catboost/private/libs/functools/forward_as_const.h>
 
 #include <library/threading/local_executor/local_executor.h>
@@ -546,11 +548,10 @@ static void UpdateApproxDeltasHistorically(
         *approxDeltas);
 }
 
-static void CalcQuantileLeafDeltas(
+static void CalcExactLeafDeltas(
+    const NCatboostOptions::TLossDescription& lossDescription,
     const size_t leafCount,
     const TVector<TIndexType>& indices,
-    const double alpha,
-    const double delta,
     const size_t sampleCount,
     TConstArrayRef<double> approxes,
     TConstArrayRef<float> targets,
@@ -570,10 +571,8 @@ static void CalcQuantileLeafDeltas(
         Y_ASSERT(i < (*leafDeltas).size());
         Y_ASSERT(i < leafSamples.size());
         Y_ASSERT(i < leafWeights.size());
-        TVector<float>& weight = leafWeights[i];
-        TVector<float>& sample = leafSamples[i];
         double& leafDelta = (*leafDeltas)[i];
-        leafDelta = CalcSampleQuantile(MakeConstArrayRef(sample), MakeConstArrayRef(weight), alpha, delta);
+        leafDelta = *NCB::CalcOptimumConstApprox(lossDescription, leafSamples[i], leafWeights[i]);
     }
 }
 
@@ -609,24 +608,11 @@ static void CalcApproxDeltaSimple(
                                      bool recalcLeafWeights,
                                      const TVector<TVector<double>>& approxDeltas,
                                      TVector<TVector<double>>* leafDeltas) {
-        // If loss function is Quantile update leafDeltas specifically for it
         if (estimationMethod == ELeavesEstimation::Exact) {
-            auto loss = ctx->Params.LossFunctionDescription->GetLossFunction();
-            double alpha;
-            double delta;
-            if (loss == ELossFunction::Quantile) {
-                const auto& quantileError = dynamic_cast<const TQuantileError&>(error);
-                alpha = quantileError.Alpha;
-                delta = quantileError.Delta;
-            } else {
-                alpha = 0.5;
-                delta = DBL_EPSILON;
-            }
-            CalcQuantileLeafDeltas(
+            CalcExactLeafDeltas(
+                ctx->Params.LossFunctionDescription,
                 leafCount,
                 indices,
-                alpha,
-                delta,
                 bt.BodyFinish,
                 bt.Approx[0],
                 fold.LearnTarget[0],
@@ -785,24 +771,12 @@ static void CalcLeafValuesSimple(
                                      bool recalcLeafWeights,
                                      const TVector<TVector<double>>& approxes,
                                      TVector<TVector<double>>* leafDeltas) {
-        // If loss function is Quantile update leafDeltas specifically for it
+        // If loss function is Quantile, MAE or MAPE update leafDeltas specifically for it
         if (estimationMethod == ELeavesEstimation::Exact) {
-            auto loss = ctx->Params.LossFunctionDescription->GetLossFunction();
-            double alpha;
-            double delta;
-            if (loss == ELossFunction::Quantile) {
-                const auto& quantileError = dynamic_cast<const TQuantileError&>(error);
-                alpha = quantileError.Alpha;
-                delta = quantileError.Delta;
-            } else {
-                alpha = 0.5;
-                delta = DBL_EPSILON;
-            }
-            CalcQuantileLeafDeltas(
+            CalcExactLeafDeltas(
+                ctx->Params.LossFunctionDescription,
                 leafCount,
                 indices,
-                alpha,
-                delta,
                 bt.BodyFinish,
                 bt.Approx[0],
                 fold.LearnTarget[0],

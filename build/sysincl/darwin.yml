@@ -95,6 +95,7 @@
   - net/if_dl.h
   - net/if_media.h
   - net/if_types.h
+  - net/if_var.h
   - netinet/in_pcb.h
   - netinet/ip_var.h
   - netinet/tcp_fsm.h

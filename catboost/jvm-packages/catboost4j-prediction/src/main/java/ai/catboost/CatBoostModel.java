@@ -32,7 +32,7 @@ public class CatBoostModel implements AutoCloseable {
         final int[] treeCount = new int[1];
         final int[] usedNumericFeatureCount = new int[1];
         final int[] usedCatFeatureCount = new int[1];
-        int usedFeatureCount = 0;
+        final int[] featureVectorExpectedSize = new int[1];
         String[] featureNames;
 
         final CatBoostModel model = new CatBoostModel();
@@ -44,14 +44,9 @@ public class CatBoostModel implements AutoCloseable {
             NativeLib.handle().catBoostModelGetTreeCount(model.handle, treeCount);
             NativeLib.handle().catBoostModelGetUsedNumericFeatureCount(model.handle, usedNumericFeatureCount);
             NativeLib.handle().catBoostModelGetUsedCategoricalFeatureCount(model.handle, usedCatFeatureCount);
-        } catch (CatBoostError e) {
-            model.close();
-            throw e;
-        }
+            NativeLib.handle().catBoostModelGetFlatFeatureVectorExpectedSize(model.handle, featureVectorExpectedSize);
 
-        try {
-            usedFeatureCount = usedNumericFeatureCount[0] + usedCatFeatureCount[0];
-            featureNames = new String[usedFeatureCount];
+            featureNames = new String[featureVectorExpectedSize[0]];
             NativeLib.handle().catBoostModelGetFeatureNames(model.handle, featureNames);
         } catch (CatBoostError e) {
             model.close();
@@ -82,7 +77,7 @@ public class CatBoostModel implements AutoCloseable {
         final int[] treeCount = new int[1];
         final int[] usedNumericFeatureCount = new int[1];
         final int[] usedCatFeatureCount = new int[1];
-        int usedFeatureCount = 0;
+        final int[] featureVectorExpectedSize = new int[1];
         String[] featureNames;
         final byte[] copyBuffer = new byte[4 * 1024];
 
@@ -102,14 +97,9 @@ public class CatBoostModel implements AutoCloseable {
             NativeLib.handle().catBoostModelGetTreeCount(model.handle, treeCount);
             NativeLib.handle().catBoostModelGetUsedNumericFeatureCount(model.handle, usedNumericFeatureCount);
             NativeLib.handle().catBoostModelGetUsedCategoricalFeatureCount(model.handle, usedCatFeatureCount);
-        } catch (CatBoostError e) {
-            model.close();
-            throw e;
-        }
-
-        try {
-            usedFeatureCount = usedNumericFeatureCount[0] + usedCatFeatureCount[0];
-            featureNames = new String[usedFeatureCount];
+            NativeLib.handle().catBoostModelGetFlatFeatureVectorExpectedSize(model.handle, featureVectorExpectedSize);
+            
+            featureNames = new String[featureVectorExpectedSize[0]];
             NativeLib.handle().catBoostModelGetFeatureNames(model.handle, featureNames);
         } catch (CatBoostError e) {
             model.close();

@@ -38,7 +38,7 @@ include "library/text_processing/tokenizer/tokenizer.pxi"
 ctypedef TBpeDictionary * TBpeDictionaryPtr
 
 
-cdef extern from "library/text_processing/dictionary/app_helpers.h" namespace "NTextProcessing::NDictionary" nogil:
+cdef extern from "library/text_processing/app_helpers/app_helpers.h" namespace "NTextProcessing::NDictionary" nogil:
     cdef TIntrusivePtr[TDictionary] BuildDictionary(
         const TString& inputFilePath,
         const TDictionaryBuilderOptions& dictionaryBuilderOptions,

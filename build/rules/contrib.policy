@@ -23,6 +23,7 @@ DENY .* -> contrib/deprecated/wangle
 ALLOW contrib/deprecated/http-parser -> contrib/deprecated/http-parser
 ALLOW mds -> contrib/deprecated/http-parser
 ALLOW devtools/experimental/mds -> contrib/deprecated/http-parser
+ALLOW contrib/libs/libgit2 -> contrib/deprecated/http-parser
 DENY .* -> contrib/deprecated/http-parser
 
 ALLOW contrib/deprecated/uriparser -> contrib/deprecated/uriparser
@@ -101,6 +102,8 @@ ALLOW quality/antifraud/common_lib -> contrib/libs/boost
 ALLOW quality/antifraud/common_lib -> contrib/deprecated/boost
 ALLOW quasar/yandex_io -> contrib/libs/boost
 ALLOW quasar/yandex_io -> contrib/deprecated/boost
+ALLOW quasar/backend -> contrib/libs/boost
+ALLOW quasar/backend -> contrib/deprecated/boost
 ALLOW regulargeo/research -> contrib/libs/boost
 ALLOW regulargeo/research -> contrib/deprecated/boost
 ALLOW rem/python/geobase30 -> contrib/libs/boost

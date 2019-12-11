@@ -53,7 +53,7 @@ class Platform(object):
         self.is_armv7 = self.arch in ('armv7', 'armv7a', 'armv7a_neon', 'arm')
         self.is_armv8 = self.arch in ('armv8', 'armv8a', 'arm64', 'aarch64')
         self.is_arm = self.is_armv7 or self.is_armv8
-        self.is_arm_neon = self.arch == 'armv7a_neon'
+        self.is_armv7_neon = self.arch == 'armv7a_neon'
 
         self.is_ppc64le = self.arch == 'ppc64le'
 
@@ -110,6 +110,7 @@ class Platform(object):
             (self.is_i686, 'ARCH_I686'),
             (self.is_x86_64, 'ARCH_X86_64'),
             (self.is_armv7, 'ARCH_ARM7'),
+            (self.is_armv7_neon, 'ARCH_ARM7_NEON'),
             (self.is_armv8, 'ARCH_ARM64'),
             (self.is_arm, 'ARCH_ARM'),
             (self.is_linux_armv8, 'ARCH_AARCH64'),
@@ -486,7 +487,8 @@ class Build(object):
 
     @property
     def is_sanitized(self):
-        return preset('SANITIZER_TYPE')
+        sanitizer = preset('SANITIZER_TYPE')
+        return bool(sanitizer) and not is_negative_str(sanitizer)
 
     @property
     def with_ndebug(self):
@@ -1042,6 +1044,9 @@ class GnuToolchain(Toolchain):
             for root in list(self.tc.isystem):
                 self.c_flags_platform.extend(['-isystem', root])
 
+        if target.is_armv7_neon:
+            self.c_flags_platform.append('-mfpu=neon')
+
         if self.tc.is_clang or self.tc.is_gcc and self.tc.version_at_least(8, 2):
             target_flags = select(default=[], selectors=[
                 (target.is_linux and target.is_ppc64le, ['-mcpu=power9', '-mtune=power9', '-maltivec']),
@@ -1062,8 +1067,6 @@ class GnuToolchain(Toolchain):
 
             if target.is_android:
                 self.c_flags_platform.append('-fPIE')
-                if target.is_arm_neon:
-                    self.c_flags_platform.append('-mfpu=neon')
                 self.c_flags_platform.append('-fsigned-char')
 
             if self.tc.is_from_arcadia:
@@ -1102,7 +1105,7 @@ class GnuToolchain(Toolchain):
                     self.setup_sdk(project='build/platform/yocto_sdk/yocto_armv7a_jbl_portable_music_sdk', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
                 elif target.is_yocto_aacrh64_lightcomm_mt8516:
                     self.setup_sdk(project='build/platform/yocto_sdk/yocto_aarch64_lightcomm_mt8516', var='${YOCTO_SDK_ROOT_RESOURCE_GLOBAL}')
- 
+
     def setup_sdk(self, project, var):
         self.platform_projects.append(project)
         self.c_flags_platform.append('--sysroot={}'.format(var))
@@ -1764,7 +1767,7 @@ class LD(Linker):
         # TODO(somov): Проверить, не нужны ли здесь все остальные флаги компоновки (LDFLAGS и т. д.).
         emit('LINK_FAT_OBJECT', '$GENERATE_MF &&',
              '$YMAKE_PYTHON ${input:"build/scripts/link_fat_obj.py"} --obj=$TARGET --lib=${output:REALPRJNAME.a}', arch_flag,
-             '-Ya,input $AUTO_INPUT -Ya,global_srcs $SRCS_GLOBAL -Ya,peers $PEERS',
+             '-Ya,input $AUTO_INPUT $VCS_C_OBJ_WRAP -Ya,global_srcs $SRCS_GLOBAL -Ya,peers $PEERS',
              '-Ya,linker $CXX_COMPILER $C_FLAGS_PLATFORM', self.ld_sdk, '-Ya,archiver', archiver,
              '$TOOLCHAIN_ENV ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}')
 
@@ -2529,7 +2532,7 @@ class Cuda(object):
         }
 
         if not self.cuda_use_clang.value:
-            cmd = '$YMAKE_PYTHON ${input:"build/scripts/compile_cuda.py"} ${tool:"tools/mtime0"} $NVCC $NVCC_FLAGS -c ${input:SRC} -o ${output;suf=${OBJ_SUF}${NVCC_OBJ_EXT}:SRC} %(skip_nocxxinc)s %(includes)s --cflags $C_FLAGS_PLATFORM $CFLAGS $SRCFLAGS $CUDA_HOST_COMPILER_ENV ${kv;hide:"p CC"} ${kv;hide:"pc light-green"}'
+            cmd = '$YMAKE_PYTHON ${input:"build/scripts/compile_cuda.py"} ${tool:"tools/mtime0"} $NVCC $NVCC_FLAGS -c ${input:SRC} -o ${output;suf=${OBJ_SUF}${NVCC_OBJ_EXT}:SRC} %(skip_nocxxinc)s %(includes)s --cflags $C_FLAGS_PLATFORM $CFLAGS $SRCFLAGS ${input;hide:"build/platform/cuda/cuda_runtime_include.h"} $CUDA_HOST_COMPILER_ENV ${kv;hide:"p CC"} ${kv;hide:"pc light-green"}'
         else:
             cmd = '$CXX_COMPILER --cuda-path=$CUDA_ROOT $C_FLAGS_PLATFORM -c ${input:SRC} -o ${output;suf=${OBJ_SUF}${NVCC_OBJ_EXT}:SRC} %(includes)s $CXXFLAGS $SRCFLAGS $TOOLCHAIN_ENV ${kv;hide:"p CU"} ${kv;hide:"pc green"}'
 
@@ -2559,11 +2562,13 @@ class Cuda(object):
         return False
 
     def auto_have_cuda(self):
+        if self.build.is_sanitized:
+            return False
         return self.cuda_root.from_user or self.use_arcadia_cuda.value and self.have_cuda_in_arcadia()
 
     def auto_cuda_version(self):
         if self.use_arcadia_cuda.value:
-            return '9.1'
+            return '10.1'
 
         if not self.have_cuda.value:
             return None

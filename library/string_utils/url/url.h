@@ -62,6 +62,16 @@ void SplitUrlToHostAndPath(const TStringBuf url, TStringBuf& host, TStringBuf& p
 void SplitUrlToHostAndPath(const TStringBuf url, TString& host, TString& path);
 
 /**
+ * Separates URL into url prefix, query (aka cgi params list), and fragment (aka part after #)
+ *
+ * @param[in] url               any URL
+ * @param[out] sanitizedUrl     parsed URL without query and fragment parts
+ * @param[out] query            parsed query
+ * @param[out] fragment         parsed fragment
+ */
+void SeparateUrlFromQueryAndFragment(const TStringBuf url, TStringBuf& sanitizedUrl, TStringBuf& query, TStringBuf& fragment);
+
+/**
  * Extracts scheme, host and port from URL.
  *
  * Port will be parsed from URL with checks against ui16 overflow. If URL doesn't

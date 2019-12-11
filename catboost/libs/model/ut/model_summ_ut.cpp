@@ -8,7 +8,7 @@
 using namespace std;
 using namespace NCB;
 
-static void AssertModelSumEqualSliced(TDataProviderPtr dataProvider) {
+static void AssertModelSumEqualSliced(TDataProviderPtr dataProvider, bool changeScale = false, bool changeBias = false) {
     NJson::TJsonValue params;
     params.InsertValue("learning_rate", 0.01);
     params.InsertValue("iterations", 100);
@@ -34,6 +34,12 @@ static void AssertModelSumEqualSliced(TDataProviderPtr dataProvider) {
         &bigModel,
         {&evalResult});
 
+    if (changeScale) {
+        bigModel.SetScaleAndBias({0.5, bigModel.GetScaleAndBias().Bias});
+    }
+    if (changeBias) {
+        bigModel.SetScaleAndBias({bigModel.GetScaleAndBias().Scale, 0.125});
+    }
     auto bigResult = ApplyModelMulti(bigModel, *(dataProvider->ObjectsData));
     bigModel.ModelTrees.GetMutable()->DropUnusedFeatures();
     TVector<TFullModel> partModels;
@@ -48,12 +54,20 @@ static void AssertModelSumEqualSliced(TDataProviderPtr dataProvider) {
         modelPtrs.push_back(&model);
     }
     auto mergedModel = SumModels(modelPtrs, modelWeights);
-    UNIT_ASSERT_EQUAL(*mergedModel.ModelTrees, *bigModel.ModelTrees);
+    if (!changeScale && !changeBias) {
+        UNIT_ASSERT_EQUAL(*mergedModel.ModelTrees, *bigModel.ModelTrees);
+    }
 
     auto mergedResult = ApplyModelMulti(mergedModel, *dataProvider->ObjectsData);
     UNIT_ASSERT_VALUES_EQUAL(bigResult.ysize(), mergedResult.ysize());
     for (int idx = 0; idx < bigResult.ysize(); ++idx) {
-        UNIT_ASSERT_VALUES_EQUAL(bigResult[idx], mergedResult[idx]);
+        if (!changeScale && !changeBias) {
+            UNIT_ASSERT_VALUES_EQUAL(bigResult[idx], mergedResult[idx]);
+        } else {
+            for (int valueIdx = 0; valueIdx < bigResult[idx].ysize(); ++valueIdx) {
+                UNIT_ASSERT_DOUBLES_EQUAL(bigResult[idx][valueIdx], mergedResult[idx][valueIdx], 1e-15);
+            }
+        }
     }
 }
 
@@ -85,5 +99,13 @@ Y_UNIT_TEST_SUITE(TModelSummTests) {
     Y_UNIT_TEST(SumEqualSliced) {
         AssertModelSumEqualSliced(GetAdultPool());
         AssertModelSumEqualSliced(GetMultiClassPool());
+    }
+
+    Y_UNIT_TEST(SumEqualSlicedTestWithScaleAndBias) {
+        AssertModelSumEqualSliced(GetAdultPool(), true, false);
+        UNIT_ASSERT_EXCEPTION(
+            AssertModelSumEqualSliced(GetMultiClassPool(), false, true),
+            yexception
+        );
     }
 }

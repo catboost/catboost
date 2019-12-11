@@ -8,7 +8,7 @@
  * copy: https://gist.github.com/badboy/6267743
  */
 
-static inline ui8 IntHashImpl(ui8 key8) noexcept {
+static constexpr ui8 IntHashImpl(ui8 key8) noexcept {
     size_t key = key8;
 
     key += ~(key << 15);
@@ -21,7 +21,7 @@ static inline ui8 IntHashImpl(ui8 key8) noexcept {
     return static_cast<ui8>(key);
 }
 
-static inline ui16 IntHashImpl(ui16 key16) noexcept {
+static constexpr ui16 IntHashImpl(ui16 key16) noexcept {
     size_t key = key16;
 
     key += ~(key << 15);
@@ -34,7 +34,7 @@ static inline ui16 IntHashImpl(ui16 key16) noexcept {
     return static_cast<ui16>(key);
 }
 
-static inline ui32 IntHashImpl(ui32 key) noexcept {
+static constexpr ui32 IntHashImpl(ui32 key) noexcept {
     key += ~(key << 15);
     key ^= (key >> 10);
     key += (key << 3);
@@ -45,7 +45,7 @@ static inline ui32 IntHashImpl(ui32 key) noexcept {
     return key;
 }
 
-static inline ui64 IntHashImpl(ui64 key) noexcept {
+static constexpr ui64 IntHashImpl(ui64 key) noexcept {
     key += ~(key << 32);
     key ^= (key >> 22);
     key += ~(key << 13);
@@ -59,7 +59,7 @@ static inline ui64 IntHashImpl(ui64 key) noexcept {
 }
 
 template <class T>
-static inline T IntHash(T t) noexcept {
+static constexpr T IntHash(T t) noexcept {
     using TCvt = TFixedWidthUnsignedInt<T>;
 
     return IntHashImpl((TCvt)(t));
@@ -69,7 +69,7 @@ static inline T IntHash(T t) noexcept {
  * can handle floats && pointers
  */
 template <class T>
-static inline size_t NumericHash(T t) noexcept {
+static constexpr size_t NumericHash(T t) noexcept {
     using TCvt = TFixedWidthUnsignedInt<T>;
 
     union Y_HIDDEN {
@@ -83,6 +83,6 @@ static inline size_t NumericHash(T t) noexcept {
 }
 
 template <class T>
-static inline T CombineHashes(T l, T r) noexcept {
+static constexpr T CombineHashes(T l, T r) noexcept {
     return IntHash(l) ^ r;
 }

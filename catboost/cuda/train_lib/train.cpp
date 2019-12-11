@@ -24,6 +24,7 @@
 #include <catboost/private/libs/options/system_options.h>
 #include <catboost/private/libs/quantization/grid_creator.h>
 #include <catboost/private/libs/quantization/utils.h>
+#include <catboost/libs/train_lib/dir_helper.h>
 #include <catboost/libs/train_lib/options_helper.h>
 #include <catboost/libs/train_lib/train_model.h>
 
@@ -400,6 +401,11 @@ namespace NCatboostCuda {
             }
 
             TPerfectHashedToHashedCatValuesMap perfectHashedToHashedCatValuesMap = quantizedFeaturesInfo->CalcPerfectHashedToHashedCatValuesMap(localExecutor);
+            if (outputOptions.AllowWriteFiles()) {
+                TString tmpDir;
+                NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputOptions.GetTrainDir(), &tmpDir);
+                quantizedFeaturesInfo->UnloadCatFeaturePerfectHashFromRam(tmpDir);
+            }
 
             TClassificationTargetHelper classificationTargetHelper(labelConverter,
                                                                    updatedCatboostOptions.DataProcessingOptions);

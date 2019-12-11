@@ -118,5 +118,4 @@ void TRusage::Fill() {
     Utime = ru.ru_utime;
     Stime = ru.ru_stime;
 #endif
-    CurrentRss = GetCurrentRSS();
 }

@@ -215,6 +215,7 @@ enum class ECounterCalc {
 
 enum class EPredictionType {
     Probability,
+    LogProbability,
     Class,
     RawFormulaVal,
     InternalRawFormulaVal
@@ -321,15 +322,11 @@ enum class EFeatureCalcerType : ui32 {
     EmbeddingDistanceToClass
 };
 
-enum class ETokenizerType {
-    Naive,
-    UserDefined
-};
-
 namespace NCB {
     enum class EFeatureEvalMode {
         OneVsNone,
         OneVsOthers,
-        OneVsAll
+        OneVsAll,
+        OthersVsAll
     };
 }

@@ -79,6 +79,7 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
             break;
         }
         case ELossFunction::MAE:
+        case ELossFunction::MAPE:
         case ELossFunction::Quantile: {
             if (TaskType == ETaskType::CPU && SystemOptions->IsSingleHost()
                 && !BoostingOptions->ApproxOnFullHistory && treeConfig.MonotoneConstraints.Get().empty()) {
@@ -92,8 +93,7 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
             }
             break;
         }
-        case ELossFunction::LogLinQuantile:
-        case ELossFunction::MAPE: {
+        case ELossFunction::LogLinQuantile: {
             defaultNewtonIterations = 1;
             defaultGradientIterations = 1;
             defaultEstimationMethod = ELeavesEstimation::Gradient;
@@ -228,7 +228,8 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
 
     if (treeConfig.LeavesEstimationMethod == ELeavesEstimation::Exact) {
         auto loss = lossFunctionConfig.GetLossFunction();
-        CB_ENSURE(loss == ELossFunction::MAE || loss == ELossFunction::Quantile, "Exact method is only available for Qunatile and MAE loss functions.");
+        CB_ENSURE(EqualToOneOf(loss, ELossFunction::Quantile, ELossFunction::MAE, ELossFunction::MAPE),
+            "Exact method is only available for Quantile, MAE and MAPE loss functions.");
         CB_ENSURE(!BoostingOptions->ApproxOnFullHistory, "ApproxOnFullHistory option is not available within Exact method.");
         CB_ENSURE(TaskType == ETaskType::CPU, "Exact method is only available on CPU.");
     }

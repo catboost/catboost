@@ -106,6 +106,9 @@ void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
     TLazyPoolLoader poolLoader(params, model, localExecutor);
     TFsPath inputPath(params.InputPath.Path);
     auto fstrType = GetFeatureImportanceType(model, /*haveDataset*/true, params.FstrType);
+    if (fstrType != EFstrType::PredictionValuesChange) {
+        CB_ENSURE_IDENTITY(model.GetScaleAndBias(), "model fstr");
+    }
     switch (fstrType) {
         case EFstrType::PredictionValuesChange:
             CalcAndOutputFstr(model,

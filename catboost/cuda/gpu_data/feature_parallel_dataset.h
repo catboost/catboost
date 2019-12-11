@@ -85,10 +85,7 @@ namespace NCatboostCuda {
         {
             if (dataProvider.MetaInfo.HasGroupId && dataProvider.ObjectsGrouping->GetGroupCount() < dataProvider.ObjectsGrouping->GetObjectCount()) {
                 const auto& ctrEstimationPermutation = TParent::GetCtrsEstimationPermutation();
-                TVector<ui32> objectsOrder;
-                ctrEstimationPermutation.FillOrder(objectsOrder);
-                auto samplesGrouping = MakeHolder<TQueriesGrouping>(objectsOrder,
-                                                                    *dataProvider.ObjectsGrouping,
+                auto samplesGrouping = MakeHolder<TQueriesGrouping>(ctrEstimationPermutation,
                                                                     *dataProvider.TargetData->GetGroupInfo(),
                                                                     dataProvider.MetaInfo.HasPairs);
                 if (dataProvider.MetaInfo.HasSubgroupIds) {

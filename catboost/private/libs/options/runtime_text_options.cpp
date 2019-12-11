@@ -179,8 +179,4 @@ namespace NCatboostOptions {
     const TVector<TTokenizedFeatureDescription>& TRuntimeTextOptions::GetTokenizedFeatureDescriptions() const {
         return TokenizedFeatures;
     }
-
-    ETokenizerType TRuntimeTextOptions::GetTokenizerType() const {
-        return ETokenizerType::Naive;
-    }
 }

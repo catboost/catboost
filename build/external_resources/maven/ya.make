@@ -1,0 +1,8 @@
+RESOURCES_LIBRARY()
+
+
+
+# Apache Maven: version 3.6.1
+DECLARE_EXTERNAL_RESOURCE(MAVEN sbr:1231330972)
+
+END()

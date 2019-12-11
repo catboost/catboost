@@ -1248,6 +1248,7 @@ void CalcAndOutputShapValues(
         /*calcInternalValues=*/false
     );
 
+    CB_ENSURE_IDENTITY(model.GetScaleAndBias(), "SHAP values");
     const int flatFeatureCount = SafeIntegerCast<int>(dataset.MetaInfo.GetFeatureCount());
 
     const size_t documentCount = dataset.ObjectsGrouping->GetObjectCount();

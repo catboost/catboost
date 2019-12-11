@@ -15,7 +15,7 @@ Y_UNIT_TEST_SUITE(TEnumParserTest) {
         TEnumParser parser(input);
         const TEnums& enums = parser.Enums;
 
-        UNIT_ASSERT_VALUES_EQUAL(enums.size(), 14u);
+        UNIT_ASSERT_VALUES_EQUAL(enums.size(), 15u);
 
         // check ESimple
         {
