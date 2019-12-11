@@ -922,7 +922,7 @@
   - sys/cpuinline.h
   #endif
   #if V8_OS_QNX
-  - backtrace.h
+  - backtrace.h: contrib/tools/fluent-bit/lib/libbacktrace-5a99ff7f/backtrace.h
   #endif
   - yabs_mx_calc_table.h
   - net/errno.h
