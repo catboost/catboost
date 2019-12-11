@@ -998,7 +998,7 @@ static void SumModelsParams(
             scaleAndBias.InsertValue("bias", model->GetScaleAndBias().Bias);
             summandScaleAndBiases.AppendValue(scaleAndBias);
         }
-        (*modelInfo)["summand_scale_and_biases"] = summandScaleAndBiases.GetString();
+        (*modelInfo)["summand_scale_and_biases"] = summandScaleAndBiases.GetStringRobust();
     }
 }
 
