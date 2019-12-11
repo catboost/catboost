@@ -138,7 +138,10 @@
         "gpu_cat_features_storage" : "GpuRam",
         "dev_default_value_fraction_for_sparse" : 0.8299999833,
         "allow_const_label" : false,
-        "class_names" : [ ],
+        "class_names" : [
+            "0",
+            "1"
+        ],
         "class_weights" : [ ],
         "target_border" : null,
         "dev_sparse_array_indexing" : "Indices",

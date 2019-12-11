@@ -174,10 +174,10 @@ TVector<TVector<double>> PrepareEvalForInternalApprox(
     NPar::TLocalExecutor* localExecutor
 ) {
     const auto& externalLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
-    CB_ENSURE(externalLabelsHelper.IsInitialized() == IsMulticlass(approx),
-              "Inappropriate usage of visible label helper: it MUST be initialized ONLY for multiclass problem");
-    const auto& externalApprox = externalLabelsHelper.IsInitialized() ?
-                                 MakeExternalApprox(approx, externalLabelsHelper) : approx;
+    const auto& externalApprox
+        = (externalLabelsHelper.IsInitialized() && (externalLabelsHelper.GetExternalApproxDimension() > 1)) ?
+            MakeExternalApprox(approx, externalLabelsHelper)
+            : approx;
     return PrepareEval(predictionType, model.GetLossFunctionName(), externalApprox, localExecutor);
 }
 

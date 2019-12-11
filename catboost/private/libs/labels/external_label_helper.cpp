@@ -65,6 +65,19 @@ void TExternalLabelsHelper::Initialize(int approxDimension) {
     Initialized = true;
 }
 
+void TExternalLabelsHelper::Initialize(const TVector<TString>& binclassNames) {
+    CB_ENSURE(!Initialized, "Can't initialize initialized object of TExternalLabelsHelper");
+    CB_ENSURE(binclassNames.size() == 2, "binclassNames size is not equal to 2");
+
+    ExternalApproxDimension = 1;
+    VisibleClassNames = binclassNames;
+    SignificantLabelsIds.assign({0, 1});
+    LabelToName[0] = binclassNames[0];
+    LabelToName[1] = binclassNames[1];
+
+    Initialized = true;
+}
+
 int TExternalLabelsHelper::GetExternalApproxDimension() const {
     CB_ENSURE(Initialized, "Can't use uninitialized object of TExternalLabelsHelper");
     return ExternalApproxDimension;

@@ -5,12 +5,6 @@
 #include <util/system/types.h>
 
 
-enum class EConvertTargetPolicy {
-    CastFloat,
-    UseClassNames,
-    MakeClassNames
-};
-
 enum class EOverfittingDetectorType {
     None,
     Wilcoxon,

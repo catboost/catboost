@@ -6305,7 +6305,6 @@ def test_classes_attribute_binclass(label_type, loss_function):
         unique_labels = [2, 5]
     elif label_type == 'string':
         unique_labels = ['class0', 'class1']
-        params['class_names'] = ['class0', 'class1']
     elif label_type == 'float':
         unique_labels = [0.0, 0.1, 0.2, 0.5, 1.0]
         if loss_function == 'Logloss':
@@ -6314,8 +6313,9 @@ def test_classes_attribute_binclass(label_type, loss_function):
     features, labels = generate_random_labeled_dataset(n_samples=20, n_features=5, labels=unique_labels)
 
     model = CatBoostClassifier(**params)
-    if (loss_function == 'CrossEntropy') and (label_type == 'nonconsecutive_integers'):
-        # out of [0.0, 1.0] bounds
+    if (loss_function == 'CrossEntropy') and (label_type in ['nonconsecutive_integers', 'string']):
+        # 'nonconsecutive_integers' because it is out of [0.0, 1.0] bounds
+        # 'string' because CrossEntropy requires numerical target
         with pytest.raises(CatBoostError):
             model.fit(features, labels)
     else:
@@ -6324,9 +6324,7 @@ def test_classes_attribute_binclass(label_type, loss_function):
         if label_type == 'consecutive_integers':
             assert model.classes_ == ['0', '1']
         elif label_type == 'nonconsecutive_integers':
-            # if loss_function == 'Logloss' and label contains two unique numeric values CatBoost automatically
-            # calculates target_border as their average
-            assert sorted(model.classes_) == ['0', '1']
+            assert sorted(model.classes_) == ['2', '5']
         elif label_type == 'string':
             assert model.classes_ == ['class0', 'class1']
         elif label_type == 'float':

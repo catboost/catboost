@@ -1,162 +1,65 @@
 #include "target_converter.h"
 
-#include <catboost/libs/data/loader.h> // for IsNanValue
+#include "binarize_target.h"
+
+#include <catboost/libs/data/loader.h> // for IsMissingValue
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/private/libs/options/enum_helpers.h>
-#include <catboost/private/libs/options/metric_options.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
+#include <util/generic/array_ref.h>
 #include <util/generic/cast.h>
+#include <util/generic/hash.h>
+#include <util/generic/hash_set.h>
+#include <util/generic/string.h>
+#include <util/generic/variant.h>
+#include <util/generic/ymath.h>
+#include <util/string/cast.h>
 #include <util/string/escape.h>
+#include <util/system/yassert.h>
+
+#include <cmath>
 
 
 namespace NCB {
-
-    TTargetConverter::TTargetConverter(const bool isClassTarget,
-                                       const bool isMultiClassTarget,
-                                       const EConvertTargetPolicy readingPoolTargetPolicy,
-                                       const TVector<TString>& inputClassNames,
-                                       TVector<TString>* const outputClassNames)
-        : IsClassTarget(isClassTarget)
-        , IsMultiClassTarget(isMultiClassTarget)
-        , TargetPolicy(readingPoolTargetPolicy)
-        , InputClassNames(inputClassNames)
-        , OutputClassNames(outputClassNames)
-    {
-        if (TargetPolicy == EConvertTargetPolicy::MakeClassNames) {
-            CB_ENSURE_INTERNAL(IsClassTarget, "Make class names is valid only for classification objectives.");
-            CB_ENSURE(outputClassNames != nullptr,
-                      "Cannot initialize target converter with null class names pointer and MakeClassNames target policy.");
-        }
-
-        if (TargetPolicy == EConvertTargetPolicy::UseClassNames) {
-            CB_ENSURE_INTERNAL(IsClassTarget, "Use class names is valid only for classification objectives.");
-            CB_ENSURE(!InputClassNames.empty(), "Cannot use empty class names for pool reading.");
-            int id = 0;
-            for (const auto& name : InputClassNames) {
-                StringLabelToClass.emplace(name, id++);
-            }
-        }
-    }
-
-    TVector<float> TTargetConverter::Process(const TRawTarget& labels,
-                                             NPar::TLocalExecutor* localExecutor) {
-        switch (TargetPolicy) {
-            case EConvertTargetPolicy::CastFloat:
-                return ProcessCastFloat(labels, localExecutor);
-            case EConvertTargetPolicy::UseClassNames:
-                return ProcessUseClassNames(labels, localExecutor);
-            case EConvertTargetPolicy::MakeClassNames:
-                return ProcessMakeClassNames(labels, localExecutor);
-        }
-    }
-
-    ui32 TTargetConverter::GetClassCount() const {
-        CB_ENSURE_INTERNAL(IsClassTarget, "GetClassCount is valid only for class targets");
-        switch (TargetPolicy) {
-            case EConvertTargetPolicy::CastFloat:
-                return IsMultiClassTarget ? SafeIntegerCast<ui32>(UniqueLabels.size()) : ui32(2);
-            case EConvertTargetPolicy::UseClassNames:
-            case EConvertTargetPolicy::MakeClassNames:
-                if (!StringLabelToClass.empty()) {
-                    return SafeIntegerCast<ui32>(StringLabelToClass.size());
-                } else {
-                    return SafeIntegerCast<ui32>(FloatLabelToClass.size());
-                }
-        }
-        Y_FAIL("should be unreachable");
-    }
-
-    float TTargetConverter::CastFloatLabel(float label) {
-        CB_ENSURE(!IsNan(label), "NaN values are not supported for target");
-        if (IsMultiClassTarget) {
-            UniqueLabels.insert(label);
-        }
-        return label;
-    }
-
-    float TTargetConverter::CastFloatLabel(TStringBuf label) {
-         CB_ENSURE(
-            !IsMissingValue(label),
-            "Missing values like \"" << EscapeC(label) << "\" are not supported for target");
+    static float ConvertToFloatTarget(const TString& stringLabel) {
+        CB_ENSURE(
+            !IsMissingValue(stringLabel),
+            "Missing values like \"" << EscapeC(stringLabel)
+                << "\" are not supported for target"
+        );
         float floatLabel;
         CB_ENSURE(
-            TryFromString(label, floatLabel),
-            "Target value \"" << EscapeC(label) << "\" cannot be parsed as float"
+            TryFromString(stringLabel, floatLabel),
+            "Target value \"" << EscapeC(stringLabel) << "\" cannot be parsed as float"
         );
-        if (IsMultiClassTarget) {
-            UniqueLabels.insert(floatLabel);
-        }
         return floatLabel;
     }
 
-    TVector<float> TTargetConverter::ProcessCastFloat(const TRawTarget& labels,
-                                                      NPar::TLocalExecutor* localExecutor) {
+    static TVector<float> ConvertRawToFloatTarget(
+        const TRawTarget& rawTarget,
+        NPar::TLocalExecutor* localExecutor
+    ) {
         TVector<float> result;
 
-        if (const ITypedSequencePtr<float>* typedSequence = GetIf<ITypedSequencePtr<float>>(&labels)) {
-            result.yresize((*typedSequence)->GetSize());
+        if (const ITypedSequencePtr<float>* floatSequence = GetIf<ITypedSequencePtr<float>>(&rawTarget)) {
+            result.yresize((*floatSequence)->GetSize());
             TArrayRef<float> resultRef = result;
             size_t i = 0;
-            (*typedSequence)->ForEach(
-                [this, resultRef, &i] (float value) { resultRef[i++] = CastFloatLabel(value); }
-            );
-        } else {
-            TConstArrayRef<TString> stringLabels = Get<TVector<TString>>(labels);
-            result.yresize(stringLabels.size());
-            if (IsMultiClassTarget) {
-                // can't use parallel processing because of UniqueLabels update
-                for (auto i : xrange(stringLabels.size())) {
-                    result[i] = CastFloatLabel(stringLabels[i]);
-                }
-            } else {
-                TArrayRef<float> resultRef = result;
-                localExecutor->ExecRangeBlockedWithThrow(
-                    [&, resultRef] (int i) { resultRef[i] = CastFloatLabel(stringLabels[i]); },
-                    0,
-                    SafeIntegerCast<int>(stringLabels.size()),
-                    /*batchSizeOrZeroForAutoBatchSize*/ 0,
-                    NPar::TLocalExecutor::WAIT_COMPLETE
-                );
-            }
-        }
-
-        return result;
-    }
-
-    TVector<float> TTargetConverter::ProcessUseClassNames(const TRawTarget& labels,
-                                                          NPar::TLocalExecutor* localExecutor) {
-        TVector<float> result;
-
-        if (const ITypedSequencePtr<float>* typedSequence = GetIf<ITypedSequencePtr<float>>(&labels)) {
-            UpdateFloatLabelToClass();
-
-            result.yresize((*typedSequence)->GetSize());
-            TArrayRef<float> resultRef = result;
-            size_t i = 0;
-            (*typedSequence)->ForEach(
-                [this, resultRef, &i] (float srcLabel) {
-                    const auto it = FloatLabelToClass.find(srcLabel);
-                    CB_ENSURE(it != FloatLabelToClass.end(), "Unknown class name: \"" << srcLabel << '"');
-                    resultRef[i++] = (float)it->second;
+            (*floatSequence)->ForEach(
+                [resultRef, &i] (float value) {
+                    CB_ENSURE(!IsNan(value), "NaN values are not supported for target");
+                    resultRef[i++] = value;
                 }
             );
         } else {
-            UpdateStringLabelToClass();
-
-            TConstArrayRef<TString> stringLabels = Get<TVector<TString>>(labels);
+            TConstArrayRef<TString> stringLabels = Get<TVector<TString>>(rawTarget);
             result.yresize(stringLabels.size());
             TArrayRef<float> resultRef = result;
             localExecutor->ExecRangeBlockedWithThrow(
-                [this, resultRef, stringLabels] (int i) {
-                    const auto it = StringLabelToClass.find(stringLabels[i]);
-                    CB_ENSURE(
-                        it != StringLabelToClass.end(),
-                        "Unknown class name: \"" << EscapeC(stringLabels[i]) << '"'
-                    );
-                    resultRef[i] = (float)it->second;
+                [stringLabels, resultRef] (int i) {
+                    resultRef[i] = ConvertToFloatTarget(stringLabels[i]);
                 },
                 0,
                 SafeIntegerCast<int>(stringLabels.size()),
@@ -168,132 +71,368 @@ namespace NCB {
         return result;
     }
 
+    class TCastFloatTargetConverter : public ITargetConverter {
+    public:
+        TCastFloatTargetConverter() = default;
 
-    TVector<float> TTargetConverter::ProcessMakeClassNames(const TRawTarget& labels,
-                                                           NPar::TLocalExecutor* localExecutor) {
-        TVector<float> result;
-        Visit([&] (const auto& value) { result = ProcessMakeClassNamesImpl(value, localExecutor); }, labels);
-        if (OutputClassNames) {
-            SetOutputClassNames();
+        TVector<float> Process(const TRawTarget& rawTarget, NPar::TLocalExecutor* localExecutor) override {
+            return ConvertRawToFloatTarget(rawTarget, localExecutor);
         }
-        return result;
-    }
 
-
-    TVector<float> TTargetConverter::ProcessMakeClassNamesImpl(const ITypedSequencePtr<float>& labels,
-                                                               NPar::TLocalExecutor* localExecutor) {
-        CB_ENSURE(TargetPolicy == EConvertTargetPolicy::MakeClassNames,
-                  "Cannot postprocess labels without MakeClassNames target policy.");
-
-        TVector<float> targets = ToVector(*labels);
-        THashSet<float> uniqueLabelsSet(targets.begin(), targets.end());
-        TVector<float> uniqueLabels(uniqueLabelsSet.begin(), uniqueLabelsSet.end());
-        Sort(uniqueLabels);
-
-        CB_ENSURE(FloatLabelToClass.empty(), "ProcessMakeClassNames: label-to-class map must be empty before label converting.");
-        int i = 0;
-        for (auto label: uniqueLabels) {
-            FloatLabelToClass.emplace(label, i++);
+        ui32 GetClassCount() const override {
+            /*
+             * this target converter is unapplicable for multiclassification but can be used for
+             * binary classification (e.g. loss_function == "CrossEntropy")
+             */
+            return 2;
         }
-        TArrayRef<float> targetsRef = targets;
-        NPar::ParallelFor(
-            *localExecutor,
-            0,
-            SafeIntegerCast<ui32>(targets.size()),
-            [targetsRef, this] (int i) {
-                targetsRef[i] = (float)FloatLabelToClass[targetsRef[i]];
+    };
+
+    class TTargetBinarizer : public ITargetConverter {
+    public:
+        TTargetBinarizer(float targetBorder)
+            : TargetBorder(targetBorder)
+        {}
+
+        TVector<float> Process(const TRawTarget& rawTarget, NPar::TLocalExecutor* localExecutor) override {
+            TVector<float> floatTarget = ConvertRawToFloatTarget(rawTarget, localExecutor);
+            PrepareTargetBinary(floatTarget, TargetBorder, &floatTarget);
+            return floatTarget;
+        }
+
+        ui32 GetClassCount() const override {
+            return 2;
+        }
+
+    private:
+        float TargetBorder;
+    };
+
+
+    class TNumericClassTargetConverter : public ITargetConverter {
+    public:
+        TNumericClassTargetConverter(ui32 classCount)
+            : ClassCount(static_cast<float>(classCount))
+        {}
+
+        TVector<float> Process(const TRawTarget& rawTarget, NPar::TLocalExecutor* localExecutor) override {
+            TVector<float> result = ConvertRawToFloatTarget(rawTarget, localExecutor);
+
+            TArrayRef<float> resultRef = result;
+            localExecutor->ExecRangeBlockedWithThrow(
+                [resultRef, this] (int i) {
+                    CheckIsValidClassIdx(resultRef[i]);
+                },
+                0,
+                SafeIntegerCast<int>(result.size()),
+                /*batchSizeOrZeroForAutoBatchSize*/ 0,
+                NPar::TLocalExecutor::WAIT_COMPLETE
+            );
+
+            return result;
+        }
+
+        ui32 GetClassCount() const override {
+            return (ui32)ClassCount;
+        }
+
+    private:
+        inline void CheckIsValidClassIdx(float classIdx) const {
+            float intPart;
+            CB_ENSURE(
+                std::modf(classIdx, &intPart) == 0.0f,
+                "Value in target (" << classIdx << ") is not expected class index"
+            );
+            CB_ENSURE(
+                classIdx >= 0.0f,
+                "Value in target (" << classIdx << ") is not expected class index"
+            );
+            CB_ENSURE(
+                classIdx < ClassCount,
+                "Value in target (" << classIdx << ") is greater than specified class count"
+            );
+        }
+
+    private:
+        // type is float to avoid casting because target is a vector of floats
+        float ClassCount;
+    };
+
+
+    class TUseClassNamesTargetConverter : public ITargetConverter {
+    public:
+        TUseClassNamesTargetConverter(const TVector<TString>& inputClassNames) {
+            float classIdx = 0;
+            for (const auto& name : inputClassNames) {
+                StringLabelToClass.emplace(name, classIdx++);
             }
-        );
-        return targets;
-    }
-
-    TVector<float> TTargetConverter::ProcessMakeClassNamesImpl(TConstArrayRef<TString> labels,
-                                                               NPar::TLocalExecutor* localExecutor) {
-        CB_ENSURE(TargetPolicy == EConvertTargetPolicy::MakeClassNames,
-                  "Cannot postprocess labels without MakeClassNames target policy.");
-        THashSet<TString> uniqueLabelsSet(labels.begin(), labels.end());
-        TVector<TString> uniqueLabels(uniqueLabelsSet.begin(), uniqueLabelsSet.end());
-        // Kind of heuristic for proper ordering class names if they all are numeric
-        if (AllOf(uniqueLabels, [](const TString& label) -> bool {
-            float tmp;
-            return TryFromString<float>(label, tmp);
-        })) {
-            Sort(uniqueLabels, [](const TString& label1, const TString& label2) {
-                return FromString<float>(label1) < FromString<float>(label2);
-            });
-        } else {
-            Sort(uniqueLabels);
         }
-        CB_ENSURE(StringLabelToClass.empty(), "ProcessMakeClassNames: label-to-class map must be empty before label converting.");
-        int i = 0;
-        for (const auto& label: uniqueLabels) {
-            StringLabelToClass.emplace(label, i++);
-        }
-        TVector<float> targets;
-        targets.yresize(labels.size());
-        TArrayRef<float> targetsRef = targets;
-        NPar::ParallelFor(
-            *localExecutor,
-            0,
-            SafeIntegerCast<ui32>(targets.size()),
-            [targetsRef, labels, this] (int i) {
-                targetsRef[i] = (float)StringLabelToClass[labels[i]];
-            }
-        );
-        return targets;
-    }
 
+        TVector<float> Process(const TRawTarget& rawTarget, NPar::TLocalExecutor* localExecutor) override {
+            TVector<float> result;
 
-    void TTargetConverter::UpdateStringLabelToClass() {
-        if (StringLabelToClass.empty()) {
-            CB_ENSURE(!FloatLabelToClass.empty(), "Label-to-class mapping must be calced before setting class names.");
-            for (const auto& [floatLabel, classIdx] : FloatLabelToClass) {
-                StringLabelToClass.emplace(ToString(floatLabel), classIdx);
-            }
-        }
-    }
+            if (const ITypedSequencePtr<float>* typedSequence = GetIf<ITypedSequencePtr<float>>(&rawTarget)) {
+                UpdateFloatLabelToClass();
 
-    void TTargetConverter::UpdateFloatLabelToClass() {
-        if (FloatLabelToClass.empty()) {
-            CB_ENSURE(!StringLabelToClass.empty(), "Label-to-class mapping must be calced before using class names.");
-            for (const auto& [stringLabel, classIdx] : StringLabelToClass) {
-                float floatLabel;
-                CB_ENSURE(
-                    TryFromString<float>(stringLabel, floatLabel),
-                    "Not all class names are numeric, but specified target data is"
+                result.yresize((*typedSequence)->GetSize());
+                TArrayRef<float> resultRef = result;
+                size_t i = 0;
+                (*typedSequence)->ForEach(
+                    [this, resultRef, &i] (float srcLabel) {
+                        const auto it = FloatLabelToClass.find(srcLabel);
+                        CB_ENSURE(it != FloatLabelToClass.end(), "Unknown class name: \"" << srcLabel << '"');
+                        resultRef[i++] = it->second;
+                    }
                 );
-                FloatLabelToClass.emplace(floatLabel, classIdx);
+            } else {
+                TConstArrayRef<TString> stringLabels = Get<TVector<TString>>(rawTarget);
+                result.yresize(stringLabels.size());
+                TArrayRef<float> resultRef = result;
+                localExecutor->ExecRangeBlockedWithThrow(
+                    [this, resultRef, stringLabels] (int i) {
+                        const auto it = StringLabelToClass.find(stringLabels[i]);
+                        CB_ENSURE(
+                            it != StringLabelToClass.end(),
+                            "Unknown class name: \"" << EscapeC(stringLabels[i]) << '"'
+                        );
+                        resultRef[i] = it->second;
+                    },
+                    0,
+                    SafeIntegerCast<int>(stringLabels.size()),
+                    /*batchSizeOrZeroForAutoBatchSize*/ 0,
+                    NPar::TLocalExecutor::WAIT_COMPLETE
+                );
+            }
+
+            return result;
+        }
+
+        ui32 GetClassCount() const override {
+            return SafeIntegerCast<ui32>(StringLabelToClass.size());
+        }
+
+    private:
+        void UpdateFloatLabelToClass() {
+            if (FloatLabelToClass.empty()) {
+                for (const auto& [stringLabel, classIdx] : StringLabelToClass) {
+                    float floatLabel;
+                    CB_ENSURE(
+                        TryFromString<float>(stringLabel, floatLabel),
+                        "Not all class names are numeric, but specified target data is"
+                    );
+                    FloatLabelToClass.emplace(floatLabel, classIdx);
+                }
             }
         }
-    }
 
-    void TTargetConverter::SetOutputClassNames() {
-        CB_ENSURE(OutputClassNames != nullptr && OutputClassNames->empty(), "Cannot reset user-defined class names.");
-        CB_ENSURE(TargetPolicy == EConvertTargetPolicy::MakeClassNames,
-                  "Cannot set class names without MakeClassNames target policy.");
-        UpdateStringLabelToClass();
-        OutputClassNames->resize(StringLabelToClass.ysize());
-        for (const auto& keyValue : StringLabelToClass) {
-            (*OutputClassNames)[keyValue.second] = keyValue.first;
+    private:
+        // which map is used depends on source target data type
+        // dst type is float to avoid casting because target is a vector of floats
+        THashMap<TString, float> StringLabelToClass;
+        THashMap<float, float> FloatLabelToClass;
+    };
+
+    class TMakeClassNamesTargetConverter : public ITargetConverter {
+    public:
+        TMakeClassNamesTargetConverter(bool isMultiClass)
+            : IsMultiClass(isMultiClass)
+        {}
+
+        TVector<float> Process(const TRawTarget& rawTarget, NPar::TLocalExecutor* localExecutor) override {
+            TVector<float> result;
+            Visit(
+                [&] (const auto& value) { result = ProcessMakeClassNamesImpl(value, localExecutor); },
+                rawTarget
+            );
+            return result;
         }
-    }
+
+        ui32 GetClassCount() const override {
+            const ui32 classCount = SafeIntegerCast<ui32>(
+                !StringLabelToClass.empty() ? StringLabelToClass.size() : FloatLabelToClass.size()
+            );
+            Y_ASSERT(classCount > 1);
+            return classCount;
+        }
+
+        TMaybe<TVector<TString>> GetClassNames() override {
+            UpdateStringLabelToClass();
+
+            TVector<TString> result;
+            result.yresize(StringLabelToClass.ysize());
+            for (const auto& [stringLabel, classIdx] : StringLabelToClass) {
+                result[static_cast<size_t>(classIdx)] = stringLabel;
+            }
+
+            return MakeMaybe<TVector<TString>>(std::move(result));
+        }
+
+    private:
+        void CheckUniqueLabelsSize(size_t size) const {
+            CB_ENSURE(size > 1, "Target contains only one unique value");
+            CB_ENSURE(
+                IsMultiClass || (size == 2),
+                "Target with classes must contain only 2 unique values for binary classification"
+            );
+        }
+
+        TVector<float> ProcessMakeClassNamesImpl(const ITypedSequencePtr<float>& labels,
+                                                 NPar::TLocalExecutor* localExecutor) {
+            TVector<float> targets = ToVector(*labels);
+
+            THashSet<float> uniqueLabelsSet;
+            for (float value : targets) {
+                CB_ENSURE(!IsNan(value), "NaN values are not supported for target");
+                uniqueLabelsSet.insert(value);
+            }
+
+            CheckUniqueLabelsSize(uniqueLabelsSet.size());
+
+            TVector<float> uniqueLabels(uniqueLabelsSet.begin(), uniqueLabelsSet.end());
+            Sort(uniqueLabels);
+
+            CB_ENSURE(FloatLabelToClass.empty(), "ProcessMakeClassNames: label-to-class map must be empty before label converting.");
+            float classIdx = 0;
+            for (auto label: uniqueLabels) {
+                FloatLabelToClass.emplace(label, classIdx++);
+            }
+
+            TArrayRef<float> targetsRef = targets;
+            NPar::ParallelFor(
+                *localExecutor,
+                0,
+                SafeIntegerCast<ui32>(targets.size()),
+                [targetsRef, this] (int i) {
+                    targetsRef[i] = FloatLabelToClass[targetsRef[i]];
+                }
+            );
+            return targets;
+        }
+
+        TVector<float> ProcessMakeClassNamesImpl(TConstArrayRef<TString> labels,
+                                                 NPar::TLocalExecutor* localExecutor) {
+            THashSet<TString> uniqueLabelsSet(labels.begin(), labels.end());
+            CheckUniqueLabelsSize(uniqueLabelsSet.size());
+
+            TVector<TString> uniqueLabels(uniqueLabelsSet.begin(), uniqueLabelsSet.end());
+            // Kind of heuristic for proper ordering class names if they all are numeric
+            if (AllOf(uniqueLabels, [](const TString& label) -> bool {
+                float tmp;
+                return TryFromString<float>(label, tmp);
+            })) {
+                Sort(uniqueLabels, [](const TString& label1, const TString& label2) {
+                    return FromString<float>(label1) < FromString<float>(label2);
+                });
+            } else {
+                Sort(uniqueLabels);
+            }
+            CB_ENSURE(StringLabelToClass.empty(), "ProcessMakeClassNames: label-to-class map must be empty before label converting.");
+            float classIdx = 0;
+            for (const auto& label: uniqueLabels) {
+                StringLabelToClass.emplace(label, classIdx++);
+            }
+            TVector<float> targets;
+            targets.yresize(labels.size());
+            TArrayRef<float> targetsRef = targets;
+            NPar::ParallelFor(
+                *localExecutor,
+                0,
+                SafeIntegerCast<ui32>(targets.size()),
+                [targetsRef, labels, this] (int i) {
+                    targetsRef[i] = StringLabelToClass[labels[i]];
+                }
+            );
+            return targets;
+        }
+
+        void UpdateStringLabelToClass() {
+            if (StringLabelToClass.empty()) {
+                CB_ENSURE(!FloatLabelToClass.empty(), "Label-to-class mapping must be calced before setting class names.");
+                for (const auto& [floatLabel, classIdx] : FloatLabelToClass) {
+                    StringLabelToClass.emplace(ToString(floatLabel), classIdx);
+                }
+            }
+        }
+
+    private:
+        bool IsMultiClass;
+
+        // which map is used depends on source target data type
+        // dst type is float to avoid casting because target is a vector of floats
+        THashMap<TString, float> StringLabelToClass;
+        THashMap<float, float> FloatLabelToClass;
+    };
 
 
-    TTargetConverter MakeTargetConverter(bool isClass,
-                                         bool isMultiClass,
-                                         bool classesCountUnknown,
-                                         const TVector<TString>& inputClassNames,
-                                         TVector<TString>* outputClassNames) {
-        EConvertTargetPolicy targetPolicy = EConvertTargetPolicy::CastFloat;
+    THolder<ITargetConverter> MakeTargetConverter(bool isRealTarget,
+                                                  bool isClass,
+                                                  bool isMultiClass,
+                                                  TMaybe<float> targetBorder,
+                                                  TMaybe<ui32> classCount,
+                                                  const TVector<TString>& inputClassNames) {
 
-        if (!inputClassNames.empty()) {
-            targetPolicy = EConvertTargetPolicy::UseClassNames;
+        CB_ENSURE_INTERNAL(!isMultiClass || isClass, "isMultiClass is true, but isClass is false");
+
+        if (isRealTarget) {
+            CB_ENSURE(!isMultiClass, "Converted real target is incompatible with Multiclass");
+            CB_ENSURE(!targetBorder.Defined(), "Converted real target is incompatible with targetBorder");
+            CB_ENSURE(
+                !classCount.Defined() || (*classCount == 2),
+                "Converted real target is incompatible with class count not equal to 2"
+            );
+            CB_ENSURE(
+                inputClassNames.empty(),
+                "Converted real target is incompatible with specifying class names"
+            );
+
+            return MakeHolder<TCastFloatTargetConverter>();
         } else {
-            if (isMultiClass && classesCountUnknown) {
-                targetPolicy = EConvertTargetPolicy::MakeClassNames;
-            }
+            CB_ENSURE_INTERNAL(isClass, "isRealTarget is false, but isClass is false");
         }
-        return NCB::TTargetConverter(isClass, isMultiClass, targetPolicy, inputClassNames, outputClassNames);
+
+        if (targetBorder.Defined()) {
+            CB_ENSURE(
+                isClass && !isMultiClass,
+                "targetBorder should be specified only for binary classification problems"
+            );
+            CB_ENSURE(
+                !classCount.Defined() || (*classCount == 2),
+                "Specifying target border is incompatible with class count not equal to 2"
+            );
+            CB_ENSURE(
+                inputClassNames.empty(),
+                "Specifying target border is incompatible with specifying class names"
+            );
+
+            return MakeHolder<TTargetBinarizer>(*targetBorder);
+        }
+        if (!inputClassNames.empty()) {
+            CB_ENSURE(
+                isClass,
+                "classNames should be specified only for classification problems"
+            );
+            CB_ENSURE(
+                isMultiClass || (inputClassNames.size() == 2),
+                "binary classification problem, but class names count is not equal to 2"
+            );
+            CB_ENSURE(
+                !classCount.Defined() || (size_t(*classCount) == inputClassNames.size()),
+                "both classCount and classNames specified and length of classNames is not equal to classCount"
+            );
+
+            return MakeHolder<TUseClassNamesTargetConverter>(inputClassNames);
+        }
+        if (classCount.Defined()) {
+            CB_ENSURE(
+                isMultiClass,
+                "classCount should be specified only for multi classification problems"
+            );
+
+            return MakeHolder<TNumericClassTargetConverter>(*classCount);
+        }
+
+
+        return MakeHolder<TMakeClassNamesTargetConverter>(isMultiClass);
     }
 
 } // NCB

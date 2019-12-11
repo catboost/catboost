@@ -1654,13 +1654,15 @@ cdef transform_predictions(const TVector[TVector[double]]& predictions, EPredict
     approx_dimension = model.GetDimensionsCount()
 
     if approx_dimension == 1:
-        pred_single_dim = _vector_of_double_to_np_array(predictions[0])
-
-        if predictionType == EPredictionType_Probability:
-            return np.transpose([1 - pred_single_dim, pred_single_dim])
+        if predictionType == EPredictionType_Class:
+            return np.array(_convert_to_visible_labels(predictionType, predictions, thread_count, model)[0])
         elif predictionType == EPredictionType_LogProbability:
             return np.transpose(_convert_to_visible_labels(predictionType, predictions, thread_count, model))
-        return pred_single_dim
+        else:
+            pred_single_dim = _vector_of_double_to_np_array(predictions[0])
+            if predictionType == EPredictionType_Probability:
+                return np.transpose([1 - pred_single_dim, pred_single_dim])
+            return pred_single_dim
 
     assert(approx_dimension > 1)
     return np.transpose(_convert_to_visible_labels(predictionType, predictions, thread_count, model))
