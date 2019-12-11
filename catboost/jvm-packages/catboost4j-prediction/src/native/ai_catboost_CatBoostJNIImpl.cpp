@@ -592,9 +592,6 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
         for (size_t i = 0; i < documentCount; ++i) {
             const auto row = (jfloatArray)jenv->GetObjectArrayElement(jnumericFeaturesMatrix, i);
             CB_ENSURE(jenv->IsSameObject(row, NULL) == JNI_FALSE, "got null row");
-            Y_SCOPE_EXIT(jenv, row) {
-              jenv->DeleteLocalRef(row);
-            };
             const size_t rowSize = jenv->GetArrayLength(row);
             CB_ENSURE(
                 numericFeatureCount <= rowSize,
@@ -624,9 +621,6 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
             const auto row = (jintArray)jenv->GetObjectArrayElement(
                 jcatFeaturesMatrix, i);
             CB_ENSURE(jenv->IsSameObject(row, NULL) == JNI_FALSE, "got null row");
-            Y_SCOPE_EXIT(jenv, row) {
-              jenv->DeleteLocalRef(row);
-            };
             const size_t rowSize = jenv->GetArrayLength(row);
             CB_ENSURE(
                 catFeatureCount <= rowSize,
