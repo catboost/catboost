@@ -511,3 +511,7 @@
   includes:
     - asm/ptrace.h
     - stab.h
+
+- source_filter: "^contrib/tools/fluent-bit"
+  includes:
+    - backtrace.h: contrib/tools/fluent-bit/lib/libbacktrace-5a99ff7f/backtrace.h
