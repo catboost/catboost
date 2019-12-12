@@ -31,8 +31,6 @@ ALLOW mds -> contrib/deprecated/uriparser
 ALLOW devtools/experimental/mds -> contrib/deprecated/uriparser
 DENY .* -> contrib/deprecated/uriparser
 
-ALLOW travel/rasp -> contrib/python/django/django-1.9
-DENY .* -> contrib/python/django/django-1.9
 ALLOW contrib/python/.*/tests? -> contrib/python/django/django-1.11
 ALLOW contrib/python/.*/tests? -> contrib/python/django/django-2.2
 DENY contrib/python -> contrib/python/django/django-1.11
