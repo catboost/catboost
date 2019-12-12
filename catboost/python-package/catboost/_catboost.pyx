@@ -1613,11 +1613,12 @@ cdef void _ObjectiveCalcDersMulti(
     for index, der in enumerate(ders_vector):
         dereference(ders)[index] = der
 
-    index = 0
-    for indY, line in enumerate(second_ders_matrix):
-        for num in line[indY:]:
-            dereference(der2).Data[index] = num
-            index += 1
+    if der2:
+        index = 0
+        for indY, line in enumerate(second_ders_matrix):
+            for num in line[indY:]:
+                dereference(der2).Data[index] = num
+                index += 1
 
 # customGenerator should have method rvs()
 cdef TCustomRandomDistributionGenerator _BuildCustomRandomDistributionGenerator(object customGenerator):
