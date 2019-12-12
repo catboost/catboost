@@ -67,7 +67,7 @@ class OmniIDL(iw.CustomCommand):
 
         return make_tuples([prefix + 'DynSK.cc', prefix + 'SK.cc', prefix + '.hh'])
 
-    def run(self, omniidl, omnicpp):
+    def run(self, extra_args, omniidl, omnicpp):
         out = get(self.output, 0)
 
         self.call([omniidl, '-Y', omnicpp] + self._flags + [self._path], cwd=os.path.dirname(out))

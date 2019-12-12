@@ -82,7 +82,7 @@ class Swig(iw.CustomCommand):
     def output_includes(self):
         return [(self._out_header, [])] if self._swig_lang == 'java' else []
 
-    def run(self, binary):
+    def run(self, extra_args, binary):
         return self.do_run(binary, self._path) if self._swig_lang != 'java' else self.do_run_java(binary, self._path)
 
     def _incl_flags(self):

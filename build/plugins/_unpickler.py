@@ -18,7 +18,7 @@ def main():
     parser.add_argument('--src-root', help='$S real path', required=True)
     parser.add_argument('--build-root', help='$B real path', required=True)
     parser.add_argument('--tools', help='binaries needed by command', required=True, nargs='+')
-    args = parser.parse_args()
+    args, unknown_args = parser.parse_known_args()
 
     encoded_cmd = args.data
     src_root = args.src_root
@@ -33,9 +33,9 @@ def main():
     cmd_object.set_build_root(build_root)
 
     if len(tools[1:]) == 0:
-        cmd_object.run(common.get_interpreter_path())
+        cmd_object.run(unknown_args, common.get_interpreter_path())
     else:
-        cmd_object.run(*tools[1:])
+        cmd_object.run(unknown_args, *tools[1:])
 
 
 if __name__ == '__main__':
