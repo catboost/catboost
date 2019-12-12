@@ -357,12 +357,35 @@ static size_t GetMatrixColumnCount(JNIEnv* const jenv, const jobjectArray matrix
     return jenv->GetArrayLength(firstRow);
 }
 
+static size_t GetDocumentCount(JNIEnv* const jenv, jobjectArray jnumericFeaturesMatrix, jobjectArray jcatFeaturesMatrix ) {
+    if (jenv->IsSameObject(jnumericFeaturesMatrix, NULL) != JNI_TRUE) {
+        size_t documentCount = SafeIntegerCast<size_t>(jenv->GetArrayLength(jnumericFeaturesMatrix));
+        if (jenv->IsSameObject(jcatFeaturesMatrix, NULL) != JNI_TRUE) {
+            CB_ENSURE(
+                SafeIntegerCast<size_t>(jenv->GetArrayLength(jcatFeaturesMatrix)) == documentCount,
+                "numeric and cat features arrays have different number of objects");
+        }
+        return documentCount;
+    } else if (jenv->IsSameObject(jcatFeaturesMatrix, NULL) != JNI_TRUE) {
+        return SafeIntegerCast<size_t>(jenv->GetArrayLength(jcatFeaturesMatrix));
+    } else {
+        return 0;
+    }
+}
+
+
 JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict__J_3_3F_3_3Ljava_lang_String_2_3D
   (JNIEnv* jenv, jclass, jlong jhandle, jobjectArray jnumericFeaturesMatrix, jobjectArray jcatFeaturesMatrix, jdoubleArray jpredictions) {
     Y_BEGIN_JNI_API_CALL();
 
     const auto* const model = ToConstFullModelPtr(jhandle);
     CB_ENSURE(model, "got nullptr model pointer");
+
+    const size_t documentCount = GetDocumentCount(jenv, jnumericFeaturesMatrix, jcatFeaturesMatrix);
+    if (documentCount == 0) {
+        return 0;
+    }
+
     const size_t modelPredictionSize = model->GetDimensionsCount();
     const size_t minNumericFeatureCount = model->GetNumFloatFeatures();
     const size_t minCatFeatureCount = model->GetNumCatFeatures();
@@ -381,14 +404,6 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
         const auto numericRows = jenv->GetArrayLength(jnumericFeaturesMatrix);
         const auto catRows = jenv->GetArrayLength(jcatFeaturesMatrix);
         CB_ENSURE(numericRows == catRows, LabeledOutput(numericRows, catRows));
-    }
-
-    const size_t documentCount = numericFeatureCount
-        ? jenv->GetArrayLength(jnumericFeaturesMatrix)
-        : jenv->GetArrayLength(jcatFeaturesMatrix);
-
-    if (documentCount == 0) {
-        return 0;
     }
 
     const size_t predictionsSize = jenv->GetArrayLength(jpredictions);
@@ -537,6 +552,12 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
 
     const auto* const model = ToConstFullModelPtr(jhandle);
     CB_ENSURE(model, "got nullptr model pointer");
+
+    const size_t documentCount = GetDocumentCount(jenv, jnumericFeaturesMatrix, jcatFeaturesMatrix);
+    if (documentCount == 0) {
+        return nullptr;
+    }
+
     const size_t modelPredictionSize = model->GetDimensionsCount();
     const size_t minNumericFeatureCount = model->GetNumFloatFeatures();
     const size_t minCatFeatureCount = model->GetNumCatFeatures();
@@ -555,14 +576,6 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelPredict_
         const auto numericRows = jenv->GetArrayLength(jnumericFeaturesMatrix);
         const auto catRows = jenv->GetArrayLength(jcatFeaturesMatrix);
         CB_ENSURE(numericRows == catRows, LabeledOutput(numericRows, catRows));
-    }
-
-    const size_t documentCount = numericFeatureCount
-        ? jenv->GetArrayLength(jnumericFeaturesMatrix)
-        : jenv->GetArrayLength(jcatFeaturesMatrix);
-
-    if (documentCount == 0) {
-        return nullptr;
     }
 
     const size_t predictionsSize = jenv->GetArrayLength(jpredictions);
