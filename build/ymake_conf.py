@@ -1766,8 +1766,8 @@ class LD(Linker):
 
         # TODO(somov): Проверить, не нужны ли здесь все остальные флаги компоновки (LDFLAGS и т. д.).
         emit('LINK_FAT_OBJECT', '$GENERATE_MF &&',
-             '$YMAKE_PYTHON ${input:"build/scripts/link_fat_obj.py"} --obj=$TARGET --lib=${output:REALPRJNAME.a}', arch_flag,
-             '-Ya,input $AUTO_INPUT $VCS_C_OBJ_WRAP -Ya,global_srcs $SRCS_GLOBAL -Ya,peers $PEERS',
+             '$YMAKE_PYTHON ${input:"build/scripts/link_fat_obj.py"} --obj=$TARGET --build-root $ARCADIA_BUILD_ROOT --lib=${output:REALPRJNAME.a}', arch_flag, '$LINK_FAT_OBJECT_EXTENDED_FLAGS',
+             '-Ya,input $AUTO_INPUT $VCS_C_OBJ_WRAP -Ya,global_srcs ${rootrel:SRCS_GLOBAL} -Ya,peers $PEERS',
              '-Ya,linker $CXX_COMPILER $C_FLAGS_PLATFORM', self.ld_sdk, '-Ya,archiver', archiver,
              '$TOOLCHAIN_ENV ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}')
 
