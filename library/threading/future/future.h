@@ -99,6 +99,7 @@ namespace NThreading {
         T ExtractValue(TDuration timeout = TDuration::Zero());
         T ExtractValueSync();
 
+        void TryRethrow() const;
         bool HasException() const;
 
         void Wait() const;
@@ -142,6 +143,7 @@ namespace NThreading {
         void GetValue(TDuration timeout = TDuration::Zero()) const;
         void GetValueSync() const;
 
+        void TryRethrow() const;
         bool HasException() const;
 
         void Wait() const;
@@ -193,6 +195,7 @@ namespace NThreading {
         bool TrySetValue(const T& value);
         bool TrySetValue(T&& value);
 
+        void TryRethrow() const;
         bool HasException() const;
         void SetException(const TString& e);
         void SetException(std::exception_ptr e);
@@ -229,6 +232,7 @@ namespace NThreading {
         void SetValue();
         bool TrySetValue();
 
+        void TryRethrow() const;
         bool HasException() const;
         void SetException(const TString& e);
         void SetException(std::exception_ptr e);

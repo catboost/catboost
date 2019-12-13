@@ -179,6 +179,7 @@ namespace NThreading {
             UNIT_ASSERT(!promise.HasValue());
             UNIT_ASSERT(promise.HasException());
             UNIT_ASSERT_EXCEPTION(promise.GetValue(), TCustomException);
+            UNIT_ASSERT_EXCEPTION(promise.TryRethrow(), TCustomException);
         }
 
         Y_UNIT_TEST(ShouldWaitAll) {
@@ -430,6 +431,22 @@ namespace NThreading {
             auto future4 = MakeFuture<std::unique_ptr<int>>(nullptr);
             UNIT_ASSERT(future4.HasValue());
             UNIT_CHECK_GENERATED_NO_EXCEPTION(future4.GetValue(), TFutureException);
+        }
+
+        Y_UNIT_TEST(WaitAllowsExtract) {
+            auto future = MakeFuture<int>(42);
+            TVector vec{future, future, future};
+            WaitAll(vec).GetValue();
+            WaitAny(vec).GetValue();
+
+            UNIT_ASSERT_EQUAL(future.ExtractValue(), 42);
+        }
+
+        Y_UNIT_TEST(IgnoreAllowsExtract) {
+            auto future = MakeFuture<int>(42);
+            future.IgnoreResult().GetValue();
+
+            UNIT_ASSERT_EQUAL(future.ExtractValue(), 42);
         }
     }
 
