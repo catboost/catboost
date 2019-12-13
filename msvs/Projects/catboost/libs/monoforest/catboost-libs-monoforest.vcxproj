@@ -84,6 +84,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\monoforest\interpretation.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\monoforest\model_import.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\monoforest\monom.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\monoforest\non_symmetric_tree.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\monoforest\oblivious_tree.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\monoforest\polynom.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\monoforest\split.cpp"/>
@@ -92,8 +93,10 @@
     <ClInclude Include="$(SolutionDir)..\catboost\libs\monoforest\grid.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\monoforest\helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\monoforest\interpretation.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\monoforest\leaf_path.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\monoforest\model_import.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\monoforest\monom.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\monoforest\non_symmetric_tree.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\monoforest\oblivious_tree.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\monoforest\polynom.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\monoforest\split.h"/>
