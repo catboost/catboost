@@ -48,3 +48,10 @@ namespace NMonoForest {
         Y_SAVELOAD_DEFINE(FeatureId, BinIdx, SplitType);
     };
 }
+
+template <>
+struct THash<NMonoForest::TBinarySplit> {
+    inline size_t operator()(const NMonoForest::TBinarySplit& value) const {
+        return value.GetHash();
+    }
+};

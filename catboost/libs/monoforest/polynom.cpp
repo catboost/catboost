@@ -141,6 +141,53 @@ namespace NMonoForest {
         }
     }
 
+    void TPolynomBuilder::AddTree(const TNonSymmetricTree& tree) {
+        auto visitor = [&](const TLeafPath& path, TConstArrayRef<float> leaf, double) {
+          CB_ENSURE(leaf.size());
+
+          int bits = 0;
+          for (ui32 depth = 0; depth < path.GetDepth(); ++depth) {
+              if (path.Directions[depth] == ESplitValue::One) {
+                  bits |= 1 << depth;
+              }
+          }
+          auto monoms = LeafToPolynoms(bits, path.GetDepth());
+
+          for (const auto& monom : monoms) {
+              const int activeFeatures = monom.Bits;
+              THashMap<TBinarySplit, ui32> splits;
+
+              for (ui32 i = 0; i < path.GetDepth(); ++i) {
+                  if (activeFeatures & (1 << i)) {
+                      auto srcSplit = path.Splits[i];
+
+                      if (srcSplit.SplitType == EBinSplitType::TakeGreater) {
+                          auto baseSplit = srcSplit;
+                          baseSplit.BinIdx = 0;
+                          splits[baseSplit] = std::max<ui32>(splits[baseSplit], srcSplit.BinIdx);
+                      } else {
+                          splits[srcSplit] = srcSplit.BinIdx;
+                      }
+                  }
+              }
+
+              TMonomStructure structure;
+              for (const auto& [baseSplit, binIdx] : splits) {
+                  auto split = baseSplit;
+                  split.BinIdx = binIdx;
+                  structure.Splits.push_back(split);
+              }
+              SortUnique(structure.Splits);
+              auto& dst = MonomsEnsemble[structure];
+              dst.Value.resize(leaf.size());
+              for (ui32 i = 0; i < leaf.size(); ++i) {
+                  dst.Value[i] += monom.Sign * leaf[i];
+              }
+          }
+        };
+        tree.VisitLeavesAndWeights(visitor);
+    }
+
     TPolynom TPolynomBuilder::Build() {
         return {MonomsEnsemble};
     }
