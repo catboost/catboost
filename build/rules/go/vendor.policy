@@ -359,6 +359,9 @@ ALLOW .* -> vendor/go.etcd.io/bbolt
 # CONTRIB-1616 Gountries provides structured countries data
 ALLOW .* -> vendor/github.com/pariz/gountries
 
+# CONTRIB-1630- Go binding for qemu/qmp runtime
+ALLOW .* -> vendor/github.com/intel/govmm/qemu
+
 #
 # Temporary exceptions.
 #
