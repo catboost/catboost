@@ -7,6 +7,10 @@ ALLOW market/sre/tools/config-primer/src/internal/blogic -> contrib/go/patched/h
 # CONTRIB-1581. responsible: grihabor@, g:strm-admin
 ALLOW strm/plgo -> contrib/go/patched/hashring
 
+# CONTRIB-1627. responsible: g:edadeal-go
+ALLOW edadeal -> contrib/go/patched/cony
+ALLOW contrib/go/patched/cony -> contrib/go/patched/cony
+
 # STRM-1124. responsible: grihabor@, g:strm-admin
 ALLOW strm/plgo -> contrib/go/patched/m3u8
 ALLOW contrib/go/patched/m3u8/example -> contrib/go/patched/m3u8
