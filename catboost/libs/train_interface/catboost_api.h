@@ -8,24 +8,24 @@ extern "C" {
 
 #ifdef _WIN32
 #ifdef _WINDLL
-#define EXPORT __declspec(dllexport)
+#define CATBOOST_API __declspec(dllexport)
 #else
-#define EXPORT __declspec(dllimport)
+#define CATBOOST_API __declspec(dllimport)
 #endif
 #else
-#define EXPORT
+#define CATBOOST_API
 #endif
 
 typedef void* ResultHandle;
 
-EXPORT void FreeHandle(ResultHandle* modelHandle);
+CATBOOST_API void FreeHandle(ResultHandle* modelHandle);
 
-EXPORT const char* GetErrorString();
+CATBOOST_API const char* GetErrorString();
 
-EXPORT int TreesCount(ResultHandle handle);
-EXPORT int OutputDim(ResultHandle handle);
-EXPORT int TreeDepth(ResultHandle handle, int treeIndex);
-EXPORT bool CopyTree(ResultHandle handle, int treeIndex, int* features, float* conditions, float* leaves, float* weights);
+CATBOOST_API int TreesCount(ResultHandle handle);
+CATBOOST_API int OutputDim(ResultHandle handle);
+CATBOOST_API int TreeDepth(ResultHandle handle, int treeIndex);
+CATBOOST_API bool CopyTree(ResultHandle handle, int treeIndex, int* features, float* conditions, float* leaves, float* weights);
 
 
 struct TDataSet {
@@ -38,10 +38,10 @@ struct TDataSet {
     int SamplesCount = 0;
 };
 
-EXPORT bool TrainCatBoost(const struct TDataSet* train,
-                          const struct TDataSet* test,
-                          const char* params,
-                          ResultHandle* handle);
+CATBOOST_API bool TrainCatBoost(const struct TDataSet* train,
+                                const struct TDataSet* test,
+                                const char* params,
+                                ResultHandle* handle);
 
 
 #if defined(__cplusplus)

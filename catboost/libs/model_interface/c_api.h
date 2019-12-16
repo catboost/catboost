@@ -10,12 +10,12 @@ extern "C" {
 
 #if defined(_WIN32) && !defined(CATBOOST_API_STATIC_LIB)
 #ifdef _WINDLL
-#define EXPORT __declspec(dllexport)
+#define CATBOOST_API __declspec(dllexport)
 #else
-#define EXPORT __declspec(dllimport)
+#define CATBOOST_API __declspec(dllimport)
 #endif
 #else
-#define EXPORT
+#define CATBOOST_API
 #endif
 
 typedef void ModelCalcerHandle;
@@ -24,20 +24,20 @@ typedef void ModelCalcerHandle;
  * Create empty model handle
  * @return
  */
-EXPORT ModelCalcerHandle* ModelCalcerCreate();
+CATBOOST_API ModelCalcerHandle* ModelCalcerCreate();
 
 /**
  * Delete model handle
  * @param calcer
  */
-EXPORT void ModelCalcerDelete(ModelCalcerHandle* modelHandle);
+CATBOOST_API void ModelCalcerDelete(ModelCalcerHandle* modelHandle);
 
 /**
  * If error occured will return stored exception message.
  * If no error occured, will return invalid pointer
  * @return
  */
-EXPORT const char* GetErrorString();
+CATBOOST_API const char* GetErrorString();
 
 /**
  * Load model from file into given model handle
@@ -45,7 +45,7 @@ EXPORT const char* GetErrorString();
  * @param filename
  * @return false if error occured
  */
-EXPORT bool LoadFullModelFromFile(
+CATBOOST_API bool LoadFullModelFromFile(
     ModelCalcerHandle* modelHandle,
     const char* filename);
 
@@ -56,7 +56,7 @@ EXPORT bool LoadFullModelFromFile(
  * @param binaryBufferSize size of the buffer in bytes
  * @return false if error occured
  */
-EXPORT bool LoadFullModelFromBuffer(
+CATBOOST_API bool LoadFullModelFromBuffer(
     ModelCalcerHandle* modelHandle,
     const void* binaryBuffer,
     size_t binaryBufferSize);
@@ -64,7 +64,7 @@ EXPORT bool LoadFullModelFromBuffer(
 /**
  * Use CUDA gpu device for model evaluation
 */
-EXPORT bool EnableGPUEvaluation(ModelCalcerHandle* modelHandle, int deviceId);
+CATBOOST_API bool EnableGPUEvaluation(ModelCalcerHandle* modelHandle, int deviceId);
 
 /**
  * **Use this method only if you really understand what you want.**
@@ -79,7 +79,7 @@ EXPORT bool EnableGPUEvaluation(ModelCalcerHandle* modelHandle, int deviceId);
  * (e.g. for non multiclass models should be equal to docCount)
  * @return false if error occured
  */
-EXPORT bool CalcModelPredictionFlat(
+CATBOOST_API bool CalcModelPredictionFlat(
     ModelCalcerHandle* modelHandle,
     size_t docCount,
     const float** floatFeatures, size_t floatFeaturesSize,
@@ -99,7 +99,7 @@ EXPORT bool CalcModelPredictionFlat(
  * (e.g. for non multiclass models should be equal to docCount)
  * @return false if error occured
  */
-EXPORT bool CalcModelPrediction(
+CATBOOST_API bool CalcModelPrediction(
     ModelCalcerHandle* modelHandle,
     size_t docCount,
     const float** floatFeatures, size_t floatFeaturesSize,
@@ -119,7 +119,7 @@ EXPORT bool CalcModelPrediction(
  * (e.g. for non multiclass models should be equal to 1)
  * @return false if error occured
  */
-EXPORT bool CalcModelPredictionSingle(
+CATBOOST_API bool CalcModelPredictionSingle(
         ModelCalcerHandle* modelHandle,
         const float* floatFeatures, size_t floatFeaturesSize,
         const char** catFeatures, size_t catFeaturesSize,
@@ -139,7 +139,7 @@ EXPORT bool CalcModelPredictionSingle(
  * (e.g. for non multiclass models should be equal to docCount)
  * @return false if error occured
  */
-EXPORT bool CalcModelPredictionWithHashedCatFeatures(
+CATBOOST_API bool CalcModelPredictionWithHashedCatFeatures(
     ModelCalcerHandle* modelHandle,
     size_t docCount,
     const float** floatFeatures, size_t floatFeaturesSize,
@@ -152,7 +152,7 @@ EXPORT bool CalcModelPredictionWithHashedCatFeatures(
  * @param size string length
  * @return hash value
  */
-EXPORT int GetStringCatFeatureHash(const char* data, size_t size);
+CATBOOST_API int GetStringCatFeatureHash(const char* data, size_t size);
 
 /**
  * Special case for hash calculation - integer hash.
@@ -161,49 +161,49 @@ EXPORT int GetStringCatFeatureHash(const char* data, size_t size);
  * @param val integer cat feature value
  * @return hash value
  */
-EXPORT int GetIntegerCatFeatureHash(long long val);
+CATBOOST_API int GetIntegerCatFeatureHash(long long val);
 
 /**
  * Get expected float feature count for model
  * @param calcer model handle
  */
-EXPORT size_t GetFloatFeaturesCount(ModelCalcerHandle* modelHandle);
+CATBOOST_API size_t GetFloatFeaturesCount(ModelCalcerHandle* modelHandle);
 
 /**
  * Get expected categorical feature count for model
  * @param calcer model handle
  */
-EXPORT size_t GetCatFeaturesCount(ModelCalcerHandle* modelHandle);
+CATBOOST_API size_t GetCatFeaturesCount(ModelCalcerHandle* modelHandle);
 
 /**
  * Get number of trees in model
  * @param calcer model handle
  */
-EXPORT size_t GetTreeCount(ModelCalcerHandle* modelHandle);
+CATBOOST_API size_t GetTreeCount(ModelCalcerHandle* modelHandle);
 
 /**
  * Get number of dimensions in model
  * @param calcer model handle
  */
-EXPORT size_t GetDimensionsCount(ModelCalcerHandle* modelHandle);
+CATBOOST_API size_t GetDimensionsCount(ModelCalcerHandle* modelHandle);
 
 /**
  * Check if model metadata holds some value for provided key
  * @param calcer model handle
  */
-EXPORT bool CheckModelMetadataHasKey(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize);
+CATBOOST_API bool CheckModelMetadataHasKey(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize);
 
 /**
  * Get model metainfo value size for some key. Returns 0 both if key is missing in model metadata and if it is really missing
  * @param calcer model handle
  */
-EXPORT size_t GetModelInfoValueSize(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize);
+CATBOOST_API size_t GetModelInfoValueSize(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize);
 
 /**
  * Get model metainfo for some key. Returns const char* pointer to inner string. If key is missing in model metainfo storage this method will return nullptr
  * @param calcer model handle
  */
-EXPORT const char* GetModelInfoValue(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize);
+CATBOOST_API const char* GetModelInfoValue(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize);
 
 #if defined(__cplusplus)
 }
