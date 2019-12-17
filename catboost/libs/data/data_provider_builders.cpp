@@ -300,6 +300,11 @@ namespace NCB {
             Data.TargetData.Pairs = std::move(pairs);
         }
 
+        void SetTimestamps(TVector<ui64>&& timestamps) override {
+            CheckDataSize(timestamps.size(), (size_t)ObjectCount, "timestamps");
+            Data.CommonObjectsData.Timestamp = std::move(timestamps);
+        }
+
         // needed for checking groupWeights consistency while loading from separate file
         TMaybeData<TConstArrayRef<TGroupId>> GetGroupIds() const override {
             return Data.CommonObjectsData.GroupIds;
@@ -1067,6 +1072,11 @@ namespace NCB {
             Data.TargetData.Pairs = std::move(pairs);
         }
 
+        void SetTimestamps(TVector<ui64>&& timestamps) override {
+            CheckDataSize(timestamps.size(), (size_t)ObjectCount, "timestamps");
+            Data.CommonObjectsData.Timestamp = timestamps;
+        }
+
         // needed for checking groupWeights consistency while loading from separate file
         TMaybeData<TConstArrayRef<TGroupId>> GetGroupIds() const override {
             return Data.CommonObjectsData.GroupIds;
@@ -1445,6 +1455,11 @@ namespace NCB {
 
         void SetPairs(TVector<TPair>&& pairs) override {
             Data.TargetData.Pairs = std::move(pairs);
+        }
+
+        void SetTimestamps(TVector<ui64>&& timestamps) override {
+            CheckDataSize(timestamps.size(), (size_t)ObjectCount, "timestamps");
+            Data.CommonObjectsData.Timestamp = std::move(timestamps);
         }
 
         // needed for checking groupWeights consistency while loading from separate file

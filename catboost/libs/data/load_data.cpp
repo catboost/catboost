@@ -18,6 +18,7 @@ namespace NCB {
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
+        const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
         const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
@@ -41,6 +42,7 @@ namespace NCB {
                     pairsFilePath,
                     groupWeightsFilePath,
                     baselineFilePath,
+                    timestampsFilePath,
                     classNames ? **classNames : TVector<TString>(),
                     columnarPoolFormatParams.DsvFormat,
                     MakeCdProviderFromFile(columnarPoolFormatParams.CdFilePath),
@@ -73,6 +75,7 @@ namespace NCB {
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
+        const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
         const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
@@ -90,6 +93,7 @@ namespace NCB {
             poolPath,
             pairsFilePath,
             groupWeightsFilePath,
+            timestampsFilePath,
             baselineFilePath,
             columnarPoolFormatParams,
             ignoredFeatures,
@@ -107,6 +111,7 @@ namespace NCB {
         THolder<ILineDataReader> poolReader,
         const TPathWithScheme& pairsFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
+        const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
         const NCB::TDsvFormatOptions& poolFormat,
         const TVector<TColumn>& columnsDescription, // TODO(smirnovpavel): TVector<EColumn>
@@ -135,6 +140,7 @@ namespace NCB {
                     pairsFilePath,
                     groupWeightsFilePath,
                     baselineFilePath,
+                    timestampsFilePath,
                     classNames ? **classNames : TVector<TString>(),
                     poolFormat,
                     MakeCdProviderFromArray(columnsDescription),
@@ -174,6 +180,7 @@ namespace NCB {
                 loadOptions.LearnSetPath,
                 loadOptions.PairsFilePath,
                 loadOptions.GroupWeightsFilePath,
+                loadOptions.TimestampsFilePath,
                 loadOptions.BaselineFilePath,
                 loadOptions.ColumnarPoolFormatParams,
                 loadOptions.IgnoredFeatures,
@@ -197,6 +204,8 @@ namespace NCB {
                         testIdx == 0 ? loadOptions.TestPairsFilePath : NCB::TPathWithScheme();
                 const NCB::TPathWithScheme& testGroupWeightsFilePath =
                     testIdx == 0 ? loadOptions.TestGroupWeightsFilePath : NCB::TPathWithScheme();
+                const NCB::TPathWithScheme& testTimestampsFilePath =
+                    testIdx == 0 ? loadOptions.TestTimestampsFilePath : NCB::TPathWithScheme();
                 const NCB::TPathWithScheme& testBaselineFilePath =
                     testIdx == 0 ? loadOptions.TestBaselineFilePath : NCB::TPathWithScheme();
 
@@ -204,6 +213,7 @@ namespace NCB {
                     testSetPath,
                     testPairsFilePath,
                     testGroupWeightsFilePath,
+                    testTimestampsFilePath,
                     testBaselineFilePath,
                     loadOptions.ColumnarPoolFormatParams,
                     loadOptions.IgnoredFeatures,

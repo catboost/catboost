@@ -27,5 +27,6 @@ namespace NCatboostOptions {
         TOption<ui32> FoldCount;
         TOption<ESamplingUnit> FoldSizeUnit;
         TOption<ui32> FoldSize;
+        TOption<double> TimeSplitQuantile;
     };
 }

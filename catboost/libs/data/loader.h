@@ -43,6 +43,7 @@ namespace NCB {
         TPathWithScheme PairsFilePath;
         TPathWithScheme GroupWeightsFilePath;
         TPathWithScheme BaselineFilePath;
+        TPathWithScheme TimestampsFilePath;
         const TVector<TString>& ClassNames;
         TDsvFormatOptions PoolFormat;
         THolder<ICdProvider> CdProvider;
@@ -171,6 +172,12 @@ namespace NCB {
         const TVector<TString>& classNames,
         IDatasetVisitor* visitor
     );
+    void SetTimestamps(
+        const TPathWithScheme& timestampsPath,
+        ui32 objectCount,
+        TDatasetSubset loadSubset,
+        IDatasetVisitor* visitor
+    );
 
     /*
      * Some common functionality for IRawObjectsOrderDatasetLoader classes than utilize async row processing.
@@ -245,6 +252,7 @@ namespace NCB {
                 const ui32 objectCount = GetObjectCountSynchronized();
                 SetGroupWeights(Args.GroupWeightsFilePath, objectCount, Args.DatasetSubset, visitor);
                 SetPairs(Args.PairsFilePath, objectCount, Args.DatasetSubset, visitor);
+                SetTimestamps(Args.TimestampsFilePath, objectCount, Args.DatasetSubset, visitor);
             }
             visitor->Finish();
         }

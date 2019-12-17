@@ -23,6 +23,7 @@ THashMap<size_t, size_t> GetColumnIndexToNumericFeatureIndexMap(const NCB::TQuan
 NCB::TDataMetaInfo GetDataMetaInfo(
     const NCB::TQuantizedPool& pool,
     bool hasAdditionalGroupWeight,
+    bool hasTimestamps,
     bool hasPairs,
     TMaybe<ui32> baselineCount);
 

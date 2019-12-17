@@ -25,6 +25,7 @@ inline void ReadAndProceedPoolInBlocks(const NCB::TAnalyticalModeCommonParams& p
                 params.PairsFilePath,
                 /*GroupWeightsFilePath=*/NCB::TPathWithScheme(),
                 /*BaselineFilePath=*/NCB::TPathWithScheme(),
+                /*TimestampsFilePath*/NCB::TPathWithScheme(),
                 params.ClassNames,
                 params.ColumnarPoolFormatParams.DsvFormat,
                 MakeCdProviderFromFile(params.ColumnarPoolFormatParams.CdFilePath),

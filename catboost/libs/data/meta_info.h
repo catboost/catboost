@@ -72,6 +72,7 @@ namespace NCB {
         TDataMetaInfo(
             TMaybe<TDataColumnsMetaInfo>&& columnsInfo,
             bool hasAdditionalGroupWeight,
+            bool hasTimestamp,
             bool hasPairs,
             TMaybe<ui32> additionalBaselineCount = Nothing(),
 

@@ -219,7 +219,7 @@ cdef class Py_ITypedSequencePtr:
 def make_non_owning_type_cast_array_holder(np.ndarray[numpy_num_dtype, ndim=1] array):
 
     """
-        older buffer interface is used instead of memory views because of 
+        older buffer interface is used instead of memory views because of
         https://github.com/cython/cython/issues/1772, https://github.com/cython/cython/issues/2485
     """
 
@@ -779,6 +779,7 @@ cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath,
         const TPathWithScheme& groupWeightsFilePath,
+        const TPathWithScheme& timestampsFilePath,
         const TPathWithScheme& baselineFilePath,
         const TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector[ui32]& ignoredFeatures,
@@ -2053,7 +2054,7 @@ def _set_features_order_data_features_data(
 ):
 
     """
-        older buffer interface is used instead of memory views because of 
+        older buffer interface is used instead of memory views because of
         https://github.com/cython/cython/issues/1772, https://github.com/cython/cython/issues/2485
     """
 
@@ -2109,7 +2110,7 @@ def _set_features_order_data_ndarray(
 ):
 
     """
-        older buffer interface is used instead of memory views because of 
+        older buffer interface is used instead of memory views because of
         https://github.com/cython/cython/issues/1772, https://github.com/cython/cython/issues/2485
     """
 
@@ -2247,7 +2248,7 @@ cdef get_text_factor_bytes_representation(
 cdef get_canonical_type_indexing_array(np.ndarray indices, TMaybeOwningConstArrayHolder[ui32] * result):
 
     """
-        older buffer interface is used instead of memory views because of 
+        older buffer interface is used instead of memory views because of
         https://github.com/cython/cython/issues/1772, https://github.com/cython/cython/issues/2485
     """
     cdef np.ndarray[np.int32_t, ndim=1] indices_i32
@@ -3082,7 +3083,7 @@ def _set_label_from_num_nparray_objects_order(
 ):
 
     """
-        older buffer interface is used instead of memory views because of 
+        older buffer interface is used instead of memory views because of
         https://github.com/cython/cython/issues/1772, https://github.com/cython/cython/issues/2485
     """
 
@@ -3206,6 +3207,7 @@ cdef class _PoolBase:
         self.__pool = ReadDataset(
             pool_file_path,
             pairs_file_path,
+            TPathWithScheme(),
             TPathWithScheme(),
             TPathWithScheme(),
             columnarPoolFormatParams,

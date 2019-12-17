@@ -9,28 +9,29 @@ NCatboostOptions::TFeatureEvalOptions::TFeatureEvalOptions()
     , FoldCount("fold_count", 0)
     , FoldSizeUnit("fold_size_unit", ESamplingUnit::Object)
     , FoldSize("fold_size", 0)
+    , TimeSplitQuantile("timesplit_quantile", 0.5)
 {
 }
 
 void NCatboostOptions::TFeatureEvalOptions::Load(const NJson::TJsonValue& options) {
     CheckedLoad(
         options, &FeaturesToEvaluate, &FeatureEvalMode, &EvalFeatureFileName,
-        &Offset, &FoldCount, &FoldSizeUnit, &FoldSize);
+        &Offset, &FoldCount, &FoldSizeUnit, &FoldSize, &TimeSplitQuantile);
 }
 
 void NCatboostOptions::TFeatureEvalOptions::Save(NJson::TJsonValue* options) const {
     SaveFields(
         options, FeaturesToEvaluate, FeatureEvalMode, EvalFeatureFileName,
-        Offset, FoldCount, FoldSizeUnit, FoldSize);
+        Offset, FoldCount, FoldSizeUnit, FoldSize, TimeSplitQuantile);
 }
 
 bool NCatboostOptions::TFeatureEvalOptions::operator==(const TFeatureEvalOptions& rhs) const {
     const auto& options = std::tie(
         FeaturesToEvaluate, FeatureEvalMode,
-        Offset, FoldCount, FoldSizeUnit, FoldSize);
+        Offset, FoldCount, FoldSizeUnit, FoldSize, TimeSplitQuantile);
     const auto& rhsOptions = std::tie(
         rhs.FeaturesToEvaluate, rhs.FeatureEvalMode,
-        rhs.Offset, rhs.FoldCount, rhs.FoldSizeUnit, rhs.FoldSize);
+        rhs.Offset, rhs.FoldCount, rhs.FoldSizeUnit, rhs.FoldSize, rhs.TimeSplitQuantile);
     return options == rhsOptions;
 }
 

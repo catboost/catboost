@@ -43,6 +43,7 @@ namespace {
                                            Params.PairsFilePath,
                                            /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
                                            /*baselineFilePath=*/ NCB::TPathWithScheme(),
+                                           /*timestampsFilePath=*/ NCB::TPathWithScheme(),
                                            Params.ColumnarPoolFormatParams,
                                            /*ignoredFeatures*/ {},
                                            NCB::EObjectsOrder::Undefined,

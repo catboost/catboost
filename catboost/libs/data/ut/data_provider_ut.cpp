@@ -38,6 +38,7 @@ static void CreateQuantizedObjectsDataProviderTestData(
     *metaInfo = TDataMetaInfo(
         std::move(dataColumnsMetaInfo),
         /*hasAdditionalGroupWeight*/ false,
+        /*hasTimestamps*/ false,
         hasPairs,
         /*additionalBaselineCount*/ Nothing(),
         &featureId

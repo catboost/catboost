@@ -7863,6 +7863,38 @@ def test_eval_feature_snapshot_wrong_options():
         yatest.common.execute(make_cmd(fold_size=20))
 
 
+def test_eval_feature_parse_timestamps():
+    summary = yatest.common.test_output_path('eval_feature_summary')
+
+    def make_cmd(timestamps_file):
+        return (
+            CATBOOST_PATH,
+            'eval-feature',
+            '--loss-function', 'QueryRMSE',
+            '-f', data_file('querywise', 'train'),
+            '--cd', data_file('querywise', 'train.cd'),
+            '-i', '600',
+            '-T', '4',
+            '-w', '0.1',
+            '--permutations', '1',
+            '--snapshot-interval', '1',
+            '--features-to-evaluate', '2-5',
+            '--feature-eval-mode', 'OneVsAll',
+            '--feature-eval-output-file', summary,
+            '--offset', '0',
+            '--fold-count', '5',
+            '--fold-size-unit', 'Group',
+            '--fold-size', '40',
+            '--learn-timestamps', data_file('querywise', timestamps_file),
+            '--timesplit-quantile', '0.75'
+        )
+
+    yatest.common.execute(make_cmd('train.timestamps'))
+
+    with pytest.raises(yatest.common.ExecutionError):
+        yatest.common.execute(make_cmd('train.group_weights'))
+
+
 TEST_METRIC_DESCRIPTION_METRICS_LIST = ['Logloss', 'Precision', 'AUC']
 @pytest.mark.parametrize('dataset_has_weights', [True, False], ids=['dataset_has_weights=True', 'dataset_has_weights=False'])
 @pytest.mark.parametrize('eval_metric_loss', TEST_METRIC_DESCRIPTION_METRICS_LIST,
