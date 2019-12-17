@@ -6,6 +6,11 @@
   - jni.h
   - vulkan/vulkan.h
   - vulkan/vk_sdk_platform.h
+  - SLES/OpenSLES.h
+  - SLES/OpenSLES_Android.h
+  - SLES/OpenSLES_AndroidConfiguration.h
+  - SLES/OpenSLES_AndroidMetadata.h
+  - SLES/OpenSLES_Platform.h
 
 - source_filter: "^contrib/libs/breakpad/src"
   includes:
