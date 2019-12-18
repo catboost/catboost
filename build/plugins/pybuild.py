@@ -100,14 +100,24 @@ def is_generated(path, unit):
 
 
 def add_python_lint_checks(unit, py_ver, files):
-    if files and unit.get('LINT_LEVEL_VALUE') != "none":
+    def get_resolved_files():
         resolved_files = []
         for path in files:
             resolved = unit.resolve_arc_path([path])
             if resolved.startswith('$S'):  # path was resolved as source file.
                 resolved_files.append(resolved)
+        return resolved_files
+
+    resolved_files = []
+    if files and unit.get('LINT_LEVEL_VALUE') != "none":
+        resolved_files = get_resolved_files()
         unit.onadd_check(["PEP8_{}".format(py_ver)] + resolved_files)
         unit.onadd_check(["PYFLAKES_{}".format(py_ver)] + resolved_files)
+
+    flake8_cfg = unit.get('FLAKE8_CONFIG')
+    if files and flake8_cfg:
+        resolved_files = resolved_files or get_resolved_files()
+        unit.onadd_check(["flake8.py{}".format(py_ver), flake8_cfg] + resolved_files)
 
 
 def is_py3(unit):
