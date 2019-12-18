@@ -149,7 +149,6 @@
 
 - source_filter: "^contrib/libs/gdal"
   includes:
-    - io.h:          contrib/libs/gdal/ogr/ogrsf_frmts/cad/libopencad/dwg/io.h
     - iconv.h:       contrib/libs/libiconv/include/iconv.h
 
 - source_filter: "^contrib/libs/zeromq"
