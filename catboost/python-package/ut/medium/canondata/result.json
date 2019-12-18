@@ -664,7 +664,7 @@
         "uri": "file://test.test_ones_weight_CPU_/model.bin"
     },
     "test.test_onnx_export[binclass]": {
-        "checksum": "669cec04b47a3fbbf261d11284595101",
+        "checksum": "a68aa7eca099a45505a8e77e98f92b3e",
         "uri": "file://test.test_onnx_export_binclass_/model.onnx"
     },
     "test.test_onnx_export[multiclass]": {

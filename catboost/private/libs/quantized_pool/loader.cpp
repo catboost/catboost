@@ -44,6 +44,7 @@ NCB::TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& arg
     , PairsPath(args.CommonArgs.PairsFilePath)
     , GroupWeightsPath(args.CommonArgs.GroupWeightsFilePath)
     , BaselinePath(args.CommonArgs.BaselineFilePath)
+    , TimestampsPath(args.CommonArgs.TimestampsFilePath)
     , ObjectsOrder(args.CommonArgs.ObjectsOrder)
     , DatasetSubset(args.CommonArgs.DatasetSubset)
 {
@@ -61,9 +62,11 @@ NCB::TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& arg
         "TCBQuantizedDataLoader:GroupWeightsFilePath does not exist");
     CB_ENSURE(!BaselinePath.Inited() || CheckExists(BaselinePath),
         "TCBQuantizedDataLoader:BaselineFilePath does not exist");
+    CB_ENSURE(!TimestampsPath.Inited() || CheckExists(TimestampsPath),
+        "TCBQuantizedDataLoader:TimestampsPath does not exist");
 
     const NCB::TBaselineReader baselineReader(BaselinePath, args.CommonArgs.ClassNames);
-    DataMetaInfo = GetDataMetaInfo(QuantizedPool, GroupWeightsPath.Inited(), PairsPath.Inited(), baselineReader.GetBaselineCount());
+    DataMetaInfo = GetDataMetaInfo(QuantizedPool, GroupWeightsPath.Inited(), TimestampsPath.Inited(), PairsPath.Inited(), baselineReader.GetBaselineCount());
 
     CB_ENSURE(DataMetaInfo.GetFeatureCount() > 0, "Pool should have at least one factor");
 

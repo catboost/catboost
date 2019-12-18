@@ -10,6 +10,7 @@ SRCS(
     model_import.cpp
     monom.cpp
     oblivious_tree.cpp
+    non_symmetric_tree.cpp
     polynom.cpp
     split.cpp
 )

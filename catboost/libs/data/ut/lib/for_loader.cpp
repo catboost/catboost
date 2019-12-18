@@ -66,6 +66,7 @@ namespace NCB {
             readDatasetMainParams.PoolPath,
             readDatasetMainParams.PairsFilePath, // can be uninited
             readDatasetMainParams.GroupWeightsFilePath, // can be uninited
+            /*timestampsFilePath*/TPathWithScheme(),
             readDatasetMainParams.BaselineFilePath, // can be uninited
             readDatasetMainParams.ColumnarPoolFormatParams,
             testCase.SrcData.IgnoredFeatures,

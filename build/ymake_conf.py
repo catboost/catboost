@@ -1414,10 +1414,10 @@ class GnuCompiler(Compiler):
         cxx_args = ['$GCCFILTER', '$YNDEXER_ARGS', '$CXX_COMPILER', '$C_FLAGS_PLATFORM', '$GCC_COMPILE_FLAGS', '$CXXFLAGS', '$EXTRA_OUTPUT', '$SRCFLAGS', '$TOOLCHAIN_ENV', '$YNDEXER_OUTPUT'] + style
         c_args = ['$GCCFILTER', '$YNDEXER_ARGS', '$C_COMPILER', '$C_FLAGS_PLATFORM', '$GCC_COMPILE_FLAGS', '$CFLAGS', '$CONLYFLAGS', '$EXTRA_OUTPUT', '$SRCFLAGS', '$TOOLCHAIN_ENV', '$YNDEXER_OUTPUT'] + style
 
-        c_args_nodeps = [c if c != '$GCC_COMPILE_FLAGS' else '$EXTRA_C_FLAGS -c -o ${OUTFILE} ${INFILE} ${pre=-I:INC}' for c in c_args if c != '$SRCFLAGS']
+        c_args_nodeps = [c if c != '$GCC_COMPILE_FLAGS' else '$EXTRA_C_FLAGS -c -o ${OUTFILE} ${SRC} ${pre=-I:INC}' for c in c_args if c != '$SRCFLAGS']
 
         print 'macro _SRC_cpp(SRC, SRCFLAGS...) {\n .CMD=%s\n}' % ' '.join(cxx_args)
-        print 'macro _SRC_c_nodeps(INFILE, OUTFILE, INC...) {\n .CMD=%s\n}' % ' '.join(c_args_nodeps)
+        print 'macro _SRC_c_nodeps(SRC, OUTFILE, INC...) {\n .CMD=%s\n}' % ' '.join(c_args_nodeps)
         print 'macro _SRC_c(SRC, SRCFLAGS...) {\n .CMD=%s\n}' % ' '.join(c_args)
         print 'macro _SRC_m(SRC, SRCFLAGS...) {\n .CMD=$SRC_c($SRC $SRCFLAGS)\n}'
         print 'macro _SRC_masm(SRC, SRCFLAGS...) {\n}'
@@ -1765,9 +1765,9 @@ class LD(Linker):
         # "Fat Object" : pre-linked global objects and static library with all dependencies
 
         # TODO(somov): Проверить, не нужны ли здесь все остальные флаги компоновки (LDFLAGS и т. д.).
-        emit('LINK_FAT_OBJECT', '$GENERATE_MF &&',
-             '$YMAKE_PYTHON ${input:"build/scripts/link_fat_obj.py"} --obj=$TARGET --lib=${output:REALPRJNAME.a}', arch_flag,
-             '-Ya,input $AUTO_INPUT $VCS_C_OBJ_WRAP -Ya,global_srcs $SRCS_GLOBAL -Ya,peers $PEERS',
+        emit('LINK_FAT_OBJECT', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP &&',
+             '$YMAKE_PYTHON ${input:"build/scripts/link_fat_obj.py"} --obj=$TARGET --build-root $ARCADIA_BUILD_ROOT --lib=${output:REALPRJNAME.a}', arch_flag, '$LINK_FAT_OBJECT_EXTENDED_FLAGS',
+             '-Ya,input $AUTO_INPUT $VCS_C_OBJ -Ya,global_srcs ${rootrel:SRCS_GLOBAL} -Ya,peers $PEERS',
              '-Ya,linker $CXX_COMPILER $C_FLAGS_PLATFORM', self.ld_sdk, '-Ya,archiver', archiver,
              '$TOOLCHAIN_ENV ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}')
 
@@ -2126,8 +2126,8 @@ class MSVCCompiler(MSVC, Compiler):
                 CFLAGS($Flags)
             }
 
-            macro _SRC_c_nodeps(INFILE, OUTFILE, INC...) {
-                 .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${OUTFILE} ${INFILE} ${EXTRA_C_FLAGS} ${pre=/I :INC} ${CXXFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+            macro _SRC_c_nodeps(SRC, OUTFILE, INC...) {
+                 .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${OUTFILE} ${SRC} ${EXTRA_C_FLAGS} ${pre=/I :INC} ${CXXFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
             }
 
             macro _SRC_cpp(SRC, SRCFLAGS...) {
@@ -2288,7 +2288,7 @@ class MSVCLinker(MSVC, Linker):
             ${qe;rootrel:SRCS_GLOBAL} ${VCS_C_OBJ_RR} ${qe;rootrel:AUTO_INPUT} ${qe;rootrel:PEERS} \
             $LINK_EXE_FLAGS $LINK_STDLIBS $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE ${hide;kv:"soe"} ${hide;kv:"p LD"} ${hide;kv:"pc blue"}
 
-            LINK_FAT_OBJECT=${GENERATE_MF} && $YMAKE_PYTHON ${input:"build/scripts/touch.py"} $TARGET ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}''')
+            LINK_FAT_OBJECT=${GENERATE_MF} && $GENERATE_VCS_C_INFO_NODEP && $YMAKE_PYTHON ${input:"build/scripts/touch.py"} $TARGET ${kv;hide:"p LD"} ${kv;hide:"pc light-blue"} ${kv;hide:"show_out"}''')
 
 
 # TODO(somov): Rename!

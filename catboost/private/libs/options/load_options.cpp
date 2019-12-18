@@ -34,6 +34,11 @@ void NCatboostOptions::TPoolLoadParams::Validate(TMaybe<ETaskType> taskType) con
                 "Error: test group weights file '" << TestGroupWeightsFilePath << "' doesn't exist");
     }
 
+    if (TestTimestampsFilePath.Inited()) {
+        CB_ENSURE(CheckExists(TestTimestampsFilePath),
+                "Error: test timestamps file '" << TestTimestampsFilePath << "' doesn't exist");
+    }
+
     if (TestBaselineFilePath.Inited()) {
         CB_ENSURE(CheckExists(TestBaselineFilePath),
                   "Error: test baseline file '" << TestBaselineFilePath << "' doesn't exist");
@@ -53,6 +58,10 @@ void NCatboostOptions::TPoolLoadParams::ValidateLearn() const {
 
     if (GroupWeightsFilePath.Inited()) {
         CB_ENSURE(CheckExists(GroupWeightsFilePath), "Error: group weights file '" << GroupWeightsFilePath << "' doesn't exist");
+    }
+
+    if (TimestampsFilePath.Inited()) {
+        CB_ENSURE(CheckExists(TimestampsFilePath), "Error: timestamps file '" << TimestampsFilePath << "' doesn't exist");
     }
 
     if (BaselineFilePath.Inited()) {

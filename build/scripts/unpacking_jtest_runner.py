@@ -74,8 +74,10 @@ def main():
 
     # unpack tests jar
     try:
-        dest = os.path.join(args[args.index('--build-root') + 1], 'test-classes')
+        build_root = args[args.index('--build-root') + 1]
+        dest = os.path.join(build_root, 'test-classes')
     except Exception:
+        build_root = ''
         dest = os.path.abspath('test-classes')
 
     s = time.time()
@@ -97,7 +99,7 @@ def main():
         fixed_name = os.path.join(os.path.dirname(real_name), 'fixed.bfg.txt')
         with open(fixed_name, 'w') as fixed:
             with open(real_name) as origin:
-                fixed.write(os.pathsep.join([i.strip().replace(opts.tests_jar_path, dest) for i in origin]))
+                fixed.write(os.pathsep.join([os.path.join(build_root, i.strip().replace(opts.tests_jar_path, dest)) for i in origin]))
         args = fix_cmd(args[:cp_idx + 1]) + ['@' + fixed_name] + args[cp_idx + 2:]
     else:
         args[cp_idx + 1] = args[cp_idx + 1].replace(opts.tests_jar_path, dest)

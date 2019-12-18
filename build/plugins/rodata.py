@@ -1,3 +1,4 @@
+import argparse
 import os
 
 import _common as common
@@ -14,7 +15,6 @@ class ROData(iw.CustomCommand):
         if prefix:
             self._flags += ['--prefix=' + prefix]
 
-        self._incl_dirs = ['$S', '$B'] + unit.includes()
         self._pre_include = []
 
         flags = unit.get('YASM_FLAGS')
@@ -74,12 +74,20 @@ class ROData(iw.CustomCommand):
     def output(self):
         return common.make_tuples([common.tobuilddir(common.stripext(self._path)) + '.o'])
 
-    def run(self, binary):
+    def requested_vars(self):
+        return [('includes', 'INCLUDE')]
+
+    def run(self, extra_args, binary):
         in_file = self.resolve_path(common.get(self.input, 0))
         in_file_no_ext = common.stripext(in_file)
         file_name = os.path.basename(in_file_no_ext)
         file_size = os.path.getsize(in_file)
         tmp_file = self.resolve_path(common.get(self.output, 0) + '.asm')
+
+        parser = argparse.ArgumentParser(prog='rodata.py', add_help=False)
+        parser.add_argument('--includes', help='module\'s addincls', nargs='*', required=False)
+        args = parser.parse_args(extra_args)
+        self._incl_dirs = args.includes
 
         with open(tmp_file, 'w') as f:
             f.write('global ' + self._prefix + file_name + '\n')
@@ -104,7 +112,7 @@ class ROData(iw.CustomCommand):
         def incls():
             for x in self._incl_dirs:
                 yield '-I'
-                yield self.resolve_path(x)
+                yield x
 
         cmd = [binary, '-f', self._fmt] + list(plt()) + ['-D', '_' + self._type + '_', '-D_YASM_'] + self._flags + list(incls()) + ['-o', common.get(self.output, 0), path]
         self.call(cmd)
@@ -127,7 +135,7 @@ class RODataCXX(iw.CustomCommand):
     def output(self):
         return common.make_tuples([self.main_out()])
 
-    def run(self, binary):
+    def run(self, extra_args, binary):
         with open(self.resolve_path(self.main_out()), 'w') as f:
             f.write('static_assert(sizeof(unsigned int) == 4, "ups, something gone wrong");\n\n')
             f.write('extern "C" {\n')

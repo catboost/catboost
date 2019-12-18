@@ -46,6 +46,8 @@ namespace NCB {
 
         virtual void SetPairs(TVector<TPair>&& pairs) = 0;
 
+        virtual void SetTimestamps(TVector<ui64>&& timestamps) = 0;
+
         // less effective version for Cython
         void SetPairs(TConstArrayRef<TPair> pairs) {
             TVector<TPair> pairsCopy;

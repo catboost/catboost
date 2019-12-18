@@ -3,18 +3,12 @@
 #include "features_layout.h"
 
 #include <catboost/libs/column_description/column.h>
-#include <catboost/private/libs/data_types/groupid.h>
-#include <catboost/private/libs/data_types/pair.h>
-#include <catboost/libs/helpers/serialization.h>
-#include <catboost/libs/model/features.h>
 
 #include <library/binsaver/bin_saver.h>
 
-#include <util/generic/array_ref.h>
-#include <util/generic/fwd.h>
-#include <util/generic/ptr.h>
+#include <util/generic/maybe.h>
+#include <util/generic/string.h>
 #include <util/generic/vector.h>
-#include <util/string/vector.h>
 #include <util/system/types.h>
 
 
@@ -72,6 +66,7 @@ namespace NCB {
         TDataMetaInfo(
             TMaybe<TDataColumnsMetaInfo>&& columnsInfo,
             bool hasAdditionalGroupWeight,
+            bool hasTimestamp,
             bool hasPairs,
             TMaybe<ui32> additionalBaselineCount = Nothing(),
 

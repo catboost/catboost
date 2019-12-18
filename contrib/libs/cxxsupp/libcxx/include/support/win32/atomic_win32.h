@@ -63,7 +63,7 @@ static inline void __c11_atomic_init(_Atomic(_Tp)* __a,  _Tp __val) {
     *__a = __val;
 }
 
-static inline void __c11_atomic_thread_fence(memory_order __order) {
+static inline void __c11_atomic_thread_fence(int __order) {
     if (__order != memory_order_relaxed) {
 #if defined(_M_IX86) || defined(_M_X64)
         if (__order == memory_order_seq_cst) {
@@ -77,7 +77,7 @@ static inline void __c11_atomic_thread_fence(memory_order __order) {
     }
 }
 
-static inline void __c11_atomic_signal_fence(memory_order /*__order*/) {
+static inline void __c11_atomic_signal_fence(int /*__order*/) {
     _ReadWriteBarrier();
 }
 
@@ -215,15 +215,15 @@ static inline void __msvc_atomic_store64(volatile __int64* __a, __int64 __val,
 
 template <typename _Tp>
 static inline void __c11_atomic_store(volatile _Atomic(_Tp)* __a,  _Tp __val,
-                                      memory_order __order) {
+                                      int __order) {
     if (sizeof(_Tp) == 1) {
-        __msvc_atomic_store8((volatile char*)__a, __msvc_cast<char>(__val), __order);
+        __msvc_atomic_store8((volatile char*)__a, __msvc_cast<char>(__val), (memory_order)__order);
     } else if (sizeof(_Tp) == 2 && alignof(_Tp) % 2 == 0) {
-        __msvc_atomic_store16((volatile short*)__a, __msvc_cast<short>(__val), __order);
+        __msvc_atomic_store16((volatile short*)__a, __msvc_cast<short>(__val), (memory_order)__order);
     } else if (sizeof(_Tp) == 4 && alignof(_Tp) % 4 == 0) {
-        __msvc_atomic_store32((volatile long*)__a, __msvc_cast<long>(__val), __order);
+        __msvc_atomic_store32((volatile long*)__a, __msvc_cast<long>(__val), (memory_order)__order);
     } else if (sizeof(_Tp) == 8 && alignof(_Tp) % 8 == 0) {
-        __msvc_atomic_store64((volatile __int64*)__a, __msvc_cast<__int64>(__val), __order);
+        __msvc_atomic_store64((volatile __int64*)__a, __msvc_cast<__int64>(__val), (memory_order)__order);
     } else {
         __msvc_lock((void*)__a);
         *(_Atomic(_Tp)*)__a = __val;
@@ -232,7 +232,7 @@ static inline void __c11_atomic_store(volatile _Atomic(_Tp)* __a,  _Tp __val,
 }
 
 template<typename _Tp>
-static inline void __c11_atomic_store(_Atomic(_Tp)* __a, _Tp __val, memory_order __order) {
+static inline void __c11_atomic_store(_Atomic(_Tp)* __a, _Tp __val, int __order) {
     __c11_atomic_store((volatile _Atomic(_Tp)*)__a, __val, __order);
 }
 
@@ -367,16 +367,16 @@ static inline __int64 __msvc_atomic_load64(volatile __int64* __a, memory_order _
 }
 
 template<typename _Tp>
-static inline _Tp __c11_atomic_load(volatile _Atomic(_Tp)* __a, memory_order __order) {
+static inline _Tp __c11_atomic_load(volatile _Atomic(_Tp)* __a, int __order) {
     _Tp __result;
     if (sizeof(_Tp) == 1) {
-        __result = __msvc_cast<_Tp>(__msvc_atomic_load8((volatile char*)__a, __order));
+        __result = __msvc_cast<_Tp>(__msvc_atomic_load8((volatile char*)__a, (memory_order)__order));
     } else if (sizeof(_Tp) == 2 && alignof(_Tp) % 2 == 0) {
-        __result = __msvc_cast<_Tp>(__msvc_atomic_load16((volatile short*)__a, __order));
+        __result = __msvc_cast<_Tp>(__msvc_atomic_load16((volatile short*)__a, (memory_order)__order));
     } else if (sizeof(_Tp) == 4 && alignof(_Tp) % 4 == 0) {
-        __result = __msvc_cast<_Tp>(__msvc_atomic_load32((volatile long*)__a, __order));
+        __result = __msvc_cast<_Tp>(__msvc_atomic_load32((volatile long*)__a, (memory_order)__order));
     } else if (sizeof(_Tp) == 8 && alignof(_Tp) % 8 == 0) {
-        __result = __msvc_cast<_Tp>(__msvc_atomic_load64((volatile __int64*)__a, __order));
+        __result = __msvc_cast<_Tp>(__msvc_atomic_load64((volatile __int64*)__a, (memory_order)__order));
     } else {
         __msvc_lock((void*)__a);
         __result = *(_Atomic(_Tp)*)__a;
@@ -386,7 +386,7 @@ static inline _Tp __c11_atomic_load(volatile _Atomic(_Tp)* __a, memory_order __o
 }
 
 template<typename _Tp>
-static inline _Tp __c11_atomic_load(_Atomic(_Tp)* __a, memory_order __order) {
+static inline _Tp __c11_atomic_load(_Atomic(_Tp)* __a, int __order) {
     return __c11_atomic_load((volatile _Atomic(_Tp)*)__a, __order);
 }
 
@@ -480,20 +480,20 @@ static inline __int64 __msvc_atomic_exchange64(volatile __int64* __a, __int64 __
 
 template<typename _Tp>
 static inline _Tp __c11_atomic_exchange(volatile _Atomic(_Tp)* __a, _Tp __val,
-                                        memory_order __order) {
+                                        int __order) {
     _Tp __result;
     if (sizeof(_Tp) == 1) {
         __result = __msvc_cast<_Tp>(
-            __msvc_atomic_exchange8((volatile char*)__a, __msvc_cast<char>(__val), __order));
+            __msvc_atomic_exchange8((volatile char*)__a, __msvc_cast<char>(__val), (memory_order)__order));
     } else if (sizeof(_Tp) == 2 && alignof(_Tp) % 2 == 0) {
         __result = __msvc_cast<_Tp>(
-            __msvc_atomic_exchange16((volatile short*)__a, __msvc_cast<short>(__val), __order));
+            __msvc_atomic_exchange16((volatile short*)__a, __msvc_cast<short>(__val), (memory_order)__order));
     } else if (sizeof(_Tp) == 4 && alignof(_Tp) % 4 == 0) {
         __result = __msvc_cast<_Tp>(
-            __msvc_atomic_exchange32((volatile long*)__a, __msvc_cast<long>(__val), __order));
+            __msvc_atomic_exchange32((volatile long*)__a, __msvc_cast<long>(__val), (memory_order)__order));
     } else if (sizeof(_Tp) == 8 && alignof(_Tp) % 8 == 0) {
         __result = __msvc_cast<_Tp>(
-            __msvc_atomic_exchange64((volatile __int64*)__a, __msvc_cast<__int64>(__val), __order));
+            __msvc_atomic_exchange64((volatile __int64*)__a, __msvc_cast<__int64>(__val), (memory_order)__order));
     } else {
         __msvc_lock((void*)__a);
         __result = *(_Atomic(_Tp)*)__a;
@@ -505,7 +505,7 @@ static inline _Tp __c11_atomic_exchange(volatile _Atomic(_Tp)* __a, _Tp __val,
 
 template<typename _Tp>
 static inline _Tp __c11_atomic_exchange(_Atomic(_Tp)* __a, _Tp __val,
-                                        memory_order __order) {
+                                        int __order) {
     return __c11_atomic_exchange((volatile _Atomic(_Tp)*)__a, __val, __order);
 }
 
@@ -624,8 +624,8 @@ static inline memory_order constexpr __msvc_top_memory_order(memory_order __orde
 template<typename _Tp>
 static inline bool __c11_atomic_compare_exchange_strong(
     volatile _Atomic(_Tp)* __a, _Tp* __expected, _Tp __value,
-    memory_order __order_success, memory_order __order_failure) {
-    memory_order __order = __msvc_top_memory_order(__order_success, __order_failure);
+    int __order_success, int __order_failure) {
+    memory_order __order = __msvc_top_memory_order((memory_order)__order_success, (memory_order)__order_failure);
     if (sizeof(_Tp) == 1) {
         return __msvc_atomic_compare_exchange8((volatile char*)__a, __msvc_cast<char>(__value), (char*)__expected, __order);
     } else if (sizeof(_Tp) == 2 && alignof(_Tp) % 2 == 0) {
@@ -662,7 +662,7 @@ static inline bool __c11_atomic_compare_exchange_strong(
 template<typename _Tp>
 static inline bool __c11_atomic_compare_exchange_strong(
     _Atomic(_Tp)* __a, _Tp* __expected, _Tp __value,
-    memory_order __order_success, memory_order __order_failure) {
+    int __order_success, int __order_failure) {
     return __c11_atomic_compare_exchange_strong(
         (volatile _Atomic(_Tp)*)__a, __expected, __value, __order_success, __order_failure);
 }
@@ -670,14 +670,14 @@ static inline bool __c11_atomic_compare_exchange_strong(
 template<typename _Tp>
 static inline bool __c11_atomic_compare_exchange_weak(
     volatile _Atomic(_Tp)* __a, _Tp* __expected, _Tp __value,
-    memory_order __order_success, memory_order __order_failure) {
+    int __order_success, int __order_failure) {
     return __c11_atomic_compare_exchange_strong(__a, __expected, __value, __order_success, __order_failure);
 }
 
 template<typename _Tp>
 static inline bool __c11_atomic_compare_exchange_weak(
     _Atomic(_Tp)* __a, _Tp* __expected, _Tp __value,
-    memory_order __order_success, memory_order __order_failure) {
+    int __order_success, int __order_failure) {
     return __c11_atomic_compare_exchange_strong(__a, __expected, __value, __order_success, __order_failure);
 }
 
@@ -774,16 +774,16 @@ static inline __int64 __msvc_atomic_fetch_add64(volatile __int64* __a, __int64 _
 
 template <typename _Tp, typename _Td>
 static inline _Tp __c11_atomic_fetch_add(volatile _Atomic(_Tp)* __a,
-                                         _Td __delta, memory_order __order) {
+                                         _Td __delta, int __order) {
     _Td __real_delta = __delta * __msvc_skip<_Tp>::value;
     if (sizeof(_Tp) == 1 && std::is_integral<_Tp>::value) {
-        return __msvc_cast<_Tp>(__msvc_atomic_fetch_add8((volatile char*)__a, (char)__real_delta, __order));
+        return __msvc_cast<_Tp>(__msvc_atomic_fetch_add8((volatile char*)__a, (char)__real_delta, (memory_order)__order));
     } else if (sizeof(_Tp) == 2 && std::is_integral<_Tp>::value) {
-        return __msvc_cast<_Tp>(__msvc_atomic_fetch_add16((volatile short*)__a, (short)__real_delta, __order));
+        return __msvc_cast<_Tp>(__msvc_atomic_fetch_add16((volatile short*)__a, (short)__real_delta, (memory_order)__order));
     } else if (sizeof(_Tp) == 4 && (std::is_integral<_Tp>::value || std::is_pointer<_Tp>::value)) {
-        return __msvc_cast<_Tp>(__msvc_atomic_fetch_add32((volatile long*)__a, (long)__real_delta, __order));
+        return __msvc_cast<_Tp>(__msvc_atomic_fetch_add32((volatile long*)__a, (long)__real_delta, (memory_order)__order));
     } else if (sizeof(_Tp) == 8 && (std::is_integral<_Tp>::value || std::is_pointer<_Tp>::value)) {
-        return __msvc_cast<_Tp>(__msvc_atomic_fetch_add64((volatile __int64*)__a, (__int64)__real_delta, __order));
+        return __msvc_cast<_Tp>(__msvc_atomic_fetch_add64((volatile __int64*)__a, (__int64)__real_delta, (memory_order)__order));
     } else {
         __msvc_lock((void*)__a);
         _Tp __result = *(_Atomic(_Tp)*)__a;
@@ -795,23 +795,23 @@ static inline _Tp __c11_atomic_fetch_add(volatile _Atomic(_Tp)* __a,
 
 template <typename _Tp, typename _Td>
 static inline _Tp __c11_atomic_fetch_add(_Atomic(_Tp)* __a,
-                                         _Td __delta, memory_order __order) {
+                                         _Td __delta, int __order) {
     return __c11_atomic_fetch_add((volatile _Atomic(_Tp)*) __a, __delta, __order);
 }
 
 template <typename _Tp, typename _Td>
 static inline _Tp __c11_atomic_fetch_sub(volatile _Atomic(_Tp)* __a,
-                                         _Td __delta, memory_order __order) {
+                                         _Td __delta, int __order) {
     _Td __real_delta = __delta * __msvc_skip<_Tp>::value;
     // Cast __real_delta to unsigned types to avoid integer overflow on negation.
     if (sizeof(_Tp) == 1 && std::is_integral<_Tp>::value) {
-        return __msvc_cast<_Tp>(__msvc_atomic_fetch_add8((volatile char*)__a, -(unsigned char)__real_delta, __order));
+        return __msvc_cast<_Tp>(__msvc_atomic_fetch_add8((volatile char*)__a, -(unsigned char)__real_delta, (memory_order)__order));
     } else if (sizeof(_Tp) == 2 && std::is_integral<_Tp>::value) {
-        return __msvc_cast<_Tp>(__msvc_atomic_fetch_add16((volatile short*)__a, -(unsigned short)__real_delta, __order));
+        return __msvc_cast<_Tp>(__msvc_atomic_fetch_add16((volatile short*)__a, -(unsigned short)__real_delta, (memory_order)__order));
     } else if (sizeof(_Tp) == 4 && (std::is_integral<_Tp>::value || std::is_pointer<_Tp>::value)) {
-        return __msvc_cast<_Tp>(__msvc_atomic_fetch_add32((volatile long*)__a, -(unsigned long)__real_delta, __order));
+        return __msvc_cast<_Tp>(__msvc_atomic_fetch_add32((volatile long*)__a, -(unsigned long)__real_delta, (memory_order)__order));
     } else if (sizeof(_Tp) == 8 && (std::is_integral<_Tp>::value || std::is_pointer<_Tp>::value)) {
-        return __msvc_cast<_Tp>(__msvc_atomic_fetch_add64((volatile __int64*)__a, -(unsigned __int64)__real_delta, __order));
+        return __msvc_cast<_Tp>(__msvc_atomic_fetch_add64((volatile __int64*)__a, -(unsigned __int64)__real_delta, (memory_order)__order));
     } else {
         __msvc_lock((void*)__a);
         _Tp __result = *(_Atomic(_Tp)*)__a;
@@ -823,7 +823,7 @@ static inline _Tp __c11_atomic_fetch_sub(volatile _Atomic(_Tp)* __a,
 
 template <typename _Tp, typename _Td>
 static inline _Tp __c11_atomic_fetch_sub(_Atomic(_Tp)* __a,
-                                         _Td __delta, memory_order __order) {
+                                         _Td __delta, int __order) {
     return __c11_atomic_fetch_sub((volatile _Atomic(_Tp)*) __a, __delta, __order);
 }
 
@@ -907,15 +907,15 @@ static inline __int64 __msvc_atomic_fetch_and64(volatile __int64* __a, __int64 _
 
 template <typename _Tp>
 static inline _Tp __c11_atomic_fetch_and(volatile _Atomic(_Tp)* __a,
-                                         _Tp __value, memory_order __order) {
+                                         _Tp __value, int __order) {
     if (sizeof(_Tp) == 1 && (std::is_integral<_Tp>::value || std::is_same<std::remove_cv_t<_Tp>, bool>::value)) {
-        return __msvc_cast<_Tp>(__msvc_atomic_fetch_and8((volatile char*)__a, __msvc_cast<char>(__value), __order));
+        return __msvc_cast<_Tp>(__msvc_atomic_fetch_and8((volatile char*)__a, __msvc_cast<char>(__value), (memory_order)__order));
     } else if (sizeof(_Tp) == 2 && std::is_integral<_Tp>::value) {
-        return (_Tp)__msvc_atomic_fetch_and16((volatile short*)__a, (short)__value, __order);
+        return (_Tp)__msvc_atomic_fetch_and16((volatile short*)__a, (short)__value, (memory_order)__order);
     } else if (sizeof(_Tp) == 4 && std::is_integral<_Tp>::value) {
-        return (_Tp) __msvc_atomic_fetch_and32((volatile long*)__a, (long)__value, __order);
+        return (_Tp) __msvc_atomic_fetch_and32((volatile long*)__a, (long)__value, (memory_order)__order);
     } else if (sizeof(_Tp) == 8 && std::is_integral<_Tp>::value) {
-        return (_Tp) __msvc_atomic_fetch_and64((volatile __int64*)__a, (__int64)__value, __order);
+        return (_Tp) __msvc_atomic_fetch_and64((volatile __int64*)__a, (__int64)__value, (memory_order)__order);
     } else {
         __msvc_lock((void*)__a);
         _Tp __result = *(_Atomic(_Tp)*)__a;
@@ -927,7 +927,7 @@ static inline _Tp __c11_atomic_fetch_and(volatile _Atomic(_Tp)* __a,
 
 template <typename _Tp>
 static inline _Tp __c11_atomic_fetch_and(_Atomic(_Tp)* __a,
-                                         _Tp __value, memory_order __order) {
+                                         _Tp __value, int __order) {
     return __c11_atomic_fetch_and((volatile _Atomic(_Tp)*)__a, __value, __order);
 }
 
@@ -1011,15 +1011,15 @@ static inline __int64 __msvc_atomic_fetch_or64(volatile __int64* __a, __int64 __
 
 template <typename _Tp>
 static inline _Tp __c11_atomic_fetch_or(volatile _Atomic(_Tp)* __a,
-                                        _Tp __value, memory_order __order) {
+                                        _Tp __value, int __order) {
     if (sizeof(_Tp) == 1 && (std::is_integral<_Tp>::value || std::is_same<std::remove_cv_t<_Tp>, bool>::value)) {
-        return __msvc_cast<_Tp>(__msvc_atomic_fetch_or8((volatile char*)__a, __msvc_cast<char>(__value), __order));
+        return __msvc_cast<_Tp>(__msvc_atomic_fetch_or8((volatile char*)__a, __msvc_cast<char>(__value), (memory_order)__order));
     } else if (sizeof(_Tp) == 2 && std::is_integral<_Tp>::value) {
-        return (_Tp)__msvc_atomic_fetch_or16((volatile short*)__a, (short)__value, __order);
+        return (_Tp)__msvc_atomic_fetch_or16((volatile short*)__a, (short)__value, (memory_order)__order);
     } else if (sizeof(_Tp) == 4 && std::is_integral<_Tp>::value) {
-        return (_Tp) __msvc_atomic_fetch_or32((volatile long*)__a, (long)__value, __order);
+        return (_Tp) __msvc_atomic_fetch_or32((volatile long*)__a, (long)__value, (memory_order)__order);
     } else if (sizeof(_Tp) == 8 && std::is_integral<_Tp>::value) {
-        return (_Tp) __msvc_atomic_fetch_or64((volatile __int64*)__a, (__int64)__value, __order);
+        return (_Tp) __msvc_atomic_fetch_or64((volatile __int64*)__a, (__int64)__value, (memory_order)__order);
     } else {
         __msvc_lock((void*)__a);
         _Tp __result = *(_Atomic(_Tp)*)__a;
@@ -1031,7 +1031,7 @@ static inline _Tp __c11_atomic_fetch_or(volatile _Atomic(_Tp)* __a,
 
 template <typename _Tp>
 static inline _Tp __c11_atomic_fetch_or(_Atomic(_Tp)* __a,
-                                        _Tp __value, memory_order __order) {
+                                        _Tp __value, int __order) {
     return __c11_atomic_fetch_or((volatile _Atomic(_Tp)*)__a, __value, __order);
 }
 
@@ -1115,15 +1115,15 @@ static inline __int64 __msvc_atomic_fetch_xor64(volatile __int64* __a, __int64 _
 
 template <typename _Tp>
 static inline _Tp __c11_atomic_fetch_xor(volatile _Atomic(_Tp)* __a,
-                                         _Tp __value, memory_order __order) {
+                                         _Tp __value, int __order) {
     if (sizeof(_Tp) == 1 && (std::is_integral<_Tp>::value || std::is_same<std::remove_cv_t<_Tp>, bool>::value)) {
-        return __msvc_cast<_Tp>(__msvc_atomic_fetch_xor8((volatile char*)__a, __msvc_cast<char>(__value), __order));
+        return __msvc_cast<_Tp>(__msvc_atomic_fetch_xor8((volatile char*)__a, __msvc_cast<char>(__value), (memory_order)__order));
     } else if (sizeof(_Tp) == 2 && std::is_integral<_Tp>::value) {
-        return (_Tp)__msvc_atomic_fetch_xor16((volatile short*)__a, (short)__value, __order);
+        return (_Tp)__msvc_atomic_fetch_xor16((volatile short*)__a, (short)__value, (memory_order)__order);
     } else if (sizeof(_Tp) == 4 && std::is_integral<_Tp>::value) {
-        return (_Tp) __msvc_atomic_fetch_xor32((volatile long*)__a, (long)__value, __order);
+        return (_Tp) __msvc_atomic_fetch_xor32((volatile long*)__a, (long)__value, (memory_order)__order);
     } else if (sizeof(_Tp) == 8 && std::is_integral<_Tp>::value) {
-        return (_Tp) __msvc_atomic_fetch_xor64((volatile __int64*)__a, (__int64)__value, __order);
+        return (_Tp) __msvc_atomic_fetch_xor64((volatile __int64*)__a, (__int64)__value, (memory_order)__order);
     } else {
         __msvc_lock((void*)__a);
         _Tp __result = *(_Atomic(_Tp)*)__a;
@@ -1135,7 +1135,7 @@ static inline _Tp __c11_atomic_fetch_xor(volatile _Atomic(_Tp)* __a,
 
 template <typename _Tp>
 static inline _Tp __c11_atomic_fetch_xor(_Atomic(_Tp)* __a,
-                                         _Tp __value, memory_order __order) {
+                                         _Tp __value, int __order) {
     return __c11_atomic_fetch_xor((volatile _Atomic(_Tp)*)__a, __value, __order);
 }
 

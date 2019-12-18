@@ -192,6 +192,7 @@ namespace NCB {
         void OutputHeader(IOutputStream* outStream) override;
 
     private:
+        EPredictionType PredictionType;
         TVector<TString> Header;
         TVector<TVector<TVector<double>>> Approxes;
         const TExternalLabelsHelper& VisibleLabelsHelper;

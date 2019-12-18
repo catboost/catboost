@@ -1869,7 +1869,7 @@ class CatBoost(_CatBoostBase):
         prediction_type : string, optional (default='RawFormulaVal')
             Can be:
             - 'RawFormulaVal' : return raw value.
-            - 'Class' : return majority vote class.
+            - 'Class' : return class label.
             - 'Probability' : return probability for every class.
 
         ntree_start: int, optional (default=0)
@@ -1892,11 +1892,11 @@ class CatBoost(_CatBoostBase):
         prediction :
             If data is for a single object, the return value depends on prediction_type value:
                 - 'RawFormulaVal' : return raw formula value.
-                - 'Class' : return majority vote class.
+                - 'Class' : return class label.
                 - 'Probability' : return one-dimensional numpy.ndarray with probability for every class.
             otherwise numpy.ndarray, with values that depend on prediction_type value:
                 - 'RawFormulaVal' : one-dimensional array of raw formula value for each object.
-                - 'Class' : one-dimensional array of majority vote class for each object.
+                - 'Class' : one-dimensional array of class label for each object.
                 - 'Probability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
                   with probability for every class for each object.
         """
@@ -1930,7 +1930,7 @@ class CatBoost(_CatBoostBase):
         prediction_type : string, optional (default='RawFormulaVal')
             Can be:
             - 'RawFormulaVal' : return raw formula value.
-            - 'Class' : return majority vote class.
+            - 'Class' : return class label.
             - 'Probability' : return probability for every class.
 
         ntree_start: int, optional (default=0)
@@ -1956,11 +1956,11 @@ class CatBoost(_CatBoostBase):
         prediction : generator for each iteration that generates:
             If data is for a single object, the return value depends on prediction_type value:
                 - 'RawFormulaVal' : return raw formula value.
-                - 'Class' : return majority vote class.
+                - 'Class' : return class label.
                 - 'Probability' : return one-dimensional numpy.ndarray with probability for every class.
             otherwise numpy.ndarray, with values that depend on prediction_type value:
                 - 'RawFormulaVal' : one-dimensional array of raw formula value for each object.
-                - 'Class' : one-dimensional array of majority vote class for each object.
+                - 'Class' : one-dimensional array of class label for each object.
                 - 'Probability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
                   with probability for every class for each object.
         """
@@ -3808,7 +3808,7 @@ class CatBoostClassifier(CatBoost):
         prediction_type : string, optional (default='Class')
             Can be:
             - 'RawFormulaVal' : return raw formula value.
-            - 'Class' : return majority vote class.
+            - 'Class' : return class label.
             - 'Probability' : return probability for every class.
             - 'LogProbability' : return log probability for every class.
 
@@ -3832,13 +3832,13 @@ class CatBoostClassifier(CatBoost):
         prediction:
             If data is for a single object, the return value depends on prediction_type value:
                 - 'RawFormulaVal' : return raw formula value.
-                - 'Class' : return majority vote class.
+                - 'Class' : return class label.
                 - 'Probability' : return one-dimensional numpy.ndarray with probability for every class.
                 - 'LogProbability' : return one-dimensional numpy.ndarray with
                   log probability for every class.
             otherwise numpy.ndarray, with values that depend on prediction_type value:
                 - 'RawFormulaVal' : one-dimensional array of raw formula value for each object.
-                - 'Class' : one-dimensional array of majority vote class for each object.
+                - 'Class' : one-dimensional array of class label for each object.
                 - 'Probability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
                   with probability for every class for each object.
                 - 'LogProbability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
@@ -3938,7 +3938,7 @@ class CatBoostClassifier(CatBoost):
         prediction_type : string, optional (default='Class')
             Can be:
             - 'RawFormulaVal' : return raw formula value.
-            - 'Class' : return majority vote class.
+            - 'Class' : return class label.
             - 'Probability' : return probability for every class.
             - 'LogProbability' : return log probability for every class.
 
@@ -3971,7 +3971,7 @@ class CatBoostClassifier(CatBoost):
                   log probability for every class.
             otherwise numpy.ndarray, with values that depend on prediction_type value:
                 - 'RawFormulaVal' : one-dimensional array of raw formula value for each object.
-                - 'Class' : one-dimensional array of majority vote class for each object.
+                - 'Class' : one-dimensional array of class label for each object.
                 - 'Probability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)
                   with probability for every class for each object.
                 - 'LogProbability' : two-dimensional numpy.ndarray with shape (number_of_objects x number_of_classes)

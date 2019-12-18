@@ -54,11 +54,11 @@ def ongenerate_script(unit, *args):
     Feel free to remind
     """
     flat, kv = common.sort_by_keywords(
-        {'OUT': 1, 'TEMPLATE': -1, 'CUSTOM_PROPERTY': -1},
+        {'OUT': -1, 'TEMPLATE': -1, 'CUSTOM_PROPERTY': -1},
         args
     )
-    if len(kv.get('TEMPLATE', [])) > 1:
-        ymake.report_configure_error('To mane arguments for TEMPLATE parameter')
+    if len(kv.get('TEMPLATE', [])) > len(kv.get('OUT', [])):
+        ymake.report_configure_error('To many arguments for TEMPLATE parameter')
     prev = unit.get(['GENERATE_SCRIPT_VALUE']) or ''
     new_val = (prev + ' ' + base64.b64encode(json.dumps(list(args), encoding='utf-8'))).strip()
     unit.set(['GENERATE_SCRIPT_VALUE', new_val])

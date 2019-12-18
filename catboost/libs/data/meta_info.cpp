@@ -1,7 +1,10 @@
 #include "meta_info.h"
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/serialization.h>
 
+#include <util/generic/algorithm.h>
+#include <util/generic/ptr.h>
 #include <util/generic/xrange.h>
 #include <util/string/split.h>
 
@@ -34,6 +37,7 @@ void TDataColumnsMetaInfo::Validate() const {
 TDataMetaInfo::TDataMetaInfo(
     TMaybe<TDataColumnsMetaInfo>&& columnsInfo,
     bool hasAdditionalGroupWeight,
+    bool hasTimestamp,
     bool hasPairs,
     TMaybe<ui32> additionalBaselineCount,
     TMaybe<const TVector<TString>*> featureNames,
@@ -48,7 +52,7 @@ TDataMetaInfo::TDataMetaInfo(
     HasGroupId = ColumnsInfo->CountColumns(EColumn::GroupId) != 0;
     HasGroupWeight = ColumnsInfo->CountColumns(EColumn::GroupWeight) != 0 || hasAdditionalGroupWeight;
     HasSubgroupIds = ColumnsInfo->CountColumns(EColumn::SubgroupId) != 0;
-    HasTimestamp = ColumnsInfo->CountColumns(EColumn::Timestamp) != 0;
+    HasTimestamp = ColumnsInfo->CountColumns(EColumn::Timestamp) != 0 || hasTimestamp;
     HasPairs = hasPairs;
 
     // if featureNames is defined - take from it, otherwise take from Id in columns

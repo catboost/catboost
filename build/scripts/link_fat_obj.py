@@ -10,6 +10,7 @@ def get_args():
     parser.add_argument('--obj', required=True)
     parser.add_argument('--lib', required=True)
     parser.add_argument('--arch', required=True)
+    parser.add_argument('--build-root', default=None)
     parser.add_argument('--with-own-obj', action='store_true', default=False)
     parser.add_argument('--with-global-srcs', action='store_true', default=False)
 
@@ -64,7 +65,7 @@ def main():
 
     def call(c):
         print >> sys.stderr, ' '.join(c)
-        proc = subprocess.Popen(c, shell=False, stderr=sys.stderr, stdout=sys.stdout)
+        proc = subprocess.Popen(c, shell=False, stderr=sys.stderr, stdout=sys.stdout, cwd=args.build_root)
         proc.communicate()
         return proc.returncode
 

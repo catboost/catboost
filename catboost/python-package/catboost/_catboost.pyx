@@ -219,7 +219,7 @@ cdef class Py_ITypedSequencePtr:
 def make_non_owning_type_cast_array_holder(np.ndarray[numpy_num_dtype, ndim=1] array):
 
     """
-        older buffer interface is used instead of memory views because of 
+        older buffer interface is used instead of memory views because of
         https://github.com/cython/cython/issues/1772, https://github.com/cython/cython/issues/2485
     """
 
@@ -779,6 +779,7 @@ cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath,
         const TPathWithScheme& groupWeightsFilePath,
+        const TPathWithScheme& timestampsFilePath,
         const TPathWithScheme& baselineFilePath,
         const TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector[ui32]& ignoredFeatures,
@@ -1613,11 +1614,12 @@ cdef void _ObjectiveCalcDersMulti(
     for index, der in enumerate(ders_vector):
         dereference(ders)[index] = der
 
-    index = 0
-    for indY, line in enumerate(second_ders_matrix):
-        for num in line[indY:]:
-            dereference(der2).Data[index] = num
-            index += 1
+    if der2:
+        index = 0
+        for indY, line in enumerate(second_ders_matrix):
+            for num in line[indY:]:
+                dereference(der2).Data[index] = num
+                index += 1
 
 # customGenerator should have method rvs()
 cdef TCustomRandomDistributionGenerator _BuildCustomRandomDistributionGenerator(object customGenerator):
@@ -1654,13 +1656,15 @@ cdef transform_predictions(const TVector[TVector[double]]& predictions, EPredict
     approx_dimension = model.GetDimensionsCount()
 
     if approx_dimension == 1:
-        pred_single_dim = _vector_of_double_to_np_array(predictions[0])
-
-        if predictionType == EPredictionType_Probability:
-            return np.transpose([1 - pred_single_dim, pred_single_dim])
+        if predictionType == EPredictionType_Class:
+            return np.array(_convert_to_visible_labels(predictionType, predictions, thread_count, model)[0])
         elif predictionType == EPredictionType_LogProbability:
             return np.transpose(_convert_to_visible_labels(predictionType, predictions, thread_count, model))
-        return pred_single_dim
+        else:
+            pred_single_dim = _vector_of_double_to_np_array(predictions[0])
+            if predictionType == EPredictionType_Probability:
+                return np.transpose([1 - pred_single_dim, pred_single_dim])
+            return pred_single_dim
 
     assert(approx_dimension > 1)
     return np.transpose(_convert_to_visible_labels(predictionType, predictions, thread_count, model))
@@ -2050,7 +2054,7 @@ def _set_features_order_data_features_data(
 ):
 
     """
-        older buffer interface is used instead of memory views because of 
+        older buffer interface is used instead of memory views because of
         https://github.com/cython/cython/issues/1772, https://github.com/cython/cython/issues/2485
     """
 
@@ -2106,7 +2110,7 @@ def _set_features_order_data_ndarray(
 ):
 
     """
-        older buffer interface is used instead of memory views because of 
+        older buffer interface is used instead of memory views because of
         https://github.com/cython/cython/issues/1772, https://github.com/cython/cython/issues/2485
     """
 
@@ -2244,7 +2248,7 @@ cdef get_text_factor_bytes_representation(
 cdef get_canonical_type_indexing_array(np.ndarray indices, TMaybeOwningConstArrayHolder[ui32] * result):
 
     """
-        older buffer interface is used instead of memory views because of 
+        older buffer interface is used instead of memory views because of
         https://github.com/cython/cython/issues/1772, https://github.com/cython/cython/issues/2485
     """
     cdef np.ndarray[np.int32_t, ndim=1] indices_i32
@@ -3079,7 +3083,7 @@ def _set_label_from_num_nparray_objects_order(
 ):
 
     """
-        older buffer interface is used instead of memory views because of 
+        older buffer interface is used instead of memory views because of
         https://github.com/cython/cython/issues/1772, https://github.com/cython/cython/issues/2485
     """
 
@@ -3203,6 +3207,7 @@ cdef class _PoolBase:
         self.__pool = ReadDataset(
             pool_file_path,
             pairs_file_path,
+            TPathWithScheme(),
             TPathWithScheme(),
             TPathWithScheme(),
             columnarPoolFormatParams,

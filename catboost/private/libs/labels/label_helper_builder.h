@@ -13,6 +13,11 @@ TLabelsHelper BuildLabelsHelper(const TFullModel& model) {
         else {
             labelsHelper.Initialize(model.GetDimensionsCount());
         }
+    } else {
+        const TVector<TString> binclassNames = model.GetModelClassNames();
+        if (!binclassNames.empty()) {
+            labelsHelper.Initialize(binclassNames);
+        }
     }
     return labelsHelper;
 }

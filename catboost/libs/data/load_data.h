@@ -24,6 +24,7 @@ namespace NCB {
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
+        const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
         const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
@@ -38,6 +39,7 @@ namespace NCB {
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
+        const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
         const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
@@ -52,6 +54,7 @@ namespace NCB {
         THolder<ILineDataReader> lineReader,
         const TPathWithScheme& pairsFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
+        const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
         const NCB::TDsvFormatOptions& poolFormat,
         const TVector<TColumn>& columnsDescription, // TODO(smirnovpavel): TVector<EColumn>

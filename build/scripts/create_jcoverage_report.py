@@ -24,7 +24,7 @@ class Timer(object):
         self.start = time.time()
 
 
-def main(source, output, java, prefix_filter, exclude_filter, jars_list, output_format, tar_output, agent_disposition):
+def main(source, output, java, prefix_filter, exclude_filter, jars_list, output_format, tar_output, agent_disposition, runners_paths):
     timer = Timer()
     reports_dir = 'jacoco_reports_dir'
     mkdir_p(reports_dir)
@@ -35,6 +35,12 @@ def main(source, output, java, prefix_filter, exclude_filter, jars_list, output_
 
     with open(jars_list) as f:
         jars = f.read().strip().split()
+    if jars and runners_paths:
+        for r in runners_paths:
+            try:
+                jars.remove(r)
+            except ValueError:
+                pass
 
     src_dir = 'sources_dir'
     cls_dir = 'classes_dir'
@@ -92,5 +98,6 @@ if __name__ == '__main__':
     parser.add_argument('--output-format', action='store', default="html")
     parser.add_argument('--raw-output', dest='tar_output', action='store_false', default=True)
     parser.add_argument('--agent-disposition', action='store')
+    parser.add_argument('--runner-path', dest='runners_paths', action='append', default=[])
     args = parser.parse_args()
     main(**vars(args))

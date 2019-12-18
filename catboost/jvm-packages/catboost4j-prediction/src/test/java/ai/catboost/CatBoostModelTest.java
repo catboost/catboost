@@ -844,4 +844,16 @@ public class CatBoostModelTest {
             }
         }
     }
+    
+    @Test
+    public void testEmptyFeaturesArray() throws CatBoostError {
+        try(final CatBoostModel model = loadTestModel()) {
+            final float[][] numericFeatures = new float[0][];
+            final int[][] catFeatures = new int[0][];
+            final CatBoostPredictions expected = new CatBoostPredictions(0, 1, new double[0]);
+            final CatBoostPredictions prediction = model.predict(numericFeatures, catFeatures);
+            assertEqual(expected, prediction);
+            assertEqual(expected, model.predict(numericFeatures, catFeatures));
+        }
+    }
 }

@@ -20,13 +20,15 @@ namespace NCB {
         ui32 targetDimension,
         const TExternalLabelsHelper& visibleLabelsHelper,
         TMaybe<std::pair<size_t, size_t>> evalParameters)
-        : VisibleLabelsHelper(visibleLabelsHelper) {
+        : PredictionType(predictionType)
+        ,VisibleLabelsHelper(visibleLabelsHelper) {
         int begin = 0;
         const bool isMultiTarget = targetDimension > 1;
+        const bool callMakeExternalApprox
+            = VisibleLabelsHelper.IsInitialized()
+                && (VisibleLabelsHelper.GetExternalApproxDimension() > 1);
         for (const auto& raws : rawValues) {
-            CB_ENSURE(VisibleLabelsHelper.IsInitialized() == IsMulticlass(raws),
-                      "Inappropriate usage of visible label helper: it MUST be initialized ONLY for multiclass problem");
-            const auto& approx = VisibleLabelsHelper.IsInitialized() ? MakeExternalApprox(raws, VisibleLabelsHelper) : raws;
+            const auto& approx = callMakeExternalApprox ? MakeExternalApprox(raws, VisibleLabelsHelper) : raws;
             Approxes.push_back(PrepareEval(predictionType, lossFunctionName, approx, executor));
 
             const auto& headers = CreatePredictionTypeHeader(
@@ -46,7 +48,7 @@ namespace NCB {
 
     void TEvalPrinter::OutputValue(IOutputStream* outStream, size_t docIndex) {
         TString delimiter = "";
-        if (VisibleLabelsHelper.IsInitialized() && Approxes.back().ysize() == 1) { // class labels
+        if (PredictionType == EPredictionType::Class) {
             for (const auto& approxes : Approxes) {
                 for (const auto& approx : approxes) {
                     *outStream << delimiter

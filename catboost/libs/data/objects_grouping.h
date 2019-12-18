@@ -360,14 +360,28 @@ namespace NCB {
         return result;
     }
 
-        TVector<TArraySubsetIndexing<ui32>> SplitByObjects(
-            const TObjectsGrouping& objectsGrouping,
-            ui32 partSizeInObjects
-        );
+    TVector<TArraySubsetIndexing<ui32>> SplitByObjects(
+        const TObjectsGrouping& objectsGrouping,
+        ui32 partSizeInObjects
+    );
 
     TVector<TArraySubsetIndexing<ui32>> SplitByGroups(
         const TObjectsGrouping& objectsGrouping,
         ui32 partSizeInGroups
+    );
+
+    TVector<TArraySubsetIndexing<ui32>> QuantileSplitByObjects(
+        const TObjectsGrouping& objectsGrouping,
+        TConstArrayRef<ui64> timestamps,
+        ui64 timesplitQuantileTimestamp,
+        ui32 learnPartSizeInObjects
+    );
+
+    TVector<TArraySubsetIndexing<ui32>> QuantileSplitByGroups(
+        const TObjectsGrouping& objectsGrouping,
+        TConstArrayRef<ui64> timestamps,
+        ui64 timesplitQuantileTimestamp,
+        ui32 learnPartSizeInGroups
     );
 
     using TTimeSeriesTrainTestSubsets = std::pair<TVector<TArraySubsetIndexing<ui32>>,

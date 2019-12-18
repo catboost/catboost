@@ -12,6 +12,7 @@ public:
     TExternalLabelsHelper() : Initialized(false) {};
     void Initialize(const TString& multiclassLabelParams);
     void Initialize(int approxDimension);
+    void Initialize(const TVector<TString>& binclassNames);
     TString GetVisibleClassNameFromClass(int classId) const;
     TString GetVisibleClassNameFromLabel(float label) const;
     int GetExternalIndex(int approxId) const;

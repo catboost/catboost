@@ -98,39 +98,39 @@ static inline TDataProviderPtr MakeProvider(bool gpu, const TDataSet& ds) {
 
 extern "C" {
 
-EXPORT const char* GetErrorString() {
+CATBOOST_API const char* GetErrorString() {
     return Singleton<TErrorMessageHolder>()->Message.data();
 }
 
-EXPORT void FreeHandle(ResultHandle* modelHandle) {
+CATBOOST_API void FreeHandle(ResultHandle* modelHandle) {
     if (*modelHandle != nullptr) {
         delete RESULT_PTR(*modelHandle);
     }
     *modelHandle = nullptr;
 }
 
-EXPORT int TreesCount(ResultHandle handle) {
+CATBOOST_API int TreesCount(ResultHandle handle) {
     if (handle != nullptr) {
         return (int) RESULT_PTR(handle)->ModelTrees->GetTreeCount();
     }
     return 0;
 }
 
-EXPORT int OutputDim(ResultHandle handle) {
+CATBOOST_API int OutputDim(ResultHandle handle) {
     if (handle != nullptr) {
         return (int) RESULT_PTR(handle)->GetDimensionsCount();
     }
     return 0;
 }
 
-EXPORT int TreeDepth(ResultHandle handle, int treeIndex) {
+CATBOOST_API int TreeDepth(ResultHandle handle, int treeIndex) {
     if (handle) {
         return (int) RESULT_PTR(handle)->ModelTrees->GetTreeSizes()[treeIndex];
     }
     return 0;
 }
 
-EXPORT bool CopyTree(
+CATBOOST_API bool CopyTree(
     ResultHandle handle,
     int treeIndex,
     int* features,
@@ -177,10 +177,10 @@ EXPORT bool CopyTree(
     return true;
 }
 
-EXPORT bool TrainCatBoost(const TDataSet* trainPtr,
-                          const TDataSet* testPtr,
-                          const char* paramsJson,
-                          ResultHandle* handlePtr) {
+CATBOOST_API bool TrainCatBoost(const TDataSet* trainPtr,
+                                const TDataSet* testPtr,
+                                const char* paramsJson,
+                                ResultHandle* handlePtr) {
     const auto& train = *trainPtr;
     const auto& test = *testPtr;
     THolder<TFullModel> model = new TFullModel;

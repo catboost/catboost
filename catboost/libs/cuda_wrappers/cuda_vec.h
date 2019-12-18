@@ -2,7 +2,6 @@
 
 #include "base.h"
 
-#include <catboost/libs/helpers/exception.h>
 
 #include <util/generic/array_ref.h>
 #include <util/system/types.h>
@@ -148,7 +147,7 @@ public:
     }
 
     EMemoryType MemoryType() const {
-        CB_ENSURE(Impl_);
+        CUDA_ENSURE(Impl_);
         return Impl_->Type;
     }
 
@@ -190,23 +189,23 @@ public:
 
     void Write(TConstArrayRef<T> src) {
         TCudaStream stream = TCudaStream::ZeroStream();
-        CB_ENSURE(src.size() == Size(), src.size() << " ≠ " << Size());
-        CB_ENSURE(Impl_);
+        CUDA_ENSURE(src.size() == Size(), src.size() << " ≠ " << Size());
+        CUDA_ENSURE(Impl_);
         CUDA_SAFE_CALL(cudaMemcpyAsync((void*)Impl_->Data_, (const void*)src.data(), sizeof(T) * src.size(), cudaMemcpyDefault, stream));
         stream.Synchronize();
     }
 
     void Read(TArrayRef<T> dst) const {
         TCudaStream stream = TCudaStream::ZeroStream();
-        CB_ENSURE(dst.size() == Size());
-        CB_ENSURE(Impl_);
+        CUDA_ENSURE(dst.size() == Size());
+        CUDA_ENSURE(Impl_);
         CUDA_SAFE_CALL(cudaMemcpyAsync((void*)dst.data(), (const void*)Impl_->Data_, sizeof(T) * dst.size(), cudaMemcpyDefault, stream));
         stream.Synchronize();
     }
 
     void ReadAsync(TArrayRef<T> dst, TCudaStream stream) const {
-        CB_ENSURE(dst.size() == Size());
-        CB_ENSURE(Impl_);
+        CUDA_ENSURE(dst.size() == Size());
+        CUDA_ENSURE(Impl_);
         CUDA_SAFE_CALL(cudaMemcpyAsync((void*)dst.data(), (const void*)Impl_->Data_, sizeof(T) * dst.size(), cudaMemcpyDefault, stream));
     }
 
@@ -219,7 +218,7 @@ public:
     };
 
     TArrayRef<T> AsArrayRef() {
-        CB_ENSURE(*this);
+        CUDA_ENSURE(*this);
         return TArrayRef<T>(Impl_->Data_, Impl_->Size_);
     }
 
@@ -233,7 +232,7 @@ public:
     }
 
     TConstArrayRef<T> AsArrayRef() const {
-        CB_ENSURE(*this);
+        CUDA_ENSURE(*this);
         return TConstArrayRef<T>(Impl_->Data_, Impl_->Size_);
     }
 
@@ -267,13 +266,14 @@ inline TCudaVec<T> MakeZeroVec(ui64 size, EMemoryType type) {
 
 template <class T>
 inline void MemoryCopy(TConstArrayRef<T> from, TArrayRef<T> to) {
-    CB_ENSURE(from.size() == to.size(), from.size() << " ≠ " << to.size());
+    DeviceSynchronize();
+    CUDA_ENSURE(from.size() == to.size(), from.size() << " ≠ " << to.size());
     CUDA_SAFE_CALL(cudaMemcpy((void*)to.data(), (const void*)from.data(), sizeof(T) * from.size(), cudaMemcpyDefault));
 }
 
 template <class T>
 inline void MemoryCopyAsync(TConstArrayRef<T> from, TArrayRef<T> to, TCudaStream stream) {
-    CB_ENSURE(from.size() == to.size(), from.size() << " ≠ " << to.size());
+    CUDA_ENSURE(from.size() == to.size(), from.size() << " ≠ " << to.size());
     CUDA_SAFE_CALL(cudaMemcpyAsync((void*)to.data(), (const void*)from.data(), sizeof(T) * from.size(), cudaMemcpyDefault, stream));
 }
 

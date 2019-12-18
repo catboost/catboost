@@ -31,8 +31,10 @@ namespace NCB {
     // can be empty if target data is unavailable
     static TVector<TSharedVector<float>> ConvertTarget(
         TMaybeData<TConstArrayRef<TRawTarget>> maybeRawTarget,
+        bool isRealTarget,
         bool isClass,
         bool isMultiClass,
+        TMaybe<float> targetBorder,
         bool classCountUnknown,
         const TVector<TString> inputClassNames,
         TVector<TString>* outputClassNames,
@@ -45,12 +47,13 @@ namespace NCB {
 
         auto rawTarget = *maybeRawTarget;
 
-        auto targetConverter = MakeTargetConverter(
+        THolder<ITargetConverter> targetConverter = MakeTargetConverter(
+            isRealTarget,
             isClass,
             isMultiClass,
-            classCountUnknown,
-            inputClassNames,
-            outputClassNames);
+            targetBorder,
+            classCountUnknown ? Nothing() : TMaybe<ui32>(*classCount),
+            inputClassNames);
 
         const auto targetDim = rawTarget.size();
         TVector<TSharedVector<float>> trainingTarget(targetDim);
@@ -60,11 +63,15 @@ namespace NCB {
 
         // TODO(akhropov): Process multidimensional target columns in parallel when possible
         for (auto targetIdx : xrange(targetDim)) {
-            *trainingTarget[targetIdx] = targetConverter.Process(rawTarget[targetIdx], localExecutor);
+            *trainingTarget[targetIdx] = targetConverter->Process(rawTarget[targetIdx], localExecutor);
         }
 
         if (isMultiClass && classCountUnknown) {
-            *classCount = targetConverter.GetClassCount();
+            *classCount = targetConverter->GetClassCount();
+        }
+        TMaybe<TVector<TString>> maybeOutputClassNames = targetConverter->GetClassNames();
+        if (maybeOutputClassNames) {
+            *outputClassNames = std::move(*maybeOutputClassNames);
         }
 
         return trainingTarget;
@@ -341,8 +348,14 @@ namespace NCB {
             " specified"
         );
 
-        bool multiClassTargetData = false;
         TMaybe<ui32> knownClassCount = inputClassificationInfo.KnownClassCount;
+        bool classTargetData = (
+            hasClassificationOnlyMetrics ||
+            knownClassCount ||
+            (inputClassificationInfo.ClassWeights.size() > 0) ||
+            (inputClassificationInfo.ClassNames.size() > 0)
+        );
+        bool multiClassTargetData = false;
 
         if (knownModelApproxDimension) {
             if (*knownModelApproxDimension == 1) {
@@ -360,10 +373,11 @@ namespace NCB {
                         << ") specified for a multidimensional model"
                     );
                 }
-                if (!knownClassCount) { // because there might be missing classes in train
+                multiClassTargetData = !hasMultiRegressionMetrics;
+                if (multiClassTargetData && !knownClassCount) {
+                    // because there might be missing classes in train
                     knownClassCount = *knownModelApproxDimension;
                 }
-                multiClassTargetData = !hasMultiRegressionMetrics;
             }
         } else if (hasMultiClassOnlyMetrics ||
             (knownClassCount && *knownClassCount > 2) ||
@@ -391,7 +405,7 @@ namespace NCB {
 
         ui32 classCount = (ui32)GetClassesCount(knownClassCount.GetOrElse(0), inputClassificationInfo.ClassNames);
         TTargetCreationOptions options = {
-            /*IsClass*/ hasClassificationOnlyMetrics || multiClassTargetData,
+            /*IsClass*/ classTargetData,
             /*IsMultiClass*/ multiClassTargetData,
             /*CreateBinClassTarget*/ (
                 hasBinClassOnlyMetrics
@@ -501,21 +515,31 @@ namespace NCB {
         }
 
         TMaybe<ui32> knownClassCount = inputClassificationInfo.KnownClassCount;
-        if (!knownClassCount && knownModelApproxDimension > 1) {
-            knownClassCount = knownModelApproxDimension;
+
+        bool isRealTarget = true;
+        if (targetCreationOptions.IsClass) {
+            isRealTarget
+                = mainLossFunction.Defined()
+                    && ((**mainLossFunction).GetLossFunction() == ELossFunction::CrossEntropy);
+
+            if (!isRealTarget && !knownClassCount && knownModelApproxDimension > 1) {
+                knownClassCount = knownModelApproxDimension;
+            }
         }
 
-        ui32 classCountInData = 0;
+        ui32 classCount = knownClassCount.GetOrElse(0);
 
         auto maybeConvertedTarget = ConvertTarget(
             rawData.GetTarget(),
+            isRealTarget,
             targetCreationOptions.IsClass,
             targetCreationOptions.IsMultiClass,
+            inputClassificationInfo.TargetBorder,
             !knownClassCount,
             inputClassificationInfo.ClassNames,
             &outputClassificationInfo->ClassNames,
             localExecutor,
-            &classCountInData
+            &classCount
         );
 
         // TODO(akhropov): make GPU also support absence of Target data
@@ -523,11 +547,7 @@ namespace NCB {
             maybeConvertedTarget = TVector<TSharedVector<float>>{MakeAtomicShared<TVector<float>>(TVector<float>(rawData.GetObjectCount(), 0.0f))};
         }
 
-        if (!knownClassCount) {
-            knownClassCount = classCountInData;
-        }
-
-        ui32 classCount = (ui32)GetClassesCount((int)knownClassCount.GetOrElse(0), outputClassificationInfo->ClassNames);
+        classCount = (ui32)GetClassesCount((int)classCount, outputClassificationInfo->ClassNames);
         bool createClassTarget = targetCreationOptions.CreateBinClassTarget || targetCreationOptions.CreateMultiClassTarget;
         TProcessedTargetData processedTargetData;
 
@@ -543,41 +563,6 @@ namespace NCB {
                 metricsThatRequireTargetCanBeSkipped || rawData.GetTarget(),
                 "Binary classification loss/metrics require label data"
             );
-            CB_ENSURE(
-                (classCount == 0) || (classCount == 2),
-                "Binary classification loss/metric specified but target data is neither positive class"
-                " probability nor 2-class labels"
-            );
-
-            if (
-                rawData.GetTarget() &&
-                mainLossFunction &&
-                ShouldBinarizeLabel((*mainLossFunction)->GetLossFunction())
-            ) {
-                float realTargetBorder;
-                if (inputClassificationInfo.TargetBorder) {
-                    realTargetBorder = *inputClassificationInfo.TargetBorder;
-                } else {
-                    THashSet<float> uniqueValues;
-                    for (auto target : *maybeConvertedTarget[0]) {
-                        if (uniqueValues.size() < 3) {
-                            uniqueValues.insert(target);
-                        } else {
-                            break;
-                        }
-                    }
-                    CB_ENSURE_INTERNAL(!uniqueValues.empty(), "Target vector is empty, nothing to binarize.");
-                    CB_ENSURE(uniqueValues.size() != 1, "Data has constant target, so it's impossible to binarize it.");
-                    CB_ENSURE(uniqueValues.size() == 2, "You should specify target border parameter for target binarization.");
-                    const auto firstValue = *uniqueValues.begin();
-                    const auto secondValue = uniqueValues.size() == 1 ? firstValue : *(++uniqueValues.begin());
-                    realTargetBorder = (firstValue + secondValue) / 2;
-                    outputClassificationInfo->TargetBorder.ConstructInPlace(realTargetBorder);
-                    CATBOOST_DEBUG_LOG << "Target border set to " << realTargetBorder << Endl;
-                }
-                PrepareTargetBinary(*maybeConvertedTarget[0], realTargetBorder, &*maybeConvertedTarget[0]);
-            }
-
             if (!maybeConvertedTarget.empty()) {
                 processedTargetData.TargetsClassCount.emplace("", 2);
             }
@@ -729,7 +714,10 @@ namespace NCB {
             }
         }
         if (param.Has("classes_count")) {
-            classCount->ConstructInPlace(SafeIntegerCast<ui32>(param["classes_count"].GetUIntegerSafe()));
+            const ui32 classesCountValue = SafeIntegerCast<ui32>(param["classes_count"].GetUIntegerSafe());
+            if (classesCountValue) { // compatibility with existing saved data
+                classCount->ConstructInPlace(classesCountValue);
+            }
         }
     }
 
@@ -817,9 +805,6 @@ namespace NCB {
                     classNames = multiclassOptions.ClassNames;
                 }
                 classCount.ConstructInPlace(GetClassesCount(multiclassOptions.ClassesCount.Get(), classNames));
-            } else {
-                labelConverter.Initialize(model.GetDimensionsCount());
-                classCount.ConstructInPlace(model.GetDimensionsCount());
             }
         }
 
@@ -923,13 +908,19 @@ namespace NCB {
                     &classNames,
                     &classCount);
 
-                if (paramsJson[DataProcessingOptionsJsonKey].Has(TargetBorderJsonKey)) {
-                    targetBorder = paramsJson[DataProcessingOptionsJsonKey][TargetBorderJsonKey].GetDouble();
+                if (classNames.empty() && !classCount) {
+                    if (paramsJson[DataProcessingOptionsJsonKey].Has(TargetBorderJsonKey)) {
+                        targetBorder = paramsJson[DataProcessingOptionsJsonKey][TargetBorderJsonKey].GetDouble();
+                    }
                 }
             }
         }
 
-        if (ShouldBinarizeLabel(lossDescription.GetLossFunction()) && !targetBorder) {
+        if (ShouldBinarizeLabel(lossDescription.GetLossFunction()) &&
+            classNames.empty() &&
+            !classCount &&
+            !targetBorder)
+        {
             targetBorder = GetDefaultTargetBorder();
             CATBOOST_WARNING_LOG << "Cannot restore border parameter, falling to default border = " << *targetBorder << Endl;
         }
