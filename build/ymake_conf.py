@@ -1414,10 +1414,10 @@ class GnuCompiler(Compiler):
         cxx_args = ['$GCCFILTER', '$YNDEXER_ARGS', '$CXX_COMPILER', '$C_FLAGS_PLATFORM', '$GCC_COMPILE_FLAGS', '$CXXFLAGS', '$EXTRA_OUTPUT', '$SRCFLAGS', '$TOOLCHAIN_ENV', '$YNDEXER_OUTPUT'] + style
         c_args = ['$GCCFILTER', '$YNDEXER_ARGS', '$C_COMPILER', '$C_FLAGS_PLATFORM', '$GCC_COMPILE_FLAGS', '$CFLAGS', '$CONLYFLAGS', '$EXTRA_OUTPUT', '$SRCFLAGS', '$TOOLCHAIN_ENV', '$YNDEXER_OUTPUT'] + style
 
-        c_args_nodeps = [c if c != '$GCC_COMPILE_FLAGS' else '$EXTRA_C_FLAGS -c -o ${OUTFILE} ${INFILE} ${pre=-I:INC}' for c in c_args if c != '$SRCFLAGS']
+        c_args_nodeps = [c if c != '$GCC_COMPILE_FLAGS' else '$EXTRA_C_FLAGS -c -o ${OUTFILE} ${SRC} ${pre=-I:INC}' for c in c_args if c != '$SRCFLAGS']
 
         print 'macro _SRC_cpp(SRC, SRCFLAGS...) {\n .CMD=%s\n}' % ' '.join(cxx_args)
-        print 'macro _SRC_c_nodeps(INFILE, OUTFILE, INC...) {\n .CMD=%s\n}' % ' '.join(c_args_nodeps)
+        print 'macro _SRC_c_nodeps(SRC, OUTFILE, INC...) {\n .CMD=%s\n}' % ' '.join(c_args_nodeps)
         print 'macro _SRC_c(SRC, SRCFLAGS...) {\n .CMD=%s\n}' % ' '.join(c_args)
         print 'macro _SRC_m(SRC, SRCFLAGS...) {\n .CMD=$SRC_c($SRC $SRCFLAGS)\n}'
         print 'macro _SRC_masm(SRC, SRCFLAGS...) {\n}'
@@ -2126,8 +2126,8 @@ class MSVCCompiler(MSVC, Compiler):
                 CFLAGS($Flags)
             }
 
-            macro _SRC_c_nodeps(INFILE, OUTFILE, INC...) {
-                 .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${OUTFILE} ${INFILE} ${EXTRA_C_FLAGS} ${pre=/I :INC} ${CXXFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+            macro _SRC_c_nodeps(SRC, OUTFILE, INC...) {
+                 .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${OUTFILE} ${SRC} ${EXTRA_C_FLAGS} ${pre=/I :INC} ${CXXFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
             }
 
             macro _SRC_cpp(SRC, SRCFLAGS...) {
