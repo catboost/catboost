@@ -1,7 +1,10 @@
 #include "meta_info.h"
 
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/libs/helpers/serialization.h>
 
+#include <util/generic/algorithm.h>
+#include <util/generic/ptr.h>
 #include <util/generic/xrange.h>
 #include <util/string/split.h>
 
