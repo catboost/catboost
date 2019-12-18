@@ -32,4 +32,5 @@ public:
     bool IsComplete() const;
 
     void Swap(TCudaEvent& other);
+
 };

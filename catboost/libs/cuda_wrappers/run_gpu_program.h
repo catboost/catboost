@@ -1,7 +1,5 @@
 #pragma once
 
-#include <catboost/libs/helpers/exception.h>
-
 #include <util/generic/maybe.h>
 
 #include <thread>
