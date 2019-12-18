@@ -423,6 +423,75 @@ TVector<TArraySubsetIndexing<ui32>> NCB::SplitByGroups(
     return result;
 }
 
+static TVector<TArraySubsetIndexing<ui32>> QuantileSplit(
+    std::function<bool(ui32, ui32)> isLargeSubset,
+    const TObjectsGrouping& objectsGrouping,
+    TConstArrayRef<ui64> timestamps,
+    ui64 timesplitQuantileTimestamp
+) {
+    TVector<TArraySubsetIndexing<ui32>> result;
+
+    TIndexedSubset<ui32> learnSubset;
+    ui32 learnSubsetSizeInObjects = 0;
+    TIndexedSubset<ui32> testSubset;
+    for (ui32 groupIdx : xrange(objectsGrouping.GetGroupCount())) {
+        const auto group = objectsGrouping.GetGroup(groupIdx);
+        const auto groupTimestamp = timestamps[group.Begin];
+        if (groupTimestamp <= timesplitQuantileTimestamp) {
+            if (isLargeSubset(learnSubset.size(), learnSubsetSizeInObjects)) {
+                result.emplace_back(TIndexedSubset<ui32>(learnSubset));
+                learnSubset.clear();
+                learnSubsetSizeInObjects = 0;
+            }
+            learnSubset.push_back(groupIdx);
+            learnSubsetSizeInObjects += group.GetSize();
+        } else {
+            testSubset.push_back(groupIdx);
+        }
+    }
+    if (!learnSubset.empty()) {
+        result.emplace_back(TIndexedSubset<ui32>(learnSubset));
+    }
+    CB_ENSURE(testSubset.size() > 0, "No groups left for test. Please decrease timesplit quantile.");
+    result.emplace_back(TIndexedSubset<ui32>(testSubset));
+    return result;
+}
+
+// Returns vector {learn_fold, ..., learn_fold, test_fold}
+// Sum of sizes of all learn folds is sum of sizes of all groups having timestamp <= timesplitQuantileTimestamp
+// Size of each learn fold is learnPartSizeInObjects objects rounded upward to group bound
+// Size of test_fold is (object count - sum of sizes of all learn folds)
+TVector<TArraySubsetIndexing<ui32>> NCB::QuantileSplitByObjects(
+    const TObjectsGrouping& objectsGrouping,
+    TConstArrayRef<ui64> timestamps,
+    ui64 timesplitQuantileTimestamp,
+    ui32 learnPartSizeInObjects
+) {
+    CB_ENSURE(learnPartSizeInObjects > 0, "Fold size must be positive");
+    const auto isSubsetLarge = [learnPartSizeInObjects] (ui32 /*groupCount*/, ui32 objectCount) {
+        return objectCount >= learnPartSizeInObjects;
+    };
+    return QuantileSplit(isSubsetLarge, objectsGrouping, timestamps, timesplitQuantileTimestamp);
+}
+
+
+// Returns vector {learn_fold, ..., learn_fold, test_fold}
+// Sum of sizes of all learn folds is number of all groups having timestamp <= timesplitQuantileTimestamp
+// Size of each learn fold is learnPartSizeInGroups groups
+// Size of test_fold is (group count - sum of sizes of all learn folds)
+TVector<TArraySubsetIndexing<ui32>> NCB::QuantileSplitByGroups(
+    const TObjectsGrouping& objectsGrouping,
+    TConstArrayRef<ui64> timestamps,
+    ui64 timesplitQuantileTimestamp,
+    ui32 learnPartSizeInGroups
+) {
+    CB_ENSURE(learnPartSizeInGroups > 0, "Fold size must be positive");
+    const auto isSubsetLarge = [learnPartSizeInGroups] (ui32 groupCount, ui32 /*objectCount*/) {
+        return groupCount >= learnPartSizeInGroups;
+    };
+    return QuantileSplit(isSubsetLarge, objectsGrouping, timestamps, timesplitQuantileTimestamp);
+}
+
 TTimeSeriesTrainTestSubsets NCB::TimeSeriesSplit(
     const TObjectsGrouping& objectsGrouping,
     ui32 partCount,

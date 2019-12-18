@@ -7762,6 +7762,53 @@ def test_eval_feature(eval_mode, features_to_eval, offset):
 
 
 @pytest.mark.parametrize('eval_mode', ['OneVsNone', 'OneVsAll', 'OneVsOthers', 'OthersVsAll'])
+@pytest.mark.parametrize('fold_size_unit', ['Object', 'Group'])
+def test_eval_feature_timesplit(eval_mode, fold_size_unit):
+    output_eval_path = yatest.common.test_output_path('feature.eval')
+    test_err_log = 'test_error.log'
+    fstr_file = 'fstrs'
+    train_dir = yatest.common.test_output_path('')
+    fold_count = 2
+    features_to_eval = '2-5;10-15'
+    offset = 2
+    fold_size = 500
+    cmd = (
+        CATBOOST_PATH,
+        'eval-feature',
+        '--loss-function', 'RMSE',
+        '-f', data_file('querywise', 'train'),
+        '--cd', data_file('querywise', 'train.cd'),
+        '--features-to-evaluate', features_to_eval,
+        '--feature-eval-mode', eval_mode,
+        '-i', '30',
+        '-T', '4',
+        '-w', '0.7',
+        '--feature-eval-output-file', output_eval_path,
+        '--offset', str(offset),
+        '--fold-count', str(fold_count),
+        '--fold-size-unit', fold_size_unit,
+        '--fold-size', str(fold_size),
+        '--test-err-log', test_err_log,
+        '--train-dir', train_dir,
+        '--fstr-file', fstr_file,
+        '--learn-timestamps', data_file('querywise', 'train.timestamps'),
+        '--timesplit-quantile', '0.75'
+    )
+
+    yatest.common.execute(cmd)
+
+    pj = os.path.join
+    set_count = len(features_to_eval.split(';'))
+    artifacts = [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
+    for output_dir in enumerate_eval_feature_output_dirs(eval_mode, set_count, offset, fold_count):
+        artifacts += [
+            local_canonical_file(pj(train_dir, output_dir, test_err_log), diff_tool=diff_tool()),
+            local_canonical_file(pj(train_dir, output_dir, fstr_file), diff_tool=diff_tool()),
+        ]
+    return artifacts
+
+
+@pytest.mark.parametrize('eval_mode', ['OneVsNone', 'OneVsAll', 'OneVsOthers', 'OthersVsAll'])
 @pytest.mark.parametrize('features_to_eval', ['2-5', '2-5;10-15'], ids=['one_set', 'two_sets'])
 @pytest.mark.parametrize('offset', [0, 2])
 def test_eval_feature_snapshot(eval_mode, features_to_eval, offset):
