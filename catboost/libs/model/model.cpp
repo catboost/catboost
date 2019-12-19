@@ -785,6 +785,17 @@ inline TVector<TString> ExtractClassNamesFromJsonArray(const NJson::TJsonValue& 
     return classNames;
 }
 
+
+static TVector<TString> GetSequentialIntegerClassNames(size_t classCount) {
+    TVector<TString> classNames;
+    classNames.reserve(classCount);
+    for (auto classIdx : xrange(classCount)) {
+        classNames.push_back(ToString(classIdx));
+    }
+    return classNames;
+}
+
+
 TVector<TString> TFullModel::GetModelClassNames() const {
     TVector<TString> classNames;
     if (ModelInfo.contains("multiclass_params")) {
@@ -792,8 +803,17 @@ TVector<TString> TFullModel::GetModelClassNames() const {
         multiclassOptions.Load(ReadTJsonValue(ModelInfo.at("multiclass_params")));
         if (multiclassOptions.ClassNames.IsSet()) {
             classNames = multiclassOptions.ClassNames.Get();
-            return classNames;
-        } else if (multiclassOptions.ClassToLabel.IsSet()) {
+            if (!classNames.empty()) {
+                return classNames;
+            }
+        }
+        if (multiclassOptions.ClassesCount.IsSet()) {
+            const size_t classesCount = SafeIntegerCast<size_t>(multiclassOptions.ClassesCount.Get());
+            if (classesCount) {
+                return GetSequentialIntegerClassNames(classesCount);
+            }
+        }
+        if (multiclassOptions.ClassToLabel.IsSet()) {
             classNames.reserve(multiclassOptions.ClassToLabel->size());
             for (float label : multiclassOptions.ClassToLabel.Get()) {
                 classNames.push_back(ToString(ui32(label)));
@@ -813,17 +833,10 @@ TVector<TString> TFullModel::GetModelClassNames() const {
         }
     }
 
-    const size_t dimensionsCount = GetDimensionsCount();
-    if (dimensionsCount > 1) {
-        classNames.reserve(dimensionsCount);
-        for (auto i : xrange(dimensionsCount)) {
-            classNames.push_back(ToString(i));
-        }
-    } else {
-        const TMaybe<NCatboostOptions::TLossDescription> lossDescription = GetLossDescription(*this);
-        if (lossDescription.Defined() && IsClassificationObjective(lossDescription->GetLossFunction())) {
-            classNames = TVector<TString>{"0", "1"};
-        }
+    const TMaybe<NCatboostOptions::TLossDescription> lossDescription = GetLossDescription(*this);
+    if (lossDescription.Defined() && IsClassificationObjective(lossDescription->GetLossFunction())) {
+        const size_t dimensionsCount = GetDimensionsCount();
+        return GetSequentialIntegerClassNames((dimensionsCount == 1) ? 2 : dimensionsCount);
     }
 
     return classNames;
