@@ -2,6 +2,7 @@
 #include <util/generic/vector.h>
 #include <util/system/mutex.h>
 #include <util/generic/singleton.h>
+#include <util/generic/yexception.h>
 
 namespace {
     class TGlobalLogsStorage {
@@ -63,4 +64,8 @@ void TLogBackend::ReopenLogNoFlush() {
 
 void TLogBackend::ReopenAllBackends(bool flush) {
     Singleton<TGlobalLogsStorage>()->Reopen(flush);
+}
+
+size_t TLogBackend::QueueSize() const {
+    ythrow yexception() << "Not implemented.";
 }
