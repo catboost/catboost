@@ -26,3 +26,5 @@ performance_test:
       - catboost/benchmarks/training_speed/common-table.txt
   dependencies:
     - build
+
+#end
