@@ -1,6 +1,7 @@
-import os
+import errno
 import functools
 import json
+import os
 import threading
 
 import six
@@ -181,8 +182,11 @@ def test_output_path(path=None):
     """
     import pytest
     test_out_dir = os.path.splitext(pytest.config.current_test_log_path)[0]
-    if not os.path.exists(test_out_dir):
+    try:
         os.makedirs(test_out_dir)
+    except OSError as e:
+        if e.errno != errno.EEXIST:
+            raise
     return _join_path(test_out_dir, path)
 
 
