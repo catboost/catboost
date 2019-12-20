@@ -1,7 +1,7 @@
 #include "compression.cuh"
 #include "compression_helper.cuh"
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
-#include <catboost/libs/cuda_wrappers/arch.cuh>
+#include <library/cuda/wrappers/arch.cuh>
 #include <stdio.h>
 #include <stdlib.h>
 

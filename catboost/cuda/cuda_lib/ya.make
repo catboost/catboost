@@ -47,10 +47,10 @@ SRCS(
 )
 
 PEERDIR(
-    catboost/libs/cuda_wrappers
     catboost/libs/helpers
     catboost/libs/logging
     library/blockcodecs
+    library/cuda/wrappers
     library/threading/future
     library/threading/local_executor
     library/threading/name_guard
@@ -58,25 +58,22 @@ PEERDIR(
 
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)
 
-IF(USE_CUDA_MALLOC)
-   CFLAGS(GLOBAL -DUSE_CUDA_MALLOC)
+IF (USE_CUDA_MALLOC)
+    CFLAGS(GLOBAL -DUSE_CUDA_MALLOC)
 ENDIF()
 
-IF(USE_MPI)
+IF (USE_MPI)
     CFLAGS(GLOBAL -DUSE_MPI)
-
     EXTRALIBS(-lmpi)
-
-    IF(WITHOUT_CUDA_AWARE_MPI)
+    IF (WITHOUT_CUDA_AWARE_MPI)
         CFLAGS(GLOBAL -DWITHOUT_CUDA_AWARE_MPI)
     ENDIF()
-
-    IF(WRITE_MPI_MESSAGE_LOG)
-         CFLAGS(GLOBAL -DWRITE_MPI_MESSAGE_LOG)
+    IF (WRITE_MPI_MESSAGE_LOG)
+        CFLAGS(GLOBAL -DWRITE_MPI_MESSAGE_LOG)
     ENDIF()
 ENDIF()
 
-IF(WITH_HWLOC)
+IF (WITH_HWLOC)
     CFLAGS(GLOBAL -DWITH_HWLOC)
     EXTRALIBS(-lhwloc)
 ENDIF()

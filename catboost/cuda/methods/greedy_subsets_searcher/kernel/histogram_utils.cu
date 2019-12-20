@@ -1,6 +1,6 @@
 #include "histogram_utils.cuh"
 #include <cooperative_groups.h>
-#include <catboost/libs/cuda_wrappers/arch.cuh>
+#include <library/cuda/wrappers/arch.cuh>
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 #include <contrib/libs/cub/cub/warp/warp_scan.cuh>

@@ -1,7 +1,7 @@
 #include "transform.cuh"
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 #include <catboost/cuda/cuda_util/kernel/operators.cuh>
-#include <catboost/libs/cuda_wrappers/arch.cuh>
+#include <library/cuda/wrappers/arch.cuh>
 #include <contrib/libs/cub/cub/block/block_radix_sort.cuh>
 
 
