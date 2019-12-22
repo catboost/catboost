@@ -1,29 +1,9 @@
-Metadata-Version: 2.0
-Name: pathlib2
-Version: 2.3.5
-Summary: Object-oriented filesystem paths
-Home-page: https://github.com/mcmtroffaes/pathlib2
-Author: Matthias C. M. Troffaes
-Author-email: matthias.troffaes@gmail.com
-License: MIT
-Platform: UNKNOWN
-Classifier: Development Status :: 5 - Production/Stable
-Classifier: Intended Audience :: Developers
-Classifier: License :: OSI Approved :: MIT License
-Classifier: Operating System :: OS Independent
-Classifier: Programming Language :: Python
-Classifier: Programming Language :: Python :: 2
-Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 2.6
-Classifier: Programming Language :: Python :: 2.7
-Classifier: Programming Language :: Python :: 3.4
-Classifier: Programming Language :: Python :: 3.5
-Classifier: Programming Language :: Python :: 3.6
-Classifier: Programming Language :: Python :: 3.7
-Classifier: Topic :: Software Development :: Libraries
-Classifier: Topic :: System :: Filesystems
-Requires-Dist: six
-Requires-Dist: scandir; python_version<"3.5"
+pathlib2
+========
+
+|appveyor| |travis| |codecov|
+
+Fork of pathlib aiming to support the full stdlib Python API.
 
 The `old pathlib <https://bitbucket.org/pitrou/pathlib>`_
 module on bitbucket is in bugfix-only mode.
@@ -83,6 +63,4 @@ See `issue #56 <https://github.com/mcmtroffaes/pathlib2/issues/56>`_ for more de
 .. |codecov| image:: https://codecov.io/gh/mcmtroffaes/pathlib2/branch/develop/graph/badge.svg
     :target: https://codecov.io/gh/mcmtroffaes/pathlib2
     :alt: codecov
-
-
 
