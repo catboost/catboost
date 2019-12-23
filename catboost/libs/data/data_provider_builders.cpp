@@ -1932,13 +1932,6 @@ namespace NCB {
     private:
         ui32 ObjectCount;
 
-        /* for conversion back to string representation
-         * if empty - no conversion
-         *
-         *  TODO(akhropov): conversion back will be removed in MLTOOLS-2393
-         */
-        TVector<TString> ClassNames;
-
         /* ForCPU because TQuantizedForCPUObjectsData is more generic than TQuantizedObjectsData -
          * it contains it as a subset
          */
