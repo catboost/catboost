@@ -160,3 +160,8 @@ ALLOW sandbox/projects/mail/Load/ShootingComparison -> contrib/python/jsonlib
 ALLOW sandbox/projects/mail/Load/WebApiAmmoGen -> contrib/python/jsonlib
 ALLOW sandbox/projects/mail/Load/WebApiShooting -> contrib/python/jsonlib
 DENY .* -> contrib/python/jsonlib
+
+ALLOW antiadblock/libs/tornado_redis -> contrib/python/toredis
+ALLOW yabs/amazon/cache_proxy -> contrib/python/toredis
+ALLOW yql/udfs/common/python/python_arc -> contrib/python/toredis
+DENY .* -> contrib/python/toredis
