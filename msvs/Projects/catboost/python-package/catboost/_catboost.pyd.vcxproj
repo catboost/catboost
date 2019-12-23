@@ -85,7 +85,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\catboost
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "_catboost" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/catboost/_catboost.pyx.cpp"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "_catboost" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I$(SolutionDir)../contrib/python/numpy/numpy/core/src/common" "-I$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)../contrib/libs/python/Include" "-I$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I$(SolutionDir)../contrib/libs/zlib/include" "-I$(SolutionDir)../contrib/libs/double-conversion/include" "-I$(SolutionDir)../contrib/libs/libf2c" "-I$(SolutionDir)../contrib/libs/protobuf" "-I$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I$(SolutionDir)../contrib/libs/brotli/include" "-I$(SolutionDir)../contrib/libs/openssl/include" "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/catboost/_catboost.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -96,7 +96,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\python-package\catboost
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "_catboost" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/catboost/_catboost.pyx.cpp"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "_catboost" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/python/numpy/numpy/core/include" "-I$(SolutionDir)../contrib/python/numpy/numpy/core/include/numpy" "-I$(SolutionDir)../contrib/python/numpy/numpy/core/src/common" "-I$(SolutionDir)../contrib/python/numpy/numpy/core/src/npymath" "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)../contrib/libs/python/Include" "-I$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I$(SolutionDir)../contrib/libs/zlib/include" "-I$(SolutionDir)../contrib/libs/double-conversion/include" "-I$(SolutionDir)../contrib/libs/libf2c" "-I$(SolutionDir)../contrib/libs/protobuf" "-I$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-I$(SolutionDir)../contrib/libs/brotli/include" "-I$(SolutionDir)../contrib/libs/openssl/include" "$(SolutionDir)../catboost/python-package/catboost/_catboost.pyx" "-o" "$(SolutionDir)$(Configuration)/catboost/python-package/catboost/_catboost.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
