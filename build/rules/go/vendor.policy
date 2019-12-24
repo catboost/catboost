@@ -225,6 +225,9 @@ ALLOW .* -> vendor/gopkg.in/yaml.v2
 # INI file format
 ALLOW .* -> vendor/gopkg.in/ini.v1
 
+# JSON Schema
+ALLOW .* -> vendor/github.com/xeipuuv/gojsonschema
+
 # Go generated proto packages
 ALLOW .* -> vendor/google.golang.org/genproto
 
