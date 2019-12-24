@@ -216,3 +216,10 @@ ALLOW yweb/antimalware/visual_html_parser/yandex-search-antivirus-common -> cont
 ALLOW yweb/news/news_back/api/scripts/migrate_scripts_common -> contrib/python/MySQL-python
 ALLOW yweb/news/support/viewer -> contrib/python/MySQL-python
 DENY .* -> contrib/python/MySQL-python
+
+ALLOW contrib/python/mipp/tests -> contrib/python/mipp
+ALLOW contrib/python/mpop/mpop/tests -> contrib/python/mipp
+ALLOW contrib/python/mpop -> contrib/python/mipp
+ALLOW weather/workers/nowcasting/preprocess_meteosat -> contrib/python/mipp
+ALLOW yql/udfs/common/python/python_arc -> contrib/python/mipp
+DENY .* -> contrib/python/mipp
