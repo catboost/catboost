@@ -99,6 +99,11 @@ class Platform(object):
         # 'OS_LINUX' variable
         yield 'OS_{}'.format(self.os.upper())
 
+        # yocto is linux
+        if 'yocto' in self.os:
+            yield 'LINUX'
+            yield 'OS_LINUX'
+
         if self.is_macos:
             yield 'DARWIN'
             yield 'OS_DARWIN'

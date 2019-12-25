@@ -1,6 +1,8 @@
 import sys
 import os
 import argparse
+import subprocess
+import platform
 
 
 def fix_files(args):
@@ -26,4 +28,7 @@ def fix_files(args):
 
 if __name__ == '__main__':
     args = fix_files(sys.argv[1:])
-    os.execv(args[0], args)
+    if platform.system() == 'Windows':
+        sys.exit(subprocess.Popen(args).wait())
+    else:
+        os.execv(args[0], args)

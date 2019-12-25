@@ -152,7 +152,6 @@ ALLOW contrib/python/thrift/tests -> contrib/python/thrift
 ALLOW contrib/python/jaeger-client -> contrib/python/thrift
 DENY .* -> contrib/python/thrift
 
-ALLOW junk/pg/tests/ujson_musl_bug -> contrib/python/jsonlib
 ALLOW sandbox/projects/mail/Load/FuritaShooting -> contrib/python/jsonlib
 ALLOW sandbox/projects/mail/Load/LizaShooting -> contrib/python/jsonlib
 ALLOW sandbox/projects/mail/Load/QuinnShooting -> contrib/python/jsonlib
@@ -183,12 +182,6 @@ ALLOW april/badb -> contrib/python/MySQL-python
 ALLOW contrib/python/MySQL-python/test -> contrib/python/MySQL-python
 ALLOW contrib/python/MySQL-python -> contrib/python/MySQL-python
 ALLOW dict/ontodb/tools/fields_diff/lib -> contrib/python/MySQL-python
-ALLOW junk/abv/bs-jam-getlogs -> contrib/python/MySQL-python
-ALLOW junk/andreyst/cm-log -> contrib/python/MySQL-python
-ALLOW junk/blv1mk/73185_juggler_sender -> contrib/python/MySQL-python
-ALLOW junk/lorekhov/blablacar -> contrib/python/MySQL-python
-ALLOW junk/snusmumrik/check -> contrib/python/MySQL-python
-ALLOW junk/zivot/yandex_crt/crt -> contrib/python/MySQL-python
 ALLOW maps/streetview/backoffice/lib -> contrib/python/MySQL-python
 ALLOW market/sre/tools/cs_mysql_monitoring/mysql_monitoring -> contrib/python/MySQL-python
 ALLOW metrika/core/monitoring/mobile-logs-api-export-generator-check -> contrib/python/MySQL-python

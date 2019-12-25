@@ -1511,7 +1511,7 @@ def test_multiclass_classes_count(task_type, missed_classes):
     pred_probabilities = check_classifier(new_classifier)
 
     preds_path = test_output_path(PREDS_TXT_PATH)
-    np.savetxt(preds_path, np.array(pred_probabilities))
+    np.savetxt(preds_path, np.array(pred_probabilities), delimiter='\t')
     return [
         local_canonical_file(preds_path, diff_tool=get_limited_precision_dsv_diff_tool(1e-6, False)),
         compare_canonical_models(output_model_path, diff_limit=1.e-6)
