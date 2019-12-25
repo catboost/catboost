@@ -192,7 +192,6 @@ ALLOW passport/python/grants_configurator -> contrib/python/MySQL-python
 ALLOW passport/python/oauth/core/db/eav -> contrib/python/MySQL-python
 ALLOW passport/python/perimeter/auth_api -> contrib/python/MySQL-python
 ALLOW passport/python/social -> contrib/python/MySQL-python
-ALLOW passport/python/vault/api -> contrib/python/MySQL-python
 ALLOW passport/python/yasms/db -> contrib/python/MySQL-python
 ALLOW testenv/core -> contrib/python/MySQL-python
 ALLOW testenv/recipes/ut -> contrib/python/MySQL-python
