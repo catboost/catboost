@@ -371,6 +371,9 @@ ALLOW .* -> vendor/github.com/pariz/gountries
 # CONTRIB-1630- Go binding for qemu/qmp runtime
 ALLOW .* -> vendor/github.com/intel/govmm/qemu
 
+# CONTRIB-1650 golang ftp server library with a sample implementation 
+ALLOW .* -> vendor/github.com/fclairamb/ftpserver
+
 #
 # Temporary exceptions.
 #
