@@ -1,6 +1,6 @@
 #include "update_part_props.cuh"
 #include "fill.cuh"
-#include <catboost/libs/cuda_wrappers/arch.cuh>
+#include <library/cuda/wrappers/arch.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 #include <catboost/cuda/cuda_util/gpu_data/partitions.h>
 

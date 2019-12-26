@@ -130,7 +130,10 @@
         "has_time" : false,
         "dev_default_value_fraction_for_sparse" : 0.8299999833,
         "allow_const_label" : false,
-        "class_names" : [ ],
+        "class_names" : [
+            "0",
+            "1"
+        ],
         "class_weights" : [ ],
         "target_border" : null,
         "dev_leafwise_scoring" : false,

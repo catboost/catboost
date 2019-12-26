@@ -47,6 +47,7 @@ public:
     void Y_PRINTF_FORMAT(3, 4) AddLog(ELogPriority priority, const char* format, ...) const;
     void ReopenLog();
     void ReopenLogNoFlush();
+    size_t BackEndQueueSize() const;
 
     /*
      * compat methods, remove in near future...

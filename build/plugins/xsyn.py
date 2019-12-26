@@ -25,7 +25,7 @@ class Xsyn(iw.CustomCommand):
             common.tobuilddir(self._path + '.h.rl5')
         ])
 
-    def run(self, interpeter):
+    def run(self, extra_args, interpeter):
         self.call(interpeter + [self.resolve_path(common.get(self.input, 0)), self.resolve_path(common.get(self.input, 1)),
                                 self.resolve_path(common.get(self.input, 2)), 'dontuse'], stdout=common.get(self.output, 0))
 

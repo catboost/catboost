@@ -3,6 +3,8 @@
 #include <util/system/types.h>
 #include <util/system/compiler.h>
 
+#include <limits>
+
 namespace NFloat16Impl {
     constexpr ui16 AllBitsMask16 = ui16(-1);
     constexpr ui32 AllBitsMask32 = ui32(-1);
@@ -67,7 +69,7 @@ struct TFloat16 {
     }
 
     Y_CONST_FUNCTION
-    static TFloat16 Load(TStorageType d) {
+    static constexpr TFloat16 Load(TStorageType d) {
         TFloat16 res;
         res.Data = d;
         return res;
@@ -108,4 +110,18 @@ namespace NFloat16Ops {
 
     void PackFloat16SequenceAuto(const float* src, TFloat16* dst, size_t len);
     void PackFloat16SequenceIntrisincs(const float* src, TFloat16* dst, size_t len);
+}
+
+namespace std {
+    template <>
+    class numeric_limits<TFloat16> {
+    public:
+        static constexpr TFloat16 max() noexcept {
+            return TFloat16::Load(0x7bff);
+        }
+
+        static constexpr TFloat16 infinity() noexcept {
+            return TFloat16::Load(0x7c00);
+        }
+    };
 }

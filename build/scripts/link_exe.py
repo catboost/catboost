@@ -37,6 +37,8 @@ def parse_args():
     parser = optparse.OptionParser()
     parser.disable_interspersed_args()
     parser.add_option('--musl', action='store_true')
+    parser.add_option('--custom-step')
+    parser.add_option('--python')
     return parser.parse_args()
 
 
@@ -44,6 +46,9 @@ if __name__ == '__main__':
     opts, args = parse_args()
     cmd = fix_cmd(opts.musl, args)
     supp, cmd = get_leaks_suppressions(cmd)
+    if opts.custom_step:
+        assert opts.python
+        subprocess.check_call([opts.python] + [opts.custom_step] + args)
     if not supp:
         rc = subprocess.call(cmd, shell=False, stderr=sys.stderr, stdout=sys.stdout)
     else:

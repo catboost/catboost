@@ -29,6 +29,12 @@ def _get_platform():
         return 'linux'
     return sys.platform
 
+def _get_arch():
+    machine = platform.machine()
+    if machine.lower() == 'amd64':
+        return 'x86_64'
+    return machine
+
 
 def _get_arcadia_root():
     arcadia_root = None
@@ -78,7 +84,7 @@ def _ensure_dir_exists(path):
 
 
 def _get_current_machine_resources_dir():
-    return ''.join((_get_platform(), '-', platform.machine()))
+    return ''.join((_get_platform(), '-', _get_arch()))
 
 
 def _main():

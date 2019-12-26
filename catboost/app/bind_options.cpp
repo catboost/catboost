@@ -130,6 +130,18 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
             loadParamsPtr->TestGroupWeightsFilePath = TPathWithScheme(str, "file");
         });
 
+    parser->AddLongOption("learn-timestamps", "path to learn timestamps")
+        .RequiredArgument("[SCHEME://]PATH")
+        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+            loadParamsPtr->TimestampsFilePath = TPathWithScheme(str, "file");
+        });
+
+    parser->AddLongOption("test-timestamps", "path to test timestamps")
+        .RequiredArgument("[SCHEME://]PATH")
+        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+            loadParamsPtr->TestTimestampsFilePath = TPathWithScheme(str, "file");
+        });
+
     parser->AddLongOption("learn-baseline", "path to learn baseline")
         .RequiredArgument("[SCHEME://]PATH")
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
@@ -595,6 +607,13 @@ static void BindFeatureEvalParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonVal
         .Help("Fold size (in fold-size-units) for feature evaluation")
         .Handler1T<ui32>([plainJsonPtr](const auto foldSize) {
             (*plainJsonPtr)["fold_size"] = foldSize;
+        });
+    parser
+        .AddLongOption("timesplit-quantile")
+        .RequiredArgument("float")
+        .Help("Quantile for timesplit in feature evaluation")
+        .Handler1T<float>([plainJsonPtr](const auto quantile) {
+            (*plainJsonPtr)["timesplit_quantile"] = quantile;
         });
 }
 

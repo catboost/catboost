@@ -302,14 +302,156 @@ static bool IsObjectwiseEval(const NCatboostOptions::TFeatureEvalOptions& featur
     return featureEvalOptions.FoldSizeUnit.Get() == ESamplingUnit::Object;
 }
 
-template <class TDataProvidersTemplate> // TTrainingDataProvidersTemplate<...>
+static ui64 FindQuantileTimestamp(TConstArrayRef<TGroupId> groupIds, TConstArrayRef<ui64> timestamps, double quantile) {
+    TVector<ui64> groupTimestamps;
+    groupTimestamps.reserve(groupIds.size());
+
+    TGroupId lastGroupId = groupIds[0];
+    groupTimestamps.push_back(timestamps[0]);
+    for (auto idx : xrange((size_t)1, groupIds.size())) {
+        if (groupIds[idx] != lastGroupId) {
+            lastGroupId = groupIds[idx];
+            groupTimestamps.push_back(timestamps[idx]);
+        }
+    }
+    std::sort(groupTimestamps.begin(), groupTimestamps.end());
+    const auto quantileTimestamp = groupTimestamps[groupTimestamps.size() * quantile];
+    CATBOOST_INFO_LOG << "Quantile timestamp " << quantileTimestamp << Endl;
+    return quantileTimestamp;
+}
+
+static void CreateFoldData(
+    typename TTrainingDataProviders::TDataPtr srcData,
+    ui64 cpuUsedRamLimit,
+    const TVector<NCB::TArraySubsetIndexing<ui32>>& trainSubsets,
+    const TVector<NCB::TArraySubsetIndexing<ui32>>& testSubsets,
+    TVector<TTrainingDataProviders>* foldsData,
+    TVector<TTrainingDataProviders>* testFoldsData,
+    NPar::TLocalExecutor* localExecutor
+) {
+    CB_ENSURE_INTERNAL(trainSubsets.size() == testSubsets.size(), "Number of train and test subsets do not match");
+    const NCB::EObjectsOrder objectsOrder = NCB::EObjectsOrder::Ordered;
+    const ui64 perTaskCpuUsedRamLimit = cpuUsedRamLimit / (2 * trainSubsets.size());
+
+    TVector<std::function<void()>> tasks;
+    for (ui32 foldIdx : xrange(trainSubsets.size())) {
+        tasks.emplace_back(
+            [&, foldIdx]() {
+                (*foldsData)[foldIdx].Learn = srcData->GetSubset(
+                    GetSubset(
+                        srcData->ObjectsGrouping,
+                        NCB::TArraySubsetIndexing<ui32>(trainSubsets[foldIdx]),
+                        objectsOrder
+                    ),
+                    perTaskCpuUsedRamLimit,
+                    localExecutor
+                );
+            }
+        );
+        tasks.emplace_back(
+            [&, foldIdx]() {
+                (*testFoldsData)[foldIdx].Test.emplace_back(
+                    srcData->GetSubset(
+                        GetSubset(
+                            srcData->ObjectsGrouping,
+                            NCB::TArraySubsetIndexing<ui32>(testSubsets[foldIdx]),
+                            objectsOrder
+                        ),
+                        perTaskCpuUsedRamLimit,
+                        localExecutor
+                    )
+                );
+            }
+        );
+    }
+
+    NCB::ExecuteTasksInParallel(&tasks, localExecutor);
+}
+
+static void RemoveUnusedFolds(
+    ui32 offset,
+    ui32 foldCount,
+    TVector<TTrainingDataProviders>* foldsData,
+    TVector<TTrainingDataProviders>* testFoldsData
+) {
+    TVector<TTrainingDataProviders>(foldsData->begin() + offset, foldsData->end()).swap(*foldsData);
+    foldsData->resize(foldCount);
+    if (testFoldsData != foldsData) {
+        TVector<TTrainingDataProviders>(testFoldsData->begin() + offset, testFoldsData->end()).swap(*testFoldsData);
+        testFoldsData->resize(foldCount);
+    }
+}
+
+static void PrepareTimeSplitFolds(
+    typename TTrainingDataProviders::TDataPtr srcData,
+    const NCatboostOptions::TFeatureEvalOptions& featureEvalOptions,
+    ui64 cpuUsedRamLimit,
+    TVector<TTrainingDataProviders>* foldsData,
+    TVector<TTrainingDataProviders>* testFoldsData,
+    NPar::TLocalExecutor* localExecutor
+) {
+    CB_ENSURE(srcData->ObjectsData->GetGroupIds(), "Timesplit feature evaluation requires dataset with groups");
+    CB_ENSURE(srcData->ObjectsData->GetTimestamp(), "Timesplit feature evaluation requires dataset with timestamps");
+
+    const ui32 foldSize = featureEvalOptions.FoldSize;
+    CB_ENSURE(foldSize > 0, "Fold size must be positive integer");
+    // group subsets, groups maybe trivial
+    const auto& objectsGrouping = *srcData->ObjectsGrouping;
+
+    const auto timesplitQuantileTimestamp = FindQuantileTimestamp(
+        *srcData->ObjectsData->GetGroupIds(),
+        *srcData->ObjectsData->GetTimestamp(),
+        featureEvalOptions.TimeSplitQuantile);
+    TVector<NCB::TArraySubsetIndexing<ui32>> trainTestSubsets; // [0, offset + foldCount) -- train, [offset + foldCount] -- test
+    if (IsObjectwiseEval(featureEvalOptions)) {
+        trainTestSubsets = NCB::QuantileSplitByObjects(
+            objectsGrouping,
+            *srcData->ObjectsData->GetTimestamp(),
+            timesplitQuantileTimestamp,
+            foldSize);
+    } else {
+        trainTestSubsets = NCB::QuantileSplitByGroups(
+            objectsGrouping,
+            *srcData->ObjectsData->GetTimestamp(),
+            timesplitQuantileTimestamp,
+            foldSize);
+    }
+    const ui32 offsetInRange = featureEvalOptions.Offset;
+    const ui32 trainSubsetsCount = trainTestSubsets.size() - 1;
+    const ui32 foldCount = featureEvalOptions.FoldCount;
+    CB_ENSURE_INTERNAL(offsetInRange + foldCount <= trainSubsetsCount, "Dataset permutation logic failed");
+
+    CB_ENSURE(foldsData->empty(), "Need empty vector of folds data");
+    foldsData->resize(trainSubsetsCount);
+    if (testFoldsData != nullptr) {
+        CB_ENSURE(testFoldsData->empty(), "Need empty vector of test folds data");
+        testFoldsData->resize(trainSubsetsCount);
+    } else {
+        testFoldsData = foldsData;
+    }
+
+    TVector<NCB::TArraySubsetIndexing<ui32>> trainSubsets(trainTestSubsets.begin(), trainTestSubsets.begin() + trainSubsetsCount);
+    TVector<NCB::TArraySubsetIndexing<ui32>> testSubsets(trainSubsetsCount, trainTestSubsets.back());
+
+    CreateFoldData(
+        srcData,
+        cpuUsedRamLimit,
+        trainSubsets,
+        testSubsets,
+        foldsData,
+        testFoldsData,
+        localExecutor);
+
+    RemoveUnusedFolds(offsetInRange, foldCount, foldsData, testFoldsData);
+}
+
 static void PrepareFolds(
-    typename TDataProvidersTemplate::TDataPtr srcData,
+    typename TTrainingDataProviders::TDataPtr srcData,
     const TCvDataPartitionParams& cvParams,
     const NCatboostOptions::TFeatureEvalOptions& featureEvalOptions,
     ui64 cpuUsedRamLimit,
-    TVector<TDataProvidersTemplate>* foldsData,
-    TVector<TDataProvidersTemplate>* testFoldsData,
+    TVector<TTrainingDataProviders>* foldsData,
+    TVector<TTrainingDataProviders>* testFoldsData,
     NPar::TLocalExecutor* localExecutor
 ) {
     const int foldCount = cvParams.Initialized() ? cvParams.FoldCount : featureEvalOptions.FoldCount.Get();
@@ -347,54 +489,17 @@ static void PrepareFolds(
         testFoldsData = foldsData;
     }
 
-    TVector<std::function<void()>> tasks;
-
-    // NCB::Split keeps objects order
-    const NCB::EObjectsOrder objectsOrder = NCB::EObjectsOrder::Ordered;
-
-    const ui64 perTaskCpuUsedRamLimit = cpuUsedRamLimit / (2 * trainSubsets.size());
-
-    for (ui32 foldIdx : xrange(trainSubsets.size())) {
-        tasks.emplace_back(
-            [&, foldIdx]() {
-                (*foldsData)[foldIdx].Learn = srcData->GetSubset(
-                    GetSubset(
-                        srcData->ObjectsGrouping,
-                        std::move(trainSubsets[foldIdx]),
-                        objectsOrder
-                    ),
-                    perTaskCpuUsedRamLimit,
-                    localExecutor
-                );
-            }
-        );
-        tasks.emplace_back(
-            [&, foldIdx]() {
-                (*testFoldsData)[foldIdx].Test.emplace_back(
-                    srcData->GetSubset(
-                        GetSubset(
-                            srcData->ObjectsGrouping,
-                            std::move(testSubsets[foldIdx]),
-                            objectsOrder
-                        ),
-                        perTaskCpuUsedRamLimit,
-                        localExecutor
-                    )
-                );
-            }
-        );
-    }
-
-    NCB::ExecuteTasksInParallel(&tasks, localExecutor);
-
+    CreateFoldData(
+        srcData,
+        cpuUsedRamLimit,
+        trainSubsets,
+        testSubsets,
+        foldsData,
+        testFoldsData,
+        localExecutor);
     if (!cvParams.Initialized()) {
         const ui32 offsetInRange = featureEvalOptions.Offset;
-        TVector<TDataProvidersTemplate>(foldsData->begin() + offsetInRange, foldsData->end()).swap(*foldsData);
-        foldsData->resize(foldCount);
-        if (testFoldsData != foldsData) {
-            TVector<TDataProvidersTemplate>(testFoldsData->begin() + offsetInRange, testFoldsData->end()).swap(*testFoldsData);
-            testFoldsData->resize(foldCount);
-        }
+        RemoveUnusedFolds(offsetInRange, foldCount, foldsData, testFoldsData);
     }
 }
 
@@ -403,20 +508,6 @@ enum class ETrainingKind {
     Baseline,
     Testing
 };
-
-
-template<>
-void Out<ETrainingKind>(IOutputStream& stream, ETrainingKind kind) {
-     if (kind == ETrainingKind::Baseline) {
-         stream << "Baseline";
-         return;
-     }
-     if (kind == ETrainingKind::Testing) {
-         stream << "Testing";
-         return;
-     }
-     Y_UNREACHABLE();
-}
 
 
 template <typename TObjectsDataProvider> // TQuantizedForCPUObjectsDataProvider or TQuantizedObjectsDataProvider
@@ -762,15 +853,24 @@ static void EvaluateFeaturesImpl(
     TVector<TTrainingDataProviders> foldsData;
     TVector<TTrainingDataProviders> testFoldsData;
     constexpr bool isFixedMlTools3185 = false;
-    PrepareFolds<TTrainingDataProviders>(
-        trainingData,
-        cvParams,
-        featureEvalOptions,
-        cpuUsedRamLimit,
-        &foldsData,
-        isFixedMlTools3185 ? &testFoldsData : nullptr,
-        &NPar::LocalExecutor()
-    );
+    if (!trainingData->MetaInfo.HasTimestamp) {
+        PrepareFolds(
+            trainingData,
+            cvParams,
+            featureEvalOptions,
+            cpuUsedRamLimit,
+            &foldsData,
+            isFixedMlTools3185 ? &testFoldsData : nullptr,
+            &NPar::LocalExecutor());
+    } else {
+        PrepareTimeSplitFolds(
+            trainingData,
+            featureEvalOptions,
+            cpuUsedRamLimit,
+            &foldsData,
+            isFixedMlTools3185 ? &testFoldsData : nullptr,
+            &NPar::LocalExecutor());
+    }
 
     UpdatePermutationBlockSize(taskType, foldsData, &dataSpecificOptions);
 
@@ -927,6 +1027,42 @@ static TString MakeAbsolutePath(const TString& path) {
     return JoinFsPaths(TFsPath::Cwd(), path);
 }
 
+static ui32 CountSamplingUnits(const NCB::TObjectsGrouping& objectsGrouping, bool isObjectwise) {
+    return isObjectwise ? objectsGrouping.GetObjectCount() : objectsGrouping.GetGroupCount();
+}
+
+static ui32 CountDisjointFolds(TDataProviderPtr data, const NCatboostOptions::TFeatureEvalOptions& featureEvalOptions) {
+    const auto isObjectwise = IsObjectwiseEval(featureEvalOptions);
+    const auto& objectsGrouping = *data->ObjectsGrouping;
+
+    ui32 samplingUnitsCount = 0;
+    if (!data->MetaInfo.HasTimestamp) {
+        samplingUnitsCount = CountSamplingUnits(objectsGrouping, isObjectwise);
+    } else {
+        const auto timestamps = *data->ObjectsData->GetTimestamp();
+        const auto timesplitQuantileTimestamp = FindQuantileTimestamp(
+            *data->ObjectsData->GetGroupIds(),
+            timestamps,
+            featureEvalOptions.TimeSplitQuantile);
+
+        samplingUnitsCount = 0;
+        for (ui32 groupIdx : xrange(objectsGrouping.GetGroupCount())) {
+            const auto group = objectsGrouping.GetGroup(groupIdx);
+            const auto groupTimestamp = timestamps[group.Begin];
+            if (groupTimestamp <= timesplitQuantileTimestamp) {
+                if (isObjectwise) {
+                    samplingUnitsCount += group.GetSize();
+                } else {
+                    ++samplingUnitsCount;
+                }
+            }
+        }
+    }
+    const ui32 foldSize = featureEvalOptions.FoldSize;
+    const ui32 disjointFoldCount = CeilDiv(samplingUnitsCount, foldSize);
+    return disjointFoldCount;
+}
+
 TFeatureEvaluationSummary EvaluateFeatures(
     const NJson::TJsonValue& plainJsonParams,
     const NCatboostOptions::TFeatureEvalOptions& featureEvalOptions,
@@ -951,19 +1087,16 @@ TFeatureEvaluationSummary EvaluateFeatures(
 
     const ui32 foldCount = cvParams.Initialized() ? cvParams.FoldCount : featureEvalOptions.FoldCount.Get();
     CB_ENSURE(foldCount > 0, "Fold count must be positive integer");
-
-    const auto isObjectwise = IsObjectwiseEval(featureEvalOptions);
-    const ui32 foldSize = featureEvalOptions.FoldSize;
-    const auto& objectsGrouping = *data->ObjectsGrouping;
-    const auto datasetSize = isObjectwise ? objectsGrouping.GetObjectCount() : objectsGrouping.GetGroupCount();
-    const ui32 disjointFoldCount = CeilDiv(datasetSize, foldSize);
     const ui32 offset = featureEvalOptions.Offset;
 
+    const ui32 disjointFoldCount = CountDisjointFolds(data, featureEvalOptions);
+
     if (disjointFoldCount < offset + foldCount) {
+        const auto samplingUnitsCount = CountSamplingUnits(*data->ObjectsGrouping, IsObjectwiseEval(featureEvalOptions));
         CB_ENSURE(
             cvParams.Shuffle,
             "Dataset contains too few objects or groups to evaluate features without shuffling. "
-            "Please decrease fold size to at most " << datasetSize / (offset + foldCount) << ", or "
+            "Please decrease fold size to at most " << samplingUnitsCount / (offset + foldCount) << ", or "
             "enable dataset shuffling in cross-validation "
             "(specify cv_no_suffle=False in Python or remove --cv-no-shuffle from command line).");
     }

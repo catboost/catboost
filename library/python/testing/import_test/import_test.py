@@ -43,6 +43,12 @@ def check_imports(no_check=(), extra=(), skip_func=None):
             print('SKIP', module, '''without "if __name__ == '__main__'" check''')
             continue
 
+        def print_backtrace_marked(e):
+            tb_exc = traceback.format_exception(*e)
+            for item in tb_exc:
+                for l in item.splitlines():
+                    print('FAIL:', l, file=sys.stderr)
+
         try:
             print('TRY', module)
             if module == '__main__':
@@ -54,9 +60,16 @@ def check_imports(no_check=(), extra=(), skip_func=None):
             print('OK ', module)
 
         except Exception as e:
-            print('FAIL', module, e, file=sys.stderr)
-            traceback.print_exception(*sys.exc_info())
+            print('FAIL:', module, e, file=sys.stderr)
+            print_backtrace_marked(sys.exc_info())
             failed.append('{}: {}'.format(module, e))
+
+        except:
+            e = sys.exc_info()
+            print('FAIL:', module, e, file=sys.stderr)
+            print_backtrace_marked(e)
+            failed.append('{}: {}'.format(module, e))
+            raise
 
     if failed:
         raise ImportError('modules not imported:\n' + '\n'.join(failed))

@@ -1,6 +1,10 @@
-- source_filter: "^maps/mapsmobi|^devtools/experimental/mapsmobi"
+- source_filter: "^maps/mobile|^devtools/experimental/mapsmobi"
   includes:
   - EGL/egl.h
+  - GLES2/gl2.h
+  - GLES2/gl2ext.h
+  - OpenGLES/ES3/gl.h
+  - OpenGLES/ES3/glext.h
   - QtCore/QCoreApplication
   - QtCore/QDateTime
   - QtCore/QEvent
@@ -25,10 +29,12 @@
   - QtWidgets/QAbstractItemView
   - QtWidgets/QApplication
   - QtWidgets/QCheckBox
+  - QtWidgets/QFileDialog
   - QtWidgets/QGroupBox
   - QtWidgets/QHBoxLayout
   - QtWidgets/QHeaderView
   - QtWidgets/QLabel
+  - QtWidgets/QLayout
   - QtWidgets/QLineEdit
   - QtWidgets/QMessageBox
   - QtWidgets/QOpenGLWidget
@@ -41,8 +47,13 @@
   - QtWidgets/QTextEdit
   - QtWidgets/QVBoxLayout
   - QtWidgets/QWidget
+  - QtQuick/QQuickWindow
+  - QtQuick/QQuickFramebufferObject
+  - QtQuickWidgets/QQuickWidget
   - android/bitmap.h
   - message_lite.h
+  - YXAccountManager/YALAuthenticatorTypes.h
+  - YXAccountManager/YALAccountManager.h
 
 - source_filter: "^contrib/deprecated/boost"
   includes:

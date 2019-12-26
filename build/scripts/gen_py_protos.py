@@ -40,7 +40,7 @@ def main():
             plugin_out_dirs_orig[plugin] = args[i][len(plugin_out_dir_arg):]
             assert plugin_out_dirs_orig[plugin] == out_dir_orig, 'Params "{0}" and "{1}" expected to have the same value'.format(OUT_DIR_ARG, plugin_out_dir_arg)
             args[i] = plugin_out_dir_arg + out_dir_temp
-            break
+
     assert out_dir_temp, 'Param "{0}" not found'.format(OUT_DIR_ARG)
 
     retcode = subprocess.call(args)

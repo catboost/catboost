@@ -9,11 +9,10 @@
 #include "mutex"
 #include "limits"
 #include "system_error"
-#include "__undef_macros"
-
-#if !defined(_LIBCPP_HAS_NO_THREADS) && !defined(_LIBCPP_CXX03_LANG)
-#define _LIBCPP_USE_ATOMIC
+#if !defined(_LIBCPP_ABI_MICROSOFT)
+#include "include/atomic_support.h"
 #endif
+#include "__undef_macros"
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 #ifndef _LIBCPP_HAS_NO_THREADS
@@ -200,8 +199,13 @@ _LIBCPP_SAFE_STATIC static __libcpp_mutex_t mut = _LIBCPP_MUTEX_INITIALIZER;
 _LIBCPP_SAFE_STATIC static __libcpp_condvar_t cv = _LIBCPP_CONDVAR_INITIALIZER;
 #endif
 
-void
-__call_once(volatile once_flag::__once_flag_state& flag, void* arg, void(*func)(void*))
+#ifdef _LIBCPP_ABI_MICROSOFT
+void __call_once(volatile std::atomic<once_flag::_State_type>& flag, void* arg,
+                 void(*func)(void*))
+#else
+void __call_once(volatile once_flag::_State_type& flag, void* arg,
+                 void(*func)(void*))
+#endif
 {
 #if defined(_LIBCPP_HAS_NO_THREADS)
     if (flag == 0)
@@ -212,12 +216,12 @@ __call_once(volatile once_flag::__once_flag_state& flag, void* arg, void(*func)(
 #endif  // _LIBCPP_NO_EXCEPTIONS
             flag = 1;
             func(arg);
-            flag = ~0ul;
+            flag = ~once_flag::_State_type(0);
 #ifndef _LIBCPP_NO_EXCEPTIONS
         }
         catch (...)
         {
-            flag = 0ul;
+            flag = 0;
             throw;
         }
 #endif  // _LIBCPP_NO_EXCEPTIONS
@@ -232,18 +236,19 @@ __call_once(volatile once_flag::__once_flag_state& flag, void* arg, void(*func)(
         try
         {
 #endif  // _LIBCPP_NO_EXCEPTIONS
-#ifdef _LIBCPP_USE_ATOMIC
-            flag.store(1ul);
+#ifdef _LIBCPP_ABI_MICROSOFT
+            flag.store(once_flag::_State_type(1));
 #else
-            __libcpp_relaxed_store(&flag, 1ul);
+            __libcpp_relaxed_store(&flag, once_flag::_State_type(1));
 #endif
             __libcpp_mutex_unlock(&mut);
             func(arg);
             __libcpp_mutex_lock(&mut);
-#ifdef _LIBCPP_USE_ATOMIC
-            flag.store(~0ul, memory_order_release);
-#else            
-            __libcpp_atomic_store(&flag, ~0ul, _AO_Release);
+#ifdef _LIBCPP_ABI_MICROSOFT
+            flag.store(~once_flag::_State_type(0), memory_order_release);
+#else
+            __libcpp_atomic_store(&flag, ~once_flag::_State_type(0),
+                                  _AO_Release);
 #endif
             __libcpp_mutex_unlock(&mut);
             __libcpp_condvar_broadcast(&cv);
@@ -252,11 +257,11 @@ __call_once(volatile once_flag::__once_flag_state& flag, void* arg, void(*func)(
         catch (...)
         {
             __libcpp_mutex_lock(&mut);
-#ifdef _LIBCPP_USE_ATOMIC
-            flag.store(0ul, memory_order_relaxed);
-#else    
-            __libcpp_relaxed_store(&flag, 0ul);
-#endif      
+#ifdef _LIBCPP_ABI_MICROSOFT
+            flag.store(once_flag::_State_type(0), memory_order_relaxed);
+#else
+            __libcpp_relaxed_store(&flag, once_flag::_State_type(0));
+#endif
             __libcpp_mutex_unlock(&mut);
             __libcpp_condvar_broadcast(&cv);
             throw;
@@ -266,7 +271,6 @@ __call_once(volatile once_flag::__once_flag_state& flag, void* arg, void(*func)(
     else
         __libcpp_mutex_unlock(&mut);
 #endif // !_LIBCPP_HAS_NO_THREADS
-
 }
 
 _LIBCPP_END_NAMESPACE_STD

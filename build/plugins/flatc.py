@@ -18,7 +18,7 @@ class FlatcBase(iw.CustomCommand):
         return [(base_path + extension, []) for extension in self.extensions()] +\
             [(base_path + self.schema_extension(), ['noauto'])]
 
-    def run(self, binary):
+    def run(self, extra_args, binary):
         return self.do_run(binary, self._path)
 
     def do_run(self, binary, path):

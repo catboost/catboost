@@ -3,7 +3,7 @@
 #include "additive_model.h"
 #include "monom.h"
 #include "oblivious_tree.h"
-
+#include "non_symmetric_tree.h"
 #include <util/generic/hash.h>
 
 namespace NMonoForest {
@@ -21,7 +21,7 @@ namespace NMonoForest {
     class TPolynomBuilder {
     public:
         void AddTree(const TObliviousTree& tree);
-
+        void AddTree(const TNonSymmetricTree& tree);
         TPolynom Build();
 
     private:

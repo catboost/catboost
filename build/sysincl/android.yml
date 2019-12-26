@@ -6,3 +6,17 @@
   - jni.h
   - vulkan/vulkan.h
   - vulkan/vk_sdk_platform.h
+  - SLES/OpenSLES.h
+  - SLES/OpenSLES_Android.h
+  - SLES/OpenSLES_AndroidConfiguration.h
+  - SLES/OpenSLES_AndroidMetadata.h
+  - SLES/OpenSLES_Platform.h
+
+- source_filter: "^contrib/libs/breakpad/src"
+  includes:
+    - elf.h:        contrib/libs/breakpad/src/common/android/include/elf.h
+    - link.h:       contrib/libs/breakpad/src/common/android/include/link.h
+    - sys/procfs.h: contrib/libs/breakpad/src/common/android/include/sys/procfs.h
+    - sys/signal.h: contrib/libs/breakpad/src/common/android/include/sys/signal.h
+    - sys/user.h:   contrib/libs/breakpad/src/common/android/include/sys/user.h
+    - ucontext.h:   contrib/libs/breakpad/src/common/android/include/ucontext.h

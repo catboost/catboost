@@ -55,7 +55,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"Feat"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.FloatFeatures = {
                 TVector<float>{0.2f, 0.82f, 0.22f},
             };
@@ -96,7 +96,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"Feat0", "Feat1"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.FloatFeatures = {
                 TVector<float>{0.1f, 0.97f, 0.13f},
                 TVector<float>{0.2f, 0.82f, 0.22f},
@@ -155,7 +155,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"f0", "f1", "f2"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Ordered;
             expectedData.Objects.GroupIds = TVector<TStringBuf>{
                 "query0",
@@ -236,7 +236,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"f0", "f1", "f2"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, true, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, true, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.GroupIds = TVector<TStringBuf>{
                 "query0",
                 "query0",
@@ -311,7 +311,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3", "float4"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::RandomShuffled;
             expectedData.Objects.GroupIds = TVector<TStringBuf>{
                 "query0",
@@ -388,7 +388,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3", "float4"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), true, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), true, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.GroupIds = TVector<TStringBuf>{
                 "query0",
                 "query0",
@@ -460,7 +460,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3", "float4"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             auto& featuresLayout = *expectedData.MetaInfo.FeaturesLayout;
             featuresLayout.IgnoreExternalFeature(1);
             featuresLayout.IgnoreExternalFeature(4);
@@ -533,7 +533,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"Feat0", "Feat1"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Ordered;
             expectedData.Objects.Timestamp = {10, 10, 20};
             expectedData.Objects.FloatFeatures = {
@@ -581,7 +581,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"Feat0", "Feat1"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
             expectedData.Objects.Timestamp = {20, 10, 20};
             expectedData.Objects.FloatFeatures = {
@@ -629,7 +629,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"Feat0", "Feat1"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
             expectedData.Objects.Timestamp = {20, 20, 20};
             expectedData.Objects.FloatFeatures = {
@@ -695,7 +695,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
 
             auto nanValue = std::numeric_limits<float>::quiet_NaN();
@@ -757,7 +757,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"float0", "Place1", "float2"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
 
             expectedData.Objects.FloatFeatures = {
@@ -817,7 +817,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"float0", "Place1", "float2"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
 
             expectedData.Objects.FloatFeatures = {
@@ -877,7 +877,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"text0"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* baselineColumn */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* baselineColumn */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
 
             expectedData.Objects.TextFeatures = {
@@ -938,7 +938,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
                 "Gender"
             };
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, /* baselineColumn */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* baselineColumn */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
 
             expectedData.Objects.FloatFeatures = {

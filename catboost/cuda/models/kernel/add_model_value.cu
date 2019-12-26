@@ -366,14 +366,13 @@ namespace NKernel {
 
 
             ui32 bin = 0;
-            while (true) {
+            bool stop = nodes == nullptr;
+            while (!stop) {
                 TTreeNode node = Ldg(nodes);
                 TCFeature feature = Ldg(features);
 
                 const ui32 featureVal = (__ldg(cindex + feature.Offset  + loadIdx) >> feature.Shift) & feature.Mask;
                 const bool split = (feature.OneHotFeature ? (featureVal == node.Bin) : featureVal > node.Bin);
-
-                bool stop = false;
 
                 if (split) {
                     bin += node.LeftSubtree;
@@ -388,10 +387,6 @@ namespace NKernel {
                         nodes += 1;
                         features += 1;
                     }
-                }
-
-                if (stop) {
-                    break;
                 }
             }
 

@@ -3,6 +3,7 @@
 #include <catboost/libs/column_description/cd_parser.h>
 #include <catboost/libs/helpers/exception.h>
 
+#include <util/string/split.h>
 #include <util/string/type.h>
 
 static bool TryParseRange(const TString& ignoredFeatureDescription, ui32& left, ui32& right) {

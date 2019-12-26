@@ -300,6 +300,11 @@ namespace NCB {
             Data.TargetData.Pairs = std::move(pairs);
         }
 
+        void SetTimestamps(TVector<ui64>&& timestamps) override {
+            CheckDataSize(timestamps.size(), (size_t)ObjectCount, "timestamps");
+            Data.CommonObjectsData.Timestamp = std::move(timestamps);
+        }
+
         // needed for checking groupWeights consistency while loading from separate file
         TMaybeData<TConstArrayRef<TGroupId>> GetGroupIds() const override {
             return Data.CommonObjectsData.GroupIds;
@@ -347,10 +352,18 @@ namespace NCB {
                     }
                 }
                 if (Data.MetaInfo.HasWeights) {
-                    Data.TargetData.Weights = TWeights<float>(TVector<float>(WeightsBuffer));
+                    Data.TargetData.Weights = TWeights<float>(
+                        TVector<float>(WeightsBuffer),
+                        AsStringBuf("Weights"),
+                        /*allWeightsCanBeZero*/ true
+                    );
                 }
                 if (Data.MetaInfo.HasGroupWeight) {
-                    Data.TargetData.GroupWeights = TWeights<float>(TVector<float>(GroupWeightsBuffer));
+                    Data.TargetData.GroupWeights = TWeights<float>(
+                        TVector<float>(GroupWeightsBuffer),
+                        AsStringBuf("GroupWeights"),
+                        /*allWeightsCanBeZero*/ true
+                    );
                 }
             } else {
                 if (TargetDataTypeIsString) {
@@ -366,10 +379,18 @@ namespace NCB {
                     }
                 }
                 if (Data.MetaInfo.HasWeights) {
-                    Data.TargetData.Weights = TWeights<float>(std::move(WeightsBuffer));
+                    Data.TargetData.Weights = TWeights<float>(
+                        std::move(WeightsBuffer),
+                        AsStringBuf("Weights"),
+                        /*allWeightsCanBeZero*/ InBlock
+                    );
                 }
                 if (Data.MetaInfo.HasGroupWeight) {
-                    Data.TargetData.GroupWeights = TWeights<float>(std::move(GroupWeightsBuffer));
+                    Data.TargetData.GroupWeights = TWeights<float>(
+                        std::move(GroupWeightsBuffer),
+                        AsStringBuf("GroupWeights"),
+                        /*allWeightsCanBeZero*/ InBlock
+                    );
                 }
             }
 
@@ -417,20 +438,25 @@ namespace NCB {
                     LocalExecutor
                 );
 
+                TDataProviderPtr result;
+
                 ui32 groupCount = fullData->ObjectsGrouping->GetGroupCount();
-                CB_ENSURE(groupCount != 1, "blocks must be big enough to contain more than a single group");
-                TVector<TSubsetBlock<ui32>> subsetBlocks = {TSubsetBlock<ui32>{{ui32(0), groupCount - 1}, 0}};
-                auto result = fullData->GetSubset(
-                    GetSubset(
-                        fullData->ObjectsGrouping,
-                        TArraySubsetIndexing<ui32>(
-                            TRangesSubset<ui32>(groupCount - 1, std::move(subsetBlocks))
+                if (groupCount != 1) {
+                    TVector<TSubsetBlock<ui32>> subsetBlocks = {
+                        TSubsetBlock<ui32>{{ui32(0), groupCount - 1}, 0}
+                    };
+                    result = fullData->GetSubset(
+                        GetSubset(
+                            fullData->ObjectsGrouping,
+                            TArraySubsetIndexing<ui32>(
+                                TRangesSubset<ui32>(groupCount - 1, std::move(subsetBlocks))
+                            ),
+                            EObjectsOrder::Ordered
                         ),
-                        EObjectsOrder::Ordered
-                    ),
-                    Options.MaxCpuRamUsage,
-                    LocalExecutor
-                )->CastMoveTo<TObjectsDataProvider>();
+                        Options.MaxCpuRamUsage,
+                        LocalExecutor
+                    )->CastMoveTo<TObjectsDataProvider>();
+                }
 
                 // save Data parts - it still contains last group data
                 Data = TRawBuilderDataHelper::Extract(std::move(*fullData));
@@ -462,17 +488,22 @@ namespace NCB {
             );
 
             ui32 groupCount = fullData->ObjectsGrouping->GetGroupCount();
-            Y_VERIFY(groupCount != 1);
-            TVector<TSubsetBlock<ui32>> subsetBlocks = {TSubsetBlock<ui32>{{groupCount - 1, groupCount}, 0}};
-            return fullData->GetSubset(
-                GetSubset(
-                    fullData->ObjectsGrouping,
-                    TArraySubsetIndexing<ui32>(TRangesSubset<ui32>(1, std::move(subsetBlocks))),
-                    EObjectsOrder::Ordered
-                ),
-                Options.MaxCpuRamUsage,
-                LocalExecutor
-            )->CastMoveTo<TObjectsDataProvider>();
+            if (groupCount == 1) {
+                return fullData->CastMoveTo<TObjectsDataProvider>();
+            } else {
+                TVector<TSubsetBlock<ui32>> subsetBlocks = {
+                    TSubsetBlock<ui32>{{groupCount - 1, groupCount}, 0}
+                };
+                return fullData->GetSubset(
+                    GetSubset(
+                        fullData->ObjectsGrouping,
+                        TArraySubsetIndexing<ui32>(TRangesSubset<ui32>(1, std::move(subsetBlocks))),
+                        EObjectsOrder::Ordered
+                    ),
+                    Options.MaxCpuRamUsage,
+                    LocalExecutor
+                )->CastMoveTo<TObjectsDataProvider>();
+            }
         }
 
     private:
@@ -1067,6 +1098,11 @@ namespace NCB {
             Data.TargetData.Pairs = std::move(pairs);
         }
 
+        void SetTimestamps(TVector<ui64>&& timestamps) override {
+            CheckDataSize(timestamps.size(), (size_t)ObjectCount, "timestamps");
+            Data.CommonObjectsData.Timestamp = timestamps;
+        }
+
         // needed for checking groupWeights consistency while loading from separate file
         TMaybeData<TConstArrayRef<TGroupId>> GetGroupIds() const override {
             return Data.CommonObjectsData.GroupIds;
@@ -1445,6 +1481,11 @@ namespace NCB {
 
         void SetPairs(TVector<TPair>&& pairs) override {
             Data.TargetData.Pairs = std::move(pairs);
+        }
+
+        void SetTimestamps(TVector<ui64>&& timestamps) override {
+            CheckDataSize(timestamps.size(), (size_t)ObjectCount, "timestamps");
+            Data.CommonObjectsData.Timestamp = std::move(timestamps);
         }
 
         // needed for checking groupWeights consistency while loading from separate file
@@ -1890,13 +1931,6 @@ namespace NCB {
 
     private:
         ui32 ObjectCount;
-
-        /* for conversion back to string representation
-         * if empty - no conversion
-         *
-         *  TODO(akhropov): conversion back will be removed in MLTOOLS-2393
-         */
-        TVector<TString> ClassNames;
 
         /* ForCPU because TQuantizedForCPUObjectsData is more generic than TQuantizedObjectsData -
          * it contains it as a subset

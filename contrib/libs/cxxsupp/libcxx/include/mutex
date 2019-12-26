@@ -188,6 +188,7 @@ template<class Callable, class ...Args>
 
 #include <__config>
 #include <__mutex_base>
+#include <cstdint>
 #include <functional>
 #include <memory>
 #ifndef _LIBCPP_CXX03_LANG
@@ -578,17 +579,21 @@ struct _LIBCPP_TEMPLATE_VIS once_flag
     _LIBCPP_INLINE_VISIBILITY
     _LIBCPP_CONSTEXPR
         once_flag() _NOEXCEPT : __state_(0) {}
-#if defined(_LIBCPP_HAS_NO_THREADS) || defined(_LIBCPP_CXX03_LANG)
-    typedef unsigned long __once_flag_state;
+#if defined(_LIBCPP_ABI_MICROSOFT)
+    typedef uintptr_t _State_type;
 #else
-    typedef atomic<unsigned long> __once_flag_state;
+    typedef unsigned long _State_type;
 #endif
-        
+
 private:
     once_flag(const once_flag&); // = delete;
     once_flag& operator=(const once_flag&); // = delete;
 
-    __once_flag_state __state_;
+#if defined(_LIBCPP_ABI_MICROSOFT)
+    atomic<_State_type> __state_;
+#else
+    _State_type __state_;
+#endif
 
 #ifndef _LIBCPP_CXX03_LANG
     template<class _Callable, class... _Args>
@@ -658,7 +663,13 @@ __call_once_proxy(void* __vp)
     (*__p)();
 }
 
-_LIBCPP_FUNC_VIS void __call_once(volatile once_flag::__once_flag_state&, void*, void(*)(void*));
+#ifdef _LIBCPP_ABI_MICROSOFT
+_LIBCPP_FUNC_VIS void __call_once(volatile atomic<once_flag::_State_type>&, void*,
+                                  void(*)(void*));
+#else
+_LIBCPP_FUNC_VIS void __call_once(volatile once_flag::_State_type&, void*,
+                                  void(*)(void*));
+#endif
 
 #ifndef _LIBCPP_CXX03_LANG
 
@@ -667,10 +678,10 @@ inline _LIBCPP_INLINE_VISIBILITY
 void
 call_once(once_flag& __flag, _Callable&& __func, _Args&&... __args)
 {
-#if defined(_LIBCPP_HAS_NO_THREADS) || defined(_LIBCPP_CXX03_LANG)
-    if (__libcpp_acquire_load(&__flag.__state_) != ~0ul)
+#if defined(_LIBCPP_ABI_MICROSOFT)
+    if (__flag.__state_.load(memory_order_acquire) != ~once_flag::_State_type(0))
 #else
-    if (__flag.__state_.load(memory_order_acquire) != ~0ul)
+    if (__libcpp_acquire_load(&__flag.__state_) != ~once_flag::_State_type(0))
 #endif
     {
         typedef tuple<_Callable&&, _Args&&...> _Gp;
@@ -687,10 +698,10 @@ inline _LIBCPP_INLINE_VISIBILITY
 void
 call_once(once_flag& __flag, _Callable& __func)
 {
-#if defined(_LIBCPP_HAS_NO_THREADS) || defined(_LIBCPP_CXX03_LANG)
-    if (__libcpp_acquire_load(&__flag.__state_) != ~0ul)
+#if defined(_LIBCPP_ABI_MICROSOFT)
+    if (__flag.__state_.load(memory_order_acquire) != ~once_flag::_State_type(0))
 #else
-    if (__flag.__state_.load(memory_order_acquire) != ~0ul)
+    if (__libcpp_acquire_load(&__flag.__state_) != ~once_flag::_State_type(0))
 #endif
     {
         __call_once_param<_Callable> __p(__func);
@@ -703,11 +714,11 @@ inline _LIBCPP_INLINE_VISIBILITY
 void
 call_once(once_flag& __flag, const _Callable& __func)
 {
-#if defined(_LIBCPP_HAS_NO_THREADS) || defined(_LIBCPP_CXX03_LANG)    
-    if (__flag.__state_ != ~0ul)
+#if defined(_LIBCPP_ABI_MICROSOFT)
+    if (__flag.__state_.load(memory_order_relaxed) != ~once_flag::_State_type(0))
 #else
-    if (__flag.__state_.load(memory_order_relaxed) != ~0ul)
-#endif        
+    if (__flag.__state_ != ~once_flag::_State_type(0))
+#endif
     {
         __call_once_param<const _Callable> __p(__func);
         __call_once(__flag.__state_, &__p, &__call_once_proxy<const _Callable>);

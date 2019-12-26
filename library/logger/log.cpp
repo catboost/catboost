@@ -162,6 +162,10 @@ public:
         return BackEnd_->FiltrationLevel();
     }
 
+    inline size_t BackEndQueueSize() const {
+        return BackEnd_->QueueSize();
+    }
+
 private:
     THolder<TLogBackend> BackEnd_;
     ELogPriority DefaultPriority_;
@@ -287,4 +291,8 @@ void TLog::Write(const char* data, size_t len) const {
 
 void TLog::SetFormatter(TLogFormatter formatter) noexcept {
     Formatter = formatter;
+}
+
+size_t TLog::BackEndQueueSize() const {
+    return Impl_->BackEndQueueSize();
 }

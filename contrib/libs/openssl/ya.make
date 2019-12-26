@@ -30,6 +30,16 @@ ADDINCL(
     GLOBAL contrib/libs/openssl/include
 )
 
+IF (OS_LINUX)
+    IF (ARCH_ARM64)
+        SET(LINUX_ARM64 yes)
+    ELSEIF(ARCH_ARM7)
+        SET(LINUX_ARMV7 yes)
+    ELSEIF(ARCH_X86_64)
+        SET(LINUX_X86_64 yes)
+    ENDIF()
+ENDIF()
+
 IF (OS_IOS)
     IF (ARCH_ARM64)
         SET(IOS_ARM64 yes)
@@ -39,7 +49,6 @@ IF (OS_IOS)
         SET(IOS_X86_64 yes)
     ELSEIF(ARCH_I386)
         SET(IOS_I386 yes)
-    ELSE()
     ENDIF()
 ENDIF()
 
@@ -52,7 +61,6 @@ IF (OS_ANDROID)
         SET(ANDROID_X86_64 yes)
     ELSEIF(ARCH_I686)
         SET(ANDROID_I686 yes)
-    ELSE()
     ENDIF()
 ENDIF()
 
@@ -176,7 +184,7 @@ SRCS(
     ssl/tls_srp.c
 )
 
-IF (NOT IOS_ARMV7)
+IF (NOT IOS_ARMV7 AND NOT LINUX_ARMV7)
     CFLAGS(
         -DVPAES_ASM
     )
@@ -189,7 +197,7 @@ IF (NOT IOS_ARM64 AND NOT IOS_ARMV7)
     )
 ENDIF()
 
-IF (OS_LINUX AND ARCH_AARCH64 OR OS_LINUX AND ARCH_X86_64 OR OS_LINUX AND ARCH_PPC64LE)
+IF (OS_LINUX AND ARCH_ARM7 OR OS_LINUX AND ARCH_AARCH64 OR OS_LINUX AND ARCH_X86_64 OR OS_LINUX AND ARCH_PPC64LE)
     SRCS(
         engines/e_afalg.c
     )

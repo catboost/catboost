@@ -50,6 +50,7 @@ namespace NCB {
         TPathWithScheme PairsPath;
         TPathWithScheme GroupWeightsPath;
         TPathWithScheme BaselinePath;
+        TPathWithScheme TimestampsPath;
         TDataMetaInfo DataMetaInfo;
         EObjectsOrder ObjectsOrder;
         TDatasetSubset DatasetSubset;

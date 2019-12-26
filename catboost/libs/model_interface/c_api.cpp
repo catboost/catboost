@@ -15,7 +15,7 @@ struct TErrorMessageHolder {
 };
 
 extern "C" {
-EXPORT ModelCalcerHandle* ModelCalcerCreate() {
+CATBOOST_API ModelCalcerHandle* ModelCalcerCreate() {
     try {
         return new TFullModel;
     } catch (...) {
@@ -25,17 +25,17 @@ EXPORT ModelCalcerHandle* ModelCalcerCreate() {
     return nullptr;
 }
 
-EXPORT const char* GetErrorString() {
+CATBOOST_API const char* GetErrorString() {
     return Singleton<TErrorMessageHolder>()->Message.data();
 }
 
-EXPORT void ModelCalcerDelete(ModelCalcerHandle* modelHandle) {
+CATBOOST_API void ModelCalcerDelete(ModelCalcerHandle* modelHandle) {
     if (modelHandle != nullptr) {
         delete FULL_MODEL_PTR(modelHandle);
     }
 }
 
-EXPORT bool LoadFullModelFromFile(ModelCalcerHandle* modelHandle, const char* filename) {
+CATBOOST_API bool LoadFullModelFromFile(ModelCalcerHandle* modelHandle, const char* filename) {
     try {
         *FULL_MODEL_PTR(modelHandle) = ReadModel(filename);
     } catch (...) {
@@ -46,7 +46,7 @@ EXPORT bool LoadFullModelFromFile(ModelCalcerHandle* modelHandle, const char* fi
     return true;
 }
 
-EXPORT bool LoadFullModelFromBuffer(ModelCalcerHandle* modelHandle, const void* binaryBuffer, size_t binaryBufferSize) {
+CATBOOST_API bool LoadFullModelFromBuffer(ModelCalcerHandle* modelHandle, const void* binaryBuffer, size_t binaryBufferSize) {
     try {
         *FULL_MODEL_PTR(modelHandle) = ReadModel(binaryBuffer, binaryBufferSize);
     } catch (...) {
@@ -57,7 +57,7 @@ EXPORT bool LoadFullModelFromBuffer(ModelCalcerHandle* modelHandle, const void* 
     return true;
 }
 
-EXPORT bool EnableGPUEvaluation(ModelCalcerHandle* modelHandle, int deviceId) {
+CATBOOST_API bool EnableGPUEvaluation(ModelCalcerHandle* modelHandle, int deviceId) {
     try {
         //TODO(kirillovs): fix this after adding set evaluator props interface
         CB_ENSURE(deviceId == 0, "FIXME: Only device 0 is supported for now");
@@ -69,7 +69,7 @@ EXPORT bool EnableGPUEvaluation(ModelCalcerHandle* modelHandle, int deviceId) {
     return true;
 }
 
-EXPORT bool CalcModelPredictionFlat(ModelCalcerHandle* modelHandle, size_t docCount, const float** floatFeatures, size_t floatFeaturesSize, double* result, size_t resultSize) {
+CATBOOST_API bool CalcModelPredictionFlat(ModelCalcerHandle* modelHandle, size_t docCount, const float** floatFeatures, size_t floatFeaturesSize, double* result, size_t resultSize) {
     try {
         if (docCount == 1) {
             FULL_MODEL_PTR(modelHandle)->CalcFlatSingle(TConstArrayRef<float>(*floatFeatures, floatFeaturesSize), TArrayRef<double>(result, resultSize));
@@ -87,7 +87,7 @@ EXPORT bool CalcModelPredictionFlat(ModelCalcerHandle* modelHandle, size_t docCo
     return true;
 }
 
-EXPORT bool CalcModelPrediction(
+CATBOOST_API bool CalcModelPrediction(
         ModelCalcerHandle* modelHandle,
         size_t docCount,
         const float** floatFeatures, size_t floatFeaturesSize,
@@ -110,7 +110,7 @@ EXPORT bool CalcModelPrediction(
     return true;
 }
 
-EXPORT bool CalcModelPredictionSingle(
+CATBOOST_API bool CalcModelPredictionSingle(
         ModelCalcerHandle* modelHandle,
         const float* floatFeatures, size_t floatFeaturesSize,
         const char** catFeatures, size_t catFeaturesSize,
@@ -130,7 +130,7 @@ EXPORT bool CalcModelPredictionSingle(
     return true;
 }
 
-EXPORT bool CalcModelPredictionWithHashedCatFeatures(ModelCalcerHandle* modelHandle, size_t docCount,
+CATBOOST_API bool CalcModelPredictionWithHashedCatFeatures(ModelCalcerHandle* modelHandle, size_t docCount,
                                                      const float** floatFeatures, size_t floatFeaturesSize,
                                                      const int** catFeatures, size_t catFeaturesSize,
                                                      double* result, size_t resultSize) {
@@ -149,37 +149,37 @@ EXPORT bool CalcModelPredictionWithHashedCatFeatures(ModelCalcerHandle* modelHan
     return true;
 }
 
-EXPORT int GetStringCatFeatureHash(const char* data, size_t size) {
+CATBOOST_API int GetStringCatFeatureHash(const char* data, size_t size) {
     return CalcCatFeatureHash(TStringBuf(data, size));
 }
 
-EXPORT int GetIntegerCatFeatureHash(long long val) {
+CATBOOST_API int GetIntegerCatFeatureHash(long long val) {
     TStringBuilder valStr;
     valStr << val;
     return CalcCatFeatureHash(valStr);
 }
 
-EXPORT size_t GetFloatFeaturesCount(ModelCalcerHandle* modelHandle) {
+CATBOOST_API size_t GetFloatFeaturesCount(ModelCalcerHandle* modelHandle) {
     return FULL_MODEL_PTR(modelHandle)->GetNumFloatFeatures();
 }
 
-EXPORT size_t GetCatFeaturesCount(ModelCalcerHandle* modelHandle) {
+CATBOOST_API size_t GetCatFeaturesCount(ModelCalcerHandle* modelHandle) {
     return FULL_MODEL_PTR(modelHandle)->GetNumCatFeatures();
 }
 
-EXPORT size_t GetTreeCount(ModelCalcerHandle* modelHandle) {
+CATBOOST_API size_t GetTreeCount(ModelCalcerHandle* modelHandle) {
     return FULL_MODEL_PTR(modelHandle)->GetTreeCount();
 }
 
-EXPORT size_t GetDimensionsCount(ModelCalcerHandle* modelHandle) {
+CATBOOST_API size_t GetDimensionsCount(ModelCalcerHandle* modelHandle) {
     return FULL_MODEL_PTR(modelHandle)->GetDimensionsCount();
 }
 
-EXPORT bool CheckModelMetadataHasKey(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize) {
+CATBOOST_API bool CheckModelMetadataHasKey(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize) {
     return FULL_MODEL_PTR(modelHandle)->ModelInfo.contains(TStringBuf(keyPtr, keySize));
 }
 
-EXPORT size_t GetModelInfoValueSize(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize) {
+CATBOOST_API size_t GetModelInfoValueSize(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize) {
     TStringBuf key(keyPtr, keySize);
     if (!FULL_MODEL_PTR(modelHandle)->ModelInfo.contains(key)) {
         return 0;
@@ -187,7 +187,7 @@ EXPORT size_t GetModelInfoValueSize(ModelCalcerHandle* modelHandle, const char* 
     return FULL_MODEL_PTR(modelHandle)->ModelInfo.at(key).size();
 }
 
-EXPORT const char* GetModelInfoValue(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize) {
+CATBOOST_API const char* GetModelInfoValue(ModelCalcerHandle* modelHandle, const char* keyPtr, size_t keySize) {
     TStringBuf key(keyPtr, keySize);
     if (!FULL_MODEL_PTR(modelHandle)->ModelInfo.contains(key)) {
         return nullptr;

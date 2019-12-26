@@ -61,6 +61,11 @@ namespace NCatboostCuda {
 
             TLeafPath currentPath;
             i64 binCursor = 0;
+            // Single leaf (constant value) tree
+            if (Nodes.empty()) {
+                visitor(currentPath, binCursor);
+                return;
+            }
 
             bool unwind = false;
 

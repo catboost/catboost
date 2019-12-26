@@ -400,4 +400,31 @@ Y_UNIT_TEST_SUITE(TObjectsGrouping) {
         UNIT_ASSERT_EQUAL(result.first, expectedTrainIndices);
         UNIT_ASSERT_EQUAL(result.second, expectedTestIndices);
     }
+
+    Y_UNIT_TEST(QuantileSplitObjects) {
+        const ui32 objectCount = 8;
+        const TObjectsGrouping objectsGrouping(objectCount);
+        const TVector<ui64> timestamps{0, 1, 2, 3, 4, 5, 6, 7};
+        const auto timesplitQuantileTimestamp = timestamps[5];
+        const ui32 learnPartSizeInObjects = 3;
+        const auto result = QuantileSplitByObjects(objectsGrouping, timestamps, timesplitQuantileTimestamp, learnPartSizeInObjects);
+        TVector<TArraySubsetIndexing<ui32>> learnTestIndices;
+        learnTestIndices.emplace_back(TIndexedSubset<ui32>({0, 1, 2}));
+        learnTestIndices.emplace_back(TIndexedSubset<ui32>({3, 4, 5}));
+        learnTestIndices.emplace_back(TIndexedSubset<ui32>({6, 7}));
+        UNIT_ASSERT_EQUAL(result, learnTestIndices);
+    }
+
+    Y_UNIT_TEST(QuantileSplitGroups) {
+        const TObjectsGrouping objectsGrouping(TVector<TGroupBounds>({TGroupBounds(0, 2), TGroupBounds(2, 5), TGroupBounds(5, 8)}));
+        const TVector<ui64> timestamps{0, 0, 2, 2, 2, 6, 6, 6};
+        const auto timesplitQuantileTimestamp = timestamps[2];
+        const ui32 learnPartSizeInGroups = 1;
+        const auto result = QuantileSplitByGroups(objectsGrouping, timestamps, timesplitQuantileTimestamp, learnPartSizeInGroups);
+        TVector<TArraySubsetIndexing<ui32>> learnTestIndices;
+        learnTestIndices.emplace_back(TIndexedSubset<ui32>({0}));
+        learnTestIndices.emplace_back(TIndexedSubset<ui32>({1}));
+        learnTestIndices.emplace_back(TIndexedSubset<ui32>({2}));
+        UNIT_ASSERT_EQUAL(result, learnTestIndices);
+    }
 }

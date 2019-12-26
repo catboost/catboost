@@ -38,6 +38,9 @@ namespace NCatboostOptions {
         NCB::TPathWithScheme GroupWeightsFilePath;
         NCB::TPathWithScheme TestGroupWeightsFilePath;
 
+        NCB::TPathWithScheme TimestampsFilePath;
+        NCB::TPathWithScheme TestTimestampsFilePath;
+
         NCB::TPathWithScheme BaselineFilePath;
         NCB::TPathWithScheme TestBaselineFilePath;
         TVector<TString> ClassNames;
@@ -54,8 +57,8 @@ namespace NCatboostOptions {
         SAVELOAD(
             CvParams, ColumnarPoolFormatParams, LearnSetPath, TestSetPaths,
             PairsFilePath, TestPairsFilePath, GroupWeightsFilePath, TestGroupWeightsFilePath,
-            BaselineFilePath, TestBaselineFilePath, ClassNames, IgnoredFeatures,
-            BordersFile
+            TimestampsFilePath, TestTimestampsFilePath, BaselineFilePath, TestBaselineFilePath,
+            ClassNames, IgnoredFeatures, BordersFile
         );
     };
 

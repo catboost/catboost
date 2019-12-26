@@ -39,7 +39,9 @@ namespace NCB {
         CB_ENSURE(!Args.GroupWeightsFilePath.Inited() || CheckExists(Args.GroupWeightsFilePath),
                   "TCBDsvDataLoader:GroupWeightsFilePath does not exist");
         CB_ENSURE(!Args.BaselineFilePath.Inited() || CheckExists(Args.BaselineFilePath),
-                  "TCBDsvDataLoader:BaselineFilePathFilePath does not exist");
+                  "TCBDsvDataLoader:BaselineFilePath does not exist");
+        CB_ENSURE(!Args.TimestampsFilePath.Inited() || CheckExists(Args.TimestampsFilePath),
+                  "TCBDsvDataLoader:TimestampsFilePath does not exist");
 
         TMaybe<TString> header = LineDataReader->GetHeader();
         TMaybe<TVector<TString>> headerColumns;
@@ -57,6 +59,7 @@ namespace NCB {
         DataMetaInfo = TDataMetaInfo(
             std::move(columnsDescription),
             Args.GroupWeightsFilePath.Inited(),
+            Args.TimestampsFilePath.Inited(),
             Args.PairsFilePath.Inited(),
             BaselineReader.GetBaselineCount(),
             &featureIds,

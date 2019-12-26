@@ -2,7 +2,7 @@ LIBRARY()
 
 
 
-INCLUDE(${ARCADIA_ROOT}/catboost/libs/cuda_wrappers/default_nvcc_flags.make.inc)
+INCLUDE(${ARCADIA_ROOT}/library/cuda/wrappers/default_nvcc_flags.make.inc)
 
 SRCS(
     evaluator.cu
@@ -10,11 +10,8 @@ SRCS(
 )
 
 PEERDIR(
-    catboost/libs/cuda_wrappers
-)
-
-PEERDIR(
     catboost/libs/model
+    library/cuda/wrappers
 )
 
 END()

@@ -100,14 +100,24 @@ def is_generated(path, unit):
 
 
 def add_python_lint_checks(unit, py_ver, files):
-    if files and unit.get('LINT_LEVEL_VALUE') != "none":
+    def get_resolved_files():
         resolved_files = []
         for path in files:
             resolved = unit.resolve_arc_path([path])
             if resolved.startswith('$S'):  # path was resolved as source file.
                 resolved_files.append(resolved)
+        return resolved_files
+
+    resolved_files = []
+    if files and unit.get('LINT_LEVEL_VALUE') != "none":
+        resolved_files = get_resolved_files()
         unit.onadd_check(["PEP8_{}".format(py_ver)] + resolved_files)
         unit.onadd_check(["PYFLAKES_{}".format(py_ver)] + resolved_files)
+
+    flake8_cfg = unit.get('FLAKE8_CONFIG')
+    if files and flake8_cfg:
+        resolved_files = resolved_files or get_resolved_files()
+        unit.onadd_check(["flake8.py{}".format(py_ver), flake8_cfg] + resolved_files)
 
 
 def is_py3(unit):
@@ -176,10 +186,6 @@ def onpy_srcs(unit, *args):
     cython_coverage = unit.get('CYTHON_COVERAGE') == 'yes'
     cythonize_py = False
     optimize_proto = unit.get('OPTIMIZE_PY_PROTOS_FLAG') == 'yes'
-
-    cython_includes = []
-    for path in unit.includes():
-        cython_includes += ['-I', resolve_to_ymake_path(path)]
 
     cython_directives = []
     if cython_coverage:
@@ -339,7 +345,7 @@ def onpy_srcs(unit, *args):
                     '--source-root', '${ARCADIA_ROOT}',
                     # set arcadia root relative __file__ for generated modules
                     '-X', 'set_initial_path={}'.format(filename),
-                ] + cython_includes + cython_directives
+                ] + cython_directives
 
                 cython(cython_args)
                 py_register(unit, mod, py3)

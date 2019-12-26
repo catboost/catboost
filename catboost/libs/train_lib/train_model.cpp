@@ -161,6 +161,9 @@ static void InitializeAndCheckMetricData(
             CATBOOST_WARNING_LOG << "In distributed training, non-additive metrics are not evaluated on train dataset" << Endl;
         }
     }
+    if (ctx.Params.LossFunctionDescription->GetLossFunction() == ELossFunction::MultiRMSE) {
+        CB_ENSURE(!ctx.Layout->GetCatFeatureCount(), "Training with MultiRMSE loss function doesn't support categorical features");
+    }
 
     CB_ENSURE(!metrics.empty(), "Eval metric is not defined");
 
@@ -1014,6 +1017,11 @@ void TrainModel(
         &classNames,
         &executor,
         &profile);
+
+    const bool hasTextFeatures = pools.Learn->MetaInfo.FeaturesLayout->GetTextFeatureCount() > 0;
+    if (hasTextFeatures) {
+        needFstr = false;
+    }
 
     TVector<TString> outputColumns;
     if (!evalOutputFileName.empty() && !pools.Test.empty()) {

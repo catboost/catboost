@@ -2,7 +2,7 @@
 #include "fill.cuh"
 #include "kernel_helpers.cuh"
 #include <contrib/libs/cub/cub/device/device_reduce.cuh>
-#include <catboost/libs/cuda_wrappers/arch.cuh>
+#include <library/cuda/wrappers/arch.cuh>
 #include <contrib/libs/cub/cub/device/device_segmented_reduce.cuh>
 
 

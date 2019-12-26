@@ -122,7 +122,8 @@ namespace NCB {
     ) {
 
         //TODO(eermishkina): support non symmetric trees
-        CB_ENSURE(model.IsOblivious() || format == EModelType::CatboostBinary, "Can save non symmetric trees only in cbm format");
+        CB_ENSURE(model.IsOblivious() || format == EModelType::CatboostBinary || format == EModelType::Json,
+            "Can save non symmetric trees only in cbm or Json format");
         //TODO(d-kruchinin): support text features
         CB_ENSURE(
             !model.TextProcessingCollection || format == EModelType::CatboostBinary,

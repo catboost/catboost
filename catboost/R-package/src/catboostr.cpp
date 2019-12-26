@@ -139,6 +139,7 @@ SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
                                            !pairsPathWithScheme.empty() ?
                                                TPathWithScheme(pairsPathWithScheme, "dsv") : TPathWithScheme(),
                                            /*groupWeightsFilePath=*/TPathWithScheme(),
+                                           /*timestampsFilePath=*/TPathWithScheme(),
                                            /*baselineFilePath=*/TPathWithScheme(),
                                            columnarPoolFormatParams,
                                            TVector<ui32>(),
@@ -207,6 +208,7 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
         metaInfo.HasGroupWeight = groupWeightParam != R_NilValue;
         metaInfo.HasSubgroupIds = subgroupIdParam != R_NilValue;
         metaInfo.HasWeights = weightParam != R_NilValue;
+        metaInfo.HasTimestamp = false;
 
         visitor->Start(metaInfo, dataRows, EObjectsOrder::Undefined, {});
 

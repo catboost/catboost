@@ -1,4 +1,4 @@
-iter	MultiClass:use_weights=true	Accuracy:use_weights=false
+iter	MultiClass	Accuracy:use_weights=false
 0	0.6719670493	0.8910891089
 1	0.6535208437	0.9108910891
 2	0.6322295962	0.8712871287

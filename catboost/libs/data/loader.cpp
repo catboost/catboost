@@ -213,6 +213,59 @@ namespace NCB {
         return groupWeights;
     }
 
+    static TVector<ui64> ReadGroupTimestamps(
+        const TPathWithScheme& filePath,
+        TConstArrayRef<TGroupId> groupIds,
+        ui64 docCount,
+        TDatasetSubset loadSubset
+    ) {
+        Y_UNUSED(loadSubset);
+        THashSet<TGroupId> knownGroups(groupIds.begin(), groupIds.end());
+
+        THashMap<TGroupId, ui64> groupTimestamps;
+        ui32 skippedGroupsCount = 0;
+
+        auto reader = GetLineDataReader(filePath);
+        TString line;
+        for (size_t lineNumber = 0; reader->ReadLine(&line); ++lineNumber) {
+            TVector<TString> tokens = StringSplitter(line).Split('\t');
+            if (tokens.empty()) {
+                continue;
+            }
+            CB_ENSURE(
+                tokens.size() == 2,
+                "Timestamps file " << filePath << ", line number " << lineNumber << ": expect two items, got " << tokens.size());
+            auto group = CalcGroupIdFor(tokens[0]);
+            if (knownGroups.count(group) == 0) {
+                ++skippedGroupsCount;
+                continue;
+            }
+            CB_ENSURE(
+                groupTimestamps.insert(
+                    std::make_pair(
+                        group,
+                        FromString<ui64>(tokens[1])
+                    )
+                ).second,
+                "Timestamps file " << filePath << ", line number " << lineNumber << ": multiple timestamps for GroupId " << tokens[0]
+            );
+        }
+        CATBOOST_INFO_LOG << "Number of groups from file not in dataset: " << skippedGroupsCount << Endl;
+
+        TVector<ui64> timestamps;
+        timestamps.reserve(docCount);
+        CB_ENSURE_INTERNAL(groupIds.size() == docCount, "Each object should have GroupId");
+        for (auto group : groupIds) {
+            CB_ENSURE(
+                groupTimestamps.count(group) != 0,
+                "Timestamps file " << filePath << ": no timestamp for GroupId with hash " << group);
+            timestamps.push_back(groupTimestamps.at(group));
+        }
+        return timestamps;
+    }
+
+
+
     void SetPairs(const TPathWithScheme& pairsPath, ui32 objectCount, TDatasetSubset loadSubset, IDatasetVisitor* visitor) {
         DumpMemUsage("After data read");
         if (pairsPath.Inited()) {
@@ -250,6 +303,26 @@ namespace NCB {
         DumpMemUsage("After data read");
         if (baselinePath.Inited()) {
             visitor->SetBaseline(ReadBaseline(baselinePath, objectCount, loadSubset, classNames));
+        }
+    }
+
+    void SetTimestamps(
+        const TPathWithScheme& timestampsPath,
+        ui32 objectCount,
+        TDatasetSubset loadSubset,
+        IDatasetVisitor* visitor
+    ) {
+        DumpMemUsage("After data read");
+        if (timestampsPath.Inited()) {
+            auto maybeGroupIds = visitor->GetGroupIds();
+            CB_ENSURE(maybeGroupIds, "Cannot load group timestamps for a dataset without groups");
+            TVector<ui64> groupTimestamps = ReadGroupTimestamps(
+                timestampsPath,
+                *maybeGroupIds,
+                objectCount,
+                loadSubset
+            );
+            visitor->SetTimestamps(std::move(groupTimestamps));
         }
     }
 

@@ -38,6 +38,7 @@ DATA(
 )
 
 DEPENDS(
+    catboost/tools/limited_precision_dsv_diff
     catboost/tools/model_comparator
     catboost/python-package/catboost/no_cuda
     catboost/python-package/ut/medium/python_binary

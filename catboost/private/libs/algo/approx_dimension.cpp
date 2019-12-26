@@ -16,9 +16,7 @@ namespace NCB {
         if (IsMultiRegressionObjective(lossFunction)) {
             return targetDimension;
         } else {
-            const bool isMulticlass = IsMultiClassOnly(lossFunction, catBoostOptions.MetricOptions);
-
-            if (isMulticlass) {
+            if (labelConverter.IsInitialized()) {
                 return (ui32)labelConverter.GetApproxDimension();
             }
             return ui32(1);
