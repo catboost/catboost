@@ -165,7 +165,8 @@ ALLOW yabs/amazon/cache_proxy -> contrib/python/toredis
 ALLOW yql/udfs/common/python/python_arc -> contrib/python/toredis
 DENY .* -> contrib/python/toredis
 
-# contrib/python/MySQL-python dosen't support Python 3, use pymysql instead of this.
+# contrib/python/MySQL-python dosen't support Python 3, use mysqlclient-python
+# or pymysql instead of this.
 ALLOW adfox/amacs/tests/functional/libs/builders -> contrib/python/MySQL-python
 ALLOW adfox/amacs/tests/functional/libs/config -> contrib/python/MySQL-python
 ALLOW adfox/amacs/tests/functional/libs/db -> contrib/python/MySQL-python
