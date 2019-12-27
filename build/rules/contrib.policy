@@ -217,3 +217,7 @@ ALLOW contrib/python/mpop -> contrib/python/mipp
 ALLOW weather/workers/nowcasting/preprocess_meteosat -> contrib/python/mipp
 ALLOW yql/udfs/common/python/python_arc -> contrib/python/mipp
 DENY .* -> contrib/python/mipp
+
+ALLOW infra/procman -> contrib/python/skynet_pyro4
+ALLOW skynet -> contrib/python/skynet_pyro4
+DENY .* -> contrib/python/skynet_pyro4
