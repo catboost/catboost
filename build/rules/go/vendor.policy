@@ -1,5 +1,8 @@
 ALLOW vendor/ -> .*
 
+# Validate and define text-based and dynamic configuration
+ALLOW .* -> vendor/cuelang.org/go
+
 # driver for write to and read from XLSX files
 ALLOW .* -> vendor/github.com/360EntSecGroup-Skylar/excelize/v2
 
