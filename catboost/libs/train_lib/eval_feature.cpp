@@ -59,7 +59,7 @@ TString ToString(const TFeatureEvaluationSummary& summary) {
         featureEvalStream << metricName << '\t';
     }
     featureEvalStream << "feature set" << Endl;
-    for (ui32 featureSetIdx : xrange(summary.FeatureSets.size())) {
+    for (ui32 featureSetIdx : xrange(summary.GetFeatureSetCount())) {
         featureEvalStream << summary.WxTest[featureSetIdx] << '\t';
         const auto& bestIterations = summary.BestBaselineIterations[featureSetIdx];
         featureEvalStream << JoinRange(",", bestIterations.begin(), bestIterations.end());
@@ -67,8 +67,10 @@ TString ToString(const TFeatureEvaluationSummary& summary) {
         for (double delta : summary.AverageMetricDelta[featureSetIdx]) {
             featureEvalStream << delta << '\t';
         }
-        const auto& featureSet = summary.FeatureSets[featureSetIdx];
-        featureEvalStream << JoinRange(",", featureSet.begin(), featureSet.end());
+        if (!summary.FeatureSets.empty()) {
+            const auto& featureSet = summary.FeatureSets[featureSetIdx];
+            featureEvalStream << JoinRange(",", featureSet.begin(), featureSet.end());
+        }
         featureEvalStream << Endl;
     }
     return featureEvalTsv;
@@ -113,12 +115,17 @@ static ui32 GetBestIterationInFold(
 }
 
 
+size_t TFeatureEvaluationSummary::GetFeatureSetCount() const {
+    return Max<size_t>(1, FeatureSets.size());
+}
+
+
 void TFeatureEvaluationSummary::AppendFeatureSetMetrics(
     bool isTest,
     ui32 featureSetIdx,
     const TVector<TVector<double>>& metricValuesOnFold
 ) {
-    const auto featureSetCount = FeatureSets.size();
+    const auto featureSetCount = GetFeatureSetCount();
     CB_ENSURE_INTERNAL(featureSetIdx < featureSetCount, "Feature set index is too large");
     const ui32 bestIteration = GetBestIterationInFold(MetricTypes, metricValuesOnFold);
     if (!isTest) {
@@ -136,7 +143,7 @@ void TFeatureEvaluationSummary::AppendFeatureSetMetrics(
 
 
 void TFeatureEvaluationSummary::CalcWxTestAndAverageDelta() {
-    const auto featureSetCount = FeatureSets.size();
+    const auto featureSetCount = GetFeatureSetCount();
     const auto metricCount = MetricTypes.size();
     TVector<double> averageDelta(metricCount);
     WxTest.resize(featureSetCount);
@@ -144,7 +151,7 @@ void TFeatureEvaluationSummary::CalcWxTestAndAverageDelta() {
     constexpr ui32 LossIdx = 0;
     for (auto featureSetIdx : xrange(featureSetCount)) {
         const auto& baselineMetrics = BestMetrics[/*isTest*/0][featureSetIdx];
-        const auto& testedMetrics = BestMetrics[/*isTest*/1][featureSetIdx];
+        const auto& testedMetrics = FeatureSets.empty() ? baselineMetrics : BestMetrics[/*isTest*/1][featureSetIdx];
         WxTest[featureSetIdx] = ::WxTest(baselineMetrics[LossIdx], testedMetrics[LossIdx]).PValue;
 
         const auto foldCount = baselineMetrics.size();
@@ -218,7 +225,11 @@ void TFeatureEvaluationSummary::CreateLogs(
     ui32 foldRangeBegin,
     ui32 absoluteOffset
 ) {
-    const ui32 featureSetCount = FeatureSets.size();
+    if (!outputFileOptions.AllowWriteFiles()) {
+        return;
+    }
+
+    const ui32 featureSetCount = GetFeatureSetCount();
     const auto topLevelTrainDir = outputFileOptions.GetTrainDir();
     const auto& metricsHistory = MetricsHistory[isTest];
     const auto& featureStrengths = FeatureStrengths[isTest];
@@ -289,7 +300,7 @@ void TFeatureEvaluationSummary::SetHeaderInfo(
         MetricNames.push_back(metric->GetDescription());
     }
     FeatureSets = featureSets;
-    const ui32 featureSetCount = featureSets.size();
+    const ui32 featureSetCount = GetFeatureSetCount();
     ResizeRank2(2, featureSetCount, MetricsHistory);
     ResizeRank2(2, featureSetCount, FeatureStrengths);
     ResizeRank2(2, featureSetCount, RegularFeatureStrengths);
@@ -978,10 +989,17 @@ static void EvaluateFeaturesImpl(
     };
 
     if (featureEvalOptions.FeaturesToEvaluate->empty()) {
-        trainFullModels(/*isTest*/false, /*featureSetIdx*/-1, &foldsData);
+        trainFullModels(/*isTest*/false, /*featureSetIdx*/0, &foldsData);
+        results->CreateLogs(
+            outputFileOptions,
+            featureEvalOptions,
+            metrics,
+            catBoostOptions.BoostingOptions->IterationCount,
+            /*isTest*/false,
+            foldRangeBegin,
+            callbacks->GetAbsoluteOffset());
         return;
     }
-
     const auto useCommonBaseline = featureEvalOptions.FeatureEvalMode != NCB::EFeatureEvalMode::OneVsOthers;
     for (ui32 featureSetIdx : xrange(featureEvalOptions.FeaturesToEvaluate->size())) {
         const auto haveBaseline = featureSetIdx > 0 && useCommonBaseline;
@@ -1006,17 +1024,15 @@ static void EvaluateFeaturesImpl(
             foldsData);
         trainFullModels(/*isTest*/true, featureSetIdx, &newFoldsData);
     }
-    if (outputFileOptions.AllowWriteFiles()) {
-        for (auto isTest : {false, true}) {
-            results->CreateLogs(
-                outputFileOptions,
-                featureEvalOptions,
-                metrics,
-                catBoostOptions.BoostingOptions->IterationCount,
-                isTest,
-                foldRangeBegin,
-                callbacks->GetAbsoluteOffset());
-        }
+    for (auto isTest : {false, true}) {
+        results->CreateLogs(
+            outputFileOptions,
+            featureEvalOptions,
+            metrics,
+            catBoostOptions.BoostingOptions->IterationCount,
+            isTest,
+            foldRangeBegin,
+            callbacks->GetAbsoluteOffset());
     }
 }
 
