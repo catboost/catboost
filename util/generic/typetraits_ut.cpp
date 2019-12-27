@@ -511,3 +511,8 @@ static_assert(TIsSpecializationOf<std::vector, std::vector<int>>::value, "");
 static_assert(TIsSpecializationOf<std::tuple, std::tuple<int, double, char>>::value, "");
 static_assert(!TIsSpecializationOf<std::vector, std::tuple<int, double, char>>::value, "");
 static_assert(!TIsSpecializationOf<std::pair, std::vector<int>>::value, "");
+
+// test for TIsIterable
+static_assert(TIsIterable<std::vector<int>>::value, "");
+static_assert(!TIsIterable<int>::value, "");
+static_assert(TIsIterable<int[42]>::value, "");
