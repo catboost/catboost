@@ -292,6 +292,9 @@
         "stress-ng": {
             "description": "stress load tester"
         },
+        "atop": {
+            "description": "Advanced System & Process Monitor"
+        },
         "lkvm": {
             "description": "kvmtool is a userland tool for creating and controlling KVM guests"
         }
@@ -4752,6 +4755,22 @@
                 }
             ]
         },
+        "atop": {
+            "tools": {
+                "atop": {
+                    "bottle": "atop",
+                    "executable": "atop"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "stress-ng": {
             "tools": {
                 "stress-ng": {
@@ -6138,7 +6157,7 @@
         "yd-migrate": {
             "formula": {
                 "sandbox_id": [
-                    572149091
+                    579456564
                 ],
                 "match": "deploy_migrate/bin"
             },
@@ -6461,7 +6480,7 @@
         },
         "allure_commandline": {
             "formula": {
-                "sandbox_id": 50911273,
+                "sandbox_id": 569859192,
                 "match": "Allure Commandline"
             },
             "executable": {
@@ -6508,7 +6527,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 577810041,
+                "sandbox_id": 578728516,
                 "match": "horadric"
             },
             "executable": {
@@ -6722,6 +6741,20 @@
                     "fio",
                     "bin",
                     "fio"
+                ]
+            }
+        },
+        "atop": {
+            "formula": {
+                "sandbox_id": [
+                    576898586
+                ],
+                "match": "infra/kernel/tools/atop/build/atop-static.tar.gz"
+            },
+            "executable": {
+                "atop": [
+                    "atop",
+                    "atop"
                 ]
             }
         },

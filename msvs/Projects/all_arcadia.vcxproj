@@ -492,6 +492,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\gamma_function_apache_math_port\contrib-libs-gamma_function_apache_math_port.vcxproj">
       <Project>80882C98-2659-8885-5B61-34A8E4283441</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\jquery\contrib-libs-jquery.vcxproj">
+      <Project>912CB8E0-911C-D43E-4D7A-730FD6B8DB60</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libbz2\contrib-libs-libbz2.vcxproj">
       <Project>22D13723-C5D2-BCB5-73F8-368EA5B1CBE5</Project>
     </ProjectReference>
@@ -1196,6 +1199,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\pop_count\library-pop_count.vcxproj">
       <Project>5388367D-330A-ED57-0DB7-1F988A5A9B05</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\coredump_filter\pylibrary-python-coredump_filter.vcxproj">
+      <Project>F460E0E3-3DEA-2CD7-67E0-EA55FF40B2B0</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\cores\pylibrary-python-cores.vcxproj">
       <Project>F7BF95C4-FA90-1985-8730-2F198D6D9964</Project>
