@@ -1,3 +1,4 @@
+
 import sys
 from copy import deepcopy
 from six import iteritems, string_types, integer_types
@@ -84,6 +85,21 @@ FeaturesData = _catboost.FeaturesData
 _have_equal_features = _catboost._have_equal_features
 SPARSE_MATRIX_TYPES = _catboost.SPARSE_MATRIX_TYPES
 
+_CATBOOST_SKLEARN_COMPAT_TAGS = {
+    'non_deterministic': False,
+    'requires_positive_X': False,
+    'requires_positive_y': False,
+    'X_types': ['2darray'],
+    'poor_score': False,
+    'no_validation': False,
+    'multioutput': False,
+    "allow_nan": False,
+    'stateless': False,
+    'multilabel': False,
+    '_skip_test': False,
+    'multioutput_only': False,
+    'binary_only': False,
+    'requires_fit': True}
 
 from contextlib import contextmanager  # noqa E402
 
@@ -1445,6 +1461,8 @@ class _CatBoostBase(object):
         feature_names: 1-d array of strings with new feature names in the same order as in pool
         '''
         self._object._set_feature_names(feature_names)
+
+    def _get_tags(self): return _CATBOOST_SKLEARN_COMPAT_TAGS
 
 
 def _cast_value_to_list_of_strings(params, key):
