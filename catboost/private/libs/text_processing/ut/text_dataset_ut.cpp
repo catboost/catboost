@@ -60,17 +60,17 @@ Y_UNIT_TEST_SUITE(TestTextDataset) {
         const TTokenId haId = dictionary->Apply("ha");
         const TTokenId hoId = dictionary->Apply("ho");
 
-        UNIT_ASSERT_VALUES_EQUAL(dataSet->GetText(0).at(hiId), 1);
-        UNIT_ASSERT_VALUES_EQUAL(dataSet->GetText(1).at(haId), 2);
-        UNIT_ASSERT_VALUES_EQUAL(dataSet->GetText(2).at(hoId), 3);
+        UNIT_ASSERT_VALUES_EQUAL(dataSet->GetText(0).Find(hiId)->Count(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(dataSet->GetText(1).Find(haId)->Count(), 2);
+        UNIT_ASSERT_VALUES_EQUAL(dataSet->GetText(2).Find(hoId)->Count(), 3);
 
-        UNIT_ASSERT_VALUES_EQUAL(dataSet->GetText(3).at(hiId), 1);
-        UNIT_ASSERT_VALUES_EQUAL(dataSet->GetText(3).at(haId), 1);
-        UNIT_ASSERT_VALUES_EQUAL(dataSet->GetText(3).at(hoId), 1);
+        UNIT_ASSERT_VALUES_EQUAL(dataSet->GetText(3).Find(hiId)->Count(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(dataSet->GetText(3).Find(haId)->Count(), 1);
+        UNIT_ASSERT_VALUES_EQUAL(dataSet->GetText(3).Find(hoId)->Count(), 1);
 
         const TText &lastText = dataSet->GetText(4);
-        UNIT_ASSERT_EQUAL(lastText.find(hiId), lastText.end());
-        UNIT_ASSERT_EQUAL(lastText.find(haId), lastText.end());
-        UNIT_ASSERT_EQUAL(lastText.find(hoId), lastText.end());
+        UNIT_ASSERT_EQUAL(lastText.Find(hiId), lastText.end());
+        UNIT_ASSERT_EQUAL(lastText.Find(haId), lastText.end());
+        UNIT_ASSERT_EQUAL(lastText.Find(hoId), lastText.end());
     }
 }
