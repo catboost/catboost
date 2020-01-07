@@ -73,11 +73,9 @@ static constexpr size_t NumericHash(T t) noexcept {
     using TCvt = TFixedWidthUnsignedInt<T>;
 
     union Y_HIDDEN {
-        TCvt cvt;
         T t;
-    } u;
-
-    u.t = t;
+        TCvt cvt;
+    } u{t};
 
     return (size_t)IntHash(u.cvt);
 }

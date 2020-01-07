@@ -1,0 +1,116 @@
+body {
+    font-family: sans-serif;
+    font-size: 12px;
+}
+
+a {
+    text-decoration: none;
+    color: #486DEC;
+}
+
+.frame {
+    color: #7f7f7f;
+    display: inline-block;
+    width: 30px;
+}
+
+.addr {
+    color: #999999;
+    padding-right: 10px;
+}
+
+.func {
+    color: #7f0000;
+    word-wrap: normal;
+}
+
+.source {
+    color: #007f00;
+}
+
+.symbol {
+    color: #0000ff;
+}
+
+h1 {
+    font-size: 1.5em;
+    margin-top: .1em;
+    margin-bottom: .2em;
+}
+
+h3 {
+    font-size: 1em;
+    margin-top: .1em;
+    margin-bottom: .2em;
+}
+
+pre {
+    overflow-x: auto;
+    margin: 6px 0px 6px 0px;
+    padding: 0px 12px 6px 12px;
+    position: relative;
+}
+
+pre.important-25 {
+    background-color: #eeeeee;
+}
+
+span.important-25 {
+    background-color: #eeeeee;
+    padding: 3px;
+}
+
+pre.important-50 {
+    background-color: #e7ffe7;
+}
+
+span.important-50 {
+    background-color: #e7ffe7;
+    padding: 3px;
+}
+
+pre.important-75 {
+    background-color: #ffffcc;
+}
+
+span.important-75 {
+    background-color: #ffffcc;
+    padding: 3px;
+}
+
+pre.important-100 {
+    background-color: #ffdddd;
+}
+
+span.important-100 {
+    background-color: #ffdddd;
+    padding: 3px;
+}
+
+a.show-same-hash {
+    padding: 0px 20px 0px 20px;
+}
+
+/* hidden by default */
+.same-hash {
+    display: none;
+}
+
+span.hash {
+    position: absolute;
+    top: 3px; right: 3px;
+}
+
+div.legend {
+    position: absolute;
+    z-index: 1;
+    top: 5px;
+    right: 8px;
+    border: 1px solid #7f7f7f;
+    border-radius: 3px;
+    padding: 0px 20px 3px 0px;
+}
+
+div.legend ul {
+    margin: 3px 0px 3px 0px;
+}

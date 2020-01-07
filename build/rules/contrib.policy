@@ -151,3 +151,73 @@ ALLOW contrib/python/opentracing -> contrib/python/thrift
 ALLOW contrib/python/thrift/tests -> contrib/python/thrift
 ALLOW contrib/python/jaeger-client -> contrib/python/thrift
 DENY .* -> contrib/python/thrift
+
+ALLOW sandbox/projects/mail/Load/FuritaShooting -> contrib/python/jsonlib
+ALLOW sandbox/projects/mail/Load/LizaShooting -> contrib/python/jsonlib
+ALLOW sandbox/projects/mail/Load/QuinnShooting -> contrib/python/jsonlib
+ALLOW sandbox/projects/mail/Load/ShootingComparison -> contrib/python/jsonlib
+ALLOW sandbox/projects/mail/Load/WebApiAmmoGen -> contrib/python/jsonlib
+ALLOW sandbox/projects/mail/Load/WebApiShooting -> contrib/python/jsonlib
+DENY .* -> contrib/python/jsonlib
+
+ALLOW antiadblock/libs/tornado_redis -> contrib/python/toredis
+ALLOW yabs/amazon/cache_proxy -> contrib/python/toredis
+ALLOW yql/udfs/common/python/python_arc -> contrib/python/toredis
+DENY .* -> contrib/python/toredis
+
+# contrib/python/MySQL-python dosen't support Python 3, use mysqlclient-python
+# or pymysql instead of this.
+ALLOW adfox/amacs/tests/functional/libs/builders -> contrib/python/MySQL-python
+ALLOW adfox/amacs/tests/functional/libs/config -> contrib/python/MySQL-python
+ALLOW adfox/amacs/tests/functional/libs/db -> contrib/python/MySQL-python
+ALLOW adfox/amacs/tests/functional/libs/marshaller -> contrib/python/MySQL-python
+ALLOW adfox/amacs/tests/functional/libs/models -> contrib/python/MySQL-python
+ALLOW adfox/amacs/tests/functional/utils -> contrib/python/MySQL-python
+ALLOW adfox/rtd/reports -> contrib/python/MySQL-python
+ALLOW adfox/samogon/servants/monitoring/uniques_monitoring -> contrib/python/MySQL-python
+ALLOW ads/bsyeti/bb_viewer/viewer -> contrib/python/MySQL-python
+ALLOW ads/libs/py_core -> contrib/python/MySQL-python
+ALLOW ads/ml_monitoring/alerts/lib -> contrib/python/MySQL-python
+ALLOW ads/ml_monitoring/lib/mysql -> contrib/python/MySQL-python
+ALLOW april/badb -> contrib/python/MySQL-python
+ALLOW contrib/python/MySQL-python/test -> contrib/python/MySQL-python
+ALLOW contrib/python/MySQL-python -> contrib/python/MySQL-python
+ALLOW dict/ontodb/tools/fields_diff/lib -> contrib/python/MySQL-python
+ALLOW maps/streetview/backoffice/lib -> contrib/python/MySQL-python
+ALLOW market/sre/tools/cs_mysql_monitoring/mysql_monitoring -> contrib/python/MySQL-python
+ALLOW metrika/core/monitoring/mobile-logs-api-export-generator-check -> contrib/python/MySQL-python
+ALLOW passport/cpp/daemons/blackbox/ut/totp_manual/tests -> contrib/python/MySQL-python
+ALLOW passport/cpp/recipes/passport/passport_mock -> contrib/python/MySQL-python
+ALLOW passport/python/core -> contrib/python/MySQL-python
+ALLOW passport/python/grants_configurator -> contrib/python/MySQL-python
+ALLOW passport/python/oauth/core/db/eav -> contrib/python/MySQL-python
+ALLOW passport/python/perimeter/auth_api -> contrib/python/MySQL-python
+ALLOW passport/python/social -> contrib/python/MySQL-python
+ALLOW passport/python/yasms/db -> contrib/python/MySQL-python
+ALLOW testenv/core -> contrib/python/MySQL-python
+ALLOW testenv/recipes/ut -> contrib/python/MySQL-python
+ALLOW travel/avia/dump_data/lib/model_classes -> contrib/python/MySQL-python
+ALLOW travel/rasp/admin -> contrib/python/MySQL-python
+ALLOW travel/rasp/library/common -> contrib/python/MySQL-python
+ALLOW travel/rasp/library/common_recipe -> contrib/python/MySQL-python
+ALLOW travel/rasp/library/recipe_utils -> contrib/python/MySQL-python
+ALLOW travel/rasp/mysql_dumper/lib -> contrib/python/MySQL-python
+ALLOW trust/emulator/servant -> contrib/python/MySQL-python
+ALLOW yabs/qa/yabs_b2b_tank/qabs/b2b -> contrib/python/MySQL-python
+ALLOW yabs/server/test/tools/lua_test_generator -> contrib/python/MySQL-python
+ALLOW yabs/server/tools/debug_cookie_mysql -> contrib/python/MySQL-python
+ALLOW yweb/antimalware/visual_html_parser/yandex-search-antivirus-common -> contrib/python/MySQL-python
+ALLOW yweb/news/news_back/api/scripts/migrate_scripts_common -> contrib/python/MySQL-python
+ALLOW yweb/news/support/viewer -> contrib/python/MySQL-python
+DENY .* -> contrib/python/MySQL-python
+
+ALLOW contrib/python/mipp/tests -> contrib/python/mipp
+ALLOW contrib/python/mpop/mpop/tests -> contrib/python/mipp
+ALLOW contrib/python/mpop -> contrib/python/mipp
+ALLOW weather/workers/nowcasting/preprocess_meteosat -> contrib/python/mipp
+ALLOW yql/udfs/common/python/python_arc -> contrib/python/mipp
+DENY .* -> contrib/python/mipp
+
+ALLOW infra/procman -> contrib/python/skynet_pyro4
+ALLOW skynet -> contrib/python/skynet_pyro4
+DENY .* -> contrib/python/skynet_pyro4

@@ -1,5 +1,5 @@
 #include "dot_product.cuh"
-#include <catboost/libs/cuda_wrappers/arch.cuh>
+#include <library/cuda/wrappers/arch.cuh>
 
 namespace NKernel {
 

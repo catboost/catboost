@@ -1,10 +1,10 @@
 #include "evaluator.cuh"
 
 
-#include <catboost/libs/cuda_wrappers/kernel.cuh>
-#include <catboost/libs/cuda_wrappers/kernel_helpers.cuh>
-#include <catboost/libs/cuda_wrappers/arch.cuh>
-#include <catboost/libs/cuda_wrappers/kernel_helpers.cuh>
+#include <library/cuda/wrappers/kernel.cuh>
+#include <library/cuda/wrappers/kernel_helpers.cuh>
+#include <library/cuda/wrappers/arch.cuh>
+#include <library/cuda/wrappers/kernel_helpers.cuh>
 
 #include <cuda_runtime.h>
 #include <assert.h>

@@ -187,10 +187,6 @@ def onpy_srcs(unit, *args):
     cythonize_py = False
     optimize_proto = unit.get('OPTIMIZE_PY_PROTOS_FLAG') == 'yes'
 
-    cython_includes = []
-    for path in unit.includes():
-        cython_includes += ['-I', resolve_to_ymake_path(path)]
-
     cython_directives = []
     if cython_coverage:
         cython_directives += ['-X', 'linetrace=True']
@@ -349,7 +345,7 @@ def onpy_srcs(unit, *args):
                     '--source-root', '${ARCADIA_ROOT}',
                     # set arcadia root relative __file__ for generated modules
                     '-X', 'set_initial_path={}'.format(filename),
-                ] + cython_includes + cython_directives
+                ] + cython_directives
 
                 cython(cython_args)
                 py_register(unit, mod, py3)

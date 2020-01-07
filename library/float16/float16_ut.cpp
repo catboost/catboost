@@ -5,6 +5,7 @@
 #include <util/generic/cast.h>
 #include <util/stream/format.h>
 #include <util/string/builder.h>
+#include <util/generic/ylimits.h>
 
 static ui32 ReintrepretFloat(float v) {
     return BitCast<ui32>(v);
@@ -221,6 +222,11 @@ Y_UNIT_TEST_SUITE(Intrisincs) {
         for(size_t i = 0; i < len; ++i) {
             UNIT_ASSERT_VALUES_EQUAL(dst[i], TFloat16(float(i)));
         }
+    }
+
+    Y_UNIT_TEST(MaxValues) {
+        UNIT_ASSERT_VALUES_EQUAL(65504.0f, Max<TFloat16>());
+        UNIT_ASSERT_VALUES_EQUAL(-65504.0f, -Max<TFloat16>());
     }
 }
 

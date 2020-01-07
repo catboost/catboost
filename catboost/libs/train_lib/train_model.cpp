@@ -1018,6 +1018,11 @@ void TrainModel(
         &executor,
         &profile);
 
+    const bool hasTextFeatures = pools.Learn->MetaInfo.FeaturesLayout->GetTextFeatureCount() > 0;
+    if (hasTextFeatures) {
+        needFstr = false;
+    }
+
     TVector<TString> outputColumns;
     if (!evalOutputFileName.empty() && !pools.Test.empty()) {
         outputColumns = outputOptions.GetOutputColumns(pools.Test[0]->MetaInfo.TargetCount);

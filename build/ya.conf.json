@@ -292,6 +292,9 @@
         "stress-ng": {
             "description": "stress load tester"
         },
+        "atop": {
+            "description": "Advanced System & Process Monitor"
+        },
         "lkvm": {
             "description": "kvmtool is a userland tool for creating and controlling KVM guests"
         }
@@ -4752,6 +4755,22 @@
                 }
             ]
         },
+        "atop": {
+            "tools": {
+                "atop": {
+                    "bottle": "atop",
+                    "executable": "atop"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "stress-ng": {
             "tools": {
                 "stress-ng": {
@@ -4911,7 +4930,7 @@
         "ymake": {
             "formula": {
                 "sandbox_id": [
-                    565930827
+                    574030679
                 ],
                 "match": "ymake"
             },
@@ -4935,7 +4954,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    565263953
+                    579293767
                 ],
                 "match": "arc"
             },
@@ -5655,7 +5674,7 @@
         "gcc73-armv7a-jbl-portable-music": {
             "formula": {
                 "sandbox_id": [
-                    "554980592"
+                    "577498874"
                 ],
                 "match": "GCC"
             },
@@ -6138,7 +6157,7 @@
         "yd-migrate": {
             "formula": {
                 "sandbox_id": [
-                    561361752
+                    579456564
                 ],
                 "match": "deploy_migrate/bin"
             },
@@ -6461,7 +6480,7 @@
         },
         "allure_commandline": {
             "formula": {
-                "sandbox_id": 50911273,
+                "sandbox_id": 569859192,
                 "match": "Allure Commandline"
             },
             "executable": {
@@ -6508,7 +6527,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 571325985,
+                "sandbox_id": 583102757,
                 "match": "horadric"
             },
             "executable": {
@@ -6519,7 +6538,7 @@
         },
         "zcli": {
             "formula": {
-                "sandbox_id": 559933291,
+                "sandbox_id": 575360578,
                 "match": "zcli"
             },
             "executable": {
@@ -6607,7 +6626,7 @@
         },
         "ya-tc": {
             "formula": {
-                "sandbox_id": 569455254,
+                "sandbox_id": 574284393,
                 "match": "ya-tc"
             },
             "executable": {
@@ -6725,6 +6744,20 @@
                 ]
             }
         },
+        "atop": {
+            "formula": {
+                "sandbox_id": [
+                    576898586
+                ],
+                "match": "infra/kernel/tools/atop/build/atop-static.tar.gz"
+            },
+            "executable": {
+                "atop": [
+                    "atop",
+                    "atop"
+                ]
+            }
+        },
         "stress-ng": {
             "formula": {
                 "sandbox_id": [
@@ -6768,7 +6801,7 @@
         },
         "yfm": {
             "formula": {
-                "sandbox_id": 565724455,
+                "sandbox_id": 576882628,
                 "match": "yfm"
             },
             "executable": {
@@ -6790,7 +6823,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 567901817,
+                "sandbox_id": 576334852,
                 "match": "SEDEM archive"
             },
             "executable": {

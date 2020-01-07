@@ -1,12 +1,11 @@
 Metadata-Version: 2.0
 Name: pathlib2
-Version: 2.3.3
+Version: 2.3.5
 Summary: Object-oriented filesystem paths
-Home-page: https://pypi.python.org/pypi/pathlib2/
+Home-page: https://github.com/mcmtroffaes/pathlib2
 Author: Matthias C. M. Troffaes
 Author-email: matthias.troffaes@gmail.com
 License: MIT
-Download-URL: https://pypi.python.org/pypi/pathlib2/
 Platform: UNKNOWN
 Classifier: Development Status :: 5 - Production/Stable
 Classifier: Intended Audience :: Developers
@@ -58,6 +57,20 @@ Documentation
 Refer to the
 `standard pathlib <http://docs.python.org/dev/library/pathlib.html>`_
 documentation.
+
+Known Issues
+------------
+
+For historic reasons, pathlib2 still uses bytes to represent file paths internally.
+Unfortunately, on Windows with Python 2.7, the file system encoder (``mcbs``)
+has only poor support for non-ascii characters,
+and can silently replace non-ascii characters without warning.
+For example, ``u'тест'.encode(sys.getfilesystemencoding())`` results in ``????``
+which is obviously completely useless.
+
+Therefore, on Windows with Python 2.7, until this problem is fixed upstream,
+unfortunately you cannot rely on pathlib2 to support the full unicode range for filenames.
+See `issue #56 <https://github.com/mcmtroffaes/pathlib2/issues/56>`_ for more details.
 
 .. |travis| image:: https://travis-ci.org/mcmtroffaes/pathlib2.png?branch=develop
     :target: https://travis-ci.org/mcmtroffaes/pathlib2

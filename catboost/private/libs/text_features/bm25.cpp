@@ -41,9 +41,8 @@ void TBM25::Compute(const TText& text, TOutputFloatIterator iterator) const {
     TVector<ui32> termFreqInClass(NumClasses);
     TVector<double> scores(NumClasses);
 
-    for (const auto& [term, textFreq] : text) {
-        Y_UNUSED(textFreq);
-        ExtractTermFreq(Frequencies, term, termFreqInClass);
+    for (const auto& tokenToCount : text) {
+        ExtractTermFreq(Frequencies, tokenToCount.Token(), termFreqInClass);
         double inverseClassFreq = CalcTruncatedInvClassFreq(termFreqInClass, TruncateBorder);
         double meanClassLength = TotalTokens * 1.0 / NumClasses;
 
@@ -111,9 +110,10 @@ void TBM25Visitor::Update(ui32 classId, const TText& text, TTextFeatureCalcer* c
 
     auto& classCounts = bm25->Frequencies[classId];
 
-    for (const auto& [term, termCount] : text) {
-        classCounts[term] += termCount;
-        bm25->ClassTotalTokens[classId] += termCount;
-        bm25->TotalTokens += termCount;
+    for (const auto& tokenToCount : text) {
+        const ui32 count = tokenToCount.Count();
+        classCounts[tokenToCount.Token()] += count;
+        bm25->ClassTotalTokens[classId] += count;
+        bm25->TotalTokens += count;
     }
 }

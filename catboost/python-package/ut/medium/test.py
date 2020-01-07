@@ -37,6 +37,7 @@ from catboost_pytest_lib import (
     DelayedTee,
     binary_path,
     data_file,
+    get_limited_precision_dsv_diff_tool,
     local_canonical_file,
     permute_dataset_columns,
     remove_time_from_json,
@@ -1461,22 +1462,60 @@ def test_multiclass(task_type):
     return local_canonical_file(preds_path)
 
 
-def test_multiclass_classes_count_missed_classes(task_type):
+@pytest.mark.parametrize('missed_classes', [False, True], ids=['missed_classes=False', 'missed_classes=True'])
+def test_multiclass_classes_count(task_type, missed_classes):
+    object_count = 100
+    feature_count = 10
+    classes_count = 4
+    if missed_classes:
+        unique_labels = [1, 3]
+    else:
+        unique_labels = [0, 1, 2, 3]
+    expected_classes_attr = [str(i) for i in range(4)]
+
     prng = np.random.RandomState(seed=0)
-    pool = Pool(prng.random_sample(size=(100, 10)), label=prng.choice([1, 3], size=100))
-    classifier = CatBoostClassifier(classes_count=4, iterations=2, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
+    pool = Pool(
+        prng.random_sample(size=(object_count, feature_count)),
+        label=prng.choice(unique_labels, size=object_count)
+    )
+
+    # returns pred probabilities
+    def check_classifier(classifier):
+        assert classifier.classes_ == expected_classes_attr
+
+        pred_classes = classifier.predict(pool)
+        assert all([(pred_class in unique_labels) for pred_class in pred_classes])
+
+        pred_probabilities = classifier.predict_proba(pool)
+        assert pred_probabilities.shape == (object_count, classes_count)
+        return pred_probabilities
+
+    classifier = CatBoostClassifier(
+        classes_count=classes_count,
+        iterations=2,
+        loss_function='MultiClass',
+        thread_count=8,
+        task_type=task_type,
+        devices='0'
+    )
     classifier.fit(pool)
+
+    check_classifier(classifier)
+
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     classifier.save_model(output_model_path)
+
     new_classifier = CatBoostClassifier()
     new_classifier.load_model(output_model_path)
-    pred = new_classifier.predict_proba(pool)
-    classes = new_classifier.predict(pool)
-    assert pred.shape == (100, 4)
-    assert np.array(classes).all() in [1, 3]
-    preds_path = test_output_path(PREDS_PATH)
-    np.save(preds_path, np.array(pred))
-    return local_canonical_file(preds_path)
+
+    pred_probabilities = check_classifier(new_classifier)
+
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    np.savetxt(preds_path, np.array(pred_probabilities), delimiter='\t')
+    return [
+        local_canonical_file(preds_path, diff_tool=get_limited_precision_dsv_diff_tool(1e-6, False)),
+        compare_canonical_models(output_model_path, diff_limit=1.e-6)
+    ]
 
 
 @pytest.mark.parametrize('label_type', ['string', 'int'])

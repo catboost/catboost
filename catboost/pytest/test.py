@@ -7701,19 +7701,21 @@ def test_equal_feature_names():
         ))
 
 
-def enumerate_eval_feature_output_dirs(eval_mode, set_count, offset, fold_count):
+def enumerate_eval_feature_output_dirs(eval_mode, set_count, offset, fold_count, only_baseline=False):
     if eval_mode == 'OneVsOthers':
         baseline = 'Baseline_set_{set_idx}_fold_{fold_idx}'
     else:
         baseline = 'Baseline_fold_{fold_idx}'
-    testing = 'Testing_set_{set_idx}_fold_{fold_idx}'
+    if not only_baseline:
+        testing = 'Testing_set_{set_idx}_fold_{fold_idx}'
     dirs = []
     for set_idx in range(set_count):
         for fold_idx in range(offset, offset + fold_count):
             fold = baseline.format(fold_idx=fold_idx, set_idx=set_idx)
             if fold not in dirs:
                 dirs += [fold]
-            fold = testing.format(fold_idx=fold_idx, set_idx=set_idx)
+            if not only_baseline:
+                fold = testing.format(fold_idx=fold_idx, set_idx=set_idx)
             dirs += [fold]
     return dirs
 
@@ -7754,6 +7756,47 @@ def test_eval_feature(eval_mode, features_to_eval, offset):
     set_count = len(features_to_eval.split(';'))
     artifacts = [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
     for output_dir in enumerate_eval_feature_output_dirs(eval_mode, set_count, offset, fold_count):
+        artifacts += [
+            local_canonical_file(pj(train_dir, output_dir, test_err_log), diff_tool=diff_tool()),
+            local_canonical_file(pj(train_dir, output_dir, fstr_file), diff_tool=diff_tool()),
+        ]
+    return artifacts
+
+
+@pytest.mark.parametrize('offset', [0, 2])
+def test_eval_feature_empty_feature_set(offset):
+    output_eval_path = yatest.common.test_output_path('feature.eval')
+    test_err_log = 'test_error.log'
+    fstr_file = 'fstrs'
+    train_dir = yatest.common.test_output_path('')
+    fold_count = 2
+    eval_mode = 'OneVsNone'
+    cmd = (
+        CATBOOST_PATH,
+        'eval-feature',
+        '--loss-function', 'RMSE',
+        '-f', data_file('higgs', 'train_small'),
+        '--cd', data_file('higgs', 'train.cd'),
+        '--feature-eval-mode', eval_mode,
+        '-i', '30',
+        '-T', '4',
+        '-w', '0.7',
+        '--feature-eval-output-file', output_eval_path,
+        '--offset', str(offset),
+        '--fold-count', str(fold_count),
+        '--fold-size-unit', 'Object',
+        '--fold-size', '20',
+        '--test-err-log', test_err_log,
+        '--train-dir', train_dir,
+        '--fstr-file', fstr_file,
+    )
+
+    yatest.common.execute(cmd)
+
+    pj = os.path.join
+    set_count = 1
+    artifacts = [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
+    for output_dir in enumerate_eval_feature_output_dirs(eval_mode, set_count, offset, fold_count, only_baseline=True):
         artifacts += [
             local_canonical_file(pj(train_dir, output_dir, test_err_log), diff_tool=diff_tool()),
             local_canonical_file(pj(train_dir, output_dir, fstr_file), diff_tool=diff_tool()),

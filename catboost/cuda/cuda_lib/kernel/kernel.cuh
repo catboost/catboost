@@ -3,7 +3,7 @@
 #include <catboost/cuda/cuda_lib/cuda_base.h>
 #include <catboost/cuda/cuda_lib/remote_objects.h>
 
-#include <catboost/libs/cuda_wrappers/kernel.cuh>
+#include <library/cuda/wrappers/kernel.cuh>
 
 namespace NKernel {
     using EPtrType = NCudaLib::EPtrType;

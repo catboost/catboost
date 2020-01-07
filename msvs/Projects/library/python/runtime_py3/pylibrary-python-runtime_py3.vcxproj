@@ -202,7 +202,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "__res" "--init-suffix" "__res" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/runtime_py3/__res.pyx" "-I" "$(SolutionDir)../contrib/libs/python/Include" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/runtime_py3/__res.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/__res.pyx.cpp"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "__res" "--init-suffix" "__res" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/runtime_py3/__res.pyx" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/libs/python/Include" "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I$(SolutionDir)../contrib/libs/zlib/include" "-I$(SolutionDir)../contrib/libs/double-conversion/include" "-I$(SolutionDir)../contrib/libs/openssl/include" "-I$(SolutionDir)../contrib/libs/python/Include" "$(SolutionDir)../library/python/runtime_py3/__res.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/__res.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -213,7 +213,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "__res" "--init-suffix" "__res" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/runtime_py3/__res.pyx" "-I" "$(SolutionDir)../contrib/libs/python/Include" "--cplus" "-I$(SolutionDir).." "$(SolutionDir)../library/python/runtime_py3/__res.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/__res.pyx.cpp"
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "__res" "--init-suffix" "__res" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/runtime_py3/__res.pyx" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/libs/python/Include" "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I$(SolutionDir)../contrib/libs/zlib/include" "-I$(SolutionDir)../contrib/libs/double-conversion/include" "-I$(SolutionDir)../contrib/libs/openssl/include" "-I$(SolutionDir)../contrib/libs/python/Include" "$(SolutionDir)../library/python/runtime_py3/__res.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/__res.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone

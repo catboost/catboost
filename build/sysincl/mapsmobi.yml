@@ -52,6 +52,8 @@
   - QtQuickWidgets/QQuickWidget
   - android/bitmap.h
   - message_lite.h
+  - YXAccountManager/YALAuthenticatorTypes.h
+  - YXAccountManager/YALAccountManager.h
 
 - source_filter: "^contrib/deprecated/boost"
   includes:

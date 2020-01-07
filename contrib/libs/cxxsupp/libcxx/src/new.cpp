@@ -22,11 +22,7 @@
 #elif defined(__GLIBCXX__)
 // nothing todo
 #else
-# if defined(__APPLE__) && !defined(_LIBCPP_BUILDING_HAS_NO_ABI_LIBRARY)
-#   include <cxxabi.h> // FIXME: remove this once buildit is gone.
-# else
 #   include "support/runtime/new_handler_fallback.ipp"
-# endif
 #endif
 
 namespace std

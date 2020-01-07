@@ -1,5 +1,7 @@
 import sys
 import os
+import subprocess
+import platform
 
 
 def fix_args(args):
@@ -15,4 +17,7 @@ def fix_args(args):
 
 if __name__ == '__main__':
     res = list(fix_args(sys.argv[1:]))
-    os.execv(res[0], res)
+    if platform.system() == 'Windows':
+        sys.exit(subprocess.Popen(res).wait())
+    else:
+        os.execv(res[0], res)

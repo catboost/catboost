@@ -401,6 +401,7 @@ void NCB::TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
     SetGroupWeights(GroupWeightsPath, ObjectCount, DatasetSubset, visitor);
     SetPairs(PairsPath, ObjectCount, DatasetSubset, visitor);
     SetBaseline(BaselinePath, ObjectCount, DatasetSubset, DataMetaInfo.ClassNames, visitor);
+    SetTimestamps(TimestampsPath, ObjectCount, DatasetSubset, visitor);
     visitor->Finish();
 }
 

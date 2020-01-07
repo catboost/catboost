@@ -1,3 +1,21 @@
+# Release 0.20.2
+
+## New features:
+- String class labels are now supported for binary classification
+- [CLI only] Timestamp column for the datasets can be provided in separate files.
+- [CLI only] Timesplit feature evaluation.
+- Process groups of any size in block processing.
+
+
+## Bug fixes:
+- ``classes_count`` and ``class_weight`` params can be now used with user-defined loss functions. #1119
+- Form correct metric descriptions on GPU if ``use_weights`` gets value by default. #1106
+- Correct ``model.classes_`` attribute for binary classification (proper labels instead of always ``0`` and ``1``). #984
+- Fix ``model.classes_`` attribute when classes_count parameter was specified.
+- Proper error message when categorical features specified for MultiRMSE training. #1112
+- Block processing: It is valid for all groups in a single block to have weights equal to 0
+- fix empty asymmetric tree index calculation. #1104
+
 # Release 0.20.1
 
 ## New features:

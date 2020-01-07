@@ -1,5 +1,8 @@
 ALLOW vendor/ -> .*
 
+# Validate and define text-based and dynamic configuration
+ALLOW .* -> vendor/cuelang.org/go
+
 # driver for write to and read from XLSX files
 ALLOW .* -> vendor/github.com/360EntSecGroup-Skylar/excelize/v2
 
@@ -225,6 +228,12 @@ ALLOW .* -> vendor/gopkg.in/yaml.v2
 # INI file format
 ALLOW .* -> vendor/gopkg.in/ini.v1
 
+# JSON Schema
+ALLOW .* -> vendor/github.com/xeipuuv/gojsonschema
+
+# JSONPath
+ALLOW .* -> vendor/github.com/PaesslerAG/jsonpath
+
 # Go generated proto packages
 ALLOW .* -> vendor/google.golang.org/genproto
 
@@ -233,6 +242,9 @@ ALLOW .* -> vendor/google.golang.org/grpc
 
 # Usefull GRPC interceptors
 ALLOW .* -> vendor/github.com/grpc-ecosystem/go-grpc-middleware
+
+# GRPC Intercaptors for Prometheus monitoring
+ALLOW .* -> vendor/github.com/grpc-ecosystem/go-grpc-prometheus
 
 # Protobuf and gRPC reflection
 ALLOW .* -> vendor/github.com/jhump/protoreflect
@@ -361,6 +373,9 @@ ALLOW .* -> vendor/github.com/pariz/gountries
 
 # CONTRIB-1630- Go binding for qemu/qmp runtime
 ALLOW .* -> vendor/github.com/intel/govmm/qemu
+
+# CONTRIB-1650 golang ftp server library with a sample implementation 
+ALLOW .* -> vendor/github.com/fclairamb/ftpserver
 
 #
 # Temporary exceptions.

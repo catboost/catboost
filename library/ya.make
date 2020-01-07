@@ -134,6 +134,12 @@ RECURSE(
     yson/node/ut
 )
 
+IF (HAVE_CUDA)
+    RECURSE(
+    cuda
+)
+ENDIF()
+
 IF (OS_LINUX)
     RECURSE(
     

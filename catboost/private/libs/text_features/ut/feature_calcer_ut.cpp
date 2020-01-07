@@ -63,21 +63,28 @@ Y_UNIT_TEST_SUITE(TestFeatureCalcer) {
         TVector<float> features(numSamples * numTokens);
 
         for (ui32 docId : xrange(numSamples)) {
-            TText text;
+            TVector<ui32> tokenIds;
             for (ui32 idx : xrange(numTokensPerText)) {
                 ui32 tokenId = (docId + idx) % numTokens;
-                text[tokenId] = 1;
+                tokenIds.push_back(tokenId);
             }
+            TText text(std::move(tokenIds));
             texts.push_back(text);
             calcer->Compute(text, TOutputFloatIterator(features.data() + docId, numSamples, features.size()));
         }
 
         for (ui32 docId : xrange(numSamples)) {
-            for (ui32 idx : xrange(numTokens)) {
+            const auto& text = texts[docId];
+            auto textIterator = text.begin();
+            for (ui32 tokenId : xrange(numTokens)) {
+                bool isHot = textIterator != text.end() && textIterator->Token() == tokenId;
                 UNIT_ASSERT(
-                    features[docId + idx * numSamples] ==
-                    static_cast<float>(texts[docId].Has(idx))
+                    features[docId + tokenId * numSamples] ==
+                    static_cast<float>(isHot)
                 );
+                if (isHot) {
+                    ++textIterator;
+                }
             }
         }
     }
@@ -92,8 +99,7 @@ Y_UNIT_TEST_SUITE(TestFeatureCalcer) {
         const float epsilon = 1e-6;
 
         { // TestNoPriorInformation
-            TText text;
-            text.insert({/*tokenId*/ 0, /*count*/ 1});
+            TText text({/*tokenId*/ 0});
 
             for (const ui32 numClasses: {2, 5, 10, 200}) {
                 TMultinomialNaiveBayes naiveBayes(CreateGuid(), numClasses);
@@ -116,10 +122,11 @@ Y_UNIT_TEST_SUITE(TestFeatureCalcer) {
             TMultinomialNaiveBayes naiveBayes(CreateGuid(), numClasses, classPrior, tokenPrior);
             TNaiveBayesVisitor bayesVisitor;
             for (ui32 classIdx: xrange(numClasses)) {
-                TText text;
+                TVector<ui32> tokenIds;
                 for (const ui32 tokenId : xrange(dictionarySize)) {
-                    text.insert({tokenId, /*count*/ 1});
+                    tokenIds.push_back(tokenId);
                 }
+                TText text(std::move(tokenIds));
                 bayesVisitor.Update(classIdx, text, &naiveBayes);
             }
 
@@ -131,16 +138,16 @@ Y_UNIT_TEST_SUITE(TestFeatureCalcer) {
             };
 
             for (ui32 classIdx : xrange(numClasses)) {
-                TText text;
+                TMap<TTokenId, TText::TCountType> tokenToCount;
                 for (const auto& [tokenId, count]: classTokenToCount[classIdx]) {
-                    text.insert({tokenId, count});
+                    tokenToCount[tokenId] = count;
                 }
+                TText text(tokenToCount);
                 bayesVisitor.Update(classIdx, text, &naiveBayes);
             }
 
             for (ui32 tokenId : xrange(dictionarySize)) {
-                TText text;
-                text.insert({tokenId, /*count*/ 1});
+                TText text({tokenId});
 
                 TVector<float> features = naiveBayes.TTextFeatureCalcer::Compute(text);
                 TVector<double> classLogProbs(numClasses);
@@ -176,13 +183,8 @@ Y_UNIT_TEST_SUITE(TestFeatureCalcer) {
             TNaiveBayesVisitor bayesVisitor;
 
             {
-                TText text1;
-                text1.insert({/*tokenId*/ 0, /*count*/ 2});
-                text1.insert({/*tokenId*/ 1, /*count*/ 3});
-
-                TText text2;
-                text2.insert({/*tokenId*/ 0, /*count*/ 4});
-                text2.insert({/*tokenId*/ 1, /*count*/ 1});
+                TText text1({0, 0, 1, 1, 1});
+                TText text2({0, 0, 0, 0, 1});
 
                 bayesVisitor.Update(0, text1, &naiveBayes);
                 bayesVisitor.Update(1, text2, &naiveBayes);
@@ -199,11 +201,8 @@ Y_UNIT_TEST_SUITE(TestFeatureCalcer) {
             Softmax(norm0Prob);
             Softmax(norm1Prob);
 
-            TText text0;
-            text0.insert({0, 1});
-
-            TText text1;
-            text1.insert({1, 1});
+            TText text0({0});
+            TText text1({1});
 
             TVector<float> features = naiveBayes.TTextFeatureCalcer::Compute(text0);
             UNIT_ASSERT_DOUBLES_EQUAL(norm0Prob[0], features[0], epsilon);
@@ -211,8 +210,7 @@ Y_UNIT_TEST_SUITE(TestFeatureCalcer) {
             features = naiveBayes.TTextFeatureCalcer::Compute(text1);
             UNIT_ASSERT_DOUBLES_EQUAL(norm1Prob[0], features[0], epsilon);
 
-            TText textRepeated0;
-            textRepeated0.insert({0, 4});
+            TText textRepeated0({0, 0, 0, 0});
 
             TVector<double> repeatedToken0Probs = {
                 token0Prob[0] * 4,
@@ -227,8 +225,7 @@ Y_UNIT_TEST_SUITE(TestFeatureCalcer) {
                 epsilon
             );
 
-            TText textRepeated1;
-            textRepeated1.insert({1, 3});
+            TText textRepeated1({1, 1, 1});
 
             TVector<double> repeatedToken1Probs = {
                 token1Prob[0] * 3,

@@ -33,6 +33,9 @@ namespace NCB {
     struct IDataProviderBuilder {
         virtual ~IDataProviderBuilder() = default;
 
+        /* can return nullptr when processing is by blocks, it means after processing current block no new
+         * complete groups found, adding data from subsequent blocks is required
+         */
         virtual TDataProviderPtr GetResult() = 0;
 
         /* can return nullptr, needed to get last group data when processing is by blocks,

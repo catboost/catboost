@@ -7,7 +7,7 @@ YA_ARG_PREFIX = '-Ya,'
 
 def get_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--obj', required=True)
+    parser.add_argument('--obj')
     parser.add_argument('--lib', required=True)
     parser.add_argument('--arch', required=True)
     parser.add_argument('--build-root', default=None)
@@ -69,9 +69,10 @@ def main():
         proc.communicate()
         return proc.returncode
 
-    link_res = call(do_link)
-    if link_res:
-        sys.exit(link_res)
+    if obj_output:
+        link_res = call(do_link)
+        if link_res:
+            sys.exit(link_res)
 
     sys.exit(call(do_archive))
 

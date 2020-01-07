@@ -277,6 +277,10 @@
   includes:
     - atomic.h
 
+- source_filter: "^contrib/libs/apr-util"
+  includes:
+    - iconv.h: contrib/libs/libiconv/include/iconv.h
+
 - source_filter: "^contrib/libs/(apr|httpd|llvm)"
   includes:
     - uuid.h

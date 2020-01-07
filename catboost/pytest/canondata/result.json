@@ -2459,6 +2459,82 @@
             "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/fstrs.5"
         }
     ],
+    "test.test_eval_feature_empty_feature_set[0]": [
+        {
+            "checksum": "d5a4fbf17e10aa8dcb040c604579687e",
+            "uri": "file://test.test_eval_feature_empty_feature_set_0_/feature.eval"
+        },
+        {
+            "checksum": "67c3efcc62733a7e357858bb5e85c3d5",
+            "uri": "file://test.test_eval_feature_empty_feature_set_0_/test_error.log"
+        },
+        {
+            "checksum": "9665944e40785cd0deb6b59e517931a1",
+            "uri": "file://test.test_eval_feature_empty_feature_set_0_/fstrs"
+        },
+        {
+            "checksum": "67c3efcc62733a7e357858bb5e85c3d5",
+            "uri": "file://test.test_eval_feature_empty_feature_set_0_/test_error.log.1"
+        },
+        {
+            "checksum": "9665944e40785cd0deb6b59e517931a1",
+            "uri": "file://test.test_eval_feature_empty_feature_set_0_/fstrs.1"
+        },
+        {
+            "checksum": "4a607b797d8afb20131bd29207e02f29",
+            "uri": "file://test.test_eval_feature_empty_feature_set_0_/test_error.log.2"
+        },
+        {
+            "checksum": "45b53ea22aac003a5bbef20a14fcc8ab",
+            "uri": "file://test.test_eval_feature_empty_feature_set_0_/fstrs.2"
+        },
+        {
+            "checksum": "4a607b797d8afb20131bd29207e02f29",
+            "uri": "file://test.test_eval_feature_empty_feature_set_0_/test_error.log.3"
+        },
+        {
+            "checksum": "45b53ea22aac003a5bbef20a14fcc8ab",
+            "uri": "file://test.test_eval_feature_empty_feature_set_0_/fstrs.3"
+        }
+    ],
+    "test.test_eval_feature_empty_feature_set[2]": [
+        {
+            "checksum": "b51358d7e515673b61138a8988e81ce0",
+            "uri": "file://test.test_eval_feature_empty_feature_set_2_/feature.eval"
+        },
+        {
+            "checksum": "ac2e255646d8ed7de0e02f7e2a2b5e38",
+            "uri": "file://test.test_eval_feature_empty_feature_set_2_/test_error.log"
+        },
+        {
+            "checksum": "c0002e03cca123003d64668fb15637a2",
+            "uri": "file://test.test_eval_feature_empty_feature_set_2_/fstrs"
+        },
+        {
+            "checksum": "ac2e255646d8ed7de0e02f7e2a2b5e38",
+            "uri": "file://test.test_eval_feature_empty_feature_set_2_/test_error.log.1"
+        },
+        {
+            "checksum": "c0002e03cca123003d64668fb15637a2",
+            "uri": "file://test.test_eval_feature_empty_feature_set_2_/fstrs.1"
+        },
+        {
+            "checksum": "d07642ed1d5946b6d08de6850d023b9e",
+            "uri": "file://test.test_eval_feature_empty_feature_set_2_/test_error.log.2"
+        },
+        {
+            "checksum": "9b88db1ad4a45833f2bb5633f0419f06",
+            "uri": "file://test.test_eval_feature_empty_feature_set_2_/fstrs.2"
+        },
+        {
+            "checksum": "d07642ed1d5946b6d08de6850d023b9e",
+            "uri": "file://test.test_eval_feature_empty_feature_set_2_/test_error.log.3"
+        },
+        {
+            "checksum": "9b88db1ad4a45833f2bb5633f0419f06",
+            "uri": "file://test.test_eval_feature_empty_feature_set_2_/fstrs.3"
+        }
+    ],
     "test.test_eval_feature_timesplit[Group-OneVsAll]": [
         {
             "checksum": "1c185a960b580f753e8573a5cf49c1ef",

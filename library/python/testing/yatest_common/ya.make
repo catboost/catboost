@@ -25,9 +25,10 @@ PY_SRCS(
 )
 
 PEERDIR(
+    contrib/python/six
+    library/python/coredump_filter
     library/python/cores
     library/python/filelock
-    contrib/python/six
 )
 
 NO_LINT()

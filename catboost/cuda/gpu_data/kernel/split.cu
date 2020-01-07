@@ -2,7 +2,7 @@
 
 #include <catboost/cuda/cuda_util/kernel/compression.cuh>
 #include <catboost/cuda/cuda_util/kernel/compression_helper.cuh>
-#include <catboost/libs/cuda_wrappers/arch.cuh>
+#include <library/cuda/wrappers/arch.cuh>
 
 namespace NKernel {
 
