@@ -3884,6 +3884,64 @@ class TestPickling(object):
     
         assert_equal(original.dtype, new.dtype)
 
+    def test_py2_can_load_py3_pickle_with_dtype_field_names(self):
+        # gh-2407 and PR #14275
+        # Py2 should be able to load a pickle that was created in PY3
+        # when the pickle contains a structured dtype with field names
+        import numpy as np
+
+        expected_dtype = np.dtype([('SPOT', np.float64)])
+        expected_data = np.array([(6.0)], dtype=expected_dtype)
+        # Pickled under Python 3.6.5 with protocol=2 by the code below:
+        # pickle.dumps(expected_data, protocol=2)
+        saved_pickle_from_py3 = b'''\
+\x80\x02cnumpy.core.multiarray\n_reconstruct\nq\x00cnumpy\nndarray\n\
+q\x01K\x00\x85q\x02c_codecs\nencode\nq\x03X\x01\x00\x00\x00bq\x04X\
+\x06\x00\x00\x00latin1q\x05\x86q\x06Rq\x07\x87q\x08Rq\t(K\x01K\x01\
+\x85q\ncnumpy\ndtype\nq\x0bX\x02\x00\x00\x00V8q\x0cK\x00K\x01\x87q\
+\rRq\x0e(K\x03X\x01\x00\x00\x00|q\x0fNX\x04\x00\x00\x00SPOTq\x10\
+\x85q\x11}q\x12h\x10h\x0bX\x02\x00\x00\x00f8q\x13K\x00K\x01\x87\
+q\x14Rq\x15(K\x03X\x01\x00\x00\x00<q\x16NNNJ\xff\xff\xff\xffJ\xff\
+\xff\xff\xffK\x00tq\x17bK\x00\x86q\x18sK\x08K\x01K\x10tq\x19b\x89h\
+\x03X\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x18@q\x1ah\x05\x86q\
+\x1bRq\x1ctq\x1db.\
+'''
+
+        if sys.version_info[0] < 3:  # PY2
+            assert pickle.loads(saved_pickle_from_py3) == expected_data
+        else:
+            # check that the string above is what we claim on PY3
+            py3_pickle_dump = pickle.dumps(expected_data, protocol=2)
+            assert py3_pickle_dump == saved_pickle_from_py3
+
+    def test_py3_can_load_py2_pickle_with_dtype_field_names(self):
+        # gh-2407 and PR #14275
+        # Roundtrip: Py3 should load a pickle that was created in PY2
+        # after loading the saved_pickle (from PY3) in the test named
+        # 'test_py2_can_load_py3_pickle_with_dtype_field_names'
+        import numpy as np
+
+        expected_dtype = np.dtype([('SPOT', np.float64)])
+        expected = np.array([(6.0)], dtype=expected_dtype)
+        # Pickled under Python 2.7.16 with protocol=2 after it was loaded
+        # by test 'test_py2_can_load_py3_pickle_with_dtype_field_names'
+        pickle_from_py2 = b'''\
+\x80\x02cnumpy.core.multiarray\n_reconstruct\nq\x01cnumpy\nndarray\n\
+q\x02K\x00\x85U\x01b\x87Rq\x03(K\x01K\x01\x85cnumpy\ndtype\nq\x04U\x02\
+V8K\x00K\x01\x87Rq\x05(K\x03U\x01|NU\x04SPOTq\x06\x85q\x07}q\x08h\x06h\
+\x04U\x02f8K\x00K\x01\x87Rq\t(K\x03U\x01<NNNJ\xff\xff\xff\xffJ\xff\xff\
+\xff\xffK\x00tbK\x00\x86sK\x08K\x01K\x10tb\x89U\x08\x00\x00\x00\x00\x00\
+\x00\x18@tb.\
+'''
+
+        if sys.version_info[0] >= 3:  # PY3
+            assert pickle.loads(pickle_from_py2) == expected
+        else:
+            # check that the string above is what we claim on PY2
+            if sys.platform.startswith('linux') and not IS_PYPY:
+                assert pickle.dumps(expected, protocol=2) == pickle_from_py2
+
+
 
 class TestFancyIndexing(object):
     def test_list(self):
@@ -6067,7 +6125,69 @@ class TestMatmul(MatmulCommon):
 
         r3 = np.matmul(args[0].copy(), args[1].copy())
         assert_equal(r1, r3)
-        
+
+    def test_matmul_object(self):
+        import fractions
+
+        f = np.vectorize(fractions.Fraction)
+        def random_ints():
+            return np.random.randint(1, 1000, size=(10, 3, 3))
+        M1 = f(random_ints(), random_ints())
+        M2 = f(random_ints(), random_ints())
+
+        M3 = self.matmul(M1, M2)
+
+        [N1, N2, N3] = [a.astype(float) for a in [M1, M2, M3]]
+
+        assert_allclose(N3, self.matmul(N1, N2))
+
+    def test_matmul_object_type_scalar(self):
+        from fractions import Fraction as F
+        v = np.array([F(2,3), F(5,7)])
+        res = self.matmul(v, v)
+        assert_(type(res) is F)
+
+    def test_matmul_empty(self):
+        a = np.empty((3, 0), dtype=object)
+        b = np.empty((0, 3), dtype=object)
+        c = np.zeros((3, 3))
+        assert_array_equal(np.matmul(a, b), c)
+
+    def test_matmul_exception_multiply(self):
+        # test that matmul fails if `__mul__` is missing
+        class add_not_multiply():
+            def __add__(self, other):
+                return self
+        a = np.full((3,3), add_not_multiply())
+        with assert_raises(TypeError):
+            b = np.matmul(a, a)
+
+    def test_matmul_exception_add(self):
+        # test that matmul fails if `__add__` is missing
+        class multiply_not_add():
+            def __mul__(self, other):
+                return self
+        a = np.full((3,3), multiply_not_add())
+        with assert_raises(TypeError):
+            b = np.matmul(a, a)
+
+    def test_matmul_bool(self):
+        # gh-14439
+        a = np.array([[1, 0],[1, 1]], dtype=bool)
+        assert np.max(a.view(np.uint8)) == 1
+        b = np.matmul(a, a)
+        # matmul with boolean output should always be 0, 1
+        assert np.max(b.view(np.uint8)) == 1
+
+        np.random.seed(42)
+        d = np.random.randint(2, size=4*5, dtype=np.int8)
+        d = d.reshape(4, 5) > 0
+        out1 = np.matmul(d, d.reshape(5, 4))
+        out2 = np.dot(d, d.reshape(5, 4))
+        assert_equal(out1, out2)
+
+        c = np.matmul(np.zeros((2, 0), dtype=bool), np.zeros(0, dtype=bool))
+        assert not np.any(c)
 
 
 if sys.version_info[:2] >= (3, 5):
@@ -7725,6 +7845,8 @@ class TestFormat(object):
                 dst = object.__format__(a, '30')
                 assert_equal(res, dst)
 
+from numpy.testing import IS_PYPY
+
 class TestCTypes(object):
 
     def test_ctypes_is_available(self):
@@ -7791,7 +7913,29 @@ class TestCTypes(object):
 
         # but when the `ctypes_ptr` object dies, so should `arr`
         del ctypes_ptr
+        if IS_PYPY:
+            # Pypy does not recycle arr objects immediately. Trigger gc to
+            # release arr. Cpython uses refcounts. An explicit call to gc
+            # should not be needed here.
+            break_cycles()
+        assert_(arr_ref() is None, "unknowable whether ctypes pointer holds a reference")
+
+    def test_ctypes_as_parameter_holds_reference(self):
+        arr = np.array([None]).copy()
+
+        arr_ref = weakref.ref(arr)
+
+        ctypes_ptr = arr.ctypes._as_parameter_
+
+        # `ctypes_ptr` should hold onto `arr`
+        del arr
         break_cycles()
+        assert_(arr_ref() is not None, "ctypes pointer did not hold onto a reference")
+
+        # but when the `ctypes_ptr` object dies, so should `arr`
+        del ctypes_ptr
+        if IS_PYPY:
+            break_cycles()
         assert_(arr_ref() is None, "unknowable whether ctypes pointer holds a reference")
 
 
