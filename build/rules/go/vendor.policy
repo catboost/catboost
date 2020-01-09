@@ -377,6 +377,9 @@ ALLOW .* -> vendor/github.com/intel/govmm/qemu
 # CONTRIB-1650 golang ftp server library with a sample implementation 
 ALLOW .* -> vendor/github.com/fclairamb/ftpserver
 
+# CONTRIB-1647 golang binlog replication implementation
+ALLOW .* -> vendor/github.com/siddontang/go-mysql/replication
+
 #
 # Temporary exceptions.
 #
