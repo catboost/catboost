@@ -417,8 +417,6 @@ namespace NCB::NModelEvaluation {
         size_t treeEnd,
         double* __restrict results) {
         const ui8* __restrict binFeatures = quantizedData->QuantizedData.data();
-        Y_ASSERT(!calcIndexesOnly || (indexesVec && AllOf(indexesVec, indexesVec + (treeEnd - treeStart),
-                                                          [](TCalcerIndexType index) { return index == 0; })));
         Y_ASSERT(calcIndexesOnly || (results && AllOf(results, results + trees.GetDimensionsCount(),
                                                       [](double value) { return value == 0.0; })));
         const TRepackedBin* treeSplitsCurPtr =
@@ -438,7 +436,6 @@ namespace NCB::NModelEvaluation {
                 }
             }
             if constexpr (calcIndexesOnly) {
-                Y_ASSERT(*indexesVec == 0);
                 *indexesVec++ = index;
             } else {
                 if constexpr (IsSingleClassModel) { // single class model
