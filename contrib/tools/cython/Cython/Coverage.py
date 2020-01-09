@@ -64,7 +64,9 @@ class Plugin(CoveragePlugin):
         """
         Try to find a C source file for a file path found by the tracer.
         """
-        if os.path.splitext(filename)[-1] not in ('.pyx', '.pxi', '.pxd'):
+        # TODO We need to pxd-files to the include map. For more info see pybuild.py
+        # Currently skip such files, because they are not supported in Arcadia pybuild with coverage.
+        if os.path.splitext(filename)[-1] not in ('.pyx', '.pxi'):
             return None
         if filename.startswith('<') or filename.startswith('memory:'):
             return None
