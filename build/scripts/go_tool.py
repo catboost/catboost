@@ -327,7 +327,11 @@ def do_link_exe(args):
     cmd += ['-buildmode=exe', '-extld={}'.format(args.extld)]
     extldflags = []
     if args.extldflags is not None:
-        extldflags += args.extldflags
+        filter_musl = None
+        if args.musl:
+            extldflags.append('-static')
+            filter_musl = lambda x: not x in ('-lc', '-ldl', '-lm', '-lpthread', '-lrt')
+        extldflags += list(filter(filter_musl, args.extldflags))
     if args.cgo_peers is not None and len(args.cgo_peers) > 0:
         is_group = args.targ_os == 'linux'
         if is_group:
@@ -576,6 +580,7 @@ if __name__ == '__main__':
     parser.add_argument('++vet', nargs='?', const=True, default=False)
     parser.add_argument('++vet-flags', nargs='*', default=None)
     parser.add_argument('++arc-source-root')
+    parser.add_argument('++musl', action='store_true')
     args = parser.parse_args()
 
     # Temporary work around for noauto
