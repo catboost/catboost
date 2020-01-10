@@ -295,6 +295,9 @@
         "atop": {
             "description": "Advanced System & Process Monitor"
         },
+        "bpftool": {
+            "description": "tool for inspection and simple manipulation of eBPF programs and maps"
+        },
         "lkvm": {
             "description": "kvmtool is a userland tool for creating and controlling KVM guests"
         }
@@ -4771,6 +4774,22 @@
                 }
             ]
         },
+        "bpftool": {
+            "tools": {
+                "bpftool": {
+                    "bottle": "bpftool",
+                    "executable": "bpftool"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "stress-ng": {
             "tools": {
                 "stress-ng": {
@@ -6755,6 +6774,20 @@
                 "atop": [
                     "atop",
                     "atop"
+                ]
+            }
+        },
+        "bpftool": {
+            "formula": {
+                "sandbox_id": [
+                    584995140
+                ],
+                "match": "infra/kernel/tools/bpftool/build/bpftool-static.tar.gz"
+            },
+            "executable": {
+                "bpftool": [
+                    "bpftool",
+                    "bpftool"
                 ]
             }
         },
