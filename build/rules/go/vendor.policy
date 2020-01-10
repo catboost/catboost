@@ -379,6 +379,8 @@ ALLOW .* -> vendor/github.com/fclairamb/ftpserver
 
 # CONTRIB-1647 golang binlog replication implementation
 ALLOW .* -> vendor/github.com/siddontang/go-mysql/replication
+ALLOW .* -> vendor/github.com/siddontang/go-mysql/canal
+ALLOW .* -> vendor/github.com/siddontang/go-mysql/mysql
 
 #
 # Temporary exceptions.
