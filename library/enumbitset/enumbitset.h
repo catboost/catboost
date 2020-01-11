@@ -191,6 +191,31 @@ public:
         return ret;
     }
 
+
+    TThis& operator&=(const TEnum c) {
+        return TThis::operator&=(TThis(c));
+    }
+
+    TThis& operator|=(const TEnum c) {
+        return TThis::operator|=(TThis(c));
+    }
+
+    TThis& operator^=(const TEnum c) {
+        return TThis::operator^=(TThis(c));
+    }
+
+    TThis operator&(const TEnum c) const {
+        return TThis::operator&(TThis(c));
+    }
+
+    TThis operator|(const TEnum c) const {
+        return TThis::operator|(TThis(c));
+    }
+
+    TThis operator^(const TEnum c) const {
+        return TThis::operator^(TThis(c));
+    }
+
     auto operator[] (TEnum e) {
         return TParent::operator[](this->Pos(e));
     }
