@@ -43,6 +43,9 @@ public:
         return false;
     }
 
+    const char* Data() const noexcept {
+        return Data_;
+    }
     size_t GetExtraDataSize() const noexcept {
         return ExtraDataSize_;
     }
