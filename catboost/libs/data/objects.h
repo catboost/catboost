@@ -44,13 +44,6 @@ class IOutputStream;
 
 namespace NCB {
 
-    // if objectsGrouping is defined - check that groupIds correspond to it
-    void CheckGroupIds(
-        ui32 objectCount,
-        TMaybeData<TConstArrayRef<TGroupId>> groupIds,
-        TMaybe<TObjectsGroupingPtr> objectsGrouping = Nothing()
-    );
-
     /* if groupIds is empty return trivial grouping
      *  checks that groupIds are consecutive
      */
