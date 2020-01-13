@@ -3,7 +3,7 @@
 #include "approx_calcer.h"
 #include "approx_calcer_helpers.h"
 #include "approx_updater_helpers.h"
-#include "build_subset_in_leaf.cpp"
+#include "build_subset_in_leaf.h"
 #include "fold.h"
 #include "greedy_tensor_search.h"
 #include "index_calcer.h"
