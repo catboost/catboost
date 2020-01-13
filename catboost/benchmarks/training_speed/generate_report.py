@@ -108,7 +108,7 @@ def print_all_in_one_table(stats, gpu, params, output):
     median_table = []
     total_table = []
 
-    index = ["catboost", "xgboost", "lightgbm"]
+    index = ["catboost"] # , "xgboost", "lightgbm"]
 
     for algorithm_name in index:
         median_row = []
