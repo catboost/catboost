@@ -136,17 +136,17 @@ namespace NCB {
             TVector<TString> textFeatures;
             textFeatures.yresize(featuresLayout.GetTextFeatureCount());
 
-            size_t tokenCount = 0;
+            size_t tokenIdx = 0;
             try {
                 auto splitter = NCsvFormat::CsvSplitter(line, FieldDelimiter, catFeatures.empty() ? '\0' : '"');
                 do {
                     TStringBuf token = splitter.Consume();
                     CB_ENSURE(
-                        tokenCount < columnsDescription.size(),
-                        "wrong column count: expected " << columnsDescription.ysize() << ", found " << tokenCount
+                        tokenIdx < columnsDescription.size(),
+                        "wrong column count: found more than " << columnsDescription.ysize() << " values"
                     );
                     try {
-                        switch (columnsDescription[tokenCount].Type) {
+                        switch (columnsDescription[tokenIdx].Type) {
                             case EColumn::Categ: {
                                 if (!FeatureIgnored[featureId]) {
                                     const ui32 catFeatureIdx = featuresLayout.GetInternalFeatureIdx(featureId);
@@ -228,15 +228,15 @@ namespace NCB {
                             }
                         }
                     } catch (yexception& e) {
-                        throw TCatBoostException() << "Column " << tokenCount << " (type "
-                            << columnsDescription[tokenCount].Type << ", value = \"" << token
+                        throw TCatBoostException() << "Column " << tokenIdx << " (type "
+                            << columnsDescription[tokenIdx].Type << ", value = \"" << token
                             << "\"): " << e.what();
                     }
-                    ++tokenCount;
+                    ++tokenIdx;
                 } while (splitter.Step());
                 CB_ENSURE(
-                    tokenCount == columnsDescription.size(),
-                    "wrong column count: expected " << columnsDescription.ysize() << ", found " << tokenCount
+                    tokenIdx == columnsDescription.size(),
+                    "wrong column count: expected " << columnsDescription.ysize() << ", found " << tokenIdx
                 );
                 if (!floatFeatures.empty()) {
                     visitor->AddAllFloatFeatures(lineIdx, floatFeatures);
