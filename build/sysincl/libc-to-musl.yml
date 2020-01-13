@@ -6,7 +6,7 @@
 # or some combination of them depending on the build flags.
 
 # Musl has some internal header replacements. We will just resolve to both.
-- source_filter: "^contrib/libs/musl"
+- source_filter: "^(contrib/libs/musl|contrib/libs/cxxsupp/libcxx/include/__config)"
   includes:
   - arpa/inet.h:
     - contrib/libs/musl/include/arpa/inet.h
