@@ -1781,7 +1781,7 @@ namespace NCB {
         ENanMode nanMode = ENanMode::Forbidden;
 
         bool calculateQuantization = true;
-        const NSplitSelection::TQuantization* quantization;
+        const NSplitSelection::TQuantization* quantization = nullptr;
         NSplitSelection::TQuantization calculatedQuantization;
 
         {
