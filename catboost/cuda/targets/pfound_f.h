@@ -137,7 +137,7 @@ namespace NCatboostCuda {
     private:
         mutable THolder<TQuerywiseSampler> QueriesSampler;
         ui32 PermutationCount = 10;
-        float Decay = 0.99;
+        float Decay = 0.99f;
     };
 
 }

@@ -15,9 +15,9 @@ namespace NCatboostCuda {
         TVector<float> fixedLeaves(solution.size());
         TVector<double> fixedWeights(solution.size());
         const bool isLastLevelOneHot = splits.back().SplitType == EBinSplitType::TakeBin;
-        const ui32 lastDepthBit = 1 << prevDepth;
+        const ui32 lastDepthBit = 1U << prevDepth;
 
-        for (ui32 leaf = 0; leaf < (1 << prevDepth); ++leaf) {
+        for (ui32 leaf = 0; leaf < (1U << prevDepth); ++leaf) {
             const ui32 solutionLeafLeft = 2 * leaf;
             const ui32 solutionLeafRight = 2 * leaf + 1;
             ui32 modelLeafLeft = leaf;

@@ -386,7 +386,7 @@ namespace NCudaLib {
             const ui32 mask = 1 << pass;
             TVector<TReduceTask> tasks;
 
-            for (ui32 dev = 0; dev < (1 << PassCount); ++dev) {
+            for (ui32 dev = 0; dev < (1U << PassCount); ++dev) {
                 if (mask & dev) {
                     continue; //pass bit is not zero
                 }

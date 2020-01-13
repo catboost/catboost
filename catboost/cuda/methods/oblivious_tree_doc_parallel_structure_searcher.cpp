@@ -128,11 +128,11 @@ namespace NCatboostCuda {
                 leaves = EstimateLeaves(partitionsStats);
                 weights = ExtractWeights(partitionsStats);
             } else {
-                leaves.resize(1 << structure.Splits.size(), 0.0f);
-                weights.resize(1 << structure.Splits.size(), 0.0f);
+                leaves.resize(1ULL << structure.Splits.size(), 0.0f);
+                weights.resize(1ULL << structure.Splits.size(), 0.0f);
             }
         }
-        CB_ENSURE((1 << structure.Splits.size()) == leaves.size(), (1 << structure.Splits.size()) << " " << leaves.size());
+        CB_ENSURE((1ULL << structure.Splits.size()) == leaves.size(), (1ULL << structure.Splits.size()) << " " << leaves.size());
         return TObliviousTreeModel(std::move(structure),
                                    leaves,
                                    weights,
