@@ -45,7 +45,7 @@ namespace NCB {
         CB_ENSURE(!Args.BaselineFilePath.Inited() || CheckExists(Args.BaselineFilePath),
                   "TLibSvmDataLoader:BaselineFilePath does not exist");
         CB_ENSURE(!Args.TimestampsFilePath.Inited() || CheckExists(Args.TimestampsFilePath),
-                  "TCBDsvDataLoader:TimestampsFilePath does not exist");
+                  "TLibSvmDataLoader:TimestampsFilePath does not exist");
 
         TString firstLine;
         CB_ENSURE(LineDataReader->ReadLine(&firstLine), "TLibSvmDataLoader: no data rows");
