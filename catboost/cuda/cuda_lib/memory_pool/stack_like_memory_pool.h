@@ -251,6 +251,7 @@ namespace NCudaLib {
                 return Block->Size;
             }
 
+            template<EPtrType PType>
             friend class TStackLikeMemoryPool;
         };
 
