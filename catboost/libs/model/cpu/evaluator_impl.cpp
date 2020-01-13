@@ -446,7 +446,7 @@ namespace NCB::NModelEvaluation {
                         results[classId] += leafValuePtr[classId];
                     }
                 }
-                treeLeafPtr += (1 << curTreeSize) * trees.GetDimensionsCount();
+                treeLeafPtr += (1ull << curTreeSize) * trees.GetDimensionsCount();
             }
             treeSplitsCurPtr += curTreeSize;
         }
@@ -614,7 +614,7 @@ namespace NCB::NModelEvaluation {
             if constexpr (CalcLeafIndexesOnly) {
                 const auto firstLeafOffsets = trees.GetFirstLeafOffsets();
                 const auto approxDimension = trees.GetDimensionsCount();
-                for (size_t docId = 0; docId < docCountInBlock; ++docId) {
+                for (docId = 0; docId < docCountInBlock; ++docId) {
                     Y_ASSERT((nonSymmetricNodeIdToLeafIdPtr[indexes[docId]] - firstLeafOffsets[treeId]) % approxDimension == 0);
                     indexes[docId] = ((nonSymmetricNodeIdToLeafIdPtr[indexes[docId]] - firstLeafOffsets[treeId]) / approxDimension);
                 }

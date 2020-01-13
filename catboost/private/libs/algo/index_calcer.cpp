@@ -338,12 +338,12 @@ void SetPermutedIndices(
 }
 
 TVector<bool> GetIsLeafEmpty(int curDepth, const TVector<TIndexType>& indices) {
-    TVector<bool> isLeafEmpty(1 << curDepth, true);
+    TVector<bool> isLeafEmpty(1ull << curDepth, true);
     size_t populatedLeafCount = 0;
     for (auto idx : indices) {
         populatedLeafCount += isLeafEmpty[idx];
         isLeafEmpty[idx] = false;
-        if (populatedLeafCount == (1 << curDepth)) {
+        if (populatedLeafCount == (1ull << curDepth)) {
             break;
         }
     }

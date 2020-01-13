@@ -211,7 +211,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
             mxTreeWeightsPresentation.push_back(
                 TConstArrayRef<double>(
                     weights.data() + leafOffsetPtr[treeIdx] / approxDimension,
-                    (1u << leafSizes[treeIdx])
+                    (1ull << leafSizes[treeIdx])
                 )
             );
         }

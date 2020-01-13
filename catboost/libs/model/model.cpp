@@ -169,7 +169,7 @@ void TModelTrees::TruncateTrees(size_t begin, size_t end) {
             leafValuesRef,
             LeafWeights.empty() ? TConstArrayRef<double>() : TConstArrayRef<double>(
                 LeafWeights.begin() + leafOffsets[treeIdx] / ApproxDimension,
-                LeafWeights.begin() + leafOffsets[treeIdx] / ApproxDimension + (1u << TreeSizes[treeIdx])
+                LeafWeights.begin() + leafOffsets[treeIdx] / ApproxDimension + (1ull << TreeSizes[treeIdx])
             )
         );
     }
@@ -403,20 +403,20 @@ void TModelTrees::ConvertObliviousToAsymmetric() {
         treeStartOffsets.push_back(treeSplits.size());
         for (int depth = 0; depth < TreeSizes[treeId]; ++depth) {
             const auto split = TreeSplits[TreeStartOffsets[treeId] + TreeSizes[treeId] - 1 - depth];
-            for (size_t cloneId = 0; cloneId < (1u << depth); ++cloneId) {
+            for (size_t cloneId = 0; cloneId < (1ull << depth); ++cloneId) {
                 treeSplits.push_back(split);
                 nonSymmetricNodeIdToLeafId.push_back(Max<ui32>());
                 nonSymmetricStepNodes.emplace_back(TNonSymmetricTreeStepNode{static_cast<ui16>(treeSize + 1), static_cast<ui16>(treeSize + 2)});
                 ++treeSize;
             }
         }
-        for (size_t cloneId = 0; cloneId < (1u << TreeSizes[treeId]); ++cloneId) {
+        for (size_t cloneId = 0; cloneId < (1ull << TreeSizes[treeId]); ++cloneId) {
             treeSplits.push_back(0);
             nonSymmetricNodeIdToLeafId.push_back((leafStartOffset + cloneId) * ApproxDimension);
             nonSymmetricStepNodes.emplace_back(TNonSymmetricTreeStepNode{0, 0});
             ++treeSize;
         }
-        leafStartOffset += (1u << TreeSizes[treeId]);
+        leafStartOffset += (1ull << TreeSizes[treeId]);
         treeSizes.push_back(treeSize);
     }
     TreeSplits = std::move(treeSplits);
@@ -929,7 +929,7 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
             TConstArrayRef<double> leafValuesRef(
                 trees.GetLeafValues().begin() + leafOffsets[treeIdx],
                 trees.GetLeafValues().begin() + leafOffsets[treeIdx]
-                    + trees.GetDimensionsCount() * (1u << trees.GetTreeSizes()[treeIdx])
+                    + trees.GetDimensionsCount() * (1ull << trees.GetTreeSizes()[treeIdx])
             );
             builder->AddTree(
                 modelSplits,
@@ -937,14 +937,14 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
                 !streamLeafWeights ? TConstArrayRef<double>() : TConstArrayRef<double>(
                     trees.GetLeafWeights().begin() + leafOffsets[treeIdx] / trees.GetDimensionsCount(),
                     trees.GetLeafWeights().begin() + leafOffsets[treeIdx] / trees.GetDimensionsCount()
-                        + (1u << trees.GetTreeSizes()[treeIdx])
+                        + (1ull << trees.GetTreeSizes()[treeIdx])
                 )
             );
         } else {
             TVector<double> leafValues(
                 trees.GetLeafValues().begin() + leafOffsets[treeIdx],
                 trees.GetLeafValues().begin() + leafOffsets[treeIdx]
-                    + trees.GetDimensionsCount() * (1u << trees.GetTreeSizes()[treeIdx])
+                    + trees.GetDimensionsCount() * (1ull << trees.GetTreeSizes()[treeIdx])
             );
             for (auto& leafValue: leafValues) {
                 leafValue *= leafMultiplier;
@@ -954,7 +954,7 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
                 leafValues,
                 !streamLeafWeights ? TConstArrayRef<double>() : TConstArrayRef<double>(
                     trees.GetLeafWeights().begin() + leafOffsets[treeIdx] / trees.GetDimensionsCount(),
-                    (1u << trees.GetTreeSizes()[treeIdx])
+                    (1ull << trees.GetTreeSizes()[treeIdx])
                 )
             );
         }

@@ -41,7 +41,7 @@ static void CalcIndicatorCoefficients(
             auto splitNewIdx = borderIdxForSplit[splitIdx] + ((leafIdx >> depthIdx) & 1);
             (*floatFeatureImpact)[featureIdx][splitNewIdx] += diff;
         }
-        offset += (1 << treeDepth);
+        offset += (1ull << treeDepth);
     }
 }
 

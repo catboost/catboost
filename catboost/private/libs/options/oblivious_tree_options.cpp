@@ -20,7 +20,7 @@ NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETa
       , LeavesEstimationBacktrackingType("leaf_estimation_backtracking", ELeavesEstimationStepBacktracking::AnyImprovement)
       , ScoreFunction("score_function", EScoreFunction::Cosine)
       , SamplingFrequency("sampling_frequency", ESamplingFrequency::PerTree, taskType)
-      , ModelSizeReg("model_size_reg", 0.5, taskType)
+      , ModelSizeReg("model_size_reg", 0.5f, taskType)
       , DevScoreCalcObjBlockSize("dev_score_calc_obj_block_size", 5000000, taskType)
       , DevExclusiveFeaturesBundleMaxBuckets("dev_efb_max_buckets", 1 << 10, taskType)
       , SparseFeaturesConflictFraction("sparse_features_conflict_fraction", 0.0f, taskType)

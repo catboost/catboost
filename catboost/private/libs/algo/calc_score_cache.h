@@ -125,7 +125,7 @@ public:
     inline void Create(const TVector<TFold>& folds, int bucketCount, int depth) {
         ApproxDimension = folds[0].GetApproxDimension();
         MaxBodyTailCount = GetMaxBodyTailCount(folds);
-        InitialSize = sizeof(TBucketStats) * bucketCount * (1U << depth) * ApproxDimension * MaxBodyTailCount;
+        InitialSize = sizeof(TBucketStats) * bucketCount * (1ULL << depth) * ApproxDimension * MaxBodyTailCount;
         if (InitialSize == 0) {
             InitialSize = NSystemInfo::GetPageSize();
         }
