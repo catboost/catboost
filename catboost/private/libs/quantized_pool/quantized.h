@@ -16,20 +16,12 @@ THashMap<size_t, size_t> GetColumnIndexToFlatIndexMap(const NCB::TQuantizedPool&
 
 THashMap<size_t, size_t> GetColumnIndexToBaselineIndexMap(const NCB::TQuantizedPool& pool);
 
-TVector<TString> GetFlatFeatureNames(const NCB::TQuantizedPool& pool);
-
-THashMap<size_t, size_t> GetColumnIndexToNumericFeatureIndexMap(const NCB::TQuantizedPool& pool);
-
 NCB::TDataMetaInfo GetDataMetaInfo(
     const NCB::TQuantizedPool& pool,
     bool hasAdditionalGroupWeight,
     bool hasTimestamps,
     bool hasPairs,
     TMaybe<ui32> baselineCount);
-
-// Returns flat indices of all categorical features
-// Sorted from min to max
-TVector<int> GetCategoricalFeatureIndices(const NCB::TQuantizedPool& pool);
 
 // Returns flat indices of all ignored features
 // Sorted from min to max

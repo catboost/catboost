@@ -71,39 +71,6 @@ THashMap<size_t, size_t> GetColumnIndexToBaselineIndexMap(const NCB::TQuantizedP
     return map;
 }
 
-TVector<TString> GetFlatFeatureNames(const NCB::TQuantizedPool& pool) {
-    const auto columnIndexToFlatIndex = GetColumnIndexToFlatIndexMap(pool);
-    TVector<TString> names(columnIndexToFlatIndex.size());
-    for (const auto [columnIndex, flatIndex] : columnIndexToFlatIndex) {
-        const auto localIndex = pool.ColumnIndexToLocalIndex.at(columnIndex);
-        names[flatIndex] = pool.ColumnNames[localIndex];
-    }
-    return names;
-}
-
-THashMap<size_t, size_t> GetColumnIndexToNumericFeatureIndexMap(const NCB::TQuantizedPool& pool) {
-    TVector<size_t> columnIndices;
-    columnIndices.reserve(pool.ColumnIndexToLocalIndex.size());
-    for (const auto [columnIndex, localIndex] : pool.ColumnIndexToLocalIndex) {
-        const auto columnType = pool.ColumnTypes[localIndex];
-        if (columnType != EColumn::Num) {
-            continue;
-        }
-
-        columnIndices.push_back(columnIndex);
-    }
-
-    Sort(columnIndices);
-
-    THashMap<size_t, size_t> map;
-    map.reserve(columnIndices.size());
-    for (size_t i = 0; i < columnIndices.size(); ++i) {
-        map.emplace(columnIndices[i], map.size());
-    }
-
-    return map;
-}
-
 NCB::TDataMetaInfo GetDataMetaInfo(
     const NCB::TQuantizedPool& pool,
     bool hasAdditionalGroupWeight,
@@ -123,25 +90,6 @@ NCB::TDataMetaInfo GetDataMetaInfo(
     NCB::TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), hasAdditionalGroupWeight, hasTimestamps, hasPairs, baselineCount, Nothing());
     metaInfo.Validate();
     return metaInfo;
-}
-
-TVector<int> GetCategoricalFeatureIndices(const NCB::TQuantizedPool& pool) {
-    const auto columnIndexToFeatureIndex = GetColumnIndexToFlatIndexMap(pool);
-
-    TVector<int> categoricalIds;
-    for (const auto [columnIndex, localIndex] : pool.ColumnIndexToLocalIndex) {
-        const auto columnType = pool.ColumnTypes[localIndex];
-        if (columnType != EColumn::Categ) {
-            continue;
-        }
-
-        const auto featureIndex = columnIndexToFeatureIndex.at(columnIndex);
-        categoricalIds.push_back(static_cast<int>(featureIndex));
-    }
-
-    Sort(categoricalIds);
-
-    return categoricalIds;
 }
 
 TVector<ui32> GetIgnoredFlatIndices(const NCB::TQuantizedPool& pool) {
