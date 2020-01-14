@@ -475,7 +475,10 @@ void TModelTrees::FBDeserialize(const NCatBoostFbs::TModelTrees* fbObj) {
     }
 
     if (fbObj->LeafValues()) {
-        LeafValues.assign(fbObj->LeafValues()->begin(), fbObj->LeafValues()->end());
+        LeafValues.assign(
+            fbObj->LeafValues()->data(),
+            fbObj->LeafValues()->data() + fbObj->LeafValues()->size()
+        );
     }
     if (fbObj->NonSymmetricStepNodes()) {
         NonSymmetricStepNodes.resize(fbObj->NonSymmetricStepNodes()->size());
@@ -506,7 +509,10 @@ void TModelTrees::FBDeserialize(const NCatBoostFbs::TModelTrees* fbObj) {
     FBS_ARRAY_DESERIALIZER(CtrFeatures)
 #undef FBS_ARRAY_DESERIALIZER
     if (fbObj->LeafWeights() && fbObj->LeafWeights()->size() > 0) {
-            LeafWeights.assign(fbObj->LeafWeights()->begin(), fbObj->LeafWeights()->end());
+            LeafWeights.assign(
+                fbObj->LeafWeights()->data(),
+                fbObj->LeafWeights()->data() + fbObj->LeafWeights()->size()
+            );
     }
     SetScaleAndBias({fbObj->Scale(), fbObj->Bias()});
 }
