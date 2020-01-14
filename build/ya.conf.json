@@ -2468,6 +2468,10 @@
                 "nm": {
                     "bottle": "gcc63-armv7a-linkplay-a98",
                     "executable": "nm"
+                },
+                "objcopy": {
+                    "bottle": "gcc63-armv7a-linkplay-a98",
+                    "executable": "objcopy"
                 }
             },
             "platforms": [
@@ -5619,28 +5623,39 @@
             },
             "executable": {
                 "c++": [
+                    "gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf",
                     "bin",
                     "arm-linux-gnueabihf-g++"
                 ],
                 "cc": [
+                    "gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf",
                     "bin",
                     "arm-linux-gnueabihf-gcc"
                 ],
                 "gcov": [
+                    "gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf",
                     "bin",
                     "arm-linux-gnueabihf-gcov"
                 ],
                 "c++filt": [
+                    "gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf",
                     "bin",
                     "arm-linux-gnueabihf-c++filt"
                 ],
                 "strip": [
+                    "gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf",
                     "bin",
                     "arm-linux-gnueabihf-strip"
                 ],
                 "nm": [
+                    "gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf",
                     "bin",
                     "arm-linux-gnueabihf-nm"
+                ],
+                "objcopy": [
+                    "gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf",
+                    "bin",
+                    "arm-linux-gnueabihf-objcopy"
                 ]
             }
         },
@@ -5680,7 +5695,7 @@
                     "usr",
                     "bin",
                     "arm-poky-linux-gnueabi",
-                    "arm-poky-linux-gnueabi--strip"
+                    "arm-poky-linux-gnueabi-strip"
                 ],
                 "nm": [
                     "usr",
