@@ -3,9 +3,10 @@
 #include <catboost/cuda/gpu_data/gpu_structures.h>
 
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
+
 namespace NKernel {
 
-    template <int BLOCK_SIZE>
+    template <ui32 BLOCK_SIZE>
     __global__ void ComputeGroupIdsImpl(const ui32* qSizes, const ui32* qOffsets, ui32 offsetsBias, int qCount, ui32* dst) {
         const int queriesPerBlock = BLOCK_SIZE / 32;
         const int localQid = threadIdx.x / 32;
@@ -30,8 +31,8 @@ namespace NKernel {
     }
 
     void ComputeGroupIds(const ui32* qSizes, const ui32* qOffsets, ui32 offsetsBias, int qCount, ui32* dst, TCudaStream stream) {
-        const int blockSize = 128;
-        const int numBlocks = (qCount * 32 + 127) / blockSize;
+        const ui64 blockSize = 128;
+        const ui64 numBlocks = CeilDivide(static_cast<ui64>(qCount) * 32, blockSize);
         if (numBlocks > 0) {
             ComputeGroupIdsImpl<blockSize><<< numBlocks, blockSize, 0, stream >>>(qSizes, qOffsets, offsetsBias, qCount, dst);
         }
