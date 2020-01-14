@@ -8,7 +8,6 @@ import sys
 from pandas import read_csv
 from copy import deepcopy
 import numpy as np
-from catboost import Pool
 from catboost.utils import read_cd
 __all__ = [
     'DelayedTee',
