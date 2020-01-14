@@ -69,6 +69,19 @@ def extract_jars(dest, archive):
         zf.extractall(dest)
 
 
+def make_bfg_from_cp(class_path, out):
+    class_path = ' '.join(
+        map(lambda path: ('file:/' + path.lstrip('/')) if os.path.isabs(path) else path, class_path)
+    )
+    with zipfile.ZipFile(out, 'w') as zf:
+        lines = []
+        while class_path:
+            lines.append(class_path[:60])
+            class_path = class_path[60:]
+        if lines:
+            zf.writestr('META-INF/MANIFEST.MF', 'Manifest-Version: 1.0\nClass-Path: \n ' + '\n '.join(lines) + ' \n\n')
+
+
 def main():
     opts, args = parse_args()
 
@@ -96,20 +109,17 @@ def main():
     cp_idx = args.index('-classpath')
     if args[cp_idx + 1].startswith('@'):
         real_name = args[cp_idx + 1][1:]
-        fixed_name = os.path.join(os.path.dirname(real_name), 'fixed.bfg.txt')
-        with open(fixed_name, 'w') as fixed:
-            with open(real_name) as origin:
-                fixed.write(os.pathsep.join([os.path.join(build_root, i.strip().replace(opts.tests_jar_path, dest)) for i in origin]))
-        args = fix_cmd(args[:cp_idx + 1]) + ['@' + fixed_name] + args[cp_idx + 2:]
+        mf = os.path.join(os.path.dirname(real_name), 'fixed.bfg.jar')
+        with open(real_name) as origin:
+            class_path = [os.path.join(build_root, i.strip().replace(opts.tests_jar_path, dest)) for i in origin]
+        make_bfg_from_cp(class_path, mf)
+        args = fix_cmd(args[:cp_idx + 1]) + [mf] + args[cp_idx + 2:]
     else:
         args[cp_idx + 1] = args[cp_idx + 1].replace(opts.tests_jar_path, dest)
         args = fix_cmd(args[:cp_idx]) + args[cp_idx:]
-
     # run java cmd
     if platform.system() == 'Windows':
-        p = subprocess.Popen(args)
-        p.communicate()
-        sys.exit(p.returncode)
+        sys.exit(subprocess.Popen(args).wait())
     else:
         os.execv(args[0], args)
 
