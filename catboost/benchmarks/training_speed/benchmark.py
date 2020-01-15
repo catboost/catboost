@@ -26,8 +26,8 @@ def main():
     ]
 
     learners = [
-#        XGBoostLearner,
-#        LightGBMLearner,
+        XGBoostLearner,
+        LightGBMLearner,
         CatBoostLearner
     ]
 
