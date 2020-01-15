@@ -111,8 +111,11 @@ def main():
         real_name = args[cp_idx + 1][1:]
         mf = os.path.join(os.path.dirname(real_name), 'fixed.bfg.jar')
         with open(real_name) as origin:
-            class_path = [os.path.join(build_root, i.strip().replace(opts.tests_jar_path, dest)) for i in origin]
+            class_path = [os.path.join(build_root, i.strip()) for i in origin]
+        if opts.tests_jar_path in class_path:
+            class_path.remove(opts.tests_jar_path)
         make_bfg_from_cp(class_path, mf)
+        mf = os.pathsep.join([dest, mf])
         args = fix_cmd(args[:cp_idx + 1]) + [mf] + args[cp_idx + 2:]
     else:
         args[cp_idx + 1] = args[cp_idx + 1].replace(opts.tests_jar_path, dest)
