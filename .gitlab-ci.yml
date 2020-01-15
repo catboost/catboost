@@ -9,6 +9,13 @@ build:
     paths:
       - catboost/python-package/catboost-*.whl
 
+correctness_test:
+  stage: test
+  script:
+    - cd catboost/python-package/catboost 
+    - nice -19 ../../../ya make -t -A -DOS_SDK=local -DUSE_ARCADIA_PYTHON=no -DUSE_SYSTEM_PYTHON=2.7 -DHAVE_CUDA=no
+
+
 performance_test:
   stage: test
   tags:
