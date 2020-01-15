@@ -24,8 +24,11 @@ namespace NTextProcessing::NDictionary {
         ui32 i = 0;
         while (i < tokenSize) {
             letterStartIndices->push_back(i);
-            size_t length;
-            GetUTF8CharLen(length, current, last);
+            size_t length = 0;
+            auto recodeResult = GetUTF8CharLen(length, current, last);
+            if (recodeResult != RECODE_OK || length == 0) {
+                break;
+            }
             i += length;
             current += length;
         }
