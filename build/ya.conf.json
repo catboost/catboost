@@ -229,6 +229,9 @@
         "crypta": {
             "description": "Run Crypta client"
         },
+        "app_host": {
+            "description": "Run local app_host instance"
+        },
         "go_1.13.5": {
             "description": "Run go tool (1.13.5)"
         },
@@ -4582,6 +4585,28 @@
                 }
             ]
         },
+        "app_host": {
+            "tools": {
+                "app_host": {
+                    "bottle": "app_host",
+                    "executable": "app_host_launcher"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "golang_1_13_5": {
             "tools": {
                 "golang_1.13.5": {
@@ -6677,6 +6702,17 @@
             "executable": {
                 "crypta": [
                     "crypta"
+                ]
+            }
+        },
+        "app_host": {
+            "formula": {
+                "sandbox_id": 588757366,
+                "match": "app_host_launcher"
+            },
+            "executable": {
+                "app_host_launcher": [
+                    "app_host_launcher"
                 ]
             }
         },
