@@ -8149,3 +8149,35 @@ def test_model_sum():
         '--output-path', sum_eval,
     ])
     yatest.common.execute(get_limited_precision_dsv_diff_tool(0) + [model_eval, sum_eval])
+
+
+def test_external_feature_names():
+    fstr_cd_with_id_path = yatest.common.test_output_path('fstr_cd_with_id.tsv')
+    fstr_cd_without_id_path = yatest.common.test_output_path('fstr_cd_without_id.tsv')
+
+    for cd_has_feature_names in [False, True]:
+        if cd_has_feature_names:
+            cd_file = data_file('adult', 'train_with_id.cd')
+            fstr_path = fstr_cd_with_id_path
+        else:
+            cd_file = data_file('adult', 'train.cd')
+            fstr_path = fstr_cd_without_id_path
+
+        cmd = (
+            CATBOOST_PATH,
+            'fit',
+            '--loss-function', 'Logloss',
+            '--target-border', '0.5',
+            '-f', data_file('adult', 'train_small'),
+            '--column-description', cd_file,
+            '-i', '10',
+            '-T', '4',
+            '--feature-names-path', data_file('adult', 'feature_names'),
+            '--fstr-type', 'FeatureImportance',
+            '--fstr-file', fstr_path
+        )
+        yatest.common.execute(cmd)
+
+    assert filecmp.cmp(fstr_cd_with_id_path, fstr_cd_without_id_path)
+
+    return [local_canonical_file(fstr_cd_with_id_path)]

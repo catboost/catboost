@@ -314,9 +314,10 @@ class Pool(_PoolBase):
             Baseline for each instance.
             If not None, giving 2 dimensional array like data.
 
-        feature_names : list, optional (default=None)
-            Names for each given data_feature.
-              If this parameter is None and 'data' is pandas.DataFrame feature names will be initialized
+        feature_names : list or string, optional (default=None)
+            If list - list of names for each given data_feature.
+            If string - path with scheme for feature names data to load.
+            If this parameter is None and 'data' is pandas.DataFrame feature names will be initialized
               from DataFrame's column names.
             Must be None if 'data' parameter has FeaturesData type
 
@@ -334,12 +335,16 @@ class Pool(_PoolBase):
                 raise CatBoostError("data should be the string type if column_description parameter is specified.")
             if isinstance(data, STRING_TYPES):
                 if any(v is not None for v in [cat_features, text_features, weight, group_id, group_weight,
-                                               subgroup_id, pairs_weight, baseline, feature_names, label]):
+                                               subgroup_id, pairs_weight, baseline, label]):
                     raise CatBoostError(
                         "cat_features, text_features, weight, group_id, group_weight, subgroup_id, pairs_weight, "
-                        "baseline, feature_names, label should have the None type when the pool is read from the file."
+                        "baseline, label should have the None type when the pool is read from the file."
                     )
-                self._read(data, column_description, pairs, delimiter, has_header, thread_count)
+                if (feature_names is not None) and (not isinstance(feature_names, STRING_TYPES)):
+                    raise CatBoostError(
+                        "feature_names should have None or string type when the pool is read from the file."
+                    )
+                self._read(data, column_description, pairs, feature_names, delimiter, has_header, thread_count)
             else:
                 if isinstance(data, FeaturesData):
                     if any(v is not None for v in [cat_features, text_features, feature_names]):
@@ -369,6 +374,12 @@ class Pool(_PoolBase):
                             "'data' is scipy.sparse.spmatrix, it means no text features,"
                             " but 'text_features' parameter specifies nonzero number of text features"
                         )
+
+                if isinstance(feature_names, STRING_TYPES):
+                    raise CatBoostError(
+                        "feature_names must be None or have non-string type when the pool is created from "
+                        "python objects."
+                    )
 
                 self._init(data, label, cat_features, text_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, thread_count)
         super(Pool, self).__init__()
@@ -856,7 +867,16 @@ class Pool(_PoolBase):
             label = label.values
         return label
 
-    def _read(self, pool_file, column_description, pairs, delimiter, has_header, thread_count):
+    def _read(
+        self,
+        pool_file,
+        column_description,
+        pairs,
+        feature_names_path,
+        delimiter,
+        has_header,
+        thread_count
+    ):
         """
         Read Pool from file.
         """
@@ -869,8 +889,18 @@ class Pool(_PoolBase):
                 self._check_column_description_type(column_description)
             if pairs is None:
                 pairs = ''
+            if feature_names_path is None:
+                feature_names_path = ''
             self._check_thread_count(thread_count)
-            self._read_pool(pool_file, column_description, pairs, delimiter[0], has_header, thread_count)
+            self._read_pool(
+                pool_file,
+                column_description,
+                pairs,
+                feature_names_path,
+                delimiter[0],
+                has_header,
+                thread_count
+            )
 
     def _init(
         self,

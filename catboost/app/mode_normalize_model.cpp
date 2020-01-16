@@ -163,7 +163,8 @@ namespace {
                     EFstrType::FeatureImportance,
                     TVector<TString>(),  // ClassNames
                     modeParams.ThreadCount,
-                    TPathWithScheme()  // PairsFilePath
+                    TPathWithScheme(),  // PairsFilePath
+                    TPathWithScheme()  // FeatureNamesPath
                 },
                 10000,  // blockSize
                 [&](const TDataProviderPtr datasetPart) {

@@ -3477,6 +3477,12 @@
             "uri": "file://test.test_eval_result_on_different_pool_type/test.eval"
         }
     ],
+    "test.test_external_feature_names": [
+        {
+            "checksum": "94761e8d0e663243ae96e77baf9d1228",
+            "uri": "file://test.test_external_feature_names/fstr_cd_with_id.tsv"
+        }
+    ],
     "test.test_extract_multiclass_labels_from_class_names": [
         {
             "checksum": "ecb5b4a3be6ca63c2f102c2bf4db1d59",

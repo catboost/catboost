@@ -35,6 +35,10 @@ void NCB::TAnalyticalModeCommonParams::BindParserOpts(NLastGetopt::TOpts& parser
         .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
             PairsFilePath = TPathWithScheme(pathWithScheme, "dsv");
         });
+    parser.AddLongOption("feature-names-path", "PATH")
+        .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
+            FeatureNamesPath = TPathWithScheme(pathWithScheme, "dsv");
+        });
 
     parser.AddLongOption('T', "thread-count", "worker thread count (default: core count)")
         .StoreResult(&ThreadCount);

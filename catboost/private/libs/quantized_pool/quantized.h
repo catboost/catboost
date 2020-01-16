@@ -2,6 +2,8 @@
 
 #include "pool.h"
 
+#include <catboost/private/libs/data_util/path_with_scheme.h>
+
 #include <catboost/libs/data/meta_info.h>
 
 #include <util/generic/hash.h>
@@ -21,7 +23,8 @@ NCB::TDataMetaInfo GetDataMetaInfo(
     bool hasAdditionalGroupWeight,
     bool hasTimestamps,
     bool hasPairs,
-    TMaybe<ui32> baselineCount);
+    TMaybe<ui32> baselineCount,
+    const NCB::TPathWithScheme& featureNamesPath); // featureNamesPath can be uninitialized
 
 // Returns flat indices of all ignored features
 // Sorted from min to max

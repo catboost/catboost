@@ -44,6 +44,7 @@ namespace NCB {
         TPathWithScheme GroupWeightsFilePath;
         TPathWithScheme BaselineFilePath;
         TPathWithScheme TimestampsFilePath;
+        TPathWithScheme FeatureNamesPath;
         const TVector<TString>& ClassNames;
         TDsvFormatOptions PoolFormat;
         THolder<ICdProvider> CdProvider;
@@ -177,6 +178,15 @@ namespace NCB {
         ui32 objectCount,
         TDatasetSubset loadSubset,
         IDatasetVisitor* visitor
+    );
+
+    // returns empty vector if featureNamesPath is not inited
+    TVector<TString> LoadFeatureNames(const TPathWithScheme& featureNamesPath);
+
+    TVector<TString> GetFeatureNames(
+        const TDataColumnsMetaInfo& columnsDescription,
+        const TMaybe<TVector<TString>>& headerColumns,
+        const TPathWithScheme& featureNamesPath // can be uninited
     );
 
     /*

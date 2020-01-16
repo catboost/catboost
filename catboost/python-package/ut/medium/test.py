@@ -683,6 +683,46 @@ def test_equivalence_of_pools_from_pandas_dataframe_with_different_cat_features_
         assert _have_equal_features(pool_from_df, pool_from_new_df)
 
 
+def test_pool_with_external_feature_names():
+    for cd_has_feature_names in [False, True]:
+        if cd_has_feature_names:
+            cd_file = data_file('adult', 'train_with_id.cd')
+        else:
+            cd_file = data_file('adult', 'train.cd')
+        train_pool = Pool(
+            TRAIN_FILE,
+            column_description=cd_file,
+            feature_names=data_file('adult', 'feature_names')
+        )
+        model = CatBoostClassifier(iterations=2)
+        model.fit(train_pool)
+        if cd_has_feature_names:
+            model_cd_with_feature_names = model
+        else:
+            model_cd_without_feature_names = model
+
+    assert model_cd_with_feature_names == model_cd_without_feature_names
+    assert model.feature_names_ == [
+        'C0',
+        'C1',
+        'C2',
+        'F0',
+        'C3',
+        'F1',
+        'C4',
+        'F2',
+        'C5',
+        'C6',
+        'C7',
+        'C8',
+        'C9',
+        'F3',
+        'F4',
+        'F5',
+        'C10'
+    ]
+
+
 # feature_matrix is (doc_count x feature_count)
 def get_features_data_from_matrix(feature_matrix, cat_feature_indices, order='C'):
     object_count = len(feature_matrix)

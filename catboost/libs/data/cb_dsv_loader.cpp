@@ -42,6 +42,8 @@ namespace NCB {
                   "TCBDsvDataLoader:BaselineFilePath does not exist");
         CB_ENSURE(!Args.TimestampsFilePath.Inited() || CheckExists(Args.TimestampsFilePath),
                   "TCBDsvDataLoader:TimestampsFilePath does not exist");
+        CB_ENSURE(!Args.FeatureNamesPath.Inited() || CheckExists(Args.FeatureNamesPath),
+                  "TCBDsvDataLoader:FeatureNamesPath does not exist");
 
         TMaybe<TString> header = LineDataReader->GetHeader();
         TMaybe<TVector<TString>> headerColumns;
@@ -54,7 +56,12 @@ namespace NCB {
         const ui32 columnsCount = TVector<TString>(NCsvFormat::CsvSplitter(firstLine, FieldDelimiter, '"')).size();
 
         auto columnsDescription = TDataColumnsMetaInfo{ CreateColumnsDescription(columnsCount) };
-        auto featureIds = columnsDescription.GenerateFeatureIds(headerColumns);
+
+        const TVector<TString> featureNames = GetFeatureNames(
+            columnsDescription,
+            headerColumns,
+            Args.FeatureNamesPath
+        );
 
         DataMetaInfo = TDataMetaInfo(
             std::move(columnsDescription),
@@ -62,7 +69,7 @@ namespace NCB {
             Args.TimestampsFilePath.Inited(),
             Args.PairsFilePath.Inited(),
             BaselineReader.GetBaselineCount(),
-            &featureIds,
+            &featureNames,
             args.CommonArgs.ClassNames
         );
 

@@ -44,6 +44,7 @@ namespace {
                                            /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
                                            /*baselineFilePath=*/ NCB::TPathWithScheme(),
                                            /*timestampsFilePath=*/ NCB::TPathWithScheme(),
+                                           /*featureNamesPath=*/ NCB::TPathWithScheme(),
                                            Params.ColumnarPoolFormatParams,
                                            /*ignoredFeatures*/ {},
                                            NCB::EObjectsOrder::Undefined,

@@ -781,6 +781,7 @@ cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
         const TPathWithScheme& groupWeightsFilePath,
         const TPathWithScheme& timestampsFilePath,
         const TPathWithScheme& baselineFilePath,
+        const TPathWithScheme& featureNamesPath,
         const TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector[ui32]& ignoredFeatures,
         EObjectsOrder objectsOrder,
@@ -3186,13 +3187,17 @@ cdef class _PoolBase:
                 builder_visitor[0].AddTarget(target_idx, <TConstArrayRef[TString]>string_target_data)
 
 
-    cpdef _read_pool(self, pool_file, cd_file, pairs_file, delimiter, bool_t has_header, int thread_count):
+    cpdef _read_pool(self, pool_file, cd_file, pairs_file, feature_names_file, delimiter, bool_t has_header, int thread_count):
         cdef TPathWithScheme pool_file_path
         pool_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(pool_file), TStringBuf(<char*>'dsv'))
 
         cdef TPathWithScheme pairs_file_path
         if len(pairs_file):
             pairs_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(pairs_file), TStringBuf(<char*>'dsv'))
+
+        cdef TPathWithScheme feature_names_file_path
+        if len(feature_names_file):
+            feature_names_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(feature_names_file), TStringBuf(<char*>'dsv'))
 
         cdef TColumnarPoolFormatParams columnarPoolFormatParams
         columnarPoolFormatParams.DsvFormat.HasHeader = has_header
@@ -3210,6 +3215,7 @@ cdef class _PoolBase:
             TPathWithScheme(),
             TPathWithScheme(),
             TPathWithScheme(),
+            feature_names_file_path,
             columnarPoolFormatParams,
             emptyIntVec,
             EObjectsOrder_Undefined,

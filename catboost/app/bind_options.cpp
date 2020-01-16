@@ -184,6 +184,12 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
     parser->AddLongOption("input-borders-file", "file with borders")
             .RequiredArgument("PATH")
             .StoreResult(&loadParamsPtr->BordersFile);
+
+    parser->AddLongOption("feature-names-path", "path to feature names data")
+        .RequiredArgument("[SCHEME://]PATH")
+        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+            loadParamsPtr->FeatureNamesPath = TPathWithScheme(str, "dsv");
+        });
 }
 
 static void BindMetricParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {

@@ -48,6 +48,8 @@ namespace NCatboostOptions {
         TVector<ui32> IgnoredFeatures;
         TString BordersFile;
 
+        NCB::TPathWithScheme FeatureNamesPath;
+
         TPoolLoadParams() = default;
 
         void Validate() const;
@@ -58,7 +60,7 @@ namespace NCatboostOptions {
             CvParams, ColumnarPoolFormatParams, LearnSetPath, TestSetPaths,
             PairsFilePath, TestPairsFilePath, GroupWeightsFilePath, TestGroupWeightsFilePath,
             TimestampsFilePath, TestTimestampsFilePath, BaselineFilePath, TestBaselineFilePath,
-            ClassNames, IgnoredFeatures, BordersFile
+            ClassNames, IgnoredFeatures, BordersFile, FeatureNamesPath
         );
     };
 

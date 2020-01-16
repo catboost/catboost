@@ -20,6 +20,7 @@ namespace NCB {
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
+        const TPathWithScheme& featureNamesPath, // can be uninited
         const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
@@ -43,6 +44,7 @@ namespace NCB {
                     groupWeightsFilePath,
                     baselineFilePath,
                     timestampsFilePath,
+                    featureNamesPath,
                     classNames ? **classNames : TVector<TString>(),
                     columnarPoolFormatParams.DsvFormat,
                     MakeCdProviderFromFile(columnarPoolFormatParams.CdFilePath),
@@ -77,6 +79,7 @@ namespace NCB {
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
+        const TPathWithScheme& featureNamesPath, // can be uninited
         const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
@@ -95,6 +98,7 @@ namespace NCB {
             groupWeightsFilePath,
             timestampsFilePath,
             baselineFilePath,
+            featureNamesPath,
             columnarPoolFormatParams,
             ignoredFeatures,
             objectsOrder,
@@ -113,6 +117,7 @@ namespace NCB {
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
+        const TPathWithScheme& featureNamesPath, // can be uninited
         const NCB::TDsvFormatOptions& poolFormat,
         const TVector<TColumn>& columnsDescription, // TODO(smirnovpavel): TVector<EColumn>
         const TVector<ui32>& ignoredFeatures,
@@ -141,6 +146,7 @@ namespace NCB {
                     groupWeightsFilePath,
                     baselineFilePath,
                     timestampsFilePath,
+                    featureNamesPath,
                     classNames ? **classNames : TVector<TString>(),
                     poolFormat,
                     MakeCdProviderFromArray(columnsDescription),
@@ -182,6 +188,7 @@ namespace NCB {
                 loadOptions.GroupWeightsFilePath,
                 loadOptions.TimestampsFilePath,
                 loadOptions.BaselineFilePath,
+                loadOptions.FeatureNamesPath,
                 loadOptions.ColumnarPoolFormatParams,
                 loadOptions.IgnoredFeatures,
                 objectsOrder,
@@ -215,6 +222,7 @@ namespace NCB {
                     testGroupWeightsFilePath,
                     testTimestampsFilePath,
                     testBaselineFilePath,
+                    loadOptions.FeatureNamesPath,
                     loadOptions.ColumnarPoolFormatParams,
                     loadOptions.IgnoredFeatures,
                     objectsOrder,

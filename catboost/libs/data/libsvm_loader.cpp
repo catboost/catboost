@@ -13,12 +13,49 @@
 #include <util/generic/algorithm.h>
 #include <util/generic/maybe.h>
 #include <util/generic/strbuf.h>
+#include <util/generic/utility.h>
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
 #include <util/stream/file.h>
 #include <util/string/split.h>
 #include <util/system/guard.h>
 #include <util/system/types.h>
+
+
+static TVector<TString> GetFeatureNames(
+    const TVector<TString>& featureNamesFromColumnsDescription,
+    const NCB::TPathWithScheme& featureNamesPath
+) {
+    TVector<TString> externalFeatureNames = LoadFeatureNames(featureNamesPath);
+
+    if (externalFeatureNames.empty()) {
+        return featureNamesFromColumnsDescription;
+    } else {
+        const size_t intersectionSize = Min(
+            featureNamesFromColumnsDescription.size(),
+            externalFeatureNames.size());
+
+        size_t featureIdx = 0;
+        for (; featureIdx < intersectionSize; ++featureIdx) {
+            CB_ENSURE(
+                featureNamesFromColumnsDescription[featureIdx].empty()
+                || (featureNamesFromColumnsDescription[featureIdx] == externalFeatureNames[featureIdx]),
+                "Feature #" << featureIdx << ": name from columns description (\""
+                << featureNamesFromColumnsDescription[featureIdx]
+                << "\") is not equal to name from feature names file (\""
+                << externalFeatureNames[featureIdx] << "\")");
+        }
+        for (; featureIdx < featureNamesFromColumnsDescription.size(); ++featureIdx) {
+            CB_ENSURE(
+                featureNamesFromColumnsDescription[featureIdx].empty(),
+                "Feature #" << featureIdx << ": name specified in columns description (\""
+                << featureNamesFromColumnsDescription[featureIdx]
+                << "\") but not present in feature names file");
+        }
+
+        return externalFeatureNames;
+    }
+}
 
 
 namespace NCB {
@@ -46,6 +83,8 @@ namespace NCB {
                   "TLibSvmDataLoader:BaselineFilePath does not exist");
         CB_ENSURE(!Args.TimestampsFilePath.Inited() || CheckExists(Args.TimestampsFilePath),
                   "TLibSvmDataLoader:TimestampsFilePath does not exist");
+        CB_ENSURE(!Args.FeatureNamesPath.Inited() || CheckExists(Args.FeatureNamesPath),
+                  "TLibSvmDataLoader:FeatureNamesPath does not exist");
 
         TString firstLine;
         CB_ENSURE(LineDataReader->ReadLine(&firstLine), "TLibSvmDataLoader: no data rows");
@@ -60,10 +99,12 @@ namespace NCB {
         AsyncRowProcessor.AddFirstLine(std::move(firstLine));
 
         TVector<ui32> catFeatures;
-        TVector<TString> featureNames;
+        TVector<TString> featureNamesFromColumns;
         if (Args.CdProvider->Inited()) {
-            ProcessCdData(&catFeatures, &featureNames);
+            ProcessCdData(&catFeatures, &featureNamesFromColumns);
         }
+
+        const TVector<TString> featureNames = GetFeatureNames(featureNamesFromColumns, Args.FeatureNamesPath);
 
         auto featuresLayout = MakeIntrusive<TFeaturesLayout>(
             (ui32)featureNames.size(),

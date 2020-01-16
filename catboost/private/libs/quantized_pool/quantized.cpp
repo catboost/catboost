@@ -1,6 +1,7 @@
 #include "quantized.h"
 
 #include <catboost/libs/column_description/column.h>
+#include <catboost/libs/data/loader.h>
 #include <catboost/libs/helpers/exception.h>
 
 #include <util/generic/algorithm.h>
@@ -76,7 +77,8 @@ NCB::TDataMetaInfo GetDataMetaInfo(
     bool hasAdditionalGroupWeight,
     bool hasTimestamps,
     bool hasPairs,
-    TMaybe<ui32> baselineCount
+    TMaybe<ui32> baselineCount,
+    const NCB::TPathWithScheme& featureNamesPath
 ) {
     const size_t columnsCount = pool.ColumnIndexToLocalIndex.size();
     NCB::TDataColumnsMetaInfo dataColumnsMetaInfo;
@@ -87,7 +89,13 @@ NCB::TDataMetaInfo GetDataMetaInfo(
         dataColumnsMetaInfo.Columns[columnIndex].Id = pool.ColumnNames[localIndex];
     }
 
-    NCB::TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), hasAdditionalGroupWeight, hasTimestamps, hasPairs, baselineCount, Nothing());
+    const TVector<TString> featureNames = NCB::GetFeatureNames(
+        dataColumnsMetaInfo,
+        /*headerColumns*/ Nothing(),
+        featureNamesPath
+    );
+
+    NCB::TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), hasAdditionalGroupWeight, hasTimestamps, hasPairs, baselineCount, &featureNames);
     metaInfo.Validate();
     return metaInfo;
 }
