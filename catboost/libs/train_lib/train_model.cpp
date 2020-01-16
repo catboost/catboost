@@ -24,7 +24,7 @@
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/vector_helpers.h>
-#include <catboost/private/libs/labels/label_helper_builder.h>
+#include <catboost/private/libs/labels/external_label_helper.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/logging/profile_info.h>
@@ -1140,7 +1140,7 @@ void TrainModel(
     TSetLoggingVerbose inThisScope2;
     if (!evalOutputFileName.empty()) {
         TFullModel model = ReadModel(fullModelPath, modelFormat);
-        auto visibleLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
+        const TExternalLabelsHelper visibleLabelsHelper(model);
         if (!loadOptions.CvParams.FoldCount && loadOptions.TestSetPaths.empty() && !outputColumns.empty()) {
             CATBOOST_WARNING_LOG << "No test files, can't output columns\n";
         }

@@ -1,23 +1,29 @@
 #pragma once
 
-#include "label_helper_builder.h"
-
 #include <util/generic/hash.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
 
 
+class TFullModel;
+
+
 class TExternalLabelsHelper {
 public:
     TExternalLabelsHelper() : Initialized(false) {};
-    void Initialize(const TString& multiclassLabelParams);
-    void Initialize(int approxDimension);
-    void Initialize(const TVector<TString>& binclassNames);
+    TExternalLabelsHelper(const TFullModel& model);
+
     TString GetVisibleClassNameFromClass(int classId) const;
     TString GetVisibleClassNameFromLabel(float label) const;
     int GetExternalIndex(int approxId) const;
     int GetExternalApproxDimension() const;
     bool IsInitialized() const;
+
+private:
+    void InitializeImpl(const TString& multiclassLabelParams);
+    void InitializeImpl(int approxDimension);
+    void InitializeImpl(const TVector<TString>& binclassNames);
+
 private:
     bool Initialized;
     int ExternalApproxDimension;

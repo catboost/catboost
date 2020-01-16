@@ -6,10 +6,32 @@
 #include <catboost/private/libs/options/json_helper.h>
 #include <catboost/private/libs/options/multiclass_label_options.h>
 
+#include <catboost/libs/model/model.h>
+
 #include <util/string/cast.h>
 
-void TExternalLabelsHelper::Initialize(const TString& multiclassLabelParams) {
-    CB_ENSURE(!Initialized, "Can't initialize initialized object of TExternalLabelsHelper");
+
+TExternalLabelsHelper::TExternalLabelsHelper(const TFullModel& model)
+    : Initialized(false)
+    , ExternalApproxDimension(0)
+{
+    if (model.GetDimensionsCount() > 1) {  // is multiclass?
+        if (model.ModelInfo.contains("multiclass_params")) {
+            InitializeImpl(model.ModelInfo.at("multiclass_params"));
+        }
+        else {
+            InitializeImpl(model.GetDimensionsCount());
+        }
+    } else {
+        const TVector<TString> binclassNames = model.GetModelClassNames();
+        if (!binclassNames.empty()) {
+            InitializeImpl(binclassNames);
+        }
+    }
+}
+
+
+void TExternalLabelsHelper::InitializeImpl(const TString& multiclassLabelParams) {
     TMulticlassLabelOptions multiclassOptions;
     multiclassOptions.Load(ReadTJsonValue(multiclassLabelParams));
 
@@ -48,9 +70,7 @@ void TExternalLabelsHelper::Initialize(const TString& multiclassLabelParams) {
     Initialized = true;
 }
 
-void TExternalLabelsHelper::Initialize(int approxDimension) {
-    CB_ENSURE(!Initialized, "Can't initialize initialized object of TExternalLabelsHelper");
-
+void TExternalLabelsHelper::InitializeImpl(int approxDimension) {
     ExternalApproxDimension = approxDimension;
     VisibleClassNames.resize(ExternalApproxDimension);
     SignificantLabelsIds.resize(ExternalApproxDimension);
@@ -65,8 +85,7 @@ void TExternalLabelsHelper::Initialize(int approxDimension) {
     Initialized = true;
 }
 
-void TExternalLabelsHelper::Initialize(const TVector<TString>& binclassNames) {
-    CB_ENSURE(!Initialized, "Can't initialize initialized object of TExternalLabelsHelper");
+void TExternalLabelsHelper::InitializeImpl(const TVector<TString>& binclassNames) {
     CB_ENSURE(binclassNames.size() == 2, "binclassNames size is not equal to 2");
 
     ExternalApproxDimension = 1;

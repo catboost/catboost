@@ -5,7 +5,6 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/private/libs/labels/label_converter.h>
-#include <catboost/private/libs/labels/label_helper_builder.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/model/model.h>

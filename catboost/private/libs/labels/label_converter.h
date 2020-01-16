@@ -1,7 +1,5 @@
 #pragma once
 
-#include "label_helper_builder.h"
-
 #include <util/generic/array_ref.h>
 #include <util/generic/hash_set.h>
 #include <util/generic/hash.h>
