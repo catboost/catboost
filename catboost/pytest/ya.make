@@ -1,7 +1,7 @@
+PYTEST()
+
 # Disable due to build issue
 NO_COMPILER_WARNINGS()
-
-PYTEST()
 
 TEST_SRCS(
     large_dist_test.py
