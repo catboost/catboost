@@ -1,3 +1,6 @@
+# Disable due to build issue
+NO_COMPILER_WARNINGS()
+
 PYTEST()
 
 TEST_SRCS(
@@ -10,8 +13,6 @@ DEPENDS(
     catboost/tools/limited_precision_dsv_diff
 )
 
-# Disable due to build issue
-NO_COMPILER_WARNINGS()
 
 FORK_SUBTESTS()
 FORK_TEST_FILES()
