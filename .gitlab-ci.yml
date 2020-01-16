@@ -15,9 +15,12 @@ correctness_test:
   stage: test
   tags:
     - test
+  before_script:
+    - pip2 install -U catboost/python-package/catboost-*.whl --user
+    - pip2 install -U pandas numpy --user
   script:
     - cd catboost/pytest
-    - nice -19 ../../ya make -t -A 
+    - python test.py
   dependencies:
     - build
 
