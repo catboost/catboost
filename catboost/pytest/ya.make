@@ -1,4 +1,3 @@
-
 PYTEST()
 
 TEST_SRCS(
@@ -16,6 +15,9 @@ FORK_TEST_FILES()
 
 SIZE(MEDIUM)
 
+# Disable due to build issue
+NO_COMPILER_WARNINGS()
+
 IF(AUTOCHECK)
     SPLIT_FACTOR(240)
     REQUIREMENTS(cpu:4 network:full)
@@ -26,7 +28,7 @@ ENDIF()
 PEERDIR(
     catboost/pytest/lib
     catboost/python-package/lib
-#    contrib/python/numpy
+    contrib/python/numpy
 )
 
 DEPENDS(
