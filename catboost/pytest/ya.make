@@ -1,5 +1,4 @@
 
-
 PYTEST()
 
 TEST_SRCS(
@@ -27,7 +26,7 @@ ENDIF()
 PEERDIR(
     catboost/pytest/lib
     catboost/python-package/lib
-    contrib/python/numpy
+#    contrib/python/numpy
 )
 
 DEPENDS(
