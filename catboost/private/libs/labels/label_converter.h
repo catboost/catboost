@@ -20,7 +20,6 @@ public:
 
     int GetApproxDimension() const;
     int GetClassIdx(float label) const;
-    TVector<float> GetClassLabels() const;
     bool IsInitialized() const;
 
     TString SerializeMulticlassParams(int classesCount, const TVector<TString>& classNames) const;
