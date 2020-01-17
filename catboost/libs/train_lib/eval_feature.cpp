@@ -379,18 +379,14 @@ static void CreateFoldData(
     NCB::ExecuteTasksInParallel(&tasks, localExecutor);
 }
 
-static void RemoveUnusedFolds(
+static void TakeMiddleElements(
     ui32 offset,
-    ui32 foldCount,
-    TVector<TTrainingDataProviders>* foldsData,
-    TVector<TTrainingDataProviders>* testFoldsData
+    ui32 count,
+    TVector<NCB::TArraySubsetIndexing<ui32>>* subsets
 ) {
-    TVector<TTrainingDataProviders>(foldsData->begin() + offset, foldsData->end()).swap(*foldsData);
-    foldsData->resize(foldCount);
-    if (testFoldsData != foldsData) {
-        TVector<TTrainingDataProviders>(testFoldsData->begin() + offset, testFoldsData->end()).swap(*testFoldsData);
-        testFoldsData->resize(foldCount);
-    }
+    CB_ENSURE_INTERNAL(offset + count <= subsets->size(), "Dataset permutation logic failed");
+    TVector<NCB::TArraySubsetIndexing<ui32>>(subsets->begin() + offset, subsets->end()).swap(*subsets);
+    subsets->resize(count);
 }
 
 static void PrepareTimeSplitFolds(
@@ -433,16 +429,18 @@ static void PrepareTimeSplitFolds(
     CB_ENSURE_INTERNAL(offsetInRange + foldCount <= trainSubsetsCount, "Dataset permutation logic failed");
 
     CB_ENSURE(foldsData->empty(), "Need empty vector of folds data");
-    foldsData->resize(trainSubsetsCount);
+    foldsData->resize(foldCount);
     if (testFoldsData != nullptr) {
         CB_ENSURE(testFoldsData->empty(), "Need empty vector of test folds data");
-        testFoldsData->resize(trainSubsetsCount);
+        testFoldsData->resize(foldCount);
     } else {
         testFoldsData = foldsData;
     }
 
     TVector<NCB::TArraySubsetIndexing<ui32>> trainSubsets(trainTestSubsets.begin(), trainTestSubsets.begin() + trainSubsetsCount);
-    TVector<NCB::TArraySubsetIndexing<ui32>> testSubsets(trainSubsetsCount, trainTestSubsets.back());
+    TakeMiddleElements(offsetInRange, foldCount, &trainSubsets);
+
+    TVector<NCB::TArraySubsetIndexing<ui32>> testSubsets(foldCount, trainTestSubsets.back());
 
     CreateFoldData(
         srcData,
@@ -452,8 +450,6 @@ static void PrepareTimeSplitFolds(
         foldsData,
         testFoldsData,
         localExecutor);
-
-    RemoveUnusedFolds(offsetInRange, foldCount, foldsData, testFoldsData);
 }
 
 static void PrepareFolds(
@@ -492,14 +488,19 @@ static void PrepareFolds(
     testSubsets.swap(trainSubsets);
 
     CB_ENSURE(foldsData->empty(), "Need empty vector of folds data");
-    foldsData->resize(trainSubsets.size());
+    foldsData->resize(foldCount);
     if (testFoldsData != nullptr) {
         CB_ENSURE(testFoldsData->empty(), "Need empty vector of test folds data");
-        testFoldsData->resize(trainSubsets.size());
+        testFoldsData->resize(foldCount);
     } else {
         testFoldsData = foldsData;
     }
 
+    if (!cvParams.Initialized()) {
+        const ui32 offsetInRange = featureEvalOptions.Offset;
+        TakeMiddleElements(offsetInRange, foldCount, &trainSubsets);
+        TakeMiddleElements(offsetInRange, foldCount, &testSubsets);
+    }
     CreateFoldData(
         srcData,
         cpuUsedRamLimit,
@@ -508,10 +509,6 @@ static void PrepareFolds(
         foldsData,
         testFoldsData,
         localExecutor);
-    if (!cvParams.Initialized()) {
-        const ui32 offsetInRange = featureEvalOptions.Offset;
-        RemoveUnusedFolds(offsetInRange, foldCount, foldsData, testFoldsData);
-    }
 }
 
 
