@@ -198,7 +198,11 @@ public:
     }
 
     size_t TotalReadyConts() const noexcept {
-        return Ready_.Size() + ReadyNext_.Size();
+        return Ready_.Size() + TotalScheduledConts();
+    }
+
+    size_t TotalScheduledConts() const noexcept {
+        return ReadyNext_.Size();
     }
 
     size_t TotalConts() const noexcept {
