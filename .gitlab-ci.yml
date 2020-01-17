@@ -21,7 +21,7 @@ correctness_test:
   script:
     - cd catboost/pytest
 #    - python test.py
-    - ../../ya make -t -A
+    - nice -19 ../../ya make -t -A
   dependencies:
     - build
 
