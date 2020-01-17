@@ -33,6 +33,11 @@ namespace NNetlibaSocket {
 
     TMsgHdr* AddSockAuxData(TMsgHdr* header, const ui8 tos, const sockaddr_in6& myAddr, void* buffer, size_t bufferSize) {
 #ifdef _win_
+        Y_UNUSED(header);
+        Y_UNUSED(tos);
+        Y_UNUSED(myAddr);
+        Y_UNUSED(buffer);
+        Y_UNUSED(bufferSize);
         return nullptr;
 #else
         header->msg_control = buffer;
