@@ -89,11 +89,11 @@ _CATBOOST_SKLEARN_COMPAT_TAGS = {
     'non_deterministic': False,
     'requires_positive_X': False,
     'requires_positive_y': False,
-    'X_types': ['2darray'],
-    'poor_score': False,
-    'no_validation': False,
-    'multioutput': False,
-    "allow_nan": False,
+    'X_types': ['2darray','sparse','categorical'],
+    'poor_score': True,
+    'no_validation': True,
+    'multioutput': True,
+    "allow_nan": True,
     'stateless': False,
     'multilabel': False,
     '_skip_test': False,
@@ -1462,7 +1462,11 @@ class _CatBoostBase(object):
         '''
         self._object._set_feature_names(feature_names)
 
-    def _get_tags(self): return _CATBOOST_SKLEARN_COMPAT_TAGS
+    def _get_tags(self):
+        tags = _CATBOOST_SKLEARN_COMPAT_TAGS
+        if self._init_params['task_type'] == 'GPU':
+            tags['non_deterministic'] = True
+        return tags
 
 
 def _cast_value_to_list_of_strings(params, key):
