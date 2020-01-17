@@ -287,7 +287,6 @@ void TCalcScoreFold::Create(
     DefaultCalcStatsObjBlockSize = defaultCalcStatsObjBlockSize;
     LeavesCount = 1;
     LeavesBounds.assign(1, {0, static_cast<ui32>(DocCount)});
-    LeavesIndices.assign(1, 0);
 }
 
 template <typename TSrcRef, typename TGetElementFunc, typename TDstRef>
@@ -489,7 +488,6 @@ void TCalcScoreFold::SortFoldByLeafIndex(ui32 leafCount, NPar::TLocalExecutor* l
     if (leafCount == 1) {
         LeavesCount = 1;
         LeavesBounds.assign(1, {0, static_cast<ui32>(DocCount)});
-        LeavesIndices.assign(1, 0);
         return;
     }
 
@@ -598,8 +596,6 @@ void TCalcScoreFold::SortFoldByLeafIndex(ui32 leafCount, NPar::TLocalExecutor* l
     for (auto leaf : xrange(ui32(1), LeavesCount)) {
         LeavesBounds[leaf] = {LeavesBounds[leaf - 1].End, LeavesBounds[leaf - 1].End + totalDocsInLeaf[leaf]};
     }
-    LeavesIndices.yresize(LeavesCount);
-    Iota(LeavesIndices.begin(), LeavesIndices.end(), 0);
 }
 
 void TCalcScoreFold::Sample(
@@ -743,9 +739,7 @@ void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFold(const TVector<TIndexType>
     newIndices.yresize(capacity);
 
     TVector<TIndexRange<ui32>> newLeavesBounds;
-    TVector<ui32> newLeavesIndices;
     newLeavesBounds.yresize(newLeafCount);
-    newLeavesIndices.yresize(newLeafCount);
 
     TBodyTail& bt = BodyTailArr[0];
     TIndexedSubset<ui32>& indexedSubset = LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>();
@@ -753,17 +747,16 @@ void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFold(const TVector<TIndexType>
     ui32 rightLeafIndexShift = oldLeafCount;
     localExecutor->ExecRange(
         [&](ui32 leaf) {
+            const TIndexType leftIndex = leaf;
+            const TIndexType rightIndex = leaf + rightLeafIndexShift;
+
             const ui32 begin = LeavesBounds[leaf].Begin;
             const ui32 end = LeavesBounds[leaf].End;
             if (begin == end) {
-                newLeavesBounds[leaf << 1u] = {begin, end};
-                newLeavesBounds[(leaf << 1u) | 1u] = {begin, end};
-                newLeavesIndices[leaf << 1u] = LeavesIndices[leaf];
-                newLeavesIndices[(leaf << 1u) | 1u] = LeavesIndices[leaf] + rightLeafIndexShift;
+                newLeavesBounds[leftIndex] = {begin, end};
+                newLeavesBounds[rightIndex] = {begin, end};
                 return;
             }
-
-            const TIndexType leftIndex = LeavesIndices[leaf];
 
             const int blockSize = Max(CeilDiv(DocCount, localExecutor->GetThreadCount() + 1), 1000);
             TSimpleIndexRangesGenerator<int> indexRangesGenerator(TIndexRange<int>(begin, end), blockSize);
@@ -791,10 +784,8 @@ void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFold(const TVector<TIndexType>
             CalcCumulativeOffsets(leftDocsCount, &leftDocsOffset, begin);
             CalcCumulativeOffsets(rightDocsCount, &rightDocsOffset, leftDocsOffset.back() + leftDocsCount.back());
 
-            newLeavesBounds[leaf << 1u] = {begin, rightDocsOffset[0]};
-            newLeavesBounds[(leaf << 1u) | 1u] = {rightDocsOffset[0], end};
-            newLeavesIndices[leaf << 1u] = leftIndex;
-            newLeavesIndices[(leaf << 1u) | 1u] = leftIndex + rightLeafIndexShift;
+            newLeavesBounds[leftIndex] = {begin, rightDocsOffset[0]};
+            newLeavesBounds[rightIndex] = {rightDocsOffset[0], end};
 
             // copy data to new positions
             localExecutor->ExecRange(
@@ -845,7 +836,6 @@ void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFold(const TVector<TIndexType>
     Indices = std::move(newIndices);
 
     LeavesBounds = std::move(newLeavesBounds);
-    LeavesIndices = std::move(newLeavesIndices);
 }
 
 int TCalcScoreFold::GetApproxDimension() const {

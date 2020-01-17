@@ -329,7 +329,6 @@ public:
     int CtrDataPermutationBlockSize = FoldPermutationBlockSizeNotSet;
     ui32 LeavesCount;
     TVector<NCB::TIndexRange<ui32>> LeavesBounds;
-    TVector<ui32> LeavesIndices;
 
 private:
     TUnsizedVector<bool> Control;
