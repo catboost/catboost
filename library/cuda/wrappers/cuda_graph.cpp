@@ -1,11 +1,11 @@
 #include "cuda_graph.h"
 
 TCudaGraph::TInner::~TInner() {
-    CUDA_SAFE_CALL(cudaGraphDestroy(Graph_));
+    CUDA_SAFE_CALL_FOR_DESTRUCTOR(cudaGraphDestroy(Graph_));
 }
 
 TCudaGraphInstance::TInner::~TInner() {
-    CUDA_SAFE_CALL(cudaGraphExecDestroy(Instance_));
+    CUDA_SAFE_CALL_FOR_DESTRUCTOR(cudaGraphExecDestroy(Instance_));
 }
 
 TCudaGraphInstance::TCudaGraphInstance(TCudaGraph graph)

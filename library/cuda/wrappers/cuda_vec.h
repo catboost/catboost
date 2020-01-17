@@ -100,11 +100,11 @@ private:
                     case EMemoryType::Managed:
 #endif
                     case EMemoryType::Device: {
-                        CUDA_SAFE_CALL(cudaFree(Data_));
+                        CUDA_SAFE_CALL_FOR_DESTRUCTOR(cudaFree(Data_));
                         break;
                     }
                     case EMemoryType::Host: {
-                        CUDA_SAFE_CALL(cudaFreeHost(Data_));
+                        CUDA_SAFE_CALL_FOR_DESTRUCTOR(cudaFreeHost(Data_));
                         break;
                     }
                     case EMemoryType::Cpu: {

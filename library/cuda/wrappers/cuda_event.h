@@ -9,7 +9,7 @@ private:
         Inner(bool disableTiming);
 
         ~Inner() {
-            CUDA_SAFE_CALL(cudaEventDestroy(Event));
+            CUDA_SAFE_CALL_FOR_DESTRUCTOR(cudaEventDestroy(Event));
         }
 
         cudaEvent_t Event;

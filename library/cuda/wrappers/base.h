@@ -17,6 +17,29 @@
         }                                                                                                            \
     }
 
+#ifdef _MSC_VER
+#define CUDA_DISABLE_4297_WARN __pragma(warning(push)); __pragma(warning(disable:4297))
+#define CUDA_RESTORE_WARNINGS __pragma(warning(pop))
+#else
+#define CUDA_DISABLE_4297_WARN
+#define CUDA_RESTORE_WARNINGS
+#endif
+
+#define CUDA_SAFE_CALL_FOR_DESTRUCTOR(statement)                                                                                    \
+    {                                                                                                                \
+        cudaError_t errorCode = statement;                                                                           \
+        if (errorCode != cudaSuccess && errorCode != cudaErrorCudartUnloading) {                                     \
+            if (UncaughtException()) {                                                                               \
+                Cerr << "Got CUDA error " << (int)errorCode << ": " << cudaGetErrorString(errorCode);                \
+                Cerr << " while processing exception: " << CurrentExceptionMessage() << Endl;                        \
+            } else {                                                                                                 \
+                CUDA_DISABLE_4297_WARN                                                                               \
+                ythrow TCudaException(errorCode) << "CUDA error " << (int)errorCode << ": " << cudaGetErrorString(errorCode); \
+                CUDA_RESTORE_WARNINGS                                                                                 \
+            }                                                                                                        \
+        }                                                                                                            \
+    }
+
 class TCudaEvent;
 
 class TCudaStream {
@@ -24,7 +47,7 @@ private:
     struct TImpl: public TThrRefBase, public TNonCopyable {
     public:
         ~TImpl() {
-            CUDA_SAFE_CALL(cudaStreamDestroy(Stream_));
+            CUDA_SAFE_CALL_FOR_DESTRUCTOR(cudaStreamDestroy(Stream_));
         }
 
         explicit TImpl(bool nonBlocking)
@@ -99,7 +122,7 @@ public:
 
     ~TDeviceGuard() {
         if (PreviousDevice != -1) {
-            CUDA_SAFE_CALL(cudaSetDevice(PreviousDevice));
+            CUDA_SAFE_CALL_FOR_DESTRUCTOR(cudaSetDevice(PreviousDevice));
         }
     }
 
