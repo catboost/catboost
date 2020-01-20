@@ -1239,6 +1239,26 @@
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-NaiveBayes_/test.tsv"
         }
     ],
+    "test_gpu.test_fit_with_per_feature_text_options[Ordered]": [
+        {
+            "checksum": "0e4cd6ce8b9de33399906fab156fa858",
+            "uri": "file://test_gpu.test_fit_with_per_feature_text_options_Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "d8ac5869dc580ad780ec233b26f462c7",
+            "uri": "file://test_gpu.test_fit_with_per_feature_text_options_Ordered_/test.tsv"
+        }
+    ],
+    "test_gpu.test_fit_with_per_feature_text_options[Plain]": [
+        {
+            "checksum": "8466a5fbd3192aed4cb8788043832fe8",
+            "uri": "file://test_gpu.test_fit_with_per_feature_text_options_Plain_/learn.tsv"
+        },
+        {
+            "checksum": "01ccbe97f96e0e21923d7ff22ad541de",
+            "uri": "file://test_gpu.test_fit_with_per_feature_text_options_Plain_/test.tsv"
+        }
+    ],
     "test_gpu.test_fold_len_mult": [
         {
             "checksum": "8daf55c3911b8614e37c3e4af5815eff",
@@ -3002,7 +3022,7 @@
         }
     ],
     "test_gpu.test_output_options": {
-        "checksum": "da1c2ee5bc8559f3513510ae3bea633d",
+        "checksum": "0a506202bf3ee280c3e7de7aecd9e991",
         "uri": "file://test_gpu.test_output_options/training_options.json"
     },
     "test_gpu.test_overfit_detector_inc_to_dec[Ordered]": [

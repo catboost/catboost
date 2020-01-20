@@ -12,22 +12,92 @@ using namespace NTextProcessing::NDictionary;
 
 Y_UNIT_TEST_SUITE(TTextOptionsTest) {
     Y_UNIT_TEST(TestPlainOptions) {
-        TString stringJson =
+        const TString stringJson =
             "{\n"
-            "   \"dictionaries\": ["
-            "      \"Letter:token_level_type=Letter\","
-            "      \"Word:token_level_type=Word\","
-            "      \"UniGram:token_level_type=Letter,gram_order=1\", "
-            "      \"BiGram:token_level_type=Letter,gram_order=2\", "
-            "      \"TriGram:token_level_type=Letter,gram_order=3\",\n"
-            "      \"WordDictOccur2:min_token_occurrence=2,token_level_type=Word\",\n"
-            "      \"WordDictOccur5:min_token_occurrence=5,token_level_type=Word\",\n"
-            "      \"WordDictOccur10:min_token_occurrence=10,token_level_type=Word\"],\n"
-            "   \"text_processing\": ["
-            "      \"BoW+UniGram,BiGram,TriGram|NaiveBayes+UniGram,BiGram,TriGram\",\n"
-            "      \"0~BoW+Letter,Word|NaiveBayes+Word\",\n"
-            "      \"1~NaiveBayes+WordDictOccur2,WordDictOccur5|BM25+WordDictOccur2,WordDictOccur10\",\n"
-            "   ]\n"
+            "    \"text_processing\": {\n"
+            "        \"tokenizers\": [\n"
+            "            {\n"
+            "                \"tokenizer_id\": \"Space\"\n"
+            "            },\n"
+            "            {\n"
+            "                \"tokenizer_id\": \"Comma\",\n"
+            "                \"delimiter\": \"#\"\n"
+            "            }\n"
+            "        ],\n"
+            "        \"dictionaries\": [\n"
+            "            {\n"
+            "                \"dictionary_id\": \"Letter\",\n"
+            "                \"token_level_type\": \"Letter\"\n"
+            "            },\n"
+            "            {\n"
+            "                \"dictionary_id\": \"Word\",\n"
+            "                \"token_level_type\": \"Word\"\n"
+            "            },\n"
+            "            {\n"
+            "                \"dictionary_id\": \"UniGram\",\n"
+            "                \"gram_order\": \"1\",\n"
+            "                \"token_level_type\": \"Letter\"\n"
+            "            },\n"
+            "            {\n"
+            "                \"dictionary_id\": \"BiGram\",\n"
+            "                \"gram_order\": \"2\",\n"
+            "                \"token_level_type\": \"Letter\"\n"
+            "            },\n"
+            "            {\n"
+            "                \"dictionary_id\": \"TriGram\",\n"
+            "                \"gram_order\": \"3\",\n"
+            "                \"token_level_type\": \"Letter\"\n"
+            "            },\n"
+            "            {\n"
+            "                \"dictionary_id\": \"WordDictOccur2\",\n"
+            "                \"min_token_occurrence\": \"2\",\n"
+            "                \"token_level_type\": \"Word\"\n"
+            "            },\n"
+            "            {\n"
+            "                \"dictionary_id\": \"WordDictOccur5\",\n"
+            "                \"min_token_occurrence\": \"5\",\n"
+            "                \"token_level_type\": \"Word\"\n"
+            "            },\n"
+            "            {\n"
+            "                \"dictionary_id\": \"WordDictOccur10\",\n"
+            "                \"min_token_occurrence\": \"10\",\n"
+            "                \"token_level_type\": \"Word\"\n"
+            "            }\n"
+            "        ],\n"
+            "        \"feature_processing\": {\n"
+            "            \"default\": [\n"
+            "                {\n"
+            "                    \"tokenizers_names\": [\"Space\"],\n"
+            "                    \"dictionaries_names\": [\"UniGram\", \"BiGram\", \"TriGram\"],\n"
+            "                    \"feature_calcers\": [\"BoW\", \"NaiveBayes\"]\n"
+            "                }\n"
+            "            ],\n"
+            "            \"0\": [\n"
+            "                {\n"
+            "                    \"tokenizers_names\": [\"Space\"],\n"
+            "                    \"dictionaries_names\": [\"Letter\", \"Word\"],\n"
+            "                    \"feature_calcers\": [\"BoW\"]\n"
+            "                },\n"
+            "                {\n"
+            "                    \"tokenizers_names\": [\"Space\"],\n"
+            "                    \"dictionaries_names\": [\"Word\"],\n"
+            "                    \"feature_calcers\": [\"NaiveBayes\"]\n"
+            "                }\n"
+            "            ],\n"
+            "            \"1\": [\n"
+            "                {\n"
+            "                    \"tokenizers_names\": [\"Space\"],\n"
+            "                    \"dictionaries_names\": [\"WordDictOccur2\", \"WordDictOccur5\"],\n"
+            "                    \"feature_calcers\": [\"NaiveBayes\"]\n"
+            "                },\n"
+            "                {\n"
+            "                    \"tokenizers_names\": [\"Space\"],\n"
+            "                    \"dictionaries_names\": [\"WordDictOccur2\", \"WordDictOccur10\"],\n"
+            "                    \"feature_calcers\": [\"BM25\"]\n"
+            "                }\n"
+            "            ]\n"
+            "        }\n"
+            "    }\n"
             "}";
 
         NJson::TJsonValue plainOptions;
@@ -39,6 +109,18 @@ Y_UNIT_TEST_SUITE(TTextOptionsTest) {
 
         TTextProcessingOptions textProcessingOptions;
         textProcessingOptions.Load(optionsJson);
+
+        TVector<TTextColumnTokenizerOptions> tokenizers = textProcessingOptions.GetTokenizers();
+        for (const auto& tokenizer : tokenizers) {
+            const TString tokenizerName = tokenizer.TokenizerId.Get();
+            const TString delimiter = tokenizer.TokenizerOptions->Delimiter;
+
+            if (tokenizerName == "Space") {
+                UNIT_ASSERT_EQUAL(delimiter, " ");
+            } else if (tokenizerName == "Comma") {
+                UNIT_ASSERT_EQUAL(delimiter, "#");
+            }
+        }
 
         TVector<TTextColumnDictionaryOptions> dictionaries = textProcessingOptions.GetDictionaries();
         for (const auto& dictionary : dictionaries) {
@@ -76,7 +158,7 @@ Y_UNIT_TEST_SUITE(TTextOptionsTest) {
         {
             const auto& defaultFeatureProcessing = textProcessingOptions.GetFeatureProcessing(10);
             for (const auto& processingUnit: defaultFeatureProcessing) {
-                EFeatureCalcerType calcerType = processingUnit.FeatureCalcer->CalcerType.Get();
+                EFeatureCalcerType calcerType = processingUnit.FeatureCalcers.Get()[0].CalcerType.Get();
                 UNIT_ASSERT(
                     calcerType == EFeatureCalcerType::BoW ||
                     calcerType == EFeatureCalcerType::NaiveBayes
@@ -89,7 +171,7 @@ Y_UNIT_TEST_SUITE(TTextOptionsTest) {
 
             const auto& feature0Processing = textProcessingOptions.GetFeatureProcessing(0);
             for (const auto& processingUnit: feature0Processing) {
-                EFeatureCalcerType featureCalcer = processingUnit.FeatureCalcer->CalcerType.Get();
+                EFeatureCalcerType featureCalcer = processingUnit.FeatureCalcers.Get()[0].CalcerType.Get();
                 TVector<TString> dictionaries = processingUnit.DictionariesNames.Get();
                 UNIT_ASSERT(
                     featureCalcer == EFeatureCalcerType::BoW ||
@@ -107,7 +189,7 @@ Y_UNIT_TEST_SUITE(TTextOptionsTest) {
 
             const auto& feature1Processing = textProcessingOptions.GetFeatureProcessing(1);
             for (const auto& processingUnit: feature1Processing) {
-                EFeatureCalcerType featureCalcer = processingUnit.FeatureCalcer->CalcerType.Get();
+                EFeatureCalcerType featureCalcer = processingUnit.FeatureCalcers.Get()[0].CalcerType.Get();
                 TVector<TString> dictionaries = processingUnit.DictionariesNames.Get();
                 Sort(dictionaries);
                 UNIT_ASSERT(

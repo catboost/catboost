@@ -43,6 +43,7 @@ PEERDIR(
     library/grid_creator
     library/json
     library/text_processing/dictionary
+    library/text_processing/tokenizer
 )
 
 GENERATE_ENUM_SERIALIZATION(enums.h)

@@ -153,36 +153,75 @@
         "classes_count" : 0,
         "ignored_features" : [ ],
         "text_processing_options" : {
-            "text_processing" : {
+            "feature_processing" : {
                 "default" : [
                     {
                         "dictionaries_names" : [
                             "BiGram",
                             "Word"
                         ],
-                        "feature_calcer" : "BoW"
+                        "feature_calcers" : [
+                            "BoW"
+                        ],
+                        "tokenizers_names" : [
+                            "Space"
+                        ]
                     },
                     {
                         "dictionaries_names" : [
                             "Word"
                         ],
-                        "feature_calcer" : "NaiveBayes"
+                        "feature_calcers" : [
+                            "NaiveBayes"
+                        ],
+                        "tokenizers_names" : [
+                            "Space"
+                        ]
                     }
                 ]
             },
             "dictionaries" : [
                 {
-                    "max_dict_size" : "50000",
-                    "min_token_occurrence" : "1",
+                    "start_token_id" : "0",
+                    "skip_step" : "0",
+                    "end_of_word_token_policy" : "Insert",
                     "token_level_type" : "Word",
-                    "dictionary_id" : "BiGram",
-                    "gram_order" : "2"
+                    "end_of_sentence_token_policy" : "Skip",
+                    "min_token_occurrence" : "1",
+                    "gram_order" : "2",
+                    "max_dict_size" : "50000",
+                    "dictionary_id" : "BiGram"
                 },
                 {
-                    "max_dict_size" : "50000",
-                    "min_token_occurrence" : "1",
+                    "start_token_id" : "0",
+                    "skip_step" : "0",
+                    "end_of_word_token_policy" : "Insert",
                     "token_level_type" : "Word",
+                    "end_of_sentence_token_policy" : "Skip",
+                    "min_token_occurrence" : "1",
+                    "gram_order" : "1",
+                    "max_dict_size" : "50000",
                     "dictionary_id" : "Word"
+                }
+            ],
+            "tokenizers" : [
+                {
+                    "number_token" : "🔢",
+                    "skip_empty" : "1",
+                    "number_process_policy" : "LeaveAsIs",
+                    "tokenizer_id" : "Space",
+                    "token_types" : [
+                        "Number",
+                        "Unknown",
+                        "Word"
+                    ],
+                    "delimiter" : " ",
+                    "languages" : [ ],
+                    "lemmatizing" : "0",
+                    "split_by_set" : "0",
+                    "lowercasing" : "0",
+                    "subtokens_policy" : "SingleToken",
+                    "separator_type" : "ByDelimiter"
                 }
             ]
         }

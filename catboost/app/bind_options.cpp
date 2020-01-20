@@ -945,36 +945,62 @@ static void BindCatFeatureParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValu
         .Help("If parameter is specified than features with no more than specified value different values will be converted to float features using one-hot encoding. No ctrs will be calculated on this features.");
 }
 
+static void ParseDigitizerDescriptions(TStringBuf descriptionLine, TStringBuf idKey, NJson::TJsonValue* digitizers) {
+    digitizers->SetType(NJson::EJsonValueType::JSON_ARRAY);
+    for (TStringBuf oneConfig : StringSplitter(descriptionLine).Split(',').SkipEmpty()) {
+        NJson::TJsonValue digitizer;
+        TStringBuf digitizerId, stringParams;
+        oneConfig.Split(':', digitizerId, stringParams);
+        digitizer[idKey] = digitizerId;
+        for (TStringBuf stringParam : StringSplitter(stringParams).Split(':').SkipEmpty()) {
+            TStringBuf key, value;
+            stringParam.Split('=', key, value);
+            digitizer[key] = value;
+        }
+        digitizers->AppendValue(digitizer);
+    }
+    CB_ENSURE(!digitizers->GetArray().empty(), "Incorrect description line: " << descriptionLine << ".");
+}
+
 static void BindTextFeaturesParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
     using namespace NTextProcessing::NDictionary;
 
     auto& parser = *parserPtr;
+
+    parser.AddLongOption("tokenizers")
+        .RequiredArgument("DESC[,DESC...]")
+        .Help("Comma separated list of tokenizers descriptions. Description should be written in format "
+            "TokenizerId[:optionName=optionValue][:optionName=optionValue]"
+        ).Handler1T<TString>([plainJsonPtr](const TString& descriptionLine) {
+            ParseDigitizerDescriptions(descriptionLine, "tokenizer_id", &(*plainJsonPtr)["tokenizers"]);
+        });
+
     parser.AddLongOption("dictionaries")
-        .RequiredArgument("DESC[;DESC...]")
-        .Help("Semicolon separated list of dictionary descriptions. Description should be written in format "
+        .RequiredArgument("DESC[,DESC...]")
+        .Help("Comma separated list of dictionary descriptions. Description should be written in format "
             "DictionaryId[:min_token_occurrence=MinTokenOccurrence][:max_dict_size=MaxDictSize][:gram_order=GramOrder][:token_level_type=TokenLevelType]"
         ).Handler1T<TString>([plainJsonPtr](const TString& descriptionLine) {
-            for (const auto& oneConfig : StringSplitter(descriptionLine).Split(';').SkipEmpty()) {
-                (*plainJsonPtr)["dictionaries"].AppendValue(oneConfig.Token());
+            ParseDigitizerDescriptions(descriptionLine, "dictionary_id", &(*plainJsonPtr)["dictionaries"]);
+        });
+
+    parser.AddLongOption("feature-calcers")
+        .RequiredArgument("DESC[,DESC...]")
+        .Help("Comma separated list of feature calcers descriptions. Description should be written in format "
+            "FeatureCalcerType[:optionName=optionValue][:optionName=optionValue]"
+        ).Handler1T<TString>([plainJsonPtr](const TString& descriptionLine) {
+            NJson::TJsonValue featureCalcers;
+            featureCalcers.SetType(NJson::EJsonValueType::JSON_ARRAY);
+            for (TStringBuf oneConfig : StringSplitter(descriptionLine).Split(',').SkipEmpty()) {
+                featureCalcers.AppendValue(oneConfig);
             }
-            CB_ENSURE(
-                !(*plainJsonPtr)["dictionaries"].GetArray().empty(),
-                "Empty text processing settings " << descriptionLine
-            );
+            (*plainJsonPtr)["feature_calcers"] = featureCalcers;
         });
 
     parser.AddLongOption("text-processing")
-        .RequiredArgument("DESC[;DESC...]")
-        .Help("Semicolon separated list of text processing descriptions. Description should be written in format "
-              "[TextFeatureId~]NaiveBayes+DictionaryName1|BoW+LetterGramDictionary,BiGramDictionary")
-        .Handler1T<TString>([plainJsonPtr](const TString& estimatorsLine) {
-            for (const auto& oneConfig : StringSplitter(estimatorsLine).Split(';').SkipEmpty()) {
-                (*plainJsonPtr)["text_processing"].AppendValue(oneConfig.Token());
-            }
-            CB_ENSURE(
-                !(*plainJsonPtr)["text_processing"].GetArray().empty(),
-                "Empty text processing list " << estimatorsLine
-            );
+        .RequiredArgument("{...}")
+        .Help("Text processging json.")
+        .Handler1T<TString>([plainJsonPtr](const TString& textProcessingLine) {
+            NJson::ReadJsonTree(textProcessingLine, &(*plainJsonPtr)["text_processing"]);
         });
 }
 

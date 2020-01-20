@@ -944,7 +944,9 @@ void NCatboostOptions::CleanPlainJson(
     }
 
     if (!hasTextFeatures) {
+        DeleteSeenOption(plainOptionsJsonEfficient, "tokenizers");
         DeleteSeenOption(plainOptionsJsonEfficient, "dictionaries");
+        DeleteSeenOption(plainOptionsJsonEfficient, "feature_calcers");
         DeleteSeenOption(plainOptionsJsonEfficient, "text_processing");
     }
     TVector<TStringBuf> keysToDelete;
