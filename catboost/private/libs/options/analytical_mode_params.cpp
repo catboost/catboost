@@ -65,8 +65,10 @@ void NCB::BindColumnarPoolFormatParams(
 
     parser->AddLongOption("has-header", "[for dsv format] Read first line as header")
         .NoArgument()
-        .StoreValue(&columnarPoolFormatParams->DsvFormat.HasHeader,
-                    true);
+        .StoreValue(&columnarPoolFormatParams->DsvFormat.HasHeader, true);
+    parser->AddLongOption("ignore-csv-quoting")
+        .NoArgument()
+        .StoreValue(&columnarPoolFormatParams->DsvFormat.IgnoreCsvQuoting, true);
 }
 
 void NCB::BindModelFileParams(NLastGetopt::TOpts* parser, TString* modelFileName, EModelType* modelFormat) {

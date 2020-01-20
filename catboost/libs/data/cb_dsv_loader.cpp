@@ -31,6 +31,7 @@ namespace NCB {
     TCBDsvDataLoader::TCBDsvDataLoader(TLineDataLoaderPushArgs&& args)
         : TAsyncProcDataLoaderBase<TString>(std::move(args.CommonArgs))
         , FieldDelimiter(Args.PoolFormat.Delimiter)
+        , CsvSplitterQuote(Args.PoolFormat.IgnoreCsvQuoting ? '\0' : '"')
         , LineDataReader(std::move(args.Reader))
         , BaselineReader(Args.BaselineFilePath, args.CommonArgs.ClassNames)
     {
@@ -48,12 +49,12 @@ namespace NCB {
         TMaybe<TString> header = LineDataReader->GetHeader();
         TMaybe<TVector<TString>> headerColumns;
         if (header) {
-            headerColumns = TVector<TString>(NCsvFormat::CsvSplitter(*header, FieldDelimiter, '"'));
+            headerColumns = TVector<TString>(NCsvFormat::CsvSplitter(*header, FieldDelimiter, CsvSplitterQuote));
         }
 
         TString firstLine;
         CB_ENSURE(LineDataReader->ReadLine(&firstLine), "TCBDsvDataLoader: no data rows in pool");
-        const ui32 columnsCount = TVector<TString>(NCsvFormat::CsvSplitter(firstLine, FieldDelimiter, '"')).size();
+        const ui32 columnsCount = TVector<TString>(NCsvFormat::CsvSplitter(firstLine, FieldDelimiter, CsvSplitterQuote)).size();
 
         auto columnsDescription = TDataColumnsMetaInfo{ CreateColumnsDescription(columnsCount) };
 
@@ -145,7 +146,8 @@ namespace NCB {
 
             size_t tokenIdx = 0;
             try {
-                auto splitter = NCsvFormat::CsvSplitter(line, FieldDelimiter, catFeatures.empty() ? '\0' : '"');
+                const bool floatFeaturesOnly = catFeatures.empty() && textFeatures.empty();
+                auto splitter = NCsvFormat::CsvSplitter(line, FieldDelimiter, floatFeaturesOnly ? '\0' : CsvSplitterQuote);
                 do {
                     TStringBuf token = splitter.Consume();
                     CB_ENSURE(
