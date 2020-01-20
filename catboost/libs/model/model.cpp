@@ -972,21 +972,63 @@ static void SumModelsParams(
     THashMap<TString, TString>* modelInfo
 ) {
     const char* multiClassParamsName = "multiclass_params";
-    if (modelVector.back()->ModelInfo.contains(multiClassParamsName)) {
-        const TString multiClassParams = modelVector.back()->ModelInfo.at(multiClassParamsName);
-        const bool allMultiClassParamsAreSame = AllOf(
-            modelVector,
-            [&](const TFullModel* model) {
-                return model->ModelInfo.contains(multiClassParamsName) &&
-                       model->ModelInfo.at(multiClassParamsName) == multiClassParams;
-            }
-        );
 
-        CB_ENSURE(
-            allMultiClassParamsAreSame,
-            "Cannot sum models with different multiclass_params"
-        );
-        (*modelInfo)[multiClassParamsName] = multiClassParams;
+    TMaybe<TString> multiClassParams;
+
+    if (modelVector.back()->ModelInfo.contains(multiClassParamsName)) {
+        multiClassParams = modelVector.back()->ModelInfo.at(multiClassParamsName);
+    }
+
+    const bool allMultiClassParamsAreSame = AllOf(
+        modelVector,
+        [&](const TFullModel* model) {
+            if (multiClassParams) {
+                return model->ModelInfo.contains(multiClassParamsName) &&
+                       model->ModelInfo.at(multiClassParamsName) == *multiClassParams;
+            } else {
+                return !model->ModelInfo.contains(multiClassParamsName);
+            }
+        }
+    );
+    CB_ENSURE(
+        allMultiClassParamsAreSame,
+        "Cannot sum models with different multiclass_params"
+    );
+
+    if (multiClassParams) {
+        (*modelInfo)[multiClassParamsName] = *multiClassParams;
+    } else {
+        /* One-dimensional models.
+         * If class names for binary classification are present they must be the same
+         */
+
+        TMaybe<TVector<TString>> sumClassNames;
+
+        for (const TFullModel* model : modelVector) {
+            TVector<TString> classNames = model->GetModelClassNames();
+            if (classNames) {
+                Y_VERIFY(classNames.size() == 2);
+
+                if (sumClassNames) {
+                    CB_ENSURE(classNames == *sumClassNames, "Cannot sum models with different class labels");
+                } else {
+                    sumClassNames = std::move(classNames);
+                }
+            }
+        }
+
+        if (sumClassNames) {
+            TString& paramsString = (*modelInfo)["params"];
+            NJson::TJsonValue paramsJson;
+            if (paramsString) {
+                paramsJson = ReadTJsonValue(paramsString);
+            }
+            NJson::TJsonValue classNames;
+            classNames.AppendValue((*sumClassNames)[0]);
+            classNames.AppendValue((*sumClassNames)[1]);
+            paramsJson["data_processing_options"]["class_names"] = std::move(classNames);
+            paramsString = ToString(paramsJson);
+        }
     }
 
     const auto lossDescription = GetLossDescription(*modelVector.back());

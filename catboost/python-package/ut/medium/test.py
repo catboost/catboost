@@ -4938,6 +4938,69 @@ def test_model_merging():
     assert_sum_models_equal_sliced_copies(CLOUDNESS_TRAIN_FILE, CLOUDNESS_TEST_FILE, CLOUDNESS_ONLY_NUM_CD_FILE)
 
 
+def test_model_sum_labels():
+    n_samples = 100
+    n_features = 10
+
+    """
+        list of (expected_sum_classes, lists of (loss_function, class_names, label_set))
+        if expected_sum_classes is False it means sum should fail
+    """
+    params_list = [
+        (
+            False,
+            [
+                ('Logloss', ['0', '1'], [0, 1]),
+                ('Logloss', ['1', '0'], [0, 1]),
+                ('Logloss', ['0', '1'], [0, 1])
+            ]
+        ),
+        (False, [('Logloss', None, [0, 1]), ('Logloss', None, [1, 2])]),
+        (False, [('Logloss', None, [0, 1]), ('MultiClass', None, [1, 2])]),
+        (False, [('RMSE', None, [0.1, 0.2, 1.0]), ('MultiClass', None, [1, 2, 4])]),
+        (False, [('MultiClass', None, [0, 1, 2]), ('MultiClass', None, [1, 2, 3])]),
+        (
+            False,
+            [
+                ('MultiClass', None, ['class0', 'class1', 'class2']),
+                ('MultiClass', None, ['Class0', 'Class1', 'Class2', 'Class3'])
+            ]
+        ),
+        (['0', '1'], [('Logloss', None, [0, 1]), ('Logloss', None, [0, 1]), ('Logloss', None, [0, 1])]),
+        (
+            ['class0', 'class1', 'class2'],
+            [
+                ('MultiClass', None, ['class0', 'class1', 'class2']),
+                ('MultiClass', None, ['class0', 'class1', 'class2'])
+            ]
+        ),
+        (['1', '2'], [('RMSE', None, [0.1, 0.2, 1.0]), ('Logloss', None, [1, 2])]),
+        ([], [('RMSE', None, [0.1, 0.2, 1.0]), ('RMSE', None, [0.22, 0.7, 1.3, 1.7])]),
+    ]
+
+    for expected_classes, train_specs_list in params_list:
+        models = []
+        for loss_function, class_names, label_set in train_specs_list:
+            features, labels = generate_random_labeled_dataset(
+                n_samples=n_samples,
+                n_features=n_features,
+                labels=label_set
+            )
+            params = {'loss_function': loss_function, 'iterations': 5}
+            if class_names:
+                params['class_names'] = class_names
+            model = CatBoost(params)
+            model.fit(features, labels)
+            models.append(model)
+
+        if expected_classes is False:
+            with pytest.raises(CatBoostError):
+                sum_models(models)
+        else:
+            model_sum = sum_models(models)
+            assert np.all(model_sum.classes_ == expected_classes)
+
+
 def test_tree_depth_pairwise(task_type):
     if task_type == 'GPU':
         with pytest.raises(CatBoostError):
