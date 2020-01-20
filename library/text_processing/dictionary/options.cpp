@@ -9,8 +9,8 @@ static const TString SKIP_STEP = "skip_step";
 static const TString START_TOKEN_ID = "start_token_id";
 static const TString END_OF_WORD_TOKEN_POLICY = "end_of_word_token_policy";
 static const TString END_OF_SENTENCE_TOKEN_POLICY = "end_of_sentence_token_policy";
-static const TString OCCURRENCE_LOWER_BOUND = "min_token_occurrence";
-static const TString MAX_DICTIONARY_SIZE = "max_dict_size";
+static const TString OCCURRENCE_LOWER_BOUND = "occurrence_lower_bound";
+static const TString MAX_DICTIONARY_SIZE = "max_dictionary_size";
 
 namespace NTextProcessing::NDictionary {
     template <typename TType>

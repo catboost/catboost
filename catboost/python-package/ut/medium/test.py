@@ -1122,9 +1122,9 @@ def test_fit_with_texts(task_type):
 
     params = {
         'dictionaries': [
-            'UniGram:token_level_type=Letter,min_token_occurrence=1',
-            'BiGram:token_level_type=Letter,gram_order=2,min_token_occurrence=1',
-            'Word:token_level_type=Word,min_token_occurrence=1'
+            'UniGram:token_level_type=Letter,occurrence_lower_bound=1',
+            'BiGram:token_level_type=Letter,gram_order=2,occurrence_lower_bound=1',
+            'Word:token_level_type=Word,occurrence_lower_bound=1'
         ],
         'text_processing': [
             'NaiveBayes+Word|BoW+UniGram,BiGram|BM25+Word'

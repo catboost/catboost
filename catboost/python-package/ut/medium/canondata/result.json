@@ -24,7 +24,7 @@
         "uri": "file://test.test_classification_ctr_CPU_/model.bin"
     },
     "test.test_compute_options": {
-        "checksum": "41797d17769cc41f5e232c35b5c3d16b",
+        "checksum": "1059187a8030915c2553dec6d3f1a1ee",
         "uri": "file://test.test_compute_options/options.json"
     },
     "test.test_continue_learning_with_changing_dataset": {
@@ -625,7 +625,7 @@
             "uri": "file://test.test_multiclass_classes_count_CPU-missed_classes=False_/predictions.txt"
         },
         {
-            "checksum": "20b71aa76593a3ed16e93c1079b37a03",
+            "checksum": "6d70d3a0267d4a85f560079f9ac8f222",
             "uri": "file://test.test_multiclass_classes_count_CPU-missed_classes=False_/model.bin"
         }
     ],
@@ -635,7 +635,7 @@
             "uri": "file://test.test_multiclass_classes_count_CPU-missed_classes=True_/predictions.txt"
         },
         {
-            "checksum": "5817727fc2f46f89dc1b10a8725adcfb",
+            "checksum": "de089b0ca4a5a5a8ad679c2bf2676c58",
             "uri": "file://test.test_multiclass_classes_count_CPU-missed_classes=True_/model.bin"
         }
     ],

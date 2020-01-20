@@ -978,7 +978,7 @@ static void BindTextFeaturesParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonVa
     parser.AddLongOption("dictionaries")
         .RequiredArgument("DESC[,DESC...]")
         .Help("Comma separated list of dictionary descriptions. Description should be written in format "
-            "DictionaryId[:min_token_occurrence=MinTokenOccurrence][:max_dict_size=MaxDictSize][:gram_order=GramOrder][:token_level_type=TokenLevelType]"
+            "DictionaryId[:occurrence_lower_bound=MinTokenOccurrence][:max_dictionary_size=MaxDictSize][:gram_order=GramOrder][:token_level_type=TokenLevelType]"
         ).Handler1T<TString>([plainJsonPtr](const TString& descriptionLine) {
             ParseDigitizerDescriptions(descriptionLine, "dictionary_id", &(*plainJsonPtr)["dictionaries"]);
         });

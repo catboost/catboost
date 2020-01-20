@@ -3606,7 +3606,7 @@ class CatBoostClassifier(CatBoost):
 
     dictionaries : list of strings,
         Each string is a dictionary description. Description should be written in format
-        DictionaryId[:min_token_occurrence=MinTokenOccurrence][:max_dict_size=MaxDictSize]
+        DictionaryId[:occurrence_lower_bound=MinTokenOccurrence][:max_dictionary_size=MaxDictSize]
                     [:gram_order=GramOrder][:token_level_type=TokenLevelType]
 
     text_processing : list of strings,

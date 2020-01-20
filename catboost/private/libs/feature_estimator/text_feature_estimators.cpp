@@ -147,7 +147,7 @@ namespace {
             const ui32 dictionarySize = Dictionary.Size();
             CB_ENSURE(
                 dictionarySize > 0,
-                "Dictionary size is 0, check out data or try to decrease min_token_occurrence parameter"
+                "Dictionary size is 0, check out data or try to decrease occurrence_lower_bound parameter"
             );
             if (TopTokensCount > dictionarySize) {
                 TopTokensCount = dictionarySize;

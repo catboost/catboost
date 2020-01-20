@@ -177,24 +177,24 @@
             "dictionaries" : [
                 {
                     "start_token_id" : "0",
+                    "occurrence_lower_bound" : "1",
                     "skip_step" : "0",
                     "end_of_word_token_policy" : "Insert",
                     "token_level_type" : "Word",
                     "end_of_sentence_token_policy" : "Skip",
-                    "min_token_occurrence" : "1",
                     "gram_order" : "2",
-                    "max_dict_size" : "50000",
+                    "max_dictionary_size" : "50000",
                     "dictionary_id" : "BiGram"
                 },
                 {
                     "start_token_id" : "0",
+                    "occurrence_lower_bound" : "1",
                     "skip_step" : "0",
                     "end_of_word_token_policy" : "Insert",
                     "token_level_type" : "Word",
                     "end_of_sentence_token_policy" : "Skip",
-                    "min_token_occurrence" : "1",
                     "gram_order" : "1",
-                    "max_dict_size" : "50000",
+                    "max_dictionary_size" : "50000",
                     "dictionary_id" : "Word"
                 }
             ],

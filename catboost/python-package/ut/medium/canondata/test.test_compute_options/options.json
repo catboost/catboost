@@ -136,8 +136,8 @@
                     "end_of_sentence_token_policy": "Skip", 
                     "end_of_word_token_policy": "Insert", 
                     "gram_order": "2", 
-                    "max_dict_size": "50000", 
-                    "min_token_occurrence": "5", 
+                    "max_dictionary_size": "50000", 
+                    "occurrence_lower_bound": "5", 
                     "skip_step": "0", 
                     "start_token_id": "0", 
                     "token_level_type": "Word"
@@ -147,8 +147,8 @@
                     "end_of_sentence_token_policy": "Skip", 
                     "end_of_word_token_policy": "Insert", 
                     "gram_order": "1", 
-                    "max_dict_size": "50000", 
-                    "min_token_occurrence": "5", 
+                    "max_dictionary_size": "50000", 
+                    "occurrence_lower_bound": "5", 
                     "skip_step": "0", 
                     "start_token_id": "0", 
                     "token_level_type": "Word"

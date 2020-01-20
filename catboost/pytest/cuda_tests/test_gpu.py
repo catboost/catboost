@@ -2753,23 +2753,23 @@ def test_shrink_model_with_text_features(grow_policy):
 
 DICTIONARIES_OPTIONS = [
     {
-        "Simple": "token_level_type=Word:min_token_occurrence=50"
+        "Simple": "token_level_type=Word:occurrence_lower_bound=50"
     },
     {
-        "UniGramOccur5": "min_token_occurrence=5:token_level_type=Letter",
-        "BiGramOccur2": "min_token_occurrence=2:gram_order=2:token_level_type=Letter",
-        "WordDictOccur1": "min_token_occurrence=1:token_level_type=Word",
-        "WordDictOccur2": "min_token_occurrence=2:token_level_type=Word",
-        "WordDictOccur3": "min_token_occurrence=3:token_level_type=Word"
+        "UniGramOccur5": "occurrence_lower_bound=5:token_level_type=Letter",
+        "BiGramOccur2": "occurrence_lower_bound=2:gram_order=2:token_level_type=Letter",
+        "WordDictOccur1": "occurrence_lower_bound=1:token_level_type=Word",
+        "WordDictOccur2": "occurrence_lower_bound=2:token_level_type=Word",
+        "WordDictOccur3": "occurrence_lower_bound=3:token_level_type=Word"
     },
     {
-        "Unigram": "gram_order=1:token_level_type=Letter:min_token_occurrence=50",
-        "Bigram": "gram_order=2:token_level_type=Letter:min_token_occurrence=50",
-        "Trigram": "gram_order=3:token_level_type=Letter:min_token_occurrence=50"
+        "Unigram": "gram_order=1:token_level_type=Letter:occurrence_lower_bound=50",
+        "Bigram": "gram_order=2:token_level_type=Letter:occurrence_lower_bound=50",
+        "Trigram": "gram_order=3:token_level_type=Letter:occurrence_lower_bound=50"
     },
     {
-        "Letter": "token_level_type=Letter:min_token_occurrence=50",
-        "Word": "token_level_type=Word:min_token_occurrence=50"
+        "Letter": "token_level_type=Letter:occurrence_lower_bound=50",
+        "Word": "token_level_type=Word:occurrence_lower_bound=50"
     }
 ]
 
@@ -2832,9 +2832,9 @@ def test_fit_with_per_feature_text_options(boosting_type):
             {'tokenizer_id': 'Comma', 'delimiter': ','},
         ],
         'dictionaries': [
-            {'dictionary_id': 'Word', 'token_level_type': 'Word', 'min_token_occurrence': '50'},
-            {'dictionary_id': 'Bigram', 'token_level_type': 'Word', 'gram_order': '2', 'min_token_occurrence': '50'},
-            {'dictionary_id': 'Trigram', 'token_level_type': 'Letter', 'gram_order': '3', 'min_token_occurrence': '50'},
+            {'dictionary_id': 'Word', 'token_level_type': 'Word', 'occurrence_lower_bound': '50'},
+            {'dictionary_id': 'Bigram', 'token_level_type': 'Word', 'gram_order': '2', 'occurrence_lower_bound': '50'},
+            {'dictionary_id': 'Trigram', 'token_level_type': 'Letter', 'gram_order': '3', 'occurrence_lower_bound': '50'},
         ],
         'feature_processing': {
             '0': [
