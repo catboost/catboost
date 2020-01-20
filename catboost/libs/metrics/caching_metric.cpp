@@ -112,7 +112,7 @@ static TMetricHolder BuildConfusionMatrix(
     const bool isMultiClass = approx.size() > 1;
     const int classesCount = isMultiClass ? approx.size() : BinaryClassesCount;
 
-    const auto buildImpl = [=](auto useWeights, auto isMultiClass) {
+    const auto buildImpl = [&](auto useWeights, auto isMultiClass) {
         TMetricHolder confusionMatrix(classesCount * classesCount);
         for (int idx = begin; idx < end; ++idx) {
             int approxClass = GetApproxClass(approx, idx);
