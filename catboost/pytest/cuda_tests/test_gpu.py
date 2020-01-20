@@ -1552,6 +1552,7 @@ def test_multiclass_baseline(loss_function):
 
     fit_params = {
         '--loss-function': loss_function,
+        '--learning-rate': '0.03',
         '-f': train_path,
         '-t': test_path,
         '--column-description': cd_path,

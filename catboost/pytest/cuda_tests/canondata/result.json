@@ -2955,21 +2955,21 @@
     ],
     "test_gpu.test_multiclass_baseline[MultiClassOneVsAll]": [
         {
-            "checksum": "cc0af2bf7554f3fe8fa6d70b5e3a3c61",
+            "checksum": "77b927d56a69843f641d2cce4933a431",
             "uri": "file://test_gpu.test_multiclass_baseline_MultiClassOneVsAll_/learn_error.tsv"
         },
         {
-            "checksum": "14a782095f64929f28a9dd58d55f15cd",
+            "checksum": "26b0283d53cfb3edc4f17f2c50db9537",
             "uri": "file://test_gpu.test_multiclass_baseline_MultiClassOneVsAll_/test_error.tsv"
         }
     ],
     "test_gpu.test_multiclass_baseline[MultiClass]": [
         {
-            "checksum": "1338fceb3160c6a2b997029c8e40ada5",
+            "checksum": "823f9b42b32179966a34a71c03beec91",
             "uri": "file://test_gpu.test_multiclass_baseline_MultiClass_/learn_error.tsv"
         },
         {
-            "checksum": "aaffdf4fae906d91ed4357a5c8aaa6d9",
+            "checksum": "7f6ed3f90ea407b87b5f11798058c48a",
             "uri": "file://test_gpu.test_multiclass_baseline_MultiClass_/test_error.tsv"
         }
     ],
