@@ -2569,9 +2569,9 @@ def do_test_loss_change_fstr(loss_function, normalize):
 
     yatest.common.execute(fstr_cmd)
 
-    fit_otuput = np.loadtxt(train_fstr_path, dtype='float', delimiter='\t')
+    fit_output = np.loadtxt(train_fstr_path, dtype='float', delimiter='\t')
     fstr_output = np.loadtxt(output_fstr_path, dtype='float', delimiter='\t')
-    assert(np.allclose(fit_otuput, fstr_output, rtol=1e-6))
+    assert(np.allclose(fit_output, fstr_output, rtol=1e-6))
 
     return [local_canonical_file(output_fstr_path)]
 
@@ -2612,9 +2612,9 @@ def test_fstr_feature_importance_default_value(boosting_type, ranking_parameters
                '--fstr-type', ranking_parameters['fstr-type'])
     )
 
-    fstr_otuput_0 = np.loadtxt(fstr_path_0, dtype='float', delimiter='\t')
+    fstr_output_0 = np.loadtxt(fstr_path_0, dtype='float', delimiter='\t')
     fstr_output_1 = np.loadtxt(fstr_path_1, dtype='float', delimiter='\t')
-    assert(np.allclose(fstr_otuput_0, fstr_output_1, rtol=1e-6))
+    assert(np.allclose(fstr_output_0, fstr_output_1, rtol=1e-6))
 
     fstr_cmd = (
         CATBOOST_PATH,
@@ -2629,7 +2629,7 @@ def test_fstr_feature_importance_default_value(boosting_type, ranking_parameters
     yatest.common.execute(fstr_cmd)
 
     fstr_output_1 = np.loadtxt(fstr_path_1, dtype='float', delimiter='\t')
-    assert(np.allclose(fstr_otuput_0, fstr_output_1, rtol=1e-6))
+    assert(np.allclose(fstr_output_0, fstr_output_1, rtol=1e-6))
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
