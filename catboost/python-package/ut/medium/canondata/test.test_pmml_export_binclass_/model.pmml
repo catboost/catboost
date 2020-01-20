@@ -3,20 +3,20 @@
 <Header copyright="(c) catboost team" description="CatBoostModel_for_binclass" modelVersion="1">
 <Application name="CatBoost" version="Svn info:
     URL: svn+ssh://arcadia.yandex.ru/arc/trunk/arcadia
-    Last Changed Rev: 5921895
-    Last Changed Author: robot-vcssync
-    Last Changed Date: 2019-11-14T06:45:01.426846Z
+    Last Changed Rev: 6227358
+    Last Changed Author: zomb-sandbox-rw
+    Last Changed Date: 2020-01-20T09:45:17.450288Z
 
 Other info:
-    Build by: espetrov
-    Top src dir: /place/home/espetrov/svn-scratch-scratch-scratch/debug-ucs2
-    Top build dir: /place/home/espetrov/.ya/build
-    Hostname: park.search.yandex.net
+    Build by: eermishkina
+    Top src dir: /place/home/eermishkina/trunc/arcadia
+    Top build dir: /place/home/eermishkina/.ya/build
+    Hostname: su57.search.yandex.net
     Host information: 
-        Linux park.search.yandex.net 4.4.68-33 #1 SMP Mon May 15 15:50:23 UTC 2017 x86_64
+        Linux su57.search.yandex.net 4.4.88-42 #1 SMP Mon Sep 18 14:33:37 UTC 2017 x86_64
 
     "/>
-<Timestamp>2019-11-14T14:24:43Z</Timestamp>
+<Timestamp>2020-01-20T10:38:16Z</Timestamp>
 </Header>
 <DataDictionary>
 <DataField name="feature_3" optype="continuous" dataType="float"/>
@@ -812,4 +812,7 @@ Other info:
 </Segment>
 </Segmentation>
 </MiningModel>
+<Targets>
+<Target rescaleConstant="0" rescaleFactor="1"/>
+</Targets>
 </PMML>

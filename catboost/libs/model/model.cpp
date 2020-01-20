@@ -148,7 +148,6 @@ void TModelTrees::TruncateTrees(size_t begin, size_t end) {
     CB_ENSURE(IsOblivious(), "Truncate support only symmetric trees");
     CB_ENSURE(begin <= end, "begin tree index should be not greater than end tree index.");
     CB_ENSURE(end <= TreeSplits.size(), "end tree index should be not greater than tree count.");
-    CB_ENSURE(GetScaleAndBias().Bias == 0, "Truncating trees with non-zero bias makes no sense");
     auto savedScaleAndBias = GetScaleAndBias();
     TObliviousTreeBuilder builder(FloatFeatures, CatFeatures, TextFeatures, ApproxDimension);
     const auto& leafOffsets = RuntimeData->TreeFirstLeafOffsets;
@@ -447,19 +446,8 @@ TVector<ui32> TModelTrees::GetTreeLeafCounts() const {
 
 void TModelTrees::SetScaleAndBias(const TScaleAndBias& scaleAndBias) {
     CB_ENSURE(IsValidFloat(scaleAndBias.Scale) && IsValidFloat(scaleAndBias.Bias), "Invalid scale " << scaleAndBias.Scale << " or bias " << scaleAndBias.Bias);
+    CB_ENSURE(scaleAndBias.IsIdentity() || GetDimensionsCount() == 1, "SetScaleAndBias is not supported for multi dimensional models yet");
     ScaleAndBias = scaleAndBias;
-}
-
-void TModelTrees::AddNumberToAllTreeLeafValues(ui32 treeId, double numberToAdd) {
-    const auto& firstLeafOfsets = GetFirstLeafOffsets();
-    if (numberToAdd == 0 || firstLeafOfsets.size() <= treeId) {
-        return;
-    }
-    ui32 begin = firstLeafOfsets[treeId];
-    ui32 end = treeId + 1 == firstLeafOfsets.size() ? LeafValues.size() : firstLeafOfsets[treeId + 1];
-    for (ui32 i = begin; i < end; ++i) {
-        LeafValues[i] += numberToAdd;
-    }
 }
 
 void TModelTrees::FBDeserialize(const NCatBoostFbs::TModelTrees* fbObj) {

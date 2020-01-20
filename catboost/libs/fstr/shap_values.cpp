@@ -785,6 +785,9 @@ void CalcShapValuesForDocumentMulti(
                     preparedTrees.MeanValuesForAllTrees[treeIdx][dimension];
         }
     }
+    if (approxDimension == 1) {
+        (*shapValues)[0][flatFeatureCount] += model.GetScaleAndBias().Bias;
+    }
 }
 
 static void CalcShapValuesForDocumentBlockMulti(
@@ -797,6 +800,17 @@ static void CalcShapValuesForDocumentBlockMulti(
     NPar::TLocalExecutor* localExecutor,
     TVector<TVector<TVector<double>>>* shapValuesForAllDocuments
 ) {
+    for (size_t leafIdx = 0; leafIdx < model.ModelTrees->GetLeafWeights().size(); ++leafIdx) {
+        size_t approxDimension = model.GetDimensionsCount();
+        if (model.ModelTrees->GetLeafWeights()[leafIdx] == 0) {
+            double leafSumApprox = 0;
+            for (size_t approxIdx = 0; approxIdx < approxDimension; ++approxIdx) {
+                leafSumApprox += abs(model.ModelTrees->GetLeafValues()[leafIdx * approxDimension + approxIdx]);
+            }
+            CB_ENSURE(leafSumApprox < 1e-9, "Cannot calc shap values, model contains non zero approx for zero-weight leaf");
+        }
+    }
+
     const size_t documentCount = end - start;
 
     auto binarizedFeaturesForBlock = MakeQuantizedFeaturesForEvaluator(model, featuresBlockIterator, start, end);
@@ -1248,7 +1262,7 @@ void CalcAndOutputShapValues(
         /*calcInternalValues=*/false
     );
 
-    CB_ENSURE_IDENTITY(model.GetScaleAndBias(), "SHAP values");
+    CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "SHAP values");
     const int flatFeatureCount = SafeIntegerCast<int>(dataset.MetaInfo.GetFeatureCount());
 
     const size_t documentCount = dataset.ObjectsGrouping->GetObjectCount();

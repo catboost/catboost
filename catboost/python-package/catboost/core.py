@@ -1476,6 +1476,12 @@ class _CatBoostBase(object):
         '''
         self._object._set_feature_names(feature_names)
 
+    def get_scale_and_bias(self):
+        return self._object._get_scale_and_bias()
+
+    def set_scale_and_bias(self, scale, bias):
+        self._object._set_scale_and_bias(scale, bias)
+
 
 def _cast_value_to_list_of_strings(params, key):
     if key in params:

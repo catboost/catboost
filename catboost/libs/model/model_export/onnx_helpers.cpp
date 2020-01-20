@@ -259,6 +259,7 @@ struct TTreesAttributes {
     onnx::AttributeProto* target_treeids;
     onnx::AttributeProto* target_weights;
 
+    onnx::AttributeProto* base_values;
     onnx::AttributeProto* nodes_falsenodeids;
     onnx::AttributeProto* nodes_featureids;
     onnx::AttributeProto* nodes_hitrates;
@@ -301,6 +302,7 @@ public:
             GET_ATTR(target_weights, FLOATS);
         }
 
+        GET_ATTR(base_values, FLOATS);
         GET_ATTR(nodes_falsenodeids, INTS);
         GET_ATTR(nodes_featureids, INTS);
         GET_ATTR(nodes_hitrates, FLOATS);
@@ -333,6 +335,7 @@ public:
             class_treeids = nullptr;
             class_weights = nullptr;
         }
+        base_values = nullptr;
 
         for (auto& attribute : attributes) {
             if (isClassifierModel) {
@@ -347,6 +350,7 @@ public:
                 SET_ATTR(target_weights, attribute);
             }
 
+            SET_ATTR(base_values, attribute);
             SET_ATTR(nodes_falsenodeids, attribute);
             SET_ATTR(nodes_featureids, attribute);
             SET_ATTR(nodes_hitrates, attribute);
@@ -539,7 +543,7 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
     }
 
     TTreesAttributes treesAttributes(isClassifierModel, treesNode->mutable_attribute());
-
+    treesAttributes.base_values->add_floats(float(model.GetScaleAndBias().Bias));
     for (auto treeIdx : xrange(trees.GetTreeCount())) {
         AddTree(trees, treeIdx, isClassifierModel, &treesAttributes);
     }
@@ -714,6 +718,11 @@ static void ConfigureSymmetricTrees(const onnx::GraphProto& onnxGraph, TFullMode
     }
 
     treeBuilder.Build(fullModel->ModelTrees.GetMutable());
+    if (approxDimension == 1 && treesAttributes.base_values != nullptr && treesAttributes.base_values->floats_size() == 1) {
+        TScaleAndBias scaleAndBias;
+        scaleAndBias.Bias = treesAttributes.base_values->floats(0);
+        fullModel->SetScaleAndBias(scaleAndBias);
+    }
 
     fullModel->UpdateDynamicData();
 }

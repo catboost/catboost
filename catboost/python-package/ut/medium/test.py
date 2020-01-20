@@ -2884,7 +2884,7 @@ def test_shap_feature_importance_multiclass(task_type):
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass')
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
-    np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool)))
+    np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool)), 9))
     return local_canonical_file(fimp_npy_path)
 
 
@@ -4833,6 +4833,42 @@ def test_shrink():
     assert model.tree_count_ == 7
 
 
+def test_shrink_with_bias():
+    train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE_WITH_GROUP_ID)
+    args = {
+        'iterations': 30,
+        'loss_function': 'RMSE',
+        'use_best_model': False,
+        'learning_rate': 0.3
+    }
+    model = CatBoostRegressor(**args)
+    model.fit(train_pool)
+    scale, bias = model.get_scale_and_bias()
+    model.shrink(9)
+    assert (scale, bias) == model.get_scale_and_bias()
+    model.shrink(8, ntree_start=1)
+    assert (scale, 0) == model.get_scale_and_bias()
+
+
+def test_set_scale_and_bias():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    args = {
+        'iterations': 30,
+        'loss_function': 'Logloss',
+        'use_best_model': False,
+        'learning_rate': 0.3
+    }
+    model = CatBoostClassifier(**args)
+    model.fit(train_pool)
+    pred1 = model.predict(test_pool, prediction_type='RawFormulaVal')
+    assert (1., 0.) == model.get_scale_and_bias()
+    model.set_scale_and_bias(3.14, 15.)
+    assert (3.14, 15.) == model.get_scale_and_bias()
+    pred2 = model.predict(test_pool, prediction_type='RawFormulaVal')
+    assert np.all(abs(pred1 * 3.14 + 15 - pred2) < 1e-15)
+
+
 def test_get_metric_evals(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
@@ -4936,69 +4972,6 @@ def test_model_merging():
     assert_sum_models_equal_sliced_copies(TRAIN_FILE, TEST_FILE, CD_FILE)
     # multiclass
     assert_sum_models_equal_sliced_copies(CLOUDNESS_TRAIN_FILE, CLOUDNESS_TEST_FILE, CLOUDNESS_ONLY_NUM_CD_FILE)
-
-
-def test_model_sum_labels():
-    n_samples = 100
-    n_features = 10
-
-    """
-        list of (expected_sum_classes, lists of (loss_function, class_names, label_set))
-        if expected_sum_classes is False it means sum should fail
-    """
-    params_list = [
-        (
-            False,
-            [
-                ('Logloss', ['0', '1'], [0, 1]),
-                ('Logloss', ['1', '0'], [0, 1]),
-                ('Logloss', ['0', '1'], [0, 1])
-            ]
-        ),
-        (False, [('Logloss', None, [0, 1]), ('Logloss', None, [1, 2])]),
-        (False, [('Logloss', None, [0, 1]), ('MultiClass', None, [1, 2])]),
-        (False, [('RMSE', None, [0.1, 0.2, 1.0]), ('MultiClass', None, [1, 2, 4])]),
-        (False, [('MultiClass', None, [0, 1, 2]), ('MultiClass', None, [1, 2, 3])]),
-        (
-            False,
-            [
-                ('MultiClass', None, ['class0', 'class1', 'class2']),
-                ('MultiClass', None, ['Class0', 'Class1', 'Class2', 'Class3'])
-            ]
-        ),
-        (['0', '1'], [('Logloss', None, [0, 1]), ('Logloss', None, [0, 1]), ('Logloss', None, [0, 1])]),
-        (
-            ['class0', 'class1', 'class2'],
-            [
-                ('MultiClass', None, ['class0', 'class1', 'class2']),
-                ('MultiClass', None, ['class0', 'class1', 'class2'])
-            ]
-        ),
-        (['1', '2'], [('RMSE', None, [0.1, 0.2, 1.0]), ('Logloss', None, [1, 2])]),
-        ([], [('RMSE', None, [0.1, 0.2, 1.0]), ('RMSE', None, [0.22, 0.7, 1.3, 1.7])]),
-    ]
-
-    for expected_classes, train_specs_list in params_list:
-        models = []
-        for loss_function, class_names, label_set in train_specs_list:
-            features, labels = generate_random_labeled_dataset(
-                n_samples=n_samples,
-                n_features=n_features,
-                labels=label_set
-            )
-            params = {'loss_function': loss_function, 'iterations': 5}
-            if class_names:
-                params['class_names'] = class_names
-            model = CatBoost(params)
-            model.fit(features, labels)
-            models.append(model)
-
-        if expected_classes is False:
-            with pytest.raises(CatBoostError):
-                sum_models(models)
-        else:
-            model_sum = sum_models(models)
-            assert np.all(model_sum.classes_ == expected_classes)
 
 
 def test_tree_depth_pairwise(task_type):
@@ -6688,3 +6661,34 @@ def test_staged_log_proba():
         assert np.allclose(log_pred_1, np.log(pred))
         assert np.allclose(log_pred_1, log_pred_2)
         assert np.allclose(log_pred_1, log_pred_2)
+
+
+def test_shap_assert():
+    model_path = test_output_path('model.json')
+    pool = Pool([[0, ], [1, ], ], [0, 1])
+    model = train(pool, {'iterations': 1, 'task_type': 'CPU', 'devices': '0'})
+    model.save_model(model_path, format='json')
+
+    json_model = json.load(open(model_path))
+    json_model['scale_and_bias'] = [1, 1]
+    json.dump(json_model, open(model_path, 'w'))
+    model = CatBoost().load_model(model_path, format='json')
+    shap_values = model.get_feature_importance(type='ShapValues', data=pool)
+    predictions = model.predict(pool)
+    assert(len(predictions) == len(shap_values))
+    for i, pred_idx in enumerate(range(len(predictions))):
+        assert(abs(sum(shap_values[pred_idx]) - predictions[pred_idx]) < 1e-9), (sum(shap_values[pred_idx]) - predictions[pred_idx])
+
+    json_model['oblivious_trees'] = [{
+        'leaf_values': [1, 2],
+        'leaf_weights': [1, 0],
+        'splits': [{'border': 0.5, 'float_feature_index': 1, 'split_index': 0, 'split_type': 'FloatFeature'}]
+    }]
+    json_model['features_info'] = {
+        'float_features': [{'borders': [0.5], 'feature_index': 0, 'flat_feature_index': 0, 'has_nans': False, 'nan_value_treatment': 'AsIs'}]
+    }
+
+    json.dump(json_model, open(model_path, 'w'))
+    model = CatBoost().load_model(model_path, format='json')
+    with pytest.raises(CatBoostError):
+        model.get_feature_importance(type='ShapValues', data=pool)

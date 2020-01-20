@@ -37,6 +37,10 @@ bool NCatboostOptions::TryGetModelTypeFromExtension(const TStringBuf modelExtens
         modelType = EModelType::Cpp;
     } else if (modelExtension == "py") {
         modelType = EModelType::Python;
+    } else if (modelExtension == "onnx") {
+        modelType = EModelType::Onnx;
+    } else if (modelExtension == "pmml") {
+        modelType = EModelType::Pmml;
     } else if (modelExtension == "cbsnapshot") {
         modelType = EModelType::CPUSnapshot;
     } else {

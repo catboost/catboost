@@ -622,7 +622,7 @@ static void SaveModel(
         }
 
         *modelPtr->ModelTrees.GetMutable() = std::move(modelTrees);
-        modelPtr->ModelTrees.GetMutable()->AddNumberToAllTreeLeafValues(0, ctx.LearnProgress->StartingApprox.GetOrElse(0));
+        modelPtr->SetScaleAndBias({1, ctx.LearnProgress->StartingApprox.GetOrElse(0)});
 
         modelPtr->UpdateDynamicData();
         coreModelToFullModelConverter.WithCoreModelFrom(modelPtr);

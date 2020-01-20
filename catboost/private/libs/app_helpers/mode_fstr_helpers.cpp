@@ -109,7 +109,7 @@ void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
     TFsPath inputPath(params.InputPath.Path);
     auto fstrType = GetFeatureImportanceType(model, /*haveDataset*/true, params.FstrType);
     if (fstrType != EFstrType::PredictionValuesChange) {
-        CB_ENSURE_IDENTITY(model.GetScaleAndBias(), "model fstr");
+        CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "model fstr");
     }
     switch (fstrType) {
         case EFstrType::PredictionValuesChange:

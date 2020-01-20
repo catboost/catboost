@@ -802,6 +802,10 @@ cdef extern from "catboost/libs/model/ctr_provider.h":
     cdef cppclass ECtrTableMergePolicy:
         pass
 
+cdef extern from "catboost/libs/model/scale_and_bias.h":
+    cdef cppclass TScaleAndBias:
+        double Scale
+        double Bias
 
 cdef extern from "catboost/libs/model/model.h":
     cdef cppclass TFeaturePosition:
@@ -832,6 +836,7 @@ cdef extern from "catboost/libs/model/model.h":
         void SetLeafValues(const TVector[double]& leafValues) except +ProcessException
         void DropUnusedFeatures() except +ProcessException
         TVector[ui32] GetTreeLeafCounts() except +ProcessException
+
         void ConvertObliviousToAsymmetric() except +ProcessException
 
     cdef cppclass TCOWTreeWrapper:
@@ -853,6 +858,8 @@ cdef extern from "catboost/libs/model/model.h":
         bool_t IsOblivious() except +ProcessException
         TString GetLossFunctionName() except +ProcessException
         TVector[TString] GetModelClassNames() except +ProcessException
+        TScaleAndBias GetScaleAndBias() except +ProcessException
+        void SetScaleAndBias(const TScaleAndBias&) except +ProcessException
 
     cdef cppclass EModelType:
         pass
@@ -4149,6 +4156,16 @@ cdef class _CatBoost:
 
     cpdef _base_shrink(self, int ntree_start, int ntree_end):
         self.__model.Truncate(ntree_start, ntree_end)
+
+    cpdef _get_scale_and_bias(self):
+        cdef TScaleAndBias scale_and_bias = dereference(self.__model).GetScaleAndBias()
+        return scale_and_bias.Scale, scale_and_bias.Bias
+
+    cpdef _set_scale_and_bias(self, scale, bias):
+        cdef TScaleAndBias scale_and_bias
+        scale_and_bias.Scale = scale
+        scale_and_bias.Bias = bias
+        dereference(self.__model).SetScaleAndBias(scale_and_bias)
 
     cpdef _is_oblivious(self):
         return self.__model.IsOblivious()
