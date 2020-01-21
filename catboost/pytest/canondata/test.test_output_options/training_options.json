@@ -14,7 +14,7 @@
         },
         "boost_from_average" : false,
         "permutation_count" : 4,
-        "learning_rate" : 0.4402559996
+        "learning_rate" : 0.133344993
     },
     "metrics" : {
         "objective_metric" : {

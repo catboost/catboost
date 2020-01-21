@@ -25,7 +25,7 @@
     "leaf_estimation_backtracking": "AnyImprovement", 
     "leaf_estimation_iterations": 1, 
     "leaf_estimation_method": "Newton", 
-    "learning_rate": 0.02999999933, 
+    "learning_rate": 0.5, 
     "loss_function": "RMSE", 
     "max_ctr_complexity": 1, 
     "model_shrink_rate": 0, 

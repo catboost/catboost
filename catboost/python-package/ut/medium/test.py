@@ -3463,8 +3463,8 @@ def test_metric_period_redefinition(task_type):
     with LogStdout(open(tmpfile2, 'w')):
         model.fit(pool, metric_period=2)
 
-    assert(_count_lines(tmpfile1) == 4)
-    assert(_count_lines(tmpfile2) == 6)
+    assert(_count_lines(tmpfile1) == 5)
+    assert(_count_lines(tmpfile2) == 7)
 
 
 def test_verbose_redefinition(task_type):
@@ -3479,7 +3479,7 @@ def test_verbose_redefinition(task_type):
         model.fit(pool, verbose=True)
 
     assert(_count_lines(tmpfile1) == 0)
-    assert(_count_lines(tmpfile2) == 10)
+    assert(_count_lines(tmpfile2) == 11)
 
 
 class TestInvalidCustomLossAndMetric(object):
@@ -3613,7 +3613,7 @@ def test_silent():
         model.fit(pool, silent=True)
 
     assert(_count_lines(tmpfile1) == 0)
-    assert(_count_lines(tmpfile2) == 10)
+    assert(_count_lines(tmpfile2) == 11)
     assert(_count_lines(tmpfile3) == 0)
     assert(_count_lines(tmpfile4) == 0)
     assert(_count_lines(tmpfile5) == 0)
@@ -5404,7 +5404,7 @@ def test_metric_period_with_verbose_true():
     with LogStdout(open(tmpfile, 'w')):
         model.fit(pool, verbose=True)
 
-    assert(_count_lines(tmpfile) == 5)
+    assert(_count_lines(tmpfile) == 6)
 
 
 def test_eval_features_with_file_header():
