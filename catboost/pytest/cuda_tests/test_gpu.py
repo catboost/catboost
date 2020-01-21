@@ -2957,20 +2957,18 @@ def test_metric_description(dataset_has_weights):
     custom_metric_loss = 'Precision'
     custom_metric = 'Precision'
 
-    cmd = (
-        CATBOOST_PATH,
-        'fit',
-        '--loss-function', 'Logloss',
-        '-f', train_pool_filename,
-        '-t', test_pool_filename,
-        '--cd', pool_cd_filename,
-        '-i', '10',
-        '--learn-err-log', learn_error_path,
-        '--test-err-log', test_error_path,
-        '--eval-metric', eval_metric,
-        '--custom-metric', custom_metric
-    )
-    yatest.common.execute(cmd)
+    params = {
+        '--loss-function': 'Logloss',
+        '-f': train_pool_filename,
+        '-t': test_pool_filename,
+        '--cd': pool_cd_filename,
+        '-i': '10',
+        '--learn-err-log': learn_error_path,
+        '--test-err-log': test_error_path,
+        '--eval-metric': eval_metric,
+        '--custom-metric': custom_metric
+    }
+    fit_catboost_gpu(params)
     for filename in [learn_error_path, test_error_path]:
         with open(filename, 'r') as f:
             metrics_descriptions = f.readline().split('\t')[1:]  # without 'iter' column

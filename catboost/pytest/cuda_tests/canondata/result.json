@@ -2827,21 +2827,21 @@
     ],
     "test_gpu.test_metric_description[dataset_has_weights=False]": [
         {
-            "checksum": "2bf06ef7b3f5414abf7209381e0864ad",
+            "checksum": "fec6348d49a8db1f6ab32adae9b9295d",
             "uri": "file://test_gpu.test_metric_description_dataset_has_weights=False_/learn_error.tsv"
         },
         {
-            "checksum": "d423117b98bff3e0a27abaf0e0d3360b",
+            "checksum": "db26867311b8ed79c42e819166327f68",
             "uri": "file://test_gpu.test_metric_description_dataset_has_weights=False_/test_error.tsv"
         }
     ],
     "test_gpu.test_metric_description[dataset_has_weights=True]": [
         {
-            "checksum": "834c56f9bbef85472fbf0ea7ee10e6e4",
+            "checksum": "df7065a7347d249f12f60d9ac13123ea",
             "uri": "file://test_gpu.test_metric_description_dataset_has_weights=True_/learn_error.tsv"
         },
         {
-            "checksum": "f9229bd6cc7cfaf44dff1967bc7bd6c5",
+            "checksum": "2677d6bf75efe41b67255813422bcbb2",
             "uri": "file://test_gpu.test_metric_description_dataset_has_weights=True_/test_error.tsv"
         }
     ],
