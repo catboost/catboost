@@ -329,6 +329,7 @@ def do_link_exe(args):
     if args.extldflags is not None:
         filter_musl = None
         if args.musl:
+            cmd.append('-linkmode=external')
             extldflags.append('-static')
             filter_musl = lambda x: not x in ('-lc', '-ldl', '-lm', '-lpthread', '-lrt')
         extldflags += list(filter(filter_musl, args.extldflags))
