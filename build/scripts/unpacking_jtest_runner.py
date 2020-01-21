@@ -18,6 +18,7 @@ def parse_args():
     parser.add_option('--trace-file')
     parser.add_option('--jar-binary')
     parser.add_option('--tests-jar-path')
+    parser.add_option('--classpath-option-type', choices=('manifest', 'command_file', 'list'), default='manifest')
     return parser.parse_args()
 
 
@@ -82,6 +83,11 @@ def make_bfg_from_cp(class_path, out):
             zf.writestr('META-INF/MANIFEST.MF', 'Manifest-Version: 1.0\nClass-Path: \n ' + '\n '.join(lines) + ' \n\n')
 
 
+def make_command_file_from_cp(class_path, out):
+    with open(out, 'w') as cp_file:
+        cp_file.write(os.pathsep.join(class_path))
+
+
 def main():
     opts, args = parse_args()
 
@@ -114,8 +120,17 @@ def main():
             class_path = [os.path.join(build_root, i.strip()) for i in origin]
         if opts.tests_jar_path in class_path:
             class_path.remove(opts.tests_jar_path)
-        make_bfg_from_cp(class_path, mf)
-        mf = os.pathsep.join([dest, mf])
+        if opts.classpath_option_type == 'manifest':
+            make_bfg_from_cp(class_path, mf)
+            mf = os.pathsep.join([dest, mf])
+        elif opts.classpath_option_type == 'command_file':
+            mf = os.path.splitext(mf)[0] + '.txt'
+            make_command_file_from_cp([dest] + class_path, mf)
+            mf = "@" + mf
+        elif opts.classpath_option_type == 'list':
+            mf = os.pathsep.join([dest] + class_path)
+        else:
+            raise Exception("Unexpected classpath option type: " + opts.classpath_option_type)
         args = fix_cmd(args[:cp_idx + 1]) + [mf] + args[cp_idx + 2:]
     else:
         args[cp_idx + 1] = args[cp_idx + 1].replace(opts.tests_jar_path, dest)
