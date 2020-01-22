@@ -39,4 +39,8 @@ SRCS(
     utf8_util.c
 )
 
+CFLAGS(
+    -DBROTLI_BUILD_PORTABLE
+)
+
 END()
