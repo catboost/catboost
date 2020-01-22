@@ -1838,6 +1838,17 @@ def test_ntree_limit(task_type):
     return local_canonical_file(preds_path)
 
 
+def test_ntree_invalid_range():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=100, learning_rate=0.03)
+    model.fit(train_pool)
+    with pytest.raises(CatBoostError):
+        model.predict_proba(test_pool, ntree_end=10000000)
+        model.predict_proba(test_pool, ntree_start=10000000)
+        model.predict_proba(test_pool, ntree_start=20, ntree_end=10)
+
+
 def test_staged_predict(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
