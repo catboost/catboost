@@ -46,17 +46,9 @@ def copytree(src, dst, symlinks=False, ignore=None):
 
 
 def get_unique_file_path(dir_path, file_pattern):
-    def atomic_file_create(path):
-        try:
-            fd = os.open(path, os.O_CREAT | os.O_EXCL)
-            os.close(fd)
-            return True
-        except OSError:
-            return False
-
     file_path = os.path.join(dir_path, file_pattern)
     file_counter = 0
-    while not atomic_file_create(file_path):
+    while os.path.exists(file_path):
         file_path = os.path.join(dir_path, file_pattern + ".{}".format(file_counter))
         file_counter += 1
     return file_path
