@@ -448,7 +448,6 @@
     - google/protobuf/descriptor.h
     - google/protobuf/descriptor.pb.h
     - gperftools/malloc_extension.h
-    - h3api.h
     - hdfs/hdfs.h
     - hs.h
     - hs/hs.h
