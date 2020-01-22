@@ -41,7 +41,7 @@ def onrun_java_program(unit, *args):
     depends = kv.get('CLASSPATH', []) + kv.get('JAR', [])
     if depends:
         # XXX: hack to force ymake to build dependencies
-        unit.on_run_java(['TOOL'] + depends + ["OUT", "fake.out.{}".format(hash(tuple(depends)))])
+        unit.on_run_java(['TOOL'] + depends + ["OUT", "fake.out.{}".format(hash(tuple(args)))])
 
     if not kv.get('CP_USE_COMMAND_FILE'):
        args += ['CP_USE_COMMAND_FILE', unit.get(['JAVA_PROGRAM_CP_USE_COMMAND_FILE']) or 'yes']
