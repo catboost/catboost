@@ -21,7 +21,7 @@ correctness_test:
   script:
     - cd catboost/pytest
 #    - python test.py
-    - nice -19 ../../ya make -t -A
+    - nice -19 ../../ya make -DHAVE_CUDA=no -t -A --test-disable-timeout
   dependencies:
     - build
 
