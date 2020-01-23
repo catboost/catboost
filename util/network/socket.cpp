@@ -11,6 +11,7 @@
 #include <netdb.h>
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/un.h>
 #include <sys/ioctl.h>
 #include <netinet/in.h>
 #include <netinet/tcp.h>
@@ -976,9 +977,38 @@ namespace {
 }
 
 class TNetworkAddress::TImpl: public TAtomicRefCount<TImpl> {
+private:
+    class TAddrInfoDeleter {
+    public:
+        TAddrInfoDeleter(bool useFreeAddrInfo = true)
+            : UseFreeAddrInfo_(useFreeAddrInfo)
+        {}
+
+        void operator()(struct addrinfo* ai) noexcept {
+            if (!UseFreeAddrInfo_ && ai != NULL) {
+                if (ai->ai_addr != NULL) {
+                    delete ai->ai_addr;
+                }
+
+                struct addrinfo *p;
+                while (ai != NULL) {
+                    p = ai;
+                    ai = ai->ai_next;
+                    delete p->ai_canonname;
+                    delete p;
+                }
+            } else if (ai != NULL) {
+                freeaddrinfo(ai);
+            }
+        }
+
+    private:
+        bool UseFreeAddrInfo_ = true;
+    };
+
 public:
     inline TImpl(const char* host, ui16 port, int flags)
-        : Info_(nullptr)
+        : Info_(nullptr, TAddrInfoDeleter{})
     {
         const TString port_st(ToString(port));
         struct addrinfo hints;
@@ -997,33 +1027,52 @@ public:
             }
         }
 
-        const int error = getaddrinfo(host, port_st.data(), &hints, &Info_);
+        struct addrinfo* pai = NULL;
+        const int error = getaddrinfo(host, port_st.data(), &hints, &pai);
 
         if (error) {
-            Clear();
+            TAddrInfoDeleter()(pai);
             ythrow TNetworkResolutionError(error) << ": can not resolve " << host << ":" << port;
         }
+
+        Info_.reset(pai);
     }
 
-    inline ~TImpl() {
-        Clear();
+    inline TImpl(const char* path, int flags)
+        : Info_(nullptr, TAddrInfoDeleter{/* useFreeAddrInfo = */ false})
+    {
+        THolder<struct sockaddr_un> sockAddr = new struct sockaddr_un;
+
+        Y_ENSURE(strlen(path) < sizeof(sockAddr->sun_path), "Unix socket path more than " << sizeof(sockAddr->sun_path));
+        sockAddr->sun_family = AF_UNIX;
+        strcpy(sockAddr->sun_path, path);
+
+        TAddrInfoPtr hints(new struct addrinfo, TAddrInfoDeleter{/* useFreeAddrInfo = */ false});
+        memset(hints.get(), 0, sizeof(*hints));
+
+        hints->ai_flags = flags;
+        hints->ai_family = AF_UNIX;
+        hints->ai_socktype = SOCK_STREAM;
+        hints->ai_addrlen = sizeof(*sockAddr);
+        hints->ai_addr = (struct sockaddr*)sockAddr.Release();
+
+        Info_.reset(hints.release());
     }
 
     inline struct addrinfo* Info() const noexcept {
-        return Info_;
+        return Info_.get();
     }
 
 private:
-    void Clear() {
-        if (Info_) {
-            freeaddrinfo(Info_);
-            Info_ = nullptr;
-        }
-    }
+    using TAddrInfoPtr = std::unique_ptr<struct addrinfo, TAddrInfoDeleter>;
 
-private:
-    struct addrinfo* Info_;
+    TAddrInfoPtr Info_;
 };
+
+TNetworkAddress::TNetworkAddress(const TUnixSocketPath& unixSocketPath, int flags)
+    : Impl_(new TImpl(unixSocketPath.Path.data(), flags))
+{
+}
 
 TNetworkAddress::TNetworkAddress(const TString& host, ui16 port, int flags)
     : Impl_(new TImpl(host.data(), port, flags))
