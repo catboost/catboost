@@ -385,6 +385,9 @@ ALLOW .* -> vendor/github.com/siddontang/go-mysql/mysql
 # CONTRIB-1656 golang sftp server library
 ALLOW .* -> vendor/github.com/pkg/sftp
 
+# CONTRIB-1670
+ALLOW .* -> vendor/github.com/soniah/gosnmp
+
 #
 # Temporary exceptions.
 #
