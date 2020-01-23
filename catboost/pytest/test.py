@@ -2429,43 +2429,93 @@ def test_fold_len_multiplier(boosting_type, dev_score_calc_obj_block_size):
 
 
 FSTR_TYPES = ['PredictionValuesChange', 'InternalFeatureImportance', 'InternalInteraction', 'Interaction', 'ShapValues', 'PredictionDiff']
+DATASET_DEPENDENT_FSTR_TYPES = ['PredictionValuesChange', 'LossFunctionChange', 'ShapValues', 'PredictionDiff']
 
 
 @pytest.mark.parametrize('fstr_type', FSTR_TYPES)
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 def test_fstr(fstr_type, boosting_type):
-    return do_test_fstr(fstr_type, boosting_type, normalize=False)
+    pool = 'adult' if fstr_type != 'PredictionDiff' else 'higgs'
+
+    return do_test_fstr(
+        fstr_type,
+        loss_function='Logloss',
+        input_path=data_file(pool, 'train_small'),
+        cd_path=data_file(pool, 'train.cd'),
+        boosting_type=boosting_type,
+        normalize=False,
+        additional_train_params=(('--max-ctr-complexity', '1') if fstr_type == 'ShapValues' else ())
+    )
 
 
 @pytest.mark.parametrize('fstr_type', FSTR_TYPES)
 def test_fstr_normalized_model(fstr_type):
-    return do_test_fstr(fstr_type, 'Plain', normalize=True)
+    pool = 'adult' if fstr_type != 'PredictionDiff' else 'higgs'
+
+    return do_test_fstr(
+        fstr_type,
+        loss_function='Logloss',
+        input_path=data_file(pool, 'train_small'),
+        cd_path=data_file(pool, 'train.cd'),
+        boosting_type='Plain',
+        normalize=True,
+        additional_train_params=(('--max-ctr-complexity', '1') if fstr_type == 'ShapValues' else ())
+    )
 
 
-def do_test_fstr(fstr_type, boosting_type, normalize):
+@pytest.mark.parametrize('fstr_type', DATASET_DEPENDENT_FSTR_TYPES)
+def test_fstr_with_weights(fstr_type):
+    return do_test_fstr(
+        fstr_type,
+        loss_function='RMSE',
+        input_path=data_file('querywise', 'train'),
+        cd_path=data_file('querywise', 'train.cd.weight'),
+        boosting_type='Plain',
+        normalize=False
+    )
+
+
+@pytest.mark.parametrize('fstr_type', DATASET_DEPENDENT_FSTR_TYPES)
+def test_fstr_with_class_weights(fstr_type):
+    pool = 'adult' if fstr_type != 'PredictionDiff' else 'higgs'
+
+    return do_test_fstr(
+        fstr_type,
+        loss_function='Logloss',
+        input_path=data_file(pool, 'train_small'),
+        cd_path=data_file(pool, 'train.cd'),
+        boosting_type='Plain',
+        normalize=False,
+        additional_train_params=('--class-weights', '0.25,0.75')
+    )
+
+
+def do_test_fstr(
+    fstr_type,
+    loss_function,
+    input_path,
+    cd_path,
+    boosting_type,
+    normalize,
+    additional_train_params=()
+):
     model_path = yatest.common.test_output_path('model.bin')
     output_fstr_path = yatest.common.test_output_path('fstr.tsv')
-    pool = 'adult' if fstr_type != 'PredictionDiff' else 'higgs'
-    input_path = data_file(pool, 'train_small')
 
     cmd = (
         CATBOOST_PATH,
         'fit',
         '--use-best-model', 'false',
-        '--loss-function', 'Logloss',
+        '--loss-function', loss_function,
         '-f', input_path,
-        '--column-description', data_file(pool, 'train.cd'),
+        '--column-description', cd_path,
         '--boosting-type', boosting_type,
         '-i', '10',
         '-w', '0.03',
         '-T', '4',
         '--one-hot-max-size', '10',
         '-m', model_path
-    )
-
-    if fstr_type == 'ShapValues':
-        cmd = cmd + ('--max-ctr-complexity', '1')
-
+    ) + additional_train_params
     yatest.common.execute(cmd)
 
     if fstr_type == 'PredictionDiff':
@@ -2480,7 +2530,7 @@ def do_test_fstr(fstr_type, boosting_type, normalize):
         CATBOOST_PATH,
         'fstr',
         '--input-path', input_path,
-        '--column-description', data_file(pool, 'train.cd'),
+        '--column-description', cd_path,
         '-m', model_path,
         '-o', output_fstr_path,
         '--fstr-type', fstr_type

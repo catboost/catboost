@@ -3651,6 +3651,38 @@
         "checksum": "bc93cf3b9ab272c93cff69a1d1b915dc",
         "uri": "file://test.test_fstr_normalized_model_PredictionValuesChange_/fstr.tsv"
     },
+    "test.test_fstr_with_class_weights[LossFunctionChange]": {
+        "checksum": "11eb25f0838991c7575583a5866ffad5",
+        "uri": "file://test.test_fstr_with_class_weights_LossFunctionChange_/fstr.tsv"
+    },
+    "test.test_fstr_with_class_weights[PredictionDiff]": {
+        "checksum": "5c1216f74c48b0abc3fd2af1ec0f7741",
+        "uri": "file://test.test_fstr_with_class_weights_PredictionDiff_/fstr.tsv"
+    },
+    "test.test_fstr_with_class_weights[PredictionValuesChange]": {
+        "checksum": "e86ddd3484de1c20884c3897633f5fc9",
+        "uri": "file://test.test_fstr_with_class_weights_PredictionValuesChange_/fstr.tsv"
+    },
+    "test.test_fstr_with_class_weights[ShapValues]": {
+        "checksum": "cc99f000a296b4887f684a271827c8f5",
+        "uri": "file://test.test_fstr_with_class_weights_ShapValues_/fstr.tsv"
+    },
+    "test.test_fstr_with_weights[LossFunctionChange]": {
+        "checksum": "e5c5d34c30483565d90518c2857df6d8",
+        "uri": "file://test.test_fstr_with_weights_LossFunctionChange_/fstr.tsv"
+    },
+    "test.test_fstr_with_weights[PredictionDiff]": {
+        "checksum": "3ce0723249f952e79c41b684cd7fd063",
+        "uri": "file://test.test_fstr_with_weights_PredictionDiff_/fstr.tsv"
+    },
+    "test.test_fstr_with_weights[PredictionValuesChange]": {
+        "checksum": "b18c658d3ebc65523eb291e9eab667c5",
+        "uri": "file://test.test_fstr_with_weights_PredictionValuesChange_/fstr.tsv"
+    },
+    "test.test_fstr_with_weights[ShapValues]": {
+        "checksum": "1a2f39e09a59d33d40d7dd12c9ee001e",
+        "uri": "file://test.test_fstr_with_weights_ShapValues_/fstr.tsv"
+    },
     "test.test_gradient[calc_block=5000000-Ordered]": [
         {
             "checksum": "9414df1a8d4199f50c25c50b16a7d31a",
