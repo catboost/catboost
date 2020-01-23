@@ -791,6 +791,16 @@
             "uri": "file://test.test_roc_cv_CPU_/out_roc"
         }
     ],
+    "test.test_roc_with_target_border": [
+        {
+            "checksum": "74ac3d856de9470257005d7110116a18",
+            "uri": "file://test.test_roc_with_target_border/roc"
+        },
+        {
+            "checksum": "9eba9031a349f2ac142ec756539d230e",
+            "uri": "file://test.test_roc_with_target_border/bounds"
+        }
+    ],
     "test.test_save_border_file": [
         {
             "checksum": "11ab61f1e6197b9ce43f3e9642237631",

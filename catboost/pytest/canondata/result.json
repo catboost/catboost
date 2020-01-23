@@ -3455,6 +3455,24 @@
             "uri": "file://test.test_eval_metrics_with_baseline_Accuracy-2_/output.tsv"
         }
     ],
+    "test.test_eval_metrics_with_class_weights": [
+        {
+            "checksum": "a672ec7ace737c0291052d3d896c143f",
+            "uri": "file://test.test_eval_metrics_with_class_weights/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_with_target_border": [
+        {
+            "checksum": "ae948f3bd088dfb32b744906110a5d1c",
+            "uri": "file://test.test_eval_metrics_with_target_border/output.tsv"
+        }
+    ],
+    "test.test_eval_metrics_with_target_border_and_class_weights": [
+        {
+            "checksum": "a672ec7ace737c0291052d3d896c143f",
+            "uri": "file://test.test_eval_metrics_with_target_border_and_class_weights/output.tsv"
+        }
+    ],
     "test.test_eval_non_additive_metric[1]": [
         {
             "checksum": "9badbe4c3dbdea0eaf110b3c021f32e3",
@@ -3666,6 +3684,38 @@
     "test.test_fstr_with_class_weights[ShapValues]": {
         "checksum": "cc99f000a296b4887f684a271827c8f5",
         "uri": "file://test.test_fstr_with_class_weights_ShapValues_/fstr.tsv"
+    },
+    "test.test_fstr_with_target_border[LossFunctionChange]": {
+        "checksum": "4bc332eca87ddd4524c45efb5c79cf19",
+        "uri": "file://test.test_fstr_with_target_border_LossFunctionChange_/fstr.tsv"
+    },
+    "test.test_fstr_with_target_border[PredictionDiff]": {
+        "checksum": "e59c1b47ce24baaba54851dbb2bd7521",
+        "uri": "file://test.test_fstr_with_target_border_PredictionDiff_/fstr.tsv"
+    },
+    "test.test_fstr_with_target_border[PredictionValuesChange]": {
+        "checksum": "bc93cf3b9ab272c93cff69a1d1b915dc",
+        "uri": "file://test.test_fstr_with_target_border_PredictionValuesChange_/fstr.tsv"
+    },
+    "test.test_fstr_with_target_border[ShapValues]": {
+        "checksum": "603d799ab3cb56a0c62be65145c7e65a",
+        "uri": "file://test.test_fstr_with_target_border_ShapValues_/fstr.tsv"
+    },
+    "test.test_fstr_with_target_border_and_class_weights[LossFunctionChange]": {
+        "checksum": "11eb25f0838991c7575583a5866ffad5",
+        "uri": "file://test.test_fstr_with_target_border_and_class_weights_LossFunctionChange_/fstr.tsv"
+    },
+    "test.test_fstr_with_target_border_and_class_weights[PredictionDiff]": {
+        "checksum": "470fd72690a59e7aa04b5695af823650",
+        "uri": "file://test.test_fstr_with_target_border_and_class_weights_PredictionDiff_/fstr.tsv"
+    },
+    "test.test_fstr_with_target_border_and_class_weights[PredictionValuesChange]": {
+        "checksum": "e86ddd3484de1c20884c3897633f5fc9",
+        "uri": "file://test.test_fstr_with_target_border_and_class_weights_PredictionValuesChange_/fstr.tsv"
+    },
+    "test.test_fstr_with_target_border_and_class_weights[ShapValues]": {
+        "checksum": "cc99f000a296b4887f684a271827c8f5",
+        "uri": "file://test.test_fstr_with_target_border_and_class_weights_ShapValues_/fstr.tsv"
     },
     "test.test_fstr_with_weights[LossFunctionChange]": {
         "checksum": "e5c5d34c30483565d90518c2857df6d8",
@@ -5589,6 +5639,24 @@
         {
             "checksum": "feb2aa92067d414e6cbef6c5800ed1db",
             "uri": "file://test.test_object_importances_2-RMSE_/object_importances.tsv"
+        }
+    ],
+    "test.test_object_importances_with_class_weights": [
+        {
+            "checksum": "e45b120e09ea5d18d4f08b4e983ba0ad",
+            "uri": "file://test.test_object_importances_with_class_weights/object_importances.tsv"
+        }
+    ],
+    "test.test_object_importances_with_target_border": [
+        {
+            "checksum": "6e54f95d76c1b2056ef23d965091e798",
+            "uri": "file://test.test_object_importances_with_target_border/object_importances.tsv"
+        }
+    ],
+    "test.test_object_importances_with_target_border_and_class_weights": [
+        {
+            "checksum": "e45b120e09ea5d18d4f08b4e983ba0ad",
+            "uri": "file://test.test_object_importances_with_target_border_and_class_weights/object_importances.tsv"
         }
     ],
     "test.test_one_hot[calc_block=5000000-Ordered]": [

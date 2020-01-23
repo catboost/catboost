@@ -4148,13 +4148,12 @@ def non_decreasing(sequence):
     return True
 
 
-# different iteration parameters needed to check less and more accurate models
 @pytest.mark.parametrize('iterations', [5, 20, 110], ids=['iterations=5', 'iterations=20', 'iterations=110'])
-def test_roc(task_type, iterations):
-    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+def do_test_roc(task_type, pool, iterations, additional_train_params={}):
+    train_pool = Pool(data_file(pool, 'train_small'), column_description=data_file(pool, 'train.cd'))
+    test_pool = Pool(data_file(pool, 'test_small'), column_description=data_file(pool, 'train.cd'))
 
-    model = CatBoostClassifier(loss_function='Logloss', iterations=iterations)
+    model = CatBoostClassifier(loss_function='Logloss', iterations=iterations, **additional_train_params)
     model.fit(train_pool)
 
     curve = get_roc_curve(model, test_pool, thread_count=4)
@@ -4196,6 +4195,20 @@ def test_roc(task_type, iterations):
         local_canonical_file(out_roc),
         local_canonical_file(out_bounds)
     ]
+
+# different iteration parameters needed to check less and more accurate models
+@pytest.mark.parametrize('iterations', [5, 20, 110], ids=['iterations=5', 'iterations=20', 'iterations=110'])
+def test_roc(task_type, iterations):
+    return do_test_roc(task_type, pool='adult', iterations=iterations)
+
+
+def test_roc_with_target_border():
+    return do_test_roc(
+        task_type='CPU',
+        pool='adult_not_binarized',
+        iterations=20,
+        additional_train_params={'target_border': 0.4}
+    )
 
 
 def test_roc_cv(task_type):
