@@ -3,11 +3,13 @@
 #include "gradient_walker.h"
 
 #include <catboost/libs/helpers/matrix.h>
+#include <catboost/libs/helpers/restorable_rng.h>
 
 #include <catboost/private/libs/algo_helpers/approx_calcer_helpers.h>
 #include <catboost/private/libs/algo_helpers/approx_calcer_multi_helpers.h>
 #include <catboost/private/libs/algo_helpers/approx_updater_helpers.h>
 #include <catboost/private/libs/algo_helpers/error_functions.h>
+#include <catboost/private/libs/algo_helpers/langevin_utils.h>
 #include <catboost/private/libs/algo_helpers/leaf_statistics.h>
 #include <catboost/private/libs/algo_helpers/online_predictor.h>
 #include <catboost/private/libs/options/catboost_options.h>
@@ -17,7 +19,7 @@
 
 template <typename TStep>
 void CalcLeafValuesMulti(
-    const NCatboostOptions::TObliviousTreeLearnerOptions& learnerOptions,
+    const NCatboostOptions::TCatBoostOptions& params,
     bool isLeafwise,
     int leafCount,
     const IDerCalcer& error,
@@ -30,12 +32,14 @@ void CalcLeafValuesMulti(
     int learnSampleCount,
     int objectsInLeafCount,
     NCatboostOptions::TLossDescription metricDescriptions,
+    TRestorableFastRng64* rng,
     NPar::TLocalExecutor* localExecutor,
     TVector<TStep>* sumLeafDeltas,
     TVector<TVector<double>>* approx
 ) {
     CB_ENSURE(!error.GetIsExpApprox(), "Multi-class does not support exponentiated approxes");
 
+    const auto& learnerOptions = params.ObliviousTreeOptions.Get();
     int gradientIterations = learnerOptions.LeavesEstimationIterations;
     ELeavesEstimation estimationMethod = learnerOptions.LeavesEstimationMethod;
     float l2Regularizer = learnerOptions.L2Reg;
@@ -73,6 +77,16 @@ void CalcLeafValuesMulti(
             localExecutor,
             &leafDers
         );
+
+        if (params.BoostingOptions->DiffusionTemperature > 0.0f) {
+            AddLangevinNoiseToLeafDerivativesSum(
+                params.BoostingOptions->DiffusionTemperature,
+                params.BoostingOptions->LearningRate,
+                ScaleL2Reg(l2Regularizer, sumWeight, learnSampleCount),
+                rng->GenRand(),
+                &leafDers
+            );
+        }
 
         CalcLeafDeltasMulti(
             leafDers,

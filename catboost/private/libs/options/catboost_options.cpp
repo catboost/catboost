@@ -613,6 +613,10 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
     if (leavesEstimation == ELeavesEstimation::Newton) {
         EnsureNewtonIsAvailable(GetTaskType(), LossFunctionDescription);
     }
+
+    if (BoostingOptions->DiffusionTemperature.GetUnchecked() > 0.0f) {
+        CB_ENSURE(SystemOptions->IsSingleHost(), "Diffusion temperature is supported in single-host mode only.");
+    }
 }
 
 void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {

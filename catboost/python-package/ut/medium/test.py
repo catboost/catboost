@@ -6779,3 +6779,24 @@ def test_shap_assert():
     model = CatBoost().load_model(model_path, format='json')
     with pytest.raises(CatBoostError):
         model.get_feature_importance(type='ShapValues', data=pool)
+
+
+@pytest.mark.parametrize('shrink_mode', ['Constant', 'Decreasing'])
+@pytest.mark.parametrize('shrink_rate', [0, 0.2])
+@pytest.mark.parametrize('diffusion', [0, 1000])
+def test_diffusion_temperature_with_shrink_mode(shrink_mode, shrink_rate, diffusion):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    params = {
+        'iterations': 50,
+        'learning_rate': 0.03,
+        'model_shrink_mode': shrink_mode,
+        'model_shrink_rate': shrink_rate,
+        'diffusion_temperature': diffusion
+    }
+    model = CatBoostClassifier(**params)
+    model.fit(train_pool)
+    pred = model.predict_proba(test_pool)
+    preds_path = test_output_path(PREDS_PATH)
+    np.save(preds_path, np.array(pred))
+    return local_canonical_file(preds_path)

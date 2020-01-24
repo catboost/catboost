@@ -508,10 +508,26 @@ static void BindBoostingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue*
             (*plainJsonPtr)["od_type"] = ToString(type);
         });
 
-    parser.AddLongOption("model-shrink-rate", "Shrinks model at the start of each iteration. Possible values: [0, 1).")
+    parser.AddLongOption("model-shrink-rate",
+                         "This parameter enables shrinkage of model at the start of each iteration. CPU only."
+                         "For Constant mode shrinkage coefficient is calculated as (1 - model_shrink_rate * learning_rate)."
+                         "For Decreasing mode shrinkage coefficient is calculated as (1 - model_shrink_rate / iteration)."
+                         "Shrinkage coefficient should be in [0, 1).")
         .RequiredArgument("float")
         .Handler1T<float>([plainJsonPtr](float modelShrinkRate) {
             (*plainJsonPtr)["model_shrink_rate"] = modelShrinkRate;
+        });
+
+    parser.AddLongOption("model-shrink-mode", "Mode of shrink coefficient calculation. Possible values: Constant, Decreasing.")
+        .RequiredArgument("ShrinkMode")
+        .Handler1T<EModelShrinkMode>([plainJsonPtr](EModelShrinkMode modelShrinkMode) {
+            (*plainJsonPtr)["model_shrink_mode"] = ToString(modelShrinkMode);
+        });
+
+    parser.AddLongOption("diffusion-temperature", "Langevin dynamics diffusion temperature.")
+        .RequiredArgument("float")
+        .Handler1T<float>([plainJsonPtr](float diffusionTemperature) {
+            (*plainJsonPtr)["diffusion_temperature"] = diffusionTemperature;
         });
 }
 

@@ -3601,10 +3601,19 @@ class CatBoostClassifier(CatBoost):
             - 'Armijo' - reduce the descent step until Armijo condition is satisfied; supported on GPU only
 
     model_shrink_rate : float, [default=0]
-        CPU only.
-        This parameter enables shrinkage of whole model at the start of each iteration.
-        At i-th iteration (if i > 0) model is multiplied by (1 - model_shrink_rate / i).
-        range : [0, 1)
+        This parameter enables shrinkage of model at the start of each iteration. CPU only.
+        For Constant mode shrinkage coefficient is calculated as (1 - model_shrink_rate * learning_rate).
+        For Decreasing mode shrinkage coefficient is calculated as (1 - model_shrink_rate / iteration).
+        Shrinkage coefficient should be in [0, 1).
+
+    model_shrink_mode : string, [default=None]
+        Mode of shrinkage coefficient calculation. CPU only.
+        Possible values:
+            - 'Constant' - Shrinkage coefficient is constant at each iteration.
+            - 'Decreasing' - Shrinkage coefficient decreases at each iteration.
+
+    diffusion_temperature : float, [default=0]
+        Langevin dynamics diffusion temperature. CPU only.
 
     boost_from_average : bool, [default=True for RMSE, False for other losses]
         Enables to initialize approx values by best constant value for specified loss function.
@@ -3722,6 +3731,8 @@ class CatBoostClassifier(CatBoost):
         ctr_history_unit=None,
         monotone_constraints=None,
         model_shrink_rate=None,
+        model_shrink_mode=None,
+        diffusion_temperature=None,
         boost_from_average=None,
         text_features=None,
         dictionaries=None,
@@ -4264,6 +4275,8 @@ class CatBoostRegressor(CatBoost):
         ctr_history_unit=None,
         monotone_constraints=None,
         model_shrink_rate=None,
+        model_shrink_mode=None,
+        diffusion_temperature=None,
         boost_from_average=None
     ):
         params = {}

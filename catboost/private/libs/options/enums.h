@@ -73,6 +73,11 @@ enum class EScoreFunction {
     L2
 };
 
+enum class EModelShrinkMode {
+    Constant,
+    Decreasing
+};
+
 enum class EBootstrapType {
     Poisson,
     Bayesian,

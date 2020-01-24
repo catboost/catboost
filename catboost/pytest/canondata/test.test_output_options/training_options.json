@@ -1,6 +1,7 @@
 {
     "detailed_profile" : false,
     "boosting_options" : {
+        "model_shrink_mode" : "Constant",
         "approx_on_full_history" : false,
         "fold_len_multiplier" : 2,
         "fold_permutation_block" : 0,
@@ -13,6 +14,7 @@
             "stop_pvalue" : 0
         },
         "boost_from_average" : false,
+        "diffusion_temperature" : 0,
         "permutation_count" : 4,
         "learning_rate" : 0.133344993
     },

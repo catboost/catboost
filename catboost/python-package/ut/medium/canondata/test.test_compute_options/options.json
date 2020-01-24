@@ -3,10 +3,12 @@
         "approx_on_full_history": false, 
         "boost_from_average": true, 
         "boosting_type": "Plain", 
+        "diffusion_temperature": 0, 
         "fold_len_multiplier": 2, 
         "fold_permutation_block": 0, 
         "iterations": 1000, 
         "learning_rate": 0.1100239977, 
+        "model_shrink_mode": "Constant", 
         "model_shrink_rate": 0, 
         "od_config": {
             "stop_pvalue": 0, 

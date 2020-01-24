@@ -166,6 +166,7 @@ void CalcApproxesLeafwise(
             error,
             ctx->Params,
             &(statistics[leafIdx]),
+            &ctx->LearnProgress->Rand,
             ctx->LocalExecutor,
             weightedDers
         );
@@ -199,7 +200,10 @@ void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnCont
     const double modelShrinkRate = ctx->Params.BoostingOptions->ModelShrinkRate.Get();
     if (modelShrinkRate > 0) {
         if (iterationIndex > 0) {
-            const double modelShrinkage = 1 - modelShrinkRate / static_cast<double>(iterationIndex);
+            const double modelShrinkage =
+                ctx->Params.BoostingOptions->ModelShrinkMode == EModelShrinkMode::Constant
+                ? (1 - modelShrinkRate * ctx->Params.BoostingOptions->LearningRate)
+                : (1 - modelShrinkRate / static_cast<double>(iterationIndex));
             ScaleAllApproxes(
                 modelShrinkage,
                 error->GetIsExpApprox(),

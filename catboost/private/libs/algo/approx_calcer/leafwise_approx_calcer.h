@@ -7,11 +7,13 @@
 #include <util/generic/array_ref.h>
 
 class IDerCalcer;
+struct TRestorableFastRng64;
 
 void CalcLeafValues(
     const IDerCalcer& error,
     const NCatboostOptions::TCatBoostOptions& params,
     TLeafStatistics* statistics,
+    TRestorableFastRng64* rng,
     NPar::TLocalExecutor* localExecutor,
     TArrayRef<TDers> weightedDers = {});
 

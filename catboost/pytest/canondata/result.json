@@ -1409,6 +1409,12 @@
             "uri": "file://test.test_different_border_count_64_/test.eval"
         }
     ],
+    "test.test_diffusion_temperature": [
+        {
+            "checksum": "7cc9b41029527386532d2a7968678488",
+            "uri": "file://test.test_diffusion_temperature/test.eval"
+        }
+    ],
     "test.test_dist_train[calc_block=5000000]": [
         {
             "checksum": "156225df3d5a802a3e74c398a8effcc6",
@@ -4957,6 +4963,24 @@
         "checksum": "45cfbd407a05680880d5e043bc75a7b0",
         "uri": "file://test.test_mode_roc/test.eval"
     },
+    "test.test_model_shrink_correct[config0]": [
+        {
+            "checksum": "049f4f3d66dd329126ae0b4d7111d43b",
+            "uri": "file://test.test_model_shrink_correct_config0_/test.eval"
+        }
+    ],
+    "test.test_model_shrink_correct[config1]": [
+        {
+            "checksum": "aca4c3067eed646f280537235b9b5cf7",
+            "uri": "file://test.test_model_shrink_correct_config1_/test.eval"
+        }
+    ],
+    "test.test_model_shrink_correct[config2]": [
+        {
+            "checksum": "be9d11d0d066173380808342be22cffd",
+            "uri": "file://test.test_model_shrink_correct_config2_/test.eval"
+        }
+    ],
     "test.test_multi_leaf_estimation_method[calc_block=5000000-Ordered-Gradient]": [
         {
             "checksum": "690e2ec313be07c33383fe13712d1448",
@@ -5712,7 +5736,7 @@
         "uri": "file://test.test_output_columns_format/test.eval"
     },
     "test.test_output_options": {
-        "checksum": "be558c4bd37d24f97d9e5db14b5384cd",
+        "checksum": "b4ec16d867d93a7f6371fb3faffdff84",
         "uri": "file://test.test_output_options/training_options.json"
     },
     "test.test_overfit_detector_inc_to_dec[Ordered]": [

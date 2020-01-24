@@ -326,6 +326,8 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "boost_from_average", &boostingOptionsRef, &seenKeys);
     CopyOption(plainOptions, "data_partition", &boostingOptionsRef, &seenKeys);
     CopyOption(plainOptions, "model_shrink_rate", &boostingOptionsRef, &seenKeys);
+    CopyOption(plainOptions, "model_shrink_mode", &boostingOptionsRef, &seenKeys);
+    CopyOption(plainOptions, "diffusion_temperature", &boostingOptionsRef, &seenKeys);
 
     auto& odConfig = boostingOptionsRef["od_config"];
     odConfig.SetType(NJson::JSON_MAP);
@@ -585,6 +587,12 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
         CopyOption(boostingOptionsRef, "model_shrink_rate", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyBoosting, "model_shrink_rate");
+
+        CopyOption(boostingOptionsRef, "model_shrink_mode", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyBoosting, "model_shrink_mode");
+
+        CopyOption(boostingOptionsRef, "diffusion_temperature", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyBoosting, "diffusion_temperature");
 
         if (boostingOptionsRef.Has("od_config")) {
             const auto& odConfig = boostingOptionsRef["od_config"];

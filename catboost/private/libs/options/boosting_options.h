@@ -33,6 +33,8 @@ namespace NCatboostOptions {
         TOption<bool> BoostFromAverage;
         TCpuOnlyOption<bool> ApproxOnFullHistory;
         TCpuOnlyOption<float> ModelShrinkRate;
+        TCpuOnlyOption<EModelShrinkMode> ModelShrinkMode;
+        TCpuOnlyOption<float> DiffusionTemperature;
 
 
         TGpuOnlyOption<ui32> MinFoldSize;

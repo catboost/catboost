@@ -24,7 +24,7 @@
         "uri": "file://test.test_classification_ctr_CPU_/model.bin"
     },
     "test.test_compute_options": {
-        "checksum": "bb77e4646538919aa96c83ad227c0d31",
+        "checksum": "2442a7b03d5be1b378aa0b13e37c4305",
         "uri": "file://test.test_compute_options/options.json"
     },
     "test.test_continue_learning_with_changing_dataset": {
@@ -194,6 +194,38 @@
     "test.test_dataframe_with_pandas_categorical_columns[cat_features_specified=True]": {
         "checksum": "0e6afb4d7dc31c81574b9b22ef332017",
         "uri": "file://test.test_dataframe_with_pandas_categorical_columns_cat_features_specified=True_/predictions.txt"
+    },
+    "test.test_diffusion_temperature_with_shrink_mode[0-0-Constant]": {
+        "checksum": "f651bd158c24c76579f2fdf3a8198bba",
+        "uri": "file://test.test_diffusion_temperature_with_shrink_mode_0-0-Constant_/predictions.npy"
+    },
+    "test.test_diffusion_temperature_with_shrink_mode[0-0-Decreasing]": {
+        "checksum": "f651bd158c24c76579f2fdf3a8198bba",
+        "uri": "file://test.test_diffusion_temperature_with_shrink_mode_0-0-Decreasing_/predictions.npy"
+    },
+    "test.test_diffusion_temperature_with_shrink_mode[0-0.2-Constant]": {
+        "checksum": "d6f7c65bce52119db5d999ac164a8373",
+        "uri": "file://test.test_diffusion_temperature_with_shrink_mode_0-0.2-Constant_/predictions.npy"
+    },
+    "test.test_diffusion_temperature_with_shrink_mode[0-0.2-Decreasing]": {
+        "checksum": "3074f636d46b6f272d9d2a76e628d22b",
+        "uri": "file://test.test_diffusion_temperature_with_shrink_mode_0-0.2-Decreasing_/predictions.npy"
+    },
+    "test.test_diffusion_temperature_with_shrink_mode[1000-0-Constant]": {
+        "checksum": "79c635315e50e78a238ee31c31313ea7",
+        "uri": "file://test.test_diffusion_temperature_with_shrink_mode_1000-0-Constant_/predictions.npy"
+    },
+    "test.test_diffusion_temperature_with_shrink_mode[1000-0-Decreasing]": {
+        "checksum": "79c635315e50e78a238ee31c31313ea7",
+        "uri": "file://test.test_diffusion_temperature_with_shrink_mode_1000-0-Decreasing_/predictions.npy"
+    },
+    "test.test_diffusion_temperature_with_shrink_mode[1000-0.2-Constant]": {
+        "checksum": "e2944468adcef716c0fe1da9596002ba",
+        "uri": "file://test.test_diffusion_temperature_with_shrink_mode_1000-0.2-Constant_/predictions.npy"
+    },
+    "test.test_diffusion_temperature_with_shrink_mode[1000-0.2-Decreasing]": {
+        "checksum": "9b5a8cffdcae701397d46608a59e8111",
+        "uri": "file://test.test_diffusion_temperature_with_shrink_mode_1000-0.2-Decreasing_/predictions.npy"
     },
     "test.test_early_stopping_rounds[CPU]": [
         {
@@ -580,7 +612,7 @@
         "uri": "file://test.test_full_history_CPU_/model.bin"
     },
     "test.test_get_all_params": {
-        "checksum": "a9744d815b737e703d396a4feb37d15e",
+        "checksum": "a0cb3b4f3c49694c607b31b252e5bc88",
         "uri": "file://test.test_get_all_params/options.json"
     },
     "test.test_get_evals_result_without_eval_set": {
@@ -625,7 +657,7 @@
             "uri": "file://test.test_multiclass_classes_count_CPU-missed_classes=False_/predictions.txt"
         },
         {
-            "checksum": "2a77a50495d6aa7a17b04a0541a0291d",
+            "checksum": "6919e9c8fdaffc7faac8751de10fe952",
             "uri": "file://test.test_multiclass_classes_count_CPU-missed_classes=False_/model.bin"
         }
     ],
@@ -635,7 +667,7 @@
             "uri": "file://test.test_multiclass_classes_count_CPU-missed_classes=True_/predictions.txt"
         },
         {
-            "checksum": "574a93c35006c7d8c3461b09f2db0deb",
+            "checksum": "2d485aff39f34d2e135dc97539fe8f17",
             "uri": "file://test.test_multiclass_classes_count_CPU-missed_classes=True_/model.bin"
         }
     ],

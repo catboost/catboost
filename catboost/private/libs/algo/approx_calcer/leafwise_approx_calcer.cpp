@@ -308,6 +308,7 @@ void CalcLeafValues(
     const IDerCalcer& error,
     const NCatboostOptions::TCatBoostOptions& params,
     TLeafStatistics* statistics,
+    TRestorableFastRng64* rng,
     NPar::TLocalExecutor* localExecutor,
     TArrayRef<TDers> weightedDers
 ) {
@@ -331,7 +332,7 @@ void CalcLeafValues(
             localExecutor);
     } else {
         CalcLeafValuesMulti(
-            params.ObliviousTreeOptions.Get(),
+            params,
             /*isLeafwise*/ true,
             /*leafCount*/ 0,
             error,
@@ -344,6 +345,7 @@ void CalcLeafValues(
             statistics->GetLearnObjectsCount(),
             statistics->GetObjectsCountInLeaf(),
             params.MetricOptions->ObjectiveMetric,
+            rng,
             localExecutor,
             statistics->GetLeafValuesRef(),
             statistics->GetApproxRef()

@@ -8347,3 +8347,65 @@ def test_external_feature_names():
     assert filecmp.cmp(fstr_cd_with_id_path, fstr_cd_without_id_path)
 
     return [local_canonical_file(fstr_cd_with_id_path)]
+
+
+def test_diffusion_temperature():
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = [
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--cd', data_file('adult', 'train.cd'),
+        '-i', '50',
+        '-r', '0',
+        '--diffusion-temperature', '1000',
+        '--eval-file', output_eval_path
+    ]
+    yatest.common.execute(cmd)
+    return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize('config', [('Constant', 0.2, 0.1), ('Constant', 2, 0.1), ('Decreasing', 0.2, 0.1)])
+def test_model_shrink_correct(config):
+    mode, rate, lr = config
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = [
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--cd', data_file('adult', 'train.cd'),
+        '-i', '50',
+        '-r', '0',
+        '--eval-file', output_eval_path,
+        '--model-shrink-mode', mode,
+        '--model-shrink-rate', str(rate),
+        '--learning-rate', str(lr)
+    ]
+    yatest.common.execute(cmd)
+    return [local_canonical_file(output_eval_path)]
+
+
+@pytest.mark.parametrize('config', [('Constant', 20, 0.1), ('Constant', 10, 0.1), ('Decreasing', 2, 0.1)])
+def test_model_shrink_incorrect(config):
+    mode, rate, lr = config
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    cmd = [
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', data_file('adult', 'train_small'),
+        '-t', data_file('adult', 'test_small'),
+        '--cd', data_file('adult', 'train.cd'),
+        '-i', '50',
+        '-r', '0',
+        '--eval-file', output_eval_path,
+        '--model-shrink-mode', mode,
+        '--model-shrink-rate', str(rate),
+        '--learning-rate', str(lr)
+    ]
+    with pytest.raises(yatest.common.ExecutionError):
+        yatest.common.execute(cmd)
