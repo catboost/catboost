@@ -2514,7 +2514,7 @@ def test_grow_policies(boosting_type, grow_policy, score_function, loss_func):
         '--output-path', formula_predict_path
     )
     yatest.common.execute(calc_cmd)
-    assert (compare_evals_with_precision(output_eval_path, formula_predict_path, 1e-4))
+    assert (compare_evals_with_precision(output_eval_path, formula_predict_path, rtol=1e-4))
 
     return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
             local_canonical_file(test_error_path, diff_tool=diff_tool())]
@@ -2698,7 +2698,15 @@ def test_fit_multiclass_with_text_features(feature_estimators, loss_function):
     fit_catboost_gpu(params)
 
     apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
-    assert(compare_evals_with_precision(test_eval_path, calc_eval_path, rtol=1e-4, skip_last_column_in_fit=False))
+    assert(
+        compare_evals_with_precision(
+            test_eval_path,
+            calc_eval_path,
+            rtol=1e-4,
+            atol=1e-6,
+            skip_last_column_in_fit=False
+        )
+    )
 
     return [local_canonical_file(learn_error_path, diff_tool=diff_tool()),
             local_canonical_file(test_error_path, diff_tool=diff_tool())]
@@ -2812,7 +2820,15 @@ def test_text_processing_options(dictionaries, loss_function):
     fit_catboost_gpu(params)
 
     apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
-    assert(compare_evals_with_precision(test_eval_path, calc_eval_path, rtol=1e-4, skip_last_column_in_fit=False))
+    assert(
+        compare_evals_with_precision(
+            test_eval_path,
+            calc_eval_path,
+            rtol=1e-4,
+            atol=1e-6,
+            skip_last_column_in_fit=False
+        )
+    )
 
     return [local_canonical_file(learn_error_path, diff_tool=diff_tool(1e-6)),
             local_canonical_file(test_error_path, diff_tool=diff_tool(1e-6))]

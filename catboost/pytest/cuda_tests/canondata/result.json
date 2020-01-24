@@ -1161,11 +1161,11 @@
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClass-BoW,NaiveBayes]": [
         {
-            "checksum": "083fd0f61bc5f2fd6c48c5bb0b837815",
+            "checksum": "3214303c721827e9c2cfdcfb96e75019",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_/learn.tsv"
         },
         {
-            "checksum": "733229ebe539bec9e21bb2756698fe4c",
+            "checksum": "f6acf9b4f29c5c9ebb54a820d050464f",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_/test.tsv"
         }
     ],
@@ -3403,11 +3403,11 @@
     ],
     "test_gpu.test_text_processing_options[MultiClass-dictionaries1]": [
         {
-            "checksum": "6bba7c4430ee792a8ae8e2ca112ac688",
+            "checksum": "6f4fd43d82a1035c4fcaa2d3d73c6545",
             "uri": "file://test_gpu.test_text_processing_options_MultiClass-dictionaries1_/learn.tsv"
         },
         {
-            "checksum": "8c2dc9cb6c49e466c5ec85b0011afff4",
+            "checksum": "6c5de8d0b688a6864152add7d312b8b5",
             "uri": "file://test_gpu.test_text_processing_options_MultiClass-dictionaries1_/test.tsv"
         }
     ],
