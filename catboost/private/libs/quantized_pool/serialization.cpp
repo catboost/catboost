@@ -626,9 +626,9 @@ NCB::TQuantizedPool NCB::LoadQuantizedPool(
     return poolLoader->LoadQuantizedPool(params);
 }
 
-static NCB::TQuantizedPoolDigest GetQuantizedPoolDigest(
-    const TPoolMetainfo& poolMetainfo,
-    const TPoolQuantizationSchema& quantizationSchema) {
+NCB::TQuantizedPoolDigest NCB::GetQuantizedPoolDigest(
+    const NCB::NIdl::TPoolMetainfo& poolMetainfo,
+    const NCB::NIdl::TPoolQuantizationSchema& quantizationSchema) {
 
     NCB::TQuantizedPoolDigest digest;
     const auto columnIndices = CollectAndSortKeys(poolMetainfo.GetColumnIndexToType());
@@ -733,7 +733,7 @@ NCB::TQuantizedPoolDigest NCB::CalculateQuantizedPoolDigest(const TStringBuf pat
         blob.data() + epilogOffsets.QuantizationSchemaSizeOffset + sizeof(ui32),
         quantizationSchemaSize);
 
-    return ::GetQuantizedPoolDigest(poolMetainfo, quantizationSchema);
+    return GetQuantizedPoolDigest(poolMetainfo, quantizationSchema);
 }
 
 NCB::NIdl::TPoolQuantizationSchema NCB::LoadQuantizationSchemaFromPool(const TStringBuf path) {
