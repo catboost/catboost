@@ -23,3 +23,7 @@ struct TCompactTrieKeySelector<char>: public TCompactTrieCharKeySelector<char> {
 template <>
 struct TCompactTrieKeySelector<wchar16>: public TCompactTrieCharKeySelector<wchar16> {
 };
+
+template <>
+struct TCompactTrieKeySelector<wchar32>: public TCompactTrieCharKeySelector<wchar32> {
+};
