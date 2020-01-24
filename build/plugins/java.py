@@ -107,6 +107,7 @@ def onjava_module(unit, *args):
         'GENERATE_SCRIPT': extract_macro_calls2(unit, 'GENERATE_SCRIPT_VALUE'),
         'FAKEID': extract_macro_calls(unit, 'FAKEID', args_delim),
         'TEST_DATA': extract_macro_calls(unit, 'TEST_DATA_VALUE', args_delim),
+        'JAVA_FORBIDDEN_LIBRARIES': extract_macro_calls(unit, 'JAVA_FORBIDDEN_LIBRARIES_VALUE', args_delim),
     }
 
     if unit.get('JAVA_ADD_DLLS_VALUE') == 'yes':
@@ -167,6 +168,25 @@ def onjava_module(unit, *args):
 
         if external:
             unit.onpeerdir(external)
+
+    dep_veto = extract_macro_calls(unit, 'JAVA_DEPENDENCIES_CONFIGURATION_VALUE', args_delim)
+    if dep_veto:
+        dep_veto = set(dep_veto[0])
+        for veto in map(str.upper, dep_veto):
+            if veto.upper() == 'FORBID_DIRECT_PEERDIRS':
+                data['JAVA_DEPENDENCY_DIRECT'] = [['yes']]
+            elif veto.upper() == 'FORBID_DEFAULT_VERSIONS':
+                data['JAVA_DEPENDENCY_DEFAULT_VERSION'] = [['yes']]
+            elif veto.upper() == 'FORBID_CONFLICT':
+                data['JAVA_DEPENDENCY_CHECK_RESOLVED_CONFLICTS'] = [['yes']]
+            elif veto.upper() == 'FORBID_CONFLICT_DM':
+                data['JAVA_DEPENDENCY_DM_CHECK_DIFFERENT'] = [['yes']]
+            elif veto.upper() == 'FORBID_CONFLICT_DM_RECENT':
+                data['JAVA_DEPENDENCY_DM_CHECK_RECENT'] = [['yes']]
+            else:
+                ymake.report_configure_error('Unknown JAVA_DEPENDENCIES_CONFIGURATION value {} Allowed only [{}]'.format(veto, ', '.join(
+                    ['FORBID_DIRECT_PEERDIRS', 'FORBID_DEFAULT_VERSIONS', 'FORBID_CONFLICT', 'FORBID_CONFLICT_DM', 'FORBID_CONFLICT_DM_RECENT']
+                )))
 
     for k, v in data.items():
         if not v:
