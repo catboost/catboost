@@ -18,7 +18,7 @@ void LockMemory(const void* addr, size_t len) {
 #if defined(_unix_)
     const size_t pageSize = NSystemInfo::GetPageSize();
     if (mlock(AlignDown(addr, pageSize), AlignUp(len, pageSize)))
-        /*ythrow yexception() << LastSystemErrorText()*/;
+        ythrow yexception() << LastSystemErrorText();
 #elif defined(_win_)
     HANDLE hndl = GetCurrentProcess();
     SIZE_T min, max;
