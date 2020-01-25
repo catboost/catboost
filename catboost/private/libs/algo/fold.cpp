@@ -176,7 +176,6 @@ TFold TFold::BuildDynamicFold(
         bt.Approx.resize(approxDimension, initialApprox);
         if (baseline) {
             InitApproxFromBaseline(
-                leftPartLen,
                 bt.TailFinish,
                 *baseline,
                 ff.GetLearnPermutationArray(),
@@ -187,7 +186,6 @@ TFold TFold::BuildDynamicFold(
         AllocateRank2(approxDimension, bt.TailFinish, bt.WeightedDerivatives);
         AllocateRank2(approxDimension, bt.TailFinish, bt.SampleWeightedDerivatives);
         if (hasPairwiseWeights) {
-            bt.PairwiseWeights.resize(bt.TailFinish);
             bt.PairwiseWeights.insert(
                 bt.PairwiseWeights.begin(),
                 pairwiseWeights.begin(),
@@ -272,7 +270,6 @@ TFold TFold::BuildPlainFold(
     TMaybeData<TConstArrayRef<TConstArrayRef<float>>> baseline = learnData.TargetData->GetBaseline();
     if (baseline) {
         InitApproxFromBaseline(
-            0,
             learnSampleCount,
             *baseline,
             ff.GetLearnPermutationArray(),

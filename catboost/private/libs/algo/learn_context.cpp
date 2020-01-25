@@ -691,7 +691,6 @@ void TLearnProgress::SetSeparateInitModel(
             auto setFoldApproxes = [&] (bool isPlainFold, TFold* fold) {
                 for (auto& bodyTail : fold->BodyTailArr) {
                     InitApproxFromBaseline(
-                        isPlainFold ? ui32(0) : SafeIntegerCast<ui32>(bodyTail.BodyFinish),
                         isPlainFold ? learnObjectCount : SafeIntegerCast<ui32>(bodyTail.TailFinish),
                         TConstArrayRef<TConstArrayRef<double>>(approxRef),
                         fold->GetLearnPermutationArray(),
