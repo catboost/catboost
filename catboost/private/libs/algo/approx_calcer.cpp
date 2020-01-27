@@ -968,7 +968,7 @@ void CalcApproxForLeafStruct(
     TLearnContext* ctx,
     TVector<TVector<TVector<double>>>* approxesDelta // [bodyTailId][approxDim][docIdxInPermuted]
 ) {
-    const TVector<TIndexType> indices = BuildIndices(fold, tree, data.Learn, data.Test, ctx->LocalExecutor);
+    const TVector<TIndexType> indices = BuildIndices(fold, tree, data.Learn, /*testData*/ {}, ctx->LocalExecutor);
     const int approxDimension = ctx->LearnProgress->ApproxDimension;
     const int leafCount = GetLeafCount(tree);
     const auto treeMonotoneConstraints = GetTreeMonotoneConstraints(
