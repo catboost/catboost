@@ -303,6 +303,9 @@
         },
         "lkvm": {
             "description": "kvmtool is a userland tool for creating and controlling KVM guests"
+        },
+        "yoimports": {
+            "description": "Go imports formatting tool"
         }
     },
     "toolchain": {
@@ -820,6 +823,34 @@
                 {
                     "host": {
                         "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "yoimports": {
+            "tools": {
+                "yoimports": {
+                    "bottle": "yoimports",
+                    "executable": "yoimports"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
                     },
                     "default": true
                 }
@@ -5058,6 +5089,21 @@
             "executable": {
                 "yo": [
                     "yo"
+                ]
+            }
+        },
+        "yoimports": {
+            "formula": {
+                "sandbox_id": [
+                    596719063,
+                    596719221,
+                    596719231
+                ],
+                "match": "yoimports"
+            },
+            "executable": {
+                "yoimports": [
+                    "yoimports"
                 ]
             }
         },
