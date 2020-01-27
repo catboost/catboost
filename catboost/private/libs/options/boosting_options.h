@@ -34,6 +34,7 @@ namespace NCatboostOptions {
         TCpuOnlyOption<bool> ApproxOnFullHistory;
         TCpuOnlyOption<float> ModelShrinkRate;
         TCpuOnlyOption<EModelShrinkMode> ModelShrinkMode;
+        TCpuOnlyOption<bool> Langevin;
         TCpuOnlyOption<float> DiffusionTemperature;
 
 

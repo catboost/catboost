@@ -18,6 +18,7 @@ NCatboostOptions::TBoostingOptions::TBoostingOptions(ETaskType taskType)
     , ApproxOnFullHistory("approx_on_full_history", false, taskType)
     , ModelShrinkRate("model_shrink_rate", 0.0f, taskType)
     , ModelShrinkMode("model_shrink_mode", EModelShrinkMode::Constant, taskType)
+    , Langevin("langevin", false, taskType)
     , DiffusionTemperature("diffusion_temperature", 0.0f, taskType)
     , MinFoldSize("min_fold_size", 100, taskType)
     , DataPartitionType("data_partition", EDataPartitionType::FeatureParallel, taskType)
@@ -28,7 +29,7 @@ void NCatboostOptions::TBoostingOptions::Load(const NJson::TJsonValue& options) 
     CheckedLoad(options,
             &LearningRate, &FoldLenMultiplier, &PermutationBlockSize, &IterationCount, &OverfittingDetector,
             &BoostingType, &BoostFromAverage, &PermutationCount, &MinFoldSize, &ApproxOnFullHistory,
-            &DataPartitionType, &ModelShrinkRate, &ModelShrinkMode, &DiffusionTemperature);
+            &DataPartitionType, &ModelShrinkRate, &ModelShrinkMode, &Langevin, &DiffusionTemperature);
 
     Validate();
 }
@@ -37,17 +38,20 @@ void NCatboostOptions::TBoostingOptions::Save(NJson::TJsonValue* options) const 
     SaveFields(options,
             LearningRate, FoldLenMultiplier, PermutationBlockSize, IterationCount, OverfittingDetector,
             BoostingType, BoostFromAverage, PermutationCount, MinFoldSize, ApproxOnFullHistory,
-            DataPartitionType, ModelShrinkRate, ModelShrinkMode, DiffusionTemperature);
+            DataPartitionType, ModelShrinkRate, ModelShrinkMode);
+    if (Langevin.GetUnchecked()) {
+        SaveFields(options, Langevin, DiffusionTemperature);
+    }
 }
 
 bool NCatboostOptions::TBoostingOptions::operator==(const TBoostingOptions& rhs) const {
     return std::tie(LearningRate, FoldLenMultiplier, PermutationBlockSize, IterationCount, OverfittingDetector,
             ApproxOnFullHistory, BoostingType, BoostFromAverage, PermutationCount,
-            MinFoldSize, DataPartitionType, ModelShrinkRate, ModelShrinkMode, DiffusionTemperature) ==
+            MinFoldSize, DataPartitionType, ModelShrinkRate, ModelShrinkMode, Langevin, DiffusionTemperature) ==
         std::tie(rhs.LearningRate, rhs.FoldLenMultiplier, rhs.PermutationBlockSize, rhs.IterationCount,
                 rhs.OverfittingDetector, rhs.ApproxOnFullHistory, rhs.BoostingType, rhs.BoostFromAverage,
                 rhs.PermutationCount, rhs.MinFoldSize, rhs.DataPartitionType, rhs.ModelShrinkRate, rhs.ModelShrinkMode,
-                rhs.DiffusionTemperature);
+                rhs.Langevin, rhs.DiffusionTemperature);
 }
 
 bool NCatboostOptions::TBoostingOptions::operator!=(const TBoostingOptions& rhs) const {

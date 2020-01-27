@@ -6792,7 +6792,8 @@ def test_diffusion_temperature_with_shrink_mode(shrink_mode, shrink_rate, diffus
         'learning_rate': 0.03,
         'model_shrink_mode': shrink_mode,
         'model_shrink_rate': shrink_rate,
-        'diffusion_temperature': diffusion
+        'diffusion_temperature': diffusion,
+        'langevin': True
     }
     model = CatBoostClassifier(**params)
     model.fit(train_pool)

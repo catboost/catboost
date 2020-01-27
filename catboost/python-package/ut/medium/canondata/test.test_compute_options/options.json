@@ -3,7 +3,6 @@
         "approx_on_full_history": false, 
         "boost_from_average": true, 
         "boosting_type": "Plain", 
-        "diffusion_temperature": 0, 
         "fold_len_multiplier": 2, 
         "fold_permutation_block": 0, 
         "iterations": 1000, 

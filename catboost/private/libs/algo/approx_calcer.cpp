@@ -817,7 +817,7 @@ static void CalcLeafValuesSimple(
             ctx->Params.ObliviousTreeOptions->L2Reg,
             fold.GetSumWeight(),
             fold.GetLearnSampleCount());
-        if (ctx->Params.BoostingOptions->DiffusionTemperature > 0.0f) {
+        if (ctx->Params.BoostingOptions->Langevin) {
             AddLangevinNoiseToLeafDerivativesSum(
                 ctx->Params.BoostingOptions->DiffusionTemperature,
                 ctx->Params.BoostingOptions->LearningRate,

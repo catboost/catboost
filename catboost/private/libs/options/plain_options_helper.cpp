@@ -327,6 +327,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "data_partition", &boostingOptionsRef, &seenKeys);
     CopyOption(plainOptions, "model_shrink_rate", &boostingOptionsRef, &seenKeys);
     CopyOption(plainOptions, "model_shrink_mode", &boostingOptionsRef, &seenKeys);
+    CopyOption(plainOptions, "langevin", &boostingOptionsRef, &seenKeys);
     CopyOption(plainOptions, "diffusion_temperature", &boostingOptionsRef, &seenKeys);
 
     auto& odConfig = boostingOptionsRef["od_config"];
@@ -590,6 +591,9 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
         CopyOption(boostingOptionsRef, "model_shrink_mode", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyBoosting, "model_shrink_mode");
+
+        CopyOption(boostingOptionsRef, "langevin", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyBoosting, "langevin");
 
         CopyOption(boostingOptionsRef, "diffusion_temperature", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyBoosting, "diffusion_temperature");

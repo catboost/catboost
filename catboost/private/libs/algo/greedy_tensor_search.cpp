@@ -685,7 +685,7 @@ static void DoBootstrap(const TVector<TIndexType>& indices, TFold* fold, TLearnC
             &ctx->LearnProgress->Rand,
             IsLeafwiseScoringApplicable(ctx->Params),
             leavesCount);
-        if (ctx->Params.BoostingOptions->DiffusionTemperature > 0.0f) {
+        if (ctx->Params.BoostingOptions->Langevin) {
             for (auto& bodyTail : fold->BodyTailArr) {
                 AddLangevinNoiseToDerivatives(
                     ctx->Params.BoostingOptions->DiffusionTemperature,

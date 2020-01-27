@@ -524,7 +524,15 @@ static void BindBoostingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue*
             (*plainJsonPtr)["model_shrink_mode"] = ToString(modelShrinkMode);
         });
 
-    parser.AddLongOption("diffusion-temperature", "Langevin dynamics diffusion temperature.")
+    parser
+        .AddLongOption("langevin")
+        .RequiredArgument("bool")
+        .Help("Enables the Stochastic Gradient Langevin Boosting.")
+        .Handler1T<TString>([plainJsonPtr](const TString& isEnabled) {
+            (*plainJsonPtr)["langevin"] = FromString<bool>(isEnabled);
+        });
+
+    parser.AddLongOption("diffusion-temperature", "Langevin boosting diffusion temperature.")
         .RequiredArgument("float")
         .Handler1T<float>([plainJsonPtr](float diffusionTemperature) {
             (*plainJsonPtr)["diffusion_temperature"] = diffusionTemperature;

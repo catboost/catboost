@@ -8360,6 +8360,7 @@ def test_diffusion_temperature():
         '--cd', data_file('adult', 'train.cd'),
         '-i', '50',
         '-r', '0',
+        '--langevin', 'True',
         '--diffusion-temperature', '1000',
         '--eval-file', output_eval_path
     ]

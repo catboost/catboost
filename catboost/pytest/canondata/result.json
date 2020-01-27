@@ -1411,7 +1411,7 @@
     ],
     "test.test_diffusion_temperature": [
         {
-            "checksum": "7cc9b41029527386532d2a7968678488",
+            "checksum": "32a68c78826be8c8d3d2a0d2a180fdd6",
             "uri": "file://test.test_diffusion_temperature/test.eval"
         }
     ],
@@ -5736,7 +5736,7 @@
         "uri": "file://test.test_output_columns_format/test.eval"
     },
     "test.test_output_options": {
-        "checksum": "b4ec16d867d93a7f6371fb3faffdff84",
+        "checksum": "347f48558ecce3e9928c26b2e7c37368",
         "uri": "file://test.test_output_options/training_options.json"
     },
     "test.test_overfit_detector_inc_to_dec[Ordered]": [

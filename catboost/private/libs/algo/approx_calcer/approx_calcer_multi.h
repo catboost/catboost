@@ -78,7 +78,7 @@ void CalcLeafValuesMulti(
             &leafDers
         );
 
-        if (params.BoostingOptions->DiffusionTemperature > 0.0f) {
+        if (params.BoostingOptions->Langevin) {
             AddLangevinNoiseToLeafDerivativesSum(
                 params.BoostingOptions->DiffusionTemperature,
                 params.BoostingOptions->LearningRate,

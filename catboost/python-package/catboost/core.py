@@ -3612,8 +3612,11 @@ class CatBoostClassifier(CatBoost):
             - 'Constant' - Shrinkage coefficient is constant at each iteration.
             - 'Decreasing' - Shrinkage coefficient decreases at each iteration.
 
+    langevin : bool, [default=False]
+        Enables the Stochastic Gradient Langevin Boosting. CPU only.
+
     diffusion_temperature : float, [default=0]
-        Langevin dynamics diffusion temperature. CPU only.
+        Langevin boosting diffusion temperature. CPU only.
 
     boost_from_average : bool, [default=True for RMSE, False for other losses]
         Enables to initialize approx values by best constant value for specified loss function.
@@ -3732,6 +3735,7 @@ class CatBoostClassifier(CatBoost):
         monotone_constraints=None,
         model_shrink_rate=None,
         model_shrink_mode=None,
+        langevin=None,
         diffusion_temperature=None,
         boost_from_average=None,
         text_features=None,
@@ -4276,6 +4280,7 @@ class CatBoostRegressor(CatBoost):
         monotone_constraints=None,
         model_shrink_rate=None,
         model_shrink_mode=None,
+        langevin=None,
         diffusion_temperature=None,
         boost_from_average=None
     ):

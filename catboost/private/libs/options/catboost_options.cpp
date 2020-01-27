@@ -614,8 +614,8 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         EnsureNewtonIsAvailable(GetTaskType(), LossFunctionDescription);
     }
 
-    if (BoostingOptions->DiffusionTemperature.GetUnchecked() > 0.0f) {
-        CB_ENSURE(SystemOptions->IsSingleHost(), "Diffusion temperature is supported in single-host mode only.");
+    if (BoostingOptions->Langevin.GetUnchecked()) {
+        CB_ENSURE(SystemOptions->IsSingleHost(), "Langevin boosting is supported in single-host mode only.");
     }
 }
 
@@ -764,11 +764,32 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         }
     }
     if (TaskType == ETaskType::CPU) {
+        if (BoostingOptions->DiffusionTemperature.GetUnchecked() > 0.0f && BoostingOptions->Langevin.NotSet()) {
+            BoostingOptions->Langevin.SetDefault(true);
+        }
+
         auto& shrinkRate = BoostingOptions->ModelShrinkRate;
+        if (BoostingOptions->Langevin) {
+            if (BoostingOptions->DiffusionTemperature.NotSet()) {
+                BoostingOptions->DiffusionTemperature.SetDefault(1e4);
+            }
+            if (shrinkRate.NotSet()) {
+                if (BoostingOptions->ModelShrinkMode == EModelShrinkMode::Constant) {
+                    shrinkRate = 0.001;
+                } else {
+                    shrinkRate = 0.01;
+                }
+            }
+        }
+
         if (!ObliviousTreeOptions->MonotoneConstraints->empty() &&
-            !shrinkRate.IsSet())
+            shrinkRate.NotSet())
         {
-            shrinkRate = 0.2;
+            if (BoostingOptions->ModelShrinkMode == EModelShrinkMode::Constant) {
+                shrinkRate = 0.01;
+            } else {
+                shrinkRate = 0.2;
+            }
         }
 
         if (shrinkRate.IsSet() && !BoostingOptions->BoostFromAverage.IsSet()) {
@@ -777,8 +798,9 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
 
         // TODO(nikitxskv): Remove it after MLTOOLS-4158.
         CB_ENSURE(
-            !shrinkRate.IsSet() || shrinkRate == 0.0f || !BoostingOptions->BoostFromAverage.Get(),
-            "You cannot use boost from average with specified model_shrink_rate option (automatic specified for monotonic constraints)."
+            shrinkRate == 0.0f || !BoostingOptions->BoostFromAverage.Get(),
+            "You cannot use boost from average with specified model_shrink_rate option "
+            "(automatic specified for monotonic constraints and Langevin boosting)."
         );
     }
 
