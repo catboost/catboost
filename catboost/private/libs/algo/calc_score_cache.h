@@ -251,7 +251,22 @@ public:
         ui32 leavesCount = 0
     );
     void UpdateIndices(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
+    // for lossguide
+    void UpdateIndicesInLeafwiseSortedFoldForSingleLeaf(
+        TIndexType leaf,
+        TIndexType leftChildIdx,
+        TIndexType rightChildIdx,
+        const TVector<TIndexType>& indices,
+        NPar::TLocalExecutor* localExecutor);
+    // for depthwise
+    void UpdateIndicesInLeafwiseSortedFold(
+        const TVector<TIndexType>& leafs,
+        const TVector<TIndexType>& childs,
+        const TVector<TIndexType>& indices,
+        NPar::TLocalExecutor* localExecutor);
+    // for symmetric
     void UpdateIndicesInLeafwiseSortedFold(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor);
+
     int GetDocCount() const;
     int GetBodyTailCount() const;
     int GetApproxDimension() const;
@@ -304,6 +319,34 @@ private:
     );
 
     void SortFoldByLeafIndex(ui32 leafCount, NPar::TLocalExecutor* localExecutor);
+
+    struct TFoldPartitionOutput {
+        void Create(int size, int dimension);
+
+        struct TSlice {
+            TArrayRef<float> SampleWeights;
+            TArrayRef<ui32> IndexInFold;
+            TArrayRef<ui32> LearnPermutationFeaturesSubset;
+            TVector<TArrayRef<double>> SampleWeightedDerivatives;
+        };
+
+        TSlice GetSlice(NCB::TIndexRange<ui32> range);
+
+        int Size;
+        int Dimension;
+        TUnsizedVector<float> SampleWeights;
+        TUnsizedVector<ui32> IndexInFold;
+        NCB::TIndexedSubset<ui32> LearnPermutationFeaturesSubset;
+        TUnsizedVector<TUnsizedVector<double>> SampleWeightedDerivatives;
+    };
+
+    void UpdateIndicesInLeafwiseSortedFoldForSingleLeafImpl(
+        TIndexType leaf,
+        TIndexType leftChildIdx,
+        TIndexType rightChildIdx,
+        const TVector<TIndexType>& indices,
+        NPar::TLocalExecutor* localExecutor,
+        TFoldPartitionOutput::TSlice* out = nullptr);
 
 public:
     TUnsizedVector<TIndexType> Indices;
