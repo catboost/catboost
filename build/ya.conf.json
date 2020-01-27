@@ -2187,6 +2187,10 @@
                     "bottle": "clang6-android-armv7",
                     "executable": "nm"
                 },
+                "objcopy": {
+                    "bottle": "clang6-android-armv7",
+                    "executable": "objcopy"
+                },
                 "clang-format": {
                     "bottle": "clang6-android-armv7",
                     "executable": "clang-format"
@@ -2262,6 +2266,10 @@
                     "bottle": "clang6-android-armv7",
                     "executable": "nm"
                 },
+                "objcopy": {
+                    "bottle": "clang6-android-armv7",
+                    "executable": "objcopy"
+                },
                 "clang-format": {
                     "bottle": "clang6-android-armv7",
                     "executable": "clang-format"
@@ -2336,6 +2344,10 @@
                 "nm": {
                     "bottle": "clang6-android-armv8",
                     "executable": "nm"
+                },
+                "objcopy": {
+                    "bottle": "clang6-android-armv8",
+                    "executable": "objcopy"
                 },
                 "clang-format": {
                     "bottle": "clang6-android-armv8",
@@ -2535,6 +2547,10 @@
                 "nm": {
                     "bottle": "gcc63-armv7a-lg-wk7y",
                     "executable": "nm"
+                },
+                "objcopy": {
+                    "bottle": "gcc63-armv7a-lg-wk7y",
+                    "executable": "objcopy"
                 }
             },
             "platforms": [
@@ -2590,6 +2606,10 @@
                 "nm": {
                     "bottle": "gcc73-armv7a-jbl-portable-music",
                     "executable": "nm"
+                },
+                "objcopy": {
+                    "bottle": "gcc73-armv7a-jbl-portable-music",
+                    "executable": "objcopy"
                 }
             },
             "platforms": [
@@ -2641,6 +2661,10 @@
                 "nm": {
                     "bottle": "gcc53-aarch64-lightcomm-mt8516",
                     "executable": "nm"
+                },
+                "objcopy": {
+                    "bottle": "gcc53-aarch64-lightcomm-mt8516",
+                    "executable": "objcopy"
                 }
             },
             "platforms": [
@@ -5539,6 +5563,10 @@
                 "nm": [
                     "bin",
                     "arm-linux-androideabi-nm"
+                ],
+                "objcopy": [
+                    "bin",
+                    "arm-linux-androideabi-objcopy"
                 ]
             }
         },
@@ -5590,6 +5618,10 @@
                 "nm": [
                     "bin",
                     "aarch64-linux-android-nm"
+                ],
+                "objcopy": [
+                    "bin",
+                    "aarch64-linux-android-objcopy"
                 ]
             }
         },
@@ -5727,6 +5759,12 @@
                     "bin",
                     "arm-poky-linux-gnueabi",
                     "arm-poky-linux-gnueabi-nm"
+                ],
+                "objcopy": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi",
+                    "arm-poky-linux-gnueabi-objcopy"
                 ]
             }
         },
@@ -5741,32 +5779,44 @@
                 "c++": [
                     "usr",
                     "bin",
+                    "arm-poky-linux-gnueabi",
                     "arm-poky-linux-gnueabi-g++"
                 ],
                 "cc": [
                     "usr",
                     "bin",
+                    "arm-poky-linux-gnueabi",
                     "arm-poky-linux-gnueabi-gcc"
                 ],
                 "gcov": [
                     "usr",
                     "bin",
+                    "arm-poky-linux-gnueabi",
                     "arm-poky-linux-gnueabi-gcov"
                 ],
                 "c++filt": [
                     "usr",
                     "bin",
+                    "arm-poky-linux-gnueabi",
                     "arm-poky-linux-gnueabi-c++filt"
                 ],
                 "strip": [
                     "usr",
                     "bin",
+                    "arm-poky-linux-gnueabi",
                     "arm-poky-linux-gnueabi-strip"
                 ],
                 "nm": [
                     "usr",
                     "bin",
+                    "arm-poky-linux-gnueabi",
                     "arm-poky-linux-gnueabi-nm"
+                ],
+                "objcopy": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi",
+                    "arm-poky-linux-gnueabi-objcopy"
                 ]
             }
         },
@@ -5813,6 +5863,12 @@
                     "bin",
                     "aarch64-poky-linux",
                     "aarch64-poky-linux-nm"
+                ],
+                "objcopy": [
+                    "usr",
+                    "bin",
+                    "aarch64-poky-linux",
+                    "aarch64-poky-linux-objcopy"
                 ]
             }
         },
