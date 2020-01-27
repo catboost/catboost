@@ -44,4 +44,5 @@ ALLOW contrib/python/wand/ImageMagick -> library/python/symbols/registry
 ALLOW contrib/nginx/modules/nginx-rtmp-module -> library/json
 ALLOW contrib/python/psycopg2/tests -> mail/devpack
 ALLOW contrib/python/asn1crypto -> library/python/symbols/crypto
+ALLOW contrib/python/win_unicode_console -> library/python/symbols/win_unicode_console
 DENY contrib -> .*
