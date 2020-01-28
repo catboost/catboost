@@ -3286,7 +3286,7 @@ def test_loglikelihood_of_prediction(boosting_type):
         '--test-err-log', test_error_path,
     )
     yatest.common.execute(cmd)
-    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+    return [local_canonical_file(learn_error_path, diff_tool(1e-8)), local_canonical_file(test_error_path, diff_tool(1e-8))]
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -3640,8 +3640,9 @@ def test_custom_loss(custom_loss_function, boosting_type):
         '--test-err-log', test_error_path,
     )
     yatest.common.execute(cmd)
-
-    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+    eps = 0 if 'MSLE' not in custom_loss_function else 1e-9
+    return [local_canonical_file(learn_error_path, diff_tool=diff_tool(eps)),
+            local_canonical_file(test_error_path, diff_tool=diff_tool(eps))]
 
 
 def test_train_dir():

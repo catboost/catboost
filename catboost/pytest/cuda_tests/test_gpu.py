@@ -2565,6 +2565,7 @@ def test_model_based_eval(dataset):
             '--cd', get_table_path('cd'),
             '-i', '100',
             '-T', '4',
+            '-w', '0.01',
             '--test-err-log', test_err_log,
         )
 

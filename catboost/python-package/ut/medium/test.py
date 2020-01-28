@@ -1499,7 +1499,7 @@ def test_multiclass(task_type):
     new_classifier.load_model(output_model_path)
     pred = new_classifier.predict_proba(pool)
     preds_path = test_output_path(PREDS_PATH)
-    np.save(preds_path, np.array(pred))
+    np.save(preds_path, np.round(np.array(pred)), 9)
     return local_canonical_file(preds_path)
 
 
@@ -3862,7 +3862,7 @@ def test_shap_multiclass(task_type):
     assert pred.shape == (len(pred), classes_count)
     assert shap_values.shape == (len(pred), classes_count, features_count + 1)
     fimp_txt_path = test_output_path(FIMP_TXT_PATH)
-    np.savetxt(fimp_txt_path, shap_values.reshape(len(pred), -1))
+    np.savetxt(fimp_txt_path, shap_values.reshape(len(pred), -1), fmt='%.9f')
     shap_values = np.sum(shap_values, axis=2)
     for doc_id in range(len(pred)):
         shap_probas = np.exp(shap_values[doc_id]) / np.sum(np.exp(shap_values[doc_id]))
@@ -6792,8 +6792,7 @@ def test_diffusion_temperature_with_shrink_mode(shrink_mode, shrink_rate, diffus
         'learning_rate': 0.03,
         'model_shrink_mode': shrink_mode,
         'model_shrink_rate': shrink_rate,
-        'diffusion_temperature': diffusion,
-        'langevin': True
+        'diffusion_temperature': diffusion
     }
     model = CatBoostClassifier(**params)
     model.fit(train_pool)

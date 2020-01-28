@@ -121,8 +121,8 @@ namespace {
     };
 
     enum class ETargetType {
-        NonQuantileRegression,
-        BinClass,
+        RMSE,
+        Logloss,
         MultiClass,
         Unknown
     };
@@ -178,43 +178,43 @@ namespace {
     private:
 
         static ETargetType GetTargetType(ELossFunction lossFunction) {
-            if (IsBinaryClassOnlyMetric(lossFunction)) {
-                return ETargetType::BinClass;
-            } else if (IsMultiClassOnlyMetric(lossFunction)) {
+            if (lossFunction == ELossFunction::Logloss) {
+                return ETargetType::Logloss;
+            } else if (lossFunction == ELossFunction::MultiClass) {
                 return ETargetType::MultiClass;
-            } else if ((IsRegressionMetric(lossFunction) && lossFunction != ELossFunction::Quantile)) {
-                return ETargetType::NonQuantileRegression;
+            } else if (lossFunction == ELossFunction::RMSE) {
+                return ETargetType::RMSE;
             }
             return ETargetType::Unknown;
         }
 
     public:
         TAutoLRParamsGuesser() {
-            Coefficients[TAutoLearningRateKey(ETargetType::BinClass, ETaskType::CPU, EUseBestModel::True, EBoostFromAverage::True)] =
+            Coefficients[TAutoLearningRateKey(ETargetType::Logloss, ETaskType::CPU, EUseBestModel::True, EBoostFromAverage::True)] =
                 {0.246, -5.127, -0.451, 0.978};
-            Coefficients[TAutoLearningRateKey(ETargetType::BinClass, ETaskType::CPU, EUseBestModel::False, EBoostFromAverage::True)] =
+            Coefficients[TAutoLearningRateKey(ETargetType::Logloss, ETaskType::CPU, EUseBestModel::False, EBoostFromAverage::True)] =
                 {0.408, -7.299, -0.928, 2.701};
-            Coefficients[TAutoLearningRateKey(ETargetType::BinClass, ETaskType::CPU, EUseBestModel::True, EBoostFromAverage::False)] =
+            Coefficients[TAutoLearningRateKey(ETargetType::Logloss, ETaskType::CPU, EUseBestModel::True, EBoostFromAverage::False)] =
                 {0.247, -5.158, -0.435, 0.934};
-            Coefficients[TAutoLearningRateKey(ETargetType::BinClass, ETaskType::CPU, EUseBestModel::False, EBoostFromAverage::False)] =
+            Coefficients[TAutoLearningRateKey(ETargetType::Logloss, ETaskType::CPU, EUseBestModel::False, EBoostFromAverage::False)] =
                 {0.427, -7.525, -0.917, 2.63};
 
-            Coefficients[TAutoLearningRateKey(ETargetType::NonQuantileRegression, ETaskType::CPU, EUseBestModel::True, EBoostFromAverage::True)] =
+            Coefficients[TAutoLearningRateKey(ETargetType::RMSE, ETaskType::CPU, EUseBestModel::True, EBoostFromAverage::True)] =
                 {0.157, -4.062, -0.61, 1.557};
-            Coefficients[TAutoLearningRateKey(ETargetType::NonQuantileRegression, ETaskType::CPU, EUseBestModel::False, EBoostFromAverage::True)] =
+            Coefficients[TAutoLearningRateKey(ETargetType::RMSE, ETaskType::CPU, EUseBestModel::False, EBoostFromAverage::True)] =
                 {0.158, -4.287, -0.813, 2.571};
-            Coefficients[TAutoLearningRateKey(ETargetType::NonQuantileRegression, ETaskType::CPU, EUseBestModel::True, EBoostFromAverage::False)] =
+            Coefficients[TAutoLearningRateKey(ETargetType::RMSE, ETaskType::CPU, EUseBestModel::True, EBoostFromAverage::False)] =
                 {0.189, -4.383, -0.623, 1.439};
-            Coefficients[TAutoLearningRateKey(ETargetType::NonQuantileRegression, ETaskType::CPU, EUseBestModel::False, EBoostFromAverage::False)] =
+            Coefficients[TAutoLearningRateKey(ETargetType::RMSE, ETaskType::CPU, EUseBestModel::False, EBoostFromAverage::False)] =
                 {0.178, -4.473, -0.76, 2.133};
 
-            Coefficients[TAutoLearningRateKey(ETargetType::BinClass, ETaskType::GPU, EUseBestModel::True, EBoostFromAverage::True)] =
+            Coefficients[TAutoLearningRateKey(ETargetType::Logloss, ETaskType::GPU, EUseBestModel::True, EBoostFromAverage::True)] =
                 {0.04, -3.226, -0.488, 0.758};
-            Coefficients[TAutoLearningRateKey(ETargetType::BinClass, ETaskType::GPU, EUseBestModel::False, EBoostFromAverage::True)] =
+            Coefficients[TAutoLearningRateKey(ETargetType::Logloss, ETaskType::GPU, EUseBestModel::False, EBoostFromAverage::True)] =
                 {0.427, -7.316, -0.907, 2.354};
-            Coefficients[TAutoLearningRateKey(ETargetType::BinClass, ETaskType::GPU, EUseBestModel::True, EBoostFromAverage::False)] =
+            Coefficients[TAutoLearningRateKey(ETargetType::Logloss, ETaskType::GPU, EUseBestModel::True, EBoostFromAverage::False)] =
                 {-0.085, -2.055, -0.414, 0.427};
-            Coefficients[TAutoLearningRateKey(ETargetType::BinClass, ETaskType::GPU, EUseBestModel::False, EBoostFromAverage::False)] =
+            Coefficients[TAutoLearningRateKey(ETargetType::Logloss, ETaskType::GPU, EUseBestModel::False, EBoostFromAverage::False)] =
                 {-0.055, -3.01, -0.896, 2.366};
 
             Coefficients[TAutoLearningRateKey(ETargetType::MultiClass, ETaskType::GPU, EUseBestModel::True, EBoostFromAverage::False)] =
@@ -223,13 +223,13 @@ namespace {
                 {0.204, -4.144, -0.833, 2.889};
 
 
-            Coefficients[TAutoLearningRateKey(ETargetType::NonQuantileRegression, ETaskType::GPU, EUseBestModel::True, EBoostFromAverage::True)] =
+            Coefficients[TAutoLearningRateKey(ETargetType::RMSE, ETaskType::GPU, EUseBestModel::True, EBoostFromAverage::True)] =
                 {0.158, -3.762 , -0.377, 0.392};
-            Coefficients[TAutoLearningRateKey(ETargetType::NonQuantileRegression, ETaskType::GPU, EUseBestModel::False, EBoostFromAverage::True)] =
+            Coefficients[TAutoLearningRateKey(ETargetType::RMSE, ETaskType::GPU, EUseBestModel::False, EBoostFromAverage::True)] =
                 {0.171, -4.015, -0.599, 1.561};
-            Coefficients[TAutoLearningRateKey(ETargetType::NonQuantileRegression, ETaskType::GPU, EUseBestModel::True, EBoostFromAverage::False)] =
+            Coefficients[TAutoLearningRateKey(ETargetType::RMSE, ETaskType::GPU, EUseBestModel::True, EBoostFromAverage::False)] =
                 {0.186, -4.065, -0.512, 1.062};
-            Coefficients[TAutoLearningRateKey(ETargetType::NonQuantileRegression, ETaskType::GPU, EUseBestModel::False, EBoostFromAverage::False)] =
+            Coefficients[TAutoLearningRateKey(ETargetType::RMSE, ETaskType::GPU, EUseBestModel::False, EBoostFromAverage::False)] =
                 {0.194, -4.251, -0.61, 1.536};
         }
 
