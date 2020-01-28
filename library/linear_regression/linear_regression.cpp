@@ -33,7 +33,7 @@ bool TFastLinearRegressionSolver::Add(const TVector<double>& features, const dou
     AddFeaturesProduct(weight, features, LinearizedOLSMatrix);
 
     const double weightedGoal = goal * weight;
-    double* olsVectorElement = OLSVector.begin();
+    double* olsVectorElement = OLSVector.data();
     for (const double feature : features) {
         *olsVectorElement += feature * weightedGoal;
         ++olsVectorElement;
@@ -72,29 +72,31 @@ bool TLinearRegressionSolver::Add(const TVector<double>& features, const double 
         ;
     }
 
-    double* olsMatrixElement = LinearizedOLSMatrix.begin();
+    double* olsMatrixElement = LinearizedOLSMatrix.data();
 
-    const double* lastMean = LastMeans.begin();
-    const double* newMean = NewMeans.begin();
+    const double* lastMean = LastMeans.data();
+    const double* newMean = NewMeans.data();
+    const double* lastMeansEnd = lastMean + LastMeans.size();
+    const double* newMeansEnd = newMean + NewMeans.size();
 
 #ifdef _sse2_
-    for (; lastMean != LastMeans.end(); ++lastMean, ++newMean) {
+    for (; lastMean != lastMeansEnd; ++lastMean, ++newMean) {
         __m128d factor = _mm_set_pd(*lastMean, *lastMean);
         const double* secondFeatureMean = newMean;
-        for (; secondFeatureMean + 1 < NewMeans.end(); secondFeatureMean += 2, olsMatrixElement += 2) {
+        for (; secondFeatureMean + 1 < newMeansEnd; secondFeatureMean += 2, olsMatrixElement += 2) {
             __m128d matrixElem = _mm_loadu_pd(olsMatrixElement);
             __m128d secondFeatureMeanElem = _mm_loadu_pd(secondFeatureMean);
             __m128d product = _mm_mul_pd(factor, secondFeatureMeanElem);
             __m128d addition = _mm_add_pd(matrixElem, product);
             _mm_storeu_pd(olsMatrixElement, addition);
         }
-        for (; secondFeatureMean < NewMeans.end(); ++secondFeatureMean) {
+        for (; secondFeatureMean < newMeansEnd; ++secondFeatureMean) {
             *olsMatrixElement++ += *lastMean * *secondFeatureMean;
         }
     }
 #else
-    for (; lastMean != LastMeans.end(); ++lastMean, ++newMean) {
-        for (const double* secondFeatureMean = newMean; secondFeatureMean < NewMeans.end(); ++secondFeatureMean) {
+    for (; lastMean != lastMeansEnd; ++lastMean, ++newMean) {
+        for (const double* secondFeatureMean = newMean; secondFeatureMean < newMeansEnd; ++secondFeatureMean) {
             *olsMatrixElement++ += *lastMean * *secondFeatureMean;
         }
     }
@@ -324,12 +326,13 @@ namespace {
 
 #ifdef _sse2_
     inline void AddFeaturesProduct(const double weight, const TVector<double>& features, TVector<double>& linearizedOLSTriangleMatrix) {
-        const double* leftFeature = features.begin();
-        double* matrixElement = linearizedOLSTriangleMatrix.begin();
+        const double* leftFeature = features.data();
+        const double* featuresEnd = features.data() + features.size();
+        double* matrixElement = linearizedOLSTriangleMatrix.data();
 
         size_t unaligned = features.size() & 0x1;
 
-        for (; leftFeature != features.end(); ++leftFeature, ++matrixElement) {
+        for (; leftFeature != featuresEnd; ++leftFeature, ++matrixElement) {
             const double weightedFeature = weight * *leftFeature;
             const double* rightFeature = leftFeature;
             __m128d wf = {weightedFeature, weightedFeature};
@@ -337,7 +340,7 @@ namespace {
                 *matrixElement += weightedFeature * *rightFeature;
             }
             unaligned = (unaligned + 1) & 0x1;
-            for (; rightFeature != features.end(); rightFeature += 2, matrixElement += 2) {
+            for (; rightFeature != featuresEnd; rightFeature += 2, matrixElement += 2) {
                 __m128d rf = _mm_loadu_pd(rightFeature);
                 __m128d matrixRow = _mm_loadu_pd(matrixElement);
                 __m128d rowAdd = _mm_mul_pd(rf, wf);
@@ -349,12 +352,13 @@ namespace {
     }
 #else
     inline void AddFeaturesProduct(const double weight, const TVector<double>& features, TVector<double>& linearizedTriangleMatrix) {
-        const double* leftFeature = features.begin();
-        double* matrixElement = linearizedTriangleMatrix.begin();
-        for (; leftFeature != features.end(); ++leftFeature, ++matrixElement) {
+        const double* leftFeature = features.data();
+        const double* featuresEnd = features.data() + features.size();
+        double* matrixElement = linearizedTriangleMatrix.data();
+        for (; leftFeature != featuresEnd; ++leftFeature, ++matrixElement) {
             const double weightedFeature = weight * *leftFeature;
             const double* rightFeature = leftFeature;
-            for (; rightFeature != features.end(); ++rightFeature, ++matrixElement) {
+            for (; rightFeature != featuresEnd; ++rightFeature, ++matrixElement) {
                 *matrixElement += weightedFeature * *rightFeature;
             }
             *matrixElement += weightedFeature;

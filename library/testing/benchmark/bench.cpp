@@ -590,7 +590,7 @@ int NBench::Main(int argc, char** argv) {
 
     if (opts.Threads > 1) {
         NYmp::SetThreadCount(opts.Threads);
-        NYmp::ParallelForStaticChunk(tests.begin(), tests.end(), 1, func);
+        NYmp::ParallelForStaticChunk(tests.data(), tests.data() + tests.size(), 1, func);
     } else {
         for (auto it : tests) {
             func(&it);
