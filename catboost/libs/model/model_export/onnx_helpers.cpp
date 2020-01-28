@@ -681,6 +681,7 @@ static THolder<TNonSymmetricTreeNode> BuildNonSymmetricTree(
             return head;
         }
     }
+    Y_UNREACHABLE();
 }
 
 

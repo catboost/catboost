@@ -82,4 +82,5 @@ int CalcSplitsCount(
                 return featuresGroup.TotalBucketCount - featuresGroup.Parts.size();
             }
     }
+    Y_UNREACHABLE();
 }

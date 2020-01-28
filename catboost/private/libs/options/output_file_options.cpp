@@ -24,6 +24,7 @@ TString NCatboostOptions::GetModelExtensionFromType(const EModelType modelType) 
         case EModelType::CPUSnapshot:
             return "cbsnapshot";
     }
+    Y_UNREACHABLE();
 }
 
 bool NCatboostOptions::TryGetModelTypeFromExtension(const TStringBuf modelExtension, EModelType& modelType) {

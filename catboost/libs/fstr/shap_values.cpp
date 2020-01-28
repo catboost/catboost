@@ -914,6 +914,7 @@ bool IsPrepareTreesCalcShapValues(
                 return treesAverageLeafCount < dataset->ObjectsGrouping->GetObjectCount();
             }
     }
+    Y_UNREACHABLE();
 }
 
 static bool AreApproxesZeroForLastClass(
