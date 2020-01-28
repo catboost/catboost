@@ -81,9 +81,11 @@ TFullModel TModelConverter::Convert(
 
     ui32 cpuApproxDim = 1;
 
-    if (TargetHelper.IsMultiClass()) {
-        coreModel.ModelInfo["multiclass_params"] = TargetHelper.Serialize();
-        cpuApproxDim = SafeIntegerCast<ui32>(TargetHelper.GetNumClasses());
+    if (TargetHelper.IsInitialized()) {
+        coreModel.ModelInfo["class_params"] = TargetHelper.Serialize();
+        if (TargetHelper.IsMultiClass()) {
+            cpuApproxDim = SafeIntegerCast<ui32>(TargetHelper.GetApproxDimension());
+        }
     }
 
     TVector<TFloatFeature> floatFeatures = CreateFloatFeatures(
@@ -140,9 +142,9 @@ TFullModel TModelConverter::Convert(
 
         ui32 cpuApproxDim = 1;
 
-        if (TargetHelper.IsMultiClass()) {
-            coreModel.ModelInfo["multiclass_params"] = TargetHelper.Serialize();
-            cpuApproxDim = SafeIntegerCast<ui32>(TargetHelper.GetNumClasses());
+        if (TargetHelper.IsInitialized()) {
+            coreModel.ModelInfo["class_params"] = TargetHelper.Serialize();
+            cpuApproxDim = SafeIntegerCast<ui32>(TargetHelper.GetApproxDimension());
         }
 
         TVector<TFloatFeature> floatFeatures = CreateFloatFeatures(

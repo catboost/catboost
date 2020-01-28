@@ -3,6 +3,8 @@
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/libs/data/cat_feature_perfect_hash.h>
 
+#include <library/json/json_value.h>
+
 #include <util/generic/vector.h>
 #include <util/generic/string.h>
 
@@ -20,9 +22,9 @@ namespace NCB {
         // NanModes[i] == EColumn::Forbidden iff there are no NaN's
         TVector<ENanMode> NanModes;
 
-        // Class names for multi-classification
-        // ClassNames[i] is name of class i
-        TVector<TString> ClassNames;
+        // If ClassLabels is non-empty target data is serialized format contains indices in this array
+        // Values can be Integers, Doubles or Strings
+        TVector<NJson::TJsonValue> ClassLabels;
 
         // Flat indices of categorical non-ignored features
         // Sorted from min to max

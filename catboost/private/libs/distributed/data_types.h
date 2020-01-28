@@ -17,6 +17,7 @@
 #include <catboost/private/libs/options/restrictions.h>
 
 #include <library/binsaver/bin_saver.h>
+#include <library/json/json_value.h>
 #include <library/par/par.h>
 #include <library/par/par_util.h>
 
@@ -136,7 +137,7 @@ namespace NCatboostDistributed {
         NCatboostOptions::TCatBoostOptions Params;
 
         NCB::TTrainingForCPUDataProviderPtr TrainData;
-        TVector<TString> ClassNamesFromDataset;
+        TVector<NJson::TJsonValue> ClassLabelsFromDataset;
 
         TFlatPairsInfo FlatPairs;
 

@@ -1,9 +1,12 @@
 #pragma once
 
-#include <util/generic/hash.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
 
+
+namespace NJson {
+    class TJsonValue;
+}
 
 class TFullModel;
 
@@ -14,20 +17,18 @@ public:
     TExternalLabelsHelper(const TFullModel& model);
 
     TString GetVisibleClassNameFromClass(int classId) const;
-    TString GetVisibleClassNameFromLabel(float label) const;
     int GetExternalIndex(int approxId) const;
     int GetExternalApproxDimension() const;
     bool IsInitialized() const;
 
 private:
-    void InitializeImpl(const TString& multiclassLabelParams);
+    void InitializeImpl(int approxDimension, const TString& classLabelParams);
     void InitializeImpl(int approxDimension);
-    void InitializeImpl(const TVector<TString>& binclassNames);
+    void InitializeImpl(const TVector<NJson::TJsonValue>& binclassLabels);
 
 private:
     bool Initialized;
     int ExternalApproxDimension;
     TVector<int> SignificantLabelsIds;
     TVector<TString> VisibleClassNames;
-    THashMap<float, TString> LabelToName;
 };

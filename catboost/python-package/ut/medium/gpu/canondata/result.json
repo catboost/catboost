@@ -1,10 +1,10 @@
 {
     "test.test_allow_writing_files_and_used_ram_limit[GPU-1024]": {
-        "checksum": "f3b03f3a9926e615fb1df2bade9be840",
+        "checksum": "46a954f2ea32a20437c802929f3b6544",
         "uri": "file://test.test_allow_writing_files_and_used_ram_limit_GPU-1024_/predictions.npy"
     },
     "test.test_allow_writing_files_and_used_ram_limit[GPU-2Gb]": {
-        "checksum": "f3b03f3a9926e615fb1df2bade9be840",
+        "checksum": "46a954f2ea32a20437c802929f3b6544",
         "uri": "file://test.test_allow_writing_files_and_used_ram_limit_GPU-2Gb_/predictions.npy"
     },
     "test.test_class_names[GPU]": {
@@ -298,7 +298,7 @@
         "uri": "file://test.test_feature_importance_prettified_GPU_/feature_importance.txt"
     },
     "test.test_fit_and_predict_on_sliced_pools[GPU]": {
-        "checksum": "e544981c40f5bbd87f078765b65c5b71",
+        "checksum": "3ad01f3515ea180efa20905ab649a4d9",
         "uri": "file://test.test_fit_and_predict_on_sliced_pools_GPU_/predictions.npy"
     },
     "test.test_fit_data[GPU]": {
@@ -414,7 +414,7 @@
         "uri": "file://test.test_pairs_generation_with_max_pairs_GPU_/catboost_training.json"
     },
     "test.test_predict_class[GPU]": {
-        "checksum": "8eb2183d7aca7e0f98097c8dfaa33048",
+        "checksum": "a8a9a59fb71e049443ae728dc44bf891",
         "uri": "file://test.test_predict_class_GPU_/predictions.npy"
     },
     "test.test_predict_class_proba[GPU]": {
@@ -422,7 +422,7 @@
         "uri": "file://test.test_predict_class_proba_GPU_/predictions.npy"
     },
     "test.test_predict_class_raw[GPU]": {
-        "checksum": "036c633231a6f975e387bc7a885e0865",
+        "checksum": "2f04c6f438be1292fedad55921369ad2",
         "uri": "file://test.test_predict_class_raw_GPU_/predictions.npy"
     },
     "test.test_predict_regress[GPU]": {
@@ -510,7 +510,7 @@
         "uri": "file://test.test_shap_multiclass_GPU_/feature_importance.txt"
     },
     "test.test_staged_predict[GPU]": {
-        "checksum": "6d7adb700c40fa95cb81ce3d4f22d98d",
+        "checksum": "c3958d9d96fd7719cd4a47e09683c132",
         "uri": "file://test.test_staged_predict_GPU_/predictions.npy"
     },
     "test.test_verbose_int[GPU-5]": {

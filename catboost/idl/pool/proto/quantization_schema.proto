@@ -32,9 +32,10 @@ message TPoolQuantizationSchema {
     // [column index] -> ([hashCategorical] -> [perfectHash(number), count of this hashCategorical])
     map<uint32, TCatFeatureQuantizationSchema> CatFeatureIndexToSchema = 3;
 
-    // List of class names; see {--class-names} for `catboost fit`;
-    // Makes sense only for multiclassification.
-    //
-    // NOTE: order is important
-    repeated string ClassNames = 2;
+    /* only one of these fields can be nonempty (but all can be empty)
+     * 'oneof' is not used because ClassNames had been already present in the message
+     */
+    repeated int32 IntegerClassLabels = 5;
+    repeated float FloatClassLabels = 6;
+    repeated string ClassNames = 2; // ClassNames is a legacy field name, should be StringClassLabels
 }

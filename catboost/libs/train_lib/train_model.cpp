@@ -83,7 +83,7 @@ static TDataProviders LoadPools(
     ui64 cpuRamLimit,
     EObjectsOrder objectsOrder,
     TDatasetSubset trainDatasetSubset,
-    TVector<TString>* classNames,
+    TVector<NJson::TJsonValue>* classLabels,
     NPar::TLocalExecutor* const executor,
     TProfileInfo* profile
 ) {
@@ -94,7 +94,7 @@ static TDataProviders LoadPools(
         "Test files are not supported in cross-validation mode"
     );
 
-    auto pools = NCB::ReadTrainDatasets(loadOptions, objectsOrder, !cvMode, trainDatasetSubset, classNames, executor, profile);
+    auto pools = NCB::ReadTrainDatasets(loadOptions, objectsOrder, !cvMode, trainDatasetSubset, classLabels, executor, profile);
 
     if (cvMode) {
         if (cvParams.Shuffle && (pools.Learn->ObjectsData->GetOrder() != EObjectsOrder::RandomShuffled)) {
@@ -1052,7 +1052,7 @@ void TrainModel(
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(catBoostOptions.SystemOptions.Get().NumThreads.Get() - 1);
 
-    TVector<TString> classNames = catBoostOptions.DataProcessingOptions->ClassNames;
+    TVector<NJson::TJsonValue> classLabels = catBoostOptions.DataProcessingOptions->ClassLabels;
     const auto objectsOrder = catBoostOptions.DataProcessingOptions->HasTimeFlag.Get() ?
         EObjectsOrder::Ordered : EObjectsOrder::Undefined;
     const bool hasFeatures = !IsDistributedShared(&loadOptions, catBoostOptions);
@@ -1061,7 +1061,7 @@ void TrainModel(
         ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get()),
         objectsOrder,
         TDatasetSubset::MakeColumns(hasFeatures),
-        &classNames,
+        &classLabels,
         &executor,
         &profile);
 
@@ -1091,7 +1091,7 @@ void TrainModel(
     TVector<TEvalResult> evalResults(pools.Test.ysize());
 
     NJson::TJsonValue updatedTrainJson = trainJson;
-    UpdateUndefinedClassNames(classNames, &updatedTrainJson);
+    UpdateUndefinedClassLabels(classLabels, &updatedTrainJson);
 
     // create here to possibly load borders
     auto quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
@@ -1320,7 +1320,7 @@ void ModelBasedEval(
     NPar::TLocalExecutor executor;
     executor.RunAdditionalThreads(catBoostOptions.SystemOptions.Get().NumThreads.Get() - 1);
 
-    TVector<TString> classNames = catBoostOptions.DataProcessingOptions->ClassNames;
+    TVector<NJson::TJsonValue> classLabels = catBoostOptions.DataProcessingOptions->ClassLabels;
 
     TDataProviders pools = LoadPools(
         loadOptions,
@@ -1328,7 +1328,7 @@ void ModelBasedEval(
         catBoostOptions.DataProcessingOptions->HasTimeFlag.Get() ?
             EObjectsOrder::Ordered : EObjectsOrder::Undefined,
         TDatasetSubset::MakeColumns(),
-        &classNames,
+        &classLabels,
         &executor,
         &profile);
 
@@ -1348,7 +1348,7 @@ void ModelBasedEval(
     }
 
     NJson::TJsonValue updatedTrainJson = trainJson;
-    UpdateUndefinedClassNames(classNames, &updatedTrainJson);
+    UpdateUndefinedClassLabels(classLabels, &updatedTrainJson);
 
     ModelBasedEval(
         updatedTrainJson,

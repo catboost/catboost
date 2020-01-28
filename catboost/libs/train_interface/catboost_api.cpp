@@ -39,6 +39,7 @@ static TDataProviderPtr MakeDataProvider(
                                         &builderVisitor);
 
     TDataMetaInfo metaInfo;
+    metaInfo.TargetType = ERawTargetType::Float;
     metaInfo.TargetCount = 1;
     metaInfo.HasWeights = weights.data() != nullptr;
     if (baseline.data() != nullptr) {

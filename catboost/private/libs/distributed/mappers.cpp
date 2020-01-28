@@ -109,7 +109,7 @@ namespace NCatboostDistributed {
             params->ObjectsOrder,
             /*readTest*/false,
             NCB::TDatasetSubset::MakeRange(loadStart, loadEnd),
-            &localData.ClassNamesFromDataset,
+            &localData.ClassLabelsFromDataset,
             &NPar::LocalExecutor(),
             &profile
         );
@@ -156,7 +156,7 @@ namespace NCatboostDistributed {
         }
 
         auto trainParamsJson = GetJson(params->TrainParams);
-        UpdateUndefinedClassNames(localData.ClassNamesFromDataset, &trainParamsJson);
+        UpdateUndefinedClassLabels(localData.ClassLabelsFromDataset, &trainParamsJson);
         localData.Params.Load(trainParamsJson);
 
         const auto& trainParams = localData.Params;

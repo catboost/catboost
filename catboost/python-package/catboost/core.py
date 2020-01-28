@@ -1404,7 +1404,7 @@ class _CatBoostBase(object):
 
     @property
     def classes_(self):
-        return self._object._get_class_names() if self.is_fitted() else None
+        return self._object._get_class_labels() if self.is_fitted() else None
 
     @property
     def evals_result_(self):

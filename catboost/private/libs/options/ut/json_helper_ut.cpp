@@ -5,6 +5,9 @@
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 
+#include <util/generic/xrange.h>
+#include <util/generic/ymath.h>
+
 
 Y_UNIT_TEST_SUITE(TJsonHelperTest) {
     using namespace NCatboostOptions;
@@ -73,6 +76,26 @@ Y_UNIT_TEST_SUITE(TJsonHelperTest) {
         UNIT_ASSERT_VALUES_EQUAL(serializedTree["string_val"], tree["string_val"]);
         UNIT_ASSERT_VALUES_EQUAL(serializedTree["bool_val"], tree["bool_val"]);
         UNIT_ASSERT_VALUES_EQUAL(serializedTree["option_val"], tree["option_val"]);
+    }
+
+    Y_UNIT_TEST(TestJsonSerializationWithFloatingPointValues) {
+        TVector<double> values = {1.0f, 0.4f, 12.33f, 1.e-6f, 0.0f};
+
+        NJson::TJsonValue jsonArray(NJson::JSON_ARRAY);
+        for (auto value : values) {
+            jsonArray.AppendValue(value);
+        }
+
+        const TString serialized = WriteTJsonValue(jsonArray);
+        const NJson::TJsonValue restoredJson = ReadTJsonValue(serialized);
+
+        const NJson::TJsonValue::TArray restoredJsonArray = restoredJson.GetArraySafe();
+
+        UNIT_ASSERT_VALUES_EQUAL(restoredJsonArray.size(), values.size());
+
+        for (auto i : xrange(values.size())) {
+            UNIT_ASSERT(FuzzyEquals(restoredJsonArray[i].GetDoubleSafe(), values[i]));
+        }
     }
 
     Y_UNIT_TEST(TestUnimplementedAwareOptions) {

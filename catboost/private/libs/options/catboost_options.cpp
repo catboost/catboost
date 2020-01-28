@@ -1,4 +1,6 @@
 #include "catboost_options.h"
+
+#include "json_helper.h"
 #include "restrictions.h"
 
 #include <library/json/json_reader.h>
@@ -15,7 +17,7 @@ template <>
 void Out<NCatboostOptions::TCatBoostOptions>(IOutputStream& out, const NCatboostOptions::TCatBoostOptions& options) {
     NJson::TJsonValue json;
     options.Save(&json);
-    out << ToString(json);
+    out << WriteTJsonValue(json);
 }
 
 template <>

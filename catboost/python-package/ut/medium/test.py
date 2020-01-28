@@ -1472,7 +1472,7 @@ def test_no_cat_in_predict(task_type):
     test_features_data, _ = load_simple_dataset_as_lists(is_test=True)
     pred1 = model.predict(test_features_data)
     pred2 = model.predict(Pool(test_features_data, cat_features=CAT_FEATURES))
-    assert _check_data(pred1, pred2)
+    assert np.all(pred1 == pred2)
 
 
 def test_save_model(task_type):
@@ -1512,7 +1512,7 @@ def test_multiclass_classes_count(task_type, missed_classes):
         unique_labels = [1, 3]
     else:
         unique_labels = [0, 1, 2, 3]
-    expected_classes_attr = [str(i) for i in range(4)]
+    expected_classes_attr = [i for i in range(4)]
 
     prng = np.random.RandomState(seed=0)
     pool = Pool(
@@ -1522,7 +1522,7 @@ def test_multiclass_classes_count(task_type, missed_classes):
 
     # returns pred probabilities
     def check_classifier(classifier):
-        assert classifier.classes_ == expected_classes_attr
+        assert np.all(classifier.classes_ == expected_classes_attr)
 
         pred_classes = classifier.predict(pool)
         assert all([(pred_class in unique_labels) for pred_class in pred_classes])
@@ -1754,7 +1754,7 @@ def test_ones_weight_equal_to_nonspecified_weight(task_type):
         model.fit(train_pool)
         predictions.append(model.predict(test_pool))
 
-    assert _check_data(predictions[0], predictions[1])
+    assert np.all(predictions[0] == predictions[1])
 
 
 def test_py_data_group_id(task_type):
@@ -2056,8 +2056,7 @@ def test_custom_eval():
     model2.fit(train_pool, eval_set=test_pool)
     pred2 = model2.predict(test_pool)
 
-    for p1, p2 in zip(pred1, pred2):
-        assert abs(p1 - p2) < EPS
+    assert np.all(pred1 == pred2)
 
 
 @fails_on_gpu(how='cuda/train_lib/train.cpp:283: Error: loss function is not supported for GPU learning Custom')
@@ -4852,7 +4851,7 @@ def test_shrink():
     assert model.tree_count_ == 9
     pred1 = model.predict(test_pool)
     pred2 = model2.predict(test_pool)
-    assert _check_data(pred1, pred2)
+    assert np.all(pred1 == pred2)
     model.shrink(8, ntree_start=1)
     assert model.tree_count_ == 7
 
@@ -4981,7 +4980,7 @@ def assert_sum_models_equal_sliced_copies(train, test, cd):
             ntree_end=(i + 1) * iter_step)
 
         assert np.all(pred_local_shrinked == pred_local)
-        assert model.classes_ == truncated_model.classes_
+        assert np.all(model.classes_ == truncated_model.classes_)
 
     weights = [1.0] * model_count
     merged_model = sum_models(truncated_copies, weights)
@@ -4989,7 +4988,7 @@ def assert_sum_models_equal_sliced_copies(train, test, cd):
     merged_pred = merged_model.predict(test_pool, prediction_type='RawFormulaVal')
 
     assert np.all(pred == merged_pred)
-    assert model.classes_ == merged_model.classes_
+    assert np.all(model.classes_ == merged_model.classes_)
 
 
 def test_model_merging():
@@ -5026,7 +5025,7 @@ def test_model_sum_labels():
                 ('MultiClass', None, ['Class0', 'Class1', 'Class2', 'Class3'])
             ]
         ),
-        (['0', '1'], [('Logloss', None, [0, 1]), ('Logloss', None, [0, 1]), ('Logloss', None, [0, 1])]),
+        ([0, 1], [('Logloss', None, [0, 1]), ('Logloss', None, [0, 1]), ('Logloss', None, [0, 1])]),
         (
             ['class0', 'class1', 'class2'],
             [
@@ -5034,7 +5033,7 @@ def test_model_sum_labels():
                 ('MultiClass', None, ['class0', 'class1', 'class2'])
             ]
         ),
-        (['1', '2'], [('RMSE', None, [0.1, 0.2, 1.0]), ('Logloss', None, [1, 2])]),
+        ([1, 2], [('RMSE', None, [0.1, 0.2, 1.0]), ('Logloss', None, [1, 2])]),
         ([], [('RMSE', None, [0.1, 0.2, 1.0]), ('RMSE', None, [0.22, 0.7, 1.3, 1.7])]),
     ]
 
@@ -5153,9 +5152,9 @@ def test_output_border_file(task_type):
     pred2 = model2.predict(test_pool)
     pred3 = model3.predict(test_pool)
     pred4 = model4.predict(test_pool)
-    assert _check_data(pred1, pred2)
-    assert not _check_data(pred1, pred3)
-    assert not _check_data(pred1, pred4)
+    assert np.all(pred1 == pred2)
+    assert not np.all(pred1 == pred3)
+    assert not np.all(pred1 == pred4)
 
 
 def test_output_border_file_regressor(task_type):
@@ -6497,7 +6496,7 @@ def test_multiclass_train_on_constant_data(task_type):
 
     model = clf.fit(features, labels)
 
-    assert model.classes_ == classes
+    assert np.all(model.classes_ == classes)
     model.predict(features)
 
 
@@ -6537,13 +6536,13 @@ def test_classes_attribute_binclass(label_type, loss_function):
         model.fit(features, labels)
 
         if label_type == 'consecutive_integers':
-            assert model.classes_ == ['0', '1']
+            assert np.all(model.classes_ == [0, 1])
         elif label_type == 'nonconsecutive_integers':
-            assert sorted(model.classes_) == ['2', '5']
+            assert np.all(sorted(model.classes_) == [2, 5])
         elif label_type == 'string':
-            assert model.classes_ == ['class0', 'class1']
+            assert np.all(model.classes_ == ['class0', 'class1'])
         elif label_type == 'float':
-            assert model.classes_ == ['0', '1']
+            assert np.all(model.classes_ == [0, 1])
 
 
 @pytest.mark.parametrize(
@@ -6569,13 +6568,13 @@ def test_classes_attribute_multiclass(label_type):
     model.fit(features, labels)
 
     if label_type == 'consecutive_integers':
-        assert model.classes_ == ['0', '1', '2', '3']
+        assert np.all(model.classes_ == [0, 1, 2, 3])
     elif label_type == 'nonconsecutive_integers':
-        assert model.classes_ == ['2', '5', '9', '11']
+        assert np.all(model.classes_ == [2, 5, 9, 11])
     elif label_type == 'string':
-        assert sorted(model.classes_) == ['class0', 'class1', 'class2', 'class3']
+        assert np.all(sorted(model.classes_) == ['class0', 'class1', 'class2', 'class3'])
     elif label_type == 'float':
-        assert sorted(model.classes_) == ['0', '0.1', '0.2', '0.5', '1']
+        assert np.allclose(sorted(model.classes_), [0, 0.1, 0.2, 0.5, 1])
 
 
 def test_multiclass_non_positive_definite_from_github():

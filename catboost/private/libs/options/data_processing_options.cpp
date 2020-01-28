@@ -20,7 +20,7 @@ NCatboostOptions::TDataProcessingOptions::TDataProcessingOptions(ETaskType type)
       , TextProcessingOptions("text_processing_options", TTextProcessingOptions())
       , ClassesCount("classes_count", 0)
       , ClassWeights("class_weights", TVector<float>())
-      , ClassNames("class_names", TVector<TString>())
+      , ClassLabels("class_names", TVector<NJson::TJsonValue>()) // "class_names" is used for compatibility
       , DevDefaultValueFractionToEnableSparseStorage("dev_default_value_fraction_for_sparse", 0.83f)
       , DevSparseArrayIndexingType("dev_sparse_array_indexing", NCB::ESparseArrayIndexingType::Indices)
       , GpuCatFeaturesStorage("gpu_cat_features_storage", EGpuCatFeaturesStorage::GpuRam, type)
@@ -35,7 +35,7 @@ void NCatboostOptions::TDataProcessingOptions::Load(const NJson::TJsonValue& opt
     CheckedLoad(
         options, &IgnoredFeatures, &HasTimeFlag, &AllowConstLabel, &TargetBorder,
         &FloatFeaturesBinarization, &PerFloatFeatureQuantization, &TextProcessingOptions,
-        &ClassesCount, &ClassWeights, &ClassNames,
+        &ClassesCount, &ClassWeights, &ClassLabels,
         &DevDefaultValueFractionToEnableSparseStorage,
         &DevSparseArrayIndexingType,
         &GpuCatFeaturesStorage, &DevLeafwiseScoring, &DevGroupFeatures
@@ -48,7 +48,7 @@ void NCatboostOptions::TDataProcessingOptions::Save(NJson::TJsonValue* options) 
     SaveFields(
         options, IgnoredFeatures, HasTimeFlag, AllowConstLabel, TargetBorder,
         FloatFeaturesBinarization, PerFloatFeatureQuantization, TextProcessingOptions,
-        ClassesCount, ClassWeights, ClassNames,
+        ClassesCount, ClassWeights, ClassLabels,
         DevDefaultValueFractionToEnableSparseStorage,
         DevSparseArrayIndexingType,
         GpuCatFeaturesStorage, DevLeafwiseScoring, DevGroupFeatures
@@ -58,13 +58,13 @@ void NCatboostOptions::TDataProcessingOptions::Save(NJson::TJsonValue* options) 
 bool NCatboostOptions::TDataProcessingOptions::operator==(const TDataProcessingOptions& rhs) const {
     return std::tie(IgnoredFeatures, HasTimeFlag, AllowConstLabel, TargetBorder,
                     FloatFeaturesBinarization, PerFloatFeatureQuantization, TextProcessingOptions,
-                    ClassesCount, ClassWeights, ClassNames,
+                    ClassesCount, ClassWeights, ClassLabels,
                     DevDefaultValueFractionToEnableSparseStorage,
                     DevSparseArrayIndexingType, GpuCatFeaturesStorage, DevLeafwiseScoring,
                     DevGroupFeatures) ==
            std::tie(rhs.IgnoredFeatures, rhs.HasTimeFlag, rhs.AllowConstLabel, rhs.TargetBorder,
                     rhs.FloatFeaturesBinarization, rhs.PerFloatFeatureQuantization, rhs.TextProcessingOptions,
-                    rhs.ClassesCount, rhs.ClassWeights, rhs.ClassNames,
+                    rhs.ClassesCount, rhs.ClassWeights, rhs.ClassLabels,
                     rhs.DevDefaultValueFractionToEnableSparseStorage,
                     rhs.DevSparseArrayIndexingType, rhs.GpuCatFeaturesStorage, rhs.DevLeafwiseScoring,
                     rhs.DevGroupFeatures);

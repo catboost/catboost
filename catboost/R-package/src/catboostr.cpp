@@ -150,7 +150,7 @@ SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
                                            EObjectsOrder::Undefined,
                                            UpdateThreadCount(asInteger(threadCountParam)),
                                            asLogical(verboseParam),
-                                           /*classNames=*/Nothing());
+                                           /*classLabels=*/Nothing());
     result = PROTECT(R_MakeExternalPtr(poolPtr.Get(), R_NilValue, R_NilValue));
     R_RegisterCFinalizerEx(result, _Finalizer<TPoolHandle>, TRUE);
     Y_UNUSED(poolPtr.Release());
@@ -206,6 +206,7 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
             TVector<ui32>{}, // TODO(d-kruchinin) support text features in R
             featureId);
 
+        metaInfo.TargetType = targetColumns ? ERawTargetType::Float : ERawTargetType::None;
         metaInfo.TargetCount = targetColumns;
         metaInfo.BaselineCount = baselineColumns;
         metaInfo.HasGroupId = groupIdParam != R_NilValue;

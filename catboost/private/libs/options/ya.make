@@ -10,6 +10,7 @@ SRCS(
     cat_feature_options.cpp
     catboost_options.cpp
     check_train_options.cpp
+    class_label_options.cpp
     cross_validation_params.cpp
     data_processing_options.cpp
     defaults_helper.cpp
@@ -21,7 +22,6 @@ SRCS(
     metric_options.cpp
     model_based_eval_options.cpp
     monotone_constraints.cpp
-    multiclass_label_options.cpp
     oblivious_tree_options.cpp
     option.cpp
     output_file_options.cpp

@@ -35,14 +35,6 @@ TVector<TVector<double>> MakeExternalApprox(
     const TVector<TVector<double>>& internalApprox,
     const TExternalLabelsHelper& externalLabelsHelper);
 
-TVector<TString> ConvertTargetToExternalName(
-    const TVector<float>& target,
-    const TExternalLabelsHelper& externalLabelsHelper);
-
-TVector<TString> ConvertTargetToExternalName(
-    const TVector<float>& target,
-    const TFullModel& model);
-
 void PrepareEval(
     const EPredictionType predictionType,
     const TString& lossFunctionName,

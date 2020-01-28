@@ -2084,9 +2084,10 @@ def test_extract_multiclass_labels_from_class_names():
     py_catboost = catboost.CatBoost()
     py_catboost.load_model(model_path)
 
-    assert json.loads(py_catboost.get_metadata()['multiclass_params'])['class_to_label'] == [0, 1, 2, 3]
-    assert json.loads(py_catboost.get_metadata()['multiclass_params'])['class_names'] == ['a', 'b', 'c', 'd']
-    assert json.loads(py_catboost.get_metadata()['multiclass_params'])['classes_count'] == 0
+    assert json.loads(py_catboost.get_metadata()['class_params'])['class_label_type'] == 'String'
+    assert json.loads(py_catboost.get_metadata()['class_params'])['class_to_label'] == [0, 1, 2, 3]
+    assert json.loads(py_catboost.get_metadata()['class_params'])['class_names'] == ['a', 'b', 'c', 'd']
+    assert json.loads(py_catboost.get_metadata()['class_params'])['classes_count'] == 0
 
     assert json.loads(py_catboost.get_metadata()['params'])['data_processing_options']['class_names'] == ['a', 'b', 'c', 'd']
 
@@ -2128,9 +2129,10 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
     py_catboost = catboost.CatBoost()
     py_catboost.load_model(model_path)
 
-    assert json.loads(py_catboost.get_metadata()['multiclass_params'])['class_to_label'] == [1, 2]
-    assert json.loads(py_catboost.get_metadata()['multiclass_params'])['classes_count'] == 4
-    assert json.loads(py_catboost.get_metadata()['multiclass_params'])['class_names'] == []
+    assert json.loads(py_catboost.get_metadata()['class_params'])['class_label_type'] == 'Integer'
+    assert json.loads(py_catboost.get_metadata()['class_params'])['class_to_label'] == [1, 2]
+    assert json.loads(py_catboost.get_metadata()['class_params'])['classes_count'] == 4
+    assert json.loads(py_catboost.get_metadata()['class_params'])['class_names'] == []
 
     calc_cmd = (
         CATBOOST_PATH,

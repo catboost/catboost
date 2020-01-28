@@ -8,6 +8,7 @@
 #include <catboost/libs/model/model.h>
 #include <catboost/private/libs/options/loss_description.h>
 
+#include <library/json/json_value.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/fwd.h>
@@ -27,12 +28,12 @@ namespace NCB {
     struct TInputClassificationInfo {
         TMaybe<ui32> KnownClassCount;
         TConstArrayRef<float> ClassWeights; // [classIdx], empty if not specified
-        TVector<TString> ClassNames;
+        TVector<NJson::TJsonValue> ClassLabels; // can be Integers, Floats or Strings
         TMaybe<float> TargetBorder;
     };
 
     struct TOutputClassificationInfo {
-        TVector<TString> ClassNames;
+        TVector<NJson::TJsonValue> ClassLabels; // can be Integers, Floats or Strings
         TMaybe<TLabelConverter*> LabelConverter; // needed only for multiclass
         TMaybe<float> TargetBorder; // TODO(isaf27): delete it from output parameters
     };

@@ -129,32 +129,6 @@ TVector<TVector<double>> MakeExternalApprox(
     return externalApprox;
 }
 
-TVector<TString> ConvertTargetToExternalName(
-    const TVector<float>& target,
-    const TExternalLabelsHelper& externalLabelsHelper
-) {
-    TVector<TString> convertedTarget(target.ysize());
-
-    if (externalLabelsHelper.IsInitialized()) {
-        for (int targetIdx = 0; targetIdx < target.ysize(); ++targetIdx) {
-            convertedTarget[targetIdx] = externalLabelsHelper.GetVisibleClassNameFromLabel(target[targetIdx]);
-        }
-    } else {
-        for (int targetIdx = 0; targetIdx < target.ysize(); ++targetIdx) {
-            convertedTarget[targetIdx] = ToString<float>(target[targetIdx]);
-        }
-    }
-
-    return convertedTarget;
-}
-
-TVector<TString> ConvertTargetToExternalName(
-    const TVector<float>& target,
-    const TFullModel& model
-) {
-    const TExternalLabelsHelper externalLabelsHelper(model);
-    return ConvertTargetToExternalName(target, externalLabelsHelper);
-}
 
 TVector<TVector<double>> PrepareEvalForInternalApprox(
     const EPredictionType predictionType,
