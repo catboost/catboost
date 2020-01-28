@@ -166,14 +166,13 @@ TFold TFold::BuildDynamicFold(
 
         TFold::TBodyTail bt(bodyQueryFinish, tailQueryFinish, bodyFinish, tailFinish, bodySumWeight);
 
-        TVector<double> initialApprox(bt.TailFinish, GetNeutralApprox(storeExpApproxes));
-        if (startingApprox) {
-            double initApprox = ExpApproxIf(storeExpApproxes, *startingApprox);
-            for (ui32 i = leftPartLen; i < (ui32)bt.TailFinish; ++i) {
-                initialApprox[i] = initApprox;
-            }
-        }
-        bt.Approx.resize(approxDimension, initialApprox);
+        bt.Approx.resize(
+            approxDimension,
+            TVector<double>(
+                bt.TailFinish,
+                startingApprox ? ExpApproxIf(storeExpApproxes, *startingApprox) : GetNeutralApprox(storeExpApproxes)
+            )
+        );
         if (baseline) {
             InitApproxFromBaseline(
                 bt.TailFinish,
