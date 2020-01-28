@@ -208,6 +208,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\index_range\private-libs-index_range.vcxproj">
       <Project>{FD092503-CF90-DD15-46DE-A054A4863C5B}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\labels\private-libs-labels.vcxproj">
+      <Project>{2C5BA6AA-A668-2330-199A-FEA006895C03}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\private\libs\options\private-libs-options.vcxproj">
       <Project>{AE8B6D87-D33D-8A7F-D668-74C392A7B1DE}</Project>
     </ProjectReference>
