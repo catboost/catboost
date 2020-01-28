@@ -183,9 +183,11 @@ def onjava_module(unit, *args):
                 data['JAVA_DEPENDENCY_DM_CHECK_DIFFERENT'] = [['yes']]
             elif veto.upper() == 'FORBID_CONFLICT_DM_RECENT':
                 data['JAVA_DEPENDENCY_DM_CHECK_RECENT'] = [['yes']]
+            elif veto.upper() == 'REQUIRE_DM':
+                data['JAVA_DEPENDENCY_DM_REQUIRED'] = [['yes']]
             else:
                 ymake.report_configure_error('Unknown JAVA_DEPENDENCIES_CONFIGURATION value {} Allowed only [{}]'.format(veto, ', '.join(
-                    ['FORBID_DIRECT_PEERDIRS', 'FORBID_DEFAULT_VERSIONS', 'FORBID_CONFLICT', 'FORBID_CONFLICT_DM', 'FORBID_CONFLICT_DM_RECENT']
+                    ['FORBID_DIRECT_PEERDIRS', 'FORBID_DEFAULT_VERSIONS', 'FORBID_CONFLICT', 'FORBID_CONFLICT_DM', 'FORBID_CONFLICT_DM_RECENT', 'REQUIRE_DM']
                 )))
 
     for k, v in data.items():
