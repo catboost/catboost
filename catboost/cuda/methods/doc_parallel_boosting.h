@@ -168,8 +168,8 @@ namespace NCatboostCuda {
                     }
                     for (ui32 dim = 0; dim < approxDim; ++dim) {
                         TVector<float> baseline = loadBalancingPermutation.Gather(dataProviderBaseline[dim]);
-                        for (ui32 i = 0; i < baselineBias.size(); ++i) {
-                            baseline[i] -= baselineBias[i];
+                        for (ui32 j = 0; j < baselineBias.size(); ++j) {
+                            baseline[j] -= baselineBias[j];
                         }
                         CB_ENSURE(baseline.size() == cursors->Cursors[i].GetObjectsSlice().Size());
                         cursors->Cursors[i].ColumnView(dim).Write(baseline);

@@ -88,7 +88,7 @@ namespace NSplitSelection {
 
     public:
         bool operator==(const TDefaultQuantizedBin & rhs) const {
-            constexpr float EPS = 1e-6;
+            constexpr float EPS = 1e-6f;
             return (Idx == rhs.Idx) && (Abs(Fraction - rhs.Fraction) < EPS);
         }
     };

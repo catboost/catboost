@@ -111,6 +111,25 @@ static void OutputDataDictionary(
     }
 }
 
+static void OutputTargetsFields(
+    const TFullModel& model,
+    TXmlOutputContext* xmlOut) {
+
+    CB_ENSURE(
+        model.GetDimensionsCount() == 1,
+        "PMML export currently supports only single-dimensional models");
+
+
+    TXmlElementOutputContext targets(xmlOut, "Targets");
+    {
+        TXmlElementOutputContext target(xmlOut, "Target");
+        xmlOut->AddAttr("rescaleConstant", model.GetScaleAndBias().Bias)
+            .AddAttr("rescaleFactor", model.GetScaleAndBias().Scale);
+    }
+
+
+}
+
 static void OutputMiningSchemaWithModelFeatures(
     const TFullModel& model,
     bool mappedCategoricalFeatures,
@@ -500,6 +519,8 @@ namespace NCB {
         OutputDataDictionary(model, isClassification, &xmlOut);
 
         OutputMiningModel(model, isClassification, catFeaturesHashToString, &xmlOut);
+
+        OutputTargetsFields(model, &xmlOut);
     }
 
     }

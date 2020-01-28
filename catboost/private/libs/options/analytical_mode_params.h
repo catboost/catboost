@@ -30,6 +30,7 @@ namespace NCB {
         int ThreadCount = NSystemInfo::CachedNumberOfCpus();
 
         NCB::TPathWithScheme PairsFilePath;
+        NCB::TPathWithScheme FeatureNamesPath;
 
         void BindParserOpts(NLastGetopt::TOpts& parser);
     };

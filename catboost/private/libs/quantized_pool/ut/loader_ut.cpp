@@ -90,6 +90,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromQuantized) {
             readDatasetMainParams.GroupWeightsFilePath, // can be uninited
             /*timestampsFilePath*/TPathWithScheme(),
             readDatasetMainParams.BaselineFilePath, // can be uninited
+            /*featureNamesPath*/TPathWithScheme(),
             NCatboostOptions::TColumnarPoolFormatParams(),
             testCase.SrcData.IgnoredFeatures,
             testCase.SrcData.ObjectsOrder,

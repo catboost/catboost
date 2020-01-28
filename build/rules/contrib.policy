@@ -78,8 +78,8 @@ ALLOW logbroker/pipe-parser -> contrib/libs/boost
 ALLOW logbroker/pipe-parser -> contrib/deprecated/boost
 ALLOW mail -> contrib/libs/boost
 ALLOW mail -> contrib/deprecated/boost
-ALLOW market/feedparser -> contrib/libs/boost
-ALLOW market/feedparser -> contrib/deprecated/boost
+ALLOW market/idx/feeds/feedparser -> contrib/libs/boost
+ALLOW market/idx/feeds/feedparser -> contrib/deprecated/boost
 ALLOW market/indexer -> contrib/libs/boost
 ALLOW market/indexer -> contrib/deprecated/boost
 ALLOW maps -> contrib/libs/boost

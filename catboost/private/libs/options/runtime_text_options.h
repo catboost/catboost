@@ -8,6 +8,7 @@ namespace NCatboostOptions {
         TTokenizedFeatureDescription();
 
         TTokenizedFeatureDescription(
+            TString tokenizerId,
             TString dictionaryId,
             ui32 textFeatureId,
             TConstArrayRef<TFeatureCalcerDescription> featureEstimators
@@ -20,6 +21,7 @@ namespace NCatboostOptions {
 
     public:
         TOption<TString> FeatureId;
+        TOption<TString> TokenizerId;
         TOption<TString> DictionaryId;
         TOption<ui32> TextFeatureId;
         TOption<TVector<TFeatureCalcerDescription>> FeatureEstimators;
@@ -33,6 +35,7 @@ namespace NCatboostOptions {
             const TTextProcessingOptions& textOptions
         );
         TRuntimeTextOptions(
+            TConstArrayRef<TTextColumnTokenizerOptions> tokenizers,
             TConstArrayRef<TTextColumnDictionaryOptions> dictionaries,
             TConstArrayRef<TTokenizedFeatureDescription> features
         );
@@ -42,7 +45,8 @@ namespace NCatboostOptions {
         bool operator==(const TRuntimeTextOptions& rhs) const;
         bool operator!=(const TRuntimeTextOptions& rhs) const;
 
-        const TTextColumnDictionaryOptions& GetDictionaryOptions(TStringBuf dictionaryId) const;
+        const TTextColumnTokenizerOptions& GetTokenizerOptions(const TString& tokenizerId) const;
+        const TTextColumnDictionaryOptions& GetDictionaryOptions(const TString& dictionaryId) const;
         const TTokenizedFeatureDescription& GetTokenizedFeatureDescription(ui32 tokenizedFeatureIdx) const;
         const TVector<TTokenizedFeatureDescription>& GetTokenizedFeatureDescriptions() const;
 
@@ -53,6 +57,7 @@ namespace NCatboostOptions {
         bool IsUnusedTextFeature(ui32 textFeature) const;
         void CheckUniqueDictionaryIds() const;
 
+        TOption<TMap<TString, TTextColumnTokenizerOptions>> Tokenizers;
         TOption<TMap<TString, TTextColumnDictionaryOptions>> Dictionaries;
         TOption<TVector<TTokenizedFeatureDescription>> TokenizedFeatures;
     };

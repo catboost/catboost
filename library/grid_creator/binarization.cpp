@@ -1715,7 +1715,7 @@ TQuantization TGreedyBinarizer<PenaltyType>::BestSplit(
 
 template <typename TKey, typename TValue>
 size_t EstimateHashMapMemoryUsage(size_t hashMapSize) {
-    size_t powTwoUpRoundedSize = (1 << static_cast<size_t>(log2(hashMapSize + 2) + 1));
+    size_t powTwoUpRoundedSize = (1ULL << static_cast<size_t>(log2(hashMapSize + 2) + 1));
     return 2 * sizeof(std::pair<TKey, TValue>) * powTwoUpRoundedSize;
 }
 

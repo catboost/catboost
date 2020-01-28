@@ -647,6 +647,11 @@ def onjava_test(unit, *args):
             ymake.report_configure_error('skip JTEST_FOR in {}: no args provided'.format(unit.path()))
             return
 
+    java_cp_arg_type = unit.get('JAVA_CLASSPATH_CMD_TYPE_VALUE') or 'MANIFEST'
+    if java_cp_arg_type not in ('MANIFEST', 'COMMAND_FILE', 'LIST'):
+        ymake.report_configure_error('{}: TEST_JAVA_CLASSPATH_CMD_TYPE({}) are invalid. Choose argument from MANIFEST, COMMAND_FILE or LIST)'.format(unit.path(), java_cp_arg_type))
+        return
+
     unit_path = unit.path()
     path = _common.strip_roots(unit_path)
     test_dir = unit.resolve(unit_path)
@@ -701,6 +706,7 @@ def onjava_test(unit, *args):
         'SYSTEM_PROPERTIES': props,
         'TEST-CWD': test_cwd,
         'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
+        'JAVA_CLASSPATH_CMD_TYPE': java_cp_arg_type,
     }
 
     data = dump_test(unit, test_record)

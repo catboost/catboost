@@ -126,7 +126,7 @@ void TObliviousTreeBuilder::AddTree(const TVector<TModelSplit>& modelSplits,
     leafValues.yresize(ApproxDimension * leafCount);
 
     for (size_t dimension = 0; dimension < treeLeafValues.size(); ++dimension) {
-        CB_ENSURE(treeLeafValues[dimension].size() == (1u << modelSplits.size()));
+        CB_ENSURE(treeLeafValues[dimension].size() == (1ull << modelSplits.size()));
         for (size_t leafId = 0; leafId < leafCount; ++leafId) {
             leafValues[leafId * ApproxDimension + dimension] = treeLeafValues[dimension][leafId];
         }
@@ -138,10 +138,10 @@ void TObliviousTreeBuilder::AddTree(const TVector<TModelSplit>& modelSplits,
                                     TConstArrayRef<double> treeLeafValues,
                                     TConstArrayRef<double> treeLeafWeights
 ) {
-    CB_ENSURE((1u << modelSplits.size()) * ApproxDimension == treeLeafValues.size());
+    CB_ENSURE((1ull << modelSplits.size()) * ApproxDimension == treeLeafValues.size());
     LeafValues.insert(LeafValues.end(), treeLeafValues.begin(), treeLeafValues.end());
     if (!treeLeafWeights.empty()) {
-        CB_ENSURE((1u << modelSplits.size()) == treeLeafWeights.size());
+        CB_ENSURE((1ull << modelSplits.size()) == treeLeafWeights.size());
         LeafWeights.insert(LeafWeights.end(), treeLeafWeights.begin(), treeLeafWeights.end());
     }
     Trees.emplace_back(modelSplits);

@@ -24,7 +24,7 @@
 #include <catboost/libs/helpers/permutation.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/vector_helpers.h>
-#include <catboost/private/libs/labels/label_helper_builder.h>
+#include <catboost/private/libs/labels/external_label_helper.h>
 #include <catboost/libs/loggers/catboost_logger_helpers.h>
 #include <catboost/libs/loggers/logger.h>
 #include <catboost/libs/logging/profile_info.h>
@@ -51,6 +51,8 @@
 #include <util/random/shuffle.h>
 #include <util/system/compiler.h>
 #include <util/system/hp_timer.h>
+
+#include <functional>
 
 using namespace NCB;
 
@@ -483,6 +485,36 @@ static void Train(
 }
 
 
+static THolder<TNonSymmetricTreeNode> BuildTree(
+    int nodeIdx,
+    TConstArrayRef<TSplitNode> nodes,
+    TConstArrayRef<TVector<double>> leafValues,
+    TConstArrayRef<double> leafWeights,
+    std::function<TModelSplit(TSplit)> getModelSplit
+) {
+    auto finalNode = MakeHolder<TNonSymmetricTreeNode>();
+    if (nodeIdx < 0) {
+        int leafIdx = ~nodeIdx;
+        if (leafValues.size() == 1) {
+            finalNode->Value = leafValues[0][leafIdx];
+        } else {
+            TVector<double> value(leafValues.size());
+            for (auto dim : xrange(leafValues.size())) {
+                value[dim] = leafValues[dim][leafIdx];
+            }
+            finalNode->Value = std::move(value);
+        }
+        finalNode->NodeWeight = leafWeights[leafIdx];
+    } else {
+        const auto& node = nodes[nodeIdx];
+        finalNode->SplitCondition = getModelSplit(node.Split);
+        finalNode->Left = BuildTree(node.Left, nodes, leafValues, leafWeights, getModelSplit);
+        finalNode->Right = BuildTree(node.Right, nodes, leafValues, leafWeights, getModelSplit);
+    }
+    return finalNode;
+}
+
+
 static void SaveModel(
     const TTrainingForCPUDataProviders& trainingDataForCpu,
     const TLearnContext& ctx,
@@ -504,22 +536,37 @@ static void SaveModel(
 
     TModelTrees modelTrees;
     THashMap<TFeatureCombination, TProjection> featureCombinationToProjectionMap;
-    {
+    const std::function<TModelSplit(TSplit)> getModelSplit = [&] (const TSplit& split) {
+        auto modelSplit = split.GetModelSplit(ctx, perfectHashedToHashedCatValuesMap);
+        if (modelSplit.Type == ESplitType::OnlineCtr) {
+            featureCombinationToProjectionMap[modelSplit.OnlineCtr.Ctr.Base.Projection] = split.Ctr.Projection;
+        }
+        return modelSplit;
+    };
+    if (ctx.Params.ObliviousTreeOptions->GrowPolicy == EGrowPolicy::SymmetricTree) {
         TObliviousTreeBuilder builder(ctx.LearnProgress->FloatFeatures, ctx.LearnProgress->CatFeatures, {}, ctx.LearnProgress->ApproxDimension);
         for (size_t treeId = 0; treeId < ctx.LearnProgress->TreeStruct.size(); ++treeId) {
             TVector<TModelSplit> modelSplits;
-            CB_ENSURE_INTERNAL(
-                HoldsAlternative<TSplitTree>(ctx.LearnProgress->TreeStruct[treeId]),
-                "SaveModel is unimplemented for non-symmetric trees yet");
+            Y_ASSERT(HoldsAlternative<TSplitTree>(ctx.LearnProgress->TreeStruct[treeId]));
             TVector<TSplit> splits = Get<TSplitTree>(ctx.LearnProgress->TreeStruct[treeId]).Splits;
             for (const auto& split : splits) {
-                auto modelSplit = split.GetModelSplit(ctx, perfectHashedToHashedCatValuesMap);
-                modelSplits.push_back(modelSplit);
-                if (modelSplit.Type == ESplitType::OnlineCtr) {
-                    featureCombinationToProjectionMap[modelSplit.OnlineCtr.Ctr.Base.Projection] = split.Ctr.Projection;
-                }
+                modelSplits.push_back(getModelSplit(split));
             }
             builder.AddTree(modelSplits, ctx.LearnProgress->LeafValues[treeId], ctx.LearnProgress->TreeStats[treeId].LeafWeightsSum);
+        }
+        builder.Build(&modelTrees);
+    } else {
+        TNonSymmetricTreeModelBuilder builder(ctx.LearnProgress->FloatFeatures, ctx.LearnProgress->CatFeatures, {}, ctx.LearnProgress->ApproxDimension);
+        for (size_t treeId = 0; treeId < ctx.LearnProgress->TreeStruct.size(); ++treeId) {
+            Y_ASSERT(HoldsAlternative<TNonSymmetricTreeStructure>(ctx.LearnProgress->TreeStruct[treeId]));
+            const auto& structure = Get<TNonSymmetricTreeStructure>(ctx.LearnProgress->TreeStruct[treeId]);
+            auto tree = BuildTree(
+                structure.GetRoot(),
+                structure.GetNodes(),
+                ctx.LearnProgress->LeafValues[treeId],
+                ctx.LearnProgress->TreeStats[treeId].LeafWeightsSum,
+                getModelSplit);
+            builder.AddTree(std::move(tree));
         }
         builder.Build(&modelTrees);
     }
@@ -575,7 +622,7 @@ static void SaveModel(
         }
 
         *modelPtr->ModelTrees.GetMutable() = std::move(modelTrees);
-        modelPtr->ModelTrees.GetMutable()->AddNumberToAllTreeLeafValues(0, ctx.LearnProgress->StartingApprox.GetOrElse(0));
+        modelPtr->SetScaleAndBias({1, ctx.LearnProgress->StartingApprox.GetOrElse(0)});
 
         modelPtr->UpdateDynamicData();
         coreModelToFullModelConverter.WithCoreModelFrom(modelPtr);
@@ -1093,7 +1140,7 @@ void TrainModel(
     TSetLoggingVerbose inThisScope2;
     if (!evalOutputFileName.empty()) {
         TFullModel model = ReadModel(fullModelPath, modelFormat);
-        auto visibleLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
+        const TExternalLabelsHelper visibleLabelsHelper(model);
         if (!loadOptions.CvParams.FoldCount && loadOptions.TestSetPaths.empty() && !outputColumns.empty()) {
             CATBOOST_WARNING_LOG << "No test files, can't output columns\n";
         }

@@ -21,20 +21,22 @@ TVector<double> CollectLeavesStatistics(
 
     TConstArrayRef<float> weights;
 
+    TTargetDataProviderPtr targetData; // needed to own weights data
+
     if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, "params")) {
         NJson::TJsonValue paramsJson = ReadTJsonValue(*modelInfoParams);
         if (paramsJson.Has("loss_function")) {
             TRestorableFastRng64 rand(0);
 
-            TProcessedDataProvider processedData = CreateModelCompatibleProcessedDataProvider(
+            targetData = CreateModelCompatibleProcessedDataProvider(
                 dataset,
                 {},
                 model,
                 GetMonopolisticFreeCpuRam(),
                 &rand,
-                localExecutor);
+                localExecutor).TargetData;
 
-            weights = GetWeights(*processedData.TargetData);
+            weights = GetWeights(*targetData);
         }
     }
 

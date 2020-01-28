@@ -140,16 +140,16 @@ namespace NCB::NModelEvaluation {
             return GetResultBlockView(blockId, ApproxDimension);
         }
 
-        inline void ApplyScaleAndBias(ui32 blockId) {
+        inline void ApplyScaleAndBias(ui32 blockId, ui32 startTree) {
             if (ScaleAndBias.IsIdentity()) {
                 return;
             }
             Y_ASSERT(ApproxDimension == 1);
-            ::ApplyScaleAndBias(ScaleAndBias, GetResultBlockView(blockId, 1));
+            ::ApplyScaleAndBias(ScaleAndBias, GetResultBlockView(blockId, 1), startTree);
         }
 
-        inline void PostprocessBlock(ui32 blockId) {
-            ApplyScaleAndBias(blockId);
+        inline void PostprocessBlock(ui32 blockId, ui32 startTree) {
+            ApplyScaleAndBias(blockId, startTree);
             if (PredictionType == EPredictionType::RawFormulaVal) {
                 return;
             }

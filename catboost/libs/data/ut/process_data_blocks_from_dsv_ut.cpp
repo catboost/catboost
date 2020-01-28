@@ -38,6 +38,7 @@ inline void ReadAndProceedPoolInBlocks(
                 /*GroupWeightsFilePath=*/TPathWithScheme(),
                 /*BaselineFilePath=*/TPathWithScheme(),
                 /*TimestampsFilePath*/TPathWithScheme(),
+                /*FeatureNamesPath*/TPathWithScheme(),
                 /* ClassNames */{},
                 dsvFormatOptions,
                 MakeCdProviderFromFile(cdFilePath),

@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: py
-Version: 1.8.0
+Version: 1.8.1
 Summary: library with cross-python path, ini-parsing, io, code, log facilities
 Home-page: http://py.readthedocs.io/
 Author: holger krekel, Ronny Pfannschmidt, Benjamin Peterson and others

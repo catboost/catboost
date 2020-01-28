@@ -1,7 +1,5 @@
 #pragma once
 
-#include "label_helper_builder.h"
-
 #include <util/generic/array_ref.h>
 #include <util/generic/hash_set.h>
 #include <util/generic/hash.h>
@@ -22,7 +20,6 @@ public:
 
     int GetApproxDimension() const;
     int GetClassIdx(float label) const;
-    TVector<float> GetClassLabels() const;
     bool IsInitialized() const;
 
     TString SerializeMulticlassParams(int classesCount, const TVector<TString>& classNames) const;

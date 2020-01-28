@@ -67,8 +67,13 @@ namespace NTextProcessing::NTokenizer {
             SubTokensPolicy,
             Languages
         );
+
+        bool operator==(const TTokenizerOptions& rhs) const;
+        bool operator!=(const TTokenizerOptions& rhs) const;
     };
 
+    void TokenizerOptionsToJson(const TTokenizerOptions& options, NJson::TJsonValue* optionsJson);
+    void JsonToTokenizerOptions(const NJson::TJsonValue& optionsJson, TTokenizerOptions* options);
     NJson::TJsonValue TokenizerOptionsToJson(const TTokenizerOptions& options);
     TTokenizerOptions JsonToTokenizerOptions(const NJson::TJsonValue& optionsJson);
 

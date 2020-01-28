@@ -77,7 +77,7 @@ static TMaybe<TVector<ui32>> GetSrcArrayPermutation(
 }
 
 
-void NCB::CheckGroupIds(
+static void CheckGroupIds(
     ui32 objectCount,
     TMaybeData<TConstArrayRef<TGroupId>> groupIds,
     TMaybe<TObjectsGroupingPtr> objectsGrouping

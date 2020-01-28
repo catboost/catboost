@@ -287,7 +287,6 @@ void TCalcScoreFold::Create(
     DefaultCalcStatsObjBlockSize = defaultCalcStatsObjBlockSize;
     LeavesCount = 1;
     LeavesBounds.assign(1, {0, static_cast<ui32>(DocCount)});
-    LeavesIndices.assign(1, 0);
 }
 
 template <typename TSrcRef, typename TGetElementFunc, typename TDstRef>
@@ -489,7 +488,6 @@ void TCalcScoreFold::SortFoldByLeafIndex(ui32 leafCount, NPar::TLocalExecutor* l
     if (leafCount == 1) {
         LeavesCount = 1;
         LeavesBounds.assign(1, {0, static_cast<ui32>(DocCount)});
-        LeavesIndices.assign(1, 0);
         return;
     }
 
@@ -598,8 +596,6 @@ void TCalcScoreFold::SortFoldByLeafIndex(ui32 leafCount, NPar::TLocalExecutor* l
     for (auto leaf : xrange(ui32(1), LeavesCount)) {
         LeavesBounds[leaf] = {LeavesBounds[leaf - 1].End, LeavesBounds[leaf - 1].End + totalDocsInLeaf[leaf]};
     }
-    LeavesIndices.yresize(LeavesCount);
-    Iota(LeavesIndices.begin(), LeavesIndices.end(), 0);
 }
 
 void TCalcScoreFold::Sample(
@@ -710,142 +706,233 @@ void TCalcScoreFold::UpdateIndices(const TVector<TIndexType>& indices, NPar::TLo
     );
 }
 
-// only for sampling per tree
-void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFold(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor) {
-    Y_ASSERT(GetBodyTailCount() == 1);
-    Y_UNUSED(localExecutor);
+void TCalcScoreFold::TFoldPartitionOutput::Create(int size, int dimension) {
+    Size = size;
+    Dimension = dimension;
+    SampleWeights.yresize(size);
+    IndexInFold.yresize(size);
+    LearnPermutationFeaturesSubset.yresize(size);
+    SampleWeightedDerivatives.resize(dimension);
+    for (auto dim : xrange(dimension)) {
+        SampleWeightedDerivatives[dim].yresize(size);
+    }
+}
 
-    localExecutor->ExecRange(
-        [&](int doc) {
+TCalcScoreFold::TFoldPartitionOutput::TSlice TCalcScoreFold::TFoldPartitionOutput::GetSlice(TIndexRange<ui32> range) {
+    TSlice slice;
+    slice.SampleWeights = {
+        SampleWeights.begin() + range.Begin,
+        SampleWeights.begin() + range.End
+    };
+    slice.IndexInFold = {
+        IndexInFold.begin() + range.Begin,
+        IndexInFold.begin() + range.End
+    };
+    slice.LearnPermutationFeaturesSubset = {
+        LearnPermutationFeaturesSubset.begin() + range.Begin,
+        LearnPermutationFeaturesSubset.begin() + range.End
+    };
+    slice.SampleWeightedDerivatives.resize(Dimension);
+    for (auto dim : xrange(Dimension)) {
+        slice.SampleWeightedDerivatives[dim] = {
+            SampleWeightedDerivatives[dim].begin() + range.Begin,
+            SampleWeightedDerivatives[dim].begin() + range.End
+        };
+    }
+    return slice;
+}
+
+void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFoldForSingleLeafImpl(
+    TIndexType leaf,
+    TIndexType leftChildIdx,
+    TIndexType rightChildIdx,
+    const TVector<TIndexType>& indices,
+    NPar::TLocalExecutor* localExecutor,
+    TFoldPartitionOutput::TSlice* out
+) {
+    const auto leafBounds = LeavesBounds[leaf];
+    if (leafBounds.GetSize() == 0) {
+        return;
+    }
+
+    const int blockSize = Max(CeilDiv(static_cast<int>(leafBounds.GetSize()), localExecutor->GetThreadCount() + 1), 1000);
+    TSimpleIndexRangesGenerator<ui32> rangesGenerator(leafBounds, blockSize);
+    const int blockCount = rangesGenerator.RangesCount();
+
+    auto forEachBlock = [&](auto&& func) {
+        localExecutor->ExecRange(
+            [&](int blockId) {
+                func(blockId, rangesGenerator.GetRange(blockId));
+            },
+            0,
+            blockCount,
+            NPar::TLocalExecutor::WAIT_COMPLETE
+        );
+    };
+
+    // update indices
+    forEachBlock([&](int /*blockId*/, auto block) {
+        for (auto doc : block.Iter()) {
             Indices[doc] = indices[IndexInFold[doc]];
-        },
-        NPar::TLocalExecutor::TExecRangeParams(0, DocCount).SetBlockCountToThreadCount(),
-        NPar::TLocalExecutor::WAIT_COMPLETE);
+        }
+    });
 
-    ui32 oldLeafCount = LeavesCount;
-    ui32 newLeafCount = LeavesCount *= 2;
+    // count left and right docs for each block
+    TVector<ui32> leftDocsCount(blockCount);
+    TVector<ui32> rightDocsCount(blockCount);
+    forEachBlock([&](int blockId, auto block) {
+        leftDocsCount[blockId] = Count(Indices.begin() + block.Begin, Indices.begin() + block.End, leftChildIdx);
+        rightDocsCount[blockId] = block.GetSize() - leftDocsCount[blockId];
+    });
+    ui32 leftCount = Accumulate(leftDocsCount.begin(), leftDocsCount.end(), 0);
+    ui32 rightCount = leafBounds.GetSize() - leftCount;
 
-    TUnsizedVector<float> newSampleWeights;
-    TUnsizedVector<ui32> newIndexedSubset;
-    TUnsizedVector<ui32> newIndexInFold;
-    TUnsizedVector<TUnsizedVector<double>> newSampleWeightedDerivatives;
-    TUnsizedVector<TIndexType> newIndices;
+    LeavesBounds[leftChildIdx] = {leafBounds.Begin, leafBounds.Begin + leftCount};
+    LeavesBounds[rightChildIdx] = {leafBounds.Begin + leftCount, leafBounds.End};
+
+    bool inPlace = (out == nullptr);
+    if ((leftCount > 0 && rightCount > 0) || !inPlace) {
+        // temp storage for inplace partition
+        TFoldPartitionOutput tempOutput;
+        TFoldPartitionOutput::TSlice tempOutputSlice;
+        if (inPlace) {
+            tempOutput.Create(leafBounds.GetSize(), ApproxDimension);
+            tempOutputSlice = tempOutput.GetSlice({0, leafBounds.GetSize()});
+            out = &tempOutputSlice;
+        }
+
+        // calc offsets for each block
+        TVector<ui32> leftDocsOffset, rightDocsOffset;
+        CalcCumulativeOffsets(leftDocsCount, &leftDocsOffset, 0);
+        CalcCumulativeOffsets(rightDocsCount, &rightDocsOffset, leftCount);
+
+        auto partitionByIndices = [&] (auto& array, auto& outArray) {
+            // partition to out array
+            forEachBlock([&](int blockId, auto block) {
+                auto arrayData = array.data();
+                auto outData = outArray.data();
+                ui32 leftOffset = leftDocsOffset[blockId];
+                ui32 rightOffset = rightDocsOffset[blockId];
+                for (auto doc : block.Iter()) {
+                    int newIdx = (Indices[doc] == leftChildIdx) ? (leftOffset++) : (rightOffset++);
+                    outData[newIdx] = arrayData[doc];
+                }
+            });
+            // copy back to array
+            if (inPlace) {
+                forEachBlock([&](int /*blockId*/, auto block) {
+                    Copy(outArray.begin() + block.Begin - leafBounds.Begin,
+                        outArray.begin() + block.End - leafBounds.Begin,
+                        array.begin() + block.Begin);
+                });
+            }
+        };
+        TVector<std::function<void()>> tasks;
+        tasks.push_back([&]() { partitionByIndices(SampleWeights, out->SampleWeights); });
+        tasks.push_back([&]() { partitionByIndices(IndexInFold, out->IndexInFold); });
+        tasks.push_back([&]() { partitionByIndices(LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>(), out->LearnPermutationFeaturesSubset); });
+        for (auto dim : xrange(ApproxDimension)) {
+            tasks.push_back([&, dim]() { partitionByIndices(BodyTailArr[0].SampleWeightedDerivatives[dim], out->SampleWeightedDerivatives[dim]); });
+        }
+        if (blockCount < localExecutor->GetThreadCount() + 1) {
+            ExecuteTasksInParallel(&tasks, localExecutor);
+        } else {
+            for (const auto& task : tasks) {
+                task();
+            }
+        }
+    }
+
+    // fill indices
+    ParallelFill(
+        leftChildIdx,
+        blockSize,
+        localExecutor,
+        {Indices.begin() + leafBounds.Begin, static_cast<size_t>(leftCount)});
+    ParallelFill(
+        rightChildIdx,
+        blockSize,
+        localExecutor,
+        {Indices.begin() + leafBounds.Begin + leftCount, static_cast<size_t>(rightCount)});
+}
+
+// for lossguide
+void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFoldForSingleLeaf(
+    TIndexType leaf,
+    TIndexType leftChildIdx,
+    TIndexType rightChildIdx,
+    const TVector<TIndexType>& indices,
+    NPar::TLocalExecutor* localExecutor
+) {
+    Y_ASSERT(GetBodyTailCount() == 1);
+
+    LeavesCount++;
+    LeavesBounds.resize(LeavesCount);
+
+    UpdateIndicesInLeafwiseSortedFoldForSingleLeafImpl(
+        leaf,
+        leftChildIdx,
+        rightChildIdx,
+        indices,
+        localExecutor
+    );
+}
+
+// for depthwise
+void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFold(
+    const TVector<TIndexType>& leafs,
+    const TVector<TIndexType>& childs,
+    const TVector<TIndexType>& indices,
+    NPar::TLocalExecutor* localExecutor
+) {
+    Y_ASSERT(GetBodyTailCount() == 1);
+    Y_ASSERT(childs.size() == 2 * leafs.size());
 
     // take capacity because of unsized vectors
-    size_t capacity = Indices.capacity();
-    newSampleWeights.yresize(capacity);
-    newIndexedSubset.yresize(capacity);
-    newIndexInFold.yresize(capacity);
-    newSampleWeightedDerivatives.resize(ApproxDimension);
-    for (auto dim : xrange(ApproxDimension)) {
-        newSampleWeightedDerivatives[dim].yresize(capacity);
-    }
-    newIndices.yresize(capacity);
+    TFoldPartitionOutput out;
+    out.Create(Indices.capacity(), ApproxDimension);
 
-    TVector<TIndexRange<ui32>> newLeavesBounds;
-    TVector<ui32> newLeavesIndices;
-    newLeavesBounds.yresize(newLeafCount);
-    newLeavesIndices.yresize(newLeafCount);
-
-    TBodyTail& bt = BodyTailArr[0];
-    TIndexedSubset<ui32>& indexedSubset = LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>();
-
-    ui32 rightLeafIndexShift = oldLeafCount;
-    localExecutor->ExecRange(
-        [&](ui32 leaf) {
-            const ui32 begin = LeavesBounds[leaf].Begin;
-            const ui32 end = LeavesBounds[leaf].End;
-            if (begin == end) {
-                newLeavesBounds[leaf << 1u] = {begin, end};
-                newLeavesBounds[(leaf << 1u) | 1u] = {begin, end};
-                newLeavesIndices[leaf << 1u] = LeavesIndices[leaf];
-                newLeavesIndices[(leaf << 1u) | 1u] = LeavesIndices[leaf] + rightLeafIndexShift;
-                return;
-            }
-
-            const TIndexType leftIndex = LeavesIndices[leaf];
-
-            const int blockSize = Max(CeilDiv(DocCount, localExecutor->GetThreadCount() + 1), 1000);
-            TSimpleIndexRangesGenerator<int> indexRangesGenerator(TIndexRange<int>(begin, end), blockSize);
-            const int blockCount = indexRangesGenerator.RangesCount();
-
-            // count left and right docs for each block
-            TVector<ui32> leftDocsCount(blockCount);
-            TVector<ui32> rightDocsCount(blockCount);
-            localExecutor->ExecRange(
-                [&, leftIndex](int blockId) {
-                    ui32 leftCount = 0;
-                    TConstArrayRef<ui32> oldIndicesRef(Indices.data(), DocCount);
-                    for (auto doc : indexRangesGenerator.GetRange(blockId).Iter()) {
-                        leftCount += (oldIndicesRef[doc] == leftIndex);
-                    }
-                    leftDocsCount[blockId] = leftCount;
-                    rightDocsCount[blockId] = indexRangesGenerator.GetRange(blockId).GetSize() - leftCount;
-                },
-                0,
-                blockCount,
-                NPar::TLocalExecutor::WAIT_COMPLETE);
-
-            // calc offsets for each block
-            TVector<ui32> leftDocsOffset, rightDocsOffset;
-            CalcCumulativeOffsets(leftDocsCount, &leftDocsOffset, begin);
-            CalcCumulativeOffsets(rightDocsCount, &rightDocsOffset, leftDocsOffset.back() + leftDocsCount.back());
-
-            newLeavesBounds[leaf << 1u] = {begin, rightDocsOffset[0]};
-            newLeavesBounds[(leaf << 1u) | 1u] = {rightDocsOffset[0], end};
-            newLeavesIndices[leaf << 1u] = leftIndex;
-            newLeavesIndices[(leaf << 1u) | 1u] = leftIndex + rightLeafIndexShift;
-
-            // copy data to new positions
-            localExecutor->ExecRange(
-                [&](int blockId) {
-                    TConstArrayRef<ui32> oldIndicesRef(Indices.data(), DocCount);
-                    TConstArrayRef<float> oldSampleWeightsRef(SampleWeights.data(), DocCount);
-                    TConstArrayRef<ui32> oldIndexedSubsetRef(indexedSubset.data(), DocCount);
-                    TConstArrayRef<ui32> oldIndexInFoldRef(IndexInFold.data(), DocCount);
-
-                    TArrayRef<ui32> newIndicesRef(newIndices.data(), DocCount);
-                    TArrayRef<float> newSampleWeightsRef(newSampleWeights.data(), DocCount);
-                    TArrayRef<ui32> newIndexedSubsetRef(newIndexedSubset.data(), DocCount);
-                    TArrayRef<ui32> newIndexInFoldRef(newIndexInFold.data(), DocCount);
-
-                    ui32 leftOffset = leftDocsOffset[blockId];
-                    ui32 rightOffset = rightDocsOffset[blockId];
-                    for (auto doc : indexRangesGenerator.GetRange(blockId).Iter()) {
-                        int newIdx = (oldIndicesRef[doc] == leftIndex) ? (leftOffset++) : (rightOffset++);
-                        newIndicesRef[newIdx] = oldIndicesRef[doc];
-                        newSampleWeightsRef[newIdx] = oldSampleWeightsRef[doc];
-                        newIndexedSubsetRef[newIdx] = oldIndexedSubsetRef[doc];
-                        newIndexInFoldRef[newIdx] = oldIndexInFoldRef[doc];
-                    }
-
-                    for (auto dim : xrange(ApproxDimension)) {
-                        leftOffset = leftDocsOffset[blockId];
-                        rightOffset = rightDocsOffset[blockId];
-                        TConstArrayRef<double> oldDerivativesRef(bt.SampleWeightedDerivatives[dim].data(), DocCount);
-                        TArrayRef<double> newDerivativesRef(newSampleWeightedDerivatives[dim].data(), DocCount);
-                        for (auto doc : indexRangesGenerator.GetRange(blockId).Iter()) {
-                            int newIdx = (oldIndicesRef[doc] == leftIndex) ? (leftOffset++) : (rightOffset++);
-                            newDerivativesRef[newIdx] = oldDerivativesRef[doc];
-                        }
-                    }
-                },
-                0,
-                blockCount,
-                NPar::TLocalExecutor::WAIT_COMPLETE);
+    LeavesCount += leafs.size();
+    LeavesBounds.resize(LeavesCount);
+    localExecutor->ExecRange([&] (int idx) {
+            auto leaf = leafs[idx];
+            auto leftChild = childs[idx * 2];
+            auto rightChild = childs[idx * 2 + 1];
+            auto slice = out.GetSlice(LeavesBounds[leaf]);
+            UpdateIndicesInLeafwiseSortedFoldForSingleLeafImpl(
+                leaf,
+                leftChild,
+                rightChild,
+                indices,
+                localExecutor,
+                &slice);
         },
         0,
-        LeavesBounds.size(),
-        NPar::TLocalExecutor::WAIT_COMPLETE);
+        leafs.size(),
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
 
-    SampleWeights = std::move(newSampleWeights);
-    indexedSubset = std::move(newIndexedSubset);
-    IndexInFold = std::move(newIndexInFold);
-    bt.SampleWeightedDerivatives = std::move(newSampleWeightedDerivatives);
-    Indices = std::move(newIndices);
+    SampleWeights = std::move(out.SampleWeights);
+    IndexInFold = std::move(out.IndexInFold);
+    LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>() = std::move(out.LearnPermutationFeaturesSubset);
+    BodyTailArr[0].SampleWeightedDerivatives = std::move(out.SampleWeightedDerivatives);
+}
 
-    LeavesBounds = std::move(newLeavesBounds);
-    LeavesIndices = std::move(newLeavesIndices);
+// for symmetric
+void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFold(const TVector<TIndexType>& indices, NPar::TLocalExecutor* localExecutor) {
+    TVector<TIndexType> leafs(LeavesCount);
+    TVector<TIndexType> childs(2 * LeavesCount);
+    for (auto idx : xrange(LeavesCount)) {
+        leafs[idx] = idx;
+        childs[idx * 2] = idx;
+        childs[idx * 2 + 1] = idx + LeavesCount;
+    }
+    UpdateIndicesInLeafwiseSortedFold(
+        leafs,
+        childs,
+        indices,
+        localExecutor
+    );
 }
 
 int TCalcScoreFold::GetApproxDimension() const {

@@ -85,6 +85,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\ders_holder.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\error_functions.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\hessian.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\langevin_utils.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\online_predictor.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\pairwise_leaves_calculation.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\scoring_helpers.cpp"/>
@@ -95,6 +96,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\ders_holder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\error_functions.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\hessian.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\langevin_utils.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\leaf_statistics.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\online_predictor.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\pairwise_leaves_calculation.h"/>

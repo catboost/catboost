@@ -256,8 +256,8 @@ namespace {
             if (ViewEnd <= idx) {
                 ViewBegin = idx;
                 ViewEnd = Min(idx + Capacity, Src.size());
-                for (size_t idx : xrange(ViewBegin, ViewEnd)) {
-                    ExpSrc[idx - ViewBegin] = Src[idx] + Bias;
+                for (size_t i : xrange(ViewBegin, ViewEnd)) {
+                    ExpSrc[i - ViewBegin] = Src[i] + Bias;
                 }
                 FastExpInplace(ExpSrc.data(), ViewEnd - ViewBegin);
             }

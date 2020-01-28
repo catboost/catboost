@@ -116,6 +116,7 @@ extern "C" {
 SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
                               SEXP cdFileParam,
                               SEXP pairsFileParam,
+                              SEXP featureNamesFileParam,
                               SEXP delimiterParam,
                               SEXP hasHeaderParam,
                               SEXP threadCountParam,
@@ -134,6 +135,7 @@ SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
     }
 
     TStringBuf pairsPathWithScheme(CHAR(asChar(pairsFileParam)));
+    TStringBuf featureNamesPathWithScheme(CHAR(asChar(featureNamesFileParam)));
 
     TDataProviderPtr poolPtr = ReadDataset(TPathWithScheme(CHAR(asChar(poolFileParam)), "dsv"),
                                            !pairsPathWithScheme.empty() ?
@@ -141,6 +143,8 @@ SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
                                            /*groupWeightsFilePath=*/TPathWithScheme(),
                                            /*timestampsFilePath=*/TPathWithScheme(),
                                            /*baselineFilePath=*/TPathWithScheme(),
+                                           !featureNamesPathWithScheme.empty() ?
+                                                TPathWithScheme(featureNamesPathWithScheme, "dsv") : TPathWithScheme(),
                                            columnarPoolFormatParams,
                                            TVector<ui32>(),
                                            EObjectsOrder::Undefined,

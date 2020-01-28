@@ -781,6 +781,7 @@ cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
         const TPathWithScheme& groupWeightsFilePath,
         const TPathWithScheme& timestampsFilePath,
         const TPathWithScheme& baselineFilePath,
+        const TPathWithScheme& featureNamesPath,
         const TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector[ui32]& ignoredFeatures,
         EObjectsOrder objectsOrder,
@@ -801,6 +802,10 @@ cdef extern from "catboost/libs/model/ctr_provider.h":
     cdef cppclass ECtrTableMergePolicy:
         pass
 
+cdef extern from "catboost/libs/model/scale_and_bias.h":
+    cdef cppclass TScaleAndBias:
+        double Scale
+        double Bias
 
 cdef extern from "catboost/libs/model/model.h":
     cdef cppclass TFeaturePosition:
@@ -831,6 +836,7 @@ cdef extern from "catboost/libs/model/model.h":
         void SetLeafValues(const TVector[double]& leafValues) except +ProcessException
         void DropUnusedFeatures() except +ProcessException
         TVector[ui32] GetTreeLeafCounts() except +ProcessException
+
         void ConvertObliviousToAsymmetric() except +ProcessException
 
     cdef cppclass TCOWTreeWrapper:
@@ -852,6 +858,8 @@ cdef extern from "catboost/libs/model/model.h":
         bool_t IsOblivious() except +ProcessException
         TString GetLossFunctionName() except +ProcessException
         TVector[TString] GetModelClassNames() except +ProcessException
+        TScaleAndBias GetScaleAndBias() except +ProcessException
+        void SetScaleAndBias(const TScaleAndBias&) except +ProcessException
 
     cdef cppclass EModelType:
         pass
@@ -3186,13 +3194,17 @@ cdef class _PoolBase:
                 builder_visitor[0].AddTarget(target_idx, <TConstArrayRef[TString]>string_target_data)
 
 
-    cpdef _read_pool(self, pool_file, cd_file, pairs_file, delimiter, bool_t has_header, int thread_count):
+    cpdef _read_pool(self, pool_file, cd_file, pairs_file, feature_names_file, delimiter, bool_t has_header, int thread_count):
         cdef TPathWithScheme pool_file_path
         pool_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(pool_file), TStringBuf(<char*>'dsv'))
 
         cdef TPathWithScheme pairs_file_path
         if len(pairs_file):
             pairs_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(pairs_file), TStringBuf(<char*>'dsv'))
+
+        cdef TPathWithScheme feature_names_file_path
+        if len(feature_names_file):
+            feature_names_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(feature_names_file), TStringBuf(<char*>'dsv'))
 
         cdef TColumnarPoolFormatParams columnarPoolFormatParams
         columnarPoolFormatParams.DsvFormat.HasHeader = has_header
@@ -3210,6 +3222,7 @@ cdef class _PoolBase:
             TPathWithScheme(),
             TPathWithScheme(),
             TPathWithScheme(),
+            feature_names_file_path,
             columnarPoolFormatParams,
             emptyIntVec,
             EObjectsOrder_Undefined,
@@ -4143,6 +4156,16 @@ cdef class _CatBoost:
 
     cpdef _base_shrink(self, int ntree_start, int ntree_end):
         self.__model.Truncate(ntree_start, ntree_end)
+
+    cpdef _get_scale_and_bias(self):
+        cdef TScaleAndBias scale_and_bias = dereference(self.__model).GetScaleAndBias()
+        return scale_and_bias.Scale, scale_and_bias.Bias
+
+    cpdef _set_scale_and_bias(self, scale, bias):
+        cdef TScaleAndBias scale_and_bias
+        scale_and_bias.Scale = scale
+        scale_and_bias.Bias = bias
+        dereference(self.__model).SetScaleAndBias(scale_and_bias)
 
     cpdef _is_oblivious(self):
         return self.__model.IsOblivious()

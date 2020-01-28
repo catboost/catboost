@@ -190,10 +190,23 @@ namespace {
 
     public:
         TAutoLRParamsGuesser() {
+            Coefficients[TAutoLearningRateKey(ETargetType::BinClass, ETaskType::CPU, EUseBestModel::True, EBoostFromAverage::True)] =
+                {0.246, -5.127, -0.451, 0.978};
+            Coefficients[TAutoLearningRateKey(ETargetType::BinClass, ETaskType::CPU, EUseBestModel::False, EBoostFromAverage::True)] =
+                {0.408, -7.299, -0.928, 2.701};
             Coefficients[TAutoLearningRateKey(ETargetType::BinClass, ETaskType::CPU, EUseBestModel::True, EBoostFromAverage::False)] =
-                {0.105, -3.276, -0.428, 0.911};
+                {0.247, -5.158, -0.435, 0.934};
             Coefficients[TAutoLearningRateKey(ETargetType::BinClass, ETaskType::CPU, EUseBestModel::False, EBoostFromAverage::False)] =
-                {0.283, -6.044, -0.891, 2.620};
+                {0.427, -7.525, -0.917, 2.63};
+
+            Coefficients[TAutoLearningRateKey(ETargetType::NonQuantileRegression, ETaskType::CPU, EUseBestModel::True, EBoostFromAverage::True)] =
+                {0.157, -4.062, -0.61, 1.557};
+            Coefficients[TAutoLearningRateKey(ETargetType::NonQuantileRegression, ETaskType::CPU, EUseBestModel::False, EBoostFromAverage::True)] =
+                {0.158, -4.287, -0.813, 2.571};
+            Coefficients[TAutoLearningRateKey(ETargetType::NonQuantileRegression, ETaskType::CPU, EUseBestModel::True, EBoostFromAverage::False)] =
+                {0.189, -4.383, -0.623, 1.439};
+            Coefficients[TAutoLearningRateKey(ETargetType::NonQuantileRegression, ETaskType::CPU, EUseBestModel::False, EBoostFromAverage::False)] =
+                {0.178, -4.473, -0.76, 2.133};
 
             Coefficients[TAutoLearningRateKey(ETargetType::BinClass, ETaskType::GPU, EUseBestModel::True, EBoostFromAverage::True)] =
                 {0.04, -3.226, -0.488, 0.758};

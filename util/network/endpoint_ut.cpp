@@ -106,4 +106,18 @@ Y_UNIT_TEST_SUITE(TEndpointTest) {
         UNIT_ASSERT(!(ep1 == ep3));
         UNIT_ASSERT(!(ep1 == ep4));
     }
+
+    Y_UNIT_TEST(TestIsUnixSocket) {
+        TNetworkAddress na1(TUnixSocketPath("/tmp/unixsocket"));
+        TEndpoint ep1(new NAddr::TAddrInfo(&*na1.Begin()));
+
+        TNetworkAddress na2("2a02:6b8:0:1410::5f6c:f3c2", 24242);
+        TEndpoint ep2(new NAddr::TAddrInfo(&*na2.Begin()));
+
+        UNIT_ASSERT(ep1.IsUnix());
+        UNIT_ASSERT(ep1.SockAddr()->sa_family == AF_UNIX);
+
+        UNIT_ASSERT(!ep2.IsUnix());
+        UNIT_ASSERT(ep2.SockAddr()->sa_family != AF_UNIX);
+    }
 }

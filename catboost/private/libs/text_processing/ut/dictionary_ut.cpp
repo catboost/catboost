@@ -10,8 +10,8 @@ Y_UNIT_TEST_SUITE(TestDictionary) {
         TVector<TString> text = {
             "a", "a", "a", "a", "b", "b", "c", "c", "c", "d"
         };
-        TTokenizerPtr tokenizer = CreateTokenizer();
 
+        TTokenizerPtr tokenizer = CreateTokenizer();
         TDictionaryBuilderOptions dictionaryBuilderOptions{2, -1};
         auto dictionary = CreateDictionary(
             TIterableTextFeature(text),

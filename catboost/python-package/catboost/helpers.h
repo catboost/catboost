@@ -1,5 +1,7 @@
 #pragma once
 
+#include <Python.h>
+
 #include <catboost/private/libs/algo/plot.h>
 #include <catboost/private/libs/data_types/groupid.h>
 #include <catboost/libs/helpers/exception.h>
@@ -14,7 +16,6 @@
 
 #include <util/generic/noncopyable.h>
 
-#include <Python.h>
 
 class TGilGuard : public TNonCopyable {
 public:

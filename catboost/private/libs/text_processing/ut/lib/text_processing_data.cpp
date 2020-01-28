@@ -129,13 +129,15 @@ void NCBTest::CreateTextDataForTest(
                 };
                 textColumnDictionariesOptions.push_back(textColumnDictionaryOptions);
 
+                TTokenizerPtr tokenizer = CreateTokenizer();
+
                 TDictionaryPtr dictionary = CreateDictionary(
                     TIterableTextFeature(features->at(textFeatureId)),
                     textColumnDictionaryOptions,
-                    textDigitizers->GetTokenizer()
+                    tokenizer
                 );
 
-                textDigitizers->AddDictionary(textFeatureId, tokenizedFeatureIdx, dictionary);
+                textDigitizers->AddDigitizer(textFeatureId, tokenizedFeatureIdx, tokenizer, dictionary);
                 tokenizedFeatureIdx++;
 
                 const TString stringFeatureId = ToString(textFeatureId);
@@ -145,7 +147,8 @@ void NCBTest::CreateTextDataForTest(
 
                 for (EFeatureCalcerType featureCalcer : textProcessingDescription.FeatureCalcers) {
                     TTextFeatureProcessing featureProcessing{
-                        TFeatureCalcerDescription(featureCalcer),
+                        {TFeatureCalcerDescription(featureCalcer)},
+                        {"SomeTokenizerName"},
                         {dictionaryName}
                     };
                     textFeatureProcessings.at(stringFeatureId).push_back(featureProcessing);
@@ -166,6 +169,7 @@ void NCBTest::CreateTextDataForTest(
         );
 
         *textProcessingOptions = TTextProcessingOptions(
+            {TTextColumnTokenizerOptions()},
             std::move(textColumnDictionariesOptions),
             std::move(textFeatureProcessings)
         );

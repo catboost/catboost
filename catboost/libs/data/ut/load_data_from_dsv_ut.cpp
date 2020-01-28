@@ -968,4 +968,159 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             TestReadDataset(testCase);
         }
     }
+
+    Y_UNIT_TEST(ReadDatasetWithExternalFeatureNames) {
+        TVector<TReadDatasetTestCase> testCases;
+
+        {
+            TReadDatasetTestCase externalFeatureNamesTestCase;
+            TSrcData srcData;
+            srcData.CdFileData = AsStringBuf(
+                "0\tTarget\n"
+                "1\tText\n"
+                "2\tCateg\n"
+                "3\tNum\n"
+                "4\tText\n"
+                "5\tCateg\n"
+            );
+            srcData.DatasetFileData = AsStringBuf(
+                "0.12\tSpiderman\tUSA\t18\tjazz\tMale\n"
+                "0.22\tWonderwoman\tEngland\t20\tsoul\tFemale\n"
+                "0.34\tBatman\tUSA\t35\tclassical\tMale\n"
+                "0.23\tCow\tRussia\t5\tNaN\t-\n"
+                "0.99\tFaramir\tGondor\t500\tfolk\tMale\n"
+                "0.01\tPotter\t,.?!#$\t5\tblues\tMale\n"
+                "0.02\tCollins\tEngland\t50\t-\tMale\n"
+            );
+            srcData.FeatureNamesFileData = AsStringBuf(
+                "0\tName\n"
+                "1\tCountry\n"
+                "2\tAge\n"
+                "3\tFavouriteMusic\n"
+                "4\tGender\n"
+            );
+            srcData.DsvFileHasHeader = false;
+            srcData.ObjectsOrder = EObjectsOrder::Undefined;
+            externalFeatureNamesTestCase.SrcData = std::move(srcData);
+
+            TExpectedRawData expectedData;
+
+            TDataColumnsMetaInfo dataColumnsMetaInfo;
+            dataColumnsMetaInfo.Columns = {
+                {EColumn::Label, ""},
+                {EColumn::Text, ""},
+                {EColumn::Categ, ""},
+                {EColumn::Num, ""},
+                {EColumn::Text, ""},
+                {EColumn::Categ, ""},
+            };
+
+            TVector<TString> featureId = {
+                "Name",
+                "Country",
+                "Age",
+                "FavouriteMusic",
+                "Gender"
+            };
+
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* baselineColumn */ Nothing(), &featureId);
+            expectedData.Objects.Order = EObjectsOrder::Undefined;
+
+            expectedData.Objects.FloatFeatures = {
+                TVector<float>{18.f, 20.f, 35.f, 5.f, 500.f, 5.f, 50.f},
+            };
+            expectedData.Objects.CatFeatures = {
+                TVector<TStringBuf>{"USA", "England", "USA", "Russia", "Gondor", ",.?!#$", "England"},
+                TVector<TStringBuf>{"Male", "Female", "Male", "-", "Male", "Male", "Male"},
+            };
+            expectedData.Objects.TextFeatures = {
+                TVector<TStringBuf>{"Spiderman", "Wonderwoman", "Batman", "Cow", "Faramir", "Potter", "Collins"},
+                TVector<TStringBuf>{"jazz", "soul", "classical", "NaN", "folk", "blues", "-"},
+            };
+
+            expectedData.ObjectsGrouping = TObjectsGrouping(7);
+            TVector<TVector<TString>> rawTarget{{"0.12", "0.22", "0.34", "0.23", "0.99", "0.01", "0.02"}};
+            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
+            expectedData.Target.Weights = TWeights<float>(7);
+            expectedData.Target.GroupWeights = TWeights<float>(7);
+
+            externalFeatureNamesTestCase.ExpectedData = std::move(expectedData);
+
+            testCases.push_back(std::move(externalFeatureNamesTestCase));
+        }
+        {
+            TReadDatasetTestCase cdAndExternalFeatureNamesTestCase;
+            TSrcData srcData;
+            srcData.CdFileData = AsStringBuf("0\tTarget\n"
+                "1\tText\tName\n"
+                "2\tCateg\tCountry\n"
+                "3\tNum\tAge\n"
+                "4\tText\tFavouriteMusic\n"
+                "5\tCateg\tGender\n");
+            srcData.DatasetFileData = AsStringBuf("0.12\tSpiderman\tUSA\t18\tjazz\tMale\n"
+                "0.22\tWonderwoman\tEngland\t20\tsoul\tFemale\n"
+                "0.34\tBatman\tUSA\t35\tclassical\tMale\n"
+                "0.23\tCow\tRussia\t5\tNaN\t-\n"
+                "0.99\tFaramir\tGondor\t500\tfolk\tMale\n"
+                "0.01\tPotter\t,.?!#$\t5\tblues\tMale\n"
+                "0.02\tCollins\tEngland\t50\t-\tMale\n");
+            srcData.FeatureNamesFileData = AsStringBuf("0\tName\n"
+                "1\tCountry\n"
+                "2\tAge\n"
+                "3\tFavouriteMusic\n"
+                "4\tGender\n");
+            srcData.DsvFileHasHeader = false;
+            srcData.ObjectsOrder = EObjectsOrder::Undefined;
+            cdAndExternalFeatureNamesTestCase.SrcData = std::move(srcData);
+
+            TExpectedRawData expectedData;
+
+            TDataColumnsMetaInfo dataColumnsMetaInfo;
+            dataColumnsMetaInfo.Columns = {
+                {EColumn::Label, ""},
+                {EColumn::Text, "Name"},
+                {EColumn::Categ, "Country"},
+                {EColumn::Num, "Age"},
+                {EColumn::Text, "FavouriteMusic"},
+                {EColumn::Categ, "Gender"},
+            };
+
+            TVector<TString> featureId = {
+                "Name",
+                "Country",
+                "Age",
+                "FavouriteMusic",
+                "Gender"
+            };
+
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* baselineColumn */ Nothing(), &featureId);
+            expectedData.Objects.Order = EObjectsOrder::Undefined;
+
+            expectedData.Objects.FloatFeatures = {
+                TVector<float> {18.f, 20.f, 35.f, 5.f, 500.f, 5.f, 50.f},
+            };
+            expectedData.Objects.CatFeatures = {
+                TVector<TStringBuf> {"USA", "England", "USA", "Russia", "Gondor", ",.?!#$", "England"},
+                TVector<TStringBuf> {"Male", "Female", "Male", "-", "Male", "Male", "Male"},
+            };
+            expectedData.Objects.TextFeatures = {
+                TVector<TStringBuf> {"Spiderman", "Wonderwoman", "Batman", "Cow", "Faramir", "Potter", "Collins"},
+                TVector<TStringBuf> {"jazz", "soul", "classical", "NaN", "folk", "blues", "-"},
+            };
+
+            expectedData.ObjectsGrouping = TObjectsGrouping(7);
+            TVector<TVector<TString>> rawTarget { { "0.12", "0.22", "0.34", "0.23", "0.99", "0.01", "0.02" } };
+            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
+            expectedData.Target.Weights = TWeights<float>(7);
+            expectedData.Target.GroupWeights = TWeights<float>(7);
+
+            cdAndExternalFeatureNamesTestCase.ExpectedData = std::move(expectedData);
+
+            testCases.push_back(std::move(cdAndExternalFeatureNamesTestCase));
+        }
+
+        for (const auto& testCase : testCases) {
+            TestReadDataset(testCase);
+        }
+    }
 }

@@ -21,6 +21,7 @@
 #include <catboost/private/libs/algo/approx_calcer/approx_calcer_multi.h>
 #include <catboost/private/libs/algo/approx_calcer/gradient_walker.h>
 #include <catboost/private/libs/algo_helpers/approx_calcer_helpers.h>
+#include <catboost/private/libs/algo_helpers/langevin_utils.h>
 #include <catboost/private/libs/algo_helpers/error_functions.h>
 #include <catboost/private/libs/algo_helpers/pairwise_leaves_calculation.h>
 #include <catboost/private/libs/options/catboost_options.h>
@@ -638,8 +639,17 @@ static void CalcApproxDeltaSimple(
             &leafDers,
             &pairwiseBuckets,
             &weightedDers);
+        const double scaledL2Regularizer = ScaleL2Reg(
+            ctx->Params.ObliviousTreeOptions->L2Reg,
+            fold.GetSumWeight(),
+            fold.GetLearnSampleCount());
+        AddLangevinNoiseToLeafDerivativesSum(
+            ctx->Params.BoostingOptions->DiffusionTemperature,
+            ctx->Params.BoostingOptions->LearningRate,
+            scaledL2Regularizer,
+            randomSeed,
+            &leafDers);
         if (treeHasMonotonicConstraints) {
-            const double scaledL2Regularizer = (ctx->Params.ObliviousTreeOptions->L2Reg * (fold.GetSumWeight() / fold.GetLearnSampleCount()));
             CalcMonotonicLeafDeltasSimple(
                 leafDers,
                 estimationMethod,
@@ -803,8 +813,20 @@ static void CalcLeafValuesSimple(
             &pairwiseBuckets,
             &weightedDers);
 
+        const double scaledL2Regularizer = ScaleL2Reg(
+            ctx->Params.ObliviousTreeOptions->L2Reg,
+            fold.GetSumWeight(),
+            fold.GetLearnSampleCount());
+        if (ctx->Params.BoostingOptions->Langevin) {
+            AddLangevinNoiseToLeafDerivativesSum(
+                ctx->Params.BoostingOptions->DiffusionTemperature,
+                ctx->Params.BoostingOptions->LearningRate,
+                scaledL2Regularizer,
+                ctx->LearnProgress->Rand.GenRand(),
+                &leafDers);
+        }
+
         if (treeHasMonotonicConstraints) {
-            const double scaledL2Regularizer = (ctx->Params.ObliviousTreeOptions->L2Reg * (fold.GetSumWeight() / fold.GetLearnSampleCount()));
             CalcMonotonicLeafDeltasSimple(
                 leafDers,
                 estimationMethod,
@@ -890,7 +912,7 @@ inline void CalcLeafValuesMultiForAllLeaves(
     CopyApprox(fold.BodyTailArr[0].Approx, &approx, localExecutor);
 
     CalcLeafValuesMulti(
-        ctx->Params.ObliviousTreeOptions.Get(),
+        ctx->Params,
         /*isLeafwise*/ false,
         leafCount,
         error,
@@ -903,6 +925,7 @@ inline void CalcLeafValuesMultiForAllLeaves(
         fold.GetLearnSampleCount(),
         /*objectsInLeafCount*/ 0,
         ctx->Params.MetricOptions->ObjectiveMetric,
+        &ctx->LearnProgress->Rand,
         localExecutor,
         sumLeafDeltas,
         &approx
@@ -945,17 +968,14 @@ void CalcApproxForLeafStruct(
     TLearnContext* ctx,
     TVector<TVector<TVector<double>>>* approxesDelta // [bodyTailId][approxDim][docIdxInPermuted]
 ) {
-    const TVector<TIndexType> indices = BuildIndices(fold, tree, data.Learn, data.Test, ctx->LocalExecutor);
+    const TVector<TIndexType> indices = BuildIndices(fold, tree, data.Learn, /*testData*/ {}, ctx->LocalExecutor);
     const int approxDimension = ctx->LearnProgress->ApproxDimension;
     const int leafCount = GetLeafCount(tree);
     const auto treeMonotoneConstraints = GetTreeMonotoneConstraints(
         tree,
         ctx->Params.ObliviousTreeOptions->MonotoneConstraints.Get());
 
-    TVector<ui64> randomSeeds;
-    if (approxDimension == 1) {
-        randomSeeds = GenRandUI64Vector(fold.BodyTailArr.ysize(), randomSeed);
-    }
+    TVector<ui64> randomSeeds = GenRandUI64Vector(fold.BodyTailArr.ysize(), randomSeed);
     approxesDelta->resize(fold.BodyTailArr.ysize());
     const bool isMultiRegression = dynamic_cast<const TMultiDerCalcer*>(&error) != nullptr;
     ctx->LocalExecutor->ExecRangeWithThrow(
@@ -983,6 +1003,7 @@ void CalcApproxForLeafStruct(
                     leafCount,
                     error,
                     indices,
+                    randomSeeds[bodyTailId],
                     ctx,
                     &approxDeltas,
                     /*sumLeafDeltas*/ nullptr);

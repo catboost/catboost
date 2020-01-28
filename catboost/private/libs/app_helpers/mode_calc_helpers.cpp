@@ -6,7 +6,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/eval_result/eval_result.h>
-#include <catboost/private/libs/labels/label_helper_builder.h>
+#include <catboost/private/libs/labels/external_label_helper.h>
 #include <catboost/libs/logging/logging.h>
 
 #include <util/string/cast.h>
@@ -173,7 +173,7 @@ void NCB::CalcModelSingleHost(
             ValidateColumnOutput(params.OutputColumnsIds, *datasetPart);
         }
         auto approx = Apply(model, *datasetPart, 0, iterationsLimit, evalPeriod, &executor);
-        auto visibleLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
+        const TExternalLabelsHelper visibleLabelsHelper(model);
 
         poolColumnsPrinter->UpdateColumnTypeInfo(datasetPart->MetaInfo.ColumnsInfo);
 

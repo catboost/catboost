@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: six
-Version: 1.13.0
+Version: 1.14.0
 Summary: Python 2 and 3 compatibility utilities
 Home-page: https://github.com/benjaminp/six
 Author: Benjamin Peterson
@@ -14,7 +14,7 @@ Classifier: Intended Audience :: Developers
 Classifier: License :: OSI Approved :: MIT License
 Classifier: Topic :: Software Development :: Libraries
 Classifier: Topic :: Utilities
-Requires-Python: >=2.6, !=3.0.*, !=3.1.*
+Requires-Python: >=2.7, !=3.0.*, !=3.1.*, !=3.2.*
 
 .. image:: https://img.shields.io/pypi/v/six.svg
    :target: https://pypi.org/project/six/
@@ -37,7 +37,7 @@ for smoothing over the differences between the Python versions with the goal of
 writing Python code that is compatible on both Python versions.  See the
 documentation for more information on what is provided.
 
-Six supports every Python version since 2.6.  It is contained in only one Python
+Six supports Python 2.7 and 3.3+.  It is contained in only one Python
 file, so it can be easily copied into your project. (The copyright and license
 notice must be retained.)
 
@@ -45,8 +45,5 @@ Online documentation is at https://six.readthedocs.io/.
 
 Bugs can be reported to https://github.com/benjaminp/six.  The code can also
 be found there.
-
-For questions about six or porting in general, email the python-porting mailing
-list: https://mail.python.org/mailman/listinfo/python-porting
 
 

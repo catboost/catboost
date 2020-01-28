@@ -500,9 +500,6 @@ public:
 
     void SetScaleAndBias(const TScaleAndBias&);
 
-    //TODO(dbakshee): Remove this method and add Bias to the model instead.
-    void AddNumberToAllTreeLeafValues(ui32 treeId, double numberToAdd);
-
 private:
     //! Number of classes in model, in most cases equals to 1.
     int ApproxDimension = 1;
@@ -686,6 +683,9 @@ public:
         if (CtrProvider) {
             CtrProvider->DropUnusedTables(ModelTrees->GetUsedModelCtrBases());
         }
+        if (begin > 0) {
+            SetScaleAndBias({GetScaleAndBias().Scale, 0});
+        }
         UpdateDynamicData();
     }
 
@@ -777,6 +777,9 @@ public:
     //! Set normalization parameters for computing final formula from sum of trees
     void SetScaleAndBias(const TScaleAndBias& scaleAndBias) {
         ModelTrees.GetMutable()->SetScaleAndBias(scaleAndBias);
+        with_lock(CurrentEvaluatorLock) {
+            Evaluator.Reset();
+        }
     }
 
     /**

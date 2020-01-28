@@ -31,6 +31,7 @@ namespace NCB {
     TCBDsvDataLoader::TCBDsvDataLoader(TLineDataLoaderPushArgs&& args)
         : TAsyncProcDataLoaderBase<TString>(std::move(args.CommonArgs))
         , FieldDelimiter(Args.PoolFormat.Delimiter)
+        , CsvSplitterQuote(Args.PoolFormat.IgnoreCsvQuoting ? '\0' : '"')
         , LineDataReader(std::move(args.Reader))
         , BaselineReader(Args.BaselineFilePath, args.CommonArgs.ClassNames)
     {
@@ -42,19 +43,26 @@ namespace NCB {
                   "TCBDsvDataLoader:BaselineFilePath does not exist");
         CB_ENSURE(!Args.TimestampsFilePath.Inited() || CheckExists(Args.TimestampsFilePath),
                   "TCBDsvDataLoader:TimestampsFilePath does not exist");
+        CB_ENSURE(!Args.FeatureNamesPath.Inited() || CheckExists(Args.FeatureNamesPath),
+                  "TCBDsvDataLoader:FeatureNamesPath does not exist");
 
         TMaybe<TString> header = LineDataReader->GetHeader();
         TMaybe<TVector<TString>> headerColumns;
         if (header) {
-            headerColumns = TVector<TString>(NCsvFormat::CsvSplitter(*header, FieldDelimiter, '"'));
+            headerColumns = TVector<TString>(NCsvFormat::CsvSplitter(*header, FieldDelimiter, CsvSplitterQuote));
         }
 
         TString firstLine;
         CB_ENSURE(LineDataReader->ReadLine(&firstLine), "TCBDsvDataLoader: no data rows in pool");
-        const ui32 columnsCount = TVector<TString>(NCsvFormat::CsvSplitter(firstLine, FieldDelimiter, '"')).size();
+        const ui32 columnsCount = TVector<TString>(NCsvFormat::CsvSplitter(firstLine, FieldDelimiter, CsvSplitterQuote)).size();
 
         auto columnsDescription = TDataColumnsMetaInfo{ CreateColumnsDescription(columnsCount) };
-        auto featureIds = columnsDescription.GenerateFeatureIds(headerColumns);
+
+        const TVector<TString> featureNames = GetFeatureNames(
+            columnsDescription,
+            headerColumns,
+            Args.FeatureNamesPath
+        );
 
         DataMetaInfo = TDataMetaInfo(
             std::move(columnsDescription),
@@ -62,7 +70,7 @@ namespace NCB {
             Args.TimestampsFilePath.Inited(),
             Args.PairsFilePath.Inited(),
             BaselineReader.GetBaselineCount(),
-            &featureIds,
+            &featureNames,
             args.CommonArgs.ClassNames
         );
 
@@ -136,17 +144,18 @@ namespace NCB {
             TVector<TString> textFeatures;
             textFeatures.yresize(featuresLayout.GetTextFeatureCount());
 
-            size_t tokenCount = 0;
+            size_t tokenIdx = 0;
             try {
-                auto splitter = NCsvFormat::CsvSplitter(line, FieldDelimiter, catFeatures.empty() ? '\0' : '"');
+                const bool floatFeaturesOnly = catFeatures.empty() && textFeatures.empty();
+                auto splitter = NCsvFormat::CsvSplitter(line, FieldDelimiter, floatFeaturesOnly ? '\0' : CsvSplitterQuote);
                 do {
                     TStringBuf token = splitter.Consume();
                     CB_ENSURE(
-                        tokenCount < columnsDescription.size(),
-                        "wrong column count: expected " << columnsDescription.ysize() << ", found " << tokenCount
+                        tokenIdx < columnsDescription.size(),
+                        "wrong column count: found more than " << columnsDescription.ysize() << " values"
                     );
                     try {
-                        switch (columnsDescription[tokenCount].Type) {
+                        switch (columnsDescription[tokenIdx].Type) {
                             case EColumn::Categ: {
                                 if (!FeatureIgnored[featureId]) {
                                     const ui32 catFeatureIdx = featuresLayout.GetInternalFeatureIdx(featureId);
@@ -228,15 +237,15 @@ namespace NCB {
                             }
                         }
                     } catch (yexception& e) {
-                        throw TCatBoostException() << "Column " << tokenCount << " (type "
-                            << columnsDescription[tokenCount].Type << ", value = \"" << token
+                        throw TCatBoostException() << "Column " << tokenIdx << " (type "
+                            << columnsDescription[tokenIdx].Type << ", value = \"" << token
                             << "\"): " << e.what();
                     }
-                    ++tokenCount;
+                    ++tokenIdx;
                 } while (splitter.Step());
                 CB_ENSURE(
-                    tokenCount == columnsDescription.size(),
-                    "wrong column count: expected " << columnsDescription.ysize() << ", found " << tokenCount
+                    tokenIdx == columnsDescription.size(),
+                    "wrong column count: expected " << columnsDescription.ysize() << ", found " << tokenIdx
                 );
                 if (!floatFeatures.empty()) {
                     visitor->AddAllFloatFeatures(lineIdx, floatFeatures);

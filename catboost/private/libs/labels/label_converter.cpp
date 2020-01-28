@@ -141,10 +141,6 @@ TString TLabelConverter::SerializeMulticlassParams(int classesCount, const TVect
     return ToString(json);
 }
 
-TVector<float> TLabelConverter::GetClassLabels() const {
-    return ClassToLabel;
-}
-
 void PrepareTargetCompressed(const TLabelConverter& labelConverter, TVector<float>* labels) {
     CB_ENSURE(labelConverter.IsInitialized(), "Label converter isn't built.");
     labelConverter.ValidateLabels(*labels);

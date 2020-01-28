@@ -132,6 +132,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\idl-pool-proto.vcxproj">
       <Project>DC2F8CD1-9883-449F-5F63-13AE540A462A</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\idl-pool-proto.raw.fake.pkg.vcxproj">
+      <Project>2A67684C-6D94-7642-16D5-16BE0E7BB51D</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\catboost\idl\pool\proto\py3idl-pool-proto.vcxproj">
       <Project>AA1E95AE-5E15-0C9F-B9C2-997127EECA6D</Project>
     </ProjectReference>
@@ -1208,6 +1211,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\find_root\pylibrary-python-find_root.vcxproj">
       <Project>58CA6201-D157-FDFF-DC3B-F1AC6756F36E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\fs\pylibrary-python-fs.vcxproj">
+      <Project>7A0C7444-3285-2A8E-6908-D807590A3DB5</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\func\pylibrary-python-func.vcxproj">
       <Project>A2964E72-06DC-2ADB-2F18-61795E9554C3</Project>

@@ -776,7 +776,6 @@ namespace NCB {
             }
 
             if (paramsJson.Has("loss_function")) {
-                updatedMetricsDescriptions.resize(1);
                 NCatboostOptions::TLossDescription modelLossDescription;
                 modelLossDescription.Load(paramsJson["loss_function"]);
 
@@ -808,6 +807,28 @@ namespace NCB {
             }
         }
 
+        TMaybe<float> targetBorder;
+
+        const bool shouldBinarizeLabel = AnyOf(
+            updatedMetricsDescriptions,
+            [](const NCatboostOptions::TLossDescription& lossDescription) {
+                return ShouldBinarizeLabel(lossDescription.GetLossFunction());
+            }
+        );
+
+        if (shouldBinarizeLabel && classNames.empty() && !classCount) {
+            if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, "params")) {
+                NJson::TJsonValue paramsJson = ReadTJsonValue(*modelInfoParams);
+
+                if (paramsJson["data_processing_options"].Has("target_border")) {
+                    targetBorder = paramsJson["data_processing_options"]["target_border"].GetDouble();
+                }
+            } else {
+                targetBorder = GetDefaultTargetBorder();
+                CATBOOST_WARNING_LOG << "Cannot restore border parameter, falling to default border = " << *targetBorder << Endl;
+            }
+        }
+
         TProcessedDataProvider result;
         result.MetaInfo = srcData.MetaInfo;
         result.ObjectsGrouping = srcData.ObjectsGrouping;
@@ -817,7 +838,7 @@ namespace NCB {
             classCount,
             classWeights,
             classNames,
-            Nothing()
+            targetBorder
         };
         TOutputClassificationInfo outputClassificationInfo {
             classNames,

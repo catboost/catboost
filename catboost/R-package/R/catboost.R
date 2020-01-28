@@ -78,12 +78,12 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
     if (is.character(data) && length(data) == 1) {
         for (arg in list("label", "cat_features", "weight", "group_id",
                          "group_weight", "subgroup_id", "pairs_weight",
-                         "baseline", "feature_names")) {
+                         "baseline")) {
             if (!is.null(get(arg))) {
                 stop("parameter '", arg, "' should be NULL when the pool is read from file")
             }
         }
-        pool <- catboost.from_file(data, column_description, pairs, delimiter, has_header, thread_count)
+        pool <- catboost.from_file(data, column_description, pairs, delimiter, has_header, thread_count, FALSE, feature_names)
     } else if (is.matrix(data)) {
         pool <- catboost.from_matrix(data, label, cat_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight,
                                      baseline, feature_names)
@@ -97,15 +97,18 @@ catboost.load_pool <- function(data, label = NULL, cat_features = NULL, column_d
 }
 
 
-catboost.from_file <- function(pool_path, cd_path = "", pairs_path = "", delimiter = "\t", has_header = FALSE, thread_count = -1, verbose = FALSE) {
+catboost.from_file <- function(pool_path, cd_path = "", pairs_path = "", delimiter = "\t", has_header = FALSE,
+                               thread_count = -1, verbose = FALSE, feature_names_path = "") {
     if (missing(pool_path))
         stop("Need to specify pool path.")
     if (is.null(pairs_path))
         pairs_path <- ""
-    if (!is.character(pool_path) || !is.character(cd_path) || !is.character(pairs_path))
+    if (is.null(feature_names_path))
+        feature_names_path <- ""
+    if (!is.character(pool_path) || !is.character(cd_path) || !is.character(pairs_path) || !is.character(feature_names_path))
         stop("Path must be a string.")
 
-    pool <- .Call("CatBoostCreateFromFile_R", pool_path, cd_path, pairs_path, delimiter, has_header, thread_count, verbose)
+    pool <- .Call("CatBoostCreateFromFile_R", pool_path, cd_path, pairs_path, feature_names_path, delimiter, has_header, thread_count, verbose)
     attributes(pool) <- list(.Dimnames = list(NULL, NULL), class = "catboost.Pool")
     return(pool)
 }

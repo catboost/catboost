@@ -57,7 +57,7 @@ namespace NCB::NModelEvaluation {
                         treeEnd,
                         blockResultsView.data()
                     );
-                    resultProcessor.PostprocessBlock(blockId);
+                    resultProcessor.PostprocessBlock(blockId, treeStart);
                     ++blockId;
                 },
                 featureInfo
@@ -455,7 +455,7 @@ namespace NCB::NModelEvaluation {
                         resultPtr
                     );
                     size_t items = subBlock.GetObjectsCount() * ModelTrees->GetDimensionsCount();
-                    ApplyScaleAndBias(ModelTrees->GetScaleAndBias(), TArrayRef<double>(resultPtr, resultPtr + items));
+                    ApplyScaleAndBias(ModelTrees->GetScaleAndBias(), TArrayRef<double>(resultPtr, resultPtr + items), treeStart);
                     resultPtr += items;
                 }
             }

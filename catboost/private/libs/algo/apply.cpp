@@ -9,6 +9,7 @@
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/model/cpu/evaluator.h>
+#include <catboost/libs/model/scale_and_bias.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/cast.h>

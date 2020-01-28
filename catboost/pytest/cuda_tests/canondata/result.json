@@ -1161,11 +1161,11 @@
     ],
     "test_gpu.test_fit_multiclass_with_text_features[MultiClass-BoW,NaiveBayes]": [
         {
-            "checksum": "083fd0f61bc5f2fd6c48c5bb0b837815",
+            "checksum": "3214303c721827e9c2cfdcfb96e75019",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_/learn.tsv"
         },
         {
-            "checksum": "733229ebe539bec9e21bb2756698fe4c",
+            "checksum": "f6acf9b4f29c5c9ebb54a820d050464f",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_/test.tsv"
         }
     ],
@@ -1237,6 +1237,26 @@
         {
             "checksum": "a968f6119dc409a6d3f7207ec3b1b386",
             "uri": "file://test_gpu.test_fit_multiclass_with_text_features_MultiClassOneVsAll-NaiveBayes_/test.tsv"
+        }
+    ],
+    "test_gpu.test_fit_with_per_feature_text_options[Ordered]": [
+        {
+            "checksum": "0e4cd6ce8b9de33399906fab156fa858",
+            "uri": "file://test_gpu.test_fit_with_per_feature_text_options_Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "d8ac5869dc580ad780ec233b26f462c7",
+            "uri": "file://test_gpu.test_fit_with_per_feature_text_options_Ordered_/test.tsv"
+        }
+    ],
+    "test_gpu.test_fit_with_per_feature_text_options[Plain]": [
+        {
+            "checksum": "8466a5fbd3192aed4cb8788043832fe8",
+            "uri": "file://test_gpu.test_fit_with_per_feature_text_options_Plain_/learn.tsv"
+        },
+        {
+            "checksum": "01ccbe97f96e0e21923d7ff22ad541de",
+            "uri": "file://test_gpu.test_fit_with_per_feature_text_options_Plain_/test.tsv"
         }
     ],
     "test_gpu.test_fold_len_mult": [
@@ -2807,21 +2827,21 @@
     ],
     "test_gpu.test_metric_description[dataset_has_weights=False]": [
         {
-            "checksum": "2bf06ef7b3f5414abf7209381e0864ad",
+            "checksum": "fec6348d49a8db1f6ab32adae9b9295d",
             "uri": "file://test_gpu.test_metric_description_dataset_has_weights=False_/learn_error.tsv"
         },
         {
-            "checksum": "d423117b98bff3e0a27abaf0e0d3360b",
+            "checksum": "db26867311b8ed79c42e819166327f68",
             "uri": "file://test_gpu.test_metric_description_dataset_has_weights=False_/test_error.tsv"
         }
     ],
     "test_gpu.test_metric_description[dataset_has_weights=True]": [
         {
-            "checksum": "834c56f9bbef85472fbf0ea7ee10e6e4",
+            "checksum": "df7065a7347d249f12f60d9ac13123ea",
             "uri": "file://test_gpu.test_metric_description_dataset_has_weights=True_/learn_error.tsv"
         },
         {
-            "checksum": "f9229bd6cc7cfaf44dff1967bc7bd6c5",
+            "checksum": "2677d6bf75efe41b67255813422bcbb2",
             "uri": "file://test_gpu.test_metric_description_dataset_has_weights=True_/test_error.tsv"
         }
     ],
@@ -2935,21 +2955,21 @@
     ],
     "test_gpu.test_multiclass_baseline[MultiClassOneVsAll]": [
         {
-            "checksum": "cc0af2bf7554f3fe8fa6d70b5e3a3c61",
+            "checksum": "77b927d56a69843f641d2cce4933a431",
             "uri": "file://test_gpu.test_multiclass_baseline_MultiClassOneVsAll_/learn_error.tsv"
         },
         {
-            "checksum": "14a782095f64929f28a9dd58d55f15cd",
+            "checksum": "26b0283d53cfb3edc4f17f2c50db9537",
             "uri": "file://test_gpu.test_multiclass_baseline_MultiClassOneVsAll_/test_error.tsv"
         }
     ],
     "test_gpu.test_multiclass_baseline[MultiClass]": [
         {
-            "checksum": "1338fceb3160c6a2b997029c8e40ada5",
+            "checksum": "823f9b42b32179966a34a71c03beec91",
             "uri": "file://test_gpu.test_multiclass_baseline_MultiClass_/learn_error.tsv"
         },
         {
-            "checksum": "aaffdf4fae906d91ed4357a5c8aaa6d9",
+            "checksum": "7f6ed3f90ea407b87b5f11798058c48a",
             "uri": "file://test_gpu.test_multiclass_baseline_MultiClass_/test_error.tsv"
         }
     ],
@@ -3002,7 +3022,7 @@
         }
     ],
     "test_gpu.test_output_options": {
-        "checksum": "da1c2ee5bc8559f3513510ae3bea633d",
+        "checksum": "e385e8fc6deabc8373dcbb623a8891ac",
         "uri": "file://test_gpu.test_output_options/training_options.json"
     },
     "test_gpu.test_overfit_detector_inc_to_dec[Ordered]": [
@@ -3383,11 +3403,11 @@
     ],
     "test_gpu.test_text_processing_options[MultiClass-dictionaries1]": [
         {
-            "checksum": "6bba7c4430ee792a8ae8e2ca112ac688",
+            "checksum": "6f4fd43d82a1035c4fcaa2d3d73c6545",
             "uri": "file://test_gpu.test_text_processing_options_MultiClass-dictionaries1_/learn.tsv"
         },
         {
-            "checksum": "8c2dc9cb6c49e466c5ec85b0011afff4",
+            "checksum": "6c5de8d0b688a6864152add7d312b8b5",
             "uri": "file://test_gpu.test_text_processing_options_MultiClass-dictionaries1_/test.tsv"
         }
     ],

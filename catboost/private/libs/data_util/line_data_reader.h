@@ -18,6 +18,7 @@ namespace NCB {
     struct TDsvFormatOptions {
         bool HasHeader = false;
         char Delimiter = '\t';
+        bool IgnoreCsvQuoting = false;
     };
 
     struct TLineDataReaderArgs {

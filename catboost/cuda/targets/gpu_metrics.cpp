@@ -703,9 +703,9 @@ namespace NCatboostCuda {
                 }
             }
             for (auto&& metric : createdCustomMetrics) {
-                const TString& description = metric->GetCpuMetric().GetDescription();
-                if (!usedDescriptions.contains(description)) {
-                    usedDescriptions.insert(description);
+                const TString& metricDescription = metric->GetCpuMetric().GetDescription();
+                if (!usedDescriptions.contains(metricDescription)) {
+                    usedDescriptions.insert(metricDescription);
                     metrics.push_back(std::move(metric));
                 }
             }

@@ -312,7 +312,7 @@ namespace {
     class TCSVReporter: public IReporter {
     public:
         TCSVReporter() {
-            Cout << "Name\tSamples\tIterations\tRun_time\tPer_iteration_cycles\tPer_iteration_sec" << Endl;
+            Cout << "Name\tSamples\tIterations\tRun_time\tPer_iteration_sec\tPer_iteration_cycles" << Endl;
         }
 
         ~TCSVReporter() override {

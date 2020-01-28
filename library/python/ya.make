@@ -9,6 +9,7 @@ RECURSE(
     find_root
     func
     func/ut
+    fs
     pymain
     pytest
     pytest/allure

@@ -3,7 +3,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/eval_processing.h>
 #include <catboost/libs/logging/logging.h>
-#include <catboost/private/libs/labels/label_helper_builder.h>
+#include <catboost/private/libs/labels/external_label_helper.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/utility.h>
@@ -152,7 +152,7 @@ TVector<TString> ConvertTargetToExternalName(
     const TVector<float>& target,
     const TFullModel& model
 ) {
-    const auto& externalLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
+    const TExternalLabelsHelper externalLabelsHelper(model);
     return ConvertTargetToExternalName(target, externalLabelsHelper);
 }
 
@@ -173,7 +173,7 @@ TVector<TVector<double>> PrepareEvalForInternalApprox(
     const TVector<TVector<double>>& approx,
     NPar::TLocalExecutor* localExecutor
 ) {
-    const auto& externalLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
+    const TExternalLabelsHelper externalLabelsHelper(model);
     const auto& externalApprox
         = (externalLabelsHelper.IsInitialized() && (externalLabelsHelper.GetExternalApproxDimension() > 1)) ?
             MakeExternalApprox(approx, externalLabelsHelper)

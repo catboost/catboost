@@ -7,5 +7,5 @@ svn checkout --depth=files --non-interactive https://llvm.org/svn/llvm-project/l
 cd "$output_dir"
 
 svn update --revision=$rev include src
-svn update --set-depth=exclude --revision=$rev CMakeLists.txt TODO.TXT .arcconfig .gitignore include/CMakeLists.txt appveyor.yml appveyor-reqs-install.cmd
+svn update --set-depth=exclude --revision=$rev CMakeLists.txt TODO.TXT .arcconfig .gitignore src/CMakeLists.txt include/CMakeLists.txt appveyor.yml appveyor-reqs-install.cmd
 rm -rf .svn

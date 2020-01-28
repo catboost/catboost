@@ -349,9 +349,9 @@ void NCB::TrainTestSplit(
         testBlock.SrcEnd = objectCount;
     } else {
         const ui32 lastGroupIdx = objectsGrouping.GetGroupIdxForObject(trainSize - 1);
-        TSubsetBlock<ui32> trainBlock{{0, lastGroupIdx + 1}, 0};
+        trainBlock = TSubsetBlock<ui32>{{0, lastGroupIdx + 1}, 0};
         CB_ENSURE(trainBlock.GetSize() > 0, "Not enough objects to give train split");
-        TSubsetBlock<ui32> testBlock{{lastGroupIdx + 1, objectsGrouping.GetGroupIdxForObject(objectCount - 1)}, 0};
+        testBlock = TSubsetBlock<ui32>{{lastGroupIdx + 1, objectsGrouping.GetGroupIdxForObject(objectCount - 1)}, 0};
         CB_ENSURE(testBlock.GetSize() > 0, "Not enough objects to give test split");
     }
     *trainIndices = TArraySubsetIndexing<ui32>(
