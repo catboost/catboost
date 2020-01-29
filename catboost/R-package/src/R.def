@@ -18,6 +18,7 @@ Rf_asInteger
 Rf_asLogical
 Rf_error
 Rf_getAttrib
+Rf_isNull
 Rf_length
 Rf_mkChar
 Rf_mkString
