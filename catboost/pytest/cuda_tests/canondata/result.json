@@ -1355,41 +1355,41 @@
     ],
     "test_gpu.test_grow_policies[Logloss-Cosine-Depthwise-Default]": [
         {
-            "checksum": "d8ced10778abc7949a2ff14cd684f3db",
+            "checksum": "9647e12c7fc9a0a821e4a26898c0e093",
             "uri": "file://test_gpu.test_grow_policies_Logloss-Cosine-Depthwise-Default_/learn_error.tsv"
         },
         {
-            "checksum": "97fc59f123cd072e151eb0ee1b4907fc",
+            "checksum": "d50ea2b515999ce2da008b74945f2874",
             "uri": "file://test_gpu.test_grow_policies_Logloss-Cosine-Depthwise-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[Logloss-Cosine-Depthwise-Plain]": [
         {
-            "checksum": "d8ced10778abc7949a2ff14cd684f3db",
+            "checksum": "9647e12c7fc9a0a821e4a26898c0e093",
             "uri": "file://test_gpu.test_grow_policies_Logloss-Cosine-Depthwise-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "97fc59f123cd072e151eb0ee1b4907fc",
+            "checksum": "d50ea2b515999ce2da008b74945f2874",
             "uri": "file://test_gpu.test_grow_policies_Logloss-Cosine-Depthwise-Plain_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[Logloss-Cosine-Lossguide-Default]": [
         {
-            "checksum": "c9af36b2833f619cfd241287301e564a",
+            "checksum": "bf8b05ad1b1c3306d6ef044b3acaed93",
             "uri": "file://test_gpu.test_grow_policies_Logloss-Cosine-Lossguide-Default_/learn_error.tsv"
         },
         {
-            "checksum": "bb5c3a3290194096e20cf93fc6fb8332",
+            "checksum": "6b80920faf0370f456cddcde82c3d108",
             "uri": "file://test_gpu.test_grow_policies_Logloss-Cosine-Lossguide-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[Logloss-Cosine-Lossguide-Plain]": [
         {
-            "checksum": "c9af36b2833f619cfd241287301e564a",
+            "checksum": "bf8b05ad1b1c3306d6ef044b3acaed93",
             "uri": "file://test_gpu.test_grow_policies_Logloss-Cosine-Lossguide-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "bb5c3a3290194096e20cf93fc6fb8332",
+            "checksum": "6b80920faf0370f456cddcde82c3d108",
             "uri": "file://test_gpu.test_grow_policies_Logloss-Cosine-Lossguide-Plain_/test_error.tsv"
         }
     ],
@@ -1425,41 +1425,41 @@
     ],
     "test_gpu.test_grow_policies[Logloss-L2-Depthwise-Default]": [
         {
-            "checksum": "deaefab782960f64445dde2553847ed9",
+            "checksum": "5f57bf7e1773a54c632beefe6661078c",
             "uri": "file://test_gpu.test_grow_policies_Logloss-L2-Depthwise-Default_/learn_error.tsv"
         },
         {
-            "checksum": "a85b494f2ddc9dec5fbbaa3fa914f110",
+            "checksum": "2552cb7697da15633418114de20fd830",
             "uri": "file://test_gpu.test_grow_policies_Logloss-L2-Depthwise-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[Logloss-L2-Depthwise-Plain]": [
         {
-            "checksum": "deaefab782960f64445dde2553847ed9",
+            "checksum": "5f57bf7e1773a54c632beefe6661078c",
             "uri": "file://test_gpu.test_grow_policies_Logloss-L2-Depthwise-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "a85b494f2ddc9dec5fbbaa3fa914f110",
+            "checksum": "2552cb7697da15633418114de20fd830",
             "uri": "file://test_gpu.test_grow_policies_Logloss-L2-Depthwise-Plain_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[Logloss-L2-Lossguide-Default]": [
         {
-            "checksum": "6289edf2f3a8e97d5b4adcb3a2441f3a",
+            "checksum": "14f53856705ce2cc97a025fa64089cd7",
             "uri": "file://test_gpu.test_grow_policies_Logloss-L2-Lossguide-Default_/learn_error.tsv"
         },
         {
-            "checksum": "7ec0aff9d549183cd050eee3e43df096",
+            "checksum": "88e959c2be1c892206556f1d345082e5",
             "uri": "file://test_gpu.test_grow_policies_Logloss-L2-Lossguide-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[Logloss-L2-Lossguide-Plain]": [
         {
-            "checksum": "6289edf2f3a8e97d5b4adcb3a2441f3a",
+            "checksum": "14f53856705ce2cc97a025fa64089cd7",
             "uri": "file://test_gpu.test_grow_policies_Logloss-L2-Lossguide-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "7ec0aff9d549183cd050eee3e43df096",
+            "checksum": "88e959c2be1c892206556f1d345082e5",
             "uri": "file://test_gpu.test_grow_policies_Logloss-L2-Lossguide-Plain_/test_error.tsv"
         }
     ],
@@ -1485,41 +1485,41 @@
     ],
     "test_gpu.test_grow_policies[Logloss-LOOL2-Depthwise-Default]": [
         {
-            "checksum": "189adb0764a28dcbd71f119f9edba196",
+            "checksum": "6f3d36e7a0e72ee693532f1bea21d0c7",
             "uri": "file://test_gpu.test_grow_policies_Logloss-LOOL2-Depthwise-Default_/learn_error.tsv"
         },
         {
-            "checksum": "5612ce1688b0d8c127ba674a61b595f6",
+            "checksum": "a608694a0fde3d11070e264c1aa94316",
             "uri": "file://test_gpu.test_grow_policies_Logloss-LOOL2-Depthwise-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[Logloss-LOOL2-Depthwise-Plain]": [
         {
-            "checksum": "189adb0764a28dcbd71f119f9edba196",
+            "checksum": "6f3d36e7a0e72ee693532f1bea21d0c7",
             "uri": "file://test_gpu.test_grow_policies_Logloss-LOOL2-Depthwise-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "5612ce1688b0d8c127ba674a61b595f6",
+            "checksum": "a608694a0fde3d11070e264c1aa94316",
             "uri": "file://test_gpu.test_grow_policies_Logloss-LOOL2-Depthwise-Plain_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[Logloss-LOOL2-Lossguide-Default]": [
         {
-            "checksum": "cc0f653a835905262fe147e7640b65cf",
+            "checksum": "b139161e348b3e708560e811aed8494a",
             "uri": "file://test_gpu.test_grow_policies_Logloss-LOOL2-Lossguide-Default_/learn_error.tsv"
         },
         {
-            "checksum": "3b2eb6eeb995db4a4114dc4b26b0a564",
+            "checksum": "3347a3d5ece2de297f9c019aa130555b",
             "uri": "file://test_gpu.test_grow_policies_Logloss-LOOL2-Lossguide-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[Logloss-LOOL2-Lossguide-Plain]": [
         {
-            "checksum": "cc0f653a835905262fe147e7640b65cf",
+            "checksum": "b139161e348b3e708560e811aed8494a",
             "uri": "file://test_gpu.test_grow_policies_Logloss-LOOL2-Lossguide-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "3b2eb6eeb995db4a4114dc4b26b0a564",
+            "checksum": "3347a3d5ece2de297f9c019aa130555b",
             "uri": "file://test_gpu.test_grow_policies_Logloss-LOOL2-Lossguide-Plain_/test_error.tsv"
         }
     ],
@@ -1545,41 +1545,41 @@
     ],
     "test_gpu.test_grow_policies[Logloss-NewtonCosine-Depthwise-Default]": [
         {
-            "checksum": "76aeea849726fd6dfd7911d4cd87b5d1",
+            "checksum": "205a8d34549f0a56c0db917334b74a6a",
             "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCosine-Depthwise-Default_/learn_error.tsv"
         },
         {
-            "checksum": "f671648d09336225ce8f7fe2e651994b",
+            "checksum": "5a701012b11f4814e36b7fe5eb3a8e58",
             "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCosine-Depthwise-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[Logloss-NewtonCosine-Depthwise-Plain]": [
         {
-            "checksum": "76aeea849726fd6dfd7911d4cd87b5d1",
+            "checksum": "205a8d34549f0a56c0db917334b74a6a",
             "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCosine-Depthwise-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "f671648d09336225ce8f7fe2e651994b",
+            "checksum": "5a701012b11f4814e36b7fe5eb3a8e58",
             "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCosine-Depthwise-Plain_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[Logloss-NewtonCosine-Lossguide-Default]": [
         {
-            "checksum": "6dc13d3ebe0ec7a9c7663380a712df96",
+            "checksum": "8fc664cb289650ca58d3f12a4a7c70ad",
             "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCosine-Lossguide-Default_/learn_error.tsv"
         },
         {
-            "checksum": "ce2daf68811045460a025f78a76f685a",
+            "checksum": "7e312de9b82ee792babed99e1b32dc2f",
             "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCosine-Lossguide-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[Logloss-NewtonCosine-Lossguide-Plain]": [
         {
-            "checksum": "6dc13d3ebe0ec7a9c7663380a712df96",
+            "checksum": "8fc664cb289650ca58d3f12a4a7c70ad",
             "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCosine-Lossguide-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "ce2daf68811045460a025f78a76f685a",
+            "checksum": "7e312de9b82ee792babed99e1b32dc2f",
             "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonCosine-Lossguide-Plain_/test_error.tsv"
         }
     ],
@@ -1615,41 +1615,41 @@
     ],
     "test_gpu.test_grow_policies[Logloss-NewtonL2-Depthwise-Default]": [
         {
-            "checksum": "fd929415594d42678568e898b5edca3b",
+            "checksum": "a46e2a8b1a4ed1394fe6ef6c2ed857c4",
             "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonL2-Depthwise-Default_/learn_error.tsv"
         },
         {
-            "checksum": "28ba65a77268221b9330ca0fcb83e0be",
+            "checksum": "6d6d8d00c808f0704222f1ce3b3aee67",
             "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonL2-Depthwise-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[Logloss-NewtonL2-Depthwise-Plain]": [
         {
-            "checksum": "fd929415594d42678568e898b5edca3b",
+            "checksum": "a46e2a8b1a4ed1394fe6ef6c2ed857c4",
             "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonL2-Depthwise-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "28ba65a77268221b9330ca0fcb83e0be",
+            "checksum": "6d6d8d00c808f0704222f1ce3b3aee67",
             "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonL2-Depthwise-Plain_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[Logloss-NewtonL2-Lossguide-Default]": [
         {
-            "checksum": "36242745ce534aea5307d125dc9633f0",
+            "checksum": "e120ce9f0c666e57dc7c4293c420d847",
             "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonL2-Lossguide-Default_/learn_error.tsv"
         },
         {
-            "checksum": "c4459c24926cf4dbd50fe12daab284c2",
+            "checksum": "7ef45a1fb46f207a525ded4a71a58758",
             "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonL2-Lossguide-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[Logloss-NewtonL2-Lossguide-Plain]": [
         {
-            "checksum": "36242745ce534aea5307d125dc9633f0",
+            "checksum": "e120ce9f0c666e57dc7c4293c420d847",
             "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonL2-Lossguide-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "c4459c24926cf4dbd50fe12daab284c2",
+            "checksum": "7ef45a1fb46f207a525ded4a71a58758",
             "uri": "file://test_gpu.test_grow_policies_Logloss-NewtonL2-Lossguide-Plain_/test_error.tsv"
         }
     ],
@@ -1675,41 +1675,41 @@
     ],
     "test_gpu.test_grow_policies[Logloss-SolarL2-Depthwise-Default]": [
         {
-            "checksum": "b930473cf712a4260657292d67983ca0",
+            "checksum": "6957d78a7c28215eb58c637a36f64660",
             "uri": "file://test_gpu.test_grow_policies_Logloss-SolarL2-Depthwise-Default_/learn_error.tsv"
         },
         {
-            "checksum": "07a181fa48e81ec2948fd815422279d4",
+            "checksum": "47d9cea8c962918a014181d6a5e30360",
             "uri": "file://test_gpu.test_grow_policies_Logloss-SolarL2-Depthwise-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[Logloss-SolarL2-Depthwise-Plain]": [
         {
-            "checksum": "b930473cf712a4260657292d67983ca0",
+            "checksum": "6957d78a7c28215eb58c637a36f64660",
             "uri": "file://test_gpu.test_grow_policies_Logloss-SolarL2-Depthwise-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "07a181fa48e81ec2948fd815422279d4",
+            "checksum": "47d9cea8c962918a014181d6a5e30360",
             "uri": "file://test_gpu.test_grow_policies_Logloss-SolarL2-Depthwise-Plain_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[Logloss-SolarL2-Lossguide-Default]": [
         {
-            "checksum": "b4bbf868878f7e6bd47d1ede8fd9653c",
+            "checksum": "ed20379c08cc3851f7d983bc08e3e9ca",
             "uri": "file://test_gpu.test_grow_policies_Logloss-SolarL2-Lossguide-Default_/learn_error.tsv"
         },
         {
-            "checksum": "300d0bc0f9a91489a55ac5c7009a13a0",
+            "checksum": "6fefb20bb7097ff7a1d3a90d86510661",
             "uri": "file://test_gpu.test_grow_policies_Logloss-SolarL2-Lossguide-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[Logloss-SolarL2-Lossguide-Plain]": [
         {
-            "checksum": "b4bbf868878f7e6bd47d1ede8fd9653c",
+            "checksum": "ed20379c08cc3851f7d983bc08e3e9ca",
             "uri": "file://test_gpu.test_grow_policies_Logloss-SolarL2-Lossguide-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "300d0bc0f9a91489a55ac5c7009a13a0",
+            "checksum": "6fefb20bb7097ff7a1d3a90d86510661",
             "uri": "file://test_gpu.test_grow_policies_Logloss-SolarL2-Lossguide-Plain_/test_error.tsv"
         }
     ],
@@ -1975,41 +1975,41 @@
     ],
     "test_gpu.test_grow_policies[RMSE-Cosine-Depthwise-Default]": [
         {
-            "checksum": "9b8785acb964314c4504cc623b6603b8",
+            "checksum": "9bf683815d97398037504f1bfe3b86fa",
             "uri": "file://test_gpu.test_grow_policies_RMSE-Cosine-Depthwise-Default_/learn_error.tsv"
         },
         {
-            "checksum": "f1f13dec8e18077ae91dc867529c4b50",
+            "checksum": "2a3fefc58d42fa5cd5a48fc1ed6563ea",
             "uri": "file://test_gpu.test_grow_policies_RMSE-Cosine-Depthwise-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[RMSE-Cosine-Depthwise-Plain]": [
         {
-            "checksum": "9b8785acb964314c4504cc623b6603b8",
+            "checksum": "9bf683815d97398037504f1bfe3b86fa",
             "uri": "file://test_gpu.test_grow_policies_RMSE-Cosine-Depthwise-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "f1f13dec8e18077ae91dc867529c4b50",
+            "checksum": "2a3fefc58d42fa5cd5a48fc1ed6563ea",
             "uri": "file://test_gpu.test_grow_policies_RMSE-Cosine-Depthwise-Plain_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[RMSE-Cosine-Lossguide-Default]": [
         {
-            "checksum": "6a7921e4cbfb05a19afd08b03bfdb489",
+            "checksum": "8cef9b13b786117fe7794ce37df27fe8",
             "uri": "file://test_gpu.test_grow_policies_RMSE-Cosine-Lossguide-Default_/learn_error.tsv"
         },
         {
-            "checksum": "78cbd6bee6a256e9abcb53709dd44479",
+            "checksum": "1f93f8c33376a3f165ce0bdfa6bb4803",
             "uri": "file://test_gpu.test_grow_policies_RMSE-Cosine-Lossguide-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[RMSE-Cosine-Lossguide-Plain]": [
         {
-            "checksum": "6a7921e4cbfb05a19afd08b03bfdb489",
+            "checksum": "8cef9b13b786117fe7794ce37df27fe8",
             "uri": "file://test_gpu.test_grow_policies_RMSE-Cosine-Lossguide-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "78cbd6bee6a256e9abcb53709dd44479",
+            "checksum": "1f93f8c33376a3f165ce0bdfa6bb4803",
             "uri": "file://test_gpu.test_grow_policies_RMSE-Cosine-Lossguide-Plain_/test_error.tsv"
         }
     ],
@@ -2045,41 +2045,41 @@
     ],
     "test_gpu.test_grow_policies[RMSE-L2-Depthwise-Default]": [
         {
-            "checksum": "19b78b0fee780c6c3acdc6298490eab5",
+            "checksum": "1cbbbdf20f9fc05c7f7af950585d5cc5",
             "uri": "file://test_gpu.test_grow_policies_RMSE-L2-Depthwise-Default_/learn_error.tsv"
         },
         {
-            "checksum": "c55c6d686023295fbe292427206cc91b",
+            "checksum": "cb509ecaa27e24f34268b1604df46ddf",
             "uri": "file://test_gpu.test_grow_policies_RMSE-L2-Depthwise-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[RMSE-L2-Depthwise-Plain]": [
         {
-            "checksum": "19b78b0fee780c6c3acdc6298490eab5",
+            "checksum": "1cbbbdf20f9fc05c7f7af950585d5cc5",
             "uri": "file://test_gpu.test_grow_policies_RMSE-L2-Depthwise-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "c55c6d686023295fbe292427206cc91b",
+            "checksum": "cb509ecaa27e24f34268b1604df46ddf",
             "uri": "file://test_gpu.test_grow_policies_RMSE-L2-Depthwise-Plain_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[RMSE-L2-Lossguide-Default]": [
         {
-            "checksum": "66f86b8063564738116f4b10e6b04400",
+            "checksum": "3b50b8124ef0a42e4a0eb538db4f5435",
             "uri": "file://test_gpu.test_grow_policies_RMSE-L2-Lossguide-Default_/learn_error.tsv"
         },
         {
-            "checksum": "0edc1b57b7c0b5a8221b538e8f8d5866",
+            "checksum": "0a95bd532b4f2ed84873ddb6a41c1e28",
             "uri": "file://test_gpu.test_grow_policies_RMSE-L2-Lossguide-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[RMSE-L2-Lossguide-Plain]": [
         {
-            "checksum": "66f86b8063564738116f4b10e6b04400",
+            "checksum": "3b50b8124ef0a42e4a0eb538db4f5435",
             "uri": "file://test_gpu.test_grow_policies_RMSE-L2-Lossguide-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "0edc1b57b7c0b5a8221b538e8f8d5866",
+            "checksum": "0a95bd532b4f2ed84873ddb6a41c1e28",
             "uri": "file://test_gpu.test_grow_policies_RMSE-L2-Lossguide-Plain_/test_error.tsv"
         }
     ],
@@ -2105,41 +2105,41 @@
     ],
     "test_gpu.test_grow_policies[RMSE-LOOL2-Depthwise-Default]": [
         {
-            "checksum": "1ca224dd9cb4aadbe1bbf7a183f80024",
+            "checksum": "5388240b28ac706c98efb4a6bbe0a671",
             "uri": "file://test_gpu.test_grow_policies_RMSE-LOOL2-Depthwise-Default_/learn_error.tsv"
         },
         {
-            "checksum": "54c6852df8b7b193c491fd2d31d1f66e",
+            "checksum": "b0cf71c1288bf5202fad46854efcdbcf",
             "uri": "file://test_gpu.test_grow_policies_RMSE-LOOL2-Depthwise-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[RMSE-LOOL2-Depthwise-Plain]": [
         {
-            "checksum": "1ca224dd9cb4aadbe1bbf7a183f80024",
+            "checksum": "5388240b28ac706c98efb4a6bbe0a671",
             "uri": "file://test_gpu.test_grow_policies_RMSE-LOOL2-Depthwise-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "54c6852df8b7b193c491fd2d31d1f66e",
+            "checksum": "b0cf71c1288bf5202fad46854efcdbcf",
             "uri": "file://test_gpu.test_grow_policies_RMSE-LOOL2-Depthwise-Plain_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[RMSE-LOOL2-Lossguide-Default]": [
         {
-            "checksum": "c6fcc088f15fefb3050aa78a10a736ed",
+            "checksum": "15112ae759608c1473ffd66e3defccc4",
             "uri": "file://test_gpu.test_grow_policies_RMSE-LOOL2-Lossguide-Default_/learn_error.tsv"
         },
         {
-            "checksum": "f30dc0bed20066548120ffdaffb28353",
+            "checksum": "2f32968f93f5d8394739a217df21c931",
             "uri": "file://test_gpu.test_grow_policies_RMSE-LOOL2-Lossguide-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[RMSE-LOOL2-Lossguide-Plain]": [
         {
-            "checksum": "c6fcc088f15fefb3050aa78a10a736ed",
+            "checksum": "15112ae759608c1473ffd66e3defccc4",
             "uri": "file://test_gpu.test_grow_policies_RMSE-LOOL2-Lossguide-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "f30dc0bed20066548120ffdaffb28353",
+            "checksum": "2f32968f93f5d8394739a217df21c931",
             "uri": "file://test_gpu.test_grow_policies_RMSE-LOOL2-Lossguide-Plain_/test_error.tsv"
         }
     ],
@@ -2165,41 +2165,41 @@
     ],
     "test_gpu.test_grow_policies[RMSE-NewtonCosine-Depthwise-Default]": [
         {
-            "checksum": "9b8785acb964314c4504cc623b6603b8",
+            "checksum": "9bf683815d97398037504f1bfe3b86fa",
             "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCosine-Depthwise-Default_/learn_error.tsv"
         },
         {
-            "checksum": "f1f13dec8e18077ae91dc867529c4b50",
+            "checksum": "2a3fefc58d42fa5cd5a48fc1ed6563ea",
             "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCosine-Depthwise-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[RMSE-NewtonCosine-Depthwise-Plain]": [
         {
-            "checksum": "9b8785acb964314c4504cc623b6603b8",
+            "checksum": "9bf683815d97398037504f1bfe3b86fa",
             "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCosine-Depthwise-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "f1f13dec8e18077ae91dc867529c4b50",
+            "checksum": "2a3fefc58d42fa5cd5a48fc1ed6563ea",
             "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCosine-Depthwise-Plain_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[RMSE-NewtonCosine-Lossguide-Default]": [
         {
-            "checksum": "6a7921e4cbfb05a19afd08b03bfdb489",
+            "checksum": "8cef9b13b786117fe7794ce37df27fe8",
             "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCosine-Lossguide-Default_/learn_error.tsv"
         },
         {
-            "checksum": "78cbd6bee6a256e9abcb53709dd44479",
+            "checksum": "1f93f8c33376a3f165ce0bdfa6bb4803",
             "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCosine-Lossguide-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[RMSE-NewtonCosine-Lossguide-Plain]": [
         {
-            "checksum": "6a7921e4cbfb05a19afd08b03bfdb489",
+            "checksum": "8cef9b13b786117fe7794ce37df27fe8",
             "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCosine-Lossguide-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "78cbd6bee6a256e9abcb53709dd44479",
+            "checksum": "1f93f8c33376a3f165ce0bdfa6bb4803",
             "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonCosine-Lossguide-Plain_/test_error.tsv"
         }
     ],
@@ -2235,41 +2235,41 @@
     ],
     "test_gpu.test_grow_policies[RMSE-NewtonL2-Depthwise-Default]": [
         {
-            "checksum": "19b78b0fee780c6c3acdc6298490eab5",
+            "checksum": "1cbbbdf20f9fc05c7f7af950585d5cc5",
             "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonL2-Depthwise-Default_/learn_error.tsv"
         },
         {
-            "checksum": "c55c6d686023295fbe292427206cc91b",
+            "checksum": "cb509ecaa27e24f34268b1604df46ddf",
             "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonL2-Depthwise-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[RMSE-NewtonL2-Depthwise-Plain]": [
         {
-            "checksum": "19b78b0fee780c6c3acdc6298490eab5",
+            "checksum": "1cbbbdf20f9fc05c7f7af950585d5cc5",
             "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonL2-Depthwise-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "c55c6d686023295fbe292427206cc91b",
+            "checksum": "cb509ecaa27e24f34268b1604df46ddf",
             "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonL2-Depthwise-Plain_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[RMSE-NewtonL2-Lossguide-Default]": [
         {
-            "checksum": "66f86b8063564738116f4b10e6b04400",
+            "checksum": "3b50b8124ef0a42e4a0eb538db4f5435",
             "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonL2-Lossguide-Default_/learn_error.tsv"
         },
         {
-            "checksum": "0edc1b57b7c0b5a8221b538e8f8d5866",
+            "checksum": "0a95bd532b4f2ed84873ddb6a41c1e28",
             "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonL2-Lossguide-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[RMSE-NewtonL2-Lossguide-Plain]": [
         {
-            "checksum": "66f86b8063564738116f4b10e6b04400",
+            "checksum": "3b50b8124ef0a42e4a0eb538db4f5435",
             "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonL2-Lossguide-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "0edc1b57b7c0b5a8221b538e8f8d5866",
+            "checksum": "0a95bd532b4f2ed84873ddb6a41c1e28",
             "uri": "file://test_gpu.test_grow_policies_RMSE-NewtonL2-Lossguide-Plain_/test_error.tsv"
         }
     ],
@@ -2295,41 +2295,41 @@
     ],
     "test_gpu.test_grow_policies[RMSE-SolarL2-Depthwise-Default]": [
         {
-            "checksum": "5283210f33ed4d7ba328ae290396f4bc",
+            "checksum": "2e026fbd8501ad1572f86aedb84bdf65",
             "uri": "file://test_gpu.test_grow_policies_RMSE-SolarL2-Depthwise-Default_/learn_error.tsv"
         },
         {
-            "checksum": "7c7854a2ece38a58bec55004407c5427",
+            "checksum": "7e4028fcded6ef2a0565da706406535a",
             "uri": "file://test_gpu.test_grow_policies_RMSE-SolarL2-Depthwise-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[RMSE-SolarL2-Depthwise-Plain]": [
         {
-            "checksum": "5283210f33ed4d7ba328ae290396f4bc",
+            "checksum": "2e026fbd8501ad1572f86aedb84bdf65",
             "uri": "file://test_gpu.test_grow_policies_RMSE-SolarL2-Depthwise-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "7c7854a2ece38a58bec55004407c5427",
+            "checksum": "7e4028fcded6ef2a0565da706406535a",
             "uri": "file://test_gpu.test_grow_policies_RMSE-SolarL2-Depthwise-Plain_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[RMSE-SolarL2-Lossguide-Default]": [
         {
-            "checksum": "d5cea1243244b5027dbd47549c883015",
+            "checksum": "eb3be8e1b0e1e06df1641df65c311e3e",
             "uri": "file://test_gpu.test_grow_policies_RMSE-SolarL2-Lossguide-Default_/learn_error.tsv"
         },
         {
-            "checksum": "9df4f703707a432f2f1214e40c51ed55",
+            "checksum": "7b0bbb59778ca1520cb9960df6058b93",
             "uri": "file://test_gpu.test_grow_policies_RMSE-SolarL2-Lossguide-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[RMSE-SolarL2-Lossguide-Plain]": [
         {
-            "checksum": "d5cea1243244b5027dbd47549c883015",
+            "checksum": "eb3be8e1b0e1e06df1641df65c311e3e",
             "uri": "file://test_gpu.test_grow_policies_RMSE-SolarL2-Lossguide-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "9df4f703707a432f2f1214e40c51ed55",
+            "checksum": "7b0bbb59778ca1520cb9960df6058b93",
             "uri": "file://test_gpu.test_grow_policies_RMSE-SolarL2-Lossguide-Plain_/test_error.tsv"
         }
     ],
