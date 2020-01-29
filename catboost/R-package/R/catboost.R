@@ -1567,6 +1567,7 @@ catboost.load_model <- function(model_path, file_format = "cbm") {
     raw <- .Call("CatBoostSerializeModel_R", handle)
     model <- list(handle = handle, raw = raw)
     class(model) <- "catboost.Model"
+    model$tree_count <- catboost.ntrees(model)
     return(model)
 }
 
@@ -1830,7 +1831,7 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
     } else if (type == "ShapValues") {
         dimnames(importances)[[length(dim(importances))]] <- c(colnames(pool), "<base>")
     } else if (type == "PredictionValuesChange" || type == "FeatureImportance" || type == "LossFunctionChange") {
-        if (dim(importances)[1] == length(colnames(pool))) {
+        if (!is.null(pool) && dim(importances)[1] == length(colnames(pool))) {
             rownames(importances) <- colnames(pool)
         }
     } else {
