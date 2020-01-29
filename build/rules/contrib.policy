@@ -221,3 +221,16 @@ DENY .* -> contrib/python/mipp
 ALLOW infra/procman -> contrib/python/skynet_pyro4
 ALLOW skynet -> contrib/python/skynet_pyro4
 DENY .* -> contrib/python/skynet_pyro4
+
+ALLOW contrib/deprecated/python/cyordereddict -> contrib/deprecated/python/cyordereddict
+ALLOW contrib/deprecated/python/cyordereddict/cyordereddict/tests -> contrib/deprecated/python/cyordereddict
+ALLOW contrib/python/parse-type -> contrib/deprecated/python/cyordereddict
+ALLOW infra/awacs/vendor/awacs -> contrib/deprecated/python/cyordereddict
+ALLOW juggler/juggler_client/jclient -> contrib/deprecated/python/cyordereddict
+ALLOW juggler/juggler_client -> contrib/deprecated/python/cyordereddict
+ALLOW juggler/libjuggler -> contrib/deprecated/python/cyordereddict
+ALLOW juggler/netmon/agent/agent -> contrib/deprecated/python/cyordereddict
+ALLOW mail/python/huge_py2 -> contrib/deprecated/python/cyordereddict
+ALLOW sprav/protos/model -> contrib/deprecated/python/cyordereddict
+ALLOW yql/udfs/common/python/python_arc -> contrib/deprecated/python/cyordereddict
+DENY .* -> contrib/deprecated/python/cyordereddict
