@@ -378,11 +378,11 @@
         "uri": "file://test.test_multiclass_custom_class_labels_from_files_GPU_/predictions.txt"
     },
     "test.test_multiclass_grow_policy[GPU-Depthwise]": {
-        "checksum": "3aef87a8a699f616e0a675fb7e28d972",
+        "checksum": "147e0495321a0e743a6371ad3ddaa737",
         "uri": "file://test.test_multiclass_grow_policy_GPU-Depthwise_/predictions.npy"
     },
     "test.test_multiclass_grow_policy[GPU-Lossguide]": {
-        "checksum": "ad28bcc21e109fe7d963ab822f390e5b",
+        "checksum": "904b05a98d82c32418211da5cb40b6ce",
         "uri": "file://test.test_multiclass_grow_policy_GPU-Lossguide_/predictions.npy"
     },
     "test.test_non_ones_weight[GPU]": {
