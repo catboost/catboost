@@ -310,7 +310,7 @@
         "uri": "file://test.test_get_metric_evals_GPU_/evals.txt"
     },
     "test.test_grow_policy_restriction[GPU-Lossguide]": {
-        "checksum": "ad337ae0cc57f601c720c1c70bc5dd24",
+        "checksum": "d11cef0fd6c32d57e09732d9af141dbb",
         "uri": "file://test.test_grow_policy_restriction_GPU-Lossguide_/predictions.npy"
     },
     "test.test_ignored_features[GPU]": {
@@ -334,11 +334,11 @@
         "uri": "file://test.test_learning_rate_auto_set_in_cv_GPU_/catboost_training.json"
     },
     "test.test_loss_function_change_asymmetric[GPU-Depthwise]": {
-        "checksum": "60b77ff22ee87cca804a20a1d8939496",
+        "checksum": "4654dfc6d04c1da3f9e7d35b26c11f62",
         "uri": "file://test.test_loss_function_change_asymmetric_GPU-Depthwise_/feature_importance.npy"
     },
     "test.test_loss_function_change_asymmetric[GPU-Lossguide]": {
-        "checksum": "88b77eeba1e87980f5f7ad666edff0c4",
+        "checksum": "89eb3cf26a8633d606a00a9de5f7968f",
         "uri": "file://test.test_loss_function_change_asymmetric_GPU-Lossguide_/feature_importance.npy"
     },
     "test.test_multiclass[GPU]": {
