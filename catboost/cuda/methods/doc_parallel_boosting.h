@@ -501,7 +501,7 @@ namespace NCatboostCuda {
                 cursors->BestTestCursor.Get()
             );
             auto& modelToExport = models[inputData->GetEstimationPermutation()];
-            modelToExport.ShiftFirstWeakModelValues(cursors->StartingPoint.GetOrElse(0.0f));
+            modelToExport.SetBias(cursors->StartingPoint.GetOrElse(0.0f));
             return new TResultModel(modelToExport);
         }
 

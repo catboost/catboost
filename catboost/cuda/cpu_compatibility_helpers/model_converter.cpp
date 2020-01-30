@@ -130,6 +130,7 @@ TFullModel TModelConverter::Convert(
     }
 
     obliviousTreeBuilder.Build(coreModel.ModelTrees.GetMutable());
+    coreModel.SetScaleAndBias({1.0, src.Bias});
     coreModel.UpdateDynamicData();
     return coreModel;
 }
@@ -139,7 +140,6 @@ TFullModel TModelConverter::Convert(
         THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection) const {
         TFullModel coreModel;
         coreModel.ModelInfo["params"] = "{}"; //will be overriden with correct params later
-
         ui32 cpuApproxDim = 1;
 
         if (TargetHelper.IsInitialized()) {
@@ -203,6 +203,7 @@ TFullModel TModelConverter::Convert(
         }
 
         treeBuilder.Build(coreModel.ModelTrees.GetMutable());
+        coreModel.SetScaleAndBias({1.0, src.Bias});
         coreModel.UpdateDynamicData();
         return coreModel;
     }

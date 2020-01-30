@@ -2975,37 +2975,37 @@
     ],
     "test_gpu.test_nan_mode[Ordered-Max]": [
         {
-            "checksum": "5c217e49784f12a2c3276343ebead189",
+            "checksum": "d05146263c7a60795a905ecd999d8abe",
             "uri": "file://test_gpu.test_nan_mode_Ordered-Max_/test.eval"
         }
     ],
     "test_gpu.test_nan_mode[Ordered-Min]": [
         {
-            "checksum": "c166757121d8b67a72df6f921d23b803",
+            "checksum": "3ad66bbf4d6bffee59952e07094ab1d8",
             "uri": "file://test_gpu.test_nan_mode_Ordered-Min_/test.eval"
         }
     ],
     "test_gpu.test_nan_mode[Plain-Max]": [
         {
-            "checksum": "0b1823fbe6b901fa3f9bb2d5823a4782",
+            "checksum": "9be0278249aae0f61fa1563127e161d2",
             "uri": "file://test_gpu.test_nan_mode_Plain-Max_/test.eval"
         }
     ],
     "test_gpu.test_nan_mode[Plain-Min]": [
         {
-            "checksum": "637e3b95b96cf046dc461bb604c1dd35",
+            "checksum": "268cb7ab7c091fcc3151939e324fd4eb",
             "uri": "file://test_gpu.test_nan_mode_Plain-Min_/test.eval"
         }
     ],
     "test_gpu.test_nan_mode_forbidden[Ordered]": [
         {
-            "checksum": "9b9852968f8cc76f0f84b96da071bf0e",
+            "checksum": "5df4976070a9a2a1c160f6d5297fbc18",
             "uri": "file://test_gpu.test_nan_mode_forbidden_Ordered_/test.eval"
         }
     ],
     "test_gpu.test_nan_mode_forbidden[Plain]": [
         {
-            "checksum": "dad6d4f00bbdea7041786ffcdbcdf391",
+            "checksum": "fc06d097f25c3d8944fca898754c7c9b",
             "uri": "file://test_gpu.test_nan_mode_forbidden_Plain_/test.eval"
         }
     ],

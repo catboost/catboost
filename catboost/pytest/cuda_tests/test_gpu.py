@@ -870,7 +870,7 @@ def test_all_targets(loss_function, boosting_type):
     fit_catboost_gpu(params)
     apply_catboost(output_model_path, test_file, cd_file, output_eval_path)
 
-    return [local_canonical_file(output_eval_path)]
+    return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
 
 
 @pytest.mark.parametrize('is_inverted', [False, True], ids=['', 'inverted'])
@@ -997,7 +997,7 @@ def test_ctr_type(ctr_type, boosting_type):
     )
     fit_catboost_gpu(params)
     apply_catboost(output_model_path, test_file, cd_file, output_eval_path)
-    return [local_canonical_file(output_eval_path)]
+    return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
 
 
 def test_train_dir():
