@@ -1040,17 +1040,22 @@ static TString MakeAbsolutePath(const TString& path) {
     return JoinFsPaths(TFsPath::Cwd(), path);
 }
 
-static ui32 CountSamplingUnits(const NCB::TObjectsGrouping& objectsGrouping, bool isObjectwise) {
+static ui32 GetSamplingUnitCount(const NCB::TObjectsGrouping& objectsGrouping, bool isObjectwise) {
     return isObjectwise ? objectsGrouping.GetObjectCount() : objectsGrouping.GetGroupCount();
 }
 
-static ui32 CountDisjointFolds(TDataProviderPtr data, const NCatboostOptions::TFeatureEvalOptions& featureEvalOptions) {
+static void CountDisjointFolds(
+    TDataProviderPtr data,
+    const NCatboostOptions::TFeatureEvalOptions& featureEvalOptions,
+    ui32* absoluteFoldSize,
+    ui32* disjointFoldCount
+) {
     const auto isObjectwise = IsObjectwiseEval(featureEvalOptions);
     const auto& objectsGrouping = *data->ObjectsGrouping;
 
     ui32 samplingUnitsCount = 0;
     if (!data->MetaInfo.HasTimestamp) {
-        samplingUnitsCount = CountSamplingUnits(objectsGrouping, isObjectwise);
+        samplingUnitsCount = GetSamplingUnitCount(objectsGrouping, isObjectwise);
     } else {
         const auto timestamps = *data->ObjectsData->GetTimestamp();
         const auto timesplitQuantileTimestamp = FindQuantileTimestamp(
@@ -1071,9 +1076,17 @@ static ui32 CountDisjointFolds(TDataProviderPtr data, const NCatboostOptions::TF
             }
         }
     }
-    const ui32 foldSize = featureEvalOptions.FoldSize;
-    const ui32 disjointFoldCount = CeilDiv(samplingUnitsCount, foldSize);
-    return disjointFoldCount;
+    if (featureEvalOptions.FoldSize.Get() > 0) {
+        *absoluteFoldSize = featureEvalOptions.FoldSize.Get();
+        CB_ENSURE(*absoluteFoldSize > 0, "Fold size must be positive");
+    } else {
+        *absoluteFoldSize = featureEvalOptions.RelativeFoldSize.Get() * samplingUnitsCount;
+        CB_ENSURE(
+            *absoluteFoldSize > 0,
+            "Relative fold size must be greater than " << 1.0f / samplingUnitsCount << " so that size of each fold is non-zero";
+        );
+    }
+    *disjointFoldCount = CeilDiv(samplingUnitsCount, *absoluteFoldSize);
 }
 
 TFeatureEvaluationSummary EvaluateFeatures(
@@ -1102,10 +1115,12 @@ TFeatureEvaluationSummary EvaluateFeatures(
     CB_ENSURE(foldCount > 0, "Fold count must be positive integer");
     const ui32 offset = featureEvalOptions.Offset;
 
-    const ui32 disjointFoldCount = CountDisjointFolds(data, featureEvalOptions);
+    ui32 absoluteFoldSize;
+    ui32 disjointFoldCount;
+    CountDisjointFolds(data, featureEvalOptions, &absoluteFoldSize, &disjointFoldCount);
 
     if (disjointFoldCount < offset + foldCount) {
-        const auto samplingUnitsCount = CountSamplingUnits(*data->ObjectsGrouping, IsObjectwiseEval(featureEvalOptions));
+        const auto samplingUnitsCount = GetSamplingUnitCount(*data->ObjectsGrouping, IsObjectwiseEval(featureEvalOptions));
         CB_ENSURE(
             cvParams.Shuffle,
             "Dataset contains too few objects or groups to evaluate features without shuffling. "
@@ -1129,6 +1144,7 @@ TFeatureEvaluationSummary EvaluateFeatures(
     }
 
     auto foldRangePart = featureEvalOptions;
+    foldRangePart.FoldSize = absoluteFoldSize;
     foldRangePart.Offset = offset % disjointFoldCount;
     foldRangePart.FoldCount = Min(disjointFoldCount - offset % disjointFoldCount, foldCount);
     ui32 foldRangeIdx = offset / disjointFoldCount;

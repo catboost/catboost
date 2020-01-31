@@ -634,9 +634,18 @@ static void BindFeatureEvalParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonVal
     parser
         .AddLongOption("fold-size")
         .RequiredArgument("INT")
-        .Help("Fold size (in fold-size-units) for feature evaluation")
-        .Handler1T<ui32>([plainJsonPtr](const auto foldSize) {
+        .Help("Fold size for feature evaluation; number of fold-size-units")
+        .Handler1T<int>([plainJsonPtr](const auto foldSize) {
             (*plainJsonPtr)["fold_size"] = foldSize;
+            CB_ENSURE(!plainJsonPtr->Has("relative_fold_size"), "Fold size and relative fold size are mutually exclusive");
+        });
+    parser
+        .AddLongOption("relative-fold-size")
+        .RequiredArgument("float")
+        .Help("Relative fold size for feature evaluation; fraction of total number of fold-size-units in dataset")
+        .Handler1T<float>([plainJsonPtr](const auto foldSize) {
+            (*plainJsonPtr)["relative_fold_size"] = foldSize;
+            CB_ENSURE(!plainJsonPtr->Has("fold_size"), "Fold size and relative fold size are mutually exclusive");
         });
     parser
         .AddLongOption("timesplit-quantile")
