@@ -7,7 +7,6 @@
 
 - Automatic learning rate is applied by default not only for ``Logloss`` objective, but also for ``RMSE`` (on CPU and GPU) and ``MultiClass`` (on GPU).
 - Class labels type information is stored in the model. Now estimators in python package return values of proper type in ``classes_`` attribute and for prediction functions with ``prediction_type=Class``. #305, #999, #1017.
-  Note: This is **a breaking change** for CatBoost model format for Classification problems with non-default class labels. Such models trained with this release require applier from this release to work correctly.
   Note: Class labels loaded from datasets in [CatBoost dsv format](https://catboost.ai/docs/concepts/input-data_values-file.html) always have string type now.
 
 ## Bug fixes:
@@ -24,6 +23,10 @@
 ##Other:
 
 - Starting from this release Java applier is released simultaneously with other components and has the same version.
+
+##Compatibility:
+
+- Models trained with this release require applier from this release or later to work correctly.
 
 # Release 0.20.2
 
