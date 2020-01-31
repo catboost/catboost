@@ -85,7 +85,7 @@ public:
     }
 
     void AddLeaf(int splitIdx, double leafApprox, const TBucketStats& leafStats) override {
-        Scores[splitIdx] += 2 * leafApprox * leafStats.SumWeightedDelta - leafApprox * leafApprox * leafStats.SumWeight;
+        Scores[splitIdx] += leafApprox * leafStats.SumWeightedDelta;
     }
 
     void AddLeafPlain(int splitIdx, const TBucketStats& leftStats, const TBucketStats& rightStats) override;
