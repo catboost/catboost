@@ -447,10 +447,17 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
     if test_main_package is None:
         lines.append('    "os"')
     lines.extend(['    "testing"', '    "testing/internal/testdeps"'])
+
     if len(tests) > 0:
         lines.append('    _test "{}"'.format(test_module_path))
+    elif test_lib_args:
+        lines.append('    _ "{}"'.format(test_module_path))
+
     if len(xtests) > 0:
         lines.append('    _xtest "{}"'.format(xtest_module_path))
+    elif xtest_lib_args:
+        lines.append('    _ "{}"'.format(xtest_module_path))
+
     if is_cover:
         lines.append('    _cover0 "{}"'.format(test_module_path))
     lines.extend([')', ''])
