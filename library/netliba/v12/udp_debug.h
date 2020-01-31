@@ -94,8 +94,8 @@ namespace NNetliba_v12 {
         }
         void Update() {
             Result.store(Swx / Sw, std::memory_order_release);
-            Swx = 0.0;
-            Sw = 0.0001;
+            Swx = 0.0f;
+            Sw = 0.0001f;
         }
         float GetResult() const {
             return Result.load(std::memory_order_acquire);

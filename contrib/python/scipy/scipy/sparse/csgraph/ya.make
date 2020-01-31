@@ -25,4 +25,6 @@ PY_SRCS(
     _traversal.pyx
 )
 
+NO_LINT()
+
 END()

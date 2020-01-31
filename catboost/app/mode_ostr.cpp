@@ -74,11 +74,12 @@ int mode_ostr(int argc, const char* argv[]) {
                                                        /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
                                                        /*timestampsFilePath=*/NCB::TPathWithScheme(),
                                                        /*baselineFilePath=*/NCB::TPathWithScheme(),
+                                                       /*featureNamesFilePath=*/NCB::TPathWithScheme(),
                                                        params.ColumnarPoolFormatParams,
                                                        /*ignoredFeatures*/ {},
                                                        EObjectsOrder::Undefined,
                                                        TDatasetSubset::MakeColumns(),
-                                                       /*classNames=*/Nothing(),
+                                                       /*classLabels=*/Nothing(),
                                                        &localExecutor);
 
     NCB::TDataProviderPtr testPool = NCB::ReadDataset(params.TestSetPath,
@@ -86,11 +87,12 @@ int mode_ostr(int argc, const char* argv[]) {
                                                       /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
                                                       /*timestampsFilePath=*/NCB::TPathWithScheme(),
                                                       /*baselineFilePath=*/NCB::TPathWithScheme(),
+                                                      /*featureNamesFilePath=*/NCB::TPathWithScheme(),
                                                       params.ColumnarPoolFormatParams,
                                                       /*ignoredFeatures*/ {},
                                                       EObjectsOrder::Undefined,
                                                       TDatasetSubset::MakeColumns(),
-                                                      /*classNames=*/Nothing(),
+                                                      /*classLabels=*/Nothing(),
                                                       &localExecutor);
 
     CB_ENSURE(model.ModelInfo.contains("params"), "Need model with params to calculate object importances");

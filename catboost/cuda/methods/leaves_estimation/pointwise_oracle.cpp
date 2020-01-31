@@ -81,6 +81,10 @@ namespace NCatboostCuda {
         if (rowSize == 1) {
             ComputePartitionStats(der2, Offsets, &reducedDer);
             Der2AtPoint = ReadReduce(reducedDer);
+            const double lambda = LeavesEstimationConfig.Lambda;
+            for (ui32 i = 0; i < Der2AtPoint->size(); ++i) {
+                (*Der2AtPoint)[i] += lambda;
+            }
         }
 
         if (DerCalcer->GetType() == ELossFunction::MultiClass) {

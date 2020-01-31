@@ -808,7 +808,6 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     void clear() _NOEXCEPT {base::clear();}
 
-#ifndef _LIBCPP_CXX03_LANG
     _LIBCPP_INLINE_VISIBILITY
     void splice_after(const_iterator __p, forward_list&& __x);
     _LIBCPP_INLINE_VISIBILITY
@@ -816,7 +815,6 @@ public:
     _LIBCPP_INLINE_VISIBILITY
     void splice_after(const_iterator __p, forward_list&& __x,
                       const_iterator __f, const_iterator __l);
-#endif  // _LIBCPP_CXX03_LANG
     void splice_after(const_iterator __p, forward_list& __x);
     void splice_after(const_iterator __p, forward_list& __x, const_iterator __i);
     void splice_after(const_iterator __p, forward_list& __x,
@@ -1468,8 +1466,6 @@ forward_list<_Tp, _Alloc>::splice_after(const_iterator __p,
     }
 }
 
-#ifndef _LIBCPP_CXX03_LANG
-
 template <class _Tp, class _Alloc>
 inline _LIBCPP_INLINE_VISIBILITY
 void
@@ -1499,13 +1495,11 @@ forward_list<_Tp, _Alloc>::splice_after(const_iterator __p,
     splice_after(__p, __x, __f, __l);
 }
 
-#endif  // _LIBCPP_CXX03_LANG
-
 template <class _Tp, class _Alloc>
 void
 forward_list<_Tp, _Alloc>::remove(const value_type& __v)
 {
-    forward_list<_Tp, _Alloc> __deleted_nodes; // collect the nodes we're removing
+    forward_list<_Tp, _Alloc> __deleted_nodes(get_allocator()); // collect the nodes we're removing
     iterator __e = end();
     for (iterator __i = before_begin(); __i.__get_begin()->__next_ != nullptr;)
     {
@@ -1529,6 +1523,7 @@ template <class _Predicate>
 void
 forward_list<_Tp, _Alloc>::remove_if(_Predicate __pred)
 {
+    forward_list<_Tp, _Alloc> __deleted_nodes(get_allocator()); // collect the nodes we're removing
     iterator __e = end();
     for (iterator __i = before_begin(); __i.__get_begin()->__next_ != nullptr;)
     {
@@ -1537,7 +1532,7 @@ forward_list<_Tp, _Alloc>::remove_if(_Predicate __pred)
             iterator __j = _VSTD::next(__i, 2);
             for (; __j != __e && __pred(*__j); ++__j)
                 ;
-            erase_after(__i, __j);
+            __deleted_nodes.splice_after(__deleted_nodes.before_begin(), *this, __i, __j);
             if (__j == __e)
                 break;
             __i = __j;
@@ -1552,13 +1547,14 @@ template <class _BinaryPredicate>
 void
 forward_list<_Tp, _Alloc>::unique(_BinaryPredicate __binary_pred)
 {
+    forward_list<_Tp, _Alloc> __deleted_nodes(get_allocator()); // collect the nodes we're removing
     for (iterator __i = begin(), __e = end(); __i != __e;)
     {
         iterator __j = _VSTD::next(__i);
         for (; __j != __e && __binary_pred(*__i, *__j); ++__j)
             ;
         if (__i.__get_begin()->__next_ != __j.__get_unsafe_node_pointer())
-            erase_after(__i, __j);
+            __deleted_nodes.splice_after(__deleted_nodes.before_begin(), *this, __i, __j);
         __i = __j;
     }
 }

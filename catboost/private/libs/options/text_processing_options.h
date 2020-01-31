@@ -5,6 +5,7 @@
 
 #include <library/json/json_value.h>
 #include <library/text_processing/dictionary/options.h>
+#include <library/text_processing/tokenizer/options.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
 #include <util/generic/strbuf.h>
@@ -14,8 +15,38 @@
 
 
 namespace NCatboostOptions {
+    using TTokenizerOptions = NTextProcessing::NTokenizer::TTokenizerOptions;
     using TDictionaryOptions = NTextProcessing::NDictionary::TDictionaryOptions;
     using TDictionaryBuilderOptions = NTextProcessing::NDictionary::TDictionaryBuilderOptions;
+
+    class TTextColumnTokenizerOptions {
+    public:
+        TTextColumnTokenizerOptions();
+        TTextColumnTokenizerOptions(TString tokenizerId, TTokenizerOptions tokenizerOptions);
+
+        void Save(NJson::TJsonValue* optionsJson) const;
+        void Load(const NJson::TJsonValue& options);
+        bool operator==(const TTextColumnTokenizerOptions& rhs) const;
+        bool operator!=(const TTextColumnTokenizerOptions& rhs) const;
+
+    public:
+        TOption<TString> TokenizerId;
+        TOption<TTokenizerOptions> TokenizerOptions;
+    };
+
+    constexpr TDictionaryOptions DEFAULT_DICTIONARY_OPTIONS = {
+        /*TokenLevelType=*/NTextProcessing::NDictionary::ETokenLevelType::Word,
+        /*GramOrder=*/1,
+        /*SkipStep=*/0,
+        /*StartTokenId=*/0,
+        /*EndOfWordTokenPolicy=*/NTextProcessing::NDictionary::EEndOfWordTokenPolicy::Insert,
+        /*EndOfSentenceTokenPolicy=*/NTextProcessing::NDictionary::EEndOfSentenceTokenPolicy::Skip
+    };
+
+    constexpr TDictionaryBuilderOptions DEFAULT_DICTIONARY_BUILDER_OPTIONS = {
+       /*OccurrenceLowerBound=*/3,
+       /*MaxDictionarySize=*/50000
+    };
 
     class TTextColumnDictionaryOptions {
     public:
@@ -23,12 +54,8 @@ namespace NCatboostOptions {
         TTextColumnDictionaryOptions(
             TString dictionaryId,
             TDictionaryOptions dictionaryOptions,
-            TMaybe<TDictionaryBuilderOptions> dictionaryBuilderOptions = Nothing()
+            TDictionaryBuilderOptions dictionaryBuilderOptions = DEFAULT_DICTIONARY_BUILDER_OPTIONS
         );
-
-        static i32 DefaultMaxDictionarySize() {
-            return 50000;
-        }
 
         void Save(NJson::TJsonValue* optionsJson) const;
         void Load(const NJson::TJsonValue& options);
@@ -63,7 +90,8 @@ namespace NCatboostOptions {
     public:
         TTextFeatureProcessing();
         TTextFeatureProcessing(
-            TFeatureCalcerDescription&& featureCalcer,
+            TVector<TFeatureCalcerDescription>&& featureCalcers,
+            TVector<TString>&& tokenizersNames,
             TVector<TString>&& dictionariesNames
         );
 
@@ -73,7 +101,8 @@ namespace NCatboostOptions {
         bool operator!=(const TTextFeatureProcessing& rhs) const;
 
     public:
-        TOption<TFeatureCalcerDescription> FeatureCalcer;
+        TOption<TVector<TFeatureCalcerDescription>> FeatureCalcers;
+        TOption<TVector<TString>> TokenizersNames;
         TOption<TVector<TString>> DictionariesNames;
     };
 
@@ -81,6 +110,7 @@ namespace NCatboostOptions {
     public:
         TTextProcessingOptions();
         TTextProcessingOptions(
+            TVector<TTextColumnTokenizerOptions>&& tokenizers,
             TVector<TTextColumnDictionaryOptions>&& dictionaries,
             TMap<TString, TVector<TTextFeatureProcessing>>&& textFeatureProcessing
         );
@@ -90,25 +120,21 @@ namespace NCatboostOptions {
         bool operator==(const TTextProcessingOptions& rhs) const;
         bool operator!=(const TTextProcessingOptions& rhs) const;
 
-        bool HasOnlyDefaultDictionaries() const;
+        const TVector<TTextColumnTokenizerOptions>& GetTokenizers() const;
         const TVector<TTextColumnDictionaryOptions>& GetDictionaries() const;
         const TVector<TTextFeatureProcessing>& GetFeatureProcessing(ui32 textFeatureIdx) const;
         void SetDefaultMinTokenOccurrence(ui64 minTokenOccurrence);
         void SetDefaultMaxDictionarySize(ui32 maxDictionarySize);
 
-        static TVector<TTextColumnDictionaryOptions> GetDefaultDictionaries();
-        static TMap<EFeatureCalcerType, TVector<TString>> GetDefaultCalcerDictionaries();
-        static TVector<TString> GetDefaultCalcerDictionaries(EFeatureCalcerType calcerType);
         static TString DefaultProcessingName() {
             static TString name("default");
             return name;
         }
 
     private:
-        static TTextColumnDictionaryOptions BiGramDictionaryOptions();
-        static TTextColumnDictionaryOptions WordDictionaryOptions();
+        void SetNotSpecifiedOptionsToDefaults();
 
-    private:
+        TOption<TVector<TTextColumnTokenizerOptions>> Tokenizers;
         TOption<TVector<TTextColumnDictionaryOptions>> Dictionaries;
         TOption<TMap<TString, TVector<TTextFeatureProcessing>>> TextFeatureProcessing;
     };

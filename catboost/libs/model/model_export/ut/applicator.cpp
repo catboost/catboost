@@ -1,6 +1,7 @@
 #include <algorithm>
 #include <cassert>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <set>
 #include <sstream>
@@ -101,6 +102,7 @@ int main(int argc, char *argv[]) {
 
     ifstream test(argv[1]);
     ofstream predictions(argv[3]);
+    predictions << setprecision(10);
     string line;
     for (size_t docId = 0; getline(test, line); ++docId) {
         vector<float> floatFeatures;

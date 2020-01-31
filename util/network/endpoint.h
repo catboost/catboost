@@ -28,6 +28,9 @@ public:
     inline bool IsIpV6() const {
         return Addr_->Addr()->sa_family == AF_INET6;
     }
+    inline bool IsUnix() const {
+        return Addr_->Addr()->sa_family == AF_UNIX;
+    }
 
     inline TString IpToString() const {
         return NAddr::PrintHost(*Addr_);

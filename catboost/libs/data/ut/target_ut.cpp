@@ -70,6 +70,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
     void TestStringRawTarget(const TVector<TString>& rawTarget) {
         TRawTargetData rawTargetData;
+        rawTargetData.TargetType = ERawTargetType::String;
         rawTargetData.Target = {rawTarget};
         rawTargetData.SetTrivialWeights(rawTarget.size());
 
@@ -86,6 +87,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
     void TestNumericRawTarget(TVector<T>&& rawTarget, const TVector<float>& expectedTarget) {
         const ui32 objectCount = (ui32)rawTarget.size();
         TRawTargetData rawTargetData;
+        rawTargetData.TargetType = ERawTargetType::Float;
         rawTargetData.SetTrivialWeights(objectCount);
         rawTargetData.Target.resize(1);
         rawTargetData.Target[0]
@@ -120,6 +122,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
             for (const auto& target : badTargets) {
                 TRawTargetData rawTargetData;
+                rawTargetData.TargetType = ERawTargetType::String;
                 rawTargetData.Target.resize(1);
                 rawTargetData.Target[0] = target;
                 rawTargetData.SetTrivialWeights(target.size());
@@ -143,6 +146,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
             for (const auto& target : goodMultiTargets) {
                 const auto docCount = target.empty() ? 0 : target[0].size();
                 TRawTargetData rawTargetData;
+                rawTargetData.TargetType = ERawTargetType::String;
                 rawTargetData.Target.assign(target.begin(), target.end());
                 rawTargetData.SetTrivialWeights(docCount);
 
@@ -169,6 +173,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
             for (const auto& target : badMultiTargets) {
                 const auto docCount = target.empty() ? 0 : target[0].size();
                 TRawTargetData rawTargetData;
+                rawTargetData.TargetType = ERawTargetType::String;
                 rawTargetData.Target.assign(target.begin(), target.end());
                 rawTargetData.SetTrivialWeights(docCount);
 
@@ -197,6 +202,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
             for (const auto& baseline : goodBaselines) {
                 {
                     TRawTargetData rawTargetData;
+                    rawTargetData.TargetType = ERawTargetType::String;
                     rawTargetData.Target = {target};
                     if (!baseline.empty()) {
                         rawTargetData.Baseline = baseline;
@@ -221,6 +227,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
                 // check Set
                 {
                     TRawTargetData rawTargetData;
+                    rawTargetData.TargetType = ERawTargetType::String;
                     rawTargetData.Target = {target};
                     rawTargetData.SetTrivialWeights(target.size());
 
@@ -258,6 +265,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
             for (const auto& baseline : badBaselines) {
                 {
                     TRawTargetData rawTargetData;
+                    rawTargetData.TargetType = ERawTargetType::String;
                     rawTargetData.Target = {target};
                     rawTargetData.Baseline = baseline;
                     rawTargetData.SetTrivialWeights(target.size());
@@ -271,6 +279,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
                 // check Set
                 {
                     TRawTargetData rawTargetData;
+                    rawTargetData.TargetType = ERawTargetType::String;
                     rawTargetData.Target = {target};
                     rawTargetData.SetTrivialWeights(target.size());
 
@@ -296,6 +305,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
         // trivial
         {
             TRawTargetData rawTargetData;
+            rawTargetData.TargetType = ERawTargetType::String;
             rawTargetData.Target = {target};
             rawTargetData.SetTrivialWeights(target.size());
 
@@ -309,6 +319,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
             TVector<float> weight = {1.0, 0.0, 2.0, 3.0, 1.0};
             {
                 TRawTargetData rawTargetData;
+                rawTargetData.TargetType = ERawTargetType::String;
                 rawTargetData.Target = {target};
                 rawTargetData.Weights = TWeights<float>(TVector<float>(weight));
                 rawTargetData.GroupWeights = TWeights<float>(target.size());
@@ -322,6 +333,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
             // check Set
             {
                 TRawTargetData rawTargetData;
+                rawTargetData.TargetType = ERawTargetType::String;
                 rawTargetData.Target = {target};
                 rawTargetData.SetTrivialWeights(target.size());
 
@@ -344,6 +356,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
             for (const auto& weight : badWeights) {
                 {
                     TRawTargetData rawTargetData;
+                    rawTargetData.TargetType = ERawTargetType::String;
                     rawTargetData.Target = {target};
                     rawTargetData.GroupWeights = TWeights<float>(target.size());
 
@@ -367,6 +380,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
                 // check Set
                 {
                     TRawTargetData rawTargetData;
+                    rawTargetData.TargetType = ERawTargetType::String;
                     rawTargetData.Target = {target};
                     rawTargetData.SetTrivialWeights(target.size());
 
@@ -390,6 +404,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
             for (const auto& groupWeights : goodGroupWeights) {
                 if (!groupWeights.empty()) {
                     TRawTargetData rawTargetData;
+                    rawTargetData.TargetType = ERawTargetType::String;
                     rawTargetData.Target = {target};
                     rawTargetData.Weights = TWeights<float>(target.size());
                     rawTargetData.GroupWeights = TWeights<float>(TVector<float>(groupWeights));
@@ -405,6 +420,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
                 // check Set
                 {
                     TRawTargetData rawTargetData;
+                    rawTargetData.TargetType = ERawTargetType::String;
                     rawTargetData.Target = {target};
                     rawTargetData.SetTrivialWeights(target.size());
 
@@ -438,6 +454,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
                 const auto& groupWeights = badGroupWeights[testSetIdx];
                 {
                     TRawTargetData rawTargetData;
+                    rawTargetData.TargetType = ERawTargetType::String;
                     rawTargetData.Target = {target};
                     rawTargetData.Weights = TWeights<float>(target.size());
 
@@ -462,6 +479,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
                 // check Set
                 {
                     TRawTargetData rawTargetData;
+                    rawTargetData.TargetType = ERawTargetType::String;
                     rawTargetData.Target = {target};
                     rawTargetData.SetTrivialWeights(target.size());
 
@@ -500,6 +518,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
                 // check Set
                 {
                     TRawTargetData rawTargetData;
+                    rawTargetData.TargetType = ERawTargetType::String;
                     rawTargetData.Target = {target}; // for TRawTargetDataProvider creation
                     rawTargetData.SetTrivialWeights(target.size());
 
@@ -535,6 +554,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
                 // check Set
                 {
                     TRawTargetData rawTargetData;
+                    rawTargetData.TargetType = ERawTargetType::String;
                     rawTargetData.Target = {target}; // for TRawTargetDataProvider creation
                     rawTargetData.SetTrivialWeights(target.size());
 
@@ -551,6 +571,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
         {
             TRawTargetData rawTargetData;
+            rawTargetData.TargetType = ERawTargetType::String;
             rawTargetData.Target = { TVector<TString>{"0", "1", "1", "0", "1", "0"} };
             rawTargetData.SetTrivialWeights(6);
             rawTargetData.Baseline = {
@@ -563,6 +584,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
         {
             TRawTargetData rawTargetData;
+            rawTargetData.TargetType = ERawTargetType::String;
             rawTargetData.Target = {
                 TVector<TString>{"0.0", "1.0", "1.0", "0.0", "1.0", "0.0", "1.0f", "0.5", "0.8"}
             };
@@ -608,6 +630,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
         {
             TRawTargetData rawTargetData;
+            rawTargetData.TargetType = ERawTargetType::String;
             rawTargetData.Target = { TVector<TString>{"1", "0"} };
             rawTargetData.SetTrivialWeights(2);
             rawTargetData.Baseline = {
@@ -623,6 +646,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
         {
             TRawTargetData rawTargetData;
+            rawTargetData.TargetType = ERawTargetType::String;
             rawTargetData.Target = { TVector<TString>{"1.0", "0.0", "1.0", "0.0"} };
             rawTargetData.Baseline = {{0.3f, 0.2f, 0.35f, 0.8f}};
             rawTargetData.Weights = TWeights<float>({2.0f, 3.0f, 0.0f, 1.0f});
@@ -701,6 +725,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
         {
             TRawTargetData rawTargetData;
+            rawTargetData.TargetType = ERawTargetType::String;
             rawTargetData.Target = {
                 TVector<TString>{"0", "1", "1", "0", "1", "0"},
                 TVector<TString>{"1", "0", "0", "1", "0", "1"}
@@ -716,6 +741,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
         {
             TRawTargetData rawTargetData;
+            rawTargetData.TargetType = ERawTargetType::String;
             rawTargetData.Target = {
                 TVector<TString>{"0.0", "1.0", "1.0", "0.0", "1.0", "0.0", "1.0f", "0.5", "0.8"},
                 TVector<TString>{"-0.0", "-1.0", "-1.0", "-0.0", "-1.0", "-0.0", "-1.0f", "-0.5", "-0.8"}
@@ -762,6 +788,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
         {
             TRawTargetData rawTargetData;
+            rawTargetData.TargetType = ERawTargetType::String;
             rawTargetData.Target = {TVector<TString>{"1", "0"}, TVector<TString>{"0", "1"}};
             rawTargetData.SetTrivialWeights(2);
             rawTargetData.Baseline = {
@@ -777,6 +804,7 @@ Y_UNIT_TEST_SUITE(TRawTargetData) {
 
         {
             TRawTargetData rawTargetData;
+            rawTargetData.TargetType = ERawTargetType::String;
             rawTargetData.Target = {
                 TVector<TString>{"1.0", "0.0", "1.0", "0.0"},
                 TVector<TString>{"-1.0", "-0.0", "-1.0", "-0.0"}

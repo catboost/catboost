@@ -147,12 +147,12 @@ public:
 
     bool Add(const TVector<double>& features, const TVector<double>& goals) {
         Y_ASSERT(features.size() == goals.size());
-        return Add(features.begin(), features.end(), goals.begin());
+        return Add(features.data(), features.data() + features.size(), goals.data());
     }
 
     bool Add(const TVector<double>& features, const TVector<double>& goals, const TVector<double>& weights) {
         Y_ASSERT(features.size() == goals.size() && features.size() == weights.size());
-        return Add(features.begin(), features.end(), goals.begin(), weights.begin());
+        return Add(features.data(), features.data() + features.size(), goals.data(), weights.data());
     }
 
     template <typename TFloatType>

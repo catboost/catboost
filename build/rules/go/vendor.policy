@@ -1,5 +1,8 @@
 ALLOW vendor/ -> .*
 
+# Validate and define text-based and dynamic configuration
+ALLOW .* -> vendor/cuelang.org/go
+
 # driver for write to and read from XLSX files
 ALLOW .* -> vendor/github.com/360EntSecGroup-Skylar/excelize/v2
 
@@ -371,8 +374,19 @@ ALLOW .* -> vendor/github.com/pariz/gountries
 # CONTRIB-1630- Go binding for qemu/qmp runtime
 ALLOW .* -> vendor/github.com/intel/govmm/qemu
 
-# CONTRIB-1650 golang ftp server library with a sample implementation 
+# CONTRIB-1650 golang ftp server library with a sample implementation
 ALLOW .* -> vendor/github.com/fclairamb/ftpserver
+
+# CONTRIB-1647 golang binlog replication implementation
+ALLOW .* -> vendor/github.com/siddontang/go-mysql/replication
+ALLOW .* -> vendor/github.com/siddontang/go-mysql/canal
+ALLOW .* -> vendor/github.com/siddontang/go-mysql/mysql
+
+# CONTRIB-1656 golang sftp server library
+ALLOW .* -> vendor/github.com/pkg/sftp
+
+# CONTRIB-1670
+ALLOW .* -> vendor/github.com/soniah/gosnmp
 
 #
 # Temporary exceptions.

@@ -626,9 +626,9 @@ NCB::TQuantizedPool NCB::LoadQuantizedPool(
     return poolLoader->LoadQuantizedPool(params);
 }
 
-static NCB::TQuantizedPoolDigest GetQuantizedPoolDigest(
-    const TPoolMetainfo& poolMetainfo,
-    const TPoolQuantizationSchema& quantizationSchema) {
+NCB::TQuantizedPoolDigest NCB::GetQuantizedPoolDigest(
+    const NCB::NIdl::TPoolMetainfo& poolMetainfo,
+    const NCB::NIdl::TPoolQuantizationSchema& quantizationSchema) {
 
     NCB::TQuantizedPoolDigest digest;
     const auto columnIndices = CollectAndSortKeys(poolMetainfo.GetColumnIndexToType());
@@ -733,7 +733,7 @@ NCB::TQuantizedPoolDigest NCB::CalculateQuantizedPoolDigest(const TStringBuf pat
         blob.data() + epilogOffsets.QuantizationSchemaSizeOffset + sizeof(ui32),
         quantizationSchemaSize);
 
-    return ::GetQuantizedPoolDigest(poolMetainfo, quantizationSchema);
+    return GetQuantizedPoolDigest(poolMetainfo, quantizationSchema);
 }
 
 NCB::NIdl::TPoolQuantizationSchema NCB::LoadQuantizationSchemaFromPool(const TStringBuf path) {
@@ -964,21 +964,22 @@ namespace NCB {
         //target
         const ERawTargetType rawTargetType = dataProvider->RawTargetData.GetTargetType();
         switch (rawTargetType) {
+            case ERawTargetType::Integer:
             case ERawTargetType::Float:
                 {
                     CB_ENSURE(
                         dataProvider->RawTargetData.GetTargetDimension() == 1,
                         "Multidimensional targets are not currently supported"
                     );
-                    TVector<float> targetFloat;
-                    targetFloat.yresize(dataProvider->GetObjectCount());
-                    TArrayRef<float> targetFloatRef = targetFloat;
-                    dataProvider->RawTargetData.GetFloatTarget(
-                        TArrayRef<TArrayRef<float>>(&targetFloatRef, 1)
+                    TVector<float> targetNumeric;
+                    targetNumeric.yresize(dataProvider->GetObjectCount());
+                    TArrayRef<float> targetNumericRef = targetNumeric;
+                    dataProvider->RawTargetData.GetNumericTarget(
+                        TArrayRef<TArrayRef<float>>(&targetNumericRef, 1)
                     );
 
                     srcData->Target = GenerateSrcColumn<float>(
-                        TConstArrayRef<float>(targetFloat),
+                        TConstArrayRef<float>(targetNumeric),
                         EColumn::Label
                     );
                     columnNames.push_back("Target");
@@ -1054,7 +1055,7 @@ namespace NCB {
             std::move(featureIndices),
             std::move(borders),
             std::move(nanModes),
-            dataProvider->MetaInfo.ClassNames,
+            dataProvider->MetaInfo.ClassLabels,
             TVector<size_t>(),//TODO
             TVector<TMap<ui32, TValueWithCount>>()//TODO
         };

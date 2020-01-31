@@ -1,6 +1,6 @@
 {
     "approx_on_full_history": false, 
-    "bayesian_matrix_reg": 0.1000000015, 
+    "bayesian_matrix_reg": 0.10000000149011612, 
     "best_model_min_trees": 1, 
     "boost_from_average": true, 
     "boosting_type": "Plain", 
@@ -25,9 +25,10 @@
     "leaf_estimation_backtracking": "AnyImprovement", 
     "leaf_estimation_iterations": 1, 
     "leaf_estimation_method": "Newton", 
-    "learning_rate": 0.02999999933, 
+    "learning_rate": 0.5, 
     "loss_function": "RMSE", 
     "max_ctr_complexity": 1, 
+    "model_shrink_mode": "Constant", 
     "model_shrink_rate": 0, 
     "model_size_reg": 0.5, 
     "nan_mode": "Min", 
@@ -44,7 +45,7 @@
     ], 
     "sparse_features_conflict_fraction": 0, 
     "store_all_simple_ctr": false, 
-    "subsample": 0.8000000119, 
+    "subsample": 0.800000011920929, 
     "task_type": "CPU", 
     "use_best_model": false
 }

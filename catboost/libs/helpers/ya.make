@@ -59,6 +59,7 @@ PEERDIR(
     library/dbg_output
     library/digest/crc32c
     library/digest/md5
+    library/json
     library/malloc/api
     library/pop_count
     library/threading/local_executor

@@ -18,6 +18,10 @@
         "dctl": {
             "description": "Run Yandex.Deploy CLI"
         },
+        "nctl": {
+            "description": "Run Nanny CLI",
+            "visible": false
+        },
         "llvm-profdata": {
             "description": "Run llvm-profdata Clang utility"
         },
@@ -229,17 +233,20 @@
         "crypta": {
             "description": "Run Crypta client"
         },
-        "go_1.13.4": {
-            "description": "Run go tool (1.13.4)"
+        "app_host": {
+            "description": "Run local app_host instance"
         },
-        "gofmt_1.13.4": {
-            "description": "Run gofmt tool (1.13.4)"
-        },
-        "go": {
+        "go_1.13.5": {
             "description": "Run go tool (1.13.5)"
         },
-        "gofmt": {
+        "gofmt_1.13.5": {
             "description": "Run gofmt tool (1.13.5)"
+        },
+        "go": {
+            "description": "Run go tool (1.13.6)"
+        },
+        "gofmt": {
+            "description": "Run gofmt tool (1.13.6)"
         },
         "godoc": {
             "description": "Arcadia version of godoc"
@@ -292,8 +299,17 @@
         "stress-ng": {
             "description": "stress load tester"
         },
+        "atop": {
+            "description": "Advanced System & Process Monitor"
+        },
+        "bpftool": {
+            "description": "tool for inspection and simple manipulation of eBPF programs and maps"
+        },
         "lkvm": {
             "description": "kvmtool is a userland tool for creating and controlling KVM guests"
+        },
+        "yoimports": {
+            "description": "Go imports formatting tool"
         }
     },
     "toolchain": {
@@ -811,6 +827,34 @@
                 {
                     "host": {
                         "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "yoimports": {
+            "tools": {
+                "yoimports": {
+                    "bottle": "yoimports",
+                    "executable": "yoimports"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
                     },
                     "default": true
                 }
@@ -2178,6 +2222,10 @@
                     "bottle": "clang6-android-armv7",
                     "executable": "nm"
                 },
+                "objcopy": {
+                    "bottle": "clang6-android-armv7",
+                    "executable": "objcopy"
+                },
                 "clang-format": {
                     "bottle": "clang6-android-armv7",
                     "executable": "clang-format"
@@ -2253,6 +2301,10 @@
                     "bottle": "clang6-android-armv7",
                     "executable": "nm"
                 },
+                "objcopy": {
+                    "bottle": "clang6-android-armv7",
+                    "executable": "objcopy"
+                },
                 "clang-format": {
                     "bottle": "clang6-android-armv7",
                     "executable": "clang-format"
@@ -2327,6 +2379,10 @@
                 "nm": {
                     "bottle": "clang6-android-armv8",
                     "executable": "nm"
+                },
+                "objcopy": {
+                    "bottle": "clang6-android-armv8",
+                    "executable": "objcopy"
                 },
                 "clang-format": {
                     "bottle": "clang6-android-armv8",
@@ -2462,6 +2518,10 @@
                 "nm": {
                     "bottle": "gcc63-armv7a-linkplay-a98",
                     "executable": "nm"
+                },
+                "objcopy": {
+                    "bottle": "gcc63-armv7a-linkplay-a98",
+                    "executable": "objcopy"
                 }
             },
             "platforms": [
@@ -2522,6 +2582,10 @@
                 "nm": {
                     "bottle": "gcc63-armv7a-lg-wk7y",
                     "executable": "nm"
+                },
+                "objcopy": {
+                    "bottle": "gcc63-armv7a-lg-wk7y",
+                    "executable": "objcopy"
                 }
             },
             "platforms": [
@@ -2577,6 +2641,10 @@
                 "nm": {
                     "bottle": "gcc73-armv7a-jbl-portable-music",
                     "executable": "nm"
+                },
+                "objcopy": {
+                    "bottle": "gcc73-armv7a-jbl-portable-music",
+                    "executable": "objcopy"
                 }
             },
             "platforms": [
@@ -2628,6 +2696,10 @@
                 "nm": {
                     "bottle": "gcc53-aarch64-lightcomm-mt8516",
                     "executable": "nm"
+                },
+                "objcopy": {
+                    "bottle": "gcc53-aarch64-lightcomm-mt8516",
+                    "executable": "objcopy"
                 }
             },
             "platforms": [
@@ -3557,6 +3629,28 @@
                 "dctl": {
                     "bottle": "dctl",
                     "executable": "dctl"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "nctl": {
+            "tools": {
+                "nctl": {
+                    "bottle": "nctl",
+                    "executable": "nctl"
                 }
             },
             "platforms": [
@@ -4572,19 +4666,11 @@
                 }
             ]
         },
-        "golang_1_13_4": {
+        "app_host": {
             "tools": {
-                "golang_1.13.4": {
-                    "bottle": "golang_1.13.4",
-                    "executable": "golang_1.13.4"
-                },
-                "go_1.13.4": {
-                    "bottle": "golang_1.13.4",
-                    "executable": "go_1.13.4"
-                },
-                "gofmt_1.13.4": {
-                    "bottle": "golang_1.13.4",
-                    "executable": "gofmt_1.13.4"
+                "app_host": {
+                    "bottle": "app_host",
+                    "executable": "app_host_launcher"
                 }
             },
             "platforms": [
@@ -4599,32 +4685,22 @@
                         "os": "DARWIN"
                     },
                     "default": true
-                },
-                {
-                    "host": {
-                        "os": "WIN"
-                    },
-                    "default": true
                 }
-            ],
-            "params": {
-                "type": "golang",
-                "version": "1.13.4"
-            }
+            ]
         },
         "golang_1_13_5": {
             "tools": {
-                "golang": {
+                "golang_1.13.5": {
                     "bottle": "golang_1.13.5",
-                    "executable": "golang"
+                    "executable": "golang_1.13.5"
                 },
-                "go": {
+                "go_1.13.5": {
                     "bottle": "golang_1.13.5",
-                    "executable": "go"
+                    "executable": "go_1.13.5"
                 },
-                "gofmt": {
+                "gofmt_1.13.5": {
                     "bottle": "golang_1.13.5",
-                    "executable": "gofmt"
+                    "executable": "gofmt_1.13.5"
                 }
             },
             "platforms": [
@@ -4650,6 +4726,46 @@
             "params": {
                 "type": "golang",
                 "version": "1.13.5"
+            }
+        },
+        "golang_1_13_6": {
+            "tools": {
+                "golang": {
+                    "bottle": "golang_1.13.6",
+                    "executable": "golang"
+                },
+                "go": {
+                    "bottle": "golang_1.13.6",
+                    "executable": "go"
+                },
+                "gofmt": {
+                    "bottle": "golang_1.13.6",
+                    "executable": "gofmt"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                }
+            ],
+            "params": {
+                "type": "golang",
+                "version": "1.13.6"
             }
         },
         "godoc": {
@@ -4741,6 +4857,38 @@
                 "fio": {
                     "bottle": "fio",
                     "executable": "fio"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "atop": {
+            "tools": {
+                "atop": {
+                    "bottle": "atop",
+                    "executable": "atop"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "bpftool": {
+            "tools": {
+                "bpftool": {
+                    "bottle": "bpftool",
+                    "executable": "bpftool"
                 }
             },
             "platforms": [
@@ -4910,9 +5058,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [
-                    574030679
-                ],
+                "sandbox_id": [596264998],
                 "match": "ymake"
             },
             "executable": {
@@ -4935,7 +5081,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    565263953
+                    596879027
                 ],
                 "match": "arc"
             },
@@ -4967,6 +5113,21 @@
             "executable": {
                 "yo": [
                     "yo"
+                ]
+            }
+        },
+        "yoimports": {
+            "formula": {
+                "sandbox_id": [
+                    596719063,
+                    596719221,
+                    596719231
+                ],
+                "match": "yoimports"
+            },
+            "executable": {
+                "yoimports": [
+                    "yoimports"
                 ]
             }
         },
@@ -5472,6 +5633,10 @@
                 "nm": [
                     "bin",
                     "arm-linux-androideabi-nm"
+                ],
+                "objcopy": [
+                    "bin",
+                    "arm-linux-androideabi-objcopy"
                 ]
             }
         },
@@ -5523,6 +5688,10 @@
                 "nm": [
                     "bin",
                     "aarch64-linux-android-nm"
+                ],
+                "objcopy": [
+                    "bin",
+                    "aarch64-linux-android-objcopy"
                 ]
             }
         },
@@ -5581,28 +5750,39 @@
             },
             "executable": {
                 "c++": [
+                    "gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf",
                     "bin",
                     "arm-linux-gnueabihf-g++"
                 ],
                 "cc": [
+                    "gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf",
                     "bin",
                     "arm-linux-gnueabihf-gcc"
                 ],
                 "gcov": [
+                    "gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf",
                     "bin",
                     "arm-linux-gnueabihf-gcov"
                 ],
                 "c++filt": [
+                    "gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf",
                     "bin",
                     "arm-linux-gnueabihf-c++filt"
                 ],
                 "strip": [
+                    "gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf",
                     "bin",
                     "arm-linux-gnueabihf-strip"
                 ],
                 "nm": [
+                    "gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf",
                     "bin",
                     "arm-linux-gnueabihf-nm"
+                ],
+                "objcopy": [
+                    "gcc-linaro-6.3.1-2017.05-x86_64_arm-linux-gnueabihf",
+                    "bin",
+                    "arm-linux-gnueabihf-objcopy"
                 ]
             }
         },
@@ -5642,20 +5822,26 @@
                     "usr",
                     "bin",
                     "arm-poky-linux-gnueabi",
-                    "arm-poky-linux-gnueabi--strip"
+                    "arm-poky-linux-gnueabi-strip"
                 ],
                 "nm": [
                     "usr",
                     "bin",
                     "arm-poky-linux-gnueabi",
                     "arm-poky-linux-gnueabi-nm"
+                ],
+                "objcopy": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi",
+                    "arm-poky-linux-gnueabi-objcopy"
                 ]
             }
         },
         "gcc73-armv7a-jbl-portable-music": {
             "formula": {
                 "sandbox_id": [
-                    "554980592"
+                    "577498874"
                 ],
                 "match": "GCC"
             },
@@ -5663,32 +5849,44 @@
                 "c++": [
                     "usr",
                     "bin",
+                    "arm-poky-linux-gnueabi",
                     "arm-poky-linux-gnueabi-g++"
                 ],
                 "cc": [
                     "usr",
                     "bin",
+                    "arm-poky-linux-gnueabi",
                     "arm-poky-linux-gnueabi-gcc"
                 ],
                 "gcov": [
                     "usr",
                     "bin",
+                    "arm-poky-linux-gnueabi",
                     "arm-poky-linux-gnueabi-gcov"
                 ],
                 "c++filt": [
                     "usr",
                     "bin",
+                    "arm-poky-linux-gnueabi",
                     "arm-poky-linux-gnueabi-c++filt"
                 ],
                 "strip": [
                     "usr",
                     "bin",
+                    "arm-poky-linux-gnueabi",
                     "arm-poky-linux-gnueabi-strip"
                 ],
                 "nm": [
                     "usr",
                     "bin",
+                    "arm-poky-linux-gnueabi",
                     "arm-poky-linux-gnueabi-nm"
+                ],
+                "objcopy": [
+                    "usr",
+                    "bin",
+                    "arm-poky-linux-gnueabi",
+                    "arm-poky-linux-gnueabi-objcopy"
                 ]
             }
         },
@@ -5735,6 +5933,12 @@
                     "bin",
                     "aarch64-poky-linux",
                     "aarch64-poky-linux-nm"
+                ],
+                "objcopy": [
+                    "usr",
+                    "bin",
+                    "aarch64-poky-linux",
+                    "aarch64-poky-linux-objcopy"
                 ]
             }
         },
@@ -5955,8 +6159,8 @@
         },
         "perf": {
             "formula": {
-                "sandbox_id": 306170090,
-                "match": "PERF"
+                "sandbox_id": 592122048,
+                "match": "infra/kernel/tools/perf/build/perf-static.tar.gz"
             },
             "executable": {
                 "perf": [
@@ -6138,7 +6342,7 @@
         "yd-migrate": {
             "formula": {
                 "sandbox_id": [
-                    572149091
+                    596706146
                 ],
                 "match": "deploy_migrate/bin"
             },
@@ -6151,13 +6355,26 @@
         "dctl": {
             "formula": {
                 "sandbox_id": [
-                    547276417
+                    588881772
                 ],
                 "match": "dctl"
             },
             "executable": {
                 "dctl": [
                     "dctl"
+                ]
+            }
+        },
+        "nctl": {
+            "formula": {
+                "sandbox_id": [
+                    597157675
+                ],
+                "match": "nctl"
+            },
+            "executable": {
+                "nctl": [
+                    "nctl"
                 ]
             }
         },
@@ -6461,7 +6678,7 @@
         },
         "allure_commandline": {
             "formula": {
-                "sandbox_id": 50911273,
+                "sandbox_id": 569859192,
                 "match": "Allure Commandline"
             },
             "executable": {
@@ -6508,7 +6725,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 575919424,
+                "sandbox_id": 598337988,
                 "match": "horadric"
             },
             "executable": {
@@ -6596,7 +6813,7 @@
         },
         "ygdiff": {
             "formula": {
-                "sandbox_id": 567709191,
+                "sandbox_id": 598829318,
                 "match": "ygdiff"
             },
             "executable": {
@@ -6607,7 +6824,7 @@
         },
         "ya-tc": {
             "formula": {
-                "sandbox_id": 574284393,
+                "sandbox_id": 592467250,
                 "match": "ya-tc"
             },
             "executable": {
@@ -6627,23 +6844,14 @@
                 ]
             }
         },
-        "golang_1.13.4": {
+        "app_host": {
             "formula": {
-                "sandbox_id": [
-                    539864839,
-                    539865212,
-                    539865520
-                ],
-                "match": "GOLANG"
+                "sandbox_id": 597642311,
+                "match": "app_host_launcher"
             },
             "executable": {
-                "go_1.13.4": [
-                    "bin",
-                    "go"
-                ],
-                "gofmt_1.13.4": [
-                    "bin",
-                    "gofmt"
+                "app_host_launcher": [
+                    "app_host_launcher"
                 ]
             }
         },
@@ -6653,6 +6861,26 @@
                     566039230,
                     566039690,
                     566040325
+                ],
+                "match": "GOLANG"
+            },
+            "executable": {
+                "go_1.13.5": [
+                    "bin",
+                    "go"
+                ],
+                "gofmt_1.13.5": [
+                    "bin",
+                    "gofmt"
+                ]
+            }
+        },
+        "golang_1.13.6": {
+            "formula": {
+                "sandbox_id": [
+                    586987209,
+                    586987645,
+                    586988069
                 ],
                 "match": "GOLANG"
             },
@@ -6725,6 +6953,34 @@
                 ]
             }
         },
+        "atop": {
+            "formula": {
+                "sandbox_id": [
+                    576898586
+                ],
+                "match": "infra/kernel/tools/atop/build/atop-static.tar.gz"
+            },
+            "executable": {
+                "atop": [
+                    "atop",
+                    "atop"
+                ]
+            }
+        },
+        "bpftool": {
+            "formula": {
+                "sandbox_id": [
+                    586697202
+                ],
+                "match": "infra/kernel/tools/bpftool/build/bpftool-static.tar.gz"
+            },
+            "executable": {
+                "bpftool": [
+                    "bpftool",
+                    "bpftool"
+                ]
+            }
+        },
         "stress-ng": {
             "formula": {
                 "sandbox_id": [
@@ -6768,7 +7024,7 @@
         },
         "yfm": {
             "formula": {
-                "sandbox_id": 565724455,
+                "sandbox_id": 576882628,
                 "match": "yfm"
             },
             "executable": {
@@ -6790,7 +7046,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 571985643,
+                "sandbox_id": 594432901,
                 "match": "SEDEM archive"
             },
             "executable": {

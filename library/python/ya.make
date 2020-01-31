@@ -1,12 +1,15 @@
 
 
 RECURSE(
+    coredump_filter
+    coredump_filter/ut
     cores
     filelock
     filelock/ut
     find_root
     func
     func/ut
+    fs
     pymain
     pytest
     pytest/allure

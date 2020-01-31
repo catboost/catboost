@@ -255,8 +255,12 @@ void NCB::NCoreML::ConfigureTreeModelIO(
 
     const auto classesCount = static_cast<size_t>(model.ModelTrees->GetDimensionsCount());
     regressor->mutable_treeensemble()->set_numpredictiondimensions(classesCount);
-    for (size_t outputIdx = 0; outputIdx < classesCount; ++outputIdx) {
-        regressor->mutable_treeensemble()->add_basepredictionvalue(0.0);
+    if (classesCount == 1) {
+        regressor->mutable_treeensemble()->add_basepredictionvalue(model.ModelTrees->GetScaleAndBias().Bias);
+    } else {
+        for (size_t outputIdx = 0; outputIdx < classesCount; ++outputIdx) {
+            regressor->mutable_treeensemble()->add_basepredictionvalue(0.0);
+        }
     }
 
     auto outputPrediction = description->add_output();
@@ -492,6 +496,11 @@ void NCB::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, TFullM
         for (const auto& key_value : metadata.userdefined()) {
             fullModel->ModelInfo[key_value.first] = key_value.second;
         }
+    }
+    if (approxDimension == 1) {
+        TScaleAndBias scaleAndBias;
+        scaleAndBias.Bias = ensemble.basepredictionvalue()[0];
+        fullModel->SetScaleAndBias(scaleAndBias);
     }
     fullModel->UpdateDynamicData();
 }

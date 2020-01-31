@@ -6,7 +6,8 @@
         "fold_len_multiplier": 2, 
         "fold_permutation_block": 0, 
         "iterations": 1000, 
-        "learning_rate": 0.02999999933, 
+        "learning_rate": 0.11002399772405624, 
+        "model_shrink_mode": "Constant", 
         "model_shrink_rate": 0, 
         "od_config": {
             "stop_pvalue": 0, 
@@ -116,7 +117,7 @@
         "class_names": [], 
         "class_weights": [], 
         "classes_count": 0, 
-        "dev_default_value_fraction_for_sparse": 0.8299999833, 
+        "dev_default_value_fraction_for_sparse": 0.8299999833106995, 
         "dev_group_features": false, 
         "dev_leafwise_scoring": false, 
         "dev_sparse_array_indexing": "Indices", 
@@ -133,35 +134,74 @@
             "dictionaries": [
                 {
                     "dictionary_id": "BiGram", 
+                    "end_of_sentence_token_policy": "Skip", 
+                    "end_of_word_token_policy": "Insert", 
                     "gram_order": "2", 
-                    "max_dict_size": "50000", 
-                    "min_token_occurrence": "5", 
+                    "max_dictionary_size": "50000", 
+                    "occurrence_lower_bound": "5", 
+                    "skip_step": "0", 
+                    "start_token_id": "0", 
                     "token_level_type": "Word"
                 }, 
                 {
                     "dictionary_id": "Word", 
-                    "max_dict_size": "50000", 
-                    "min_token_occurrence": "5", 
+                    "end_of_sentence_token_policy": "Skip", 
+                    "end_of_word_token_policy": "Insert", 
+                    "gram_order": "1", 
+                    "max_dictionary_size": "50000", 
+                    "occurrence_lower_bound": "5", 
+                    "skip_step": "0", 
+                    "start_token_id": "0", 
                     "token_level_type": "Word"
                 }
             ], 
-            "text_processing": {
+            "feature_processing": {
                 "default": [
                     {
                         "dictionaries_names": [
                             "BiGram", 
                             "Word"
                         ], 
-                        "feature_calcer": "BoW"
+                        "feature_calcers": [
+                            "BoW"
+                        ], 
+                        "tokenizers_names": [
+                            "Space"
+                        ]
                     }, 
                     {
                         "dictionaries_names": [
                             "Word"
                         ], 
-                        "feature_calcer": "NaiveBayes"
+                        "feature_calcers": [
+                            "NaiveBayes"
+                        ], 
+                        "tokenizers_names": [
+                            "Space"
+                        ]
                     }
                 ]
-            }
+            }, 
+            "tokenizers": [
+                {
+                    "delimiter": " ", 
+                    "languages": [], 
+                    "lemmatizing": "0", 
+                    "lowercasing": "0", 
+                    "number_process_policy": "LeaveAsIs", 
+                    "number_token": "\ud83d\udd22", 
+                    "separator_type": "ByDelimiter", 
+                    "skip_empty": "1", 
+                    "split_by_set": "0", 
+                    "subtokens_policy": "SingleToken", 
+                    "token_types": [
+                        "Number", 
+                        "Unknown", 
+                        "Word"
+                    ], 
+                    "tokenizer_id": "Space"
+                }
+            ]
         }
     }, 
     "detailed_profile": false, 
@@ -196,10 +236,10 @@
     }, 
     "task_type": "CPU", 
     "tree_learner_options": {
-        "bayesian_matrix_reg": 0.1000000015, 
+        "bayesian_matrix_reg": 0.10000000149011612, 
         "bootstrap": {
             "mvs_reg": null, 
-            "subsample": 0.8000000119, 
+            "subsample": 0.800000011920929, 
             "type": "MVS"
         }, 
         "depth": 6, 

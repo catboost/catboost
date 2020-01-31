@@ -10,6 +10,7 @@
 #include <catboost/private/libs/algo/scoring.h>
 #include <catboost/private/libs/algo_helpers/approx_calcer_multi_helpers.h>
 #include <catboost/private/libs/algo_helpers/error_functions.h>
+#include <catboost/private/libs/options/json_helper.h>
 
 #include <library/par/par_settings.h>
 
@@ -74,7 +75,7 @@ void SetTrainDataFromQuantizedPool(
         TMasterEnvironment::GetRef().SharedTrainData,
         TDatasetLoaderParams{
             poolLoadOptions,
-            ToString(trainParams),
+            WriteTJsonValue(trainParams),
             objectsOrder,
             objectsGrouping,
             featuresLayout,
@@ -132,7 +133,7 @@ void MapBuildPlainFold(TLearnContext* ctx) {
             ctx->CtrsHelper.GetTargetClassifiers(),
             ctx->LearnProgress->Rand.GenRand(),
             ctx->LearnProgress->ApproxDimension,
-            ToString(jsonParams),
+            WriteTJsonValue(jsonParams),
             plainFold.GetLearnSampleCount(),
             plainFold.GetSumWeight(),
             ctx->LearnProgress->HessianType

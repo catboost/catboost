@@ -538,6 +538,22 @@ struct __is_exactly_input_iterator
          __has_iterator_category_convertible_to<_Tp, input_iterator_tag>::value && 
         !__has_iterator_category_convertible_to<_Tp, forward_iterator_tag>::value> {};
 
+#ifndef _LIBCPP_HAS_NO_DEDUCTION_GUIDES
+template<class _InputIterator>
+using __iter_value_type = typename iterator_traits<_InputIterator>::value_type;
+
+template<class _InputIterator>
+using __iter_key_type = remove_const_t<typename iterator_traits<_InputIterator>::value_type::first_type>;
+
+template<class _InputIterator>
+using __iter_mapped_type = typename iterator_traits<_InputIterator>::value_type::second_type;
+
+template<class _InputIterator>
+using __iter_to_alloc_type = pair<
+    add_const_t<typename iterator_traits<_InputIterator>::value_type::first_type>,
+    typename iterator_traits<_InputIterator>::value_type::second_type>;
+#endif
+
 template<class _Category, class _Tp, class _Distance = ptrdiff_t,
          class _Pointer = _Tp*, class _Reference = _Tp&>
 struct _LIBCPP_TEMPLATE_VIS iterator
@@ -1090,10 +1106,6 @@ public:
     _LIBCPP_INLINE_VISIBILITY ostreambuf_iterator& operator++(int) {return *this;}
     _LIBCPP_INLINE_VISIBILITY bool failed() const _NOEXCEPT {return __sbuf_ == 0;}
 
-#if !defined(__APPLE__) || \
-    (defined(__MAC_OS_X_VERSION_MIN_REQUIRED) && __MAC_OS_X_VERSION_MIN_REQUIRED > __MAC_10_8) || \
-    (defined(__IPHONE_OS_VERSION_MIN_REQUIRED) && __IPHONE_OS_VERSION_MIN_REQUIRED > __IPHONE_6_0)
-
     template <class _Ch, class _Tr>
     friend
     _LIBCPP_HIDDEN
@@ -1101,7 +1113,6 @@ public:
     __pad_and_output(ostreambuf_iterator<_Ch, _Tr> __s,
                      const _Ch* __ob, const _Ch* __op, const _Ch* __oe,
                      ios_base& __iob, _Ch __fl);
-#endif
 };
 
 template <class _Iter>

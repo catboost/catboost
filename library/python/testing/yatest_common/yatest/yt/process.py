@@ -100,6 +100,7 @@ def execute(
     target_stderr_path=None,
     operation_log_path=None,
     operation_description=None,
+    yt_token_path=None,
 ):
     """
     Executes a command on the YT. Listed below are options whose behavior is different from yatest.common.execute
@@ -208,6 +209,8 @@ def execute(
         executor_stderr = sys.stderr
     else:
         executor_stderr = None
+    if yt_token_path:
+        executor_cmd += ['--yt-token-path', yt_token_path]
 
     res = ytc.execute(
         executor_cmd,

@@ -357,6 +357,7 @@ inline TString TNode::ConvertTo<TString>() const {
         case NYT::TNode::Undefined:
             ythrow TTypeError() << "ConvertTo<TString>() called for type " << GetType();
     }
+    Y_UNREACHABLE();
 }
 
 template<>

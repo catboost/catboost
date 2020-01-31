@@ -87,16 +87,19 @@ void UpdateUndefinedRandomSeed(
     }
 }
 
-void UpdateUndefinedClassNames(const TVector<TString>& classNames, NJson::TJsonValue* updatedJsonParams) {
+void UpdateUndefinedClassLabels(
+    const TVector<NJson::TJsonValue>& classLabels,
+    NJson::TJsonValue* updatedJsonParams) {
+
     if (!updatedJsonParams->Has("data_processing_options")) {
         updatedJsonParams->InsertValue("data_processing_options", NJson::TJsonValue());
     }
-    if (classNames.empty()) {
+    if (classLabels.empty()) {
         return;
     }
     (*updatedJsonParams)["data_processing_options"] = {};
-    for (const auto& name: classNames) {
-        (*updatedJsonParams)["data_processing_options"]["class_names"].AppendValue(name);
+    for (const auto& classLabel : classLabels) {
+        (*updatedJsonParams)["data_processing_options"]["class_names"].AppendValue(classLabel);
     }
 }
 

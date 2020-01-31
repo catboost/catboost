@@ -14,6 +14,7 @@
 #include <catboost/private/libs/data_util/path_with_scheme.h>
 
 #include <library/getopt/small/last_getopt.h>
+#include <library/json/json_value.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/serialized_enum.h>
@@ -161,9 +162,10 @@ namespace {
                     TVector<EPredictionType>(),  // PredictionTypes
                     TVector<TString>(),  // OutputColumnsIds
                     EFstrType::FeatureImportance,
-                    TVector<TString>(),  // ClassNames
+                    TVector<NJson::TJsonValue>(),  // ClassLabels
                     modeParams.ThreadCount,
-                    TPathWithScheme()  // PairsFilePath
+                    TPathWithScheme(),  // PairsFilePath
+                    TPathWithScheme()  // FeatureNamesPath
                 },
                 10000,  // blockSize
                 [&](const TDataProviderPtr datasetPart) {

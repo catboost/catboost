@@ -127,7 +127,7 @@ namespace NCatboostCuda {
             ui64 baseLeaf = 0;
             for (ui32 i = 0; i < leafFeatures.size(); ++i) {
                 if (splitTypes[i] == ESplitValue::One) {
-                    baseLeaf |= 1 << leafFeatures[i];
+                    baseLeaf |= 1ULL << leafFeatures[i];
                 }
             }
 

@@ -187,10 +187,10 @@ namespace NUnicode {
             }
         };
 
-        template <ENormalization N>
-        inline bool Normalized(const wchar16* begin, const wchar16* end) {
+        template <ENormalization N, typename TCharType>
+        inline bool Normalized(const TCharType* begin, const TCharType* end) {
             TCombining lastCanonicalClass = 0;
-            for (const wchar16* i = begin; i != end;) {
+            for (const TCharType* i = begin; i != end;) {
                 wchar32 ch = ReadSymbolAndAdvance(i, end);
 
                 TCombining canonicalClass = DecompositionCombining(ch);
@@ -244,6 +244,12 @@ namespace NUnicode {
             }
         }
 
+        static inline void Write(const TBuffer::const_iterator& begin, const TBuffer::const_iterator& end, TUtf32String& out) {  // because WriteSymbol from util/charset/wide.h works wrong in this case
+            for (TBuffer::const_iterator i = begin; i != end; ++i) {
+                out += i->first;
+            }
+        }
+
         inline void SortBuffer() {
             if (Buffer.size() < 2)
                 return;
@@ -283,11 +289,11 @@ namespace NUnicode {
             }
         }
 
-        template <class T>
-        inline void DoNormalize(const wchar16* begin, const wchar16* end, T& out) {
+        template <class T, typename TCharType>
+        inline void DoNormalize(const TCharType* begin, const TCharType* end, T& out) {
             Buffer.clear();
 
-            for (const wchar16* i = begin; i != end;) {
+            for (const TCharType* i = begin; i != end;) {
                 AddChar(ReadSymbolAndAdvance(i, end), out);
             }
 
@@ -307,10 +313,10 @@ namespace NUnicode {
         {
         }
 
-        template <class T>
-        inline void Normalize(const wchar16* begin, const wchar16* end, T& out) {
+        template <class T, typename TCharType>
+        inline void Normalize(const TCharType* begin, const TCharType* end, T& out) {
             if (NPrivate::Normalized<Norm>(begin, end)) {
-                for (const wchar16* i = begin; i != end; ++i) {
+                for (const TCharType* i = begin; i != end; ++i) {
                     WriteSymbol(*i, out);
                 }
             } else {
@@ -318,17 +324,29 @@ namespace NUnicode {
             }
         }
 
-        template <class T>
-        inline void Normalize(const wchar16* begin, size_t len, T& out) {
+        template <typename TCharType>
+        inline void Normalize(const TCharType* begin, const TCharType* end, TUtf32String& out) {
+            if (NPrivate::Normalized<Norm>(begin, end)) {
+                for (const TCharType* i = begin; i != end;) {
+                    out += ReadSymbolAndAdvance(i, end);
+                }
+            } else {
+                DoNormalize(begin, end, out);
+            }
+        }
+
+        template <class T, typename TCharType>
+        inline void Normalize(const TCharType* begin, size_t len, T& out) {
             return Normalize(begin, begin + len, out);
         }
 
-        inline TUtf16String Normalize(const TUtf16String& src) {
+        template <typename TCharType>
+        inline TBasicString<TCharType> Normalize(const TBasicString<TCharType>& src) {
             if (NPrivate::Normalized<Norm>(src.begin(), src.end())) {
                 // nothing to normalize
                 return src;
             } else {
-                TUtf16String res;
+                TBasicString<TCharType> res;
                 res.reserve(src.length());
                 DoNormalize(src.begin(), src.end(), res);
                 return res;
@@ -337,16 +355,16 @@ namespace NUnicode {
     };
 }
 
-//! decompose wide string to any container supporting push_back or to T*
-template <NUnicode::ENormalization Norm, class T>
-inline void Normalize(const wchar16* begin, size_t len, T& out) {
+//! decompose utf16 or utf32 string to any container supporting push_back or to T*
+template <NUnicode::ENormalization Norm, class T, typename TCharType>
+inline void Normalize(const TCharType* begin, size_t len, T& out) {
     ::NUnicode::TNormalizer<Norm> dec;
     dec.Normalize(begin, len, out);
 }
 
-template <NUnicode::ENormalization N>
-inline TUtf16String Normalize(const wchar16* str, size_t len) {
-    TUtf16String res;
+template <NUnicode::ENormalization N, typename TCharType>
+inline TBasicString<TCharType> Normalize(const TCharType* str, size_t len) {
+    TBasicString<TCharType> res;
     res.reserve(len);
 
     Normalize<N>(str, len, res);
@@ -354,13 +372,13 @@ inline TUtf16String Normalize(const wchar16* str, size_t len) {
     return res;
 }
 
-template <NUnicode::ENormalization N>
-inline TUtf16String Normalize(const TUtf16String& str) {
+template <NUnicode::ENormalization N, typename TCharType>
+inline TBasicString<TCharType> Normalize(const TBasicString<TCharType>& str) {
     ::NUnicode::TNormalizer<N> dec;
     return dec.Normalize(str);
 }
 
-template <NUnicode::ENormalization N>
-inline TUtf16String Normalize(const TWtringBuf str) {
+template <NUnicode::ENormalization N, typename TCharType>
+inline TBasicString<TCharType> Normalize(const TBasicStringBuf<TCharType> str) {
     return Normalize<N>(str.data(), str.size());
 }

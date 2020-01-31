@@ -45,7 +45,7 @@ namespace NCB{
             }
             TFullModel model;
             builder.Build(model.ModelTrees.GetMutable());
-            model.ModelTrees.GetMutable()->AddNumberToAllTreeLeafValues(0, learnProgress.StartingApprox.GetOrElse(0));
+            model.SetScaleAndBias({1, learnProgress.StartingApprox.GetOrElse(0)});
             model.ModelInfo["params"] = learnProgress.SerializedTrainParams;
             return model;
         }

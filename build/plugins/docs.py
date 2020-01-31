@@ -72,12 +72,9 @@ def generate_dart(unit, as_lib=False):
         'DOCSVARS': macro_calls_to_dict(unit, extract_macro_calls(unit, 'DOCSVARS')),
         'DOCSINCLUDESOURCES': includes,
         'DOCSLIB': as_lib,
-        'PEERDIRS': [d[3:] for d in unit.get_module_dirs('PEERDIRS')],
+        'PEERDIRS': '${PEERDIR}',
         'DOCSBUILDER': build_tool,
     }
-
-    if build_tool == 'yfm' and not as_lib and data['PEERDIRS'] != ['build/platform/yfm']:
-        unit.message(['error', 'In module {}: yfm-transform does not support PEERDIRs and source includes. See DOCSTOOLS-12, DOCSTOOLS-13'.format(module_dir)])
 
     dart = 'DOCS_DART: ' + base64.b64encode(json.dumps(data)) + '\n' + DELIM + '\n'
 

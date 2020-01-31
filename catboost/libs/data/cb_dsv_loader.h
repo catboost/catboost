@@ -70,6 +70,7 @@ namespace NCB {
     protected:
         TVector<bool> FeatureIgnored; // init in process
         char FieldDelimiter;
+        char CsvSplitterQuote;
         THolder<NCB::ILineDataReader> LineDataReader;
         TBaselineReader BaselineReader;
 

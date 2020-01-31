@@ -114,8 +114,8 @@ def add_python_lint_checks(unit, py_ver, files):
         unit.onadd_check(["PEP8_{}".format(py_ver)] + resolved_files)
         unit.onadd_check(["PYFLAKES_{}".format(py_ver)] + resolved_files)
 
-    flake8_cfg = unit.get('FLAKE8_CONFIG')
-    if files and flake8_cfg:
+    flake8_cfg = unit.get('FLAKE8_CONFIG') or 'build/config/tests/flake8_default.conf'
+    if files and flake8_cfg != 'none':
         resolved_files = resolved_files or get_resolved_files()
         unit.onadd_check(["flake8.py{}".format(py_ver), flake8_cfg] + resolved_files)
 

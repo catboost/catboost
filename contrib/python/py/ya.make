@@ -1,6 +1,6 @@
 PY23_LIBRARY()
 
-VERSION(1.8.0)
+VERSION(1.8.1)
 
 LICENSE(
     MIT
@@ -57,7 +57,6 @@ RESOURCE_FILES(
     .dist-info/METADATA
     .dist-info/top_level.txt
 )
-
 
 PEERDIR(
     contrib/python/six

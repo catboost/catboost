@@ -104,7 +104,7 @@ namespace NNetliba_v12 {
     void TIBMemPool::Return(TPtrArg<TIBMemSuperBlock> blk) {
         TGuard<TMutex> gg(CacheLock);
         Y_ASSERT(AtomicGet(blk->UseCount) == 0);
-        size_t sz = 1ul << blk->SzLog;
+        size_t sz = 1ull << blk->SzLog;
         if (sz + AllocCacheSize > IB_MEM_POOL_SIZE) {
             AllocCache.clear();
             AllocCacheSize = 0;

@@ -145,7 +145,7 @@ namespace {
         {LANG_SUN, SCRIPT_LATIN, "Sundanese", "sun", "su", nullptr},
         {LANG_PAP, SCRIPT_LATIN, "Papiamento", "pap", "pap", nullptr},
         {LANG_UZB_CYR, SCRIPT_CYRILLIC, "Cyrillic Uzbek", "uzbcyr", "uz-Cyrl", nullptr}, // https://tools.ietf.org/html/rfc5646
-        {LANG_TRANSCR_IPA, SCRIPT_LATIN, "International Phonetic Alphabet Transcription", "transcr-ipa", "tr-ipa", nullptr},
+        {LANG_TRANSCR_IPA, SCRIPT_LATIN, "International Phonetic Alphabet Transcription", "ipa", "tr-ipa", nullptr},
         {LANG_EMJ, SCRIPT_LATIN, "Emoji", "emj", "emj", nullptr},
         {LANG_UYG, SCRIPT_ARABIC, "Uyghur", "uig", "ug", nullptr},
         {LANG_BRE, SCRIPT_LATIN, "Breton", "bre", "br", nullptr},

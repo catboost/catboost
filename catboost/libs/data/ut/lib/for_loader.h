@@ -33,6 +33,7 @@ namespace NCB {
         TStringBuf PairsFileData;
         TStringBuf GroupWeightsFileData;
         TStringBuf BaselineFileData;
+        TStringBuf FeatureNamesFileData;
         TVector<ui32> IgnoredFeatures;
         EObjectsOrder ObjectsOrder = EObjectsOrder::Undefined;
     };
@@ -42,6 +43,7 @@ namespace NCB {
         TPathWithScheme PairsFilePath; // can be uninited
         TPathWithScheme GroupWeightsFilePath; // can be uninited
         TPathWithScheme BaselineFilePath; // can be uninited
+        TPathWithScheme FeatureNamesFilePath; // can be uninited
         NCatboostOptions::TColumnarPoolFormatParams ColumnarPoolFormatParams;
     };
 

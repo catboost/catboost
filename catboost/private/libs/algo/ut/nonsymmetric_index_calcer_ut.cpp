@@ -35,6 +35,8 @@ Y_UNIT_TEST_SUITE(NonSymmetricIndexCalcerTest) {
                 const ui32 objectCount = target.size();
 
                 TDataMetaInfo metaInfo;
+
+                metaInfo.TargetType = ERawTargetType::Float;
                 metaInfo.TargetCount = 1;
                 TVector<ui32> catFeatureIndices(oheFeatureCount);
                 for (auto featureIdx : xrange(oheFeatureCount)) {
@@ -66,7 +68,7 @@ Y_UNIT_TEST_SUITE(NonSymmetricIndexCalcerTest) {
                     schema.NanModes.push_back(ENanMode::Forbidden);
                 }
 
-                visitor->Start(metaInfo, objectCount, EObjectsOrder::Undefined, false, {}, schema);
+                visitor->Start(metaInfo, objectCount, EObjectsOrder::Undefined, {}, schema);
 
                 for (auto featureIdx : xrange(floatFeatureCount)) {
                     auto holder = TMaybeOwningArrayHolder<const ui8>::CreateNonOwning(quantizedFloatFeatures[featureIdx]);

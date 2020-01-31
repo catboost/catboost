@@ -49,7 +49,7 @@ namespace NCatboostCuda {
         Y_ASSERT(model.GetStructure() == ModelStructure);
         Tasks.push_back({std::move(indices), &cursor, &dataSet});
         const TVector<float>& modelValues = model.GetValues();
-        CB_ENSURE(modelValues.size() == 1 << ModelStructure.GetDepth());
+        CB_ENSURE(modelValues.size() == 1ull << ModelStructure.GetDepth());
 
         for (ui32 i = 0; i < modelValues.size(); ++i) {
             CpuLeaves.push_back(modelValues[i]);

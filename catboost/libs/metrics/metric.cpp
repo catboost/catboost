@@ -1507,8 +1507,8 @@ TMetricHolder TPairLogitMetric::EvalSingleThread(
             }
             if (!isExpApprox) {
                 const double maxQueryApprox = *MaxElement(approxExpShifted.begin(), approxExpShifted.begin() + querySize);
-                for (double& approx : approxExpShifted) {
-                    approx -= maxQueryApprox;
+                for (double& approxVal : approxExpShifted) {
+                    approxVal -= maxQueryApprox;
                 }
                 FastExpInplace(approxExpShifted.data(), querySize);
             }
@@ -4188,24 +4188,24 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
     }
 
     if (ShouldSkipCalcOnTrainByDefault(metric)) {
-        for (THolder<IMetric>& metric : result) {
-            metric->AddHint("skip_train", "true");
+        for (THolder<IMetric>& metricHolder : result) {
+            metricHolder->AddHint("skip_train", "true");
         }
     }
 
     if (params.contains("hints")) { // TODO(smirnovpavel): hints shouldn't be added for each metric
         TMap<TString, TString> hints = ParseHintsDescription(params.at("hints"));
         for (const auto& hint : hints) {
-            for (THolder<IMetric>& metric : result) {
-                metric->AddHint(hint.first, hint.second);
+            for (THolder<IMetric>& metricHolder : result) {
+                metricHolder->AddHint(hint.first, hint.second);
             }
         }
     }
 
     if (params.contains("use_weights")) {
         const bool useWeights = FromString<bool>(params.at("use_weights"));
-        for (THolder<IMetric>& metric : result) {
-            metric->UseWeights = useWeights;
+        for (THolder<IMetric>& metricHolder : result) {
+            metricHolder->UseWeights = useWeights;
         }
     }
 
@@ -4361,9 +4361,9 @@ TVector<THolder<IMetric>> CreateMetrics(
             if (HintedToEvalOnTrain(description)) {
                 metricsToCalcOnTrain.insert(metric->GetDescription());
             }
-            const auto& description = metric->GetDescription();
-            if (!usedDescriptions.contains(description)) {
-                usedDescriptions.insert(description);
+            const auto& metricDescription = metric->GetDescription();
+            if (!usedDescriptions.contains(metricDescription)) {
+                usedDescriptions.insert(metricDescription);
                 metrics.push_back(std::move(metric));
             }
         }

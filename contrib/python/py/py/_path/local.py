@@ -196,8 +196,8 @@ class LocalPath(FSBase):
             other = abspath(other)
         if self == other:
             return True
-        if iswin32:
-            return False # there is no samefile
+        if not hasattr(os.path, "samefile"):
+            return False
         return py.error.checked_call(
                 os.path.samefile, self.strpath, other)
 

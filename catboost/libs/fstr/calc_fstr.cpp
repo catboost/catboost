@@ -211,7 +211,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
             mxTreeWeightsPresentation.push_back(
                 TConstArrayRef<double>(
                     weights.data() + leafOffsetPtr[treeIdx] / approxDimension,
-                    (1u << leafSizes[treeIdx])
+                    (1ull << leafSizes[treeIdx])
                 )
             );
         }
@@ -421,7 +421,7 @@ TVector<std::pair<double, TFeature>> CalcFeatureEffect(
 {
     type = GetFeatureImportanceType(model, bool(dataset), type);
     if (type != EFstrType::PredictionValuesChange) {
-        CB_ENSURE_IDENTITY(model.GetScaleAndBias(), "feature effect");
+        CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "feature effect");
     }
     if (type == EFstrType::LossFunctionChange) {
         CB_ENSURE(dataset, "dataset is not provided");
@@ -527,7 +527,7 @@ TVector<TInternalFeatureInteraction> CalcInternalFeatureInteraction(const TFullM
     if (model.GetTreeCount() == 0) {
         return TVector<TInternalFeatureInteraction>();
     }
-    CB_ENSURE_IDENTITY(model.GetScaleAndBias(), "feature interaction");
+    CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "feature interaction");
 
     TVector<TFeature> features;
     THashMap<TFeature, int, TFeatureHash> featureToIdx = GetFeatureToIdxMap(model, &features);
@@ -687,7 +687,7 @@ TVector<TVector<double>> GetFeatureImportances(
         CheckModelAndDatasetCompatibility(model, *dataset->ObjectsData.Get());
     }
     if (fstrType != EFstrType::PredictionValuesChange) {
-        CB_ENSURE_IDENTITY(model.GetScaleAndBias(), "feature importance");
+        CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "feature importance");
     }
     switch (fstrType) {
         case EFstrType::PredictionValuesChange:

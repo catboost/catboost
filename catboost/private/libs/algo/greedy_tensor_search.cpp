@@ -13,11 +13,12 @@
 
 #include <catboost/libs/data/feature_index.h>
 #include <catboost/libs/data/packed_binary_features.h>
-#include <catboost/private/libs/distributed/master.h>
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/helpers/query_info_helper.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/logging/profile_info.h>
+#include <catboost/private/libs/algo_helpers/langevin_utils.h>
+#include <catboost/private/libs/distributed/master.h>
 
 #include <library/fast_log/fast_log.h>
 
@@ -87,6 +88,7 @@ static double CalcDerivativesStDevFromZero(
         case EBoostingType::Plain:
             return CalcDerivativesStDevFromZeroPlainBoosting(fold, localExecutor);
     }
+    Y_UNREACHABLE();
 }
 
 static double CalcDerivativesStDevFromZeroMultiplier(int learnSampleCount, double modelLength) {
@@ -684,6 +686,17 @@ static void DoBootstrap(const TVector<TIndexType>& indices, TFold* fold, TLearnC
             &ctx->LearnProgress->Rand,
             IsLeafwiseScoringApplicable(ctx->Params),
             leavesCount);
+        if (ctx->Params.BoostingOptions->Langevin) {
+            for (auto& bodyTail : fold->BodyTailArr) {
+                AddLangevinNoiseToDerivatives(
+                    ctx->Params.BoostingOptions->DiffusionTemperature,
+                    ctx->Params.BoostingOptions->LearningRate,
+                    ctx->LearnProgress->Rand.GenRand(),
+                    &bodyTail.WeightedDerivatives,
+                    ctx->LocalExecutor
+                );
+            }
+        }
     }
 }
 

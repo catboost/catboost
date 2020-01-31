@@ -13,9 +13,13 @@
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/maybe.h>
-#include <util/generic/string.h>
 #include <util/generic/vector.h>
 #include <util/system/types.h>
+
+
+namespace NJson {
+    class TJsonValue;
+}
 
 
 namespace NCB {
@@ -26,11 +30,12 @@ namespace NCB {
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
+        const TPathWithScheme& featureNamesPath, // can be uninited
         const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
         TDatasetSubset loadSubset,
-        TMaybe<TVector<TString>*> classNames,
+        TMaybe<TVector<NJson::TJsonValue>*> classLabels,
         NPar::TLocalExecutor* localExecutor
     );
 
@@ -41,12 +46,13 @@ namespace NCB {
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
+        const TPathWithScheme& featureNamesPath, // can be uninited
         const NCatboostOptions::TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
         int threadCount,
         bool verbose,
-        TMaybe<TVector<TString>*> classNames = Nothing()
+        TMaybe<TVector<NJson::TJsonValue>*> classLabels = Nothing()
     );
 
     // version with explicitly specified lineReader. Only supports CatBoost dsv format
@@ -56,11 +62,12 @@ namespace NCB {
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
+        const TPathWithScheme& featureNamesPath, // can be uninited
         const NCB::TDsvFormatOptions& poolFormat,
         const TVector<TColumn>& columnsDescription, // TODO(smirnovpavel): TVector<EColumn>
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
-        TMaybe<TVector<TString>*> classNames,
+        TMaybe<TVector<NJson::TJsonValue>*> classLabels,
         NPar::TLocalExecutor* localExecutor
     );
 
@@ -69,7 +76,7 @@ namespace NCB {
         EObjectsOrder objectsOrder,
         bool readTestData,
         TDatasetSubset trainDatasetSubset,
-        TMaybe<TVector<TString>*> classNames,
+        TMaybe<TVector<NJson::TJsonValue>*> classLabels,
         NPar::TLocalExecutor* executor,
         TProfileInfo* profile
     );

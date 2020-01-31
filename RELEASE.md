@@ -1,3 +1,35 @@
+# Release 0.21
+
+## New features:
+- The main feature of this release is the Stochastic Gradient Langevin Boosting (SGLB) mode that can improve quality of your models with non-convex loss functions. To use it specify ``langevin`` option and tune ``diffusion_temperature`` and ``model_shrink_rate``. See [the corresponding paper](https://arxiv.org/abs/2001.07248) for details.
+
+## Improvements:
+
+- Automatic learning rate is applied by default not only for ``Logloss`` objective, but also for ``RMSE`` (on CPU and GPU) and ``MultiClass`` (on GPU).
+- Class labels type information is stored in the model. Now estimators in python package return values of proper type in ``classes_`` attribute and for prediction functions with ``prediction_type=Class``. #305, #999, #1017.
+  Note: Class labels loaded from datasets in [CatBoost dsv format](https://catboost.ai/docs/concepts/input-data_values-file.html) always have string type now.
+
+## Bug fixes:
+- Fixed huge memory consumption for text features. #1107
+- Fixed crash on GPU on big datasets with groups (hundred million+ groups).
+- Fixed class labels consistency check and merging in model sums (now class names in binary classification are properly checked and added to the result as well)
+- Fix for confusion matrix (PR #1152), thanks to @dmsivkov.
+- Fixed shap values calculation when ``boost_from_average=True``. #1125
+- Fixed use-after-free in fstr PredictionValuesChange with specified dataset
+- Target border and class weights are now taken from model when necessary for feature strength, metrics evaluation, roc_curve, object importances and calc_feature_statistics calculations.
+- Fixed that L2 regularization was not applied for non symmetric trees for binary classification on GPU.
+- [R-package] Fixed the bug that ``catboost.get_feature_importance`` did not work after model is loaded #1064
+- [R-package] Fixed the bug that ``catboost.train`` did not work when called with the single dataset parameter. #1162 
+- Fixed L2 score calculation on CPU
+
+##Other:
+
+- Starting from this release Java applier is released simultaneously with other components and has the same version.
+
+##Compatibility:
+
+- Models trained with this release require applier from this release or later to work correctly.
+
 # Release 0.20.2
 
 ## New features:

@@ -38,6 +38,7 @@ Y_UNIT_TEST_SUITE(TTrainTest) {
         dataProviders.Learn = CreateDataProvider(
             [&] (IRawFeaturesOrderDataVisitor* visitor) {
                 TDataMetaInfo metaInfo;
+                metaInfo.TargetType = ERawTargetType::Float;
                 metaInfo.TargetCount = 1;
                 metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
                     FactorCount,
@@ -73,7 +74,9 @@ Y_UNIT_TEST_SUITE(TTrainTest) {
                         );
                     }
 
-                    visitor->AddTarget(TConstArrayRef<TString>());
+                    visitor->AddTarget(
+                        MakeIntrusive<TTypeCastArrayHolder<float, float>>(TVector<float>())
+                    );
 
                     visitor->Finish();
                 }

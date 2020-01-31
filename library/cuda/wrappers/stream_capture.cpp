@@ -4,7 +4,7 @@
 
 TStreamCapture::~TStreamCapture() {
     cudaGraph_t graph;
-    CUDA_SAFE_CALL(cudaStreamEndCapture(Stream_, &graph));
+    CUDA_SAFE_CALL_FOR_DESTRUCTOR(cudaStreamEndCapture(Stream_, &graph));
     (*CapturedGraph_) = TCudaGraph(graph);
 }
 

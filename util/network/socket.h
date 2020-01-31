@@ -146,6 +146,16 @@ public:
     TNetworkResolutionError(int error);
 };
 
+struct TUnixSocketPath {
+    TString Path;
+
+    // Constructor for create unix domain socket path from string with path in filesystem
+    // TUnixSocketPath("/tmp/unixsocket") -> "/tmp/unixsocket"
+    explicit TUnixSocketPath(const TString& path)
+        : Path(path)
+    {}
+};
+
 class TNetworkAddress {
     friend class TSocket;
 
@@ -198,6 +208,7 @@ public:
     TNetworkAddress(ui16 port);
     TNetworkAddress(const TString& host, ui16 port);
     TNetworkAddress(const TString& host, ui16 port, int flags);
+    TNetworkAddress(const TUnixSocketPath& unixSocketPath, int flags = 0);
     ~TNetworkAddress();
 
     inline TIterator Begin() const noexcept {

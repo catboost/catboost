@@ -31,6 +31,8 @@ struct TFeatureEvaluationSummary {
     TVector<TVector<double>> AverageMetricDelta; // [feature set count][metric count]
 
 public:
+    size_t GetFeatureSetCount() const;
+
     bool HasHeaderInfo() const;
 
     void SetHeaderInfo(

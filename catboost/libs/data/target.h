@@ -7,6 +7,7 @@
 
 #include <catboost/private/libs/data_types/pair.h>
 #include <catboost/private/libs/data_types/query.h>
+#include <catboost/private/libs/options/enums.h>
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/polymorphic_type_containers.h>
@@ -54,19 +55,15 @@ namespace NCB {
         bool mustContainPairData = false
     );
 
-
+    // Integer target type is stored as ITypedSequencePtr<float>
     using TRawTarget = TVariant<ITypedSequencePtr<float>, TVector<TString>>;
-
-    enum ERawTargetType {
-        Float,
-        String,
-        None
-    };
 
 
     // for use while building
     struct TRawTargetData {
     public:
+        ERawTargetType TargetType = ERawTargetType::None;
+
         TVector<TRawTarget> Target; // [targetIdx], can be empty (if pairs are used)
         TVector<TVector<float>> Baseline; // [approxIdx][objectIdx], can be empty
 
@@ -138,7 +135,7 @@ namespace NCB {
         ERawTargetType GetTargetType() const;
 
         // use external result buffers to allow to write result to external data structures like numpy.ndarray
-        void GetFloatTarget(TArrayRef<TArrayRef<float>> dst) const;
+        void GetNumericTarget(TArrayRef<TArrayRef<float>> dst) const;
 
         // dst is filled with references to internal buffer
         void GetStringTargetRef(TVector<TConstArrayRef<TString>>* dst) const;

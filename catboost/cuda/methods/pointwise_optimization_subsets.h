@@ -93,7 +93,7 @@ namespace NCatboostCuda {
         }
 
         static TMirrorBuffer<TDataPartition> CurrentPartsView(TOptimizationSubsets<NCudaLib::TMirrorMapping, false>& subsets) {
-            auto currentSlice = TSlice(0, static_cast<ui64>(1 << (subsets.CurrentDepth + subsets.FoldBits)));
+            auto currentSlice = TSlice(0, static_cast<ui64>(1ULL << (subsets.CurrentDepth + subsets.FoldBits)));
             return subsets.Partitions.SliceView(currentSlice);
         }
 
@@ -113,13 +113,13 @@ namespace NCatboostCuda {
                           TOptimizationSubsets<NCudaLib::TStripeMapping, false>* subsets);
 
         static TStripeBuffer<const TDataPartition> CurrentPartsView(const TOptimizationSubsets<NCudaLib::TStripeMapping>& subsets) {
-            auto currentSlice = TSlice(0, static_cast<ui64>(1 << (subsets.CurrentDepth + subsets.FoldBits)));
+            auto currentSlice = TSlice(0, static_cast<ui64>(1ULL << (subsets.CurrentDepth + subsets.FoldBits)));
             return NCudaLib::ParallelStripeView(subsets.Partitions,
                                                 currentSlice);
         }
 
         static TStripeBuffer<TDataPartition> CurrentPartsView(TOptimizationSubsets<NCudaLib::TStripeMapping>& subsets) {
-            auto currentSlice = TSlice(0, static_cast<ui64>(1 << (subsets.CurrentDepth + subsets.FoldBits)));
+            auto currentSlice = TSlice(0, static_cast<ui64>(1ULL << (subsets.CurrentDepth + subsets.FoldBits)));
             return NCudaLib::ParallelStripeView(subsets.Partitions,
                                                 currentSlice);
         }

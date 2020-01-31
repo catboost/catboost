@@ -1191,8 +1191,10 @@ def limit_idval(limit):
             idval = func(*args, **kw)
             if len(idval) > limit:
                 prefix = idval[:limit]
-                idx = names.setdefault(prefix, -1) + 1
-                names[prefix] = idx
+                # There might be same prefix for the different test cases - take item into account
+                name = "{}-{}".format(kw.get('item', ''), prefix)
+                idx = names.setdefault(name, -1) + 1
+                names[name] = idx
                 idval = "{}-{}".format(prefix, idx)
             return idval
 

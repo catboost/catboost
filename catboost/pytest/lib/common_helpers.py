@@ -8,7 +8,6 @@ import sys
 from pandas import read_csv
 from copy import deepcopy
 import numpy as np
-from catboost import Pool
 from catboost.utils import read_cd
 __all__ = [
     'DelayedTee',
@@ -191,7 +190,7 @@ def compare_evals(fit_eval, calc_eval):
     return True
 
 
-def compare_evals_with_precision(fit_eval, calc_eval, rtol=1e-6, skip_last_column_in_fit=True):
+def compare_evals_with_precision(fit_eval, calc_eval, rtol=1e-6, atol=1e-8, skip_last_column_in_fit=True):
     array_fit = np.loadtxt(fit_eval, delimiter='\t', skiprows=1, ndmin=2)
     array_calc = np.loadtxt(calc_eval, delimiter='\t', skiprows=1, ndmin=2)
     header_fit = open(fit_eval, "r").readline().split()
@@ -201,7 +200,7 @@ def compare_evals_with_precision(fit_eval, calc_eval, rtol=1e-6, skip_last_colum
         header_fit = header_fit[:-1]
     if header_fit != header_calc:
         return False
-    is_close = np.isclose(array_fit, array_calc, rtol=rtol)
+    is_close = np.isclose(array_fit, array_calc, rtol=rtol, atol=atol)
     if np.all(is_close):
         return True
     for i, _ in itertools.islice(filter(lambda x: not np.all(x[1]), enumerate(is_close)), 100):
@@ -209,8 +208,14 @@ def compare_evals_with_precision(fit_eval, calc_eval, rtol=1e-6, skip_last_colum
     return False
 
 
-def compare_fit_evals_with_precision(fit_eval_1, fit_eval_2, rtol=1e-6):
-    return compare_evals_with_precision(fit_eval_1, fit_eval_2, rtol, False)
+def compare_fit_evals_with_precision(fit_eval_1, fit_eval_2, rtol=1e-6, atol=1e-8):
+    return compare_evals_with_precision(
+        fit_eval_1,
+        fit_eval_2,
+        rtol=rtol,
+        atol=atol,
+        skip_last_column_in_fit=False
+    )
 
 
 def load_dataset_as_dataframe(data_file, columns_metadata, has_header=False):

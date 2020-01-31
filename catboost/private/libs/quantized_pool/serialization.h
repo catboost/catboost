@@ -82,5 +82,9 @@ namespace NCB {
     NIdl::TPoolQuantizationSchema LoadQuantizationSchemaFromPool(TStringBuf path);
     NIdl::TPoolMetainfo LoadPoolMetainfo(TStringBuf path);
     TQuantizedPoolDigest CalculateQuantizedPoolDigest(TStringBuf path);
+    TQuantizedPoolDigest GetQuantizedPoolDigest(
+        const NIdl::TPoolMetainfo& poolMetainfo,
+        const NIdl::TPoolQuantizationSchema& quantizationSchema
+    );
     void AddPoolMetainfo(const NIdl::TPoolMetainfo& metainfo, TQuantizedPool* const pool);
 }

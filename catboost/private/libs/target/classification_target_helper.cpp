@@ -3,7 +3,7 @@
 
 TString NCB::TClassificationTargetHelper::Serialize() const {
     if (LabelConverter.IsInitialized()) {
-        return LabelConverter.SerializeMulticlassParams((int)Options.ClassesCount.Get(), Options.ClassNames);
+        return LabelConverter.SerializeClassParams((int)Options.ClassesCount.Get(), Options.ClassLabels);
     }
     return "";
 }

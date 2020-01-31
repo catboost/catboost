@@ -13,7 +13,12 @@
 #include "string"
 #include "cstdio"
 #include "__hash_table"
+#ifndef _LIBCPP_HAS_NO_THREADS
 #include "mutex"
+#if defined(__unix__) &&  defined(__ELF__) && defined(_LIBCPP_HAS_COMMENT_LIB_PRAGMA)
+#pragma comment(lib, "pthread")
+#endif
+#endif
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
@@ -42,7 +47,7 @@ _LIBCPP_FUNC_VIS
 __libcpp_db*
 __get_db()
 {
-    static __libcpp_db db;
+    static _LIBCPP_NO_DESTROY __libcpp_db db;
     return &db;
 }
 
@@ -64,7 +69,7 @@ typedef lock_guard<mutex_type> RLock;
 mutex_type&
 mut()
 {
-    static mutex_type m;
+    static _LIBCPP_NO_DESTROY mutex_type m;
     return m;
 }
 #endif // !_LIBCPP_HAS_NO_THREADS
@@ -171,7 +176,7 @@ __libcpp_db::__insert_c(void* __c, __libcpp_db::_InsertConstruct *__fn)
     if (__csz_ + 1 > static_cast<size_t>(__cend_ - __cbeg_))
     {
         size_t nc = __next_prime(2*static_cast<size_t>(__cend_ - __cbeg_) + 1);
-        __c_node** cbeg = static_cast<__c_node**>(calloc(nc, sizeof(void*)));
+        __c_node** cbeg = static_cast<__c_node**>(calloc(nc, sizeof(__c_node*)));
         if (cbeg == nullptr)
             __throw_bad_alloc();
 
@@ -508,7 +513,7 @@ __libcpp_db::__insert_iterator(void* __i)
     if (__isz_ + 1 > static_cast<size_t>(__iend_ - __ibeg_))
     {
         size_t nc = __next_prime(2*static_cast<size_t>(__iend_ - __ibeg_) + 1);
-        __i_node** ibeg = static_cast<__i_node**>(calloc(nc, sizeof(void*)));
+        __i_node** ibeg = static_cast<__i_node**>(calloc(nc, sizeof(__i_node*)));
         if (ibeg == nullptr)
             __throw_bad_alloc();
 

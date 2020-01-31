@@ -476,12 +476,12 @@ namespace NThreading {
 
         ////////////////////////////////////////////////////////////////////////////////
 
-        struct TWaitAll: public TAtomicRefCount<TWaitAll> {
+        struct TWaitExceptionOrAll: public TAtomicRefCount<TWaitExceptionOrAll> {
             TPromise<void> Promise;
             size_t Count;
             TSpinLock Lock;
 
-            TWaitAll(size_t count)
+            TWaitExceptionOrAll(size_t count)
                 : Promise(NewPromise())
                 , Count(count)
             {
@@ -1010,14 +1010,14 @@ namespace NThreading {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-    inline TFuture<void> WaitAll(const TFuture<void>& f1) {
+    inline TFuture<void> WaitExceptionOrAll(const TFuture<void>& f1) {
         return f1;
     }
 
-    inline TFuture<void> WaitAll(const TFuture<void>& f1, const TFuture<void>& f2) {
+    inline TFuture<void> WaitExceptionOrAll(const TFuture<void>& f1, const TFuture<void>& f2) {
         using TCallback = NImpl::TCallback<void>;
 
-        TIntrusivePtr<NImpl::TWaitAll> waiter = new NImpl::TWaitAll(2);
+        TIntrusivePtr<NImpl::TWaitExceptionOrAll> waiter = new NImpl::TWaitExceptionOrAll(2);
         auto callback = TCallback([=](const TFuture<void>& future) mutable {
             waiter->Set(future);
         });
@@ -1029,7 +1029,7 @@ namespace NThreading {
     }
 
     template <typename TContainer>
-    inline TFuture<void> WaitAll(const TContainer& futures) {
+    inline TFuture<void> WaitExceptionOrAll(const TContainer& futures) {
         if (futures.empty()) {
             return MakeFuture();
         }
@@ -1039,7 +1039,7 @@ namespace NThreading {
 
         using TCallback = NImpl::TCallback<typename TContainer::value_type::value_type>;
 
-        TIntrusivePtr<NImpl::TWaitAll> waiter = new NImpl::TWaitAll(futures.size());
+        TIntrusivePtr<NImpl::TWaitExceptionOrAll> waiter = new NImpl::TWaitExceptionOrAll(futures.size());
         auto callback = TCallback([=](const auto& future) mutable {
             waiter->Set(future);
         });

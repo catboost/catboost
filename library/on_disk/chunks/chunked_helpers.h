@@ -176,12 +176,12 @@ protected:
 
         static TKey GetFirst(const void* self) {
             static constexpr size_t offset = offsetof(TThis, Key);
-            return ReadUnaligned<TKey>((const char*)self + offset);
+            return ReadUnaligned<TKey>(reinterpret_cast<const char*>(self) + offset);
         }
 
         static TValue GetSecond(const void* self) {
             static constexpr size_t offset = offsetof(TThis, Value);
-            return ReadUnaligned<TValue>((const char*)self + offset);
+            return ReadUnaligned<TValue>(reinterpret_cast<const char*>(self) + offset);
         }
     };
 #pragma pack(pop)
@@ -205,6 +205,16 @@ protected:
             : Offset(offset)
             , Length(length)
         {
+        }
+
+        static inline ui32 GetOffset(const TInterval* self) {
+            static constexpr size_t offset = offsetof(TInterval, Offset);
+            return ReadUnaligned<ui32>(reinterpret_cast<const char*>(self) + offset);
+        }
+
+        static inline ui32 GetLength(const TInterval* self) {
+            static constexpr size_t offset = offsetof(TInterval, Length);
+            return ReadUnaligned<ui32>(reinterpret_cast<const char*>(self) + offset);
         }
     };
 #pragma pack(pop)
@@ -341,9 +351,10 @@ public:
     bool Find(typename TTypeTraits<TKey>::TFuncParam key, TValue* res) const {
         // Cerr << GetBits() << "\t" << (1 << GetBits()) << "\t" << GetSize() << Endl;
         const ui32 hash = KeyHash<TKey>(key, GetBits());
-        const TInterval& interval = GetIntervals()[hash];
-        const TKeyValuePair* pair = GetData() + interval.Offset;
-        for (ui32 i = 0; i < interval.Length; ++i, ++pair) {
+        const TInterval* intervalPtr = GetIntervals();
+        const TKeyValuePair* pair = GetData() + TInterval::GetOffset(intervalPtr + hash);
+        const ui32 length = TInterval::GetLength(intervalPtr + hash);
+        for (ui32 i = 0; i < length; ++i, ++pair) {
             if (TKeyValuePair::GetFirst(pair) == key) {
                 *res = TKeyValuePair::GetSecond(pair);
                 return true;

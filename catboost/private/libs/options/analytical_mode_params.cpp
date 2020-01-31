@@ -35,6 +35,10 @@ void NCB::TAnalyticalModeCommonParams::BindParserOpts(NLastGetopt::TOpts& parser
         .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
             PairsFilePath = TPathWithScheme(pathWithScheme, "dsv");
         });
+    parser.AddLongOption("feature-names-path", "PATH")
+        .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
+            FeatureNamesPath = TPathWithScheme(pathWithScheme, "dsv");
+        });
 
     parser.AddLongOption('T', "thread-count", "worker thread count (default: core count)")
         .StoreResult(&ThreadCount);
@@ -61,8 +65,10 @@ void NCB::BindColumnarPoolFormatParams(
 
     parser->AddLongOption("has-header", "[for dsv format] Read first line as header")
         .NoArgument()
-        .StoreValue(&columnarPoolFormatParams->DsvFormat.HasHeader,
-                    true);
+        .StoreValue(&columnarPoolFormatParams->DsvFormat.HasHeader, true);
+    parser->AddLongOption("ignore-csv-quoting")
+        .NoArgument()
+        .StoreValue(&columnarPoolFormatParams->DsvFormat.IgnoreCsvQuoting, true);
 }
 
 void NCB::BindModelFileParams(NLastGetopt::TOpts* parser, TString* modelFileName, EModelType* modelFormat) {

@@ -57,6 +57,13 @@ namespace NTextProcessing::NDictionary {
         Y_SAVELOAD_DEFINE(NumUnits, SkipUnknown);
     };
 
+    void DictionaryOptionsToJson(const TDictionaryOptions& options, NJson::TJsonValue* optionsJson);
+    void JsonToDictionaryOptions(const NJson::TJsonValue& optionsJson, TDictionaryOptions* options);
     NJson::TJsonValue DictionaryOptionsToJson(const TDictionaryOptions& options);
     TDictionaryOptions JsonToDictionaryOptions(const NJson::TJsonValue& optionsJson);
+
+    void DictionaryBuilderOptionsToJson(const TDictionaryBuilderOptions& options, NJson::TJsonValue* optionsJson);
+    void JsonToDictionaryBuilderOptions(const NJson::TJsonValue& optionsJson, TDictionaryBuilderOptions* options);
+    NJson::TJsonValue DictionaryBuilderOptionsToJson(const TDictionaryBuilderOptions& options);
+    TDictionaryBuilderOptions JsonToDictionaryBuilderOptions(const NJson::TJsonValue& optionsJson);
 }

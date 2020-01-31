@@ -103,9 +103,6 @@ Y_UNIT_TEST_SUITE(TModelSummTests) {
 
     Y_UNIT_TEST(SumEqualSlicedTestWithScaleAndBias) {
         AssertModelSumEqualSliced(GetAdultPool(), true, false);
-        UNIT_ASSERT_EXCEPTION(
-            AssertModelSumEqualSliced(GetMultiClassPool(), false, true),
-            yexception
-        );
+        AssertModelSumEqualSliced(GetAdultPool(), false, true);
     }
 }

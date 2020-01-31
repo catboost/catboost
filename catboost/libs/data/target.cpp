@@ -17,6 +17,7 @@
 #include <util/string/builder.h>
 #include <util/system/compiler.h>
 
+#include <cmath>
 #include <functional>
 #include <utility>
 
@@ -31,16 +32,45 @@ static void CheckTarget(const TVector<TSharedVector<float>>& target, ui32 object
 }
 
 
-static void CheckRawTarget(const TVector<TRawTarget>& target, ui32 objectCount) {
+static void CheckContainsOnlyIntegers(const ITypedSequence<float>& typedSequence) {
+    typedSequence.ForEach(
+        [] (float value) {
+            float integerPart;
+            CB_ENSURE_INTERNAL(
+                std::modf(value, &integerPart) == 0.0f,
+                "targetType is Integer but target values contain non-integer data"
+            );
+        }
+    );
+}
+
+
+static void CheckRawTarget(ERawTargetType targetType, const TVector<TRawTarget>& target, ui32 objectCount) {
+    CB_ENSURE_INTERNAL(
+        !target.empty() || (targetType == ERawTargetType::None),
+        "Target data is specified but targetType is None"
+    );
+
     for (auto i : xrange(target.size())) {
         if (const ITypedSequencePtr<float>* typedSequence = GetIf<ITypedSequencePtr<float>>(&target[i])) {
+            CB_ENSURE_INTERNAL(
+                (targetType == ERawTargetType::Float) || (targetType == ERawTargetType::Integer),
+                "target data contains float values but targetType is " << targetType
+            );
             CheckDataSize(
                 (*typedSequence)->GetSize(),
                 objectCount,
                 "Target[" + ToString(i) + "]",
                 false
             );
+            if (targetType == ERawTargetType::Integer) {
+                CheckContainsOnlyIntegers(**typedSequence);
+            }
         } else {
+            CB_ENSURE_INTERNAL(
+                targetType == ERawTargetType::String,
+                "target data contains float values but targetType is " << targetType
+            );
             const TVector<TString>& stringVector = Get<TVector<TString>>(target[i]);
             CheckDataSize(stringVector.size(), (size_t)objectCount, "Target[" + ToString(i) + "]", false);
             for (auto j : xrange(stringVector.size())) {
@@ -264,8 +294,8 @@ bool Equal(const TVector<TRawTarget>& lhs, const TVector<TRawTarget>& rhs) {
 
 
 bool TRawTargetData::operator==(const TRawTargetData& rhs) const {
-    return Equal(Target, rhs.Target) && (Baseline == rhs.Baseline) && (Weights == rhs.Weights) &&
-        (GroupWeights == rhs.GroupWeights) && EqualAsMultiSets(Pairs, rhs.Pairs);
+    return (TargetType == rhs.TargetType) && Equal(Target, rhs.Target) && (Baseline == rhs.Baseline) &&
+        (Weights == rhs.Weights) && (GroupWeights == rhs.GroupWeights) && EqualAsMultiSets(Pairs, rhs.Pairs);
 }
 
 
@@ -283,7 +313,7 @@ void TRawTargetData::Check(
 
     tasks.emplace_back(
         [&, this]() {
-            CheckRawTarget(Target, objectCount);
+            CheckRawTarget(TargetType, Target, objectCount);
         }
     );
 
@@ -317,6 +347,8 @@ void TRawTargetData::PrepareForInitialization(
     ui32 objectCount,
     ui32 prevTailSize
 ) {
+    TargetType = metaInfo.TargetType;
+
     // Target is properly initialized at the end of building
     Target.resize(metaInfo.TargetCount);
 
@@ -334,15 +366,10 @@ void TRawTargetData::PrepareForInitialization(
 
 
 ERawTargetType TRawTargetDataProvider::GetTargetType() const {
-    if (Data.Target.empty()) {
-        return ERawTargetType::None;
-    }
-    return HoldsAlternative<ITypedSequencePtr<float>>(Data.Target[0]) ?
-          ERawTargetType::Float
-        : ERawTargetType::String;
+    return Data.TargetType;
 }
 
-void TRawTargetDataProvider::GetFloatTarget(TArrayRef<TArrayRef<float>> dst) const {
+void TRawTargetDataProvider::GetNumericTarget(TArrayRef<TArrayRef<float>> dst) const {
     CB_ENSURE(dst.size() == Data.Target.size());
     for (auto targetIdx : xrange(Data.Target.size())) {
         ToArray(*Get<ITypedSequencePtr<float>>(Data.Target[targetIdx]), dst[targetIdx]);
@@ -469,6 +496,7 @@ TRawTargetDataProvider TRawTargetDataProvider::GetSubset(
     const TArraySubsetIndexing<ui32>& objectsSubsetIndexing = objectsGroupingSubset.GetObjectsIndexing();
 
     TRawTargetData subsetData;
+    subsetData.TargetType = Data.TargetType;
 
     TVector<std::function<void()>> tasks;
 

@@ -12,14 +12,16 @@
 #include <catboost/libs/logging/logging.h>
 
 #include <catboost/private/libs/options/enum_helpers.h>
+#include <catboost/private/libs/options/json_helper.h>
 #include <catboost/private/libs/options/loss_description.h>
-#include <catboost/private/libs/options/multiclass_label_options.h>
+#include <catboost/private/libs/options/class_label_options.h>
 
 #include <library/json/json_reader.h>
 #include <library/dbg_output/dump.h>
 #include <library/dbg_output/auto.h>
 
 #include <util/generic/algorithm.h>
+#include <util/generic/cast.h>
 #include <util/generic/fwd.h>
 #include <util/generic/guid.h>
 #include <util/generic/variant.h>
@@ -148,7 +150,6 @@ void TModelTrees::TruncateTrees(size_t begin, size_t end) {
     CB_ENSURE(IsOblivious(), "Truncate support only symmetric trees");
     CB_ENSURE(begin <= end, "begin tree index should be not greater than end tree index.");
     CB_ENSURE(end <= TreeSplits.size(), "end tree index should be not greater than tree count.");
-    CB_ENSURE(GetScaleAndBias().Bias == 0, "Truncating trees with non-zero bias makes no sense");
     auto savedScaleAndBias = GetScaleAndBias();
     TObliviousTreeBuilder builder(FloatFeatures, CatFeatures, TextFeatures, ApproxDimension);
     const auto& leafOffsets = RuntimeData->TreeFirstLeafOffsets;
@@ -169,7 +170,7 @@ void TModelTrees::TruncateTrees(size_t begin, size_t end) {
             leafValuesRef,
             LeafWeights.empty() ? TConstArrayRef<double>() : TConstArrayRef<double>(
                 LeafWeights.begin() + leafOffsets[treeIdx] / ApproxDimension,
-                LeafWeights.begin() + leafOffsets[treeIdx] / ApproxDimension + (1u << TreeSizes[treeIdx])
+                LeafWeights.begin() + leafOffsets[treeIdx] / ApproxDimension + (1ull << TreeSizes[treeIdx])
             )
         );
     }
@@ -403,20 +404,20 @@ void TModelTrees::ConvertObliviousToAsymmetric() {
         treeStartOffsets.push_back(treeSplits.size());
         for (int depth = 0; depth < TreeSizes[treeId]; ++depth) {
             const auto split = TreeSplits[TreeStartOffsets[treeId] + TreeSizes[treeId] - 1 - depth];
-            for (size_t cloneId = 0; cloneId < (1u << depth); ++cloneId) {
+            for (size_t cloneId = 0; cloneId < (1ull << depth); ++cloneId) {
                 treeSplits.push_back(split);
                 nonSymmetricNodeIdToLeafId.push_back(Max<ui32>());
                 nonSymmetricStepNodes.emplace_back(TNonSymmetricTreeStepNode{static_cast<ui16>(treeSize + 1), static_cast<ui16>(treeSize + 2)});
                 ++treeSize;
             }
         }
-        for (size_t cloneId = 0; cloneId < (1u << TreeSizes[treeId]); ++cloneId) {
+        for (size_t cloneId = 0; cloneId < (1ull << TreeSizes[treeId]); ++cloneId) {
             treeSplits.push_back(0);
             nonSymmetricNodeIdToLeafId.push_back((leafStartOffset + cloneId) * ApproxDimension);
             nonSymmetricStepNodes.emplace_back(TNonSymmetricTreeStepNode{0, 0});
             ++treeSize;
         }
-        leafStartOffset += (1u << TreeSizes[treeId]);
+        leafStartOffset += (1ull << TreeSizes[treeId]);
         treeSizes.push_back(treeSize);
     }
     TreeSplits = std::move(treeSplits);
@@ -447,19 +448,8 @@ TVector<ui32> TModelTrees::GetTreeLeafCounts() const {
 
 void TModelTrees::SetScaleAndBias(const TScaleAndBias& scaleAndBias) {
     CB_ENSURE(IsValidFloat(scaleAndBias.Scale) && IsValidFloat(scaleAndBias.Bias), "Invalid scale " << scaleAndBias.Scale << " or bias " << scaleAndBias.Bias);
+    CB_ENSURE(scaleAndBias.IsIdentity() || GetDimensionsCount() == 1, "SetScaleAndBias is not supported for multi dimensional models yet");
     ScaleAndBias = scaleAndBias;
-}
-
-void TModelTrees::AddNumberToAllTreeLeafValues(ui32 treeId, double numberToAdd) {
-    const auto& firstLeafOfsets = GetFirstLeafOffsets();
-    if (numberToAdd == 0 || firstLeafOfsets.size() <= treeId) {
-        return;
-    }
-    ui32 begin = firstLeafOfsets[treeId];
-    ui32 end = treeId + 1 == firstLeafOfsets.size() ? LeafValues.size() : firstLeafOfsets[treeId + 1];
-    for (ui32 i = begin; i < end; ++i) {
-        LeafValues[i] += numberToAdd;
-    }
 }
 
 void TModelTrees::FBDeserialize(const NCatBoostFbs::TModelTrees* fbObj) {
@@ -475,7 +465,10 @@ void TModelTrees::FBDeserialize(const NCatBoostFbs::TModelTrees* fbObj) {
     }
 
     if (fbObj->LeafValues()) {
-        LeafValues.assign(fbObj->LeafValues()->begin(), fbObj->LeafValues()->end());
+        LeafValues.assign(
+            fbObj->LeafValues()->data(),
+            fbObj->LeafValues()->data() + fbObj->LeafValues()->size()
+        );
     }
     if (fbObj->NonSymmetricStepNodes()) {
         NonSymmetricStepNodes.resize(fbObj->NonSymmetricStepNodes()->size());
@@ -506,7 +499,10 @@ void TModelTrees::FBDeserialize(const NCatBoostFbs::TModelTrees* fbObj) {
     FBS_ARRAY_DESERIALIZER(CtrFeatures)
 #undef FBS_ARRAY_DESERIALIZER
     if (fbObj->LeafWeights() && fbObj->LeafWeights()->size() > 0) {
-            LeafWeights.assign(fbObj->LeafWeights()->begin(), fbObj->LeafWeights()->end());
+            LeafWeights.assign(
+                fbObj->LeafWeights()->data(),
+                fbObj->LeafWeights()->data() + fbObj->LeafWeights()->size()
+            );
     }
     SetScaleAndBias({fbObj->Scale(), fbObj->Bias()});
 }
@@ -777,48 +773,49 @@ TString TFullModel::GetLossFunctionName() const {
     return {};
 }
 
-inline TVector<TString> ExtractClassNamesFromJsonArray(const NJson::TJsonValue& arr) {
-    TVector<TString> classNames;
-    for (const auto& token : arr.GetArraySafe()) {
-        classNames.push_back(token.GetStringSafe());
+
+static TVector<NJson::TJsonValue> GetSequentialIntegerClassLabels(size_t classCount) {
+    TVector<NJson::TJsonValue> classLabels;
+    classLabels.reserve(classCount);
+    for (int classIdx : xrange(SafeIntegerCast<int>(classCount))) {
+        classLabels.emplace_back(classIdx);
     }
-    return classNames;
+    return classLabels;
 }
 
 
-static TVector<TString> GetSequentialIntegerClassNames(size_t classCount) {
-    TVector<TString> classNames;
-    classNames.reserve(classCount);
-    for (auto classIdx : xrange(classCount)) {
-        classNames.push_back(ToString(classIdx));
+TVector<NJson::TJsonValue> TFullModel::GetModelClassLabels() const {
+    TVector<NJson::TJsonValue> classLabels;
+
+    TMaybe<TClassLabelOptions> classOptions;
+
+    // "class_params" is new, more generic option, used for binclass as well
+    for (const auto& paramName : {"class_params", "multiclass_params"}) {
+        if (ModelInfo.contains(paramName)) {
+            classOptions.ConstructInPlace();
+            classOptions->Load(ReadTJsonValue(ModelInfo.at(paramName)));
+            break;
+        }
     }
-    return classNames;
-}
-
-
-TVector<TString> TFullModel::GetModelClassNames() const {
-    TVector<TString> classNames;
-    if (ModelInfo.contains("multiclass_params")) {
-        TMulticlassLabelOptions multiclassOptions;
-        multiclassOptions.Load(ReadTJsonValue(ModelInfo.at("multiclass_params")));
-        if (multiclassOptions.ClassNames.IsSet()) {
-            classNames = multiclassOptions.ClassNames.Get();
-            if (!classNames.empty()) {
-                return classNames;
+    if (classOptions.Defined()) {
+        if (classOptions->ClassLabels.IsSet()) {
+            classLabels = classOptions->ClassLabels.Get();
+            if (!classLabels.empty()) {
+                return classLabels;
             }
         }
-        if (multiclassOptions.ClassesCount.IsSet()) {
-            const size_t classesCount = SafeIntegerCast<size_t>(multiclassOptions.ClassesCount.Get());
+        if (classOptions->ClassesCount.IsSet()) {
+            const size_t classesCount = SafeIntegerCast<size_t>(classOptions->ClassesCount.Get());
             if (classesCount) {
-                return GetSequentialIntegerClassNames(classesCount);
+                return GetSequentialIntegerClassLabels(classesCount);
             }
         }
-        if (multiclassOptions.ClassToLabel.IsSet()) {
-            classNames.reserve(multiclassOptions.ClassToLabel->size());
-            for (float label : multiclassOptions.ClassToLabel.Get()) {
-                classNames.push_back(ToString(ui32(label)));
+        if (classOptions->ClassToLabel.IsSet()) {
+            classLabels.reserve(classOptions->ClassToLabel->size());
+            for (float label : classOptions->ClassToLabel.Get()) {
+                classLabels.emplace_back(int(label));
             }
-            return classNames;
+            return classLabels;
         }
     }
     if (ModelInfo.contains("params")) {
@@ -826,9 +823,13 @@ TVector<TString> TFullModel::GetModelClassNames() const {
         NJson::TJsonValue paramsJson = ReadTJsonValue(modelInfoParams);
         if (paramsJson.Has("data_processing_options")
             && paramsJson["data_processing_options"].Has("class_names")) {
-            classNames = ExtractClassNamesFromJsonArray(paramsJson["data_processing_options"]["class_names"]);
-            if (!classNames.empty()) {
-                return classNames;
+
+            const NJson::TJsonValue::TArray& classLabelsJsonArray
+                = paramsJson["data_processing_options"]["class_names"].GetArraySafe();
+
+            if (!classLabelsJsonArray.empty()) {
+                classLabels.assign(classLabelsJsonArray.begin(), classLabelsJsonArray.end());
+                return classLabels;
             }
         }
     }
@@ -836,10 +837,10 @@ TVector<TString> TFullModel::GetModelClassNames() const {
     const TMaybe<NCatboostOptions::TLossDescription> lossDescription = GetLossDescription(*this);
     if (lossDescription.Defined() && IsClassificationObjective(lossDescription->GetLossFunction())) {
         const size_t dimensionsCount = GetDimensionsCount();
-        return GetSequentialIntegerClassNames((dimensionsCount == 1) ? 2 : dimensionsCount);
+        return GetSequentialIntegerClassLabels((dimensionsCount == 1) ? 2 : dimensionsCount);
     }
 
-    return classNames;
+    return classLabels;
 }
 
 void TFullModel::UpdateEstimatedFeaturesIndices(TVector<TEstimatedFeature>&& newEstimatedFeatures) {
@@ -929,7 +930,7 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
             TConstArrayRef<double> leafValuesRef(
                 trees.GetLeafValues().begin() + leafOffsets[treeIdx],
                 trees.GetLeafValues().begin() + leafOffsets[treeIdx]
-                    + trees.GetDimensionsCount() * (1u << trees.GetTreeSizes()[treeIdx])
+                    + trees.GetDimensionsCount() * (1ull << trees.GetTreeSizes()[treeIdx])
             );
             builder->AddTree(
                 modelSplits,
@@ -937,14 +938,14 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
                 !streamLeafWeights ? TConstArrayRef<double>() : TConstArrayRef<double>(
                     trees.GetLeafWeights().begin() + leafOffsets[treeIdx] / trees.GetDimensionsCount(),
                     trees.GetLeafWeights().begin() + leafOffsets[treeIdx] / trees.GetDimensionsCount()
-                        + (1u << trees.GetTreeSizes()[treeIdx])
+                        + (1ull << trees.GetTreeSizes()[treeIdx])
                 )
             );
         } else {
             TVector<double> leafValues(
                 trees.GetLeafValues().begin() + leafOffsets[treeIdx],
                 trees.GetLeafValues().begin() + leafOffsets[treeIdx]
-                    + trees.GetDimensionsCount() * (1u << trees.GetTreeSizes()[treeIdx])
+                    + trees.GetDimensionsCount() * (1ull << trees.GetTreeSizes()[treeIdx])
             );
             for (auto& leafValue: leafValues) {
                 leafValue *= leafMultiplier;
@@ -954,7 +955,7 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
                 leafValues,
                 !streamLeafWeights ? TConstArrayRef<double>() : TConstArrayRef<double>(
                     trees.GetLeafWeights().begin() + leafOffsets[treeIdx] / trees.GetDimensionsCount(),
-                    (1u << trees.GetTreeSizes()[treeIdx])
+                    (1ull << trees.GetTreeSizes()[treeIdx])
                 )
             );
         }
@@ -965,22 +966,69 @@ static void SumModelsParams(
     const TVector<const TFullModel*> modelVector,
     THashMap<TString, TString>* modelInfo
 ) {
-    const char* multiClassParamsName = "multiclass_params";
-    if (modelVector.back()->ModelInfo.contains(multiClassParamsName)) {
-        const TString multiClassParams = modelVector.back()->ModelInfo.at(multiClassParamsName);
-        const bool allMultiClassParamsAreSame = AllOf(
-            modelVector,
-            [&](const TFullModel* model) {
-                return model->ModelInfo.contains(multiClassParamsName) &&
-                       model->ModelInfo.at(multiClassParamsName) == multiClassParams;
-            }
-        );
+    TMaybe<TString> classParams;
 
-        CB_ENSURE(
-            allMultiClassParamsAreSame,
-            "Cannot sum models with different multiclass_params"
-        );
-        (*modelInfo)[multiClassParamsName] = multiClassParams;
+    auto dimensionsCount = modelVector.back()->GetDimensionsCount();
+
+    for (auto modelIdx : xrange(modelVector.size())) {
+        const auto& modelInfo = modelVector[modelIdx]->ModelInfo;
+        bool paramFound = false;
+        for (const auto& paramName : {"class_params", "multiclass_params"}) {
+            if (modelInfo.contains(paramName)) {
+                if (classParams) {
+                    CB_ENSURE(
+                        modelInfo.at(paramName) == *classParams,
+                        "Cannot sum models with different class params"
+                    );
+                } else if ((modelIdx == 0) || (dimensionsCount == 1)) {
+                    // it is ok only for 1-dimensional models to have only some classParams specified
+                    classParams = modelInfo.at(paramName);
+                } else {
+                    CB_ENSURE(false, "Cannot sum multidimensional models with and without class params");
+                }
+                paramFound = true;
+                break;
+            }
+        }
+        if ((modelIdx != 0) && classParams && !paramFound && (dimensionsCount > 1)) {
+            CB_ENSURE(false, "Cannot sum multidimensional models with and without class params");
+        }
+    }
+
+    if (classParams) {
+        (*modelInfo)["class_params"] = *classParams;
+    } else {
+        /* One-dimensional models.
+         * If class labels for binary classification are present they must be the same
+         */
+
+        TMaybe<TVector<NJson::TJsonValue>> sumClassLabels;
+
+        for (const TFullModel* model : modelVector) {
+            TVector<NJson::TJsonValue> classLabels = model->GetModelClassLabels();
+            if (classLabels) {
+                Y_VERIFY(classLabels.size() == 2);
+
+                if (sumClassLabels) {
+                    CB_ENSURE(classLabels == *sumClassLabels, "Cannot sum models with different class labels");
+                } else {
+                    sumClassLabels = std::move(classLabels);
+                }
+            }
+        }
+
+        if (sumClassLabels) {
+            TString& paramsString = (*modelInfo)["params"];
+            NJson::TJsonValue paramsJson;
+            if (paramsString) {
+                paramsJson = ReadTJsonValue(paramsString);
+            }
+            NJson::TJsonValue classNames;
+            classNames.AppendValue((*sumClassLabels)[0]);
+            classNames.AppendValue((*sumClassLabels)[1]);
+            paramsJson["data_processing_options"]["class_names"] = std::move(classNames);
+            paramsString = ToString(paramsJson);
+        }
     }
 
     const auto lossDescription = GetLossDescription(*modelVector.back());

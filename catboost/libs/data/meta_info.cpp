@@ -36,17 +36,25 @@ void TDataColumnsMetaInfo::Validate() const {
 
 TDataMetaInfo::TDataMetaInfo(
     TMaybe<TDataColumnsMetaInfo>&& columnsInfo,
+    ERawTargetType targetType,
     bool hasAdditionalGroupWeight,
     bool hasTimestamp,
     bool hasPairs,
     TMaybe<ui32> additionalBaselineCount,
     TMaybe<const TVector<TString>*> featureNames,
-    const TVector<TString>& classNames
+    const TVector<NJson::TJsonValue>& classLabels
 )
-    : ClassNames(classNames)
+    : TargetType(targetType)
+    , ClassLabels(classLabels)
     , ColumnsInfo(std::move(columnsInfo))
 {
     TargetCount = ColumnsInfo->CountColumns(EColumn::Label);
+    if (TargetCount) {
+        CB_ENSURE(TargetType != ERawTargetType::None, "data has target columns, but target type specified as None");
+    } else {
+        CB_ENSURE(TargetType == ERawTargetType::None, "data has no target columns, but target type specified as not None");
+    }
+
     BaselineCount = additionalBaselineCount ? *additionalBaselineCount : ColumnsInfo->CountColumns(EColumn::Baseline);
     HasWeights = ColumnsInfo->CountColumns(EColumn::Weight) != 0;
     HasGroupId = ColumnsInfo->CountColumns(EColumn::GroupId) != 0;
@@ -103,6 +111,7 @@ bool TDataMetaInfo::EqualTo(const TDataMetaInfo& rhs, bool ignoreSparsity) const
     }
 
     return std::tie(
+        TargetType,
         TargetCount,
         BaselineCount,
         HasGroupId,
@@ -111,9 +120,10 @@ bool TDataMetaInfo::EqualTo(const TDataMetaInfo& rhs, bool ignoreSparsity) const
         HasWeights,
         HasTimestamp,
         HasPairs,
-        ClassNames,
+        ClassLabels,
         ColumnsInfo
     ) == std::tie(
+        rhs.TargetType,
         rhs.TargetCount,
         rhs.BaselineCount,
         rhs.HasGroupId,
@@ -122,7 +132,7 @@ bool TDataMetaInfo::EqualTo(const TDataMetaInfo& rhs, bool ignoreSparsity) const
         rhs.HasWeights,
         rhs.HasTimestamp,
         rhs.HasPairs,
-        ClassNames,
+        ClassLabels,
         rhs.ColumnsInfo
     );
 }
@@ -131,18 +141,18 @@ void TDataMetaInfo::Validate() const {
     CB_ENSURE(GetFeatureCount() > 0, "Pool should have at least one factor");
     CB_ENSURE(!HasGroupWeight || (HasGroupWeight && HasGroupId),
         "You should provide GroupId when providing GroupWeight.");
-    if ((BaselineCount != 0) && !ClassNames.empty()) {
+    if ((BaselineCount != 0) && !ClassLabels.empty()) {
         if (BaselineCount == 1) {
             CB_ENSURE(
-                ClassNames.size() == 2,
+                ClassLabels.size() == 2,
                 "Inconsistent columns specification: Baseline columns count " << BaselineCount
-                << " and class names count "  << ClassNames.size() << ". Either wrong baseline count for "
+                << " and class labels count "  << ClassLabels.size() << ". Either wrong baseline count for "
                 " multiclassification or wrong class count for binary classification"
             );
         } else {
             CB_ENSURE(
-                BaselineCount == ClassNames.size(),
-                "Baseline columns count " << BaselineCount << " and class names count "  << ClassNames.size() << " are not equal"
+                BaselineCount == ClassLabels.size(),
+                "Baseline columns count " << BaselineCount << " and class labels count "  << ClassLabels.size() << " are not equal"
             );
         }
     }
@@ -170,6 +180,7 @@ TVector<TString> TDataColumnsMetaInfo::GenerateFeatureIds(const TMaybe<TVector<T
 void NCB::AddWithShared(IBinSaver* binSaver, TDataMetaInfo* data) {
     AddWithShared(binSaver, &(data->FeaturesLayout));
     binSaver->AddMulti(
+        data->TargetType,
         data->TargetCount,
         data->BaselineCount,
         data->HasGroupId,
@@ -178,7 +189,7 @@ void NCB::AddWithShared(IBinSaver* binSaver, TDataMetaInfo* data) {
         data->HasWeights,
         data->HasTimestamp,
         data->HasPairs,
-        data->ClassNames,
+        data->ClassLabels,
         data->ColumnsInfo
     );
 }

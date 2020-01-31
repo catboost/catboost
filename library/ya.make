@@ -162,12 +162,4 @@ IF (NOT SANITIZER_TYPE)
 )
 ENDIF()
 
-CHECK_DEPENDENT_DIRS(
-    ALLOW_ONLY
-    library
-    contrib
-    util
-    yweb/config
-)
-
 NEED_CHECK()

@@ -1,12 +1,15 @@
 #include "baseline.h"
 #include "loader.h"
 
+#include <catboost/libs/column_description/column.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
 #include <util/charset/unidata.h>
+#include <util/generic/algorithm.h>
 #include <util/generic/ptr.h>
+#include <util/generic/xrange.h>
 #include <util/string/cast.h>
 #include <util/string/split.h>
 #include <util/system/types.h>
@@ -323,6 +326,90 @@ namespace NCB {
                 loadSubset
             );
             visitor->SetTimestamps(std::move(groupTimestamps));
+        }
+    }
+
+    TVector<TString> LoadFeatureNames(const TPathWithScheme& featureNamesPath) {
+        TVector<TString> featureNames;
+
+        if (featureNamesPath.Inited()) {
+            auto reader = GetLineDataReader(featureNamesPath);
+            TString line;
+            for (size_t lineNumber = 0; reader->ReadLine(&line); ++lineNumber) {
+                TVector<TString> tokens = StringSplitter(line).Split('\t');
+                if (tokens.empty()) {
+                    continue;
+                }
+                try {
+                    CB_ENSURE(tokens.size() == 2, "expect two items, got " << tokens.size());
+
+                    size_t featureIdx;
+                    CB_ENSURE(
+                        TryFromString(tokens[0], featureIdx),
+                        "Wrong format: first field is not unsigned integer");
+
+                    CB_ENSURE(
+                        !tokens[1].empty(),
+                        "feature name is empty");
+
+                    if (featureIdx >= featureNames.size()) {
+                        featureNames.resize(featureIdx + 1);
+                    } else {
+                        CB_ENSURE(
+                            featureNames[featureIdx].empty(),
+                            "feature index " << featureIdx << " specified multiple times");
+                    }
+
+                    featureNames[featureIdx] = tokens[1];
+
+                } catch (std::exception& e) {
+                    throw TCatBoostException() << "Feature names data from " << featureNamesPath
+                        << ", line number " << lineNumber << ": " << e.what();
+                }
+            }
+        }
+
+        return featureNames;
+    }
+
+    TVector<TString> GetFeatureNames(
+        const TDataColumnsMetaInfo& columnsDescription,
+        const TMaybe<TVector<TString>>& headerColumns,
+        const TPathWithScheme& featureNamesPath
+    ) {
+        // featureNamesFromColumns can be empty
+        const TVector<TString> featureNamesFromColumns = columnsDescription.GenerateFeatureIds(headerColumns);
+        const size_t featureCount
+            = featureNamesFromColumns.empty() ?
+                CountIf(
+                    columnsDescription.Columns,
+                    [](const TColumn& column) { return IsFactorColumn(column.Type); }
+                )
+                : featureNamesFromColumns.size();
+
+        TVector<TString> externalFeatureNames = LoadFeatureNames(featureNamesPath);
+
+        if (externalFeatureNames.empty()) {
+            return featureNamesFromColumns;
+        } else {
+            CB_ENSURE(
+                externalFeatureNames.size() <= featureCount,
+                "feature names file contains index (" << (externalFeatureNames.size() - 1)
+                << ") that is not less than the number of features in the dataset (" << featureCount << ')'
+            );
+            externalFeatureNames.resize(featureCount);
+            if (!featureNamesFromColumns.empty()) {
+                for (auto featureIdx : xrange(featureCount)) {
+                    CB_ENSURE(
+                        featureNamesFromColumns[featureIdx].empty()
+                        || (featureNamesFromColumns[featureIdx] == externalFeatureNames[featureIdx]),
+                        "Feature #" << featureIdx << ": name from columns specification (\""
+                        << featureNamesFromColumns[featureIdx]
+                        << "\") is not equal to name from feature names file (\""
+                        << externalFeatureNames[featureIdx] << "\")");
+                }
+            }
+            return externalFeatureNames;
         }
     }
 

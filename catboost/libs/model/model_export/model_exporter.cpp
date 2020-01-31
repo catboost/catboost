@@ -143,8 +143,7 @@ namespace NCB {
                     TStringInput is(userParametersJson);
                     NJson::TJsonValue params;
                     NJson::ReadJsonTree(&is, &params);
-
-                    CB_ENSURE_IDENTITY(model.GetScaleAndBias(), "exporting CoreML model");
+                    CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "exporting CoreML model");
                     OutputModelCoreML(model, modelFileName, params, catFeaturesHashToString);
                 }
                 break;
@@ -164,7 +163,7 @@ namespace NCB {
                     NJson::TJsonValue params;
                     NJson::ReadJsonTree(&is, &params);
 
-                    CB_ENSURE_IDENTITY(model.GetScaleAndBias(), "exporting ONNX model");
+                    CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "exporting ONNX model");
                     OutputModelOnnx(model, modelFileName, params);
                 }
                 break;
@@ -174,7 +173,6 @@ namespace NCB {
                     NJson::TJsonValue params;
                     NJson::ReadJsonTree(&is, &params);
 
-                    CB_ENSURE_IDENTITY(model.GetScaleAndBias(), "exporting PMML model");
                     NCB::NPmml::OutputModel(model, modelFileName, params, catFeaturesHashToString);
                 }
                 break;

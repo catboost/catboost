@@ -5,6 +5,7 @@
 *.rej
 *.so
 *.swp
+*.tmp
 .bzr
 .gdb_history
 .hg
@@ -22,3 +23,5 @@
 om.conf.local
 test-results
 
+/msvs/Debug/*
+/msvs/Release/*

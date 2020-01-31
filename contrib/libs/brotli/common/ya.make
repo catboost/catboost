@@ -18,4 +18,8 @@ SRCS(
     transform.c
 )
 
+CFLAGS(
+    -DBROTLI_BUILD_PORTABLE
+)
+
 END()

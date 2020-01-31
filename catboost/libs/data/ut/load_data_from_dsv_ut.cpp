@@ -55,12 +55,13 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"Feat"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.FloatFeatures = {
                 TVector<float>{0.2f, 0.82f, 0.22f},
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(3);
+            expectedData.Target.TargetType = ERawTargetType::String;
             TVector<TVector<TString>> rawTarget{{"0", "1", "0"}, {"0.1", "0.97", "0.13"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Weights = TWeights<float>(3);
@@ -96,13 +97,14 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"Feat0", "Feat1"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.FloatFeatures = {
                 TVector<float>{0.1f, 0.97f, 0.13f},
                 TVector<float>{0.2f, 0.82f, 0.22f},
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(3);
+            expectedData.Target.TargetType = ERawTargetType::String;
             TVector<TVector<TString>> rawTarget{{"0", "1", "0"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Weights = TWeights<float>(3);
@@ -155,7 +157,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"f0", "f1", "f2"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Ordered;
             expectedData.Objects.GroupIds = TVector<TStringBuf>{
                 "query0",
@@ -182,6 +184,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             expectedData.ObjectsGrouping = TObjectsGrouping(
                 TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
             );
+            expectedData.Target.TargetType = ERawTargetType::String;
             TVector<TVector<TString>> rawTarget{{"0.12", "0.22", "0.34", "0.42", "0.01", "0.0"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Weights = TWeights<float>(
@@ -236,7 +239,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"f0", "f1", "f2"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, true, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::None, false, false, true, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.GroupIds = TVector<TStringBuf>{
                 "query0",
                 "query0",
@@ -311,7 +314,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3", "float4"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::RandomShuffled;
             expectedData.Objects.GroupIds = TVector<TStringBuf>{
                 "query0",
@@ -334,6 +337,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             expectedData.ObjectsGrouping = TObjectsGrouping(
                 TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
             );
+            expectedData.Target.TargetType = ERawTargetType::String;
             TVector<TVector<TString>> rawTarget{{"0.12", "0.22", "0.34", "0.42", "0.01", "0.0"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Weights = TWeights<float>(6);
@@ -388,7 +392,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3", "float4"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), true, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, true, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.GroupIds = TVector<TStringBuf>{
                 "query0",
                 "query0",
@@ -410,6 +414,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             expectedData.ObjectsGrouping = TObjectsGrouping(
                 TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
             );
+            expectedData.Target.TargetType = ERawTargetType::String;
             TVector<TVector<TString>> rawTarget{{"0.12", "0.22", "0.34", "0.42", "0.01", "0.0"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Weights = TWeights<float>(6);
@@ -460,7 +465,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3", "float4"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             auto& featuresLayout = *expectedData.MetaInfo.FeaturesLayout;
             featuresLayout.IgnoreExternalFeature(1);
             featuresLayout.IgnoreExternalFeature(4);
@@ -486,6 +491,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             expectedData.ObjectsGrouping = TObjectsGrouping(
                 TVector<TGroupBounds>{{0, 2}, {2, 3}, {3, 6}}
             );
+            expectedData.Target.TargetType = ERawTargetType::String;
             TVector<TVector<TString>> rawTarget{{"0.12", "0.22", "0.34", "0.42", "0.01", "0.0"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Weights = TWeights<float>(6);
@@ -533,7 +539,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"Feat0", "Feat1"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Ordered;
             expectedData.Objects.Timestamp = {10, 10, 20};
             expectedData.Objects.FloatFeatures = {
@@ -542,6 +548,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(3);
+            expectedData.Target.TargetType = ERawTargetType::String;
             TVector<TVector<TString>> rawTarget{{"0", "1", "0"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Weights = TWeights<float>(3);
@@ -581,7 +588,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"Feat0", "Feat1"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
             expectedData.Objects.Timestamp = {20, 10, 20};
             expectedData.Objects.FloatFeatures = {
@@ -590,6 +597,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(3);
+            expectedData.Target.TargetType = ERawTargetType::String;
             TVector<TVector<TString>> rawTarget{{"0", "1", "0"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Weights = TWeights<float>(3);
@@ -629,7 +637,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"Feat0", "Feat1"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
             expectedData.Objects.Timestamp = {20, 20, 20};
             expectedData.Objects.FloatFeatures = {
@@ -638,6 +646,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(3);
+            expectedData.Target.TargetType = ERawTargetType::String;
             TVector<TVector<TString>> rawTarget{{"0", "1", "0"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Weights = TWeights<float>(3);
@@ -695,7 +704,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
 
             auto nanValue = std::numeric_limits<float>::quiet_NaN();
@@ -710,6 +719,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(9);
+            expectedData.Target.TargetType = ERawTargetType::String;
             TVector<TVector<TString>> rawTarget{{"0.12", "0.22", "0.341", "None", "0.01", "0.0", "N/A", "0.11", "-"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Weights = TWeights<float>(9);
@@ -757,7 +767,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"float0", "Place1", "float2"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
 
             expectedData.Objects.FloatFeatures = {
@@ -769,6 +779,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(2);
+            expectedData.Target.TargetType = ERawTargetType::String;
             TVector<TVector<TString>> rawTarget{{"0", "0"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Weights = TWeights<float>(2);
@@ -817,7 +828,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"float0", "Place1", "float2"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
 
             expectedData.Objects.FloatFeatures = {
@@ -829,6 +840,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(2);
+            expectedData.Target.TargetType = ERawTargetType::String;
             TVector<TVector<TString>> rawTarget{{"0", "0"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Weights = TWeights<float>(2);
@@ -877,7 +889,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
 
             TVector<TString> featureId = {"text0"};
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* baselineColumn */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* baselineColumn */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
 
             expectedData.Objects.TextFeatures = {
@@ -885,6 +897,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(7);
+            expectedData.Target.TargetType = ERawTargetType::String;
             TVector<TVector<TString>> rawTarget{{"0.12", "0.22", "0.34", "0.23", "0.99", "0.01", "0.02"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Weights = TWeights<float>(7);
@@ -938,7 +951,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
                 "Gender"
             };
 
-            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* baselineColumn */ Nothing(), &featureId);
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* baselineColumn */ Nothing(), &featureId);
             expectedData.Objects.Order = EObjectsOrder::Undefined;
 
             expectedData.Objects.FloatFeatures = {
@@ -954,6 +967,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(7);
+            expectedData.Target.TargetType = ERawTargetType::String;
             TVector<TVector<TString>> rawTarget{{"0.12", "0.22", "0.34", "0.23", "0.99", "0.01", "0.02"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Weights = TWeights<float>(7);
@@ -962,6 +976,163 @@ Y_UNIT_TEST_SUITE(LoadDataFromDsv) {
             textFloatAndCatFeaturesTestCase.ExpectedData = std::move(expectedData);
 
             testCases.push_back(std::move(textFloatAndCatFeaturesTestCase));
+        }
+
+        for (const auto& testCase : testCases) {
+            TestReadDataset(testCase);
+        }
+    }
+
+    Y_UNIT_TEST(ReadDatasetWithExternalFeatureNames) {
+        TVector<TReadDatasetTestCase> testCases;
+
+        {
+            TReadDatasetTestCase externalFeatureNamesTestCase;
+            TSrcData srcData;
+            srcData.CdFileData = AsStringBuf(
+                "0\tTarget\n"
+                "1\tText\n"
+                "2\tCateg\n"
+                "3\tNum\n"
+                "4\tText\n"
+                "5\tCateg\n"
+            );
+            srcData.DatasetFileData = AsStringBuf(
+                "0.12\tSpiderman\tUSA\t18\tjazz\tMale\n"
+                "0.22\tWonderwoman\tEngland\t20\tsoul\tFemale\n"
+                "0.34\tBatman\tUSA\t35\tclassical\tMale\n"
+                "0.23\tCow\tRussia\t5\tNaN\t-\n"
+                "0.99\tFaramir\tGondor\t500\tfolk\tMale\n"
+                "0.01\tPotter\t,.?!#$\t5\tblues\tMale\n"
+                "0.02\tCollins\tEngland\t50\t-\tMale\n"
+            );
+            srcData.FeatureNamesFileData = AsStringBuf(
+                "0\tName\n"
+                "1\tCountry\n"
+                "2\tAge\n"
+                "3\tFavouriteMusic\n"
+                "4\tGender\n"
+            );
+            srcData.DsvFileHasHeader = false;
+            srcData.ObjectsOrder = EObjectsOrder::Undefined;
+            externalFeatureNamesTestCase.SrcData = std::move(srcData);
+
+            TExpectedRawData expectedData;
+
+            TDataColumnsMetaInfo dataColumnsMetaInfo;
+            dataColumnsMetaInfo.Columns = {
+                {EColumn::Label, ""},
+                {EColumn::Text, ""},
+                {EColumn::Categ, ""},
+                {EColumn::Num, ""},
+                {EColumn::Text, ""},
+                {EColumn::Categ, ""},
+            };
+
+            TVector<TString> featureId = {
+                "Name",
+                "Country",
+                "Age",
+                "FavouriteMusic",
+                "Gender"
+            };
+
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* baselineColumn */ Nothing(), &featureId);
+            expectedData.Objects.Order = EObjectsOrder::Undefined;
+
+            expectedData.Objects.FloatFeatures = {
+                TVector<float>{18.f, 20.f, 35.f, 5.f, 500.f, 5.f, 50.f},
+            };
+            expectedData.Objects.CatFeatures = {
+                TVector<TStringBuf>{"USA", "England", "USA", "Russia", "Gondor", ",.?!#$", "England"},
+                TVector<TStringBuf>{"Male", "Female", "Male", "-", "Male", "Male", "Male"},
+            };
+            expectedData.Objects.TextFeatures = {
+                TVector<TStringBuf>{"Spiderman", "Wonderwoman", "Batman", "Cow", "Faramir", "Potter", "Collins"},
+                TVector<TStringBuf>{"jazz", "soul", "classical", "NaN", "folk", "blues", "-"},
+            };
+
+            expectedData.ObjectsGrouping = TObjectsGrouping(7);
+            expectedData.Target.TargetType = ERawTargetType::String;
+            TVector<TVector<TString>> rawTarget{{"0.12", "0.22", "0.34", "0.23", "0.99", "0.01", "0.02"}};
+            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
+            expectedData.Target.Weights = TWeights<float>(7);
+            expectedData.Target.GroupWeights = TWeights<float>(7);
+
+            externalFeatureNamesTestCase.ExpectedData = std::move(expectedData);
+
+            testCases.push_back(std::move(externalFeatureNamesTestCase));
+        }
+        {
+            TReadDatasetTestCase cdAndExternalFeatureNamesTestCase;
+            TSrcData srcData;
+            srcData.CdFileData = AsStringBuf("0\tTarget\n"
+                "1\tText\tName\n"
+                "2\tCateg\tCountry\n"
+                "3\tNum\tAge\n"
+                "4\tText\tFavouriteMusic\n"
+                "5\tCateg\tGender\n");
+            srcData.DatasetFileData = AsStringBuf("0.12\tSpiderman\tUSA\t18\tjazz\tMale\n"
+                "0.22\tWonderwoman\tEngland\t20\tsoul\tFemale\n"
+                "0.34\tBatman\tUSA\t35\tclassical\tMale\n"
+                "0.23\tCow\tRussia\t5\tNaN\t-\n"
+                "0.99\tFaramir\tGondor\t500\tfolk\tMale\n"
+                "0.01\tPotter\t,.?!#$\t5\tblues\tMale\n"
+                "0.02\tCollins\tEngland\t50\t-\tMale\n");
+            srcData.FeatureNamesFileData = AsStringBuf("0\tName\n"
+                "1\tCountry\n"
+                "2\tAge\n"
+                "3\tFavouriteMusic\n"
+                "4\tGender\n");
+            srcData.DsvFileHasHeader = false;
+            srcData.ObjectsOrder = EObjectsOrder::Undefined;
+            cdAndExternalFeatureNamesTestCase.SrcData = std::move(srcData);
+
+            TExpectedRawData expectedData;
+
+            TDataColumnsMetaInfo dataColumnsMetaInfo;
+            dataColumnsMetaInfo.Columns = {
+                {EColumn::Label, ""},
+                {EColumn::Text, "Name"},
+                {EColumn::Categ, "Country"},
+                {EColumn::Num, "Age"},
+                {EColumn::Text, "FavouriteMusic"},
+                {EColumn::Categ, "Gender"},
+            };
+
+            TVector<TString> featureId = {
+                "Name",
+                "Country",
+                "Age",
+                "FavouriteMusic",
+                "Gender"
+            };
+
+            expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* baselineColumn */ Nothing(), &featureId);
+            expectedData.Objects.Order = EObjectsOrder::Undefined;
+
+            expectedData.Objects.FloatFeatures = {
+                TVector<float> {18.f, 20.f, 35.f, 5.f, 500.f, 5.f, 50.f},
+            };
+            expectedData.Objects.CatFeatures = {
+                TVector<TStringBuf> {"USA", "England", "USA", "Russia", "Gondor", ",.?!#$", "England"},
+                TVector<TStringBuf> {"Male", "Female", "Male", "-", "Male", "Male", "Male"},
+            };
+            expectedData.Objects.TextFeatures = {
+                TVector<TStringBuf> {"Spiderman", "Wonderwoman", "Batman", "Cow", "Faramir", "Potter", "Collins"},
+                TVector<TStringBuf> {"jazz", "soul", "classical", "NaN", "folk", "blues", "-"},
+            };
+
+            expectedData.ObjectsGrouping = TObjectsGrouping(7);
+            expectedData.Target.TargetType = ERawTargetType::String;
+            TVector<TVector<TString>> rawTarget { { "0.12", "0.22", "0.34", "0.23", "0.99", "0.01", "0.02" } };
+            expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
+            expectedData.Target.Weights = TWeights<float>(7);
+            expectedData.Target.GroupWeights = TWeights<float>(7);
+
+            cdAndExternalFeatureNamesTestCase.ExpectedData = std::move(expectedData);
+
+            testCases.push_back(std::move(cdAndExternalFeatureNamesTestCase));
         }
 
         for (const auto& testCase : testCases) {

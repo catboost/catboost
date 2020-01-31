@@ -282,6 +282,10 @@ Y_UNIT_TEST_SUITE(TCastTest) {
 
         UNIT_ASSERT_STRINGS_EQUAL(FloatToString(std::numeric_limits<double>::quiet_NaN()), "nan");
         UNIT_ASSERT_STRINGS_EQUAL(FloatToString(std::numeric_limits<double>::infinity()), "inf");
+        UNIT_ASSERT_STRINGS_EQUAL(FloatToString(-std::numeric_limits<double>::infinity()), "-inf");
+
+        UNIT_ASSERT_STRINGS_EQUAL(FloatToString(std::numeric_limits<float>::quiet_NaN()), "nan");
+        UNIT_ASSERT_STRINGS_EQUAL(FloatToString(std::numeric_limits<float>::infinity()), "inf");
         UNIT_ASSERT_STRINGS_EQUAL(FloatToString(-std::numeric_limits<float>::infinity()), "-inf");
     }
 

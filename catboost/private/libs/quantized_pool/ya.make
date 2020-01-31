@@ -19,6 +19,7 @@ PEERDIR(
     catboost/private/libs/data_util
     catboost/libs/helpers
     catboost/private/libs/index_range
+    catboost/private/libs/labels
     catboost/libs/logging
     catboost/private/libs/quantization_schema
     catboost/private/libs/validate_fb
