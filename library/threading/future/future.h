@@ -31,6 +31,12 @@ namespace NThreading {
     TFuture<T> MakeErrorFuture(std::exception_ptr exception);
     TFuture<void> MakeFuture();
 
+    // waits for all futures
+    [[nodiscard]] TFuture<void> WaitAll(const TFuture<void>& f1);
+    [[nodiscard]] TFuture<void> WaitAll(const TFuture<void>& f1, const TFuture<void>& f2);
+    template <typename TContainer>
+    [[nodiscard]] TFuture<void> WaitAll(const TContainer& futures);
+
     // waits for the first exception or for all futures
     [[nodiscard]] TFuture<void> WaitExceptionOrAll(const TFuture<void>& f1);
     [[nodiscard]] TFuture<void> WaitExceptionOrAll(const TFuture<void>& f1, const TFuture<void>& f2);

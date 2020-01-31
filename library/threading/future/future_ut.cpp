@@ -448,6 +448,30 @@ namespace NThreading {
 
             UNIT_ASSERT_EQUAL(future.ExtractValue(), 42);
         }
+
+        Y_UNIT_TEST(WaitExceptionOrAllException) {
+            auto promise1 = NewPromise();
+            auto promise2 = NewPromise();
+            auto future1 = promise1.GetFuture();
+            auto future2 = promise2.GetFuture();
+            auto wait = WaitExceptionOrAll(future1, future2);
+            promise2.SetException("foo-exception");
+            wait.Wait();
+            UNIT_ASSERT(future2.HasException());
+            UNIT_ASSERT(!future1.HasValue() && !future1.HasException());
+        }
+
+        Y_UNIT_TEST(WaitAllException) {
+            auto promise1 = NewPromise();
+            auto promise2 = NewPromise();
+            auto future1 = promise1.GetFuture();
+            auto future2 = promise2.GetFuture();
+            auto wait = WaitAll(future1, future2);
+            promise2.SetException("foo-exception");
+            UNIT_ASSERT(!wait.HasValue() && !wait.HasException());
+            promise1.SetValue();
+            UNIT_ASSERT_EXCEPTION_CONTAINS(wait.GetValueSync(), yexception, "foo-exception");
+        }
     }
 
 }
