@@ -19,6 +19,8 @@
 - Target border and class weights are now taken from model when necessary for feature strength, metrics evaluation, roc_curve, object importances and calc_feature_statistics calculations.
 - Fixed that L2 regularization was not applied for non symmetric trees for binary classification on GPU.
 - [R-package] Fixed the bug that ``catboost.get_feature_importance`` did not work after model is loaded #1064
+- [R-package] Fixed the bug that ``catboost.train`` did not work when called with the single dataset parameter. #1162 
+- Fixed L2 score calculation on CPU
 
 ##Other:
 
