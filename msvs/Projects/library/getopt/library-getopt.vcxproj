@@ -129,6 +129,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\getopt\small\library-getopt-small.vcxproj">
       <Project>{DB9C26F0-E241-89AB-6F12-8CE533A7E012}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
+      <Project>{2CE71367-048B-26B0-2DAC-CA9BB7D00E76}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\base64\library-string_utils-base64.vcxproj">
       <Project>{137212F6-D2FE-719F-EBE2-99060434BC72}</Project>
     </ProjectReference>

@@ -78,6 +78,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\library\getopt\small\completer.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\getopt\small\completer_command.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\getopt\small\completion_generator.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\getopt\small\formatted_output.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\getopt\small\last_getopt.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\getopt\small\last_getopt_easy_setup.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\getopt\small\last_getopt_opt.cpp"/>
@@ -88,7 +92,12 @@
     <ClCompile Include="$(SolutionDir)..\library\getopt\small\opt.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\getopt\small\opt2.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\getopt\small\posix_getopt.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\getopt\small\wrap.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\getopt\small\ygetopt.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\getopt\small\completer.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\getopt\small\completer_command.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\getopt\small\completion_generator.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\getopt\small\formatted_output.h"/>
     <ClInclude Include="$(SolutionDir)..\library\getopt\small\last_getopt.h"/>
     <ClInclude Include="$(SolutionDir)..\library\getopt\small\last_getopt_easy_setup.h"/>
     <ClInclude Include="$(SolutionDir)..\library\getopt\small\last_getopt_handlers.h"/>
@@ -101,6 +110,7 @@
     <ClInclude Include="$(SolutionDir)..\library\getopt\small\opt.h"/>
     <ClInclude Include="$(SolutionDir)..\library\getopt\small\opt2.h"/>
     <ClInclude Include="$(SolutionDir)..\library\getopt\small\posix_getopt.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\getopt\small\wrap.h"/>
     <ClInclude Include="$(SolutionDir)..\library\getopt\small\ygetopt.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
@@ -120,6 +130,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\colorizer\library-colorizer.vcxproj">
       <Project>{439BAFF9-1167-D24B-92A2-3A00BEE420B1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
+      <Project>{2CE71367-048B-26B0-2DAC-CA9BB7D00E76}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>

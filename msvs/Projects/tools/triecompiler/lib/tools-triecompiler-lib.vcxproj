@@ -114,6 +114,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\on_disk\chunks\library-on_disk-chunks.vcxproj">
       <Project>{14A549F3-D184-A637-D0F2-A931DAEB16EF}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
+      <Project>{2CE71367-048B-26B0-2DAC-CA9BB7D00E76}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\packers\library-packers.vcxproj">
       <Project>{9436F4D8-5E19-8C76-D632-4704304D6504}</Project>
     </ProjectReference>

@@ -1191,6 +1191,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\openssl\method\library-openssl-method.vcxproj">
       <Project>EBC3626B-F273-EB61-E7BE-9BBC217D8FB4</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
+      <Project>2CE71367-048B-26B0-2DAC-CA9BB7D00E76</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\packers\library-packers.vcxproj">
       <Project>9436F4D8-5E19-8C76-D632-4704304D6504</Project>
     </ProjectReference>
