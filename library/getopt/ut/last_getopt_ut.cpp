@@ -602,7 +602,9 @@ Y_UNIT_TEST_SUITE(TLastGetoptTests) {
         opts.AddCharOption('d').DefaultValue("42");
         opts.AddCharOption('s').DefaultValue("str_default");
         opts.SetFreeArgsNum(123, 456);
-        opts.SetFreeArgTitle(0, "first_free_arg");
+        opts.SetFreeArgTitle(0, "first_free_arg", "help");
+        opts.SetFreeArgTitle(2, "second_free_arg");
+        opts.AddSection("Section", "Section\n  text");
         const char* cmd[] = {prog};
         TOptsParser parser(&opts, Y_ARRAY_SIZE(cmd), cmd);
         TStringStream out;
@@ -624,12 +626,18 @@ Y_UNIT_TEST_SUITE(TLastGetoptTests) {
         UNIT_ASSERT(out.Str().find(TStringBuilder() << colors.GreenColor() << "123" << colors.OldColor()) != TString::npos);
         UNIT_ASSERT(out.Str().find(TStringBuilder() << colors.GreenColor() << "456" << colors.OldColor()) != TString::npos);
         UNIT_ASSERT(out.Str().find(TStringBuilder() << colors.GreenColor() << "first_free_arg" << colors.OldColor()) != TString::npos);
+        // free args without help not rendered even if they have custom title
+        UNIT_ASSERT(out.Str().find(TStringBuilder() << colors.GreenColor() << "second_free_arg" << colors.OldColor()) == TString::npos);
 
         // find signatures
         UNIT_ASSERT(out.Str().find(TStringBuilder() << colors.BoldColor() << "Usage" << colors.OldColor()) != TString::npos);
         UNIT_ASSERT(out.Str().find(TStringBuilder() << colors.BoldColor() << "Required parameters" << colors.OldColor()) != TString::npos);
         UNIT_ASSERT(out.Str().find(TStringBuilder() << colors.BoldColor() << "Optional parameters" << colors.OldColor()) != TString::npos);
         UNIT_ASSERT(out.Str().find(TStringBuilder() << colors.BoldColor() << "Free args" << colors.OldColor()) != TString::npos);
+
+        // find sections
+        UNIT_ASSERT(out.Str().find(TStringBuilder() << colors.BoldColor() << "Section" << colors.OldColor() << ":") != TString::npos);
+        UNIT_ASSERT(out.Str().find(TStringBuilder() << "  Section\n    text") != TString::npos);
 
         // print without colors
         TStringStream out2;

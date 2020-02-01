@@ -1,3 +1,7 @@
+#include "completer.h"
+#include "completer_command.h"
+#include "completion_generator.h"
+#include "last_getopt.h"
 #include "modchooser.h"
 
 #include <library/colorizer/colors.h>
@@ -8,68 +12,58 @@
 #include <util/generic/ptr.h>
 #include <util/string/builder.h>
 #include <util/string/join.h>
-#include "last_getopt.h"
 
-class PtrWrapper: public TMainClassV {
+class PtrWrapper: public TMainClass {
 public:
     explicit PtrWrapper(const TMainFunctionPtr main)
         : Main(main)
     {
     }
 
-    int operator()(const TVector<TString>& argv) override {
-        const size_t argc = argv.size();
-        TVector<const char*> ptrArgv(argc, nullptr);
-        for (size_t i = 0; i < argc; ++i) {
-            ptrArgv[i] = argv[i].c_str();
-        }
-        return Main(argc, &*ptrArgv.begin());
+    int operator()(const int argc, const char** argv) override {
+        return Main(argc, argv);
     }
 
 private:
     TMainFunctionPtr Main;
 };
 
-class PtrvWrapper: public TMainClassV {
+class PtrvWrapper: public TMainClass {
 public:
     explicit PtrvWrapper(const TMainFunctionPtrV main)
         : Main(main)
     {
     }
 
-    int operator()(const TVector<TString>& argv) override {
-        return Main(argv);
+    int operator()(const int argc, const char** argv) override {
+        TVector<TString> nargv(argv, argv + argc);
+        return Main(nargv);
     }
 
 private:
     TMainFunctionPtrV Main;
 };
 
-class ClassWrapper: public TMainClassV {
+class ClassWrapper: public TMainClass {
 public:
-    explicit ClassWrapper(TMainClass* main)
+    explicit ClassWrapper(TMainClassV* main)
         : Main(main)
     {
     }
 
-    int operator()(const TVector<TString>& argv) override {
-        const size_t argc = argv.size();
-        TVector<const char*> ptrArgv(argc, nullptr);
-        for (size_t i = 0; i < argc; ++i) {
-            ptrArgv[i] = argv[i].c_str();
-        }
-        return (*Main)(argc, &*ptrArgv.begin());
+    int operator()(const int argc, const char** argv) override {
+        TVector<TString> nargv(argv, argv + argc);
+        return (*Main)(nargv);
     }
 
 private:
-    TMainClass* Main;
+    TMainClassV* Main;
 };
 
-TModChooser::TMode::TMode(const TString& name, TMainClassV* main, const TString& descr, bool hidden)
+TModChooser::TMode::TMode(const TString& name, TMainClass* main, const TString& descr, bool hidden)
     : Name(name)
     , Main(main)
     , Description(descr)
-    , Separator(name ? false : true)
     , Hidden(hidden)
 {
 }
@@ -88,6 +82,7 @@ TModChooser::~TModChooser() = default;
 void TModChooser::AddMode(const TString& mode, const TMainFunctionRawPtr func, const TString& description, bool hidden) {
     AddMode(mode, TMainFunctionPtr(func), description, hidden);
 }
+
 void TModChooser::AddMode(const TString& mode, const TMainFunctionRawPtrV func, const TString& description, bool hidden) {
     AddMode(mode, TMainFunctionPtrV(func), description, hidden);
 }
@@ -103,17 +98,16 @@ void TModChooser::AddMode(const TString& mode, const TMainFunctionPtrV func, con
 }
 
 void TModChooser::AddMode(const TString& mode, TMainClass* func, const TString& description, bool hidden) {
-    Wrappers.push_back(new ClassWrapper(func));
-    AddMode(mode, Wrappers.back().Get(), description, hidden);
-}
-
-void TModChooser::AddMode(const TString& mode, TMainClassV* main, const TString& description, bool hidden) {
     if (Modes.FindPtr(mode)) {
         ythrow yexception() << "TMode '" << mode << "' already exists in TModChooser.";
     }
 
-    Modes[mode] = UnsortedModes.emplace_back(new TMode(mode, main, description, hidden)).Get();
-    return;
+    Modes[mode] = UnsortedModes.emplace_back(new TMode(mode, func, description, hidden)).Get();
+}
+
+void TModChooser::AddMode(const TString& mode, TMainClassV* func, const TString& description, bool hidden) {
+    Wrappers.push_back(new ClassWrapper(func));
+    AddMode(mode, Wrappers.back().Get(), description, hidden);
 }
 
 void TModChooser::AddGroupModeDescription(const TString& description, bool hidden) {
@@ -161,17 +155,19 @@ void TModChooser::DisableSvnRevisionOption() {
     SvnRevisionOptionDisabled = true;
 }
 
-int TModChooser::Run(const int argc, const char** argv) const {
-    TVector<TString> args(argv, argv + argc);
-    return Run(args);
+void TModChooser::AddCompletions(TString progName, const TString& name) {
+    if (CompletionsGenerator == nullptr) {
+        CompletionsGenerator = NLastGetopt::MakeCompletionMod(this, std::move(progName), name);
+        AddMode(name, CompletionsGenerator.Get(), "generate autocompletion files");
+    }
 }
 
-int TModChooser::Run(const TVector<TString>& argv) const {
-    Y_ENSURE(!argv.empty(), "Can't run TModChooser with empty list of arguments.");
+int TModChooser::Run(const int argc, const char** argv) const {
+    Y_ENSURE(argc, "Can't run TModChooser with empty list of arguments.");
 
     bool shiftArgs = true;
     TString modeName;
-    if (argv.size() == 1) {
+    if (argc == 1) {
         if (DefaultMode.empty()) {
             PrintHelp(argv[0]);
             return 0;
@@ -208,21 +204,33 @@ int TModChooser::Run(const TVector<TString>& argv) const {
     }
 
     if (shiftArgs) {
-        TVector<TString> nargv;
-        nargv.reserve(argv.size() - 1);
+        TString firstArg;
+        TVector<const char*> nargv(Reserve(argc - 1));
+
         if (PrintShortCommandInUsage) {
-            nargv.push_back(modeIter->second->Name);
+            firstArg = modeIter->second->Name;
         } else {
-            nargv.push_back(argv[0] + TString(" ") + modeIter->second->Name);
+            firstArg = argv[0] + TString(" ") + modeIter->second->Name;
         }
 
-        for (size_t i = 2; i < argv.size(); ++i) {
+        nargv.push_back(firstArg.data());
+
+        for (int i = 2; i < argc; ++i) {
             nargv.push_back(argv[i]);
         }
-        return (*modeIter->second->Main)(nargv);
+
+        return (*modeIter->second->Main)(nargv.size(), nargv.data());
     } else {
-        return (*modeIter->second->Main)(argv);
+        return (*modeIter->second->Main)(argc, argv);
     }
+}
+
+int TModChooser::Run(const TVector<TString>& argv) const {
+    TVector<const char*> nargv(Reserve(argv.size()));
+    for (auto& arg : argv) {
+        nargv.push_back(arg.c_str());
+    }
+    return Run(nargv.size(), nargv.data());
 }
 
 size_t TModChooser::TMode::CalculateFullNameLen() const {
@@ -302,4 +310,55 @@ void TModChooser::PrintHelp(const TString& progName) const {
         Cerr << "To print svn revision type --svnrevision" << Endl;
     }
     return;
+}
+
+TVersionHandlerPtr TModChooser::GetVersionHandler() const {
+    return VersionHandler;
+}
+
+bool TModChooser::IsSvnRevisionOptionDisabled() const {
+    return SvnRevisionOptionDisabled;
+}
+
+int TMainClassArgs::Run(int argc, const char** argv) {
+    return DoRun(NLastGetopt::TOptsParseResult(&GetOptions(), argc, argv));
+}
+
+const NLastGetopt::TOpts& TMainClassArgs::GetOptions() {
+    if (Opts_.Empty()) {
+        Opts_ = NLastGetopt::TOpts();
+        RegisterOptions(Opts_.GetRef());
+    }
+
+    return Opts_.GetRef();
+}
+
+void TMainClassArgs::RegisterOptions(NLastGetopt::TOpts& opts) {
+    opts.AddHelpOption('h');
+}
+
+int TMainClassArgs::operator()(const int argc, const char** argv) {
+    return Run(argc, argv);
+}
+
+int TMainClassModes::operator()(const int argc, const char** argv) {
+    return Run(argc, argv);
+}
+
+int TMainClassModes::Run(int argc, const char** argv) {
+    auto& chooser = GetSubModes();
+    return chooser.Run(argc, argv);
+}
+
+const TModChooser& TMainClassModes::GetSubModes() {
+    if (Modes_.Empty()) {
+        Modes_.ConstructInPlace();
+        RegisterModes(Modes_.GetRef());
+    }
+
+    return Modes_.GetRef();
+}
+
+void TMainClassModes::RegisterModes(TModChooser& modes) {
+    modes.SetModesHelpOption("-h");
 }

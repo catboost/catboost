@@ -39,6 +39,8 @@ namespace NLastGetopt {
         friend class TOptsParser;
 
     public:
+        static constexpr const ui32 UNLIMITED_ARGS = Max<ui32>();
+
         typedef TVector<TSimpleSharedPtr<TOpt>> TOptsVector;
         TOptsVector Opts_; // infomation about named (short and long) options
 
@@ -50,20 +52,21 @@ namespace NLastGetopt {
         bool AllowUnknownCharOptions_ = false;
         bool AllowUnknownLongOptions_ = false;
 
-        ui32 Wrap_ = 0;
+        ui32 Wrap_ = 80;
 
     private:
         ui32 FreeArgsMin_; // minimal number of free args
         ui32 FreeArgsMax_; // maximal number of free args
 
-        TMap<ui32, TFreeArgSpec> FreeArgSpecs_;                // mapping [free arg position] -> [free art specification]
-        TFreeArgSpec DefaultFreeArgSpec = TFreeArgSpec("ARG"); // rule for parsing free arguments by default
-        bool CustomDefaultArg_ = false;                        //true if DefaultFreeArgSpec have been reset
+        TMap<ui32, TFreeArgSpec> FreeArgSpecs_; // mapping [free arg position] -> [free arg specification]
+        TFreeArgSpec TrailingArgSpec_;          // spec for the trailing argument (when arguments are unlimited)
+        TString DefaultFreeArgTitle_ = "ARG"; // title that's used for free args without a title
 
         TString Title;              // title of the help string
         TString CustomCmdLineDescr; // user defined help string
         TString CustomUsage;        // user defined usage string
-        TString Examples;           // examples section to be printed after free args
+
+        TVector<std::pair<TString, TString>> Sections;  // additional help entries to print after usage
 
     public:
         /**
@@ -120,6 +123,31 @@ namespace NLastGetopt {
         TOpt* FindCharOption(char c);
 
         /**
+         * Search for the option with given name
+         * @param name     name for search
+         * @return         ptr on result (nullptr if not found)
+         */
+        /// @{
+
+        const TOpt* FindOption(const TStringBuf& name) const {
+            return FindLongOption(name);
+        }
+
+        TOpt* FindOption(const TStringBuf& name) {
+            return FindLongOption(name);
+        }
+
+        const TOpt* FindOption(char c) const {
+            return FindCharOption(c);
+        }
+
+        TOpt* FindOption(char c) {
+            return FindCharOption(c);
+        }
+
+        /// @}
+
+        /**
          * Sets title of the help string
          * @param title        title to set
          */
@@ -148,30 +176,55 @@ namespace NLastGetopt {
         /**
          * Search for the option with given long name
          * @param name     long name for search
-         * @return         ptr on result (nullptr if not found)
+         * @return         ref on result (throw exception if not found)
          */
         const TOpt& GetLongOption(const TStringBuf& name) const;
 
         /**
          * Search for the option with given long name
          * @param name     long name for search
-         * @return         ptr on result (nullptr if not found)
+         * @return         ref on result (throw exception if not found)
          */
         TOpt& GetLongOption(const TStringBuf& name);
 
         /**
          * Search for the option with given short name
          * @param c        short name for search
-         * @return         ptr on result (nullptr if not found)
+         * @return         ref on result (throw exception if not found)
          */
         const TOpt& GetCharOption(char c) const;
 
         /**
          * Search for the option with given short name
          * @param c        short name for search
-         * @return         ptr on result (nullptr if not found)
+         * @return         ref on result (throw exception if not found)
          */
         TOpt& GetCharOption(char c);
+
+        /**
+         * Search for the option with given name
+         * @param name     name for search
+         * @return         ref on result (throw exception if not found)
+         */
+        /// @{
+
+        const TOpt& GetOption(const TStringBuf& name) const {
+            return GetLongOption(name);
+        }
+
+        TOpt& GetOption(const TStringBuf& name) {
+            return GetLongOption(name);
+        }
+
+        const TOpt& GetOption(char c) const {
+            return GetCharOption(c);
+        }
+
+        TOpt& GetOption(char c) {
+            return GetCharOption(c);
+        }
+
+        /// @}
 
         /**
          * @return true if short options exist
@@ -266,6 +319,7 @@ namespace NLastGetopt {
             }
             return AddLongOption(c, "help", "print usage")
                 .HasArg(NO_ARGUMENT)
+                .IfPresentDisableCompletion()
                 .Handler(&PrintUsageAndExit);
         }
 
@@ -284,8 +338,16 @@ namespace NLastGetopt {
             }
             return AddLongOption(c, "svnrevision", "print svn version")
                 .HasArg(NO_ARGUMENT)
+                .IfPresentDisableCompletion()
                 .Handler(&PrintVersionAndExit);
         }
+
+        /**
+         * Creates new option for generating completion shell scripts.
+         *
+         * @param command name of command that should be completed (typically corresponds to the executable name).
+         */
+        TOpt& AddCompletionOption(TString command, TString longName = "completion");
 
         /**
          * Creates or finds option with given short name
@@ -301,6 +363,24 @@ namespace NLastGetopt {
                 return const_cast<TOpt&>(GetCharOption(c));
             }
         }
+
+        /**
+         * Indicate that some options can't appear together.
+         *
+         * Note: this is not transitive.
+         *
+         * Note: don't use this on options with default values. If option with default value wasn't specified,
+         * parser will run handlers for default value, thus triggering a false-positive exclusivity check.
+         */
+        template <typename T1, typename T2>
+        void MutuallyExclusive(T1&& opt1, T2&& opt2) {
+            MutuallyExclusiveOpt(GetOption(std::forward<T1>(opt1)), GetOption(std::forward<T2>(opt2)));
+        }
+
+        /**
+         * Like `MutuallyExclusive`, but accepts `TOpt`s instead of option names.
+         */
+        void MutuallyExclusiveOpt(TOpt& opt1, TOpt& opt2);
 
         /**
          * @return index of option
@@ -328,12 +408,19 @@ namespace NLastGetopt {
         }
 
         /**
-         * Set text of examples section. It will be be printed after free args section.
+         * Add a section to print after the main usage spec.
+         */
+        void AddSection(TString title, TString text) {
+            Sections.emplace_back(std::move(title), std::move(text));
+        }
+
+        /**
+         * Add section with examples.
          *
          * @param examples text of this section
          */
-        void SetExamples(const TString& examples) {
-            Examples = examples;
+        void SetExamples(TString examples) {
+            AddSection("Examples", std::move(examples));
         }
 
         /**
@@ -409,13 +496,61 @@ namespace NLastGetopt {
         void SetFreeArgTitle(size_t pos, const TString& title, const TString& help = TString(), bool optional = false);
 
         /**
-         * Set title and help string of free argument be default
-         *   (for positions, that have not individual settings)
-         *
-         * @param title        new value for argument title
-         * @param help         new value for help string
+         * Get free argument's spec for further modification.
          */
-        void SetFreeArgDefaultTitle(const TString& title, const TString& help = TString());
+        TFreeArgSpec& GetFreeArgSpec(size_t pos);
+
+        /**
+         * Legacy, don't use. Same as `SetTrailingArgTitle`.
+         * Older versions of lastgetopt didn't have destinction between default title and title
+         * for the trailing argument.
+         */
+        void SetFreeArgDefaultTitle(const TString& title, const TString& help = TString()) {
+            SetTrailingArgTitle(title, help);
+        }
+
+        /**
+         * Set default title that will be used for all arguments that have no title.
+         */
+        void SetDefaultFreeArgTitle(TString title) {
+            DefaultFreeArgTitle_ = std::move(title);
+        }
+
+        /**
+         * Set default title that will be used for all arguments that have no title.
+         */
+        const TString& GetDefaultFreeArgTitle() const {
+            return DefaultFreeArgTitle_;
+        }
+
+        /**
+         * Set title and help for the trailing argument.
+         *
+         * This title and help are used to render the last repeated argument when max number of arguments is unlimited.
+         */
+        /// @{
+        void SetTrailingArgTitle(TString title) {
+            TrailingArgSpec_.Title(std::move(title));
+        }
+        void SetTrailingArgTitle(TString title, TString help) {
+            TrailingArgSpec_.Title(std::move(title));
+            TrailingArgSpec_.Help(std::move(help));
+        }
+        /// @}
+
+        /**
+         * Get spec for the trailing argument.
+         *
+         * This spec is used to render the last repeated argument when max number of arguments is unlimited.
+         */
+        /// @{
+        TFreeArgSpec& GetTrailingArgSpec() {
+            return TrailingArgSpec_;
+        }
+        const TFreeArgSpec& GetTrailingArgSpec() const {
+            return TrailingArgSpec_;
+        }
+        /// @}
 
         /**
          * Set the rule of parsing single dash as prefix of long names
@@ -429,7 +564,7 @@ namespace NLastGetopt {
         /**
          * Wrap help text at this number of characters. 0 to disable wrapping.
          */
-        void SetWrap(ui32 wrap = 50) {
+        void SetWrap(ui32 wrap = 80) {
             Wrap_ = wrap;
         }
 
@@ -450,20 +585,24 @@ namespace NLastGetopt {
          */
         void PrintUsage(const TStringBuf& program, IOutputStream& os = Cout) const;
 
+        /**
+         * Get list of options in order of definition.
+         */
+        TVector<const TOpt*> GetOpts() const {
+            auto ret = TVector<const TOpt*>(Reserve(Opts_.size()));
+            for (auto& opt : Opts_) {
+                ret.push_back(opt.Get());
+            }
+            return ret;
+        }
+
     private:
         /**
          * @return argument title of a free argument
          *
          * @param pos     position of the argument
          */
-        const TString& GetFreeArgTitle(size_t pos) const;
-
-        /**
-         * @return argument help string of a free argument
-         *
-         * @param pos     position of the argument
-         */
-        const TString& GetFreeArgHelp(size_t pos) const;
+        TStringBuf GetFreeArgTitle(size_t pos) const;
 
         /**
          * Print usage helper

@@ -88,6 +88,26 @@ namespace NLastGetopt {
         /// fetch next argument, false if no more arguments left
         bool Next();
 
+        bool Seen(const TOpt* opt) const {
+            return OptsSeen_.contains(opt);
+        }
+
+        bool Seen(TStringBuf name) const {
+            if (auto opt = Opts_->FindLongOption(name)) {
+                return Seen(opt);
+            } else {
+                return false;
+            }
+        }
+
+        bool Seen(char name) const {
+            if (auto opt = Opts_->FindCharOption(name)) {
+                return Seen(opt);
+            } else {
+                return false;
+            }
+        }
+
         const TOpt* CurOpt() const {
             return CurrentOpt_;
         }
