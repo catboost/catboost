@@ -94,8 +94,7 @@ Y_UNIT_TEST_SUITE(TestFeatureEstimators) {
 
         TVector<TText> texts(numSamples);
         {
-            TText text;
-            text.insert({/*tokenId*/ 0, /*count*/1});
+            TText text({/*tokenId*/ 0});
             Fill(texts.begin(), texts.end(), text);
         }
 
@@ -167,15 +166,15 @@ Y_UNIT_TEST_SUITE(TestFeatureEstimators) {
 
         for (ui32 sampleId: xrange(numSamples)) {
             Y_UNUSED(sampleId);
-            TText text;
+            TVector<ui32> tokenIds;
             for (ui32 tokenId: xrange(dictionarySize)) {
                 double real1 = rng.GenRandReal1();
                 if (real1 > 0.5) {
-                    text.insert({tokenId, static_cast<ui32>(real1 * 10)});
+                    tokenIds.push_back(tokenId);
                     dictionaryBuilder.Add(ToString(tokenId));
                 }
             }
-            texts[sampleId] = text;
+            texts[sampleId] = TText{std::move(tokenIds)};
         }
 
         TDictionaryPtr dictionary = new TDictionaryProxy(dictionaryBuilder.FinishBuilding());

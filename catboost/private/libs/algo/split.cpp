@@ -107,4 +107,5 @@ int GetBucketCount(
         case ESplitEnsembleType::FeaturesGroup:
             return featuresGroups[splitEnsemble.FeaturesGroupRef.GroupIdx].TotalBucketCount;
     }
+    Y_UNREACHABLE();
 }

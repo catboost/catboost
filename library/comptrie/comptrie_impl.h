@@ -66,6 +66,12 @@ namespace NCompTriePrivate {
     struct TStringForChar<wchar16> {
         typedef TUtf16String TResult;
     };
+
+    template <>
+    struct TStringForChar<wchar32> {
+        typedef TUtf32String TResult;
+    };
+
 }
 
 namespace NCompTriePrivate {

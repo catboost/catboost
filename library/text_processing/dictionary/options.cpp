@@ -3,20 +3,44 @@
 #include <util/string/cast.h>
 #include <tuple>
 
+static const TString TOKEN_LEVEL_TYPE = "token_level_type";
+static const TString GRAM_ORDER = "gram_order";
+static const TString SKIP_STEP = "skip_step";
+static const TString START_TOKEN_ID = "start_token_id";
+static const TString END_OF_WORD_TOKEN_POLICY = "end_of_word_token_policy";
+static const TString END_OF_SENTENCE_TOKEN_POLICY = "end_of_sentence_token_policy";
+static const TString OCCURRENCE_LOWER_BOUND = "occurrence_lower_bound";
+static const TString MAX_DICTIONARY_SIZE = "max_dictionary_size";
+
 namespace NTextProcessing::NDictionary {
     template <typename TType>
     static void SetOption(const TType& value, const TString& name, NJson::TJsonValue* optionsJson) {
         (*optionsJson)[name] = ToString(value);
     }
 
+    void DictionaryOptionsToJson(const TDictionaryOptions& options, NJson::TJsonValue* optionsJson) {
+        SetOption(options.TokenLevelType, TOKEN_LEVEL_TYPE, optionsJson);
+        SetOption(options.GramOrder, GRAM_ORDER, optionsJson);
+        SetOption(options.SkipStep, SKIP_STEP, optionsJson);
+        SetOption(options.StartTokenId, START_TOKEN_ID, optionsJson);
+        SetOption(options.EndOfWordTokenPolicy, END_OF_WORD_TOKEN_POLICY, optionsJson);
+        SetOption(options.EndOfSentenceTokenPolicy, END_OF_SENTENCE_TOKEN_POLICY, optionsJson);
+    }
+
     NJson::TJsonValue DictionaryOptionsToJson(const TDictionaryOptions& options) {
         NJson::TJsonValue optionsJson;
-        SetOption(options.TokenLevelType, "token_level_type", &optionsJson);
-        SetOption(options.GramOrder, "gram_order", &optionsJson);
-        SetOption(options.SkipStep, "skip_step", &optionsJson);
-        SetOption(options.StartTokenId, "start_token_id", &optionsJson);
-        SetOption(options.EndOfWordTokenPolicy, "end_of_word_token_policy", &optionsJson);
-        SetOption(options.EndOfSentenceTokenPolicy, "end_of_sentence_token_policy", &optionsJson);
+        DictionaryOptionsToJson(options, &optionsJson);
+        return optionsJson;
+    }
+
+    void DictionaryBuilderOptionsToJson(const TDictionaryBuilderOptions& options, NJson::TJsonValue* optionsJson) {
+        SetOption(options.OccurrenceLowerBound, OCCURRENCE_LOWER_BOUND, optionsJson);
+        SetOption(options.MaxDictionarySize, MAX_DICTIONARY_SIZE, optionsJson);
+    }
+
+    NJson::TJsonValue DictionaryBuilderOptionsToJson(const TDictionaryBuilderOptions& options) {
+        NJson::TJsonValue optionsJson;
+        DictionaryBuilderOptionsToJson(options, &optionsJson);
         return optionsJson;
     }
 
@@ -29,32 +53,39 @@ namespace NTextProcessing::NDictionary {
         }
     }
 
+    void JsonToDictionaryOptions(const NJson::TJsonValue& optionsJson, TDictionaryOptions* options) {
+        GetOption(optionsJson, TOKEN_LEVEL_TYPE, &options->TokenLevelType);
+        GetOption(optionsJson, GRAM_ORDER, &options->GramOrder);
+        GetOption(optionsJson, SKIP_STEP, &options->SkipStep);
+        GetOption(optionsJson, START_TOKEN_ID, &options->StartTokenId);
+        GetOption(optionsJson, END_OF_WORD_TOKEN_POLICY, &options->EndOfWordTokenPolicy);
+        GetOption(optionsJson, END_OF_SENTENCE_TOKEN_POLICY, &options->EndOfSentenceTokenPolicy);
+    }
+
     TDictionaryOptions JsonToDictionaryOptions(const NJson::TJsonValue& optionsJson) {
         TDictionaryOptions options;
-        GetOption(optionsJson, "token_level_type", &options.TokenLevelType);
-        GetOption(optionsJson, "gram_order", &options.GramOrder);
-        GetOption(optionsJson, "skip_step", &options.SkipStep);
-        GetOption(optionsJson, "start_token_id", &options.StartTokenId);
-        GetOption(optionsJson, "end_of_word_token_policy", &options.EndOfWordTokenPolicy);
-        GetOption(optionsJson, "end_of_sentence_token_policy", &options.EndOfSentenceTokenPolicy);
+        JsonToDictionaryOptions(optionsJson, &options);
+        return options;
+    }
+
+    void JsonToDictionaryBuilderOptions(const NJson::TJsonValue& optionsJson, TDictionaryBuilderOptions* options) {
+        GetOption(optionsJson, OCCURRENCE_LOWER_BOUND, &options->OccurrenceLowerBound);
+        GetOption(optionsJson, MAX_DICTIONARY_SIZE, &options->MaxDictionarySize);
+    }
+
+    TDictionaryBuilderOptions JsonToDictionaryBuliderOptions(const NJson::TJsonValue& optionsJson) {
+        TDictionaryBuilderOptions options;
+        JsonToDictionaryBuilderOptions(optionsJson, &options);
         return options;
     }
 
     bool TDictionaryOptions::operator==(const TDictionaryOptions& rhs) const {
         return std::tie(
-            TokenLevelType,
-            GramOrder,
-            SkipStep,
-            StartTokenId,
-            EndOfWordTokenPolicy,
-            EndOfSentenceTokenPolicy) ==
-            std::tie(
-                rhs.TokenLevelType,
-                rhs.GramOrder,
-                rhs.SkipStep,
-                rhs.StartTokenId,
-                rhs.EndOfWordTokenPolicy,
-                rhs.EndOfSentenceTokenPolicy);
+            TokenLevelType, GramOrder, SkipStep, StartTokenId, EndOfWordTokenPolicy, EndOfSentenceTokenPolicy
+        ) == std::tie(
+            rhs.TokenLevelType, rhs.GramOrder, rhs.SkipStep, rhs.StartTokenId, rhs.EndOfWordTokenPolicy,
+            rhs.EndOfSentenceTokenPolicy
+        );
     }
 
     bool TDictionaryOptions::operator!=(const NTextProcessing::NDictionary::TDictionaryOptions& rhs) const {

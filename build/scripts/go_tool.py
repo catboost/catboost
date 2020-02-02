@@ -327,7 +327,12 @@ def do_link_exe(args):
     cmd += ['-buildmode=exe', '-extld={}'.format(args.extld)]
     extldflags = []
     if args.extldflags is not None:
-        extldflags += args.extldflags
+        filter_musl = None
+        if args.musl:
+            cmd.append('-linkmode=external')
+            extldflags.append('-static')
+            filter_musl = lambda x: not x in ('-lc', '-ldl', '-lm', '-lpthread', '-lrt')
+        extldflags += list(filter(filter_musl, args.extldflags))
     if args.cgo_peers is not None and len(args.cgo_peers) > 0:
         is_group = args.targ_os == 'linux'
         if is_group:
@@ -442,10 +447,17 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
     if test_main_package is None:
         lines.append('    "os"')
     lines.extend(['    "testing"', '    "testing/internal/testdeps"'])
+
     if len(tests) > 0:
         lines.append('    _test "{}"'.format(test_module_path))
+    elif test_lib_args:
+        lines.append('    _ "{}"'.format(test_module_path))
+
     if len(xtests) > 0:
         lines.append('    _xtest "{}"'.format(xtest_module_path))
+    elif xtest_lib_args:
+        lines.append('    _ "{}"'.format(xtest_module_path))
+
     if is_cover:
         lines.append('    _cover0 "{}"'.format(test_module_path))
     lines.extend([')', ''])
@@ -576,6 +588,7 @@ if __name__ == '__main__':
     parser.add_argument('++vet', nargs='?', const=True, default=False)
     parser.add_argument('++vet-flags', nargs='*', default=None)
     parser.add_argument('++arc-source-root')
+    parser.add_argument('++musl', action='store_true')
     args = parser.parse_args()
 
     # Temporary work around for noauto

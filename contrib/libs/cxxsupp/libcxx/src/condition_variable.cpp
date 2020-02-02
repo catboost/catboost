@@ -15,6 +15,10 @@
 #include "system_error"
 #include "__undef_macros"
 
+#if defined(__unix__) &&  defined(__ELF__) && defined(_LIBCPP_HAS_COMMENT_LIB_PRAGMA)
+#pragma comment(lib, "pthread")
+#endif
+
 _LIBCPP_BEGIN_NAMESPACE_STD
 
 condition_variable::~condition_variable()
@@ -56,7 +60,7 @@ condition_variable::__do_timed_wait(unique_lock<mutex>& lk,
     nanoseconds d = tp.time_since_epoch();
     if (d > nanoseconds(0x59682F000000E941))
         d = nanoseconds(0x59682F000000E941);
-    timespec ts;
+    __libcpp_timespec_t ts;
     seconds s = duration_cast<seconds>(d);
     typedef decltype(ts.tv_sec) ts_sec;
     _LIBCPP_CONSTEXPR ts_sec ts_sec_max = numeric_limits<ts_sec>::max();

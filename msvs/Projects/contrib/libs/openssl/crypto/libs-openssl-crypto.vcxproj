@@ -2774,6 +2774,14 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\aria.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\asn1_int.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\async.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_conf-android-arm.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_conf-android-arm64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_conf-android-i686.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_conf-android-x86_64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_conf-ios-arm64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_conf-ios-armv7.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_conf-ios-i386.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_conf-ios-x86_64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_conf-osx-linux_aarch64-linux.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_conf-win.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\crypto\include\internal\bn_conf.h"/>

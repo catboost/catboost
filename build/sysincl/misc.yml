@@ -448,7 +448,6 @@
     - google/protobuf/descriptor.h
     - google/protobuf/descriptor.pb.h
     - gperftools/malloc_extension.h
-    - h3api.h
     - hdfs/hdfs.h
     - hs.h
     - hs/hs.h
@@ -518,3 +517,30 @@
 - source_filter: "^contrib/tools/fluent-bit"
   includes:
     - backtrace.h: contrib/tools/fluent-bit/lib/libbacktrace-5a99ff7f/backtrace.h
+
+- source_filter: "^contrib/restricted/libelf"
+  includes:
+    - byteswap.h: contrib/restricted/libelf/lib/byteswap.h
+    - gelf.h: contrib/restricted/libelf/lib/gelf.h
+    - libelf.h: contrib/restricted/libelf/lib/libelf.h
+    - libelf/libelf.h: contrib/restricted/libelf/include/libelf/libelf.h
+    - libelf/sys_elf.h: contrib/restricted/libelf/include/libelf/sys_elf.h
+    - nlist.h: contrib/restricted/libelf/lib/nlist.h
+    - sys_elf.h: contrib/restricted/libelf/lib/sys_elf.h
+
+- source_filter: "^contrib/libs/libbpf"
+  includes:
+    - gelf.h: contrib/restricted/libelf/include/libelf/gelf.h
+    - libelf.h: contrib/restricted/libelf/include/libelf/libelf.h
+    - linux/compiler.h: contrib/libs/libbpf/include/linux/compiler.h
+    - linux/filter.h: contrib/libs/libbpf/include/linux/filter.h
+    - linux/netlink.h: contrib/libs/libbpf/include/uapi/linux/netlink.h
+    - linux/types.h: contrib/libs/libbpf/include/linux/types.h
+
+- source_filter: "^contrib/libs/libmnl"
+  includes:
+    - linux/socket.h: contrib/libs/libmnl/include/linux/socket.h
+
+- source_filter: "^vendor/github.com/iovisor/gobpf/elf"
+  includes:
+    - linux/perf_event.h: vendor/github.com/iovisor/gobpf/elf/include/uapi/linux/perf_event.h

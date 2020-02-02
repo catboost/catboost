@@ -17,6 +17,7 @@ PEERDIR(
     catboost/libs/metrics
     catboost/private/libs/options
     library/binsaver
+    library/json
     library/par
 )
 

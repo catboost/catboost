@@ -521,6 +521,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\openssl\method\library-openssl-method.vcxproj">
       <Project>{EBC3626B-F273-EB61-E7BE-9BBC217D8FB4}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
+      <Project>{2CE71367-048B-26B0-2DAC-CA9BB7D00E76}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\par\library-par.vcxproj">
       <Project>{33DA38DE-6DFE-3983-55A4-A689CCC58EFD}</Project>
     </ProjectReference>

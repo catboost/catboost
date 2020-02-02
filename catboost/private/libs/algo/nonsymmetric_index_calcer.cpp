@@ -166,26 +166,53 @@ void BuildIndicesForDataset(
     NPar::TLocalExecutor* localExecutor,
     TIndexType* indices) {
 
-    TVector<std::function<bool(ui32 objIdx)>> nodesSplitFunctions;
-    nodesSplitFunctions.yresize(tree.GetNodesCount());
-    for (auto nodeIdx : xrange(tree.GetNodesCount())) {
-        nodesSplitFunctions[nodeIdx] = BuildNodeSplitFunction(
-            tree.GetNodes()[nodeIdx],
-            objectsDataProvider,
-            onlineCtrs[nodeIdx],
-            docOffset);
+    TIndexedSubset<ui32> columnsIndexingStorage;
+
+    const auto* columnsIndexing
+        = GetIf<TIndexedSubset<ui32>>(&featuresArraySubsetIndexing);
+
+    if (!columnsIndexing) {
+        columnsIndexingStorage.yresize(featuresArraySubsetIndexing.Size());
+        featuresArraySubsetIndexing.ParallelForEach(
+            [columnsIndexingData = columnsIndexingStorage.data()](ui32 idx, ui32 srcIdx) {
+                columnsIndexingData[idx] = srcIdx;
+            },
+            localExecutor);
+        columnsIndexing = &columnsIndexingStorage;
     }
 
     TConstArrayRef<TSplitNode> nodesRef = tree.GetNodes();
+
+    TVector<std::function<bool(ui32 objIdx)>> nodesSplitFunctions;
+    nodesSplitFunctions.yresize(tree.GetNodesCount());
+    for (auto nodeIdx : xrange(tree.GetNodesCount())) {
+        auto func = BuildNodeSplitFunction(
+            nodesRef[nodeIdx],
+            objectsDataProvider,
+            onlineCtrs[nodeIdx],
+            docOffset);
+        if (nodesRef[nodeIdx].Split.Type == ESplitType::OnlineCtr) {
+            nodesSplitFunctions[nodeIdx] = std::move(func);
+        } else {
+            nodesSplitFunctions[nodeIdx] = [realObjIdx = columnsIndexing->data(), func](ui32 idx) {
+                return func(realObjIdx[idx]);
+            };
+        }
+    }
+
     TConstArrayRef<std::function<bool(ui32 objIdx)>> nodesSplitFunctionsRef = nodesSplitFunctions;
     TArrayRef<TIndexType> indicesRef(indices, sampleCount);
 
-    featuresArraySubsetIndexing.ParallelForEach([root= tree.GetRoot(), nodesRef, nodesSplitFunctionsRef, indicesRef](ui32 idx, ui32 objIdx) {
-        int nodeIdx = root;
-        while (nodeIdx >= 0) {
-            const auto& node = nodesRef[nodeIdx];
-            nodeIdx = node.Left + nodesSplitFunctionsRef[nodeIdx](objIdx) * (node.Right - node.Left);
-        }
-        indicesRef[idx] = ~nodeIdx;
-    }, localExecutor);
+    localExecutor->ExecRange(
+        [root=tree.GetRoot(), nodesRef, nodesSplitFunctionsRef, indicesRef](ui32 idx) {
+            int nodeIdx = root;
+            while (nodeIdx >= 0) {
+                const auto& node = nodesRef[nodeIdx];
+                nodeIdx = node.Left + nodesSplitFunctionsRef[nodeIdx](idx) * (node.Right - node.Left);
+            }
+            indicesRef[idx] = ~nodeIdx;
+        },
+        0,
+        sampleCount,
+        NPar::TLocalExecutor::WAIT_COMPLETE);
 }

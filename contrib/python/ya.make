@@ -25,6 +25,12 @@ RECURSE(
     subprocess32
 )
 
+IF (OS_WINDOWS)
+    RECURSE(
+    
+)
+ENDIF()
+
 IF (OS_DARWIN)
     RECURSE(
     

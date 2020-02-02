@@ -12,6 +12,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/resource_holder.h>
 #include <catboost/libs/logging/logging.h>
+#include <catboost/private/libs/labels/helpers.h>
 #include <catboost/private/libs/options/restrictions.h>
 #include <catboost/private/libs/quantization/utils.h>
 
@@ -45,7 +46,6 @@ namespace NCB {
             : InBlock(false)
             , ObjectCount(0)
             , CatFeatureCount(0)
-            , TargetDataTypeIsString(false)
             , Cursor(NotSet)
             , NextCursor(0)
             , Options(options)
@@ -60,7 +60,6 @@ namespace NCB {
             bool haveUnknownNumberOfSparseFeatures,
             ui32 objectCount,
             EObjectsOrder objectsOrder,
-            bool targetDataTypeIsString,
 
             // keep necessary resources for data to be available (memory mapping for a file for example)
             TVector<TIntrusivePtr<IResourceHolder>> resourceHolders
@@ -113,11 +112,26 @@ namespace NCB {
             prepareFeaturesStorage(CatFeaturesStorage);
             prepareFeaturesStorage(TextFeaturesStorage);
 
-            TargetDataTypeIsString = targetDataTypeIsString;
-            if (TargetDataTypeIsString) {
-                PrepareForInitialization(Data.MetaInfo.TargetCount, ObjectCount, prevTailSize, &StringTarget);
-            } else {
-                PrepareForInitialization(Data.MetaInfo.TargetCount, ObjectCount, prevTailSize, &FloatTarget);
+            switch (Data.MetaInfo.TargetType) {
+                case ERawTargetType::Float:
+                case ERawTargetType::Integer:
+                    PrepareForInitialization(
+                        Data.MetaInfo.TargetCount,
+                        ObjectCount,
+                        prevTailSize,
+                        &FloatTarget
+                    );
+                    break;
+                case ERawTargetType::String:
+                    PrepareForInitialization(
+                        Data.MetaInfo.TargetCount,
+                        ObjectCount,
+                        prevTailSize,
+                        &StringTarget
+                    );
+                    break;
+                default:
+                    ;
             }
 
             if (metaInfo.HasWeights) {
@@ -268,11 +282,14 @@ namespace NCB {
             AddTarget(0, localObjectIdx, value);
         }
         void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, const TString& value) override {
-            Y_ASSERT(TargetDataTypeIsString);
+            Y_ASSERT(Data.MetaInfo.TargetType == ERawTargetType::String);
             StringTarget[flatTargetIdx][Cursor + localObjectIdx] = value;
         }
         void AddTarget(ui32 flatTargetIdx, ui32 localObjectIdx, float value) override {
-            Y_ASSERT(!TargetDataTypeIsString);
+            Y_ASSERT(
+                (Data.MetaInfo.TargetType == ERawTargetType::Float) ||
+                (Data.MetaInfo.TargetType == ERawTargetType::Integer)
+            );
             FloatTarget[flatTargetIdx][Cursor + localObjectIdx] = value;
         }
         void AddBaseline(ui32 localObjectIdx, ui32 baselineIdx, float value) override {
@@ -339,7 +356,7 @@ namespace NCB {
 
             if (InBlock && Data.MetaInfo.HasGroupId) {
                 // copy, not move target & weights buffers
-                if (TargetDataTypeIsString) {
+                if (Data.MetaInfo.TargetType == ERawTargetType::String) {
                     for (auto targetIdx : xrange(Data.MetaInfo.TargetCount)) {
                         Data.TargetData.Target[targetIdx] = StringTarget[targetIdx];
                     }
@@ -366,7 +383,7 @@ namespace NCB {
                     );
                 }
             } else {
-                if (TargetDataTypeIsString) {
+                if (Data.MetaInfo.TargetType == ERawTargetType::String) {
                     for (auto targetIdx : xrange(Data.MetaInfo.TargetCount)) {
                         Data.TargetData.Target[targetIdx] = std::move(StringTarget[targetIdx]);
                     }
@@ -876,8 +893,6 @@ namespace NCB {
 
         TRawBuilderData Data;
 
-        bool TargetDataTypeIsString;
-
         // will be moved to Data.RawTargetData at GetResult
         TVector<TVector<TString>> StringTarget;
         TVector<TVector<float>> FloatTarget;
@@ -1236,7 +1251,6 @@ namespace NCB {
             NPar::TLocalExecutor* localExecutor
         )
             : ObjectCount(0)
-            , TargetDataTypeIsString(false)
             , Options(options)
             , DatasetSubset(loadSubset)
             , LocalExecutor(localExecutor)
@@ -1248,7 +1262,6 @@ namespace NCB {
             const TDataMetaInfo& metaInfo,
             ui32 objectCount,
             EObjectsOrder objectsOrder,
-            bool targetDataTypeIsString,
 
             // keep necessary resources for data to be available (memory mapping for a file for example)
             TVector<TIntrusivePtr<IResourceHolder>> resourceHolders,
@@ -1259,6 +1272,55 @@ namespace NCB {
 
             CB_ENSURE(!poolQuantizationSchema.FeatureIndices.empty(), "No features in quantized pool!");
 
+            TConstArrayRef<NJson::TJsonValue> schemaClassLabels = poolQuantizationSchema.ClassLabels;
+
+            if (metaInfo.TargetType == ERawTargetType::String) {
+                CB_ENSURE(
+                    !schemaClassLabels.empty(),
+                    "poolQuantizationSchema must have class labels when target data type is String"
+                );
+                CB_ENSURE(
+                    schemaClassLabels[0].GetType() == NJson::JSON_STRING,
+                    "poolQuantizationSchema must have string class labels when target data type is String"
+                );
+                StringClassLabels.reserve(schemaClassLabels.size());
+                for (const NJson::TJsonValue& classLabel : schemaClassLabels) {
+                    StringClassLabels.push_back(classLabel.GetString());
+                }
+            } else if ((metaInfo.TargetType != ERawTargetType::None) && !schemaClassLabels.empty()) {
+                FloatClassLabels.reserve(schemaClassLabels.size());
+                switch (schemaClassLabels[0].GetType()) {
+                    case NJson::JSON_INTEGER:
+                        CB_ENSURE_INTERNAL(
+                            metaInfo.TargetType == ERawTargetType::Integer,
+                            "metaInfo.TargetType (" << metaInfo.TargetType
+                            << ") is inconsistent with schemaClassLabels type ("
+                            << schemaClassLabels[0].GetType() << ')'
+                        );
+                        for (const NJson::TJsonValue& classLabel : schemaClassLabels) {
+                            FloatClassLabels.push_back(static_cast<float>(classLabel.GetInteger()));
+                        }
+                        break;
+                    case NJson::JSON_DOUBLE:
+                        CB_ENSURE_INTERNAL(
+                            metaInfo.TargetType == ERawTargetType::Float,
+                            "metaInfo.TargetType (" << metaInfo.TargetType
+                            << ") is inconsistent with schemaClassLabels type ("
+                            << schemaClassLabels[0].GetType() << ')'
+                        );
+                        for (const NJson::TJsonValue& classLabel : schemaClassLabels) {
+                            FloatClassLabels.push_back(static_cast<float>(classLabel.GetDouble()));
+                        }
+                        break;
+                    default:
+                        CB_ENSURE_INTERNAL(
+                            false,
+                            "Unexpected JSON label type for numeric target type : "
+                            << schemaClassLabels[0].GetType()
+                        );
+                }
+            }
+
             InProcess = true;
             ResultTaken = false;
 
@@ -1266,13 +1328,16 @@ namespace NCB {
 
             Data.MetaInfo = metaInfo;
 
-            if (Data.MetaInfo.ClassNames.empty()) {
-                Data.MetaInfo.ClassNames = poolQuantizationSchema.ClassNames;
+            if (Data.MetaInfo.ClassLabels.empty()) {
+                Data.MetaInfo.ClassLabels.assign(schemaClassLabels.begin(), schemaClassLabels.end());
             } else {
-                size_t prefixLength = Min(Data.MetaInfo.ClassNames.size(), poolQuantizationSchema.ClassNames.size());
-                auto firstGivenNames = TConstArrayRef<TString>(Data.MetaInfo.ClassNames.begin(), Data.MetaInfo.ClassNames.begin() + prefixLength);
-                CB_ENSURE(firstGivenNames == TConstArrayRef<TString>(poolQuantizationSchema.ClassNames),
-                          "Class-names incompatible with quantized pool, expected: " << JoinSeq(",", poolQuantizationSchema.ClassNames));
+                size_t prefixLength = Min(Data.MetaInfo.ClassLabels.size(), schemaClassLabels.size());
+                auto firstGivenLabels = TConstArrayRef<NJson::TJsonValue>(
+                    Data.MetaInfo.ClassLabels.begin(),
+                    Data.MetaInfo.ClassLabels.begin() + prefixLength
+                );
+                CB_ENSURE(firstGivenLabels == schemaClassLabels,
+                          "Class-names incompatible with quantized pool, expected: " << JoinSeq(",", schemaClassLabels));
             }
 
             Data.TargetData.PrepareForInitialization(metaInfo, objectCount, 0);
@@ -1335,8 +1400,7 @@ namespace NCB {
                 );
             }
 
-            TargetDataTypeIsString = targetDataTypeIsString;
-            if (TargetDataTypeIsString) {
+            if (Data.MetaInfo.TargetType == ERawTargetType::String) {
                 PrepareForInitialization(
                     Data.MetaInfo.TargetCount,
                     ObjectCount,
@@ -1427,7 +1491,7 @@ namespace NCB {
         }
 
         void AddTargetPart(ui32 flatTargetIdx, ui32 objectOffset, TMaybeOwningConstArrayHolder<TString> targetPart) override {
-            Y_ASSERT(TargetDataTypeIsString);
+            Y_ASSERT(Data.MetaInfo.TargetType == ERawTargetType::String);
             Copy(
                 (*targetPart).begin(),
                 (*targetPart).end(),
@@ -1436,19 +1500,33 @@ namespace NCB {
         }
 
         void AddTargetPart(ui32 flatTargetIdx, ui32 objectOffset, TUnalignedArrayBuf<float> targetPart) override {
-            if (Data.MetaInfo.ClassNames) {
-                Y_ASSERT(TargetDataTypeIsString);
-                auto& target = StringTarget[flatTargetIdx];
-                for (auto it = targetPart.GetIterator(); !it.AtEnd(); it.Next(), ++objectOffset) {
-                    target[objectOffset] = Data.MetaInfo.ClassNames[int(it.Cur())];
-                }
-            } else {
-                Y_ASSERT(!TargetDataTypeIsString);
-                TArrayRef<float> dstPart(
-                    FloatTarget[flatTargetIdx].data() + objectOffset,
-                    targetPart.GetSize()
+            if (!StringClassLabels.empty()) {
+                Y_ASSERT(Data.MetaInfo.TargetType == ERawTargetType::String);
+                AddTargetPartWithClassLabels<TString>(
+                    objectOffset,
+                    targetPart,
+                    StringClassLabels,
+                    StringTarget[flatTargetIdx]
                 );
-                targetPart.WriteTo(&dstPart);
+            } else {
+                Y_ASSERT(
+                    (Data.MetaInfo.TargetType == ERawTargetType::Integer) ||
+                    (Data.MetaInfo.TargetType == ERawTargetType::Float)
+                );
+                if (!FloatClassLabels.empty()) {
+                    AddTargetPartWithClassLabels<float>(
+                       objectOffset,
+                       targetPart,
+                       FloatClassLabels,
+                       FloatTarget[flatTargetIdx]
+                   );
+                } else {
+                    TArrayRef<float> dstPart(
+                        FloatTarget[flatTargetIdx].data() + objectOffset,
+                        targetPart.GetSize()
+                    );
+                    targetPart.WriteTo(&dstPart);
+                }
             }
         }
 
@@ -1510,7 +1588,7 @@ namespace NCB {
             CB_ENSURE_INTERNAL(!InProcess, "Attempt to GetResult before finishing processing");
             CB_ENSURE_INTERNAL(!ResultTaken, "Attempt to GetResult several times");
 
-            if (TargetDataTypeIsString) {
+            if (Data.MetaInfo.TargetType == ERawTargetType::String) {
                 for (auto targetIdx : xrange(Data.MetaInfo.TargetCount)) {
                     Data.TargetData.Target[targetIdx] = std::move(StringTarget[targetIdx]);
                 }
@@ -1691,6 +1769,18 @@ namespace NCB {
                         Data.CommonObjectsData.SubsetIndexing.Get()
                     )
                 );
+            }
+        }
+
+        template <class T>
+        static void AddTargetPartWithClassLabels(
+            ui32 objectOffset,
+            TUnalignedArrayBuf<float> targetPart,
+            TConstArrayRef<T> classLabels,
+            TArrayRef<T> target
+        ) {
+            for (auto it = targetPart.GetIterator(); !it.AtEnd(); it.Next(), ++objectOffset) {
+                target[objectOffset] = classLabels[int(it.Cur())];
             }
         }
 
@@ -1937,7 +2027,8 @@ namespace NCB {
          */
         TQuantizedForCPUBuilderData Data;
 
-        bool TargetDataTypeIsString;
+        TVector<TString> StringClassLabels; // if poolQuantizationSchema.ClassLabels has Strings
+        TVector<float> FloatClassLabels;    // if poolQuantizationSchema.ClassLabels has Integer or Float
 
         // will be moved to Data.RawTargetData at GetResult
         TVector<TVector<TString>> StringTarget;

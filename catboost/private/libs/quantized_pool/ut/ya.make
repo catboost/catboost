@@ -18,6 +18,8 @@ PEERDIR(
     catboost/private/libs/quantization_schema
 
     contrib/libs/flatbuffers
+
+    library/json
 )
 
 END()

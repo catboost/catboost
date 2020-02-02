@@ -96,6 +96,8 @@ RECURSE(
     object_factory/ut
     on_disk
     openssl
+    overloaded
+    overloaded/ut
     packers
     packers/ut
     par
@@ -161,13 +163,5 @@ IF (NOT SANITIZER_TYPE)
     
 )
 ENDIF()
-
-CHECK_DEPENDENT_DIRS(
-    ALLOW_ONLY
-    library
-    contrib
-    util
-    yweb/config
-)
 
 NEED_CHECK()

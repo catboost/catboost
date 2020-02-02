@@ -73,6 +73,11 @@ enum class EScoreFunction {
     L2
 };
 
+enum class EModelShrinkMode {
+    Constant,
+    Decreasing
+};
+
 enum class EBootstrapType {
     Poisson,
     Bayesian,
@@ -322,5 +327,12 @@ namespace NCB {
         OneVsOthers,
         OneVsAll,
         OthersVsAll
+    };
+
+    enum class ERawTargetType : ui32 {
+        Integer,
+        Float,
+        String,
+        None
     };
 }

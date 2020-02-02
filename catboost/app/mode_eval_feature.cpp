@@ -61,14 +61,14 @@ int mode_eval_feature(int argc, const char* argv[]) {
 
     NPar::LocalExecutor().RunAdditionalThreads(catBoostOptions.SystemOptions->NumThreads - 1);
 
-    TVector<TString> classNames = catBoostOptions.DataProcessingOptions->ClassNames;
+    TVector<NJson::TJsonValue> classLabels = catBoostOptions.DataProcessingOptions->ClassLabels;
     const auto objectsOrder = EObjectsOrder::Undefined;
     auto pools = NCB::ReadTrainDatasets(
         poolLoadParams,
         objectsOrder,
         /*readTestData*/false,
         TDatasetSubset::MakeColumns(),
-        &classNames,
+        &classLabels,
         &NPar::LocalExecutor(),
         /*profile*/nullptr
     );

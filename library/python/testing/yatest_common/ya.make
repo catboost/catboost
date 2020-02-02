@@ -29,6 +29,7 @@ PEERDIR(
     library/python/coredump_filter
     library/python/cores
     library/python/filelock
+    library/python/fs
 )
 
 NO_LINT()

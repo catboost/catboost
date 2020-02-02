@@ -28,6 +28,7 @@ static TDataProviderPtr SmallFloatPool(EWeightsMode addWeights, ETargetDimMode m
     return CreateDataProvider(
         [&] (IRawFeaturesOrderDataVisitor* visitor) {
             TDataMetaInfo metaInfo;
+            metaInfo.TargetType = multiclass ? ERawTargetType::String : ERawTargetType::Float;
             metaInfo.TargetCount = 1;
             metaInfo.HasWeights = addWeights;
             metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(

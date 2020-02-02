@@ -48,43 +48,65 @@ static void GetContainerOption(const NJson::TJsonValue& optionsJson, const TStri
     }
 }
 
-NJson::TJsonValue NTextProcessing::NTokenizer::TokenizerOptionsToJson(const TTokenizerOptions& options) {
-    NJson::TJsonValue optionsJson;
-    SetOption(options.Lowercasing, LOWERCASING_OPTION_NAME, &optionsJson);
-    SetOption(options.Lemmatizing, LEMMATIZING_OPTION_NAME, &optionsJson);
-    SetOption(options.NumberProcessPolicy, NUMBER_PROCESS_POLICY_OPTION_NAME, &optionsJson);
-    SetOption(options.NumberToken, NUMBER_TOKEN_OPTION_NAME, &optionsJson);
-    SetOption(options.SeparatorType, SEPARATOR_TYPE_OPTION_NAME, &optionsJson);
-    SetOption(options.Delimiter, DELIMITER_OPTION_NAME, &optionsJson);
-    SetOption(options.SplitBySet, SPLIT_BY_SET_OPTION_NAME, &optionsJson);
-    SetOption(options.SkipEmpty, SKIP_EMPTY_OPTION_NAME, &optionsJson);
-    SetContainerOption(options.TokenTypes, TOKEN_TYPES_OPTION_NAME, &optionsJson);
-    SetOption(options.SubTokensPolicy, SUBTOKENS_POLICY_OPTION_NAME, &optionsJson);
+void NTextProcessing::NTokenizer::TokenizerOptionsToJson(const TTokenizerOptions& options, NJson::TJsonValue* optionsJson) {
+    SetOption(options.Lowercasing, LOWERCASING_OPTION_NAME, optionsJson);
+    SetOption(options.Lemmatizing, LEMMATIZING_OPTION_NAME, optionsJson);
+    SetOption(options.NumberProcessPolicy, NUMBER_PROCESS_POLICY_OPTION_NAME, optionsJson);
+    SetOption(options.NumberToken, NUMBER_TOKEN_OPTION_NAME, optionsJson);
+    SetOption(options.SeparatorType, SEPARATOR_TYPE_OPTION_NAME, optionsJson);
+    SetOption(options.Delimiter, DELIMITER_OPTION_NAME, optionsJson);
+    SetOption(options.SplitBySet, SPLIT_BY_SET_OPTION_NAME, optionsJson);
+    SetOption(options.SkipEmpty, SKIP_EMPTY_OPTION_NAME, optionsJson);
+    SetContainerOption(options.TokenTypes, TOKEN_TYPES_OPTION_NAME, optionsJson);
+    SetOption(options.SubTokensPolicy, SUBTOKENS_POLICY_OPTION_NAME, optionsJson);
     TVector<TString> stringLanguages;
     for (const auto& language : options.Languages) {
         stringLanguages.push_back(FullNameByLanguage(language));
     }
-    SetContainerOption(stringLanguages, LANGUAGES_OPTION_NAME, &optionsJson);
+    SetContainerOption(stringLanguages, LANGUAGES_OPTION_NAME, optionsJson);
+}
+
+void NTextProcessing::NTokenizer::JsonToTokenizerOptions(const NJson::TJsonValue& optionsJson, TTokenizerOptions* options) {
+    GetOption(optionsJson, LOWERCASING_OPTION_NAME, &options->Lowercasing);
+    GetOption(optionsJson, LEMMATIZING_OPTION_NAME, &options->Lemmatizing);
+    GetOption(optionsJson, NUMBER_PROCESS_POLICY_OPTION_NAME, &options->NumberProcessPolicy);
+    GetOption(optionsJson, NUMBER_TOKEN_OPTION_NAME, &options->NumberToken);
+    GetOption(optionsJson, SEPARATOR_TYPE_OPTION_NAME, &options->SeparatorType);
+    GetOption(optionsJson, DELIMITER_OPTION_NAME, &options->Delimiter);
+    GetOption(optionsJson, SPLIT_BY_SET_OPTION_NAME, &options->SplitBySet);
+    GetOption(optionsJson, SKIP_EMPTY_OPTION_NAME, &options->SkipEmpty);
+    GetContainerOption(optionsJson, TOKEN_TYPES_OPTION_NAME, &options->TokenTypes);
+    GetOption(optionsJson, SUBTOKENS_POLICY_OPTION_NAME, &options->SubTokensPolicy);
+    TVector<TString> stringLanguages;
+    GetContainerOption(optionsJson, LANGUAGES_OPTION_NAME, &stringLanguages);
+    options->Languages.clear();
+    for (const auto& language : stringLanguages) {
+        options->Languages.push_back(LanguageByNameOrDie(language));
+    }
+}
+
+NJson::TJsonValue NTextProcessing::NTokenizer::TokenizerOptionsToJson(const TTokenizerOptions& options) {
+    NJson::TJsonValue optionsJson;
+    TokenizerOptionsToJson(options, &optionsJson);
     return optionsJson;
 }
 
 TTokenizerOptions NTextProcessing::NTokenizer::JsonToTokenizerOptions(const NJson::TJsonValue& optionsJson) {
     TTokenizerOptions options;
-    GetOption(optionsJson, LOWERCASING_OPTION_NAME, &options.Lowercasing);
-    GetOption(optionsJson, LEMMATIZING_OPTION_NAME, &options.Lemmatizing);
-    GetOption(optionsJson, NUMBER_PROCESS_POLICY_OPTION_NAME, &options.NumberProcessPolicy);
-    GetOption(optionsJson, NUMBER_TOKEN_OPTION_NAME, &options.NumberToken);
-    GetOption(optionsJson, SEPARATOR_TYPE_OPTION_NAME, &options.SeparatorType);
-    GetOption(optionsJson, DELIMITER_OPTION_NAME, &options.Delimiter);
-    GetOption(optionsJson, SPLIT_BY_SET_OPTION_NAME, &options.SplitBySet);
-    GetOption(optionsJson, SKIP_EMPTY_OPTION_NAME, &options.SkipEmpty);
-    GetContainerOption(optionsJson, TOKEN_TYPES_OPTION_NAME, &options.TokenTypes);
-    GetOption(optionsJson, SUBTOKENS_POLICY_OPTION_NAME, &options.SubTokensPolicy);
-    TVector<TString> stringLanguages;
-    GetContainerOption(optionsJson, LANGUAGES_OPTION_NAME, &stringLanguages);
-    options.Languages.clear();
-    for (const auto& language : stringLanguages) {
-        options.Languages.push_back(LanguageByNameOrDie(language));
-    }
+    JsonToTokenizerOptions(optionsJson, &options);
     return options;
+}
+
+bool TTokenizerOptions::operator==(const TTokenizerOptions& rhs) const {
+    return std::tie(
+        Lowercasing, Lemmatizing, NumberProcessPolicy, NumberToken, SeparatorType, Delimiter, SplitBySet,
+        SkipEmpty, TokenTypes, SubTokensPolicy, Languages
+    ) == std::tie(
+        rhs.Lowercasing, rhs.Lemmatizing, rhs.NumberProcessPolicy, rhs.NumberToken, rhs.SeparatorType,
+        rhs.Delimiter, rhs.SplitBySet, rhs.SkipEmpty, rhs.TokenTypes, rhs.SubTokensPolicy, rhs.Languages
+    );
+}
+
+bool TTokenizerOptions::operator!=(const TTokenizerOptions& rhs) const {
+    return !(rhs == *this);
 }

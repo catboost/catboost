@@ -28,9 +28,8 @@ public:
         dst->resize(Dim());
         auto& result = *dst;
         double count = 0.5;
-        for (const auto& [token, tokenCount] : text) {
-            Y_UNUSED(tokenCount);
-            auto embedding = Embedding.find(token);
+        for (const auto& tokenToCount : text) {
+            auto embedding = Embedding.find(tokenToCount.Token());
             if (embedding != Embedding.end()) {
                 AddVector(embedding->second, result);
                 ++count;

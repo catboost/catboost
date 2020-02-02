@@ -2,6 +2,10 @@
 
 #include <catboost/libs/data/target.h>
 
+#include <catboost/private/libs/options/enums.h>
+
+#include <library/json/json_value.h>
+
 #include <util/generic/fwd.h>
 #include <util/generic/maybe.h>
 #include <util/generic/ptr.h>
@@ -25,12 +29,14 @@ namespace NCB {
     public:
         virtual ~ITargetConverter() = default;
 
-        virtual TVector<float> Process(const TRawTarget& rawTarget, NPar::TLocalExecutor* localExecutor) = 0;
+        virtual TVector<float> Process(ERawTargetType targetType,
+                                       const TRawTarget& rawTarget,
+                                       NPar::TLocalExecutor* localExecutor) = 0;
 
         // call after all processing
         virtual ui32 GetClassCount() const = 0;
 
-        virtual TMaybe<TVector<TString>> GetClassNames() {
+        virtual TMaybe<TVector<NJson::TJsonValue>> GetClassLabels() {
             return Nothing();
         }
     };
@@ -44,6 +50,6 @@ namespace NCB {
                                                   bool isMultiClass,
                                                   TMaybe<float> targetBorder,
                                                   TMaybe<ui32> classCount,
-                                                  const TVector<TString>& inputClassNames);
+                                                  const TVector<NJson::TJsonValue>& inputClassNames);
 
 }

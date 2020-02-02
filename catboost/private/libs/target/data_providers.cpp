@@ -9,10 +9,11 @@
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/json_helper.h>
-#include <catboost/private/libs/options/multiclass_label_options.h>
+#include <catboost/private/libs/options/class_label_options.h>
 #include <catboost/private/libs/options/data_processing_options.h>
 #include <catboost/private/libs/pairs/util.h>
 
+#include <util/generic/algorithm.h>
 #include <util/generic/cast.h>
 #include <util/generic/mapfindptr.h>
 #include <util/generic/maybe.h>
@@ -31,13 +32,14 @@ namespace NCB {
     // can be empty if target data is unavailable
     static TVector<TSharedVector<float>> ConvertTarget(
         TMaybeData<TConstArrayRef<TRawTarget>> maybeRawTarget,
+        ERawTargetType targetType,
         bool isRealTarget,
         bool isClass,
         bool isMultiClass,
         TMaybe<float> targetBorder,
         bool classCountUnknown,
-        const TVector<TString> inputClassNames,
-        TVector<TString>* outputClassNames,
+        const TVector<NJson::TJsonValue> inputClassLabels,
+        TVector<NJson::TJsonValue>* outputClassLabels,
         NPar::TLocalExecutor* localExecutor,
         ui32* classCount)
     {
@@ -53,7 +55,7 @@ namespace NCB {
             isMultiClass,
             targetBorder,
             classCountUnknown ? Nothing() : TMaybe<ui32>(*classCount),
-            inputClassNames);
+            inputClassLabels);
 
         const auto targetDim = rawTarget.size();
         TVector<TSharedVector<float>> trainingTarget(targetDim);
@@ -63,15 +65,15 @@ namespace NCB {
 
         // TODO(akhropov): Process multidimensional target columns in parallel when possible
         for (auto targetIdx : xrange(targetDim)) {
-            *trainingTarget[targetIdx] = targetConverter->Process(rawTarget[targetIdx], localExecutor);
+            *trainingTarget[targetIdx] = targetConverter->Process(targetType, rawTarget[targetIdx], localExecutor);
         }
 
         if (isMultiClass && classCountUnknown) {
             *classCount = targetConverter->GetClassCount();
         }
-        TMaybe<TVector<TString>> maybeOutputClassNames = targetConverter->GetClassNames();
-        if (maybeOutputClassNames) {
-            *outputClassNames = std::move(*maybeOutputClassNames);
+        TMaybe<TVector<NJson::TJsonValue>> maybeOutputClassLabels = targetConverter->GetClassLabels();
+        if (maybeOutputClassLabels) {
+            *outputClassLabels = std::move(*maybeOutputClassLabels);
         }
 
         return trainingTarget;
@@ -353,7 +355,7 @@ namespace NCB {
             hasClassificationOnlyMetrics ||
             knownClassCount ||
             (inputClassificationInfo.ClassWeights.size() > 0) ||
-            (inputClassificationInfo.ClassNames.size() > 0)
+            (inputClassificationInfo.ClassLabels.size() > 0)
         );
         bool multiClassTargetData = false;
 
@@ -382,7 +384,7 @@ namespace NCB {
         } else if (hasMultiClassOnlyMetrics ||
             (knownClassCount && *knownClassCount > 2) ||
             (inputClassificationInfo.ClassWeights.size() > 2) ||
-            (inputClassificationInfo.ClassNames.size() > 2))
+            (inputClassificationInfo.ClassLabels.size() > 2))
         {
             multiClassTargetData = true;
         }
@@ -403,7 +405,7 @@ namespace NCB {
             }
         }
 
-        ui32 classCount = (ui32)GetClassesCount(knownClassCount.GetOrElse(0), inputClassificationInfo.ClassNames);
+        ui32 classCount = (ui32)GetClassesCount(knownClassCount.GetOrElse(0), inputClassificationInfo.ClassLabels);
         TTargetCreationOptions options = {
             /*IsClass*/ classTargetData,
             /*IsMultiClass*/ multiClassTargetData,
@@ -531,13 +533,14 @@ namespace NCB {
 
         auto maybeConvertedTarget = ConvertTarget(
             rawData.GetTarget(),
+            rawData.GetTargetType(),
             isRealTarget,
             targetCreationOptions.IsClass,
             targetCreationOptions.IsMultiClass,
             inputClassificationInfo.TargetBorder,
             !knownClassCount,
-            inputClassificationInfo.ClassNames,
-            &outputClassificationInfo->ClassNames,
+            inputClassificationInfo.ClassLabels,
+            &outputClassificationInfo->ClassLabels,
             localExecutor,
             &classCount
         );
@@ -547,7 +550,7 @@ namespace NCB {
             maybeConvertedTarget = TVector<TSharedVector<float>>{MakeAtomicShared<TVector<float>>(TVector<float>(rawData.GetObjectCount(), 0.0f))};
         }
 
-        classCount = (ui32)GetClassesCount((int)classCount, outputClassificationInfo->ClassNames);
+        classCount = (ui32)GetClassesCount((int)classCount, outputClassificationInfo->ClassLabels);
         bool createClassTarget = targetCreationOptions.CreateBinClassTarget || targetCreationOptions.CreateMultiClassTarget;
         TProcessedTargetData processedTargetData;
 
@@ -563,6 +566,11 @@ namespace NCB {
                 metricsThatRequireTargetCanBeSkipped || rawData.GetTarget(),
                 "Binary classification loss/metrics require label data"
             );
+
+            if (!(*outputClassificationInfo->LabelConverter)->IsInitialized()) {
+                (*outputClassificationInfo->LabelConverter)->InitializeBinClass();
+            }
+
             if (!maybeConvertedTarget.empty()) {
                 processedTargetData.TargetsClassCount.emplace("", 2);
             }
@@ -579,7 +587,10 @@ namespace NCB {
             );
 
             if (!(*outputClassificationInfo->LabelConverter)->IsInitialized()) {
-                (*outputClassificationInfo->LabelConverter)->Initialize(*maybeConvertedTarget[0], classCount);
+                (*outputClassificationInfo->LabelConverter)->InitializeMultiClass(
+                    *maybeConvertedTarget[0],
+                    classCount
+                );
             }
             PrepareTargetCompressed(**outputClassificationInfo->LabelConverter, &*maybeConvertedTarget[0]);
 
@@ -698,7 +709,7 @@ namespace NCB {
     void InitClassesParams(
         const NJson::TJsonValue& param,
         TVector<float>* classWeights,
-        TVector<TString>* classNames,
+        TVector<NJson::TJsonValue>* classLabels,
         TMaybe<ui32>* classCount
     ) {
         if (param.Has("class_weights")) {
@@ -707,11 +718,9 @@ namespace NCB {
                 classWeights->push_back((float)token.GetDoubleSafe());
             }
         }
-        if (param.Has("class_names")) {
-            classNames->clear();
-            for (const auto& token : param["class_names"].GetArraySafe()) {
-                classNames->push_back(token.GetStringSafe());
-            }
+        if (param.Has("class_names")) { // "class_names" used for compatibility
+            const NJson::TJsonValue::TArray& classLabelsJsonArray = param["class_names"].GetArraySafe();
+            classLabels->assign(classLabelsJsonArray.begin(), classLabelsJsonArray.end());
         }
         if (param.Has("classes_count")) {
             const ui32 classesCountValue = SafeIntegerCast<ui32>(param["classes_count"].GetUIntegerSafe());
@@ -761,7 +770,7 @@ namespace NCB {
             metricDescriptions.end());
 
         TVector<float> classWeights;
-        TVector<TString> classNames;
+        TVector<NJson::TJsonValue> classLabels;
         TMaybe<ui32> classCount = Nothing();
 
         if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, "params")) {
@@ -771,12 +780,11 @@ namespace NCB {
                 InitClassesParams(
                     paramsJson["data_processing_options"],
                     &classWeights,
-                    &classNames,
+                    &classLabels,
                     &classCount);
             }
 
             if (paramsJson.Has("loss_function")) {
-                updatedMetricsDescriptions.resize(1);
                 NCatboostOptions::TLossDescription modelLossDescription;
                 modelLossDescription.Load(paramsJson["loss_function"]);
 
@@ -795,16 +803,60 @@ namespace NCB {
         }
 
         TLabelConverter labelConverter;
-        if (model.GetDimensionsCount() > 1) {  // is multiclass?
-            if (model.ModelInfo.contains("multiclass_params")) {
-                const auto& multiclassParamsJsonAsString = model.ModelInfo.at("multiclass_params");
-                labelConverter.Initialize(multiclassParamsJsonAsString);
-                TMulticlassLabelOptions multiclassOptions;
-                multiclassOptions.Load(ReadTJsonValue(multiclassParamsJsonAsString));
-                if (multiclassOptions.ClassNames.IsSet()) {
-                    classNames = multiclassOptions.ClassNames;
+
+        // "class_params" is new, more generic option, used for binclass as well
+        for (const auto& paramName : {"class_params", "multiclass_params"}) {
+            if (model.ModelInfo.contains(paramName)) {
+                const auto& classParamsJsonAsString = model.ModelInfo.at(paramName);
+                labelConverter.Initialize(model.GetDimensionsCount() > 1, classParamsJsonAsString);
+                TClassLabelOptions classOptions;
+                classOptions.Load(ReadTJsonValue(classParamsJsonAsString));
+                if (classOptions.ClassLabels.IsSet()) {
+                    classLabels = classOptions.ClassLabels;
                 }
-                classCount.ConstructInPlace(GetClassesCount(multiclassOptions.ClassesCount.Get(), classNames));
+                if (labelConverter.IsMultiClass()) {
+                    classCount.ConstructInPlace(GetClassesCount(classOptions.ClassesCount.Get(), classLabels));
+                }
+                break;
+            }
+        }
+
+        if (!labelConverter.IsInitialized()) {
+            const bool isClassOnlyMetrics = AnyOf(
+                updatedMetricsDescriptions,
+                [](const NCatboostOptions::TLossDescription& lossDescription) {
+                    return IsClassificationOnlyMetric(lossDescription.GetLossFunction());
+                }
+            );
+            if (isClassOnlyMetrics) {
+                if (model.GetDimensionsCount() > 1) {
+                    labelConverter.InitializeMultiClass(SafeIntegerCast<int>(model.GetDimensionsCount()));
+                    classCount.ConstructInPlace(model.GetDimensionsCount());
+                } else {
+                    labelConverter.InitializeBinClass();
+                }
+            }
+        }
+
+        TMaybe<float> targetBorder;
+
+        const bool shouldBinarizeLabel = AnyOf(
+            updatedMetricsDescriptions,
+            [](const NCatboostOptions::TLossDescription& lossDescription) {
+                return ShouldBinarizeLabel(lossDescription.GetLossFunction());
+            }
+        );
+
+        if (shouldBinarizeLabel && classLabels.empty() && !classCount) {
+            if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, "params")) {
+                NJson::TJsonValue paramsJson = ReadTJsonValue(*modelInfoParams);
+
+                if (paramsJson["data_processing_options"].Has("target_border")) {
+                    targetBorder = paramsJson["data_processing_options"]["target_border"].GetDouble();
+                }
+            } else {
+                targetBorder = GetDefaultTargetBorder();
+                CATBOOST_WARNING_LOG << "Cannot restore border parameter, falling to default border = " << *targetBorder << Endl;
             }
         }
 
@@ -816,11 +868,11 @@ namespace NCB {
         TInputClassificationInfo inputClassificationInfo{
             classCount,
             classWeights,
-            classNames,
-            Nothing()
+            classLabels,
+            targetBorder
         };
         TOutputClassificationInfo outputClassificationInfo {
-            classNames,
+            classLabels,
             &labelConverter,
             Nothing()
         };
@@ -856,7 +908,7 @@ namespace NCB {
         );
 
         result.MetaInfo.HasPairs = outputPairsInfo.HasPairs;
-        classNames = outputClassificationInfo.ClassNames;
+        classLabels = outputClassificationInfo.ClassLabels;
 
         if (outputPairsInfo.HasFakeGroupIds()) {
             ApplyGrouping(outputPairsInfo, cpuRamLimit, &result, localExecutor);
@@ -875,7 +927,6 @@ namespace NCB {
         const TString ParamsJsonKey = "params";
         const TString DataProcessingOptionsJsonKey = "data_processing_options";
         const TString TargetBorderJsonKey = "target_border";
-        const TString MultiClassParamsJsonKey = "multiclass_params";
         const TString LossJsonKey = "loss_function";
 
         NCatboostOptions::TLossDescription lossDescription;
@@ -896,7 +947,7 @@ namespace NCB {
 
         TMaybe<float> targetBorder;
         TVector<float> classWeights;
-        TVector<TString> classNames;
+        TVector<NJson::TJsonValue> classLabels;
         TMaybe<ui32> classCount = Nothing();
 
         if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, ParamsJsonKey)) {
@@ -905,10 +956,10 @@ namespace NCB {
                 InitClassesParams(
                     paramsJson[DataProcessingOptionsJsonKey],
                     &classWeights,
-                    &classNames,
+                    &classLabels,
                     &classCount);
 
-                if (classNames.empty() && !classCount) {
+                if (classLabels.empty() && !classCount) {
                     if (paramsJson[DataProcessingOptionsJsonKey].Has(TargetBorderJsonKey)) {
                         targetBorder = paramsJson[DataProcessingOptionsJsonKey][TargetBorderJsonKey].GetDouble();
                     }
@@ -917,7 +968,7 @@ namespace NCB {
         }
 
         if (ShouldBinarizeLabel(lossDescription.GetLossFunction()) &&
-            classNames.empty() &&
+            classLabels.empty() &&
             !classCount &&
             !targetBorder)
         {
@@ -926,19 +977,30 @@ namespace NCB {
         }
 
         TLabelConverter labelConverter;
-        if (model.GetDimensionsCount() > 1) {
-            if (model.ModelInfo.contains(MultiClassParamsJsonKey)) {
-                const auto& multiclassParamsJsonAsString = model.ModelInfo.at(MultiClassParamsJsonKey);
-                labelConverter.Initialize(multiclassParamsJsonAsString);
-                TMulticlassLabelOptions multiclassOptions;
-                multiclassOptions.Load(ReadTJsonValue(multiclassParamsJsonAsString));
-                if (multiclassOptions.ClassNames.IsSet()) {
-                    classNames = multiclassOptions.ClassNames;
+
+        // "class_params" is new, more generic option, used for binclass as well
+        for (const auto& paramName : {"class_params", "multiclass_params"}) {
+            if (model.ModelInfo.contains(paramName)) {
+                const auto& classParamsJsonAsString = model.ModelInfo.at(paramName);
+                labelConverter.Initialize(model.GetDimensionsCount() > 1, classParamsJsonAsString);
+                TClassLabelOptions classOptions;
+                classOptions.Load(ReadTJsonValue(classParamsJsonAsString));
+                if (classOptions.ClassLabels.IsSet()) {
+                    classLabels = classOptions.ClassLabels;
                 }
-                classCount.ConstructInPlace(GetClassesCount(multiclassOptions.ClassesCount.Get(), classNames));
-            } else {
-                labelConverter.Initialize(model.GetDimensionsCount());
+                if (labelConverter.IsMultiClass()) {
+                    classCount.ConstructInPlace(GetClassesCount(classOptions.ClassesCount.Get(), classLabels));
+                }
+                break;
+            }
+        }
+
+        if (!labelConverter.IsInitialized()) {
+            if (model.GetDimensionsCount() > 1) {
+                labelConverter.InitializeMultiClass(model.GetDimensionsCount());
                 classCount.ConstructInPlace(model.GetDimensionsCount());
+            } else {
+                labelConverter.InitializeBinClass();
             }
         }
 
@@ -952,11 +1014,11 @@ namespace NCB {
         TInputClassificationInfo inputClassificationInfo{
             classCount,
             classWeights,
-            classNames,
+            classLabels,
             targetBorder
         };
         TOutputClassificationInfo outputClassificationInfo {
-            classNames,
+            classLabels,
             &labelConverter,
             Nothing()
         };
@@ -992,7 +1054,7 @@ namespace NCB {
         );
 
         result.MetaInfo.HasPairs = outputPairsInfo.HasPairs;
-        classNames = outputClassificationInfo.ClassNames;
+        classLabels = outputClassificationInfo.ClassLabels;
 
         if (outputPairsInfo.HasFakeGroupIds()) {
             ApplyGrouping(outputPairsInfo, cpuRamLimit, &result, localExecutor);

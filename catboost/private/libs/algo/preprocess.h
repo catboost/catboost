@@ -35,8 +35,8 @@ void UpdateUndefinedRandomSeed(
     std::function<void(TIFStream*, TString&)> paramsLoader
 );
 
-void UpdateUndefinedClassNames(
-    const TVector<TString>& classNames,
+void UpdateUndefinedClassLabels(
+    const TVector<NJson::TJsonValue>& classLabels,
     NJson::TJsonValue* updatedJsonParams
 );
 

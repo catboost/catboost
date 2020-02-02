@@ -1,0 +1,88 @@
+#include "langevin_utils.h"
+
+#include <catboost/private/libs/algo_helpers/ders_holder.h>
+#include <catboost/private/libs/algo_helpers/online_predictor.h>
+#include <catboost/private/libs/index_range/index_range.h>
+#include <catboost/private/libs/options/restrictions.h>
+
+#include <library/threading/local_executor/local_executor.h>
+
+#include <util/generic/vector.h>
+#include <util/random/fast.h>
+#include <util/random/normal.h>
+
+#include <cmath>
+
+using namespace NCB;
+
+static double CalcLangevinNoiseRate(float diffusionTemperature, float learningRate) {
+    return sqrt(2.0 / learningRate / diffusionTemperature);
+}
+
+void AddLangevinNoiseToDerivatives(
+    float diffusionTemperature,
+    float learningRate,
+    ui64 randomSeed,
+    TVector<TVector<double>>* derivatives,
+    NPar::TLocalExecutor* localExecutor
+) {
+    if (diffusionTemperature == 0.0f) {
+        return;
+    }
+    const double coef = CalcLangevinNoiseRate(diffusionTemperature, learningRate);
+    CB_ENSURE_INTERNAL(!derivatives->empty(), "Unexpected empty derivatives");
+    const size_t objectCount = derivatives->front().size();
+    TSimpleIndexRangesGenerator<size_t> rangesGenerator(TIndexRange(objectCount), CB_THREAD_LIMIT);
+    for(auto& derivatives1d : *derivatives) {
+        localExecutor->ExecRange(
+            [&](int blockIdx) {
+                TFastRng64 blockRng(randomSeed + blockIdx);
+                auto dersData = derivatives1d.data();
+                for (auto idx : rangesGenerator.GetRange(blockIdx).Iter()) {
+                    dersData[idx] += coef * StdNormalDistribution<double>(blockRng);
+                }
+            },
+            0,
+            rangesGenerator.RangesCount(),
+            NPar::TLocalExecutor::WAIT_COMPLETE
+        );
+    }
+}
+
+void AddLangevinNoiseToLeafDerivativesSum(
+    float diffusionTemperature,
+    float learningRate,
+    double scaledL2Regularizer,
+    ui64 randomSeed,
+    TVector<TSum>* leafDersSum
+) {
+    if (diffusionTemperature == 0.0f) {
+        return;
+    }
+    TFastRng64 rng(randomSeed);
+    const double coef = CalcLangevinNoiseRate(diffusionTemperature, learningRate);
+    for (TSum& sum : *leafDersSum) {
+        double scaledCoef = coef / sqrt(sum.SumWeights + scaledL2Regularizer);
+        sum.SumDer += scaledCoef * StdNormalDistribution<double>(rng);
+    }
+}
+
+void AddLangevinNoiseToLeafDerivativesSum(
+    float diffusionTemperature,
+    float learningRate,
+    double scaledL2Regularizer,
+    ui64 randomSeed,
+    TVector<TSumMulti>* leafDersSum
+) {
+    if (diffusionTemperature == 0.0f) {
+        return;
+    }
+    TFastRng64 rng(randomSeed);
+    const double coef = CalcLangevinNoiseRate(diffusionTemperature, learningRate);
+    for (TSumMulti& sum : *leafDersSum) {
+        double scaledCoef = coef / sqrt(sum.SumWeights + scaledL2Regularizer);
+        for (auto& der : sum.SumDer) {
+            der += scaledCoef * StdNormalDistribution<double>(rng);
+        }
+    }
+}

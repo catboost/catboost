@@ -3,10 +3,11 @@
 #include <catboost/libs/model/model_build_helper.h>
 #include <catboost/libs/cat_feature/cat_feature.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/private/libs/labels/helpers.h>
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/json_helper.h>
 #include <catboost/private/libs/options/loss_description.h>
-#include <catboost/private/libs/options/multiclass_label_options.h>
+#include <catboost/private/libs/options/class_label_options.h>
 
 #include <library/svnversion/svnversion.h>
 
@@ -107,6 +108,42 @@ static bool IsClassifierModel(const TFullModel& model) {
 }
 
 
+/*
+ * TLabelContainer is either TVector<TJsonValue> or TJsonArray
+ * call with non-empty classLabels only
+ * only one of classLabelsInt64 or classLabelsString returned nonempty
+ */
+template <class TLabelContainer>
+static void GetClassLabelsImpl(
+    const TLabelContainer& classLabels,
+    TVector<i64>* classLabelsInt64,
+    TVector<TString>* classLabelsString) {
+
+    Y_VERIFY(!classLabels.empty());
+
+    classLabelsInt64->clear();
+    classLabelsString->clear();
+
+    switch (classLabels.begin()->GetType()) {
+        case NJson::JSON_INTEGER:
+            classLabelsInt64->reserve(classLabels.size());
+            for (const NJson::TJsonValue& classLabel : classLabels) {
+                classLabelsInt64->push_back(classLabel.GetInteger());
+            }
+            break;
+        case NJson::JSON_DOUBLE:
+            CB_ENSURE(false, "ONNX format does not support floating-point labels");
+        case NJson::JSON_STRING:
+            classLabelsString->reserve(classLabels.size());
+            for (const NJson::TJsonValue& classLabel : classLabels) {
+                classLabelsString->push_back(NCB::ClassLabelToString(classLabel));
+            }
+            break;
+        default:
+            Y_FAIL("Unexpected label type");
+    }
+}
+
 // only one of classLabelsInt64 or classLabelsString returned nonempty
 static void GetClassLabels(
     const TFullModel& model,
@@ -116,42 +153,9 @@ static void GetClassLabels(
     classLabelsInt64->clear();
     classLabelsString->clear();
 
-    if (model.ModelTrees->GetDimensionsCount() > 1) {  // is multiclass?
-        if (model.ModelInfo.contains("multiclass_params")) {
-            const auto& multiclassParamsJsonAsString = model.ModelInfo.at("multiclass_params");
-            TMulticlassLabelOptions multiclassOptions;
-            multiclassOptions.Load(ReadTJsonValue(multiclassParamsJsonAsString));
-            if (multiclassOptions.ClassNames.IsSet() && !multiclassOptions.ClassNames.Get().empty()) {
-                *classLabelsString = multiclassOptions.ClassNames.Get();
-                return;
-            }
-            if (multiclassOptions.ClassToLabel.IsSet() && !multiclassOptions.ClassToLabel.Get().empty()) {
-                const auto& classLabelsFloat = multiclassOptions.ClassToLabel.Get();
-                classLabelsInt64->assign(classLabelsFloat.begin(), classLabelsFloat.end());
-                return;
-            }
-        }
-        classLabelsInt64->resize(model.ModelTrees->GetDimensionsCount());
-        std::iota(classLabelsInt64->begin(), classLabelsInt64->end(), 0);
-    } else { // binclass
-        if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, "params")) {
-            NJson::TJsonValue paramsJson = ReadTJsonValue(*modelInfoParams);
-
-            if (paramsJson.Has("data_processing_options")) {
-                const NJson::TJsonValue& dataProcessingOptions = paramsJson["data_processing_options"];
-                if (dataProcessingOptions.Has("class_names")) {
-                    auto classNames = dataProcessingOptions["class_names"].GetArraySafe();
-                    if (!classNames.empty()) {
-                        for (const auto& token : classNames) {
-                            classLabelsString->push_back(token.GetStringSafe());
-                        }
-                        return;
-                    }
-                }
-            }
-        }
-        classLabelsInt64->push_back(0);
-        classLabelsInt64->push_back(1);
+    const TVector<NJson::TJsonValue> classLabels = model.GetModelClassLabels();
+    if (!classLabels.empty()) {
+        GetClassLabelsImpl(classLabels, classLabelsInt64, classLabelsString);
     }
 }
 
@@ -259,6 +263,7 @@ struct TTreesAttributes {
     onnx::AttributeProto* target_treeids;
     onnx::AttributeProto* target_weights;
 
+    onnx::AttributeProto* base_values;
     onnx::AttributeProto* nodes_falsenodeids;
     onnx::AttributeProto* nodes_featureids;
     onnx::AttributeProto* nodes_hitrates;
@@ -301,6 +306,7 @@ public:
             GET_ATTR(target_weights, FLOATS);
         }
 
+        GET_ATTR(base_values, FLOATS);
         GET_ATTR(nodes_falsenodeids, INTS);
         GET_ATTR(nodes_featureids, INTS);
         GET_ATTR(nodes_hitrates, FLOATS);
@@ -333,6 +339,7 @@ public:
             class_treeids = nullptr;
             class_weights = nullptr;
         }
+        base_values = nullptr;
 
         for (auto& attribute : attributes) {
             if (isClassifierModel) {
@@ -347,6 +354,7 @@ public:
                 SET_ATTR(target_weights, attribute);
             }
 
+            SET_ATTR(base_values, attribute);
             SET_ATTR(nodes_falsenodeids, attribute);
             SET_ATTR(nodes_featureids, attribute);
             SET_ATTR(nodes_hitrates, attribute);
@@ -539,7 +547,7 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
     }
 
     TTreesAttributes treesAttributes(isClassifierModel, treesNode->mutable_attribute());
-
+    treesAttributes.base_values->add_floats(float(model.GetScaleAndBias().Bias));
     for (auto treeIdx : xrange(trees.GetTreeCount())) {
         AddTree(trees, treeIdx, isClassifierModel, &treesAttributes);
     }
@@ -673,6 +681,7 @@ static THolder<TNonSymmetricTreeNode> BuildNonSymmetricTree(
             return head;
         }
     }
+    Y_UNREACHABLE();
 }
 
 
@@ -714,6 +723,11 @@ static void ConfigureSymmetricTrees(const onnx::GraphProto& onnxGraph, TFullMode
     }
 
     treeBuilder.Build(fullModel->ModelTrees.GetMutable());
+    if (approxDimension == 1 && treesAttributes.base_values != nullptr && treesAttributes.base_values->floats_size() == 1) {
+        TScaleAndBias scaleAndBias;
+        scaleAndBias.Bias = treesAttributes.base_values->floats(0);
+        fullModel->SetScaleAndBias(scaleAndBias);
+    }
 
     fullModel->UpdateDynamicData();
 }

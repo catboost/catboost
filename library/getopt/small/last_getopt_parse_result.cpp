@@ -1,5 +1,4 @@
 #include "last_getopt_parse_result.h"
-#include "last_getopt_parser.h"
 
 namespace NLastGetopt {
     const TOptParseResult* TOptsParseResult::FindParseResult(const TdVec& vec, const TOpt* opt) {
@@ -100,6 +99,10 @@ namespace NLastGetopt {
         return Parser_->ProgramName_;
     }
 
+    void TOptsParseResult::PrintUsage(IOutputStream& os) const {
+        Parser_->Opts_->PrintUsage(Parser_->ProgramName_, os);
+    }
+
     size_t TOptsParseResult::GetFreeArgsPos() const {
         return Parser_->Pos_;
     }
@@ -134,7 +137,7 @@ namespace NLastGetopt {
             if (Parser_->Opts_->FindLongOption("help") != nullptr) {
                 Cerr << "Try '" << Parser_->ProgramName_ << " --help' for more information." << Endl;
             } else {
-                Parser_->Opts_->PrintUsage(Parser_->ProgramName_);
+                PrintUsage();
             }
         }
         exit(1);

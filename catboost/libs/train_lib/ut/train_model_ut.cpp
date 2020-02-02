@@ -37,6 +37,7 @@ static TDataProviderPtr SmallFloatPool() {
     return CreateDataProvider(
         [&] (IRawFeaturesOrderDataVisitor* visitor) {
             TDataMetaInfo metaInfo;
+            metaInfo.TargetType = ERawTargetType::Float;
             metaInfo.TargetCount = 1;
             metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
                 (ui32)3,
@@ -201,6 +202,7 @@ Y_UNIT_TEST_SUITE(TrainModelTests) {
             dataProviders.Learn = CreateDataProvider(
                 [&] (IRawFeaturesOrderDataVisitor* visitor) {
                     TDataMetaInfo metaInfo;
+                    metaInfo.TargetType = ERawTargetType::Float;
                     metaInfo.TargetCount = 1;
                     metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
                         numericFeatureCount,

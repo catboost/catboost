@@ -10,6 +10,7 @@ SRCS(
     ders_holder.cpp
     error_functions.cpp
     hessian.cpp
+    langevin_utils.cpp
     online_predictor.cpp
     pairwise_leaves_calculation.cpp
     scoring_helpers.cpp

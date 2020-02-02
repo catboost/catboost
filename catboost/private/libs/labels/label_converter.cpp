@@ -1,9 +1,13 @@
 #include "label_converter.h"
 
+#include "helpers.h"
+
 #include <catboost/libs/logging/logging.h>
 #include <catboost/private/libs/options/json_helper.h>
-#include <catboost/private/libs/options/multiclass_label_options.h>
+#include <catboost/private/libs/options/class_label_options.h>
 #include <catboost/private/libs/options/option.h>
+
+#include <library/json/json_value.h>
 
 #include <util/generic/algorithm.h>
 #include <util/string/join.h>
@@ -39,13 +43,54 @@ bool TLabelConverter::operator==(const TLabelConverter& rhs) const {
         return true;
     }
 
-    return (LabelToClass == rhs.LabelToClass) &&
+    return (MultiClass == rhs.MultiClass) &&
+        (LabelToClass == rhs.LabelToClass) &&
         (ClassToLabel == rhs.ClassToLabel) &&
         (ClassesCount == rhs.ClassesCount);
 }
 
-void TLabelConverter::Initialize(int approxDimension) {
+void TLabelConverter::Initialize(bool isMultiClass, const TString& classLabelParams) {
     CB_ENSURE(!Initialized, "Can't initialize initialized object of TLabelConverter");
+
+    MultiClass = isMultiClass;
+
+    TClassLabelOptions classOptions;
+    classOptions.Load(ReadTJsonValue(classLabelParams));
+
+    int classesCount = classOptions.ClassesCount.Get();
+
+    const auto& classLabels = classOptions.ClassLabels.Get();
+
+    ClassesCount = GetClassesCount(classesCount, classLabels);
+
+    ClassToLabel = classOptions.ClassToLabel.Get();
+    LabelToClass = CalcLabelToClassMap(ClassToLabel, ClassesCount);
+
+    ClassesCount = Max(ClassesCount, ClassToLabel.ysize());
+
+    CB_ENSURE(MultiClass || (ClassesCount == 2), "Class count is not 2 for binary classification");
+
+    Initialized = true;
+}
+
+void TLabelConverter::InitializeBinClass() {
+    CB_ENSURE(!Initialized, "Can't initialize initialized object of TLabelConverter");
+
+    MultiClass = false;
+
+    ClassesCount = 2;
+    ClassToLabel = {0.0f, 1.0f};
+
+    LabelToClass[0.0f] = 0;
+    LabelToClass[1.0f] = 1;
+
+    Initialized = true;
+}
+
+void TLabelConverter::InitializeMultiClass(int approxDimension) {
+    CB_ENSURE(!Initialized, "Can't initialize initialized object of TLabelConverter");
+
+    MultiClass = true;
 
     ClassesCount = approxDimension;
 
@@ -60,27 +105,10 @@ void TLabelConverter::Initialize(int approxDimension) {
     Initialized = true;
 }
 
-
-void TLabelConverter::Initialize(const TString& multiclassLabelParams) {
+void TLabelConverter::InitializeMultiClass(TConstArrayRef<float> targets, int classesCount) {
     CB_ENSURE(!Initialized, "Can't initialize initialized object of TLabelConverter");
-    TMulticlassLabelOptions multiclassOptions;
-    multiclassOptions.Load(ReadTJsonValue(multiclassLabelParams));
 
-    int classesCount = multiclassOptions.ClassesCount.Get();
-    const auto& classNames = multiclassOptions.ClassNames.Get();
-
-    ClassesCount = GetClassesCount(classesCount, classNames);
-
-    ClassToLabel = multiclassOptions.ClassToLabel.Get();
-    LabelToClass = CalcLabelToClassMap(ClassToLabel, ClassesCount);
-
-    ClassesCount = Max(ClassesCount, ClassToLabel.ysize());
-
-    Initialized = true;
-}
-
-void TLabelConverter::Initialize(TConstArrayRef<float> targets, int classesCount) {
-    CB_ENSURE(!Initialized, "Can't initialize initialized object of TLabelConverter");
+    MultiClass = true;
 
     TVector<float> targetsCopy(targets.begin(), targets.end());
     LabelToClass = CalcLabelToClassMap(std::move(targetsCopy), classesCount);
@@ -95,7 +123,7 @@ void TLabelConverter::Initialize(TConstArrayRef<float> targets, int classesCount
 
 int TLabelConverter::GetApproxDimension() const {
     CB_ENSURE(Initialized, "Can't use uninitialized object of TLabelConverter");
-    return LabelToClass.ysize();
+    return MultiClass ? LabelToClass.ysize() : 1;
 }
 
 int TLabelConverter::GetClassIdx(float label) const {
@@ -129,20 +157,29 @@ bool TLabelConverter::IsInitialized() const {
     return Initialized;
 }
 
-TString TLabelConverter::SerializeMulticlassParams(int classesCount, const TVector<TString>& classNames) const {
-    CB_ENSURE(Initialized, "Can't use uninitialized object of TLabelConverter");
-    TMulticlassLabelOptions multiclassLabelOptions;
-    multiclassLabelOptions.ClassToLabel = ClassToLabel;
-    multiclassLabelOptions.ClassesCount = classesCount;
-    multiclassLabelOptions.ClassNames = classNames;
-    NJson::TJsonValue json;
-
-    multiclassLabelOptions.Save(&json);
-    return ToString(json);
+bool TLabelConverter::IsMultiClass() const {
+    return MultiClass;
 }
 
-TVector<float> TLabelConverter::GetClassLabels() const {
-    return ClassToLabel;
+TString TLabelConverter::SerializeClassParams(
+    int classesCount,
+    const TVector<NJson::TJsonValue>& classLabels
+) const {
+    CB_ENSURE(Initialized, "Can't use uninitialized object of TLabelConverter");
+    TClassLabelOptions classLabelOptions;
+    if (!classLabels.empty()) {
+        classLabelOptions.ClassLabelType = NCB::GetRawTargetType(classLabels[0]);
+    } else {
+        classLabelOptions.ClassLabelType = NCB::ERawTargetType::Integer;
+    }
+    classLabelOptions.ClassToLabel = ClassToLabel;
+    classLabelOptions.ClassesCount = classesCount;
+    classLabelOptions.ClassLabels = classLabels;
+    NJson::TJsonValue json;
+
+    classLabelOptions.Save(&json);
+
+    return WriteTJsonValue(json);
 }
 
 void PrepareTargetCompressed(const TLabelConverter& labelConverter, TVector<float>* labels) {
@@ -153,12 +190,12 @@ void PrepareTargetCompressed(const TLabelConverter& labelConverter, TVector<floa
     }
 }
 
-int GetClassesCount(int classesCount, const TVector<TString>& classNames) {
-    if (classNames.empty() || classesCount == 0) {
-        return Max(classNames.ysize(), classesCount);
+int GetClassesCount(int classesCount, const TVector<NJson::TJsonValue>& classLabels) {
+    if (classLabels.empty() || classesCount == 0) {
+        return Max(classLabels.ysize(), classesCount);
     }
 
-    CB_ENSURE(classesCount == classNames.ysize(),
-              "classes-count " << classesCount << " must be equal to size of class-names " << classNames.ysize() << "if both are specified.");
+    CB_ENSURE(classesCount == classLabels.ysize(),
+              "classes-count " << classesCount << " must be equal to size of class-names " << classLabels.ysize() << "if both are specified.");
     return classesCount;
 }

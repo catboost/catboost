@@ -86,7 +86,7 @@ Y_UNIT_TEST_SUITE(EmbeddingTest) {
             UNIT_ASSERT(dict.Apply(word) != dict.GetUnknownTokenId());
             TText text;
             dict.Apply({word}, &text);
-            auto id = text.begin()->first;
+            const auto id = text.begin()->Token();
             UNIT_ASSERT(dict.Apply(word) == id);
 
             embeddingFromFile->Apply(text, &testVec);

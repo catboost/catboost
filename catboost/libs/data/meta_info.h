@@ -2,9 +2,11 @@
 
 #include "features_layout.h"
 
+#include <catboost/private/libs/options/enums.h>
 #include <catboost/libs/column_description/column.h>
 
 #include <library/binsaver/bin_saver.h>
+#include <library/json/json_value.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/string.h>
@@ -41,6 +43,7 @@ namespace NCB {
         TFeaturesLayoutPtr FeaturesLayout;
         ui64 MaxCatFeaturesUniqValuesOnLearn = 0;
 
+        ERawTargetType TargetType = ERawTargetType::None;
         ui32 TargetCount = 0;
         TMaybe<TTargetStats> TargetStats;
 
@@ -54,7 +57,7 @@ namespace NCB {
         bool HasPairs = false;
 
         // can be set from baseline file header or from quantized pool
-        TVector<TString> ClassNames = {};
+        TVector<NJson::TJsonValue> ClassLabels = {};
 
         // set only for dsv format pools
         // TODO(akhropov): temporary, serialization details shouldn't be here
@@ -65,6 +68,7 @@ namespace NCB {
 
         TDataMetaInfo(
             TMaybe<TDataColumnsMetaInfo>&& columnsInfo,
+            ERawTargetType targetType,
             bool hasAdditionalGroupWeight,
             bool hasTimestamp,
             bool hasPairs,
@@ -72,7 +76,7 @@ namespace NCB {
 
             // if specified - prefer these to Id in columnsInfo.Columns, otherwise take names
             TMaybe<const TVector<TString>*> featureNames = Nothing(),
-            const TVector<TString>& classNames = {}
+            const TVector<NJson::TJsonValue>& classLabels = {}
         );
 
         bool EqualTo(const TDataMetaInfo& rhs, bool ignoreSparsity = false) const;

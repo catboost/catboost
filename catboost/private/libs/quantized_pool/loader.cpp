@@ -8,6 +8,7 @@
 #include <catboost/libs/data/unaligned_mem.h>
 #include <catboost/private/libs/data_util/exists_checker.h>
 #include <catboost/private/libs/data_util/path_with_scheme.h>
+#include <catboost/private/libs/labels/helpers.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
 #include <catboost/libs/logging/logging.h>
@@ -64,9 +65,10 @@ NCB::TCBQuantizedDataLoader::TCBQuantizedDataLoader(TDatasetLoaderPullArgs&& arg
         "TCBQuantizedDataLoader:BaselineFilePath does not exist");
     CB_ENSURE(!TimestampsPath.Inited() || CheckExists(TimestampsPath),
         "TCBQuantizedDataLoader:TimestampsPath does not exist");
-
-    const NCB::TBaselineReader baselineReader(BaselinePath, args.CommonArgs.ClassNames);
-    DataMetaInfo = GetDataMetaInfo(QuantizedPool, GroupWeightsPath.Inited(), TimestampsPath.Inited(), PairsPath.Inited(), baselineReader.GetBaselineCount());
+    CB_ENSURE(!FeatureNamesPath.Inited() || CheckExists(FeatureNamesPath),
+        "TCBQuantizedDataLoader:FeatureNamesPath does not exist");
+    const NCB::TBaselineReader baselineReader(BaselinePath, NCB::ClassLabelsToStrings(args.CommonArgs.ClassLabels));
+    DataMetaInfo = GetDataMetaInfo(QuantizedPool, GroupWeightsPath.Inited(), TimestampsPath.Inited(), PairsPath.Inited(), baselineReader.GetBaselineCount(), args.CommonArgs.FeatureNamesPath);
 
     CB_ENSURE(DataMetaInfo.GetFeatureCount() > 0, "Pool should have at least one factor");
 
@@ -340,7 +342,6 @@ void NCB::TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
         DataMetaInfo,
         ObjectCount,
         ObjectsOrder,
-        /*targetDataTypeIsString*/ !DataMetaInfo.ClassNames.empty(),
         {},
         QuantizationSchemaFromProto(QuantizedPool.QuantizationSchema));
 
@@ -400,7 +401,7 @@ void NCB::TCBQuantizedDataLoader::Do(IQuantizedFeaturesDataVisitor* visitor) {
     QuantizedPool = TQuantizedPool(); // release memory
     SetGroupWeights(GroupWeightsPath, ObjectCount, DatasetSubset, visitor);
     SetPairs(PairsPath, ObjectCount, DatasetSubset, visitor);
-    SetBaseline(BaselinePath, ObjectCount, DatasetSubset, DataMetaInfo.ClassNames, visitor);
+    SetBaseline(BaselinePath, ObjectCount, DatasetSubset, NCB::ClassLabelsToStrings(DataMetaInfo.ClassLabels), visitor);
     SetTimestamps(TimestampsPath, ObjectCount, DatasetSubset, visitor);
     visitor->Finish();
 }

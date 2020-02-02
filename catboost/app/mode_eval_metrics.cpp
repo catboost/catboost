@@ -5,7 +5,6 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/private/libs/labels/label_converter.h>
-#include <catboost/private/libs/labels/label_helper_builder.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/model/model.h>
@@ -132,7 +131,7 @@ int mode_eval_metrics(int argc, const char* argv[]) {
     TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
     CB_ENSURE(model.GetUsedCatFeaturesCount() == 0 || params.ColumnarPoolFormatParams.CdFilePath.Inited(),
               "Model has categorical features. Specify column_description file with correct categorical features.");
-    params.ClassNames = model.GetModelClassNames();
+    params.ClassLabels = model.GetModelClassLabels();
 
     if (plotParams.EndIteration == 0) {
         plotParams.EndIteration = model.GetTreeCount();

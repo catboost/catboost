@@ -379,18 +379,14 @@ static void CreateFoldData(
     NCB::ExecuteTasksInParallel(&tasks, localExecutor);
 }
 
-static void RemoveUnusedFolds(
+static void TakeMiddleElements(
     ui32 offset,
-    ui32 foldCount,
-    TVector<TTrainingDataProviders>* foldsData,
-    TVector<TTrainingDataProviders>* testFoldsData
+    ui32 count,
+    TVector<NCB::TArraySubsetIndexing<ui32>>* subsets
 ) {
-    TVector<TTrainingDataProviders>(foldsData->begin() + offset, foldsData->end()).swap(*foldsData);
-    foldsData->resize(foldCount);
-    if (testFoldsData != foldsData) {
-        TVector<TTrainingDataProviders>(testFoldsData->begin() + offset, testFoldsData->end()).swap(*testFoldsData);
-        testFoldsData->resize(foldCount);
-    }
+    CB_ENSURE_INTERNAL(offset + count <= subsets->size(), "Dataset permutation logic failed");
+    TVector<NCB::TArraySubsetIndexing<ui32>>(subsets->begin() + offset, subsets->end()).swap(*subsets);
+    subsets->resize(count);
 }
 
 static void PrepareTimeSplitFolds(
@@ -433,16 +429,18 @@ static void PrepareTimeSplitFolds(
     CB_ENSURE_INTERNAL(offsetInRange + foldCount <= trainSubsetsCount, "Dataset permutation logic failed");
 
     CB_ENSURE(foldsData->empty(), "Need empty vector of folds data");
-    foldsData->resize(trainSubsetsCount);
+    foldsData->resize(foldCount);
     if (testFoldsData != nullptr) {
         CB_ENSURE(testFoldsData->empty(), "Need empty vector of test folds data");
-        testFoldsData->resize(trainSubsetsCount);
+        testFoldsData->resize(foldCount);
     } else {
         testFoldsData = foldsData;
     }
 
     TVector<NCB::TArraySubsetIndexing<ui32>> trainSubsets(trainTestSubsets.begin(), trainTestSubsets.begin() + trainSubsetsCount);
-    TVector<NCB::TArraySubsetIndexing<ui32>> testSubsets(trainSubsetsCount, trainTestSubsets.back());
+    TakeMiddleElements(offsetInRange, foldCount, &trainSubsets);
+
+    TVector<NCB::TArraySubsetIndexing<ui32>> testSubsets(foldCount, trainTestSubsets.back());
 
     CreateFoldData(
         srcData,
@@ -452,8 +450,6 @@ static void PrepareTimeSplitFolds(
         foldsData,
         testFoldsData,
         localExecutor);
-
-    RemoveUnusedFolds(offsetInRange, foldCount, foldsData, testFoldsData);
 }
 
 static void PrepareFolds(
@@ -492,14 +488,19 @@ static void PrepareFolds(
     testSubsets.swap(trainSubsets);
 
     CB_ENSURE(foldsData->empty(), "Need empty vector of folds data");
-    foldsData->resize(trainSubsets.size());
+    foldsData->resize(foldCount);
     if (testFoldsData != nullptr) {
         CB_ENSURE(testFoldsData->empty(), "Need empty vector of test folds data");
-        testFoldsData->resize(trainSubsets.size());
+        testFoldsData->resize(foldCount);
     } else {
         testFoldsData = foldsData;
     }
 
+    if (!cvParams.Initialized()) {
+        const ui32 offsetInRange = featureEvalOptions.Offset;
+        TakeMiddleElements(offsetInRange, foldCount, &trainSubsets);
+        TakeMiddleElements(offsetInRange, foldCount, &testSubsets);
+    }
     CreateFoldData(
         srcData,
         cpuUsedRamLimit,
@@ -508,10 +509,6 @@ static void PrepareFolds(
         foldsData,
         testFoldsData,
         localExecutor);
-    if (!cvParams.Initialized()) {
-        const ui32 offsetInRange = featureEvalOptions.Offset;
-        RemoveUnusedFolds(offsetInRange, foldCount, foldsData, testFoldsData);
-    }
 }
 
 
@@ -1043,17 +1040,22 @@ static TString MakeAbsolutePath(const TString& path) {
     return JoinFsPaths(TFsPath::Cwd(), path);
 }
 
-static ui32 CountSamplingUnits(const NCB::TObjectsGrouping& objectsGrouping, bool isObjectwise) {
+static ui32 GetSamplingUnitCount(const NCB::TObjectsGrouping& objectsGrouping, bool isObjectwise) {
     return isObjectwise ? objectsGrouping.GetObjectCount() : objectsGrouping.GetGroupCount();
 }
 
-static ui32 CountDisjointFolds(TDataProviderPtr data, const NCatboostOptions::TFeatureEvalOptions& featureEvalOptions) {
+static void CountDisjointFolds(
+    TDataProviderPtr data,
+    const NCatboostOptions::TFeatureEvalOptions& featureEvalOptions,
+    ui32* absoluteFoldSize,
+    ui32* disjointFoldCount
+) {
     const auto isObjectwise = IsObjectwiseEval(featureEvalOptions);
     const auto& objectsGrouping = *data->ObjectsGrouping;
 
     ui32 samplingUnitsCount = 0;
     if (!data->MetaInfo.HasTimestamp) {
-        samplingUnitsCount = CountSamplingUnits(objectsGrouping, isObjectwise);
+        samplingUnitsCount = GetSamplingUnitCount(objectsGrouping, isObjectwise);
     } else {
         const auto timestamps = *data->ObjectsData->GetTimestamp();
         const auto timesplitQuantileTimestamp = FindQuantileTimestamp(
@@ -1074,9 +1076,17 @@ static ui32 CountDisjointFolds(TDataProviderPtr data, const NCatboostOptions::TF
             }
         }
     }
-    const ui32 foldSize = featureEvalOptions.FoldSize;
-    const ui32 disjointFoldCount = CeilDiv(samplingUnitsCount, foldSize);
-    return disjointFoldCount;
+    if (featureEvalOptions.FoldSize.Get() > 0) {
+        *absoluteFoldSize = featureEvalOptions.FoldSize.Get();
+        CB_ENSURE(*absoluteFoldSize > 0, "Fold size must be positive");
+    } else {
+        *absoluteFoldSize = featureEvalOptions.RelativeFoldSize.Get() * samplingUnitsCount;
+        CB_ENSURE(
+            *absoluteFoldSize > 0,
+            "Relative fold size must be greater than " << 1.0f / samplingUnitsCount << " so that size of each fold is non-zero";
+        );
+    }
+    *disjointFoldCount = CeilDiv(samplingUnitsCount, *absoluteFoldSize);
 }
 
 TFeatureEvaluationSummary EvaluateFeatures(
@@ -1105,10 +1115,12 @@ TFeatureEvaluationSummary EvaluateFeatures(
     CB_ENSURE(foldCount > 0, "Fold count must be positive integer");
     const ui32 offset = featureEvalOptions.Offset;
 
-    const ui32 disjointFoldCount = CountDisjointFolds(data, featureEvalOptions);
+    ui32 absoluteFoldSize;
+    ui32 disjointFoldCount;
+    CountDisjointFolds(data, featureEvalOptions, &absoluteFoldSize, &disjointFoldCount);
 
     if (disjointFoldCount < offset + foldCount) {
-        const auto samplingUnitsCount = CountSamplingUnits(*data->ObjectsGrouping, IsObjectwiseEval(featureEvalOptions));
+        const auto samplingUnitsCount = GetSamplingUnitCount(*data->ObjectsGrouping, IsObjectwiseEval(featureEvalOptions));
         CB_ENSURE(
             cvParams.Shuffle,
             "Dataset contains too few objects or groups to evaluate features without shuffling. "
@@ -1132,6 +1144,7 @@ TFeatureEvaluationSummary EvaluateFeatures(
     }
 
     auto foldRangePart = featureEvalOptions;
+    foldRangePart.FoldSize = absoluteFoldSize;
     foldRangePart.Offset = offset % disjointFoldCount;
     foldRangePart.FoldCount = Min(disjointFoldCount - offset % disjointFoldCount, foldCount);
     ui32 foldRangeIdx = offset / disjointFoldCount;

@@ -1191,6 +1191,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\openssl\method\library-openssl-method.vcxproj">
       <Project>EBC3626B-F273-EB61-E7BE-9BBC217D8FB4</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
+      <Project>2CE71367-048B-26B0-2DAC-CA9BB7D00E76</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\packers\library-packers.vcxproj">
       <Project>9436F4D8-5E19-8C76-D632-4704304D6504</Project>
     </ProjectReference>
@@ -1211,6 +1214,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\find_root\pylibrary-python-find_root.vcxproj">
       <Project>58CA6201-D157-FDFF-DC3B-F1AC6756F36E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\fs\pylibrary-python-fs.vcxproj">
+      <Project>7A0C7444-3285-2A8E-6908-D807590A3DB5</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\func\pylibrary-python-func.vcxproj">
       <Project>A2964E72-06DC-2ADB-2F18-61795E9554C3</Project>

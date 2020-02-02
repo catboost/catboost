@@ -61,11 +61,12 @@ Y_CPU_BENCHMARK(DsvLoaderNumFeatures, iface) {
             readDatasetMainParams.GroupWeightsFilePath, // can be uninited
             /*timestampsFilePath*/TPathWithScheme(),
             readDatasetMainParams.BaselineFilePath,     // can be uninited
+            /*featureNamesFilePath*/TPathWithScheme(),
             readDatasetMainParams.ColumnarPoolFormatParams,
             TVector<ui32>{},
             EObjectsOrder::Undefined,
             TDatasetSubset::MakeColumns(),
-            /*classNames*/ Nothing(),
+            /*classLabels*/ Nothing(),
             &localExecutor);
         Y_DO_NOT_OPTIMIZE_AWAY(dataProvider);
     }
@@ -95,11 +96,12 @@ Y_CPU_BENCHMARK(DsvLoaderCatFeatures, iface) {
             readDatasetMainParams.GroupWeightsFilePath, // can be uninited
             /*timestampsFilePath*/TPathWithScheme(),
             readDatasetMainParams.BaselineFilePath,     // can be uninited
+            /*featureNamesFilePath*/TPathWithScheme(),
             readDatasetMainParams.ColumnarPoolFormatParams,
             TVector<ui32>{},
             EObjectsOrder::Undefined,
             TDatasetSubset::MakeColumns(),
-            /*classNames*/ Nothing(),
+            /*classLabels*/ Nothing(),
             &localExecutor);
         Y_DO_NOT_OPTIMIZE_AWAY(dataProvider);
     }
@@ -129,11 +131,12 @@ Y_CPU_BENCHMARK(DsvLoaderQuotedCatFeatures, iface) {
             readDatasetMainParams.GroupWeightsFilePath, // can be uninited
             /*timestampsFilePath*/TPathWithScheme(),
             readDatasetMainParams.BaselineFilePath,     // can be uninited
+            /*featureNamesFilePath*/TPathWithScheme(),
             readDatasetMainParams.ColumnarPoolFormatParams,
             TVector<ui32>{},
             EObjectsOrder::Undefined,
             TDatasetSubset::MakeColumns(),
-            /*classNames*/ Nothing(),
+            /*classLabels*/ Nothing(),
             &localExecutor);
         Y_DO_NOT_OPTIMIZE_AWAY(dataProvider);
     }

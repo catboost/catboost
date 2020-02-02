@@ -1,8 +1,11 @@
 # coding=utf-8
 
+import errno
 import os
 import shutil
 import contextlib
+
+import library.python.fs as lpf
 
 
 def replace_in_file(path, old, new):
@@ -45,10 +48,35 @@ def copytree(src, dst, symlinks=False, ignore=None):
             shutil.copy2(s, d)
 
 
-def get_unique_file_path(dir_path, file_pattern):
+def get_unique_file_path(dir_path, file_pattern, create_file=True, max_suffix=10000):
+    def atomic_file_create(path):
+        try:
+            fd = os.open(path, os.O_CREAT | os.O_EXCL)
+            os.close(fd)
+            return True
+        except OSError as e:
+            if e.errno in [errno.EEXIST, errno.EISDIR, errno.ETXTBSY]:
+                return False
+            # Access issue with file itself, not parent directory.
+            if e.errno == errno.EACCES and os.path.exists(path):
+                return False
+            raise e
+
+    def atomic_dir_create(path):
+        try:
+            os.mkdir(path)
+            return True
+        except OSError as e:
+            if e.errno == errno.EEXIST:
+                return False
+            raise e
+
     file_path = os.path.join(dir_path, file_pattern)
+    lpf.ensure_dir(os.path.dirname(file_path))
     file_counter = 0
-    while os.path.exists(file_path):
+    handler = atomic_file_create if create_file else atomic_dir_create
+    while os.path.exists(file_path) or not handler(file_path):
         file_path = os.path.join(dir_path, file_pattern + ".{}".format(file_counter))
         file_counter += 1
+        assert file_counter < max_suffix
     return file_path

@@ -10,8 +10,8 @@ Y_UNIT_TEST_SUITE(TestDictionary) {
         TVector<TString> text = {
             "a", "a", "a", "a", "b", "b", "c", "c", "c", "d"
         };
-        TTokenizerPtr tokenizer = CreateTokenizer();
 
+        TTokenizerPtr tokenizer = CreateTokenizer();
         TDictionaryBuilderOptions dictionaryBuilderOptions{2, -1};
         auto dictionary = CreateDictionary(
             TIterableTextFeature(text),
@@ -28,10 +28,10 @@ Y_UNIT_TEST_SUITE(TestDictionary) {
         UNIT_ASSERT_EQUAL(2, dictionary->Apply("b"));
         UNIT_ASSERT_EQUAL(dictionary->GetUnknownTokenId(), dictionary->Apply("d"));
 
-        TText textExample = TText({
-            {TTokenId(0), 2},
-            {TTokenId(1), 3},
-            {TTokenId(2), 1}
+        TText textExample = TText(/* tokenIds */{
+            0, 0,
+            1, 1, 1,
+            2
         });
         UNIT_ASSERT_VALUES_EQUAL(
             textExample,

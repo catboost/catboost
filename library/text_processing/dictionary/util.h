@@ -24,8 +24,12 @@ namespace NTextProcessing::NDictionary {
         ui32 i = 0;
         while (i < tokenSize) {
             letterStartIndices->push_back(i);
-            size_t length;
-            GetUTF8CharLen(length, current, last);
+            size_t length = 0;
+            auto recodeResult = GetUTF8CharLen(length, current, last);
+            if (recodeResult != RECODE_OK || length == 0) {
+                letterStartIndices->clear();
+                return;
+            }
             i += length;
             current += length;
         }
@@ -41,6 +45,10 @@ namespace NTextProcessing::NDictionary {
         TVector<ui32> letterStartIndices;
         for (const auto& token : tokens) {
             GetLetterIndices(token, &letterStartIndices);
+            if (letterStartIndices.empty()) {
+                continue;
+            }
+
             const int lettersCount = letterStartIndices.size() - 1; // Last element of this vector is token.size()
             const int gramCount = lettersCount - gramOrder + 1;
 

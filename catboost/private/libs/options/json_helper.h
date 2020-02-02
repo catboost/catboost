@@ -307,3 +307,8 @@ namespace NCatboostOptions {
 }
 
 NJson::TJsonValue ReadTJsonValue(TStringBuf paramsJson);
+
+/*
+ * Use this function instead of simple ToString(jsonValue) because it saves floating point values with proper precision
+ */
+TString WriteTJsonValue(const NJson::TJsonValue& jsonValue);

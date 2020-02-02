@@ -9,14 +9,14 @@ using namespace NCB;
 
 Y_UNIT_TEST_SUITE(TestFeatureCalcerCanonization) {
     TText CreateRandomText(TFastRng<ui64>& rng, ui32 dictionarySize, ui32 scale=100) {
-        TText text;
+        TMap<TTokenId, TText::TCountType> tokenToCount;
         for (ui32 tokenId: xrange(dictionarySize)) {
             double prob = rng.GenRandReal1();
             if (prob > 0.5) {
-                text.insert({tokenId, /* count */ static_cast<ui32>(prob * scale)});
+                tokenToCount[tokenId] = static_cast<ui32>(prob * scale);
             }
         }
-        return text;
+        return TText(std::move(tokenToCount));
     }
 
     TVector<TText> CreateRandomTextVector(TFastRng<ui64>& rng, ui32 dictionarySize, ui32 size, ui32 scale=100) {

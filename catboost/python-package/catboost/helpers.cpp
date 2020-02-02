@@ -1,5 +1,3 @@
-#include <Python.h>
-
 #include "helpers.h"
 
 #include <catboost/libs/helpers/exception.h>

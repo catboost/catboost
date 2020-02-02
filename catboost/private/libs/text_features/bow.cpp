@@ -5,12 +5,19 @@ namespace NCB {
         BagOfWordsRegistrator(EFeatureCalcerType::BoW);
 
     void TBagOfWordsCalcer::Compute(const NCB::TText& text, TOutputFloatIterator outputFeaturesIterator) const {
-        ForEachActiveFeature(
-            [&text, &outputFeaturesIterator](ui32 featureId) {
-                *outputFeaturesIterator = text.Has(featureId);
-                ++outputFeaturesIterator;
+        auto textIterator = text.begin();
+        for (ui32 activeFeatureId : GetActiveFeatureIndices()) {
+            while (textIterator != text.end() && static_cast<ui32>(textIterator->Token()) < activeFeatureId) {
+                ++textIterator;
             }
-        );
+
+            if (textIterator == text.end() || static_cast<ui32>(textIterator->Token()) > activeFeatureId) {
+                *outputFeaturesIterator = 0;
+            } else {
+                *outputFeaturesIterator = 1;
+            }
+            ++outputFeaturesIterator;
+        }
     }
 
     TTextFeatureCalcer::TFeatureCalcerFbs TBagOfWordsCalcer::SaveParametersToFB(

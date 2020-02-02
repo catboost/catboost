@@ -454,8 +454,13 @@ def onadd_check(unit, *args):
 
     if check_type in ["PEP8", "PYFLAKES", "PY_FLAKES", "PEP8_2", "PYFLAKES_2"]:
         script_rel_path = "py.lint.pylint"
+        fork_mode = unit.get('TEST_FORK_MODE') or ''
     elif check_type in ["PEP8_3", "PYFLAKES_3"]:
         script_rel_path = "py.lint.pylint.3"
+        fork_mode = unit.get('TEST_FORK_MODE') or ''
+    elif check_type in ["flake8.py2", "flake8.py3"]:
+        script_rel_path = check_type
+        fork_mode = unit.get('TEST_FORK_MODE') or ''
     elif check_type == "JAVA_STYLE":
         if len(flat_args) < 2:
             raise Exception("Not enough arguments for JAVA_STYLE check")
@@ -464,6 +469,7 @@ def onadd_check(unit, *args):
             'base': '/yandex_checks.xml',
             'strict': '/yandex_checks_strict.xml',
             'extended': '/yandex_checks_extended.xml',
+            'library': '/yandex_checks_library.xml',
         }
         if check_level not in allowed_levels:
             raise Exception('{} is not allowed in LINT(), use one of {}'.format(check_level, allowed_levels.keys()))
@@ -647,6 +653,11 @@ def onjava_test(unit, *args):
             ymake.report_configure_error('skip JTEST_FOR in {}: no args provided'.format(unit.path()))
             return
 
+    java_cp_arg_type = unit.get('JAVA_CLASSPATH_CMD_TYPE_VALUE') or 'MANIFEST'
+    if java_cp_arg_type not in ('MANIFEST', 'COMMAND_FILE', 'LIST'):
+        ymake.report_configure_error('{}: TEST_JAVA_CLASSPATH_CMD_TYPE({}) are invalid. Choose argument from MANIFEST, COMMAND_FILE or LIST)'.format(unit.path(), java_cp_arg_type))
+        return
+
     unit_path = unit.path()
     path = _common.strip_roots(unit_path)
     test_dir = unit.resolve(unit_path)
@@ -701,6 +712,7 @@ def onjava_test(unit, *args):
         'SYSTEM_PROPERTIES': props,
         'TEST-CWD': test_cwd,
         'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
+        'JAVA_CLASSPATH_CMD_TYPE': java_cp_arg_type,
     }
 
     data = dump_test(unit, test_record)

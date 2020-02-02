@@ -3,7 +3,6 @@
 
 #include <catboost/private/libs/text_features/flatbuffers/feature_calcers.fbs.h>
 
-#include <library/containers/dense_hash/dense_hash.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/ymath.h>
 
@@ -24,10 +23,10 @@ double TMultinomialNaiveBayes::LogProb(
     classTokensCount += TokenPrior * (NumSeenTokens + SEEN_TOKENS_PRIOR);
     double textLen = 0;
 
-    for (const auto& [token, count] : text) {
-        textLen += count;
+    for (const auto& tokenToCount : text) {
+        textLen += tokenToCount.Count();
 
-        auto tokenCountPtr = freqTable.find(token);
+        auto tokenCountPtr = freqTable.find(tokenToCount.Token());
         double num = TokenPrior;
 
         if (tokenCountPtr != freqTable.end()) {
@@ -36,7 +35,7 @@ double TMultinomialNaiveBayes::LogProb(
             //unseen word, adjust prior
             classTokensCount += TokenPrior;
         }
-        value += count * log(num);
+        value += tokenToCount.Count() * log(num);
     }
 
     //denum
@@ -123,10 +122,10 @@ void TNaiveBayesVisitor::Update(ui32 classId, const TText& text, TTextFeatureCal
 
     auto& classCounts = naiveBayes->Frequencies[classId];
 
-    for (const auto& [term, termCount] : text) {
-        SeenTokens.Insert(term);
-        classCounts[term] += termCount;
-        naiveBayes->ClassTotalTokens[classId] += termCount;
+    for (const auto& tokenToCount : text) {
+        SeenTokens.Insert(tokenToCount.Token());
+        classCounts[tokenToCount.Token()] += tokenToCount.Count();
+        naiveBayes->ClassTotalTokens[classId] += tokenToCount.Count();
     }
     naiveBayes->ClassDocs[classId] += 1;
     naiveBayes->NumSeenTokens = SeenTokens.Size();

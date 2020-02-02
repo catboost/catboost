@@ -7,6 +7,7 @@
 #include <catboost/private/libs/options/enums.h>
 
 #include <util/generic/algorithm.h>
+#include <util/generic/array_ref.h>
 #include <util/generic/hash.h>
 #include <util/generic/maybe.h>
 #include <util/generic/strbuf.h>
@@ -223,6 +224,20 @@ void BuildProtoFeaturePerfectHash(
 }
 
 
+template <class TRepeatedField> // TRepeatedField in either RepeatedField or RepeatedPtrField
+static void InitClassLabels(
+    const TRepeatedField& protoClassLabels,
+    TVector<NJson::TJsonValue>* dstClassLabels) {
+
+    dstClassLabels->clear();
+    dstClassLabels->reserve(protoClassLabels.size());
+
+    for (int i = 0; i < protoClassLabels.size(); ++i) {
+        dstClassLabels->emplace_back(protoClassLabels[i]);
+    }
+}
+
+
 NCB::TPoolQuantizationSchema NCB::QuantizationSchemaFromProto(
     const NIdl::TPoolQuantizationSchema& proto) {
 
@@ -244,8 +259,22 @@ NCB::TPoolQuantizationSchema NCB::QuantizationSchemaFromProto(
         schema.NanModes[i] = NanModeFromProto(featureSchema.GetNanMode());
     }
 
-    const auto& classNames = proto.GetClassNames();
-    schema.ClassNames.assign(classNames.begin(), classNames.end());
+    const auto& integerClassLabels = proto.GetIntegerClassLabels();
+    const auto& floatClassLabels = proto.GetFloatClassLabels();
+    const auto& stringClassLabels = proto.GetClassNames();
+
+    CB_ENSURE_INTERNAL(
+        !integerClassLabels.empty() + !floatClassLabels.empty() + !stringClassLabels.empty() <= 1,
+        "More than one type of labels specified in TPoolQuantizationSchema"
+    );
+
+    if (!integerClassLabels.empty()) {
+        InitClassLabels(integerClassLabels, &schema.ClassLabels);
+    } else if (!floatClassLabels.empty()) {
+        InitClassLabels(floatClassLabels, &schema.ClassLabels);
+    } else if (!stringClassLabels.empty()) {
+        InitClassLabels(stringClassLabels, &schema.ClassLabels);
+    }
 
     // for categorical features
 
@@ -266,6 +295,40 @@ NCB::TPoolQuantizationSchema NCB::QuantizationSchemaFromProto(
     return schema;
 }
 
+
+static void AddClassLabels(
+    TConstArrayRef<NJson::TJsonValue> classLabels,
+    NCB::NIdl::TPoolQuantizationSchema* protoSchema) {
+
+    if (classLabels.empty()) {
+        return;
+    }
+
+    switch (classLabels[0].GetType()) {
+        case NJson::JSON_INTEGER:
+            protoSchema->MutableIntegerClassLabels()->Reserve(classLabels.size());
+            for (const auto& classLabel : classLabels) {
+                protoSchema->AddIntegerClassLabels(classLabel.GetInteger());
+            }
+            break;
+        case NJson::JSON_DOUBLE:
+            protoSchema->MutableFloatClassLabels()->Reserve(classLabels.size());
+            for (const auto& classLabel : classLabels) {
+                protoSchema->AddFloatClassLabels(static_cast<float>(classLabel.GetDouble()));
+            }
+            break;
+        case NJson::JSON_STRING:
+            protoSchema->MutableClassNames()->Reserve(classLabels.size());
+            for (const auto& classLabel : classLabels) {
+                protoSchema->AddClassNames(classLabel.GetString());
+            }
+            break;
+        default:
+            CB_ENSURE_INTERNAL(false, "bad class label type: " << classLabels[0].GetType());
+    }
+}
+
+
 NCB::NIdl::TPoolQuantizationSchema NCB::QuantizationSchemaToProto(
     const TPoolQuantizationSchema& schema) {
 
@@ -284,10 +347,7 @@ NCB::NIdl::TPoolQuantizationSchema NCB::QuantizationSchemaToProto(
             std::move(featureSchema)});
     }
 
-    proto.MutableClassNames()->Reserve(schema.ClassNames.size());
-    for (const auto className : schema.ClassNames) {
-        proto.AddClassNames(className);
-    }
+    AddClassLabels(schema.ClassLabels, &proto);
 
     for (size_t i = 0; i < schema.CatFeatureIndices.size(); ++i) {
         NIdl::TCatFeatureQuantizationSchema catFeatureSchema;

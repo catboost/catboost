@@ -147,7 +147,7 @@ namespace {
             const ui32 dictionarySize = Dictionary.Size();
             CB_ENSURE(
                 dictionarySize > 0,
-                "Dictionary size is 0, check out data or try to decrease min_token_occurrence parameter"
+                "Dictionary size is 0, check out data or try to decrease occurrence_lower_bound parameter"
             );
             if (TopTokensCount > dictionarySize) {
                 TopTokensCount = dictionarySize;
@@ -218,10 +218,10 @@ namespace {
                 TVector<ui32> features(samplesCount * numFeatureBins);
                 NPar::ParallelFor(
                     executor, 0, samplesCount, [&](ui32 line) {
-                        for (const auto& [tokenId, count] : ds.GetText(line)) {
-                            Y_UNUSED(count);
-                            if (topTokensSet.contains(tokenId)) {
-                                SetFeatureValue(tokenId, line, samplesCount, MakeArrayRef(features));
+                        for (const auto& tokenToCount : ds.GetText(line)) {
+                            const TTokenId& token = tokenToCount.Token();
+                            if (topTokensSet.contains(token)) {
+                                SetFeatureValue(token, line, samplesCount, MakeArrayRef(features));
                             }
                         }
                     }

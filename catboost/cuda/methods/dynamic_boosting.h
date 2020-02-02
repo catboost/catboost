@@ -631,7 +631,7 @@ namespace NCatboostCuda {
                 TestDataProvider ? &state->TestCursor : nullptr,
                 state->BestTestCursor.Get(),
                 resultModel.Get());
-            resultModel->ShiftFirstWeakModelValues(state->StartingPoint.GetOrElse(0.0f));
+            resultModel->SetBias(state->StartingPoint.GetOrElse(0.0f));
             return resultModel;
         }
 

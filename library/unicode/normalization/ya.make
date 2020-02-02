@@ -18,6 +18,7 @@ IF(NOT CATBOOST_OPENSOURCE)
     PEERDIR(
         library/charset
     )
+    GENERATE_ENUM_SERIALIZATION(normalization.h)
 ENDIF()
 
 END()

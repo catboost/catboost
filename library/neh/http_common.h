@@ -28,6 +28,11 @@ namespace NNeh {
     };
 
     namespace NHttp {
+        enum class EResolverType {
+            ETCP = 0,
+            EUNIXSOCKET = 1
+        };
+
         struct TFdLimits {
         public:
             TFdLimits()
@@ -137,6 +142,21 @@ namespace NNeh {
             TParts Parts_;
         };
 
+        struct TRequestSettings {
+            bool NoDelay = true;
+            EResolverType ResolverType = EResolverType::ETCP;
+
+            TRequestSettings& SetNoDelay(bool noDelay) {
+                NoDelay = noDelay;
+                return *this;
+            }
+
+            TRequestSettings& SetResolverType(EResolverType resolverType) {
+                ResolverType = resolverType;
+                return *this;
+            }
+        };
+
         struct TRequestGet {
             static TRequestData::TPtr Build(const TMessage& msg, const TParsedLocation& loc) {
                 TRequestData::TPtr req(new TRequestData(50 + loc.Service.size() + msg.Data.size() + loc.Host.size()));
@@ -163,6 +183,10 @@ namespace NNeh {
             static inline TStringBuf Name() noexcept {
                 return AsStringBuf("http");
             }
+
+            static TRequestSettings RequestSettings() {
+                return TRequestSettings();
+            }
         };
 
         struct TRequestPost {
@@ -187,6 +211,10 @@ namespace NNeh {
             static inline TStringBuf Name() noexcept {
                 return AsStringBuf("post");
             }
+
+            static TRequestSettings RequestSettings() {
+                return TRequestSettings();
+            }
         };
 
         struct TRequestFull {
@@ -198,6 +226,10 @@ namespace NNeh {
 
             static inline TStringBuf Name() noexcept {
                 return AsStringBuf("full");
+            }
+
+            static TRequestSettings RequestSettings() {
+                return TRequestSettings();
             }
         };
 

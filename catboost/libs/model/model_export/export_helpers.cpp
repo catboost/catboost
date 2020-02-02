@@ -6,7 +6,7 @@
 static TString FloatToStringWithSuffix(float value, bool addFloatingSuffix) {
     TString str = FloatToString(value, PREC_NDIGITS, 9);
     if (addFloatingSuffix) {
-        if (int value; TryFromString<int>(str, value)) {
+        if (int tmpValue; TryFromString<int>(str, tmpValue)) {
             str.append('.');
         }
         str.append("f");

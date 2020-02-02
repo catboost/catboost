@@ -7,98 +7,60 @@
 #include <util/string/cast.h>
 #include <util/string/split.h>
 
-#include <tuple>
-
 using namespace NTextProcessing::NDictionary;
-
-static TDictionaryBuilderOptions GetDictionaryBuilderOptions(const NJson::TJsonValue& options) {
-    TDictionaryBuilderOptions dictionaryBuilderOptions;
-    const TStringBuf minTokenOccurencyName = "min_token_occurrence";
-    const TStringBuf maxDictSizeName = "max_dict_size";
-    if (options.Has(minTokenOccurencyName)) {
-        dictionaryBuilderOptions.OccurrenceLowerBound = FromString<ui64>(options[minTokenOccurencyName].GetString());
-    }
-    if (options.Has(maxDictSizeName)) {
-        dictionaryBuilderOptions.MaxDictionarySize = FromString<i32>(options[maxDictSizeName].GetString());
-    }
-    return dictionaryBuilderOptions;
-}
-
-template <class T>
-static void OptionToJson(TStringBuf name, const T& value, const T& defaultValue, NJson::TJsonValue* json) {
-    if (value != defaultValue) {
-        (*json)[name] = ToString(value);
-    }
-}
-
-static void DictionaryBuilderOptionsToJson(
-    const TDictionaryBuilderOptions& options,
-    NJson::TJsonValue* optionsJson
-) {
-    const TDictionaryBuilderOptions defaultBuilderOptions;
-    (*optionsJson)["min_token_occurrence"] = ToString(options.OccurrenceLowerBound);
-    OptionToJson(
-        "max_dict_size",
-        options.MaxDictionarySize,
-        defaultBuilderOptions.MaxDictionarySize,
-        optionsJson
-    );
-}
-
-static void DictionaryOptionsToJson(
-    const NTextProcessing::NDictionary::TDictionaryOptions& options,
-    NJson::TJsonValue* optionsJson
-) {
-    const NTextProcessing::NDictionary::TDictionaryOptions defaultDictionaryOptions;
-    (*optionsJson)["token_level_type"] = ToString(options.TokenLevelType);
-
-    OptionToJson("gram_order", options.GramOrder, defaultDictionaryOptions.GramOrder, optionsJson);
-    OptionToJson("skip_step", options.SkipStep, defaultDictionaryOptions.SkipStep, optionsJson);
-    OptionToJson("start_token_id", options.StartTokenId, defaultDictionaryOptions.StartTokenId, optionsJson);
-    OptionToJson(
-        "end_of_word_token_policy",
-        options.EndOfWordTokenPolicy,
-        defaultDictionaryOptions.EndOfWordTokenPolicy,
-        optionsJson
-    );
-    OptionToJson(
-        "end_of_sentence_token_policy",
-        options.EndOfSentenceTokenPolicy,
-        defaultDictionaryOptions.EndOfSentenceTokenPolicy,
-        optionsJson
-    );
-}
+using namespace NTextProcessing::NTokenizer;
 
 namespace NCatboostOptions {
+    TTextColumnTokenizerOptions::TTextColumnTokenizerOptions()
+        : TokenizerId("tokenizer_id", "default_tokenizer")
+        , TokenizerOptions("tokenizer_options", TTokenizerOptions())
+    {
+    }
+
+    TTextColumnTokenizerOptions::TTextColumnTokenizerOptions(TString tokenizerId, TTokenizerOptions tokenizerOptions)
+        : TokenizerId("tokenizer_id", tokenizerId)
+        , TokenizerOptions("tokenizer_options", tokenizerOptions)
+    {
+    }
+
+    void TTextColumnTokenizerOptions::Save(NJson::TJsonValue* optionsJson) const {
+        TJsonFieldHelper<TOption<TString>>::Write(TokenizerId, optionsJson);
+        TokenizerOptionsToJson(TokenizerOptions, optionsJson);
+    }
+
+    void TTextColumnTokenizerOptions::Load(const NJson::TJsonValue& options) {
+        {
+            const bool wasRead = TJsonFieldHelper<TOption<TString>>::Read(options, &TokenizerId);
+            CB_ENSURE(wasRead, "DictionaryOptions: no tokenizerId was specified");
+        }
+        TokenizerOptions = JsonToTokenizerOptions(options);
+    }
+
+    bool TTextColumnTokenizerOptions::operator==(const TTextColumnTokenizerOptions& rhs) const {
+        return std::tie(TokenizerOptions) == std::tie(rhs.TokenizerOptions);
+    }
+
+    bool TTextColumnTokenizerOptions::operator!=(const TTextColumnTokenizerOptions& rhs) const {
+        return !(rhs == *this);
+    }
+
     TTextColumnDictionaryOptions::TTextColumnDictionaryOptions()
         : DictionaryId("dictionary_id", "default_dictionary")
-        , DictionaryOptions("dictionary_options",
-            NTextProcessing::NDictionary::TDictionaryOptions{
-                /*TokenLevelType*/ETokenLevelType::Word,
-                /*GramOrder*/ 1,
-                /*SkipStep (skip-grams)*/0,
-                /*StartTokenId*/ 0,
-                /*EndOfWordTokenPolicy*/EEndOfWordTokenPolicy::Insert,
-                /*EndOfSentenceTokenPolicy*/ EEndOfSentenceTokenPolicy::Skip
-        })
-        , DictionaryBuilderOptions(
-            "dictionary_builder_options",
-        TDictionaryBuilderOptions{
-           /*OccurrenceLowerBound*/ 3,
-           /*MaxDictionarySize*/ DefaultMaxDictionarySize()
-        })
-    {}
+        , DictionaryOptions("dictionary_options", DEFAULT_DICTIONARY_OPTIONS)
+        , DictionaryBuilderOptions("dictionary_builder_options", DEFAULT_DICTIONARY_BUILDER_OPTIONS)
+    {
+    }
 
     TTextColumnDictionaryOptions::TTextColumnDictionaryOptions(
         TString dictionaryId,
         TDictionaryOptions dictionaryOptions,
-        TMaybe<TDictionaryBuilderOptions> dictionaryBuilderOptions
-    ) : TTextColumnDictionaryOptions() {
+        TDictionaryBuilderOptions dictionaryBuilderOptions
+    )
+        : TTextColumnDictionaryOptions()
+    {
         DictionaryId.SetDefault(dictionaryId);
         DictionaryOptions.SetDefault(dictionaryOptions);
-        if (dictionaryBuilderOptions.Defined()) {
-            DictionaryBuilderOptions.SetDefault(dictionaryBuilderOptions.GetRef());
-        }
+        DictionaryBuilderOptions.SetDefault(dictionaryBuilderOptions);
     }
 
     void TTextColumnDictionaryOptions::Save(NJson::TJsonValue* optionsJson) const {
@@ -112,8 +74,8 @@ namespace NCatboostOptions {
             const bool wasRead = TJsonFieldHelper<TOption<TString>>::Read(options, &DictionaryId);
             CB_ENSURE(wasRead, "DictionaryOptions: no dictionaryId was specified");
         }
-        DictionaryOptions = JsonToDictionaryOptions(options);
-        DictionaryBuilderOptions = GetDictionaryBuilderOptions(options);
+        JsonToDictionaryOptions(options, &DictionaryOptions.Get());
+        JsonToDictionaryBuilderOptions(options, &DictionaryBuilderOptions.Get());
     }
 
     bool TTextColumnDictionaryOptions::operator==(const TTextColumnDictionaryOptions& rhs) const {
@@ -191,48 +153,100 @@ namespace NCatboostOptions {
         return !(*this == rhs);
     }
 
-    TFeatureCalcerDescription& TFeatureCalcerDescription::operator=(
-        EFeatureCalcerType featureCalcerType
-    ) {
+    TFeatureCalcerDescription& TFeatureCalcerDescription::operator=(EFeatureCalcerType featureCalcerType) {
         CalcerType.Set(featureCalcerType);
         return *this;
     }
 
     TTextProcessingOptions::TTextProcessingOptions()
-        : Dictionaries(
-            "dictionaries",
-            GetDefaultDictionaries()
-        )
-        , TextFeatureProcessing(
-            "text_processing",
-            TMap<TString, TVector<TTextFeatureProcessing>>{{
-                DefaultProcessingName(),
-                {
-                    TTextFeatureProcessing{
-                        TFeatureCalcerDescription{EFeatureCalcerType::BoW},
-                        GetDefaultCalcerDictionaries(EFeatureCalcerType::BoW)
-                    },
-                    TTextFeatureProcessing{
-                        TFeatureCalcerDescription{EFeatureCalcerType::NaiveBayes},
-                        GetDefaultCalcerDictionaries(EFeatureCalcerType::NaiveBayes)
-                    }
+        : Tokenizers("tokenizers", {})
+        , Dictionaries("dictionaries", {})
+        , TextFeatureProcessing("feature_processing", {})
+    {
+        const TString tokenizerName = "Space";
+        Tokenizers.SetDefault(TVector<TTextColumnTokenizerOptions>{{tokenizerName, TTokenizerOptions()}});
+
+        const TString unigramDctionaryName = "Word";
+        const TDictionaryOptions unigramDctionaryOptions = {ETokenLevelType::Word};
+        const TTextColumnDictionaryOptions unigramDctionary(unigramDctionaryName, unigramDctionaryOptions);
+
+        const TString bigramDctionaryName = "BiGram";
+        const TDictionaryOptions bigramDctionaryOptions = {ETokenLevelType::Word, /*GramOrder=*/2};
+        const TTextColumnDictionaryOptions bigramDctionary(bigramDctionaryName, bigramDctionaryOptions);
+
+        Dictionaries.SetDefault(TVector<TTextColumnDictionaryOptions>{bigramDctionary, unigramDctionary});
+
+        TextFeatureProcessing.SetDefault(TMap<TString, TVector<TTextFeatureProcessing>>{{DefaultProcessingName(), {
+            TTextFeatureProcessing{
+                {TFeatureCalcerDescription{EFeatureCalcerType::BoW}},
+                {tokenizerName},
+                {bigramDctionaryName, unigramDctionaryName}
+            },
+            TTextFeatureProcessing{
+                {TFeatureCalcerDescription{EFeatureCalcerType::NaiveBayes}},
+                {tokenizerName},
+                {unigramDctionaryName}
+            }
+        }}});
+    }
+
+    void TTextProcessingOptions::SetNotSpecifiedOptionsToDefaults() {
+        if (Tokenizers->empty()) {
+            Tokenizers.SetDefault(TVector<TTextColumnTokenizerOptions>{{"Space", TTokenizerOptions()}});
+        }
+
+        TVector<TString> tokenizerNames;
+        for (const auto& tokenizer : Tokenizers.Get()) {
+            tokenizerNames.push_back(tokenizer.TokenizerId.Get());
+        }
+
+        if (Dictionaries->empty()) {
+            Dictionaries.SetDefault(TVector<TTextColumnDictionaryOptions>{{"Word", {ETokenLevelType::Word}}});
+        }
+
+        TVector<TString> dictionaryNames;
+        for (const auto& dictionary : Dictionaries.Get()) {
+            dictionaryNames.push_back(dictionary.DictionaryId.Get());
+        }
+
+        if (TextFeatureProcessing->empty()) {
+            TMap<TString, TVector<TTextFeatureProcessing>> textFeatureProcessing{{
+                DefaultProcessingName(), {TTextFeatureProcessing()}
+            }};
+            TextFeatureProcessing.SetDefault(textFeatureProcessing);
+        }
+
+        TVector<TFeatureCalcerDescription> defaultCalcers{TFeatureCalcerDescription{EFeatureCalcerType::BoW}};
+
+        for (auto& [featureId, processings]: TextFeatureProcessing.Get()) {
+            for (auto& processing: processings) {
+                if (processing.TokenizersNames->empty()) {
+                    processing.TokenizersNames.SetDefault(tokenizerNames);
                 }
-            }}
-        ) {}
+                if (processing.DictionariesNames->empty()) {
+                    processing.DictionariesNames.SetDefault(dictionaryNames);
+                }
+                if (processing.FeatureCalcers->empty()) {
+                    processing.FeatureCalcers.SetDefault(defaultCalcers);
+                }
+            }
+        }
+    }
 
     void TTextProcessingOptions::Save(NJson::TJsonValue* optionsJson) const {
-        SaveFields(optionsJson, Dictionaries, TextFeatureProcessing);
+        SaveFields(optionsJson, Tokenizers, Dictionaries, TextFeatureProcessing);
     }
 
     void TTextProcessingOptions::Load(const NJson::TJsonValue& options) {
-        CheckedLoad(options, &Dictionaries, &TextFeatureProcessing);
+        CheckedLoad(options, &Tokenizers, &Dictionaries, &TextFeatureProcessing);
+        SetNotSpecifiedOptionsToDefaults();
     }
 
     bool TTextProcessingOptions::operator==(
         const TTextProcessingOptions& rhs
     ) const {
-        return std::tie(Dictionaries, TextFeatureProcessing)
-               == std::tie(rhs.Dictionaries, rhs.TextFeatureProcessing);
+        return std::tie(Tokenizers, Dictionaries, TextFeatureProcessing)
+            == std::tie(rhs.Tokenizers, rhs.Dictionaries, rhs.TextFeatureProcessing);
     }
 
     bool TTextProcessingOptions::operator!=(
@@ -250,6 +264,10 @@ namespace NCatboostOptions {
         return TextFeatureProcessing->at(DefaultProcessingName());
     }
 
+    const TVector<TTextColumnTokenizerOptions>& TTextProcessingOptions::GetTokenizers() const {
+        return Tokenizers;
+    }
+
     const TVector<TTextColumnDictionaryOptions>& TTextProcessingOptions::GetDictionaries() const {
         return Dictionaries;
     }
@@ -263,82 +281,35 @@ namespace NCatboostOptions {
         }
     }
 
-    TTextColumnDictionaryOptions TTextProcessingOptions::BiGramDictionaryOptions() {
-        return {
-            "BiGram",
-            NTextProcessing::NDictionary::TDictionaryOptions{
-                NTextProcessing::NDictionary::ETokenLevelType::Word,
-                2
-            }
-        };
-    }
-
-    TTextColumnDictionaryOptions TTextProcessingOptions::WordDictionaryOptions() {
-        return {
-            "Word",
-            NTextProcessing::NDictionary::TDictionaryOptions{
-                NTextProcessing::NDictionary::ETokenLevelType::Word
-            }
-        };
-    }
-
-    bool TTextProcessingOptions::HasOnlyDefaultDictionaries() const {
-        return Dictionaries.IsDefault();
-    }
-
-    TVector<TTextColumnDictionaryOptions> TTextProcessingOptions::GetDefaultDictionaries() {
-        return {BiGramDictionaryOptions(), WordDictionaryOptions()};
-    }
-
-    TMap<EFeatureCalcerType, TVector<TString>> TTextProcessingOptions::GetDefaultCalcerDictionaries() {
-        static const TMap<EFeatureCalcerType, TVector<TString>> DefaultCalcerDictionary = {
-            {EFeatureCalcerType::BoW, {"BiGram", "Word"}},
-            {EFeatureCalcerType::NaiveBayes, {"Word"}},
-            {EFeatureCalcerType::BM25, {"Word"}}
-        };
-        return DefaultCalcerDictionary;
-    }
-
-    TVector<TString> TTextProcessingOptions::GetDefaultCalcerDictionaries(
-        EFeatureCalcerType calcerType
-    ) {
-        const auto& defaultCalcerDictionaries = GetDefaultCalcerDictionaries();
-        CB_ENSURE_INTERNAL(
-            defaultCalcerDictionaries.contains(calcerType),
-            "No default dictionaries for feature calcer " << ToString(calcerType)
-        );
-        return defaultCalcerDictionaries.at(calcerType);
-    }
-
     TTextProcessingOptions::TTextProcessingOptions(
+        TVector<TTextColumnTokenizerOptions>&& tokenizers,
         TVector<TTextColumnDictionaryOptions>&& dictionaries,
         TMap<TString, TVector<TTextFeatureProcessing>>&& textFeatureProcessing
     )
-    : TTextProcessingOptions() {
+        : TTextProcessingOptions()
+    {
+        Tokenizers.Set(tokenizers);
         Dictionaries.Set(dictionaries);
         TextFeatureProcessing.Set(textFeatureProcessing);
     }
 
     TTextFeatureProcessing::TTextFeatureProcessing()
-        : FeatureCalcer(
-            "feature_calcer",
-            TFeatureCalcerDescription{
-                EFeatureCalcerType::NaiveBayes
-            })
-        , DictionariesNames("dictionaries_names", TVector<TString>{})
+        : FeatureCalcers("feature_calcers", {})
+        , TokenizersNames("tokenizers_names", {})
+        , DictionariesNames("dictionaries_names", {})
     {}
 
     void TTextFeatureProcessing::Save(NJson::TJsonValue* optionsJson) const {
-        SaveFields(optionsJson, DictionariesNames, FeatureCalcer);
+        SaveFields(optionsJson, TokenizersNames, DictionariesNames, FeatureCalcers);
     }
 
     void TTextFeatureProcessing::Load(const NJson::TJsonValue& options) {
-        CheckedLoad(options, &DictionariesNames, &FeatureCalcer);
+        CheckedLoad(options, &TokenizersNames, &DictionariesNames, &FeatureCalcers);
     }
 
     bool TTextFeatureProcessing::operator==(const TTextFeatureProcessing& rhs) const {
-        return std::tie(DictionariesNames, FeatureCalcer)
-            == std::tie(rhs.DictionariesNames, rhs.FeatureCalcer);
+        return std::tie(TokenizersNames, DictionariesNames, FeatureCalcers)
+            == std::tie(rhs.TokenizersNames, rhs.DictionariesNames, rhs.FeatureCalcers);
     }
 
     bool TTextFeatureProcessing::operator!=(const TTextFeatureProcessing& rhs) const {
@@ -346,99 +317,15 @@ namespace NCatboostOptions {
     }
 
     TTextFeatureProcessing::TTextFeatureProcessing(
-        TFeatureCalcerDescription&& featureCalcer,
+        TVector<TFeatureCalcerDescription>&& featureCalcers,
+        TVector<TString>&& tokenizersNames,
         TVector<TString>&& dictionariesNames
     )
         : TTextFeatureProcessing()
     {
-        FeatureCalcer.Set(featureCalcer);
+        FeatureCalcers.Set(featureCalcers);
+        TokenizersNames.Set(tokenizersNames);
         DictionariesNames.Set(dictionariesNames);
-    }
-}
-
-
-static NJson::TJsonValue ParseDictionaryOptionsFromString(
-    TStringBuf description,
-    TSet<TStringBuf>* seenDictionaryNames
-) {
-    NJson::TJsonValue dictionaryOptions;
-    dictionaryOptions.SetType(NJson::EJsonValueType::JSON_MAP);
-
-    TStringBuf dictionaryId;
-    GetNext<TStringBuf>(description, ":", dictionaryId);
-
-    CB_ENSURE(!dictionaryId.empty(), "DictionaryOptions: DictionaryId is not specified");
-    CB_ENSURE(
-        !seenDictionaryNames->contains(dictionaryId),
-        "DictionaryOptions: DictionaryId \"" << dictionaryId << "\" was specified twice"
-    );
-    dictionaryOptions["dictionary_id"] = dictionaryId;
-    seenDictionaryNames->insert(dictionaryId);
-
-    const THashSet<TString> validParams = {
-        "token_level_type",
-        "gram_order",
-        "skip_step",
-        "start_token_id",
-        "end_of_word_token_policy",
-        "end_of_sentence_token_policy",
-        "min_token_occurrence",
-        "max_dict_size"
-    };
-
-    for (const auto configItem : StringSplitter(description).Split(',').SkipEmpty()) {
-        TStringBuf key;
-        TStringBuf value;
-
-        Split(configItem, '=', key, value);
-        if (validParams.contains(key)) {
-            dictionaryOptions[key] = value;
-        } else {
-            ythrow TCatBoostException() << "Unsupported dictionary option: " << key;
-        }
-    }
-
-    return dictionaryOptions;
-}
-
-static void ParseTextProcessingOptionsFromString(
-    TStringBuf description,
-    const TSet<TStringBuf>& seenDictionaryNames,
-    NJson::TJsonValue* options
-) {
-    TStringBuf textFeatureId;
-    TStringBuf featureDescription;
-    description.RSplit('~', textFeatureId, featureDescription);
-
-    if (textFeatureId.empty()) {
-        textFeatureId = NCatboostOptions::TTextProcessingOptions::DefaultProcessingName();
-    }
-    CB_ENSURE(!options->Has(textFeatureId), "Feature names in text processing options must be unique");
-    NJson::TJsonValue& featureProcessingJson = (*options)[textFeatureId];
-    featureProcessingJson.SetType(NJson::EJsonValueType::JSON_ARRAY);
-
-    for (TStringBuf textProcessingUnit: StringSplitter(featureDescription).Split('|').SkipEmpty()) {
-        TStringBuf calcer;
-        TStringBuf dictionaries;
-        textProcessingUnit.Split('+', calcer, dictionaries);
-
-        NJson::TJsonValue unitJson(NJson::EJsonValueType::JSON_MAP);
-        unitJson["feature_calcer"] = calcer;
-
-        {
-            NJson::TJsonValue& dictionaryNames = unitJson["dictionaries_names"];
-            dictionaryNames.SetType(NJson::EJsonValueType::JSON_ARRAY);
-
-            for (TStringBuf dictionaryName: StringSplitter(dictionaries).Split(',').SkipEmpty()) {
-                dictionaryNames.AppendValue(dictionaryName);
-                CB_ENSURE(
-                    seenDictionaryNames.contains(dictionaryName),
-                    "DictionaryName " << dictionaryName << " wasn't specified in dictionaries options"
-                );
-            }
-        }
-
-        featureProcessingJson.AppendValue(unitJson);
     }
 }
 
@@ -447,103 +334,53 @@ void NCatboostOptions::ParseTextProcessingOptionsFromPlainJson(
     NJson::TJsonValue* textProcessingOptions,
     TSet<TString>* seenKeys
 ) {
-    TSet<TStringBuf> seenDictionaryNames;
+    const TString textProcessingOptionName = "text_processing";
+    const TString tokenizersOptionName = "tokenizers";
+    const TString dictionariesOptionName = "dictionaries";
+    const TString featureCalcersOptionName = "feature_calcers";
 
-    const TString dictionaryOptionName = "dictionaries";
-    if (plainOptions.Has(dictionaryOptionName)) {
-        const NJson::TJsonValue& dictionaryPlainOptions = plainOptions[dictionaryOptionName];
+    const bool hasSimpleTextProcessingOptions = (
+        plainOptions.Has(tokenizersOptionName) ||
+        plainOptions.Has(dictionariesOptionName) ||
+        plainOptions.Has(featureCalcersOptionName)
+    );
 
-        NJson::TJsonValue& dictionaryOptions = (*textProcessingOptions)[dictionaryOptionName];
-        dictionaryOptions.SetType(NJson::EJsonValueType::JSON_ARRAY);
-
-        for (const auto& dictionaryPlainOption: dictionaryPlainOptions.GetArray()) {
-            auto dictionaryOption = ParseDictionaryOptionsFromString(
-                dictionaryPlainOption.GetString(),
-                &seenDictionaryNames
-            );
-            dictionaryOptions.AppendValue(std::move(dictionaryOption));
-        }
-        seenKeys->insert(dictionaryOptionName);
+    if (!hasSimpleTextProcessingOptions && !plainOptions.Has(textProcessingOptionName)) {
+        return;
     }
 
-    const TString textProcessingOptionsName = "text_processing";
-    if (plainOptions.Has(textProcessingOptionsName)) {
-        const NJson::TJsonValue& textProcessingPlainOptions = plainOptions[textProcessingOptionsName];
+    CB_ENSURE(
+        !hasSimpleTextProcessingOptions || !plainOptions.Has(textProcessingOptionName),
+        "You should provide either `" << textProcessingOptionName << "` option or `" << tokenizersOptionName
+        << "`, `" << dictionariesOptionName << "`, `" << featureCalcersOptionName << "` options."
+    );
 
-        NJson::TJsonValue& textProcessingJson = (*textProcessingOptions)[textProcessingOptionsName];
-        textProcessingJson.SetType(NJson::EJsonValueType::JSON_MAP);
-
-        for (const auto& textProcessingPlainOption: textProcessingPlainOptions.GetArray()) {
-            ParseTextProcessingOptionsFromString(
-                textProcessingPlainOption.GetString(),
-                seenDictionaryNames,
-                &textProcessingJson
-            );
-        }
-        seenKeys->insert(textProcessingOptionsName);
-    }
-}
-
-static TString DictionaryOptionsToString(NJson::TJsonValue options) { // copy here is intentional
-    TStringBuilder descriptionBuilder;
-
-    TString dictionaryId = options["dictionary_id"].GetString();
-    options.EraseValue("dictionary_id");
-
-    descriptionBuilder << dictionaryId << ':';
-
-    for (auto& [parameterName, parameterValue]: options.GetMap()) {
-        descriptionBuilder << parameterName << '=' << parameterValue.GetString() << ',';
+    if (plainOptions.Has(textProcessingOptionName)) {
+        *textProcessingOptions = plainOptions[textProcessingOptionName];
+        seenKeys->insert(textProcessingOptionName);
+        return;
     }
 
-    descriptionBuilder.pop_back();
-    return descriptionBuilder.data();
-}
-
-static TString FeatureProcessingDescriptionToString(
-    TStringBuf textFeatureId,
-    const NJson::TJsonValue& options
-) {
-    TStringBuilder descriptionBuilder;
-    {
-        descriptionBuilder << textFeatureId << '~';
-
-        for (auto& featureCalcerProcessing: options.GetArray()) {
-            descriptionBuilder << featureCalcerProcessing["feature_calcer"].GetString() << '+';
-
-            for (auto& dictionaryName: featureCalcerProcessing["dictionaries_names"].GetArray()) {
-                descriptionBuilder << dictionaryName.GetString() << ',';
-            }
-            descriptionBuilder.pop_back();
-            descriptionBuilder << '|';
-        }
-
-        descriptionBuilder.pop_back();
+    if (plainOptions.Has(tokenizersOptionName)) {
+        (*textProcessingOptions)["tokenizers"] = plainOptions[tokenizersOptionName];
+        seenKeys->insert(tokenizersOptionName);
     }
 
-    return descriptionBuilder.data();
+    if (plainOptions.Has(dictionariesOptionName)) {
+        (*textProcessingOptions)["dictionaries"] = plainOptions[dictionariesOptionName];
+        seenKeys->insert(dictionariesOptionName);
+    }
+
+    if (plainOptions.Has(featureCalcersOptionName)) {
+        auto& processingDescription = (*textProcessingOptions)["feature_processing"][TTextProcessingOptions::DefaultProcessingName()];
+        processingDescription["feature_calcers"] = plainOptions[featureCalcersOptionName];
+        seenKeys->insert(featureCalcersOptionName);
+    }
 }
 
 void NCatboostOptions::SaveTextProcessingOptionsToPlainJson(
     const NJson::TJsonValue& textProcessingOptions,
     NJson::TJsonValue* plainOptions
 ) {
-    NJson::TJsonValue& dictionaries = (*plainOptions)["dictionaries"];
-    dictionaries.SetType(NJson::EJsonValueType::JSON_ARRAY);
-
-    for (const auto& dictionary: textProcessingOptions["dictionaries"].GetArray()) {
-        TString description = DictionaryOptionsToString(dictionary);
-        dictionaries.AppendValue(NJson::TJsonValue(description));
-    }
-
-    NJson::TJsonValue& textProcessing = (*plainOptions)["text_processing"];
-    textProcessing.SetType(NJson::EJsonValueType::JSON_ARRAY);
-
-    for (const auto& [textFeatureId, featureProcessing]: textProcessingOptions["text_processing"].GetMap()) {
-        TString featureProcessingDescription = FeatureProcessingDescriptionToString(
-            textFeatureId,
-            featureProcessing
-        );
-        textProcessing.AppendValue(NJson::TJsonValue{featureProcessingDescription});
-    }
+    (*plainOptions)["text_processing"] = textProcessingOptions;
 }

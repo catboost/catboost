@@ -12,6 +12,8 @@
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/text_features/text_processing_collection.h>
 
+#include <library/json/json_value.h>
+
 #include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>
 #include <util/generic/hash.h>
@@ -500,9 +502,6 @@ public:
 
     void SetScaleAndBias(const TScaleAndBias&);
 
-    //TODO(dbakshee): Remove this method and add Bias to the model instead.
-    void AddNumberToAllTreeLeafValues(ui32 treeId, double numberToAdd);
-
 private:
     //! Number of classes in model, in most cases equals to 1.
     int ApproxDimension = 1;
@@ -686,6 +685,9 @@ public:
         if (CtrProvider) {
             CtrProvider->DropUnusedTables(ModelTrees->GetUsedModelCtrBases());
         }
+        if (begin > 0) {
+            SetScaleAndBias({GetScaleAndBias().Scale, 0});
+        }
         UpdateDynamicData();
     }
 
@@ -777,6 +779,9 @@ public:
     //! Set normalization parameters for computing final formula from sum of trees
     void SetScaleAndBias(const TScaleAndBias& scaleAndBias) {
         ModelTrees.GetMutable()->SetScaleAndBias(scaleAndBias);
+        with_lock(CurrentEvaluatorLock) {
+            Evaluator.Reset();
+        }
     }
 
     /**
@@ -1085,7 +1090,15 @@ public:
      * @return the name, or empty string if the model does not have this information
      */
     TString GetLossFunctionName() const;
-    TVector<TString> GetModelClassNames() const;
+
+    /**
+     * Get typed class labels than can be predicted.
+     *
+     * @return Vector of typed class labels corresponding to approx dimension if the model can be used for
+     *    classification or empty vector otherwise.
+     *    Possible value types are Integer, Float or String
+     */
+    TVector<NJson::TJsonValue> GetModelClassLabels() const;
 
     /**
      * Internal usage only.

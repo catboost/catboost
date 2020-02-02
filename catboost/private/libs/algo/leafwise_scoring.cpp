@@ -347,13 +347,11 @@ static void CalcScoresForSubCandidate(
                 }
             }
         } else {
-            for (auto idx : xrange(0, static_cast<int>(fold.LeavesCount), 2)) {
+            for (auto idx : xrange(0, static_cast<int>(fold.LeavesCount / 2))) {
                 auto leftLeaf = idx;
-                auto rightLeaf = idx + 1;
+                auto rightLeaf = idx + fold.LeavesCount / 2;
                 ui32 leftLeafSize = fold.LeavesBounds[leftLeaf].GetSize();
                 ui32 rightLeafSize = fold.LeavesBounds[rightLeaf].GetSize();
-                auto realLeftLeafIdx = fold.LeavesIndices[leftLeaf];
-                auto realRightLeafIdx = fold.LeavesIndices[rightLeaf];
 
                 auto smallIndexRange = leftLeafSize < rightLeafSize
                     ? fold.LeavesBounds[leftLeaf]
@@ -361,10 +359,10 @@ static void CalcScoresForSubCandidate(
                 extractBucketIndex(smallIndexRange);
                 for (int dim : xrange(approxDimension)) {
                     TArrayRef leftStatsRef(
-                        GetDataPtr(stats, bucketCount * (realLeftLeafIdx * approxDimension + dim)),
+                        GetDataPtr(stats, bucketCount * (leftLeaf * approxDimension + dim)),
                         bucketCount);
                     TArrayRef rightStatsRef(
-                        GetDataPtr(stats, bucketCount * (realRightLeafIdx * approxDimension + dim)),
+                        GetDataPtr(stats, bucketCount * (rightLeaf * approxDimension + dim)),
                         bucketCount);
                     calcStats(smallIndexRange, dim, rightStatsRef);
                     calcScores(rightStatsRef);

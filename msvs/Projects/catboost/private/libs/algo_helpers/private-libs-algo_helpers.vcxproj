@@ -85,6 +85,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\ders_holder.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\error_functions.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\hessian.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\langevin_utils.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\online_predictor.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\pairwise_leaves_calculation.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\scoring_helpers.cpp"/>
@@ -95,6 +96,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\ders_holder.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\error_functions.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\hessian.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\langevin_utils.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\leaf_statistics.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\online_predictor.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo_helpers\pairwise_leaves_calculation.h"/>
@@ -321,6 +323,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
       <Project>{F7622D70-2702-4C7E-04DA-52DC56DF911E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
+      <Project>{2CE71367-048B-26B0-2DAC-CA9BB7D00E76}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\pop_count\library-pop_count.vcxproj">
       <Project>{5388367D-330A-ED57-0DB7-1F988A5A9B05}</Project>

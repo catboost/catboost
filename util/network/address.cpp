@@ -44,8 +44,8 @@ static inline void PrintAddr(IOutputStream& out, const IRemoteAddr& addr) {
             break;
         }
 
-#if defined(AF_LOCAL)
-        case AF_LOCAL: {
+#if defined(AF_UNIX)
+        case AF_UNIX: {
             const sockaddr_un* sa = (const sockaddr_un*)a;
 
             out << TStringBuf(sa->sun_path);

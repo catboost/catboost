@@ -38,7 +38,8 @@ inline void ReadAndProceedPoolInBlocks(
                 /*GroupWeightsFilePath=*/TPathWithScheme(),
                 /*BaselineFilePath=*/TPathWithScheme(),
                 /*TimestampsFilePath*/TPathWithScheme(),
-                /* ClassNames */{},
+                /*FeatureNamesPath*/TPathWithScheme(),
+                /* ClassLabels */{},
                 dsvFormatOptions,
                 MakeCdProviderFromFile(cdFilePath),
                 /*ignoredFeatures*/ {},
@@ -177,7 +178,7 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
 
         TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3", "float4"};
 
-        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
 
         return expectedData;
     }
@@ -242,7 +243,7 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
 
         TVector<TString> featureId = {"float0", "Gender1", "float2", "Country3", "float4"};
 
-        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
+        expectedData.MetaInfo = TDataMetaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, /* additionalBaselineCount */ Nothing(), &featureId);
 
         return expectedData;
     }
@@ -273,6 +274,9 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
         };
 
         expectedData.ObjectsGrouping = TObjectsGrouping(10);
+
+        expectedData.Target.TargetType = ERawTargetType::String;
+
         TVector<TVector<TString>> rawTarget{
             {"0.12", "0.22", "0.34", "0.42", "0.01", "0.0", "0.11", "0.21", "0.92", "0.04"}
         };
@@ -315,6 +319,8 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
 
             expectedData.ObjectsGrouping = TObjectsGrouping(4);
 
+            expectedData.Target.TargetType = ERawTargetType::String;
+
             TVector<TVector<TString>> rawTarget{{"0.12", "0.22", "0.34", "0.42"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Baseline = {{0.0f, 0.12f, 0.1f, 0.17f}, {0.1f, 0.23f, 0.11f, 0.29f}};
@@ -341,6 +347,8 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
 
             expectedData.ObjectsGrouping = TObjectsGrouping(4);
 
+            expectedData.Target.TargetType = ERawTargetType::String;
+
             TVector<TVector<TString>> rawTarget{{"0.01", "0.0", "0.11", "0.21"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Baseline = {{0.2f, 0.1f, 0.11f, 0.81f}, {0.12f, 0.2f, 0.33f, 0.31f}};
@@ -366,6 +374,8 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(2);
+
+            expectedData.Target.TargetType = ERawTargetType::String;
 
             TVector<TVector<TString>> rawTarget{{"0.92", "0.04"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
@@ -431,6 +441,9 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
             expectedData.ObjectsGrouping = TObjectsGrouping(
                 TVector<TGroupBounds>{{0, 3}, {3, 6}, {6, 8}, {8, 9}}
             );
+
+            expectedData.Target.TargetType = ERawTargetType::String;
+
             TVector<TVector<TString>> rawTarget{{
                 "0.12", "0.22", "0.34", "0.42", "0.01", "0.0", "0.11", "0.21", "0.92"
             }};
@@ -469,6 +482,8 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
             expectedData.ObjectsGrouping = TObjectsGrouping(
                 TVector<TGroupBounds>{{0, 1}}
             );
+
+            expectedData.Target.TargetType = ERawTargetType::String;
 
             TVector<TVector<TString>> rawTarget{{"0.04"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
@@ -509,6 +524,8 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
 
             expectedData.ObjectsGrouping = TObjectsGrouping(TVector<TGroupBounds>{{0, 3}});
 
+            expectedData.Target.TargetType = ERawTargetType::String;
+
             TVector<TVector<TString>> rawTarget{{"0.12", "0.22", "0.34"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Baseline = {{0.0f, 0.12f, 0.1f}, {0.1f, 0.23f, 0.11f}};
@@ -536,6 +553,8 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(TVector<TGroupBounds>{{0, 3}});
+
+            expectedData.Target.TargetType = ERawTargetType::String;
 
             TVector<TVector<TString>> rawTarget{{"0.42", "0.01", "0.0"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
@@ -569,6 +588,8 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
 
             expectedData.ObjectsGrouping = TObjectsGrouping(TVector<TGroupBounds>{{0, 2}, {2, 3}});
 
+            expectedData.Target.TargetType = ERawTargetType::String;
+
             TVector<TVector<TString>> rawTarget{{"0.11", "0.21", "0.92"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Baseline = {{0.11f, 0.81f, 0.32f}, {0.33f, 0.31f, 0.13f}};
@@ -598,6 +619,8 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
             expectedData.ObjectsGrouping = TObjectsGrouping(
                 TVector<TGroupBounds>{{0, 1}}
             );
+
+            expectedData.Target.TargetType = ERawTargetType::String;
 
             TVector<TVector<TString>> rawTarget{{"0.04"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
@@ -638,6 +661,8 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
 
             expectedData.ObjectsGrouping = TObjectsGrouping(TVector<TGroupBounds>{{0, 3}});
 
+            expectedData.Target.TargetType = ERawTargetType::String;
+
             TVector<TVector<TString>> rawTarget{{"0.12", "0.22", "0.34"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Baseline = {{0.0f, 0.12f, 0.1f}, {0.1f, 0.23f, 0.11f}};
@@ -665,6 +690,8 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(TVector<TGroupBounds>{{0, 3}});
+
+            expectedData.Target.TargetType = ERawTargetType::String;
 
             TVector<TVector<TString>> rawTarget{{"0.42", "0.01", "0.0"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
@@ -698,6 +725,8 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
 
             expectedData.ObjectsGrouping = TObjectsGrouping(TVector<TGroupBounds>{{0, 2}, {2, 3}});
 
+            expectedData.Target.TargetType = ERawTargetType::String;
+
             TVector<TVector<TString>> rawTarget{{"0.11", "0.21", "0.92"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Baseline = {{0.11f, 0.81f, 0.32f}, {0.33f, 0.31f, 0.13f}};
@@ -727,6 +756,8 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
             expectedData.ObjectsGrouping = TObjectsGrouping(
                 TVector<TGroupBounds>{{0, 1}}
             );
+
+            expectedData.Target.TargetType = ERawTargetType::String;
 
             TVector<TVector<TString>> rawTarget{{"0.04"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
@@ -817,6 +848,8 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
 
             expectedData.ObjectsGrouping = TObjectsGrouping(TVector<TGroupBounds>{{0, 7}});
 
+            expectedData.Target.TargetType = ERawTargetType::String;
+
             TVector<TVector<TString>> rawTarget{{"0.12", "0.22", "0.34", "0.42", "0.01", "0.0", "0.11"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Baseline = {
@@ -847,6 +880,8 @@ Y_UNIT_TEST_SUITE(ProcessDataBlocksFromDsv) {
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(TVector<TGroupBounds>{{0, 3}});
+
+            expectedData.Target.TargetType = ERawTargetType::String;
 
             TVector<TVector<TString>> rawTarget{{"0.21", "0.92", "0.04"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());

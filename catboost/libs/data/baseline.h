@@ -18,6 +18,11 @@
 #include <util/system/types.h>
 
 
+namespace NJson {
+    class TJsonValue;
+}
+
+
 namespace NCB {
     class TBaselineReader {
     public:
@@ -79,11 +84,11 @@ namespace NCB {
     };
 
     /**
-     * If classNames are empty init them from baseline header,
-     * check classNames and baseline file header consistency otherwise
+     * If classLabels are empty init them from baseline header,
+     * check classLabels and baseline file header consistency otherwise
      */
-    void UpdateClassNamesFromBaselineFile(
+    void UpdateClassLabelsFromBaselineFile(
         const TPathWithScheme& baselineFilePath,
-        TVector<TString>* classNames
+        TVector<NJson::TJsonValue>* classLabels
     );
 }

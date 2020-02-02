@@ -11,6 +11,7 @@
 #include <catboost/private/libs/algo/approx_calcer/gradient_walker.h>
 #include <catboost/private/libs/algo_helpers/approx_calcer_multi_helpers.h>
 #include <catboost/private/libs/algo_helpers/error_functions.h>
+#include <catboost/private/libs/algo_helpers/langevin_utils.h>
 #include <catboost/private/libs/algo_helpers/online_predictor.h>
 
 #include <library/threading/local_executor/local_executor.h>
@@ -21,6 +22,7 @@ void CalcApproxDeltaMulti(
     int leafCount,
     const IDerCalcer& error,
     const TVector<TIndexType>& indices,
+    ui64 randomSeed,
     TLearnContext* ctx,
     TVector<TVector<double>>* approxDelta,
     TVector<TVector<double>>* sumLeafDeltas
@@ -35,6 +37,7 @@ void CalcApproxDeltaMulti(
     const int approxDimension = approxDelta->ysize();
     const ELeavesEstimation estimationMethod = treeLearnerOptions.LeavesEstimationMethod;
     const float l2Regularizer = treeLearnerOptions.L2Reg;
+    const double scaledL2Regularizer = ScaleL2Reg(l2Regularizer, fold.GetSumWeight(), fold.GetLearnSampleCount());
 
     TVector<TSumMulti> leafDers(leafCount, MakeZeroDers(approxDimension, estimationMethod, error.GetHessianType()));
 
@@ -54,6 +57,13 @@ void CalcApproxDeltaMulti(
             recalcLeafWeights,
             estimationMethod,
             ctx->LocalExecutor,
+            &leafDers
+        );
+        AddLangevinNoiseToLeafDerivativesSum(
+            ctx->Params.BoostingOptions->DiffusionTemperature,
+            ctx->Params.BoostingOptions->LearningRate,
+            scaledL2Regularizer,
+            randomSeed,
             &leafDers
         );
         CalcLeafDeltasMulti(

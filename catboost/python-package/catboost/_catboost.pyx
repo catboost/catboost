@@ -341,6 +341,18 @@ cdef extern from "catboost/private/libs/options/enums.h":
     cdef ECrossValidation ECrossValidation_Inverted "ECrossValidation::Inverted"
 
 
+cdef extern from "catboost/private/libs/options/enums.h" namespace "NCB":
+    cdef cppclass ERawTargetType:
+        bool_t operator==(ERawTargetType)
+
+    cdef ERawTargetType ERawTargetType_Integer "NCB::ERawTargetType::Integer"
+    cdef ERawTargetType ERawTargetType_Float "NCB::ERawTargetType::Float"
+    cdef ERawTargetType ERawTargetType_String "NCB::ERawTargetType::String"
+    cdef ERawTargetType ERawTargetType_None "NCB::ERawTargetType::None"
+
+cdef extern from "catboost/private/libs/options/json_helper.h":
+    cdef TString WriteTJsonValue(const TJsonValue& jsonValue) except +ProcessException
+
 cdef extern from "catboost/private/libs/options/model_based_eval_options.h" namespace "NCatboostOptions" nogil:
     cdef TString GetExperimentName(ui32 featureSetIdx, ui32 foldIdx) except +ProcessException
 
@@ -392,6 +404,7 @@ cdef extern from "catboost/libs/data/meta_info.h" namespace "NCB":
         ui64 MaxCatFeaturesUniqValuesOnLearn
         TMaybe[TTargetStats] TargetStats
 
+        ERawTargetType TargetType
         ui32 TargetCount
         ui32 BaselineCount
         bool_t HasGroupId
@@ -516,16 +529,9 @@ ctypedef TConstArrayRef[TConstArrayRef[float]] TBaselineArrayRef
 
 
 cdef extern from "catboost/libs/data/target.h" namespace "NCB":
-    cdef cppclass ERawTargetType:
-        bool_t operator==(ERawTargetType)
-
-    cdef ERawTargetType ERawTargetType_Float "NCB::ERawTargetType::Float"
-    cdef ERawTargetType ERawTargetType_String "NCB::ERawTargetType::String"
-    cdef ERawTargetType ERawTargetType_None "NCB::ERawTargetType::None"
-
     cdef cppclass TRawTargetDataProvider:
         ERawTargetType GetTargetType() except +ProcessException
-        void GetFloatTarget(TArrayRef[TArrayRef[float]] dst) except +ProcessException
+        void GetNumericTarget(TArrayRef[TArrayRef[float]] dst) except +ProcessException
         void GetStringTargetRef(TVector[TConstArrayRef[TString]]* dst) except +ProcessException
         TMaybeData[TBaselineArrayRef] GetBaseline() except +ProcessException
         const TWeights[float]& GetWeights() except +ProcessException
@@ -628,7 +634,6 @@ cdef extern from "catboost/libs/data/visitor.h" namespace "NCB":
             bool_t haveUnknownNumberOfSparseFeatures,
             ui32 objectCount,
             EObjectsOrder objectsOrder,
-            bool_t targetDataTypeIsString,
             TVector[TIntrusivePtr[IResourceHolder]] resourceHolders
         ) except +ProcessException
 
@@ -781,6 +786,7 @@ cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
         const TPathWithScheme& groupWeightsFilePath,
         const TPathWithScheme& timestampsFilePath,
         const TPathWithScheme& baselineFilePath,
+        const TPathWithScheme& featureNamesPath,
         const TColumnarPoolFormatParams& columnarPoolFormatParams,
         const TVector[ui32]& ignoredFeatures,
         EObjectsOrder objectsOrder,
@@ -801,6 +807,10 @@ cdef extern from "catboost/libs/model/ctr_provider.h":
     cdef cppclass ECtrTableMergePolicy:
         pass
 
+cdef extern from "catboost/libs/model/scale_and_bias.h":
+    cdef cppclass TScaleAndBias:
+        double Scale
+        double Bias
 
 cdef extern from "catboost/libs/model/model.h":
     cdef cppclass TFeaturePosition:
@@ -831,6 +841,7 @@ cdef extern from "catboost/libs/model/model.h":
         void SetLeafValues(const TVector[double]& leafValues) except +ProcessException
         void DropUnusedFeatures() except +ProcessException
         TVector[ui32] GetTreeLeafCounts() except +ProcessException
+
         void ConvertObliviousToAsymmetric() except +ProcessException
 
     cdef cppclass TCOWTreeWrapper:
@@ -851,7 +862,9 @@ cdef extern from "catboost/libs/model/model.h":
         void Truncate(size_t begin, size_t end) except +ProcessException
         bool_t IsOblivious() except +ProcessException
         TString GetLossFunctionName() except +ProcessException
-        TVector[TString] GetModelClassNames() except +ProcessException
+        TVector[TJsonValue] GetModelClassLabels() except +ProcessException
+        TScaleAndBias GetScaleAndBias() except +ProcessException
+        void SetScaleAndBias(const TScaleAndBias&) except +ProcessException
 
     cdef cppclass EModelType:
         pass
@@ -880,8 +893,23 @@ cdef extern from "catboost/libs/model/model_export/model_exporter.h" namespace "
     ) nogil except +ProcessException
 
 cdef extern from "library/json/writer/json_value.h" namespace "NJson":
+    cdef enum EJsonValueType:
+        JSON_UNDEFINED,
+        JSON_NULL,
+        JSON_BOOLEAN,
+        JSON_INTEGER,
+        JSON_DOUBLE,
+        JSON_STRING,
+        JSON_MAP,
+        JSON_ARRAY,
+        JSON_UINTEGER
+
     cdef cppclass TJsonValue:
-        pass
+        EJsonValueType GetType()
+        i64 GetInteger() except +ProcessException
+        double GetDouble() except +ProcessException
+        const TString& GetString() except +ProcessException
+
 
 cdef extern from "library/containers/2d_array/2d_array.h":
     cdef cppclass TArray2D[T]:
@@ -1159,11 +1187,6 @@ cdef extern from "catboost/libs/eval_result/eval_helpers.h":
         const TFullModel& model,
         const TVector[TVector[double]]& approx,
         int threadCount
-    ) nogil except +ProcessException
-
-    cdef TVector[TString] ConvertTargetToExternalName(
-        const TVector[float]& target,
-        const TFullModel& model
     ) nogil except +ProcessException
 
 cdef extern from "catboost/libs/eval_result/eval_result.h" namespace "NCB":
@@ -3097,6 +3120,14 @@ def _set_label_from_num_nparray_objects_order(
         for object_idx in range(object_count):
             builder_visitor[0].AddTarget(target_idx, object_idx, <float>label[object_idx][target_idx])
 
+cdef ERawTargetType _py_target_type_to_raw_target_data(py_label_type) except *:
+    if np.issubdtype(py_label_type, np.floating):
+        return ERawTargetType_Float
+    elif np.issubdtype(py_label_type, np.integer):
+        return ERawTargetType_Integer
+    else:
+        return ERawTargetType_String
+
 
 cdef class _PoolBase:
     cdef TDataProviderPtr __pool
@@ -3186,13 +3217,17 @@ cdef class _PoolBase:
                 builder_visitor[0].AddTarget(target_idx, <TConstArrayRef[TString]>string_target_data)
 
 
-    cpdef _read_pool(self, pool_file, cd_file, pairs_file, delimiter, bool_t has_header, int thread_count):
+    cpdef _read_pool(self, pool_file, cd_file, pairs_file, feature_names_file, delimiter, bool_t has_header, int thread_count):
         cdef TPathWithScheme pool_file_path
         pool_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(pool_file), TStringBuf(<char*>'dsv'))
 
         cdef TPathWithScheme pairs_file_path
         if len(pairs_file):
             pairs_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(pairs_file), TStringBuf(<char*>'dsv'))
+
+        cdef TPathWithScheme feature_names_file_path
+        if len(feature_names_file):
+            feature_names_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(feature_names_file), TStringBuf(<char*>'dsv'))
 
         cdef TColumnarPoolFormatParams columnarPoolFormatParams
         columnarPoolFormatParams.DsvFormat.HasHeader = has_header
@@ -3210,6 +3245,7 @@ cdef class _PoolBase:
             TPathWithScheme(),
             TPathWithScheme(),
             TPathWithScheme(),
+            feature_names_file_path,
             columnarPoolFormatParams,
             emptyIntVec,
             EObjectsOrder_Undefined,
@@ -3345,7 +3381,6 @@ cdef class _PoolBase:
             False,
             _get_object_count(data),
             EObjectsOrder_Undefined,
-            (label is not None) and (not isinstance(label[0][0], numbers.Number)),
             resource_holders
         )
         builder_visitor[0].StartNextBlock(_get_object_count(data))
@@ -3384,6 +3419,8 @@ cdef class _PoolBase:
         cdef TDataMetaInfo data_meta_info
         if label is not None:
             data_meta_info.TargetCount = <ui32>len(label[0])
+            if data_meta_info.TargetCount:
+                data_meta_info.TargetType = _py_target_type_to_raw_target_data(type(label[0][0]))
 
         data_meta_info.BaselineCount = len(baseline[0]) if baseline is not None else 0
         data_meta_info.HasGroupId = group_id is not None
@@ -3674,8 +3711,8 @@ cdef class _PoolBase:
         cdef TVector[TConstArrayRef[TString]] string_target_references
         cdef ui32 target_count = self.__pool.Get()[0].MetaInfo.TargetCount
         cdef ui32 object_count = self.__pool.Get()[0].GetObjectCount()
-        cdef np.ndarray[np.float32_t, ndim=1] float_target_1d
-        cdef np.ndarray[np.float32_t, ndim=2] float_target_2d
+        cdef np.ndarray[np.float32_t, ndim=1] num_target_1d
+        cdef np.ndarray[np.float32_t, ndim=2] num_target_2d
         cdef ui32 target_idx
 
         if self.__target_data_holders:
@@ -3685,26 +3722,26 @@ cdef class _PoolBase:
                 return np.array(self.__target_data_holders).T
         else:
             raw_target_type = self.__pool.Get()[0].RawTargetData.GetTargetType()
-            if raw_target_type == ERawTargetType_Float:
+            if (raw_target_type == ERawTargetType_Integer) or (raw_target_type == ERawTargetType_Float):
                 num_target_references.resize(target_count)
                 if target_count == 1:
-                    float_target_1d = np.empty(object_count, dtype=np.float32)
-                    num_target_references[0] = TArrayRef[float](&float_target_1d[0], object_count)
-                    self.__pool.Get()[0].RawTargetData.GetFloatTarget(
+                    num_target_1d = np.empty(object_count, dtype=np.float32)
+                    num_target_references[0] = TArrayRef[float](&num_target_1d[0], object_count)
+                    self.__pool.Get()[0].RawTargetData.GetNumericTarget(
                         <TArrayRef[TArrayRef[float]]>num_target_references
                     )
-                    return float_target_1d.astype(self.target_type)
+                    return num_target_1d.astype(self.target_type)
                 else:
-                    float_target_2d = np.empty((object_count, target_count), dtype=np.float32, order='F')
+                    num_target_2d = np.empty((object_count, target_count), dtype=np.float32, order='F')
                     for target_idx in range(target_count):
                         num_target_references[target_idx] = TArrayRef[float](
-                            &float_target_2d[0, target_idx],
+                            &num_target_2d[0, target_idx],
                             object_count
                         )
-                    self.__pool.Get()[0].RawTargetData.GetFloatTarget(
+                    self.__pool.Get()[0].RawTargetData.GetNumericTarget(
                         <TArrayRef[TArrayRef[float]]>num_target_references
                     )
-                    return float_target_2d.astype(self.target_type)
+                    return num_target_2d.astype(self.target_type)
             elif raw_target_type == ERawTargetType_String:
                 string_target_references.resize(target_count)
                 self.__pool.Get()[0].RawTargetData.GetStringTargetRef(&string_target_references)
@@ -3835,6 +3872,33 @@ cdef TQuantizedFeaturesInfoPtr _init_quantized_feature_info(TDataProviderPtr poo
             input_borders_str,
             quantizedFeaturesInfo.Get())
     return quantizedFeaturesInfo
+
+
+cdef _get_model_class_labels(const TFullModel& model):
+    cdef TVector[TJsonValue] jsonLabels = model.GetModelClassLabels()
+    if jsonLabels.empty():
+        return np.empty(0, object)
+
+    cdef size_t classCount = jsonLabels.size()
+    cdef EJsonValueType labelType = jsonLabels[0].GetType()
+    cdef size_t classIdx
+
+    if labelType == JSON_INTEGER:
+        labels = np.empty(classCount, np.int64)
+        for classIdx in range(classCount):
+            labels[classIdx] = jsonLabels[classIdx].GetInteger()
+    elif labelType == JSON_DOUBLE:
+        labels = np.empty(classCount, np.float64)
+        for classIdx in range(classCount):
+            labels[classIdx] = jsonLabels[classIdx].GetDouble()
+    elif labelType == JSON_STRING:
+        labels = np.empty(classCount, object)
+        for classIdx in range(classCount):
+            labels[classIdx] = to_native_str(bytes(jsonLabels[classIdx].GetString()))
+    else:
+        raise CatBoostError('[Internal error] unexpected model class labels type')
+
+    return labels
 
 
 cdef class _CatBoost:
@@ -4144,6 +4208,16 @@ cdef class _CatBoost:
     cpdef _base_shrink(self, int ntree_start, int ntree_end):
         self.__model.Truncate(ntree_start, ntree_end)
 
+    cpdef _get_scale_and_bias(self):
+        cdef TScaleAndBias scale_and_bias = dereference(self.__model).GetScaleAndBias()
+        return scale_and_bias.Scale, scale_and_bias.Bias
+
+    cpdef _set_scale_and_bias(self, scale, bias):
+        cdef TScaleAndBias scale_and_bias
+        scale_and_bias.Scale = scale
+        scale_and_bias.Bias = bias
+        dereference(self.__model).SetScaleAndBias(scale_and_bias)
+
     cpdef _is_oblivious(self):
         return self.__model.IsOblivious()
 
@@ -4207,7 +4281,7 @@ cdef class _CatBoost:
             hasCatFeatures,
             hasTextFeatures
         )
-        return loads(to_native_str(ToString(plainOptions)))
+        return loads(to_native_str(WriteTJsonValue(plainOptions)))
 
     def _get_tree_count(self):
         return self.__model.GetTreeCount()
@@ -4240,8 +4314,8 @@ cdef class _CatBoost:
     def _get_feature_names(self):
         return [to_native_str(s) for s in GetModelUsedFeaturesNames(dereference(self.__model))]
 
-    def _get_class_names(self):
-        return [to_native_str(s) for s in self.__model.GetModelClassNames()]
+    def _get_class_labels(self):
+        return _get_model_class_labels(self.__model[0])
 
     cpdef _sum_models(self, models, weights, ctr_merge_policy):
         cdef TVector[TFullModel_const_ptr] models_vector
@@ -4671,21 +4745,24 @@ cpdef _cv(dict params, _PoolBase pool, int fold_count, bool_t inverted, int part
     return cv_results
 
 
-cdef _FloatOrStringFromString(char* s):
-    cdef char* stop = NULL
-    cdef double parsed = StrToD(s, &stop)
-    cdef float res
-    if len(s) == 0:
-        return str()
-    elif stop == s + len(s):
-        return float(parsed)
-    return to_native_str(bytes(s))
-
-
 cdef _convert_to_visible_labels(EPredictionType predictionType, TVector[TVector[double]] raws, int thread_count, TFullModel* model):
+    cdef size_t objectCount
+    cdef size_t objectIdx
+    cdef TConstArrayRef[double] raws1d
+
     if predictionType == string_to_prediction_type('Class'):
-        return [[_FloatOrStringFromString(value) for value \
-            in ConvertTargetToExternalName([value for value in raws[0]], dereference(model))]]
+        assert (raws.size() == 1)
+        raws1d = TConstArrayRef[double](raws[0])
+        objectCount = raws1d.size()
+
+        model_class_labels = _get_model_class_labels(model[0])
+
+        class_label_type = type(model_class_labels[0])
+        result = np.empty((1, objectCount), object if class_label_type == str else class_label_type)
+        for objectIdx in range(objectCount):
+            result[0][objectIdx] = model_class_labels[<ui32>raws1d[objectIdx]]
+        return result
+
     return _2d_vector_of_double_to_np_array(raws)
 
 
@@ -5146,7 +5223,7 @@ cpdef compute_training_options(dict options, DataMetaInfo train_meta_info, DataM
         train_meta_info.DataMetaInfo,
         testMetaInfo
     )
-    return loads(to_native_str(ToString(trainingOptions)))
+    return loads(to_native_str(WriteTJsonValue(trainingOptions)))
 
 
 include "_monoforest.pxi"

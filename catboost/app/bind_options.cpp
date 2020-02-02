@@ -184,6 +184,12 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
     parser->AddLongOption("input-borders-file", "file with borders")
             .RequiredArgument("PATH")
             .StoreResult(&loadParamsPtr->BordersFile);
+
+    parser->AddLongOption("feature-names-path", "path to feature names data")
+        .RequiredArgument("[SCHEME://]PATH")
+        .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
+            loadParamsPtr->FeatureNamesPath = TPathWithScheme(str, "dsv");
+        });
 }
 
 static void BindMetricParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
@@ -502,10 +508,34 @@ static void BindBoostingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue*
             (*plainJsonPtr)["od_type"] = ToString(type);
         });
 
-    parser.AddLongOption("model-shrink-rate", "Shrinks model at the start of each iteration. Possible values: [0, 1).")
+    parser.AddLongOption("model-shrink-rate",
+                         "This parameter enables shrinkage of model at the start of each iteration. CPU only."
+                         "For Constant mode shrinkage coefficient is calculated as (1 - model_shrink_rate * learning_rate)."
+                         "For Decreasing mode shrinkage coefficient is calculated as (1 - model_shrink_rate / iteration)."
+                         "Shrinkage coefficient should be in [0, 1).")
         .RequiredArgument("float")
         .Handler1T<float>([plainJsonPtr](float modelShrinkRate) {
             (*plainJsonPtr)["model_shrink_rate"] = modelShrinkRate;
+        });
+
+    parser.AddLongOption("model-shrink-mode", "Mode of shrink coefficient calculation. Possible values: Constant, Decreasing.")
+        .RequiredArgument("ShrinkMode")
+        .Handler1T<EModelShrinkMode>([plainJsonPtr](EModelShrinkMode modelShrinkMode) {
+            (*plainJsonPtr)["model_shrink_mode"] = ToString(modelShrinkMode);
+        });
+
+    parser
+        .AddLongOption("langevin")
+        .RequiredArgument("bool")
+        .Help("Enables the Stochastic Gradient Langevin Boosting.")
+        .Handler1T<TString>([plainJsonPtr](const TString& isEnabled) {
+            (*plainJsonPtr)["langevin"] = FromString<bool>(isEnabled);
+        });
+
+    parser.AddLongOption("diffusion-temperature", "Langevin boosting diffusion temperature.")
+        .RequiredArgument("float")
+        .Handler1T<float>([plainJsonPtr](float diffusionTemperature) {
+            (*plainJsonPtr)["diffusion_temperature"] = diffusionTemperature;
         });
 }
 
@@ -604,9 +634,18 @@ static void BindFeatureEvalParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonVal
     parser
         .AddLongOption("fold-size")
         .RequiredArgument("INT")
-        .Help("Fold size (in fold-size-units) for feature evaluation")
-        .Handler1T<ui32>([plainJsonPtr](const auto foldSize) {
+        .Help("Fold size for feature evaluation; number of fold-size-units")
+        .Handler1T<int>([plainJsonPtr](const auto foldSize) {
             (*plainJsonPtr)["fold_size"] = foldSize;
+            CB_ENSURE(!plainJsonPtr->Has("relative_fold_size"), "Fold size and relative fold size are mutually exclusive");
+        });
+    parser
+        .AddLongOption("relative-fold-size")
+        .RequiredArgument("float")
+        .Help("Relative fold size for feature evaluation; fraction of total number of fold-size-units in dataset")
+        .Handler1T<float>([plainJsonPtr](const auto foldSize) {
+            (*plainJsonPtr)["relative_fold_size"] = foldSize;
+            CB_ENSURE(!plainJsonPtr->Has("fold_size"), "Fold size and relative fold size are mutually exclusive");
         });
     parser
         .AddLongOption("timesplit-quantile")
@@ -939,36 +978,62 @@ static void BindCatFeatureParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValu
         .Help("If parameter is specified than features with no more than specified value different values will be converted to float features using one-hot encoding. No ctrs will be calculated on this features.");
 }
 
+static void ParseDigitizerDescriptions(TStringBuf descriptionLine, TStringBuf idKey, NJson::TJsonValue* digitizers) {
+    digitizers->SetType(NJson::EJsonValueType::JSON_ARRAY);
+    for (TStringBuf oneConfig : StringSplitter(descriptionLine).Split(',').SkipEmpty()) {
+        NJson::TJsonValue digitizer;
+        TStringBuf digitizerId, stringParams;
+        oneConfig.Split(':', digitizerId, stringParams);
+        digitizer[idKey] = digitizerId;
+        for (TStringBuf stringParam : StringSplitter(stringParams).Split(':').SkipEmpty()) {
+            TStringBuf key, value;
+            stringParam.Split('=', key, value);
+            digitizer[key] = value;
+        }
+        digitizers->AppendValue(digitizer);
+    }
+    CB_ENSURE(!digitizers->GetArray().empty(), "Incorrect description line: " << descriptionLine << ".");
+}
+
 static void BindTextFeaturesParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
     using namespace NTextProcessing::NDictionary;
 
     auto& parser = *parserPtr;
-    parser.AddLongOption("dictionaries")
-        .RequiredArgument("DESC[;DESC...]")
-        .Help("Semicolon separated list of dictionary descriptions. Description should be written in format "
-            "DictionaryId[:min_token_occurrence=MinTokenOccurrence][:max_dict_size=MaxDictSize][:gram_order=GramOrder][:token_level_type=TokenLevelType]"
+
+    parser.AddLongOption("tokenizers")
+        .RequiredArgument("DESC[,DESC...]")
+        .Help("Comma separated list of tokenizers descriptions. Description should be written in format "
+            "TokenizerId[:optionName=optionValue][:optionName=optionValue]"
         ).Handler1T<TString>([plainJsonPtr](const TString& descriptionLine) {
-            for (const auto& oneConfig : StringSplitter(descriptionLine).Split(';').SkipEmpty()) {
-                (*plainJsonPtr)["dictionaries"].AppendValue(oneConfig.Token());
+            ParseDigitizerDescriptions(descriptionLine, "tokenizer_id", &(*plainJsonPtr)["tokenizers"]);
+        });
+
+    parser.AddLongOption("dictionaries")
+        .RequiredArgument("DESC[,DESC...]")
+        .Help("Comma separated list of dictionary descriptions. Description should be written in format "
+            "DictionaryId[:occurrence_lower_bound=MinTokenOccurrence][:max_dictionary_size=MaxDictSize][:gram_order=GramOrder][:token_level_type=TokenLevelType]"
+        ).Handler1T<TString>([plainJsonPtr](const TString& descriptionLine) {
+            ParseDigitizerDescriptions(descriptionLine, "dictionary_id", &(*plainJsonPtr)["dictionaries"]);
+        });
+
+    parser.AddLongOption("feature-calcers")
+        .RequiredArgument("DESC[,DESC...]")
+        .Help("Comma separated list of feature calcers descriptions. Description should be written in format "
+            "FeatureCalcerType[:optionName=optionValue][:optionName=optionValue]"
+        ).Handler1T<TString>([plainJsonPtr](const TString& descriptionLine) {
+            NJson::TJsonValue featureCalcers;
+            featureCalcers.SetType(NJson::EJsonValueType::JSON_ARRAY);
+            for (TStringBuf oneConfig : StringSplitter(descriptionLine).Split(',').SkipEmpty()) {
+                featureCalcers.AppendValue(oneConfig);
             }
-            CB_ENSURE(
-                !(*plainJsonPtr)["dictionaries"].GetArray().empty(),
-                "Empty text processing settings " << descriptionLine
-            );
+            (*plainJsonPtr)["feature_calcers"] = featureCalcers;
         });
 
     parser.AddLongOption("text-processing")
-        .RequiredArgument("DESC[;DESC...]")
-        .Help("Semicolon separated list of text processing descriptions. Description should be written in format "
-              "[TextFeatureId~]NaiveBayes+DictionaryName1|BoW+LetterGramDictionary,BiGramDictionary")
-        .Handler1T<TString>([plainJsonPtr](const TString& estimatorsLine) {
-            for (const auto& oneConfig : StringSplitter(estimatorsLine).Split(';').SkipEmpty()) {
-                (*plainJsonPtr)["text_processing"].AppendValue(oneConfig.Token());
-            }
-            CB_ENSURE(
-                !(*plainJsonPtr)["text_processing"].GetArray().empty(),
-                "Empty text processing list " << estimatorsLine
-            );
+        .RequiredArgument("{...}")
+        .Help("Text processging json.")
+        .Handler1T<TString>([plainJsonPtr](const TString& textProcessingLine) {
+            NJson::ReadJsonTree(textProcessingLine, &(*plainJsonPtr)["text_processing"]);
         });
 }
 

@@ -8,6 +8,7 @@
 
 #include <library/getopt/small/last_getopt.h>
 #include <library/json/json_reader.h>
+#include <library/json/json_value.h>
 
 #include <util/system/info.h>
 
@@ -26,10 +27,11 @@ namespace NCB {
         TVector<EPredictionType> PredictionTypes = {EPredictionType::RawFormulaVal};
         TVector<TString> OutputColumnsIds = {"SampleId", "RawFormulaVal"};
         EFstrType FstrType = EFstrType::FeatureImportance;
-        TVector<TString> ClassNames;
+        TVector<NJson::TJsonValue> ClassLabels;
         int ThreadCount = NSystemInfo::CachedNumberOfCpus();
 
         NCB::TPathWithScheme PairsFilePath;
+        NCB::TPathWithScheme FeatureNamesPath;
 
         void BindParserOpts(NLastGetopt::TOpts& parser);
     };

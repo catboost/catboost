@@ -18,6 +18,7 @@ def parse_args():
     parser.add_option('--trace-file')
     parser.add_option('--jar-binary')
     parser.add_option('--tests-jar-path')
+    parser.add_option('--classpath-option-type', choices=('manifest', 'command_file', 'list'), default='manifest')
     return parser.parse_args()
 
 
@@ -69,6 +70,24 @@ def extract_jars(dest, archive):
         zf.extractall(dest)
 
 
+def make_bfg_from_cp(class_path, out):
+    class_path = ' '.join(
+        map(lambda path: ('file:/' + path.lstrip('/')) if os.path.isabs(path) else path, class_path)
+    )
+    with zipfile.ZipFile(out, 'w') as zf:
+        lines = []
+        while class_path:
+            lines.append(class_path[:60])
+            class_path = class_path[60:]
+        if lines:
+            zf.writestr('META-INF/MANIFEST.MF', 'Manifest-Version: 1.0\nClass-Path: \n ' + '\n '.join(lines) + ' \n\n')
+
+
+def make_command_file_from_cp(class_path, out):
+    with open(out, 'w') as cp_file:
+        cp_file.write(os.pathsep.join(class_path))
+
+
 def main():
     opts, args = parse_args()
 
@@ -96,20 +115,29 @@ def main():
     cp_idx = args.index('-classpath')
     if args[cp_idx + 1].startswith('@'):
         real_name = args[cp_idx + 1][1:]
-        fixed_name = os.path.join(os.path.dirname(real_name), 'fixed.bfg.txt')
-        with open(fixed_name, 'w') as fixed:
-            with open(real_name) as origin:
-                fixed.write(os.pathsep.join([os.path.join(build_root, i.strip().replace(opts.tests_jar_path, dest)) for i in origin]))
-        args = fix_cmd(args[:cp_idx + 1]) + ['@' + fixed_name] + args[cp_idx + 2:]
+        mf = os.path.join(os.path.dirname(real_name), 'fixed.bfg.jar')
+        with open(real_name) as origin:
+            class_path = [os.path.join(build_root, i.strip()) for i in origin]
+        if opts.tests_jar_path in class_path:
+            class_path.remove(opts.tests_jar_path)
+        if opts.classpath_option_type == 'manifest':
+            make_bfg_from_cp(class_path, mf)
+            mf = os.pathsep.join([dest, mf])
+        elif opts.classpath_option_type == 'command_file':
+            mf = os.path.splitext(mf)[0] + '.txt'
+            make_command_file_from_cp([dest] + class_path, mf)
+            mf = "@" + mf
+        elif opts.classpath_option_type == 'list':
+            mf = os.pathsep.join([dest] + class_path)
+        else:
+            raise Exception("Unexpected classpath option type: " + opts.classpath_option_type)
+        args = fix_cmd(args[:cp_idx + 1]) + [mf] + args[cp_idx + 2:]
     else:
         args[cp_idx + 1] = args[cp_idx + 1].replace(opts.tests_jar_path, dest)
         args = fix_cmd(args[:cp_idx]) + args[cp_idx:]
-
     # run java cmd
     if platform.system() == 'Windows':
-        p = subprocess.Popen(args)
-        p.communicate()
-        sys.exit(p.returncode)
+        sys.exit(subprocess.Popen(args).wait())
     else:
         os.execv(args[0], args)
 

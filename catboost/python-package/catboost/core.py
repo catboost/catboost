@@ -330,9 +330,10 @@ class Pool(_PoolBase):
             Baseline for each instance.
             If not None, giving 2 dimensional array like data.
 
-        feature_names : list, optional (default=None)
-            Names for each given data_feature.
-              If this parameter is None and 'data' is pandas.DataFrame feature names will be initialized
+        feature_names : list or string, optional (default=None)
+            If list - list of names for each given data_feature.
+            If string - path with scheme for feature names data to load.
+            If this parameter is None and 'data' is pandas.DataFrame feature names will be initialized
               from DataFrame's column names.
             Must be None if 'data' parameter has FeaturesData type
 
@@ -350,12 +351,16 @@ class Pool(_PoolBase):
                 raise CatBoostError("data should be the string type if column_description parameter is specified.")
             if isinstance(data, STRING_TYPES):
                 if any(v is not None for v in [cat_features, text_features, weight, group_id, group_weight,
-                                               subgroup_id, pairs_weight, baseline, feature_names, label]):
+                                               subgroup_id, pairs_weight, baseline, label]):
                     raise CatBoostError(
                         "cat_features, text_features, weight, group_id, group_weight, subgroup_id, pairs_weight, "
-                        "baseline, feature_names, label should have the None type when the pool is read from the file."
+                        "baseline, label should have the None type when the pool is read from the file."
                     )
-                self._read(data, column_description, pairs, delimiter, has_header, thread_count)
+                if (feature_names is not None) and (not isinstance(feature_names, STRING_TYPES)):
+                    raise CatBoostError(
+                        "feature_names should have None or string type when the pool is read from the file."
+                    )
+                self._read(data, column_description, pairs, feature_names, delimiter, has_header, thread_count)
             else:
                 if isinstance(data, FeaturesData):
                     if any(v is not None for v in [cat_features, text_features, feature_names]):
@@ -385,6 +390,12 @@ class Pool(_PoolBase):
                             "'data' is scipy.sparse.spmatrix, it means no text features,"
                             " but 'text_features' parameter specifies nonzero number of text features"
                         )
+
+                if isinstance(feature_names, STRING_TYPES):
+                    raise CatBoostError(
+                        "feature_names must be None or have non-string type when the pool is created from "
+                        "python objects."
+                    )
 
                 self._init(data, label, cat_features, text_features, pairs, weight, group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, thread_count)
         super(Pool, self).__init__()
@@ -872,7 +883,16 @@ class Pool(_PoolBase):
             label = label.values
         return label
 
-    def _read(self, pool_file, column_description, pairs, delimiter, has_header, thread_count):
+    def _read(
+        self,
+        pool_file,
+        column_description,
+        pairs,
+        feature_names_path,
+        delimiter,
+        has_header,
+        thread_count
+    ):
         """
         Read Pool from file.
         """
@@ -885,8 +905,18 @@ class Pool(_PoolBase):
                 self._check_column_description_type(column_description)
             if pairs is None:
                 pairs = ''
+            if feature_names_path is None:
+                feature_names_path = ''
             self._check_thread_count(thread_count)
-            self._read_pool(pool_file, column_description, pairs, delimiter[0], has_header, thread_count)
+            self._read_pool(
+                pool_file,
+                column_description,
+                pairs,
+                feature_names_path,
+                delimiter[0],
+                has_header,
+                thread_count
+            )
 
     def _init(
         self,
@@ -1390,7 +1420,7 @@ class _CatBoostBase(object):
 
     @property
     def classes_(self):
-        return self._object._get_class_names() if self.is_fitted() else None
+        return self._object._get_class_labels() if self.is_fitted() else None
 
     @property
     def evals_result_(self):
@@ -1462,11 +1492,19 @@ class _CatBoostBase(object):
         '''
         self._object._set_feature_names(feature_names)
 
+
     def _get_tags(self):
         tags = _CATBOOST_SKLEARN_COMPAT_TAGS
         if self._init_params['task_type'] == 'GPU':
             tags['non_deterministic'] = True
         return tags
+
+    def get_scale_and_bias(self):
+        return self._object._get_scale_and_bias()
+
+    def set_scale_and_bias(self, scale, bias):
+        self._object._set_scale_and_bias(scale, bias)
+
 
 
 def _cast_value_to_list_of_strings(params, key):
@@ -2323,7 +2361,7 @@ class CatBoost(_CatBoostBase):
 
         else:
             if data is not None and not isinstance(data, Pool):
-                raise CatBoostError("Invalid data type={}, must be catboost.Pool.".format(typeof(data)))
+                raise CatBoostError("Invalid data type={}, must be catboost.Pool.".format(_typeof(data)))
 
         need_meta_info = type == EFstrType.PredictionValuesChange
         empty_data_is_ok = need_meta_info and self._object._has_leaf_weights_in_model() or type == EFstrType.Interaction
@@ -3587,10 +3625,22 @@ class CatBoostClassifier(CatBoost):
             - 'Armijo' - reduce the descent step until Armijo condition is satisfied; supported on GPU only
 
     model_shrink_rate : float, [default=0]
-        CPU only.
-        This parameter enables shrinkage of whole model at the start of each iteration.
-        At i-th iteration (if i > 0) model is multiplied by (1 - model_shrink_rate / i).
-        range : [0, 1)
+        This parameter enables shrinkage of model at the start of each iteration. CPU only.
+        For Constant mode shrinkage coefficient is calculated as (1 - model_shrink_rate * learning_rate).
+        For Decreasing mode shrinkage coefficient is calculated as (1 - model_shrink_rate / iteration).
+        Shrinkage coefficient should be in [0, 1).
+
+    model_shrink_mode : string, [default=None]
+        Mode of shrinkage coefficient calculation. CPU only.
+        Possible values:
+            - 'Constant' - Shrinkage coefficient is constant at each iteration.
+            - 'Decreasing' - Shrinkage coefficient decreases at each iteration.
+
+    langevin : bool, [default=False]
+        Enables the Stochastic Gradient Langevin Boosting. CPU only.
+
+    diffusion_temperature : float, [default=0]
+        Langevin boosting diffusion temperature. CPU only.
 
     boost_from_average : bool, [default=True for RMSE, False for other losses]
         Enables to initialize approx values by best constant value for specified loss function.
@@ -3598,7 +3648,7 @@ class CatBoostClassifier(CatBoost):
 
     dictionaries : list of strings,
         Each string is a dictionary description. Description should be written in format
-        DictionaryId[:min_token_occurrence=MinTokenOccurrence][:max_dict_size=MaxDictSize]
+        DictionaryId[:occurrence_lower_bound=MinTokenOccurrence][:max_dictionary_size=MaxDictSize]
                     [:gram_order=GramOrder][:token_level_type=TokenLevelType]
 
     text_processing : list of strings,
@@ -3708,6 +3758,9 @@ class CatBoostClassifier(CatBoost):
         ctr_history_unit=None,
         monotone_constraints=None,
         model_shrink_rate=None,
+        model_shrink_mode=None,
+        langevin=None,
+        diffusion_temperature=None,
         boost_from_average=None,
         text_features=None,
         dictionaries=None,
@@ -4250,6 +4303,9 @@ class CatBoostRegressor(CatBoost):
         ctr_history_unit=None,
         monotone_constraints=None,
         model_shrink_rate=None,
+        model_shrink_mode=None,
+        langevin=None,
+        diffusion_temperature=None,
         boost_from_average=None
     ):
         params = {}

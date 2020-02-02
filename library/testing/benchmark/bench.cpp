@@ -312,7 +312,7 @@ namespace {
     class TCSVReporter: public IReporter {
     public:
         TCSVReporter() {
-            Cout << "Name\tSamples\tIterations\tRun_time\tPer_iteration_cycles\tPer_iteration_sec" << Endl;
+            Cout << "Name\tSamples\tIterations\tRun_time\tPer_iteration_sec\tPer_iteration_cycles" << Endl;
         }
 
         ~TCSVReporter() override {
@@ -590,7 +590,7 @@ int NBench::Main(int argc, char** argv) {
 
     if (opts.Threads > 1) {
         NYmp::SetThreadCount(opts.Threads);
-        NYmp::ParallelForStaticChunk(tests.begin(), tests.end(), 1, func);
+        NYmp::ParallelForStaticChunk(tests.data(), tests.data() + tests.size(), 1, func);
     } else {
         for (auto it : tests) {
             func(&it);

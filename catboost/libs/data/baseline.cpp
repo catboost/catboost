@@ -1,6 +1,9 @@
 #include "baseline.h"
 
 #include <catboost/private/libs/data_util/exists_checker.h>
+#include <catboost/private/libs/labels/helpers.h>
+
+#include <library/json/json_value.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/is_in.h>
@@ -66,18 +69,18 @@ namespace NCB {
         }
     }
 
-    void UpdateClassNamesFromBaselineFile(
+    void UpdateClassLabelsFromBaselineFile(
         const TPathWithScheme& baselineFilePath,
-        TVector<TString>* classNames
+        TVector<NJson::TJsonValue>* classLabels
     ) {
         if (baselineFilePath.Inited()) {
-            CB_ENSURE_INTERNAL(classNames != nullptr, "ClassNames has not been specified");
+            CB_ENSURE_INTERNAL(classLabels != nullptr, "ClassLabels has not been specified");
             TVector<TString> classNamesFromBaselineFile;
             GetClassNamesFromBaselineFile(baselineFilePath, &classNamesFromBaselineFile);
-            if (classNames->empty()) {
-                (*classNames) = std::move(classNamesFromBaselineFile);
+            if (classLabels->empty()) {
+                classLabels->assign(classNamesFromBaselineFile.begin(), classNamesFromBaselineFile.end());
             } else {
-                CB_ENSURE(*classNames == classNamesFromBaselineFile, "Inconsistent class names in baseline file");
+                CB_ENSURE(NCB::ClassLabelsToStrings(*classLabels) == classNamesFromBaselineFile, "Inconsistent class names in baseline file");
             }
         }
     }

@@ -228,7 +228,6 @@ namespace NCudaLib {
                 }
             }
             Y_UNREACHABLE();
-            return nullptr;
         }
 
         Y_SAVELOAD_DEFINE(Type, Handle, Offset);

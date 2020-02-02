@@ -6,6 +6,7 @@ namespace NCatboostCuda {
     template <class TInner>
     class TAdditiveModel {
     public:
+        double Bias = 0.0;
         TVector<TInner> WeakModels;
 
         TAdditiveModel() {
@@ -27,10 +28,8 @@ namespace NCatboostCuda {
             }
         }
 
-        void ShiftFirstWeakModelValues(double shift) {
-            if (!WeakModels.empty()) {
-                WeakModels.front().ShiftLeafValues(shift);
-            }
+        void SetBias(double bias) {
+            Bias = bias;
         }
 
         void AddWeakModel(TInner&& weak) {
@@ -76,7 +75,7 @@ namespace NCatboostCuda {
             return value;
         }
 
-        Y_SAVELOAD_DEFINE(WeakModels);
+        Y_SAVELOAD_DEFINE(Bias, WeakModels);
     };
 }
 

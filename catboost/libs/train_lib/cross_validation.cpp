@@ -953,7 +953,7 @@ TVector<TArraySubsetIndexing<ui32>> StratifiedSplitToFolds(
             TVector<float> rawTargetData;
             rawTargetData.yresize(dataProvider.GetObjectCount());
             TArrayRef<float> rawTargetDataRef = rawTargetData;
-            dataProvider.RawTargetData.GetFloatTarget(TArrayRef<TArrayRef<float>>(&rawTargetDataRef, 1));
+            dataProvider.RawTargetData.GetNumericTarget(TArrayRef<TArrayRef<float>>(&rawTargetDataRef, 1));
             return NCB::StratifiedSplitToFolds<float>(
                 *dataProvider.ObjectsGrouping,
                 rawTargetData,

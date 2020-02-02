@@ -1781,7 +1781,7 @@ namespace NCB {
         ENanMode nanMode = ENanMode::Forbidden;
 
         bool calculateQuantization = true;
-        const NSplitSelection::TQuantization* quantization;
+        const NSplitSelection::TQuantization* quantization = nullptr;
         NSplitSelection::TQuantization calculatedQuantization;
 
         {
@@ -2011,7 +2011,7 @@ namespace NCB {
             const auto& featureDescription = textOptions.GetTokenizedFeatureDescription(tokenizedFeatureIdx);
             const ui32 textFeatureIdx = featureDescription.TextFeatureId;
 
-            if (textDigitizers->HasDictionary(tokenizedFeatureIdx) ||
+            if (textDigitizers->HasDigitizer(tokenizedFeatureIdx) ||
                 !featuresLayout.GetInternalFeatureMetaInfo(textFeatureIdx, EFeatureType::Text).IsAvailable) {
                 continue;
             }
@@ -2021,12 +2021,15 @@ namespace NCB {
             );
             ITypedArraySubsetPtr<TString> textFeature = srcDenseFeature.GetData();
 
+            const auto& tokenizerOptions = textOptions.GetTokenizerOptions(featureDescription.TokenizerId.Get());
+            TTokenizerPtr tokenizer = CreateTokenizer(tokenizerOptions.TokenizerOptions.Get());
+
             auto dictionary = CreateDictionary(
                 TIterableTextFeature(textFeature),
                 textOptions.GetDictionaryOptions(featureDescription.DictionaryId.Get()),
-                textDigitizers->GetTokenizer()
+                tokenizer
             );
-            textDigitizers->AddDictionary(textFeatureIdx, tokenizedFeatureIdx, dictionary);
+            textDigitizers->AddDigitizer(textFeatureIdx, tokenizedFeatureIdx, tokenizer, dictionary);
         }
     }
 

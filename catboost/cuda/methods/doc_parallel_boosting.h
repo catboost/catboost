@@ -168,8 +168,8 @@ namespace NCatboostCuda {
                     }
                     for (ui32 dim = 0; dim < approxDim; ++dim) {
                         TVector<float> baseline = loadBalancingPermutation.Gather(dataProviderBaseline[dim]);
-                        for (ui32 i = 0; i < baselineBias.size(); ++i) {
-                            baseline[i] -= baselineBias[i];
+                        for (ui32 j = 0; j < baselineBias.size(); ++j) {
+                            baseline[j] -= baselineBias[j];
                         }
                         CB_ENSURE(baseline.size() == cursors->Cursors[i].GetObjectsSlice().Size());
                         cursors->Cursors[i].ColumnView(dim).Write(baseline);
@@ -501,7 +501,7 @@ namespace NCatboostCuda {
                 cursors->BestTestCursor.Get()
             );
             auto& modelToExport = models[inputData->GetEstimationPermutation()];
-            modelToExport.ShiftFirstWeakModelValues(cursors->StartingPoint.GetOrElse(0.0f));
+            modelToExport.SetBias(cursors->StartingPoint.GetOrElse(0.0f));
             return new TResultModel(modelToExport);
         }
 

@@ -3,7 +3,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/eval_processing.h>
 #include <catboost/libs/logging/logging.h>
-#include <catboost/private/libs/labels/label_helper_builder.h>
+#include <catboost/private/libs/labels/external_label_helper.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/utility.h>
@@ -129,32 +129,6 @@ TVector<TVector<double>> MakeExternalApprox(
     return externalApprox;
 }
 
-TVector<TString> ConvertTargetToExternalName(
-    const TVector<float>& target,
-    const TExternalLabelsHelper& externalLabelsHelper
-) {
-    TVector<TString> convertedTarget(target.ysize());
-
-    if (externalLabelsHelper.IsInitialized()) {
-        for (int targetIdx = 0; targetIdx < target.ysize(); ++targetIdx) {
-            convertedTarget[targetIdx] = externalLabelsHelper.GetVisibleClassNameFromLabel(target[targetIdx]);
-        }
-    } else {
-        for (int targetIdx = 0; targetIdx < target.ysize(); ++targetIdx) {
-            convertedTarget[targetIdx] = ToString<float>(target[targetIdx]);
-        }
-    }
-
-    return convertedTarget;
-}
-
-TVector<TString> ConvertTargetToExternalName(
-    const TVector<float>& target,
-    const TFullModel& model
-) {
-    const auto& externalLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
-    return ConvertTargetToExternalName(target, externalLabelsHelper);
-}
 
 TVector<TVector<double>> PrepareEvalForInternalApprox(
     const EPredictionType predictionType,
@@ -173,7 +147,7 @@ TVector<TVector<double>> PrepareEvalForInternalApprox(
     const TVector<TVector<double>>& approx,
     NPar::TLocalExecutor* localExecutor
 ) {
-    const auto& externalLabelsHelper = BuildLabelsHelper<TExternalLabelsHelper>(model);
+    const TExternalLabelsHelper externalLabelsHelper(model);
     const auto& externalApprox
         = (externalLabelsHelper.IsInitialized() && (externalLabelsHelper.GetExternalApproxDimension() > 1)) ?
             MakeExternalApprox(approx, externalLabelsHelper)

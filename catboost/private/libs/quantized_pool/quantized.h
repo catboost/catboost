@@ -2,6 +2,8 @@
 
 #include "pool.h"
 
+#include <catboost/private/libs/data_util/path_with_scheme.h>
+
 #include <catboost/libs/data/meta_info.h>
 
 #include <util/generic/hash.h>
@@ -16,20 +18,13 @@ THashMap<size_t, size_t> GetColumnIndexToFlatIndexMap(const NCB::TQuantizedPool&
 
 THashMap<size_t, size_t> GetColumnIndexToBaselineIndexMap(const NCB::TQuantizedPool& pool);
 
-TVector<TString> GetFlatFeatureNames(const NCB::TQuantizedPool& pool);
-
-THashMap<size_t, size_t> GetColumnIndexToNumericFeatureIndexMap(const NCB::TQuantizedPool& pool);
-
 NCB::TDataMetaInfo GetDataMetaInfo(
     const NCB::TQuantizedPool& pool,
     bool hasAdditionalGroupWeight,
     bool hasTimestamps,
     bool hasPairs,
-    TMaybe<ui32> baselineCount);
-
-// Returns flat indices of all categorical features
-// Sorted from min to max
-TVector<int> GetCategoricalFeatureIndices(const NCB::TQuantizedPool& pool);
+    TMaybe<ui32> baselineCount,
+    const NCB::TPathWithScheme& featureNamesPath); // featureNamesPath can be uninitialized
 
 // Returns flat indices of all ignored features
 // Sorted from min to max

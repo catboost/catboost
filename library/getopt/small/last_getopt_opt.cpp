@@ -102,4 +102,12 @@ namespace NLastGetopt {
         }
     }
 
+    TOpt& TOpt::IfPresentDisableCompletionFor(const TOpt& opt) {
+        if (opt.GetLongNames()) {
+            IfPresentDisableCompletionFor(opt.GetName());
+        } else {
+            IfPresentDisableCompletionFor(opt.GetChar());
+        }
+        return *this;
+    }
 }

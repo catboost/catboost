@@ -152,12 +152,13 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
                                         NCB::TPathWithScheme(),
                                         NCB::TPathWithScheme(),
                                         NCB::TPathWithScheme(),
+                                        NCB::TPathWithScheme(),
                                         columnarPoolFormatParams,
                                         {},
                                         NCB::EObjectsOrder::Ordered,
                                         16,
                                         true,
-                                        /*classNames*/ Nothing());
+                                        /*classLabels*/ Nothing());
     }
 
     NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::GPU);

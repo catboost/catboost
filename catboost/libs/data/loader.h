@@ -21,6 +21,12 @@
 #include <util/generic/vector.h>
 #include <util/generic/ylimits.h>
 
+
+namespace NJson {
+    class TJsonValue;
+}
+
+
 namespace NCB {
 
     struct TDatasetSubset {
@@ -44,7 +50,8 @@ namespace NCB {
         TPathWithScheme GroupWeightsFilePath;
         TPathWithScheme BaselineFilePath;
         TPathWithScheme TimestampsFilePath;
-        const TVector<TString>& ClassNames;
+        TPathWithScheme FeatureNamesPath;
+        const TVector<NJson::TJsonValue>& ClassLabels;
         TDsvFormatOptions PoolFormat;
         THolder<ICdProvider> CdProvider;
         TVector<ui32> IgnoredFeatures;
@@ -177,6 +184,15 @@ namespace NCB {
         ui32 objectCount,
         TDatasetSubset loadSubset,
         IDatasetVisitor* visitor
+    );
+
+    // returns empty vector if featureNamesPath is not inited
+    TVector<TString> LoadFeatureNames(const TPathWithScheme& featureNamesPath);
+
+    TVector<TString> GetFeatureNames(
+        const TDataColumnsMetaInfo& columnsDescription,
+        const TMaybe<TVector<TString>>& headerColumns,
+        const TPathWithScheme& featureNamesPath // can be uninited
     );
 
     /*

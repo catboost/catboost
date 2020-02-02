@@ -216,7 +216,7 @@ public:
             ::Save(s, b.first);
             ::Save(s, b.second);
         }
-        mapped_type defaultValue;
+        mapped_type defaultValue{};
         ::SaveMany(s, EmptyMarker, defaultValue);
     }
 
