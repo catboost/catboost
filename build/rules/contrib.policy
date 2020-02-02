@@ -80,8 +80,8 @@ ALLOW mail -> contrib/libs/boost
 ALLOW mail -> contrib/deprecated/boost
 ALLOW market/idx/feeds/feedparser -> contrib/libs/boost
 ALLOW market/idx/feeds/feedparser -> contrib/deprecated/boost
-ALLOW market/indexer -> contrib/libs/boost
-ALLOW market/indexer -> contrib/deprecated/boost
+ALLOW market/idx/stats/src -> contrib/libs/boost
+ALLOW market/idx/stats/src -> contrib/deprecated/boost
 ALLOW maps -> contrib/libs/boost
 ALLOW maps -> contrib/deprecated/boost
 ALLOW mds -> contrib/libs/boost
