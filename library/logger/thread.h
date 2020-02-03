@@ -4,10 +4,12 @@
 
 #include <util/generic/ptr.h>
 
+#include <functional>
+
 class TThreadedLogBackend: public TLogBackend {
 public:
     TThreadedLogBackend(TLogBackend* slave);
-    TThreadedLogBackend(TLogBackend* slave, size_t queuelen);
+    TThreadedLogBackend(TLogBackend* slave, size_t queuelen, std::function<void()> queueOverflowCallback = {});
     ~TThreadedLogBackend() override;
 
     void WriteData(const TLogRecord& rec) override;

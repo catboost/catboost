@@ -3,6 +3,8 @@
 #include <library/unittest/registar.h>
 
 #include <util/system/fs.h>
+#include <util/system/rwlock.h>
+#include <util/system/yield.h>
 #include <util/memory/blob.h>
 #include <util/stream/file.h>
 #include <util/generic/string.h>
@@ -14,6 +16,7 @@ class TLogTest: public TTestBase {
     UNIT_TEST(TestFormat)
     UNIT_TEST(TestWrite)
     UNIT_TEST(TestThreaded)
+    UNIT_TEST(TestThreadedWithOverflow)
     UNIT_TEST(TestNoFlush)
     UNIT_TEST_SUITE_END();
 
@@ -22,6 +25,7 @@ private:
     void TestFormat();
     void TestWrite();
     void TestThreaded();
+    void TestThreadedWithOverflow();
     void TestNoFlush();
     void SetUp() override;
     void TearDown() override;
@@ -72,6 +76,59 @@ void TLogTest::TestThreaded() {
     TBlob data = TBlob::FromFileSingleThreaded(LOGFILE);
 
     UNIT_ASSERT_EQUAL(TString((const char*)data.Begin(), data.Size()), "some useful data 12, 34, 3.000000, qwqwqw\n");
+}
+
+void TLogTest::TestThreadedWithOverflow() {
+    class TFakeLogBackend: public TLogBackend {
+    public:
+        TWriteGuard Guard() {
+            return TWriteGuard(Lock_);
+        }
+
+        void WriteData(const TLogRecord&) override {
+            TReadGuard guard(Lock_);
+        }
+
+        void ReopenLog() override {
+            TWriteGuard guard(Lock_);
+        }
+
+    private:
+        TRWMutex Lock_;
+    };
+
+    auto waitForFreeQueue = [](const TLog& log) {
+        ThreadYield();
+        while (log.BackEndQueueSize() > 0) {
+            Sleep(TDuration::MilliSeconds(1));
+        }
+    };
+
+    TFakeLogBackend fb;
+    {
+        TLog log(new TThreadedLogBackend(&fb, 2));
+
+        auto guard = fb.Guard();
+        log.AddLog("first write");
+        waitForFreeQueue(log);
+        log.AddLog("second write (first in queue)");
+        log.AddLog("third write (second in queue)");
+        UNIT_ASSERT_EXCEPTION(log.AddLog("fourth write (queue overflow)"), yexception);
+    }
+
+    {
+        ui32 overflows = 0;
+        TLog log(new TThreadedLogBackend(&fb, 2, [&overflows] { ++overflows; }));
+
+        auto guard = fb.Guard();
+        log.AddLog("first write");
+        waitForFreeQueue(log);
+        log.AddLog("second write (first in queue)");
+        log.AddLog("third write (second in queue)");
+        UNIT_ASSERT_EQUAL(overflows, 0);
+        log.AddLog("fourth write (queue overflow)");
+        UNIT_ASSERT_EQUAL(overflows, 1);
+    }
 }
 
 void TLogTest::TestNoFlush() {
