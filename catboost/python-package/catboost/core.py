@@ -1506,7 +1506,6 @@ class _CatBoostBase(object):
         self._object._set_scale_and_bias(scale, bias)
 
 
-
 def _cast_value_to_list_of_strings(params, key):
     if key in params:
         if isinstance(params[key], STRING_TYPES):
