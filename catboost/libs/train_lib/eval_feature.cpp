@@ -552,14 +552,14 @@ static TVector<TTrainingDataProviders> UpdateIgnoredFeaturesInLearn(
         if (featureEvalMode == NCB::EFeatureEvalMode::OthersVsAll) {
             ignoredFeatures = testedFeatures[testedFeatureSetIdx];
         } else {
-            for (ui32 featureSetIdx : xrange(testedFeatures.size())) {
-                if (featureSetIdx != testedFeatureSetIdx) {
-                    ignoredFeatures.insert(
-                        ignoredFeatures.end(),
-                        testedFeatures[featureSetIdx].begin(),
-                        testedFeatures[featureSetIdx].end());
-                }
+            THashSet<ui32> ignoredFeaturesAsSet;
+            for (const auto& featureSet : testedFeatures) {
+                ignoredFeaturesAsSet.insert(featureSet.begin(), featureSet.end());
             }
+            for (ui32 featureIdx : testedFeatures[testedFeatureSetIdx]) {
+                ignoredFeaturesAsSet.erase(featureIdx);
+            }
+            ignoredFeatures.insert(ignoredFeatures.end(), ignoredFeaturesAsSet.begin(), ignoredFeaturesAsSet.end());
         }
     } else if (EqualToOneOf(featureEvalMode, NCB::EFeatureEvalMode::OneVsAll, NCB::EFeatureEvalMode::OthersVsAll)) {
         // no additional ignored features
@@ -577,6 +577,22 @@ static TVector<TTrainingDataProviders> UpdateIgnoredFeaturesInLearn(
                 featureSet.end());
         }
     }
+
+    TStringBuilder logMessage;
+    logMessage << "Feature set " << testedFeatureSetIdx;
+    if (trainingKind == ETrainingKind::Baseline) {
+        logMessage << ", baseline";
+    } else {
+        logMessage << ", testing";
+    }
+    if (ignoredFeatures.empty()) {
+        logMessage << ", no additional ignored features";
+    } else {
+        std::sort(ignoredFeatures.begin(), ignoredFeatures.end());
+        logMessage << ", additional ignored features " << JoinRange(":", ignoredFeatures.begin(), ignoredFeatures.end());
+    }
+    CATBOOST_INFO_LOG << logMessage << Endl;
+
     TVector<TTrainingDataProviders> result;
     result.reserve(foldsData.size());
     if (taskType == ETaskType::CPU) {
