@@ -212,19 +212,19 @@
         "uri": "file://test.test_diffusion_temperature_with_shrink_mode_0-0.2-Decreasing_/predictions.npy"
     },
     "test.test_diffusion_temperature_with_shrink_mode[1000-0-Constant]": {
-        "checksum": "79c635315e50e78a238ee31c31313ea7",
+        "checksum": "543345f2d3d119c1d53de1bac268449d",
         "uri": "file://test.test_diffusion_temperature_with_shrink_mode_1000-0-Constant_/predictions.npy"
     },
     "test.test_diffusion_temperature_with_shrink_mode[1000-0-Decreasing]": {
-        "checksum": "79c635315e50e78a238ee31c31313ea7",
+        "checksum": "543345f2d3d119c1d53de1bac268449d",
         "uri": "file://test.test_diffusion_temperature_with_shrink_mode_1000-0-Decreasing_/predictions.npy"
     },
     "test.test_diffusion_temperature_with_shrink_mode[1000-0.2-Constant]": {
-        "checksum": "e2944468adcef716c0fe1da9596002ba",
+        "checksum": "f6e7efbd5d1e2c0cd38aeb52820ba71f",
         "uri": "file://test.test_diffusion_temperature_with_shrink_mode_1000-0.2-Constant_/predictions.npy"
     },
     "test.test_diffusion_temperature_with_shrink_mode[1000-0.2-Decreasing]": {
-        "checksum": "9b5a8cffdcae701397d46608a59e8111",
+        "checksum": "de8587cf0bb186b078dd4cbee4447101",
         "uri": "file://test.test_diffusion_temperature_with_shrink_mode_1000-0.2-Decreasing_/predictions.npy"
     },
     "test.test_early_stopping_rounds[CPU]": [
@@ -858,6 +858,10 @@
     "test.test_shap_feature_importance_multiclass[CPU]": {
         "checksum": "316daefe3df34faac7f538e19b1ceabc",
         "uri": "file://test.test_shap_feature_importance_multiclass_CPU_/feature_importance.npy"
+    },
+    "test.test_shap_feature_importance_with_langevin": {
+        "checksum": "91b8b505bacb772c4cd99b698f852cb6",
+        "uri": "file://test.test_shap_feature_importance_with_langevin/feature_importance.npy"
     },
     "test.test_shap_multiclass[CPU]": {
         "checksum": "6baf67c11f92e964b000716df1277469",

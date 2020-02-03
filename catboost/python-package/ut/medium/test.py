@@ -2911,6 +2911,15 @@ def test_shap_feature_importance_asymmetric_and_symmetric(task_type):
     assert np.all(shap_symm - shap_asymm < 1e-8)
 
 
+def test_shap_feature_importance_with_langevin():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, depth=10, langevin=True, diffusion_temperature=1000)
+    model.fit(pool)
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool)))
+    return local_canonical_file(fimp_npy_path)
+
+
 def test_loss_function_change_asymmetric_and_symmetric(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(
@@ -6797,3 +6806,19 @@ def test_diffusion_temperature_with_shrink_mode(shrink_mode, shrink_rate, diffus
     preds_path = test_output_path(PREDS_PATH)
     np.save(preds_path, np.array(pred))
     return local_canonical_file(preds_path)
+
+
+def test_langevin_with_empty_leafs():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    params = {
+        'iterations': 10,
+        'depth': 10,
+        'learning_rate': 0.03,
+        'langevin': True,
+        'diffusion_temperature': 1000
+    }
+    model = CatBoostClassifier(**params)
+    model.fit(train_pool)
+    for value, weight in zip(model.get_leaf_values(), model.get_leaf_weights()):
+        if weight == 0:
+            assert value == 0
