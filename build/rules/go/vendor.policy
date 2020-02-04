@@ -62,6 +62,9 @@ ALLOW .* -> vendor/github.com/gofrs/uuid
 # websocket protocol
 ALLOW .* -> vendor/github.com/gorilla/websocket
 
+# S2 geometry
+ALLOW .* -> vendor/github.com/golang/geo
+
 # Protocol buffers
 ALLOW .* -> vendor/github.com/golang/protobuf
 
