@@ -1662,6 +1662,172 @@
                 "gcc_version": "7.0"
             }
         },
+        "clang7_cortex_a53": {
+            "tools": {
+                "c++": {
+                    "bottle": "clang7",
+                    "executable": "c++"
+                },
+                "c++filt": {
+                    "bottle": "clang7",
+                    "executable": "c++filt"
+                },
+                "cc": {
+                    "bottle": "clang7",
+                    "executable": "cc"
+                },
+                "clang-format": {
+                    "bottle": "clang7",
+                    "executable": "clang-format"
+                },
+                "clang-tidy": {
+                    "bottle": "clang7",
+                    "executable": "clang-tidy"
+                },
+                "gcov": {
+                    "bottle": "clang7",
+                    "executable": "gcov"
+                },
+                "llvm-cov": {
+                    "bottle": "clang7",
+                    "executable": "llvm-cov"
+                },
+                "llvm-profdata": {
+                    "bottle": "clang7",
+                    "executable": "llvm-profdata"
+                },
+                "llvm-symbolizer": {
+                    "bottle": "clang7",
+                    "executable": "llvm-symbolizer"
+                },
+                "nm": {
+                    "bottle": "clang7",
+                    "executable": "llvm-nm"
+                },
+                "strip": {
+                    "bottle": "clang7",
+                    "executable": "llvm-strip"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv7a"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv8a"
+                    },
+                    "default": false
+                }
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "7.0",
+                "triplet_opt": {"armv8a": "aarch64-arm-linux-gnu", "armv7a": "arm-linux-gnueabihf"},
+                "arch_opt": [
+                    "-mcpu=cortex-a53"
+                ]
+            }
+        },
+        "clang7_cortex_a35": {
+            "tools": {
+                "c++": {
+                    "bottle": "clang7",
+                    "executable": "c++"
+                },
+                "c++filt": {
+                    "bottle": "clang7",
+                    "executable": "c++filt"
+                },
+                "cc": {
+                    "bottle": "clang7",
+                    "executable": "cc"
+                },
+                "clang-format": {
+                    "bottle": "clang7",
+                    "executable": "clang-format"
+                },
+                "clang-tidy": {
+                    "bottle": "clang7",
+                    "executable": "clang-tidy"
+                },
+                "gcov": {
+                    "bottle": "clang7",
+                    "executable": "gcov"
+                },
+                "llvm-cov": {
+                    "bottle": "clang7",
+                    "executable": "llvm-cov"
+                },
+                "llvm-profdata": {
+                    "bottle": "clang7",
+                    "executable": "llvm-profdata"
+                },
+                "llvm-symbolizer": {
+                    "bottle": "clang7",
+                    "executable": "llvm-symbolizer"
+                },
+                "nm": {
+                    "bottle": "clang7",
+                    "executable": "llvm-nm"
+                },
+                "strip": {
+                    "bottle": "clang7",
+                    "executable": "llvm-strip"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv7a"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv8a"
+                    },
+                    "default": false
+                }
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "7.0",
+                "triplet_opt": {"armv8a": "aarch64-arm-linux-gnu", "armv7a": "arm-linux-gnueabihf"},
+                "arch_opt": [
+                    "-mcpu=cortex-a35"
+                ]
+            }
+        },
         "clang7-windows": {
             "name": "clang7",
             "tools": {

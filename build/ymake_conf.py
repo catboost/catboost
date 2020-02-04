@@ -879,6 +879,7 @@ class ToolchainOptions(object):
         self.name_marker = '$(%s)' % self.params.get('match_root', self._name.upper())
 
         self.arch_opt = self.params.get('arch_opt', [])
+        self.triplet_opt = self.params.get('triplet_opt', {})
         self.target_opt = self.params.get('target_opt', [])
 
         # TODO(somov): Убрать чтение настройки из os.environ.
@@ -947,6 +948,9 @@ class GnuToolchainOptions(ToolchainOptions):
     def _default_os_sdk(self):
         if self.target.is_linux:
             if self.target.is_armv8:
+                return 'ubuntu-16'
+
+            if self.target.is_armv7:
                 return 'ubuntu-16'
 
             if self.target.is_ppc64le:
@@ -1031,13 +1035,15 @@ class GnuToolchain(Toolchain):
             ])
 
         if self.tc.is_clang:
-            target_triple = select(default=None, selectors=[
-                (target.is_linux and target.is_x86_64, 'x86_64-linux-gnu'),
-                (target.is_linux and target.is_armv8, 'aarch64-linux-gnu'),
-                (target.is_linux and target.is_ppc64le, 'powerpc64le-linux-gnu'),
-                (target.is_apple and target.is_x86, 'i386-apple-darwin14'),
-                (target.is_apple and target.is_x86_64, 'x86_64-apple-darwin14'),
-                (target.is_apple and target.is_armv7, 'armv7-apple-darwin14'),
+            target_triple = self.tc.triplet_opt.get(target.arch, None)
+            if not target_triple:
+                target_triple = select(default=None, selectors=[
+                    (target.is_linux and target.is_x86_64, 'x86_64-linux-gnu'),
+                    (target.is_linux and target.is_armv8, 'aarch64-linux-gnu'),
+                    (target.is_linux and target.is_ppc64le, 'powerpc64le-linux-gnu'),
+                    (target.is_apple and target.is_x86, 'i386-apple-darwin14'),
+                    (target.is_apple and target.is_x86_64, 'x86_64-apple-darwin14'),
+                    (target.is_apple and target.is_armv7, 'armv7-apple-darwin14'),
                 (target.is_apple and target.is_armv8, 'arm64-apple-darwin14'),
                 (target.is_yocto and target.is_armv7, 'arm-poky-linux-gnueabi')
             ])
