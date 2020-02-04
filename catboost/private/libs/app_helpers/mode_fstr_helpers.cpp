@@ -49,7 +49,7 @@ namespace {
                                            /*ignoredFeatures*/ {},
                                            NCB::EObjectsOrder::Undefined,
                                            NCB::TDatasetSubset::MakeColumns(),
-                                           /*classNames*/ Nothing(),
+                                           /*classLabels*/ Nothing(),
                                            LocalExecutor.Get());
                 CheckModelAndDatasetCompatibility(Model, *Dataset->ObjectsData.Get());
             }

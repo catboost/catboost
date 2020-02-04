@@ -964,21 +964,22 @@ namespace NCB {
         //target
         const ERawTargetType rawTargetType = dataProvider->RawTargetData.GetTargetType();
         switch (rawTargetType) {
+            case ERawTargetType::Integer:
             case ERawTargetType::Float:
                 {
                     CB_ENSURE(
                         dataProvider->RawTargetData.GetTargetDimension() == 1,
                         "Multidimensional targets are not currently supported"
                     );
-                    TVector<float> targetFloat;
-                    targetFloat.yresize(dataProvider->GetObjectCount());
-                    TArrayRef<float> targetFloatRef = targetFloat;
-                    dataProvider->RawTargetData.GetFloatTarget(
-                        TArrayRef<TArrayRef<float>>(&targetFloatRef, 1)
+                    TVector<float> targetNumeric;
+                    targetNumeric.yresize(dataProvider->GetObjectCount());
+                    TArrayRef<float> targetNumericRef = targetNumeric;
+                    dataProvider->RawTargetData.GetNumericTarget(
+                        TArrayRef<TArrayRef<float>>(&targetNumericRef, 1)
                     );
 
                     srcData->Target = GenerateSrcColumn<float>(
-                        TConstArrayRef<float>(targetFloat),
+                        TConstArrayRef<float>(targetNumeric),
                         EColumn::Label
                     );
                     columnNames.push_back("Target");
@@ -1054,7 +1055,7 @@ namespace NCB {
             std::move(featureIndices),
             std::move(borders),
             std::move(nanModes),
-            dataProvider->MetaInfo.ClassNames,
+            dataProvider->MetaInfo.ClassLabels,
             TVector<size_t>(),//TODO
             TVector<TMap<ui32, TValueWithCount>>()//TODO
         };

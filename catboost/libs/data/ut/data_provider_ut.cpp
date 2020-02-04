@@ -37,6 +37,7 @@ static void CreateQuantizedObjectsDataProviderTestData(
 
     *metaInfo = TDataMetaInfo(
         std::move(dataColumnsMetaInfo),
+        ERawTargetType::String,
         /*hasAdditionalGroupWeight*/ false,
         /*hasTimestamps*/ false,
         hasPairs,
@@ -203,6 +204,7 @@ static void CreateQuantizedObjectsDataProviderTestData(
 
 static TRawTargetData CreateRawTargetData() {
     TRawTargetData targetData;
+    targetData.TargetType = ERawTargetType::String;
     TVector<TVector<TString>> rawTarget{{"0.2", "0.5", "1.0", "0.0", "0.8", "0.3"}};
     targetData.Target.assign(rawTarget.begin(), rawTarget.end());
     targetData.Baseline = TVector<TVector<float>>{
@@ -218,6 +220,7 @@ static TRawTargetData CreateRawTargetData() {
 
 static TRawTargetData CreateRawMultiTargetData() {
     TRawTargetData targetData;
+    targetData.TargetType = ERawTargetType::String;
     TVector<TVector<TString>> rawTarget{{"0.2", "0.5", "1.0", "0.0", "0.8", "0.3"}, {"-0.2", "-0.5", "-1.0", "-0.0", "-0.8", "-0.3"}};
     targetData.Target.assign(rawTarget.begin(), rawTarget.end());
     targetData.Baseline = TVector<TVector<float>>{

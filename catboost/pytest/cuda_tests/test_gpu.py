@@ -870,7 +870,7 @@ def test_all_targets(loss_function, boosting_type):
     fit_catboost_gpu(params)
     apply_catboost(output_model_path, test_file, cd_file, output_eval_path)
 
-    return [local_canonical_file(output_eval_path)]
+    return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
 
 
 @pytest.mark.parametrize('is_inverted', [False, True], ids=['', 'inverted'])
@@ -997,7 +997,7 @@ def test_ctr_type(ctr_type, boosting_type):
     )
     fit_catboost_gpu(params)
     apply_catboost(output_model_path, test_file, cd_file, output_eval_path)
-    return [local_canonical_file(output_eval_path)]
+    return [local_canonical_file(output_eval_path, diff_tool=diff_tool())]
 
 
 def test_train_dir():
@@ -2084,9 +2084,10 @@ def test_extract_multiclass_labels_from_class_names():
     py_catboost = catboost.CatBoost()
     py_catboost.load_model(model_path)
 
-    assert json.loads(py_catboost.get_metadata()['multiclass_params'])['class_to_label'] == [0, 1, 2, 3]
-    assert json.loads(py_catboost.get_metadata()['multiclass_params'])['class_names'] == ['a', 'b', 'c', 'd']
-    assert json.loads(py_catboost.get_metadata()['multiclass_params'])['classes_count'] == 0
+    assert json.loads(py_catboost.get_metadata()['class_params'])['class_label_type'] == 'String'
+    assert json.loads(py_catboost.get_metadata()['class_params'])['class_to_label'] == [0, 1, 2, 3]
+    assert json.loads(py_catboost.get_metadata()['class_params'])['class_names'] == ['a', 'b', 'c', 'd']
+    assert json.loads(py_catboost.get_metadata()['class_params'])['classes_count'] == 0
 
     assert json.loads(py_catboost.get_metadata()['params'])['data_processing_options']['class_names'] == ['a', 'b', 'c', 'd']
 
@@ -2128,9 +2129,10 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
     py_catboost = catboost.CatBoost()
     py_catboost.load_model(model_path)
 
-    assert json.loads(py_catboost.get_metadata()['multiclass_params'])['class_to_label'] == [1, 2]
-    assert json.loads(py_catboost.get_metadata()['multiclass_params'])['classes_count'] == 4
-    assert json.loads(py_catboost.get_metadata()['multiclass_params'])['class_names'] == []
+    assert json.loads(py_catboost.get_metadata()['class_params'])['class_label_type'] == 'Integer'
+    assert json.loads(py_catboost.get_metadata()['class_params'])['class_to_label'] == [1, 2]
+    assert json.loads(py_catboost.get_metadata()['class_params'])['classes_count'] == 4
+    assert json.loads(py_catboost.get_metadata()['class_params'])['class_names'] == []
 
     calc_cmd = (
         CATBOOST_PATH,
@@ -2565,6 +2567,7 @@ def test_model_based_eval(dataset):
             '--cd', get_table_path('cd'),
             '-i', '100',
             '-T', '4',
+            '-w', '0.01',
             '--test-err-log', test_err_log,
         )
 

@@ -37,6 +37,12 @@ namespace NThreading {
     template <typename TContainer>
     [[nodiscard]] TFuture<void> WaitAll(const TContainer& futures);
 
+    // waits for the first exception or for all futures
+    [[nodiscard]] TFuture<void> WaitExceptionOrAll(const TFuture<void>& f1);
+    [[nodiscard]] TFuture<void> WaitExceptionOrAll(const TFuture<void>& f1, const TFuture<void>& f2);
+    template <typename TContainer>
+    [[nodiscard]] TFuture<void> WaitExceptionOrAll(const TContainer& futures);
+
     // waits for any future
     [[nodiscard]] TFuture<void> WaitAny(const TFuture<void>& f1);
     [[nodiscard]] TFuture<void> WaitAny(const TFuture<void>& f1, const TFuture<void>& f2);

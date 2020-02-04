@@ -8,6 +8,7 @@
 #include <catboost/libs/model/static_ctr_provider.h>
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/private/libs/options/enum_helpers.h>
+#include <catboost/private/libs/options/json_helper.h>
 #include <catboost/private/libs/options/system_options.h>
 #include <catboost/private/libs/target/classification_target_helper.h>
 
@@ -471,18 +472,18 @@ namespace NCB {
         {
             NJson::TJsonValue jsonOptions(NJson::EJsonValueType::JSON_MAP);
             Options.Save(&jsonOptions);
-            dstModel->ModelInfo["params"] = ToString(jsonOptions);
+            dstModel->ModelInfo["params"] = WriteTJsonValue(jsonOptions);
             NJson::TJsonValue jsonOutputOptions(NJson::EJsonValueType::JSON_MAP);
             outputOptions.Save(&jsonOutputOptions);
-            dstModel->ModelInfo["output_options"] = ToString(jsonOutputOptions);
+            dstModel->ModelInfo["output_options"] = WriteTJsonValue(jsonOutputOptions);
             for (const auto& keyValue : Options.Metadata.Get().GetMap()) {
                 dstModel->ModelInfo[keyValue.first] = keyValue.second.GetString();
             }
         }
 
         ELossFunction lossFunction = Options.LossFunctionDescription.Get().GetLossFunction();
-        if (IsMultiClassOnlyMetric(lossFunction)) {
-            dstModel->ModelInfo["multiclass_params"] = ClassificationTargetHelper.Serialize();
+        if (IsClassificationObjective(lossFunction)) {
+            dstModel->ModelInfo["class_params"] = ClassificationTargetHelper.Serialize();
         }
 
         if (

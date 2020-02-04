@@ -4,6 +4,8 @@
 #include <catboost/libs/data/loader.h>
 #include <catboost/libs/helpers/exception.h>
 
+#include <catboost/private/libs/options/enums.h>
+
 #include <util/generic/algorithm.h>
 #include <util/generic/cast.h>
 
@@ -84,9 +86,30 @@ NCB::TDataMetaInfo GetDataMetaInfo(
     NCB::TDataColumnsMetaInfo dataColumnsMetaInfo;
     dataColumnsMetaInfo.Columns.resize(columnsCount);
 
+    bool hasTargets = false;
+
     for (const auto [columnIndex, localIndex] : pool.ColumnIndexToLocalIndex) {
+        const auto columnType = pool.ColumnTypes[localIndex];
+        if (columnType == EColumn::Label) {
+            hasTargets = true;
+        }
         dataColumnsMetaInfo.Columns[columnIndex].Type = pool.ColumnTypes[localIndex];
         dataColumnsMetaInfo.Columns[columnIndex].Id = pool.ColumnNames[localIndex];
+    }
+
+    NCB::ERawTargetType targetType;
+    if (hasTargets) {
+        if (pool.QuantizationSchema.IntegerClassLabelsSize()) {
+            targetType = NCB::ERawTargetType::Integer;
+        } else if (pool.QuantizationSchema.FloatClassLabelsSize()) {
+            targetType = NCB::ERawTargetType::Float;
+        } else if (pool.QuantizationSchema.ClassNamesSize()) {
+            targetType = NCB::ERawTargetType::String;
+        } else {
+            targetType = NCB::ERawTargetType::Float;
+        }
+    } else {
+        targetType = NCB::ERawTargetType::None;
     }
 
     const TVector<TString> featureNames = NCB::GetFeatureNames(
@@ -95,7 +118,7 @@ NCB::TDataMetaInfo GetDataMetaInfo(
         featureNamesPath
     );
 
-    NCB::TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), hasAdditionalGroupWeight, hasTimestamps, hasPairs, baselineCount, &featureNames);
+    NCB::TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), targetType, hasAdditionalGroupWeight, hasTimestamps, hasPairs, baselineCount, &featureNames);
     metaInfo.Validate();
     return metaInfo;
 }

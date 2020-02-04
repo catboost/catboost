@@ -85,6 +85,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\cat_feature_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\catboost_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\check_train_options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\class_label_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\cross_validation_params.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\data_processing_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\defaults_helper.cpp"/>
@@ -98,7 +99,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\metric_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\model_based_eval_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\monotone_constraints.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\multiclass_label_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\oblivious_tree_options.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\option.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\options\output_file_options.cpp"/>
@@ -169,6 +169,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\cat_feature_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\catboost_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\check_train_options.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\class_label_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\cross_validation_params.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\data_processing_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\defaults_helper.h"/>
@@ -179,7 +180,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\metric_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\model_based_eval_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\monotone_constraints.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\multiclass_label_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\oblivious_tree_options.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\option.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\options\output_file_options.h"/>
@@ -323,6 +323,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
       <Project>{F7622D70-2702-4C7E-04DA-52DC56DF911E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
+      <Project>{2CE71367-048B-26B0-2DAC-CA9BB7D00E76}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\pop_count\library-pop_count.vcxproj">
       <Project>{5388367D-330A-ED57-0DB7-1F988A5A9B05}</Project>

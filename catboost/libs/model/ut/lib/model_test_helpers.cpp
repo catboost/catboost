@@ -6,6 +6,8 @@
 #include <catboost/libs/data/ut/lib/for_loader.h>
 #include <catboost/libs/train_lib/train_model.h>
 
+#include <library/json/json_value.h>
+
 #include <util/string/builder.h>
 #include <util/folder/tempdir.h>
 
@@ -23,6 +25,7 @@ TFullModel TrainFloatCatboostModel(int iterations, int seed) {
     dataProviders.Learn = CreateDataProvider(
         [&] (IRawFeaturesOrderDataVisitor* visitor) {
             TDataMetaInfo metaInfo;
+            metaInfo.TargetType = ERawTargetType::Float;
             metaInfo.TargetCount = 1;
             metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
                 factorCount,
@@ -105,7 +108,7 @@ TDataProviderPtr GetAdultPool() {
 
     TVector<THolder<TTempFile>> srcDataFiles;
     SaveSrcData(srcData, &readDatasetMainParams, &srcDataFiles);
-    TVector<TString> classNames;
+    TVector<NJson::TJsonValue> classLabels;
 
     return ReadDataset(
         readDatasetMainParams.PoolPath,
@@ -119,7 +122,7 @@ TDataProviderPtr GetAdultPool() {
         EObjectsOrder::Undefined,
         /*threadCount*/ 16,
         /*verbose*/true,
-        &classNames
+        &classLabels
     );
 }
 
@@ -150,7 +153,7 @@ TDataProviderPtr GetMultiClassPool() {
 
     TVector<THolder<TTempFile>> srcDataFiles;
     SaveSrcData(srcData, &readDatasetMainParams, &srcDataFiles);
-    TVector<TString> classNames;
+    TVector<NJson::TJsonValue> classLabels;
 
     return ReadDataset(
         readDatasetMainParams.PoolPath,
@@ -164,7 +167,7 @@ TDataProviderPtr GetMultiClassPool() {
         EObjectsOrder::Undefined,
         /*threadCount*/ 16,
         /*verbose*/true,
-        &classNames
+        &classLabels
     );
 }
 
@@ -378,6 +381,7 @@ TFullModel TrainCatOnlyModel() {
     dataProviders.Learn = CreateDataProvider(
         [&] (IRawFeaturesOrderDataVisitor* visitor) {
             TDataMetaInfo metaInfo;
+            metaInfo.TargetType = ERawTargetType::Float;
             metaInfo.TargetCount = 1;
             metaInfo.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(
                 (ui32)3,

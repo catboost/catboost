@@ -14,12 +14,16 @@ namespace NCB {
             , Options(options)
         {}
 
-        bool IsMultiClass() const {
+        bool IsInitialized() const {
             return LabelConverter.IsInitialized();
         }
 
-        int GetNumClasses() const {
-            return LabelConverter.IsInitialized() ? LabelConverter.GetApproxDimension() : 2;
+        bool IsMultiClass() const {
+            return LabelConverter.IsMultiClass();
+        }
+
+        int GetApproxDimension() const {
+            return LabelConverter.GetApproxDimension();
         }
         TString Serialize() const;
 

@@ -80,7 +80,6 @@ namespace NCB {
             bool haveUnknownNumberOfSparseFeatures,
             ui32 objectCount,
             EObjectsOrder objectsOrder,
-            bool targetDataTypeIsString,
 
             // keep necessary resources for data to be available (memory mapping for a file for example)
             TVector<TIntrusivePtr<IResourceHolder>> resourceHolders
@@ -218,7 +217,6 @@ namespace NCB {
             const TDataMetaInfo& metaInfo,
             ui32 objectCount,
             EObjectsOrder objectsOrder,
-            bool targetDataTypeIsString,
 
             // keep necessary resources for data to be available (memory mapping for a file for example)
             TVector<TIntrusivePtr<IResourceHolder>> resourceHolders,

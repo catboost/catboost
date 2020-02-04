@@ -158,7 +158,7 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
                                         NCB::EObjectsOrder::Ordered,
                                         16,
                                         true,
-                                        /*classNames*/ Nothing());
+                                        /*classLabels*/ Nothing());
     }
 
     NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::GPU);

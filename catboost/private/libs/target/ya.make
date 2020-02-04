@@ -18,6 +18,7 @@ PEERDIR(
     catboost/libs/metrics
     catboost/private/libs/options
     catboost/private/libs/pairs
+    library/json
 )
 
 END()

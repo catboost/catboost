@@ -15,13 +15,29 @@ TParsedLocation::TParsedLocation(TStringBuf path) {
         path.Skip(1);
     }
 
-    if (!path.TrySplit('/', EndPoint, Service)) {
-        EndPoint = path;
-        Service = "";
+    auto checkRange = [](size_t b, size_t e){
+        return b != TStringBuf::npos && e != TStringBuf::npos && b < e;
+    };
+
+    size_t oBracket = path.find_first_of('[');
+    size_t cBracket = path.find_first_of(']');
+    size_t endEndPointPos = path.find_first_of('/');
+    if (checkRange(oBracket, cBracket)) {
+        endEndPointPos = path.find_first_of('/', cBracket);
+    }
+    EndPoint = path.SubStr(0, endEndPointPos);
+    Host = EndPoint;
+
+    size_t lastColon = EndPoint.find_last_of(':');
+    if (checkRange(cBracket, lastColon)
+        || (cBracket == TStringBuf::npos && lastColon != TStringBuf::npos))
+    {
+        Host = EndPoint.SubStr(0, lastColon);
+        Port = EndPoint.SubStr(lastColon + 1, EndPoint.size() - lastColon + 1);
     }
 
-    if (!EndPoint.TryRSplit(':', Host, Port)) {
-        Host = EndPoint;
+    if (endEndPointPos != TStringBuf::npos) {
+        Service = path.SubStr(endEndPointPos + 1, path.size() - endEndPointPos + 1);
     }
 }
 

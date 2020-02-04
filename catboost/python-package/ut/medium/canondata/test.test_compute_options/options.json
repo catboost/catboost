@@ -6,7 +6,7 @@
         "fold_len_multiplier": 2, 
         "fold_permutation_block": 0, 
         "iterations": 1000, 
-        "learning_rate": 0.1100239977, 
+        "learning_rate": 0.11002399772405624, 
         "model_shrink_mode": "Constant", 
         "model_shrink_rate": 0, 
         "od_config": {
@@ -117,7 +117,7 @@
         "class_names": [], 
         "class_weights": [], 
         "classes_count": 0, 
-        "dev_default_value_fraction_for_sparse": 0.8299999833, 
+        "dev_default_value_fraction_for_sparse": 0.8299999833106995, 
         "dev_group_features": false, 
         "dev_leafwise_scoring": false, 
         "dev_sparse_array_indexing": "Indices", 
@@ -236,10 +236,10 @@
     }, 
     "task_type": "CPU", 
     "tree_learner_options": {
-        "bayesian_matrix_reg": 0.1000000015, 
+        "bayesian_matrix_reg": 0.10000000149011612, 
         "bootstrap": {
             "mvs_reg": null, 
-            "subsample": 0.8000000119, 
+            "subsample": 0.800000011920929, 
             "type": "MVS"
         }, 
         "depth": 6, 

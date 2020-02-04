@@ -1,6 +1,11 @@
 #include "serialization.h"
 #include "exception.h"
 
+#include <library/json/json_value.h>
+
+#include <util/stream/str.h>
+
+
 namespace NCB {
     void AddPadding(TCountingOutput* const output, const ui32 alignment) {
         if (output->Counter() % alignment == 0) {
@@ -40,4 +45,22 @@ namespace NCB {
         );
         SkipPadding(&input, alignment);
     }
+
+}
+
+
+int operator&(NJson::TJsonValue& jsonValue, IBinSaver& binSaver) {
+    TString serializedData;
+    if (binSaver.IsReading()) {
+        binSaver.Add(0, &serializedData);
+        TStringInput in(serializedData);
+        jsonValue.Load(&in);
+    } else {
+        TStringOutput out(serializedData);
+        jsonValue.Save(&out);
+        out.Finish();
+        binSaver.Add(0, &serializedData);
+    }
+
+    return 0;
 }

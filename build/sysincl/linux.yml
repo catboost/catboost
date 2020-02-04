@@ -7,6 +7,7 @@
   - argz.h
   - asm/byteorder.h
   - asm/cputable.h
+  - asm/errno.h
   - asm/fcntl.h
   - asm/posix_types.h
   - asm/sigcontext.h
@@ -16,7 +17,9 @@
   - bfd.h
   - bits/fenv.h
   - bits/libc-lock.h
+  - bits/reg.h
   - bits/types.h
+  - bits/wordsize.h
   - error.h
   - execinfo.h
   - fpu_control.h
@@ -93,6 +96,7 @@
   - linux/nl80211.h
   - linux/oom.h
   - linux/pci_regs.h
+  - linux/perf_event.h
   - linux/pkt_cls.h
   - linux/pkt_sched.h
   - linux/qrtr.h
@@ -105,6 +109,7 @@
   - linux/seccomp.h
   - linux/securebits.h
   - linux/smb.h
+  - linux/socket.h
   - linux/sockios.h
   - linux/soundcard.h
   - linux/spi/spidev.h

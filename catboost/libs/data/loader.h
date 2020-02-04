@@ -21,6 +21,12 @@
 #include <util/generic/vector.h>
 #include <util/generic/ylimits.h>
 
+
+namespace NJson {
+    class TJsonValue;
+}
+
+
 namespace NCB {
 
     struct TDatasetSubset {
@@ -45,7 +51,7 @@ namespace NCB {
         TPathWithScheme BaselineFilePath;
         TPathWithScheme TimestampsFilePath;
         TPathWithScheme FeatureNamesPath;
-        const TVector<TString>& ClassNames;
+        const TVector<NJson::TJsonValue>& ClassLabels;
         TDsvFormatOptions PoolFormat;
         THolder<ICdProvider> CdProvider;
         TVector<ui32> IgnoredFeatures;

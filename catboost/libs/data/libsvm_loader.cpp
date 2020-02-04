@@ -5,6 +5,7 @@
 #include <catboost/libs/column_description/cd_parser.h>
 #include <catboost/private/libs/data_util/exists_checker.h>
 #include <catboost/private/libs/data_util/line_data_reader.h>
+#include <catboost/private/libs/labels/helpers.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/sparse_array.h>
 
@@ -73,7 +74,7 @@ namespace NCB {
     TLibSvmDataLoader::TLibSvmDataLoader(TLineDataLoaderPushArgs&& args)
         : TAsyncProcDataLoaderBase<TString>(std::move(args.CommonArgs))
         , LineDataReader(std::move(args.Reader))
-        , BaselineReader(Args.BaselineFilePath, args.CommonArgs.ClassNames)
+        , BaselineReader(Args.BaselineFilePath, ClassLabelsToStrings(args.CommonArgs.ClassLabels))
     {
         CB_ENSURE(!Args.PairsFilePath.Inited() || CheckExists(Args.PairsFilePath),
                   "TLibSvmDataLoader:PairsFilePath does not exist");
@@ -89,6 +90,7 @@ namespace NCB {
         TString firstLine;
         CB_ENSURE(LineDataReader->ReadLine(&firstLine), "TLibSvmDataLoader: no data rows");
 
+        DataMetaInfo.TargetType = ERawTargetType::Float;
         DataMetaInfo.TargetCount = 1;
         DataMetaInfo.BaselineCount = BaselineReader.GetBaselineCount().GetOrElse(0);
         DataMetaInfo.HasGroupId = DataHasGroupId(firstLine);
@@ -154,7 +156,6 @@ namespace NCB {
             /*haveUnknownNumberOfSparseFeatures*/ true,
             objectCount,
             Args.ObjectsOrder,
-            /*targetDataTypeIsString*/ false,
             {}
         );
 

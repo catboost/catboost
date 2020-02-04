@@ -18,6 +18,10 @@
         "dctl": {
             "description": "Run Yandex.Deploy CLI"
         },
+        "nctl": {
+            "description": "Run Nanny CLI",
+            "visible": false
+        },
         "llvm-profdata": {
             "description": "Run llvm-profdata Clang utility"
         },
@@ -3642,6 +3646,28 @@
                 }
             ]
         },
+        "nctl": {
+            "tools": {
+                "nctl": {
+                    "bottle": "nctl",
+                    "executable": "nctl"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "jq": {
             "tools": {
                 "jq": {
@@ -5033,7 +5059,7 @@
         "ymake": {
             "formula": {
                 "sandbox_id": [
-                    586638048
+                    596264998
                 ],
                 "match": "ymake"
             },
@@ -6341,6 +6367,19 @@
                 ]
             }
         },
+        "nctl": {
+            "formula": {
+                "sandbox_id": [
+                    597157675
+                ],
+                "match": "nctl"
+            },
+            "executable": {
+                "nctl": [
+                    "nctl"
+                ]
+            }
+        },
         "vim": {
             "formula": {
                 "sandbox_id": 82345405,
@@ -6688,7 +6727,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 590751026,
+                "sandbox_id": 601517860,
                 "match": "horadric"
             },
             "executable": {
@@ -6776,7 +6815,7 @@
         },
         "ygdiff": {
             "formula": {
-                "sandbox_id": 587203509,
+                "sandbox_id": 599721893,
                 "match": "ygdiff"
             },
             "executable": {
@@ -6787,7 +6826,7 @@
         },
         "ya-tc": {
             "formula": {
-                "sandbox_id": 592467250,
+                "sandbox_id": 600566836,
                 "match": "ya-tc"
             },
             "executable": {
@@ -6809,7 +6848,7 @@
         },
         "app_host": {
             "formula": {
-                "sandbox_id": 590215987,
+                "sandbox_id": 601573276,
                 "match": "app_host_launcher"
             },
             "executable": {

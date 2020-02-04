@@ -12,6 +12,8 @@
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/text_features/text_processing_collection.h>
 
+#include <library/json/json_value.h>
+
 #include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>
 #include <util/generic/hash.h>
@@ -1088,7 +1090,15 @@ public:
      * @return the name, or empty string if the model does not have this information
      */
     TString GetLossFunctionName() const;
-    TVector<TString> GetModelClassNames() const;
+
+    /**
+     * Get typed class labels than can be predicted.
+     *
+     * @return Vector of typed class labels corresponding to approx dimension if the model can be used for
+     *    classification or empty vector otherwise.
+     *    Possible value types are Integer, Float or String
+     */
+    TVector<NJson::TJsonValue> GetModelClassLabels() const;
 
     /**
      * Internal usage only.

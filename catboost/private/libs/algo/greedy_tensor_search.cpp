@@ -88,6 +88,7 @@ static double CalcDerivativesStDevFromZero(
         case EBoostingType::Plain:
             return CalcDerivativesStDevFromZeroPlainBoosting(fold, localExecutor);
     }
+    Y_UNREACHABLE();
 }
 
 static double CalcDerivativesStDevFromZeroMultiplier(int learnSampleCount, double modelLength) {

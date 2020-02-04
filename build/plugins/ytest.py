@@ -454,8 +454,13 @@ def onadd_check(unit, *args):
 
     if check_type in ["PEP8", "PYFLAKES", "PY_FLAKES", "PEP8_2", "PYFLAKES_2"]:
         script_rel_path = "py.lint.pylint"
+        fork_mode = unit.get('TEST_FORK_MODE') or ''
     elif check_type in ["PEP8_3", "PYFLAKES_3"]:
         script_rel_path = "py.lint.pylint.3"
+        fork_mode = unit.get('TEST_FORK_MODE') or ''
+    elif check_type in ["flake8.py2", "flake8.py3"]:
+        script_rel_path = check_type
+        fork_mode = unit.get('TEST_FORK_MODE') or ''
     elif check_type == "JAVA_STYLE":
         if len(flat_args) < 2:
             raise Exception("Not enough arguments for JAVA_STYLE check")
@@ -464,6 +469,7 @@ def onadd_check(unit, *args):
             'base': '/yandex_checks.xml',
             'strict': '/yandex_checks_strict.xml',
             'extended': '/yandex_checks_extended.xml',
+            'library': '/yandex_checks_library.xml',
         }
         if check_level not in allowed_levels:
             raise Exception('{} is not allowed in LINT(), use one of {}'.format(check_level, allowed_levels.keys()))

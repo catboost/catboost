@@ -264,12 +264,10 @@ TLearnContext::TLearnContext(
             approxDimension == SafeIntegerCast<ui32>(initLearnProgress->ApproxDimension),
             "Attempt to continue learning with a different approx dimension"
         );
-        if (approxDimension > 1) {
-            CB_ENSURE(
-                labelConverter == initLearnProgress->LabelConverter,
-                "Attempt to continue learning with different class labels"
-            );
-        }
+        CB_ENSURE(
+            labelConverter == initLearnProgress->LabelConverter,
+            "Attempt to continue learning with different class labels"
+        );
     }
 
     const TFoldsCreationParams foldsCreationParams(
@@ -476,9 +474,7 @@ TLearnProgress::TLearnProgress(
     , LearnAndTestQuantizedFeaturesCheckSum(featuresCheckSum)
     , Rand(randomSeed) {
 
-    if (ApproxDimension > 1) {
-        LabelConverter = labelConverter;
-    }
+    LabelConverter = labelConverter;
 
     if (initRand) {
         Rand.Advance((**initRand).GetCallCount());

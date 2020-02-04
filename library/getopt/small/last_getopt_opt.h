@@ -1,5 +1,6 @@
 #pragma once
 
+#include "completer.h"
 #include "last_getopt_handlers.h"
 
 #include <util/string/split.h>
@@ -52,12 +53,23 @@ namespace NLastGetopt {
         typedef TVector<TSimpleSharedPtr<IOptHandler>> TOptHandlers;
 
     public:
-        bool Hidden_ = false; // is visible in help
-        TString ArgTitle_;    // the name of argument in help output
-        TString Help_;        // the help string
+        bool Hidden_ = false;       // is visible in help
+        TString ArgTitle_;          // the name of argument in help output
+        TString Help_;              // the help string
+        TString CompletionHelp_;    // the help string that's used in completion script, a shorter version of Help_
+        TString CompletionArgHelp_; // the description of argument in completion script
 
         EHasArg HasArg_ = DEFAULT_HAS_ARG; // the argument parsing politics
         bool Required_ = false;            // option existence politics
+
+        bool AllowMultipleCompletion_ = false; // let the completer know that this option can occur more than once
+
+        bool DisableCompletionForOptions_ = false;
+        bool DisableCompletionForFreeArgs_ = false;
+        TShortNames DisableCompletionForChar_;
+        TLongNames DisableCompletionForLongName_;
+        TVector<size_t> DisableCompletionForFreeArg_;
+        NComp::ICompleterPtr Completer_;
 
     private:
         //Handlers information
@@ -322,9 +334,37 @@ namespace NLastGetopt {
         }
 
         /**
-         *  sets Help string into given
-         *  @param help      new help string for the option
-         *  @return self
+         * Set help string that appears with `--help`. Unless `CompletionHelp` is given, this message will also be used
+         * in completion script. In this case, don't make it too long, don't start it with a capital letter and don't
+         * end it with a full stop.
+         *
+         * Note that `Help`, `CompletionHelp` and `CompletionArgHelp` are not the same. `Help` is printed in program
+         * usage (when you call `program --help`), `CompletionHelp` is printed when completer lists available
+         * options, and `CompletionArgHelp` is printed when completer shows available values for the option.
+         *
+         * Example of good help message:
+         *
+         * ```
+         * opts.AddLongOption('t', "timeout")
+         *     .Help("specify query timeout in milliseconds")
+         *     .CompletionHelp("specify query timeout")
+         *     .CompletionArgHelp("query timeout (ms) [default=500]");
+         * ```
+         *
+         * Notice how `Help` and `CompletionArgHelp` have units in them, but `CompletionHelp` don't.
+         *
+         * Another good example is the help option:
+         *
+         * ```
+         * opts.AddLongOption('h', "help")
+         *     .Help("print this message and exit")
+         *     .CompletionHelp("print help message and exit");
+         * ```
+         *
+         * Notice how `Help` mentions 'this message', but `CompletionHelp` mentions just 'help message'.
+         *
+         * See more on completion descriptions codestyle:
+         * https://github.com/zsh-users/zsh/blob/master/Etc/completion-style-guide#L43
          */
         TOpt& Help(const TString& help) {
             Help_ = help;
@@ -332,19 +372,180 @@ namespace NLastGetopt {
         }
 
         /**
-         *  @return help string
+         * Get help string.
          */
-        TString GetHelp() const {
+        const TString& GetHelp() const {
             return Help_;
         }
 
         /**
-         *  run all handlers
-         *  @param parser
+         * Set help string that appears when argument completer lists available options.
+         *
+         * See `Help` function for info on how this is different from setting `Help` and `CompletionArgHelp`.
+         *
+         * Use shorter messages for this message. Don't start them with a capital letter and don't end them
+         * with a full stop. De aware that argument name and default value will not be printed by completer.
+         *
+         * In zsh, these messages will look like this:
+         *
+         * ```
+         * $ program -<tab><tab>
+         *  -- option --
+         * --help    -h  -- print help message and exit
+         * --timeout -t  -- specify query timeout
+         * ```
+         */
+        TOpt& CompletionHelp(const TString& help) {
+            CompletionHelp_ = help;
+            return *this;
+        }
+
+        /**
+         * Get help string that appears when argument completer lists available options.
+         */
+        const TString& GetCompletionHelp() const {
+            return CompletionHelp_ ? CompletionHelp_ : Help_;
+        }
+
+        /**
+         * Set help string that appears when completer suggests available values.
+         *
+         * See `Help` function for info on how this is different from setting `Help` and `CompletionHelp`.
+         *
+         * In zsh, these messages will look like this:
+         *
+         * ```
+         * $ program --timeout <tab><tab>
+         *  -- query timeout (ms) [default=500] --
+         * 50     100     250     500     1000
+         * ```
+         */
+        TOpt& CompletionArgHelp(const TString& help) {
+            CompletionArgHelp_ = help;
+            return *this;
+        }
+
+        /**
+         *  @return argument help string for use in completion script.
+         */
+        const TString& GetCompletionArgHelp() const {
+            return CompletionArgHelp_ ? CompletionArgHelp_ : ArgTitle_;
+        }
+
+        /**
+         * Let the completer know that this option can occur more than once.
+         */
+        TOpt& AllowMultipleCompletion(bool allowMultipleCompletion = true) {
+            AllowMultipleCompletion_ = allowMultipleCompletion;
+            return *this;
+        }
+
+        /**
+         * @return true if completer will offer completion for this option multiple times.
+         */
+        bool MultipleCompletionAllowed() const {
+            return AllowMultipleCompletion_;
+        }
+
+        /**
+         * Tell the completer to disable further completion if this option is present.
+         * This is useful for options like `--help`.
+         *
+         * Note: this only works in zsh.
+         *
+         * @return self
+         */
+        TOpt& IfPresentDisableCompletion(bool value = true) {
+            IfPresentDisableCompletionForOptions(value);
+            IfPresentDisableCompletionForFreeArgs(value);
+            return *this;
+        }
+
+        /**
+         * Tell the completer to disable completion for all options if this option is already present in the input.
+         * Free arguments will still be completed.
+         *
+         * Note: this only works in zsh.
+         *
+         * @return self
+         */
+        TOpt& IfPresentDisableCompletionForOptions(bool value = true) {
+            DisableCompletionForOptions_ = value;
+            return *this;
+        }
+
+        /**
+         * Tell the completer to disable option `c` if this option is already present in the input.
+         * For example, if you have two options `-a` and `-r` that are mutually exclusive, disable `-r` for `-a` and
+         * disable `-a` for `-r`, like this:
+         *
+         * ```
+         * opts.AddLongOption('a', "acquire").IfPresentDisableCompletionFor('r');
+         * opts.AddLongOption('r', "release").IfPresentDisableCompletionFor('a');
+         * ```
+         *
+         * This way, if user enabled option `-a`, completer will not suggest option `-r`.
+         *
+         * Note that we don't have to disable all flags for a single option. That is, disabling `-r` in the above
+         * example disables `--release` automatically.
+         *
+         * Note: this only works in zsh.
+         *
+         * @param c char option that should be disabled when completer hits this option.
+         */
+        TOpt& IfPresentDisableCompletionFor(char c) {
+            DisableCompletionForChar_.push_back(c);
+            return *this;
+        }
+
+        /**
+         * Like `IfPresentDisableCompletionFor(char c)`, but for long options.
+         */
+        TOpt& IfPresentDisableCompletionFor(const TString& name) {
+            DisableCompletionForLongName_.push_back(name);
+            return *this;
+        }
+
+        /**
+         * Like `IfPresentDisableCompletionFor(char c)`, but for long options.
+         */
+        TOpt& IfPresentDisableCompletionFor(const TOpt& opt);
+
+        /**
+         * Tell the completer to disable completion for the given free argument if this option is present.
+         *
+         * Note: this only works in zsh.
+         *
+         * @param arg index of free arg
+         */
+        TOpt& IfPresentDisableCompletionForFreeArg(size_t index) {
+            DisableCompletionForFreeArg_.push_back(index);
+            return *this;
+        }
+
+        /**
+         * Assign a completer for this option.
+         */
+        TOpt& Completer(NComp::ICompleterPtr completer) {
+            Completer_ = std::move(completer);
+            return *this;
+        }
+
+        /**
+         * Tell the completer to disable completion for the all free arguments if this option is present.
+         *
+         * Note: this only works in zsh.
+         */
+        TOpt& IfPresentDisableCompletionForFreeArgs(bool value = true) {
+            DisableCompletionForFreeArgs_ = value;
+            return *this;
+        }
+
+        /**
+         * Run handlers for this option.
          */
         void FireHandlers(const TOptsParser* parser) const;
 
-        //TODO: handlers information
     private:
         TOpt& HandlerImpl(IOptHandler* handler) {
             Handlers_.push_back(handler);
@@ -505,24 +706,100 @@ namespace NLastGetopt {
      * The help information consists of following:
      *   help string
      *   argument name (title)
-     *
-     * [unimplemented] TODO: If the argument have a named alias, the fetched value will be parsed as
-     *    an argument of that TOpt.
      */
     struct TFreeArgSpec {
         TFreeArgSpec() = default;
-        TFreeArgSpec(const TString& title, const TString& help = TString(), bool optional = false, const TOpt* namedAlias = nullptr)
-            : Title(title)
-            , Help(help)
-            , Optional(optional)
-            , NamedAlias(namedAlias)
+        TFreeArgSpec(const TString& title, const TString& help = TString(), bool optional = false)
+            : Title_(title)
+            , Help_(help)
+            , Optional_(optional)
         {
         }
 
-        TString Title;
-        TString Help;
-        bool Optional = false;
-        const TOpt* NamedAlias = nullptr; //unimplemented yet
-    };
+        TString Title_;
+        TString Help_;
+        TString CompletionArgHelp_;
 
+        bool Optional_ = false;
+        NComp::ICompleterPtr Completer_ = nullptr;
+
+        /**
+         * Check if this argument have default values for its title and help.
+         */
+        bool IsDefault() const {
+            return Title_.empty() && Help_.empty();
+        }
+
+        /**
+         * Set argument title.
+         */
+        TFreeArgSpec& Title(TString title) {
+            Title_ = std::move(title);
+            return *this;
+        }
+
+        /**
+         * Get argument title. If title is empty, returns a default one.
+         */
+        TStringBuf GetTitle(TStringBuf defaultTitle) const {
+            return Title_ ? TStringBuf(Title_) : defaultTitle;
+        }
+
+        /**
+         * Set help string that appears with `--help`. Unless `CompletionHelp` is given, this message will also be used
+         * in completion script. In this case, don't make it too long, don't start it with a capital letter and don't
+         * end it with a full stop.
+         *
+         * See `TOpt::Help` function for more on how `Help` and `CompletionArgHelp` differ one from another.
+         */
+        TFreeArgSpec& Help(TString help) {
+            Help_ = std::move(help);
+            return *this;
+        }
+
+        /**
+         * Get help string that appears with `--help`.
+         */
+        TStringBuf GetHelp() const {
+            return Help_;
+        }
+
+        /**
+         * Set help string that appears when completer suggests values fot this argument.
+         */
+        TFreeArgSpec& CompletionArgHelp(TString completionArgHelp) {
+            CompletionArgHelp_ = std::move(completionArgHelp);
+            return *this;
+        }
+
+        /**
+         * Get help string that appears when completer suggests values fot this argument.
+         */
+        TStringBuf GetCompletionArgHelp(TStringBuf defaultTitle) const {
+            return CompletionArgHelp_ ? TStringBuf(CompletionArgHelp_) : GetTitle(defaultTitle);
+        }
+
+        /**
+         * Mark this argument as optional. This setting only affects help printing, it doesn't affect parsing.
+         */
+        TFreeArgSpec& Optional(bool optional = true) {
+            Optional_ = optional;
+            return *this;
+        }
+
+        /**
+         * Check if this argument is optional.
+         */
+        bool IsOptional() const {
+            return Optional_;
+        }
+
+        /**
+         * Set completer for this argument.
+         */
+        TFreeArgSpec& Completer(NComp::ICompleterPtr completer) {
+            Completer_ = std::move(completer);
+            return *this;
+        }
+    };
 }

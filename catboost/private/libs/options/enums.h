@@ -328,4 +328,11 @@ namespace NCB {
         OneVsAll,
         OthersVsAll
     };
+
+    enum class ERawTargetType : ui32 {
+        Integer,
+        Float,
+        String,
+        None
+    };
 }

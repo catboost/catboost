@@ -12,7 +12,6 @@ CFLAGS(-fPIC)
 
 SRCS(
     GLOBAL inject.c
-    symbolizer.c
 )
 
 END()

@@ -238,7 +238,7 @@ Y_UNIT_TEST_SUITE(TLockFreeQueueTests) {
             });
         }
 
-        NThreading::WaitAll(futures).GetValueSync();
+        NThreading::WaitExceptionOrAll(futures).GetValueSync();
         p.Stop();
 
         TVector<int> left;

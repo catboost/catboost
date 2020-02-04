@@ -3,6 +3,7 @@
 
 #include <catboost/libs/column_description/cd_parser.h>
 #include <catboost/private/libs/data_util/exists_checker.h>
+#include <catboost/private/libs/labels/helpers.h>
 #include <catboost/libs/helpers/mem_usage.h>
 
 #include <library/object_factory/object_factory.h>
@@ -33,7 +34,7 @@ namespace NCB {
         , FieldDelimiter(Args.PoolFormat.Delimiter)
         , CsvSplitterQuote(Args.PoolFormat.IgnoreCsvQuoting ? '\0' : '"')
         , LineDataReader(std::move(args.Reader))
-        , BaselineReader(Args.BaselineFilePath, args.CommonArgs.ClassNames)
+        , BaselineReader(Args.BaselineFilePath, ClassLabelsToStrings(args.CommonArgs.ClassLabels))
     {
         CB_ENSURE(!Args.PairsFilePath.Inited() || CheckExists(Args.PairsFilePath),
                   "TCBDsvDataLoader:PairsFilePath does not exist");
@@ -57,6 +58,7 @@ namespace NCB {
         const ui32 columnsCount = TVector<TString>(NCsvFormat::CsvSplitter(firstLine, FieldDelimiter, CsvSplitterQuote)).size();
 
         auto columnsDescription = TDataColumnsMetaInfo{ CreateColumnsDescription(columnsCount) };
+        auto targetCount = columnsDescription.CountColumns(EColumn::Label);
 
         const TVector<TString> featureNames = GetFeatureNames(
             columnsDescription,
@@ -66,12 +68,13 @@ namespace NCB {
 
         DataMetaInfo = TDataMetaInfo(
             std::move(columnsDescription),
+            targetCount ? ERawTargetType::String : ERawTargetType::None,
             Args.GroupWeightsFilePath.Inited(),
             Args.TimestampsFilePath.Inited(),
             Args.PairsFilePath.Inited(),
             BaselineReader.GetBaselineCount(),
             &featureNames,
-            args.CommonArgs.ClassNames
+            args.CommonArgs.ClassLabels
         );
 
         AsyncRowProcessor.AddFirstLine(std::move(firstLine));
@@ -117,7 +120,6 @@ namespace NCB {
             /*haveUnknownNumberOfSparseFeatures*/ false,
             objectCount,
             Args.ObjectsOrder,
-            /*targetDataTypeIsString*/ true,
             {}
         );
     }

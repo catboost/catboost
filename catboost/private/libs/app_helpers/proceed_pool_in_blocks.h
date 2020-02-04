@@ -27,7 +27,7 @@ inline void ReadAndProceedPoolInBlocks(const NCB::TAnalyticalModeCommonParams& p
                 /*BaselineFilePath=*/NCB::TPathWithScheme(),
                 /*TimestampsFilePath*/NCB::TPathWithScheme(),
                 params.FeatureNamesPath,
-                params.ClassNames,
+                params.ClassLabels,
                 params.ColumnarPoolFormatParams.DsvFormat,
                 MakeCdProviderFromFile(params.ColumnarPoolFormatParams.CdFilePath),
                 /*ignoredFeatures*/ {},

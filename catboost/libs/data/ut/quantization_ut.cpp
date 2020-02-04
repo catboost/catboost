@@ -145,10 +145,11 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 featureId.push_back("f" + ToString(featureIdx));
             }
 
-            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), false, false, false, Nothing(), &featureId);
+            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, Nothing(), &featureId);
 
             srcData.MetaInfo = metaInfo;
 
+            srcData.TargetData.TargetType = ERawTargetType::String;
             TVector<TVector<TString>> rawTarget{{"0", "1", "1", "0", "1", "0", "1", "0", "0"}};
             srcData.TargetData.Target.assign(rawTarget.begin(), rawTarget.end());
             srcData.TargetData.SetTrivialWeights(9);
@@ -329,10 +330,11 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             TVector<TString> featureId = {"f0", "f1"};
 
-            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), false, false, false, Nothing(), &featureId);
+            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, Nothing(), &featureId);
 
             srcData.MetaInfo = metaInfo;
 
+            srcData.TargetData.TargetType = ERawTargetType::String;
             TVector<TVector<TString>> rawTarget{{"0", "1", "1", "0", "1", "0", "1", "0", "0", "1", "0", "0", "0"}};
             srcData.TargetData.Target.assign(rawTarget.begin(), rawTarget.end());
             srcData.TargetData.SetTrivialWeights(13);
@@ -445,10 +447,11 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             TVector<TString> featureId = {"f0", "f1"};
 
-            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), false, false, false, Nothing(), &featureId);
+            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, Nothing(), &featureId);
 
             srcData.MetaInfo = metaInfo;
 
+            srcData.TargetData.TargetType = ERawTargetType::String;
             TVector<TVector<TString>> rawTarget{{"0", "1", "1", "0", "1", "0", "1", "0", "0"}};
             srcData.TargetData.Target.assign(rawTarget.begin(), rawTarget.end());
             srcData.TargetData.SetTrivialWeights(9);
@@ -578,10 +581,11 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 featureId.push_back("c" + ToString(featureIdx));
             }
 
-            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), false, false, false, Nothing(), &featureId);
+            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, Nothing(), &featureId);
 
             srcData.MetaInfo = metaInfo;
 
+            srcData.TargetData.TargetType = ERawTargetType::String;
             TVector<TVector<TString>> rawTarget{{"0", "1", "1", "0", "1", "0", "1", "0", "0", "1", "0", "0", "0"}};
             srcData.TargetData.Target.assign(rawTarget.begin(), rawTarget.end());
             srcData.TargetData.SetTrivialWeights(13);
@@ -840,10 +844,11 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 "f13", // 21
             };
 
-            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), false, false, false, Nothing(), &featureId);
+            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, Nothing(), &featureId);
 
             srcData.MetaInfo = metaInfo;
 
+            srcData.TargetData.TargetType = ERawTargetType::String;
             TVector<TVector<TString>> rawTarget{{"0", "1", "1", "0", "1", "0", "1", "0", "0", "1", "0", "0", "0"}};
             srcData.TargetData.Target.assign(rawTarget.begin(), rawTarget.end());
             srcData.TargetData.SetTrivialWeights(13);
@@ -1141,10 +1146,11 @@ Y_UNIT_TEST_SUITE(Quantization) {
 
             TVector<TString> featureId = {"f0", "c0", "f1", "c1", "c2"};
 
-            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), false, false, false, Nothing(), &featureId);
+            TDataMetaInfo metaInfo(std::move(dataColumnsMetaInfo), ERawTargetType::String, false, false, false, Nothing(), &featureId);
 
             srcData.MetaInfo = metaInfo;
 
+            srcData.TargetData.TargetType = ERawTargetType::String;
             TVector<TVector<TString>> rawTarget{{"0", "1", "1", "0", "1", "0", "1", "0", "0", "1", "0", "0", "0"}};
             srcData.TargetData.Target.assign(rawTarget.begin(), rawTarget.end());
             srcData.TargetData.SetTrivialWeights(13);

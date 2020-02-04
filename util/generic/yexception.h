@@ -1,5 +1,6 @@
 #pragma once
 
+#include "bt_exception.h"
 #include "strbuf.h"
 #include "string.h"
 #include "utility.h"
@@ -145,6 +146,7 @@ namespace NPrivate {
     };
 
     [[noreturn]] void ThrowYException(const TSimpleExceptionMessage& sm);
+    [[noreturn]] void ThrowYExceptionWithBacktrace(const TSimpleExceptionMessage& sm);
 }
 
 void fputs(const std::exception& e, FILE* f = stderr);
@@ -162,17 +164,20 @@ bool UncaughtException() noexcept;
 /// @def Y_ENSURE_SIMPLE
 /// This macro works like the Y_ENSURE, but requires the second argument to be a constant string view.
 /// Should not be used directly.
-#define Y_ENSURE_SIMPLE(CONDITION, MESSAGE)                                                                                 \
+#define Y_ENSURE_SIMPLE(CONDITION, MESSAGE, THROW_FUNCTION)                                                                 \
     do {                                                                                                                    \
         if (Y_UNLIKELY(!(CONDITION))) {                                                                                     \
             /* use variable to guarantee evaluation at compile time */                                                      \
             static constexpr const ::NPrivate::TSimpleExceptionMessage __SIMPLE_EXCEPTION_MESSAGE{__LOCATION__, (MESSAGE)}; \
-            ::NPrivate::ThrowYException(__SIMPLE_EXCEPTION_MESSAGE);                                                        \
+            THROW_FUNCTION(__SIMPLE_EXCEPTION_MESSAGE);                                                                     \
         }                                                                                                                   \
     } while (false)
 
-#define Y_ENSURE_IMPL_1(CONDITION) Y_ENSURE_SIMPLE(CONDITION, ::AsStringBuf("Condition violated: `" Y_STRINGIZE(CONDITION) "'"))
+#define Y_ENSURE_IMPL_1(CONDITION) Y_ENSURE_SIMPLE(CONDITION, ::AsStringBuf("Condition violated: `" Y_STRINGIZE(CONDITION) "'"), ::NPrivate::ThrowYException)
 #define Y_ENSURE_IMPL_2(CONDITION, MESSAGE) Y_ENSURE_EX(CONDITION, yexception() << MESSAGE)
+
+#define Y_ENSURE_BT_IMPL_1(CONDITION) Y_ENSURE_SIMPLE(CONDITION, ::AsStringBuf("Condition violated: `" Y_STRINGIZE(CONDITION) "'"), ::NPrivate::ThrowYExceptionWithBacktrace)
+#define Y_ENSURE_BT_IMPL_2(CONDITION, MESSAGE) Y_ENSURE_EX(CONDITION, TWithBackTrace<yexception>() << MESSAGE)
 
 /**
  * @def Y_ENSURE
@@ -188,3 +193,18 @@ bool UncaughtException() noexcept;
  * @endcode
  */
 #define Y_ENSURE(...) Y_PASS_VA_ARGS(Y_MACRO_IMPL_DISPATCHER_2(__VA_ARGS__, Y_ENSURE_IMPL_2, Y_ENSURE_IMPL_1)(__VA_ARGS__))
+
+/**
+ * @def Y_ENSURE_BT
+ *
+ * This macro is inteded to use as a shortcut for `if () { throw TWithBackTrace<yexception>() << "message"; }`.
+ *
+ * @code
+ * void DoSomethingLovely(const int x, const int y) {
+ *     Y_ENSURE_BT(x > y, "`x` must be greater than `y`");
+ *     Y_ENSURE_BT(x > y); // if you are too lazy
+ *     // actually doing something nice here
+ * }
+ * @endcode
+ */
+#define Y_ENSURE_BT(...) Y_PASS_VA_ARGS(Y_MACRO_IMPL_DISPATCHER_2(__VA_ARGS__, Y_ENSURE_BT_IMPL_2, Y_ENSURE_BT_IMPL_1)(__VA_ARGS__))

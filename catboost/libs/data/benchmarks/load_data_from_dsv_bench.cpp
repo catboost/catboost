@@ -66,7 +66,7 @@ Y_CPU_BENCHMARK(DsvLoaderNumFeatures, iface) {
             TVector<ui32>{},
             EObjectsOrder::Undefined,
             TDatasetSubset::MakeColumns(),
-            /*classNames*/ Nothing(),
+            /*classLabels*/ Nothing(),
             &localExecutor);
         Y_DO_NOT_OPTIMIZE_AWAY(dataProvider);
     }
@@ -101,7 +101,7 @@ Y_CPU_BENCHMARK(DsvLoaderCatFeatures, iface) {
             TVector<ui32>{},
             EObjectsOrder::Undefined,
             TDatasetSubset::MakeColumns(),
-            /*classNames*/ Nothing(),
+            /*classLabels*/ Nothing(),
             &localExecutor);
         Y_DO_NOT_OPTIMIZE_AWAY(dataProvider);
     }
@@ -136,7 +136,7 @@ Y_CPU_BENCHMARK(DsvLoaderQuotedCatFeatures, iface) {
             TVector<ui32>{},
             EObjectsOrder::Undefined,
             TDatasetSubset::MakeColumns(),
-            /*classNames*/ Nothing(),
+            /*classLabels*/ Nothing(),
             &localExecutor);
         Y_DO_NOT_OPTIMIZE_AWAY(dataProvider);
     }

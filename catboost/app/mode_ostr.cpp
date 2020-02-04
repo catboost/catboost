@@ -79,7 +79,7 @@ int mode_ostr(int argc, const char* argv[]) {
                                                        /*ignoredFeatures*/ {},
                                                        EObjectsOrder::Undefined,
                                                        TDatasetSubset::MakeColumns(),
-                                                       /*classNames=*/Nothing(),
+                                                       /*classLabels=*/Nothing(),
                                                        &localExecutor);
 
     NCB::TDataProviderPtr testPool = NCB::ReadDataset(params.TestSetPath,
@@ -92,7 +92,7 @@ int mode_ostr(int argc, const char* argv[]) {
                                                       /*ignoredFeatures*/ {},
                                                       EObjectsOrder::Undefined,
                                                       TDatasetSubset::MakeColumns(),
-                                                      /*classNames=*/Nothing(),
+                                                      /*classLabels=*/Nothing(),
                                                       &localExecutor);
 
     CB_ENSURE(model.ModelInfo.contains("params"), "Need model with params to calculate object importances");

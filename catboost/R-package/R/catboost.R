@@ -1433,9 +1433,7 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
     if (length(params) == 0)
         message("Training catboost with default parameters! See help(catboost.train).")
 
-    params <- prepare_train_params(params)
-
-    json_params <- jsonlite::toJSON(params, auto_unbox = TRUE)
+    json_params <- prepare_train_export_parameters(params)
     handle <- .Call("CatBoostFit_R", learn_pool, test_pool, json_params)
     raw <- .Call("CatBoostSerializeModel_R", handle)
     model <- list(handle = handle, raw = raw)
@@ -1449,7 +1447,11 @@ catboost.train <- function(learn_pool, test_pool = NULL, params = list()) {
     return(model)
 }
 
-prepare_train_params <- function(params) {
+prepare_train_export_parameters <- function(params) {
+
+    if (length(params) == 0) {
+        return ("{}")   
+    }
 
     if (!is.null(params$per_float_feature_quantization)) {
         params$per_float_feature_quantization <- as.list(params$per_float_feature_quantization)
@@ -1458,8 +1460,8 @@ prepare_train_params <- function(params) {
     if (!is.null(params$ignored_features)) {
         params$ignored_features <- as.character(params$ignored_features)
     }
-
-    return(params)
+   
+    return(jsonlite::toJSON(params, auto_unbox = TRUE))
 }
 
 #' Cross-validate model.
@@ -1492,7 +1494,7 @@ catboost.cv <- function(pool, params = list(),
         params$od_wait <- early_stopping_rounds
     }
 
-    json_params <- jsonlite::toJSON(params, auto_unbox = TRUE)
+    json_params <- prepare_train_export_parameters(params)
     result <- .Call("CatBoostCV_R", json_params, pool, fold_count, type, partition_random_seed, shuffle, stratified)
 
     return(data.frame(result))
@@ -1567,6 +1569,7 @@ catboost.load_model <- function(model_path, file_format = "cbm") {
     raw <- .Call("CatBoostSerializeModel_R", handle)
     model <- list(handle = handle, raw = raw)
     class(model) <- "catboost.Model"
+    model$tree_count <- catboost.ntrees(model)
     return(model)
 }
 
@@ -1613,7 +1616,7 @@ catboost.save_model <- function(model, model_path,
         stop("Expected catboost.Pool, got: ", class(pool))
     params_string <- ""
     if (!is.null(export_parameters))
-        params_string <- jsonlite::toJSON(params, auto_unbox = TRUE)
+        params_string <- prepare_train_export_parameters(params)
 
     if (is.null.handle(model$handle))
         model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)
@@ -1828,9 +1831,11 @@ catboost.get_feature_importance <- function(model, pool = NULL, type = "FeatureI
     if (type == "Interaction") {
         colnames(importances) <- c("feature1_index", "feature2_index", "score")
     } else if (type == "ShapValues") {
-        dimnames(importances)[[length(dim(importances))]] <- c(colnames(pool), "<base>")
+        if (is.list(colnames(importances))) {
+            dimnames(importances)[[length(dim(importances))]] <- c(colnames(pool), "<base>")
+        }
     } else if (type == "PredictionValuesChange" || type == "FeatureImportance" || type == "LossFunctionChange") {
-        if (dim(importances)[1] == length(colnames(pool))) {
+        if (!is.null(pool) && dim(importances)[1] == length(colnames(pool))) {
             rownames(importances) <- colnames(pool)
         }
     } else {

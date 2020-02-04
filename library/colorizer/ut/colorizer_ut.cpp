@@ -48,4 +48,16 @@ Y_UNIT_TEST_SUITE(ColorizerTest) {
             UNIT_ASSERT_STRINGS_EQUAL(EscapeC(str), "\\x1B[0m\\x1B[0;34mfoo!\\x1B[0m");  // TStringOutput is not tty
         }
     }
+
+    Y_UNIT_TEST(EscapeCodeLen) {
+        UNIT_ASSERT_VALUES_EQUAL(NColorizer::TotalAnsiEscapeCodeLen("some text"), 0);
+        UNIT_ASSERT_VALUES_EQUAL(NColorizer::TotalAnsiEscapeCodeLen("some\033[0m text"), 4);
+        UNIT_ASSERT_VALUES_EQUAL(NColorizer::TotalAnsiEscapeCodeLen("\033[0msome text"), 4);
+        UNIT_ASSERT_VALUES_EQUAL(NColorizer::TotalAnsiEscapeCodeLen("some text\033[0m"), 4);
+        UNIT_ASSERT_VALUES_EQUAL(NColorizer::TotalAnsiEscapeCodeLen("some\033[0;1;2;3m text"), 10);
+        UNIT_ASSERT_VALUES_EQUAL(NColorizer::TotalAnsiEscapeCodeLen("some\033[0;1;2;3 text"), 0);
+        UNIT_ASSERT_VALUES_EQUAL(NColorizer::TotalAnsiEscapeCodeLen("some\0330;1;2;3m text"), 0);
+        UNIT_ASSERT_VALUES_EQUAL(NColorizer::TotalAnsiEscapeCodeLen("some [0;1;2;3m text"), 0);
+        UNIT_ASSERT_VALUES_EQUAL(NColorizer::TotalAnsiEscapeCodeLen("some\033[m text"), 3);
+    }
 }

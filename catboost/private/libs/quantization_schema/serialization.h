@@ -19,7 +19,7 @@ namespace NCB {
 
         // NOTE:
         // - can't express empty set of borders
-        // - can't express class names
+        // - can't express class labels
         Matrixnet = 2
     };
 

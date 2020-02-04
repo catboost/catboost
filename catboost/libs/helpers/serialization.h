@@ -9,6 +9,12 @@
 #include <util/stream/length.h>
 #include <util/system/yassert.h>
 
+
+namespace NJson {
+    class TJsonValue;
+}
+
+
 namespace NCB {
 
     // just to avoid repeating writing const_cast
@@ -184,3 +190,6 @@ inline int operator&(THolder<T>& ptr, IBinSaver& binSaver) {
     NCB::NPrivate::AddSmartPtrImpl(MakeHolder<T>, &binSaver, &ptr);
     return 0;
 }
+
+
+int operator&(NJson::TJsonValue& jsonValue, IBinSaver& binSaver);

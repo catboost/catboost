@@ -78,7 +78,7 @@ namespace NCB {
             testCase.SrcData.IgnoredFeatures,
             testCase.SrcData.ObjectsOrder,
             TDatasetSubset::MakeColumns(),
-            /*classNames*/Nothing(),
+            /*classLabels*/Nothing(),
             &localExecutor
         );
 

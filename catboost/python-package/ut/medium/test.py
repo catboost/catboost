@@ -1122,13 +1122,11 @@ def test_fit_with_texts(task_type):
 
     params = {
         'dictionaries': [
-            'UniGram:token_level_type=Letter,occurrence_lower_bound=1',
-            'BiGram:token_level_type=Letter,gram_order=2,occurrence_lower_bound=1',
-            'Word:token_level_type=Word,occurrence_lower_bound=1'
+            {'dictionary_id': 'UniGram', 'token_level_type': 'Letter', 'occurrence_lower_bound': '1'},
+            {'dictionary_id': 'BiGram', 'token_level_type': 'Letter', 'occurrence_lower_bound': '1', 'gram_order': '2'},
+            {'dictionary_id': 'Word', 'occurrence_lower_bound': '1'},
         ],
-        'text_processing': [
-            'NaiveBayes+Word|BoW+UniGram,BiGram|BM25+Word'
-        ],
+        'feature_calcers': ['NaiveBayes', 'BoW'],
         'iterations': 100,
         'loss_function': 'MultiClass',
         'task_type': task_type,
@@ -1472,7 +1470,7 @@ def test_no_cat_in_predict(task_type):
     test_features_data, _ = load_simple_dataset_as_lists(is_test=True)
     pred1 = model.predict(test_features_data)
     pred2 = model.predict(Pool(test_features_data, cat_features=CAT_FEATURES))
-    assert _check_data(pred1, pred2)
+    assert np.all(pred1 == pred2)
 
 
 def test_save_model(task_type):
@@ -1499,7 +1497,7 @@ def test_multiclass(task_type):
     new_classifier.load_model(output_model_path)
     pred = new_classifier.predict_proba(pool)
     preds_path = test_output_path(PREDS_PATH)
-    np.save(preds_path, np.array(pred))
+    np.save(preds_path, np.round(np.array(pred)), 9)
     return local_canonical_file(preds_path)
 
 
@@ -1512,7 +1510,7 @@ def test_multiclass_classes_count(task_type, missed_classes):
         unique_labels = [1, 3]
     else:
         unique_labels = [0, 1, 2, 3]
-    expected_classes_attr = [str(i) for i in range(4)]
+    expected_classes_attr = [i for i in range(4)]
 
     prng = np.random.RandomState(seed=0)
     pool = Pool(
@@ -1522,7 +1520,7 @@ def test_multiclass_classes_count(task_type, missed_classes):
 
     # returns pred probabilities
     def check_classifier(classifier):
-        assert classifier.classes_ == expected_classes_attr
+        assert np.all(classifier.classes_ == expected_classes_attr)
 
         pred_classes = classifier.predict(pool)
         assert all([(pred_class in unique_labels) for pred_class in pred_classes])
@@ -1754,7 +1752,7 @@ def test_ones_weight_equal_to_nonspecified_weight(task_type):
         model.fit(train_pool)
         predictions.append(model.predict(test_pool))
 
-    assert _check_data(predictions[0], predictions[1])
+    assert np.all(predictions[0] == predictions[1])
 
 
 def test_py_data_group_id(task_type):
@@ -2056,8 +2054,7 @@ def test_custom_eval():
     model2.fit(train_pool, eval_set=test_pool)
     pred2 = model2.predict(test_pool)
 
-    for p1, p2 in zip(pred1, pred2):
-        assert abs(p1 - p2) < EPS
+    assert np.all(pred1 == pred2)
 
 
 @fails_on_gpu(how='cuda/train_lib/train.cpp:283: Error: loss function is not supported for GPU learning Custom')
@@ -2912,6 +2909,15 @@ def test_shap_feature_importance_asymmetric_and_symmetric(task_type):
     model._convert_to_asymmetric_representation()
     shap_asymm = np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool))
     assert np.all(shap_symm - shap_asymm < 1e-8)
+
+
+def test_shap_feature_importance_with_langevin():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, depth=10, langevin=True, diffusion_temperature=1000)
+    model.fit(pool)
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool)))
+    return local_canonical_file(fimp_npy_path)
 
 
 def test_loss_function_change_asymmetric_and_symmetric(task_type):
@@ -3862,7 +3868,7 @@ def test_shap_multiclass(task_type):
     assert pred.shape == (len(pred), classes_count)
     assert shap_values.shape == (len(pred), classes_count, features_count + 1)
     fimp_txt_path = test_output_path(FIMP_TXT_PATH)
-    np.savetxt(fimp_txt_path, shap_values.reshape(len(pred), -1))
+    np.savetxt(fimp_txt_path, shap_values.reshape(len(pred), -1), fmt='%.9f')
     shap_values = np.sum(shap_values, axis=2)
     for doc_id in range(len(pred)):
         shap_probas = np.exp(shap_values[doc_id]) / np.sum(np.exp(shap_values[doc_id]))
@@ -4852,7 +4858,7 @@ def test_shrink():
     assert model.tree_count_ == 9
     pred1 = model.predict(test_pool)
     pred2 = model2.predict(test_pool)
-    assert _check_data(pred1, pred2)
+    assert np.all(pred1 == pred2)
     model.shrink(8, ntree_start=1)
     assert model.tree_count_ == 7
 
@@ -4981,7 +4987,7 @@ def assert_sum_models_equal_sliced_copies(train, test, cd):
             ntree_end=(i + 1) * iter_step)
 
         assert np.all(pred_local_shrinked == pred_local)
-        assert model.classes_ == truncated_model.classes_
+        assert np.all(model.classes_ == truncated_model.classes_)
 
     weights = [1.0] * model_count
     merged_model = sum_models(truncated_copies, weights)
@@ -4989,7 +4995,7 @@ def assert_sum_models_equal_sliced_copies(train, test, cd):
     merged_pred = merged_model.predict(test_pool, prediction_type='RawFormulaVal')
 
     assert np.all(pred == merged_pred)
-    assert model.classes_ == merged_model.classes_
+    assert np.all(model.classes_ == merged_model.classes_)
 
 
 def test_model_merging():
@@ -5026,7 +5032,7 @@ def test_model_sum_labels():
                 ('MultiClass', None, ['Class0', 'Class1', 'Class2', 'Class3'])
             ]
         ),
-        (['0', '1'], [('Logloss', None, [0, 1]), ('Logloss', None, [0, 1]), ('Logloss', None, [0, 1])]),
+        ([0, 1], [('Logloss', None, [0, 1]), ('Logloss', None, [0, 1]), ('Logloss', None, [0, 1])]),
         (
             ['class0', 'class1', 'class2'],
             [
@@ -5034,7 +5040,7 @@ def test_model_sum_labels():
                 ('MultiClass', None, ['class0', 'class1', 'class2'])
             ]
         ),
-        (['1', '2'], [('RMSE', None, [0.1, 0.2, 1.0]), ('Logloss', None, [1, 2])]),
+        ([1, 2], [('RMSE', None, [0.1, 0.2, 1.0]), ('Logloss', None, [1, 2])]),
         ([], [('RMSE', None, [0.1, 0.2, 1.0]), ('RMSE', None, [0.22, 0.7, 1.3, 1.7])]),
     ]
 
@@ -5153,9 +5159,9 @@ def test_output_border_file(task_type):
     pred2 = model2.predict(test_pool)
     pred3 = model3.predict(test_pool)
     pred4 = model4.predict(test_pool)
-    assert _check_data(pred1, pred2)
-    assert not _check_data(pred1, pred3)
-    assert not _check_data(pred1, pred4)
+    assert np.all(pred1 == pred2)
+    assert not np.all(pred1 == pred3)
+    assert not np.all(pred1 == pred4)
 
 
 def test_output_border_file_regressor(task_type):
@@ -6497,7 +6503,7 @@ def test_multiclass_train_on_constant_data(task_type):
 
     model = clf.fit(features, labels)
 
-    assert model.classes_ == classes
+    assert np.all(model.classes_ == classes)
     model.predict(features)
 
 
@@ -6537,13 +6543,13 @@ def test_classes_attribute_binclass(label_type, loss_function):
         model.fit(features, labels)
 
         if label_type == 'consecutive_integers':
-            assert model.classes_ == ['0', '1']
+            assert np.all(model.classes_ == [0, 1])
         elif label_type == 'nonconsecutive_integers':
-            assert sorted(model.classes_) == ['2', '5']
+            assert np.all(sorted(model.classes_) == [2, 5])
         elif label_type == 'string':
-            assert model.classes_ == ['class0', 'class1']
+            assert np.all(model.classes_ == ['class0', 'class1'])
         elif label_type == 'float':
-            assert model.classes_ == ['0', '1']
+            assert np.all(model.classes_ == [0, 1])
 
 
 @pytest.mark.parametrize(
@@ -6569,13 +6575,13 @@ def test_classes_attribute_multiclass(label_type):
     model.fit(features, labels)
 
     if label_type == 'consecutive_integers':
-        assert model.classes_ == ['0', '1', '2', '3']
+        assert np.all(model.classes_ == [0, 1, 2, 3])
     elif label_type == 'nonconsecutive_integers':
-        assert model.classes_ == ['2', '5', '9', '11']
+        assert np.all(model.classes_ == [2, 5, 9, 11])
     elif label_type == 'string':
-        assert sorted(model.classes_) == ['class0', 'class1', 'class2', 'class3']
+        assert np.all(sorted(model.classes_) == ['class0', 'class1', 'class2', 'class3'])
     elif label_type == 'float':
-        assert sorted(model.classes_) == ['0', '0.1', '0.2', '0.5', '1']
+        assert np.allclose(sorted(model.classes_), [0, 0.1, 0.2, 0.5, 1])
 
 
 def test_multiclass_non_positive_definite_from_github():
@@ -6792,8 +6798,7 @@ def test_diffusion_temperature_with_shrink_mode(shrink_mode, shrink_rate, diffus
         'learning_rate': 0.03,
         'model_shrink_mode': shrink_mode,
         'model_shrink_rate': shrink_rate,
-        'diffusion_temperature': diffusion,
-        'langevin': True
+        'diffusion_temperature': diffusion
     }
     model = CatBoostClassifier(**params)
     model.fit(train_pool)
@@ -6801,3 +6806,19 @@ def test_diffusion_temperature_with_shrink_mode(shrink_mode, shrink_rate, diffus
     preds_path = test_output_path(PREDS_PATH)
     np.save(preds_path, np.array(pred))
     return local_canonical_file(preds_path)
+
+
+def test_langevin_with_empty_leafs():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    params = {
+        'iterations': 10,
+        'depth': 10,
+        'learning_rate': 0.03,
+        'langevin': True,
+        'diffusion_temperature': 1000
+    }
+    model = CatBoostClassifier(**params)
+    model.fit(train_pool)
+    for value, weight in zip(model.get_leaf_values(), model.get_leaf_weights()):
+        if weight == 0:
+            assert value == 0

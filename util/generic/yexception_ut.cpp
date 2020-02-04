@@ -10,6 +10,7 @@ static inline void Throw2DontMove() {
 
 #include <library/unittest/registar.h>
 
+#include <util/generic/algorithm.h>
 #include <util/memory/tempbuf.h>
 #include <util/random/mersenne.h>
 #include <util/stream/output.h>
@@ -51,6 +52,8 @@ class TExceptionTest: public TTestBase {
     UNIT_TEST(TestVirtualInheritance)
     UNIT_TEST(TestMixedCode)
     UNIT_TEST(TestBackTrace)
+    UNIT_TEST(TestEnsureWithBackTrace1)
+    UNIT_TEST(TestEnsureWithBackTrace2)
     UNIT_TEST(TestRethrowAppend)
     UNIT_TEST(TestMacroOverload)
     UNIT_TEST(TestMessageCrop)
@@ -85,6 +88,47 @@ private:
             return;
         }
 
+        UNIT_ASSERT(false);
+    }
+
+    template <typename TException>
+    static void EnsureCurrentExceptionHasBackTrace() {
+        auto exceptionPtr = std::current_exception();
+        UNIT_ASSERT_C(exceptionPtr != nullptr, "No exception");
+        try {
+            std::rethrow_exception(exceptionPtr);
+        } catch (const TException& e) {
+            const TBackTrace* bt = e.BackTrace();
+            UNIT_ASSERT(bt != nullptr);
+        } catch (...) {
+            UNIT_ASSERT_C(false, "Unexpected exception type");
+        }
+    };
+
+    inline void TestEnsureWithBackTrace1() {
+        try {
+            Y_ENSURE_BT(4 > 6);
+        } catch (...) {
+            const TString msg = CurrentExceptionMessage();
+            UNIT_ASSERT(msg.Contains("4 > 6"));
+            UNIT_ASSERT(msg.Contains("\n"));
+            EnsureCurrentExceptionHasBackTrace<yexception>();
+            return;
+        }
+        UNIT_ASSERT(false);
+    }
+
+    inline void TestEnsureWithBackTrace2() {
+        try {
+            Y_ENSURE_BT(4 > 6, "custom " << "message");
+        } catch (...) {
+            const TString msg = CurrentExceptionMessage();
+            UNIT_ASSERT(!msg.Contains("4 > 6"));
+            UNIT_ASSERT(msg.Contains("custom message"));
+            UNIT_ASSERT(msg.Contains("\n"));
+            EnsureCurrentExceptionHasBackTrace<yexception>();
+            return;
+        }
         UNIT_ASSERT(false);
     }
 

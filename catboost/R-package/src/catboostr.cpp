@@ -150,7 +150,7 @@ SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
                                            EObjectsOrder::Undefined,
                                            UpdateThreadCount(asInteger(threadCountParam)),
                                            asLogical(verboseParam),
-                                           /*classNames=*/Nothing());
+                                           /*classLabels=*/Nothing());
     result = PROTECT(R_MakeExternalPtr(poolPtr.Get(), R_NilValue, R_NilValue));
     R_RegisterCFinalizerEx(result, _Finalizer<TPoolHandle>, TRUE);
     Y_UNUSED(poolPtr.Release());
@@ -206,6 +206,7 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
             TVector<ui32>{}, // TODO(d-kruchinin) support text features in R
             featureId);
 
+        metaInfo.TargetType = targetColumns ? ERawTargetType::Float : ERawTargetType::None;
         metaInfo.TargetCount = targetColumns;
         metaInfo.BaselineCount = baselineColumns;
         metaInfo.HasGroupId = groupIdParam != R_NilValue;
@@ -799,9 +800,9 @@ SEXP CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fs
     SEXP resultDim = NULL;
     R_API_BEGIN();
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
-    TDataProviderPtr pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    TDataProviderPtr pool = Rf_isNull(poolParam) ? nullptr :
+                            reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
     EFstrType fstrType = FromString<EFstrType>(CHAR(asChar(fstrTypeParam)));
-
     const int threadCount = UpdateThreadCount(asInteger(threadCountParam));
     const bool multiClass = model->GetDimensionsCount() > 1;
     const bool verbose = false;
@@ -853,7 +854,9 @@ SEXP CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fs
         INTEGER(resultDim)[1] = numCols;
         setAttrib(result, R_DimSymbol, resultDim);
     }
-    Y_UNUSED(pool.Release());
+    if (pool) {
+        Y_UNUSED(pool.Release());
+    }
     R_API_END();
     UNPROTECT(2);
     return result;

@@ -10,6 +10,7 @@ SRCS(
     neh_ut.cpp
     smart_ptr_ut.cpp
     listen_ut.cpp
+    location_ut.cpp
 )
 
 END()

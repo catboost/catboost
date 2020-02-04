@@ -81,7 +81,7 @@ void NCB::ReadModelAndUpdateParams(
                   " core model without or with incomplete estimatedFeatures data");
     }
 
-    params.ClassNames = model.GetModelClassNames();
+    params.ClassLabels = model.GetModelClassLabels();
 
     if (iterationsLimit == 0) {
         iterationsLimit = model.GetTreeCount();

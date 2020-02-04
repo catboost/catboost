@@ -81,9 +81,11 @@ TFullModel TModelConverter::Convert(
 
     ui32 cpuApproxDim = 1;
 
-    if (TargetHelper.IsMultiClass()) {
-        coreModel.ModelInfo["multiclass_params"] = TargetHelper.Serialize();
-        cpuApproxDim = SafeIntegerCast<ui32>(TargetHelper.GetNumClasses());
+    if (TargetHelper.IsInitialized()) {
+        coreModel.ModelInfo["class_params"] = TargetHelper.Serialize();
+        if (TargetHelper.IsMultiClass()) {
+            cpuApproxDim = SafeIntegerCast<ui32>(TargetHelper.GetApproxDimension());
+        }
     }
 
     TVector<TFloatFeature> floatFeatures = CreateFloatFeatures(
@@ -128,6 +130,7 @@ TFullModel TModelConverter::Convert(
     }
 
     obliviousTreeBuilder.Build(coreModel.ModelTrees.GetMutable());
+    coreModel.SetScaleAndBias({1.0, src.Bias});
     coreModel.UpdateDynamicData();
     return coreModel;
 }
@@ -137,12 +140,11 @@ TFullModel TModelConverter::Convert(
         THashMap<TFeatureCombination, TProjection>* featureCombinationToProjection) const {
         TFullModel coreModel;
         coreModel.ModelInfo["params"] = "{}"; //will be overriden with correct params later
-
         ui32 cpuApproxDim = 1;
 
-        if (TargetHelper.IsMultiClass()) {
-            coreModel.ModelInfo["multiclass_params"] = TargetHelper.Serialize();
-            cpuApproxDim = SafeIntegerCast<ui32>(TargetHelper.GetNumClasses());
+        if (TargetHelper.IsInitialized()) {
+            coreModel.ModelInfo["class_params"] = TargetHelper.Serialize();
+            cpuApproxDim = SafeIntegerCast<ui32>(TargetHelper.GetApproxDimension());
         }
 
         TVector<TFloatFeature> floatFeatures = CreateFloatFeatures(
@@ -201,6 +203,7 @@ TFullModel TModelConverter::Convert(
         }
 
         treeBuilder.Build(coreModel.ModelTrees.GetMutable());
+        coreModel.SetScaleAndBias({1.0, src.Bias});
         coreModel.UpdateDynamicData();
         return coreModel;
     }

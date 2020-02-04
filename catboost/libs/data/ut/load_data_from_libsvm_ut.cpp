@@ -51,6 +51,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
                 /*featureId*/ TVector<TString>(),
                 /*allFeaturesAreSparse*/ true
             );
+            expectedData.MetaInfo.TargetType = ERawTargetType::Float;
             expectedData.MetaInfo.TargetCount = 1;
 
             expectedData.Objects.FloatFeatures = {
@@ -65,6 +66,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(3);
+            expectedData.Target.TargetType = ERawTargetType::Float;
             TVector<TVector<TString>> rawTarget{{"0", "1", "0"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Weights = TWeights<float>(3);
@@ -123,6 +125,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
                 },
                 /*allFeaturesAreSparse*/ true
             );
+            expectedData.MetaInfo.TargetType = ERawTargetType::Float;
             expectedData.MetaInfo.TargetCount = 1;
 
             expectedData.Objects.FloatFeatures = {
@@ -144,6 +147,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
             };
 
             expectedData.ObjectsGrouping = TObjectsGrouping(3);
+            expectedData.Target.TargetType = ERawTargetType::Float;
             TVector<TVector<TString>> rawTarget{{"0", "1", "0"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Weights = TWeights<float>(3);
@@ -183,6 +187,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
                 /*featureId*/ TVector<TString>(),
                 /*allFeaturesAreSparse*/ true
             );
+            expectedData.MetaInfo.TargetType = ERawTargetType::Float;
             expectedData.MetaInfo.TargetCount = 1;
             expectedData.MetaInfo.HasGroupId = true;
 
@@ -206,6 +211,7 @@ Y_UNIT_TEST_SUITE(LoadDataFromLibSvm) {
             expectedData.ObjectsGrouping = TObjectsGrouping(
                 TVector<TGroupBounds>{{0, 1}, {1, 3}}
             );
+            expectedData.Target.TargetType = ERawTargetType::Float;
             TVector<TVector<TString>> rawTarget{{"0", "1", "0"}};
             expectedData.Target.Target.assign(rawTarget.begin(), rawTarget.end());
             expectedData.Target.Weights = TWeights<float>(3);

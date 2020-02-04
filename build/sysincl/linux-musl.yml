@@ -1,5 +1,6 @@
 - includes:
   - bits/fenv.h:   contrib/libs/musl/arch/x86_64/bits/fenv.h
+  - bits/reg.h:    contrib/libs/musl/arch/x86_64/bits/reg.h
   - sys/cdefs.h:   contrib/libs/musl/extra/sys/cdefs.h
   - sys/sysctl.h:  contrib/libs/musl/extra/sys/sysctl.h
   - xlocale.h:     contrib/libs/musl/extra/xlocale.h
