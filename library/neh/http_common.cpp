@@ -88,9 +88,6 @@ namespace {
     const TStringBuf schemePost2 = "post2";
     const TStringBuf schemeFull = "full";
     const TStringBuf schemeFulls = "fulls";
-    const TStringBuf schemeHttpUnix = "http+unix";
-    const TStringBuf schemePostUnix = "post+unix";
-    const TStringBuf schemeFullUnix = "full+unix";
 
     /*
         @brief  SafeWriteHeaders    write headers from hdrs to out with some checks:
@@ -147,11 +144,11 @@ namespace {
     }
 
     bool NeedGetRequestFor(TStringBuf scheme) {
-        return scheme == schemeHttp2 || scheme == schemeHttp || scheme == schemeHttps || scheme == schemeHttpUnix;
+        return scheme == schemeHttp2 || scheme == schemeHttp || scheme == schemeHttps;
     }
 
     bool NeedPostRequestFor(TStringBuf scheme) {
-        return scheme == schemePost2 || scheme == schemePost || scheme == schemePosts || scheme == schemePostUnix;
+        return scheme == schemePost2 || scheme == schemePost || scheme == schemePosts;
     }
 
     inline ERequestType ChooseReqType(ERequestType userReqType, ERequestType defaultReqType) {
@@ -196,16 +193,11 @@ namespace NNeh {
                 }
             }
 
-            TString schemePostfix = "";
-            if (loc.Scheme.EndsWith("+unix")) {
-                schemePostfix = "+unix";
-            }
-
             // ugly but still... https2 will break it :(
             if ('s' == loc.Scheme[loc.Scheme.size() - 1]) {
-                msg.Addr.replace(0, loc.Scheme.size(), schemeFulls + schemePostfix);
+                msg.Addr.replace(0, schemeFulls.size(), schemeFulls);
             } else {
-                msg.Addr.replace(0, loc.Scheme.size(), schemeFull + schemePostfix);
+                msg.Addr.replace(0, schemeFull.size(), schemeFull);
             }
 
             return true;

@@ -31,9 +31,6 @@ namespace {
             Register(SSLGetProtocol());
             Register(SSLPostProtocol());
             Register(SSLFullProtocol());
-            Register(UnixSocketGetProtocol());
-            Register(UnixSocketPostProtocol());
-            Register(UnixSocketFullProtocol());
         }
 
         IProtocol* Protocol(const TStringBuf& proto) override {

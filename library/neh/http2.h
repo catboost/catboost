@@ -1,10 +1,8 @@
 #pragma once
 
 #include "factory.h"
-#include "http_common.h"
 
 #include <util/datetime/base.h>
-#include <library/dns/cache.h>
 #include <utility>
 
 namespace NNeh {
@@ -14,9 +12,6 @@ namespace NNeh {
     IProtocol* Http2Protocol();
     IProtocol* Post2Protocol();
     IProtocol* Full2Protocol();
-    IProtocol* UnixSocketGetProtocol();
-    IProtocol* UnixSocketPostProtocol();
-    IProtocol* UnixSocketFullProtocol();
 
     //global options
     struct THttp2Options {
@@ -104,6 +99,4 @@ namespace NNeh {
     ///   - min, if reached hard limit
     ///   - approx. linear changed[max..min], while conn. count in range [soft..hard]
     void SetHttp2InputConnectionsTimeouts(unsigned minSeconds, unsigned maxSeconds);
-
-    const NDns::TResolvedHost* Resolve(const TString& host, ui16 port, NHttp::EResolverType resolverType);
 }
