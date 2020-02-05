@@ -10,6 +10,6 @@ PEERDIR(
     contrib/tools/python3/src/Modules
 )
 
-SUPPRESSIONS(leaks.supp)
+SUPPRESSIONS(lsan.supp)
 
 END()

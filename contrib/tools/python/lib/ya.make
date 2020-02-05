@@ -14,7 +14,7 @@ PEERDIR(
     contrib/tools/python/include
 )
 
-SUPPRESSIONS(leaks.supp)
+SUPPRESSIONS(lsan.supp)
 
 SRCDIR(
     ${PYTHON_SRC_DIR}/Lib
