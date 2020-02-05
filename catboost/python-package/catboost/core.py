@@ -1421,8 +1421,14 @@ class _CatBoostBase(object):
     def _get_tree_splits(self, tree_idx, pool):
         return self._object._get_tree_splits(tree_idx, pool)
 
-    def _get_tree_leaf_values(self, tree_idx, leaves_num):
-        return self._object._get_tree_leaf_values(tree_idx, leaves_num)
+    def _get_tree_leaf_values(self, tree_idx):
+        return self._object._get_tree_leaf_values(tree_idx)
+
+    def _get_tree_step_nodes(self, tree_idx):
+        return self._object._get_tree_step_nodes(tree_idx)
+
+    def _get_tree_node_to_leaf(self, tree_idx):
+        return self._object._get_tree_node_to_leaf(tree_idx)
 
     def get_tree_leaf_counts(self):
         '''
@@ -2942,13 +2948,9 @@ class CatBoost(_CatBoostBase):
 
         return return_stats
 
-    def plot_tree(self, tree_idx, pool=None):
+    def _plot_oblivious_tree(self, splits, leaf_values):
         from graphviz import Digraph
         graph = Digraph()
-        pool, _ = self._process_predict_input_data(pool, "plot_tree") if pool is not None else (None, None)
-
-        splits = self._get_tree_splits(tree_idx, pool)
-        leaf_values = self._get_tree_leaf_values(tree_idx, 1 << len(splits))
 
         layer_size = 1
         current_size = 0
@@ -2956,7 +2958,7 @@ class CatBoost(_CatBoostBase):
         for split_num in range(len(splits) - 1, -2, -1):
             for node_num in range(layer_size):
                 if split_num >= 0:
-                    node_label = splits[split_num].replace('bin=', 'value>', 1)
+                    node_label = splits[split_num].replace('bin=', 'value>', 1).replace('border=', 'value>', 1)
                     color = 'black'
                     shape = 'ellipse'
                 else:
@@ -2971,9 +2973,9 @@ class CatBoost(_CatBoostBase):
 
                 graph.node(str(current_size), node_label, color=color, shape=shape)
 
-                if (current_size > 0):
+                if current_size > 0:
                     parent = (current_size - 1) // 2
-                    edge_label = 'Yes' if current_size % 2 == 1 else 'No'
+                    edge_label = 'Yes' if current_size % 2 == 0 else 'No'
                     graph.edge(str(parent), str(current_size), edge_label)
 
                 current_size += 1
@@ -2981,6 +2983,52 @@ class CatBoost(_CatBoostBase):
             layer_size *= 2
 
         return graph
+
+    def _plot_nonsymmetric_tree(self, splits, leaf_values, step_nodes, node_to_leaf):
+        from graphviz import Digraph
+        graph = Digraph()
+
+        def plot_leaf(node_idx, graph):
+            cur_id = 'leaf_{}'.format(node_to_leaf[node_idx])
+            node_label = leaf_values[node_to_leaf[node_idx]]
+            graph.node(cur_id, node_label, color='red', shape='rect')
+            return cur_id
+
+        def plot_subtree(node_idx, graph):
+            if step_nodes[node_idx] == (0, 0):
+                return plot_leaf(node_idx, graph)
+            else:
+                cur_id = 'node_{}'.format(node_idx)
+                node_label = splits[node_idx].replace('bin=', 'value>', 1).replace('border=', 'value>', 1)
+                graph.node(cur_id, node_label, color='black', shape='ellipse')
+
+                if step_nodes[node_idx][0] == 0:
+                    child_id = plot_leaf(node_idx, graph)
+                else:
+                    child_id = plot_subtree(node_idx + step_nodes[node_idx][0], graph)
+                graph.edge(cur_id, child_id, 'No')
+
+                if step_nodes[node_idx][1] == 0:
+                    child_id = plot_leaf(node_idx, graph)
+                else:
+                    child_id = plot_subtree(node_idx + step_nodes[node_idx][1], graph)
+                graph.edge(cur_id, child_id, 'Yes')
+            return cur_id
+
+        plot_subtree(0, graph)
+        return graph
+
+    def plot_tree(self, tree_idx, pool=None):
+        pool, _ = self._process_predict_input_data(pool, "plot_tree") if pool is not None else (None, None)
+
+        splits = self._get_tree_splits(tree_idx, pool)
+        leaf_values = self._get_tree_leaf_values(tree_idx)
+        if self._object._is_oblivious():
+            return self._plot_oblivious_tree(splits, leaf_values)
+        else:
+            step_nodes = self._get_tree_step_nodes(tree_idx)
+            node_to_leaf = self._get_tree_node_to_leaf(tree_idx)
+            return self._plot_nonsymmetric_tree(splits, leaf_values, step_nodes, node_to_leaf)
 
     def _tune_hyperparams(self, param_grid, X, y=None, cv=3, n_iter=10, partition_random_seed=0,
                           calc_cv_statistics=True, search_by_train_test_split=True,
