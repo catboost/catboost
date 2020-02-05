@@ -53,7 +53,7 @@ namespace {
     struct TBZipRegistrar {
         TBZipRegistrar() {
             for (int i = 1; i < 10; ++i) {
-                RegisterCodec(new TBZipCodec(i));
+                RegisterCodec(MakeHolder<TBZipCodec>(i));
             }
             RegisterAlias("bzip2", "bzip2-6");
         }
