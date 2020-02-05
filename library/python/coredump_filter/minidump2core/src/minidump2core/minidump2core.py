@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals
 """
     Convert minidump machine-readable (-m) stackdump produced by minidump_stackwalk
     to format similar to gdb output (suitable for coredump_filter and cores aggregator)
@@ -15,7 +16,7 @@ def print_minidump_as_core(file_name):
     """
         Print core text to stdout
     """
-    print minidump_file_to_core(file_name)
+    print(minidump_file_to_core(file_name))
 
 
 def minidump_file_to_core(file_name):
@@ -143,9 +144,10 @@ def minidump_text_to_threads(minidump_text):
     threads.reverse()
     return threads
 
+
 if __name__ == '__main__':
     if len(sys.argv) < 2:
-        print "Usage: minidump2core.py <minidump.txt>"
+        print("Usage: minidump2core.py <minidump.txt>")
         sys.exit(1)
 
     print_minidump_as_core(
