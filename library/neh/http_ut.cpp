@@ -215,6 +215,11 @@ Y_UNIT_TEST_SUITE(NehHttp) {
             TEndpoint serverEp(new NAddr::TAddrInfo(&*serverAddr.Begin()));
             TSocketHolder serverSocket(socket(serverEp.SockAddr()->sa_family, SOCK_STREAM, 0));
             UNIT_ASSERT_C(serverSocket != INVALID_SOCKET, "can't create server socket");
+            {
+                SOCKET sock = serverSocket;
+                const int yes = 1;
+                ::setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&yes, sizeof(yes));
+            }
             UNIT_ASSERT_C(bind(serverSocket, serverEp.SockAddr(), serverEp.SockAddrLen()) != SOCKET_ERROR, "can't bind server socket")
             UNIT_ASSERT_C(listen(serverSocket, 2) != SOCKET_ERROR, "can't listen on server socket");
 
