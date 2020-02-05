@@ -32,6 +32,10 @@ def gen_default_suppressions(inputs, output):
         dst.write('    return "{}";\n'.format(supp_str))
         dst.write('}\n')
 
+        dst.write('extern "C" const char * __tsan_default_suppressions () {\n')
+        dst.write('    return __lsan_default_suppressions();\n')
+        dst.write('}\n')
+
 
 def parse_args():
     parser = optparse.OptionParser()
@@ -52,7 +56,7 @@ if __name__ == '__main__':
     if not supp:
         rc = subprocess.call(cmd, shell=False, stderr=sys.stderr, stdout=sys.stdout)
     else:
-        src_file = "lsan_default_suppressions.cpp"
+        src_file = "default_suppressions.cpp"
         gen_default_suppressions(supp, src_file)
         rc = subprocess.call(cmd + [src_file], shell=False, stderr=sys.stderr, stdout=sys.stdout)
     sys.exit(rc)
