@@ -325,19 +325,19 @@
     },
     "test.test_apply_multiclass_labels_from_data[Class]": [
         {
-            "checksum": "4f6e852b7f9395ffbb7727b85742af59",
+            "checksum": "3e884faeb4f59365e22e054e68493626",
             "uri": "file://test.test_apply_multiclass_labels_from_data_Class_/eval.txt"
         }
     ],
     "test.test_apply_multiclass_labels_from_data[Probability]": [
         {
-            "checksum": "38ca355f315ab9eb6b2e5d9c10473b52",
+            "checksum": "7518617feef31f2044a85c6afc4e3980",
             "uri": "file://test.test_apply_multiclass_labels_from_data_Probability_/eval.txt"
         }
     ],
     "test.test_apply_multiclass_labels_from_data[RawFormulaVal]": [
         {
-            "checksum": "b849be35c174926ed0725515babad77d",
+            "checksum": "afe545e140ac1482d56d2098ca978ce0",
             "uri": "file://test.test_apply_multiclass_labels_from_data_RawFormulaVal_/eval.txt"
         }
     ],
@@ -523,7 +523,7 @@
     ],
     "test.test_class_names_multiclass[Ordered-MultiClass]": [
         {
-            "checksum": "388402d0f3dd3ebbf373dac6764ed8a9",
+            "checksum": "ba77816e85f3960cee2686dbc999c277",
             "uri": "file://test.test_class_names_multiclass_Ordered-MultiClass_/test.eval"
         }
     ],
@@ -535,7 +535,7 @@
     ],
     "test.test_class_names_multiclass[Plain-MultiClass]": [
         {
-            "checksum": "76c73334af886c76e71a595f92f1c8a1",
+            "checksum": "0e0e4a0d7526c4cb87fba8e4a32bef8c",
             "uri": "file://test.test_class_names_multiclass_Plain-MultiClass_/test.eval"
         }
     ],
@@ -547,7 +547,7 @@
     ],
     "test.test_class_names_multiclass_last_class_missed[Ordered-MultiClass]": [
         {
-            "checksum": "963185698ea130dc587e10a95199ef13",
+            "checksum": "0f8d033687a183a3cf8acab1beae5960",
             "uri": "file://test.test_class_names_multiclass_last_class_missed_Ordered-MultiClass_/test.eval"
         }
     ],
@@ -559,7 +559,7 @@
     ],
     "test.test_class_names_multiclass_last_class_missed[Plain-MultiClass]": [
         {
-            "checksum": "1d7d43e99c7942479a8f64bda37e60b1",
+            "checksum": "99adbef95bac02318e83e4427af5b991",
             "uri": "file://test.test_class_names_multiclass_last_class_missed_Plain-MultiClass_/test.eval"
         }
     ],
@@ -583,7 +583,7 @@
     ],
     "test.test_class_weight_multiclass[Ordered-MultiClass]": [
         {
-            "checksum": "1f00ca61df246b9cac8aedb9bc7657ac",
+            "checksum": "c3e98172918736cf7dfad75d95a85c1f",
             "uri": "file://test.test_class_weight_multiclass_Ordered-MultiClass_/test.eval"
         }
     ],
@@ -595,19 +595,19 @@
     ],
     "test.test_class_weight_multiclass[Plain-MultiClass]": [
         {
-            "checksum": "a91c26e5ac2da142b23cbb7b354ebbf1",
+            "checksum": "fc89a81552ce975f59d6158e22f749c7",
             "uri": "file://test.test_class_weight_multiclass_Plain-MultiClass_/test.eval"
         }
     ],
     "test.test_class_weight_with_lost_class[Ordered]": [
         {
-            "checksum": "3f78e40cde59793e0de6df40e22994f9",
+            "checksum": "15ea48a8aead361c56344f408495f9b7",
             "uri": "file://test.test_class_weight_with_lost_class_Ordered_/test.eval"
         }
     ],
     "test.test_class_weight_with_lost_class[Plain]": [
         {
-            "checksum": "739aaaa895a2be83d4bc46a2df53b310",
+            "checksum": "b26185ea560efa566c0425247cfae7cf",
             "uri": "file://test.test_class_weight_with_lost_class_Plain_/test.eval"
         }
     ],
@@ -685,25 +685,25 @@
     ],
     "test.test_ctr_buckets[calc_block=5000000-Ordered]": [
         {
-            "checksum": "e7fa98c716a128a14dc45c5c388866f7",
+            "checksum": "47245243089bec1428053859bd4ae9ed",
             "uri": "file://test.test_ctr_buckets_calc_block=5000000-Ordered_/test.eval"
         }
     ],
     "test.test_ctr_buckets[calc_block=5000000-Plain]": [
         {
-            "checksum": "ab791da6f98c7d5891991f06e604816a",
+            "checksum": "f1ef3c21717994bc64e9a58944f47f7b",
             "uri": "file://test.test_ctr_buckets_calc_block=5000000-Plain_/test.eval"
         }
     ],
     "test.test_ctr_buckets[calc_block=60-Ordered]": [
         {
-            "checksum": "e7fa98c716a128a14dc45c5c388866f7",
+            "checksum": "47245243089bec1428053859bd4ae9ed",
             "uri": "file://test.test_ctr_buckets_calc_block=60-Ordered_/test.eval"
         }
     ],
     "test.test_ctr_buckets[calc_block=60-Plain]": [
         {
-            "checksum": "ab791da6f98c7d5891991f06e604816a",
+            "checksum": "f1ef3c21717994bc64e9a58944f47f7b",
             "uri": "file://test.test_ctr_buckets_calc_block=60-Plain_/test.eval"
         }
     ],
@@ -1129,11 +1129,11 @@
     ],
     "test.test_custom_loss[Plain-MSLE,MedianAbsoluteError,SMAPE]": [
         {
-            "checksum": "64ce4035db318175ca4a5796efa42c70",
+            "checksum": "624ae2703e3f78187442250869d1cdb6",
             "uri": "file://test.test_custom_loss_Plain-MSLE_MedianAbsoluteError_SMAPE_/learn_error.tsv"
         },
         {
-            "checksum": "068476ca6b47b77d0efee1e22a9f8503",
+            "checksum": "2f88756dc49c1574a6b747edc6ada807",
             "uri": "file://test.test_custom_loss_Plain-MSLE_MedianAbsoluteError_SMAPE_/test_error.tsv"
         }
     ],
@@ -1209,21 +1209,21 @@
     ],
     "test.test_custom_loss_for_multiclassification[Ordered]": [
         {
-            "checksum": "bdd06aceeba7312c65312f3c14d84d2f",
+            "checksum": "3dd26a39dcb9ba1dce0d7a02eaf24c89",
             "uri": "file://test.test_custom_loss_for_multiclassification_Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "00e9049d8e3251a3011a17e82fc5dbcc",
+            "checksum": "1828c99b3a41395f3cefadcf863eb7d3",
             "uri": "file://test.test_custom_loss_for_multiclassification_Ordered_/test_error.tsv"
         }
     ],
     "test.test_custom_loss_for_multiclassification[Plain]": [
         {
-            "checksum": "7809434815fa8b2ea444ce64b708a122",
+            "checksum": "8dcc8a5b9befba6e922f4653018d5233",
             "uri": "file://test.test_custom_loss_for_multiclassification_Plain_/learn_error.tsv"
         },
         {
-            "checksum": "6ac2537454ca4b4a52e1bda73fc3ba42",
+            "checksum": "9069e0ecc8385a3c022acb630dfefbea",
             "uri": "file://test.test_custom_loss_for_multiclassification_Plain_/test_error.tsv"
         }
     ],
@@ -2096,10 +2096,18 @@
         },
         {
             "checksum": "ac2e255646d8ed7de0e02f7e2a2b5e38",
-            "uri": "file://test.test_eval_feature_2-one_set-OneVsAll_/test_error.log.1"
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsAll_/test_error.log.0"
         },
         {
             "checksum": "c0002e03cca123003d64668fb15637a2",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsAll_/fstrs.0"
+        },
+        {
+            "checksum": "d07642ed1d5946b6d08de6850d023b9e",
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsAll_/test_error.log.1"
+        },
+        {
+            "checksum": "9b88db1ad4a45833f2bb5633f0419f06",
             "uri": "file://test.test_eval_feature_2-one_set-OneVsAll_/fstrs.1"
         },
         {
@@ -2109,14 +2117,6 @@
         {
             "checksum": "9b88db1ad4a45833f2bb5633f0419f06",
             "uri": "file://test.test_eval_feature_2-one_set-OneVsAll_/fstrs.2"
-        },
-        {
-            "checksum": "d07642ed1d5946b6d08de6850d023b9e",
-            "uri": "file://test.test_eval_feature_2-one_set-OneVsAll_/test_error.log.3"
-        },
-        {
-            "checksum": "9b88db1ad4a45833f2bb5633f0419f06",
-            "uri": "file://test.test_eval_feature_2-one_set-OneVsAll_/fstrs.3"
         }
     ],
     "test.test_eval_feature[2-one_set-OneVsNone]": [
@@ -2134,27 +2134,27 @@
         },
         {
             "checksum": "ac2e255646d8ed7de0e02f7e2a2b5e38",
-            "uri": "file://test.test_eval_feature_2-one_set-OneVsNone_/test_error.log.1"
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsNone_/test_error.log.0"
         },
         {
             "checksum": "c0002e03cca123003d64668fb15637a2",
-            "uri": "file://test.test_eval_feature_2-one_set-OneVsNone_/fstrs.1"
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsNone_/fstrs.0"
         },
         {
             "checksum": "cc796989eaeeebe490729f48fd296b31",
-            "uri": "file://test.test_eval_feature_2-one_set-OneVsNone_/test_error.log.2"
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsNone_/test_error.log.1"
         },
         {
             "checksum": "f004f2c3b63a2e45d18dabf6e305b084",
-            "uri": "file://test.test_eval_feature_2-one_set-OneVsNone_/fstrs.2"
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsNone_/fstrs.1"
         },
         {
             "checksum": "d07642ed1d5946b6d08de6850d023b9e",
-            "uri": "file://test.test_eval_feature_2-one_set-OneVsNone_/test_error.log.3"
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsNone_/test_error.log.2"
         },
         {
             "checksum": "9b88db1ad4a45833f2bb5633f0419f06",
-            "uri": "file://test.test_eval_feature_2-one_set-OneVsNone_/fstrs.3"
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsNone_/fstrs.2"
         }
     ],
     "test.test_eval_feature[2-one_set-OneVsOthers]": [
@@ -2172,27 +2172,27 @@
         },
         {
             "checksum": "ac2e255646d8ed7de0e02f7e2a2b5e38",
-            "uri": "file://test.test_eval_feature_2-one_set-OneVsOthers_/test_error.log.1"
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsOthers_/test_error.log.0"
         },
         {
             "checksum": "c0002e03cca123003d64668fb15637a2",
-            "uri": "file://test.test_eval_feature_2-one_set-OneVsOthers_/fstrs.1"
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsOthers_/fstrs.0"
         },
         {
             "checksum": "cc796989eaeeebe490729f48fd296b31",
-            "uri": "file://test.test_eval_feature_2-one_set-OneVsOthers_/test_error.log.2"
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsOthers_/test_error.log.1"
         },
         {
             "checksum": "f004f2c3b63a2e45d18dabf6e305b084",
-            "uri": "file://test.test_eval_feature_2-one_set-OneVsOthers_/fstrs.2"
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsOthers_/fstrs.1"
         },
         {
             "checksum": "d07642ed1d5946b6d08de6850d023b9e",
-            "uri": "file://test.test_eval_feature_2-one_set-OneVsOthers_/test_error.log.3"
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsOthers_/test_error.log.2"
         },
         {
             "checksum": "9b88db1ad4a45833f2bb5633f0419f06",
-            "uri": "file://test.test_eval_feature_2-one_set-OneVsOthers_/fstrs.3"
+            "uri": "file://test.test_eval_feature_2-one_set-OneVsOthers_/fstrs.2"
         }
     ],
     "test.test_eval_feature[2-one_set-OthersVsAll]": [
@@ -2210,27 +2210,27 @@
         },
         {
             "checksum": "cbe1f901ba88f8ae6b4784913edba211",
-            "uri": "file://test.test_eval_feature_2-one_set-OthersVsAll_/test_error.log.1"
+            "uri": "file://test.test_eval_feature_2-one_set-OthersVsAll_/test_error.log.0"
         },
         {
             "checksum": "77885329e02a5a9f02c7410bf3c709e4",
-            "uri": "file://test.test_eval_feature_2-one_set-OthersVsAll_/fstrs.1"
+            "uri": "file://test.test_eval_feature_2-one_set-OthersVsAll_/fstrs.0"
         },
         {
             "checksum": "d07642ed1d5946b6d08de6850d023b9e",
-            "uri": "file://test.test_eval_feature_2-one_set-OthersVsAll_/test_error.log.2"
+            "uri": "file://test.test_eval_feature_2-one_set-OthersVsAll_/test_error.log.1"
         },
         {
             "checksum": "9b88db1ad4a45833f2bb5633f0419f06",
-            "uri": "file://test.test_eval_feature_2-one_set-OthersVsAll_/fstrs.2"
+            "uri": "file://test.test_eval_feature_2-one_set-OthersVsAll_/fstrs.1"
         },
         {
             "checksum": "cc796989eaeeebe490729f48fd296b31",
-            "uri": "file://test.test_eval_feature_2-one_set-OthersVsAll_/test_error.log.3"
+            "uri": "file://test.test_eval_feature_2-one_set-OthersVsAll_/test_error.log.2"
         },
         {
             "checksum": "f004f2c3b63a2e45d18dabf6e305b084",
-            "uri": "file://test.test_eval_feature_2-one_set-OthersVsAll_/fstrs.3"
+            "uri": "file://test.test_eval_feature_2-one_set-OthersVsAll_/fstrs.2"
         }
     ],
     "test.test_eval_feature[2-two_sets-OneVsAll]": [
@@ -2248,43 +2248,43 @@
         },
         {
             "checksum": "8beb4413e83be254f98e887918986b60",
-            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/test_error.log.1"
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/test_error.log.0"
         },
         {
             "checksum": "bb5131ec9167427ed8d0284088e6602a",
-            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/fstrs.1"
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/fstrs.0"
         },
         {
             "checksum": "d07642ed1d5946b6d08de6850d023b9e",
-            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/test_error.log.2"
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/test_error.log.1"
         },
         {
             "checksum": "9b88db1ad4a45833f2bb5633f0419f06",
-            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/fstrs.2"
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/fstrs.1"
         },
         {
             "checksum": "832a78888a72dc02640921a5bd6f4ce9",
-            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/test_error.log.3"
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/test_error.log.2"
         },
         {
             "checksum": "5b697f81ddc508f6d03fca85ec1c6320",
-            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/fstrs.3"
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/fstrs.2"
         },
         {
             "checksum": "cbe1f901ba88f8ae6b4784913edba211",
-            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/test_error.log.4"
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/test_error.log.3"
         },
         {
             "checksum": "77885329e02a5a9f02c7410bf3c709e4",
-            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/fstrs.4"
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/fstrs.3"
         },
         {
             "checksum": "cc796989eaeeebe490729f48fd296b31",
-            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/test_error.log.5"
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/test_error.log.4"
         },
         {
             "checksum": "f004f2c3b63a2e45d18dabf6e305b084",
-            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/fstrs.5"
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsAll_/fstrs.4"
         }
     ],
     "test.test_eval_feature[2-two_sets-OneVsNone]": [
@@ -2302,43 +2302,43 @@
         },
         {
             "checksum": "8beb4413e83be254f98e887918986b60",
-            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/test_error.log.1"
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/test_error.log.0"
         },
         {
             "checksum": "bb5131ec9167427ed8d0284088e6602a",
-            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/fstrs.1"
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/fstrs.0"
         },
         {
             "checksum": "ba1f1fba4c5ed98b05935212ea4efa9a",
-            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/test_error.log.2"
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/test_error.log.1"
         },
         {
             "checksum": "65a66410810cf644457c49b58d072ec4",
-            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/fstrs.2"
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/fstrs.1"
         },
         {
             "checksum": "832a78888a72dc02640921a5bd6f4ce9",
-            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/test_error.log.3"
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/test_error.log.2"
         },
         {
             "checksum": "5b697f81ddc508f6d03fca85ec1c6320",
-            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/fstrs.3"
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/fstrs.2"
         },
         {
             "checksum": "cbe1f901ba88f8ae6b4784913edba211",
-            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/test_error.log.4"
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/test_error.log.3"
         },
         {
             "checksum": "77885329e02a5a9f02c7410bf3c709e4",
-            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/fstrs.4"
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/fstrs.3"
         },
         {
             "checksum": "cc796989eaeeebe490729f48fd296b31",
-            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/test_error.log.5"
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/test_error.log.4"
         },
         {
             "checksum": "f004f2c3b63a2e45d18dabf6e305b084",
-            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/fstrs.5"
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsNone_/fstrs.4"
         }
     ],
     "test.test_eval_feature[2-two_sets-OneVsOthers]": [
@@ -2356,59 +2356,59 @@
         },
         {
             "checksum": "8beb4413e83be254f98e887918986b60",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/test_error.log.0"
+        },
+        {
+            "checksum": "bb5131ec9167427ed8d0284088e6602a",
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/fstrs.0"
+        },
+        {
+            "checksum": "cc796989eaeeebe490729f48fd296b31",
             "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/test_error.log.1"
         },
         {
-            "checksum": "bb5131ec9167427ed8d0284088e6602a",
+            "checksum": "f004f2c3b63a2e45d18dabf6e305b084",
             "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/fstrs.1"
         },
         {
-            "checksum": "cc796989eaeeebe490729f48fd296b31",
+            "checksum": "832a78888a72dc02640921a5bd6f4ce9",
             "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/test_error.log.2"
         },
         {
-            "checksum": "f004f2c3b63a2e45d18dabf6e305b084",
+            "checksum": "5b697f81ddc508f6d03fca85ec1c6320",
             "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/fstrs.2"
         },
         {
-            "checksum": "832a78888a72dc02640921a5bd6f4ce9",
+            "checksum": "8beb4413e83be254f98e887918986b60",
             "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/test_error.log.3"
         },
         {
-            "checksum": "5b697f81ddc508f6d03fca85ec1c6320",
+            "checksum": "bb5131ec9167427ed8d0284088e6602a",
             "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/fstrs.3"
         },
         {
-            "checksum": "8beb4413e83be254f98e887918986b60",
+            "checksum": "cbe1f901ba88f8ae6b4784913edba211",
             "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/test_error.log.4"
         },
         {
-            "checksum": "bb5131ec9167427ed8d0284088e6602a",
+            "checksum": "77885329e02a5a9f02c7410bf3c709e4",
             "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/fstrs.4"
         },
         {
-            "checksum": "cbe1f901ba88f8ae6b4784913edba211",
+            "checksum": "832a78888a72dc02640921a5bd6f4ce9",
             "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/test_error.log.5"
         },
         {
-            "checksum": "77885329e02a5a9f02c7410bf3c709e4",
+            "checksum": "5b697f81ddc508f6d03fca85ec1c6320",
             "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/fstrs.5"
         },
         {
-            "checksum": "832a78888a72dc02640921a5bd6f4ce9",
+            "checksum": "cc796989eaeeebe490729f48fd296b31",
             "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/test_error.log.6"
         },
         {
-            "checksum": "5b697f81ddc508f6d03fca85ec1c6320",
-            "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/fstrs.6"
-        },
-        {
-            "checksum": "cc796989eaeeebe490729f48fd296b31",
-            "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/test_error.log.7"
-        },
-        {
             "checksum": "f004f2c3b63a2e45d18dabf6e305b084",
-            "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/fstrs.7"
+            "uri": "file://test.test_eval_feature_2-two_sets-OneVsOthers_/fstrs.6"
         }
     ],
     "test.test_eval_feature[2-two_sets-OthersVsAll]": [
@@ -2426,43 +2426,43 @@
         },
         {
             "checksum": "cbe1f901ba88f8ae6b4784913edba211",
-            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/test_error.log.1"
+            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/test_error.log.0"
         },
         {
             "checksum": "77885329e02a5a9f02c7410bf3c709e4",
-            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/fstrs.1"
+            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/fstrs.0"
         },
         {
             "checksum": "d07642ed1d5946b6d08de6850d023b9e",
-            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/test_error.log.2"
+            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/test_error.log.1"
         },
         {
             "checksum": "9b88db1ad4a45833f2bb5633f0419f06",
-            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/fstrs.2"
+            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/fstrs.1"
         },
         {
             "checksum": "cc796989eaeeebe490729f48fd296b31",
-            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/test_error.log.3"
+            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/test_error.log.2"
         },
         {
             "checksum": "f004f2c3b63a2e45d18dabf6e305b084",
-            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/fstrs.3"
+            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/fstrs.2"
         },
         {
             "checksum": "8beb4413e83be254f98e887918986b60",
-            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/test_error.log.4"
+            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/test_error.log.3"
         },
         {
             "checksum": "bb5131ec9167427ed8d0284088e6602a",
-            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/fstrs.4"
+            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/fstrs.3"
         },
         {
             "checksum": "832a78888a72dc02640921a5bd6f4ce9",
-            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/test_error.log.5"
+            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/test_error.log.4"
         },
         {
             "checksum": "5b697f81ddc508f6d03fca85ec1c6320",
-            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/fstrs.5"
+            "uri": "file://test.test_eval_feature_2-two_sets-OthersVsAll_/fstrs.4"
         }
     ],
     "test.test_eval_feature_empty_feature_set[0]": [
@@ -2480,10 +2480,18 @@
         },
         {
             "checksum": "67c3efcc62733a7e357858bb5e85c3d5",
-            "uri": "file://test.test_eval_feature_empty_feature_set_0_/test_error.log.1"
+            "uri": "file://test.test_eval_feature_empty_feature_set_0_/test_error.log.0"
         },
         {
             "checksum": "9665944e40785cd0deb6b59e517931a1",
+            "uri": "file://test.test_eval_feature_empty_feature_set_0_/fstrs.0"
+        },
+        {
+            "checksum": "4a607b797d8afb20131bd29207e02f29",
+            "uri": "file://test.test_eval_feature_empty_feature_set_0_/test_error.log.1"
+        },
+        {
+            "checksum": "45b53ea22aac003a5bbef20a14fcc8ab",
             "uri": "file://test.test_eval_feature_empty_feature_set_0_/fstrs.1"
         },
         {
@@ -2493,14 +2501,6 @@
         {
             "checksum": "45b53ea22aac003a5bbef20a14fcc8ab",
             "uri": "file://test.test_eval_feature_empty_feature_set_0_/fstrs.2"
-        },
-        {
-            "checksum": "4a607b797d8afb20131bd29207e02f29",
-            "uri": "file://test.test_eval_feature_empty_feature_set_0_/test_error.log.3"
-        },
-        {
-            "checksum": "45b53ea22aac003a5bbef20a14fcc8ab",
-            "uri": "file://test.test_eval_feature_empty_feature_set_0_/fstrs.3"
         }
     ],
     "test.test_eval_feature_empty_feature_set[2]": [
@@ -2518,10 +2518,18 @@
         },
         {
             "checksum": "ac2e255646d8ed7de0e02f7e2a2b5e38",
-            "uri": "file://test.test_eval_feature_empty_feature_set_2_/test_error.log.1"
+            "uri": "file://test.test_eval_feature_empty_feature_set_2_/test_error.log.0"
         },
         {
             "checksum": "c0002e03cca123003d64668fb15637a2",
+            "uri": "file://test.test_eval_feature_empty_feature_set_2_/fstrs.0"
+        },
+        {
+            "checksum": "d07642ed1d5946b6d08de6850d023b9e",
+            "uri": "file://test.test_eval_feature_empty_feature_set_2_/test_error.log.1"
+        },
+        {
+            "checksum": "9b88db1ad4a45833f2bb5633f0419f06",
             "uri": "file://test.test_eval_feature_empty_feature_set_2_/fstrs.1"
         },
         {
@@ -2531,14 +2539,6 @@
         {
             "checksum": "9b88db1ad4a45833f2bb5633f0419f06",
             "uri": "file://test.test_eval_feature_empty_feature_set_2_/fstrs.2"
-        },
-        {
-            "checksum": "d07642ed1d5946b6d08de6850d023b9e",
-            "uri": "file://test.test_eval_feature_empty_feature_set_2_/test_error.log.3"
-        },
-        {
-            "checksum": "9b88db1ad4a45833f2bb5633f0419f06",
-            "uri": "file://test.test_eval_feature_empty_feature_set_2_/fstrs.3"
         }
     ],
     "test.test_eval_feature_timesplit[Group-OneVsAll]": [
@@ -3091,85 +3091,85 @@
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-Accuracy-1]": [
         {
-            "checksum": "267c03fa8ef8e12700a07febbfef4db8",
+            "checksum": "76d0d9f3ed859e013da3fd46fa73c3d2",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-Accuracy-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-Accuracy-2]": [
         {
-            "checksum": "2519d2bf65c1988ac5c4a50d481aed37",
+            "checksum": "9665fc7d55f4599337d76eda049daa49",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-Accuracy-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-F1-1]": [
         {
-            "checksum": "bb6cef7a1e839d4682f2817a76ef5d64",
+            "checksum": "df1ab1cbe6dde956336ba97e3397e0c5",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-F1-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-F1-2]": [
         {
-            "checksum": "d9d3fa0b265970b9f58bd8b6e29dc30c",
+            "checksum": "2543a6f2f0a65ecf3d2229f37d20f4d5",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-F1-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-MCC-1]": [
         {
-            "checksum": "e1cdec3038ce952aab05a7488718a676",
+            "checksum": "805b78f91dfa7e78635530e742de157d",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MCC-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-MCC-2]": [
         {
-            "checksum": "b15b666515c0c0ae65e4f5c48d3c97c8",
+            "checksum": "33c69a0feb3f6be85864f5b7ba1402f1",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MCC-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-MultiClass-1]": [
         {
-            "checksum": "2f72df608697f4d9ee8d1fa6175d1981",
+            "checksum": "9bfd96af64f1e0dd9e61e0b21bca4a47",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MultiClass-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-MultiClass-2]": [
         {
-            "checksum": "c442670e803967417cb40d9c86b7056a",
+            "checksum": "a4ef33706d2d64f56e6498bf72584ec7",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-MultiClass-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-Precision-1]": [
         {
-            "checksum": "8473702eadf4cd0494f86183a9c6743c",
+            "checksum": "f369c55934b643385a340f3314f8ca54",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-Precision-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-Precision-2]": [
         {
-            "checksum": "bbceb14c116dde56c5c46523c9d289ce",
+            "checksum": "cdea8a62b8f9791c3dfc16dedc14fcae",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-Precision-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-Recall-1]": [
         {
-            "checksum": "b6d5d75435e2e0c6c82b5b34c3448323",
+            "checksum": "ee612bcaca27b13a5a95e315b7308c00",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-Recall-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-Recall-2]": [
         {
-            "checksum": "32b1fa30bc75b8fd6197e950c6b3c456",
+            "checksum": "8d55add9e5f6a531338c722d93e52f39",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-Recall-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-TotalF1-1]": [
         {
-            "checksum": "8a692c18bf990d635073cd15343d0871",
+            "checksum": "ecf9fc993b607b232684cc6a0f2ecd34",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-TotalF1-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_lost_class-MultiClass-TotalF1-2]": [
         {
-            "checksum": "15299d10575bb38f5f414643a97c857f",
+            "checksum": "f4eac3b1ec12118fb2763c7e0d66cf25",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_lost_class-MultiClass-TotalF1-2_/output.tsv"
         }
     ],
@@ -3259,85 +3259,85 @@
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-Accuracy-1]": [
         {
-            "checksum": "161e0f25bb0ba5907b47b202db04a426",
+            "checksum": "f4a36c6970e10550afc66550afab3861",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Accuracy-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-Accuracy-2]": [
         {
-            "checksum": "b1210e3938c21a11bb38ec5efa6492e4",
+            "checksum": "8055304b2d80b1e5340f0dc119464294",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Accuracy-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-F1-1]": [
         {
-            "checksum": "7f1f9f51ad324b399426cafc855c7672",
+            "checksum": "0e15fb1432f1b06cf10d4f508ecdb95f",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-F1-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-F1-2]": [
         {
-            "checksum": "0743757fa3eea458e7214976bd8a2e5d",
+            "checksum": "7e17c9db0927ae7b313394289cbce34b",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-F1-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-MCC-1]": [
         {
-            "checksum": "2c96a8defcc7cc70397f3a040ebd78a7",
+            "checksum": "4acc26b61054648f118204fb211101a8",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-MCC-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-MCC-2]": [
         {
-            "checksum": "ade7b599bf135104a3dbbae023864688",
+            "checksum": "fb02b1baf2aa74b4ab87f5c855954358",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-MCC-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-MultiClass-1]": [
         {
-            "checksum": "d6c489476b8435ec2bccbf9e3b2b276d",
+            "checksum": "aa5b1483c63c95e160844c76067707b6",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-MultiClass-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-MultiClass-2]": [
         {
-            "checksum": "a9d665f98b5c3f180d80bfd3fd6f98c1",
+            "checksum": "2f65ebb99a0ebaaa68d7fb11531d6d41",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-MultiClass-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-Precision-1]": [
         {
-            "checksum": "5903c283495077c5ff4b59beabbda5fd",
+            "checksum": "1b466edabc512c70a350260d92ddee4a",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Precision-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-Precision-2]": [
         {
-            "checksum": "10e4ff22458fc78093dfdb989584a9c5",
+            "checksum": "d019eb746c8446efb3409ee3ae047d0f",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Precision-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-Recall-1]": [
         {
-            "checksum": "a28e8e30f796717dec36667428f1c7ef",
+            "checksum": "7862d7f4220b5bb94a15a40fa65b56cc",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Recall-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-Recall-2]": [
         {
-            "checksum": "ba982f76559cc2beb7858cc6bd683eca",
+            "checksum": "d1243fede64dfff2682038c627540944",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-Recall-2_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-TotalF1-1]": [
         {
-            "checksum": "83d2ee81fbf69f10ac2de97a34626e99",
+            "checksum": "08e4840a3a44de574ce5f7d72f2217ae",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-TotalF1-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass[cloudness_small-MultiClass-TotalF1-2]": [
         {
-            "checksum": "f737a8c3f7df55d0c5e7ead89d6f97cf",
+            "checksum": "7eb9dd9fd2f46eeedf0e609adb48391f",
             "uri": "file://test.test_eval_metrics_multiclass_cloudness_small-MultiClass-TotalF1-2_/output.tsv"
         }
     ],
@@ -3427,13 +3427,13 @@
     ],
     "test.test_eval_metrics_multiclass_with_baseline[Accuracy-1]": [
         {
-            "checksum": "0d2311932acc57e1a9c623a3ca81aa26",
+            "checksum": "7d708a48b9b26c1465e7510ca8ba326b",
             "uri": "file://test.test_eval_metrics_multiclass_with_baseline_Accuracy-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics_multiclass_with_baseline[Accuracy-2]": [
         {
-            "checksum": "1069eda4b147f35ab134e89b9fb03abb",
+            "checksum": "ea8e6684685157ebdd519691e7841262",
             "uri": "file://test.test_eval_metrics_multiclass_with_baseline_Accuracy-2_/output.tsv"
         }
     ],
@@ -3509,7 +3509,7 @@
     ],
     "test.test_extract_multiclass_labels_from_class_names": [
         {
-            "checksum": "ecb5b4a3be6ca63c2f102c2bf4db1d59",
+            "checksum": "c4a056f4882b910ca8313b948e6bbf82",
             "uri": "file://test.test_extract_multiclass_labels_from_class_names/eval.txt"
         }
     ],
@@ -3595,31 +3595,31 @@
     },
     "test.test_fit_multiclass_with_class_names": [
         {
-            "checksum": "ef5e290358daa34c5b4777550edac1f3",
+            "checksum": "e7da5ba492b90f5e42e1cfc182d00625",
             "uri": "file://test.test_fit_multiclass_with_class_names/eval.txt"
         }
     ],
     "test.test_fold_len_multiplier[calc_block=5000000-Ordered]": [
         {
-            "checksum": "3995f7f3fe37dd022a4844367e2b94c5",
+            "checksum": "078e5b920f9c91ece13f017d13d1fb38",
             "uri": "file://test.test_fold_len_multiplier_calc_block=5000000-Ordered_/test.eval"
         }
     ],
     "test.test_fold_len_multiplier[calc_block=5000000-Plain]": [
         {
-            "checksum": "872e3610d0cf4a8c637447788a9c370b",
+            "checksum": "d2b3ae8a1d17e95e58828935e2c92189",
             "uri": "file://test.test_fold_len_multiplier_calc_block=5000000-Plain_/test.eval"
         }
     ],
     "test.test_fold_len_multiplier[calc_block=60-Ordered]": [
         {
-            "checksum": "3995f7f3fe37dd022a4844367e2b94c5",
+            "checksum": "078e5b920f9c91ece13f017d13d1fb38",
             "uri": "file://test.test_fold_len_multiplier_calc_block=60-Ordered_/test.eval"
         }
     ],
     "test.test_fold_len_multiplier[calc_block=60-Plain]": [
         {
-            "checksum": "872e3610d0cf4a8c637447788a9c370b",
+            "checksum": "d2b3ae8a1d17e95e58828935e2c92189",
             "uri": "file://test.test_fold_len_multiplier_calc_block=60-Plain_/test.eval"
         }
     ],
@@ -3871,7 +3871,7 @@
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=YetiRankPairwise_eval_metric=NDCG_boosting_type=Plain_/learn_error.tsv"
         },
         {
-            "checksum": "24e2795723eab3a15ec4944b8d66a8f1",
+            "checksum": "e475568ac792720ebe6fcee3791f5cb8",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=YetiRankPairwise_eval_metric=NDCG_boosting_type=Plain_/test_error.tsv"
         }
     ],
@@ -3941,11 +3941,11 @@
     ],
     "test.test_loglikelihood_of_prediction[Plain]": [
         {
-            "checksum": "cf398e3e40365bbbc60963c1e3e38b29",
+            "checksum": "3d789518501dd676155c6b853c0111ed",
             "uri": "file://test.test_loglikelihood_of_prediction_Plain_/learn_error.tsv"
         },
         {
-            "checksum": "ad501672a93d9bbfc02fbdf37f42c0b0",
+            "checksum": "4bf3c95a382f6c942f741ae62d3a09bf",
             "uri": "file://test.test_loglikelihood_of_prediction_Plain_/test_error.tsv"
         }
     ],
@@ -4017,13 +4017,13 @@
     ],
     "test.test_lost_class[MultiClass-Ordered]": [
         {
-            "checksum": "17bdaceb85e681d6889179637152750c",
+            "checksum": "40d93c60612ab69548a58aa7d3eedda0",
             "uri": "file://test.test_lost_class_MultiClass-Ordered_/test.eval"
         }
     ],
     "test.test_lost_class[MultiClass-Plain]": [
         {
-            "checksum": "1a8600b74d609c829b49dc1079c39caf",
+            "checksum": "2e2f3666413ac962dd515b269a405cb2",
             "uri": "file://test.test_lost_class_MultiClass-Plain_/test.eval"
         }
     ],
@@ -5037,7 +5037,7 @@
     ],
     "test.test_multi_targets[calc_block=5000000-Ordered-MultiClass]": [
         {
-            "checksum": "3fd9b029ca068c86f391e09993526942",
+            "checksum": "619ea770f147d54a74187b1e4e34b588",
             "uri": "file://test.test_multi_targets_calc_block=5000000-Ordered-MultiClass_/test.eval"
         }
     ],
@@ -5049,7 +5049,7 @@
     ],
     "test.test_multi_targets[calc_block=5000000-Plain-MultiClass]": [
         {
-            "checksum": "5d1e5524a89ef69906db0d29f9ca1ae5",
+            "checksum": "c648d4174d783cd2c44d2545ac871fa5",
             "uri": "file://test.test_multi_targets_calc_block=5000000-Plain-MultiClass_/test.eval"
         }
     ],
@@ -5061,7 +5061,7 @@
     ],
     "test.test_multi_targets[calc_block=60-Ordered-MultiClass]": [
         {
-            "checksum": "3fd9b029ca068c86f391e09993526942",
+            "checksum": "619ea770f147d54a74187b1e4e34b588",
             "uri": "file://test.test_multi_targets_calc_block=60-Ordered-MultiClass_/test.eval"
         }
     ],
@@ -5073,19 +5073,19 @@
     ],
     "test.test_multi_targets[calc_block=60-Plain-MultiClass]": [
         {
-            "checksum": "5d1e5524a89ef69906db0d29f9ca1ae5",
+            "checksum": "c648d4174d783cd2c44d2545ac871fa5",
             "uri": "file://test.test_multi_targets_calc_block=60-Plain-MultiClass_/test.eval"
         }
     ],
     "test.test_multiclass_baseline[MultiClass-Ordered]": [
         {
-            "checksum": "3a431d815627f31c815ab0dda6508cbd",
+            "checksum": "e1845d68c9767f4a7bebf766105e184a",
             "uri": "file://test.test_multiclass_baseline_MultiClass-Ordered_/eval.txt"
         }
     ],
     "test.test_multiclass_baseline[MultiClass-Plain]": [
         {
-            "checksum": "da38f0ffdf15cd87db38af98f30525b8",
+            "checksum": "e5fbf76409527e455ed567c4a4cdc17c",
             "uri": "file://test.test_multiclass_baseline_MultiClass-Plain_/eval.txt"
         }
     ],
@@ -5103,21 +5103,21 @@
     ],
     "test.test_multiclass_baseline_from_file[MultiClass-Ordered]": [
         {
-            "checksum": "eb18bee61e09b6b06c02a1f983e6c731",
+            "checksum": "fe754ee7b30a89c1a1a56ff4a6d0d013",
             "uri": "file://test.test_multiclass_baseline_from_file_MultiClass-Ordered_/test_0.eval"
         },
         {
-            "checksum": "674357550525cb60487d2cafb0cbe4c6",
+            "checksum": "84470b5824ebbab3b7e471ee3ee868f5",
             "uri": "file://test.test_multiclass_baseline_from_file_MultiClass-Ordered_/test_1.eval"
         }
     ],
     "test.test_multiclass_baseline_from_file[MultiClass-Plain]": [
         {
-            "checksum": "9b59def55e1f2c7965ce300e253f96d4",
+            "checksum": "f17be296731c7b5ccee2742eb430f1a6",
             "uri": "file://test.test_multiclass_baseline_from_file_MultiClass-Plain_/test_0.eval"
         },
         {
-            "checksum": "ecd7aee2b45aef6b2262041775181f9a",
+            "checksum": "98979447bcd157645cfc49f851e87073",
             "uri": "file://test.test_multiclass_baseline_from_file_MultiClass-Plain_/test_1.eval"
         }
     ],
@@ -7217,7 +7217,7 @@
     ],
     "test.test_save_and_apply_multiclass_labels_from_classes_count[Class-MultiClass]": [
         {
-            "checksum": "579d341014b7095ef6b3c858dd87a340",
+            "checksum": "6088e714aca78b95b2295d8d2c3595bb",
             "uri": "file://test.test_save_and_apply_multiclass_labels_from_classes_count_Class-MultiClass_/eval.txt"
         }
     ],
@@ -7229,7 +7229,7 @@
     ],
     "test.test_save_and_apply_multiclass_labels_from_classes_count[Probability-MultiClass]": [
         {
-            "checksum": "348b9918a4b08babee966c97adfd1bd2",
+            "checksum": "a16db5526cb456815ecd4488950382db",
             "uri": "file://test.test_save_and_apply_multiclass_labels_from_classes_count_Probability-MultiClass_/eval.txt"
         }
     ],
@@ -7241,13 +7241,13 @@
     ],
     "test.test_save_and_apply_multiclass_labels_from_classes_count[RawFormulaVal-MultiClass]": [
         {
-            "checksum": "ec857f634fa0fbd7acca31736923200b",
+            "checksum": "a774e47648e765fa559edce8ed6e3abf",
             "uri": "file://test.test_save_and_apply_multiclass_labels_from_classes_count_RawFormulaVal-MultiClass_/eval.txt"
         }
     ],
     "test.test_set_class_names_implicitly": [
         {
-            "checksum": "1072a4c3c793332ec3ef107eb1cd7d64",
+            "checksum": "acb2ee2f92443cc434eaa91da04bab1e",
             "uri": "file://test.test_set_class_names_implicitly/eval.txt"
         }
     ],
