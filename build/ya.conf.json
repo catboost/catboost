@@ -1739,7 +1739,10 @@
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
                 "gcc_version": "7.0",
-                "triplet_opt": {"armv8a": "aarch64-arm-linux-gnu", "armv7a": "arm-linux-gnueabihf"},
+                "triplet_opt": {
+                    "armv8a": "aarch64-arm-linux-gnu",
+                    "armv7a": "arm-linux-gnueabihf"
+                },
                 "arch_opt": [
                     "-mcpu=cortex-a53"
                 ]
@@ -1822,7 +1825,10 @@
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
                 "gcc_version": "7.0",
-                "triplet_opt": {"armv8a": "aarch64-arm-linux-gnu", "armv7a": "arm-linux-gnueabihf"},
+                "triplet_opt": {
+                    "armv8a": "aarch64-arm-linux-gnu",
+                    "armv7a": "arm-linux-gnueabihf"
+                },
                 "arch_opt": [
                     "-mcpu=cortex-a35"
                 ]
@@ -6893,7 +6899,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 601951114,
+                "sandbox_id": 602542536,
                 "match": "horadric"
             },
             "executable": {
