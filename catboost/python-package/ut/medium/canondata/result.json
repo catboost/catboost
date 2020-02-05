@@ -59,7 +59,7 @@
     ],
     "test.test_continue_learning_with_changing_params[param_set=iterations,depth,rsm-problem_type=regression]": [
         {
-            "checksum": "0003961269ba1c4641a7db802fcb5c18",
+            "checksum": "529978c457e3503455603ce925aea319",
             "uri": "file://test.test_continue_learning_with_changing_params_param_set=iterations_depth_rsm-problem_type=regression_/predictions_for_boosting_type_Ordered.txt"
         },
         {
@@ -95,7 +95,7 @@
     ],
     "test.test_continue_learning_with_changing_params[param_set=iterations,learning_rate-problem_type=regression]": [
         {
-            "checksum": "00b3620c75748e2d54472e411fa2cf09",
+            "checksum": "ed5ada25280753e7da5d00e288b20a1c",
             "uri": "file://test.test_continue_learning_with_changing_params_param_set=iterations_learning_rate-problem_type=regression_/predictions_for_boosting_type_Ordered.txt"
         },
         {
