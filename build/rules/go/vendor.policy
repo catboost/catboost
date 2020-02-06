@@ -85,6 +85,8 @@ ALLOW .* -> vendor/github.com/jackc/pgx/v4
 ALLOW .* -> vendor/github.com/jackc/pgconn
 ALLOW .* -> vendor/github.com/jackc/pgtype
 # v3 is to be deprecated in the future
+# deny v3 for MDB, responsible: @sidh
+DENY cloud/mdb -> vendor/github.com/jackc/pgx
 ALLOW .* -> vendor/github.com/jackc/pgx
 
 # database/sql wrapper with a lot of helper functions
