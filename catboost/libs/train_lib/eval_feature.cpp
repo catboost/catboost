@@ -1102,7 +1102,7 @@ static void CountDisjointFolds(
             "Relative fold size must be greater than " << 1.0f / samplingUnitsCount << " so that size of each fold is non-zero";
         );
     }
-    *disjointFoldCount = CeilDiv(samplingUnitsCount, *absoluteFoldSize);
+    *disjointFoldCount = Max<ui32>(1, samplingUnitsCount / *absoluteFoldSize);
 }
 
 TFeatureEvaluationSummary EvaluateFeatures(
