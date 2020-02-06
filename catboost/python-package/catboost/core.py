@@ -3584,16 +3584,15 @@ class CatBoostClassifier(CatBoost):
         Should be a real value in [0, 1) interval.
 
     grow_policy : string, [SymmetricTree,Lossguide,Depthwise], [default=SymmetricTree]
-        GPU only. The tree growing policy. It describes how to perform greedy tree construction.
+        The tree growing policy. It describes how to perform greedy tree construction.
 
     min_data_in_leaf : int, [default=1].
-        GPU only.
         The minimum training samples count in leaf.
         CatBoost will not search for new splits in leaves with samples count less than min_data_in_leaf.
         This parameter is used only for Depthwise and Lossguide growing policies.
 
     max_leaves : int, [default=31],
-        GPU only. The maximum leaf count in resulting tree.
+        The maximum leaf count in resulting tree.
         This parameter is used only for Lossguide growing policy.
 
     score_function : string, possible values L2, Cosine, NewtonL2, NewtonCosine, [default=Cosine]

@@ -434,19 +434,14 @@ inline TString GetMessageDecreaseNumberIter(const ui32 treeCount, const ui32 bor
 }
 
 static void ValidateModelSize(const NCatboostOptions::TObliviousTreeLearnerOptions& treeConfig,
-                              const NCatboostOptions::TOverfittingDetectorOptions& overfittingDetectorConfig,
-                              const ETaskType taskType) {
+                              const NCatboostOptions::TOverfittingDetectorOptions& overfittingDetectorConfig) {
     ui32 leafCount;
-    if (taskType == ETaskType::GPU) {
-        const bool isSymmetricTreeOrDepthwise = (treeConfig.GrowPolicy.Get() == EGrowPolicy::SymmetricTree ||
-                                            treeConfig.GrowPolicy.Get() == EGrowPolicy::Depthwise);
-        if (isSymmetricTreeOrDepthwise) {
-            leafCount = 1 << treeConfig.MaxDepth.Get();
-        } else {
-            leafCount = treeConfig.MaxLeaves.Get();
-        }
-    } else {
+    const bool isSymmetricTreeOrDepthwise = (treeConfig.GrowPolicy.Get() == EGrowPolicy::SymmetricTree ||
+                                        treeConfig.GrowPolicy.Get() == EGrowPolicy::Depthwise);
+    if (isSymmetricTreeOrDepthwise) {
         leafCount = 1 << treeConfig.MaxDepth.Get();
+    } else {
+        leafCount = treeConfig.MaxLeaves.Get();
     }
 
     constexpr ui32 OneGb = (1 << 30);
@@ -609,7 +604,7 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
                 "Monotone constraints should be values in {-1, 0, 1}. Got: " << featureIdx << ":" << constraint);
         }
     }
-    ValidateModelSize(ObliviousTreeOptions.Get(), BoostingOptions->OverfittingDetector.Get(), GetTaskType());
+    ValidateModelSize(ObliviousTreeOptions.Get(), BoostingOptions->OverfittingDetector.Get());
 
     const ELeavesEstimation leavesEstimation = ObliviousTreeOptions->LeavesEstimationMethod;
     if (leavesEstimation == ELeavesEstimation::Newton) {
@@ -618,6 +613,22 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
 
     if (BoostingOptions->Langevin.GetUnchecked()) {
         CB_ENSURE(SystemOptions->IsSingleHost(), "Langevin boosting is supported in single-host mode only.");
+    }
+
+    if (ObliviousTreeOptions->GrowPolicy != EGrowPolicy::SymmetricTree) {
+        CB_ENSURE(BoostingOptions->BoostingType == EBoostingType::Plain,
+            "Ordered boosting is not supported for nonsymmetric trees.");
+        CB_ENSURE(SystemOptions->IsSingleHost(),
+            "MultiHost training is not supported for nonsymmetric trees.");
+        if (TaskType == ETaskType::CPU) {
+            CB_ENSURE(!IsPairwiseScoring(lossFunction),
+                "Pairwise mode is not supported for nonsymmetric trees on CPU.");
+        }
+    }
+
+    if (ObliviousTreeOptions->GrowPolicy == EGrowPolicy::Lossguide) {
+        CB_ENSURE(ObliviousTreeOptions->SamplingFrequency == ESamplingFrequency::PerTree,
+            "PerTreeLevel sampling is not supported for Lossguide grow policy.");
     }
 }
 
@@ -755,14 +766,14 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
                 ObliviousTreeOptions->ScoreFunction.SetDefault(EScoreFunction::NewtonL2);
             }
         }
-        if (ObliviousTreeOptions->GrowPolicy != EGrowPolicy::Lossguide) {
-            const ui32 maxLeaves = 1u << ObliviousTreeOptions->MaxDepth.Get();
-            if (ObliviousTreeOptions->MaxLeaves.IsDefault()) {
-                ObliviousTreeOptions->MaxLeaves.SetDefault(maxLeaves);
-            } else {
-                CB_ENSURE(ObliviousTreeOptions->MaxLeaves == maxLeaves,
-                          "max_leaves option works only with lossguide tree growing");
-            }
+    }
+    if (ObliviousTreeOptions->GrowPolicy != EGrowPolicy::Lossguide) {
+        const ui32 maxLeaves = 1u << ObliviousTreeOptions->MaxDepth.Get();
+        if (ObliviousTreeOptions->MaxLeaves.IsDefault()) {
+            ObliviousTreeOptions->MaxLeaves.SetDefault(maxLeaves);
+        } else {
+            CB_ENSURE(ObliviousTreeOptions->MaxLeaves == maxLeaves,
+                        "max_leaves option works only with lossguide tree growing");
         }
     }
     if (TaskType == ETaskType::CPU) {

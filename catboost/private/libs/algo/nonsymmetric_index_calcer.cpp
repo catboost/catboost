@@ -1,5 +1,6 @@
 #include "nonsymmetric_index_calcer.h"
 
+#include "fold.h"
 #include "online_ctr.h"
 #include "split.h"
 
@@ -154,6 +155,51 @@ std::function<bool(ui32)> BuildNodeSplitFunction(
                 });
         }
     }
+}
+
+void UpdateIndices(
+    const TSplitNode& node,
+    const NCB::TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
+    const NCB::TIndexedSubset<ui32>& docsSubset,
+    const TFold& fold,
+    NPar::TLocalExecutor* localExecutor,
+    TArrayRef<TIndexType> indicesRef
+) {
+    const auto* columnsIndexing
+        = GetIf<TIndexedSubset<ui32>>(&fold.LearnPermutationFeaturesSubset);
+    Y_ASSERT(columnsIndexing != nullptr);
+
+    auto func = BuildNodeSplitFunction(
+        node,
+        objectsDataProvider,
+        node.Split.Type == ESplitType::OnlineCtr ? &fold.GetCtr(node.Split.Ctr.Projection) : nullptr,
+        /* docOffset */ 0);
+
+    // TODO(ilyzhin) std::function is very slow for calling many times (maybe replace it with lambda)
+    std::function<bool(ui32)> splitFunction;
+    if (node.Split.Type == ESplitType::OnlineCtr) {
+        splitFunction = std::move(func);
+    } else {
+        splitFunction = [realObjIdx = columnsIndexing->data(), func=std::move(func)](ui32 idx) {
+            return func(realObjIdx[idx]);
+        };
+    }
+
+    const size_t blockSize = Max<size_t>(CeilDiv<size_t>(docsSubset.size(), localExecutor->GetThreadCount() + 1), 1000);
+    const TSimpleIndexRangesGenerator<size_t> rangesGenerator(TIndexRange<size_t>(docsSubset.size()), blockSize);
+    const int blockCount = rangesGenerator.RangesCount();
+    TConstArrayRef<ui32> docsSubsetRef(docsSubset);
+    localExecutor->ExecRange(
+        [&node, indicesRef, splitFunction, docsSubsetRef, &rangesGenerator](int blockId) {
+            for (auto idx : rangesGenerator.GetRange(blockId).Iter()) {
+                const int objIdx = docsSubsetRef[idx];
+                indicesRef[docsSubsetRef[idx]] = (~node.Left) + splitFunction(objIdx) * ((~node.Right) - (~node.Left));
+            }
+        },
+        0,
+        blockCount,
+        NPar::TLocalExecutor::WAIT_COMPLETE
+    );
 }
 
 void BuildIndicesForDataset(

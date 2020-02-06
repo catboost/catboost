@@ -1023,7 +1023,7 @@ void TrainModel(
 
     const auto fstrRegularFileName = outputOptions.CreateFstrRegularFullPath();
     const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();
-    EGrowPolicy growPolicy = catBoostOptions.ObliviousTreeOptions.Get().GrowPolicy.GetUnchecked();  // GpuOnlyOption
+    EGrowPolicy growPolicy = catBoostOptions.ObliviousTreeOptions.Get().GrowPolicy;
     bool needFstr = !fstrInternalFileName.empty() || !fstrRegularFileName.empty();
 
     if (needFstr && ShouldSkipFstrGrowPolicy(growPolicy)) {
