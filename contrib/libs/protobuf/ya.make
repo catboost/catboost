@@ -110,10 +110,4 @@ SRCS(
     wrappers.pb.cc
 )
 
-IF (OS_WINDOWS)
-    SRCS(
-        stubs/atomicops_internals_x86_msvc.cc
-    )
-ENDIF()
-
 END()

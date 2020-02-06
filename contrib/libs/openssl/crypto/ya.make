@@ -895,8 +895,6 @@ IF (OS_LINUX AND ARCH_AARCH64)
         ../asm/aarch64/crypto/sha/sha1-armv8.S
         ../asm/aarch64/crypto/sha/sha256-armv8.S
         ../asm/aarch64/crypto/sha/sha512-armv8.S
-        aes/aes_cbc.c
-        aes/aes_core.c
         armcap.c
         camellia/camellia.c
         camellia/cmll_cbc.c
@@ -926,8 +924,6 @@ IF (OS_LINUX AND ARCH_PPC64LE)
         ../asm/ppc64le/crypto/sha/sha256p8-ppc.s
         ../asm/ppc64le/crypto/sha/sha512-ppc.s
         ../asm/ppc64le/crypto/sha/sha512p8-ppc.s
-        aes/aes_cbc.c
-        aes/aes_core.c
         ppccap.c
         camellia/camellia.c
         camellia/cmll_cbc.c
@@ -1059,13 +1055,9 @@ IF (OS_IOS AND ARCH_ARM7)
         ../asm/ios/armv7/crypto/aes/bsaes-armv7.S
         ../asm/ios/armv7/crypto/aes/aes-armv4.S
         armcap.c
-        bf/bf_enc.c
         bn/bn_asm.c
         camellia/camellia.c
         camellia/cmll_cbc.c
-        camellia/cmll_misc.c
-        des/des_enc.c
-        des/fcrypt_b.c
         dso/dso_dlfcn.c
         rand/rand_vms.c
         rc4/rc4_enc.c
