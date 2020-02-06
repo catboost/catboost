@@ -234,3 +234,8 @@ ALLOW mail/python/huge_py2 -> contrib/deprecated/python/cyordereddict
 ALLOW sprav/protos/model -> contrib/deprecated/python/cyordereddict
 ALLOW yql/udfs/common/python/python_arc -> contrib/deprecated/python/cyordereddict
 DENY .* -> contrib/deprecated/python/cyordereddict
+
+ALLOW contrib/deprecated/python/xmpppy -> contrib/deprecated/python/xmpppy
+ALLOW ads/libs/py_notifier -> contrib/deprecated/python/xmpppy
+ALLOW yql/udfs/common/python/python_arc -> contrib/deprecated/python/xmpppy
+DENY .* -> contrib/deprecated/python/xmpppy
