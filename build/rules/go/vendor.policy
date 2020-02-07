@@ -396,6 +396,9 @@ ALLOW .* -> vendor/github.com/soniah/gosnmp
 # CONTRIB-1686 markdown parser
 ALLOW .* -> vendor/github.com/yuin/goldmark
 
+# CONTRIB-1681 A FileSystem Abstraction System for Go
+ALLOW .* -> vendor/github.com/spf13/afero
+
 #
 # Temporary exceptions.
 #
