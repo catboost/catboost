@@ -30,6 +30,10 @@ def get_args():
     return parser.parse_args(groups['default']), groups
 
 
+def strip_suppression_files(srcs):
+    return [s for s in srcs if not s.endswith('.supp.o')]
+
+
 def main():
     args, groups = get_args()
 
@@ -42,6 +46,7 @@ def main():
 
     # Dependencies
     global_srcs = groups['global_srcs']
+    global_srcs = strip_suppression_files(global_srcs)
     peers = groups['peers']
 
     # Settings
