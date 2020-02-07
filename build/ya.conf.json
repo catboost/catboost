@@ -310,6 +310,9 @@
         },
         "yoimports": {
             "description": "Go imports formatting tool"
+        },
+        "jstyle": {
+            "description": "Java styler"
         }
     },
     "toolchain": {
@@ -5197,6 +5200,34 @@
                     "default": true
                 }
             ]
+        },
+        "jstyle_bundle": {
+            "tools": {
+                "jstyle": {
+                    "bottle": "jstyle_bundle",
+                    "executable": "jstyle"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
         }
     },
     "bottles": {
@@ -7224,6 +7255,23 @@
             "executable": {
                 "sedem": [
                     "sedem"
+                ]
+            }
+        },
+        "jstyle_bundle": {
+            "formula": {
+                "sandbox_id": [
+                    603849348,
+                    603450767,
+                    603859837
+                ],
+                "match": "jstyle"
+            },
+            "executable": {
+                "jstyle": [
+                    "idea-community",
+                    "bin",
+                    "format.bat"
                 ]
             }
         }
