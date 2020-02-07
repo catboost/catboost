@@ -308,6 +308,10 @@
         "lkvm": {
             "description": "kvmtool is a userland tool for creating and controlling KVM guests"
         },
+        "optrace": {
+            "description": "optrace records output files written by each process",
+            "visible": false
+        },
         "yoimports": {
             "description": "Go imports formatting tool"
         },
@@ -4002,6 +4006,22 @@
                 }
             ]
         },
+        "optrace": {
+            "tools": {
+                "optrace": {
+                    "bottle": "optrace",
+                    "executable": "optrace"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "gpt": {
             "tools": {
                 "gpt_perf": {
@@ -6625,6 +6645,19 @@
                 "tmux": [
                     "bin",
                     "tmux"
+                ]
+            }
+        },
+        "optrace": {
+            "formula": {
+                "sandbox_id": [
+                    604902095
+                ],
+                "match": "optrace"
+            },
+            "executable": {
+                "optrace": [
+                    "optrace"
                 ]
             }
         },
