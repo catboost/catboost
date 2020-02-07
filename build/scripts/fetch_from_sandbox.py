@@ -15,6 +15,7 @@ import fetch_from
 
 ORIGIN_SUFFIX = '?origin=fetch-from-sandbox'
 MDS_PREFIX = 'http://storage-int.mds.yandex.net/get-sandbox/'
+TEMPORARY_ERROR_CODES = (429, 500, 503, 504)
 
 
 def parse_args():
@@ -93,7 +94,7 @@ def _urlopen(url, data=None, headers=None):
             logging.error(e)
             retry_after = int(e.headers.get('Retry-After', str(retry_after)))
 
-            if e.code not in (500, 503, 504):
+            if e.code not in TEMPORARY_ERROR_CODES:
                 raise
 
         except Exception as e:
@@ -194,7 +195,7 @@ def fetch(resource_id, custom_fetcher):
             time.sleep(i)
         except urllib2.HTTPError as e:
             logging.error(e)
-            if e.code not in (500, 503, 504):
+            if e.code not in TEMPORARY_ERROR_CODES:
                 exc_info = exc_info or sys.exc_info()
             time.sleep(i)
         except Exception as e:
