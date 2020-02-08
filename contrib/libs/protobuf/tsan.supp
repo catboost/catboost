@@ -1,0 +1,5 @@
+# protobuf has an idempotent write race in ByteSize/GetCachedSize
+# https://github.com/google/protobuf/issues/2169
+race:ByteSize
+race:ByteSizeLong
+race:GetCachedSize
