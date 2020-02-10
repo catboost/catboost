@@ -21,6 +21,7 @@ namespace NCB {
 
         void Write(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString = nullptr) override {
             if (model.HasCategoricalFeatures()) {
+                CB_ENSURE(catFeaturesHashToString != nullptr, "need pool to output model hashes");
                 WriteHeader(/*forCatFeatures*/true);
                 WriteModelCatFeatures(model, catFeaturesHashToString);
                 WriteApplicatorCatFeatures();

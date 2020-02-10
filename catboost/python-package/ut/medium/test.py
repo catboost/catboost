@@ -1230,7 +1230,7 @@ def test_cpp_export_with_cat_features(task_type):
     model = CatBoost({'iterations': 20, 'task_type': task_type, 'devices': '0'})
     model.fit(train_pool)
     output_cpp_model_path = test_output_path(OUTPUT_CPP_MODEL_PATH)
-    model.save_model(output_cpp_model_path, format="cpp")
+    model.save_model(output_cpp_model_path, format="cpp", pool=train_pool)
     return local_canonical_file(output_cpp_model_path)
 
 

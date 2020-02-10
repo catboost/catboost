@@ -136,7 +136,7 @@
         "uri": "file://test.test_cpp_export_no_cat_features_CPU_/model.cpp"
     },
     "test.test_cpp_export_with_cat_features[CPU]": {
-        "checksum": "d68b05c22623f6ca052e0b54725a9ee0",
+        "checksum": "fbb4d6d46ffa1264284dbdcd3186496a",
         "uri": "file://test.test_cpp_export_with_cat_features_CPU_/model.cpp"
     },
     "test.test_ctr_target_border_count[CPU]": {
