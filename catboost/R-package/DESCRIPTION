@@ -40,11 +40,14 @@ Authors@R: c(
       comment = "Tutorials"),
     person("Evgeny", "Eltyshev", role = "aut", comment = "Tutorials"),
     person("Alexander", "Baranov", role = "aut", comment = "CoreML support"),
+    person("Dmitry", "Oganesyan", email = "oganes@yandex-team.ru", role = "aut",
+      comment = "R Package"),
     person("CatBoost DevTeam", role = "cph"),
     person("WLOG Solutions", role = "ctb",
       comment = "R package preparation for CRAN submission"),
     person("Dmitry", "Baksheev", email = "dbakshee@yandex-team.ru", role = c("aut", "cre"))
     )
+Author: Dmitry Oganesyan [aut, cre]
 Maintainer: Dmitry Baksheev <dbakshee@yandex-team.ru>
 URL: https://catboost.ai/, https://github.com/catboost/catboost
 BugReports: https://github.com/catboost/catboost/issues
