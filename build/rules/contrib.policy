@@ -199,6 +199,7 @@ ALLOW testenv/recipes/ut -> contrib/python/MySQL-python
 ALLOW travel/avia/dump_data/lib/model_classes -> contrib/python/MySQL-python
 ALLOW travel/rasp/admin -> contrib/python/MySQL-python
 ALLOW travel/rasp/library/common -> contrib/python/MySQL-python
+ALLOW travel/rasp/library/python/common -> contrib/python/MySQL-python
 ALLOW travel/rasp/library/common_recipe -> contrib/python/MySQL-python
 ALLOW travel/rasp/library/recipe_utils -> contrib/python/MySQL-python
 ALLOW travel/rasp/mysql_dumper/lib -> contrib/python/MySQL-python
