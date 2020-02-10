@@ -3,7 +3,7 @@ PY23_LIBRARY(dateutil)
 
 
 LICENSE(Apache-2.0)
-VERSION(2.8.0)
+VERSION(2.8.1)
 
 PEERDIR(
     contrib/python/six
