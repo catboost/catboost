@@ -45,7 +45,7 @@ class relativedelta(object):
         years, months, weeks, days, hours, minutes, seconds, microseconds:
             Relative information, may be negative (argument is plural); adding
             or subtracting a relativedelta with relative information performs
-            the corresponding aritmetic operation on the original datetime value
+            the corresponding arithmetic operation on the original datetime value
             with the information in the relativedelta.
 
         weekday: 

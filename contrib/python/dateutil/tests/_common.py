@@ -8,53 +8,6 @@ import pickle
 
 import pytest
 
-class WarningTestMixin(object):
-    # Based on https://stackoverflow.com/a/12935176/467366
-    class _AssertWarnsContext(warnings.catch_warnings):
-        def __init__(self, expected_warnings, parent, **kwargs):
-            super(WarningTestMixin._AssertWarnsContext, self).__init__(**kwargs)
-
-            self.parent = parent
-            try:
-                self.expected_warnings = list(expected_warnings)
-            except TypeError:
-                self.expected_warnings = [expected_warnings]
-
-            self._warning_log = []
-
-        def __enter__(self, *args, **kwargs):
-            rv = super(WarningTestMixin._AssertWarnsContext, self).__enter__(*args, **kwargs)
-
-            if self._showwarning is not self._module.showwarning:
-                super_showwarning = self._module.showwarning
-            else:
-                super_showwarning = None
-
-            def showwarning(*args, **kwargs):
-                if super_showwarning is not None:
-                    super_showwarning(*args, **kwargs)
-
-                self._warning_log.append(warnings.WarningMessage(*args, **kwargs))
-
-            self._module.showwarning = showwarning
-            return rv
-
-        def __exit__(self, *args, **kwargs):
-            super(WarningTestMixin._AssertWarnsContext, self).__exit__(self, *args, **kwargs)
-
-            self.parent.assertTrue(any(issubclass(item.category, warning)
-                                       for warning in self.expected_warnings
-                                       for item in self._warning_log))
-
-    def assertWarns(self, warning, callable=None, *args, **kwargs):
-        warnings.simplefilter('always')
-        context = self.__class__._AssertWarnsContext(warning, self)
-        if callable is None:
-            return context
-        else:
-            with context:
-                callable(*args, **kwargs)
-
 
 class PicklableMixin(object):
     def _get_nobj_bytes(self, obj, dump_kwargs, load_kwargs):
@@ -134,7 +87,11 @@ class TZContextBase(object):
 
     def __enter__(self):
         if not self.tz_change_allowed():
-            pytest.skip(self.tz_change_disallowed_message())
+            msg = self.tz_change_disallowed_message()
+            pytest.skip(msg)
+
+            # If this is used outside of a test suite, we still want an error.
+            raise ValueError(msg)  # pragma: no cover
 
         self._old_tz = self.get_current_tz()
         self.set_current_tz(self.tzval)

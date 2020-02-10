@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from ._parser import parse, parser, parserinfo
+from ._parser import parse, parser, parserinfo, ParserError
 from ._parser import DEFAULTPARSER, DEFAULTTZPARSER
 from ._parser import UnknownTimezoneWarning
 
@@ -9,6 +9,7 @@ from .isoparser import isoparser, isoparse
 
 __all__ = ['parse', 'parser', 'parserinfo',
            'isoparse', 'isoparser',
+           'ParserError',
            'UnknownTimezoneWarning']
 
 
@@ -51,7 +52,7 @@ def __deprecate_private_class(c):
     return private_class
 
 
-from ._parser import _timelex, _resultbase, _ymd
+from ._parser import _timelex, _resultbase
 from ._parser import _tzparser, _parsetz
 
 _timelex = __deprecate_private_class(_timelex)
