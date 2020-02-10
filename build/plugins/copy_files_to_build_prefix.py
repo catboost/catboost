@@ -1,8 +1,10 @@
 from _common import sort_by_keywords
 
 
-SOURCE_ROOT = '${ARCADIA_ROOT}'
-BUILD_ROOT = '${ARCADIA_BUILD_ROOT}'
+SOURCE_ROOT = '${ARCADIA_ROOT}/'
+BUILD_ROOT = '${ARCADIA_BUILD_ROOT}/'
+CURDIR = '${CURDIR}/'
+BINDIR = '${BINDIR}/'
 
 
 def oncopy_files_to_build_prefix(unit, *args):
@@ -22,8 +24,13 @@ def oncopy_files_to_build_prefix(unit, *args):
             # nothing to do
             pass
         elif len(prefix) > 0 and arg.startswith(BUILD_ROOT):
-            unit.oncopy_file([arg, '{}{}'.format(build_prefix, arg[len(BUILD_ROOT):])])
+            unit.oncopy_file([arg, '{}/{}'.format(build_prefix, arg[len(BUILD_ROOT):])])
         elif arg.startswith(SOURCE_ROOT):
-            unit.oncopy_file([arg, '{}{}'.format(build_prefix, arg[len(SOURCE_ROOT):])])
+            unit.oncopy_file([arg, '{}/{}'.format(build_prefix, arg[len(SOURCE_ROOT):])])
         else:
-            unit.oncopy_file([arg, '{}/{}/{}'.format(build_prefix, unit.get(['MODDIR']), arg)])
+            offset = 0
+            if arg.startswith(BINDIR):
+                offset = len(BINDIR)
+            elif arg.startswith(CURDIR):
+                offset = len(CURDIR)
+            unit.oncopy_file([arg, '{}/{}/{}'.format(build_prefix, unit.get(['MODDIR']), arg[offset:])])
