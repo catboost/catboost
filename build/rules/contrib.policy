@@ -38,9 +38,6 @@ DENY contrib/python -> contrib/python/django/django-2.2
 
 ALLOW maps -> maps/contrib
 ALLOW devtools/experimental/mapsmobi -> maps/contrib
-# maps/contrib/libpqxx is used by maps/libs/pgpool, a client-side connection pool for PostgrSQL
-# This rule can be removed upon completion of https://st.yandex-team.ru/HEREBEDRAGONS-123
-ALLOW .* -> maps/contrib/libpqxx
 DENY .* -> maps/contrib
 
 # contrib/libs/boost is just a proxy towards contrib/deprecated/boost - hence all the rules are duplicated
