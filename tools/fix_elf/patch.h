@@ -13,8 +13,6 @@ inline TTo Offset(TFrom from, size_t off) {
     return reinterpret_cast<TTo>(reinterpret_cast<char*>(from) + off);
 }
 
-extern const TStringBuf Magic;
-
 bool IsElf(const TString& path);
 
 class TElf {
@@ -25,7 +23,7 @@ public:
         Map.Map(0, Map.Length());
         Begin = reinterpret_cast<char*>(Map.Ptr());
 
-        if (Map.Length() < static_cast<i64>(sizeof(Elf64_Ehdr)) || TStringBuf(Begin, Magic.size()) != Magic) {
+        if (Map.Length() < static_cast<i64>(sizeof(Elf64_Ehdr)) || TStringBuf(Begin, SELFMAG) != ELFMAG) {
             ythrow yexception() << path << " is not an ELF file";
         }
     }
