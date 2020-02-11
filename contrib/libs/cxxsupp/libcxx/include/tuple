@@ -840,23 +840,25 @@ public:
                     typename __make_tuple_types<tuple, sizeof...(_Tp), sizeof...(_Up)>::type(),
                     _VSTD::forward<_Up>(__u)...) {}
 
-    template <class _Tuple, _EnableImplicitTupleLikeConstructor<_Tuple, true> = false>
+    // Change SFINAE to satisify CUDA. CUDA compiler can't determine that SFINAE type
+    // is secretly bool and doesn't allow to use it as non-type template parameter.
+    template <class _Tuple, _EnableImplicitTupleLikeConstructor<_Tuple, true>* = nullptr>
         _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
         tuple(_Tuple&& __t) _NOEXCEPT_((is_nothrow_constructible<_BaseT, _Tuple>::value))
             : __base_(_VSTD::forward<_Tuple>(__t)) {}
 
-    template <class _Tuple, _EnableImplicitTupleLikeConstructor<const _Tuple&, false> = false>
+    template <class _Tuple, _EnableImplicitTupleLikeConstructor<const _Tuple&, false>* = nullptr>
         _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
         tuple(const _Tuple& __t) _NOEXCEPT_((is_nothrow_constructible<_BaseT, const _Tuple&>::value))
             : __base_(__t) {}
 
-    template <class _Tuple, _EnableExplicitTupleLikeConstructor<_Tuple, true> = false>
+    template <class _Tuple, _EnableExplicitTupleLikeConstructor<_Tuple, true>* = nullptr>
         _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
         explicit
         tuple(_Tuple&& __t) _NOEXCEPT_((is_nothrow_constructible<_BaseT, _Tuple>::value))
             : __base_(_VSTD::forward<_Tuple>(__t)) {}
 
-    template <class _Tuple, _EnableExplicitTupleLikeConstructor<const _Tuple&, false> = false>
+    template <class _Tuple, _EnableExplicitTupleLikeConstructor<const _Tuple&, false>* = nullptr>
         _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
         explicit
         tuple(const _Tuple& __t) _NOEXCEPT_((is_nothrow_constructible<_BaseT, const _Tuple&>::value))
