@@ -1,11 +1,11 @@
 dateutil - powerful extensions to datetime
 ==========================================
 
-|pypi| |support| |licence| 
+|pypi| |support| |licence|
 
 |gitter| |readthedocs|
 
-|travis| |appveyor| |coverage|
+|travis| |appveyor| |pipelines| |coverage|
 
 .. |pypi| image:: https://img.shields.io/pypi/v/python-dateutil.svg?style=flat-square
     :target: https://pypi.org/project/python-dateutil/
@@ -22,6 +22,10 @@ dateutil - powerful extensions to datetime
 .. |appveyor| image:: https://img.shields.io/appveyor/ci/dateutil/dateutil/master.svg?style=flat-square&logo=appveyor
     :target: https://ci.appveyor.com/project/dateutil/dateutil
     :alt: appveyor build status
+
+.. |pipelines| image:: https://dev.azure.com/pythondateutilazure/dateutil/_apis/build/status/dateutil.dateutil?branchName=master
+    :target: https://dev.azure.com/pythondateutilazure/dateutil/_build/latest?definitionId=1&branchName=master
+    :alt: azure pipelines build status
 
 .. |coverage| image:: https://codecov.io/github/dateutil/dateutil/coverage.svg?branch=master
     :target: https://codecov.io/github/dateutil/dateutil?branch=master
@@ -46,8 +50,8 @@ Installation
 ============
 `dateutil` can be installed from PyPI using `pip` (note that the package name is
 different from the importable name)::
-	
-	pip install python-dateutil
+
+    pip install python-dateutil
 
 Download
 ========
@@ -59,14 +63,14 @@ https://dateutil.readthedocs.io/en/stable/
 
 Code
 ====
-The code and issue tracker are hosted on Github:
+The code and issue tracker are hosted on GitHub:
 https://github.com/dateutil/dateutil/
 
 Features
 ========
 
 * Computing of relative deltas (next month, next year,
-  next monday, last week of month, etc);
+  next Monday, last week of month, etc);
 * Computing of relative deltas between two given
   date and/or datetime objects;
 * Computing of dates based on very flexible recurrence rules,

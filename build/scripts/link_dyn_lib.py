@@ -4,6 +4,15 @@ import subprocess
 import tempfile
 import collections
 import optparse
+import pipes
+
+
+def shlex_join(cmd):
+    # equivalent to shlex.join() in python 3
+    return ' '.join(
+        pipes.quote(part)
+        for part in cmd
+    )
 
 
 def parse_export_file(p):
@@ -218,6 +227,8 @@ if __name__ == '__main__':
     proc.communicate()
 
     if proc.returncode:
+        print >>sys.stderr, 'linker has failed with retcode:', proc.returncode
+        print >>sys.stderr, 'linker command:', shlex_join(cmd)
         sys.exit(proc.returncode)
 
     if opts.fix_elf:
@@ -226,6 +237,8 @@ if __name__ == '__main__':
         proc.communicate()
 
         if proc.returncode:
+            print >>sys.stderr, 'fix_elf has failed with retcode:', proc.returncode
+            print >>sys.stderr, 'fix_elf command:', shlex_join(cmd)
             sys.exit(proc.returncode)
 
     if opts.soname and opts.soname != opts.target:

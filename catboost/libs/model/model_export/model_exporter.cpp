@@ -120,7 +120,6 @@ namespace NCB {
         const TVector<TString>* featureId,
         const THashMap<ui32, TString>* catFeaturesHashToString
     ) {
-
         //TODO(eermishkina): support non symmetric trees
         CB_ENSURE(model.IsOblivious() || format == EModelType::CatboostBinary || format == EModelType::Json,
             "Can save non symmetric trees only in cbm or Json format");

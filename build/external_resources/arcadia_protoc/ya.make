@@ -1,0 +1,19 @@
+RESOURCES_LIBRARY()
+
+
+
+# Clone this task to rebuild protoc from trunk:
+#
+# https://sandbox.yandex-team.ru/task/544339004/view
+
+IF (HOST_OS_LINUX)
+    DECLARE_EXTERNAL_RESOURCE(ARCADIA_PROTOC sbr:1205614690)
+ELSEIF (HOST_OS_DARWIN)
+    DECLARE_EXTERNAL_RESOURCE(ARCADIA_PROTOC sbr:1205615343)
+ELSEIF (HOST_OS_WINDOWS)
+    DECLARE_EXTERNAL_RESOURCE(ARCADIA_PROTOC sbr:1205616645)
+ELSE()
+    MESSAGE(FATAL_ERROR Unsupported host platform for prebuilt arcadia protoc)
+ENDIF()
+
+END()

@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals
-from ._common import WarningTestMixin
 
 from datetime import datetime, date
 import unittest
-from six import PY3
+from six import PY2
 
 from dateutil import tz
 from dateutil.rrule import (
@@ -20,7 +19,7 @@ import pytest
 
 
 @pytest.mark.rrule
-class RRuleTest(WarningTestMixin, unittest.TestCase):
+class RRuleTest(unittest.TestCase):
     def _rrulestr_reverse_test(self, rule):
         """
         Call with an `rrule` and it will test that `str(rrule)` generates a
@@ -2284,7 +2283,7 @@ class RRuleTest(WarningTestMixin, unittest.TestCase):
                           datetime(2010, 3, 22, 14, 1)])
 
     def testLongIntegers(self):
-        if not PY3:  # There is no longs in python3
+        if PY2:  # There are no longs in python3
             self.assertEqual(list(rrule(MINUTELY,
                                   count=long(2),
                                   interval=long(2),
@@ -2372,7 +2371,7 @@ class RRuleTest(WarningTestMixin, unittest.TestCase):
         See rfc-5545 3.3.10 - This checks for the deprecation warning, and will
         eventually check for an error.
         """
-        with self.assertWarns(DeprecationWarning):
+        with pytest.warns(DeprecationWarning):
             rrule(DAILY, dtstart=datetime(1997, 9, 2, 9, 0),
                          count=3, until=datetime(1997, 9, 4, 9, 0))
 
@@ -4579,7 +4578,7 @@ class RRuleTest(WarningTestMixin, unittest.TestCase):
                               dtstart=datetime(1997, 9, 2, 9, 0)))
 
     def testToStrLongIntegers(self):
-        if not PY3:  # There is no longs in python3
+        if PY2:  # There are no longs in python3
             self._rrulestr_reverse_test(rrule(MINUTELY,
                                   count=long(2),
                                   interval=long(2),

@@ -1019,11 +1019,16 @@ void TrainModel(
         "Multiple eval sets not supported for GPU"
     );
 
+    CB_ENSURE(
+        !(loadOptions.CvParams.FoldCount != 0 && catBoostOptions.GetTaskType() == ETaskType::CPU && catBoostOptions.SystemOptions->IsMaster()),
+        "Distributed training on CPU does not support test and train datasests specified by cross validation options"
+    );
+
     const auto evalOutputFileName = outputOptions.CreateEvalFullPath();
 
     const auto fstrRegularFileName = outputOptions.CreateFstrRegularFullPath();
     const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();
-    EGrowPolicy growPolicy = catBoostOptions.ObliviousTreeOptions.Get().GrowPolicy.GetUnchecked();  // GpuOnlyOption
+    EGrowPolicy growPolicy = catBoostOptions.ObliviousTreeOptions.Get().GrowPolicy;
     bool needFstr = !fstrInternalFileName.empty() || !fstrRegularFileName.empty();
 
     if (needFstr && ShouldSkipFstrGrowPolicy(growPolicy)) {

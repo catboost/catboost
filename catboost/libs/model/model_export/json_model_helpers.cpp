@@ -269,7 +269,7 @@ static TJsonValue GetFeaturesInfoJson(
     }
     for (const auto& floatFeature: modelTrees.GetFloatFeatures()) {
         jsonValue["float_features"].AppendValue(ToJson(floatFeature));
-        if (featureId) {
+        if (featureId && !featureId->empty()) {
             const auto& name = (*featureId)[floatFeature.Position.FlatIndex];
             if (!name.empty()) {
                 jsonValue["float_features"].Back().InsertValue("feature_name", name);
@@ -291,7 +291,7 @@ static TJsonValue GetFeaturesInfoJson(
                     catFeatureJsonValue.InsertValue("string_values", VectorToJson(ohFeauture.StringValues));
                 }
             }
-            if (featureId) {
+            if (featureId && !featureId->empty()) {
                 const auto &name = (*featureId)[catFeature.Position.FlatIndex];
                 if (!name.empty()) {
                     catFeatureJsonValue.InsertValue("feature_name", name);

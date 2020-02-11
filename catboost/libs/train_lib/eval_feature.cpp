@@ -796,6 +796,15 @@ private:
     bool IsNextLoadValid = false;
 };
 
+static bool HaveFeaturesToEvaluate(const TVector<TTrainingDataProviders>& foldsData) {
+    for (const auto& foldData : foldsData) {
+        if (!foldData.Learn->MetaInfo.FeaturesLayout->HasAvailableAndNotIgnoredFeatures()) {
+            return false;
+        }
+    }
+    return true;
+}
+
 static void EvaluateFeaturesImpl(
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
     const NCatboostOptions::TOutputFilesOptions& outputFileOptions,
@@ -1035,7 +1044,13 @@ static void EvaluateFeaturesImpl(
             ETrainingKind::Testing,
             featureSetIdx,
             foldsData);
-        trainFullModels(/*isTest*/true, featureSetIdx, &newFoldsData);
+        if (HaveFeaturesToEvaluate(newFoldsData)) {
+            trainFullModels(/*isTest*/true, featureSetIdx, &newFoldsData);
+        } else {
+            CATBOOST_WARNING_LOG << "Feature set " << featureSetIdx
+                << " consists of ignored or constant features; eval feature assumes baseline data = testing data for this feature set" << Endl;
+            results->BestMetrics[/*isTest*/1][featureSetIdx] = results->BestMetrics[/*isTest*/0][featureSetIdx];
+        }
     }
     for (auto isTest : {false, true}) {
         results->CreateLogs(
@@ -1102,7 +1117,7 @@ static void CountDisjointFolds(
             "Relative fold size must be greater than " << 1.0f / samplingUnitsCount << " so that size of each fold is non-zero";
         );
     }
-    *disjointFoldCount = CeilDiv(samplingUnitsCount, *absoluteFoldSize);
+    *disjointFoldCount = Max<ui32>(1, samplingUnitsCount / *absoluteFoldSize);
 }
 
 TFeatureEvaluationSummary EvaluateFeatures(

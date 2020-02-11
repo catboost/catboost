@@ -16,6 +16,7 @@
 #endif
 
 #include "tests_data.h"
+#include "registar.h"
 
 #ifdef _win_
 const char* DIR_SEPARATORS = "/\\";
@@ -75,7 +76,7 @@ TFsPath GetOutputPath() {
 class TPortManager::TPortManagerImpl {
     class TPortGuard {
     public:
-        using TPtr = TSimpleSharedPtr<TPortGuard>;
+        using TPtr = TAtomicSharedPtr<TPortGuard>;
 
         TPortGuard(const TString& root, const ui16 port);
         ~TPortGuard();
@@ -93,8 +94,9 @@ class TPortManager::TPortManagerImpl {
     };
 
 public:
-    TPortManagerImpl(const TString& syncDir)
+    TPortManagerImpl(const TString& syncDir, bool reservePortsForCurrentTest)
         : ValidPortsCount(0)
+        , ReservePortsForCurrentTest(reservePortsForCurrentTest)
     {
         SyncDir = GetEnv("PORT_SYNC_PATH", syncDir);
         if (IsSyncDirSet())
@@ -134,6 +136,7 @@ public:
                 continue;
             }
 
+            ReservePortForCurrentTest(guard);
             TGuard<TMutex> g(Lock);
             ReservedPorts.push_back(guard);
             return port;
@@ -159,6 +162,7 @@ public:
             if (!guard->LockPort<TInet6DgramSocket>()) {
                 continue;
             }
+            ReservePortForCurrentTest(guard);
             TGuard<TMutex> g(Lock);
             ReservedPorts.push_back(guard);
             return resultPort;
@@ -184,6 +188,10 @@ public:
 
         Y_ENSURE(candidates.size() == range);
         ReservedPorts.insert(ReservedPorts.end(), candidates.begin(), candidates.end());
+        g.Release();
+        for (const TPortGuard::TPtr& guard : candidates) {
+            ReservePortForCurrentTest(guard);
+        }
         return candidates.front()->GetPort();
     }
 
@@ -246,16 +254,28 @@ private:
         return pair;
     }
 
+    void ReservePortForCurrentTest(const TPortGuard::TPtr& portGuard) {
+        if (ReservePortsForCurrentTest) {
+            TTestBase* currentTest = NUnitTest::NPrivate::GetCurrentTest();
+            if (currentTest != nullptr) {
+                currentTest->RunAfterTest([guard = portGuard]() mutable {
+                    guard = nullptr; // remove reference for allocated port
+                });
+            }
+        }
+    }
+
 private:
     TString SyncDir;
     TVector<TPortGuard::TPtr> ReservedPorts;
     TMutex Lock;
     ui16 ValidPortsCount;
     TVector<std::pair<ui16, ui16>> ValidPortRanges;
+    const bool ReservePortsForCurrentTest;
 };
 
-TPortManager::TPortManager(const TString& syncDir)
-    : Impl_(new TPortManagerImpl(syncDir))
+TPortManager::TPortManager(const TString& syncDir, bool reservePortsForCurrentTest)
+    : Impl_(new TPortManagerImpl(syncDir, reservePortsForCurrentTest))
 {
 }
 

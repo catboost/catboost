@@ -6,16 +6,43 @@
 #include <util/generic/hash.h>
 #include <util/stream/null.h>
 #include <util/string/cast.h>
+#include <util/system/defaults.h>
 
 namespace NElf {
 
-const TStringBuf Magic = AsStringBuf("\x7f""ELF");
-
 bool IsElf(const TString& path) {
     TUnbufferedFileInput in(path);
-    char buffer[Magic.size()];
-    in.Read(buffer, Magic.size());
-    return Magic == TStringBuf(buffer, Magic.size());
+    char buffer[EI_NIDENT];
+    size_t nread = in.Load(buffer, sizeof(buffer));
+
+    if (nread != sizeof(buffer) || TStringBuf(buffer, SELFMAG) != ELFMAG) {
+        Cerr << "fix_elf skip " << path << " (not an ELF file)";
+        return false;
+    }
+
+    if (buffer[EI_CLASS] != ELFCLASS64) {
+        Cerr << "fix_elf skip " << path << " (ELF class is not ELF64)";
+        return false;
+    }
+
+#ifdef _little_endian_
+    if (buffer[EI_DATA] != ELFDATA2LSB) {
+        Cerr << "fix_elf skip " << path << " (ELF byte order is not native LSB)";
+        return false;
+    }
+#else
+    if (buffer[EI_DATA] != ELFDATA2MSB) {
+        Cerr << "fix_elf skip " << path << " (ELF byte order is not native MSB)";
+        return false;
+    }
+#endif
+
+    if (buffer[EI_VERSION] != 1) {
+        Cerr << "fix_elf skip " << path << " (ELF version is not 1)";
+        return false;
+    }
+
+    return true;
 }
 
 } // namespace NElf

@@ -107,7 +107,11 @@ def setup_logging(args, base_name):
 
 
 def is_temporary(e):
-    return isinstance(e, (BadChecksumFetchError, IncompleteFetchError, urllib2.URLError, socket.timeout, socket.error))
+
+    def is_broken(e):
+        return isinstance(e, urllib2.HTTPError) and e.code in (410, 404)
+
+    return not is_broken(e) and isinstance(e, (BadChecksumFetchError, IncompleteFetchError, urllib2.URLError, socket.timeout, socket.error))
 
 
 def uniq_string_generator(size=6, chars=string.ascii_lowercase + string.digits):

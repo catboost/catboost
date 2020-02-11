@@ -18,10 +18,6 @@
         "dctl": {
             "description": "Run Yandex.Deploy CLI"
         },
-        "nctl": {
-            "description": "Run Nanny CLI",
-            "visible": false
-        },
         "llvm-profdata": {
             "description": "Run llvm-profdata Clang utility"
         },
@@ -308,8 +304,15 @@
         "lkvm": {
             "description": "kvmtool is a userland tool for creating and controlling KVM guests"
         },
+        "optrace": {
+            "description": "optrace records output files written by each process",
+            "visible": false
+        },
         "yoimports": {
             "description": "Go imports formatting tool"
+        },
+        "jstyle": {
+            "description": "Java styler"
         }
     },
     "toolchain": {
@@ -1660,6 +1663,178 @@
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
                 "gcc_version": "7.0"
+            }
+        },
+        "clang7_cortex_a53": {
+            "tools": {
+                "c++": {
+                    "bottle": "clang7",
+                    "executable": "c++"
+                },
+                "c++filt": {
+                    "bottle": "clang7",
+                    "executable": "c++filt"
+                },
+                "cc": {
+                    "bottle": "clang7",
+                    "executable": "cc"
+                },
+                "clang-format": {
+                    "bottle": "clang7",
+                    "executable": "clang-format"
+                },
+                "clang-tidy": {
+                    "bottle": "clang7",
+                    "executable": "clang-tidy"
+                },
+                "gcov": {
+                    "bottle": "clang7",
+                    "executable": "gcov"
+                },
+                "llvm-cov": {
+                    "bottle": "clang7",
+                    "executable": "llvm-cov"
+                },
+                "llvm-profdata": {
+                    "bottle": "clang7",
+                    "executable": "llvm-profdata"
+                },
+                "llvm-symbolizer": {
+                    "bottle": "clang7",
+                    "executable": "llvm-symbolizer"
+                },
+                "nm": {
+                    "bottle": "clang7",
+                    "executable": "llvm-nm"
+                },
+                "strip": {
+                    "bottle": "clang7",
+                    "executable": "llvm-strip"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv7a"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv8a"
+                    },
+                    "default": false
+                }
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "7.0",
+                "triplet_opt": {
+                    "armv8a": "aarch64-arm-linux-gnu",
+                    "armv7a": "arm-linux-gnueabihf"
+                },
+                "arch_opt": [
+                    "-mcpu=cortex-a53"
+                ]
+            }
+        },
+        "clang7_cortex_a35": {
+            "tools": {
+                "c++": {
+                    "bottle": "clang7",
+                    "executable": "c++"
+                },
+                "c++filt": {
+                    "bottle": "clang7",
+                    "executable": "c++filt"
+                },
+                "cc": {
+                    "bottle": "clang7",
+                    "executable": "cc"
+                },
+                "clang-format": {
+                    "bottle": "clang7",
+                    "executable": "clang-format"
+                },
+                "clang-tidy": {
+                    "bottle": "clang7",
+                    "executable": "clang-tidy"
+                },
+                "gcov": {
+                    "bottle": "clang7",
+                    "executable": "gcov"
+                },
+                "llvm-cov": {
+                    "bottle": "clang7",
+                    "executable": "llvm-cov"
+                },
+                "llvm-profdata": {
+                    "bottle": "clang7",
+                    "executable": "llvm-profdata"
+                },
+                "llvm-symbolizer": {
+                    "bottle": "clang7",
+                    "executable": "llvm-symbolizer"
+                },
+                "nm": {
+                    "bottle": "clang7",
+                    "executable": "llvm-nm"
+                },
+                "strip": {
+                    "bottle": "clang7",
+                    "executable": "llvm-strip"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv7a"
+                    },
+                    "default": false
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv8a"
+                    },
+                    "default": false
+                }
+            ],
+            "params": {
+                "type": "clang",
+                "match_root": "CLANG",
+                "werror_mode": "all",
+                "c_compiler": "$(CLANG)/bin/clang",
+                "cxx_compiler": "$(CLANG)/bin/clang++",
+                "llvm-symbolizer": "$(CLANG)/bin/llvm-symbolizer",
+                "gcc_version": "7.0",
+                "triplet_opt": {
+                    "armv8a": "aarch64-arm-linux-gnu",
+                    "armv7a": "arm-linux-gnueabihf"
+                },
+                "arch_opt": [
+                    "-mcpu=cortex-a35"
+                ]
             }
         },
         "clang7-windows": {
@@ -3646,28 +3821,6 @@
                 }
             ]
         },
-        "nctl": {
-            "tools": {
-                "nctl": {
-                    "bottle": "nctl",
-                    "executable": "nctl"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    },
-                    "default": true
-                }
-            ]
-        },
         "jq": {
             "tools": {
                 "jq": {
@@ -3816,6 +3969,22 @@
                 "kwworm": {
                     "bottle": "kwworm",
                     "executable": "kwworm"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "optrace": {
+            "tools": {
+                "optrace": {
+                    "bottle": "optrace",
+                    "executable": "optrace"
                 }
             },
             "platforms": [
@@ -5025,6 +5194,34 @@
                     "default": true
                 }
             ]
+        },
+        "jstyle_bundle": {
+            "tools": {
+                "jstyle": {
+                    "bottle": "jstyle_bundle",
+                    "executable": "jstyle"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
         }
     },
     "bottles": {
@@ -5059,7 +5256,7 @@
         "ymake": {
             "formula": {
                 "sandbox_id": [
-                    596264998
+                    604245431
                 ],
                 "match": "ymake"
             },
@@ -5083,7 +5280,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    596879027
+                    606671814
                 ],
                 "match": "arc"
             },
@@ -5107,8 +5304,8 @@
         "yo": {
             "formula": {
                 "sandbox_id": [
-                    552648016,
-                    552647995
+                    604585822,
+                    604586037
                 ],
                 "match": "yo"
             },
@@ -6357,26 +6554,13 @@
         "dctl": {
             "formula": {
                 "sandbox_id": [
-                    588881772
+                    604615866
                 ],
                 "match": "dctl"
             },
             "executable": {
                 "dctl": [
                     "dctl"
-                ]
-            }
-        },
-        "nctl": {
-            "formula": {
-                "sandbox_id": [
-                    597157675
-                ],
-                "match": "nctl"
-            },
-            "executable": {
-                "nctl": [
-                    "nctl"
                 ]
             }
         },
@@ -6422,6 +6606,19 @@
                 "tmux": [
                     "bin",
                     "tmux"
+                ]
+            }
+        },
+        "optrace": {
+            "formula": {
+                "sandbox_id": [
+                    604902095
+                ],
+                "match": "optrace"
+            },
+            "executable": {
+                "optrace": [
+                    "optrace"
                 ]
             }
         },
@@ -6727,7 +6924,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 601517860,
+                "sandbox_id": 606099206,
                 "match": "horadric"
             },
             "executable": {
@@ -6826,7 +7023,7 @@
         },
         "ya-tc": {
             "formula": {
-                "sandbox_id": 600566836,
+                "sandbox_id": 605238710,
                 "match": "ya-tc"
             },
             "executable": {
@@ -6848,7 +7045,7 @@
         },
         "app_host": {
             "formula": {
-                "sandbox_id": 601573276,
+                "sandbox_id": 603869687,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -7048,12 +7245,29 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 594432901,
+                "sandbox_id": 604014099,
                 "match": "SEDEM archive"
             },
             "executable": {
                 "sedem": [
                     "sedem"
+                ]
+            }
+        },
+        "jstyle_bundle": {
+            "formula": {
+                "sandbox_id": [
+                    603849348,
+                    603450767,
+                    603859837
+                ],
+                "match": "jstyle"
+            },
+            "executable": {
+                "jstyle": [
+                    "idea-community",
+                    "bin",
+                    "format.bat"
                 ]
             }
         }

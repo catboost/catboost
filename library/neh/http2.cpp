@@ -681,7 +681,7 @@ namespace {
                 }
 
                 try {
-                    PrepareSocket(AS_.Native(), Req_->RequestSettings());
+                    PrepareSocket(AS_.Native(), req->RequestSettings());
                     if (THttp2Options::TcpKeepAlive) {
                         SetKeepAlive(AS_.Native(), true);
                     }

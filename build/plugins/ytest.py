@@ -718,7 +718,6 @@ def onjava_test(unit, *args):
     data = dump_test(unit, test_record)
     if data:
         unit.set_property(['DART_DATA', data])
-        _add_data_files(unit, data_files, test_dir)
 
 
 def onjava_test_deps(unit, *args):
@@ -836,18 +835,6 @@ def _dump_test(
         if data:
             unit.set_property(["DART_DATA", data])
             save_in_file(unit.get('TEST_DART_OUT_FILE'), data)
-            _add_data_files(unit, data_files, test_dir)
-
-
-def _add_data_files(unit, data_files, test_dir):
-    if not data_files:
-        return
-
-    unit_path = unit.path()
-    data_files = [os.path.relpath(i, test_dir) for i in data_files]
-    data_files = [os.path.join(unit_path, i) for i in data_files]
-
-    unit.set_property(['DART_DATA_FILES', serialize_list(sorted(data_files))])
 
 
 def onsetup_pytest_bin(unit, *args):

@@ -8,6 +8,8 @@ LICENSE(
 
 NO_COMPILER_WARNINGS()
 
+SUPPRESSIONS(tsan.supp)
+
 ADDINCLSELF()
 
 ADDINCL(
@@ -109,11 +111,5 @@ SRCS(
     wire_format_lite.cc
     wrappers.pb.cc
 )
-
-IF (OS_WINDOWS)
-    SRCS(
-        stubs/atomicops_internals_x86_msvc.cc
-    )
-ENDIF()
 
 END()

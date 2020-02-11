@@ -20,4 +20,6 @@ PY_SRCS(
     ${PYTHON3_LIB_SRCS}
 )
 
+NO_LINT()
+
 END()

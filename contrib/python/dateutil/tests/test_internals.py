@@ -31,7 +31,7 @@ class TestYMD(unittest.TestCase):
         assert not ymd.could_be_day(-6)
         assert not ymd.could_be_day(32)
 
-        # Assumes leapyear
+        # Assumes leap year
         assert ymd.could_be_day(29)
 
         ymd.append(1999)

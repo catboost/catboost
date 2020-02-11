@@ -24,4 +24,5 @@ def onlarge_files(unit, *args):
             out_file = strip_roots(os.path.join(unit.path(), arg))
             external = "{}.{}".format(arg, PLACEHOLDER_EXT)
             unit.on_from_external([external, out_file, 'OUT_NOAUTO', arg])
+            unit.onadd_check(['check.external', external])
 

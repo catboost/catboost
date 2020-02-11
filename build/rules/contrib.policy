@@ -38,9 +38,6 @@ DENY contrib/python -> contrib/python/django/django-2.2
 
 ALLOW maps -> maps/contrib
 ALLOW devtools/experimental/mapsmobi -> maps/contrib
-# maps/contrib/libpqxx is used by maps/libs/pgpool, a client-side connection pool for PostgrSQL
-# This rule can be removed upon completion of https://st.yandex-team.ru/HEREBEDRAGONS-123
-ALLOW .* -> maps/contrib/libpqxx
 DENY .* -> maps/contrib
 
 # contrib/libs/boost is just a proxy towards contrib/deprecated/boost - hence all the rules are duplicated
@@ -199,6 +196,7 @@ ALLOW testenv/recipes/ut -> contrib/python/MySQL-python
 ALLOW travel/avia/dump_data/lib/model_classes -> contrib/python/MySQL-python
 ALLOW travel/rasp/admin -> contrib/python/MySQL-python
 ALLOW travel/rasp/library/common -> contrib/python/MySQL-python
+ALLOW travel/rasp/library/python/common -> contrib/python/MySQL-python
 ALLOW travel/rasp/library/common_recipe -> contrib/python/MySQL-python
 ALLOW travel/rasp/library/recipe_utils -> contrib/python/MySQL-python
 ALLOW travel/rasp/mysql_dumper/lib -> contrib/python/MySQL-python
@@ -234,3 +232,38 @@ ALLOW mail/python/huge_py2 -> contrib/deprecated/python/cyordereddict
 ALLOW sprav/protos/model -> contrib/deprecated/python/cyordereddict
 ALLOW yql/udfs/common/python/python_arc -> contrib/deprecated/python/cyordereddict
 DENY .* -> contrib/deprecated/python/cyordereddict
+
+ALLOW contrib/deprecated/python/xmpppy -> contrib/deprecated/python/xmpppy
+ALLOW ads/libs/py_notifier -> contrib/deprecated/python/xmpppy
+ALLOW yql/udfs/common/python/python_arc -> contrib/deprecated/python/xmpppy
+DENY .* -> contrib/deprecated/python/xmpppy
+
+ALLOW addappter/backend -> contrib/python/pycrypto
+ALLOW adfox -> contrib/python/pycrypto
+ALLOW alice/vins/api -> contrib/python/pycrypto
+ALLOW antiadblock/cryprox/cryprox -> contrib/python/pycrypto
+ALLOW balancer/test/functional/aab_cookie_verify -> contrib/python/pycrypto
+ALLOW crypta -> contrib/python/pycrypto
+ALLOW devtools/experimental/addappter/addappter -> contrib/python/pycrypto
+ALLOW direct/infra/direct-utils/direct-apps-juggler/share/direct-apps-juggler/sandbox/common -> contrib/python/pycrypto
+ALLOW infra/cqudp -> contrib/python/pycrypto
+ALLOW infra/portoshell -> contrib/python/pycrypto
+ALLOW mds/s3/s3_mds_proxy -> contrib/python/pycrypto
+ALLOW metrika/core -> contrib/python/pycrypto
+ALLOW mlp/mail -> contrib/python/pycrypto
+ALLOW mssngr/router/tools/export_legacy_messages -> contrib/python/pycrypto
+ALLOW passport/cpp/daemons/blackbox/ut/totp_manual/tests -> contrib/python/pycrypto
+ALLOW quality/functionality/turbo/merger/ut/medium -> contrib/python/pycrypto
+ALLOW samogon -> contrib/python/pycrypto
+ALLOW sandbox/common -> contrib/python/pycrypto
+ALLOW sandbox/virtualenv -> contrib/python/pycrypto
+ALLOW sandbox/yasandbox -> contrib/python/pycrypto
+ALLOW skynet/library -> contrib/python/pycrypto
+ALLOW travel/hotels/tools/searcher_client -> contrib/python/pycrypto
+ALLOW trust/emulator -> contrib/python/pycrypto
+ALLOW trust/processing_holder -> contrib/python/pycrypto
+ALLOW trust/tests/tests_trust_bindings -> contrib/python/pycrypto
+ALLOW yabs/server/tools/banner_user_choice -> contrib/python/pycrypto
+ALLOW ydo/database/models -> contrib/python/pycrypto
+ALLOW yweb/antispam/cid -> contrib/python/pycrypto
+DENY .* -> contrib/python/pycrypto

@@ -228,10 +228,8 @@ IF (OS_IOS AND ARCH_X86_64)
     )
     SRCS(
         asm/ios/x86_64/engines/e_padlock-x86_64.s
-        engines/e_capi.c
         engines/e_dasync.c
         engines/e_ossltest.c
-        engines/e_padlock.c
     )
 ENDIF()
 
@@ -242,10 +240,8 @@ IF (OS_IOS AND ARCH_I386)
     )
     SRCS(
         asm/ios/i386/engines/e_padlock-x86.s
-        engines/e_capi.c
         engines/e_dasync.c
         engines/e_ossltest.c
-        engines/e_padlock.c
     )
 ENDIF()
 

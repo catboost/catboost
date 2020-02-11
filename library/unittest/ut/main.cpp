@@ -119,16 +119,31 @@ Y_UNIT_TEST_SUITE(TPortManagerTest) {
     }
 
     Y_UNIT_TEST(TestGivenValidPortRange) {
-        ui16 port = 0;
-        {
-            // We need to free provided port.
-            TPortManager pm(workDir);
-            port = pm.GetPort(0);
+        struct TEnvSetter {
+            TEnvSetter(const TString& value) {
+                SetEnv("VALID_PORT_RANGE", value);
+            }
+            ~TEnvSetter() {
+                SetEnv("VALID_PORT_RANGE", "");
+            }
+        };
+
+        size_t attempts = 5; // There can be a race between release port of one port manager and then lock for another and third party test in the same machine
+        while (attempts--) {
+            try {
+                ui16 port = 0;
+                {
+                    // We need to free provided port.
+                    TPortManager pm(workDir, false);
+                    port = pm.GetPort(0);
+                }
+                TEnvSetter env(ToString(port) + ":" + ToString(port + 1));
+                TPortManager pm(workDir);
+                UNIT_ASSERT_VALUES_EQUAL(pm.GetPort(0), port);
+                break;
+            } catch (const yexception&) {
+            }
         }
-        SetEnv("VALID_PORT_RANGE", ToString(port) + ":" + ToString(port + 1));
-        TPortManager pm(workDir);
-        UNIT_ASSERT_VALUES_EQUAL(pm.GetPort(0), port);
-        SetEnv("VALID_PORT_RANGE", "");
     }
 }
 

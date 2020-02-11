@@ -472,7 +472,7 @@ public:
         return Nodes;
     }
 
-    void AddSplit(const TSplit& split, int leafIdx) {
+    const TSplitNode& AddSplit(const TSplit& split, int leafIdx) {
         Y_ASSERT(0 <= leafIdx && leafIdx < SafeIntegerCast<int>(GetLeafCount()));
         int newLeafIdx = GetLeafCount();
         int newNodeIdx = Nodes.size();
@@ -487,13 +487,14 @@ public:
         Nodes.emplace_back(split, ~leafIdx, ~newLeafIdx);
         LeafParent[leafIdx] = newNodeIdx;
         LeafParent.emplace_back(newNodeIdx);
+        return Nodes.back();
     }
 
-    inline int GetNodesCount() const {
+    inline ui32 GetNodesCount() const {
         return Nodes.ysize();
     }
 
-    inline int GetLeafCount() const {
+    inline ui32 GetLeafCount() const {
         return Nodes.ysize() + 1;
     }
 

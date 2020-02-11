@@ -6,11 +6,11 @@ import unittest
 
 from dateutil import tz
 from dateutil import utils
+from dateutil.tz import UTC
 from dateutil.utils import within_delta
 
 from freezegun import freeze_time
 
-UTC = tz.tzutc()
 NYC = tz.gettz("America/New_York")
 
 

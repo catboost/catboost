@@ -1074,18 +1074,7 @@ TVector<double> GetScores(
     const int leafCount = 1 << depth;
     const TStatsIndexer indexer(bucketCount);
 
-    THolder<IPointwiseScoreCalcer> scoreCalcer;
-    switch (fitParams.ObliviousTreeOptions->ScoreFunction) {
-        case EScoreFunction::Cosine:
-            scoreCalcer = MakeHolder<TCosineScoreCalcer>();
-            break;
-        case EScoreFunction::L2:
-            scoreCalcer = MakeHolder<TL2ScoreCalcer>();
-            break;
-        default:
-            CB_ENSURE(false, "Error: score function for CPU should be Cosine or L2");
-            break;
-    }
+    auto scoreCalcer = MakePointwiseScoreCalcer(fitParams.ObliviousTreeOptions->ScoreFunction);
     scoreCalcer->SetSplitsCount(CalcSplitsCount(stats3d.SplitEnsembleSpec, bucketCount, oneHotMaxSize));
 
     const double scaledL2Regularizer = l2Regularizer * (sumAllWeights / allDocCount);

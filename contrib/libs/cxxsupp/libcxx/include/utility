@@ -253,7 +253,7 @@ operator>=(const _Tp& __x, const _Tp& __y)
 
 
 template <class _ForwardIterator1, class _ForwardIterator2>
-inline _LIBCPP_INLINE_VISIBILITY
+inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
 _ForwardIterator2
 swap_ranges(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2)
 {
@@ -264,7 +264,7 @@ swap_ranges(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardItera
 
 // forward declared in <type_traits>
 template<class _Tp, size_t _Np>
-inline _LIBCPP_INLINE_VISIBILITY
+inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
 typename enable_if<
     __is_swappable<_Tp>::value
 >::type
@@ -1502,7 +1502,7 @@ struct _LIBCPP_TEMPLATE_VIS hash<float>
     size_t operator()(float __v) const _NOEXCEPT
     {
         // -0.0 and 0.0 should return same hash
-       if (__v == 0.0)
+       if (__v == 0.0f)
            return 0;
         return __scalar_hash<float>::operator()(__v);
     }
@@ -1530,7 +1530,7 @@ struct _LIBCPP_TEMPLATE_VIS hash<long double>
     size_t operator()(long double __v) const _NOEXCEPT
     {
         // -0.0 and 0.0 should return same hash
-        if (__v == 0.0)
+        if (__v == 0.0L)
             return 0;
 #if defined(__i386__)
         // Zero out padding bits

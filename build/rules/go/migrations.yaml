@@ -458,8 +458,3 @@ migrations:
       - a.yandex-team.ru/yt/solomon-bridge/spack_test
       - a.yandex-team.ru/yt/solomon-bridge/writer
       - a.yandex-team.ru/yt/solomon-bridge/writer_test
-      - a.yandex-team.ru/zootopia/analytics/drive/api
-      - a.yandex-team.ru/zootopia/analytics/drive/models
-      - a.yandex-team.ru/zootopia/analytics/drive/operations/users
-      - a.yandex-team.ru/zootopia/analytics/drive/services/client
-      - a.yandex-team.ru/zootopia/analytics/drive/services/tags_history

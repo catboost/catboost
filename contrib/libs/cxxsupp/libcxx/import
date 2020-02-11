@@ -1,6 +1,6 @@
 #!/bin/sh -e
 
-rev=364146
+rev=366000
 output_dir="libcxx-r$rev"
 
 svn checkout --depth=files --non-interactive https://llvm.org/svn/llvm-project/libcxx/trunk@$rev "$output_dir"

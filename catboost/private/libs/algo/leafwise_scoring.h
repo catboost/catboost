@@ -27,8 +27,11 @@ TVector<TVector<double>> CalcScoresForOneCandidate(
     const TCandidatesInfoList& candidate,
     const TCalcScoreFold& fold,
     const TFold& initialFold,
+    const TVector<TIndexType>& leafs,
     TLearnContext* ctx
 );
+
+double CalcScoreWithoutSplit(int leaf, const TFold& fold, const TLearnContext& ctx);
 
 template <typename TGetBucketStats, typename TUpdateSplitScore>
 inline void CalcScoresForLeaf(

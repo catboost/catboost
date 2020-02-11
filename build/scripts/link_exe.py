@@ -21,16 +21,24 @@ def fix_cmd(musl, c):
 
 
 def gen_default_suppressions(inputs, output):
-    parts = []
+    import collections
+    import os
+
+    supp_map = collections.defaultdict(set)
     for filename in inputs:
+        sanitizer = os.path.basename(filename).split('.', 1)[0]
         with open(filename) as src:
-            parts.append(src.read().strip() + "\n")
-    supp_str = "\n".join(parts).replace("\n", "\\n")
+            for line in src:
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+                supp_map[sanitizer].add(line)
 
     with open(output, "wb") as dst:
-        dst.write('extern "C" const char *__lsan_default_suppressions() {\n')
-        dst.write('    return "{}";\n'.format(supp_str))
-        dst.write('}\n')
+        for supp_type, supps in supp_map.items():
+            dst.write('extern "C" const char *__%s_default_suppressions() {\n' % supp_type)
+            dst.write('    return "{}";\n'.format('\\n'.join(sorted(supps))))
+            dst.write('}\n')
 
 
 def parse_args():
@@ -52,7 +60,7 @@ if __name__ == '__main__':
     if not supp:
         rc = subprocess.call(cmd, shell=False, stderr=sys.stderr, stdout=sys.stdout)
     else:
-        src_file = "lsan_default_suppressions.cpp"
+        src_file = "default_suppressions.cpp"
         gen_default_suppressions(supp, src_file)
         rc = subprocess.call(cmd + [src_file], shell=False, stderr=sys.stderr, stdout=sys.stdout)
     sys.exit(rc)

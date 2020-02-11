@@ -205,6 +205,13 @@ public:
             ythrow TZLibCompressorError() << "can not init inflate engine";
         }
 
+        // Create exactly the same files on all platforms by fixing OS field in the header.
+        if (p.Type == ZLib::GZip) {
+            GZHeader_ = new gz_header{};
+            GZHeader_->os = 3; // UNIX
+            deflateSetHeader(Z(), GZHeader_.Get());
+        }
+
         if (p.Dict.size()) {
             if (deflateSetDictionary(Z(), (const Bytef*)p.Dict.data(), p.Dict.size())) {
                 ythrow TZLibCompressorError() << "can not set deflate dictionary";
@@ -305,6 +312,7 @@ private:
 
 private:
     IOutputStream* Stream_;
+    THolder<gz_header> GZHeader_;
 };
 
 TZLibDecompress::TZLibDecompress(IZeroCopyInput* input, ZLib::StreamType type, TStringBuf dict)

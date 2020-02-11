@@ -155,9 +155,9 @@ TOwningThreadedLogBackend::TOwningThreadedLogBackend(TLogBackend* slave)
 {
 }
 
-TOwningThreadedLogBackend::TOwningThreadedLogBackend(TLogBackend* slave, size_t queuelen)
+TOwningThreadedLogBackend::TOwningThreadedLogBackend(TLogBackend* slave, size_t queuelen, std::function<void()> queueOverflowCallback)
     : THolder<TLogBackend>(slave)
-    , TThreadedLogBackend(Get(), queuelen)
+    , TThreadedLogBackend(Get(), queuelen, std::move(queueOverflowCallback))
 {
 }
 

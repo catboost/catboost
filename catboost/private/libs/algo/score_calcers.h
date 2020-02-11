@@ -102,3 +102,14 @@ int CalcSplitsCount(
     int bucketCount,
     ui32 oneHotMaxSize
 );
+
+inline THolder<IPointwiseScoreCalcer> MakePointwiseScoreCalcer(EScoreFunction scoreFunction) {
+    switch(scoreFunction) {
+        case EScoreFunction::Cosine:
+            return MakeHolder<TCosineScoreCalcer>();
+        case EScoreFunction::L2:
+            return MakeHolder<TL2ScoreCalcer>();
+        default:
+            Y_UNREACHABLE();
+    }
+}

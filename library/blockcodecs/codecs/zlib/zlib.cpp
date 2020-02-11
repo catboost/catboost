@@ -55,7 +55,7 @@ namespace {
     struct TZLibRegistrar {
         TZLibRegistrar() {
             for (int i = 0; i < 10; ++i) {
-                RegisterCodec(new TZLibCodec(i));
+                RegisterCodec(MakeHolder<TZLibCodec>(i));
             }
             RegisterAlias("zlib", "zlib-6");
         }

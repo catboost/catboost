@@ -119,6 +119,7 @@ IF (OS_WINDOWS)
     )
 ELSE()
     SRCS(
+        _cryptmodule.c
         _posixsubprocess.c
         fcntlmodule.c
         grpmodule.c
@@ -128,6 +129,9 @@ ELSE()
         termios.c
     )
     IF (OS_LINUX)
+        IF (NOT MUSL)
+            EXTRALIBS(crypt)
+        ENDIF()
         SRCS(
             spwdmodule.c
         )

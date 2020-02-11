@@ -50,7 +50,7 @@ namespace {
     struct TZStd08Registrar {
         TZStd08Registrar() {
             for (int i = 1; i <= ZSTD_maxCLevel(); ++i) {
-                RegisterCodec(new TZStd08Codec(i));
+                RegisterCodec(MakeHolder<TZStd08Codec>(i));
                 RegisterAlias("zstd_" + ToString(i), "zstd08_" + ToString(i));
             }
         }

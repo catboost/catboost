@@ -59,7 +59,6 @@ TEST_SRCS(
     pack_jcoverage_resources.py
     perl_wrapper.py
     preprocess.py
-    provides.py
     py_compile.py
     run_ios_simulator.py
     run_javac.py
