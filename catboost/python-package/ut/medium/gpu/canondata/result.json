@@ -48,7 +48,7 @@
         "uri": "file://test.test_cpp_export_no_cat_features_GPU_/model.cpp"
     },
     "test.test_cpp_export_with_cat_features[GPU]": {
-        "checksum": "4e783d941a6993db6c121c855c7d87e9",
+        "checksum": "2a8f2e70d9760738992b21ab9c84493a",
         "uri": "file://test.test_cpp_export_with_cat_features_GPU_/model.cpp"
     },
     "test.test_ctr_target_border_count[GPU]": {
