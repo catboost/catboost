@@ -212,6 +212,9 @@ ALLOW .* -> vendor/golang.org/x/sync
 # golang.org/x/text
 ALLOW .* -> vendor/golang.org/x/text
 
+# golang.org/x/time
+ALLOW .* -> vendor/golang.org/x/time
+
 # experimental implementation of Go error inspection. Use x/xerrors instead.
 ALLOW .* -> vendor/golang.org/x/exp/errors
 
