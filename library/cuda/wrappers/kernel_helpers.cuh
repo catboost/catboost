@@ -80,7 +80,7 @@ __forceinline__ __device__ T WarpReduce(int x, T val, int reduceSize, TOp op = T
     __syncwarp();
     #pragma unroll
     for (int s = reduceSize >> 1; s > 0; s >>= 1) {
-        val = op(val, __shfl_down_sync(0xFFFFFF, val, s));
+        val = op(val, __shfl_down_sync(0xFFFFFFFF, val, s));
     }
     return val;
 }
