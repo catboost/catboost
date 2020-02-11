@@ -224,7 +224,7 @@ namespace NCudaLib {
                     return NCudaLib::THandleBasedMemoryPointer<char, NCudaLib::EPtrType::Host>(Handle, Offset).Get();
                 }
                 default: {
-                    CB_ENSURE(false, "Error: unknown ptr type");
+                    ythrow TCatBoostException() << "Error: unknown ptr type";
                 }
             }
             Y_UNREACHABLE();
