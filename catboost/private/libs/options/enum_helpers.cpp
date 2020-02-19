@@ -417,7 +417,8 @@ static const TVector<ELossFunction> RegressionObjectives = {
     ELossFunction::MAPE,
     ELossFunction::Poisson,
     ELossFunction::Lq,
-    ELossFunction::Huber
+    ELossFunction::Huber,
+    ELossFunction::UserPerObjMetric
 };
 
 static const TVector<ELossFunction> MultiRegressionObjectives = {
