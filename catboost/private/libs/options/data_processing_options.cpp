@@ -6,7 +6,7 @@
 #include <util/string/cast.h>
 
 namespace {
-    constexpr char PROBABILITY_BORDER_PARAM[] = "prob_border";
+    constexpr char PROBABILITY_BORDER_PARAM[] = "probability_border";
 }
 
 NCatboostOptions::TDataProcessingOptions::TDataProcessingOptions(ETaskType type)
