@@ -288,7 +288,7 @@ THolder<IMetric> MakeCrossEntropyMetric(
     ELossFunction lossFunction,
     double border = GetDefaultTargetBorder());
 
-THolder<IMetric> MakeCtrFactorMetric(double border = GetDefaultTargetBorder());
+THolder<IMetric> MakeCtrFactorMetric(const TMap<TString, TString>& params);
 
 THolder<IMetric> MakeRMSEMetric();
 

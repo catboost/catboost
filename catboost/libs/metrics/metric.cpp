@@ -253,7 +253,8 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeCtrFactorMetric(double border) {
+THolder<IMetric> MakeCtrFactorMetric(const TMap<TString, TString>& params) {
+    const float border = NCatboostOptions::GetTargetBorderFromLossParams(params).GetOrElse(GetDefaultTargetBorder());
     return MakeHolder<TCtrFactorMetric>(border);
 }
 

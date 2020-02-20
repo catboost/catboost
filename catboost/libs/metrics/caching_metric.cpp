@@ -952,10 +952,11 @@ static TVector<THolder<IMetric>> CreateMetric(int approxDimension, const TMap<TS
 }
 
 template <typename TMetricType>
-static TVector<THolder<IMetric>> CreateMetricClasswise(int approxDimension) {
+static TVector<THolder<IMetric>> CreateMetricClasswise(int approxDimension, const TMap<TString, TString>& params) {
     TVector<THolder<IMetric>> result;
     if (approxDimension == 1) {
-        result.emplace_back(MakeHolder<TMetricType>(GetDefaultTargetBorder()));
+        const float border = NCatboostOptions::GetTargetBorderFromLossParams(params).GetOrElse(GetDefaultTargetBorder());
+        result.emplace_back(MakeHolder<TMetricType>(border));
     } else {
         for (int i : xrange(approxDimension)) {
             result.emplace_back(MakeHolder<TMetricType>(approxDimension, i));
@@ -969,7 +970,7 @@ TVector<THolder<IMetric>> CreateCachingMetrics(ELossFunction metric, const TMap<
 
     switch(metric) {
         case ELossFunction::F1: {
-            return CreateMetricClasswise<TF1CachingMetric>(approxDimension);
+            return CreateMetricClasswise<TF1CachingMetric>(approxDimension, params);
         }
         case ELossFunction::TotalF1: {
             *validParams = TSet<TString>{"average"};
@@ -1003,14 +1004,14 @@ TVector<THolder<IMetric>> CreateCachingMetrics(ELossFunction metric, const TMap<
         }
         case ELossFunction::CtrFactor: {
             TVector<THolder<IMetric>> result;
-            result.emplace_back(MakeCtrFactorMetric(GetDefaultTargetBorder()));
+            result.emplace_back(MakeCtrFactorMetric(params));
             return result;
         }
         case ELossFunction::Precision: {
-            return CreateMetricClasswise<TPrecisionCachingMetric>(approxDimension);
+            return CreateMetricClasswise<TPrecisionCachingMetric>(approxDimension, params);
         }
         case ELossFunction::Recall: {
-            return CreateMetricClasswise<TRecallCachingMetric>(approxDimension);
+            return CreateMetricClasswise<TRecallCachingMetric>(approxDimension, params);
         }
         default: {
             return {};
