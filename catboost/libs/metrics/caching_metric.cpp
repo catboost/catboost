@@ -5,6 +5,7 @@
 #include "enums.h"
 
 #include <catboost/libs/helpers/dispatch_generic_lambda.h>
+#include <catboost/private/libs/options/data_processing_options.h>
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <util/generic/string.h>
 #include <util/generic/set.h>
@@ -939,10 +940,11 @@ TVector<TMetricHolder> EvalErrorsWithCaching(
 }
 
 template <typename TMetricType>
-static TVector<THolder<IMetric>> CreateMetric(int approxDimension) {
+static TVector<THolder<IMetric>> CreateMetric(int approxDimension, const TMap<TString, TString>& params) {
     TVector<THolder<IMetric>> result;
     if (approxDimension == 1) {
-        result.emplace_back(MakeHolder<TMetricType>(GetDefaultTargetBorder()));
+        const float border = NCatboostOptions::GetTargetBorderFromLossParams(params).GetOrElse(GetDefaultTargetBorder());
+        result.emplace_back(MakeHolder<TMetricType>(border));
     } else {
         result.emplace_back(MakeHolder<TMetricType>(approxDimension));
     }
@@ -963,7 +965,6 @@ static TVector<THolder<IMetric>> CreateMetricClasswise(int approxDimension) {
 }
 
 TVector<THolder<IMetric>> CreateCachingMetrics(ELossFunction metric, const TMap<TString, TString>& params, int approxDimension, TSet<TString>* validParams) {
-    Y_UNUSED(params);
     *validParams = TSet<TString>{};
 
     switch(metric) {
@@ -986,7 +987,7 @@ TVector<THolder<IMetric>> CreateCachingMetrics(ELossFunction metric, const TMap<
             return result;
         }
         case ELossFunction::MCC: {
-            return CreateMetric<TMCCCachingMetric>(approxDimension);
+            return CreateMetric<TMCCCachingMetric>(approxDimension, params);
         }
         case ELossFunction::BrierScore: {
             CB_ENSURE(approxDimension == 1, "Brier Score is used only for binary classification problems.");
@@ -995,10 +996,10 @@ TVector<THolder<IMetric>> CreateCachingMetrics(ELossFunction metric, const TMap<
             return result;
         }
         case ELossFunction::ZeroOneLoss: {
-            return CreateMetric<TZeroOneLossCachingMetric>(approxDimension);
+            return CreateMetric<TZeroOneLossCachingMetric>(approxDimension, params);
         }
         case ELossFunction::Accuracy: {
-            return CreateMetric<TAccuracyCachingMetric>(approxDimension);
+            return CreateMetric<TAccuracyCachingMetric>(approxDimension, params);
         }
         case ELossFunction::CtrFactor: {
             TVector<THolder<IMetric>> result;
