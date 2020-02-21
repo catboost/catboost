@@ -6140,6 +6140,27 @@ def test_weights_in_eval_metric(metric):
     assert not np.isclose(result_with_no_weights, result_with_weights)
 
 
+@pytest.mark.parametrize('metric_name', ['Accuracy', 'Precision', 'ZeroOneLoss'])
+@pytest.mark.parametrize('probability_border', [0.2, 0.5, 0.8])
+def test_probability_border_in_eval_metric(metric_name, probability_border):
+    metric_with_border = "{metric_name}:probability_border={probability_border}".format(
+        metric_name=metric_name,
+        probability_border=probability_border
+    )
+    metric_no_params = metric_name
+    predictions = np.hstack([np.linspace(0, 1, 10),
+                             np.linspace(0, 1, 10)])
+    label = [0] * 10 + [1] * 10
+
+    # We test that the metrics are correctly rounding the probability. Thus, the results with a custom border should
+    # be identical if we just round the predictions before evaluating the metric with the given threshold.
+    binarized_predictions = np.where(predictions >= probability_border, 1.0, 0.0)
+
+    result_with_border = eval_metric(label, predictions, metric_with_border)
+    result_expected = eval_metric(label, binarized_predictions, metric_no_params)
+    assert np.isclose(result_with_border, result_expected)
+
+
 def test_dataframe_with_custom_index():
     X = DataFrame(np.random.randint(0, 9, (3, 2)), index=[55, 675, 34])
     X[0] = X[0].astype('category')

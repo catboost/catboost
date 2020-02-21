@@ -27,6 +27,8 @@ namespace NCatboostOptions {
         TOption<TLossDescription> EvalMetric;
         TOption<TLossDescription> ObjectiveMetric;
         TOption<TVector<TLossDescription>> CustomMetrics;
+
+        static constexpr char PROBABILITY_BORDER_PARAM[] = "probability_border";
     };
 }
 

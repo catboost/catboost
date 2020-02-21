@@ -965,11 +965,13 @@ static TVector<THolder<IMetric>> CreateMetricClasswise(int approxDimension, cons
     return result;
 }
 
-TVector<THolder<IMetric>> CreateCachingMetrics(ELossFunction metric, const TMap<TString, TString>& params, int approxDimension, TSet<TString>* validParams) {
+TVector<THolder<IMetric>> CreateCachingMetrics(ELossFunction metric, const TMap<TString, TString>& params,
+        int approxDimension, TSet<TString>* validParams) {
     *validParams = TSet<TString>{};
 
     switch(metric) {
         case ELossFunction::F1: {
+            validParams->insert(NCatboostOptions::TMetricOptions::PROBABILITY_BORDER_PARAM);
             return CreateMetricClasswise<TF1CachingMetric>(approxDimension, params);
         }
         case ELossFunction::TotalF1: {
@@ -988,6 +990,7 @@ TVector<THolder<IMetric>> CreateCachingMetrics(ELossFunction metric, const TMap<
             return result;
         }
         case ELossFunction::MCC: {
+            validParams->insert(NCatboostOptions::TMetricOptions::PROBABILITY_BORDER_PARAM);
             return CreateMetric<TMCCCachingMetric>(approxDimension, params);
         }
         case ELossFunction::BrierScore: {
@@ -997,20 +1000,25 @@ TVector<THolder<IMetric>> CreateCachingMetrics(ELossFunction metric, const TMap<
             return result;
         }
         case ELossFunction::ZeroOneLoss: {
+            validParams->insert(NCatboostOptions::TMetricOptions::PROBABILITY_BORDER_PARAM);
             return CreateMetric<TZeroOneLossCachingMetric>(approxDimension, params);
         }
         case ELossFunction::Accuracy: {
+            validParams->insert(NCatboostOptions::TMetricOptions::PROBABILITY_BORDER_PARAM);
             return CreateMetric<TAccuracyCachingMetric>(approxDimension, params);
         }
         case ELossFunction::CtrFactor: {
+            validParams->insert(NCatboostOptions::TMetricOptions::PROBABILITY_BORDER_PARAM);
             TVector<THolder<IMetric>> result;
             result.emplace_back(MakeCtrFactorMetric(params));
             return result;
         }
         case ELossFunction::Precision: {
+            validParams->insert(NCatboostOptions::TMetricOptions::PROBABILITY_BORDER_PARAM);
             return CreateMetricClasswise<TPrecisionCachingMetric>(approxDimension, params);
         }
         case ELossFunction::Recall: {
+            validParams->insert(NCatboostOptions::TMetricOptions::PROBABILITY_BORDER_PARAM);
             return CreateMetricClasswise<TRecallCachingMetric>(approxDimension, params);
         }
         default: {

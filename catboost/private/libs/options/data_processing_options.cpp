@@ -1,13 +1,10 @@
 #include "data_processing_options.h"
 #include "json_helper.h"
 #include "restrictions.h"
+#include "metric_options.h"
 
 #include <catboost/libs/helpers/exception.h>
 #include <util/string/cast.h>
-
-namespace {
-    constexpr char PROBABILITY_BORDER_PARAM[] = "probability_border";
-}
 
 NCatboostOptions::TDataProcessingOptions::TDataProcessingOptions(ETaskType type)
     : IgnoredFeatures("ignored_features", TVector<ui32>())
@@ -111,7 +108,7 @@ void NCatboostOptions::TDataProcessingOptions::SetPerFeatureMissingSettingToComm
 }
 
 TMaybe<float> NCatboostOptions::GetTargetBorderFromLossParams(const TMap<TString, TString>& params) {
-    auto it = params.find(PROBABILITY_BORDER_PARAM);
+    auto it = params.find(TMetricOptions::PROBABILITY_BORDER_PARAM);
     if (it == params.end()) {
         return Nothing();
     }
