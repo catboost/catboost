@@ -14,7 +14,6 @@
 #include <util/generic/vector.h>
 
 #include <util/system/types.h>
-#include <iostream>
 
 using ::TCrossValidationParams;
 

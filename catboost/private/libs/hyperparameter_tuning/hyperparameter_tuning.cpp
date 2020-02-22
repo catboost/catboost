@@ -1193,7 +1193,6 @@ namespace NCB {
         double bestParamsSetMetricValue = Max<double>();
         TVector<TCVResult> bestCvResult;
         
-        // заходим только один раз в цикл
         for (auto gridEnumerator : xrange(paramGrids.size())) {
             auto grid = paramGrids[gridEnumerator];
             // Preparing parameters for cartesian product
