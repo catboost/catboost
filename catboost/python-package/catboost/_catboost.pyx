@@ -1389,6 +1389,7 @@ cdef extern from "catboost/private/libs/hyperparameter_tuning/hyperparameter_tun
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
         TDataProviderPtr pool,
         TBestOptionValuesWithCvResult* results,
+        THashMap[TString, THashMap[TString, double]]* trainTestResult,
         bool_t isSearchUsingCV,
         bool_t isReturnCvResults,
         int verbose) nogil except +ProcessException
@@ -1404,6 +1405,7 @@ cdef extern from "catboost/private/libs/hyperparameter_tuning/hyperparameter_tun
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
         TDataProviderPtr pool,
         TBestOptionValuesWithCvResult* results,
+        THashMap[TString, THashMap[TString, double]]* trainTestResult,
         bool_t isSearchUsingCV,
         bool_t isReturnCvResults,
         int verbose) nogil except +ProcessException
@@ -4407,6 +4409,7 @@ cdef class _CatBoost:
         ttParams.TrainPart = train_size
 
         cdef TBestOptionValuesWithCvResult results
+        cdef THashMap[TString, THashMap[TString, double]] trainTestResults
         with nogil:
             SetPythonInterruptHandler()
             try:
@@ -4420,6 +4423,7 @@ cdef class _CatBoost:
                         prep_params.customMetricDescriptor,
                         train_pool.__pool,
                         &results,
+                        &trainTestResults,
                         choose_by_train_test_split,
                         return_cv_results,
                         verbose
@@ -4436,6 +4440,7 @@ cdef class _CatBoost:
                         prep_params.customMetricDescriptor,
                         train_pool.__pool,
                         &results,
+                        &trainTestResults,
                         choose_by_train_test_split,
                         return_cv_results,
                         verbose
@@ -4444,6 +4449,19 @@ cdef class _CatBoost:
                 ResetPythonInterruptHandler()
         cv_results = defaultdict(list)
         result_metrics = set()
+        cdef THashMap[TString, double] metric_result
+        if choose_by_train_test_split:
+            for metric, value in trainTestResults["learn"]:
+
+                self.__metrics_history.LearnBestError[metric] = value
+                print("learn", metric, value)
+            for metric, value in trainTestResults["test"]:
+
+                if self.__metrics_history.TestBestError.empty():
+                    metric_result[metric] = trainTestResults["test"][metric]
+                else:
+                    self.__metrics_history.TestBestError[0][metric] = trainTestResults["test"][metric]
+                print("test", metric, value)
         for metric_idx in xrange(results.CvResult.size()):
             name = to_native_str(results.CvResult[metric_idx].Metric)
             if name in result_metrics:
@@ -4458,6 +4476,19 @@ cdef class _CatBoost:
                 cv_results
             )
             result_metrics.add(name)
+            metric_name = results.CvResult[metric_idx].Metric
+            if choose_by_train_test_split == False:
+
+                self.__metrics_history.LearnBestError[metric_name] = np.mean(results.CvResult[metric_idx].AverageTrain.back())
+                print("no choose by traintest train", metric_name)
+                if self.__metrics_history.TestBestError.empty():
+                    metric_result[metric_name] = np.mean(results.CvResult[metric_idx].AverageTest.back())
+                else:
+                    self.__metrics_history.TestBestError[0][metric_name] = np.mean(results.CvResult[metric_idx].AverageTest.back())
+                print("no choose by traintest test", metric_name)
+
+        if self.__metrics_history.TestBestError.empty():
+            self.__metrics_history.TestBestError.push_back(metric_result)
         best_params = {}
         for key, value in results.BoolOptions:
             best_params[to_native_str(key)] = value

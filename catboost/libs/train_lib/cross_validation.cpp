@@ -2,6 +2,7 @@
 #include "dir_helper.h"
 #include "train_model.h"
 #include "options_helper.h"
+#include <iostream>
 
 #include <catboost/private/libs/algo/approx_dimension.h>
 #include <catboost/private/libs/algo/calc_score_cache.h>
@@ -321,6 +322,9 @@ void TrainBatch(
         upToIteration,
         foldContext);
 
+    // polinakomissarova
+    TMetricsAndTimeLeftHistory metricsAndTimeHistory;
+    
     modelTrainer->TrainModel(
         internalOptions,
         catboostOption,
@@ -337,7 +341,9 @@ void TrainBatch(
         /*rand*/ Nothing(),
         /*model*/ nullptr,
         TVector<TEvalResult*>{&foldContext->LastUpdateEvalResult},
-        /*metricsAndTimeHistory*/nullptr,
+        // polinakomissarova
+        ///*metricsAndTimeHistory*/nullptr,
+        &metricsAndTimeHistory,
         (foldContext->TaskType == ETaskType::CPU) ? &dstLearnProgress : nullptr
     );
     foldContext->LearnProgress = std::move(dstLearnProgress);
@@ -815,6 +821,7 @@ void CrossValidate(
             }
         }
     }
+    
 
     if (!outputFileOptions.GetRocOutputPath().empty()) {
         CB_ENSURE(

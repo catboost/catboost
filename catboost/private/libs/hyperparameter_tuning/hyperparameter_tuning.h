@@ -14,6 +14,7 @@
 #include <util/generic/vector.h>
 
 #include <util/system/types.h>
+#include <iostream>
 
 using ::TCrossValidationParams;
 
@@ -52,6 +53,7 @@ namespace NCB {
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         TDataProviderPtr data,
         TBestOptionValuesWithCvResult* bestOptionValuesWithCvResult,
+        THashMap<TString, THashMap<TString, double>>* trainTestResult,
         bool isSearchUsingTrainTestSplit = true,
         bool returnCvStat = true,
         int verbose = 1);
@@ -67,6 +69,7 @@ namespace NCB {
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         TDataProviderPtr data,
         TBestOptionValuesWithCvResult* bestOptionValuesWithCvResult,
+        THashMap<TString, THashMap<TString, double>>* trainTestResult,
         bool isSearchUsingTrainTestSplit = true,
         bool returnCvStat = true,
         int verbose = 1);

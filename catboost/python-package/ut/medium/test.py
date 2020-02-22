@@ -2504,6 +2504,47 @@ def test_grid_search_aliases(task_type):
         assert value in grid[key]
 
 
+def test_grid_search_and_get_best_result(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    for refit in [True, False]:
+        model = CatBoost(
+            {
+                "loss_function": "Logloss",
+                "eval_metric": "AUC",
+                "task_type": task_type,
+                "custom_metric": ["CrossEntropy", "F1"]
+            }
+        )
+        feature_border_type_list = ['Median', 'Uniform', 'UniformAndQuantiles', 'MaxLogSum']
+        one_hot_max_size_list = [4, 7, 10]
+        iterations_list = [5, 7, 10]
+        border_count_list = [4, 10, 50, 100]
+        results = model.grid_search(
+            {
+                'feature_border_type': feature_border_type_list,
+                'one_hot_max_size': one_hot_max_size_list,
+                'iterations': iterations_list,
+                'border_count': border_count_list
+            },
+            pool,
+            refit=refit
+        )
+        best_scores = model.get_best_score()
+        if refit:
+            assert 'validation' not in best_scores, 'validation results found for refit=True'
+            assert 'learn' in best_scores, 'no train results found for refit=True'
+        else:
+            assert 'validation' in best_scores, 'no validation results found for refit=False'
+            assert 'learn' in best_scores, 'no train results found for refit=False'
+        if 'validation' in best_scores:
+            for metric in ["AUC", "Logloss", "CrossEntropy", "F1"]:
+                assert metric in best_scores['validation'], 'no validation ' + metric + ' results found'
+        if 'learn' in best_scores:
+            for metric in ["Logloss", "CrossEntropy", "F1"]:
+                assert metric in best_scores['learn'], 'no train ' + metric + ' results found'
+            assert "AUC" not in best_scores['learn'], 'train AUC results found'
+
+
 def test_grid_search(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoost(

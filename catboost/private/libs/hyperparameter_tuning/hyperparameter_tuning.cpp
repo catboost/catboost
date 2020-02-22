@@ -686,6 +686,26 @@ namespace {
         }
         oneIterLogger.OutputParameters(parametersToken, jsonParams);
     }
+    
+    void UpdateTrainTestResult(TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
+                               THashMap<TString, THashMap<TString, double>>* trainTestResult,
+                               const TVector<THolder<IMetric>>* metrics) {
+        auto& learnErrors = (*metricsAndTimeHistory).LearnBestError;
+        auto& testErrors = (*metricsAndTimeHistory).TestBestError[0];
+        THashMap<TString, double> learnResults;
+        THashMap<TString, double> testResults;
+        for (auto metricIdx : xrange((*metrics).size())) {
+            const auto& lossDescription = (*metrics)[metricIdx]->GetDescription();
+            if (learnErrors.contains(lossDescription)) {
+                learnResults[lossDescription] = learnErrors.at(lossDescription);
+            }
+            if (testErrors.contains(lossDescription)) {
+                testResults[lossDescription] = testErrors.at(lossDescription);
+            }
+        }
+        (*trainTestResult)["learn"] = learnResults;
+        (*trainTestResult)["test"] = testResults;
+    }
 
     double TuneHyperparamsCV(
         const TVector<TString>& paramNames,
@@ -888,6 +908,7 @@ namespace {
         TProductIteratorBase<TDeque<NJson::TJsonValue>, NJson::TJsonValue>* gridIterator,
         NJson::TJsonValue* modelParamsToBeTried,
         TGridParamsInfo * bestGridParams,
+        THashMap<TString, THashMap<TString, double>>* trainTestResult,
         NPar::TLocalExecutor* localExecutor,
         int verbose,
         const THashMap<TString, NCB::TCustomRandomDistributionGenerator>& randDistGenerators = {}) {
@@ -1032,6 +1053,7 @@ namespace {
                         &logger
                     );
                 }
+                UpdateTrainTestResult(&metricsAndTimeHistory, trainTestResult, &metrics);
             }
             bool isUpdateBest = SetBestParamsAndUpdateMetricValueIfNeeded(
                 bestMetricValue,
@@ -1044,6 +1066,7 @@ namespace {
                 &bestParamsSetMetricValue);
             if (isUpdateBest) {
                 bestIterationIdx = iterationIdx;
+                UpdateTrainTestResult(&metricsAndTimeHistory, trainTestResult, &metrics);
             }
             TOneInterationLogger oneIterLogger(logger);
             oneIterLogger.OutputMetric(
@@ -1140,6 +1163,7 @@ namespace NCB {
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         TDataProviderPtr data,
         TBestOptionValuesWithCvResult* bestOptionValuesWithCvResult,
+        THashMap<TString, THashMap<TString, double>>* trainTestResult,
         bool isSearchUsingTrainTestSplit,
         bool returnCvStat,
         int verbose) {
@@ -1168,6 +1192,8 @@ namespace NCB {
 
         double bestParamsSetMetricValue = Max<double>();
         TVector<TCVResult> bestCvResult;
+        
+        // заходим только один раз в цикл
         for (auto gridEnumerator : xrange(paramGrids.size())) {
             auto grid = paramGrids[gridEnumerator];
             // Preparing parameters for cartesian product
@@ -1209,6 +1235,7 @@ namespace NCB {
                     &gridIterator,
                     &modelParamsToBeTried,
                     &gridParams,
+                    trainTestResult,
                     &localExecutor,
                     verbose
                 );
@@ -1268,6 +1295,7 @@ namespace NCB {
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         TDataProviderPtr data,
         TBestOptionValuesWithCvResult* bestOptionValuesWithCvResult,
+        THashMap<TString, THashMap<TString, double>>* trainTestResult,
         bool isSearchUsingTrainTestSplit,
         bool returnCvStat,
         int verbose) {
@@ -1332,6 +1360,7 @@ namespace NCB {
                 &gridIterator,
                 &modelParamsToBeTried,
                 &bestGridParams,
+                trainTestResult,
                 &localExecutor,
                 verbose,
                 randDistGenerators
