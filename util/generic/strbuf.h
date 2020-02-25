@@ -415,10 +415,6 @@ public: // string subsequences
         return {Start, Length};
     }
 
-    TBasicString<TCharType> Quote() const {
-        return TString{*this}.Quote();
-    }
-
 private:
     inline size_t ChopImpl(size_t shift) noexcept {
         if (shift > length())
