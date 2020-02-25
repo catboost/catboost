@@ -538,3 +538,18 @@ def onpy_main(unit, arg):
         arg += ':main'
 
     py_main(unit, arg)
+
+
+def onpy_constructor(unit, arg):
+    """
+        @usage: PY_CONSTRUCTOR(package.module[:func])
+
+        Specifies the module or function which will be started before python's main()
+        init() is expected in the target module if no function is specified
+        Can be considered as __attribute__((constructor)) for python
+    """
+    if ':' not in arg:
+        arg = arg + '=init'
+    else:
+        arg[arg.index(':')] = '='
+    unit.onresource(['-', 'py/constructors/{}'.format(arg)])

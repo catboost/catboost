@@ -80,6 +80,7 @@ static void ShrinkModel(int itCount, const TCtrHelper& ctrsHelper, TLearnProgres
 
 static TDataProviders LoadPools(
     const NCatboostOptions::TPoolLoadParams& loadOptions,
+    ETaskType taskType,
     ui64 cpuRamLimit,
     EObjectsOrder objectsOrder,
     TDatasetSubset trainDatasetSubset,
@@ -94,7 +95,7 @@ static TDataProviders LoadPools(
         "Test files are not supported in cross-validation mode"
     );
 
-    auto pools = NCB::ReadTrainDatasets(loadOptions, objectsOrder, !cvMode, trainDatasetSubset, classLabels, executor, profile);
+    auto pools = NCB::ReadTrainDatasets(taskType, loadOptions, objectsOrder, !cvMode, trainDatasetSubset, classLabels, executor, profile);
 
     if (cvMode) {
         if (cvParams.Shuffle && (pools.Learn->ObjectsData->GetOrder() != EObjectsOrder::RandomShuffled)) {
@@ -815,11 +816,25 @@ namespace {
 
 TTrainerFactory::TRegistrator<TCPUModelTrainer> CPURegistrator(ETaskType::CPU);
 
-static bool IsDistributedShared(
+static bool HaveLearnFeaturesInMemory(
     const NCatboostOptions::TPoolLoadParams* loadOptions,
     const NCatboostOptions::TCatBoostOptions& catBoostOptions
 ) {
-    return catBoostOptions.SystemOptions->IsMaster() && loadOptions != nullptr && IsSharedFs(loadOptions->LearnSetPath);
+    #if defined(USE_MPI)
+    const bool isGpuDistributed = catBoostOptions.GetTaskType() == ETaskType::GPU;
+    #else
+    const bool isGpuDistributed = false;
+    #endif
+    const bool isCpuDistributed = catBoostOptions.SystemOptions->IsMaster();
+    if (!isCpuDistributed && !isGpuDistributed) {
+        return true;
+    }
+    if (loadOptions == nullptr) {
+        return true;
+    }
+    const auto& learnSetPath = loadOptions->LearnSetPath;
+    const bool isQuantized = learnSetPath.Scheme.find("quantized") != std::string::npos;
+    return !IsSharedFs(learnSetPath) || !isQuantized;
 }
 
 static void TrainModel(
@@ -930,7 +945,7 @@ static void TrainModel(
         needInitModelApplyCompatiblePools ? pools : std::move(pools),
         /* borders */ Nothing(), // borders are already loaded to quantizedFeaturesInfo
         /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/
-            !IsDistributedShared(poolLoadOptions, catBoostOptions),
+            HaveLearnFeaturesInMemory(poolLoadOptions, catBoostOptions),
         outputOptions.AllowWriteFiles(),
         tmpDir,
         quantizedFeaturesInfo,
@@ -1028,13 +1043,7 @@ void TrainModel(
 
     const auto fstrRegularFileName = outputOptions.CreateFstrRegularFullPath();
     const auto fstrInternalFileName = outputOptions.CreateFstrIternalFullPath();
-    EGrowPolicy growPolicy = catBoostOptions.ObliviousTreeOptions.Get().GrowPolicy;
     bool needFstr = !fstrInternalFileName.empty() || !fstrRegularFileName.empty();
-
-    if (needFstr && ShouldSkipFstrGrowPolicy(growPolicy)) {
-        needFstr = false;
-        CATBOOST_INFO_LOG << "Skip fstr for " << growPolicy << " growPolicy" << Endl;
-    }
 
     auto modelFormat = outputOptions.GetModelFormats()[0];
     for (int formatIdx = 1; !IsDeserializableModelFormat(modelFormat) && formatIdx < outputOptions.GetModelFormats().ysize(); ++formatIdx) {
@@ -1060,12 +1069,24 @@ void TrainModel(
     TVector<NJson::TJsonValue> classLabels = catBoostOptions.DataProcessingOptions->ClassLabels;
     const auto objectsOrder = catBoostOptions.DataProcessingOptions->HasTimeFlag.Get() ?
         EObjectsOrder::Ordered : EObjectsOrder::Undefined;
-    const bool hasFeatures = !IsDistributedShared(&loadOptions, catBoostOptions);
+
+    auto lossFunction = catBoostOptions.LossFunctionDescription->GetLossFunction();
+    auto fstrType = AdjustFeatureImportanceType(outputOptions.GetFstrType(), lossFunction);
+    const bool isLossFunctionChangeFstr = needFstr && fstrType == EFstrType::LossFunctionChange;
+
+    const bool haveLearnFeaturesInMemory = HaveLearnFeaturesInMemory(&loadOptions, catBoostOptions);
+    CB_ENSURE(
+        haveLearnFeaturesInMemory || !isLossFunctionChangeFstr,
+        "Only " << EFstrType::PredictionValuesChange << " is supported in distributed training for schema " << loadOptions.LearnSetPath.Scheme);
+    CB_ENSURE(
+        haveLearnFeaturesInMemory || catBoostOptions.BoostingOptions->BoostingType == EBoostingType::Plain,
+        "Only plain boosting is supported in distributed training for schema " << loadOptions.LearnSetPath.Scheme);
     TDataProviders pools = LoadPools(
         loadOptions,
+        catBoostOptions.GetTaskType(),
         ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get()),
         objectsOrder,
-        TDatasetSubset::MakeColumns(hasFeatures),
+        TDatasetSubset::MakeColumns(haveLearnFeaturesInMemory),
         &classLabels,
         &executor,
         &profile);
@@ -1113,12 +1134,7 @@ void TrainModel(
             quantizedFeaturesInfo.Get());
     }
 
-    bool needPoolAfterTrain = !evalOutputFileName.empty() || (needFstr && outputOptions.GetFstrType() == EFstrType::LossFunctionChange);
-    if (needFstr && outputOptions.GetFstrType() == EFstrType::FeatureImportance && updatedTrainJson.Has("loss_function")) {
-        NCatboostOptions::TLossDescription modelLossDescription;
-        modelLossDescription.Load(updatedTrainJson["loss_function"]);
-        needPoolAfterTrain |= IsGroupwiseMetric(modelLossDescription.LossFunction.Get());
-    }
+    bool needPoolAfterTrain = !evalOutputFileName.empty() || isLossFunctionChangeFstr;
     TrainModel(
         updatedTrainJson,
         outputOptions,
@@ -1185,9 +1201,10 @@ void TrainModel(
 
     if (needFstr) {
         TFullModel model = ReadModel(fullModelPath, modelFormat);
+        const bool useLearnToCalcFstr = haveLearnFeaturesInMemory && isLossFunctionChangeFstr;
         CalcAndOutputFstr(
             model,
-            GetFeatureImportanceType(model, true, outputOptions.GetFstrType()) == EFstrType::LossFunctionChange ? pools.Learn : nullptr,
+            useLearnToCalcFstr ? pools.Learn : nullptr,
             &executor,
             &fstrRegularFileName,
             &fstrInternalFileName,
@@ -1329,6 +1346,7 @@ void ModelBasedEval(
 
     TDataProviders pools = LoadPools(
         loadOptions,
+        catBoostOptions.GetTaskType(),
         ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get()),
         catBoostOptions.DataProcessingOptions->HasTimeFlag.Get() ?
             EObjectsOrder::Ordered : EObjectsOrder::Undefined,

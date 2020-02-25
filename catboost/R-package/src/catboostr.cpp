@@ -137,7 +137,8 @@ SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
     TStringBuf pairsPathWithScheme(CHAR(asChar(pairsFileParam)));
     TStringBuf featureNamesPathWithScheme(CHAR(asChar(featureNamesFileParam)));
 
-    TDataProviderPtr poolPtr = ReadDataset(TPathWithScheme(CHAR(asChar(poolFileParam)), "dsv"),
+    TDataProviderPtr poolPtr = ReadDataset(/*taskType*/Nothing(),
+                                           TPathWithScheme(CHAR(asChar(poolFileParam)), "dsv"),
                                            !pairsPathWithScheme.empty() ?
                                                TPathWithScheme(pairsPathWithScheme, "dsv") : TPathWithScheme(),
                                            /*groupWeightsFilePath=*/TPathWithScheme(),

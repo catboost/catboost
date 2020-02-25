@@ -2822,24 +2822,23 @@ def test_feature_importance(task_type):
 
 @pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
 def test_feature_importance_asymmetric_prediction_value_change(task_type, grow_policy):
-    if task_type == "CPU":
-        return
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     pool_querywise = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
 
-    model = CatBoost(
-        {
-            "iterations": 5,
-            "learning_rate": 0.03,
-            "task_type": "GPU",
-            "devices": "0",
-            "loss_function": "QueryRMSE",
-            "grow_policy": grow_policy
-        }
-    )
+    params = {
+        "iterations": 5,
+        "learning_rate": 0.03,
+        "task_type": task_type,
+        "devices": "0",
+        "loss_function": "QueryRMSE",
+        "grow_policy": grow_policy
+    }
+    model = CatBoost(params)
     model.fit(pool_querywise)
     assert len(model.feature_importances_.shape) == 0
+    params["loss_function"] = "RMSE"
+    model = CatBoost(params)
     model.fit(pool)
     assert (model.get_feature_importance() == model.get_feature_importance(type=EFstrType.PredictionValuesChange)).all()
     np.save(fimp_npy_path, np.array(model.feature_importances_))
@@ -2882,8 +2881,11 @@ def test_shap_feature_importance(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, max_ctr_complexity=1, task_type=task_type, devices='0')
     model.fit(pool)
+    shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool)
+    assert np.allclose(model.predict(pool, prediction_type='RawFormulaVal'), np.sum(shaps, axis=1))
+
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
-    np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool)))
+    np.save(fimp_npy_path, np.around(np.array(shaps), 9))
     return local_canonical_file(fimp_npy_path)
 
 
@@ -2893,6 +2895,26 @@ def test_shap_feature_importance_multiclass(task_type):
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool)), 9))
+    return local_canonical_file(fimp_npy_path)
+
+
+def test_shap_feature_importance_ranking(task_type):
+    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
+    model = CatBoost(
+        {
+            "iterations": 5,
+            "learning_rate": 0.03,
+            "task_type": task_type,
+            "devices": "0",
+            "loss_function": "PairLogit"
+        }
+    )
+    model.fit(pool)
+    shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool)
+    assert np.allclose(model.predict(pool), np.sum(shaps, axis=1))
+
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.around(np.array(shaps), 9))
     return local_canonical_file(fimp_npy_path)
 
 
@@ -2915,8 +2937,11 @@ def test_shap_feature_importance_with_langevin():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, depth=10, langevin=True, diffusion_temperature=1000)
     model.fit(pool)
+    shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool)
+    assert np.allclose(model.predict(pool, prediction_type='RawFormulaVal'), np.sum(shaps, axis=1))
+
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
-    np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool)))
+    np.save(fimp_npy_path, np.around(np.array(shaps), 9))
     return local_canonical_file(fimp_npy_path)
 
 
@@ -2937,8 +2962,6 @@ def test_loss_function_change_asymmetric_and_symmetric(task_type):
 
 @pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
 def test_shap_feature_importance_asymmetric(task_type, grow_policy):
-    if task_type == 'CPU':
-        return
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(
         iterations=5,
@@ -2955,8 +2978,6 @@ def test_shap_feature_importance_asymmetric(task_type, grow_policy):
 
 @pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
 def test_loss_function_change_asymmetric(task_type, grow_policy):
-    if task_type == 'CPU':
-        return
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(
         iterations=5,
@@ -5307,8 +5328,6 @@ def test_param_synonyms(task_type):
 
 @pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
 def test_grow_policy_fails(task_type, grow_policy):
-    if task_type == 'CPU':
-        return
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
     args = {
@@ -5325,25 +5344,21 @@ def test_grow_policy_fails(task_type, grow_policy):
 
     model.fit(train_pool)
 
-    try:
+    with pytest.raises(CatBoostError):
         model.shrink(9)
+    with pytest.raises(CatBoostError):
         model.get_object_importance(test_pool, train_pool)
-        model.get_feature_importance()
-        model.get_feature_importance(type=EFstrType.Interaction)
-        model.get_feature_importance(type=EFstrType.ShapValues, data=train_pool)
 
-        model_output = test_output_path('model')
-        for format in ['AppleCoreML', 'json', 'cpp', 'python', 'onnx']:
+    model_output = test_output_path('model')
+    for format in ['AppleCoreML', 'cpp', 'python', 'onnx']:
+        with pytest.raises(CatBoostError):
             model.save_model(model_output, format=format)
+    with pytest.raises(CatBoostError):
         sum_models([model, model.copy()])
-    except:
-        pass
 
 
 @pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
 def test_multiclass_grow_policy(task_type, grow_policy):
-    if task_type == 'CPU':
-        return
     pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
     # MultiClass
     classifier = CatBoostClassifier(
@@ -5360,39 +5375,40 @@ def test_multiclass_grow_policy(task_type, grow_policy):
     classifier.save_model(output_model_path)
     new_classifier = CatBoostClassifier()
     new_classifier.load_model(output_model_path)
-    pred = new_classifier.predict_proba(pool)
-    preds_path = test_output_path(PREDS_PATH)
-    np.save(preds_path, np.array(pred))
-    return local_canonical_file(preds_path)
+    pred1 = classifier.predict_proba(pool)
+    pred2 = new_classifier.predict_proba(pool)
+    assert np.array_equal(pred1, pred2)
+    learn_error_path = test_output_path("learn_error.txt")
+    np.savetxt(learn_error_path, np.array(classifier.evals_result_['learn']['MultiClass']), fmt='%.8f')
+    return local_canonical_file(learn_error_path)
 
 
 @pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
 def test_grow_policy_restriction(task_type, grow_policy):
-    if task_type == 'CPU':
-        return
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    params = {
+        'iterations': 2,
+        'thread_count': 8,
+        'task_type': task_type,
+        'devices': '0',
+        'grow_policy': grow_policy
+    }
     is_failed = False
     try:
-        classifier = CatBoostClassifier(
-            iterations=2,
-            thread_count=8,
-            task_type=task_type,
-            devices='0',
-            grow_policy=grow_policy,
-            max_leaves=2 ** 16 + 1
-        )
+        if grow_policy == 'Lossguide':
+            params['max_leaves'] = 65537
+        else:
+            params['max_depth'] = 17
+        classifier = CatBoostClassifier(**params)
         classifier.fit(pool)
     except:
         is_failed = True
     assert is_failed
-    classifier = CatBoostClassifier(
-        iterations=2,
-        thread_count=8,
-        task_type=task_type,
-        devices='0',
-        grow_policy=grow_policy,
-        max_leaves=1023
-    )
+    if grow_policy == 'Lossguide':
+        params['max_leaves'] = 65536
+    else:
+        params['max_depth'] = 16
+    classifier = CatBoostClassifier(**params)
     classifier.fit(pool)
     pred = classifier.predict_proba(pool)
     preds_path = test_output_path(PREDS_PATH)
@@ -6409,6 +6425,43 @@ def test_training_and_prediction_equal_on_pandas_dense_and_sparse_input(task_typ
     assert _check_data(predictions_on_dense, predictions_model_on_sparse_on_sparse_pool)
 
 
+def test_sparse_input_with_categorical_features_with_default_value_present_only_in_eval():
+    cat_features = [1, 2]
+
+    """
+        1 x 2
+        x x 3
+        4 5 6
+        1 x 3
+    """
+    row = np.array([0, 0, 1, 2, 2, 2, 3, 3])
+    col = np.array([0, 2, 2, 0, 1, 2, 0, 2])
+    data = np.array([1, 2, 3, 4, 5, 6, 1, 3])
+    X_train = scipy.sparse.csr_matrix((data, (row, col)), shape=(4, 3))
+    y_train = np.array([0, 1, 1, 0])
+
+    """
+        3 4 2
+        x 1 6
+        5 x x
+        7 x 8
+        1 x 1
+    """
+    row = np.array([0, 0, 0, 1, 1, 2, 3, 3, 4, 4])
+    col = np.array([0, 1, 2, 1, 2, 0, 0, 2, 0, 2])
+    data = np.array([3, 4, 2, 1, 6, 5, 7, 8, 1, 1])
+    X_validation = scipy.sparse.csr_matrix((data, (row, col)), shape=(5, 3))
+    y_validation = np.array([1, 0, 0, 1, 0])
+
+    model = CatBoostClassifier(iterations=5)
+
+    model.fit(X_train, y_train, cat_features, eval_set=(X_validation, y_validation))
+
+    preds_path = test_output_path(PREDS_TXT_PATH)
+    np.savetxt(preds_path, model.predict(X_validation), fmt='%.8f')
+    return local_canonical_file(preds_path)
+
+
 @pytest.mark.parametrize('model_shrink_rate', [None, 0, 0.2])
 def test_different_formats_of_monotone_constraints(model_shrink_rate):
     from catboost.datasets import monotonic2, set_cache_path
@@ -6803,8 +6856,8 @@ def test_diffusion_temperature_with_shrink_mode(shrink_mode, shrink_rate, diffus
     model = CatBoostClassifier(**params)
     model.fit(train_pool)
     pred = model.predict_proba(test_pool)
-    preds_path = test_output_path(PREDS_PATH)
-    np.save(preds_path, np.array(pred))
+    preds_path = test_output_path('predictions.tsv')
+    np.savetxt(preds_path, np.array(pred), fmt='%.15f', delimiter='\t')
     return local_canonical_file(preds_path)
 
 

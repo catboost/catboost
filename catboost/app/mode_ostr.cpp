@@ -69,7 +69,8 @@ int mode_ostr(int argc, const char* argv[]) {
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(params.ThreadCount - 1);
 
-    NCB::TDataProviderPtr trainPool = NCB::ReadDataset(params.LearnSetPath,
+    NCB::TDataProviderPtr trainPool = NCB::ReadDataset(/*taskType*/Nothing(),
+                                                       params.LearnSetPath,
                                                        /*pairsFilePath=*/NCB::TPathWithScheme(),
                                                        /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
                                                        /*timestampsFilePath=*/NCB::TPathWithScheme(),
@@ -82,7 +83,8 @@ int mode_ostr(int argc, const char* argv[]) {
                                                        /*classLabels=*/Nothing(),
                                                        &localExecutor);
 
-    NCB::TDataProviderPtr testPool = NCB::ReadDataset(params.TestSetPath,
+    NCB::TDataProviderPtr testPool = NCB::ReadDataset(/*taskType*/Nothing(),
+                                                      params.TestSetPath,
                                                       /*pairsFilePath=*/NCB::TPathWithScheme(),
                                                       /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
                                                       /*timestampsFilePath=*/NCB::TPathWithScheme(),

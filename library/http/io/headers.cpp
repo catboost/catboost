@@ -16,7 +16,7 @@ THttpInputHeader::THttpInputHeader(const TStringBuf header) {
     size_t pos = header.find(':');
 
     if (pos == TString::npos) {
-        ythrow THttpParseException() << "can not parse http header(" << header.Quote() << ")";
+        ythrow THttpParseException() << "can not parse http header(" << DebugQuote(header) << ")";
     }
 
     Name_ = TString(header.cbegin(), header.cbegin() + pos);

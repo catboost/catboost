@@ -215,9 +215,7 @@ NTokenizer::TTokenizer::TTokenizer()
 {
 }
 
-NTokenizer::TTokenizer::TTokenizer(const NTokenizer::TTokenizerOptions& options)
-    : Options(options)
-{
+void NTokenizer::TTokenizer::Initialize() {
     if (TLemmerImplementationFactory::Has(EImplementationType::YandexSpecific)) {
         Lemmer = TLemmerImplementationFactory::Construct(EImplementationType::YandexSpecific, Options.Languages);
     } else {
@@ -230,6 +228,12 @@ NTokenizer::TTokenizer::TTokenizer(const NTokenizer::TTokenizerOptions& options)
     NeedToModifyTokensFlag |= Options.SeparatorType == NTokenizer::ESeparatorType::BySense;
     NeedToModifyTokensFlag |= IsWordChanged(Options);
     NeedToModifyTokensFlag |= Options.NumberProcessPolicy == ETokenProcessPolicy::Replace;
+}
+
+NTokenizer::TTokenizer::TTokenizer(const NTokenizer::TTokenizerOptions& options)
+    : Options(options)
+{
+    Initialize();
 }
 
 void NTokenizer::TTokenizer::Tokenize(
@@ -276,4 +280,21 @@ NTokenizer::TTokenizerOptions NTokenizer::TTokenizer::GetOptions() const {
 
 bool NTokenizer::TTokenizer::NeedToModifyTokens() const {
     return NeedToModifyTokensFlag;
+}
+
+void NTokenizer::TTokenizer::Save(IOutputStream *stream) const {
+    Options.Save(stream);
+}
+
+void NTokenizer::TTokenizer::Load(IInputStream *stream) {
+    Options.Load(stream);
+    Initialize();
+}
+
+bool NTokenizer::TTokenizer::operator==(const TTokenizer& rhs) const {
+    return Options == rhs.Options;
+}
+
+bool NTokenizer::TTokenizer::operator!=(const TTokenizer& rhs) const {
+    return !(*this == rhs);
 }

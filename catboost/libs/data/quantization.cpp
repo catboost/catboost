@@ -2029,7 +2029,7 @@ namespace NCB {
                 textOptions.GetDictionaryOptions(featureDescription.DictionaryId.Get()),
                 tokenizer
             );
-            textDigitizers->AddDigitizer(textFeatureIdx, tokenizedFeatureIdx, tokenizer, dictionary);
+            textDigitizers->AddDigitizer(textFeatureIdx, tokenizedFeatureIdx, {tokenizer, dictionary});
         }
     }
 

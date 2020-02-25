@@ -20,6 +20,8 @@ def main(args):
     if os.path.isfile(args.resource_file):
         fetch_from.process(fetched_file, os.path.splitext(os.path.basename(args.file_name))[0], args, False)
         return
+
+    error = None
     try:
         with open(args.external_file) as f:
             js = json.load(f)
@@ -35,9 +37,12 @@ def main(args):
                 args.key = js['resource_id']
                 fmds.main(args)
             else:
-                logging.debug('Unsupported storage in %s', external_file)
+                error = 'Unsupported storage in {}'.format(external_file)
     except:
-        logging.debug('Invalid %s', external_file)
+        logging.error('Invalid external file: {}'.format(external_file))
+        raise
+    if error:
+        raise Exception(error)
 
 
 if __name__ == '__main__':

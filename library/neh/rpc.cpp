@@ -116,8 +116,11 @@ namespace {
 
         inline void SyncStopFork() {
             Stop();
-            LF_.Destroy();
+            if (LF_) {
+                LF_->SyncStop();
+            }
             RQ_->Clear();
+            LF_.Destroy();
         }
 
         void OnRequest(IRequestRef req) override {
@@ -162,15 +165,20 @@ namespace {
                 }
             }
 
-        private:
             void SyncStop() {
+                if (!T_) {
+                    return;
+                }
+
                 Parent->Stop();
 
                 for (size_t i = 0; i < T_.size(); ++i) {
                     T_[i]->Join();
                 }
+                T_.clear();
             }
 
+        private:
             typedef TAutoPtr<IThreadFactory::IThread> IThreadRef;
             TVector<IThreadRef> T_;
             IRequesterRef RR_;

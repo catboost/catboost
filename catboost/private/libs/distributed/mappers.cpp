@@ -105,6 +105,7 @@ namespace NCatboostDistributed {
         TProfileInfo profile;
         CATBOOST_DEBUG_LOG << "Load quantized pool section for worker " << hostId << "..." << Endl;
         auto pools = NCB::ReadTrainDatasets(
+            /*taskType*/ETaskType::CPU,
             poolLoadOptions,
             params->ObjectsOrder,
             /*readTest*/false,
@@ -852,7 +853,7 @@ namespace NCatboostDistributed {
             for (auto leaf : xrange(leafCount)) {
                 localData.ExactDiff[dimension][leaf].clear();
             }
-            minMaxDiffs[dimension].assign(leafCount, {std::numeric_limits<double>::max(), std::numeric_limits<double>::min()});
+            minMaxDiffs[dimension].assign(leafCount, {std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest()});
             avrgFoldIndexing.ForEach([&](int idx, int srcIdx) {
                 const double diff = target[dimension][srcIdx] - localData.Progress->AvrgApprox[dimension][srcIdx];
                 const double weight = weights.empty() ? 1.0 : weights[srcIdx];

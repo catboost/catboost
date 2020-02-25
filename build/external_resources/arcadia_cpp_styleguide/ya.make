@@ -1,0 +1,19 @@
+RESOURCES_LIBRARY()
+
+
+
+# Clone this task to rebuild cpp_styleguide from trunk:
+#
+# https://sandbox.yandex-team.ru/task/607000354/view
+
+IF (HOST_OS_LINUX)
+    DECLARE_EXTERNAL_RESOURCE(ARCADIA_CPP_STYLEGUIDE sbr:1345419942)
+ELSEIF (HOST_OS_DARWIN)
+    DECLARE_EXTERNAL_RESOURCE(ARCADIA_CPP_STYLEGUIDE sbr:1345419574)
+ELSEIF (HOST_OS_WINDOWS)
+    DECLARE_EXTERNAL_RESOURCE(ARCADIA_CPP_STYLEGUIDE sbr:1345419804)
+ELSE()
+    MESSAGE(FATAL_ERROR Unsupported host platform for prebuilt arcadia cpp_styleguide)
+ENDIF()
+
+END()

@@ -62,8 +62,6 @@ Y_UNIT_TEST_SUITE(TestHashPrimes) {
             testDivisor(c);
         }
         testDivisor(::NPrivate::THashDivisor::One());
-
-        UNIT_ASSERT_VALUES_EQUAL(divisors.size(), _y_last_prime - _y_first_prime + 1);
     }
 
     Y_UNIT_TEST(MisleadingHints) {

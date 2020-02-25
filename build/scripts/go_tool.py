@@ -388,6 +388,11 @@ func coverRegisterFile(fileName string, counter []uint32, pos []uint32, numStmts
     return lines
 
 
+def filter_out_skip_tests(tests, skip_tests):
+    skip_set = set(skip_tests)
+    return filter(lambda x: x not in skip_set, tests)
+
+
 def gen_test_main(args, test_lib_args, xtest_lib_args):
     assert args and (test_lib_args or xtest_lib_args)
     test_miner = args.test_miner
@@ -422,6 +427,8 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
         os_symlink(test_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(test_module_path) + '.a'))
         cmd = [test_miner, '-benchmarks', '-tests', test_module_path]
         tests = filter(lambda x: len(x) > 0, (call(cmd, test_lib_args.output_root, my_env) or '').strip().split('\n'))
+        if args.skip_tests:
+            tests = filter_out_skip_tests(tests, args.skip_tests)
     test_main_found = '#TestMain' in tests
 
     # Get the list of "external" tests
@@ -431,6 +438,8 @@ def gen_test_main(args, test_lib_args, xtest_lib_args):
         os_symlink(xtest_lib_args.output, os.path.join(test_pkg_dir, os.path.basename(xtest_module_path) + '.a'))
         cmd = [test_miner, '-benchmarks', '-tests', xtest_module_path]
         xtests = filter(lambda x: len(x) > 0, (call(cmd, xtest_lib_args.output_root, my_env) or '').strip().split('\n'))
+        if args.skip_tests:
+            xtests = filter_out_skip_tests(xtests, args.skip_tests)
     xtest_main_found = '#TestMain' in xtests
 
     test_main_package = None
@@ -589,6 +598,7 @@ if __name__ == '__main__':
     parser.add_argument('++vet-flags', nargs='*', default=None)
     parser.add_argument('++arc-source-root')
     parser.add_argument('++musl', action='store_true')
+    parser.add_argument('++skip-tests', nargs='*', default=None)
     args = parser.parse_args()
 
     # Temporary work around for noauto

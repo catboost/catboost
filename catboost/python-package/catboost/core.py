@@ -3669,16 +3669,59 @@ class CatBoostClassifier(CatBoost):
         Enables to initialize approx values by best constant value for specified loss function.
         Available for RMSE, Logloss, CrossEntropy, Quantile and MAE.
 
-    dictionaries : list of strings,
-        Each string is a dictionary description. Description should be written in format
-        DictionaryId[:occurrence_lower_bound=MinTokenOccurrence][:max_dictionary_size=MaxDictSize]
-                    [:gram_order=GramOrder][:token_level_type=TokenLevelType]
+    tokenizers : list of dicts,
+        Each dict is a tokenizer description. Example:
+        ```
+        [
+            {
+                'tokenizer_id': 'Tokenizer',  # Tokeinzer identifier.
+                'lowercasing': 'false',  # Possible values: 'true', 'false'.
+                'number_process_policy': 'LeaveAsIs',  # Possible values: 'Skip', 'LeaveAsIs', 'Replace'.
+                'number_token': '%',  # Rarely used character. Used in conjunction with Replace NumberProcessPolicy.
+                'separator_type': 'ByDelimiter',  # Possible values: 'ByDelimiter', 'BySense'.
+                'delimiter': ' ',  # Used in conjunction with ByDelimiter SeparatorType.
+                'split_by_set': 'false',  # Each single character in delimiter used as individual delimiter.
+                'skip_empty': 'true',  # Possible values: 'true', 'false'.
+                'token_types': ['Word', 'Number', 'Unknown'],  # Used in conjunction with BySense SeparatorType.
+                    # Possible values: 'Word', 'Number', 'Punctuation', 'SentenceBreak', 'ParagraphBreak', 'Unknown'.
+                'subtokens_policy': 'SingleToken',  # Possible values:
+                    # 'SingleToken' - All subtokens are interpreted as single token).
+                    # 'SeveralTokens' - All subtokens are interpreted as several token.
+            },
+            ...
+        ]
+        ```
 
-    text_processing : list of strings,
-        Each string is a text feature preprocessing description. Description should be written in format
-        [TextFeatureId~]NaiveBayes+DictionaryName1|BoW+LetterGramDictionary,BiGramDictionary
-        Where dictionaries names were taken from 'dictionaries' parameter and NaiveBayes,BoW is feature
-        calcers which will be computed on corresponding, preprocessed by dictionaries, text features.
+    dictionaries : list of dicts,
+        Each dict is a tokenizer description. Example:
+        ```
+        [
+            {
+                'dictionary_id': 'Dictionary',  # Dictionary identifier.
+                'token_level_type': 'Word',  # Possible values: 'Word', 'Letter'.
+                'gram_order': '1',  # 1 for Unigram, 2 for Bigram, ...
+                'skip_step': '0',  # 1 for 1-skip-gram, ...
+                'end_of_word_token_policy': 'Insert',  # Possible values: 'Insert', 'Skip'.
+                'end_of_sentence_token_policy': 'Skip',  # Possible values: 'Insert', 'Skip'.
+                'occurrence_lower_bound': '3',  # The lower bound of token occurrences in the text to include it in the dictionary.
+                'max_dictionary_size': '50000',  # The max dictionary size.
+            },
+            ...
+        ]
+        ```
+
+    feature_calcers : list of strings,
+        Each string is a calcer description. Example:
+        ```
+        [
+            'NaiveBayes',
+            'BM25',
+            'BoW:top_tokens_count=2000',
+        ]
+        ```
+
+    text_processing : dict,
+        Text processging description.
     """
     def __init__(
         self,
@@ -3786,7 +3829,9 @@ class CatBoostClassifier(CatBoost):
         diffusion_temperature=None,
         boost_from_average=None,
         text_features=None,
+        tokenizers=None,
         dictionaries=None,
+        feature_calcers=None,
         text_processing=None
     ):
         params = {}
@@ -4187,6 +4232,7 @@ class CatBoostClassifier(CatBoost):
             y = y[y.columns[0]]
         elif y is None:
             raise CatBoostError("y should be specified.")
+        y = np.array(y)
         predicted_classes = self._predict(
             X,
             prediction_type='Class',
@@ -4196,13 +4242,15 @@ class CatBoostClassifier(CatBoost):
             verbose=None,
             parent_method_name='score'
         ).reshape(-1)
-        try:
-            predicted_classes = predicted_classes.astype(np.float64)
-        except:
-            pass
+        if np.issubdtype(predicted_classes.dtype, np.number):
+            if np.issubdtype(y.dtype, np.character):
+                raise CatBoostError('predicted classes have numeric type but specified y contains strings')
         else:
-            predicted_classes = predicted_classes.astype(np.int32)
-        return np.mean([str(y_pred) == str(y_true) for y_pred, y_true in zip(predicted_classes, y)])
+            if np.issubdtype(y.dtype, np.number):
+                raise CatBoostError('predicted classes have string type but specified y is numeric')
+            elif np.issubdtype(y.dtype, np.bool_):
+                raise CatBoostError('predicted classes have string type but specified y is boolean')
+        return np.mean(np.array(predicted_classes) == np.array(y))
 
     def _check_is_classification_objective(self, loss_function):
         if isinstance(loss_function, str) and not self._is_classification_objective(loss_function):

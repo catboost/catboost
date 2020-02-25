@@ -47,3 +47,25 @@ private:
     THashMap<TStringBuf, TCodec> Codecs_;
     TVector<TStringBuf> BestCodecs_;
 };
+
+namespace NHttp {
+    template <typename F>
+    TString ChooseBestCompressionScheme(F accepted, TArrayRef<const TStringBuf> available) {
+        if (available.empty()) {
+            return "identity";
+        }
+
+        if (accepted("*")) {
+            return TString(available[0]);
+        }
+
+        for (const auto& coding : available) {
+            TString s(coding);
+            if (accepted(s)) {
+                return s;
+            }
+        }
+
+        return "identity";
+    }
+}

@@ -3,6 +3,7 @@
 PYTEST()
 
 TEST_SRCS(
+    conftest.py
     test_gpu.py
 )
 

@@ -229,8 +229,8 @@
         "crypta": {
             "description": "Run Crypta client"
         },
-        "app_host": {
-            "description": "Run local app_host instance"
+        "apphost": {
+            "description": "Run local apphost instance"
         },
         "go_1.13.5": {
             "description": "Run go tool (1.13.5)"
@@ -4835,10 +4835,10 @@
                 }
             ]
         },
-        "app_host": {
+        "apphost": {
             "tools": {
-                "app_host": {
-                    "bottle": "app_host",
+                "apphost": {
+                    "bottle": "apphost",
                     "executable": "app_host_launcher"
                 }
             },
@@ -5256,7 +5256,7 @@
         "ymake": {
             "formula": {
                 "sandbox_id": [
-                    604245431
+                    609494583
                 ],
                 "match": "ymake"
             },
@@ -5280,7 +5280,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    606671814
+                    611715673
                 ],
                 "match": "arc"
             },
@@ -6281,7 +6281,7 @@
         },
         "yt": {
             "formula": {
-                "sandbox_id": 529865723,
+                "sandbox_id": 616792863,
                 "match": "YT"
             },
             "executable": {
@@ -6303,7 +6303,7 @@
         },
         "ytyndexer": {
             "formula": {
-                "sandbox_id": 310099071,
+                "sandbox_id": 615958236,
                 "match": "YTYNDEXER"
             },
             "executable": {
@@ -6924,7 +6924,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 607125019,
+                "sandbox_id": 616428532,
                 "match": "horadric"
             },
             "executable": {
@@ -7012,7 +7012,7 @@
         },
         "ygdiff": {
             "formula": {
-                "sandbox_id": 599721893,
+                "sandbox_id": 612924628,
                 "match": "ygdiff"
             },
             "executable": {
@@ -7043,9 +7043,9 @@
                 ]
             }
         },
-        "app_host": {
+        "apphost": {
             "formula": {
-                "sandbox_id": 607453238,
+                "sandbox_id": 611516591,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -7245,7 +7245,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 604014099,
+                "sandbox_id": 614265439,
                 "match": "SEDEM archive"
             },
             "executable": {

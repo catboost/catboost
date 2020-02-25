@@ -340,6 +340,9 @@ cdef extern from "catboost/private/libs/options/enums.h":
     cdef ECrossValidation ECrossValidation_Classical "ECrossValidation::Classical"
     cdef ECrossValidation ECrossValidation_Inverted "ECrossValidation::Inverted"
 
+    cdef cppclass ETaskType:
+        pass
+
 
 cdef extern from "catboost/private/libs/options/enums.h" namespace "NCB":
     cdef cppclass ERawTargetType:
@@ -781,6 +784,7 @@ cdef class Py_FeaturesOrderBuilderVisitor:
 
 cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
     cdef TDataProviderPtr ReadDataset(
+        TMaybe[ETaskType] taskType,
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath,
         const TPathWithScheme& groupWeightsFilePath,
@@ -3253,6 +3257,7 @@ cdef class _PoolBase:
         cdef TVector[ui32] emptyIntVec
 
         self.__pool = ReadDataset(
+            TMaybe[ETaskType](),
             pool_file_path,
             pairs_file_path,
             TPathWithScheme(),

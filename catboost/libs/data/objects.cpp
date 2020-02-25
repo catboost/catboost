@@ -1242,10 +1242,7 @@ static ui32 CalcFeatureValuesCheckSum(
 {
     const ui32 emptyColumnDataForCrc = 0;
     TVector<ui32> checkSums(featuresLayout.GetFeatureCount(FeatureType), 0);
-    ParallelFor(
-        *localExecutor,
-        0,
-        featuresLayout.GetFeatureCount(FeatureType),
+    localExecutor->ExecRangeWithThrow(
         [&] (ui32 perTypeFeatureIdx) {
             if (featuresLayout.GetInternalFeatureMetaInfo(perTypeFeatureIdx, FeatureType).IsAvailable) {
                 // TODO(espetrov,akhropov): remove workaround below MLTOOLS-3604
@@ -1273,7 +1270,8 @@ static ui32 CalcFeatureValuesCheckSum(
             } else {
                 checkSums[perTypeFeatureIdx] = UpdateCheckSum(0, emptyColumnDataForCrc);
             }
-        }
+        },
+        0, featuresLayout.GetFeatureCount(FeatureType), NPar::TLocalExecutor::WAIT_COMPLETE
     );
     ui32 checkSum = init;
     for (ui32 featureCheckSum : checkSums) {

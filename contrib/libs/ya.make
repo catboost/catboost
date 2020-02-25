@@ -19,6 +19,7 @@ RECURSE(
     jemalloc
     libbz2
     libunwind
+    linux-headers
     linuxvdso
     lz4
     lz4/generated

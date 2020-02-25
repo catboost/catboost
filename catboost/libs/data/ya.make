@@ -19,6 +19,7 @@ SRCS(
     feature_index.cpp
     features_layout.cpp
     feature_names_converter.cpp
+    lazy_columns.cpp
     GLOBAL libsvm_loader.cpp
     load_data.cpp
     loader.cpp

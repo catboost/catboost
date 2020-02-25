@@ -196,6 +196,7 @@ int DoMain(int argc, char** argv) {
     NCatboostOptions::TColumnarPoolFormatParams columnarPoolFormatParams;
     columnarPoolFormatParams.CdFilePath = NCB::TPathWithScheme(options.CdPath, "dsv");
     NCB::TDataProviderPtr dataset = NCB::ReadDataset(
+        /*taskType*/Nothing(),
         NCB::TPathWithScheme(options.PoolPath, "dsv"),
         NCB::TPathWithScheme(),
         NCB::TPathWithScheme(),

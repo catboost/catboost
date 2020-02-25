@@ -47,6 +47,8 @@ namespace NCB {
     struct TDataProviderBuilderOptions {
         bool CpuCompatibleFormat = true;
         bool GpuCompatibleFormat = true;
+        bool GpuDistributedFormat = false;
+        TPathWithScheme PoolPath = TPathWithScheme();
         ui64 MaxCpuRamUsage = Max<ui64>();
         bool SkipCheck = false; // to increase speed, esp. when applying
         ESparseArrayIndexingType SparseArrayIndexingType = ESparseArrayIndexingType::Undefined;
@@ -121,6 +123,8 @@ namespace NCB {
     /*
      * uses global LocalExecutor inside
      * call IVisitor's methods in loader
+     *
+     * needed by unit tests and R-package
      */
     template <class IVisitor = IRawFeaturesOrderDataVisitor, class TLoader>
     TDataProviderPtr CreateDataProvider(

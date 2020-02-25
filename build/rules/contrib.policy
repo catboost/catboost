@@ -93,8 +93,6 @@ ALLOW orgvisits/heuristics -> contrib/libs/boost
 ALLOW orgvisits/heuristics -> contrib/deprecated/boost
 ALLOW orgvisits/library/soc -> contrib/libs/boost
 ALLOW orgvisits/library/soc -> contrib/deprecated/boost
-ALLOW quality/antifraud/common_lib -> contrib/libs/boost
-ALLOW quality/antifraud/common_lib -> contrib/deprecated/boost
 ALLOW quasar/yandex_io -> contrib/libs/boost
 ALLOW quasar/yandex_io -> contrib/deprecated/boost
 ALLOW quasar/backend -> contrib/libs/boost
@@ -222,7 +220,6 @@ DENY .* -> contrib/python/skynet_pyro4
 
 ALLOW contrib/deprecated/python/cyordereddict -> contrib/deprecated/python/cyordereddict
 ALLOW contrib/deprecated/python/cyordereddict/cyordereddict/tests -> contrib/deprecated/python/cyordereddict
-ALLOW contrib/python/parse-type -> contrib/deprecated/python/cyordereddict
 ALLOW infra/awacs/vendor/awacs -> contrib/deprecated/python/cyordereddict
 ALLOW juggler/juggler_client/jclient -> contrib/deprecated/python/cyordereddict
 ALLOW juggler/juggler_client -> contrib/deprecated/python/cyordereddict

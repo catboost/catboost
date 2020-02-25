@@ -21,7 +21,9 @@ namespace NCB {
 
         void Write(const TFullModel& model, const THashMap<ui32, TString>* catFeaturesHashToString) override {
             if (model.HasCategoricalFeatures()) {
-                CB_ENSURE(catFeaturesHashToString != nullptr, "need pool to output model hashes");
+                CB_ENSURE(catFeaturesHashToString != nullptr,
+                          "need train pool to save mapping {categorical feature value, hash value} "
+                          "due to absence of hash function in model");
             }
             WriteModelCatFeatures(model, catFeaturesHashToString);
             WriteApplicatorCatFeatures();

@@ -357,7 +357,7 @@ TTokenId TMMapBpeDictionary::GetEndOfSentenceTokenId() const {
 }
 
 TTokenId TMMapBpeDictionary::GetMinUnusedTokenId() const {
-    return Alphabet->GetMinUnusedTokenId() + SourceTokenIdsToTokenId.size();
+    return Alphabet->GetMinUnusedTokenId() + BpeSize;
 }
 
 void TMMapBpeDictionary::SetAlphabet(TIntrusivePtr<TMMapDictionary> alphabet) {

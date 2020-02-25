@@ -12,6 +12,7 @@ PEERDIR(
     contrib/python/numpy
     catboost/python-package/lib
     contrib/python/pandas
+    contrib/python/testpath
 )
 
 END()

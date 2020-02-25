@@ -1077,7 +1077,9 @@ class GnuToolchain(Toolchain):
                 self.c_flags_platform.append('-D__IOS__=1')
 
             if target.is_android:
-                self.c_flags_platform.append('-fPIE')
+                self.c_flags_platform.append('-fsigned-char')
+
+            if target.is_armv7:
                 self.c_flags_platform.append('-fsigned-char')
 
             if self.tc.is_from_arcadia:
@@ -1230,6 +1232,9 @@ class GnuCompiler(Compiler):
                 '-Wno-undefined-var-template',
             ]
 
+            if self.target.is_linux:
+                self.c_foptions.append('-fuse-init-array')
+
             if self.tc.version_at_least(7):
                 self.cxx_warnings.append('-Wno-return-std-move')
 
@@ -1288,15 +1293,19 @@ class GnuCompiler(Compiler):
         append('C_WARNING_OPTS', self.c_warnings)
         append('CXX_WARNING_OPTS', self.cxx_warnings)
 
+        # PIE is only valid for executables, while PIC implies a shared library
+        # `-pie` with a shared library is either ignored or fails to link
         emit_big('''
-            when ($PIC && $PIC == "yes") {
-                PICFLAGS=-fPIC
+            when ($PIC == "yes") {
+                CFLAGS+=-fPIC
+                LDFLAGS+=-fPIC
             }
-            otherwise {
-                PICFLAGS=
+            elsewhen ($PIE == "yes") {
+                CFLAGS+=-fPIE
+                LDFLAGS+=-fPIE -pie
             }''')
 
-        append('CFLAGS', self.c_flags, '$DEBUG_INFO_FLAGS', '$PICFLAGS', self.c_foptions, '$C_WARNING_OPTS', '$GCC_PREPROCESSOR_OPTS', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL')
+        append('CFLAGS', self.c_flags, '$DEBUG_INFO_FLAGS', self.c_foptions, '$C_WARNING_OPTS', '$GCC_PREPROCESSOR_OPTS', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL')
         append('CXXFLAGS', '$CFLAGS', '-std=' + self.tc.cxx_std, '$CXX_WARNING_OPTS', '$USER_CXXFLAGS')
         append('CONLYFLAGS', '$USER_CONLYFLAGS')
         emit('CXX_COMPILER_UNQUOTED', self.tc.cxx_compiler)
@@ -1587,8 +1596,6 @@ class LD(Linker):
             if not self.tc.is_clang:
                 self.ld_flags.append('-Wl,-no_compact_unwind')
 
-        self.link_pie_executables = target.is_android
-
         self.thread_library = select([
             (target.is_linux or target.is_macos or target.is_yocto_lg_wk7y or self.target.is_yocto_jbl_portable_music or target.is_yocto_aacrh64_lightcomm_mt8516, '-lpthread'),
             (target.is_freebsd, '-lthr')
@@ -1708,7 +1715,6 @@ class LD(Linker):
             '$EXPORTS_VALUE $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE $OBJADDE_LIB',
             '$C_LIBRARY_PATH $C_SYSTEM_LIBRARIES_INTERCEPT $C_SYSTEM_LIBRARIES $STRIP_FLAG']
 
-        pie_flag = '-pie' if self.link_pie_executables else None
         arch_flag = '--arch={arch}'.format(arch=self.target.os_compat)
         soname_flag = '-Wl,{option},$SONAME'.format(option=self.soname_option)
         shared_flag = '-shared'
@@ -1728,7 +1734,7 @@ class LD(Linker):
         emit('REAL_LINK_EXE',
              '$YMAKE_PYTHON ${input:"build/scripts/link_exe.py"}', '$LINK_SCRIPT_EXE_FLAGS',
              '$GCCFILTER',
-             '$CXX_COMPILER ${rootrel:SRCS_GLOBAL} $VCS_C_OBJ $AUTO_INPUT -o $TARGET', self.rdynamic, pie_flag, exe_flags,
+             '$CXX_COMPILER ${rootrel:SRCS_GLOBAL} $VCS_C_OBJ $AUTO_INPUT -o $TARGET', self.rdynamic, exe_flags,
              ld_env_style)
 
         # Executable Shared Library

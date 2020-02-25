@@ -405,6 +405,9 @@ ALLOW .* -> vendor/github.com/spf13/afero
 # CONTRIB-1702 parse and generate XML easily in go
 ALLOW .* -> vendor/github.com/beevik/etree
 
+# CONTRIB-1703 telebot client for telegram. responsible: alittleprince@
+ALLOW .* -> vendor/gopkg.in/tucnak/telebot.v2
+
 #
 # Temporary exceptions.
 #

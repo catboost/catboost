@@ -137,7 +137,7 @@ void NCBTest::CreateTextDataForTest(
                     tokenizer
                 );
 
-                textDigitizers->AddDigitizer(textFeatureId, tokenizedFeatureIdx, tokenizer, dictionary);
+                textDigitizers->AddDigitizer(textFeatureId, tokenizedFeatureIdx, {tokenizer, dictionary});
                 tokenizedFeatureIdx++;
 
                 const TString stringFeatureId = ToString(textFeatureId);

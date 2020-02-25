@@ -147,7 +147,8 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
         NCatboostOptions::TColumnarPoolFormatParams columnarPoolFormatParams;
         columnarPoolFormatParams.CdFilePath = cdFilePath;
 
-        dataProvider = NCB::ReadDataset(poolPath,
+        dataProvider = NCB::ReadDataset(ETaskType::GPU,
+                                        poolPath,
                                         NCB::TPathWithScheme(),
                                         NCB::TPathWithScheme(),
                                         NCB::TPathWithScheme(),

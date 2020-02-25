@@ -66,7 +66,6 @@ TEST_SRCS(
     run_msvc_wine.py
     run_tool.py
     stdout2stderr.py
-    svn_version_gen.py
     symlink.py
     tared_protoc.py
     tar_directory.py

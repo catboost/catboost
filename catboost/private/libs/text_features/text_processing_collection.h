@@ -3,6 +3,7 @@
 #include "feature_calcer.h"
 
 #include <catboost/private/libs/text_processing/dictionary.h>
+#include <catboost/private/libs/text_processing/text_digitizers.h>
 
 #include <util/generic/hash.h>
 #include <util/generic/ptr.h>
@@ -31,11 +32,11 @@ namespace NCB {
         TTextProcessingCollection() = default;
 
         TTextProcessingCollection(
+            TVector<TDigitizer> digitizers,
             TVector<TTextFeatureCalcerPtr> calcers,
-            TVector<TDictionaryPtr> dictionaries,
-            TVector<TVector<ui32>> perFeatureDictionaries,
-            TVector<TVector<ui32>> perTokenizedFeatureCalcers,
-            TTokenizerPtr tokenizer);
+            TVector<TVector<ui32>> perFeatureDigitizers,
+            TVector<TVector<ui32>> perTokenizedFeatureCalcers
+        );
 
         void CalcFeatures(
             TConstArrayRef<TStringBuf> textFeature,
@@ -115,7 +116,7 @@ namespace NCB {
 
     private:
         ui32 GetFirstTextFeatureCalcer(ui32 textFeatureIdx) const;
-        ui32 GetTokenizedFeatureId(ui32 textFeatureIdx, ui32 dictionaryIdx) const;
+        ui32 GetTokenizedFeatureId(ui32 textFeatureIdx, ui32 digitizerIdx) const;
 
         ui32 GetAbsoluteCalcerOffset(ui32 calcerIdx) const;
         ui32 GetRelativeCalcerOffset(ui32 textFeatureIdx, ui32 calcerIdx) const;
@@ -126,21 +127,21 @@ namespace NCB {
         void CalcRuntimeData();
         void CheckPerFeatureIdx() const;
 
-        TTokenizerPtr Tokenizer = CreateTokenizer();
-        TVector<TDictionaryPtr> Dictionaries;
+        TVector<TDigitizer> Digitizers;
         TVector<TTextFeatureCalcerPtr> FeatureCalcers;
 
+        TVector<TGuid> TokenizerId;
         TVector<TGuid> DictionaryId;
         TVector<TGuid> FeatureCalcerId;
         THashMap<TGuid, ui32> CalcerGuidToFlatIdx;
 
-        TVector<TVector<ui32>> PerFeatureDictionaries;
+        TVector<TVector<ui32>> PerFeatureDigitizers;
         TVector<TVector<ui32>> PerTokenizedFeatureCalcers;
 
         THashMap<std::pair<ui32, ui32>, ui32> TokenizedFeatureId;
         THashMap<ui32, ui32> FeatureCalcerOffset;
 
-        static constexpr std::array<char, 16> StringIdentifier = {"text_process_v1"};
+        static constexpr std::array<char, 16> StringIdentifier = {"text_process_v2"};
         static constexpr size_t IdentifierSize = 16;
         static constexpr ui32 SerializationAlignment = 16;
     };

@@ -417,6 +417,10 @@ TVector<TArraySubsetIndexing<ui32>> NCB::SplitByGroups(
                 TRangesSubset<ui32>(block.GetSize(), TVector<TSubsetBlock<ui32>>{block})
             )
         );
+        TVector<ui32> blockSizes(100);
+        for (ui32 groupIdx : xrange(block.SrcBegin, block.SrcEnd)) {
+            ++blockSizes[objectsGrouping.GetGroup(groupIdx).GetSize()];
+        }
         block.SrcBegin = block.SrcEnd;
         block.SrcEnd = Min(groupCount, block.SrcBegin + partSizeInGroups);
     }

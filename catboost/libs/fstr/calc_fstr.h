@@ -118,7 +118,3 @@ TVector<TString> GetMaybeGeneratedModelFeatureIds(
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset); // can be nullptr
 
-EFstrType GetFeatureImportanceType(
-    const TFullModel& model,
-    bool haveDataset,
-    EFstrType type);
