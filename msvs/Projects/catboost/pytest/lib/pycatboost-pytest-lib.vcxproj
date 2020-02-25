@@ -685,6 +685,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\six\pycontrib-python-six.vcxproj">
       <Project>{045AAA08-9E22-8E9E-4CC3-999EEA7560DE}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\testpath\pycontrib-python-testpath.vcxproj">
+      <Project>{8E9D3E5D-72FC-14BE-D403-F8FC953F8164}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\python\base\tools-python-base.vcxproj">
       <Project>{EFB6D29C-74E4-D7B6-6D91-5CD9197E0E62}</Project>
     </ProjectReference>
