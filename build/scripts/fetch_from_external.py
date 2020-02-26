@@ -18,7 +18,7 @@ def parse_args():
 def main(args):
     external_file = args.external_file.rstrip('.external')
     if os.path.isfile(args.resource_file):
-        fetch_from.process(fetched_file, os.path.splitext(os.path.basename(args.file_name))[0], args, False)
+        fetch_from.process(args.resource_file, os.path.basename(args.resource_file), args, False)
         return
 
     error = None
