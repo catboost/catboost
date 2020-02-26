@@ -6900,6 +6900,7 @@ def test_to_classifier():
 def test_to_classifier_wrong_type():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostRegressor(iterations=2, learning_rate=.05, objective='RMSE')
+    model.fit(train_pool)
     with pytest.raises(CatBoostError):
         to_classifier(model)
 
@@ -6925,5 +6926,6 @@ def test_to_regressor():
 def test_to_regressor_wrong_type():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=2, learning_rate=.05, objective='Logloss')
+    model.fit(train_pool)
     with pytest.raises(CatBoostError):
         to_regressor(model)
