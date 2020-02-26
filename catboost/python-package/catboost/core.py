@@ -5074,3 +5074,31 @@ def _plot_feature_statistics(statistics, feature, max_cat_features_on_plot):
     else:
         fig = _build_binarized_feature_statistics_fig(statistics, feature)
         return [fig]
+
+
+def to_regressor(model):
+    regressor = CatBoostRegressor()
+
+    params = deepcopy(model._init_params)
+    _process_synonyms(params)
+    if 'loss_function' in params:
+        regressor._check_is_regressor_loss(params['loss_function'])
+
+    for attr in ['_object', '_init_params', '_random_seed', '_learning_rate', '_tree_count']:
+        if hasattr(model, attr):
+            setattr(regressor, attr, getattr(model, attr))
+    return regressor
+
+
+def to_classifier(model):
+    classifier = CatBoostClassifier()
+
+    params = deepcopy(model._init_params)
+    _process_synonyms(params)
+    if 'loss_function' in params:
+        classifier._check_is_classification_objective(params['loss_function'])
+
+    for attr in ['_object', '_init_params', '_random_seed', '_learning_rate', '_tree_count']:
+        if hasattr(model, attr):
+            setattr(classifier, attr, getattr(model, attr))
+    return classifier
