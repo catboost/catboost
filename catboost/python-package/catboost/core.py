@@ -4034,7 +4034,7 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
                 or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
@@ -4170,7 +4170,7 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
                 or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
