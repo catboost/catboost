@@ -9,6 +9,9 @@ if __name__ == '__main__':
 
     if mode == 'copy':
         shutil.copy(args[0], args[1])
+    elif mode == 'copy_tree_no_link':
+        dst = args[1]
+        shutil.copytree(args[0], dst, ignore=lambda dirname, names: [n for n in names if os.path.islink(os.path.join(dirname, n))])
     elif mode == 'copy_files':
         src = args[0]
         dst = args[1]
