@@ -21,7 +21,9 @@ from catboost import (
     cv,
     sum_models,
     train,
-    _have_equal_features,)
+    _have_equal_features,
+    to_regressor,
+    to_classifier,)
 from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
 from catboost.utils import eval_metric, create_cd, read_cd, get_roc_curve, select_threshold
 from catboost.utils import DataMetaInfo, TargetStats, compute_training_options
@@ -6875,3 +6877,57 @@ def test_langevin_with_empty_leafs():
     for value, weight in zip(model.get_leaf_values(), model.get_leaf_weights()):
         if weight == 0:
             assert value == 0
+
+
+def test_to_classifier():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+
+    models = []
+    for learning_rate in [.03, .05]:
+        models.append(CatBoostClassifier(iterations=2, learning_rate=learning_rate))
+        models[-1].fit(train_pool, eval_set=test_pool)
+
+    merged_model = sum_models(models)
+    prediction = merged_model.predict(test_pool, prediction_type='Probability')
+    assert type(merged_model) is CatBoost
+
+    merged_model = to_classifier(merged_model)
+
+    assert isinstance(merged_model, CatBoostClassifier)
+    assert _check_data(merged_model.predict_proba(test_pool), prediction)
+
+
+def test_to_classifier_wrong_type():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostRegressor(iterations=2, learning_rate=.05, objective='RMSE')
+    model.fit(train_pool)
+    with pytest.raises(CatBoostError):
+        to_classifier(model)
+
+
+def test_to_regressor():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+
+    models = []
+    for learning_rate in [.03, .05]:
+        models.append(CatBoostRegressor(iterations=2, learning_rate=learning_rate))
+        models[-1].fit(train_pool, eval_set=test_pool)
+
+    merged_model = sum_models(models)
+    prediction = merged_model.predict(test_pool)
+    assert type(merged_model) is CatBoost
+
+    merged_model = to_regressor(merged_model)
+
+    assert isinstance(merged_model, CatBoostRegressor)
+    assert _check_data(merged_model.predict(test_pool), prediction)
+
+
+def test_to_regressor_wrong_type():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=2, learning_rate=.05, objective='Logloss')
+    model.fit(train_pool)
+    with pytest.raises(CatBoostError):
+        to_regressor(model)
