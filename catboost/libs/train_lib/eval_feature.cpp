@@ -1111,9 +1111,11 @@ static void CountDisjointFolds(
             }
         }
     }
+    CB_ENSURE(
+        featureEvalOptions.FoldSize.Get() > 0 || featureEvalOptions.RelativeFoldSize.Get() > 0,
+        "Please specify positive fold size or positive relative fold size");
     if (featureEvalOptions.FoldSize.Get() > 0) {
         *absoluteFoldSize = featureEvalOptions.FoldSize.Get();
-        CB_ENSURE(*absoluteFoldSize > 0, "Fold size must be positive");
     } else {
         *absoluteFoldSize = featureEvalOptions.RelativeFoldSize.Get() * samplingUnitsCount;
         CB_ENSURE(
