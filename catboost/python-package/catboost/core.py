@@ -1866,7 +1866,7 @@ class CatBoost(_CatBoostBase):
                          column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
                          save_snapshot, snapshot_file, snapshot_interval, init_model)
 
-    def _process_predict_input_data(self, data, parent_method_name, label=None):
+    def _process_predict_input_data(self, data, parent_method_name, thread_count, label=None):
         if not self.is_fitted() or self.tree_count_ is None:
             raise CatBoostError(("There is no trained model to use {}(). "
                                  "Use fit() to train model. Then use this method.").format(parent_method_name))
@@ -1876,7 +1876,8 @@ class CatBoost(_CatBoostBase):
                 data=[data] if is_single_object else data,
                 label=label,
                 cat_features=self._get_cat_feature_indices() if not isinstance(data, FeaturesData) else None,
-                text_features=self._get_text_feature_indices() if not isinstance(data, FeaturesData) else None
+                text_features=self._get_text_feature_indices() if not isinstance(data, FeaturesData) else None,
+                thread_count=thread_count
             )
         return data, is_single_object
 
@@ -1890,7 +1891,7 @@ class CatBoost(_CatBoostBase):
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
-        data, data_is_single_object = self._process_predict_input_data(data, parent_method_name)
+        data, data_is_single_object = self._process_predict_input_data(data, parent_method_name, thread_count)
         self._validate_prediction_type(prediction_type)
 
         predictions = self._base_predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose)
@@ -1948,7 +1949,7 @@ class CatBoost(_CatBoostBase):
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
-        data, data_is_single_object = self._process_predict_input_data(data, parent_method_name)
+        data, data_is_single_object = self._process_predict_input_data(data, parent_method_name, thread_count)
         self._validate_prediction_type(prediction_type)
 
         if ntree_end == 0:
@@ -2011,7 +2012,7 @@ class CatBoost(_CatBoostBase):
     def _iterate_leaf_indexes(self, data, ntree_start, ntree_end):
         if ntree_end == 0:
             ntree_end = self.tree_count_
-        data, _ = self._process_predict_input_data(data, "iterate_leaf_indexes")
+        data, _ = self._process_predict_input_data(data, "iterate_leaf_indexes", thread_count)
         leaf_indexes_iterator = self._leaf_indexes_iterator(data, ntree_start, ntree_end)
         for leaf_index in leaf_indexes_iterator:
             yield leaf_index
@@ -2044,7 +2045,7 @@ class CatBoost(_CatBoostBase):
     def _calc_leaf_indexes(self, data, ntree_start, ntree_end, thread_count, verbose):
         if ntree_end == 0:
             ntree_end = self.tree_count_
-        data, _ = self._process_predict_input_data(data, "calc_leaf_indexes")
+        data, _ = self._process_predict_input_data(data, "calc_leaf_indexes", thread_count)
         return self._base_calc_leaf_indexes(data, ntree_start, ntree_end, thread_count, verbose)
 
     def calc_leaf_indexes(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=False):
@@ -2337,7 +2338,7 @@ class CatBoost(_CatBoostBase):
             if data is None and isinstance(data, Pool):
                 raise CatBoostError("Invalid data type={}, must be list or np.ndarray".format(_typeof(data)))
 
-            data, _ = self._process_predict_input_data(data, "get_feature_importance")
+            data, _ = self._process_predict_input_data(data, "get_feature_importance", thread_count)
             if data.num_row() != 2:
                 raise CatBoostError("{} requires a pair of documents, found {}".format(type, data.num_row()))
 
@@ -2682,7 +2683,7 @@ class CatBoost(_CatBoostBase):
 
         model_borders = self._get_borders()
 
-        data, _ = self._process_predict_input_data(data, "vary_feature_value_and_apply")
+        data, _ = self._process_predict_input_data(data, "vary_feature_value_and_apply", thread_count=-1)
         figs = []
         all_predictions = [{}] * data.num_row()
         for feature in features_to_change:
@@ -2813,7 +2814,7 @@ class CatBoost(_CatBoostBase):
                     varying feature (see above)
             For one-hot feature, returns the same, but with 'cat_values' instead of 'borders'
         """
-        data, _ = self._process_predict_input_data(data, "get_binarized_statistics", target)
+        data, _ = self._process_predict_input_data(data, "get_binarized_statistics", thread_count, target)
 
         if prediction_type is None:
             prediction_type = 'Probability' if self.get_param('loss_function') in ['CrossEntropy', 'Logloss'] \
@@ -3019,7 +3020,7 @@ class CatBoost(_CatBoostBase):
         return graph
 
     def plot_tree(self, tree_idx, pool=None):
-        pool, _ = self._process_predict_input_data(pool, "plot_tree") if pool is not None else (None, None)
+        pool, _ = self._process_predict_input_data(pool, "plot_tree", thread_count) if pool is not None else (None, None)
 
         splits = self._get_tree_splits(tree_idx, pool)
         leaf_values = self._get_tree_leaf_values(tree_idx)
