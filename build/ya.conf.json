@@ -301,6 +301,9 @@
         "bpftool": {
             "description": "tool for inspection and simple manipulation of eBPF programs and maps"
         },
+        "bpftrace": {
+            "description": "High-level tracing language for Linux eBPF"
+        },
         "lkvm": {
             "description": "kvmtool is a userland tool for creating and controlling KVM guests"
         },
@@ -5069,6 +5072,22 @@
                 }
             ]
         },
+        "bpftrace": {
+            "tools": {
+                "bpftrace": {
+                    "bottle": "bpftrace",
+                    "executable": "bpftrace"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "stress-ng": {
             "tools": {
                 "stress-ng": {
@@ -7177,6 +7196,20 @@
                 "bpftool": [
                     "bpftool",
                     "bpftool"
+                ]
+            }
+        },
+        "bpftrace": {
+            "formula": {
+                "sandbox_id": [
+                    618519570
+                ],
+                "match": "infra/kernel/tools/bpftrace/build/bpftrace-static.tar.gz"
+            },
+            "executable": {
+                "bpftrace": [
+                    "bpftrace",
+                    "bpftrace"
                 ]
             }
         },
