@@ -16,6 +16,10 @@
 - includes:
     - iconv.h:       contrib/libs/libiconv/iconv.h
 
+- source_filter: "^contrib/restricted/glib/glib/gconvert.c"
+  includes:
+    - iconv.h:       contrib/libs/libiconv/include/iconv.h
+
 - includes:
   - cudnn.h:         contrib/libs/nvidia/cudnn/cudnn.h
 
@@ -507,6 +511,11 @@
 - source_filter: "^contrib/tools/fluent-bit"
   includes:
     - backtrace.h: contrib/tools/fluent-bit/lib/libbacktrace-5a99ff7f/backtrace.h
+
+- source_filter: "^contrib/restricted/glib"
+  includes:
+    - gelf.h: contrib/restricted/libelf/include/libelf/gelf.h
+    - libelf.h: contrib/restricted/libelf/include/libelf/libelf.h
 
 - source_filter: "^contrib/restricted/libelf"
   includes:
