@@ -141,16 +141,30 @@ namespace NCB {
          */
         virtual bool HasSparseData() const = 0;
 
-        virtual TIntrusivePtr<TObjectsDataProvider> GetSubset(
+        virtual TIntrusivePtr<TObjectsDataProvider> GetSubsetImpl(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            TMaybe<TConstArrayRef<ui32>> ignoredFeatures,
             ui64 cpuRamLimit,
             NPar::TLocalExecutor* localExecutor
         ) const = 0;
 
-        virtual TIntrusivePtr<TObjectsDataProvider> GetFeaturesSubset(
+        TIntrusivePtr<TObjectsDataProvider> GetSubset(
+            const TObjectsGroupingSubset& objectsGroupingSubset,
+            ui64 cpuRamLimit,
+            NPar::TLocalExecutor* localExecutor
+        ) const {
+            return GetSubsetImpl(
+                objectsGroupingSubset,
+                /*ignoredFeatures*/ Nothing(),
+                cpuRamLimit,
+                localExecutor
+            );
+        }
+
+        TIntrusivePtr<TObjectsDataProvider> GetFeaturesSubset(
             const TVector<ui32>& ignoredFeatures,
             NPar::TLocalExecutor* localExecutor
-        ) const = 0;
+        ) const;
 
         // The following Get* functions are common for all implementations, so they're in this base class
 
@@ -272,8 +286,9 @@ namespace NCB {
             return TObjectsDataProvider::EqualTo(rhs, ignoreSparsity) && (Data == rhsRawObjectsData->Data);
         }
 
-        TObjectsDataProviderPtr GetSubset(
+        TObjectsDataProviderPtr GetSubsetImpl(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            TMaybe<TConstArrayRef<ui32>> ignoredFeatures,
             ui64 cpuRamLimit,
             NPar::TLocalExecutor* localExecutor
         ) const override;
@@ -281,10 +296,6 @@ namespace NCB {
         bool HasDenseData() const override;
         bool HasSparseData() const override;
 
-        TObjectsDataProviderPtr GetFeaturesSubset(
-            const TVector<ui32>& ignoredFeatures,
-            NPar::TLocalExecutor* localExecutor
-        ) const override;
 
         // needed for effective application of models
         // TODO(akhropov): make effective sparse features support
@@ -411,8 +422,9 @@ namespace NCB {
                 (Data == rhsQuantizedObjectsData->Data);
         }
 
-        TObjectsDataProviderPtr GetSubset(
+        TObjectsDataProviderPtr GetSubsetImpl(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            TMaybe<TConstArrayRef<ui32>> ignoredFeatures,
             ui64 cpuRamLimit,
             NPar::TLocalExecutor* localExecutor
         ) const override;
@@ -420,10 +432,6 @@ namespace NCB {
         bool HasDenseData() const override;
         bool HasSparseData() const override;
 
-        TObjectsDataProviderPtr GetFeaturesSubset(
-            const TVector<ui32>& ignoredFeatures,
-            NPar::TLocalExecutor* localExecutor
-        ) const override;
 
         TIntrusiveConstPtr<TQuantizedObjectsDataProvider> GetWithPermutedConsecutiveArrayFeaturesData(
             ui64 cpuRamLimit,
@@ -631,17 +639,12 @@ namespace NCB {
             TQuantizedObjectsDataProvider&& arg
         );
 
-        TObjectsDataProviderPtr GetSubset(
+        TObjectsDataProviderPtr GetSubsetImpl(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            TMaybe<TConstArrayRef<ui32>> ignoredFeatures,
             ui64 cpuRamLimit,
             NPar::TLocalExecutor* localExecutor
         ) const override;
-
-        NCB::TObjectsDataProviderPtr GetFeaturesSubset(
-            const TVector<ui32>& ignoredFeatures,
-            NPar::TLocalExecutor* localExecutor
-        ) const override;
-
 
         /* needed for effective calculation with Permutation blocks on CPU
          * sparse data is unaffected

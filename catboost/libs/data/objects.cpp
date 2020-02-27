@@ -403,6 +403,21 @@ void NCB::TObjectsDataProvider::SetSubgroupIds(TConstArrayRef<TSubgroupId> subgr
     }
 }
 
+TIntrusivePtr<TObjectsDataProvider> NCB::TObjectsDataProvider::GetFeaturesSubset(
+    const TVector<ui32>& ignoredFeatures,
+    NPar::TLocalExecutor* localExecutor
+) const {
+    return GetSubsetImpl(
+        ::GetGroupingSubsetFromObjectsSubset(
+            ObjectsGrouping,
+            TArraySubsetIndexing(TFullSubset<ui32>(GetObjectCount())),
+            EObjectsOrder::Ordered),
+        ignoredFeatures,
+        GetMonopolisticFreeCpuRam(),
+        localExecutor
+    );
+}
+
 template <class T, EFeatureValuesType TType>
 static bool AreFeaturesValuesEqual(
     const TTypedFeatureValuesHolder<T, TType>& lhs,
@@ -671,8 +686,9 @@ static TResourceConstrainedExecutor CreateCpuRamConstrainedExecutor(
 }
 
 
-TObjectsDataProviderPtr NCB::TRawObjectsDataProvider::GetSubset(
+TObjectsDataProviderPtr NCB::TRawObjectsDataProvider::GetSubsetImpl(
     const TObjectsGroupingSubset& objectsGroupingSubset,
+    TMaybe<TConstArrayRef<ui32>> ignoredFeatures,
     ui64 cpuRamLimit,
     NPar::TLocalExecutor* localExecutor
 ) const {
@@ -688,6 +704,11 @@ TObjectsDataProviderPtr NCB::TRawObjectsDataProvider::GetSubset(
         subsetInvertedIndexing.ConstructInPlace(
             GetInvertedIndexing(objectsGroupingSubset.GetObjectsIndexing(), GetObjectCount(), localExecutor)
         );
+    }
+
+    if (ignoredFeatures.Defined()) {
+        subsetCommonData.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(*subsetCommonData.FeaturesLayout);
+        subsetCommonData.FeaturesLayout->IgnoreExternalFeatures(*ignoredFeatures);
     }
 
     auto resourceConstrainedExecutor = CreateCpuRamConstrainedExecutor(cpuRamLimit, localExecutor);
@@ -717,13 +738,6 @@ TObjectsDataProviderPtr NCB::TRawObjectsDataProvider::GetSubset(
         true,
         Nothing()
     );
-}
-
-TObjectsDataProviderPtr NCB::TRawObjectsDataProvider::GetFeaturesSubset(
-    const TVector<ui32>& /*ignoredFeatures*/,
-    NPar::TLocalExecutor* /*localExecutor*/
-) const {
-    CB_ENSURE(false, "Not implemented");
 }
 
 template <class T, EFeatureValuesType FeatureValuesType>
@@ -983,8 +997,9 @@ void NCB::TQuantizedObjectsData::Check(
 }
 
 
-NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetSubset(
+NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetSubsetImpl(
     const TObjectsGroupingSubset& objectsGroupingSubset,
+    TMaybe<TConstArrayRef<ui32>> ignoredFeatures,
     ui64 cpuRamLimit,
     NPar::TLocalExecutor* localExecutor
 ) const {
@@ -998,6 +1013,11 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetSubset(
         subsetInvertedIndexing.ConstructInPlace(
             GetInvertedIndexing(objectsGroupingSubset.GetObjectsIndexing(), GetObjectCount(), localExecutor)
         );
+    }
+
+    if (ignoredFeatures.Defined()) {
+        subsetCommonData.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(*subsetCommonData.FeaturesLayout);
+        subsetCommonData.FeaturesLayout->IgnoreExternalFeatures(*ignoredFeatures);
     }
 
     TQuantizedObjectsData subsetData;
@@ -1042,60 +1062,6 @@ bool NCB::TQuantizedObjectsDataProvider::HasSparseData() const {
         ::HasSparseData(Data.CatFeatures) ||
         ::HasSparseData(Data.TextFeatures);
 }
-
-
-NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetFeaturesSubset(
-    const TVector<ui32>& ignoredFeatures,
-    NPar::TLocalExecutor* localExecutor
-) const {
-    const auto& objectsGroupingSubset = ::GetGroupingSubsetFromObjectsSubset(
-        ObjectsGrouping,
-        TArraySubsetIndexing(TFullSubset<ui32>(GetObjectCount())),
-        EObjectsOrder::Ordered);
-
-    TFeaturesArraySubsetInvertedIndexing subsetInvertedIndexing{TFullSubset<ui32>(GetObjectCount())};
-
-    TCommonObjectsData subsetCommonData = CommonData.GetSubset(
-        objectsGroupingSubset,
-        localExecutor
-    );
-    subsetCommonData.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(*subsetCommonData.FeaturesLayout);
-    subsetCommonData.FeaturesLayout->IgnoreExternalFeatures(ignoredFeatures);
-
-    TQuantizedObjectsData subsetData;
-
-    auto resourceConstrainedExecutor = CreateCpuRamConstrainedExecutor(
-        GetMonopolisticFreeCpuRam(), // not really important here, there will be no extra memory usage
-        localExecutor
-    );
-
-    auto getSubsetWithScheduling = [&] (const auto& srcFeatures, auto* dstFeatures) {
-        GetSubsetWithScheduling(
-            MakeConstArrayRef(srcFeatures),
-            subsetCommonData.SubsetIndexing.Get(),
-            subsetInvertedIndexing,
-            &resourceConstrainedExecutor,
-            dstFeatures
-        );
-    };
-
-    getSubsetWithScheduling(Data.FloatFeatures, &subsetData.FloatFeatures);
-    getSubsetWithScheduling(Data.CatFeatures, &subsetData.CatFeatures);
-    getSubsetWithScheduling(Data.TextFeatures, &subsetData.TextFeatures);
-
-    resourceConstrainedExecutor.ExecTasks();
-
-    subsetData.QuantizedFeaturesInfo = Data.QuantizedFeaturesInfo;
-
-    return MakeIntrusive<TQuantizedObjectsDataProvider>(
-        objectsGroupingSubset.GetSubsetGrouping(),
-        std::move(subsetCommonData),
-        std::move(subsetData),
-        true,
-        Nothing()
-    );
-}
-
 
 TIntrusiveConstPtr<TQuantizedObjectsDataProvider>
     NCB::TQuantizedObjectsDataProvider::GetWithPermutedConsecutiveArrayFeaturesData(
@@ -2044,8 +2010,9 @@ static THolder<TTypedFeatureValuesHolder<T, FeatureValuesType>> GetAggregatedCol
 }
 
 
-NCB::TObjectsDataProviderPtr NCB::TQuantizedForCPUObjectsDataProvider::GetSubset(
+NCB::TObjectsDataProviderPtr NCB::TQuantizedForCPUObjectsDataProvider::GetSubsetImpl(
     const TObjectsGroupingSubset& objectsGroupingSubset,
+    TMaybe<TConstArrayRef<ui32>> ignoredFeatures,
     ui64 cpuRamLimit,
     NPar::TLocalExecutor* localExecutor
 ) const {
@@ -2059,6 +2026,11 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedForCPUObjectsDataProvider::GetSubset
         subsetInvertedIndexing.ConstructInPlace(
             GetInvertedIndexing(objectsGroupingSubset.GetObjectsIndexing(), GetObjectCount(), localExecutor)
         );
+    }
+
+    if (ignoredFeatures.Defined()) {
+        subsetCommonData.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(*subsetCommonData.FeaturesLayout);
+        subsetCommonData.FeaturesLayout->IgnoreExternalFeatures(*ignoredFeatures);
     }
 
     auto resourceConstrainedExecutor = CreateCpuRamConstrainedExecutor(cpuRamLimit, localExecutor);
@@ -2135,104 +2107,6 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedForCPUObjectsDataProvider::GetSubset
         Nothing()
     );
 }
-
-
-NCB::TObjectsDataProviderPtr NCB::TQuantizedForCPUObjectsDataProvider::GetFeaturesSubset(
-    const TVector<ui32>& ignoredFeatures,
-    NPar::TLocalExecutor* localExecutor
-) const {
-    const auto& objectsGroupingSubset = ::GetGroupingSubsetFromObjectsSubset(
-        ObjectsGrouping,
-        TArraySubsetIndexing(TFullSubset<ui32>(GetObjectCount())),
-        EObjectsOrder::Ordered);
-
-    TFeaturesArraySubsetInvertedIndexing subsetInvertedIndexing{TFullSubset<ui32>(GetObjectCount())};
-
-    TCommonObjectsData subsetCommonData = CommonData.GetSubset(
-        objectsGroupingSubset,
-        localExecutor
-    );
-    subsetCommonData.FeaturesLayout = MakeIntrusive<TFeaturesLayout>(*subsetCommonData.FeaturesLayout);
-    subsetCommonData.FeaturesLayout->IgnoreExternalFeatures(ignoredFeatures);
-
-    TQuantizedForCPUObjectsData subsetData;
-
-    auto resourceConstrainedExecutor = CreateCpuRamConstrainedExecutor(
-        GetMonopolisticFreeCpuRam(), // not really important here, there will be no extra memory usage
-        localExecutor
-    );
-
-    auto getSubsetWithSchedulingForDataPart = [&] (const auto& srcData, auto* dstSubsetData) {
-        srcData.GetSubsetWithScheduling(
-            subsetCommonData.SubsetIndexing.Get(),
-            subsetInvertedIndexing,
-            &resourceConstrainedExecutor,
-            dstSubsetData
-        );
-    };
-
-    getSubsetWithSchedulingForDataPart(PackedBinaryFeaturesData, &subsetData.PackedBinaryFeaturesData);
-    getSubsetWithSchedulingForDataPart(ExclusiveFeatureBundlesData, &subsetData.ExclusiveFeatureBundlesData);
-    getSubsetWithSchedulingForDataPart(FeaturesGroupsData, &subsetData.FeaturesGroupsData);
-
-    resourceConstrainedExecutor.ExecTasks();
-
-    auto getSubsetWithSchedulingForFeaturesPart = [&] (
-        const auto& srcData,
-        auto&& getPackedOrBundledData,
-        auto* dstSubsetData) {
-
-            ::GetSubsetWithScheduling(
-                MakeConstArrayRef(srcData),
-                subsetCommonData.SubsetIndexing.Get(),
-                subsetInvertedIndexing,
-                std::move(getPackedOrBundledData),
-                &resourceConstrainedExecutor,
-                dstSubsetData
-            );
-        };
-
-    getSubsetWithSchedulingForFeaturesPart(
-        Data.FloatFeatures,
-        [&] (ui32 flatFeatureIdx) {
-            return GetAggregatedColumn<ui8, EFeatureValuesType::QuantizedFloat>(
-                subsetData,
-                flatFeatureIdx
-            );
-        },
-        &subsetData.Data.FloatFeatures
-    );
-
-    getSubsetWithSchedulingForFeaturesPart(
-        Data.CatFeatures,
-        [&] (ui32 flatFeatureIdx) {
-            return GetAggregatedColumn<ui32, EFeatureValuesType::PerfectHashedCategorical>(
-                subsetData,
-                flatFeatureIdx
-            );
-        },
-        &subsetData.Data.CatFeatures
-    );
-
-    getSubsetWithSchedulingForFeaturesPart(
-        Data.TextFeatures,
-        [] (ui32) { return nullptr; },
-        &subsetData.Data.TextFeatures
-    );
-
-    resourceConstrainedExecutor.ExecTasks();
-
-    subsetData.Data.QuantizedFeaturesInfo = Data.QuantizedFeaturesInfo;
-
-    return MakeIntrusive<TQuantizedForCPUObjectsDataProvider>(
-        objectsGroupingSubset.GetSubsetGrouping(),
-        std::move(subsetCommonData),
-        std::move(subsetData),
-        true,
-        Nothing()
-    );
-}
-
 
 template <class T, EFeatureValuesType FeatureValuesType>
 static void MakeConsecutiveIfDenseColumnDataWithScheduling(
