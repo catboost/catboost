@@ -5090,9 +5090,8 @@ def to_regressor(model):
     if 'loss_function' in params:
         regressor._check_is_regressor_loss(params['loss_function'])
 
-    for attr in ['_object', '_init_params', '_random_seed', '_learning_rate', '_tree_count', '_loss_value_change', '_prediction_values_change']:
-        if hasattr(model, attr):
-            setattr(regressor, attr, getattr(model, attr))
+    for attr in model.__dict__:
+        setattr(regressor, attr, getattr(model, attr))
     return regressor
 
 
@@ -5110,7 +5109,6 @@ def to_classifier(model):
     if 'loss_function' in params:
         classifier._check_is_classification_objective(params['loss_function'])
 
-    for attr in ['_object', '_init_params', '_random_seed', '_learning_rate', '_tree_count', '_loss_value_change', '_prediction_values_change']:
-        if hasattr(model, attr):
-            setattr(classifier, attr, getattr(model, attr))
+    for attr in model.__dict__:
+        setattr(classifier, attr, getattr(model, attr))
     return classifier
