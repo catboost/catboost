@@ -5077,28 +5077,40 @@ def _plot_feature_statistics(statistics, feature, max_cat_features_on_plot):
 
 
 def to_regressor(model):
-    regressor = CatBoostRegressor()
+    if isinstance(model, CatBoostRegressor):
+        return model
+    if not isinstance(model, CatBoost):
+        raise CatBoostError('model should be a subclass of CatBoost')
 
+    regressor = CatBoostRegressor.__new__(CatBoostRegressor)
+
+    # TODO(ilyzhin) change on get_all_params after MLTOOLS-4758
     params = deepcopy(model._init_params)
     _process_synonyms(params)
     if 'loss_function' in params:
         regressor._check_is_regressor_loss(params['loss_function'])
 
-    for attr in ['_object', '_init_params', '_random_seed', '_learning_rate', '_tree_count']:
+    for attr in ['_object', '_init_params', '_random_seed', '_learning_rate', '_tree_count', '_loss_value_change', '_prediction_values_change']:
         if hasattr(model, attr):
             setattr(regressor, attr, getattr(model, attr))
     return regressor
 
 
 def to_classifier(model):
-    classifier = CatBoostClassifier()
+    if isinstance(model, CatBoostClassifier):
+        return model
+    if not isinstance(model, CatBoost):
+        raise CatBoostError('model should be a subclass of CatBoost')
 
+    classifier = CatBoostClassifier.__new__(CatBoostClassifier)
+
+    # TODO(ilyzhin) change on get_all_params after MLTOOLS-4758
     params = deepcopy(model._init_params)
     _process_synonyms(params)
     if 'loss_function' in params:
         classifier._check_is_classification_objective(params['loss_function'])
 
-    for attr in ['_object', '_init_params', '_random_seed', '_learning_rate', '_tree_count']:
+    for attr in ['_object', '_init_params', '_random_seed', '_learning_rate', '_tree_count', '_loss_value_change', '_prediction_values_change']:
         if hasattr(model, attr):
             setattr(classifier, attr, getattr(model, attr))
     return classifier

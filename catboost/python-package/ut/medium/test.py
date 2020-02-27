@@ -6890,11 +6890,12 @@ def test_to_classifier():
 
     merged_model = sum_models(models)
     prediction = merged_model.predict(test_pool, prediction_type='Probability')
+    assert type(merged_model) is CatBoost
 
     merged_model = to_classifier(merged_model)
 
     assert isinstance(merged_model, CatBoostClassifier)
-    assert _check_data(merged_model.predict(test_pool, prediction_type='Probability'), prediction)
+    assert _check_data(merged_model.predict_proba(test_pool), prediction)
 
 
 def test_to_classifier_wrong_type():
@@ -6916,6 +6917,7 @@ def test_to_regressor():
 
     merged_model = sum_models(models)
     prediction = merged_model.predict(test_pool)
+    assert type(merged_model) is CatBoost
 
     merged_model = to_regressor(merged_model)
 
