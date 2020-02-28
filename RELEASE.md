@@ -1,3 +1,17 @@
+# Release 0.22
+
+## New features:
+- The main feature of the release is the support of non symmetric trees for training on CPU.
+Using non symmetric trees might be useful if one-hot encoding is present, or data has little noise.
+To try non symmetric trees change [``grow_policy`` parameter](https://catboost.ai/docs/concepts/parameter-tuning.html#tree-growing-policy).
+Starting from this release non symmetric trees are supported for both CPU and GPU training.
+- The next big feature improves catboost text features support.
+Now tokenization is done during training, you don't have to do lowercasing, digit extraction and other tokenization on your own, catboost does it for you.
+- Auto learning-rate is now supported in CPU MultiClass mode
+- CatBoost class supports ``to_regressor`` and ``to_classifier`` methods
+
+The release also contains a list of bug fixes.
+
 # Release 0.21
 
 ## New features:
