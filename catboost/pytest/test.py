@@ -8516,3 +8516,20 @@ def test_model_shrink_incorrect(config):
     ]
     with pytest.raises(yatest.common.ExecutionError):
         yatest.common.execute(cmd)
+
+
+def test_total_f1_params_from_string(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_eval_path = yatest.common.test_output_path('test.eval')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'MultiClass',
+        '-f', data_file('cloudness_small', 'train_small'),
+        '-t', data_file('cloudness_small', 'test_small'),
+        '--column-description', data_file('cloudness_small', 'train.cd'),
+        '-i', '10',
+        '--custom-metric', 'TotalF1:average=Micro',
+    )
+    yatest.common.execute(cmd)
