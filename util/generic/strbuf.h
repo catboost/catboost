@@ -490,7 +490,7 @@ static inline TUtf16String ToWtring(const TWtringBuf wtr) {
     return TUtf16String(wtr);
 }
 
-static inline TUtf32String ToUtf32String(const TUtf32String wtr) {
+static inline TUtf32String ToUtf32String(const TUtf32StringBuf wtr) {
     return TUtf32String(wtr);
 }
 
