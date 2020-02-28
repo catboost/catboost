@@ -297,16 +297,6 @@ namespace NCB {
         bool HasSparseData() const override;
 
 
-        // needed for effective application of models
-        // TODO(akhropov): make effective sparse features support
-        TIntrusiveConstPtr<TRawObjectsDataProvider> GetWithPermutedConsecutiveArrayFeaturesData(
-            ui64 cpuRamLimit,
-            NPar::TLocalExecutor* localExecutor,
-
-            // if result is already in the same order as this return Nothing()
-            TMaybe<TVector<ui32>>* srcArrayPermutation
-        ) const;
-
         // needed for low-level optimizations in CPU applying code
         const TFeaturesArraySubsetIndexing& GetFeaturesArraySubsetIndexing() const {
             return *CommonData.SubsetIndexing;
@@ -432,13 +422,6 @@ namespace NCB {
         bool HasDenseData() const override;
         bool HasSparseData() const override;
 
-
-        TIntrusiveConstPtr<TQuantizedObjectsDataProvider> GetWithPermutedConsecutiveArrayFeaturesData(
-            ui64 cpuRamLimit,
-            NPar::TLocalExecutor* localExecutor,
-            TMaybe<TVector<ui32>>* srcArrayPermutation
-        ) const;
-
         /* can return nullptr if this feature is unavailable
          * (ignored or this data provider contains only subset of features)
          */
@@ -473,8 +456,6 @@ namespace NCB {
         void SaveDataNonSharedPart(IBinSaver* binSaver) const {
             Data.SaveNonSharedPart(*GetFeaturesLayout(), binSaver);
         }
-
-        bool HasAggregatedFeaturesData() const;
 
     protected:
         TQuantizedObjectsData Data;

@@ -184,7 +184,6 @@ namespace NCatboostDistributed {
             params->TargetClassifiers,
             /*featuresCheckSum*/ 0, // unused in case of localData
             /*foldCreationParamsCheckSum*/ 0,
-            ParseMemorySizeDescription(trainParams.SystemOptions->CpuUsedRamLimit.Get()),
             /*initModel*/ Nothing(),
             /*initModelApplyCompatiblePools*/ NCB::TDataProviders(),
             &NPar::LocalExecutor());
