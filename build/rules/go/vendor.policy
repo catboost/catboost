@@ -408,6 +408,9 @@ ALLOW .* -> vendor/github.com/beevik/etree
 # CONTRIB-1703 telebot client for telegram. responsible: alittleprince@
 ALLOW .* -> vendor/gopkg.in/tucnak/telebot.v2
 
+# CONTRIB-1726 helpers for working with protobuf field masks
+ALLOW .* -> vendor/github.com/mennanov/fieldmask-utils
+
 #
 # Temporary exceptions.
 #
