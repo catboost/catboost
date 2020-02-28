@@ -60,6 +60,7 @@ TModelSplit TSplit::GetModelSplit(
         split.OnlineCtr.Ctr.Shift = shift[Ctr.PriorIdx];
         split.OnlineCtr.Ctr.Scale = ctrInfo.BorderCount / norm[Ctr.PriorIdx];
         split.OnlineCtr.Border = EmulateUi8Rounding(BinBorder);
+        split.OnlineCtr.Canonize();
     }
     return split;
 }

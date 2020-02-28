@@ -136,7 +136,7 @@
         "uri": "file://test.test_cpp_export_no_cat_features_CPU_/model.cpp"
     },
     "test.test_cpp_export_with_cat_features[CPU]": {
-        "checksum": "fbb4d6d46ffa1264284dbdcd3186496a",
+        "checksum": "6695a5cecae4c02b4c02583376b868c7",
         "uri": "file://test.test_cpp_export_with_cat_features_CPU_/model.cpp"
     },
     "test.test_ctr_target_border_count[CPU]": {
@@ -412,11 +412,11 @@
         "uri": "file://test.test_export_to_python_no_cat_features_CPU-40_/model.py"
     },
     "test.test_export_to_python_with_cat_features[CPU-2]": {
-        "checksum": "5d7d800b1643e6a993fb98d237cfe25f",
+        "checksum": "1a95570e541fb3b3af4dd4233e9093f8",
         "uri": "file://test.test_export_to_python_with_cat_features_CPU-2_/model.py"
     },
     "test.test_export_to_python_with_cat_features[CPU-40]": {
-        "checksum": "1f95ee6bd49978d1696fffb5a9e9b5f0",
+        "checksum": "0f2479f8362b5f5b9325f41ff604e7e9",
         "uri": "file://test.test_export_to_python_with_cat_features_CPU-40_/model.py"
     },
     "test.test_export_to_python_with_cat_features_from_pandas[CPU]": {
