@@ -8518,18 +8518,30 @@ def test_model_shrink_incorrect(config):
         yatest.common.execute(cmd)
 
 
-def test_total_f1_params_from_string(boosting_type):
-    output_model_path = yatest.common.test_output_path('model.bin')
-    output_eval_path = yatest.common.test_output_path('test.eval')
-
-    cmd = (
-        CATBOOST_PATH,
-        'fit',
-        '--loss-function', 'MultiClass',
-        '-f', data_file('cloudness_small', 'train_small'),
-        '-t', data_file('cloudness_small', 'test_small'),
-        '--column-description', data_file('cloudness_small', 'train.cd'),
-        '-i', '10',
-        '--custom-metric', 'TotalF1:average=Micro',
+def test_total_f1_params():
+    do_test_eval_metrics(
+        metric='TotalF1:average=Macro',
+        metric_period='1',
+        train=data_file('cloudness_small', 'train_small'),
+        test=data_file('cloudness_small', 'test_small'),
+        cd=data_file('cloudness_small', 'train.cd'),
+        loss_function='MultiClass'
     )
-    yatest.common.execute(cmd)
+
+    do_test_eval_metrics(
+        metric='TotalF1:average=Micro',
+        metric_period='1',
+        train=data_file('cloudness_small', 'train_small'),
+        test=data_file('cloudness_small', 'test_small'),
+        cd=data_file('cloudness_small', 'train.cd'),
+        loss_function='MultiClass'
+    )
+
+    do_test_eval_metrics(
+        metric='TotalF1:average=Weighted',
+        metric_period='1',
+        train=data_file('cloudness_small', 'train_small'),
+        test=data_file('cloudness_small', 'test_small'),
+        cd=data_file('cloudness_small', 'train.cd'),
+        loss_function='MultiClass'
+    )

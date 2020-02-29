@@ -5,7 +5,6 @@
 #include <library/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TotalF1MetricTest) {
-    // use balanced_accuracy_score from sklearn to compute benchmark value
     Y_UNIT_TEST(TotalF1WeightedTest) {
         {
             TVector<TVector<double>> approx{{1, 0, 1, 0, 1, 0, 1, 0, 0},
