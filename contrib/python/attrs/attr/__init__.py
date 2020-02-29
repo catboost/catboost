@@ -16,10 +16,10 @@ from ._make import (
     make_class,
     validate,
 )
-from ._version import VersionInfo
+from ._version_info import VersionInfo
 
 
-__version__ = "19.2.0"
+__version__ = "19.3.0"
 __version_info__ = VersionInfo._from_version_string(__version__)
 
 __title__ = "attrs"
