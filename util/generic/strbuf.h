@@ -411,10 +411,6 @@ public: // string subsequences
         return TdSelf(*this).RSeek(len);
     }
 
-    TBasicString<TCharType> ToString() const {
-        return {Start, Length};
-    }
-
 private:
     inline size_t ChopImpl(size_t shift) noexcept {
         if (shift > length())
