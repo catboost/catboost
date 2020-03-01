@@ -470,6 +470,7 @@ SEXP CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJson
     TPoolHandle learnPool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(learnPoolParam));
     TDataProviders pools;
     pools.Learn = learnPool;
+    pools.Learn->Ref();
 
     auto fitParams = LoadFitParams(fitParamsAsJsonParam);
     TFullModelPtr modelPtr = std::make_unique<TFullModel>();
@@ -477,6 +478,7 @@ SEXP CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJson
         TEvalResult evalResult;
         TPoolHandle testPool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(testPoolParam));
         pools.Test.emplace_back(testPool);
+        pools.Test.back()->Ref();
         TrainModel(
             fitParams,
             nullptr,
@@ -489,7 +491,6 @@ SEXP CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJson
             modelPtr.get(),
             {&evalResult}
         );
-        Y_UNUSED(pools.Test.back().Release());
     }
     else {
         TrainModel(
@@ -505,7 +506,6 @@ SEXP CatBoostFit_R(SEXP learnPoolParam, SEXP testPoolParam, SEXP fitParamsAsJson
             {}
         );
     }
-    Y_UNUSED(pools.Learn.Release());
     result = PROTECT(R_MakeExternalPtr(modelPtr.get(), R_NilValue, R_NilValue));
     R_RegisterCFinalizerEx(result, _Finalizer<TFullModelHandle>, TRUE);
     modelPtr.release();
@@ -553,6 +553,7 @@ SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
 
     R_API_BEGIN();
     TPoolPtr pool = reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    pool->Ref();
     auto fitParams = LoadFitParams(fitParamsAsJsonParam);
 
     TCrossValidationParams cvParams;
@@ -574,7 +575,6 @@ SEXP CatBoostCV_R(SEXP fitParamsAsJsonParam,
         pool,
         cvParams,
         &cvResults);
-    Y_UNUSED(pool.Release());
 
     metricCount = cvResults.size();
     TVector<size_t> offsets(metricCount);
@@ -803,6 +803,9 @@ SEXP CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fs
     TFullModelHandle model = reinterpret_cast<TFullModelHandle>(R_ExternalPtrAddr(modelParam));
     TDataProviderPtr pool = Rf_isNull(poolParam) ? nullptr :
                             reinterpret_cast<TPoolHandle>(R_ExternalPtrAddr(poolParam));
+    if (pool) {
+        pool->Ref();
+    }
     EFstrType fstrType = FromString<EFstrType>(CHAR(asChar(fstrTypeParam)));
     const int threadCount = UpdateThreadCount(asInteger(threadCountParam));
     const bool multiClass = model->GetDimensionsCount() > 1;
@@ -854,9 +857,6 @@ SEXP CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fs
         INTEGER(resultDim)[0] = numRows;
         INTEGER(resultDim)[1] = numCols;
         setAttrib(result, R_DimSymbol, resultDim);
-    }
-    if (pool) {
-        Y_UNUSED(pool.Release());
     }
     R_API_END();
     UNPROTECT(2);
