@@ -416,8 +416,10 @@ namespace NLastGetopt {
                 auto& line = L << "COMPREPLY+=( $(compgen -W '";
                 TStringBuf sep = "";
                 for (auto& mode : modes) {
-                    line << sep << B(mode->Name);
-                    sep = " ";
+                    if (!mode->Hidden) {
+                        line << sep << B(mode->Name);
+                        sep = " ";
+                    }
                 }
                 line << "' -- ${cur}) )";
             }
@@ -431,7 +433,7 @@ namespace NLastGetopt {
                 I;
 
                 for (auto& mode : modes) {
-                    if (mode->Name.empty()) {
+                    if (mode->Name.empty() || mode->Hidden) {
                         continue;
                     }
 
@@ -470,6 +472,10 @@ namespace NLastGetopt {
             auto& line = L << "COMPREPLY+=( $(compgen -W '";
             TStringBuf sep = "";
             for (auto& opt : unorderedOpts) {
+                if (opt->IsHidden()) {
+                    continue;
+                }
+
                 for (auto& shortName : opt->GetShortNames()) {
                     line << sep << "-" << B(TStringBuf(&shortName, 1));
                     sep = " ";
@@ -488,7 +494,7 @@ namespace NLastGetopt {
             {
                 I;
                 for (auto& opt : unorderedOpts) {
-                    if (opt->HasArg_ == EHasArg::NO_ARGUMENT) {
+                    if (opt->HasArg_ == EHasArg::NO_ARGUMENT || opt->IsHidden()) {
                         continue;
                     }
 
@@ -526,7 +532,7 @@ namespace NLastGetopt {
                     auto& line = L << "opts='@(";
                     TStringBuf sep = "";
                     for (auto& opt : unorderedOpts) {
-                        if (opt->HasArg_ == EHasArg::NO_ARGUMENT) {
+                        if (opt->HasArg_ == EHasArg::NO_ARGUMENT || opt->IsHidden()) {
                             continue;
                         }
                         for (auto& shortName : opt->GetShortNames()) {
