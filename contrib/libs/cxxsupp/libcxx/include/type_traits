@@ -540,8 +540,8 @@ struct _Lazy : _Func<_Args...> {};
 
 // Member detector base
 
-template <template <class...> class _Templ, class ..._Args>
-true_type __sfinae_test_impl(_FirstType<int, _Templ<_Args...> >);
+template <template <class...> class _Templ, class ..._Args, class = _Templ<_Args...> >
+true_type __sfinae_test_impl(int);
 template <template <class...> class, class ...>
 false_type __sfinae_test_impl(...);
 
@@ -1159,8 +1159,19 @@ template <class _Tp> struct _LIBCPP_TEMPLATE_VIS add_rvalue_reference
 template <class _Tp> using add_rvalue_reference_t = typename add_rvalue_reference<_Tp>::type;
 #endif
 
+// Suppress deprecation notice for volatile-qualified return type resulting
+// from volatile-qualified types _Tp.
+_LIBCPP_SUPPRESS_DEPRECATED_PUSH
+template <class _Tp> _Tp&& __declval(int);
+template <class _Tp> _Tp   __declval(long);
+_LIBCPP_SUPPRESS_DEPRECATED_POP
+
 template <class _Tp>
+#ifdef _LIBCPP_COMPILER_MSVC
 typename add_rvalue_reference<_Tp>::type
+#else
+decltype(_VSTD::__declval<_Tp>(0))
+#endif
 declval() _NOEXCEPT;
 
 // __uncvref
@@ -2871,6 +2882,30 @@ _LIBCPP_INLINE_VAR _LIBCPP_CONSTEXPR bool is_default_constructible_v
     = is_default_constructible<_Tp>::value;
 #endif
 
+#ifndef _LIBCPP_CXX03_LANG
+// First of all, we can't implement this check in C++03 mode because the {}
+// default initialization syntax isn't valid.
+// Second, we implement the trait in a funny manner with two defaulted template
+// arguments to workaround Clang's PR43454.
+template <class _Tp>
+void __test_implicit_default_constructible(_Tp);
+
+template <class _Tp, class = void, bool = is_default_constructible<_Tp>::value>
+struct __is_implicitly_default_constructible
+    : false_type
+{ };
+
+template <class _Tp>
+struct __is_implicitly_default_constructible<_Tp, decltype(__test_implicit_default_constructible<_Tp const&>({})), true>
+    : true_type
+{ };
+
+template <class _Tp>
+struct __is_implicitly_default_constructible<_Tp, decltype(__test_implicit_default_constructible<_Tp const&>({})), false>
+    : false_type
+{ };
+#endif // !C++03
+
 // is_copy_constructible
 
 template <class _Tp>
@@ -3716,6 +3751,13 @@ _LIBCPP_INLINE_VAR constexpr bool is_nothrow_invocable_r_v
 template <class _Tp> struct __is_swappable;
 template <class _Tp> struct __is_nothrow_swappable;
 
+// swap, swap_ranges
+
+template <class _ForwardIterator1, class _ForwardIterator2>
+inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
+_ForwardIterator2
+swap_ranges(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2);
+
 template <class _Tp>
 inline _LIBCPP_INLINE_VISIBILITY
 #ifndef _LIBCPP_CXX03_LANG
@@ -3741,7 +3783,22 @@ inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
 typename enable_if<
     __is_swappable<_Tp>::value
 >::type
-swap(_Tp (&__a)[_Np], _Tp (&__b)[_Np]) _NOEXCEPT_(__is_nothrow_swappable<_Tp>::value);
+swap(_Tp (&__a)[_Np], _Tp (&__b)[_Np]) _NOEXCEPT_(__is_nothrow_swappable<_Tp>::value)
+{
+    _VSTD::swap_ranges(__a, __a + _Np, __b);
+}
+
+template <class _ForwardIterator1, class _ForwardIterator2>
+inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
+_ForwardIterator2
+swap_ranges(_ForwardIterator1 __first1, _ForwardIterator1 __last1, _ForwardIterator2 __first2)
+{
+    for(; __first1 != __last1; ++__first1, (void) ++__first2)
+        swap(*__first1, *__first2);
+    return __first2;
+}
+
+// iter_swap
 
 template <class _ForwardIterator1, class _ForwardIterator2>
 inline _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX17
