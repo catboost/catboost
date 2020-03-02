@@ -2904,7 +2904,7 @@ def test_shap_feature_importance_ranking(task_type):
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
     model = CatBoost(
         {
-            "iterations": 5,
+            "iterations": 20,
             "learning_rate": 0.03,
             "task_type": task_type,
             "devices": "0",
@@ -2914,10 +2914,6 @@ def test_shap_feature_importance_ranking(task_type):
     model.fit(pool)
     shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool)
     assert np.allclose(model.predict(pool), np.sum(shaps, axis=1))
-
-    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
-    np.save(fimp_npy_path, np.around(np.array(shaps), 9))
-    return local_canonical_file(fimp_npy_path)
 
 
 def test_shap_feature_importance_asymmetric_and_symmetric(task_type):

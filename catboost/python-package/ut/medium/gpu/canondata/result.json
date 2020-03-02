@@ -517,10 +517,6 @@
         "checksum": "df59f8b080e37d595f5a39629b52445b",
         "uri": "file://test.test_shap_feature_importance_multiclass_GPU_/feature_importance.npy"
     },
-    "test.test_shap_feature_importance_ranking[GPU]": {
-        "checksum": "0fc92c3e31284b06865a9cf05306c48e",
-        "uri": "file://test.test_shap_feature_importance_ranking_GPU_/feature_importance.npy"
-    },
     "test.test_shap_multiclass[GPU]": {
         "checksum": "3821bb977ca1e3dc3dd1f9007c35e75d",
         "uri": "file://test.test_shap_multiclass_GPU_/feature_importance.txt"
