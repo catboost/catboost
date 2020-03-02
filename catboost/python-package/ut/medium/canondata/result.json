@@ -27,9 +27,25 @@
         "checksum": "a69f80dbcc62193e4786574acd1b83a1",
         "uri": "file://test.test_compute_options/options.json"
     },
-    "test.test_continue_learning_with_changing_dataset": {
+    "test.test_continue_learning_with_changing_dataset[samples=more,features=more]": {
+        "checksum": "667cdfbbc2844f88518899634c8fe589",
+        "uri": "file://test.test_continue_learning_with_changing_dataset_samples=more_features=more_/predictions.txt"
+    },
+    "test.test_continue_learning_with_changing_dataset[samples=more,features=same]": {
         "checksum": "34d951122244c602bd9069f186632b1a",
-        "uri": "file://test.test_continue_learning_with_changing_dataset/predictions.txt"
+        "uri": "file://test.test_continue_learning_with_changing_dataset_samples=more_features=same_/predictions.txt"
+    },
+    "test.test_continue_learning_with_changing_dataset[samples=new,features=more]": {
+        "checksum": "fc8453b4a917be96c85212a17cb3aea4",
+        "uri": "file://test.test_continue_learning_with_changing_dataset_samples=new_features=more_/predictions.txt"
+    },
+    "test.test_continue_learning_with_changing_dataset[samples=new,features=same]": {
+        "checksum": "1b3af97a429f9ac6cb69f54b3b3eb53d",
+        "uri": "file://test.test_continue_learning_with_changing_dataset_samples=new_features=same_/predictions.txt"
+    },
+    "test.test_continue_learning_with_changing_dataset[samples=same,features=more]": {
+        "checksum": "e49332966b53b7d4a4a4c55aba652f19",
+        "uri": "file://test.test_continue_learning_with_changing_dataset_samples=same_features=more_/predictions.txt"
     },
     "test.test_continue_learning_with_changing_params[param_set=iterations,depth,rsm-problem_type=binclass]": [
         {

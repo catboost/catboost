@@ -5799,10 +5799,51 @@ def test_continue_learning_with_changing_params(problem_type, param_set):
     return canonical_files
 
 
-def test_continue_learning_with_changing_dataset():
-    train_df = read_csv(TRAIN_FILE, header=None, delimiter='\t')
-    train_labels = Series(train_df.iloc[:, TARGET_IDX])
-    train_df.drop([TARGET_IDX], axis=1, inplace=True)
+SAMPLES_AND_FEATURES_FOR_CONTINUATION = [
+    ('same', 'more'),
+    ('more', 'same'),
+    ('new', 'same'),
+    ('more', 'more'),
+    ('new', 'more'),
+]
+
+
+@pytest.mark.parametrize(
+    'samples,features',
+    SAMPLES_AND_FEATURES_FOR_CONTINUATION,
+    ids=[
+        'samples=%s,features=%s' % (samples, features)
+        for (samples, features) in SAMPLES_AND_FEATURES_FOR_CONTINUATION
+    ]
+)
+def test_continue_learning_with_changing_dataset(samples, features):
+    all_df = read_csv(TRAIN_FILE, header=None, delimiter='\t')
+    all_labels = Series(all_df.iloc[:, TARGET_IDX])
+    all_df.drop([TARGET_IDX], axis=1, inplace=True)
+    all_features_df = all_df
+
+    if samples == 'same':
+        features_df_1 = all_features_df.copy()
+        labels_1 = all_labels.copy()
+        features_df_2 = all_features_df
+        labels_2 = all_labels
+    elif samples == 'more':
+        features_df_1 = all_features_df.head(70).copy()
+        labels_1 = all_labels.head(70).copy()
+        features_df_2 = all_features_df
+        labels_2 = all_labels
+    elif samples == 'new':
+        features_df_1 = all_features_df.head(60).copy()
+        labels_1 = all_labels.head(60).copy()
+        features_df_2 = all_features_df.tail(len(all_features_df) - 60).copy()
+        labels_2 = all_labels.tail(len(all_features_df) - 60).copy()
+
+    if features == 'more':
+        features_df_1.drop(features_df_1.columns[-5:], axis=1, inplace=True)
+        cat_features_1 = filter(lambda i: i < len(features_df_1.columns), CAT_FEATURES)
+    else:
+        cat_features_1 = CAT_FEATURES
+    cat_features_2 = CAT_FEATURES
 
     train_params = {
         'task_type': 'CPU',  # TODO(akhropov): GPU support
@@ -5811,15 +5852,16 @@ def test_continue_learning_with_changing_dataset():
         'learning_rate': 0.3  # fixed, because automatic value depends on number of iterations
     }
 
-    def train_model(train_features_df, train_labels, iterations, init_model=None):
+    def train_model(train_features_df, train_labels, cat_features, iterations, init_model=None):
         local_params = train_params
         local_params['iterations'] = iterations
         model = CatBoost(local_params)
-        model.fit(X=train_features_df, y=train_labels, cat_features=CAT_FEATURES, init_model=init_model)
+        print ('cat_features', cat_features)
+        model.fit(X=train_features_df, y=train_labels, cat_features=cat_features, init_model=init_model)
         return model
 
-    model1 = train_model(train_df.head(70), train_labels.head(70), iterations=5)
-    model2 = train_model(train_df, train_labels, iterations=4, init_model=model1)
+    model1 = train_model(features_df_1, labels_1, cat_features_1, iterations=5)
+    model2 = train_model(features_df_2, labels_2, cat_features_2, iterations=4, init_model=model1)
 
     pred = model2.predict(Pool(TEST_FILE, column_description=CD_FILE))
     preds_path = test_output_path(PREDS_TXT_PATH)
