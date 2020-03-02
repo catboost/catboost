@@ -284,7 +284,7 @@ class bdist_egg(Command):
                 "or refer to a module" % (ep,)
             )
 
-        pyver = sys.version[:3]
+        pyver = '{}.{}'.format(*sys.version_info)
         pkg = ep.module_name
         full = '.'.join(ep.attrs)
         base = ep.attrs[0]
