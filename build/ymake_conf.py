@@ -1628,7 +1628,7 @@ class LD(Linker):
             self.use_stdlib = '-nodefaultlibs'
             self.soname_option = '-install_name'
             if not preset('NO_DEBUGINFO'):
-                self.dwarf_command = '$DWARF_TOOL $TARGET -o ${output;pre=$REALPRJNAME.dSYM/Contents/Resources/DWARF/:REALPRJNAME}'
+                self.dwarf_command = '$DWARF_TOOL $TARGET -o ${output;pre=$MODULE_PREFIX$REALPRJNAME.dSYM/Contents/Resources/DWARF/$MODULE_PREFIX:REALPRJNAME}'
 
         if self.build.profiler_type == Profiler.GProf:
             self.ld_flags.append('-pg')
