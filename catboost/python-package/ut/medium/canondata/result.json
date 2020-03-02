@@ -915,6 +915,10 @@
         "checksum": "316daefe3df34faac7f538e19b1ceabc",
         "uri": "file://test.test_shap_feature_importance_multiclass_CPU_/feature_importance.npy"
     },
+    "test.test_shap_feature_importance_ranking[CPU]": {
+        "checksum": "457697029490a0611678b770f5c9ebb2",
+        "uri": "file://test.test_shap_feature_importance_ranking_CPU_/feature_importance.npy"
+    },
     "test.test_shap_feature_importance_with_langevin": {
         "checksum": "12533ea576101ffe5532389c18df9554",
         "uri": "file://test.test_shap_feature_importance_with_langevin/feature_importance.npy"

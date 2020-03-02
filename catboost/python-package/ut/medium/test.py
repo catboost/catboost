@@ -2915,6 +2915,13 @@ def test_shap_feature_importance_ranking(task_type):
     shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool)
     assert np.allclose(model.predict(pool), np.sum(shaps, axis=1))
 
+    if task_type == 'GPU':
+        return pytest.xfail(reason="On GPU models with loss Pairlogit are too unstable. MLTOOLS-4722")
+    else:
+        fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+        np.save(fimp_npy_path, np.around(np.array(shaps), 9))
+        return local_canonical_file(fimp_npy_path)
+
 
 def test_shap_feature_importance_asymmetric_and_symmetric(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
