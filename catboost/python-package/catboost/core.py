@@ -670,8 +670,7 @@ class Pool(_PoolBase):
 
     def quantize(self, ignored_features=None, per_float_feature_quantization=None, border_count=None,
                  max_bin=None, feature_border_type=None, sparse_features_conflict_fraction=None, dev_efb_max_buckets=None,
-                 nan_mode=None, input_borders=None, simple_ctr=None, combinations_ctr=None, per_feature_ctr=None,
-                 ctr_target_border_count=None, task_type=None, used_ram_limit=None):
+                 nan_mode=None, input_borders=None, task_type=None, used_ram_limit=None):
         """
         Quantize this pool
 
@@ -726,32 +725,6 @@ class Pool(_PoolBase):
         input_borders : string, [default=None]
             input file with borders used in numeric features binarization.
 
-        simple_ctr: list of strings, [default=None]
-            Binarization settings for categorical features.
-                Format : see documentation
-                Example: ['Borders:CtrBorderCount=5:Prior=0:Prior=0.5', 'BinarizedTargetMeanValue:TargetBorderCount=10:TargetBorderType=MinEntropy', ...]
-                CTR types:
-                    CPU and GPU
-                    - 'Borders'
-                    - 'Buckets'
-                    CPU only
-                    - 'BinarizedTargetMeanValue'
-                    - 'Counter'
-                    GPU only
-                    - 'FloatTargetMeanValue'
-                    - 'FeatureFreq'
-                Number_of_borders, binarization type, target borders and binarizations, priors are optional parametrs
-
-        combinations_ctr: list of strings, [default=None]
-
-        per_feature_ctr: list of strings, [default=None]
-
-        ctr_target_border_count: int, [default=None]
-            Maximum number of borders used in target binarization for categorical features that need it.
-            If TargetBorderCount is specified in 'simple_ctr', 'combinations_ctr' or 'per_feature_ctr' option it
-            overrides this value.
-            range: [1, 255]
-
         task_type : string, [default=None]
             The calcer type used to train the model.
             Possible values:
@@ -771,8 +744,7 @@ class Pool(_PoolBase):
 
         self._update_params_quantize_part(params, ignored_features, per_float_feature_quantization, border_count,
                                           feature_border_type, sparse_features_conflict_fraction, dev_efb_max_buckets,
-                                          nan_mode, input_borders, simple_ctr, combinations_ctr, per_feature_ctr,
-                                          ctr_target_border_count, task_type, used_ram_limit)
+                                          nan_mode, input_borders, task_type, used_ram_limit)
 
         self._quantize(params)
 
@@ -780,8 +752,7 @@ class Pool(_PoolBase):
 
     def _update_params_quantize_part(self, params, ignored_features, per_float_feature_quantization, border_count,
                                      feature_border_type, sparse_features_conflict_fraction, dev_efb_max_buckets,
-                                     nan_mode, input_borders, simple_ctr, combinations_ctr, per_feature_ctr,
-                                     ctr_target_border_count, task_type, used_ram_limit):
+                                     nan_mode, input_borders, task_type, used_ram_limit):
         if ignored_features is not None:
             params.update({
                 'ignored_features': ignored_features
@@ -820,26 +791,6 @@ class Pool(_PoolBase):
         if input_borders is not None:
             params.update({
                 'input_borders': input_borders
-            })
-
-        if simple_ctr is not None:
-            params.update({
-                'simple_ctr': simple_ctr
-            })
-
-        if combinations_ctr is not None:
-            params.update({
-                'combinations_ctr': combinations_ctr
-            })
-
-        if per_feature_ctr is not None:
-            params.update({
-                'per_feature_ctr': per_feature_ctr
-            })
-
-        if ctr_target_border_count is not None:
-            params.update({
-                'ctr_target_border_count': ctr_target_border_count
             })
 
         if task_type is not None:
