@@ -187,8 +187,12 @@ TVector<TVector<double>> ApplyModelMulti(
 {
     TSetLoggingVerboseOrSilent inThisScope(verbose);
 
+    int lastTreeIdx = end;
+    FixupTreeEnd(model.GetTreeCount(), begin, &lastTreeIdx);
+    const auto blockParams = GetBlockParams(threadCount, objectsData.GetObjectCount(), lastTreeIdx - begin);
+
     NPar::TLocalExecutor executor;
-    executor.RunAdditionalThreads(threadCount - 1);
+    executor.RunAdditionalThreads(Min<int>(threadCount, blockParams.GetBlockCount()) - 1);
     const auto& result = ApplyModelMulti(model, objectsData, predictionType, begin, end, &executor);
     return result;
 }
