@@ -8518,27 +8518,10 @@ def test_model_shrink_incorrect(config):
         yatest.common.execute(cmd)
 
 
-def test_total_f1_params():
-    do_test_eval_metrics(
-        metric='TotalF1:average=Macro',
-        metric_period='1',
-        train=data_file('cloudness_small', 'train_small'),
-        test=data_file('cloudness_small', 'test_small'),
-        cd=data_file('cloudness_small', 'train.cd'),
-        loss_function='MultiClass'
-    )
-
-    do_test_eval_metrics(
-        metric='TotalF1:average=Micro',
-        metric_period='1',
-        train=data_file('cloudness_small', 'train_small'),
-        test=data_file('cloudness_small', 'test_small'),
-        cd=data_file('cloudness_small', 'train.cd'),
-        loss_function='MultiClass'
-    )
-
-    do_test_eval_metrics(
-        metric='TotalF1:average=Weighted',
+@pytest.mark.parametrize('average', ['Macro', 'Micro', 'Weighted'])
+def test_total_f1_params(average):
+    return do_test_eval_metrics(
+        metric='TotalF1:average=' + average,
         metric_period='1',
         train=data_file('cloudness_small', 'train_small'),
         test=data_file('cloudness_small', 'test_small'),

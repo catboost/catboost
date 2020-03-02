@@ -50,4 +50,17 @@ Y_UNIT_TEST_SUITE(TotalF1MetricTest) {
             UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.43333333333333335, 1e-6);
         }
     }
+    Y_UNIT_TEST(TotalF1BinClassTest) {
+        {
+            TVector<TVector<double>> approx{{0, 1, 1, 1, 0, 1, 1, 1, 0}};
+            TVector<float> target{1, 0, 1, 0, 0, 1, 1, 1, 0};
+            TVector<float> weight{1, 1, 1, 1, 1, 1, 1, 1, 1};
+
+            NPar::TLocalExecutor executor;
+            auto metric = MakeTotalF1Metric();
+            TMetricHolder score = metric->Eval(approx, {}, false, target, weight, {}, 0, target.size(), executor);
+
+            UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.6580086580086579, 1e-6);
+        }
+    }
 }
