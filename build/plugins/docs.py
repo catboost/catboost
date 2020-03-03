@@ -23,9 +23,6 @@ def macro_calls_to_dict(unit, calls):
             unit.message(['error', 'Invalid variables specification "{}": value expected to be in form %name%=%value% (with no spaces)'.format(arg)])
             return None
 
-        if kv[1] == 'true':
-            kv[1] = 'yes'
-
         return kv
 
     return dict(filter(None, map(split_args, calls)))
@@ -53,21 +50,16 @@ def generate_dart(unit, as_lib=False):
     if build_tool not in ['mkdocs', 'yfm']:
         unit.message(['error', 'Unsupported build tool {}'.format(build_tool)])
 
-    docs_config = unit.get('DOCSCONFIG')
-    if not docs_config and build_tool == 'mkdocs':
-        docs_config = 'mkdocs.yml'
+    docs_config = os.path.normpath(unit.get('DOCSCONFIG') or 'mkdocs.yml')
+    if os.path.sep not in docs_config:
+        docs_config = os.path.join(module_dir, docs_config)
+    elif not docs_config.startswith(docs_dir + os.path.sep):
+        unit.message(['error', 'DOCS_CONFIG value "{}" is outside the project directory and DOCS_DIR'.format(docs_config)])
+        return
 
-    if docs_config:
-        docs_config = os.path.normpath(docs_config)
-        if os.path.sep not in docs_config:
-            docs_config = os.path.join(module_dir, docs_config)
-        elif not docs_config.startswith(docs_dir + os.path.sep):
-            unit.message(['error', 'DOCS_CONFIG value "{}" is outside the project directory and DOCS_DIR'.format(docs_config)])
-            return
-
-        if not os.path.exists(unit.resolve('$S/' + docs_config)):
-            unit.message(['error', 'DOCS_CONFIG value "{}" does not exist'.format(docs_config)])
-            return
+    if build_tool == 'mkdocs' and not os.path.exists(unit.resolve('$S/' + docs_config)):
+        unit.message(['error', 'DOCS_CONFIG value "{}" does not exist'.format(docs_config)])
+        return
 
     includes = extract_macro_calls(unit, 'DOCSINCLUDESOURCES')
 
