@@ -1,4 +1,6 @@
 #include "objects.h"
+
+#include "sparse_columns.h"
 #include "util.h"
 
 #include <catboost/libs/cat_feature/cat_feature.h>

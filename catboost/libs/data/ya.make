@@ -10,6 +10,7 @@ SRCS(
     cat_feature_perfect_hash_helper.cpp
     GLOBAL cb_dsv_loader.cpp
     columns.cpp
+    composite_columns.cpp
     data_provider.cpp
     data_provider_builders.cpp
     exclusive_feature_bundling.cpp
@@ -31,6 +32,7 @@ SRCS(
     packed_binary_features.cpp
     quantization.cpp
     quantized_features_info.cpp
+    sparse_columns.cpp
     target.cpp
     unaligned_mem.cpp
     util.cpp

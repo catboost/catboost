@@ -4,6 +4,7 @@
 #include "feature_index.h"
 #include "lazy_columns.h"
 #include "objects.h"
+#include "sparse_columns.h"
 #include "target.h"
 #include "util.h"
 #include "visitor.h"

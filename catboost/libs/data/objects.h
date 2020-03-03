@@ -1,6 +1,7 @@
 #pragma once
 
 #include "columns.h"
+#include "composite_columns.h"
 #include "exclusive_feature_bundling.h"
 #include "feature_grouping.h"
 #include "feature_index.h"
