@@ -1,6 +1,7 @@
 ALLOW contrib/libs/clickhouse -> contrib/restricted/apache-orc
 ALLOW contrib/restricted/apache-orc -> contrib/restricted/apache-orc
 ALLOW contrib/restricted/abseil-cpp -> contrib/restricted/abseil-cpp
+ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp
 ALLOW contrib/libs/libbpf -> contrib/restricted/libelf
 ALLOW contrib/restricted/libelf -> contrib/restricted/libelf
 
