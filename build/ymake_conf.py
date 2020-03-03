@@ -1857,7 +1857,7 @@ class MSVCToolchainOptions(ToolchainOptions):
 
         else:
             self.sdk_version = '10.0.16299.0'
-            sdk_dir = '$(WINDOWS_KITS-sbr:883703503)'
+            sdk_dir = '$(WINDOWS_KITS-sbr:1379398385)'
 
             self.vc_root = self.name_marker if not self.use_clang else '$MSVC_FOR_CLANG_RESOURCE_GLOBAL'
             self.kit_includes = os.path.join(sdk_dir, 'Include', self.sdk_version)
