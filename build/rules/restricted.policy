@@ -17,4 +17,6 @@ ALLOW quasar/yandex_io -> contrib/restricted/gst-plugins-good
 ALLOW quasar/yandex_io -> contrib/restricted/gst-plugins-bad
 ALLOW quasar/yandex_io -> contrib/restricted/gst-libav
 
+ALLOW extsearch/audio/kernel/recoglib -> contrib/restricted/mpg123
+
 DENY .* -> contrib/restricted
