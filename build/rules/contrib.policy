@@ -235,6 +235,9 @@ ALLOW ads/libs/py_notifier -> contrib/deprecated/python/xmpppy
 ALLOW yql/udfs/common/python/python_arc -> contrib/deprecated/python/xmpppy
 DENY .* -> contrib/deprecated/python/xmpppy
 
+ALLOW contrib/python/fancycompleter -> contrib/python/pyrepl
+DENY .* -> contrib/python/pyrepl
+
 ALLOW addappter/backend -> contrib/python/pycrypto
 ALLOW adfox -> contrib/python/pycrypto
 ALLOW alice/vins/api -> contrib/python/pycrypto
