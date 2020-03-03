@@ -112,7 +112,7 @@ bool TryGetSchemeHostAndPort(const TStringBuf url, TStringBuf& scheme, TStringBu
 /**
  * Extracts scheme, host and port from URL.
  *
- * This function preform the same actions as TryGetSchemeHostAndPort(), but in
+ * This function perform the same actions as TryGetSchemeHostAndPort(), but in
  * case of impossibility to parse port number throws yexception.
  *
  * @param[in] url       any URL
