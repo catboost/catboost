@@ -8,6 +8,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/int_cast.h>
 #include <catboost/libs/logging/logging.h>
+#include <catboost/private/libs/data_util/exists_checker.h>
 
 #include <util/datetime/base.h>
 
@@ -15,6 +16,7 @@
 namespace NCB {
 
     TDataProviderPtr ReadDataset(
+        TMaybe<ETaskType> taskType,
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
@@ -57,9 +59,15 @@ namespace NCB {
             }
         );
 
+        TDataProviderBuilderOptions builderOptions;
+        builderOptions.GpuDistributedFormat = !loadSubset.HasFeatures && taskType && *taskType == ETaskType::GPU
+            && EDatasetVisitorType::QuantizedFeatures == datasetLoader->GetVisitorType()
+            && poolPath.Inited() && IsSharedFs(poolPath);
+        builderOptions.PoolPath = poolPath;
+
         THolder<IDataProviderBuilder> dataProviderBuilder = CreateDataProviderBuilder(
             datasetLoader->GetVisitorType(),
-            TDataProviderBuilderOptions{},
+            builderOptions,
             loadSubset,
             localExecutor
         );
@@ -74,6 +82,7 @@ namespace NCB {
 
 
     TDataProviderPtr ReadDataset(
+        TMaybe<ETaskType> taskType,
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
@@ -93,6 +102,7 @@ namespace NCB {
         TSetLoggingVerboseOrSilent inThisScope(verbose);
 
         TDataProviderPtr dataProviderPtr = ReadDataset(
+            taskType,
             poolPath,
             pairsFilePath,
             groupWeightsFilePath,
@@ -118,7 +128,7 @@ namespace NCB {
         const TPathWithScheme& timestampsFilePath, // can be uninited
         const TPathWithScheme& baselineFilePath, // can be uninited
         const TPathWithScheme& featureNamesPath, // can be uninited
-        const NCB::TDsvFormatOptions& poolFormat,
+        const TDsvFormatOptions& poolFormat,
         const TVector<TColumn>& columnsDescription, // TODO(smirnovpavel): TVector<EColumn>
         const TVector<ui32>& ignoredFeatures,
         EObjectsOrder objectsOrder,
@@ -163,6 +173,7 @@ namespace NCB {
     }
 
     TDataProviders ReadTrainDatasets(
+        TMaybe<ETaskType> taskType,
         const NCatboostOptions::TPoolLoadParams& loadOptions,
         EObjectsOrder objectsOrder,
         bool readTestData,
@@ -183,6 +194,7 @@ namespace NCB {
             CATBOOST_DEBUG_LOG << "Loading features..." << Endl;
             auto start = Now();
             dataProviders.Learn = ReadDataset(
+                taskType,
                 loadOptions.LearnSetPath,
                 loadOptions.PairsFilePath,
                 loadOptions.GroupWeightsFilePath,
@@ -217,6 +229,7 @@ namespace NCB {
                     testIdx == 0 ? loadOptions.TestBaselineFilePath : NCB::TPathWithScheme();
 
                 TDataProviderPtr testDataProvider = ReadDataset(
+                    taskType,
                     testSetPath,
                     testPairsFilePath,
                     testGroupWeightsFilePath,

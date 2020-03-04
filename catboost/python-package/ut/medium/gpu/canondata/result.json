@@ -12,35 +12,35 @@
         "uri": "file://test.test_class_names_GPU_/predictions.txt"
     },
     "test.test_class_weights[GPU]": {
-        "checksum": "f8d2f255f0eb0939c7cdd95748a966d4",
+        "checksum": "29422eeceb5d9f3a45a0e165f31c1a3c",
         "uri": "file://test.test_class_weights_GPU_/model.bin"
     },
     "test.test_classification_ctr[GPU]": {
-        "checksum": "1c2af050a737e36f4d36310fdc113535",
+        "checksum": "0558f09d7f2162c70faede6a83d5edfc",
         "uri": "file://test.test_classification_ctr_GPU_/model.bin"
     },
     "test.test_convert_model_to_json[GPU-adult-parameters0]": {
-        "checksum": "d85312e7fbf9ff9892f4a10a2c104250",
+        "checksum": "9a9e79d02871e7532e8bc7da2f1ba0e4",
         "uri": "file://test.test_convert_model_to_json_GPU-adult-parameters0_/converted_model.bin"
     },
     "test.test_convert_model_to_json[GPU-adult-parameters1]": {
-        "checksum": "694ed744978453dfb7db70936f290d0c",
+        "checksum": "b85846d936a6ddeab396a8a7af47b88f",
         "uri": "file://test.test_convert_model_to_json_GPU-adult-parameters1_/converted_model.bin"
     },
     "test.test_convert_model_to_json[GPU-higgs-parameters2]": {
-        "checksum": "e1eb6d65d962b47900ab0475a0f5e37c",
+        "checksum": "33e4f5c164b10f5a59b5564a76b63b04",
         "uri": "file://test.test_convert_model_to_json_GPU-higgs-parameters2_/converted_model.bin"
     },
     "test.test_coreml_cbm_import_export[GPU]": {
-        "checksum": "f2c4b2c42345cffc7c909b99a18d02c5",
+        "checksum": "865c514e199e772677acf085101a26e5",
         "uri": "file://test.test_coreml_cbm_import_export_GPU_/model.mlmodel"
     },
     "test.test_coreml_import_export[GPU]": {
-        "checksum": "fa10a8d441e2838fac98cbaf3a7643de",
+        "checksum": "6ada562b04a82846b747f1edcee5cd84",
         "uri": "file://test.test_coreml_import_export_GPU_/model.mlmodel"
     },
     "test.test_coreml_import_export_one_hot_features[GPU]": {
-        "checksum": "abf9265124f06d46787de1a6773ffa0c",
+        "checksum": "7ed9d1141e07b90efe57efa93bfcd59a",
         "uri": "file://test.test_coreml_import_export_one_hot_features_GPU_/model.mlmodel"
     },
     "test.test_cpp_export_no_cat_features[GPU]": {
@@ -48,11 +48,11 @@
         "uri": "file://test.test_cpp_export_no_cat_features_GPU_/model.cpp"
     },
     "test.test_cpp_export_with_cat_features[GPU]": {
-        "checksum": "4e783d941a6993db6c121c855c7d87e9",
+        "checksum": "2a8f2e70d9760738992b21ab9c84493a",
         "uri": "file://test.test_cpp_export_with_cat_features_GPU_/model.cpp"
     },
     "test.test_ctr_target_border_count[GPU]": {
-        "checksum": "b58bf5d6076b5dce32a034e68ce2c7e0",
+        "checksum": "720b449b8f69067fac8ce2eea3234e50",
         "uri": "file://test.test_ctr_target_border_count_GPU_/model.bin"
     },
     "test.test_cv[GPU]": {
@@ -80,15 +80,15 @@
         "uri": "file://test.test_cv_overfitting_detector_GPU-with_metric_period=True_/catboost_training.json"
     },
     "test.test_cv_pairs[GPU]": {
-        "checksum": "c0721ce0fa9b0d4169ed5ed3ebeb1813",
+        "checksum": "02196ae632a41df07a2537dae963fd58",
         "uri": "file://test.test_cv_pairs_GPU_/catboost_training.json"
     },
     "test.test_cv_pairs_generated[GPU]": {
-        "checksum": "7bf10180272035ce81d66ea703bd2213",
+        "checksum": "997ff49341e855beffc1b1d068436f28",
         "uri": "file://test.test_cv_pairs_generated_GPU_/catboost_training.json"
     },
     "test.test_cv_query[GPU]": {
-        "checksum": "cd0308c56228783a44403978d4b6cee0",
+        "checksum": "e4ca5267df9ee2376581fc37f788cf72",
         "uri": "file://test.test_cv_query_GPU_/catboost_training.json"
     },
     "test.test_cv_skip_train[GPU]": {
@@ -289,6 +289,14 @@
         "checksum": "5b61eb8006111ca6b27aa2d6f80a133d",
         "uri": "file://test.test_feature_importance_GPU_/feature_importance.npy"
     },
+    "test.test_feature_importance_asymmetric_prediction_value_change[GPU-Depthwise]": {
+        "checksum": "d98100229882c88eed361b94a97bae60",
+        "uri": "file://test.test_feature_importance_asymmetric_prediction_value_change_GPU-Depthwise_/feature_importance.npy"
+    },
+    "test.test_feature_importance_asymmetric_prediction_value_change[GPU-Lossguide]": {
+        "checksum": "4261753a4b08764e11d57e7bd63740a3",
+        "uri": "file://test.test_feature_importance_asymmetric_prediction_value_change_GPU-Lossguide_/feature_importance.npy"
+    },
     "test.test_feature_importance_explicit[GPU]": {
         "checksum": "5b61eb8006111ca6b27aa2d6f80a133d",
         "uri": "file://test.test_feature_importance_explicit_GPU_/feature_importance.npy"
@@ -309,16 +317,20 @@
         "checksum": "e45f68e71ed3870c0856e93256dab74e",
         "uri": "file://test.test_get_metric_evals_GPU_/evals.txt"
     },
+    "test.test_grow_policy_restriction[GPU-Depthwise]": {
+        "checksum": "e882bd857688cc7a4bc0dd0a757509e4",
+        "uri": "file://test.test_grow_policy_restriction_GPU-Depthwise_/predictions.npy"
+    },
     "test.test_grow_policy_restriction[GPU-Lossguide]": {
         "checksum": "d11cef0fd6c32d57e09732d9af141dbb",
         "uri": "file://test.test_grow_policy_restriction_GPU-Lossguide_/predictions.npy"
     },
     "test.test_ignored_features[GPU]": {
-        "checksum": "8c3acd0ccdd6b3513a579570bf953ea3",
+        "checksum": "df73b44e728dd35d4a0b32c2928a0cd3",
         "uri": "file://test.test_ignored_features_GPU_/model.bin"
     },
     "test.test_ignored_features_names[GPU]": {
-        "checksum": "051cf90166d3d87eb48a8ab0e4284b14",
+        "checksum": "83c4206646ef194799a91b40c503821f",
         "uri": "file://test.test_ignored_features_names_GPU_/model.bin"
     },
     "test.test_interaction_feature_importance[GPU]": {
@@ -351,7 +363,7 @@
             "uri": "file://test.test_multiclass_classes_count_GPU-missed_classes=False_/predictions.txt"
         },
         {
-            "checksum": "70720b703d69bef7e882186f3e25040f",
+            "checksum": "e14ee96f2573d0e626956a0f39241a01",
             "uri": "file://test.test_multiclass_classes_count_GPU-missed_classes=False_/model.bin"
         }
     ],
@@ -361,7 +373,7 @@
             "uri": "file://test.test_multiclass_classes_count_GPU-missed_classes=True_/predictions.txt"
         },
         {
-            "checksum": "873c391b1ceb8f0d25b8b0bd4c957d9e",
+            "checksum": "035465dcf0193e955915aa5d2a8a211e",
             "uri": "file://test.test_multiclass_classes_count_GPU-missed_classes=True_/model.bin"
         }
     ],
@@ -378,15 +390,15 @@
         "uri": "file://test.test_multiclass_custom_class_labels_from_files_GPU_/predictions.txt"
     },
     "test.test_multiclass_grow_policy[GPU-Depthwise]": {
-        "checksum": "147e0495321a0e743a6371ad3ddaa737",
-        "uri": "file://test.test_multiclass_grow_policy_GPU-Depthwise_/predictions.npy"
+        "checksum": "0b3ed2aedb8223babf47a942a2218aba",
+        "uri": "file://test.test_multiclass_grow_policy_GPU-Depthwise_/learn_error.txt"
     },
     "test.test_multiclass_grow_policy[GPU-Lossguide]": {
-        "checksum": "904b05a98d82c32418211da5cb40b6ce",
-        "uri": "file://test.test_multiclass_grow_policy_GPU-Lossguide_/predictions.npy"
+        "checksum": "d43a559e6a423c5293427c577b7d704f",
+        "uri": "file://test.test_multiclass_grow_policy_GPU-Lossguide_/learn_error.txt"
     },
     "test.test_non_ones_weight[GPU]": {
-        "checksum": "021c012d25288ad63798b20481725189",
+        "checksum": "913473e483dff622dc0e03162f89ca29",
         "uri": "file://test.test_non_ones_weight_GPU_/model.bin"
     },
     "test.test_ntree_limit[GPU]": {
@@ -398,11 +410,11 @@
         "uri": "file://test.test_object_importances_GPU_/object_importances.txt"
     },
     "test.test_od[GPU]": {
-        "checksum": "b7d0b78424b4157041f0d1981958e83e",
+        "checksum": "75f8d444eab6ce49f76801e4f6ee5f28",
         "uri": "file://test.test_od_GPU_/model.bin"
     },
     "test.test_ones_weight[GPU]": {
-        "checksum": "c05a47f693c52e4d8327cf564937687a",
+        "checksum": "550c15c04cc280140c6c934cb60d0f5a",
         "uri": "file://test.test_ones_weight_GPU_/model.bin"
     },
     "test.test_pairs_generation[GPU]": {
@@ -426,19 +438,19 @@
         "uri": "file://test.test_predict_class_raw_GPU_/predictions.npy"
     },
     "test.test_predict_regress[GPU]": {
-        "checksum": "e51733dfb4da232a60f1649fd9a8e98b",
+        "checksum": "b577b5146b952b7840c50c3d56f50e60",
         "uri": "file://test.test_predict_regress_GPU_/model.bin"
     },
     "test.test_predict_sklearn_class[GPU]": {
-        "checksum": "e30cacc3a67c0c3cb7c3e5b34dc87989",
+        "checksum": "ae07c4e5068a251a499189493fe776c4",
         "uri": "file://test.test_predict_sklearn_class_GPU_/model.bin"
     },
     "test.test_predict_sklearn_regress[GPU]": {
-        "checksum": "4d5438a47ac2929efbdfa1f5b606d766",
+        "checksum": "fabfdd27e8f0493b0a84f19af348994b",
         "uri": "file://test.test_predict_sklearn_regress_GPU_/model.bin"
     },
     "test.test_priors[GPU]": {
-        "checksum": "19298d4e399df71b258333a8dda2d2ed",
+        "checksum": "041d97743097acefab211bcf0bd7eae3",
         "uri": "file://test.test_priors_GPU_/model.bin"
     },
     "test.test_regress_with_per_float_feature_binarization_param[GPU]": {
@@ -490,7 +502,7 @@
         "uri": "file://test.test_shap_complex_ctr_GPU_/feature_importance.txt"
     },
     "test.test_shap_feature_importance[GPU]": {
-        "checksum": "bb93877fdf41addf2af6e4162fef2c09",
+        "checksum": "0890acd8a713c849c129e80b2b2cca03",
         "uri": "file://test.test_shap_feature_importance_GPU_/feature_importance.npy"
     },
     "test.test_shap_feature_importance_asymmetric[GPU-Depthwise]": {
@@ -526,7 +538,7 @@
         "uri": "file://test.test_verbose_int_GPU-True_/catboost_training.json"
     },
     "test.test_zero_baseline[GPU]": {
-        "checksum": "b18a823db74e16016208e010df3b3330",
+        "checksum": "2d3af17bfe5285a23259701ea08ae088",
         "uri": "file://test.test_zero_baseline_GPU_/model.bin"
     }
 }

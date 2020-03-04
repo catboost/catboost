@@ -13,13 +13,8 @@
 #include <sys/types.h>
 #include <sys/resource.h>
 #include <sys/param.h>
-#if !defined(_cygwin_) && !defined(_android_)
-#include <sys/sysctl.h>
-#endif
-#else
-#if defined(_win_)
+#elif defined(_win_)
 #include <util/system/winint.h>
-#endif
 #endif
 
 TTimer::TTimer(const TStringBuf message) {

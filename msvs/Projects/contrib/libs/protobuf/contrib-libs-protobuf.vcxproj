@@ -162,6 +162,113 @@
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\wire_format.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\wire_format_lite.cc"/>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\protobuf\wrappers.pb.cc"/>
+    <CustomBuild Include="$(SolutionDir)..\build\scripts\fs_tools.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf/any.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/google/protobuf/any.proto"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf/api.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/google/protobuf/api.proto"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf/descriptor.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/google/protobuf/descriptor.proto"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf/duration.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/google/protobuf/duration.proto"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf/empty.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/google/protobuf/empty.proto"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf/field_mask.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/google/protobuf/field_mask.proto"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf/source_context.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/google/protobuf/source_context.proto"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf/struct.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/google/protobuf/struct.proto"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf/timestamp.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/google/protobuf/timestamp.proto"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf/type.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/google/protobuf/type.proto"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf/wrappers.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/google/protobuf/wrappers.proto"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf/any.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/google/protobuf/any.proto"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf/api.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/google/protobuf/api.proto"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf/descriptor.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/google/protobuf/descriptor.proto"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf/duration.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/google/protobuf/duration.proto"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf/empty.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/google/protobuf/empty.proto"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf/field_mask.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/google/protobuf/field_mask.proto"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf/source_context.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/google/protobuf/source_context.proto"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf/struct.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/google/protobuf/struct.proto"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf/timestamp.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/google/protobuf/timestamp.proto"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf/type.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/google/protobuf/type.proto"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\libs\protobuf
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/fs_tools.py" "copy" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf/wrappers.proto" "$(SolutionDir)$(Configuration)/contrib/libs/protobuf/google/protobuf/wrappers.proto"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/libs/protobuf/google/protobuf/any.proto	$B/contrib/libs/protobuf/google/protobuf/api.proto	$B/contrib/libs/protobuf/google/protobuf/descriptor.proto	$B/contrib/libs/protobuf/google/protobuf/duration.proto	$B/contrib/libs/protobuf/google/protobuf/empty.proto	$B/contrib/libs/protobuf/google/protobuf/field_mask.proto	$B/contrib/libs/protobuf/google/protobuf/source_context.proto	$B/contrib/libs/protobuf/google/protobuf/struct.proto	$B/contrib/libs/protobuf/google/protobuf/timestamp.proto	$B/contrib/libs/protobuf/google/protobuf/type.proto	$B/contrib/libs/protobuf/google/protobuf/wrappers.proto	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fs_tools.py;$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\any.proto;$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\api.proto;$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\descriptor.proto;$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\duration.proto;$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\empty.proto;$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\field_mask.proto;$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\source_context.proto;$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\struct.proto;$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\timestamp.proto;$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\type.proto;$(SolutionDir)..\contrib\libs\protobuf\google\protobuf\wrappers.proto;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\protobuf\google\protobuf\any.proto;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\google\protobuf\api.proto;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\google\protobuf\descriptor.proto;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\google\protobuf\duration.proto;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\google\protobuf\empty.proto;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\google\protobuf\field_mask.proto;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\google\protobuf\source_context.proto;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\google\protobuf\struct.proto;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\google\protobuf\timestamp.proto;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\google\protobuf\type.proto;$(SolutionDir)$(Configuration)\contrib\libs\protobuf\google\protobuf\wrappers.proto;</Outputs>
+    </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\any.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\arena.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\arena_impl.h"/>

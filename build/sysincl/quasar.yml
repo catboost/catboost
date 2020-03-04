@@ -41,9 +41,6 @@
 - source_filter: "^quasar/yandex_io/daemons/external_libs/breakpad/include/third_party/lss"
   includes:
   - asm/sgidefs.h
-- source_filter: "^quasar/yandex_io/daemons/src/platforms/(elari_a98|jet_smart_music)/wm_peripheral.h"
-  includes:
-  - linux/socket.h
 - source_filter: "^quasar/yandex_io/daemons/external_libs/libsrtp/"
   includes:
   - alloc.h: quasar/yandex_io/daemons/external_libs/libsrtp/crypto/include/alloc.h

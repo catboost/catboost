@@ -12,6 +12,7 @@ from importlib import import_module
 
 from distutils.errors import DistutilsOptionError, DistutilsFileError
 from setuptools.extern.packaging.version import LegacyVersion, parse
+from setuptools.extern.packaging.specifiers import SpecifierSet
 from setuptools.extern.six import string_types, PY3
 
 
@@ -482,6 +483,7 @@ class ConfigMetadataHandler(ConfigHandler):
             'obsoletes': parse_list,
             'classifiers': self._get_parser_compound(parse_file, parse_list),
             'license': exclude_files_parser('license'),
+            'license_files': parse_list,
             'description': parse_file,
             'long_description': parse_file,
             'version': self._parse_version,
@@ -554,6 +556,7 @@ class ConfigOptionsHandler(ConfigHandler):
             'packages': self._parse_packages,
             'entry_points': self._parse_file,
             'py_modules': parse_list,
+            'python_requires': SpecifierSet,
         }
 
     def _parse_packages(self, value):

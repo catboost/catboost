@@ -1,6 +1,7 @@
 #pragma once
 
 #include "columns.h"
+#include "composite_columns.h"
 #include "exclusive_feature_bundling.h"
 #include "feature_grouping.h"
 #include "feature_index.h"
@@ -141,16 +142,30 @@ namespace NCB {
          */
         virtual bool HasSparseData() const = 0;
 
-        virtual TIntrusivePtr<TObjectsDataProvider> GetSubset(
+        virtual TIntrusivePtr<TObjectsDataProvider> GetSubsetImpl(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            TMaybe<TConstArrayRef<ui32>> ignoredFeatures,
             ui64 cpuRamLimit,
             NPar::TLocalExecutor* localExecutor
         ) const = 0;
 
-        virtual TIntrusivePtr<TObjectsDataProvider> GetFeaturesSubset(
+        TIntrusivePtr<TObjectsDataProvider> GetSubset(
+            const TObjectsGroupingSubset& objectsGroupingSubset,
+            ui64 cpuRamLimit,
+            NPar::TLocalExecutor* localExecutor
+        ) const {
+            return GetSubsetImpl(
+                objectsGroupingSubset,
+                /*ignoredFeatures*/ Nothing(),
+                cpuRamLimit,
+                localExecutor
+            );
+        }
+
+        TIntrusivePtr<TObjectsDataProvider> GetFeaturesSubset(
             const TVector<ui32>& ignoredFeatures,
             NPar::TLocalExecutor* localExecutor
-        ) const = 0;
+        ) const;
 
         // The following Get* functions are common for all implementations, so they're in this base class
 
@@ -272,8 +287,9 @@ namespace NCB {
             return TObjectsDataProvider::EqualTo(rhs, ignoreSparsity) && (Data == rhsRawObjectsData->Data);
         }
 
-        TObjectsDataProviderPtr GetSubset(
+        TObjectsDataProviderPtr GetSubsetImpl(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            TMaybe<TConstArrayRef<ui32>> ignoredFeatures,
             ui64 cpuRamLimit,
             NPar::TLocalExecutor* localExecutor
         ) const override;
@@ -281,20 +297,6 @@ namespace NCB {
         bool HasDenseData() const override;
         bool HasSparseData() const override;
 
-        TObjectsDataProviderPtr GetFeaturesSubset(
-            const TVector<ui32>& ignoredFeatures,
-            NPar::TLocalExecutor* localExecutor
-        ) const override;
-
-        // needed for effective application of models
-        // TODO(akhropov): make effective sparse features support
-        TIntrusiveConstPtr<TRawObjectsDataProvider> GetWithPermutedConsecutiveArrayFeaturesData(
-            ui64 cpuRamLimit,
-            NPar::TLocalExecutor* localExecutor,
-
-            // if result is already in the same order as this return Nothing()
-            TMaybe<TVector<ui32>>* srcArrayPermutation
-        ) const;
 
         // needed for low-level optimizations in CPU applying code
         const TFeaturesArraySubsetIndexing& GetFeaturesArraySubsetIndexing() const {
@@ -411,25 +413,15 @@ namespace NCB {
                 (Data == rhsQuantizedObjectsData->Data);
         }
 
-        TObjectsDataProviderPtr GetSubset(
+        TObjectsDataProviderPtr GetSubsetImpl(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            TMaybe<TConstArrayRef<ui32>> ignoredFeatures,
             ui64 cpuRamLimit,
             NPar::TLocalExecutor* localExecutor
         ) const override;
 
         bool HasDenseData() const override;
         bool HasSparseData() const override;
-
-        TObjectsDataProviderPtr GetFeaturesSubset(
-            const TVector<ui32>& ignoredFeatures,
-            NPar::TLocalExecutor* localExecutor
-        ) const override;
-
-        TIntrusiveConstPtr<TQuantizedObjectsDataProvider> GetWithPermutedConsecutiveArrayFeaturesData(
-            ui64 cpuRamLimit,
-            NPar::TLocalExecutor* localExecutor,
-            TMaybe<TVector<ui32>>* srcArrayPermutation
-        ) const;
 
         /* can return nullptr if this feature is unavailable
          * (ignored or this data provider contains only subset of features)
@@ -465,8 +457,6 @@ namespace NCB {
         void SaveDataNonSharedPart(IBinSaver* binSaver) const {
             Data.SaveNonSharedPart(*GetFeaturesLayout(), binSaver);
         }
-
-        bool HasAggregatedFeaturesData() const;
 
     protected:
         TQuantizedObjectsData Data;
@@ -631,17 +621,12 @@ namespace NCB {
             TQuantizedObjectsDataProvider&& arg
         );
 
-        TObjectsDataProviderPtr GetSubset(
+        TObjectsDataProviderPtr GetSubsetImpl(
             const TObjectsGroupingSubset& objectsGroupingSubset,
+            TMaybe<TConstArrayRef<ui32>> ignoredFeatures,
             ui64 cpuRamLimit,
             NPar::TLocalExecutor* localExecutor
         ) const override;
-
-        NCB::TObjectsDataProviderPtr GetFeaturesSubset(
-            const TVector<ui32>& ignoredFeatures,
-            NPar::TLocalExecutor* localExecutor
-        ) const override;
-
 
         /* needed for effective calculation with Permutation blocks on CPU
          * sparse data is unaffected

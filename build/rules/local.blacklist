@@ -1,0 +1,4 @@
+# Local blacklist
+# The list of top level directories excluded from local build
+frontend
+mobile

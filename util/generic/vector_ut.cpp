@@ -535,6 +535,9 @@ private:
         vec.crop(1); // Should not require default constructor
         UNIT_ASSERT(vec.size() == 1);
         UNIT_ASSERT(vec[0].Val == 42);
+        vec.crop(50); // Does nothing if new size is greater than the current size()
+        UNIT_ASSERT(vec.size() == 1);
+        UNIT_ASSERT(vec[0].Val == 42);
     }
 
     void TestYResize() {

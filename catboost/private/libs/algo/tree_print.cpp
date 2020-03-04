@@ -168,30 +168,26 @@ TString BuildDescription(const NCB::TFeaturesLayout& layout, const TModelSplit& 
     return result;
 }
 
-TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, size_t tree_idx, const NCB::TDataProviderPtr pool) {
-    //TODO: support non symmetric trees
-    CB_ENSURE(model.IsOblivious(), "Is not supported for non symmetric trees");
-    CB_ENSURE(tree_idx < model.GetTreeCount(),
-        "Requested tree splits description for tree " << tree_idx << ", but model has " << model.GetTreeCount());
+TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, size_t treeIdx, const NCB::TDataProviderPtr pool) {
+    CB_ENSURE(treeIdx < model.GetTreeCount(),
+        "Requested tree splits description for tree " << treeIdx << ", but model has " << model.GetTreeCount());
 
-    CheckModelAndDatasetCompatibility(model, *pool->ObjectsData.Get());
+    if (pool) {
+        CheckModelAndDatasetCompatibility(model, *pool->ObjectsData.Get());
+    }
 
     TVector<TString> splits;
 
-    size_t tree_num = model.GetTreeCount();
-    size_t tree_split_end;
-    TVector<TModelSplit> bin_features = model.ModelTrees->GetBinFeatures();
+    TVector<TModelSplit> binFeatures = model.ModelTrees->GetBinFeatures();
 
-    if (tree_idx + 1 < tree_num) {
-        tree_split_end = model.ModelTrees->GetTreeStartOffsets()[tree_idx + 1];
-    } else {
-        tree_split_end = model.ModelTrees->GetTreeSplits().size();
-    }
+    size_t treeSplitEnd = (treeIdx + 1 < model.GetTreeCount())
+        ? model.ModelTrees->GetTreeStartOffsets()[treeIdx + 1]
+        : model.ModelTrees->GetTreeSplits().size();
 
-    THashMap<ui32, TString> cat_features_hash;
+    THashMap<ui32, TString> catFeaturesHash;
     NCB::TFeaturesLayout featuresLayout;
     if (pool) {
-        cat_features_hash = MergeCatFeaturesHashToString(pool.Get()->ObjectsData.Get()[0]);
+        catFeaturesHash = MergeCatFeaturesHashToString(pool.Get()->ObjectsData.Get()[0]);
         featuresLayout = *(pool.Get()->MetaInfo.FeaturesLayout.Get());
     } else {
         TVector<ui32> catFeaturesExternalIndexes;
@@ -201,51 +197,70 @@ TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, size_t tree_
         featuresLayout = NCB::TFeaturesLayout(model.GetNumFloatFeatures() + model.GetNumCatFeatures(), catFeaturesExternalIndexes, {}, {});
     }
 
-    for (size_t split_idx = model.ModelTrees->GetTreeStartOffsets()[tree_idx]; split_idx < tree_split_end; ++split_idx) {
-        TModelSplit bin_feature = bin_features[model.ModelTrees->GetTreeSplits()[split_idx]];
-        TString feature_description = BuildDescription(featuresLayout, bin_feature);
+    for (size_t splitIdx = model.ModelTrees->GetTreeStartOffsets()[treeIdx]; splitIdx < treeSplitEnd; ++splitIdx) {
+        TModelSplit binFeature = binFeatures[model.ModelTrees->GetTreeSplits()[splitIdx]];
+        TString featureDescription = BuildDescription(featuresLayout, binFeature);
 
-        if (bin_feature.Type == ESplitType::OneHotFeature) {
+        if (binFeature.Type == ESplitType::OneHotFeature) {
             CB_ENSURE(pool,
-                "Model has one hot features. Need pool for get correct split descriptions");
-            feature_description += cat_features_hash[(ui32)bin_feature.OneHotFeature.Value];
+                "Model has one hot features. Need training dataset to get correct split descriptions");
+            featureDescription += catFeaturesHash[(ui32)binFeature.OneHotFeature.Value];
         }
 
-        splits.push_back(feature_description);
+        splits.push_back(featureDescription);
     }
 
     return splits;
 }
 
-TVector<TString> GetTreeLeafValuesDescriptions(const TFullModel& model, size_t tree_idx, size_t leaves_num) {
-    //TODO: support non symmetric trees
-    CB_ENSURE(model.IsOblivious(), "Is not supported for non symmetric trees");
+TVector<TString> GetTreeLeafValuesDescriptions(const TFullModel& model, size_t treeIdx) {
+    CB_ENSURE(treeIdx < model.GetTreeCount(),
+        "Requested tree leaf values for tree " << treeIdx << ", but model has " << model.GetTreeCount());
+    size_t leafOffset = model.ModelTrees->GetFirstLeafOffsets()[treeIdx];
+    size_t nextTreeLeafOffset = (treeIdx + 1 < model.GetTreeCount())
+        ? model.ModelTrees->GetFirstLeafOffsets()[treeIdx + 1]
+        : model.ModelTrees->GetLeafValues().size();
 
-    size_t leaf_offset = 0;
-    TVector<double> leaf_values;
+    TVector<double> leafValues(
+        model.ModelTrees->GetLeafValues().begin() + leafOffset,
+        model.ModelTrees->GetLeafValues().begin() + nextTreeLeafOffset);
 
-    for (size_t idx = 0; idx < tree_idx; ++idx) {
-        leaf_offset += (1uLL <<  model.ModelTrees->GetTreeSizes()[idx]) * model.GetDimensionsCount();
-    }
-    size_t tree_leaf_count = (1uLL <<  model.ModelTrees->GetTreeSizes()[tree_idx]) * model.GetDimensionsCount();
+    TVector<TString> leafDescriptions;
 
-    for (size_t idx = 0; idx < tree_leaf_count; ++idx) {
-        leaf_values.push_back(model.ModelTrees->GetLeafValues()[leaf_offset + idx]);
-    }
-
-    std::reverse(leaf_values.begin(), leaf_values.end());
-
-    TVector<TString> leaf_descriptions;
-    size_t values_per_list = leaf_values.size() / leaves_num;
-
-    for (size_t leaf_idx = 0; leaf_idx < leaves_num; ++leaf_idx) {
+    size_t leavesNum = (nextTreeLeafOffset - leafOffset) / model.GetDimensionsCount();
+    for (size_t leafIdx = 0; leafIdx < leavesNum; ++leafIdx) {
         TStringBuilder description;
-        for (size_t internal_idx = 0; internal_idx < values_per_list; ++internal_idx) {
-            double value = leaf_values[leaf_idx + internal_idx * leaves_num];
+        for (size_t dim = 0; dim < model.GetDimensionsCount(); ++dim) {
+            double value = leafValues[leafIdx * model.GetDimensionsCount() + dim];
             description << "val = " << FloatToString(value, EFloatToStringMode::PREC_POINT_DIGITS, 3) << "\n";
         }
-        leaf_descriptions.push_back(description);
+        leafDescriptions.push_back(description);
     }
 
-    return leaf_descriptions;
+    return leafDescriptions;
+}
+
+TConstArrayRef<TNonSymmetricTreeStepNode> GetTreeStepNodes(const TFullModel& model, size_t treeIdx) {
+    CB_ENSURE(treeIdx < model.GetTreeCount(),
+        "Requested tree step nodes for tree " << treeIdx << ", but model has " << model.GetTreeCount());
+    Y_ASSERT(!model.IsOblivious());
+    const size_t offset = model.ModelTrees->GetTreeStartOffsets()[treeIdx];
+    const auto start = model.ModelTrees->GetNonSymmetricStepNodes().begin() + offset;
+    const auto end = start + model.ModelTrees->GetTreeSizes()[treeIdx];
+    return TConstArrayRef<TNonSymmetricTreeStepNode>(start, end);
+}
+
+TVector<ui32> GetTreeNodeToLeaf(const TFullModel& model, size_t treeIdx) {
+    CB_ENSURE(treeIdx < model.GetTreeCount(),
+        "Requested tree step nodes for tree " << treeIdx << ", but model has " << model.GetTreeCount());
+    Y_ASSERT(!model.IsOblivious());
+    const size_t offset = model.ModelTrees->GetTreeStartOffsets()[treeIdx];
+    const auto start = model.ModelTrees->GetNonSymmetricNodeIdToLeafId().begin() + offset;
+    const auto end = start + model.ModelTrees->GetTreeSizes()[treeIdx];
+    const size_t firstLeafOffset = model.ModelTrees->GetFirstLeafOffsets()[treeIdx];
+    TVector<ui32> nodeToLeaf(start, end);
+    for (auto& value : nodeToLeaf) {
+        value -= firstLeafOffset;
+    }
+    return nodeToLeaf;
 }

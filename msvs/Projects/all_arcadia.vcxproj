@@ -903,6 +903,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\subprocess32\pycontrib-python-subprocess32.vcxproj">
       <Project>972DE883-30AC-6E31-9991-03EE6F60C65E</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\testpath\pycontrib-python-testpath.vcxproj">
+      <Project>8E9D3E5D-72FC-14BE-D403-F8FC953F8164</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\f2c\f2c.vcxproj">
       <Project>65ED7A96-9AF7-8308-F3E6-7C54576A4963</Project>
     </ProjectReference>
@@ -1190,6 +1193,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\openssl\method\library-openssl-method.vcxproj">
       <Project>EBC3626B-F273-EB61-E7BE-9BBC217D8FB4</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
+      <Project>2CE71367-048B-26B0-2DAC-CA9BB7D00E76</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\packers\library-packers.vcxproj">
       <Project>9436F4D8-5E19-8C76-D632-4704304D6504</Project>

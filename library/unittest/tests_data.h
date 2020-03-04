@@ -33,7 +33,7 @@ void SetReuseAddressAndPort(const TSocketType& sock) {
 
 class TPortManager: public TNonCopyable {
 public:
-    TPortManager(const TString& syncDir = TString());
+    TPortManager(const TString& syncDir = TString(), bool reservePortsForCurrentTest = true);
     ~TPortManager();
 
     // Gets free TCP port

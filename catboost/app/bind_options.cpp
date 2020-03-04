@@ -100,7 +100,7 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
             for (const auto& path : StringSplitter(str).Split(',').SkipEmpty()) {
                 if (!path.Empty()) {
-                    loadParamsPtr->TestSetPaths.emplace_back(path.Token().ToString(), "dsv");
+                    loadParamsPtr->TestSetPaths.emplace_back(TString{path.Token()}, "dsv");
                 }
             }
             CB_ENSURE(!loadParamsPtr->TestSetPaths.empty(), "Empty test path");
@@ -271,7 +271,7 @@ static void BindOutputParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* p
         });
 
     const auto customFstrTypeDescription = TString::Join(
-            "Should be one of: ", GetEnumAllNames<EFstrType >());
+            "Should be one of: ", GetEnumAllNames<EFstrCalculatedInFitType>());
     parser.AddLongOption("fstr-type", customFstrTypeDescription)
         .RequiredArgument("fstr-type")
         .Handler1T<TString>([plainJsonPtr](const TString& name) {

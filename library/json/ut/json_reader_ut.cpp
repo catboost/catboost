@@ -96,6 +96,29 @@ Y_UNIT_TEST_SUITE(TJsonReaderTest) {
         UNIT_ASSERT_VALUES_EQUAL(result1, result2);
     }
 
+    Y_UNIT_TEST(TJsonEscapedApostrophe) {
+        TString jsonString = "{ \"foo\" : \"bar\\'buzz\" }";
+        {
+            TStringStream in;
+            in << jsonString;
+            TStringStream out;
+            TJsonWriter writer(&out, false);
+            TReformatCallbacks cb(writer);
+            UNIT_ASSERT(!ReadJson(&in, &cb));
+        }
+
+        {
+            TStringStream in;
+            in << jsonString;
+            TStringStream out;
+            TJsonWriter writer(&out, false);
+            TReformatCallbacks cb(writer);
+            UNIT_ASSERT(ReadJson(&in, false, true, &cb));
+            writer.Flush();
+            UNIT_ASSERT_EQUAL(out.Str(), "[\"foo\",\"bar'buzz\"]");
+        }
+    }
+
     Y_UNIT_TEST(TJsonTreeTest) {
         TString data = "{\"intkey\": 10, \"double key\": 11.11, \"null value\":null, \"string key\": \"string\", \"array\": [1,2,3,\"TString\"], \"bool key\": true}";
         TStringStream in;

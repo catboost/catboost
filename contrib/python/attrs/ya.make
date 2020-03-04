@@ -2,7 +2,7 @@ PY23_LIBRARY()
 
 
 
-VERSION(19.2.0)
+VERSION(19.3.0)
 
 LICENSE(MIT)
 
@@ -16,6 +16,7 @@ PY_SRCS(
     attr/_funcs.py
     attr/_make.py
     attr/_version.py
+    attr/_version_info.py
     attr/converters.py
     attr/exceptions.py
     attr/filters.py
@@ -28,6 +29,7 @@ RESOURCE_FILES(
     .dist-info/top_level.txt
     attr/__init__.pyi
     attr/_version.pyi
+    attr/_version_info.pyi
     attr/converters.pyi
     attr/exceptions.pyi
     attr/filters.pyi

@@ -18,6 +18,7 @@
 #include <util/string/printf.h>
 
 #include <util/system/defaults.h>
+#include <util/system/spinlock.h>
 #include <util/system/src_location.h>
 
 #include <util/system/rusage.h>
@@ -211,6 +212,8 @@ namespace NUnitTest {
 
         void AddError(const char* msg, TTestContext* context);
 
+        void RunAfterTest(std::function<void()> f); // function like atexit to run after current unit test
+
     protected:
         bool CheckAccessTest(const char* test);
 
@@ -248,6 +251,8 @@ namespace NUnitTest {
         TTestFactory* Parent_;
         size_t TestErrors_;
         const char* CurrentSubtest_;
+        TAdaptiveLock AfterTestFunctionsLock_;
+        TVector<std::function<void()>> AfterTestFunctions_;
     };
 
 #define UNIT_TEST_SUITE(N)                           \

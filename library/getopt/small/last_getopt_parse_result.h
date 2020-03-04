@@ -1,6 +1,7 @@
 #pragma once
 
 #include "last_getopt_opts.h"
+#include "last_getopt_parser.h"
 
 namespace NLastGetopt {
     /**
@@ -160,6 +161,11 @@ namespace NLastGetopt {
          * @return argv[0]
          */
         TString GetProgramName() const;
+
+        /**
+         * Print usage string.
+         */
+        void PrintUsage(IOutputStream& os = Cout) const;
 
         /**
          * @return position in [premuted argv] of the first free argument

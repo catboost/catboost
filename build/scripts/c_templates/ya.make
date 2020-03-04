@@ -1,3 +1,5 @@
+
+
 LIBRARY(dummy-vcs)
 NO_PLATFORM()
 

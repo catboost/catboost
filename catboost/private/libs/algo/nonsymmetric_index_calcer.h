@@ -8,7 +8,7 @@
 
 
 class TFold;
-struct TSplit;
+struct TSplitNode;
 struct TNonSymmetricTreeStructure;
 struct TOnlineCTR;
 
@@ -20,6 +20,15 @@ namespace NCB {
 namespace NPar {
     class TLocalExecutor;
 }
+
+void UpdateIndices(
+    const TSplitNode& node,
+    const NCB::TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
+    const NCB::TIndexedSubset<ui32>& columnsIndexing,
+    const TFold& fold,
+    NPar::TLocalExecutor* localExecutor,
+    TArrayRef<TIndexType> indices
+);
 
 void BuildIndicesForDataset(
     const TNonSymmetricTreeStructure& tree,

@@ -28,7 +28,7 @@ def today(tzinfo=None):
 
 def default_tzinfo(dt, tzinfo):
     """
-    Sets the the ``tzinfo`` parameter on naive datetimes only
+    Sets the ``tzinfo`` parameter on naive datetimes only
 
     This is useful for example when you are provided a datetime that may have
     either an implicit or explicit time zone, such as when parsing a time zone

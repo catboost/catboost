@@ -1,5 +1,7 @@
 #pragma once
 
+#include <catboost/private/libs/data_types/text.h>
+
 #include <library/digest/crc32c/crc32c.h>
 
 #include <util/generic/array_ref.h>
@@ -29,6 +31,19 @@ namespace NCB {
             }
             return checkSum;
         }
+    }
+
+    inline ui32 UpdateCheckSumImpl(ui32 init, const TStringBuf str) {
+        return Crc32cExtend(init, str.begin(), str.size());
+    }
+
+    inline ui32 UpdateCheckSumImpl(ui32 init, const NCB::TText& text) {
+        ui32 checkSum = init;
+        for (const auto& tokenCount : text) {
+            checkSum = UpdateCheckSum(checkSum, (ui32)tokenCount.Token());
+            checkSum = UpdateCheckSum(checkSum, tokenCount.Count());
+        }
+        return checkSum;
     }
 
     template <class TKey, class TValue>

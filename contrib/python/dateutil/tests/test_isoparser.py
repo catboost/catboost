@@ -4,13 +4,13 @@ from __future__ import unicode_literals
 from datetime import datetime, timedelta, date, time
 import itertools as it
 
-from dateutil.tz import tz
+from dateutil import tz
+from dateutil.tz import UTC
 from dateutil.parser import isoparser, isoparse
 
 import pytest
 import six
 
-UTC = tz.tzutc()
 
 def _generate_tzoffsets(limited):
     def _mkoffset(hmtuple, fmt):
@@ -36,7 +36,7 @@ def _generate_tzoffsets(limited):
     out += [_mkoffset(hm, fmt) for hm in hm_out for fmt in fmts]
 
     # Also add in UTC and naive
-    out.append((tz.tzutc(), 'Z'))
+    out.append((UTC, 'Z'))
     out.append((None, ''))
 
     return out
@@ -77,13 +77,13 @@ def _isoparse_date_and_time(dt, date_fmt, time_fmt, tzoffset,
     dtstr = dt.strftime(fmt)
 
     if microsecond_precision is not None:
-        if not fmt.endswith('%f'):
+        if not fmt.endswith('%f'):  # pragma: nocover
             raise ValueError('Time format has no microseconds!')
 
-        if microsecond_precision != 6:
+        if microsecond_precision != 6: 
             dtstr = dtstr[:-(6 - microsecond_precision)]
-        elif microsecond_precision > 6:
-            raise ValueError('Precision must be 1-6')
+        elif microsecond_precision > 6: # pragma: nocover
+            raise ValueError('Precision must be 1-6') 
 
     dtstr += offset_str
 
@@ -227,9 +227,9 @@ def test_iso_ordinal(isoord, dt_expected):
     (b'2014-02-04T12:30:15.224', datetime(2014, 2, 4, 12, 30, 15, 224000)),
     (b'20140204T123015.224', datetime(2014, 2, 4, 12, 30, 15, 224000)),
     (b'2014-02-04T12:30:15.224Z', datetime(2014, 2, 4, 12, 30, 15, 224000,
-                                           tz.tzutc())),
+                                           UTC)),
     (b'2014-02-04T12:30:15.224z', datetime(2014, 2, 4, 12, 30, 15, 224000,
-                                           tz.tzutc())),
+                                           UTC)),
     (b'2014-02-04T12:30:15.224+05:00',
         datetime(2014, 2, 4, 12, 30, 15, 224000,
                  tzinfo=tz.tzoffset(None, timedelta(hours=5))))])
@@ -286,8 +286,8 @@ def test_iso_with_sep_raises(sep_act, valid_sep, exception):
         parser.isoparse(isostr)
 
 
-@pytest.mark.xfail()
-@pytest.mark.parametrize('isostr,exception', [
+@pytest.mark.xfail() 
+@pytest.mark.parametrize('isostr,exception', [  # pragma: nocover
     ('20120425T01:2000', ValueError),           # Inconsistent time separators
 ])
 def test_iso_raises_failing(isostr, exception):
@@ -306,7 +306,7 @@ def test_isoparser_invalid_sep(sep):
 
 
 # This only fails on Python 3
-@pytest.mark.xfail(six.PY3, reason="Fails on Python 3 only")
+@pytest.mark.xfail(not six.PY2, reason="Fails on Python 3 only")
 def test_isoparser_byte_sep():
     dt = datetime(2017, 12, 6, 12, 30, 45)
     dt_str = dt.isoformat(sep=str('T'))
@@ -333,7 +333,7 @@ def test_parse_tzstr(tzoffset):
 @pytest.mark.parametrize('zero_as_utc', [True, False])
 def test_parse_tzstr_zero_as_utc(tzstr, zero_as_utc):
     tzi = isoparser().parse_tzstr(tzstr, zero_as_utc=zero_as_utc)
-    assert tzi == tz.tzutc()
+    assert tzi == UTC
     assert (type(tzi) == tz.tzutc) == zero_as_utc
 
 
@@ -356,7 +356,7 @@ def __make_date_examples():
         date(2016, 2, 1)
     ]
 
-    if six.PY3:
+    if not six.PY2:
         # strftime does not support dates before 1900 in Python 2
         dates_no_day.append(date(1000, 11, 1))
 
@@ -454,9 +454,9 @@ def __make_time_examples():
 @pytest.mark.parametrize('as_bytes', [True, False])
 def test_isotime(time_val, time_fmt, as_bytes):
     tstr = time_val.strftime(time_fmt)
-    if isinstance(time_val, six.text_type) and as_bytes:
+    if isinstance(tstr, six.text_type) and as_bytes:
         tstr = tstr.encode('ascii')
-    elif isinstance(time_val, bytes) and not as_bytes:
+    elif isinstance(tstr, bytes) and not as_bytes:
         tstr = tstr.decode('ascii')
 
     iparser = isoparser()
@@ -505,8 +505,8 @@ def test_isotime_raises(isostr, exception):
         iparser.parse_isotime(isostr)
 
 
-@pytest.mark.xfail()
-@pytest.mark.parametrize('isostr,exception', [
+@pytest.mark.xfail() 
+@pytest.mark.parametrize('isostr,exception', [  # pragma: nocover
     ('14:3015', ValueError),                    # Inconsistent separator use
     ('201202', ValueError)                      # Invalid ISO format
 ])

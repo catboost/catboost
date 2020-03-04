@@ -7,6 +7,9 @@ import yatest.common
 import yatest.common.network
 import yatest.yt
 from common_helpers import *  # noqa
+import zipfile
+
+from testpath.tempdir import TemporaryDirectory
 
 
 def get_catboost_binary_path():
@@ -170,3 +173,15 @@ def execute_dist_train(cmd):
         )
         worker0.wait()
         worker1.wait()
+
+
+@pytest.fixture(scope="module")
+def compressed_data():
+    data_path = yatest.common.source_path(os.path.join("catboost", "pytest", "data"))
+    tmp_dir = TemporaryDirectory()
+    for file_name in os.listdir(data_path):
+        if file_name.endswith('.zip'):
+            with zipfile.ZipFile(os.path.join(data_path, file_name)) as zip_file:
+                zip_file.extractall(path=tmp_dir.name)
+
+    return tmp_dir

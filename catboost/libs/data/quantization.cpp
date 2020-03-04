@@ -1805,7 +1805,9 @@ namespace NCB {
         if (calculateNanMode || calculateQuantization) {
             TMaybe<TVector<float>> initialBordersForFeature = Nothing();
             if (initialBorders) {
-                initialBordersForFeature.ConstructInPlace(TVector<float>((*initialBorders)[floatFeatureIdx.Idx].begin(), (*initialBorders)[floatFeatureIdx.Idx].end()));
+                if (floatFeatureIdx.Idx < initialBorders->size()) {
+                    initialBordersForFeature.ConstructInPlace(TVector<float>((*initialBorders)[floatFeatureIdx.Idx].begin(), (*initialBorders)[floatFeatureIdx.Idx].end()));
+                }
             }
             CalcQuantizationAndNanMode(
                 srcFeature,
@@ -2029,7 +2031,7 @@ namespace NCB {
                 textOptions.GetDictionaryOptions(featureDescription.DictionaryId.Get()),
                 tokenizer
             );
-            textDigitizers->AddDigitizer(textFeatureIdx, tokenizedFeatureIdx, tokenizer, dictionary);
+            textDigitizers->AddDigitizer(textFeatureIdx, tokenizedFeatureIdx, {tokenizer, dictionary});
         }
     }
 

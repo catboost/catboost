@@ -74,7 +74,7 @@ class NonDataProperty:
 class test(Command):
     """Command to run unit tests after in-place build"""
 
-    description = "run unit tests after in-place build"
+    description = "run unit tests after in-place build (deprecated)"
 
     user_options = [
         ('test-module=', 'm', "Run 'test_suite' in specified module"),
@@ -214,6 +214,14 @@ class test(Command):
         return itertools.chain(ir_d, tr_d, er_d)
 
     def run(self):
+        self.announce(
+            "WARNING: Testing via this command is deprecated and will be "
+            "removed in a future version. Users looking for a generic test "
+            "entry point independent of test runner are encouraged to use "
+            "tox.",
+            log.WARN,
+        )
+
         installed_dists = self.install_dists(self.distribution)
 
         cmd = ' '.join(self._argv)

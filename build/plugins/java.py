@@ -77,6 +77,7 @@ def onjava_module(unit, *args):
         'MODULE_TYPE': unit.get('MODULE_TYPE'),
         'MODULE_ARGS': unit.get('MODULE_ARGS'),
         'PEERDIR': unit.get_module_dirs('PEERDIRS'),
+        'MANAGED_PEERS': '${MANAGED_PEERS}',
         'EXCLUDE': extract_macro_calls(unit, 'EXCLUDE_VALUE', args_delim),
         'JAVA_SRCS': extract_macro_calls(unit, 'JAVA_SRCS_VALUE', args_delim),
         'JAVAC_FLAGS': extract_macro_calls(unit, 'JAVAC_FLAGS_VALUE', args_delim),
@@ -172,23 +173,24 @@ def onjava_module(unit, *args):
     dep_veto = extract_macro_calls(unit, 'JAVA_DEPENDENCIES_CONFIGURATION_VALUE', args_delim)
     if dep_veto:
         dep_veto = set(dep_veto[0])
-        for veto in map(str.upper, dep_veto):
-            if veto.upper() == 'FORBID_DIRECT_PEERDIRS':
-                data['JAVA_DEPENDENCY_DIRECT'] = [['yes']]
-            elif veto.upper() == 'FORBID_DEFAULT_VERSIONS':
-                data['JAVA_DEPENDENCY_DEFAULT_VERSION'] = [['yes']]
-            elif veto.upper() == 'FORBID_CONFLICT':
-                data['JAVA_DEPENDENCY_CHECK_RESOLVED_CONFLICTS'] = [['yes']]
-            elif veto.upper() == 'FORBID_CONFLICT_DM':
-                data['JAVA_DEPENDENCY_DM_CHECK_DIFFERENT'] = [['yes']]
-            elif veto.upper() == 'FORBID_CONFLICT_DM_RECENT':
-                data['JAVA_DEPENDENCY_DM_CHECK_RECENT'] = [['yes']]
-            elif veto.upper() == 'REQUIRE_DM':
-                data['JAVA_DEPENDENCY_DM_REQUIRED'] = [['yes']]
-            else:
-                ymake.report_configure_error('Unknown JAVA_DEPENDENCIES_CONFIGURATION value {} Allowed only [{}]'.format(veto, ', '.join(
-                    ['FORBID_DIRECT_PEERDIRS', 'FORBID_DEFAULT_VERSIONS', 'FORBID_CONFLICT', 'FORBID_CONFLICT_DM', 'FORBID_CONFLICT_DM_RECENT', 'REQUIRE_DM']
-                )))
+        if (unit.get('IGNORE_JAVA_DEPENDENCIES_CONFIGURATION') or '').lower() != 'yes':
+            for veto in map(str.upper, dep_veto):
+                if veto.upper() == 'FORBID_DIRECT_PEERDIRS':
+                    data['JAVA_DEPENDENCY_DIRECT'] = [['yes']]
+                elif veto.upper() == 'FORBID_DEFAULT_VERSIONS':
+                    data['JAVA_DEPENDENCY_DEFAULT_VERSION'] = [['yes']]
+                elif veto.upper() == 'FORBID_CONFLICT':
+                    data['JAVA_DEPENDENCY_CHECK_RESOLVED_CONFLICTS'] = [['yes']]
+                elif veto.upper() == 'FORBID_CONFLICT_DM':
+                    data['JAVA_DEPENDENCY_DM_CHECK_DIFFERENT'] = [['yes']]
+                elif veto.upper() == 'FORBID_CONFLICT_DM_RECENT':
+                    data['JAVA_DEPENDENCY_DM_CHECK_RECENT'] = [['yes']]
+                elif veto.upper() == 'REQUIRE_DM':
+                    data['JAVA_DEPENDENCY_DM_REQUIRED'] = [['yes']]
+                else:
+                    ymake.report_configure_error('Unknown JAVA_DEPENDENCIES_CONFIGURATION value {} Allowed only [{}]'.format(veto, ', '.join(
+                        ['FORBID_DIRECT_PEERDIRS', 'FORBID_DEFAULT_VERSIONS', 'FORBID_CONFLICT', 'FORBID_CONFLICT_DM', 'FORBID_CONFLICT_DM_RECENT', 'REQUIRE_DM']
+                    )))
 
     for k, v in data.items():
         if not v:

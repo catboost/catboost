@@ -194,28 +194,25 @@ Y_UNIT_TEST_SUITE(TObliviousTreeModel) {
     Y_UNIT_TEST(TestTextOnlyModel) {
         TVector<NCBTest::TTextFeature> features;
         TVector<NCBTest::TTokenizedTextFeature> tokenizedFeatures;
+        TVector<TDigitizer> digitizers;
         TVector<TTextFeatureCalcerPtr> calcers;
-        TVector<TDictionaryPtr> dictionaries;
-        TTokenizerPtr tokenizer;
-        TVector<TVector<ui32>> perFeatureDictionaries;
+        TVector<TVector<ui32>> perFeatureDigitizers;
         TVector<TVector<ui32>> perTokenizedFeatureCalcers;
 
         NCBTest::CreateTextDataForTest(
             &features,
             &tokenizedFeatures,
+            &digitizers,
             &calcers,
-            &dictionaries,
-            &tokenizer,
-            &perFeatureDictionaries,
+            &perFeatureDigitizers,
             &perTokenizedFeatureCalcers
         );
 
         auto textProcessingCollection = MakeIntrusive<TTextProcessingCollection>(
+            digitizers,
             calcers,
-            dictionaries,
-            perFeatureDictionaries,
-            perTokenizedFeatureCalcers,
-            tokenizer
+            perFeatureDigitizers,
+            perTokenizedFeatureCalcers
         );
 
         const ui32 docCount = features[0].size();

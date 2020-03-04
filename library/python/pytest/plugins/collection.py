@@ -1,3 +1,4 @@
+import os
 import sys
 
 import py
@@ -22,7 +23,10 @@ class LoadedModule(_pytest.python.Module):
 
     @property
     def nodeid(self):
-        return self.name
+        if os.getenv("CONFTEST_LOAD_POLICY") == "LOCAL":
+            return self._getobj().__file__
+        else:
+            return self.name
 
     def _getobj(self):
         module_name = self.name[:-(len(".py"))]
@@ -48,6 +52,18 @@ class DoctestModule(LoadedModule):
                 yield _pytest.doctest.DoctestItem(test.name, self, runner, test)
 
 
+# NOTE: Since we are overriding collect method of pytest session, pytest hooks are not invoked during collection.
+def pytest_ignore_collect(module, session):
+    test_file_filter = getattr(session.config.option, 'test_file_filter', None)
+    if test_file_filter is None:
+        return False
+
+    for filename in test_file_filter:
+        if module.name != filename.replace("/", "."):
+            return True
+    return False
+
+
 class CollectionPlugin(object):
     def __init__(self, test_modules, doctest_modules):
         self._test_modules = test_modules
@@ -57,8 +73,12 @@ class CollectionPlugin(object):
 
         def collect(*args, **kwargs):
             for test_module in self._test_modules:
-                yield LoadedModule(test_module, session=session)
-                yield DoctestModule(test_module, session=session)
+                module = LoadedModule(test_module, session=session)
+                if not pytest_ignore_collect(module, session):
+                    yield module
+                module = DoctestModule(test_module, session=session)
+                if not pytest_ignore_collect(module, session):
+                    yield module
 
             for doctest_module in self._doctest_modules:
                 yield DoctestModule(doctest_module, session=session, namespace=False)

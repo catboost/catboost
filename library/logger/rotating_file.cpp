@@ -2,6 +2,7 @@
 #include "file.h"
 #include "record.h"
 
+#include <util/string/builder.h>
 #include <util/system/fstat.h>
 #include <util/system/rwlock.h>
 #include <util/system/fs.h>
@@ -10,23 +11,36 @@
 
 /*
  * rotating file log
+ * if Size_ > MaxSizeBytes
+ *    Path.(N-1) -> Path.N
+ *    Path.(N-2) -> Path.(N-1)
+ *    ...
+ *    Path.1     -> Path.2
+ *    Path       -> Path.1
  */
 class TRotatingFileLogBackend::TImpl {
 public:
-    inline TImpl(const TString& preRotatePath, const TString& postRotatePath, const ui64 maxSizeBytes)
-        : Log_(preRotatePath)
-        , PreRotatePath_(preRotatePath)
-        , PostRotatePath_(postRotatePath)
+    inline TImpl(const TString& path, const ui64 maxSizeBytes, const ui32 rotatedFilesCount)
+        : Log_(path)
+        , Path_(path)
         , MaxSizeBytes_(maxSizeBytes)
-        , Size_(TFileStat(PreRotatePath_).Size)
+        , Size_(TFileStat(Path_).Size)
+        , RotatedFilesCount_(rotatedFilesCount)
     {
+        Y_ENSURE(RotatedFilesCount_ != 0);
     }
 
     inline void WriteData(const TLogRecord& rec) {
         if (static_cast<ui64>(AtomicGet(Size_)) > MaxSizeBytes_) {
             TWriteGuard guard(Lock_);
             if (static_cast<ui64>(AtomicGet(Size_)) > MaxSizeBytes_) {
-                NFs::Rename(PreRotatePath_, PostRotatePath_);
+                TString newLogPath(TStringBuilder{} << Path_ << "." << RotatedFilesCount_);
+                for (size_t fileId = RotatedFilesCount_ - 1; fileId; --fileId) {
+                    TString oldLogPath(TStringBuilder{} << Path_ << "." << fileId);
+                    NFs::Rename(oldLogPath, newLogPath);
+                    newLogPath = oldLogPath;
+                }
+                NFs::Rename(Path_, newLogPath);
                 Log_.ReopenLog();
                 AtomicSet(Size_, 0);
             }
@@ -40,20 +54,20 @@ public:
         TWriteGuard guard(Lock_);
 
         Log_.ReopenLog();
-        AtomicSet(Size_, TFileStat(PreRotatePath_).Size);
+        AtomicSet(Size_, TFileStat(Path_).Size);
     }
 
 private:
     TRWMutex Lock_;
     TFileLogBackend Log_;
-    const TString PreRotatePath_;
-    const TString PostRotatePath_;
+    const TString Path_;
     const ui64 MaxSizeBytes_;
     TAtomic Size_;
+    const ui32 RotatedFilesCount_;
 };
 
-TRotatingFileLogBackend::TRotatingFileLogBackend(const TString& preRotatePath, const TString& postRotatePath, const ui64 maxSizeBytes)
-    : Impl_(new TImpl(preRotatePath, postRotatePath, maxSizeBytes))
+TRotatingFileLogBackend::TRotatingFileLogBackend(const TString& path, const ui64 maxSizeByte, const ui32 rotatedFilesCount)
+    : Impl_(new TImpl(path, maxSizeByte, rotatedFilesCount))
 {
 }
 

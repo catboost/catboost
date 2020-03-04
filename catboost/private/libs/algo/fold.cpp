@@ -165,18 +165,15 @@ TFold TFold::BuildDynamicFold(
             : Accumulate(ff.GetLearnWeights().begin(), ff.GetLearnWeights().begin() + bodyFinish, (double)0.0);
 
         TFold::TBodyTail bt(bodyQueryFinish, tailQueryFinish, bodyFinish, tailFinish, bodySumWeight);
-
-        TVector<double> initialApprox(bt.TailFinish, GetNeutralApprox(storeExpApproxes));
-        if (startingApprox) {
-            double initApprox = ExpApproxIf(storeExpApproxes, *startingApprox);
-            for (ui32 i = leftPartLen; i < (ui32)bt.TailFinish; ++i) {
-                initialApprox[i] = initApprox;
-            }
-        }
-        bt.Approx.resize(approxDimension, initialApprox);
+        bt.Approx.resize(
+            approxDimension,
+            TVector<double>(
+                bt.TailFinish,
+                startingApprox ? ExpApproxIf(storeExpApproxes, *startingApprox) : GetNeutralApprox(storeExpApproxes)
+            )
+        );
         if (baseline) {
             InitApproxFromBaseline(
-                leftPartLen,
                 bt.TailFinish,
                 *baseline,
                 ff.GetLearnPermutationArray(),
@@ -187,7 +184,6 @@ TFold TFold::BuildDynamicFold(
         AllocateRank2(approxDimension, bt.TailFinish, bt.WeightedDerivatives);
         AllocateRank2(approxDimension, bt.TailFinish, bt.SampleWeightedDerivatives);
         if (hasPairwiseWeights) {
-            bt.PairwiseWeights.resize(bt.TailFinish);
             bt.PairwiseWeights.insert(
                 bt.PairwiseWeights.begin(),
                 pairwiseWeights.begin(),
@@ -272,7 +268,6 @@ TFold TFold::BuildPlainFold(
     TMaybeData<TConstArrayRef<TConstArrayRef<float>>> baseline = learnData.TargetData->GetBaseline();
     if (baseline) {
         InitApproxFromBaseline(
-            0,
             learnSampleCount,
             *baseline,
             ff.GetLearnPermutationArray(),

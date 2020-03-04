@@ -101,16 +101,16 @@ namespace {
                 THolder<T2> t2(new T2(i));
 
                 if (t1->Methods) {
-                    RegisterCodec(t1.Release());
+                    RegisterCodec(std::move(t1));
                 }
 
                 if (t2->Methods) {
-                    RegisterCodec(t2.Release());
+                    RegisterCodec(std::move(t2));
                 }
             }
 
-            RegisterCodec(new TLz4Codec<TLz4BestCompress, TLz4FastDecompress>());
-            RegisterCodec(new TLz4Codec<TLz4BestCompress, TLz4SafeDecompress>());
+            RegisterCodec(MakeHolder<TLz4Codec<TLz4BestCompress, TLz4FastDecompress>>());
+            RegisterCodec(MakeHolder<TLz4Codec<TLz4BestCompress, TLz4SafeDecompress>>());
 
             RegisterAlias("lz4-fast-safe", "lz4-fast14-safe");
             RegisterAlias("lz4-fast-fast", "lz4-fast14-fast");

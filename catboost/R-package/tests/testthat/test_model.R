@@ -125,6 +125,18 @@ test_that("model: catboost.train & catboost.predict multiclass", {
 
 })
 
+is_equal_model_and_load_model <- function(model, pool, file_format = "cbm") {
+  prediction <- catboost.predict(model, pool)
+  model_path <- "catboost.model"
+
+  catboost.save_model(model, model_path, file_format = file_format)
+  loaded_model <- catboost.load_model(model_path, file_format = file_format)
+
+  loaded_model_prediction <- catboost.predict(loaded_model, pool)
+
+  return (all(abs(prediction - loaded_model_prediction) < 0.00001))
+}
+
 test_that("model: catboost.load_model", {
   target <- sample(c(1, -1), size = 1000, replace = TRUE)
   features <- data.frame(f1 = rnorm(length(target), mean = 0, sd = 1),
@@ -157,18 +169,6 @@ test_that("model: catboost.save_model", {
   expect_true(is_equal_model_and_load_model(model, pool, file_format = "json"))
   expect_true(is_equal_model_and_load_model(model, pool, file_format = "coreml"))
 })
-
-is_equal_model_and_load_model <- function(model, pool, file_format = "cbm") {
-  prediction <- catboost.predict(model, pool)
-  model_path <- "catboost.model"
-
-  catboost.save_model(model, model_path, file_format = file_format)
-  loaded_model <- catboost.load_model(model_path, file_format = file_format)
-
-  loaded_model_prediction <- catboost.predict(loaded_model, pool)
-
-  return (all(abs(prediction - loaded_model_prediction) < 0.00001))
-}
 
 test_that("model: loss_function = multiclass", {
   target <- sample(c(0, 1, 2), size = 1000, replace = TRUE)
@@ -251,9 +251,10 @@ test_that("model: full_history", {
   pool <- catboost.load_pool(data, target)
 
   params <- list(iterations = 3,
-                 loss_function = "Logloss",
+                 loss_function = "MultiClass",
                  random_seed = 12345,
-                 approx_on_full_history = TRUE)
+                 approx_on_full_history = TRUE,
+                 boosting_type = "Ordered")
   model <- catboost.train(pool, NULL, params)
   pred <- catboost.predict(model, pool, prediction_type = "RawFormulaVal")
 

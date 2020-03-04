@@ -212,7 +212,7 @@ class _tzinfo(tzinfo):
         Since this is the one time that we *know* we have an unambiguous
         datetime object, we take this opportunity to determine whether the
         datetime is ambiguous and in a "fold" state (e.g. if it's the first
-        occurence, chronologically, of the ambiguous datetime).
+        occurrence, chronologically, of the ambiguous datetime).
 
         :param dt:
             A timezone-aware :class:`datetime.datetime` object.
@@ -250,7 +250,7 @@ class _tzinfo(tzinfo):
         Since this is the one time that we *know* we have an unambiguous
         datetime object, we take this opportunity to determine whether the
         datetime is ambiguous and in a "fold" state (e.g. if it's the first
-        occurance, chronologically, of the ambiguous datetime).
+        occurrence, chronologically, of the ambiguous datetime).
 
         :param dt:
             A timezone-aware :class:`datetime.datetime` object.

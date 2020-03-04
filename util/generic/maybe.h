@@ -11,15 +11,11 @@
 
 namespace NMaybe {
     struct TPolicyUndefinedExcept {
-        static void OnEmpty() {
-            ythrow yexception() << AsStringBuf("TMaybe is empty");
-        }
+        [[noreturn]] static void OnEmpty();
     };
 
     struct TPolicyUndefinedFail {
-        static void OnEmpty() {
-            Y_FAIL("TMaybe is empty");
-        }
+        [[noreturn]] static void OnEmpty();
     };
 }
 
@@ -295,7 +291,7 @@ public:
     }
 
     void CheckDefined() const {
-        if (!Defined()) {
+        if (Y_UNLIKELY(!Defined())) {
             Policy::OnEmpty();
         }
     }

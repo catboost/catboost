@@ -6,7 +6,7 @@ LICENSE(
 
 
 
-VERSION(41.2.0)
+VERSION(44.0.0)
 
 PEERDIR(
     library/python/resource
@@ -39,7 +39,9 @@ PY_SRCS(
     pkg_resources/py31compat.py
     setuptools/__init__.py
     setuptools/_deprecation_warning.py
+    setuptools/_imp.py
     setuptools/_vendor/__init__.py
+    setuptools/_vendor/ordered_set.py
     setuptools/_vendor/packaging/__about__.py
     setuptools/_vendor/packaging/__init__.py
     setuptools/_vendor/packaging/_compat.py
@@ -47,6 +49,7 @@ PY_SRCS(
     setuptools/_vendor/packaging/markers.py
     setuptools/_vendor/packaging/requirements.py
     setuptools/_vendor/packaging/specifiers.py
+    setuptools/_vendor/packaging/tags.py
     setuptools/_vendor/packaging/utils.py
     setuptools/_vendor/packaging/version.py
     setuptools/_vendor/pyparsing.py
@@ -82,20 +85,21 @@ PY_SRCS(
     setuptools/dep_util.py
     setuptools/depends.py
     setuptools/dist.py
+    setuptools/errors.py
     setuptools/extension.py
     setuptools/extern/__init__.py
-    setuptools/glibc.py
     setuptools/glob.py
+    setuptools/installer.py
     setuptools/launch.py
     setuptools/lib2to3_ex.py
     setuptools/monkey.py
     setuptools/msvc.py
     setuptools/namespaces.py
     setuptools/package_index.py
-    setuptools/pep425tags.py
     setuptools/py27compat.py
     setuptools/py31compat.py
     setuptools/py33compat.py
+    setuptools/py34compat.py
     setuptools/sandbox.py
     setuptools/site-patch.py
     setuptools/ssl_support.py

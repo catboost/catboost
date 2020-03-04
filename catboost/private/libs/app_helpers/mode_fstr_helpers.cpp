@@ -39,7 +39,8 @@ namespace {
 
                 TSetLoggingVerboseOrSilent inThisScope(false);
 
-                Dataset = NCB::ReadDataset(Params.InputPath,
+                Dataset = NCB::ReadDataset(/*taskType*/Nothing(),
+                                           Params.InputPath,
                                            Params.PairsFilePath,
                                            /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
                                            /*baselineFilePath=*/ NCB::TPathWithScheme(),
@@ -107,40 +108,33 @@ void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
 
     TLazyPoolLoader poolLoader(params, model, localExecutor);
     TFsPath inputPath(params.InputPath.Path);
-    auto fstrType = GetFeatureImportanceType(model, /*haveDataset*/true, params.FstrType);
+    auto fstrType = AdjustFeatureImportanceType(params.FstrType, model.GetLossFunctionName());
     if (fstrType != EFstrType::PredictionValuesChange) {
         CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "model fstr");
     }
+    bool isInternalFstr = IsInternalFeatureImportanceType(params.FstrType);
+    const TString* fstrPathPtr = isInternalFstr ? nullptr : &(params.OutputPath.Path);
+    const TString* internalFstrPathPtr = !isInternalFstr ? nullptr : &(params.OutputPath.Path);
+
     switch (fstrType) {
         case EFstrType::PredictionValuesChange:
             CalcAndOutputFstr(model,
                               inputPath.IsFile() ? poolLoader() : nullptr, // because InputPath has default value and is always inited
                               localExecutor.Get(),
-                              &params.OutputPath.Path,
-                              nullptr,
+                              fstrPathPtr,
+                              internalFstrPathPtr,
                               params.FstrType);
             break;
         case EFstrType::LossFunctionChange:
             CalcAndOutputFstr(model,
                               poolLoader(),
                               localExecutor.Get(),
-                              &params.OutputPath.Path,
-                              nullptr,
-                              params.FstrType);
-            break;
-        case EFstrType::InternalFeatureImportance:
-            CalcAndOutputFstr(model,
-                              model.ModelTrees->GetLeafWeights().empty() ? poolLoader() : nullptr,
-                              localExecutor.Get(),
-                              nullptr,
-                              &params.OutputPath.Path,
+                              fstrPathPtr,
+                              internalFstrPathPtr,
                               params.FstrType);
             break;
         case EFstrType::Interaction:
-            CalcAndOutputInteraction(model, &params.OutputPath.Path, nullptr);
-            break;
-        case EFstrType::InternalInteraction:
-            CalcAndOutputInteraction(model, nullptr, &params.OutputPath.Path);
+            CalcAndOutputInteraction(model, fstrPathPtr, internalFstrPathPtr);
             break;
         case EFstrType::ShapValues:
             CalcAndOutputShapValues(model,

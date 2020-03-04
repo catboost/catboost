@@ -7,7 +7,7 @@ from dateutil.parser import isoparse
 import pytest
 
 # Strategies
-TIME_ZONE_STRATEGY = st.sampled_from([None, tz.tzutc()] +
+TIME_ZONE_STRATEGY = st.sampled_from([None, tz.UTC] +
     [tz.gettz(zname) for zname in ('US/Eastern', 'US/Pacific',
                                    'Australia/Sydney', 'Europe/London')])
 ASCII_STRATEGY = st.characters(max_codepoint=127)

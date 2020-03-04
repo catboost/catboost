@@ -4,6 +4,7 @@ PYTEST()
 NO_COMPILER_WARNINGS()
 
 TEST_SRCS(
+    conftest.py
     large_dist_test.py
     test.py
     test_modes.py

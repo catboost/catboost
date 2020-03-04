@@ -58,7 +58,7 @@ namespace NCB {
     void CheckTargetConsistency(
         TTargetDataProviderPtr targetDataProvider,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
-        TMaybe<NCatboostOptions::TLossDescription*> mainLossFunction,
+        const NCatboostOptions::TLossDescription* mainLossFunction, // can be nullptr
         bool needTargetDataForCtrs,
         bool metricsThatRequireTargetCanBeSkipped,
         TStringBuf datasetName,
@@ -71,10 +71,10 @@ namespace NCB {
         bool isForGpu,
 
         /* used to select whether to convert target to binary or not
-         * pass nothing if target providers are created not for training
+         * pass nullptr if target providers are created not for training
          * TODO(akhropov): will be removed with proper multi-target support. MLTOOLS-2337.
          */
-        TMaybe<NCatboostOptions::TLossDescription*> mainLossFuncion,
+        const NCatboostOptions::TLossDescription* mainLossFuncion,
         bool metricsThatRequireTargetCanBeSkipped,
         TMaybe<ui32> knownModelApproxDimension,
         const TTargetCreationOptions& targetCreationOptions,

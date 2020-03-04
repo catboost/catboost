@@ -3,6 +3,7 @@
 #include "metric_holder.h"
 #include "caching_metric.h"
 #include "pfound.h"
+#include "enums.h"
 
 #include <catboost/private/libs/data_types/pair.h>
 #include <catboost/private/libs/data_types/query.h>
@@ -361,7 +362,7 @@ THolder<IMetric> MakeMultiClassWKappaMetric(int classCount = 2);
 THolder<IMetric> MakeBinClassF1Metric(double border = GetDefaultTargetBorder());
 THolder<IMetric> MakeMultiClassF1Metric(int classesCount, int positiveClass);
 
-THolder<IMetric> MakeTotalF1Metric(int classesCount = 2);
+THolder<IMetric> MakeTotalF1Metric(int classesCount = 2, EF1AverageType averageType = EF1AverageType::Weighted);
 
 THolder<IMetric> MakeMCCMetric(int classesCount = 2);
 

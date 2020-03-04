@@ -344,7 +344,6 @@ TLearnContext::TLearnContext(
             CtrsHelper.GetTargetClassifiers(),
             featuresCheckSum,
             foldCreationParamsCheckSum,
-            ParseMemorySizeDescription(Params.SystemOptions->CpuUsedRamLimit.Get()),
             initModel,
             initModelApplyCompatiblePools,
             LocalExecutor
@@ -457,7 +456,6 @@ TLearnProgress::TLearnProgress(
     const TVector<TTargetClassifier>& targetClassifiers,
     ui32 featuresCheckSum,
     ui32 foldCreationParamsCheckSum,
-    ui64 cpuRamLimit,
     TMaybe<TFullModel*> initModel,
     NCB::TDataProviders initModelApplyCompatiblePools,
     NPar::TLocalExecutor* localExecutor)
@@ -587,7 +585,6 @@ TLearnProgress::TLearnProgress(
             initModelApplyCompatiblePools,
             foldsCreationParams.IsOrderedBoosting,
             foldsCreationParams.StoreExpApproxes,
-            cpuRamLimit,
             localExecutor
         );
     }
@@ -599,7 +596,6 @@ void TLearnProgress::SetSeparateInitModel(
     const TDataProviders& initModelApplyCompatiblePools,
     bool isOrderedBoosting,
     bool storeExpApproxes,
-    ui64 cpuRamLimit,
     NPar::TLocalExecutor* localExecutor) {
 
     CATBOOST_DEBUG_LOG << "TLearnProgress::SetSeparateInitModel\n";
@@ -610,68 +606,14 @@ void TLearnProgress::SetSeparateInitModel(
     // Calc approxes
 
     auto calcApproxFunction = [&] (const TObjectsDataProvider& objectsData) -> TVector<TVector<double>> {
-        // needed for ApplyModelMulti
-        TIntrusiveConstPtr<TObjectsDataProvider> objectsDataWithConsecutiveFeaturesData;
-        TMaybe<TVector<ui32>> srcPermutation;
-        if (const auto* rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(&objectsData)) {
-            objectsDataWithConsecutiveFeaturesData
-                = rawObjectsData->GetWithPermutedConsecutiveArrayFeaturesData(
-                    cpuRamLimit,
-                    localExecutor,
-                    &srcPermutation
-                );
-        } else if (const auto* quantizedObjectsData
-                       = dynamic_cast<const TQuantizedObjectsDataProvider*>(&objectsData))
-        {
-            objectsDataWithConsecutiveFeaturesData
-                = quantizedObjectsData->GetWithPermutedConsecutiveArrayFeaturesData(
-                    cpuRamLimit,
-                    localExecutor,
-                    &srcPermutation
-                );
-        } else {
-            CB_ENSURE_INTERNAL(false, "Unknown ObjectsDataProvider type");
-        }
-
-        TVector<TVector<double>> approx = ApplyModelMulti(
+        return ApplyModelMulti(
             initModel,
-            *objectsDataWithConsecutiveFeaturesData,
+            objectsData,
             EPredictionType::RawFormulaVal,
             0,
             SafeIntegerCast<int>(initModel.GetTreeCount()),
             localExecutor
         );
-
-        if (srcPermutation) {
-            CATBOOST_DEBUG_LOG << "srcPermutation present\n";
-
-            TConstArrayRef<ui32> srcPermutationArray = *srcPermutation;
-            const int objectCount = SafeIntegerCast<int>(approx.at(0).size());
-
-            TVector<TVector<double>> resultApprox(approx.size());
-
-            localExecutor->ExecRangeWithThrow(
-                [&] (int approxDimension) {
-                    resultApprox[approxDimension].yresize(objectCount);
-                    TConstArrayRef<double> srcArray = approx[approxDimension];
-                    TArrayRef<double> resultArray = resultApprox[approxDimension];
-                    NPar::ParallelFor(
-                        *localExecutor,
-                        0,
-                        objectCount,
-                        [resultArray, srcPermutationArray, srcArray] (int i) {
-                            resultArray[srcPermutationArray[i]] = srcArray[i];
-                        }
-                    );
-                },
-                0,
-                SafeIntegerCast<int>(approx.size()),
-                NPar::TLocalExecutor::WAIT_COMPLETE
-            );
-            return resultApprox;
-        } else {
-            return approx;
-        }
     };
 
     TVector<std::function<void()>> tasks;
@@ -689,7 +631,6 @@ void TLearnProgress::SetSeparateInitModel(
             auto setFoldApproxes = [&] (bool isPlainFold, TFold* fold) {
                 for (auto& bodyTail : fold->BodyTailArr) {
                     InitApproxFromBaseline(
-                        isPlainFold ? ui32(0) : SafeIntegerCast<ui32>(bodyTail.BodyFinish),
                         isPlainFold ? learnObjectCount : SafeIntegerCast<ui32>(bodyTail.TailFinish),
                         TConstArrayRef<TConstArrayRef<double>>(approxRef),
                         fold->GetLearnPermutationArray(),

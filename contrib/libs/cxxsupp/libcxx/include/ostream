@@ -56,6 +56,7 @@ public:
     basic_ostream& operator<<(long double f);
     basic_ostream& operator<<(const void* p);
     basic_ostream& operator<<(basic_streambuf<char_type,traits>* sb);
+    basic_ostream& operator<<(nullptr_t);
 
     // 27.7.2.7 Unformatted output:
     basic_ostream& put(char_type c);
@@ -217,6 +218,10 @@ public:
     basic_ostream& operator<<(long double __f);
     basic_ostream& operator<<(const void* __p);
     basic_ostream& operator<<(basic_streambuf<char_type, traits_type>* __sb);
+
+    _LIBCPP_INLINE_VISIBILITY
+    basic_ostream& operator<<(nullptr_t)
+    { return *this << "nullptr"; }
 
     // 27.7.2.7 Unformatted output:
     basic_ostream& put(char_type __c);
@@ -1050,7 +1055,7 @@ operator<<(basic_ostream<_CharT, _Traits>& __os,
 template<class _CharT, class _Traits>
 basic_ostream<_CharT, _Traits>&
 operator<<(basic_ostream<_CharT, _Traits>& __os,
-           const basic_string_view<_CharT, _Traits> __sv)
+           basic_string_view<_CharT, _Traits> __sv)
 {
     return _VSTD::__put_character_sequence(__os, __sv.data(), __sv.size());
 }

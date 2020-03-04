@@ -1,6 +1,7 @@
 #include "leafwise_scoring.h"
 
 #include <catboost/libs/data/columns.h>
+#include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/private/libs/algo_helpers/scoring_helpers.h>
 
 // TODO(ilyzhin) sampling with groups
@@ -11,11 +12,13 @@ using namespace NCB;
 
 bool IsLeafwiseScoringApplicable(const NCatboostOptions::TCatBoostOptions& params) {
     // TODO(ilyzhin) support these constraints
-    return params.BoostingOptions->BoostingType == EBoostingType::Plain
+    return (params.BoostingOptions->BoostingType == EBoostingType::Plain
            && !IsPairwiseScoring(params.LossFunctionDescription->GetLossFunction())
            && params.SystemOptions->IsSingleHost()
            && params.ObliviousTreeOptions->MonotoneConstraints.Get().empty()
-           && params.DataProcessingOptions->DevLeafwiseScoring;
+           && params.DataProcessingOptions->DevLeafwiseScoring)
+           || params.ObliviousTreeOptions->GrowPolicy == EGrowPolicy::Lossguide
+           || params.ObliviousTreeOptions->GrowPolicy == EGrowPolicy::Depthwise;
 }
 
 
@@ -236,6 +239,7 @@ static void CalcScoresForSubCandidate(
     int bucketCount,
     const TCalcScoreFold& fold,
     const TFold& initialFold,
+    const TVector<TIndexType>& leafs,
     TLearnContext* ctx,
     TScoreCalcer* scoreCalcer
 ) {
@@ -304,17 +308,18 @@ static void CalcScoresForSubCandidate(
             updateSplitScoreClosure);
     };
 
-    if (!ctx->UseTreeLevelCaching()) {
-        extractBucketIndex(TIndexRange<ui32>(0, fold.GetDocCount()));
-
+    // TODO(ilyzhin) make caching for nonsymmetric trees
+    if (!ctx->UseTreeLevelCaching() || ctx->Params.ObliviousTreeOptions->GrowPolicy != EGrowPolicy::SymmetricTree) {
         TVector<TBucketStats> stats;
         stats.yresize(bucketCount);
 
-        for (const auto& leafBounds : fold.LeavesBounds) {
+        for (auto leaf : leafs) {
+            const auto leafBounds = fold.LeavesBounds[leaf];
             if (leafBounds.Empty()) {
                 continue;
             }
 
+            extractBucketIndex(leafBounds);
             for (int dim : xrange(approxDimension)) {
                 calcStats(leafBounds, dim, stats);
                 calcScores(stats);
@@ -387,6 +392,7 @@ static TVector<TVector<double>> CalcScoresForOneCandidateImpl(
     const TCandidatesInfoList& candidate,
     const TCalcScoreFold& fold,
     const TFold& initialFold,
+    const TVector<TIndexType>& leafs,
     TLearnContext* ctx
 ) {
     TVector<TVector<double>> scores(candidate.Candidates.size());
@@ -433,6 +439,7 @@ static TVector<TVector<double>> CalcScoresForOneCandidateImpl(
                     bucketCount,
                     fold,
                     initialFold,
+                    leafs,
                     ctx,
                     &scoreCalcer);
             } else if (bucketIndexBitCount <= 16) {
@@ -442,6 +449,7 @@ static TVector<TVector<double>> CalcScoresForOneCandidateImpl(
                     bucketCount,
                     fold,
                     initialFold,
+                    leafs,
                     ctx,
                     &scoreCalcer);
             } else {
@@ -462,6 +470,7 @@ TVector<TVector<double>> CalcScoresForOneCandidate(
     const TCandidatesInfoList& candidate,
     const TCalcScoreFold& fold,
     const TFold& initialFold,
+    const TVector<TIndexType>& leafs,
     TLearnContext* ctx
 ) {
     const auto scoreFunction = ctx->Params.ObliviousTreeOptions->ScoreFunction;
@@ -471,6 +480,7 @@ TVector<TVector<double>> CalcScoresForOneCandidate(
             candidate,
             fold,
             initialFold,
+            leafs,
             ctx);
     } else if (scoreFunction == EScoreFunction::L2) {
         return CalcScoresForOneCandidateImpl<TL2ScoreCalcer>(
@@ -478,8 +488,38 @@ TVector<TVector<double>> CalcScoresForOneCandidate(
             candidate,
             fold,
             initialFold,
+            leafs,
             ctx);
     } else {
         CB_ENSURE(false, "Error: score function for CPU should be Cosine or L2");
     }
+}
+
+
+double CalcScoreWithoutSplit(int leaf, const TFold& fold, const TLearnContext& ctx) {
+    // TODO(ilyzhin) make parallel
+    const auto& leafBounds = ctx.SampledDocs.LeavesBounds[leaf];
+    double sumWeightedDerivatives = 0;
+    const auto& ders = ctx.SampledDocs.BodyTailArr[0].SampleWeightedDerivatives;
+    for (auto dim : xrange(ctx.LearnProgress->ApproxDimension)) {
+        sumWeightedDerivatives += Accumulate(
+            ders[dim].begin() + leafBounds.Begin,
+            ders[dim].begin() + leafBounds.End,
+            0.0);
+    }
+    double sumWeights = Accumulate(
+        ctx.SampledDocs.SampleWeights.begin() + leafBounds.Begin,
+        ctx.SampledDocs.SampleWeights.begin() + leafBounds.End,
+        0.0);
+    TBucketStats stats {sumWeightedDerivatives, sumWeights, 0, 0};
+
+    const double sumAllWeights = fold.BodyTailArr[0].BodySumWeight;
+    const int docCount = fold.BodyTailArr[0].BodyFinish;
+    const double scaledL2Regularizer = ScaleL2Reg(ctx.Params.ObliviousTreeOptions->L2Reg, sumAllWeights, docCount);
+
+    auto scoreCalcer = MakePointwiseScoreCalcer(ctx.Params.ObliviousTreeOptions->ScoreFunction);
+    scoreCalcer->SetL2Regularizer(scaledL2Regularizer);
+    scoreCalcer->SetSplitsCount(1);
+    scoreCalcer->AddLeafPlain(0, stats, {});
+    return scoreCalcer->GetScores()[0];
 }

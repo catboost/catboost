@@ -506,6 +506,44 @@ namespace NThreading {
 
         ////////////////////////////////////////////////////////////////////////////////
 
+        struct TWaitAll: public TAtomicRefCount<TWaitAll> {
+            TPromise<void> Promise;
+            size_t Count;
+            TSpinLock Lock;
+            std::exception_ptr Exception;
+
+            TWaitAll(size_t count)
+                : Promise(NewPromise())
+                , Count(count)
+                , Exception()
+            {
+            }
+
+            template<class T>
+            void Set(const TFuture<T>& future) {
+                TGuard<TSpinLock> guard(Lock);
+
+                if (!Exception) {
+                    try {
+                        future.TryRethrow();
+                    } catch (...) {
+                        Exception = std::current_exception();
+                    }
+                }
+
+                if (--Count == 0) {
+                    Y_ASSERT(!Promise.HasValue() && !Promise.HasException());
+                    if (Exception) {
+                        Promise.SetException(std::move(Exception));
+                    } else {
+                        Promise.SetValue();
+                    }
+                }
+            }
+        };
+
+        ////////////////////////////////////////////////////////////////////////////////
+
         struct TWaitAny: public TAtomicRefCount<TWaitAny> {
             TPromise<void> Promise;
             TSpinLock Lock;
@@ -1007,6 +1045,50 @@ namespace NThreading {
         };
         return Singleton<TCache>()->Instance;
     }
+
+    ////////////////////////////////////////////////////////////////////////////////
+
+    inline TFuture<void> WaitAll(const TFuture<void>& f1) {
+        return f1;
+    }
+
+    inline TFuture<void> WaitAll(const TFuture<void>& f1, const TFuture<void>& f2) {
+        using TCallback = NImpl::TCallback<void>;
+
+        TIntrusivePtr<NImpl::TWaitAll> waiter = new NImpl::TWaitAll(2);
+        auto callback = TCallback([=](const TFuture<void>& future) mutable {
+            waiter->Set(future);
+        });
+
+        f1.Subscribe(callback);
+        f2.Subscribe(callback);
+
+        return waiter->Promise;
+    }
+
+    template <typename TContainer>
+    inline TFuture<void> WaitAll(const TContainer& futures) {
+        if (futures.empty()) {
+            return MakeFuture();
+        }
+        if (futures.size() == 1) {
+            return futures.front().IgnoreResult();
+        }
+
+        using TCallback = NImpl::TCallback<typename TContainer::value_type::value_type>;
+
+        TIntrusivePtr<NImpl::TWaitAll> waiter = new NImpl::TWaitAll(futures.size());
+        auto callback = TCallback([=](const auto& future) mutable {
+            waiter->Set(future);
+        });
+
+        for (auto& fut : futures) {
+            fut.Subscribe(callback);
+        }
+
+        return waiter->Promise;
+    }
+
 
     ////////////////////////////////////////////////////////////////////////////////
 

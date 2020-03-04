@@ -175,18 +175,19 @@ void UpdateApproxDeltasMulti(
     TVector<TVector<double>>* approxDeltas,
     NPar::TLocalExecutor* localExecutor
 ) {
+    NPar::TLocalExecutor::TExecRangeParams blockParams(0, docCount);
+    blockParams.SetBlockSize(AdjustBlockSize(docCount, /*regularBlockSize*/1000));
+
     const auto indicesRef = MakeArrayRef(indices);
     for (int dim = 0; dim < leafDeltas.ysize(); ++dim) {
         auto approxDeltaRef = MakeArrayRef((*approxDeltas)[dim]);
         auto leafDeltaRef = MakeConstArrayRef((leafDeltas)[dim]);
-        NPar::ParallelFor(
-            *localExecutor,
-            /*from*/0,
-            /*to*/ docCount,
-            /*body*/[=] (int z) {
+        localExecutor->ExecRange(
+            [=] (int z) {
                 approxDeltaRef[z] += leafDeltaRef[indicesRef[z]];
-            }
-        );
+            },
+            blockParams,
+            NPar::TLocalExecutor::WAIT_COMPLETE);
     }
 }
 
@@ -197,15 +198,16 @@ void UpdateApproxDeltasMulti(
     TVector<TVector<double>>* approxDeltas,
     NPar::TLocalExecutor* localExecutor
 ) {
+    NPar::TLocalExecutor::TExecRangeParams blockParams(0, docCount);
+    blockParams.SetBlockSize(AdjustBlockSize(docCount, /*regularBlockSize*/1000));
+
     for (int dim = 0; dim < leafDeltas.ysize(); ++dim) {
         auto approxDeltaRef = MakeArrayRef((*approxDeltas)[dim]);
-        NPar::ParallelFor(
-            *localExecutor,
-            /*from*/ 0,
-            /*to*/ docCount,
-            /*body*/ [=](int z) {
+        localExecutor->ExecRange(
+            [=](int z) {
                 approxDeltaRef[z] += leafDeltas[dim];
-            }
-        );
+            },
+            blockParams,
+            NPar::TLocalExecutor::WAIT_COMPLETE);
     }
 }

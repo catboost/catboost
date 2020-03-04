@@ -7,6 +7,7 @@
 #include <util/random/fast.h>
 #include <util/string/printf.h>
 #include <util/system/backtrace.h>
+#include <util/system/guard.h>
 #include <util/system/tls.h>
 #include <util/system/error.h>
 
@@ -332,6 +333,12 @@ void NUnitTest::TTestBase::AddError(const char* msg, TTestContext* context) {
     AddError(msg, TString(), context);
 }
 
+void NUnitTest::TTestBase::RunAfterTest(std::function<void()> f) {
+    with_lock (AfterTestFunctionsLock_) {
+        AfterTestFunctions_.emplace_back(std::move(f));
+    }
+}
+
 bool NUnitTest::TTestBase::CheckAccessTest(const char* test) {
     return Processor()->CheckAccessTest(Name(), test);
 }
@@ -381,6 +388,18 @@ void NUnitTest::TTestBase::BeforeTest() {
 
 void NUnitTest::TTestBase::AfterTest() {
     TearDown();
+
+    TVector<std::function<void()>> afterTestFunctions;
+    with_lock (AfterTestFunctionsLock_) {
+        afterTestFunctions.swap(AfterTestFunctions_);
+    }
+
+    for (auto i = afterTestFunctions.rbegin(); i != afterTestFunctions.rend(); ++i) {
+        std::function<void()>& f = *i;
+        if (f) {
+            f();
+        }
+    }
 }
 
 bool NUnitTest::TTestBase::GetIsForked() const {

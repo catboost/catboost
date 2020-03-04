@@ -1,6 +1,7 @@
 #pragma once
 
 #include <util/generic/fwd.h>
+#include <util/generic/strbuf.h>
 #include <util/generic/string.h>
 #include <util/generic/yexception.h>
 #include <util/generic/typetraits.h>
@@ -48,12 +49,17 @@ static inline void SavePodType(IOutputStream* rh, const T& t) {
     rh->Write(&t, sizeof(T));
 }
 
+namespace NPrivate {
+    [[noreturn]] void ThrowLoadEOFException(size_t typeSize, size_t realSize, TStringBuf structName);
+    [[noreturn]] void ThrowUnexpectedVariantTagException(ui8 tagIndex);
+}
+
 template <class T>
 static inline void LoadPodType(IInputStream* rh, T& t) {
     const size_t res = rh->Load(&t, sizeof(T));
 
-    if (res != sizeof(T)) {
-        ythrow TLoadEOF() << "can not load pod type(" << sizeof(T) << ", " << res << " bytes)";
+    if (Y_UNLIKELY(res != sizeof(T))) {
+        ::NPrivate::ThrowLoadEOFException(sizeof(T), res, AsStringBuf("pod type"));
     }
 }
 
@@ -67,8 +73,8 @@ static inline void LoadPodArray(IInputStream* rh, T* arr, size_t count) {
     const size_t len = sizeof(T) * count;
     const size_t res = rh->Load(arr, len);
 
-    if (res != len) {
-        ythrow TLoadEOF() << "can not load pod array(" << len << ", " << res << " bytes)";
+    if (Y_UNLIKELY(res != len)) {
+        ::NPrivate::ThrowLoadEOFException(len, res, AsStringBuf("pod array"));
     }
 }
 
@@ -649,8 +655,8 @@ struct TSerializer<TVariant<Args...>> {
     static void Load(IInputStream* is, TVar& v) {
         ui8 index;
         ::Load(is, index);
-        if (index >= sizeof...(Args)) {
-            ythrow TLoadEOF() << "Unexpected tag value " << index << " while loading TVariant";
+        if (Y_UNLIKELY(index >= sizeof...(Args))) {
+            ::NPrivate::ThrowUnexpectedVariantTagException(index);
         }
         LoadImpl(is, v, index, std::index_sequence_for<Args...>{});
     }

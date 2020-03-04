@@ -19,40 +19,40 @@ namespace std
 template <class... T>
 class tuple {
 public:
-    constexpr tuple();
-    explicit tuple(const T&...);  // constexpr in C++14
+    explicit(see-below) constexpr tuple();
+    explicit(see-below) tuple(const T&...);  // constexpr in C++14
     template <class... U>
-        explicit tuple(U&&...);  // constexpr in C++14
+        explicit(see-below) tuple(U&&...);  // constexpr in C++14
     tuple(const tuple&) = default;
     tuple(tuple&&) = default;
     template <class... U>
-        tuple(const tuple<U...>&);  // constexpr in C++14
+        explicit(see-below) tuple(const tuple<U...>&);  // constexpr in C++14
     template <class... U>
-        tuple(tuple<U...>&&);  // constexpr in C++14
+        explicit(see-below) tuple(tuple<U...>&&);  // constexpr in C++14
     template <class U1, class U2>
-        tuple(const pair<U1, U2>&); // iff sizeof...(T) == 2 // constexpr in C++14
+        explicit(see-below) tuple(const pair<U1, U2>&); // iff sizeof...(T) == 2 // constexpr in C++14
     template <class U1, class U2>
-        tuple(pair<U1, U2>&&); // iff sizeof...(T) == 2  // constexpr in C++14
+        explicit(see-below) tuple(pair<U1, U2>&&); // iff sizeof...(T) == 2  // constexpr in C++14
 
     // allocator-extended constructors
     template <class Alloc>
         tuple(allocator_arg_t, const Alloc& a);
     template <class Alloc>
-        tuple(allocator_arg_t, const Alloc& a, const T&...);
+        explicit(see-below) tuple(allocator_arg_t, const Alloc& a, const T&...);
     template <class Alloc, class... U>
-        tuple(allocator_arg_t, const Alloc& a, U&&...);
+        explicit(see-below) tuple(allocator_arg_t, const Alloc& a, U&&...);
     template <class Alloc>
         tuple(allocator_arg_t, const Alloc& a, const tuple&);
     template <class Alloc>
         tuple(allocator_arg_t, const Alloc& a, tuple&&);
     template <class Alloc, class... U>
-        tuple(allocator_arg_t, const Alloc& a, const tuple<U...>&);
+        explicit(see-below) tuple(allocator_arg_t, const Alloc& a, const tuple<U...>&);
     template <class Alloc, class... U>
-        tuple(allocator_arg_t, const Alloc& a, tuple<U...>&&);
+        explicit(see-below) tuple(allocator_arg_t, const Alloc& a, tuple<U...>&&);
     template <class Alloc, class U1, class U2>
-        tuple(allocator_arg_t, const Alloc& a, const pair<U1, U2>&);
+        explicit(see-below) tuple(allocator_arg_t, const Alloc& a, const pair<U1, U2>&);
     template <class Alloc, class U1, class U2>
-        tuple(allocator_arg_t, const Alloc& a, pair<U1, U2>&&);
+        explicit(see-below) tuple(allocator_arg_t, const Alloc& a, pair<U1, U2>&&);
 
     tuple& operator=(const tuple&);
     tuple&
@@ -68,6 +68,17 @@ public:
 
     void swap(tuple&) noexcept(AND(swap(declval<T&>(), declval<T&>())...));
 };
+
+template <class ...T>
+tuple(T...) -> tuple<T...>;                                         // since C++17
+template <class T1, class T2>
+tuple(pair<T1, T2>) -> tuple<T1, T2>;                               // since C++17
+template <class Alloc, class ...T>
+tuple(allocator_arg_t, Alloc, T...) -> tuple<T...>;                 // since C++17
+template <class Alloc, class T1, class T2>
+tuple(allocator_arg_t, Alloc, pair<T1, T2>) -> tuple<T1, T2>;       // since C++17
+template <class Alloc, class ...T>
+tuple(allocator_arg_t, Alloc, tuple<T...>) -> tuple<T...>;          // since C++17
 
 inline constexpr unspecified ignore;
 
@@ -209,12 +220,12 @@ public:
               "Attempted to default construct a reference element in a tuple");}
 
     template <class _Tp,
-              class = typename enable_if<
-                  __lazy_and<
-                      __lazy_not<is_same<typename __uncvref<_Tp>::type, __tuple_leaf>>
-                    , is_constructible<_Hp, _Tp>
+              class = _EnableIf<
+                  _And<
+                      _IsNotSame<__uncvref_t<_Tp>, __tuple_leaf>,
+                      is_constructible<_Hp, _Tp>
                     >::value
-                >::type
+                >
             >
         _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
         explicit __tuple_leaf(_Tp&& __t) _NOEXCEPT_((is_nothrow_constructible<_Hp, _Tp>::value))
@@ -291,12 +302,12 @@ public:
             : _Hp(__a) {}
 
     template <class _Tp,
-              class = typename enable_if<
-                  __lazy_and<
-                        __lazy_not<is_same<typename __uncvref<_Tp>::type, __tuple_leaf>>
-                      , is_constructible<_Hp, _Tp>
+              class = _EnableIf<
+                  _And<
+                    _IsNotSame<__uncvref_t<_Tp>, __tuple_leaf>,
+                    is_constructible<_Hp, _Tp>
                     >::value
-                >::type
+                >
             >
         _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
         explicit __tuple_leaf(_Tp&& __t) _NOEXCEPT_((is_nothrow_constructible<_Hp, _Tp>::value))
@@ -344,9 +355,6 @@ public:
 template <class ..._Tp>
 _LIBCPP_INLINE_VISIBILITY
 void __swallow(_Tp&&...) _NOEXCEPT {}
-
-template <class ..._Tp>
-struct __lazy_all : __all<_Tp::value...> {};
 
 template <class _Tp>
 struct __all_default_constructible;
@@ -490,12 +498,21 @@ class _LIBCPP_TEMPLATE_VIS tuple
     struct _PackExpandsToThisTuple<_Arg>
         : is_same<typename __uncvref<_Arg>::type, tuple> {};
 
-    template<bool _Enable, class ..._Args>
-    struct _EnableDefaultConstructor{ static constexpr bool value = false; };
+    template<bool _Enable, int&...>
+    struct _EnableImplicitDefaultConstructor{ static constexpr bool value = false; };
 
-    template<class ..._Args>
-    struct _EnableDefaultConstructor<true, _Args...> {
-        static constexpr bool value = __all<is_default_constructible<_Args>::value...>::value;
+    template<int&..._Args>
+    struct _EnableImplicitDefaultConstructor<true, _Args...> {
+        static constexpr bool value = __all<__is_implicitly_default_constructible<_Tp>::value... >::value;
+    };
+
+    template<bool _Enable, int&...>
+    struct _EnableExplicitDefaultConstructor{ static constexpr bool value = false; };
+
+    template<int&... _Args>
+    struct _EnableExplicitDefaultConstructor<true, _Args...> {
+        static constexpr bool value = __all<is_default_constructible<_Tp>::value...>::value &&
+            !_EnableImplicitDefaultConstructor<true, _Args...>::value;
     };
 
     template<bool _Enable, class ..._Args>
@@ -532,6 +549,13 @@ class _LIBCPP_TEMPLATE_VIS tuple
     template<class ..._Args>
     struct _EnableImplicitConstructor<true, _Args...> {
         static constexpr bool value =
+            __tuple_constructible<
+                tuple<_Args...>,
+                typename __make_tuple_types<tuple,
+                         sizeof...(_Args) < sizeof...(_Tp) ?
+                             sizeof...(_Args) :
+                             sizeof...(_Tp)>::type
+            >::value &&
             __tuple_convertible<
                 tuple<_Args...>,
                 typename __make_tuple_types<tuple,
@@ -552,53 +576,76 @@ class _LIBCPP_TEMPLATE_VIS tuple
     // See LWG issue #2549.
     template<class _Tuple>
     struct _PreferTupleLikeConstructor
-        : public __lazy_or<
+        : public _Or<
             // Don't attempt the two checks below if the tuple we are given
             // has the same type as this tuple.
-            is_same<typename __uncvref<_Tuple>::type, tuple>,
-            __lazy_and<
-                __lazy_not<is_constructible<_Tp..., _Tuple>>,
-                __lazy_not<is_convertible<_Tuple, _Tp...>>
+            _IsSame<__uncvref<_Tuple>, tuple>,
+            _Lazy<_And,
+                _Not<is_constructible<_Tp..., _Tuple>>,
+                _Not<is_convertible<_Tuple, _Tp...>>
             >
         >{};
 
     template <bool _Enable, class _Tuple, bool = sizeof...(_Tp) == 1>
-    struct _EnableImplicitTupleLikeConstructor{};
+    struct __EnableImplicitTupleLikeConstructor{};
 
     template <class _Tuple>
-    struct _EnableImplicitTupleLikeConstructor<true, _Tuple, false> {
-        static constexpr bool value = __tuple_convertible<_Tuple, tuple>::value;
+    struct __EnableImplicitTupleLikeConstructor<true, _Tuple, false> {
+        static constexpr bool value = __tuple_constructible<_Tuple, tuple>::value
+            && __tuple_convertible<_Tuple, tuple>::value;
     };
 
     template <class _Tuple>
-    struct _EnableImplicitTupleLikeConstructor<true, _Tuple, true> {
+    struct __EnableImplicitTupleLikeConstructor<true, _Tuple, true> {
         static constexpr bool value =
-            __lazy_and<
+            _And<
+                __tuple_constructible<_Tuple, tuple>,
                 __tuple_convertible<_Tuple, tuple>,
                 _PreferTupleLikeConstructor<_Tuple>
             >::value;
     };
 
     template <bool _Enable, class _Tuple, bool = sizeof...(_Tp) == 1>
-    struct _EnableExplicitTupleLikeConstructor{};
+    struct __EnableExplicitTupleLikeConstructor{};
 
     template <class _Tuple>
-    struct _EnableExplicitTupleLikeConstructor<true, _Tuple, false> {
+    struct __EnableExplicitTupleLikeConstructor<true, _Tuple, false> {
         static constexpr bool value =
             __tuple_constructible<_Tuple, tuple>::value
                && !__tuple_convertible<_Tuple, tuple>::value;
     };
 
     template <class _Tuple>
-    struct _EnableExplicitTupleLikeConstructor<true, _Tuple, true> {
+    struct __EnableExplicitTupleLikeConstructor<true, _Tuple, true> {
         static constexpr bool value =
-            __lazy_and<
+            _And<
                 __tuple_constructible<_Tuple, tuple>,
                 _PreferTupleLikeConstructor<_Tuple>,
-                __lazy_not<__tuple_convertible<_Tuple, tuple>>
+                _Not<__tuple_convertible<_Tuple, tuple>>
             >::value;
     };
 
+    template <class _Tuple, bool _DisableIfLValue>
+    using _EnableImplicitTupleLikeConstructor = _EnableIf<
+                         __EnableImplicitTupleLikeConstructor<
+                             __tuple_like_with_size<_Tuple, sizeof...(_Tp)>::value
+                             && !_PackExpandsToThisTuple<_Tuple>::value
+                             && (!is_lvalue_reference<_Tuple>::value || !_DisableIfLValue),
+                             _Tuple
+                         >::value,
+                         bool
+                      >;
+
+    template <class _Tuple, bool _DisableIfLValue>
+    using _EnableExplicitTupleLikeConstructor = _EnableIf<
+                         __EnableExplicitTupleLikeConstructor<
+                             __tuple_like_with_size<_Tuple, sizeof...(_Tp)>::value
+                             && !_PackExpandsToThisTuple<_Tuple>::value
+                             && (!is_lvalue_reference<_Tuple>::value || !_DisableIfLValue),
+                             _Tuple
+                         >::value,
+                         bool
+                      >;
     template <size_t _Jp, class ..._Up> friend _LIBCPP_CONSTEXPR_AFTER_CXX11
         typename tuple_element<_Jp, tuple<_Up...> >::type& get(tuple<_Up...>&) _NOEXCEPT;
     template <size_t _Jp, class ..._Up> friend _LIBCPP_CONSTEXPR_AFTER_CXX11
@@ -609,23 +656,46 @@ class _LIBCPP_TEMPLATE_VIS tuple
         const typename tuple_element<_Jp, tuple<_Up...> >::type&& get(const tuple<_Up...>&&) _NOEXCEPT;
 public:
 
-    template <bool _Dummy = true, class = typename enable_if<
-        _EnableDefaultConstructor<_Dummy, _Tp...>::value
-    >::type>
-    _LIBCPP_INLINE_VISIBILITY
-    _LIBCPP_CONSTEXPR tuple()
+    template <bool _Dummy = true, class = _EnableIf<
+        _EnableImplicitDefaultConstructor<_Dummy>::value
+    >>
+    _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR
+    tuple()
+        _NOEXCEPT_(__all<is_nothrow_default_constructible<_Tp>::value...>::value) {}
+
+    template <bool _Dummy = true, bool _Dummy2 = true, class = _EnableIf<
+        _EnableExplicitDefaultConstructor<_Dummy>::value
+      >,
+      // Without the line below, template argument deduction sometimes chooses this constructor despite SFINAE above
+      class = _EnableIf<(sizeof...(_Tp) > 0)>
+    >
+    explicit _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR
+    tuple()
         _NOEXCEPT_(__all<is_nothrow_default_constructible<_Tp>::value...>::value) {}
 
     tuple(tuple const&) = default;
     tuple(tuple&&) = default;
 
-    template <class _AllocArgT, class _Alloc, bool _Dummy = true, class = typename enable_if<
-        __lazy_and<
-            is_same<allocator_arg_t, _AllocArgT>,
-            __lazy_all<__dependent_type<is_default_constructible<_Tp>, _Dummy>...>
-       >::value
-    >::type>
+    template <class _AllocArgT, class _Alloc, class = _EnableIf<
+              _EnableImplicitDefaultConstructor<_IsSame<allocator_arg_t, _AllocArgT>::value>::value
+      >,
+      // Without the line below, template argument deduction sometimes chooses this constructor despite SFINAE above
+      class = _EnableIf<_IsSame<allocator_arg_t, _AllocArgT>::value>
+    >
     _LIBCPP_INLINE_VISIBILITY
+    tuple(_AllocArgT, _Alloc const& __a)
+      : __base_(allocator_arg_t(), __a,
+                    __tuple_indices<>(), __tuple_types<>(),
+                    typename __make_tuple_indices<sizeof...(_Tp), 0>::type(),
+                    __tuple_types<_Tp...>()) {}
+
+    template <class _AllocArgT, class _Alloc, bool _Dummy = true, class = _EnableIf<
+              _EnableExplicitDefaultConstructor<_IsSame<allocator_arg_t, _AllocArgT>::value>::value
+      >,
+      // Without the line below, template argument deduction sometimes chooses this constructor despite SFINAE above
+      class = _EnableIf<_IsSame<allocator_arg_t, _AllocArgT>::value>
+    >
+    explicit _LIBCPP_INLINE_VISIBILITY
     tuple(_AllocArgT, _Alloc const& __a)
       : __base_(allocator_arg_t(), __a,
                     __tuple_indices<>(), __tuple_types<>(),
@@ -812,42 +882,34 @@ public:
                     typename __make_tuple_types<tuple, sizeof...(_Tp), sizeof...(_Up)>::type(),
                     _VSTD::forward<_Up>(__u)...) {}
 
-    template <class _Tuple,
-              typename enable_if
-                      <
-                         _EnableImplicitTupleLikeConstructor<
-                             __tuple_like_with_size<_Tuple, sizeof...(_Tp)>::value
-                             && !_PackExpandsToThisTuple<_Tuple>::value,
-                             _Tuple
-                         >::value,
-                         bool
-                      >::type = false
-             >
+    // Change SFINAE to satisify CUDA. CUDA compiler can't determine that SFINAE type
+    // is secretly bool and doesn't allow to use it as non-type template parameter.
+    template <class _Tuple, _EnableImplicitTupleLikeConstructor<_Tuple, true>* = nullptr>
         _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
         tuple(_Tuple&& __t) _NOEXCEPT_((is_nothrow_constructible<_BaseT, _Tuple>::value))
             : __base_(_VSTD::forward<_Tuple>(__t)) {}
 
-    template <class _Tuple,
-              bool _Dummy = true,
-              typename enable_if
-                      <
-                         _EnableExplicitTupleLikeConstructor<
-                             __tuple_like_with_size<_Tuple, sizeof...(_Tp)>::value
-                             && !_PackExpandsToThisTuple<_Tuple>::value,
-                             _Tuple
-                         >::value,
-                         bool
-                      >::type = false
-             >
+    template <class _Tuple, _EnableImplicitTupleLikeConstructor<const _Tuple&, false>* = nullptr>
+        _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
+        tuple(const _Tuple& __t) _NOEXCEPT_((is_nothrow_constructible<_BaseT, const _Tuple&>::value))
+            : __base_(__t) {}
+
+    template <class _Tuple, _EnableExplicitTupleLikeConstructor<_Tuple, true>* = nullptr>
         _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
         explicit
         tuple(_Tuple&& __t) _NOEXCEPT_((is_nothrow_constructible<_BaseT, _Tuple>::value))
             : __base_(_VSTD::forward<_Tuple>(__t)) {}
 
+    template <class _Tuple, _EnableExplicitTupleLikeConstructor<const _Tuple&, false>* = nullptr>
+        _LIBCPP_INLINE_VISIBILITY _LIBCPP_CONSTEXPR_AFTER_CXX11
+        explicit
+        tuple(const _Tuple& __t) _NOEXCEPT_((is_nothrow_constructible<_BaseT, const _Tuple&>::value))
+            : __base_(__t) {}
+
     template <class _Alloc, class _Tuple,
               typename enable_if
                       <
-                         _EnableImplicitTupleLikeConstructor<
+                         __EnableImplicitTupleLikeConstructor<
                              __tuple_like_with_size<_Tuple, sizeof...(_Tp)>::value,
                              _Tuple
                          >::value,
@@ -862,7 +924,7 @@ public:
               bool _Dummy = true,
               typename enable_if
                       <
-                         _EnableExplicitTupleLikeConstructor<
+                         __EnableExplicitTupleLikeConstructor<
                              __tuple_like_with_size<_Tuple, sizeof...(_Tp)>::value,
                              _Tuple
                          >::value,
@@ -935,13 +997,16 @@ public:
 };
 
 #ifndef _LIBCPP_HAS_NO_DEDUCTION_GUIDES
-// NOTE: These are not yet standardized, but are required to simulate the
-// implicit deduction guide that should be generated had libc++ declared the
-// tuple-like constructors "correctly"
-template <class _Alloc, class ..._Args>
-tuple(allocator_arg_t, const _Alloc&, tuple<_Args...> const&) -> tuple<_Args...>;
-template <class _Alloc, class ..._Args>
-tuple(allocator_arg_t, const _Alloc&, tuple<_Args...>&&) -> tuple<_Args...>;
+template <class ..._Tp>
+tuple(_Tp...) -> tuple<_Tp...>;
+template <class _Tp1, class _Tp2>
+tuple(pair<_Tp1, _Tp2>) -> tuple<_Tp1, _Tp2>;
+template <class _Alloc, class ..._Tp>
+tuple(allocator_arg_t, _Alloc, _Tp...) -> tuple<_Tp...>;
+template <class _Alloc, class _Tp1, class _Tp2>
+tuple(allocator_arg_t, _Alloc, pair<_Tp1, _Tp2>) -> tuple<_Tp1, _Tp2>;
+template <class _Alloc, class ..._Tp>
+tuple(allocator_arg_t, _Alloc, tuple<_Tp...>) -> tuple<_Tp...>;
 #endif
 
 template <class ..._Tp>

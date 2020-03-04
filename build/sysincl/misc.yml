@@ -16,6 +16,10 @@
 - includes:
     - iconv.h:       contrib/libs/libiconv/iconv.h
 
+- source_filter: "^contrib/restricted/glib/glib/gconvert.c"
+  includes:
+    - iconv.h:       contrib/libs/libiconv/include/iconv.h
+
 - includes:
   - cudnn.h:         contrib/libs/nvidia/cudnn/cudnn.h
 
@@ -123,10 +127,6 @@
 - source_filter: "^contrib/libs/libevent"
   includes:
     - sys/queue.h:   contrib/libs/libevent/compat/sys/queue.h
-
-- source_filter: "^contrib/libs/(libmnl|libnetfilter_log)"
-  includes:
-    - linux/netlink.h: contrib/libs/libmnl/include/linux/netlink.h
 
 - source_filter: "^contrib/libs/musl"
   includes:
@@ -504,19 +504,18 @@
   includes:
     - local.h
 
-- source_filter: "^contrib/libs/tinyalsa"
-  # TinyALSA references linux kernel headers for kernel ALSA interface
-  includes:
-    - sound/asound.h
-
 - source_filter: "^contrib/libs/breakpad"
   includes:
-    - asm/ptrace.h
     - stab.h
 
 - source_filter: "^contrib/tools/fluent-bit"
   includes:
     - backtrace.h: contrib/tools/fluent-bit/lib/libbacktrace-5a99ff7f/backtrace.h
+
+- source_filter: "^contrib/restricted/glib"
+  includes:
+    - gelf.h: contrib/restricted/libelf/include/libelf/gelf.h
+    - libelf.h: contrib/restricted/libelf/include/libelf/libelf.h
 
 - source_filter: "^contrib/restricted/libelf"
   includes:
@@ -532,15 +531,7 @@
   includes:
     - gelf.h: contrib/restricted/libelf/include/libelf/gelf.h
     - libelf.h: contrib/restricted/libelf/include/libelf/libelf.h
-    - linux/compiler.h: contrib/libs/libbpf/include/linux/compiler.h
-    - linux/filter.h: contrib/libs/libbpf/include/linux/filter.h
-    - linux/netlink.h: contrib/libs/libbpf/include/uapi/linux/netlink.h
-    - linux/types.h: contrib/libs/libbpf/include/linux/types.h
 
-- source_filter: "^contrib/libs/libmnl"
+- source_filter: "^contrib/libs/dpdk"
   includes:
-    - linux/socket.h: contrib/libs/libmnl/include/linux/socket.h
-
-- source_filter: "^vendor/github.com/iovisor/gobpf/elf"
-  includes:
-    - linux/perf_event.h: vendor/github.com/iovisor/gobpf/elf/include/uapi/linux/perf_event.h
+    - process.h: contrib/libs/dpdk/drivers/bus/dpaa/include/process.h

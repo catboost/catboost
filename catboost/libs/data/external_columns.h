@@ -2,6 +2,7 @@
 
 #include "columns.h"
 #include "quantized_features_info.h"
+#include "sparse_columns.h"
 
 #include <catboost/libs/helpers/sparse_array.h>
 

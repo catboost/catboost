@@ -8,12 +8,6 @@
 #endif
 
 
-/** Points to the first prime number in the sorted prime number table. */
-extern const unsigned long* const _y_first_prime;
-
-/** Points to the last prime number in the sorted prime number table.
- * Note that it is pointing not *past* the last element, but *at* the last element. */
-extern const unsigned long* const _y_last_prime;
 
 /**
  * Calculates the number of buckets for the hash table that will hold the given

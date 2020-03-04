@@ -5,6 +5,7 @@
 #include <library/unittest/tests_data.h>
 
 #include <util/stream/zlib.h>
+#include <util/generic/hash_set.h>
 
 Y_UNIT_TEST_SUITE(THttpCompressionTest) {
     static const TString DATA = "I'm a teapot";
@@ -41,5 +42,19 @@ Y_UNIT_TEST_SUITE(THttpCompressionTest) {
 
         auto decodedStream = (*decoder)(&buffer);
         UNIT_ASSERT_EQUAL(decodedStream->ReadAll(), DATA);
+    }
+
+    Y_UNIT_TEST(TestChooseBestCompressionScheme) {
+        THashSet<TString> accepted;
+
+        auto checkAccepted = [&accepted](const TString& v) {
+            return accepted.contains(v);
+        };
+
+        UNIT_ASSERT_VALUES_EQUAL("identity", NHttp::ChooseBestCompressionScheme(checkAccepted, {"gzip", "deflate"}));
+        accepted.insert("deflate");
+        UNIT_ASSERT_VALUES_EQUAL("deflate", NHttp::ChooseBestCompressionScheme(checkAccepted, {"gzip", "deflate"}));
+        accepted.insert("*");
+        UNIT_ASSERT_VALUES_EQUAL("gzip", NHttp::ChooseBestCompressionScheme(checkAccepted, {"gzip", "deflate"}));
     }
 } // THttpCompressionTest suite

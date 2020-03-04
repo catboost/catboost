@@ -59,7 +59,7 @@ namespace {
     struct TBrotliRegistrar {
         TBrotliRegistrar() {
             for (int i = 1; i <= TBrotliCodec::BEST_QUALITY; ++i) {
-                RegisterCodec(new TBrotliCodec(i));
+                RegisterCodec(MakeHolder<TBrotliCodec>(i));
             }
         }
     };

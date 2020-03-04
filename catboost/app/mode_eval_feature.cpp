@@ -51,19 +51,12 @@ int mode_eval_feature(int argc, const char* argv[]) {
     NCatboostOptions::TFeatureEvalOptions featureEvalOptions;
     featureEvalOptions.Load(featureEvalJsonOptions);
 
-    const auto& featuresToEvaluate = featureEvalOptions.FeaturesToEvaluate.Get();
-    for (const auto& featureSet : featuresToEvaluate) {
-        for (ui32 feature : featureSet) {
-            CB_ENSURE(Count(poolLoadParams.IgnoredFeatures, feature) == 0, "Tested feature " << feature << " should not be ignored");
-        }
-        CB_ENSURE(Count(featuresToEvaluate, featureSet) == 1, "All tested feature sets must be different");
-    }
-
     NPar::LocalExecutor().RunAdditionalThreads(catBoostOptions.SystemOptions->NumThreads - 1);
 
     TVector<NJson::TJsonValue> classLabels = catBoostOptions.DataProcessingOptions->ClassLabels;
     const auto objectsOrder = EObjectsOrder::Undefined;
     auto pools = NCB::ReadTrainDatasets(
+        Nothing(), // taskType,
         poolLoadParams,
         objectsOrder,
         /*readTestData*/false,
@@ -72,6 +65,16 @@ int mode_eval_feature(int argc, const char* argv[]) {
         &NPar::LocalExecutor(),
         /*profile*/nullptr
     );
+
+    const auto& featuresToEvaluate = featureEvalOptions.FeaturesToEvaluate.Get();
+    const ui32 featureCount = pools.Learn->MetaInfo.GetFeatureCount();
+    for (const auto& featureSet : featuresToEvaluate) {
+        for (ui32 feature : featureSet) {
+            CB_ENSURE(feature < featureCount, "Tested feature " << feature << " is not present; dataset contains only " << featureCount << " features");
+            CB_ENSURE(Count(poolLoadParams.IgnoredFeatures, feature) == 0, "Tested feature " << feature << " should not be ignored");
+        }
+        CB_ENSURE(Count(featuresToEvaluate, featureSet) == 1, "All tested feature sets must be different");
+    }
 
     const auto featureEvalSummary = EvaluateFeatures(
         catBoostFlatJsonOptions,

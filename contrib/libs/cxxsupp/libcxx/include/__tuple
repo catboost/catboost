@@ -466,7 +466,7 @@ template <bool ..._Preds>
 struct __all_dummy;
 
 template <bool ..._Pred>
-using __all = is_same<__all_dummy<_Pred...>, __all_dummy<(_Pred | true)...>>;
+using __all = _IsSame<__all_dummy<_Pred...>, __all_dummy<(_Pred | true)...>>;
 
 struct __tuple_sfinae_base {
   template <template <class, class...> class _Trait,
@@ -562,8 +562,9 @@ using __tuple_like_with_size _LIBCPP_NODEBUG_TYPE = __tuple_like_with_size_imp<
                               >;
 
 struct _LIBCPP_TYPE_VIS __check_tuple_constructor_fail {
-    template <class ...>
-    static constexpr bool __enable_default() { return false; }
+
+    static constexpr bool __enable_explicit_default() { return false; }
+    static constexpr bool __enable_implicit_default() { return false; }
     template <class ...>
     static constexpr bool __enable_explicit() { return false; }
     template <class ...>

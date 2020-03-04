@@ -1,7 +1,23 @@
 ALLOW contrib/libs/clickhouse -> contrib/restricted/apache-orc
 ALLOW contrib/restricted/apache-orc -> contrib/restricted/apache-orc
 ALLOW contrib/restricted/abseil-cpp -> contrib/restricted/abseil-cpp
+ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp
 ALLOW contrib/libs/libbpf -> contrib/restricted/libelf
 ALLOW contrib/restricted/libelf -> contrib/restricted/libelf
+
+ALLOW contrib/restricted/gstreamer -> contrib/restricted/gstreamer
+ALLOW contrib/restricted/gst-plugins-base -> contrib/restricted/gst-plugins-base
+ALLOW contrib/restricted/gst-plugins-good -> contrib/restricted/gst-plugins-good
+ALLOW contrib/restricted/gst-plugins-bad -> contrib/restricted/gst-plugins-bad
+ALLOW contrib/restricted/gst-libav -> contrib/restricted/gst-libav
+
+ALLOW quasar/yandex_io -> contrib/restricted/glib
+ALLOW quasar/yandex_io -> contrib/restricted/gstreamer
+ALLOW quasar/yandex_io -> contrib/restricted/gst-plugins-base
+ALLOW quasar/yandex_io -> contrib/restricted/gst-plugins-good
+ALLOW quasar/yandex_io -> contrib/restricted/gst-plugins-bad
+ALLOW quasar/yandex_io -> contrib/restricted/gst-libav
+
+ALLOW extsearch/audio/kernel/recoglib -> contrib/restricted/mpg123
 
 DENY .* -> contrib/restricted

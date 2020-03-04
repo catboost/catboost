@@ -43,9 +43,9 @@ TStringBuf NCsvFormat::CsvSplitter::Consume() {
                 if (CustomStringBufs.size()) {
                     CustomString.clear();
                     for (auto CustomStringBuf : CustomStringBufs) {
-                        CustomString += CustomStringBuf.ToString();
+                        CustomString += TString{CustomStringBuf};
                     }
-                    CustomString += TStringBuf(TokenStart, TokenEnd).ToString();
+                    CustomString += TString{TStringBuf(TokenStart, TokenEnd)};
                     CustomStringBufs.clear();
                     return TStringBuf(CustomString);
                 } else {

@@ -376,9 +376,6 @@ def pytest_collection_modifyitems(items, config):
         if not item.nodeid:
             item._nodeid = os.path.basename(item.location[0])
 
-    if config.option.test_file_filter:
-        filter_items([f.replace("/", ".") for f in config.option.test_file_filter])
-
     if config.option.test_filter:
         filter_items(config.option.test_filter)
     partition_mode = config.option.partition_mode

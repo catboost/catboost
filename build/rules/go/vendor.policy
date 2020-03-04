@@ -62,6 +62,9 @@ ALLOW .* -> vendor/github.com/gofrs/uuid
 # websocket protocol
 ALLOW .* -> vendor/github.com/gorilla/websocket
 
+# S2 geometry
+ALLOW .* -> vendor/github.com/golang/geo
+
 # Protocol buffers
 ALLOW .* -> vendor/github.com/golang/protobuf
 
@@ -82,6 +85,8 @@ ALLOW .* -> vendor/github.com/jackc/pgx/v4
 ALLOW .* -> vendor/github.com/jackc/pgconn
 ALLOW .* -> vendor/github.com/jackc/pgtype
 # v3 is to be deprecated in the future
+# deny v3 for MDB, responsible: @sidh
+DENY cloud/mdb -> vendor/github.com/jackc/pgx
 ALLOW .* -> vendor/github.com/jackc/pgx
 
 # database/sql wrapper with a lot of helper functions
@@ -206,6 +211,9 @@ ALLOW .* -> vendor/golang.org/x/sync
 
 # golang.org/x/text
 ALLOW .* -> vendor/golang.org/x/text
+
+# golang.org/x/time
+ALLOW .* -> vendor/golang.org/x/time
 
 # experimental implementation of Go error inspection. Use x/xerrors instead.
 ALLOW .* -> vendor/golang.org/x/exp/errors
@@ -387,6 +395,21 @@ ALLOW .* -> vendor/github.com/pkg/sftp
 
 # CONTRIB-1670
 ALLOW .* -> vendor/github.com/soniah/gosnmp
+
+# CONTRIB-1686 markdown parser
+ALLOW .* -> vendor/github.com/yuin/goldmark
+
+# CONTRIB-1681 A FileSystem Abstraction System for Go
+ALLOW .* -> vendor/github.com/spf13/afero
+
+# CONTRIB-1702 parse and generate XML easily in go
+ALLOW .* -> vendor/github.com/beevik/etree
+
+# CONTRIB-1703 telebot client for telegram. responsible: alittleprince@
+ALLOW .* -> vendor/gopkg.in/tucnak/telebot.v2
+
+# CONTRIB-1726 helpers for working with protobuf field masks
+ALLOW .* -> vendor/github.com/mennanov/fieldmask-utils
 
 #
 # Temporary exceptions.

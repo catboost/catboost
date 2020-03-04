@@ -199,6 +199,11 @@ namespace {
             Coefficients[TAutoLearningRateKey(ETargetType::Logloss, ETaskType::CPU, EUseBestModel::False, EBoostFromAverage::False)] =
                 {0.427, -7.525, -0.917, 2.63};
 
+            Coefficients[TAutoLearningRateKey(ETargetType::MultiClass, ETaskType::CPU, EUseBestModel::True, EBoostFromAverage::False)] =
+                {0.02, -2.364, -0.382, 0.924};
+            Coefficients[TAutoLearningRateKey(ETargetType::MultiClass, ETaskType::CPU, EUseBestModel::False, EBoostFromAverage::False)] =
+                {0.051, -2.889, -0.845, 2.928};
+
             Coefficients[TAutoLearningRateKey(ETargetType::RMSE, ETaskType::CPU, EUseBestModel::True, EBoostFromAverage::True)] =
                 {0.157, -4.062, -0.61, 1.557};
             Coefficients[TAutoLearningRateKey(ETargetType::RMSE, ETaskType::CPU, EUseBestModel::False, EBoostFromAverage::True)] =

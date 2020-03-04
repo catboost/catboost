@@ -145,7 +145,13 @@ static void force_locale_initialization() {
 #endif
 }
 
-ios_base::Init::Init()
+class DoIOSInit {
+public:
+	DoIOSInit();
+	~DoIOSInit();
+};
+
+DoIOSInit::DoIOSInit()
 {
     force_locale_initialization();
 
@@ -174,7 +180,7 @@ ios_base::Init::Init()
 #endif
 }
 
-ios_base::Init::~Init()
+DoIOSInit::~DoIOSInit()
 {
 #ifndef _LIBCPP_HAS_NO_STDOUT
     ostream* cout_ptr = reinterpret_cast<ostream*>(&cout);
@@ -187,6 +193,15 @@ ios_base::Init::~Init()
     wostream* wclog_ptr = reinterpret_cast<wostream*>(&wclog);
     clog_ptr->flush();
     wclog_ptr->flush();
+}
+
+ios_base::Init::Init()
+{
+    static DoIOSInit init_the_streams; // gets initialized once
+}
+
+ios_base::Init::~Init()
+{
 }
 
 _LIBCPP_END_NAMESPACE_STD

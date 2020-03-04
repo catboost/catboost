@@ -33,6 +33,8 @@
 #endif
 
 #if defined(_linux_)
+#undef SIOCGSTAMP
+#undef SIOCGSTAMPNS
 #include <linux/sockios.h>
 #define FIONWRITE SIOCOUTQ
 #endif
@@ -379,7 +381,7 @@ namespace {
             , RequestSettings_(s)
             , Msg_(msg)
             , Loc_(msg.Addr)
-            , Addr_(Resolve(Loc_.Host.ToString(), Loc_.GetPort(), RequestSettings_.ResolverType))
+            , Addr_(Resolve(TString{Loc_.Host}, Loc_.GetPort(), RequestSettings_.ResolverType))
             , AddrIter_(Addr_->Addr.Begin())
             , Canceled_(false)
             , RequestSendedCompletely_(false)
@@ -681,7 +683,7 @@ namespace {
                 }
 
                 try {
-                    PrepareSocket(AS_.Native(), Req_->RequestSettings());
+                    PrepareSocket(AS_.Native(), req->RequestSettings());
                     if (THttp2Options::TcpKeepAlive) {
                         SetKeepAlive(AS_.Native(), true);
                     }

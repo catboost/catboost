@@ -427,22 +427,12 @@ bool THttpInput::AcceptEncoding(const TString& coding) const {
 }
 
 TString THttpInput::BestCompressionScheme(TArrayRef<const TStringBuf> codings) const {
-    if (codings.empty()) {
-        return "identity";
-    }
-
-    if (AcceptEncoding("*")) {
-        return TString(codings[0]);
-    }
-
-    for (const auto& coding : codings) {
-        TString s(coding);
-        if (AcceptEncoding(s)) {
-            return s;
-        }
-    }
-
-    return "identity";
+    return NHttp::ChooseBestCompressionScheme(
+        [this](const TString& coding) {
+            return AcceptEncoding(coding);
+        },
+        codings
+    );
 }
 
 TString THttpInput::BestCompressionScheme() const {

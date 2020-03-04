@@ -411,14 +411,6 @@ public: // string subsequences
         return TdSelf(*this).RSeek(len);
     }
 
-    TBasicString<TCharType> ToString() const {
-        return {Start, Length};
-    }
-
-    TBasicString<TCharType> Quote() const {
-        return ToString().Quote();
-    }
-
 private:
     inline size_t ChopImpl(size_t shift) noexcept {
         if (shift > length())
@@ -482,6 +474,10 @@ private:
 
 std::ostream& operator<< (std::ostream& os, TStringBuf buf);
 
+static inline TString DebugQuote(const TStringBuf str) {
+    return TString{str}.Quote();
+}
+
 static inline TString ToString(const TStringBuf str) {
     return TString(str);
 }
@@ -490,7 +486,7 @@ static inline TUtf16String ToWtring(const TWtringBuf wtr) {
     return TUtf16String(wtr);
 }
 
-static inline TUtf32String ToUtf32String(const TUtf32String wtr) {
+static inline TUtf32String ToUtf32String(const TUtf32StringBuf wtr) {
     return TUtf32String(wtr);
 }
 

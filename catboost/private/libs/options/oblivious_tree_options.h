@@ -32,6 +32,9 @@ namespace NCatboostOptions {
         TOption<float> Rsm;
         TOption<ELeavesEstimationStepBacktracking> LeavesEstimationBacktrackingType;
         TOption<EScoreFunction> ScoreFunction;
+        TOption<EGrowPolicy> GrowPolicy;
+        TOption<ui32> MaxLeaves;
+        TOption<double> MinDataInLeaf;
 
         TCpuOnlyOption<ESamplingFrequency> SamplingFrequency;
         TCpuOnlyOption<float> ModelSizeReg;
@@ -46,9 +49,6 @@ namespace NCatboostOptions {
         TGpuOnlyOption<bool> FoldSizeLossNormalization;
         TGpuOnlyOption<bool> AddRidgeToTargetFunctionFlag;
         TGpuOnlyOption<ui32> MaxCtrComplexityForBordersCaching;
-        TGpuOnlyOption<EGrowPolicy> GrowPolicy;
-        TGpuOnlyOption<ui32> MaxLeaves;
-        TGpuOnlyOption<double> MinDataInLeaf;
 
         TCpuOnlyOption<TMap<ui32, int>> MonotoneConstraints;
         TCpuOnlyOption <bool> DevLeafwiseApproxes;

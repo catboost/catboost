@@ -18,6 +18,7 @@ namespace NJson {
         // js-style comments (both // and /**/)
         bool AllowComments = false;
         bool DontValidateUtf8 = false;
+        bool AllowEscapedApostrophe = false;
 
         void SetBufferSize(size_t bufferSize);
         size_t GetBufferSize() const;
@@ -40,7 +41,24 @@ namespace NJson {
 
     bool ReadJson(IInputStream* in, TJsonCallbacks* callbacks);
     bool ReadJson(IInputStream* in, bool allowComments, TJsonCallbacks* callbacks);
+    bool ReadJson(IInputStream* in, bool allowComments, bool allowEscapedApostrophe, TJsonCallbacks* callbacks);
     bool ReadJson(IInputStream* in, const TJsonReaderConfig* config, TJsonCallbacks* callbacks);
+
+    enum ReaderConfigFlags {
+        COMMENTS = 0b100,
+        VALIDATE = 0b010,
+        ESCAPE = 0b001,
+    };
+
+    enum ReaderConfigToRapidJsonFlags {
+        COMMENTS_NOVALID_NOESCAPE = 0b100,
+        COMMENTS_VALID_NOESCAPE = 0b110,
+        COMMENTS_VALID_ESCAPE = 0b111,
+        COMMENTS_NOVALID_ESCAPE = 0b101,
+        NOCOMMENTS_VALID_NOESCAPE = 0b010,
+        NOCOMMENTS_VALID_ESCAPE = 0b011,
+        NOCOMMENTS_NOVALID_ESCAPE = 0b001,
+    };
 
     inline bool ValidateJson(IInputStream* in, const TJsonReaderConfig* config, bool throwOnError = false) {
         TJsonCallbacks c(throwOnError);

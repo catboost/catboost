@@ -59,7 +59,6 @@ TEST_SRCS(
     pack_jcoverage_resources.py
     perl_wrapper.py
     preprocess.py
-    provides.py
     py_compile.py
     run_ios_simulator.py
     run_javac.py
@@ -67,7 +66,6 @@ TEST_SRCS(
     run_msvc_wine.py
     run_tool.py
     stdout2stderr.py
-    svn_version_gen.py
     symlink.py
     tared_protoc.py
     tar_directory.py

@@ -473,6 +473,7 @@ namespace {
             : PathWithScheme(pathWithScheme)
         {}
         NCB::TQuantizedPool LoadQuantizedPool(NCB::TLoadQuantizedPoolParameters params) override;
+        TVector<ui8> LoadQuantizedColumn(ui32 columnIdx) override;
     private:
         NCB::TPathWithScheme PathWithScheme;
     };
@@ -615,6 +616,11 @@ NCB::TQuantizedPool TFileQuantizedPoolLoader::LoadQuantizedPool(NCB::TLoadQuanti
 
     return pool;
 }
+
+TVector<ui8> TFileQuantizedPoolLoader::LoadQuantizedColumn(ui32 /*columnIdx*/) {
+    CB_ENSURE_INTERNAL(false, "Schema quantized does not support columnwise loading");
+}
+
 
 NCB::TQuantizedPoolLoaderFactory::TRegistrator<TFileQuantizedPoolLoader> FileQuantizedPoolLoaderReg("quantized");
 

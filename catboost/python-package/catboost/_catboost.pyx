@@ -43,7 +43,7 @@ from util.generic.maybe cimport TMaybe
 from util.generic.ptr cimport THolder, TIntrusivePtr, MakeHolder
 from util.generic.string cimport TString, TStringBuf
 from util.generic.vector cimport TVector
-from util.system.types cimport ui8, ui32, ui64, i32, i64
+from util.system.types cimport ui8, ui16, ui32, ui64, i32, i64
 from util.string.cast cimport StrToD, TryFromString, ToString
 
 ctypedef const np.float32_t const_float32_t
@@ -339,6 +339,9 @@ cdef extern from "catboost/private/libs/options/enums.h":
     cdef ECrossValidation ECrossValidation_TimeSeries "ECrossValidation::TimeSeries"
     cdef ECrossValidation ECrossValidation_Classical "ECrossValidation::Classical"
     cdef ECrossValidation ECrossValidation_Inverted "ECrossValidation::Inverted"
+
+    cdef cppclass ETaskType:
+        pass
 
 
 cdef extern from "catboost/private/libs/options/enums.h" namespace "NCB":
@@ -781,6 +784,7 @@ cdef class Py_FeaturesOrderBuilderVisitor:
 
 cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
     cdef TDataProviderPtr ReadDataset(
+        TMaybe[ETaskType] taskType,
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath,
         const TPathWithScheme& groupWeightsFilePath,
@@ -830,6 +834,10 @@ cdef extern from "catboost/libs/model/model.h":
     cdef cppclass TTextFeature:
         TFeaturePosition Position
         TString FeatureId
+
+    cdef cppclass TNonSymmetricTreeStepNode:
+        ui16 LeftSubtreeDiff
+        ui16 RightSubtreeDiff
 
     cdef cppclass TModelTrees:
         int GetDimensionCount() except +ProcessException
@@ -942,14 +950,23 @@ cdef extern from "catboost/private/libs/algo_helpers/ders_holder.h":
 cdef extern from "catboost/private/libs/algo/tree_print.h":
     TVector[TString] GetTreeSplitsDescriptions(
         const TFullModel& model,
-        size_t tree_idx,
+        size_t treeIdx,
         const TDataProviderPtr pool
     ) nogil except +ProcessException
 
     TVector[TString] GetTreeLeafValuesDescriptions(
         const TFullModel& model,
-        size_t tree_idx,
-        int leaves_num
+        size_t treeIdx
+    ) nogil except +ProcessException
+
+    TConstArrayRef[TNonSymmetricTreeStepNode] GetTreeStepNodes(
+        const TFullModel& model,
+        size_t treeIdx
+    ) nogil except +ProcessException
+
+    TVector[ui32] GetTreeNodeToLeaf(
+        const TFullModel& model,
+        size_t treeIdx
     ) nogil except +ProcessException
 
 
@@ -3240,6 +3257,7 @@ cdef class _PoolBase:
         cdef TVector[ui32] emptyIntVec
 
         self.__pool = ReadDataset(
+            TMaybe[ETaskType](),
             pool_file_path,
             pairs_file_path,
             TPathWithScheme(),
@@ -4350,14 +4368,16 @@ cdef class _CatBoost:
         node_descriptions = [to_native_str(s) for s in splits]
         return node_descriptions
 
-    cpdef _get_tree_leaf_values(self, tree_idx, leaves_num):
-        leaf_values = GetTreeLeafValuesDescriptions(dereference(self.__model), tree_idx, leaves_num)
-        leaf_values_list = []
+    cpdef _get_tree_leaf_values(self, tree_idx):
+        leaf_values = GetTreeLeafValuesDescriptions(dereference(self.__model), tree_idx)
+        return [to_native_str(value) for value in leaf_values]
 
-        for value in leaf_values:
-            leaf_values_list.append(to_native_str(value))
+    cpdef _get_tree_step_nodes(self, tree_idx):
+        step_nodes = GetTreeStepNodes(dereference(self.__model), tree_idx)
+        return [(node.LeftSubtreeDiff, node.RightSubtreeDiff) for node in step_nodes]
 
-        return leaf_values_list
+    cpdef _get_tree_node_to_leaf(self, tree_idx):
+        return list(GetTreeNodeToLeaf(dereference(self.__model), tree_idx))
 
     cpdef _tune_hyperparams(self, list grids_list, _PoolBase train_pool, dict params, int n_iter,
                           int fold_count, int partition_random_seed, bool_t shuffle, bool_t stratified,

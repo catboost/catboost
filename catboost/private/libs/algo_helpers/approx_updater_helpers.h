@@ -213,7 +213,6 @@ inline TVector<double> ScaleElementwise<double>(double scale, const TVector<doub
 
 template <class T>
 void InitApproxFromBaseline(
-    const ui32 beginIdx,
     const ui32 endIdx,
     TConstArrayRef<TConstArrayRef<T>> baseline,
     TConstArrayRef<ui32> learnPermutation,
@@ -223,7 +222,7 @@ void InitApproxFromBaseline(
     const ui32 learnSampleCount = learnPermutation.size();
     const int approxDimension = approx->ysize();
     for (int dim = 0; dim < approxDimension; ++dim) {
-        for (ui32 docId : xrange(beginIdx, endIdx)) {
+        for (ui32 docId : xrange(endIdx)) {
             ui32 initialIdx = docId;
             if (docId < learnSampleCount) {
                 initialIdx = learnPermutation[docId];
@@ -232,7 +231,7 @@ void InitApproxFromBaseline(
         }
         ExpApproxIf(
             storeExpApproxes,
-            TArrayRef<double>((*approx)[dim].data() + beginIdx, (*approx)[dim].data() + endIdx)
+            TArrayRef<double>((*approx)[dim].data(), (*approx)[dim].data() + endIdx)
         );
     }
 }

@@ -431,7 +431,7 @@ namespace NCB {
     void CheckTargetConsistency(
         TTargetDataProviderPtr targetDataProvider,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
-        TMaybe<NCatboostOptions::TLossDescription*> mainLossFunction,
+        const NCatboostOptions::TLossDescription* mainLossFunction, // can be nullptr
         bool needTargetDataForCtrs,
         bool metricsThatRequireTargetCanBeSkipped,
         TStringBuf datasetName,
@@ -466,7 +466,7 @@ namespace NCB {
             );
         }
 
-        if ((mainLossFunction && IsUserDefined((*mainLossFunction)->GetLossFunction())) ||
+        if ((mainLossFunction && IsUserDefined(mainLossFunction->GetLossFunction())) ||
             hasUserDefinedMetrics)
         {
             CB_ENSURE(target, "User defined objective/metrics require Target data");
@@ -480,7 +480,7 @@ namespace NCB {
             );
         }
 
-        const bool needCheckTarget = !mainLossFunction || !IsRegressionObjective((*mainLossFunction)->GetLossFunction());
+        const bool needCheckTarget = !mainLossFunction || !IsRegressionObjective(mainLossFunction->GetLossFunction());
         // TODO(akhropov): Will be split by target type. MLTOOLS-2337.
         if (target) {
             CheckPreprocessedTarget(
@@ -499,7 +499,7 @@ namespace NCB {
         const TRawTargetDataProvider& rawData,
         TMaybeData<TConstArrayRef<TSubgroupId>> subgroupIds,
         bool isForGpu,
-        TMaybe<NCatboostOptions::TLossDescription*> mainLossFunction,
+        const NCatboostOptions::TLossDescription* mainLossFunction, // can be nullptr
         bool metricsThatRequireTargetCanBeSkipped,
         TMaybe<ui32> knownModelApproxDimension,
         const TTargetCreationOptions& targetCreationOptions,
@@ -511,7 +511,7 @@ namespace NCB {
 
         if (mainLossFunction) {
             CB_ENSURE(
-                IsMultiRegressionObjective((*mainLossFunction)->GetLossFunction()) || rawData.GetTargetDimension() <= 1,
+                IsMultiRegressionObjective(mainLossFunction->GetLossFunction()) || rawData.GetTargetDimension() <= 1,
                 "Currently only multi-regression objectives work with multidimensional target"
             );
         }
@@ -521,8 +521,8 @@ namespace NCB {
         bool isRealTarget = true;
         if (targetCreationOptions.IsClass) {
             isRealTarget
-                = mainLossFunction.Defined()
-                    && ((**mainLossFunction).GetLossFunction() == ELossFunction::CrossEntropy);
+                = mainLossFunction
+                    && (mainLossFunction->GetLossFunction() == ELossFunction::CrossEntropy);
 
             if (!isRealTarget && !knownClassCount && knownModelApproxDimension > 1) {
                 knownClassCount = knownModelApproxDimension;
@@ -772,6 +772,7 @@ namespace NCB {
         TVector<float> classWeights;
         TVector<NJson::TJsonValue> classLabels;
         TMaybe<ui32> classCount = Nothing();
+        TMaybe<NCatboostOptions::TLossDescription> modelLossDescription;
 
         if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, "params")) {
             NJson::TJsonValue paramsJson = ReadTJsonValue(*modelInfoParams);
@@ -785,10 +786,10 @@ namespace NCB {
             }
 
             if (paramsJson.Has("loss_function")) {
-                NCatboostOptions::TLossDescription modelLossDescription;
-                modelLossDescription.Load(paramsJson["loss_function"]);
+                modelLossDescription.ConstructInPlace();
+                modelLossDescription->Load(paramsJson["loss_function"]);
 
-                if (!classCount && IsBinaryClassOnlyMetric(modelLossDescription.LossFunction)) {
+                if (!classCount && IsBinaryClassOnlyMetric(modelLossDescription->LossFunction)) {
                     CB_ENSURE_INTERNAL(
                         model.GetDimensionsCount() == 1,
                         "model trained with binary classification function has ApproxDimension="
@@ -797,7 +798,7 @@ namespace NCB {
                 }
 
                 if (updatedMetricsDescriptions.empty()) {
-                    updatedMetricsDescriptions.push_back(std::move(modelLossDescription));
+                    updatedMetricsDescriptions.push_back(*modelLossDescription);
                 }
             }
         }
@@ -886,7 +887,7 @@ namespace NCB {
             srcData.RawTargetData,
             srcData.ObjectsData->GetSubgroupIds(),
             /*isForGpu*/ false,
-            /*mainLossFunction*/ Nothing(),
+            modelLossDescription.Get(),
             /*metricsThatRequireTargetCanBeSkipped*/ false,
             (ui32)model.GetDimensionsCount(),
             targetCreationOptions,
@@ -899,7 +900,7 @@ namespace NCB {
         CheckTargetConsistency(
             result.TargetData,
             updatedMetricsDescriptions,
-            /*mainLossFunction*/ Nothing(),
+            modelLossDescription.Get(),
             /*needTargetDataForCtrs*/ false,
             /*metricsThatRequireTargetCanBeSkipped*/ false,
             /*datasetName*/ TStringBuf(),
@@ -1045,7 +1046,7 @@ namespace NCB {
         CheckTargetConsistency(
             result.TargetData,
             metricsDescriptions,
-            /*mainLossFunction*/ Nothing(),
+            &lossDescription,
             /*needTargetDataForCtrs*/ false,
             /*metricsThatRequireTargetCanBeSkipped*/ false,
             /*datasetName*/ TStringBuf(),

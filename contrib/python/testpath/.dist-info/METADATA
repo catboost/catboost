@@ -1,0 +1,34 @@
+Metadata-Version: 2.1
+Name: testpath
+Version: 0.4.2
+Summary: Test utilities for code working with files and commands
+Home-page: https://github.com/jupyter/testpath
+License: UNKNOWN
+Author: Jupyter Development Team
+Author-email: jupyter@googlegroups.com
+Description-Content-Type: text/x-rst
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: BSD License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 3
+Classifier: Topic :: Software Development :: Testing
+Requires-Dist: pathlib2; extra == "test" and ( python_version == "2.7")
+Project-URL: Documentation, https://testpath.readthedocs.io/en/latest/
+Provides-Extra: test
+
+Testpath is a collection of utilities for Python code working with files and commands.
+
+It contains functions to check things on the filesystem, and tools for mocking
+system commands and recording calls to those.
+
+`Documentation on ReadTheDocs <https://testpath.readthedocs.io/en/latest/>`_
+
+e.g.::
+
+    import testpath
+    testpath.assert_isfile(path)
+    
+    with testpath.assert_calls('git', ['add', path]):
+        function_under_test()
+

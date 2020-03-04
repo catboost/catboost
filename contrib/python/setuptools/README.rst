@@ -34,8 +34,17 @@ To report a security vulnerability, please use the
 Tidelift will coordinate the fix and disclosure.
 
 
+For Enterprise
+==============
+
+Available as part of the Tidelift Subscription.
+
+Setuptools and the maintainers of thousands of other packages are working with Tidelift to deliver one enterprise subscription that covers all of the open source you use.
+
+`Learn more <https://tidelift.com/subscription/pkg/pypi-setuptools?utm_source=pypi-setuptools&utm_medium=referral&utm_campaign=github>`_.
+
 Code of Conduct
----------------
+===============
 
 Everyone interacting in the setuptools project's codebases, issue trackers,
 chat rooms, and mailing lists is expected to follow the

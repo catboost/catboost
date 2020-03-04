@@ -345,6 +345,8 @@ TFullModel TModelConverter::Convert(
         modelCtr.PriorNum = GetNumeratorShift(config);
         modelCtr.PriorDenom = GetDenumeratorShift(config);
 
+        modelSplit.OnlineCtr.Canonize();
+
         return modelSplit;
     }
 

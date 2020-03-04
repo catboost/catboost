@@ -670,8 +670,7 @@ class Pool(_PoolBase):
 
     def quantize(self, ignored_features=None, per_float_feature_quantization=None, border_count=None,
                  max_bin=None, feature_border_type=None, sparse_features_conflict_fraction=None, dev_efb_max_buckets=None,
-                 nan_mode=None, input_borders=None, simple_ctr=None, combinations_ctr=None, per_feature_ctr=None,
-                 ctr_target_border_count=None, task_type=None, used_ram_limit=None):
+                 nan_mode=None, input_borders=None, task_type=None, used_ram_limit=None):
         """
         Quantize this pool
 
@@ -726,32 +725,6 @@ class Pool(_PoolBase):
         input_borders : string, [default=None]
             input file with borders used in numeric features binarization.
 
-        simple_ctr: list of strings, [default=None]
-            Binarization settings for categorical features.
-                Format : see documentation
-                Example: ['Borders:CtrBorderCount=5:Prior=0:Prior=0.5', 'BinarizedTargetMeanValue:TargetBorderCount=10:TargetBorderType=MinEntropy', ...]
-                CTR types:
-                    CPU and GPU
-                    - 'Borders'
-                    - 'Buckets'
-                    CPU only
-                    - 'BinarizedTargetMeanValue'
-                    - 'Counter'
-                    GPU only
-                    - 'FloatTargetMeanValue'
-                    - 'FeatureFreq'
-                Number_of_borders, binarization type, target borders and binarizations, priors are optional parametrs
-
-        combinations_ctr: list of strings, [default=None]
-
-        per_feature_ctr: list of strings, [default=None]
-
-        ctr_target_border_count: int, [default=None]
-            Maximum number of borders used in target binarization for categorical features that need it.
-            If TargetBorderCount is specified in 'simple_ctr', 'combinations_ctr' or 'per_feature_ctr' option it
-            overrides this value.
-            range: [1, 255]
-
         task_type : string, [default=None]
             The calcer type used to train the model.
             Possible values:
@@ -771,8 +744,7 @@ class Pool(_PoolBase):
 
         self._update_params_quantize_part(params, ignored_features, per_float_feature_quantization, border_count,
                                           feature_border_type, sparse_features_conflict_fraction, dev_efb_max_buckets,
-                                          nan_mode, input_borders, simple_ctr, combinations_ctr, per_feature_ctr,
-                                          ctr_target_border_count, task_type, used_ram_limit)
+                                          nan_mode, input_borders, task_type, used_ram_limit)
 
         self._quantize(params)
 
@@ -780,8 +752,7 @@ class Pool(_PoolBase):
 
     def _update_params_quantize_part(self, params, ignored_features, per_float_feature_quantization, border_count,
                                      feature_border_type, sparse_features_conflict_fraction, dev_efb_max_buckets,
-                                     nan_mode, input_borders, simple_ctr, combinations_ctr, per_feature_ctr,
-                                     ctr_target_border_count, task_type, used_ram_limit):
+                                     nan_mode, input_borders, task_type, used_ram_limit):
         if ignored_features is not None:
             params.update({
                 'ignored_features': ignored_features
@@ -820,26 +791,6 @@ class Pool(_PoolBase):
         if input_borders is not None:
             params.update({
                 'input_borders': input_borders
-            })
-
-        if simple_ctr is not None:
-            params.update({
-                'simple_ctr': simple_ctr
-            })
-
-        if combinations_ctr is not None:
-            params.update({
-                'combinations_ctr': combinations_ctr
-            })
-
-        if per_feature_ctr is not None:
-            params.update({
-                'per_feature_ctr': per_feature_ctr
-            })
-
-        if ctr_target_border_count is not None:
-            params.update({
-                'ctr_target_border_count': ctr_target_border_count
             })
 
         if task_type is not None:
@@ -1421,8 +1372,14 @@ class _CatBoostBase(object):
     def _get_tree_splits(self, tree_idx, pool):
         return self._object._get_tree_splits(tree_idx, pool)
 
-    def _get_tree_leaf_values(self, tree_idx, leaves_num):
-        return self._object._get_tree_leaf_values(tree_idx, leaves_num)
+    def _get_tree_leaf_values(self, tree_idx):
+        return self._object._get_tree_leaf_values(tree_idx)
+
+    def _get_tree_step_nodes(self, tree_idx):
+        return self._object._get_tree_step_nodes(tree_idx)
+
+    def _get_tree_node_to_leaf(self, tree_idx):
+        return self._object._get_tree_node_to_leaf(tree_idx)
 
     def get_tree_leaf_counts(self):
         '''
@@ -1860,7 +1817,7 @@ class CatBoost(_CatBoostBase):
                          column_description, verbose_eval, metric_period, silent, early_stopping_rounds,
                          save_snapshot, snapshot_file, snapshot_interval, init_model)
 
-    def _process_predict_input_data(self, data, parent_method_name, label=None):
+    def _process_predict_input_data(self, data, parent_method_name, thread_count, label=None):
         if not self.is_fitted() or self.tree_count_ is None:
             raise CatBoostError(("There is no trained model to use {}(). "
                                  "Use fit() to train model. Then use this method.").format(parent_method_name))
@@ -1870,7 +1827,8 @@ class CatBoost(_CatBoostBase):
                 data=[data] if is_single_object else data,
                 label=label,
                 cat_features=self._get_cat_feature_indices() if not isinstance(data, FeaturesData) else None,
-                text_features=self._get_text_feature_indices() if not isinstance(data, FeaturesData) else None
+                text_features=self._get_text_feature_indices() if not isinstance(data, FeaturesData) else None,
+                thread_count=thread_count
             )
         return data, is_single_object
 
@@ -1884,7 +1842,7 @@ class CatBoost(_CatBoostBase):
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
-        data, data_is_single_object = self._process_predict_input_data(data, parent_method_name)
+        data, data_is_single_object = self._process_predict_input_data(data, parent_method_name, thread_count)
         self._validate_prediction_type(prediction_type)
 
         predictions = self._base_predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose)
@@ -1942,7 +1900,7 @@ class CatBoost(_CatBoostBase):
         verbose = verbose or self.get_param('verbose')
         if verbose is None:
             verbose = False
-        data, data_is_single_object = self._process_predict_input_data(data, parent_method_name)
+        data, data_is_single_object = self._process_predict_input_data(data, parent_method_name, thread_count)
         self._validate_prediction_type(prediction_type)
 
         if ntree_end == 0:
@@ -2005,7 +1963,7 @@ class CatBoost(_CatBoostBase):
     def _iterate_leaf_indexes(self, data, ntree_start, ntree_end):
         if ntree_end == 0:
             ntree_end = self.tree_count_
-        data, _ = self._process_predict_input_data(data, "iterate_leaf_indexes")
+        data, _ = self._process_predict_input_data(data, "iterate_leaf_indexes", thread_count)
         leaf_indexes_iterator = self._leaf_indexes_iterator(data, ntree_start, ntree_end)
         for leaf_index in leaf_indexes_iterator:
             yield leaf_index
@@ -2038,7 +1996,7 @@ class CatBoost(_CatBoostBase):
     def _calc_leaf_indexes(self, data, ntree_start, ntree_end, thread_count, verbose):
         if ntree_end == 0:
             ntree_end = self.tree_count_
-        data, _ = self._process_predict_input_data(data, "calc_leaf_indexes")
+        data, _ = self._process_predict_input_data(data, "calc_leaf_indexes", thread_count)
         return self._base_calc_leaf_indexes(data, ntree_start, ntree_end, thread_count, verbose)
 
     def calc_leaf_indexes(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=False):
@@ -2331,7 +2289,7 @@ class CatBoost(_CatBoostBase):
             if data is None and isinstance(data, Pool):
                 raise CatBoostError("Invalid data type={}, must be list or np.ndarray".format(_typeof(data)))
 
-            data, _ = self._process_predict_input_data(data, "get_feature_importance")
+            data, _ = self._process_predict_input_data(data, "get_feature_importance", thread_count)
             if data.num_row() != 2:
                 raise CatBoostError("{} requires a pair of documents, found {}".format(type, data.num_row()))
 
@@ -2676,7 +2634,7 @@ class CatBoost(_CatBoostBase):
 
         model_borders = self._get_borders()
 
-        data, _ = self._process_predict_input_data(data, "vary_feature_value_and_apply")
+        data, _ = self._process_predict_input_data(data, "vary_feature_value_and_apply", thread_count=-1)
         figs = []
         all_predictions = [{}] * data.num_row()
         for feature in features_to_change:
@@ -2807,7 +2765,7 @@ class CatBoost(_CatBoostBase):
                     varying feature (see above)
             For one-hot feature, returns the same, but with 'cat_values' instead of 'borders'
         """
-        data, _ = self._process_predict_input_data(data, "get_binarized_statistics", target)
+        data, _ = self._process_predict_input_data(data, "get_binarized_statistics", thread_count, target)
 
         if prediction_type is None:
             prediction_type = 'Probability' if self.get_param('loss_function') in ['CrossEntropy', 'Logloss'] \
@@ -2942,13 +2900,9 @@ class CatBoost(_CatBoostBase):
 
         return return_stats
 
-    def plot_tree(self, tree_idx, pool=None):
+    def _plot_oblivious_tree(self, splits, leaf_values):
         from graphviz import Digraph
         graph = Digraph()
-        pool, _ = self._process_predict_input_data(pool, "plot_tree") if pool is not None else (None, None)
-
-        splits = self._get_tree_splits(tree_idx, pool)
-        leaf_values = self._get_tree_leaf_values(tree_idx, 1 << len(splits))
 
         layer_size = 1
         current_size = 0
@@ -2956,7 +2910,7 @@ class CatBoost(_CatBoostBase):
         for split_num in range(len(splits) - 1, -2, -1):
             for node_num in range(layer_size):
                 if split_num >= 0:
-                    node_label = splits[split_num].replace('bin=', 'value>', 1)
+                    node_label = splits[split_num].replace('bin=', 'value>', 1).replace('border=', 'value>', 1)
                     color = 'black'
                     shape = 'ellipse'
                 else:
@@ -2971,9 +2925,9 @@ class CatBoost(_CatBoostBase):
 
                 graph.node(str(current_size), node_label, color=color, shape=shape)
 
-                if (current_size > 0):
+                if current_size > 0:
                     parent = (current_size - 1) // 2
-                    edge_label = 'Yes' if current_size % 2 == 1 else 'No'
+                    edge_label = 'Yes' if current_size % 2 == 0 else 'No'
                     graph.edge(str(parent), str(current_size), edge_label)
 
                 current_size += 1
@@ -2981,6 +2935,52 @@ class CatBoost(_CatBoostBase):
             layer_size *= 2
 
         return graph
+
+    def _plot_nonsymmetric_tree(self, splits, leaf_values, step_nodes, node_to_leaf):
+        from graphviz import Digraph
+        graph = Digraph()
+
+        def plot_leaf(node_idx, graph):
+            cur_id = 'leaf_{}'.format(node_to_leaf[node_idx])
+            node_label = leaf_values[node_to_leaf[node_idx]]
+            graph.node(cur_id, node_label, color='red', shape='rect')
+            return cur_id
+
+        def plot_subtree(node_idx, graph):
+            if step_nodes[node_idx] == (0, 0):
+                return plot_leaf(node_idx, graph)
+            else:
+                cur_id = 'node_{}'.format(node_idx)
+                node_label = splits[node_idx].replace('bin=', 'value>', 1).replace('border=', 'value>', 1)
+                graph.node(cur_id, node_label, color='black', shape='ellipse')
+
+                if step_nodes[node_idx][0] == 0:
+                    child_id = plot_leaf(node_idx, graph)
+                else:
+                    child_id = plot_subtree(node_idx + step_nodes[node_idx][0], graph)
+                graph.edge(cur_id, child_id, 'No')
+
+                if step_nodes[node_idx][1] == 0:
+                    child_id = plot_leaf(node_idx, graph)
+                else:
+                    child_id = plot_subtree(node_idx + step_nodes[node_idx][1], graph)
+                graph.edge(cur_id, child_id, 'Yes')
+            return cur_id
+
+        plot_subtree(0, graph)
+        return graph
+
+    def plot_tree(self, tree_idx, pool=None):
+        pool, _ = self._process_predict_input_data(pool, "plot_tree", thread_count) if pool is not None else (None, None)
+
+        splits = self._get_tree_splits(tree_idx, pool)
+        leaf_values = self._get_tree_leaf_values(tree_idx)
+        if self._object._is_oblivious():
+            return self._plot_oblivious_tree(splits, leaf_values)
+        else:
+            step_nodes = self._get_tree_step_nodes(tree_idx)
+            node_to_leaf = self._get_tree_node_to_leaf(tree_idx)
+            return self._plot_nonsymmetric_tree(splits, leaf_values, step_nodes, node_to_leaf)
 
     def _tune_hyperparams(self, param_grid, X, y=None, cv=3, n_iter=10, partition_random_seed=0,
                           calc_cv_statistics=True, search_by_train_test_split=True,
@@ -3536,16 +3536,15 @@ class CatBoostClassifier(CatBoost):
         Should be a real value in [0, 1) interval.
 
     grow_policy : string, [SymmetricTree,Lossguide,Depthwise], [default=SymmetricTree]
-        GPU only. The tree growing policy. It describes how to perform greedy tree construction.
+        The tree growing policy. It describes how to perform greedy tree construction.
 
     min_data_in_leaf : int, [default=1].
-        GPU only.
         The minimum training samples count in leaf.
         CatBoost will not search for new splits in leaves with samples count less than min_data_in_leaf.
         This parameter is used only for Depthwise and Lossguide growing policies.
 
     max_leaves : int, [default=31],
-        GPU only. The maximum leaf count in resulting tree.
+        The maximum leaf count in resulting tree.
         This parameter is used only for Lossguide growing policy.
 
     score_function : string, possible values L2, Cosine, NewtonL2, NewtonCosine, [default=Cosine]
@@ -3622,16 +3621,59 @@ class CatBoostClassifier(CatBoost):
         Enables to initialize approx values by best constant value for specified loss function.
         Available for RMSE, Logloss, CrossEntropy, Quantile and MAE.
 
-    dictionaries : list of strings,
-        Each string is a dictionary description. Description should be written in format
-        DictionaryId[:occurrence_lower_bound=MinTokenOccurrence][:max_dictionary_size=MaxDictSize]
-                    [:gram_order=GramOrder][:token_level_type=TokenLevelType]
+    tokenizers : list of dicts,
+        Each dict is a tokenizer description. Example:
+        ```
+        [
+            {
+                'tokenizer_id': 'Tokenizer',  # Tokeinzer identifier.
+                'lowercasing': 'false',  # Possible values: 'true', 'false'.
+                'number_process_policy': 'LeaveAsIs',  # Possible values: 'Skip', 'LeaveAsIs', 'Replace'.
+                'number_token': '%',  # Rarely used character. Used in conjunction with Replace NumberProcessPolicy.
+                'separator_type': 'ByDelimiter',  # Possible values: 'ByDelimiter', 'BySense'.
+                'delimiter': ' ',  # Used in conjunction with ByDelimiter SeparatorType.
+                'split_by_set': 'false',  # Each single character in delimiter used as individual delimiter.
+                'skip_empty': 'true',  # Possible values: 'true', 'false'.
+                'token_types': ['Word', 'Number', 'Unknown'],  # Used in conjunction with BySense SeparatorType.
+                    # Possible values: 'Word', 'Number', 'Punctuation', 'SentenceBreak', 'ParagraphBreak', 'Unknown'.
+                'subtokens_policy': 'SingleToken',  # Possible values:
+                    # 'SingleToken' - All subtokens are interpreted as single token).
+                    # 'SeveralTokens' - All subtokens are interpreted as several token.
+            },
+            ...
+        ]
+        ```
 
-    text_processing : list of strings,
-        Each string is a text feature preprocessing description. Description should be written in format
-        [TextFeatureId~]NaiveBayes+DictionaryName1|BoW+LetterGramDictionary,BiGramDictionary
-        Where dictionaries names were taken from 'dictionaries' parameter and NaiveBayes,BoW is feature
-        calcers which will be computed on corresponding, preprocessed by dictionaries, text features.
+    dictionaries : list of dicts,
+        Each dict is a tokenizer description. Example:
+        ```
+        [
+            {
+                'dictionary_id': 'Dictionary',  # Dictionary identifier.
+                'token_level_type': 'Word',  # Possible values: 'Word', 'Letter'.
+                'gram_order': '1',  # 1 for Unigram, 2 for Bigram, ...
+                'skip_step': '0',  # 1 for 1-skip-gram, ...
+                'end_of_word_token_policy': 'Insert',  # Possible values: 'Insert', 'Skip'.
+                'end_of_sentence_token_policy': 'Skip',  # Possible values: 'Insert', 'Skip'.
+                'occurrence_lower_bound': '3',  # The lower bound of token occurrences in the text to include it in the dictionary.
+                'max_dictionary_size': '50000',  # The max dictionary size.
+            },
+            ...
+        ]
+        ```
+
+    feature_calcers : list of strings,
+        Each string is a calcer description. Example:
+        ```
+        [
+            'NaiveBayes',
+            'BM25',
+            'BoW:top_tokens_count=2000',
+        ]
+        ```
+
+    text_processing : dict,
+        Text processging description.
     """
     def __init__(
         self,
@@ -3739,7 +3781,9 @@ class CatBoostClassifier(CatBoost):
         diffusion_temperature=None,
         boost_from_average=None,
         text_features=None,
+        tokenizers=None,
         dictionaries=None,
+        feature_calcers=None,
         text_processing=None
     ):
         params = {}
@@ -3942,7 +3986,7 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
                 or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
@@ -4078,7 +4122,7 @@ class CatBoostClassifier(CatBoost):
 
         Parameters
         ----------
-        data : catboost.Pool or list of features or list of lists or numpy.array or pandas.DataFrame or pandas.Series
+        data : catboost.Pool or list of features or list of lists or numpy.ndarray or pandas.DataFrame or pandas.Series
                 or catboost.FeaturesData
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
@@ -4140,6 +4184,7 @@ class CatBoostClassifier(CatBoost):
             y = y[y.columns[0]]
         elif y is None:
             raise CatBoostError("y should be specified.")
+        y = np.array(y)
         predicted_classes = self._predict(
             X,
             prediction_type='Class',
@@ -4149,13 +4194,15 @@ class CatBoostClassifier(CatBoost):
             verbose=None,
             parent_method_name='score'
         ).reshape(-1)
-        try:
-            predicted_classes = predicted_classes.astype(np.float64)
-        except:
-            pass
+        if np.issubdtype(predicted_classes.dtype, np.number):
+            if np.issubdtype(y.dtype, np.character):
+                raise CatBoostError('predicted classes have numeric type but specified y contains strings')
         else:
-            predicted_classes = predicted_classes.astype(np.int32)
-        return np.mean([str(y_pred) == str(y_true) for y_pred, y_true in zip(predicted_classes, y)])
+            if np.issubdtype(y.dtype, np.number):
+                raise CatBoostError('predicted classes have string type but specified y is numeric')
+            elif np.issubdtype(y.dtype, np.bool_):
+                raise CatBoostError('predicted classes have string type but specified y is boolean')
+        return np.mean(np.array(predicted_classes) == np.array(y))
 
     def _check_is_classification_objective(self, loss_function):
         if isinstance(loss_function, str) and not self._is_classification_objective(loss_function):
@@ -4979,3 +5026,41 @@ def _plot_feature_statistics(statistics, feature, max_cat_features_on_plot):
     else:
         fig = _build_binarized_feature_statistics_fig(statistics, feature)
         return [fig]
+
+
+def to_regressor(model):
+    if isinstance(model, CatBoostRegressor):
+        return model
+    if not isinstance(model, CatBoost):
+        raise CatBoostError('model should be a subclass of CatBoost')
+
+    regressor = CatBoostRegressor.__new__(CatBoostRegressor)
+
+    # TODO(ilyzhin) change on get_all_params after MLTOOLS-4758
+    params = deepcopy(model._init_params)
+    _process_synonyms(params)
+    if 'loss_function' in params:
+        regressor._check_is_regressor_loss(params['loss_function'])
+
+    for attr in model.__dict__:
+        setattr(regressor, attr, getattr(model, attr))
+    return regressor
+
+
+def to_classifier(model):
+    if isinstance(model, CatBoostClassifier):
+        return model
+    if not isinstance(model, CatBoost):
+        raise CatBoostError('model should be a subclass of CatBoost')
+
+    classifier = CatBoostClassifier.__new__(CatBoostClassifier)
+
+    # TODO(ilyzhin) change on get_all_params after MLTOOLS-4758
+    params = deepcopy(model._init_params)
+    _process_synonyms(params)
+    if 'loss_function' in params:
+        classifier._check_is_classification_objective(params['loss_function'])
+
+    for attr in model.__dict__:
+        setattr(classifier, attr, getattr(model, attr))
+    return classifier

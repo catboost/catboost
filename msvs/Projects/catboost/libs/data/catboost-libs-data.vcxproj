@@ -86,6 +86,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\cat_feature_perfect_hash_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\cb_dsv_loader.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\columns.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\composite_columns.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\data_provider.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\data_provider_builders.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\exclusive_feature_bundling.cpp"/>
@@ -95,6 +96,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\feature_index.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\feature_names_converter.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\features_layout.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\lazy_columns.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\libsvm_loader.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\load_data.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\loader.cpp"/>
@@ -107,6 +109,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\packed_binary_features.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\quantization.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\quantized_features_info.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\sparse_columns.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\target.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\data\target.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\unaligned_mem.cpp"/>
@@ -228,6 +231,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\cat_feature_perfect_hash_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\cb_dsv_loader.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\columns.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\composite_columns.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\data_provider.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\data_provider_builders.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\exclusive_feature_bundling.h"/>
@@ -237,6 +241,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\feature_index.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\feature_names_converter.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\features_layout.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\lazy_columns.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\libsvm_loader.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\load_data.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\loader.h"/>
@@ -247,6 +252,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\packed_binary_features.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\quantization.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\quantized_features_info.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\sparse_columns.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\unaligned_mem.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\util.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\weights.h"/>
@@ -442,6 +448,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
       <Project>{F7622D70-2702-4C7E-04DA-52DC56DF911E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
+      <Project>{2CE71367-048B-26B0-2DAC-CA9BB7D00E76}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\pop_count\library-pop_count.vcxproj">
       <Project>{5388367D-330A-ED57-0DB7-1F988A5A9B05}</Project>

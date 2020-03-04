@@ -377,7 +377,7 @@ class isoparser(object):
 
     def _parse_tzstr(self, tzstr, zero_as_utc=True):
         if tzstr == b'Z' or tzstr == b'z':
-            return tz.tzutc()
+            return tz.UTC
 
         if len(tzstr) not in {3, 5, 6}:
             raise ValueError('Time zone offset must be 1, 3, 5 or 6 characters')
@@ -396,7 +396,7 @@ class isoparser(object):
             minutes = int(tzstr[(4 if tzstr[3:4] == self._TIME_SEP else 3):])
 
         if zero_as_utc and hours == 0 and minutes == 0:
-            return tz.tzutc()
+            return tz.UTC
         else:
             if minutes > 59:
                 raise ValueError('Invalid minutes in time zone offset')

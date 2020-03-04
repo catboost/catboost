@@ -552,14 +552,14 @@ static TVector<TTrainingDataProviders> UpdateIgnoredFeaturesInLearn(
         if (featureEvalMode == NCB::EFeatureEvalMode::OthersVsAll) {
             ignoredFeatures = testedFeatures[testedFeatureSetIdx];
         } else {
-            for (ui32 featureSetIdx : xrange(testedFeatures.size())) {
-                if (featureSetIdx != testedFeatureSetIdx) {
-                    ignoredFeatures.insert(
-                        ignoredFeatures.end(),
-                        testedFeatures[featureSetIdx].begin(),
-                        testedFeatures[featureSetIdx].end());
-                }
+            THashSet<ui32> ignoredFeaturesAsSet;
+            for (const auto& featureSet : testedFeatures) {
+                ignoredFeaturesAsSet.insert(featureSet.begin(), featureSet.end());
             }
+            for (ui32 featureIdx : testedFeatures[testedFeatureSetIdx]) {
+                ignoredFeaturesAsSet.erase(featureIdx);
+            }
+            ignoredFeatures.insert(ignoredFeatures.end(), ignoredFeaturesAsSet.begin(), ignoredFeaturesAsSet.end());
         }
     } else if (EqualToOneOf(featureEvalMode, NCB::EFeatureEvalMode::OneVsAll, NCB::EFeatureEvalMode::OthersVsAll)) {
         // no additional ignored features
@@ -577,6 +577,22 @@ static TVector<TTrainingDataProviders> UpdateIgnoredFeaturesInLearn(
                 featureSet.end());
         }
     }
+
+    TStringBuilder logMessage;
+    logMessage << "Feature set " << testedFeatureSetIdx;
+    if (trainingKind == ETrainingKind::Baseline) {
+        logMessage << ", baseline";
+    } else {
+        logMessage << ", testing";
+    }
+    if (ignoredFeatures.empty()) {
+        logMessage << ", no additional ignored features";
+    } else {
+        std::sort(ignoredFeatures.begin(), ignoredFeatures.end());
+        logMessage << ", additional ignored features " << JoinRange(":", ignoredFeatures.begin(), ignoredFeatures.end());
+    }
+    CATBOOST_INFO_LOG << logMessage << Endl;
+
     TVector<TTrainingDataProviders> result;
     result.reserve(foldsData.size());
     if (taskType == ETaskType::CPU) {
@@ -779,6 +795,15 @@ private:
     TFeatureEvaluationSummary* const Summary;
     bool IsNextLoadValid = false;
 };
+
+static bool HaveFeaturesToEvaluate(const TVector<TTrainingDataProviders>& foldsData) {
+    for (const auto& foldData : foldsData) {
+        if (!foldData.Learn->MetaInfo.FeaturesLayout->HasAvailableAndNotIgnoredFeatures()) {
+            return false;
+        }
+    }
+    return true;
+}
 
 static void EvaluateFeaturesImpl(
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
@@ -1019,7 +1044,17 @@ static void EvaluateFeaturesImpl(
             ETrainingKind::Testing,
             featureSetIdx,
             foldsData);
-        trainFullModels(/*isTest*/true, featureSetIdx, &newFoldsData);
+        if (HaveFeaturesToEvaluate(newFoldsData)) {
+            trainFullModels(/*isTest*/true, featureSetIdx, &newFoldsData);
+        } else {
+            CATBOOST_WARNING_LOG << "Feature set " << featureSetIdx
+                << " consists of ignored or constant features; eval feature assumes baseline data = testing data for this feature set" << Endl;
+            const auto baselineIdx = useCommonBaseline ? 0 : featureSetIdx;
+            results->MetricsHistory[/*isTest*/1][featureSetIdx] = results->MetricsHistory[/*isTest*/0][baselineIdx];
+            results->FeatureStrengths[/*isTest*/1][featureSetIdx] = results->FeatureStrengths[/*isTest*/0][baselineIdx];
+            results->RegularFeatureStrengths[/*isTest*/1][featureSetIdx] = results->RegularFeatureStrengths[/*isTest*/0][baselineIdx];
+            results->BestMetrics[/*isTest*/1][featureSetIdx] = results->BestMetrics[/*isTest*/0][baselineIdx];
+        }
     }
     for (auto isTest : {false, true}) {
         results->CreateLogs(
@@ -1076,9 +1111,11 @@ static void CountDisjointFolds(
             }
         }
     }
+    CB_ENSURE(
+        featureEvalOptions.FoldSize.Get() > 0 || featureEvalOptions.RelativeFoldSize.Get() > 0,
+        "Please specify positive fold size or positive relative fold size");
     if (featureEvalOptions.FoldSize.Get() > 0) {
         *absoluteFoldSize = featureEvalOptions.FoldSize.Get();
-        CB_ENSURE(*absoluteFoldSize > 0, "Fold size must be positive");
     } else {
         *absoluteFoldSize = featureEvalOptions.RelativeFoldSize.Get() * samplingUnitsCount;
         CB_ENSURE(
@@ -1086,7 +1123,7 @@ static void CountDisjointFolds(
             "Relative fold size must be greater than " << 1.0f / samplingUnitsCount << " so that size of each fold is non-zero";
         );
     }
-    *disjointFoldCount = CeilDiv(samplingUnitsCount, *absoluteFoldSize);
+    *disjointFoldCount = Max<ui32>(1, samplingUnitsCount / *absoluteFoldSize);
 }
 
 TFeatureEvaluationSummary EvaluateFeatures(

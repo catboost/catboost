@@ -1453,6 +1453,13 @@ prepare_train_export_parameters <- function(params) {
         return ("{}")   
     }
 
+    if (!is.null(params$early_stopping_rounds)) {
+        params$od_type <- "Iter"
+        params$od_pval <- NULL
+        params$od_wait <- params$early_stopping_rounds
+        params$early_stopping_rounds <- NULL
+    }
+
     if (!is.null(params$per_float_feature_quantization)) {
         params$per_float_feature_quantization <- as.list(params$per_float_feature_quantization)
     }
@@ -1616,7 +1623,7 @@ catboost.save_model <- function(model, model_path,
         stop("Expected catboost.Pool, got: ", class(pool))
     params_string <- ""
     if (!is.null(export_parameters))
-        params_string <- prepare_train_export_parameters(params)
+        params_string <- jsonlite::toJSON(export_parameters, auto_unbox = TRUE)
 
     if (is.null.handle(model$handle))
         model$handle <- .Call("CatBoostDeserializeModel_R", model$raw)

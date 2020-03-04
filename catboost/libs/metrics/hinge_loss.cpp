@@ -26,7 +26,7 @@ TMetricHolder ComputeHingeLossMetric(TConstArrayRef<TVector<double>> approx,
 
         if (isMulticlass) {
             auto targetValue = static_cast<size_t>(target[index]);
-            double maxApprox = std::numeric_limits<double>::min();
+            double maxApprox = std::numeric_limits<double>::lowest();
 
             for (auto j : xrange(approx.size())) {
                 if (targetValue != j) {

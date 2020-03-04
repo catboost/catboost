@@ -91,7 +91,7 @@ namespace NFsPrivate {
 
                 if (linkDir) {
                     TString fullTarget(tName);
-                    resolvepath(fullTarget, linkDir.ToString());
+                    resolvepath(fullTarget, TString{linkDir});
                     TUtf16String fullTargetW;
                     LPCWSTR ptrFullTarget = UTF8ToWCHAR(fullTarget, fullTargetW);
                     attr = ::GetFileAttributesW(ptrFullTarget);

@@ -63,7 +63,7 @@ class Platform(object):
         assert self.is_32_bit or self.is_64_bit
         assert not (self.is_32_bit and self.is_64_bit)
 
-        self.is_linux = self.os == 'linux'
+        self.is_linux = self.os == 'linux' or 'yocto' in self.os
         self.is_linux_x86_64 = self.is_linux and self.is_x86_64
         self.is_linux_armv8 = self.is_linux and self.is_armv8
         self.is_linux_armv7 = self.is_linux and self.is_armv7
@@ -879,6 +879,7 @@ class ToolchainOptions(object):
         self.name_marker = '$(%s)' % self.params.get('match_root', self._name.upper())
 
         self.arch_opt = self.params.get('arch_opt', [])
+        self.triplet_opt = self.params.get('triplet_opt', {})
         self.target_opt = self.params.get('target_opt', [])
 
         # TODO(somov): Убрать чтение настройки из os.environ.
@@ -947,6 +948,9 @@ class GnuToolchainOptions(ToolchainOptions):
     def _default_os_sdk(self):
         if self.target.is_linux:
             if self.target.is_armv8:
+                return 'ubuntu-16'
+
+            if self.target.is_armv7:
                 return 'ubuntu-16'
 
             if self.target.is_ppc64le:
@@ -1031,13 +1035,15 @@ class GnuToolchain(Toolchain):
             ])
 
         if self.tc.is_clang:
-            target_triple = select(default=None, selectors=[
-                (target.is_linux and target.is_x86_64, 'x86_64-linux-gnu'),
-                (target.is_linux and target.is_armv8, 'aarch64-linux-gnu'),
-                (target.is_linux and target.is_ppc64le, 'powerpc64le-linux-gnu'),
-                (target.is_apple and target.is_x86, 'i386-apple-darwin14'),
-                (target.is_apple and target.is_x86_64, 'x86_64-apple-darwin14'),
-                (target.is_apple and target.is_armv7, 'armv7-apple-darwin14'),
+            target_triple = self.tc.triplet_opt.get(target.arch, None)
+            if not target_triple:
+                target_triple = select(default=None, selectors=[
+                    (target.is_linux and target.is_x86_64, 'x86_64-linux-gnu'),
+                    (target.is_linux and target.is_armv8, 'aarch64-linux-gnu'),
+                    (target.is_linux and target.is_ppc64le, 'powerpc64le-linux-gnu'),
+                    (target.is_apple and target.is_x86, 'i386-apple-darwin14'),
+                    (target.is_apple and target.is_x86_64, 'x86_64-apple-darwin14'),
+                    (target.is_apple and target.is_armv7, 'armv7-apple-darwin14'),
                 (target.is_apple and target.is_armv8, 'arm64-apple-darwin14'),
                 (target.is_yocto and target.is_armv7, 'arm-poky-linux-gnueabi')
             ])
@@ -1071,7 +1077,9 @@ class GnuToolchain(Toolchain):
                 self.c_flags_platform.append('-D__IOS__=1')
 
             if target.is_android:
-                self.c_flags_platform.append('-fPIE')
+                self.c_flags_platform.append('-fsigned-char')
+
+            if target.is_armv7:
                 self.c_flags_platform.append('-fsigned-char')
 
             if self.tc.is_from_arcadia:
@@ -1224,6 +1232,9 @@ class GnuCompiler(Compiler):
                 '-Wno-undefined-var-template',
             ]
 
+            if self.target.is_linux:
+                self.c_foptions.append('-fuse-init-array')
+
             if self.tc.version_at_least(7):
                 self.cxx_warnings.append('-Wno-return-std-move')
 
@@ -1282,15 +1293,19 @@ class GnuCompiler(Compiler):
         append('C_WARNING_OPTS', self.c_warnings)
         append('CXX_WARNING_OPTS', self.cxx_warnings)
 
+        # PIE is only valid for executables, while PIC implies a shared library
+        # `-pie` with a shared library is either ignored or fails to link
         emit_big('''
-            when ($PIC && $PIC == "yes") {
-                PICFLAGS=-fPIC
+            when ($PIC == "yes") {
+                CFLAGS+=-fPIC
+                LDFLAGS+=-fPIC
             }
-            otherwise {
-                PICFLAGS=
+            elsewhen ($PIE == "yes") {
+                CFLAGS+=-fPIE
+                LDFLAGS+=-fPIE -pie
             }''')
 
-        append('CFLAGS', self.c_flags, '$DEBUG_INFO_FLAGS', '$PICFLAGS', self.c_foptions, '$C_WARNING_OPTS', '$GCC_PREPROCESSOR_OPTS', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL')
+        append('CFLAGS', self.c_flags, '$DEBUG_INFO_FLAGS', self.c_foptions, '$C_WARNING_OPTS', '$GCC_PREPROCESSOR_OPTS', '$USER_CFLAGS', '$USER_CFLAGS_GLOBAL')
         append('CXXFLAGS', '$CFLAGS', '-std=' + self.tc.cxx_std, '$CXX_WARNING_OPTS', '$USER_CXXFLAGS')
         append('CONLYFLAGS', '$USER_CONLYFLAGS')
         emit('CXX_COMPILER_UNQUOTED', self.tc.cxx_compiler)
@@ -1399,7 +1414,7 @@ class GnuCompiler(Compiler):
         append('C_DEFINES', '-D__LONG_LONG_SUPPORTED')
 
         emit('OBJECT_SUF', '$OBJ_SUF%s.o' % self.cross_suffix)
-        emit('GCC_COMPILE_FLAGS', '$EXTRA_C_FLAGS -c -o ${output;suf=${OBJECT_SUF}:SRC}', '${input:SRC} ${pre=-I:INCLUDE}')
+        emit('GCC_COMPILE_FLAGS', '$EXTRA_C_FLAGS -c -o $_COMPILE_OUTPUTS', '${input:SRC} ${pre=-I:INCLUDE}')
         emit('EXTRA_COVERAGE_OUTPUT', '${output;noauto;hide;suf=${OBJ_SUF}%s.gcno:SRC}' % self.cross_suffix)
         emit('YNDEXER_OUTPUT_FILE', '${output;noauto;suf=${OBJ_SUF}%s.ydx.pb2:SRC}' % self.cross_suffix)  # should be the last output
 
@@ -1581,8 +1596,6 @@ class LD(Linker):
             if not self.tc.is_clang:
                 self.ld_flags.append('-Wl,-no_compact_unwind')
 
-        self.link_pie_executables = target.is_android
-
         self.thread_library = select([
             (target.is_linux or target.is_macos or target.is_yocto_lg_wk7y or self.target.is_yocto_jbl_portable_music or target.is_yocto_aacrh64_lightcomm_mt8516, '-lpthread'),
             (target.is_freebsd, '-lthr')
@@ -1615,7 +1628,7 @@ class LD(Linker):
             self.use_stdlib = '-nodefaultlibs'
             self.soname_option = '-install_name'
             if not preset('NO_DEBUGINFO'):
-                self.dwarf_command = '$DWARF_TOOL $TARGET -o ${output;pre=$REALPRJNAME.dSYM/Contents/Resources/DWARF/:REALPRJNAME}'
+                self.dwarf_command = '$DWARF_TOOL $TARGET -o ${output;pre=$MODULE_PREFIX$REALPRJNAME.dSYM/Contents/Resources/DWARF/$MODULE_PREFIX:REALPRJNAME}'
 
         if self.build.profiler_type == Profiler.GProf:
             self.ld_flags.append('-pg')
@@ -1702,7 +1715,6 @@ class LD(Linker):
             '$EXPORTS_VALUE $LDFLAGS $LDFLAGS_GLOBAL $OBJADDE $OBJADDE_LIB',
             '$C_LIBRARY_PATH $C_SYSTEM_LIBRARIES_INTERCEPT $C_SYSTEM_LIBRARIES $STRIP_FLAG']
 
-        pie_flag = '-pie' if self.link_pie_executables else None
         arch_flag = '--arch={arch}'.format(arch=self.target.os_compat)
         soname_flag = '-Wl,{option},$SONAME'.format(option=self.soname_option)
         shared_flag = '-shared'
@@ -1722,7 +1734,7 @@ class LD(Linker):
         emit('REAL_LINK_EXE',
              '$YMAKE_PYTHON ${input:"build/scripts/link_exe.py"}', '$LINK_SCRIPT_EXE_FLAGS',
              '$GCCFILTER',
-             '$CXX_COMPILER ${rootrel:SRCS_GLOBAL} $VCS_C_OBJ $AUTO_INPUT -o $TARGET', self.rdynamic, pie_flag, exe_flags,
+             '$CXX_COMPILER ${rootrel:SRCS_GLOBAL} $VCS_C_OBJ $AUTO_INPUT -o $TARGET', self.rdynamic, exe_flags,
              ld_env_style)
 
         # Executable Shared Library
@@ -1845,7 +1857,7 @@ class MSVCToolchainOptions(ToolchainOptions):
 
         else:
             self.sdk_version = '10.0.16299.0'
-            sdk_dir = '$(WINDOWS_KITS-sbr:883703503)'
+            sdk_dir = '$(WINDOWS_KITS-sbr:1379398385)'
 
             self.vc_root = self.name_marker if not self.use_clang else '$MSVC_FOR_CLANG_RESOURCE_GLOBAL'
             self.kit_includes = os.path.join(sdk_dir, 'Include', self.sdk_version)
@@ -2142,11 +2154,11 @@ class MSVCCompiler(MSVC, Compiler):
             }
 
             macro _SRC_cpp(SRC, SRCFLAGS...) {
-                .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :INCLUDE} ${CXXFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+                .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo$_COMPILE_OUTPUTS ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :INCLUDE} ${CXXFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
             }
 
             macro _SRC_c(SRC, SRCFLAGS...) {
-                .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo${output;suf=${OBJECT_SUF}:SRC} ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+                .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo$_COMPILE_OUTPUTS ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
             }
 
             macro _SRC_m(SRC, SRCFLAGS...) {

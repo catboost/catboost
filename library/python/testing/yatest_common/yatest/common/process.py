@@ -613,7 +613,7 @@ def _win_kill_process_tree(pid):
 
 
 def _run_readelf(binary_path):
-    return subprocess.check_output([runtime.binary_path('contrib/python/pyelftools/readelf/readelf'), '-s', runtime.binary_path(binary_path)])
+    return str(subprocess.check_output([runtime.binary_path('contrib/python/pyelftools/readelf/readelf'), '-s', runtime.binary_path(binary_path)]))
 
 
 def check_glibc_version(binary_path):

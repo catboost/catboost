@@ -56,6 +56,7 @@ Y_CPU_BENCHMARK(DsvLoaderNumFeatures, iface) {
 
     for (size_t i = 0; i < iface.Iterations(); ++i) {
         auto dataProvider = ReadDataset(
+            /*taskType*/Nothing(),
             readDatasetMainParams.PoolPath,
             readDatasetMainParams.PairsFilePath,        // can be uninited
             readDatasetMainParams.GroupWeightsFilePath, // can be uninited
@@ -91,6 +92,7 @@ Y_CPU_BENCHMARK(DsvLoaderCatFeatures, iface) {
 
     for (size_t i = 0; i < iface.Iterations(); ++i) {
         auto dataProvider = ReadDataset(
+            /*taskType*/Nothing(),
             readDatasetMainParams.PoolPath,
             readDatasetMainParams.PairsFilePath,        // can be uninited
             readDatasetMainParams.GroupWeightsFilePath, // can be uninited
@@ -126,6 +128,7 @@ Y_CPU_BENCHMARK(DsvLoaderQuotedCatFeatures, iface) {
 
     for (size_t i = 0; i < iface.Iterations(); ++i) {
         auto dataProvider = ReadDataset(
+            /*taskType*/Nothing(),
             readDatasetMainParams.PoolPath,
             readDatasetMainParams.PairsFilePath,        // can be uninited
             readDatasetMainParams.GroupWeightsFilePath, // can be uninited

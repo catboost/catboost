@@ -461,3 +461,45 @@ TColors& NColorizer::AutoColors(IOutputStream& os) {
     }
     return *Singleton<TDisabledColors>();
 }
+
+size_t NColorizer::TotalAnsiEscapeCodeLen(TStringBuf text) {
+    enum {
+        TEXT,
+        BEFORE_CODE,
+        IN_CODE,
+    } state = TEXT;
+
+    size_t totalLen = 0;
+    size_t curLen = 0;
+
+    for (auto it = text.begin(); it < text.end(); ++it) {
+        switch (state) {
+            case TEXT:
+                if (*it == '\033') {
+                    state = BEFORE_CODE;
+                    curLen = 1;
+                }
+                break;
+            case BEFORE_CODE:
+                if (*it == '[') {
+                    state = IN_CODE;
+                    curLen++;
+                } else {
+                    state = TEXT;
+                }
+                break;
+            case IN_CODE:
+                if (*it == ';' || isdigit(*it)) {
+                    curLen++;
+                } else {
+                    if (*it == 'm') {
+                        totalLen += curLen + 1;
+                    }
+                    state = TEXT;
+                }
+                break;
+        }
+    }
+
+    return totalLen;
+}

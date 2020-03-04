@@ -8,6 +8,7 @@ SRCS(
     opt2_ut.cpp
     opt_ut.cpp
     posix_getopt_ut.cpp
+    wrap.cpp
     ygetopt_ut.cpp
 )
 
