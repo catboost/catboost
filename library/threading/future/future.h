@@ -205,6 +205,7 @@ namespace NThreading {
         bool HasException() const;
         void SetException(const TString& e);
         void SetException(std::exception_ptr e);
+        bool TrySetException(std::exception_ptr e);
 
         TFuture<T> GetFuture() const;
         operator TFuture<T>() const;
@@ -242,6 +243,7 @@ namespace NThreading {
         bool HasException() const;
         void SetException(const TString& e);
         void SetException(std::exception_ptr e);
+        bool TrySetException(std::exception_ptr e);
 
         TFuture<void> GetFuture() const;
         operator TFuture<void>() const;

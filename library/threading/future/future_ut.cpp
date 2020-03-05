@@ -414,6 +414,18 @@ namespace NThreading {
             UNIT_ASSERT(!promise.TrySetValue(42));
         }
 
+        Y_UNIT_TEST(HandlingRepetitiveSetException) {
+            TPromise<int> promise = NewPromise<int>();
+            promise.SetException("test");
+            UNIT_CHECK_GENERATED_EXCEPTION(promise.SetException("test"), TFutureException);
+        }
+
+        Y_UNIT_TEST(HandlingRepetitiveTrySetException) {
+            TPromise<int> promise = NewPromise<int>();
+            UNIT_ASSERT(promise.TrySetException(std::make_exception_ptr("test")));
+            UNIT_ASSERT(!promise.TrySetException(std::make_exception_ptr("test")));
+        }
+
         Y_UNIT_TEST(ShouldAllowToMakeFutureWithException)
         {
             auto future1 = MakeErrorFuture<void>(std::make_exception_ptr(TFutureException()));
