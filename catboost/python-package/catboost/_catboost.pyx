@@ -1389,7 +1389,6 @@ cdef extern from "catboost/private/libs/hyperparameter_tuning/hyperparameter_tun
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
         TDataProviderPtr pool,
         TBestOptionValuesWithCvResult* results,
-        int* bestIterationIdx,
         TMetricsAndTimeLeftHistory* trainTestResult,
         bool_t isSearchUsingCV,
         bool_t isReturnCvResults,
@@ -1406,7 +1405,6 @@ cdef extern from "catboost/private/libs/hyperparameter_tuning/hyperparameter_tun
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
         TDataProviderPtr pool,
         TBestOptionValuesWithCvResult* results,
-        int* bestIterationIdx,
         TMetricsAndTimeLeftHistory* trainTestResult,
         bool_t isSearchUsingCV,
         bool_t isReturnCvResults,
@@ -4412,7 +4410,6 @@ cdef class _CatBoost:
 
         cdef TBestOptionValuesWithCvResult results
         cdef TMetricsAndTimeLeftHistory trainTestResults
-        cdef int bestIterationIdx
         with nogil:
             SetPythonInterruptHandler()
             try:
@@ -4426,7 +4423,6 @@ cdef class _CatBoost:
                         prep_params.customMetricDescriptor,
                         train_pool.__pool,
                         &results,
-                        &bestIterationIdx,
                         &trainTestResults,
                         choose_by_train_test_split,
                         return_cv_results,
@@ -4444,7 +4440,6 @@ cdef class _CatBoost:
                         prep_params.customMetricDescriptor,
                         train_pool.__pool,
                         &results,
-                        &bestIterationIdx,
                         &trainTestResults,
                         choose_by_train_test_split,
                         return_cv_results,
@@ -4472,12 +4467,6 @@ cdef class _CatBoost:
             )
             result_metrics.add(name)
             metric_name = results.CvResult[metric_idx].Metric
-            if not choose_by_train_test_split:
-                self.__metrics_history.LearnBestError[metric_name] = results.CvResult[metric_idx].AverageTrain[bestIterationIdx]
-                if self.__metrics_history.TestBestError.empty():
-                    metric_result[metric_name] = results.CvResult[metric_idx].AverageTest[bestIterationIdx]
-                else:
-                    self.__metrics_history.TestBestError[0][metric_name] = results.CvResult[metric_idx].AverageTest[bestIterationIdx]
 
         if self.__metrics_history.TestBestError.empty():
             self.__metrics_history.TestBestError.push_back(metric_result)
