@@ -11,6 +11,7 @@ from collections import Sequence, defaultdict
 import functools
 import traceback
 import numbers
+from libc.stdio cimport printf
 
 import sys
 if sys.version_info >= (3, 3):
@@ -1389,7 +1390,8 @@ cdef extern from "catboost/private/libs/hyperparameter_tuning/hyperparameter_tun
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
         TDataProviderPtr pool,
         TBestOptionValuesWithCvResult* results,
-        THashMap[TString, THashMap[TString, double]]* trainTestResult,
+        int* bestIterationIdx,
+        TMetricsAndTimeLeftHistory* trainTestResult,
         bool_t isSearchUsingCV,
         bool_t isReturnCvResults,
         int verbose) nogil except +ProcessException
@@ -1405,7 +1407,8 @@ cdef extern from "catboost/private/libs/hyperparameter_tuning/hyperparameter_tun
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
         TDataProviderPtr pool,
         TBestOptionValuesWithCvResult* results,
-        THashMap[TString, THashMap[TString, double]]* trainTestResult,
+        int* bestIterationIdx,
+        TMetricsAndTimeLeftHistory* trainTestResult,
         bool_t isSearchUsingCV,
         bool_t isReturnCvResults,
         int verbose) nogil except +ProcessException
@@ -4380,7 +4383,6 @@ cdef class _CatBoost:
                           int fold_count, int partition_random_seed, bool_t shuffle, bool_t stratified,
                           double train_size, bool_t choose_by_train_test_split, bool_t return_cv_results,
                           custom_folds, int verbose):
-
         prep_params = _PreprocessParams(params)
         prep_grids = _PreprocessGrids(grids_list)
 
@@ -4409,7 +4411,8 @@ cdef class _CatBoost:
         ttParams.TrainPart = train_size
 
         cdef TBestOptionValuesWithCvResult results
-        cdef THashMap[TString, THashMap[TString, double]] trainTestResults
+        cdef TMetricsAndTimeLeftHistory trainTestResults
+        cdef int bestIterationIdx
         with nogil:
             SetPythonInterruptHandler()
             try:
@@ -4423,12 +4426,14 @@ cdef class _CatBoost:
                         prep_params.customMetricDescriptor,
                         train_pool.__pool,
                         &results,
+                        &bestIterationIdx,
                         &trainTestResults,
                         choose_by_train_test_split,
                         return_cv_results,
                         verbose
                     )
                 else:
+                    printf("3\n")
                     RandomizedSearch(
                         n_iter,
                         prep_grids.custom_rnd_dist_gens,
@@ -4440,28 +4445,22 @@ cdef class _CatBoost:
                         prep_params.customMetricDescriptor,
                         train_pool.__pool,
                         &results,
+                        &bestIterationIdx,
                         &trainTestResults,
                         choose_by_train_test_split,
                         return_cv_results,
                         verbose
                     )
+                    printf("3.5\n")
             finally:
                 ResetPythonInterruptHandler()
+        printf("4\n")
         cv_results = defaultdict(list)
         result_metrics = set()
         cdef THashMap[TString, double] metric_result
         if choose_by_train_test_split:
-            for metric, value in trainTestResults["learn"]:
-
-                self.__metrics_history.LearnBestError[metric] = value
-                print("learn", metric, value)
-            for metric, value in trainTestResults["test"]:
-
-                if self.__metrics_history.TestBestError.empty():
-                    metric_result[metric] = trainTestResults["test"][metric]
-                else:
-                    self.__metrics_history.TestBestError[0][metric] = trainTestResults["test"][metric]
-                print("test", metric, value)
+            self.__metrics_history = trainTestResults
+        printf("5\n")
         for metric_idx in xrange(results.CvResult.size()):
             name = to_native_str(results.CvResult[metric_idx].Metric)
             if name in result_metrics:
@@ -4477,16 +4476,14 @@ cdef class _CatBoost:
             )
             result_metrics.add(name)
             metric_name = results.CvResult[metric_idx].Metric
-            if choose_by_train_test_split == False:
-
-                self.__metrics_history.LearnBestError[metric_name] = np.mean(results.CvResult[metric_idx].AverageTrain.back())
-                print("no choose by traintest train", metric_name)
+            if not choose_by_train_test_split:
+                self.__metrics_history.LearnBestError[metric_name] = results.CvResult[metric_idx].AverageTrain[bestIterationIdx]
                 if self.__metrics_history.TestBestError.empty():
-                    metric_result[metric_name] = np.mean(results.CvResult[metric_idx].AverageTest.back())
+                    metric_result[metric_name] = results.CvResult[metric_idx].AverageTest[bestIterationIdx]
                 else:
-                    self.__metrics_history.TestBestError[0][metric_name] = np.mean(results.CvResult[metric_idx].AverageTest.back())
-                print("no choose by traintest test", metric_name)
+                    self.__metrics_history.TestBestError[0][metric_name] = results.CvResult[metric_idx].AverageTest[bestIterationIdx]
 
+        printf("6\n")
         if self.__metrics_history.TestBestError.empty():
             self.__metrics_history.TestBestError.push_back(metric_result)
         best_params = {}
@@ -4500,6 +4497,7 @@ cdef class _CatBoost:
             best_params[to_native_str(key)] = value
         for key, value in results.StringOptions:
             best_params[to_native_str(key)] = to_native_str(value)
+        printf("7\n")
         search_result = {}
         search_result["params"] = best_params
         if return_cv_results:

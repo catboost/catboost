@@ -20,6 +20,7 @@
 #include <util/random/shuffle.h>
 
 #include <numeric>
+#include <iostream>
 
 namespace {
 
@@ -687,24 +688,29 @@ namespace {
         oneIterLogger.OutputParameters(parametersToken, jsonParams);
     }
     
-    void UpdateTrainTestResult(TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
-                               THashMap<TString, THashMap<TString, double>>* trainTestResult,
+    static void UpdateTrainTestResult(TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
+                               TMetricsAndTimeLeftHistory* trainTestResult,
                                const TVector<THolder<IMetric>>* metrics) {
-        auto& learnErrors = (*metricsAndTimeHistory).LearnBestError;
-        auto& testErrors = (*metricsAndTimeHistory).TestBestError[0];
-        THashMap<TString, double> learnResults;
-        THashMap<TString, double> testResults;
+        /*const auto& learnErrors = (*metricsAndTimeHistory).LearnBestError;
+        const auto& testErrors = (*metricsAndTimeHistory).TestBestError[0];
+        // THashMap<TString, double>& learnResults = (*trainTestResult)["learn"];
+        // THashMap<TString, double>& testResults = (*trainTestResult)["test"];
         for (auto metricIdx : xrange((*metrics).size())) {
             const auto& lossDescription = (*metrics)[metricIdx]->GetDescription();
             if (learnErrors.contains(lossDescription)) {
-                learnResults[lossDescription] = learnErrors.at(lossDescription);
+                for (auto item: learnErrors.at(lossDescription)) {
+                    (*trainTestResult).LearnBestError[lossDescription].append()
+                }
             }
             if (testErrors.contains(lossDescription)) {
-                testResults[lossDescription] = testErrors.at(lossDescription);
+                (*trainTestResult).TestBestError[0][lossDescription] = testErrors.at(lossDescription);
             }
+        }*/
+        for (auto metricIdx : xrange((*metrics).size())) {
+            int a = metricIdx;
+            a += 1;
         }
-        (*trainTestResult)["learn"] = learnResults;
-        (*trainTestResult)["test"] = testResults;
+        (*trainTestResult) = (*metricsAndTimeHistory);
     }
 
     double TuneHyperparamsCV(
@@ -719,10 +725,13 @@ namespace {
         NJson::TJsonValue* modelParamsToBeTried,
         TGridParamsInfo* bestGridParams,
         TVector<TCVResult>* bestCvResult,
+        int* bestIterationIdx,
         NPar::TLocalExecutor* localExecutor,
         int verbose,
         const THashMap<TString, NCB::TCustomRandomDistributionGenerator>& randDistGenerators = {}) {
         TRestorableFastRng64 rand(cvParams.PartitionRandSeed);
+        
+        std::cout << "In TuneCV1\n";
 
         if (cvParams.Shuffle) {
             auto objectsGroupingSubset = NCB::Shuffle(data->ObjectsGrouping, 1, &rand);
@@ -747,9 +756,10 @@ namespace {
         TQuantizationParamsInfo lastQuantizationParamsSet;
         TLabelConverter labelConverter;
         int iterationIdx = 0;
-        int bestIterationIdx = 0;
         TProfileInfo profile(gridIterator->GetTotalElementsCount());
+        std::cout << "In TuneCV2\n";
         while (auto paramsSet = gridIterator->Next()) {
+            std::cout << "In TuneCV3\n";
             profile.StartIterationBlock();
             // paramsSet: {border_count, feature_border_type, nan_mode, [others]}
             TQuantizationParamsInfo quantizationParamsSet;
@@ -767,6 +777,7 @@ namespace {
                 modelParamsToBeTried
             );
 
+            std::cout << "In TuneCV31\n";
             NJson::TJsonValue jsonParams;
             NJson::TJsonValue outputJsonParams;
             NCatboostOptions::PlainJsonToOptions(*modelParamsToBeTried, &jsonParams, &outputJsonParams);
@@ -778,7 +789,7 @@ namespace {
             if (outputFileOptions.AllowWriteFiles()) {
                 NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputFileOptions.GetTrainDir(), &tmpDir);
             }
-
+            std::cout << "In TuneCV32\n";
             InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
             NCB::TFeaturesLayoutPtr featuresLayout = data->MetaInfo.FeaturesLayout;
             NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo;
@@ -801,6 +812,7 @@ namespace {
                     &catBoostOptions,
                     &quantizedData
                 );
+                std::cout << "In TuneCV33\n";
 
                 lastQuantizationParamsSet = quantizationParamsSet;
                 CrossValidate(
@@ -812,7 +824,9 @@ namespace {
                     cvParams,
                     localExecutor,
                     &cvResult);
+                std::cout << "In TuneCV331\n";
             }
+            std::cout << "In TuneCV34\n";
             ui32 approxDimension = NCB::GetApproxDimension(catBoostOptions, labelConverter, data->RawTargetData.GetTargetDimension());
             const TVector<THolder<IMetric>> metrics = CreateMetrics(
                 catBoostOptions.MetricOptions,
@@ -820,6 +834,7 @@ namespace {
                 approxDimension,
                 quantizedData->MetaInfo.HasWeights
             );
+            std::cout << "In TuneCV35\n";
             double bestMetricValue = cvResult[0].AverageTest.back(); //[testId][lossDescription]
             if (iterationIdx == 0) {
                 // We guarantee to update the parameters on the first iteration
@@ -839,6 +854,7 @@ namespace {
                     );
                 }
             }
+            std::cout << "In TuneCV4\n";
             bool isUpdateBest = SetBestParamsAndUpdateMetricValueIfNeeded(
                 bestMetricValue,
                 metrics,
@@ -849,9 +865,10 @@ namespace {
                 bestGridParams,
                 &bestParamsSetMetricValue);
             if (isUpdateBest) {
-                bestIterationIdx = iterationIdx;
+                *bestIterationIdx = iterationIdx;
                 *bestCvResult = cvResult;
             }
+            std::cout << "In TuneCV5\n";
             const TString& lossDescription = metrics[0]->GetDescription();
             TOneInterationLogger oneIterLogger(logger);
             oneIterLogger.OutputMetric(
@@ -860,10 +877,11 @@ namespace {
                     lossDescription,
                     bestMetricValue,
                     bestParamsSetMetricValue,
-                    bestIterationIdx,
+                    *bestIterationIdx,
                     true
                 )
             );
+            std::cout << "In TuneCV6\n";
             if (outputFileOptions.AllowWriteFiles()) {
                 //log metrics
                 const auto& skipMetricOnTrain = GetSkipMetricOnTrain(metrics);
@@ -908,7 +926,7 @@ namespace {
         TProductIteratorBase<TDeque<NJson::TJsonValue>, NJson::TJsonValue>* gridIterator,
         NJson::TJsonValue* modelParamsToBeTried,
         TGridParamsInfo * bestGridParams,
-        THashMap<TString, THashMap<TString, double>>* trainTestResult,
+        TMetricsAndTimeLeftHistory* trainTestResult,
         NPar::TLocalExecutor* localExecutor,
         int verbose,
         const THashMap<TString, NCB::TCustomRandomDistributionGenerator>& randDistGenerators = {}) {
@@ -1163,7 +1181,8 @@ namespace NCB {
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         TDataProviderPtr data,
         TBestOptionValuesWithCvResult* bestOptionValuesWithCvResult,
-        THashMap<TString, THashMap<TString, double>>* trainTestResult,
+        int* bestIterationIdx,
+        TMetricsAndTimeLeftHistory* trainTestResult,
         bool isSearchUsingTrainTestSplit,
         bool returnCvStat,
         int verbose) {
@@ -1193,6 +1212,7 @@ namespace NCB {
         double bestParamsSetMetricValue = Max<double>();
         TVector<TCVResult> bestCvResult;
         
+        (*bestIterationIdx) = 0;
         for (auto gridEnumerator : xrange(paramGrids.size())) {
             auto grid = paramGrids[gridEnumerator];
             // Preparing parameters for cartesian product
@@ -1251,6 +1271,7 @@ namespace NCB {
                     &modelParamsToBeTried,
                     &gridParams,
                     &bestCvResult,
+                    bestIterationIdx,
                     &localExecutor,
                     verbose
                 );
@@ -1294,10 +1315,13 @@ namespace NCB {
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         TDataProviderPtr data,
         TBestOptionValuesWithCvResult* bestOptionValuesWithCvResult,
-        THashMap<TString, THashMap<TString, double>>* trainTestResult,
+        int* bestIterationIdx,
+        TMetricsAndTimeLeftHistory* trainTestResult,
         bool isSearchUsingTrainTestSplit,
         bool returnCvStat,
         int verbose) {
+        
+        std::cout << "In RS1\n";
 
         // CatBoost options
         NJson::TJsonValue jsonParams;
@@ -1347,7 +1371,9 @@ namespace NCB {
 
         TGridParamsInfo bestGridParams;
         TVector<TCVResult> cvResult;
+        (*bestIterationIdx) = 0;
         if (isSearchUsingTrainTestSplit) {
+            std::cout << "In RS2\n";
             TuneHyperparamsTrainTest(
                 paramNames,
                 objectiveDescriptor,
@@ -1364,7 +1390,9 @@ namespace NCB {
                 verbose,
                 randDistGenerators
             );
+            std::cout << "In RS2.1\n";
         } else {
+            std::cout << "In RS3\n";
             TuneHyperparamsCV(
                 paramNames,
                 objectiveDescriptor,
@@ -1377,14 +1405,18 @@ namespace NCB {
                 &modelParamsToBeTried,
                 &bestGridParams,
                 &cvResult,
+                bestIterationIdx,
                 &localExecutor,
                 verbose,
                 randDistGenerators
             );
+            std::cout << "In RS3.1\n";
         }
+        std::cout << "In RS4\n";
         bestGridParams.QuantizationParamsSet.GeneralInfo = generalQuantizeParamsInfo;
         SetGridParamsToBestOptionValues(bestGridParams, bestOptionValuesWithCvResult);
         if (returnCvStat || isSearchUsingTrainTestSplit) {
+            std::cout << "In RS5\n";
             if (isSearchUsingTrainTestSplit) {
                 if (verbose) {
                     TSetLogging inThisScope(ELoggingLevel::Verbose);

@@ -52,7 +52,8 @@ namespace NCB {
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         TDataProviderPtr data,
         TBestOptionValuesWithCvResult* bestOptionValuesWithCvResult,
-        THashMap<TString, THashMap<TString, double>>* trainTestResult,
+        int* bestIterationIdx,
+        TMetricsAndTimeLeftHistory* trainTestResult,
         bool isSearchUsingTrainTestSplit = true,
         bool returnCvStat = true,
         int verbose = 1);
@@ -68,7 +69,8 @@ namespace NCB {
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         TDataProviderPtr data,
         TBestOptionValuesWithCvResult* bestOptionValuesWithCvResult,
-        THashMap<TString, THashMap<TString, double>>* trainTestResult,
+        int* bestIterationIdx,
+        TMetricsAndTimeLeftHistory* trainTestResult,
         bool isSearchUsingTrainTestSplit = true,
         bool returnCvStat = true,
         int verbose = 1);
