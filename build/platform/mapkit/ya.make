@@ -29,10 +29,6 @@ IF (OS_ANDROID)
     IF (ARCH_ARM64)
         LDFLAGS(-lunwind)
     ENDIF()
-
-    IF (MAPS_MOBILE_EXPORT_CPP_API)
-        LDFLAGS($LIBS/libc++_shared.so)
-    ENDIF()
 ENDIF()
 
 END()

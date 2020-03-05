@@ -12,9 +12,15 @@ IF (NOT OS_IOS AND NOT OS_DARWIN)
             -lgcc_s
         )
     ENDIF()
-    LDFLAGS(
-        -lstdc++
-    )
+    IF (STATIC_STL)
+        LDFLAGS(
+            -l:libstdc++.a
+        )
+    ELSE()
+        LDFLAGS(
+            -lstdc++
+        )
+    ENDIF()
 ELSE()
     LDFLAGS(
         -lc++
