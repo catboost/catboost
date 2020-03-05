@@ -320,8 +320,6 @@ void TrainBatch(
         skipMetricOnTrain,
         upToIteration,
         foldContext);
-
-    TMetricsAndTimeLeftHistory metricsAndTimeHistory;
     
     modelTrainer->TrainModel(
         internalOptions,
