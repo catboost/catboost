@@ -7667,7 +7667,7 @@
     ],
     "test.test_reg_targets[calc_block=5000000-Ordered-Lq:q=3]": [
         {
-            "checksum": "05e4677fe4d7bc0c64748c91d5460a12",
+            "checksum": "1ca53325b9a19c73bda4c7cd5430a8c1",
             "uri": "file://test.test_reg_targets_calc_block=5000000-Ordered-Lq_q=3_/test.eval"
         }
     ],
@@ -7727,7 +7727,7 @@
     ],
     "test.test_reg_targets[calc_block=5000000-Plain-Lq:q=3]": [
         {
-            "checksum": "39ffbacb1284734c2a1ab7e0ded2d43b",
+            "checksum": "5e386a9ebb4c482ef5b59ef735dba21e",
             "uri": "file://test.test_reg_targets_calc_block=5000000-Plain-Lq_q=3_/test.eval"
         }
     ],
@@ -7787,7 +7787,7 @@
     ],
     "test.test_reg_targets[calc_block=60-Ordered-Lq:q=3]": [
         {
-            "checksum": "05e4677fe4d7bc0c64748c91d5460a12",
+            "checksum": "1ca53325b9a19c73bda4c7cd5430a8c1",
             "uri": "file://test.test_reg_targets_calc_block=60-Ordered-Lq_q=3_/test.eval"
         }
     ],
@@ -7847,7 +7847,7 @@
     ],
     "test.test_reg_targets[calc_block=60-Plain-Lq:q=3]": [
         {
-            "checksum": "39ffbacb1284734c2a1ab7e0ded2d43b",
+            "checksum": "5e386a9ebb4c482ef5b59ef735dba21e",
             "uri": "file://test.test_reg_targets_calc_block=60-Plain-Lq_q=3_/test.eval"
         }
     ],

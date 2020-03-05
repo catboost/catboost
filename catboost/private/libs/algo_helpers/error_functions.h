@@ -375,7 +375,7 @@ private:
 
     double CalcDer2(double approx, float target) const override {
         const double absLoss = abs(target - approx);
-        return Q * (Q - 1) * std::pow(absLoss, Q - 2);
+        return -Q * (Q - 1) * std::pow(absLoss, Q - 2);
     }
 
     double CalcDer3(double approx, float target) const override {
