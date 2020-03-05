@@ -1391,7 +1391,7 @@
     ],
     "test.test_custom_loss[Ordered-MSLE,MedianAbsoluteError,SMAPE]": [
         {
-            "checksum": "042f5957a7e66d8cb5c2d1347056ee3a",
+            "checksum": "d677c4d677967ecc58a77f8b694d6727",
             "uri": "file://test.test_custom_loss_Ordered-MSLE_MedianAbsoluteError_SMAPE_/learn_error.tsv"
         },
         {
@@ -1441,7 +1441,7 @@
     ],
     "test.test_custom_loss[Plain-MSLE,MedianAbsoluteError,SMAPE]": [
         {
-            "checksum": "8432f7b9c74ca3f3a49ce76fe3a9a891",
+            "checksum": "64ce4035db318175ca4a5796efa42c70",
             "uri": "file://test.test_custom_loss_Plain-MSLE_MedianAbsoluteError_SMAPE_/learn_error.tsv"
         },
         {
@@ -4425,11 +4425,11 @@
     ],
     "test.test_loglikelihood_of_prediction[Plain]": [
         {
-            "checksum": "a5e5aecae2f7227d85c4d73b1a5d2d5f",
+            "checksum": "cf398e3e40365bbbc60963c1e3e38b29",
             "uri": "file://test.test_loglikelihood_of_prediction_Plain_/learn_error.tsv"
         },
         {
-            "checksum": "2ee1f1464eeda623f3b9ac9a67cbb556",
+            "checksum": "ad501672a93d9bbfc02fbdf37f42c0b0",
             "uri": "file://test.test_loglikelihood_of_prediction_Plain_/test_error.tsv"
         }
     ],
@@ -6561,7 +6561,7 @@
     ],
     "test.test_pairwise_bayesian_bootstrap[calc_block=5000000-PairLogitPairwise-Group-1]": [
         {
-            "checksum": "7f9675cc7670bef605abe9c05b84a5cb",
+            "checksum": "ba3f8fdf6d8376324c296a2de597dc12",
             "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=5000000-PairLogitPairwise-Group-1_/test.eval"
         }
     ],
@@ -6609,7 +6609,7 @@
     ],
     "test.test_pairwise_bayesian_bootstrap[calc_block=60-PairLogitPairwise-Group-1]": [
         {
-            "checksum": "7f9675cc7670bef605abe9c05b84a5cb",
+            "checksum": "ba3f8fdf6d8376324c296a2de597dc12",
             "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=60-PairLogitPairwise-Group-1_/test.eval"
         }
     ],
@@ -6675,7 +6675,7 @@
     ],
     "test.test_pairwise_bernoulli_bootstrap[calc_block=5000000-YetiRankPairwise-Group-0.5]": [
         {
-            "checksum": "56bee7fa7db5e52288abdb4c3c546d2c",
+            "checksum": "d32db69840ca2047cad1d4975438cf8c",
             "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=5000000-YetiRankPairwise-Group-0.5_/test.eval"
         }
     ],
@@ -6723,7 +6723,7 @@
     ],
     "test.test_pairwise_bernoulli_bootstrap[calc_block=60-YetiRankPairwise-Group-0.5]": [
         {
-            "checksum": "d32db69840ca2047cad1d4975438cf8c",
+            "checksum": "823cb607a05fe8c5b68b620df389a345",
             "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=60-YetiRankPairwise-Group-0.5_/test.eval"
         }
     ],
