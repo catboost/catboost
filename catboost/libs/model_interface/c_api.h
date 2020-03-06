@@ -107,6 +107,31 @@ CATBOOST_API bool CalcModelPrediction(
     double* result, size_t resultSize);
 
 /**
+ * Calculate raw model predictions on float features and string categorical feature values
+ * @param calcer model handle
+ * @param docCount object count
+ * @param floatFeatures array of array of float (first dimension is object index, second is feature index)
+ * @param floatFeaturesSize float feature count
+ * @param catFeatures array of array of char* categorical value pointers.
+ * String pointer should point to zero terminated string.
+ * @param catFeaturesSize categorical feature count
+ * @param textFeatures array of array of char* text value pointers.
+ * String pointer should point to zero terminated string.
+ * @param textFeaturesSize text feature count
+ * @param result pointer to user allocated results vector
+ * @param resultSize result size should be equal to modelApproxDimension * docCount
+ * (e.g. for non multiclass models should be equal to docCount)
+ * @return false if error occured
+ */
+CATBOOST_API bool CalcModelPredictionText(
+    ModelCalcerHandle* modelHandle,
+    size_t docCount,
+    const float** floatFeatures, size_t floatFeaturesSize,
+    const char*** catFeatures, size_t catFeaturesSize,
+    const char*** textFeatures, size_t textFeaturesSize,
+    double* result, size_t resultSize);
+
+/**
  * Calculate raw model prediction on float features and string categorical feature values for single object
  * @param calcer model handle
  * @param floatFeatures array of float features

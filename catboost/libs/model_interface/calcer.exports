@@ -9,6 +9,7 @@ C LoadFullModelFromBuffer
 C EnableGPUEvaluation
 
 C CalcModelPrediction
+C CalcModelPredictionText
 C CalcModelPredictionSingle
 C CalcModelPredictionFlat
 C CalcModelPredictionWithHashedCatFeatures
