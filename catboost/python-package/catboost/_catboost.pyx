@@ -4466,10 +4466,7 @@ cdef class _CatBoost:
                 cv_results
             )
             result_metrics.add(name)
-            metric_name = results.CvResult[metric_idx].Metric
 
-        if self.__metrics_history.TestBestError.empty():
-            self.__metrics_history.TestBestError.push_back(metric_result)
         best_params = {}
         for key, value in results.BoolOptions:
             best_params[to_native_str(key)] = value
