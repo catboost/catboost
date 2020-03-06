@@ -5,7 +5,6 @@
 
 #include <util/generic/array_ref.h>
 
-//The benchmark value was calculated by sklearn.metrics.mean_squared_log_error
 Y_UNIT_TEST_SUITE(TweedieMetricTest) {
     Y_UNIT_TEST(TweedieTest) {
         {
