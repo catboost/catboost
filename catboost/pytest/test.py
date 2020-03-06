@@ -4869,7 +4869,7 @@ def run_dist_train(cmd, output_file_switch='--eval-file'):
 
     eval_0 = np.loadtxt(eval_0_path, dtype='float', delimiter='\t', skiprows=1)
     eval_1 = np.loadtxt(eval_1_path, dtype='float', delimiter='\t', skiprows=1)
-    assert(np.allclose(eval_0, eval_1, atol=1e-6, rtol=1e-3))
+    assert(np.allclose(eval_0, eval_1, atol=1e-5))
     return eval_1_path
 
 
