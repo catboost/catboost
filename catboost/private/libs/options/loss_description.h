@@ -61,6 +61,8 @@ namespace NCatboostOptions {
 
     int GetStochasticFilterNumEstimations(const TLossDescription& lossDescription);
 
+    double GetTweedieParam(const TLossDescription& lossFunctionConfig);
+
     TLossDescription ParseLossDescription(TStringBuf stringLossDescription);
 }
 

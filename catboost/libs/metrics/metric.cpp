@@ -4171,6 +4171,11 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             }
             break;
         }
+        case ELossFunction::Tweedie:
+            CB_ENSURE(params.contains("variance_power"), "Metric " << ELossFunction::Tweedie << " requires variance_power as parameter");
+            validParams = {"variance_power"};
+            result.push_back(MakeTweedieMetric(FromString<float>(params.at("variance_power"))));
+            break;
         default: {
             result = CreateCachingMetrics(metric, params, approxDimension, &validParams);
 
@@ -4763,4 +4768,88 @@ bool IsMinOptimal(TStringBuf lossFunction) {
 
 bool IsQuantileLoss(const ELossFunction& loss) {
     return loss == ELossFunction::Quantile || loss == ELossFunction::MAE;
+}
+
+/* Tweedie */
+
+namespace {
+    struct TTweedieMetric: public TAdditiveMetric<TTweedieMetric> {
+        explicit TTweedieMetric(double variance_power)
+            : VariancePower(variance_power) {
+            CB_ENSURE(VariancePower > 1 && VariancePower < 2, "Tweedie metric is defined for 1 < variance_power < 2, got " << variance_power);
+        }
+
+        TMetricHolder EvalSingleThread(
+                const TVector<TVector<double>>& approx,
+                const TVector<TVector<double>>& approxDelta,
+                bool isExpApprox,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
+                int begin,
+                int end
+        ) const;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+
+    private:
+        double VariancePower;
+    };
+}
+
+THolder<IMetric> MakeTweedieMetric(double variance_power) {
+    return MakeHolder<TTweedieMetric>(variance_power);
+}
+
+TMetricHolder TTweedieMetric::EvalSingleThread(
+        const TVector<TVector<double>>& approx,
+        const TVector<TVector<double>>& approxDelta,
+        bool isExpApprox,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weight,
+        TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+        int begin,
+        int end
+) const {
+    CB_ENSURE(approx.size() == 1, "Metric Tweedie supports only single-dimensional data");
+    for (const double curTarget : target) {
+        CB_ENSURE(curTarget > 0, "Metric Tweedie supports only positive targets");
+    }
+    Y_ASSERT(!isExpApprox);
+    const auto impl = [=] (auto hasDelta, auto hasWeight, TConstArrayRef<double> approx, TConstArrayRef<double> approxDelta) {
+        TMetricHolder error(2);
+        for (int k : xrange(begin, end)) {
+            double curApprox = approx[k];
+            if (hasDelta) {
+                curApprox += approxDelta[k];
+            }
+            const float w = hasWeight ? weight[k] : 1;
+            double margin = -target[k] * std::exp((1 - VariancePower) * curApprox) / (1 - VariancePower);
+            margin += std::exp((2 - VariancePower) * curApprox) / (2 - VariancePower);
+            error.Stats[0] += w * margin;
+            error.Stats[1] += w;
+        }
+        return error;
+    };
+    switch (EncodeFlags(!approxDelta.empty(), !weight.empty())) {
+        case EncodeFlags(false, false):
+            return impl(std::false_type(), std::false_type(), approx[0], GetRowRef(approxDelta, /*rowIdx*/0));
+        case EncodeFlags(false, true):
+            return impl(std::false_type(), std::true_type(), approx[0], GetRowRef(approxDelta, /*rowIdx*/0));
+        case EncodeFlags(true, false):
+            return impl(std::true_type(), std::false_type(), approx[0], GetRowRef(approxDelta, /*rowIdx*/0));
+        case EncodeFlags(true, true):
+            return impl(std::true_type(), std::true_type(), approx[0], GetRowRef(approxDelta, /*rowIdx*/0));
+        default:
+            Y_VERIFY(false);
+    }
+}
+
+TString TTweedieMetric::GetDescription() const {
+    TMetricParam<double> variance_power("variance_power", VariancePower, true);
+    return BuildDescription(ELossFunction::Tweedie, UseWeights, "%.3g", variance_power);
+}
+
+void TTweedieMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
 }

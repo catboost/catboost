@@ -8227,6 +8227,24 @@
             "uri": "file://test.test_time_Plain_/test.eval"
         }
     ],
+    "test.test_total_f1_params[Macro]": [
+        {
+            "checksum": "45a9b213724dc657f87b870a7a8cbc2f",
+            "uri": "file://test.test_total_f1_params_Macro_/output.tsv"
+        }
+    ],
+    "test.test_total_f1_params[Micro]": [
+        {
+            "checksum": "28a6a10121980e4265dead082bfb8aaa",
+            "uri": "file://test.test_total_f1_params_Micro_/output.tsv"
+        }
+    ],
+    "test.test_total_f1_params[Weighted]": [
+        {
+            "checksum": "83d2ee81fbf69f10ac2de97a34626e99",
+            "uri": "file://test.test_total_f1_params_Weighted_/output.tsv"
+        }
+    ],
     "test.test_train_on_binarized_equal_train_on_float[QueryRMSE-Ordered]": [
         {
             "checksum": "e57e5a4327069a11f882374b3e90f9fa",
@@ -8313,6 +8331,12 @@
         {
             "checksum": "af66c50a6311b506d70b19b16f830947",
             "uri": "file://test.test_train_on_binarized_equal_train_on_float_RMSE-Plain_/borders.tsv"
+        }
+    ],
+    "test.test_tweedie": [
+        {
+            "checksum": "715e77052af35102820bb93d2e2519f8",
+            "uri": "file://test.test_tweedie/learn_error.tsv"
         }
     ],
     "test.test_weight_sampling_per_tree[calc_block=5000000-Ordered]": {
@@ -8527,24 +8551,6 @@
         {
             "checksum": "7e1f25371d18c5f1fa356a8972aa8d7b",
             "uri": "file://test.test_yetirank_with_params_calc_block=60-Plain_/test.eval"
-        }
-    ],
-    "test.test_total_f1_params[Macro]": [
-        {
-            "checksum": "45a9b213724dc657f87b870a7a8cbc2f",
-            "uri": "file://test.test_total_f1_params_Macro_/output.tsv"
-        }
-    ],
-    "test.test_total_f1_params[Micro]": [
-        {
-            "checksum": "28a6a10121980e4265dead082bfb8aaa",
-            "uri": "file://test.test_total_f1_params_Micro_/output.tsv"
-        }
-    ],
-    "test.test_total_f1_params[Weighted]": [
-        {
-            "checksum": "83d2ee81fbf69f10ac2de97a34626e99",
-            "uri": "file://test.test_total_f1_params_Weighted_/output.tsv"
         }
     ]
 }

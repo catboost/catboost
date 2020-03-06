@@ -126,6 +126,7 @@ enum class ELossFunction {
     MedianAbsoluteError,
     SMAPE,
     Huber,
+    Tweedie,
 
     /* multiclassification errors */
 
@@ -217,7 +218,8 @@ enum class EPredictionType {
     LogProbability,
     Class,
     RawFormulaVal,
-    InternalRawFormulaVal
+    InternalRawFormulaVal,
+    ExpRawFormulaVal
 };
 
 enum class EFstrType {

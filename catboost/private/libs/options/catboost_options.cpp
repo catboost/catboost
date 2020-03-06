@@ -182,6 +182,13 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
             defaultGradientIterations = 1;
             break;
         }
+        case ELossFunction::Tweedie: {
+            CB_ENSURE(lossFunctionConfig.GetLossParams().contains("variance_power"), "Param variance_power is mandatory for Tweedie loss");
+            defaultEstimationMethod = ELeavesEstimation::Newton;
+            defaultNewtonIterations = 1;
+            defaultGradientIterations = 1;
+            break;
+        }
         default: {
             CB_ENSURE(false, "Unknown loss function " << lossFunctionConfig.GetLossFunction());
         }

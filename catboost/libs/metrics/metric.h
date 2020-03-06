@@ -404,6 +404,8 @@ THolder<IMetric> MakeMultiClassNormalizedGiniMetric(int positiveClass);
 
 THolder<IMetric> MakeFairLossMetric(double smoothness);
 
+THolder<IMetric> MakeTweedieMetric(double variance_power);
+
 TVector<THolder<IMetric>> CreateMetricsFromDescription(const TVector<TString>& description, int approxDim);
 
 TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TLossDescription& description, int approxDimension);

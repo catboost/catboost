@@ -220,6 +220,13 @@ void PrepareEval(const EPredictionType predictionType,
         case EPredictionType::RawFormulaVal:
             *result = approx;
             break;
+        case EPredictionType::ExpRawFormulaVal:
+            result->resize(1);
+            (*result)[0].reserve(approx.size());
+            for (const double prediction : approx[0]) {
+                (*result)[0].push_back(std::exp(prediction));
+            }
+            break;
         default:
             Y_ASSERT(false);
     }
