@@ -1100,6 +1100,7 @@ namespace NCB {
         UIntOptions.clear();
         DoubleOptions.clear();
         StringOptions.clear();
+        ListOfDoublesOptions.clear();
         for (const auto& optionName : optionsNames) {
             const auto& option = options.at(optionName);
             NJson::EJsonValueType type = option.GetType();
@@ -1124,8 +1125,14 @@ namespace NCB {
                     StringOptions[optionName] = option.GetString();
                     break;
                 }
+                case NJson::EJsonValueType::JSON_ARRAY: {
+                    for (const auto& listElement : option.GetArray()) {
+                        ListOfDoublesOptions[optionName].push_back(listElement.GetDouble());
+                    }
+                    break;
+                }
                 default: {
-                    CB_ENSURE(false, "Error: option value should be bool, int, ui32, double or string");
+                    CB_ENSURE(false, "Error: option value should be bool, int, ui32, double, string or list of doubles");
                 }
             }
         }
