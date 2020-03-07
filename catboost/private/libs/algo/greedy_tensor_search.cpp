@@ -821,7 +821,7 @@ static void SelectBestCandidate(
     const TLearnContext& ctx,
     const TCandidatesContext& candidatesContext,
     size_t maxFeatureValueCount,
-    TFold* fold,
+    const TFold& fold,
     double* bestScore,
     const TCandidateInfo** bestSplitCandidate) {
 
@@ -838,7 +838,7 @@ static void SelectBestCandidate(
                 if (!ctx.LearnProgress->UsedCtrSplits.contains(std::make_pair(ctrType, projection)) &&
                     score != MINIMAL_SCORE) {
                     score *= pow(
-                        1 + (fold->GetCtrRef(projection).GetUniqueValueCountForType(ctrType) /
+                        1 + (fold.GetCtr(projection).GetUniqueValueCountForType(ctrType) /
                              static_cast<double>(maxFeatureValueCount)),
                         -ctx.Params.ObliviousTreeOptions->ModelSizeReg.Get());
                 }
@@ -958,13 +958,13 @@ static TSplitTree GreedyTensorSearchOblivious(
 
         const size_t maxFeatureValueCount = CalcMaxFeatureValueCount(*fold, candidatesContext);
 
-        fold->DropEmptyCTRs();
         CheckInterrupted(); // check after long-lasting operation
         profile.AddOperation(TStringBuilder() << "Calc scores " << curDepth);
 
         double bestScore = MINIMAL_SCORE;
         const TCandidateInfo* bestSplitCandidate = nullptr;
-        SelectBestCandidate(*ctx, candidatesContext, maxFeatureValueCount, fold, &bestScore, &bestSplitCandidate);
+        SelectBestCandidate(*ctx, candidatesContext, maxFeatureValueCount, *fold, &bestScore, &bestSplitCandidate);
+        fold->DropEmptyCTRs();
         if (bestScore == MINIMAL_SCORE) {
             break;
         }
@@ -1071,12 +1071,12 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
         auto candidatesContext = SelectFeaturesForScoring(data, {}, fold, ctx);
         CalcBestScoreLeafwise(data, {leaf}, ctx->LearnProgress->Rand.GenRand(), scoreStDev, &candidatesContext, fold, ctx);
         const size_t maxFeatureValueCount = CalcMaxFeatureValueCount(*fold, candidatesContext);
-        fold->DropEmptyCTRs();
         CheckInterrupted(); // check after long-lasting operation
 
         double bestScore = MINIMAL_SCORE;
         const TCandidateInfo* bestSplitCandidate = nullptr;
-        SelectBestCandidate(*ctx, candidatesContext, maxFeatureValueCount, fold, &bestScore, &bestSplitCandidate);
+        SelectBestCandidate(*ctx, candidatesContext, maxFeatureValueCount, *fold, &bestScore, &bestSplitCandidate);
+        fold->DropEmptyCTRs();
         if (bestSplitCandidate == nullptr) {
             return;
         }
@@ -1183,7 +1183,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
 
             double bestScore = MINIMAL_SCORE;
             const TCandidateInfo* bestSplitCandidate = nullptr;
-            SelectBestCandidate(*ctx, candidatesContext, maxFeatureValueCount, fold, &bestScore, &bestSplitCandidate);
+            SelectBestCandidate(*ctx, candidatesContext, maxFeatureValueCount, *fold, &bestScore, &bestSplitCandidate);
             if (bestSplitCandidate == nullptr) {
                 continue;
             }

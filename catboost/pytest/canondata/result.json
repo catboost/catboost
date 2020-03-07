@@ -525,13 +525,13 @@
     ],
     "test.test_allow_writing_files_and_used_ram_limit[calc_block=5000000-1Kb-Ordered]": [
         {
-            "checksum": "c990000ce337b8c6220ec5ba29cfd69b",
+            "checksum": "4bb6ec68453a0fb2c2552d37fcc0ebe7",
             "uri": "file://test.test_allow_writing_files_and_used_ram_limit_calc_block=5000000-1Kb-Ordered_/test.eval"
         }
     ],
     "test.test_allow_writing_files_and_used_ram_limit[calc_block=5000000-1Kb-Plain]": [
         {
-            "checksum": "55ee471657c4124a97d68d7bec45a552",
+            "checksum": "b6ecde0a927bd23e054d5c1f61861441",
             "uri": "file://test.test_allow_writing_files_and_used_ram_limit_calc_block=5000000-1Kb-Plain_/test.eval"
         }
     ],
@@ -549,13 +549,13 @@
     ],
     "test.test_allow_writing_files_and_used_ram_limit[calc_block=600-1Kb-Ordered]": [
         {
-            "checksum": "c990000ce337b8c6220ec5ba29cfd69b",
+            "checksum": "4bb6ec68453a0fb2c2552d37fcc0ebe7",
             "uri": "file://test.test_allow_writing_files_and_used_ram_limit_calc_block=600-1Kb-Ordered_/test.eval"
         }
     ],
     "test.test_allow_writing_files_and_used_ram_limit[calc_block=600-1Kb-Plain]": [
         {
-            "checksum": "55ee471657c4124a97d68d7bec45a552",
+            "checksum": "b6ecde0a927bd23e054d5c1f61861441",
             "uri": "file://test.test_allow_writing_files_and_used_ram_limit_calc_block=600-1Kb-Plain_/test.eval"
         }
     ],
