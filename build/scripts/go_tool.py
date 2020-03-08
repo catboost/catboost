@@ -620,6 +620,8 @@ if __name__ == '__main__':
     args.output_root = os.path.normpath(args.output_root)
     args.import_map = {}
     args.module_map = {}
+    if args.cgo_peers:
+        args.cgo_peers = [x for x in args.cgo_peers if not x.endswith('.fake.pkg')]
 
     assert args.mode == 'test' or args.test_srcs is None and args.xtest_srcs is None
     # add lexical oreder by basename for go sources
