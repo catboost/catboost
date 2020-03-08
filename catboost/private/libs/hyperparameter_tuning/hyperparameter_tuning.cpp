@@ -920,171 +920,174 @@ namespace {
         TProfileInfo profile(gridIterator->GetTotalElementsCount());
         while (auto paramsSet = gridIterator->Next()) {
             profile.StartIterationBlock();
-            // paramsSet: {border_count, feature_border_type, nan_mode, [others]}
-            TQuantizationParamsInfo quantizationParamsSet;
-            quantizationParamsSet.BinsCount = GetRandomValueIfNeeded((*paramsSet)[0], randDistGenerators).GetInteger();
-            quantizationParamsSet.BorderType = FromString<EBorderSelectionType>((*paramsSet)[1].GetString());
-            quantizationParamsSet.NanMode = FromString<ENanMode>((*paramsSet)[2].GetString());
+            try {
+                // paramsSet: {border_count, feature_border_type, nan_mode, [others]}
+                TQuantizationParamsInfo quantizationParamsSet;
+                quantizationParamsSet.BinsCount = GetRandomValueIfNeeded((*paramsSet)[0], randDistGenerators).GetInteger();
+                quantizationParamsSet.BorderType = FromString<EBorderSelectionType>((*paramsSet)[1].GetString());
+                quantizationParamsSet.NanMode = FromString<ENanMode>((*paramsSet)[2].GetString());
 
-            AssignOptionsToJson(
-                TConstArrayRef<TString>(paramNames),
-                TConstArrayRef<NJson::TJsonValue>(
-                    paramsSet->begin() + IndexOfFirstTrainingParameter,
-                    paramsSet->end()
-                ), // Ignoring quantization params
-                randDistGenerators,
-                modelParamsToBeTried
-            );
-
-            NJson::TJsonValue jsonParams;
-            NJson::TJsonValue outputJsonParams;
-            NCatboostOptions::PlainJsonToOptions(*modelParamsToBeTried, &jsonParams, &outputJsonParams);
-            NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
-            NCatboostOptions::TOutputFilesOptions outputFileOptions;
-            outputFileOptions.Load(outputJsonParams);
-            static const bool allowWriteFiles = outputFileOptions.AllowWriteFiles();
-
-            TString tmpDir;
-            if (outputFileOptions.AllowWriteFiles()) {
-                NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputFileOptions.GetTrainDir(), &tmpDir);
-            }
-
-            InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
-            NCB::TFeaturesLayoutPtr featuresLayout = data->MetaInfo.FeaturesLayout;
-            NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo;
-
-            TMetricsAndTimeLeftHistory metricsAndTimeHistory;
-            {
-                TSetLogging inThisScope(catBoostOptions.LoggingLevel);
-                QuantizeAndSplitDataIfNeeded(
-                    allowWriteFiles,
-                    tmpDir,
-                    trainTestSplitParams,
-                    cpuUsedRamLimit,
-                    featuresLayout,
-                    quantizedFeaturesInfo,
-                    data,
-                    lastQuantizationParamsSet,
-                    quantizationParamsSet,
-                    &labelConverter,
-                    localExecutor,
-                    &rand,
-                    &catBoostOptions,
-                    &trainTestData
+                AssignOptionsToJson(
+                    TConstArrayRef<TString>(paramNames),
+                    TConstArrayRef<NJson::TJsonValue>(
+                        paramsSet->begin() + IndexOfFirstTrainingParameter,
+                        paramsSet->end()
+                    ), // Ignoring quantization params
+                    randDistGenerators,
+                    modelParamsToBeTried
                 );
-                lastQuantizationParamsSet = quantizationParamsSet;
-                THolder<IModelTrainer> modelTrainerHolder = TTrainerFactory::Construct(catBoostOptions.GetTaskType());
 
-                TEvalResult evalRes;
+                NJson::TJsonValue jsonParams;
+                NJson::TJsonValue outputJsonParams;
+                NCatboostOptions::PlainJsonToOptions(*modelParamsToBeTried, &jsonParams, &outputJsonParams);
+                NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
+                NCatboostOptions::TOutputFilesOptions outputFileOptions;
+                outputFileOptions.Load(outputJsonParams);
+                static const bool allowWriteFiles = outputFileOptions.AllowWriteFiles();
 
-                TTrainModelInternalOptions internalOptions;
-                internalOptions.CalcMetricsOnly = true;
-                internalOptions.ForceCalcEvalMetricOnEveryIteration = false;
-                internalOptions.OffsetMetricPeriodByInitModelSize = true;
-                outputFileOptions.SetAllowWriteFiles(false);
-                const auto defaultTrainingCallbacks = MakeHolder<ITrainingCallbacks>();
-                // Training model
-                modelTrainerHolder->TrainModel(
-                    internalOptions,
-                    catBoostOptions,
-                    outputFileOptions,
-                    objectiveDescriptor,
+                TString tmpDir;
+                if (outputFileOptions.AllowWriteFiles()) {
+                    NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputFileOptions.GetTrainDir(), &tmpDir);
+                }
+
+                InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
+                NCB::TFeaturesLayoutPtr featuresLayout = data->MetaInfo.FeaturesLayout;
+                NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo;
+
+                TMetricsAndTimeLeftHistory metricsAndTimeHistory;
+                {
+                    TSetLogging inThisScope(catBoostOptions.LoggingLevel);
+                    QuantizeAndSplitDataIfNeeded(
+                        allowWriteFiles,
+                        tmpDir,
+                        trainTestSplitParams,
+                        cpuUsedRamLimit,
+                        featuresLayout,
+                        quantizedFeaturesInfo,
+                        data,
+                        lastQuantizationParamsSet,
+                        quantizationParamsSet,
+                        &labelConverter,
+                        localExecutor,
+                        &rand,
+                        &catBoostOptions,
+                        &trainTestData
+                    );
+                    lastQuantizationParamsSet = quantizationParamsSet;
+                    THolder<IModelTrainer> modelTrainerHolder = TTrainerFactory::Construct(catBoostOptions.GetTaskType());
+
+                    TEvalResult evalRes;
+
+                    TTrainModelInternalOptions internalOptions;
+                    internalOptions.CalcMetricsOnly = true;
+                    internalOptions.ForceCalcEvalMetricOnEveryIteration = false;
+                    internalOptions.OffsetMetricPeriodByInitModelSize = true;
+                    outputFileOptions.SetAllowWriteFiles(false);
+                    const auto defaultTrainingCallbacks = MakeHolder<ITrainingCallbacks>();
+                    // Training model
+                    modelTrainerHolder->TrainModel(
+                        internalOptions,
+                        catBoostOptions,
+                        outputFileOptions,
+                        objectiveDescriptor,
+                        evalMetricDescriptor,
+                        trainTestData,
+                        labelConverter,
+                        defaultTrainingCallbacks.Get(), // TODO(ilikepugs): MLTOOLS-3540
+                        /*initModel*/ Nothing(),
+                        /*initLearnProgress*/ nullptr,
+                        /*initModelApplyCompatiblePools*/ NCB::TDataProviders(),
+                        localExecutor,
+                        &rand,
+                        /*dstModel*/ nullptr,
+                        /*evalResultPtrs*/ {&evalRes},
+                        &metricsAndTimeHistory,
+                        /*dstLearnProgress*/nullptr
+                    );
+                }
+
+                ui32 approxDimension = NCB::GetApproxDimension(catBoostOptions, labelConverter, data->RawTargetData.GetTargetDimension());
+                const TVector<THolder<IMetric>> metrics = CreateMetrics(
+                    catBoostOptions.MetricOptions,
                     evalMetricDescriptor,
-                    trainTestData,
-                    labelConverter,
-                    defaultTrainingCallbacks.Get(), // TODO(ilikepugs): MLTOOLS-3540
-                    /*initModel*/ Nothing(),
-                    /*initLearnProgress*/ nullptr,
-                    /*initModelApplyCompatiblePools*/ NCB::TDataProviders(),
-                    localExecutor,
-                    &rand,
-                    /*dstModel*/ nullptr,
-                    /*evalResultPtrs*/ {&evalRes},
-                    &metricsAndTimeHistory,
-                    /*dstLearnProgress*/nullptr
+                    approxDimension,
+                    data->MetaInfo.HasWeights
                 );
-            }
 
-            ui32 approxDimension = NCB::GetApproxDimension(catBoostOptions, labelConverter, data->RawTargetData.GetTargetDimension());
-            const TVector<THolder<IMetric>> metrics = CreateMetrics(
-                catBoostOptions.MetricOptions,
-                evalMetricDescriptor,
-                approxDimension,
-                data->MetaInfo.HasWeights
-            );
-
-            const TString& lossDescription = metrics[0]->GetDescription();
-            double bestMetricValue = metricsAndTimeHistory.TestBestError[0][lossDescription]; //[testId][lossDescription]
-            if (iterationIdx == 0) {
-                // We guarantee to update the parameters on the first iteration
-                bestParamsSetMetricValue = bestMetricValue + GetSignForMetricMinimization(metrics[0]);
-                outputFileOptions.SetAllowWriteFiles(allowWriteFiles);
-                if (allowWriteFiles) {
-                    // Initialize Files Loggers
-                    TOutputFiles outputFiles(outputFileOptions, "");
-                    InitializeFilesLoggers(
-                        metrics,
-                        outputFiles,
-                        gridIterator->GetTotalElementsCount(),
-                        ELaunchMode::Train,
-                        trainTestData.Test.ysize(),
-                        parametersToken,
-                        &logger
-                    );
+                const TString& lossDescription = metrics[0]->GetDescription();
+                double bestMetricValue = metricsAndTimeHistory.TestBestError[0][lossDescription]; //[testId][lossDescription]
+                if (iterationIdx == 0) {
+                    // We guarantee to update the parameters on the first iteration
+                    bestParamsSetMetricValue = bestMetricValue + GetSignForMetricMinimization(metrics[0]);
+                    outputFileOptions.SetAllowWriteFiles(allowWriteFiles);
+                    if (allowWriteFiles) {
+                        // Initialize Files Loggers
+                        TOutputFiles outputFiles(outputFileOptions, "");
+                        InitializeFilesLoggers(
+                            metrics,
+                            outputFiles,
+                            gridIterator->GetTotalElementsCount(),
+                            ELaunchMode::Train,
+                            trainTestData.Test.ysize(),
+                            parametersToken,
+                            &logger
+                        );
+                    }
                 }
-            }
-            bool isUpdateBest = SetBestParamsAndUpdateMetricValueIfNeeded(
-                bestMetricValue,
-                metrics,
-                quantizationParamsSet,
-                *modelParamsToBeTried,
-                paramNames,
-                quantizedFeaturesInfo,
-                bestGridParams,
-                &bestParamsSetMetricValue);
-            if (isUpdateBest) {
-                bestIterationIdx = iterationIdx;
-            }
-            TOneInterationLogger oneIterLogger(logger);
-            oneIterLogger.OutputMetric(
-                searchToken,
-                TMetricEvalResult(
-                    lossDescription,
+                bool isUpdateBest = SetBestParamsAndUpdateMetricValueIfNeeded(
                     bestMetricValue,
-                    bestParamsSetMetricValue,
-                    bestIterationIdx,
-                    true
-                )
-            );
-            if (allowWriteFiles) {
-                //log metrics
-                const auto& skipMetricOnTrain = GetSkipMetricOnTrain(metrics);
-                auto& learnErrors = metricsAndTimeHistory.LearnBestError;
-                auto& testErrors = metricsAndTimeHistory.TestBestError[0];
-                for (auto metricIdx : xrange(metrics.size())) {
-                    const auto& lossDescription = metrics[metricIdx]->GetDescription();
-                    LogTrainTest(
+                    metrics,
+                    quantizationParamsSet,
+                    *modelParamsToBeTried,
+                    paramNames,
+                    quantizedFeaturesInfo,
+                    bestGridParams,
+                    &bestParamsSetMetricValue);
+                if (isUpdateBest) {
+                    bestIterationIdx = iterationIdx;
+                }
+                TOneInterationLogger oneIterLogger(logger);
+                oneIterLogger.OutputMetric(
+                    searchToken,
+                    TMetricEvalResult(
                         lossDescription,
-                        oneIterLogger,
-                        skipMetricOnTrain[metricIdx] ? Nothing() :
-                            MakeMaybe<double>(learnErrors.at(lossDescription)),
-                        testErrors.at(lossDescription),
-                        "learn",
-                        "test",
-                        metricIdx == 0
+                        bestMetricValue,
+                        bestParamsSetMetricValue,
+                        bestIterationIdx,
+                        true
+                    )
+                );
+                if (allowWriteFiles) {
+                    //log metrics
+                    const auto& skipMetricOnTrain = GetSkipMetricOnTrain(metrics);
+                    auto& learnErrors = metricsAndTimeHistory.LearnBestError;
+                    auto& testErrors = metricsAndTimeHistory.TestBestError[0];
+                    for (auto metricIdx : xrange(metrics.size())) {
+                        const auto& lossDescription = metrics[metricIdx]->GetDescription();
+                        LogTrainTest(
+                            lossDescription,
+                            oneIterLogger,
+                            skipMetricOnTrain[metricIdx] ? Nothing() :
+                                MakeMaybe<double>(learnErrors.at(lossDescription)),
+                            testErrors.at(lossDescription),
+                            "learn",
+                            "test",
+                            metricIdx == 0
+                        );
+                    }
+                    //log parameters
+                    LogParameters(
+                        paramNames,
+                        *paramsSet,
+                        parametersToken,
+                        generalQuantizeParamsInfo,
+                        oneIterLogger
                     );
                 }
-                //log parameters
-                LogParameters(
-                    paramNames,
-                    *paramsSet,
-                    parametersToken,
-                    generalQuantizeParamsInfo,
-                    oneIterLogger
-                );
+                profile.FinishIterationBlock(1);
+                oneIterLogger.OutputProfile(profile.GetProfileResults());
+            } catch (const TCatBoostException& e) {
             }
-            profile.FinishIterationBlock(1);
-            oneIterLogger.OutputProfile(profile.GetProfileResults());
             iterationIdx++;
         }
         return bestParamsSetMetricValue;
