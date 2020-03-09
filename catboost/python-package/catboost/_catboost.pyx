@@ -108,6 +108,8 @@ class _NumpyAwareEncoder(JSONEncoder):
             return obj.tolist()
         return JSONEncoder.default(self, obj)
 
+class TMultiRegressionMetric:
+    pass
 
 class CatBoostError(Exception):
     pass
@@ -983,12 +985,20 @@ cdef extern from "catboost/libs/metrics/metric.h":
     cdef cppclass TCustomMetricDescriptor:
         void* CustomData
 
-        TMetricHolder (*EvalFunc)(
+        ctypedef TMetricHolder (*TEvalFuncPtr)(
             const TVector[TVector[double]]& approx,
             const TConstArrayRef[float] target,
             const TConstArrayRef[float] weight,
-            int begin, int end, void* customData
-        ) with gil
+            int begin, int end, void* customData) with gil
+        
+        ctypedef TMetricHolder (*TEvalMultiregressionFuncPtr)(
+            const TConstArrayRef[TVector[double]] approx,
+            const TConstArrayRef[TConstArrayRef[float]] target,
+            const TConstArrayRef[float] weight,
+            int begin, int end, void* customData) with gil
+
+        TMaybe[TEvalFuncPtr] EvalFunc
+        TMaybe[TEvalMultiregressionFuncPtr] EvalMultiregressionFunc
 
         TString (*GetDescriptionFunc)(void *customData) except * with gil
         bool_t (*IsMaxOptimalFunc)(void *customData) except * with gil
@@ -1586,6 +1596,38 @@ cdef TMetricHolder _MetricEval(
     holder.Stats[1] = weight_
     return holder
 
+cdef TMetricHolder _MultiregressionMetricEval(
+    TConstArrayRef[TVector[double]] approx,
+    TConstArrayRef[TConstArrayRef[float]] target,
+    TConstArrayRef[float] weight,
+    int begin,
+    int end,
+    void* customData
+) with gil:
+    cdef metricObject = <object>customData
+    cdef TString errorMessage
+    cdef TMetricHolder holder
+    holder.Stats.resize(2)
+
+    approxes = [_DoubleArrayWrapper.create(approx[i].data() + begin, end - begin) for i in xrange(approx.size())]
+    targets = [_FloatArrayWrapper.create(target[i].data() + begin, end - begin) for i in xrange(target.size())]
+
+    if weight.size() == 0:
+        weights = None
+    else:
+        weights = _FloatArrayWrapper.create(weight.data() + begin, end - begin)
+
+    try:
+        error, weight_ = metricObject.evaluate(approxes, targets, weights)
+    except:
+        errorMessage = to_arcadia_string(traceback.format_exc())
+        with nogil:
+            ThrowCppExceptionWithMessage(errorMessage)
+
+    holder.Stats[0] = error
+    holder.Stats[1] = weight_
+    return holder
+
 cdef double _RandomDistGen(
     void* customFunction
 ) with gil:
@@ -1671,12 +1713,14 @@ cdef TCustomRandomDistributionGenerator _BuildCustomRandomDistributionGenerator(
 cdef TCustomMetricDescriptor _BuildCustomMetricDescriptor(object metricObject):
     cdef TCustomMetricDescriptor descriptor
     descriptor.CustomData = <void*>metricObject
-    descriptor.EvalFunc = &_MetricEval
+    if (issubclass(metricObject.__class__, TMultiRegressionMetric)):
+        descriptor.EvalMultiregressionFunc = &_MultiregressionMetricEval
+    else:
+        descriptor.EvalFunc = &_MetricEval
     descriptor.GetDescriptionFunc = &_MetricGetDescription
     descriptor.IsMaxOptimalFunc = &_MetricIsMaxOptimal
     descriptor.GetFinalErrorFunc = &_MetricGetFinalError
     return descriptor
-
 
 cdef TCustomObjectiveDescriptor _BuildCustomObjectiveDescriptor(object objectiveObject):
     cdef TCustomObjectiveDescriptor descriptor

@@ -3340,10 +3340,6 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeCustomMetric(const TCustomMetricDescriptor& descriptor) {
-    return MakeHolder<TCustomMetric>(descriptor);
-}
-
 TCustomMetric::TCustomMetric(const TCustomMetricDescriptor& descriptor)
         : Descriptor(descriptor)
 {
@@ -3360,7 +3356,7 @@ TMetricHolder TCustomMetric::Eval(
     NPar::TLocalExecutor& /* executor */
 ) const {
     auto weight = UseWeights ? weightIn : TConstArrayRef<float>{};
-    TMetricHolder result = Descriptor.EvalFunc(approx, target, weight, begin, end, Descriptor.CustomData);
+    TMetricHolder result = (*(Descriptor.EvalFunc))(approx, target, weight, begin, end, Descriptor.CustomData);
     CB_ENSURE(
         result.Stats.ysize() == 2,
         "Custom metric evaluate() returned incorrect value."\
@@ -3399,10 +3395,110 @@ void TCustomMetric::AddHint(const TString& key, const TString& value) {
     Hints[key] = value;
 }
 
+/* CustomMultiRegression */
+
+namespace {
+    class TCustomMultiRegressionMetric: public TMultiRegressionMetric {
+    public:
+        explicit TCustomMultiRegressionMetric(const TCustomMetricDescriptor& descriptor);
+
+        TMetricHolder Eval(
+            TConstArrayRef<TVector<double>> approx,
+            TConstArrayRef<TVector<double>> approxDelta,
+            TConstArrayRef<TConstArrayRef<float>> target,
+            TConstArrayRef<float> weight,
+            int begin,
+            int end,
+            NPar::TLocalExecutor& executor
+        ) const override {
+            CB_ENSURE(approxDelta.empty(), "Custom metrics do not support approx deltas and exponentiated approxes");
+            return Eval_(
+                approx,
+                target,
+                weight,
+                begin,
+                end,
+                executor
+            );
+        }
+
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        //we don't now anything about custom metrics
+        bool IsAdditiveMetric() const final {
+            return false;
+        }
+        // be conservative by default
+        bool NeedTarget() const override {
+            return true;
+        }
+    private:
+        TMetricHolder Eval_(
+            TConstArrayRef<TVector<double>> approx,
+            TConstArrayRef<TConstArrayRef<float>> target,
+            TConstArrayRef<float> weight,
+            int begin,
+            int end,
+            NPar::TLocalExecutor& executor
+        ) const;
+
+        TCustomMetricDescriptor Descriptor;
+        TMap<TString, TString> Hints;
+    };
+}
+
+TCustomMultiRegressionMetric::TCustomMultiRegressionMetric(const TCustomMetricDescriptor& descriptor)
+        : Descriptor(descriptor)
+{
+    UseWeights.SetDefaultValue(true);
+}
+
+TMetricHolder TCustomMultiRegressionMetric::Eval_(
+    TConstArrayRef<TVector<double>> approx,
+    TConstArrayRef<TConstArrayRef<float>> target,
+    TConstArrayRef<float> weightIn,
+    int begin,
+    int end,
+    NPar::TLocalExecutor& /*executor*/
+) const {
+    auto weight = UseWeights ? weightIn : TConstArrayRef<float>{};
+    TMetricHolder result = (*(Descriptor.EvalMultiregressionFunc))(approx, target, weight, begin, end, Descriptor.CustomData);
+    CB_ENSURE(
+        result.Stats.ysize() == 2,
+        "Custom metric evaluate() returned incorrect value."\
+        " Expected tuple of size 2, got tuple of size " << result.Stats.ysize() << "."
+    );
+    return result;
+}
+
+TString TCustomMultiRegressionMetric::GetDescription() const {
+    TString description = Descriptor.GetDescriptionFunc(Descriptor.CustomData);
+    return BuildDescription(description, UseWeights);
+}
+
+void TCustomMultiRegressionMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    bool isMaxOptimal = Descriptor.IsMaxOptimalFunc(Descriptor.CustomData);
+    *valueType = isMaxOptimal ? EMetricBestValue::Max : EMetricBestValue::Min;
+}
+
+double TCustomMultiRegressionMetric::GetFinalError(const TMetricHolder& error) const {
+    return Descriptor.GetFinalErrorFunc(error, Descriptor.CustomData);
+}
+
+
+THolder<IMetric> MakeCustomMetric(const TCustomMetricDescriptor& descriptor) {
+    if (descriptor.IsMultiregressionMetric()) {
+        return MakeHolder<TCustomMultiRegressionMetric>(descriptor);
+    } else {
+        return MakeHolder<TCustomMetric>(descriptor);
+    }
+}
+
 /* UserDefinedPerObjectMetric */
 
 namespace {
-    class TUserDefinedPerObjectMetric : public TMetric {
+    class TUserDefinedPerObjectMetric : public TMetric { 
     public:
         explicit TUserDefinedPerObjectMetric(const TMap<TString, TString>& params);
         TMetricHolder Eval(

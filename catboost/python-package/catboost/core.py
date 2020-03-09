@@ -83,6 +83,7 @@ _NumpyAwareEncoder = _catboost._NumpyAwareEncoder
 FeaturesData = _catboost.FeaturesData
 _have_equal_features = _catboost._have_equal_features
 SPARSE_MATRIX_TYPES = _catboost.SPARSE_MATRIX_TYPES
+TMultiRegressionMetric = _catboost.TMultiRegressionMetric
 
 
 from contextlib import contextmanager  # noqa E402
@@ -95,7 +96,20 @@ INTEGER_TYPES = (integer_types, np.integer)
 FLOAT_TYPES = (float, np.floating)
 STRING_TYPES = (string_types,)
 ARRAY_TYPES = (list, np.ndarray, DataFrame, Series)
+"""
+class TMultiRegressionMetric(ABC):
+    @abstractmethod
+    def evaluate(self):
+        pass
 
+    @abstractmethod
+    def is_max_optimal(self):
+        pass
+    
+    @abstractmethod
+    def get_final_error(self, error, weight):
+        pass
+"""
 
 @contextmanager
 def log_fixup():

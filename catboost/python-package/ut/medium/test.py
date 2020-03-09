@@ -11,6 +11,7 @@ import sys
 import tempfile
 import json
 from catboost import (
+    TMultiRegressionMetric,
     CatBoost,
     CatBoostClassifier,
     CatBoostRegressor,
@@ -263,6 +264,57 @@ def load_simple_dataset_as_lists(is_test):
 
 
 # Test cases begin here ########################################################
+
+@pytest.mark.parametrize('niter', [100, 500])
+def test_multiregression_custom_eval(niter, n=10):
+    class MultiRMSE(TMultiRegressionMetric):
+        def get_final_error(self, error, weight):
+            if (weight == 0):
+                return 0
+            else:
+                return (error / weight) ** 0.5
+
+        def is_max_optimal(self):
+            return False
+
+        def evaluate(self, approxes, target, weight):
+            assert len(target) == len(approxes)
+            assert len(target[0]) == len(approxes[0])
+
+            error_sum = 0.0
+            weight_sum = 0.0
+
+            for dim in xrange(len(target)):
+                for i in xrange(len(target[0])):
+                    w = 1.0 if weight is None else weight[i]
+                    error_sum += w * (approxes[dim][i] - target[dim][i]) ** 2
+
+            for i in xrange(len(target[0])):
+                weight_sum += 1.0 if weight is None else weight[i]
+
+            return error_sum, weight_sum
+
+    xs = np.arange(n).reshape((-1, 1)).astype(np.float32)
+    ys = np.hstack([
+        (xs > 0.5 * n),
+        (xs < 0.5 * n)
+    ]).astype(np.float32)
+
+    train_pool = Pool(data=xs,
+                      label=ys)
+
+    test_pool = Pool(data=xs,
+                     label=ys)
+
+    model = CatBoostRegressor(loss_function='MultiRMSE', iterations=niter, use_best_model=True, eval_metric=MultiRMSE())
+    model.fit(train_pool, eval_set=test_pool)
+    pred1 = model.predict(test_pool)
+
+    model2 = CatBoostRegressor(loss_function='MultiRMSE', iterations=niter, use_best_model=True, eval_metric="MultiRMSE")
+    model2.fit(train_pool, eval_set=test_pool)
+    pred2 = model2.predict(test_pool)
+
+    assert np.all(pred1 == pred2)
 
 
 @pytest.mark.parametrize('niter', [100, 500])

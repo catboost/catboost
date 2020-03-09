@@ -3,7 +3,6 @@
 #include "metric_holder.h"
 #include "caching_metric.h"
 #include "pfound.h"
-#include "enums.h"
 
 #include <catboost/private/libs/data_types/pair.h>
 #include <catboost/private/libs/data_types/query.h>
@@ -86,15 +85,31 @@ struct TCustomMetricDescriptor {
         int begin,
         int end,
         void* customData);
+
+    using TEvalMultiregressionFuncPtr = TMetricHolder (*)(
+        TConstArrayRef<TVector<double>> approx,
+        TConstArrayRef<TConstArrayRef<float>> target,
+        TConstArrayRef<float> weight,
+        int begin,
+        int end,
+        void* customData);
+
     using TGetDescriptionFuncPtr = TString (*)(void* customData);
     using TIsMaxOptimalFuncPtr = bool (*)(void* customData);
     using TGetFinalErrorFuncPtr = double (*)(const TMetricHolder& error, void* customData);
 
     void* CustomData = nullptr;
-    TEvalFuncPtr EvalFunc = nullptr;
+    TMaybe<TEvalFuncPtr> EvalFunc;
+    TMaybe<TEvalMultiregressionFuncPtr> EvalMultiregressionFunc;
     TGetDescriptionFuncPtr GetDescriptionFunc = nullptr;
     TIsMaxOptimalFuncPtr IsMaxOptimalFunc = nullptr;
     TGetFinalErrorFuncPtr GetFinalErrorFunc = nullptr;
+
+    bool IsMultiregressionMetric() const {
+        CB_ENSURE(EvalFunc.Defined() || EvalMultiregressionFunc.Defined(), "Any custom eval function must be defined");
+        CB_ENSURE(EvalFunc.Empty() || EvalMultiregressionFunc.Empty(), "Only one custom eval function must be defined");
+        return EvalMultiregressionFunc.Defined();
+    }
 };
 
 struct IMetric {
@@ -362,7 +377,7 @@ THolder<IMetric> MakeMultiClassWKappaMetric(int classCount = 2);
 THolder<IMetric> MakeBinClassF1Metric(double border = GetDefaultTargetBorder());
 THolder<IMetric> MakeMultiClassF1Metric(int classesCount, int positiveClass);
 
-THolder<IMetric> MakeTotalF1Metric(int classesCount = 2, EF1AverageType averageType = EF1AverageType::Weighted);
+THolder<IMetric> MakeTotalF1Metric(int classesCount = 2);
 
 THolder<IMetric> MakeMCCMetric(int classesCount = 2);
 
