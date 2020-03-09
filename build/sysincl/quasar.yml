@@ -1,10 +1,10 @@
-- source_filter: "^quasar/yandex_io/daemons/external_libs/boost/include/boost/asio/detail"
+- source_filter: "^yandex_io/external_libs/boost/include/boost/asio/detail"
   includes:
   - atomic.h
-- source_filter: "^quasar/yandex_io/daemons/external_libs/websocketpp/include/asio/detail"
+- source_filter: "^yandex_io/external_libs/websocketpp/include/asio/detail"
   includes:
   - atomic.h
-- source_filter: "^quasar/yandex_io/daemons/external_libs/boost/include/boost"
+- source_filter: "^yandex_io/external_libs/boost/include/boost"
   includes:
   - ../include/fenv.h
   - _cygwin.h
@@ -18,33 +18,33 @@
   - tickLib.h
   - type_traits.h
   - version.h
-- source_filter: "^quasar/yandex_io/daemons/external_libs/jsoncpp/include"
+- source_filter: "^yandex_io/external_libs/jsoncpp/include"
   includes:
   - cpptl/config.h
   - cpptl/cpptl_autolink.h
   - cpptl/smallmap.h
   - cpptl/forwards.h
-- source_filter: "^quasar/yandex_io/daemons/external_libs/protobuf/include/google/protobuf/stubs"
+- source_filter: "^yandex_io/external_libs/protobuf/include/google/protobuf/stubs"
   includes:
   - atomic.h
-- source_filter: "^quasar/yandex_io/daemons/external_libs/websocketpp/include"
+- source_filter: "^yandex_io/external_libs/websocketpp/include"
   includes:
   - mingw-threads/mingw.thread.h
   - mingw-threads/mingw.mutex.h
   - mingw-threads/mingw.condition_variable.h
-- source_filter: "^quasar/yandex_io/daemons/src/wifid/wpa_supplicant/"
+- source_filter: "^yandex_io/src/wifid/wpa_supplicant/"
   includes:
   - private/android_filesystem_config.h
   - cutils/sockets.h
   - cutils/properties.h
   - sys/capability.h
-- source_filter: "^quasar/yandex_io/daemons/external_libs/breakpad/include/third_party/lss"
+- source_filter: "^yandex_io/external_libs/breakpad/include/third_party/lss"
   includes:
   - asm/sgidefs.h
-- source_filter: "^quasar/yandex_io/daemons/external_libs/libsrtp/"
+- source_filter: "^yandex_io/external_libs/libsrtp/"
   includes:
-  - alloc.h: quasar/yandex_io/daemons/external_libs/libsrtp/crypto/include/alloc.h
-  - err.h: quasar/yandex_io/daemons/external_libs/libsrtp/crypto/include/err.h
-- source_filter: "^quasar/yandex_io/daemons/external_libs/usrsctp/"
+  - alloc.h: yandex_io/external_libs/libsrtp/crypto/include/alloc.h
+  - err.h: yandex_io/external_libs/libsrtp/crypto/include/err.h
+- source_filter: "^yandex_io/external_libs/usrsctp/"
   includes:
-  - netinet/sctp_uio.h: "quasar/yandex_io/daemons/external_libs/usrsctp/usrsctplib/netinet/sctp_uio.h"
+  - netinet/sctp_uio.h: "yandex_io/external_libs/usrsctp/usrsctplib/netinet/sctp_uio.h"

@@ -93,8 +93,8 @@ ALLOW orgvisits/heuristics -> contrib/libs/boost
 ALLOW orgvisits/heuristics -> contrib/deprecated/boost
 ALLOW orgvisits/library/soc -> contrib/libs/boost
 ALLOW orgvisits/library/soc -> contrib/deprecated/boost
-ALLOW quasar/yandex_io -> contrib/libs/boost
-ALLOW quasar/yandex_io -> contrib/deprecated/boost
+ALLOW yandex_io -> contrib/libs/boost
+ALLOW yandex_io -> contrib/deprecated/boost
 ALLOW quasar/backend -> contrib/libs/boost
 ALLOW quasar/backend -> contrib/deprecated/boost
 ALLOW regulargeo/research -> contrib/libs/boost
