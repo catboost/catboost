@@ -173,7 +173,8 @@ namespace NCB {
             srcData->RawTargetData,
             GetMetricDescriptions(*params),
             /*knownModelApproxDimension*/ Nothing(),
-            inputClassificationInfo
+            inputClassificationInfo,
+            dataProcessingOptions.AutoClassWeights.Get()
         );
 
         CB_ENSURE(!isLearnData || srcData->RawTargetData.GetObjectCount() > 0, "Train dataset is empty");

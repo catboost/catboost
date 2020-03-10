@@ -428,6 +428,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "gpu_cat_features_storage", &dataProcessingOptions, &seenKeys);
     CopyOption(plainOptions, "dev_leafwise_scoring", &dataProcessingOptions, &seenKeys);
     CopyOption(plainOptions, "dev_group_features", &dataProcessingOptions, &seenKeys);
+    CopyOption(plainOptions, "auto_class_weights", &dataProcessingOptions, &seenKeys);
 
     auto& floatFeaturesBinarization = dataProcessingOptions["float_features_binarization"];
     floatFeaturesBinarization.SetType(NJson::JSON_MAP);

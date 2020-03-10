@@ -118,11 +118,31 @@ namespace NCB {
         }
     }
 
+    static TVector<float> CalculateClassWeights(TConstArrayRef<float> targetClasses, ui32 classCount) {
+        Y_VERIFY(classCount > 0);
+        TVector<ui64> numClassItems(classCount, 0ll);
+
+        for (const auto& target : targetClasses) {
+            ++numClassItems[static_cast<size_t>(target)];
+        }
+
+        TVector<float> classWeights;
+        classWeights.reserve(classCount);
+
+        const auto maxClassSize = static_cast<float>(*MaxElement(numClassItems.begin(), numClassItems.end()));
+        for (const auto& classSize : numClassItems) {
+            classWeights.emplace_back(classSize > 0 ? maxClassSize / classSize : 1.f);
+        }
+
+        return classWeights;
+    }
+
     TSharedWeights<float> MakeClassificationWeights(
         const TWeights<float>& rawWeights,
         const TWeights<float>& rawGroupWeights,
         ui32 classCount,
         bool isForGpu,
+        bool calculateClassWeights,
 
         // [objectIdx], should contain integer values, can be empty
         TMaybe<TConstArrayRef<float>> targetClasses,
@@ -131,6 +151,13 @@ namespace NCB {
     {
         CheckDataSize(classWeights.size(), (size_t)classCount, "class weights size", true, "class count");
         Y_VERIFY(!targetClasses || ((size_t)rawWeights.GetSize() == targetClasses->size()));
+
+        TVector<float> autoClassWeights;
+        if (targetClasses && calculateClassWeights) {
+            CB_ENSURE(classWeights.empty(), "Automatic class weights calculation has been specified but class weights also determined");
+            autoClassWeights = CalculateClassWeights(*targetClasses, classCount);
+            classWeights = autoClassWeights;
+        }
 
         if (classWeights.empty() && rawGroupWeights.IsTrivial()) {
             if (isForGpu && rawWeights.IsTrivial()) {
@@ -320,7 +347,8 @@ namespace NCB {
         const TRawTargetDataProvider& rawData,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
         TMaybe<ui32> knownModelApproxDimension,
-        const TInputClassificationInfo& inputClassificationInfo
+        const TInputClassificationInfo& inputClassificationInfo,
+        bool autoClassWeights
     ) {
         CB_ENSURE(!metricDescriptions.empty(), "No metrics specified");
 
@@ -357,6 +385,8 @@ namespace NCB {
             (inputClassificationInfo.ClassWeights.size() > 0) ||
             (inputClassificationInfo.ClassLabels.size() > 0)
         );
+
+        bool calculateClassWeights = classTargetData && autoClassWeights;
         bool multiClassTargetData = false;
 
         if (knownModelApproxDimension) {
@@ -422,7 +452,8 @@ namespace NCB {
                 || (!rawData.GetObjectsGrouping()->IsTrivial() && hasUserDefinedMetrics)
             ),
             /*CreatePairs*/ isAnyOfMetrics(IsPairwiseMetric),
-            /*MaxPairsCount*/ maxPairsCount
+            /*CalculateClassWeights*/ calculateClassWeights,
+            /*MaxPairsCount*/ maxPairsCount,
         };
         return options;
     }
@@ -605,7 +636,7 @@ namespace NCB {
 
         // Weights
         {
-            if (createClassTarget && !inputClassificationInfo.ClassWeights.empty()) {
+            if (createClassTarget && (!inputClassificationInfo.ClassWeights.empty() || targetCreationOptions.CalculateClassWeights)) {
                 processedTargetData.Weights.emplace(
                     "",
                     MakeClassificationWeights(
@@ -613,6 +644,7 @@ namespace NCB {
                         rawData.GetGroupWeights(),
                         targetCreationOptions.CreateMultiClassTarget ? classCount : ui32(2),
                         isForGpu,
+                        targetCreationOptions.CalculateClassWeights,
                         !maybeConvertedTarget.empty() ? TMaybe<TConstArrayRef<float>>(*maybeConvertedTarget[0]) : Nothing(),
                         rawData.GetTarget() ? inputClassificationInfo.ClassWeights : TConstArrayRef<float>(),
                         localExecutor
@@ -710,7 +742,8 @@ namespace NCB {
         const NJson::TJsonValue& param,
         TVector<float>* classWeights,
         TVector<NJson::TJsonValue>* classLabels,
-        TMaybe<ui32>* classCount
+        TMaybe<ui32>* classCount,
+        bool* autoClassWeights
     ) {
         if (param.Has("class_weights")) {
             classWeights->clear();
@@ -727,6 +760,10 @@ namespace NCB {
             if (classesCountValue) { // compatibility with existing saved data
                 classCount->ConstructInPlace(classesCountValue);
             }
+        }
+        if (param.Has("auto_class_weights")) {
+            const bool autoClassWeightsValue = param["auto_class_weights"].GetBooleanSafe();
+            *autoClassWeights = autoClassWeightsValue;
         }
     }
 
@@ -772,8 +809,9 @@ namespace NCB {
         TVector<float> classWeights;
         TVector<NJson::TJsonValue> classLabels;
         TMaybe<ui32> classCount = Nothing();
-        TMaybe<NCatboostOptions::TLossDescription> modelLossDescription;
+        bool autoClassWeights = false;
 
+        TMaybe<NCatboostOptions::TLossDescription> modelLossDescription;
         if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, "params")) {
             NJson::TJsonValue paramsJson = ReadTJsonValue(*modelInfoParams);
 
@@ -782,7 +820,8 @@ namespace NCB {
                     paramsJson["data_processing_options"],
                     &classWeights,
                     &classLabels,
-                    &classCount);
+                    &classCount,
+                    &autoClassWeights);
             }
 
             if (paramsJson.Has("loss_function")) {
@@ -881,7 +920,8 @@ namespace NCB {
             srcData.RawTargetData,
             updatedMetricsDescriptions,
             model.GetDimensionsCount(),
-            inputClassificationInfo
+            inputClassificationInfo,
+            autoClassWeights
         );
         result.TargetData = CreateTargetDataProvider(
             srcData.RawTargetData,
@@ -950,6 +990,7 @@ namespace NCB {
         TVector<float> classWeights;
         TVector<NJson::TJsonValue> classLabels;
         TMaybe<ui32> classCount = Nothing();
+        bool autoClassWeights;
 
         if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, ParamsJsonKey)) {
             NJson::TJsonValue paramsJson = ReadTJsonValue(*modelInfoParams);
@@ -958,7 +999,8 @@ namespace NCB {
                     paramsJson[DataProcessingOptionsJsonKey],
                     &classWeights,
                     &classLabels,
-                    &classCount);
+                    &classCount,
+                    &autoClassWeights);
 
                 if (classLabels.empty() && !classCount) {
                     if (paramsJson[DataProcessingOptionsJsonKey].Has(TargetBorderJsonKey)) {
@@ -1027,7 +1069,8 @@ namespace NCB {
             srcData.RawTargetData,
             metricsDescriptions,
             model.GetDimensionsCount(),
-            inputClassificationInfo
+            inputClassificationInfo,
+            autoClassWeights
         );
         result.TargetData = CreateTargetDataProvider(
             srcData.RawTargetData,

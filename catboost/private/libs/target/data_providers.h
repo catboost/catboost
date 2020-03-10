@@ -22,6 +22,7 @@ namespace NCB {
         bool CreateMultiClassTarget;
         bool CreateGroups;
         bool CreatePairs;
+        bool CalculateClassWeights;
         TMaybe<ui32> MaxPairsCount;
     };
 
@@ -53,7 +54,8 @@ namespace NCB {
         const TRawTargetDataProvider &rawData,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
         TMaybe<ui32> knownModelApproxDimension,
-        const TInputClassificationInfo& inputClassificationInfo);
+        const TInputClassificationInfo& inputClassificationInfo,
+        bool autoClassWeights);
 
     void CheckTargetConsistency(
         TTargetDataProviderPtr targetDataProvider,
