@@ -1,6 +1,7 @@
 #include "classification_utils.h"
 #include "metric_holder.h"
 
+#include <catboost/libs/helpers/math_utils.h>
 #include <util/generic/array_ref.h>
 #include <util/generic/ymath.h>
 
@@ -10,9 +11,11 @@ TMetricHolder CalcBalancedAccuracyMetric(TConstArrayRef<TVector<double>> approx,
                                          int begin,
                                          int end,
                                          int positiveClass,
-                                         double border) {
+                                         double targetBorder,
+                                         double predictionBorder) {
     // Stats[0] == truePositive, Stats[1] == targetPositive, Stats[2] == trueNegative, Stats[3] == targetNegative
     TMetricHolder metric(4);
+    const double predictionBorderLogit = NCB::Logit(predictionBorder);
 
     double approxPositive;
     GetPositiveStats(
@@ -22,13 +25,15 @@ TMetricHolder CalcBalancedAccuracyMetric(TConstArrayRef<TVector<double>> approx,
             begin,
             end,
             positiveClass,
-            border,
+            targetBorder,
+            predictionBorderLogit,
             &metric.Stats[0],
             &metric.Stats[1],
             &approxPositive
     );
 
-    GetSpecificity(approx, target, weight, begin, end, positiveClass, border, &metric.Stats[2], &metric.Stats[3]);
+    GetSpecificity(approx, target, weight, begin, end, positiveClass, targetBorder,
+            predictionBorderLogit, &metric.Stats[2], &metric.Stats[3]);
 
     return metric;
 }

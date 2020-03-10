@@ -5,6 +5,7 @@
 #include "enums.h"
 
 #include <catboost/libs/helpers/dispatch_generic_lambda.h>
+#include <catboost/libs/helpers/math_utils.h>
 #include <catboost/private/libs/options/data_processing_options.h>
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <util/generic/string.h>
@@ -109,16 +110,18 @@ static TMetricHolder BuildConfusionMatrix(
     TConstArrayRef<float> weight,
     int begin,
     int end,
-    double border
+    double targetBorder,
+    double predictionBorder = 0.5
 ) {
     const bool isMultiClass = approx.size() > 1;
     const int classesCount = isMultiClass ? approx.size() : BinaryClassesCount;
+    const double predictionLogitBorder = NCB::Logit(predictionBorder);
 
     const auto buildImpl = [&](auto useWeights, auto isMultiClass) {
         TMetricHolder confusionMatrix(classesCount * classesCount);
         for (int idx = begin; idx < end; ++idx) {
-            int approxClass = GetApproxClass(approx, idx);
-            int targetClass = isMultiClass ? static_cast<int>(target[idx]) : target[idx] > border;
+            int approxClass = GetApproxClass(approx, idx, predictionLogitBorder);
+            int targetClass = isMultiClass ? static_cast<int>(target[idx]) : target[idx] > targetBorder;
             float w = useWeights ? weight[idx] : 1;
 
             Y_ASSERT(targetClass >= 0 && targetClass < classesCount);
@@ -139,8 +142,8 @@ namespace {
             : ClassesCount(classesCount)
             , IsMultiClass(true) {
         }
-        explicit TMCCCachingMetric(double border)
-            : Border(border)
+        explicit TMCCCachingMetric(double targetBorder, double predictionBorder)
+            : TargetBorder(targetBorder), PredictionBorder(predictionBorder)
             , IsMultiClass(false) {
         }
         TMetricHolder Eval(
@@ -162,9 +165,10 @@ namespace {
         }
 
     private:
-        int ClassesCount = BinaryClassesCount;
-        double Border = 0.0;
-        bool IsMultiClass = false;
+        const int ClassesCount = BinaryClassesCount;
+        const double TargetBorder = 0.0;
+        const double PredictionBorder = GetDefaultPredictionBorder();
+        const bool IsMultiClass = false;
     };
 }
 
@@ -187,9 +191,11 @@ TMetricHolder TMCCCachingMetric::Eval(
     Y_ASSERT(approxDelta.empty());
 
     const auto MakeMatrix = [&]() {
-        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end, Border);
+        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end,
+                TargetBorder, PredictionBorder);
     };
-    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), Border);
+    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights),
+            TargetBorder, PredictionBorder);
 
     return confusionMatrix;
 }
@@ -228,7 +234,8 @@ TString TMCCCachingMetric::GetDescription() const {
     if (true || IsMultiClass) {
         return BuildDescription(ELossFunction::MCC, UseWeights);
     } else {
-        return BuildDescription(ELossFunction::MCC, UseWeights, "%.3g", MakeBorderParam(Border));
+        return BuildDescription(ELossFunction::MCC, UseWeights, "%.3g", MakeTargetBorderParam(TargetBorder),
+                MakePredictionBorderParam(PredictionBorder));
     }
 }
 
@@ -244,8 +251,9 @@ namespace {
             : ClassesCount(classesCount)
             , IsMultiClass(true) {
         }
-        explicit TZeroOneLossCachingMetric(double border)
-            : Border(border)
+        explicit TZeroOneLossCachingMetric(double targetBorder, double predictionBorder)
+            : TargetBorder(targetBorder)
+            , PredictionBorder(predictionBorder)
             , IsMultiClass(false) {
         }
         TMetricHolder Eval(
@@ -267,9 +275,10 @@ namespace {
         }
 
     private:
-        int ClassesCount = BinaryClassesCount;
-        double Border = GetDefaultTargetBorder();
-        bool IsMultiClass = false;
+        const int ClassesCount = BinaryClassesCount;
+        const double TargetBorder = GetDefaultTargetBorder();
+        const double PredictionBorder = GetDefaultPredictionBorder();
+        const bool IsMultiClass = false;
     };
 }
 
@@ -288,9 +297,11 @@ TMetricHolder TZeroOneLossCachingMetric::Eval(
     Y_ASSERT(approxDelta.empty());
 
     const auto MakeMatrix = [&]() {
-        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end, Border);
+        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end,
+                TargetBorder, PredictionBorder);
     };
-    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), Border);
+    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights),
+            TargetBorder, PredictionBorder);
 
     const auto getStats = [&](int i, int j) { return confusionMatrix.Stats[i * ClassesCount + j]; };
     TMetricHolder error(2);
@@ -311,7 +322,8 @@ TString TZeroOneLossCachingMetric::GetDescription() const {
     if (IsMultiClass) {
         return BuildDescription(ELossFunction::ZeroOneLoss, UseWeights);
     } else {
-        return BuildDescription(ELossFunction::ZeroOneLoss, UseWeights, "%.3g", MakeBorderParam(Border));
+        return BuildDescription(ELossFunction::ZeroOneLoss, UseWeights, "%.3g", MakeTargetBorderParam(TargetBorder),
+                                MakePredictionBorderParam(PredictionBorder));
     }
 }
 
@@ -319,8 +331,8 @@ void TZeroOneLossCachingMetric::GetBestValue(EMetricBestValue *valueType, float 
     *valueType = EMetricBestValue::Min;
 }
 
-THolder<IMetric> MakeZeroOneLossMetric(double border) {
-    return MakeHolder<TZeroOneLossCachingMetric>(border);
+THolder<IMetric> MakeZeroOneLossMetric(double targetBorder, double predictionBorder) {
+    return MakeHolder<TZeroOneLossCachingMetric>(targetBorder, predictionBorder);
 }
 
 THolder<IMetric> MakeZeroOneLossMetric(int classCount) {
@@ -331,8 +343,9 @@ THolder<IMetric> MakeZeroOneLossMetric(int classCount) {
 
 namespace {
     struct TAccuracyCachingMetric : public TCachingMetric {
-        explicit TAccuracyCachingMetric(double border)
-            : Border(border)
+        explicit TAccuracyCachingMetric(double targetBorder, double predictionBorder)
+            : TargetBorder(targetBorder)
+            , PredictionBorder(predictionBorder)
             , IsMultiClass(false) {
         }
         explicit TAccuracyCachingMetric(int classesCount)
@@ -359,9 +372,10 @@ namespace {
         }
 
     private:
-        double Border = GetDefaultTargetBorder();
-        int ClassesCount = BinaryClassesCount;
-        bool IsMultiClass = false;
+        const double TargetBorder = GetDefaultTargetBorder();
+        const double PredictionBorder = GetDefaultPredictionBorder();
+        const int ClassesCount = BinaryClassesCount;
+        const bool IsMultiClass = false;
     };
 }
 
@@ -380,9 +394,11 @@ TMetricHolder TAccuracyCachingMetric::Eval(
     Y_ASSERT(approxDelta.empty());
 
     const auto MakeMatrix = [&]() {
-        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end, Border);
+        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end,
+                TargetBorder, PredictionBorder);
     };
-    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), Border);
+    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights),
+            TargetBorder, PredictionBorder);
 
     const auto getStats = [&](int i, int j) { return confusionMatrix.Stats[i * ClassesCount + j]; };
     TMetricHolder error(2);
@@ -399,7 +415,8 @@ TString TAccuracyCachingMetric::GetDescription() const {
     if (IsMultiClass) {
         return BuildDescription(ELossFunction::Accuracy, UseWeights);
     } else {
-        return BuildDescription(ELossFunction::Accuracy, UseWeights, "%.3g", MakeBorderParam(Border));
+        return BuildDescription(ELossFunction::Accuracy, UseWeights, "%.3g", MakeTargetBorderParam(TargetBorder),
+                                MakePredictionBorderParam(PredictionBorder));
     }
 }
 
@@ -411,9 +428,10 @@ void TAccuracyCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) c
 
 namespace {
     struct TRecallCachingMetric: public TCachingMetric {
-        explicit TRecallCachingMetric(double border)
+        explicit TRecallCachingMetric(double targetBorder, double predictionBorder)
             : ClassesCount(BinaryClassesCount)
-            , Border(border)
+            , TargetBorder(targetBorder)
+            , PredictionBorder(predictionBorder)
             , IsMultiClass(false) {
         }
 
@@ -443,15 +461,16 @@ namespace {
         }
 
     private:
-        int ClassesCount = BinaryClassesCount;
-        int PositiveClass = 1;
-        double Border = GetDefaultTargetBorder();
-        bool IsMultiClass = false;
+        const int ClassesCount = BinaryClassesCount;
+        const int PositiveClass = 1;
+        const double TargetBorder = GetDefaultTargetBorder();
+        const double PredictionBorder = GetDefaultPredictionBorder();
+        const bool IsMultiClass = false;
     };
 }
 
-THolder<IMetric> MakeBinClassRecallMetric(double border) {
-    return MakeHolder<TRecallCachingMetric>(border);
+THolder<IMetric> MakeBinClassRecallMetric(double targetBorder, double predictionBorder) {
+    return MakeHolder<TRecallCachingMetric>(targetBorder, predictionBorder);
 }
 
 THolder<IMetric> MakeMultiClassRecallMetric(int classesCount, int positiveClass) {
@@ -473,9 +492,10 @@ TMetricHolder TRecallCachingMetric::Eval(
     Y_ASSERT(approxDelta.empty());
 
     const auto MakeMatrix = [&]() {
-        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end, Border);
+        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end,
+                TargetBorder, PredictionBorder);
     };
-    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), Border);
+    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), TargetBorder, PredictionBorder);
 
     const auto getStats = [&](int i, int j) { return confusionMatrix.Stats[i * ClassesCount + j]; };
     TMetricHolder error(2);
@@ -491,7 +511,8 @@ TString TRecallCachingMetric::GetDescription() const {
         const TMetricParam<int> positiveClass("class", PositiveClass, /*userDefined*/true);
         return BuildDescription(ELossFunction::Recall, UseWeights, positiveClass);
     } else {
-        return BuildDescription(ELossFunction::Recall, UseWeights, "%.3g", MakeBorderParam(Border));
+        return BuildDescription(ELossFunction::Recall, UseWeights, "%.3g", MakeTargetBorderParam(TargetBorder),
+                                MakePredictionBorderParam(PredictionBorder));
     }
 }
 
@@ -507,9 +528,10 @@ void TRecallCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) con
 
 namespace {
     struct TPrecisionCachingMetric: public TCachingMetric {
-        explicit TPrecisionCachingMetric(double border)
+        explicit TPrecisionCachingMetric(double targetBorder, double predictionBorder)
             : ClassesCount(BinaryClassesCount)
-            , Border(border)
+            , TargetBorder(targetBorder)
+            , PredictionBorder(predictionBorder)
             , IsMultiClass(false) {
         }
 
@@ -539,15 +561,16 @@ namespace {
         }
 
     private:
-        int ClassesCount = BinaryClassesCount;
-        int PositiveClass = 1;
-        double Border = GetDefaultTargetBorder();
-        bool IsMultiClass = false;
+        const int ClassesCount = BinaryClassesCount;
+        const int PositiveClass = 1;
+        const double TargetBorder = GetDefaultTargetBorder();
+        const double PredictionBorder = GetDefaultPredictionBorder();
+        const bool IsMultiClass = false;
     };
 }
 
-THolder<IMetric> MakeBinClassPrecisionMetric(double border) {
-    return MakeHolder<TPrecisionCachingMetric>(border);
+THolder<IMetric> MakeBinClassPrecisionMetric(double targetBorder, double predictionBorder) {
+    return MakeHolder<TPrecisionCachingMetric>(targetBorder, predictionBorder);
 }
 
 THolder<IMetric> MakeMultiClassPrecisionMetric(int classesCount, int positiveClass) {
@@ -569,9 +592,10 @@ TMetricHolder TPrecisionCachingMetric::Eval(
     Y_ASSERT(approxDelta.empty());
 
     const auto MakeMatrix = [&]() {
-        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end, Border);
+        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end,
+                TargetBorder, PredictionBorder);
     };
-    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), Border);
+    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), TargetBorder, PredictionBorder);
 
     const auto getStats = [&](int i, int j) { return confusionMatrix.Stats[i * ClassesCount + j]; };
     TMetricHolder error(2);
@@ -587,7 +611,8 @@ TString TPrecisionCachingMetric::GetDescription() const {
         const TMetricParam<int> positiveClass("class", PositiveClass, /*userDefined*/true);
         return BuildDescription(ELossFunction::Precision, UseWeights, positiveClass);
     } else {
-        return BuildDescription(ELossFunction::Precision, UseWeights, "%.3g", MakeBorderParam(Border));
+        return BuildDescription(ELossFunction::Precision, UseWeights, "%.3g", MakeTargetBorderParam(TargetBorder),
+                                MakePredictionBorderParam(PredictionBorder));
     }
 }
 
@@ -603,9 +628,10 @@ void TPrecisionCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) 
 
 namespace {
     struct TF1CachingMetric: public TCachingMetric {
-        explicit TF1CachingMetric(double border)
+        explicit TF1CachingMetric(double targetBorder, double predictionBorder)
             : ClassesCount(BinaryClassesCount)
-            , Border(border)
+            , TargetBorder(targetBorder)
+            , PredictionBorder(predictionBorder)
             , IsMultiClass(false) {
         }
 
@@ -636,15 +662,16 @@ namespace {
         }
 
     private:
-        int ClassesCount = BinaryClassesCount;
-        int PositiveClass = 1;
-        double Border = GetDefaultTargetBorder();
-        bool IsMultiClass = false;
+        const int ClassesCount = BinaryClassesCount;
+        const int PositiveClass = 1;
+        const double TargetBorder = GetDefaultTargetBorder();
+        const double PredictionBorder = GetDefaultPredictionBorder();
+        const bool IsMultiClass = false;
     };
 }
 
-THolder<IMetric> MakeBinClassF1Metric(double border) {
-    return MakeHolder<TF1CachingMetric>(border);
+THolder<IMetric> MakeBinClassF1Metric(double targetBorder, double predictionBorder) {
+    return MakeHolder<TF1CachingMetric>(targetBorder, predictionBorder);
 }
 
 THolder<IMetric> MakeMultiClassF1Metric(int classesCount, int positiveClass) {
@@ -666,9 +693,10 @@ TMetricHolder TF1CachingMetric::Eval(
     Y_ASSERT(approxDelta.empty());
 
     const auto MakeMatrix = [&]() {
-        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end, Border);
+        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end,
+                TargetBorder, PredictionBorder);
     };
-    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), Border);
+    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), TargetBorder, PredictionBorder);
 
     const auto getStats = [&](int i, int j) { return confusionMatrix.Stats[i * ClassesCount + j]; };
     TMetricHolder error(3);
@@ -689,7 +717,8 @@ TString TF1CachingMetric::GetDescription() const {
         const TMetricParam<int> positiveClass("class", PositiveClass, /*userDefined*/true);
         return BuildDescription(ELossFunction::F1, UseWeights, positiveClass);
     } else {
-        return BuildDescription(ELossFunction::F1, UseWeights, "%.3g", MakeBorderParam(Border));
+        return BuildDescription(ELossFunction::F1, UseWeights, "%.3g", MakeTargetBorderParam(TargetBorder),
+                                MakePredictionBorderParam(PredictionBorder));
     }
 }
 
@@ -709,9 +738,9 @@ namespace {
     struct TTotalF1CachingMetric: public TCachingMetric {
         static constexpr int StatsCardinality = 3;
 
-        explicit TTotalF1CachingMetric(double border, EF1AverageType averageType)
+        explicit TTotalF1CachingMetric(double targetBorder, EF1AverageType averageType)
             : ClassesCount(BinaryClassesCount)
-            , Border(border)
+            , TargetBorder(targetBorder)
             , IsMultiClass(false)
             , AverageType(averageType) {
         }
@@ -744,7 +773,7 @@ namespace {
 
     private:
         int ClassesCount = BinaryClassesCount;
-        double Border = 0.0;
+        double TargetBorder = 0.0;
         bool IsMultiClass = false;
         EF1AverageType AverageType;
     };
@@ -769,9 +798,9 @@ TMetricHolder TTotalF1CachingMetric::Eval(
     Y_ASSERT(approxDelta.empty());
 
     const auto MakeMatrix = [&]() {
-        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end, Border);
+        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end, TargetBorder);
     };
-    auto confusionMatrix = cache.Empty() || 1 ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), Border);
+    auto confusionMatrix = cache.Empty() || 1 ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), TargetBorder);
 
     const auto getStats = [&](int i, int j) { return confusionMatrix.Stats[i * ClassesCount + j]; };
     TVector<double> classTruePositive(ClassesCount);
@@ -810,7 +839,7 @@ TString TTotalF1CachingMetric::GetDescription() const {
     if (true || IsMultiClass) {
         return BuildDescription(ELossFunction::TotalF1, UseWeights);
     } else {
-        return BuildDescription(ELossFunction::TotalF1, UseWeights, "%.3g", MakeBorderParam(Border));
+        return BuildDescription(ELossFunction::TotalF1, UseWeights, "%.3g", MakeTargetBorderParam(TargetBorder));
     }
 }
 
@@ -943,7 +972,8 @@ template <typename TMetricType>
 static TVector<THolder<IMetric>> CreateMetric(int approxDimension, const TMap<TString, TString>& params) {
     TVector<THolder<IMetric>> result;
     if (approxDimension == 1) {
-        const float border = NCatboostOptions::GetTargetBorderFromLossParams(params).GetOrElse(GetDefaultTargetBorder());
+        const float border = NCatboostOptions::GetPredictionBorderFromLossParams(params).GetOrElse(
+                GetDefaultPredictionBorder());
         result.emplace_back(MakeHolder<TMetricType>(border));
     } else {
         result.emplace_back(MakeHolder<TMetricType>(approxDimension));
@@ -955,8 +985,9 @@ template <typename TMetricType>
 static TVector<THolder<IMetric>> CreateMetricClasswise(int approxDimension, const TMap<TString, TString>& params) {
     TVector<THolder<IMetric>> result;
     if (approxDimension == 1) {
-        const float border = NCatboostOptions::GetTargetBorderFromLossParams(params).GetOrElse(GetDefaultTargetBorder());
-        result.emplace_back(MakeHolder<TMetricType>(border));
+        const float border = NCatboostOptions::GetPredictionBorderFromLossParams(params).GetOrElse(
+                GetDefaultPredictionBorder());
+        result.emplace_back(MakeHolder<TMetricType>(GetDefaultTargetBorder(), border));
     } else {
         for (int i : xrange(approxDimension)) {
             result.emplace_back(MakeHolder<TMetricType>(approxDimension, i));
@@ -971,7 +1002,7 @@ TVector<THolder<IMetric>> CreateCachingMetrics(ELossFunction metric, const TMap<
 
     switch(metric) {
         case ELossFunction::F1: {
-            validParams->insert(NCatboostOptions::TMetricOptions::PROBABILITY_BORDER_PARAM);
+            validParams->insert(NCatboostOptions::TMetricOptions::PREDICTION_BORDER_PARAM);
             return CreateMetricClasswise<TF1CachingMetric>(approxDimension, params);
         }
         case ELossFunction::TotalF1: {
@@ -990,7 +1021,7 @@ TVector<THolder<IMetric>> CreateCachingMetrics(ELossFunction metric, const TMap<
             return result;
         }
         case ELossFunction::MCC: {
-            validParams->insert(NCatboostOptions::TMetricOptions::PROBABILITY_BORDER_PARAM);
+            validParams->insert(NCatboostOptions::TMetricOptions::PREDICTION_BORDER_PARAM);
             return CreateMetric<TMCCCachingMetric>(approxDimension, params);
         }
         case ELossFunction::BrierScore: {
@@ -1000,25 +1031,25 @@ TVector<THolder<IMetric>> CreateCachingMetrics(ELossFunction metric, const TMap<
             return result;
         }
         case ELossFunction::ZeroOneLoss: {
-            validParams->insert(NCatboostOptions::TMetricOptions::PROBABILITY_BORDER_PARAM);
+            validParams->insert(NCatboostOptions::TMetricOptions::PREDICTION_BORDER_PARAM);
             return CreateMetric<TZeroOneLossCachingMetric>(approxDimension, params);
         }
         case ELossFunction::Accuracy: {
-            validParams->insert(NCatboostOptions::TMetricOptions::PROBABILITY_BORDER_PARAM);
+            validParams->insert(NCatboostOptions::TMetricOptions::PREDICTION_BORDER_PARAM);
             return CreateMetric<TAccuracyCachingMetric>(approxDimension, params);
         }
         case ELossFunction::CtrFactor: {
-            validParams->insert(NCatboostOptions::TMetricOptions::PROBABILITY_BORDER_PARAM);
+            validParams->insert(NCatboostOptions::TMetricOptions::PREDICTION_BORDER_PARAM);
             TVector<THolder<IMetric>> result;
             result.emplace_back(MakeCtrFactorMetric(params));
             return result;
         }
         case ELossFunction::Precision: {
-            validParams->insert(NCatboostOptions::TMetricOptions::PROBABILITY_BORDER_PARAM);
+            validParams->insert(NCatboostOptions::TMetricOptions::PREDICTION_BORDER_PARAM);
             return CreateMetricClasswise<TPrecisionCachingMetric>(approxDimension, params);
         }
         case ELossFunction::Recall: {
-            validParams->insert(NCatboostOptions::TMetricOptions::PROBABILITY_BORDER_PARAM);
+            validParams->insert(NCatboostOptions::TMetricOptions::PREDICTION_BORDER_PARAM);
             return CreateMetricClasswise<TRecallCachingMetric>(approxDimension, params);
         }
         default: {

@@ -107,8 +107,8 @@ void NCatboostOptions::TDataProcessingOptions::SetPerFeatureMissingSettingToComm
     }
 }
 
-TMaybe<float> NCatboostOptions::GetTargetBorderFromLossParams(const TMap<TString, TString>& params) {
-    auto it = params.find(TMetricOptions::PROBABILITY_BORDER_PARAM);
+TMaybe<float> NCatboostOptions::GetPredictionBorderFromLossParams(const TMap<TString, TString>& params) {
+    auto it = params.find(TMetricOptions::PREDICTION_BORDER_PARAM);
     if (it == params.end()) {
         return Nothing();
     }
