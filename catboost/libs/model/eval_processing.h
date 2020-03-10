@@ -12,7 +12,6 @@
 
 #include <cmath>
 
-
 inline void CalcSoftmax(const TConstArrayRef<double> approx, TArrayRef<double> softmax) {
     double maxApprox = *MaxElement(approx.begin(), approx.end());
     for (size_t dim = 0; dim < approx.size(); ++dim) {
@@ -23,12 +22,12 @@ inline void CalcSoftmax(const TConstArrayRef<double> approx, TArrayRef<double> s
     for (auto curSoftmax : softmax) {
         sumExpApprox += curSoftmax;
     }
-    for (auto &curSoftmax : softmax) {
+    for (auto& curSoftmax : softmax) {
         curSoftmax /= sumExpApprox;
     }
 }
 
-inline void CalcSoftmax(const TConstArrayRef<double> approx, TVector<double> *softmax) {
+inline void CalcSoftmax(const TConstArrayRef<double> approx, TVector<double>* softmax) {
     CalcSoftmax(approx, *softmax);
 }
 
@@ -49,7 +48,7 @@ inline void CalcLogSoftmax(const TConstArrayRef<double> approx, TArrayRef<double
     }
 }
 
-inline void CalcLogSoftmax(const TConstArrayRef<double> approx, TVector<double> *softmax) {
+inline void CalcLogSoftmax(const TConstArrayRef<double> approx, TVector<double>* softmax) {
     CalcLogSoftmax(approx, *softmax);
 }
 
@@ -73,7 +72,7 @@ inline void CalcSigmoid(const TConstArrayRef<double> approx, TArrayRef<double> t
     Y_ASSERT(approx.size() == target.size());
     InvertSign(approx, target);
     FastExpInplace(target.data(), target.size());
-    for (auto &val : target) {
+    for (auto& val : target) {
         val = 1. / (1. + val);
     }
 }
@@ -94,7 +93,7 @@ inline void CalcLogSigmoid(const TConstArrayRef<double> approx, TArrayRef<double
     Y_ASSERT(approx.size() == target.size());
     InvertSign(approx, target);
     FastExpInplace(target.data(), target.size());
-    for (auto &val : target) {
+    for (auto& val : target) {
         val = -std::log(1. + val);
     }
 }
@@ -167,17 +166,13 @@ namespace NCB::NModelEvaluation {
                 auto blockView = GetResultBlockView(blockId, 1);
                 if (PredictionType == EPredictionType::Probability) {
                     CalcSigmoid(blockView, blockView);
-                } else if (PredictionType == EPredictionType::Poisson) {
-                    for (auto &val : blockView) {
-                        val = exp(val);
-                    }
                 } else {
-                        Y_ASSERT(PredictionType == EPredictionType::Class);
-                        for (auto &val : blockView) {
-                            val = val > BinclassRawValueBorder;
-                        }
+                    Y_ASSERT(PredictionType == EPredictionType::Class);
+                    for (auto& val : blockView) {
+                        val = val > BinclassRawValueBorder;
                     }
-                } else {
+                }
+            } else {
                 if (PredictionType == EPredictionType::Probability) {
                     auto blockView = GetResultBlockView(blockId, ApproxDimension);
                     for (size_t i = 0; i < blockView.size(); i += ApproxDimension) {
@@ -185,26 +180,25 @@ namespace NCB::NModelEvaluation {
                         CalcSoftmax(docView, docView);
                     }
                 } else {
-                        Y_ASSERT(PredictionType == EPredictionType::Class);
-                        auto resultView = GetResultBlockView(blockId, 1);
-                        for (size_t objId = 0; objId < resultView.size(); ++objId) {
-                            auto objRawIterator = IntermediateBlockResults.begin() + objId * ApproxDimension;
-                            resultView[objId] =
-                                    MaxElement(objRawIterator, objRawIterator + ApproxDimension) - objRawIterator;
-                        }
+                    Y_ASSERT(PredictionType == EPredictionType::Class);
+                    auto resultView = GetResultBlockView(blockId, 1);
+                    for (size_t objId = 0; objId < resultView.size(); ++objId) {
+                        auto objRawIterator = IntermediateBlockResults.begin() + objId * ApproxDimension;
+                        resultView[objId] = MaxElement(objRawIterator, objRawIterator + ApproxDimension) - objRawIterator;
                     }
                 }
             }
+        }
 
-            private:
-            TArrayRef<double> Results;
-            EPredictionType PredictionType;
-            TScaleAndBias ScaleAndBias;
-            ui32 ApproxDimension;
-            ui32 BlockSize;
+    private:
+        TArrayRef<double> Results;
+        EPredictionType PredictionType;
+        TScaleAndBias ScaleAndBias;
+        ui32 ApproxDimension;
+        ui32 BlockSize;
 
-            TVector<double> IntermediateBlockResults;
+        TVector<double> IntermediateBlockResults;
 
-            double BinclassRawValueBorder = 0.0;
-        };
-    }
+        double BinclassRawValueBorder = 0.0;
+    };
+}
