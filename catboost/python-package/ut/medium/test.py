@@ -2520,7 +2520,7 @@ def test_grid_search_and_get_best_result(task_type):
             one_hot_max_size_list = [4, 7, 10]
             iterations_list = [5, 7, 10]
             border_count_list = [4, 10, 50, 100]
-            results = model.grid_search(
+            model.grid_search(
                 {
                     'feature_border_type': feature_border_type_list,
                     'one_hot_max_size': one_hot_max_size_list,
