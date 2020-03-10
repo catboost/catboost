@@ -78,567 +78,567 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cgetv0.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\cgetv0.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cnaitr.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\cnaitr.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cnapps.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\cnapps.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cnaup2.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\cnaup2.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cnaupd.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\cnaupd.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cneigh.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\cneigh.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cneupd.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\cneupd.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cngets.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\cngets.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\csortc.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\csortc.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cstatn.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\cstatn.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dgetv0.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dgetv0.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dnaitr.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dnaitr.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dnapps.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dnapps.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dnaup2.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dnaup2.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dnaupd.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dnaupd.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dnconv.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dnconv.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dneigh.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dneigh.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dneupd.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dneupd.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dngets.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dngets.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsaitr.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dsaitr.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsapps.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dsapps.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsaup2.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dsaup2.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsaupd.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dsaupd.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsconv.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dsconv.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dseigt.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dseigt.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsesrt.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dsesrt.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dseupd.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dseupd.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsgets.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dsgets.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsortc.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dsortc.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsortr.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dsortr.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dstatn.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dstatn.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dstats.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dstats.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dstqrb.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dstqrb.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sgetv0.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\sgetv0.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\snaitr.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\snaitr.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\snapps.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\snapps.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\snaup2.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\snaup2.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\snaupd.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\snaupd.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\snconv.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\snconv.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sneigh.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\sneigh.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sneupd.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\sneupd.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sngets.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\sngets.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssaitr.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\ssaitr.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssapps.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\ssapps.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssaup2.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\ssaup2.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssaupd.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\ssaupd.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssconv.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\ssconv.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sseigt.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\sseigt.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssesrt.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\ssesrt.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sseupd.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\sseupd.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssgets.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\ssgets.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssortc.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\ssortc.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssortr.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\ssortr.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sstatn.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\sstatn.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sstats.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\sstats.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sstqrb.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\sstqrb.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\zgetv0.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\zgetv0.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\znaitr.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\znaitr.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\znapps.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\znapps.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\znaup2.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\znaup2.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\znaupd.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\znaupd.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\zneigh.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\zneigh.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\zneupd.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\zneupd.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\zngets.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\zngets.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\zsortc.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\zsortc.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\zstatn.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\zstatn.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\cmout.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\cmout.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\cvout.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\cvout.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\dmout.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\dmout.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\dvout.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\dvout.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\icnteq.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\icnteq.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\icopy.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\icopy.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\iset.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\iset.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\iswap.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\iswap.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\ivout.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\ivout.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\second_NONE.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\second_NONE.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\smout.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\smout.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\svout.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\svout.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\zmout.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\zmout.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\zvout.f.c">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\zvout.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\f2c.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cgetv0.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cgetv0.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cgetv0.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cgetv0.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnaitr.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cnaitr.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnapps.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cnapps.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnaup2.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cnaup2.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnaupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cnaupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cneigh.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cneigh.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cneigh.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cneigh.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cneupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cneupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cneupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cneupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cngets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cngets.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cngets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cngets.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/csortc.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/csortc.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/csortc.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/csortc.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cstatn.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cstatn.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cstatn.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cstatn.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dgetv0.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dgetv0.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dgetv0.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dgetv0.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnaitr.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dnaitr.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnapps.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dnapps.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnaup2.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dnaup2.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnaupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dnaupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnconv.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnconv.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnconv.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dnconv.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dneigh.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dneigh.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dneigh.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dneigh.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dneupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dneupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dneupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dneupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dngets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dngets.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dngets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dngets.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsaitr.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsaitr.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsapps.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsapps.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsaup2.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsaup2.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsaupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsaupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsconv.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsconv.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsconv.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsconv.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dseigt.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dseigt.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dseigt.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dseigt.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsesrt.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsesrt.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsesrt.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsesrt.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dseupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dseupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dseupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dseupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsgets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsgets.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsgets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsgets.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsortc.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsortc.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsortc.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsortc.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsortr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsortr.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsortr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsortr.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dstatn.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dstatn.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dstatn.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dstatn.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dstats.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dstats.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dstats.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dstats.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dstqrb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dstqrb.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dstqrb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dstqrb.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sgetv0.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sgetv0.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sgetv0.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sgetv0.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snaitr.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/snaitr.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snapps.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/snapps.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snaup2.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/snaup2.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snaupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/snaupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snconv.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snconv.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snconv.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/snconv.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sneigh.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sneigh.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sneigh.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sneigh.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sneupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sneupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sneupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sneupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sngets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sngets.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sngets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sngets.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssaitr.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssaitr.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssapps.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssapps.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssaup2.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssaup2.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssaupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssaupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssconv.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssconv.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssconv.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssconv.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sseigt.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sseigt.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sseigt.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sseigt.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssesrt.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssesrt.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssesrt.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssesrt.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sseupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sseupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sseupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sseupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssgets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssgets.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssgets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssgets.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssortc.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssortc.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssortc.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssortc.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssortr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssortr.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssortr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssortr.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sstatn.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sstatn.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sstatn.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sstatn.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sstats.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sstats.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sstats.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sstats.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sstqrb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sstqrb.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sstqrb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sstqrb.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zgetv0.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zgetv0.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zgetv0.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/zgetv0.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znaitr.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/znaitr.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znapps.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/znapps.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znaup2.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/znaup2.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znaupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/znaupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zneigh.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zneigh.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zneigh.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/zneigh.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zneupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zneupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zneupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/zneupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zngets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zngets.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zngets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/zngets.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zsortc.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zsortc.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zsortc.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/zsortc.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zstatn.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zstatn.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zstatn.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/zstatn.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/cmout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/cmout.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/cmout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/cmout.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/cvout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/cvout.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/cvout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/cvout.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/dmout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/dmout.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/dmout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/dmout.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/dvout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/dvout.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/dvout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/dvout.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/icnteq.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/icnteq.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/icnteq.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/icnteq.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/icopy.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/icopy.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/icopy.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/icopy.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/iset.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/iset.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/iset.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/iset.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/iswap.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/iswap.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/iswap.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/iswap.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/ivout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/ivout.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/ivout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/ivout.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/second_NONE.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/second_NONE.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/second_NONE.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/second_NONE.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/smout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/smout.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/smout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/smout.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/svout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/svout.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/svout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/svout.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/zmout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/zmout.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/zmout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/zmout.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/zvout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/zvout.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/zvout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/zvout.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -649,323 +649,323 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cgetv0.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cgetv0.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cgetv0.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cgetv0.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnaitr.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cnaitr.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnapps.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cnapps.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnaup2.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cnaup2.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnaupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cnaupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cneigh.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cneigh.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cneigh.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cneigh.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cneupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cneupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cneupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cneupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cngets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cngets.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cngets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cngets.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/csortc.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/csortc.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/csortc.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/csortc.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cstatn.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cstatn.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cstatn.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cstatn.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dgetv0.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dgetv0.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dgetv0.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dgetv0.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnaitr.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dnaitr.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnapps.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dnapps.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnaup2.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dnaup2.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnaupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dnaupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnconv.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnconv.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnconv.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dnconv.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dneigh.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dneigh.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dneigh.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dneigh.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dneupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dneupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dneupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dneupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dngets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dngets.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dngets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dngets.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsaitr.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsaitr.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsapps.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsapps.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsaup2.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsaup2.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsaupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsaupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsconv.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsconv.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsconv.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsconv.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dseigt.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dseigt.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dseigt.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dseigt.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsesrt.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsesrt.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsesrt.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsesrt.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dseupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dseupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dseupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dseupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsgets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsgets.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsgets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsgets.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsortc.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsortc.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsortc.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsortc.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsortr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsortr.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsortr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsortr.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dstatn.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dstatn.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dstatn.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dstatn.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dstats.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dstats.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dstats.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dstats.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dstqrb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dstqrb.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dstqrb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dstqrb.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sgetv0.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sgetv0.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sgetv0.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sgetv0.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snaitr.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/snaitr.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snapps.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/snapps.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snaup2.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/snaup2.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snaupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/snaupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snconv.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snconv.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snconv.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/snconv.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sneigh.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sneigh.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sneigh.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sneigh.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sneupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sneupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sneupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sneupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sngets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sngets.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sngets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sngets.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssaitr.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssaitr.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssapps.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssapps.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssaup2.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssaup2.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssaupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssaupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssconv.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssconv.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssconv.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssconv.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sseigt.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sseigt.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sseigt.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sseigt.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssesrt.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssesrt.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssesrt.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssesrt.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sseupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sseupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sseupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sseupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssgets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssgets.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssgets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssgets.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssortc.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssortc.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssortc.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssortc.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssortr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssortr.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssortr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssortr.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sstatn.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sstatn.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sstatn.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sstatn.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sstats.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sstats.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sstats.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sstats.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sstqrb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sstqrb.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sstqrb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sstqrb.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zgetv0.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zgetv0.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zgetv0.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/zgetv0.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znaitr.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znaitr.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/znaitr.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znapps.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znapps.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/znapps.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znaup2.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znaup2.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/znaup2.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znaupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znaupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/znaupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zneigh.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zneigh.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zneigh.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/zneigh.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zneupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zneupd.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zneupd.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/zneupd.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zngets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zngets.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zngets.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/zngets.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zsortc.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zsortc.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zsortc.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/zsortc.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zstatn.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zstatn.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zstatn.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/zstatn.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/cmout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/cmout.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/cmout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/cmout.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/cvout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/cvout.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/cvout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/cvout.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/dmout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/dmout.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/dmout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/dmout.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/dvout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/dvout.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/dvout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/dvout.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/icnteq.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/icnteq.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/icnteq.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/icnteq.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/icopy.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/icopy.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/icopy.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/icopy.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/iset.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/iset.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/iset.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/iset.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/iswap.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/iswap.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/iswap.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/iswap.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/ivout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/ivout.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/ivout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/ivout.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/second_NONE.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/second_NONE.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/second_NONE.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/second_NONE.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/smout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/smout.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/smout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/smout.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/svout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/svout.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/svout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/svout.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/zmout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/zmout.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/zmout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/zmout.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/zvout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/zvout.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/zvout.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/zvout.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -973,9 +973,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cgetv0.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnaitr.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnapps.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnaup2.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cnaupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cneigh.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cneupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cngets.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/csortc.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/cstatn.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dgetv0.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnaitr.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnapps.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnaup2.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnaupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dnconv.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dneigh.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dneupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dngets.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsaitr.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsapps.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsaup2.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsaupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsconv.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dseigt.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsesrt.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dseupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsgets.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsortc.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dsortr.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dstatn.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dstats.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/dstqrb.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sgetv0.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snaitr.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snapps.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snaup2.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snaupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/snconv.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sneigh.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sneupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sngets.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssaitr.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssapps.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssaup2.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssaupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssconv.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sseigt.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssesrt.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sseupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssgets.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssortc.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/ssortr.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sstatn.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sstats.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/sstqrb.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zgetv0.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znaitr.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znapps.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znaup2.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/znaupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zneigh.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zneupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zngets.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zsortc.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/SRC/zstatn.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/cmout.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/cvout.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/dmout.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/dvout.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/icnteq.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/icopy.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/iset.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/iswap.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/ivout.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/second_NONE.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/smout.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/svout.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/zmout.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/UTIL/zvout.f.c	</Message>
+      <Message>$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cgetv0.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cnaitr.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cnapps.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cnaup2.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cnaupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cneigh.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cneupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cngets.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/csortc.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/cstatn.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dgetv0.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dnaitr.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dnapps.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dnaup2.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dnaupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dnconv.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dneigh.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dneupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dngets.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsaitr.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsapps.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsaup2.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsaupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsconv.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dseigt.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsesrt.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dseupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsgets.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsortc.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dsortr.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dstatn.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dstats.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/dstqrb.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sgetv0.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/snaitr.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/snapps.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/snaup2.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/snaupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/snconv.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sneigh.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sneupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sngets.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssaitr.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssapps.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssaup2.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssaupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssconv.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sseigt.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssesrt.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sseupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssgets.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssortc.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/ssortr.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sstatn.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sstats.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/sstqrb.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/zgetv0.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/znaitr.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/znapps.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/znaup2.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/znaupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/zneigh.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/zneupd.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/zngets.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/zsortc.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/SRC/zstatn.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/cmout.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/cvout.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/dmout.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/dvout.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/icnteq.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/icopy.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/iset.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/iswap.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/ivout.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/second_NONE.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/smout.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/svout.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/zmout.f.c	$B/contrib/python/scipy/scipy/sparse/linalg/eigen/arpack/ARPACK/_/UTIL/zvout.f.c	</Message>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\f2c.py;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cgetv0.f;$(SolutionDir)$(Configuration)\contrib\tools\f2c\f2c.exe;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cnaitr.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cnapps.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cnaup2.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cnaupd.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cneigh.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cneupd.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cngets.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\csortc.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cstatn.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dgetv0.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dnaitr.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dnapps.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dnaup2.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dnaupd.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dnconv.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dneigh.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dneupd.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dngets.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsaitr.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsapps.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsaup2.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsaupd.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsconv.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dseigt.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsesrt.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dseupd.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsgets.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsortc.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsortr.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dstatn.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dstats.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dstqrb.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sgetv0.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\snaitr.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\snapps.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\snaup2.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\snaupd.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\snconv.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sneigh.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sneupd.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sngets.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssaitr.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssapps.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssaup2.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssaupd.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssconv.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sseigt.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssesrt.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sseupd.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssgets.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssortc.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssortr.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sstatn.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sstats.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sstqrb.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\zgetv0.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\znaitr.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\znapps.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\znaup2.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\znaupd.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\zneigh.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\zneupd.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\zngets.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\zsortc.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\zstatn.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\cmout.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\cvout.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\dmout.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\dvout.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\icnteq.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\icopy.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\iset.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\iswap.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\ivout.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\second_NONE.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\smout.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\svout.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\zmout.f;$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\zvout.f;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cgetv0.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cnaitr.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cnapps.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cnaup2.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cnaupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cneigh.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cneupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cngets.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\csortc.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\cstatn.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dgetv0.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dnaitr.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dnapps.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dnaup2.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dnaupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dnconv.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dneigh.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dneupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dngets.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsaitr.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsapps.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsaup2.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsaupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsconv.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dseigt.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsesrt.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dseupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsgets.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsortc.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dsortr.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dstatn.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dstats.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\dstqrb.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sgetv0.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\snaitr.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\snapps.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\snaup2.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\snaupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\snconv.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sneigh.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sneupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sngets.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssaitr.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssapps.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssaup2.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssaupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssconv.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sseigt.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssesrt.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sseupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssgets.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssortc.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\ssortr.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sstatn.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sstats.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\sstqrb.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\zgetv0.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\znaitr.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\znapps.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\znaup2.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\znaupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\zneigh.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\zneupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\zngets.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\zsortc.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\zstatn.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\cmout.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\cvout.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\dmout.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\dvout.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\icnteq.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\icopy.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\iset.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\iswap.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\ivout.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\second_NONE.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\smout.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\svout.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\zmout.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\UTIL\zvout.f.c;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\cgetv0.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\cnaitr.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\cnapps.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\cnaup2.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\cnaupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\cneigh.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\cneupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\cngets.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\csortc.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\cstatn.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dgetv0.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dnaitr.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dnapps.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dnaup2.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dnaupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dnconv.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dneigh.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dneupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dngets.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dsaitr.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dsapps.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dsaup2.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dsaupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dsconv.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dseigt.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dsesrt.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dseupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dsgets.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dsortc.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dsortr.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dstatn.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dstats.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\dstqrb.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\sgetv0.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\snaitr.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\snapps.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\snaup2.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\snaupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\snconv.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\sneigh.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\sneupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\sngets.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\ssaitr.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\ssapps.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\ssaup2.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\ssaupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\ssconv.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\sseigt.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\ssesrt.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\sseupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\ssgets.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\ssortc.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\ssortr.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\sstatn.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\sstats.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\sstqrb.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\zgetv0.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\znaitr.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\znapps.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\znaup2.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\znaupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\zneigh.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\zneupd.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\zngets.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\zsortc.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\SRC\zstatn.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\cmout.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\cvout.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\dmout.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\dvout.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\icnteq.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\icopy.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\iset.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\iswap.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\ivout.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\second_NONE.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\smout.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\svout.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\zmout.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\_\UTIL\zvout.f.c;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\debug.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\python\scipy\scipy\sparse\linalg\eigen\arpack\ARPACK\SRC\stat.h"/>

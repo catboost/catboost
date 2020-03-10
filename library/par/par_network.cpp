@@ -17,6 +17,7 @@
 #include <util/generic/strbuf.h>
 #include <util/network/sock.h>
 #include <util/string/builder.h>
+#include <util/string/cast.h>
 #include <util/string/split.h>
 #include <util/system/atomic.h>
 #include <util/system/atomic_ops.h>

@@ -41,10 +41,6 @@
 {"unicodedata", initunicodedata},
 {"zlib", initzlib},
 
-#ifdef _HAVE_NIS
-{"nis", initnis},
-#endif
-
 #ifdef _FREEBSD_
 {"_multiprocessing", init_multiprocessing},
 {"_multiprocessing", init_multiprocessing},

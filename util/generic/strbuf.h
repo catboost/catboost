@@ -474,23 +474,11 @@ private:
 
 std::ostream& operator<< (std::ostream& os, TStringBuf buf);
 
-static inline TString DebugQuote(const TStringBuf str) {
-    return TString{str}.Quote();
-}
-
-static inline TString ToString(const TStringBuf str) {
-    return TString(str);
-}
-
-static inline TUtf16String ToWtring(const TWtringBuf wtr) {
-    return TUtf16String(wtr);
-}
-
-static inline TUtf32String ToUtf32String(const TUtf32StringBuf wtr) {
-    return TUtf32String(wtr);
-}
-
 template <typename TCharType, size_t size>
 constexpr inline TBasicStringBuf<TCharType> AsStringBuf(const TCharType (&str)[size]) noexcept {
     return TBasicStringBuf<TCharType>(str, size - 1);
+}
+
+static inline TString DebugQuote(const TStringBuf str) {
+    return TString{str}.Quote();
 }

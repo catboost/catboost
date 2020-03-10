@@ -203,6 +203,18 @@
         "checksum": "e6e1692714c75d2192513b28213fbefe",
         "uri": "file://test.test_cv_skip_train_default_CPU_/catboost_training.json"
     },
+    "test.test_cv_with_ignored_features[CPU-has_missing=False-data_type=integer]": {
+        "checksum": "5e6013d7609afbd7ee0c2ae31ccfc0b1",
+        "uri": "file://test.test_cv_with_ignored_features_CPU-has_missing=False-data_type=integer_/catboost_training.json"
+    },
+    "test.test_cv_with_ignored_features[CPU-has_missing=False-data_type=string]": {
+        "checksum": "532ef3f5e9e33b10a0888e2d2a514c93",
+        "uri": "file://test.test_cv_with_ignored_features_CPU-has_missing=False-data_type=string_/catboost_training.json"
+    },
+    "test.test_cv_with_ignored_features[CPU-has_missing=True-data_type=integer]": {
+        "checksum": "5e6013d7609afbd7ee0c2ae31ccfc0b1",
+        "uri": "file://test.test_cv_with_ignored_features_CPU-has_missing=True-data_type=integer_/catboost_training.json"
+    },
     "test.test_cv_with_not_binarized_target[CPU]": {
         "checksum": "19a4494c8f9ab3825e107dc45f339684",
         "uri": "file://test.test_cv_with_not_binarized_target_CPU_/catboost_training.json"

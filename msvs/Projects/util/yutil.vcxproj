@@ -78,20 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_datetime.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_digest.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_folder.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_generic.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_memory.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_network.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_random.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_stream.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_string.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_system_1.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_system_2.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_thread.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_util.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\util\datetime\parser.rl6.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\util\_\datetime\parser.rl6.cpp"/>
     <ClCompile Include="$(SolutionDir)..\util\datetime\strptime.cpp"/>
     <ClCompile Include="$(SolutionDir)..\util\digest\city.cpp"/>
     <ClCompile Include="$(SolutionDir)..\util\folder\dirent_win.c">
@@ -108,6 +95,19 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\util\system\winint.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_datetime.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_digest.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_folder.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_generic.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_memory.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_network.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_random.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_stream.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_string.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_system_1.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_system_2.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_thread.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\util\all_util.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\util
@@ -235,7 +235,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/run_tool.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/ragel6.exe" "-CT0" "-L" "-I$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/util/datetime/parser.rl6.cpp" "$(SolutionDir)../util/datetime/parser.rl6"
+"python" "$(SolutionDir)../build/scripts/run_tool.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/ragel6.exe" "-CT0" "-L" "-I$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/util/_/datetime/parser.rl6.cpp" "$(SolutionDir)../util/datetime/parser.rl6"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -246,7 +246,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\util
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/run_tool.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/ragel6.exe" "-CT0" "-L" "-I$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/util/datetime/parser.rl6.cpp" "$(SolutionDir)../util/datetime/parser.rl6"
+"python" "$(SolutionDir)../build/scripts/run_tool.py" "--" "$(SolutionDir)$(Configuration)/contrib/tools/ragel6/ragel6.exe" "-CT0" "-L" "-I$(SolutionDir).." "-o" "$(SolutionDir)$(Configuration)/util/_/datetime/parser.rl6.cpp" "$(SolutionDir)../util/datetime/parser.rl6"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -254,9 +254,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/util/datetime/parser.rl6.cpp	</Message>
+      <Message>$B/util/_/datetime/parser.rl6.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\run_tool.py;$(SolutionDir)..\util\datetime\parser.rl6;$(SolutionDir)$(Configuration)\contrib\tools\ragel6\ragel6.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\util\datetime\parser.rl6.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\util\_\datetime\parser.rl6.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\util\datetime\base.h"/>
     <ClInclude Include="$(SolutionDir)..\util\datetime\constants.h"/>

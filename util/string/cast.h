@@ -333,3 +333,15 @@ template <class TInt, int base, class TStringType>
 inline TInt IntFromString(const TStringType& str) {
     return IntFromString<TInt, base>(str.data(), str.size());
 }
+
+static inline TString ToString(const TStringBuf str) {
+    return TString(str);
+}
+
+static inline TUtf16String ToWtring(const TWtringBuf wtr) {
+    return TUtf16String(wtr);
+}
+
+static inline TUtf32String ToUtf32String(const TUtf32StringBuf wtr) {
+    return TUtf32String(wtr);
+}

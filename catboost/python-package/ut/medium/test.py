@@ -4432,6 +4432,57 @@ def test_no_fail_if_metric_is_repeated_cv(task_type, metrics):
     cv(train_pool, **cv_params)
 
 
+IGNORED_FEATURES_DATA_TYPES = ['integer', 'string']
+
+
+@pytest.mark.parametrize(
+    'data_type',
+    IGNORED_FEATURES_DATA_TYPES,
+    ids=['data_type=' + data_type for data_type in IGNORED_FEATURES_DATA_TYPES]
+)
+@pytest.mark.parametrize(
+    'has_missing',
+    [False, True],
+    ids=['has_missing=%s' % has_missing for has_missing in [False, True]]
+)
+def test_cv_with_ignored_features(task_type, data_type, has_missing):
+    pool = Pool(TRAIN_FILE, column_description=data_file('adult', 'train_with_id.cd'))
+
+    if (data_type, has_missing) == ('integer', False):
+        ignored_features = [0, 2, 5]
+    elif (data_type, has_missing) == ('integer', True):
+        ignored_features = [0, 2, 5, 23, 100]
+    elif (data_type, has_missing) == ('string', False):
+        ignored_features = ['C6', 'C9', 'F4', 'F5']
+    elif (data_type, has_missing) == ('string', True):
+        return pytest.xfail(reason="Not working at the moment. TODO(akhropov): MLTOOLS-4783")
+        # ignored_features = ['C6', 'C9', 'F4', 'F5', 'F17', 'F20']
+    else:
+        raise Exception('bad params: data_type=%s, has_missing=%s' % (data_type, has_missing))
+
+    results = cv(
+        pool,
+        {
+            "iterations": 20,
+            "learning_rate": 0.03,
+            "loss_function": "Logloss",
+            "eval_metric": "AUC",
+            "task_type": task_type,
+            "ignored_features": ignored_features
+        },
+    )
+    assert "train-Logloss-mean" in results
+
+    prev_value = results["train-Logloss-mean"][0]
+    for value in results["train-Logloss-mean"][1:]:
+        assert value < prev_value
+        prev_value = value
+
+    # Unfortunately, for GPU results differ too much between different GPU models.
+    if task_type != 'GPU':
+        return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
+
+
 def test_use_last_testset_for_best_iteration():
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)

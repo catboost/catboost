@@ -41,10 +41,6 @@ extern void inittime(void);
 extern void initunicodedata(void);
 extern void initzlib(void);
 
-#ifdef _HAVE_NIS
-extern void initnis(void);
-#endif
-
 #ifdef _FREEBSD_
 extern void init_multiprocessing(void);
 extern void init_multiprocessing(void);

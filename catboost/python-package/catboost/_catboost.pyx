@@ -1735,9 +1735,6 @@ cdef class _PreprocessParams:
     cdef TMaybe[TCustomObjectiveDescriptor] customObjectiveDescriptor
     cdef TMaybe[TCustomMetricDescriptor] customMetricDescriptor
     def __init__(self, dict params):
-        if "ignored_features" in params:
-            params["ignored_features"] = list(map(str, params["ignored_features"]))
-
         eval_metric = params.get("eval_metric")
         objective = params.get("loss_function")
 

@@ -52,6 +52,12 @@ static bool IsNumbersConvert(const NJson::TJsonValue& ignoredFeaturesJson) {
     });
 }
 
+static bool IsArrayOfIntegers(const NJson::TJsonValue& ignoredFeaturesJson) {
+    return AllOf(ignoredFeaturesJson.GetArray(), [](const NJson::TJsonValue& ignoredFeature) {
+        return ignoredFeature.IsInteger();
+    });
+}
+
 static void ConvertStringsArrayIntoIndicesArray(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* ignoredFeaturesJson) {
     if (IsNumbersOrRangesConvert(*ignoredFeaturesJson)) {
         ConvertStringIndicesIntoIntegerIndices(ignoredFeaturesJson);
@@ -74,6 +80,9 @@ static void ConvertStringsArrayIntoIndicesArray(const NCatboostOptions::TPoolLoa
 }
 
 static void ConvertStringsArrayIntoIndicesArray(const NCB::TDataMetaInfo& metaInfo, NJson::TJsonValue* ignoredFeaturesJson) {
+    if (IsArrayOfIntegers(*ignoredFeaturesJson)) {
+        return;
+    }
     if (IsNumbersConvert(*ignoredFeaturesJson)) {
         ConvertStringIndicesIntoIntegerIndices(ignoredFeaturesJson);
     } else {
