@@ -218,8 +218,7 @@ enum class EPredictionType {
     LogProbability,
     Class,
     RawFormulaVal,
-    InternalRawFormulaVal,
-    ExpRawFormulaVal
+    InternalRawFormulaVal
 };
 
 enum class EFstrType {
