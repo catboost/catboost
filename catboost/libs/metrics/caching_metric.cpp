@@ -1011,7 +1011,7 @@ TVector<THolder<IMetric>> CreateCachingMetrics(ELossFunction metric, const TMap<
             return CreateMetricClasswise<TF1CachingMetric>(approxDimension, params);
         }
         case ELossFunction::TotalF1: {
-            *validParams = TSet<TString>{"average"};
+            validParams->insert("average");
             EF1AverageType averageType = EF1AverageType::Weighted;
             if (params.contains("average")) {
                 averageType = FromString<EF1AverageType>(params.at("average"));
@@ -1019,7 +1019,10 @@ TVector<THolder<IMetric>> CreateCachingMetrics(ELossFunction metric, const TMap<
 
             TVector<THolder<IMetric>> result;
             if (approxDimension == 1) {
-                result.emplace_back(MakeHolder<TTotalF1CachingMetric>(GetDefaultTargetBorder(), averageType));
+                const double predictionBorder = NCatboostOptions::GetPredictionBorderFromLossParams(params).GetOrElse(
+                        GetDefaultPredictionBorder());
+                result.emplace_back(MakeHolder<TTotalF1CachingMetric>(GetDefaultTargetBorder(), predictionBorder,
+                        averageType));
             } else {
                 result.emplace_back(MakeHolder<TTotalF1CachingMetric>(approxDimension, averageType));
             }
