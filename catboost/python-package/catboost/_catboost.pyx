@@ -1393,6 +1393,7 @@ cdef extern from "catboost/private/libs/hyperparameter_tuning/hyperparameter_tun
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
         TDataProviderPtr pool,
         TBestOptionValuesWithCvResult* results,
+        TMetricsAndTimeLeftHistory* trainTestResult,
         bool_t isSearchUsingCV,
         bool_t isReturnCvResults,
         int verbose) nogil except +ProcessException
@@ -1408,6 +1409,7 @@ cdef extern from "catboost/private/libs/hyperparameter_tuning/hyperparameter_tun
         const TMaybe[TCustomMetricDescriptor]& evalMetricDescriptor,
         TDataProviderPtr pool,
         TBestOptionValuesWithCvResult* results,
+        TMetricsAndTimeLeftHistory* trainTestResult,
         bool_t isSearchUsingCV,
         bool_t isReturnCvResults,
         int verbose) nogil except +ProcessException
@@ -4409,6 +4411,7 @@ cdef class _CatBoost:
         ttParams.TrainPart = train_size
 
         cdef TBestOptionValuesWithCvResult results
+        cdef TMetricsAndTimeLeftHistory trainTestResults
         with nogil:
             SetPythonInterruptHandler()
             try:
@@ -4422,6 +4425,7 @@ cdef class _CatBoost:
                         prep_params.customMetricDescriptor,
                         train_pool.__pool,
                         &results,
+                        &trainTestResults,
                         choose_by_train_test_split,
                         return_cv_results,
                         verbose
@@ -4438,6 +4442,7 @@ cdef class _CatBoost:
                         prep_params.customMetricDescriptor,
                         train_pool.__pool,
                         &results,
+                        &trainTestResults,
                         choose_by_train_test_split,
                         return_cv_results,
                         verbose
@@ -4446,6 +4451,9 @@ cdef class _CatBoost:
                 ResetPythonInterruptHandler()
         cv_results = defaultdict(list)
         result_metrics = set()
+        cdef THashMap[TString, double] metric_result
+        if choose_by_train_test_split:
+            self.__metrics_history = trainTestResults
         for metric_idx in xrange(results.CvResult.size()):
             name = to_native_str(results.CvResult[metric_idx].Metric)
             if name in result_metrics:
@@ -4460,6 +4468,7 @@ cdef class _CatBoost:
                 cv_results
             )
             result_metrics.add(name)
+
         best_params = {}
         for key, value in results.BoolOptions:
             best_params[to_native_str(key)] = value

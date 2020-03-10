@@ -320,7 +320,7 @@ void TrainBatch(
         skipMetricOnTrain,
         upToIteration,
         foldContext);
-
+    
     modelTrainer->TrainModel(
         internalOptions,
         catboostOption,
@@ -815,7 +815,7 @@ void CrossValidate(
             }
         }
     }
-
+    
     if (!outputFileOptions.GetRocOutputPath().empty()) {
         CB_ENSURE(
             catBoostOptions.LossFunctionDescription->GetLossFunction() == ELossFunction::Logloss,

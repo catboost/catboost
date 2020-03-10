@@ -758,7 +758,6 @@ namespace {
             if (outputFileOptions.AllowWriteFiles()) {
                 NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputFileOptions.GetTrainDir(), &tmpDir);
             }
-
             InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
             NCB::TFeaturesLayoutPtr featuresLayout = data->MetaInfo.FeaturesLayout;
             NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo;
@@ -888,6 +887,7 @@ namespace {
         TProductIteratorBase<TDeque<NJson::TJsonValue>, NJson::TJsonValue>* gridIterator,
         NJson::TJsonValue* modelParamsToBeTried,
         TGridParamsInfo * bestGridParams,
+        TMetricsAndTimeLeftHistory* trainTestResult,
         NPar::TLocalExecutor* localExecutor,
         int verbose,
         const THashMap<TString, NCB::TCustomRandomDistributionGenerator>& randDistGenerators = {}) {
@@ -1032,6 +1032,7 @@ namespace {
                         &logger
                     );
                 }
+                (*trainTestResult) = metricsAndTimeHistory;
             }
             bool isUpdateBest = SetBestParamsAndUpdateMetricValueIfNeeded(
                 bestMetricValue,
@@ -1044,6 +1045,7 @@ namespace {
                 &bestParamsSetMetricValue);
             if (isUpdateBest) {
                 bestIterationIdx = iterationIdx;
+                (*trainTestResult) = metricsAndTimeHistory;
             }
             TOneInterationLogger oneIterLogger(logger);
             oneIterLogger.OutputMetric(
@@ -1140,6 +1142,7 @@ namespace NCB {
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         TDataProviderPtr data,
         TBestOptionValuesWithCvResult* bestOptionValuesWithCvResult,
+        TMetricsAndTimeLeftHistory* trainTestResult,
         bool isSearchUsingTrainTestSplit,
         bool returnCvStat,
         int verbose) {
@@ -1168,6 +1171,7 @@ namespace NCB {
 
         double bestParamsSetMetricValue = Max<double>();
         TVector<TCVResult> bestCvResult;
+        
         for (auto gridEnumerator : xrange(paramGrids.size())) {
             auto grid = paramGrids[gridEnumerator];
             // Preparing parameters for cartesian product
@@ -1209,6 +1213,7 @@ namespace NCB {
                     &gridIterator,
                     &modelParamsToBeTried,
                     &gridParams,
+                    trainTestResult,
                     &localExecutor,
                     verbose
                 );
@@ -1268,9 +1273,11 @@ namespace NCB {
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         TDataProviderPtr data,
         TBestOptionValuesWithCvResult* bestOptionValuesWithCvResult,
+        TMetricsAndTimeLeftHistory* trainTestResult,
         bool isSearchUsingTrainTestSplit,
         bool returnCvStat,
         int verbose) {
+        
 
         // CatBoost options
         NJson::TJsonValue jsonParams;
@@ -1332,6 +1339,7 @@ namespace NCB {
                 &gridIterator,
                 &modelParamsToBeTried,
                 &bestGridParams,
+                trainTestResult,
                 &localExecutor,
                 verbose,
                 randDistGenerators
