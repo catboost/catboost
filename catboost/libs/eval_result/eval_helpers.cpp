@@ -217,6 +217,13 @@ void PrepareEval(const EPredictionType predictionType,
                 }
             }
             break;
+        case EPredictionType::Poisson:
+            result->resize(1);
+            (*result)[0].reserve(approx.size());
+            for (const double prediction : approx[0]) {
+                (*result)[0].push_back(exp(prediction));
+            }
+            break;
         case EPredictionType::RawFormulaVal:
             *result = approx;
             break;
