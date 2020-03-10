@@ -33,6 +33,7 @@ from pandas import read_csv, DataFrame, Series, Categorical, SparseArray
 from six import PY3
 from six.moves import xrange
 import scipy.sparse
+import scipy.special
 
 
 from catboost_pytest_lib import (
@@ -6140,24 +6141,28 @@ def test_weights_in_eval_metric(metric):
     assert not np.isclose(result_with_no_weights, result_with_weights)
 
 
-@pytest.mark.parametrize('metric_name', ['Accuracy', 'Precision', 'ZeroOneLoss'])
-@pytest.mark.parametrize('prediction_border', [0.2, 0.5, 0.8])
+@pytest.mark.parametrize('metric_name', ['Accuracy', 'Precision', 'Recall', 'F1'])
+@pytest.mark.parametrize('prediction_border', [0.25, 0.55, 0.75])
 def test_prediction_border_in_eval_metric(metric_name, prediction_border):
     metric_with_border = "{metric_name}:prediction_border={prediction_border}".format(
         metric_name=metric_name,
         prediction_border=prediction_border
     )
     metric_no_params = metric_name
-    predictions = np.hstack([np.linspace(0, 1, 10),
-                             np.linspace(0, 1, 10)])
-    label = [0] * 10 + [1] * 10
+    prediction_probas = np.array([0.06314072, 0.77672081, 0.00885847, 0.87585758, 0.70030717,
+                                  0.42210464, 0.00698532, 0.08357631, 0.87840924, 0.71889332,
+                                  0.27881971, 0.03881581, 0.12708005, 0.04321602, 0.46778848,
+                                  0.34862325, 0.95195515, 0.08093261, 0.79914953, 0.50639467])
+    label = np.array([0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1])
+    predictions = scipy.special.logit(prediction_probas)
 
     # We test that the metrics are correctly rounding the probability. Thus, the results with a custom border should
     # be identical if we just round the predictions before evaluating the metric with the given threshold.
-    binarized_predictions = np.where(predictions >= prediction_border, 1.0, 0.0)
+    binarized_predictions = np.where(prediction_probas >= prediction_border, 1.0, -1.0)
 
     result_with_border = eval_metric(label, predictions, metric_with_border)
     result_expected = eval_metric(label, binarized_predictions, metric_no_params)
+
     assert np.isclose(result_with_border, result_expected)
 
 

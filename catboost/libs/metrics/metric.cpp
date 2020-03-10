@@ -232,8 +232,8 @@ void TCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float*) cons
 namespace {
     class TCtrFactorMetric : public TAdditiveMetric<TCtrFactorMetric> {
     public:
-        explicit TCtrFactorMetric(double border = GetDefaultTargetBorder())
-            : Border(border) {
+        explicit TCtrFactorMetric(double targetBorder = GetDefaultTargetBorder())
+            : TargetBorder(targetBorder) {
         }
         TMetricHolder EvalSingleThread(
             const TVector<TVector<double>>& approx,
@@ -249,14 +249,12 @@ namespace {
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
     private:
-        double Border;
+        const double TargetBorder;
     };
 }
 
-THolder<IMetric> MakeCtrFactorMetric(const TMap<TString, TString>& params) {
-    const float border = NCatboostOptions::GetPredictionBorderFromLossParams(params).GetOrElse(
-            GetDefaultPredictionBorder());
-    return MakeHolder<TCtrFactorMetric>(border);
+THolder<IMetric> MakeCtrFactorMetric() {
+    return MakeHolder<TCtrFactorMetric>();
 }
 
 TMetricHolder TCtrFactorMetric::EvalSingleThread(
@@ -281,7 +279,7 @@ TMetricHolder TCtrFactorMetric::EvalSingleThread(
     const float* targetPtr = target.data();
     for (int i = begin; i < end; ++i) {
         float w = weight.empty() ? 1 : weight[i];
-        const float targetVal = targetPtr[i] > Border;
+        const float targetVal = targetPtr[i] > TargetBorder;
         holder.Stats[0] += w * targetVal;
 
         const double p = OverflowSafeLogitProb(approxPtr[i]);
@@ -3961,6 +3959,8 @@ static TVector<TVector<T>> ConstructSquareMatrix(const TString& matrixString) {
 
 static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString, TString> params, int approxDimension) {
     double targetBorder = GetDefaultTargetBorder();
+    double binaryClassPredictionBorder = NCatboostOptions::GetPredictionBorderFromLossParams(params).GetOrElse(
+            GetDefaultPredictionBorder());
     if (params.contains("border")) {
         targetBorder = FromString<float>(params.at("border"));
     }
@@ -4153,20 +4153,20 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
         }
         case ELossFunction::BalancedAccuracy: {
             CB_ENSURE(approxDimension == 1, "Balanced accuracy is used only for binary classification problems.");
-            validParams = {"border"};
-            result.emplace_back(MakeBinClassBalancedAccuracyMetric(targetBorder));
+            validParams.insert("border");
+            result.emplace_back(MakeBinClassBalancedAccuracyMetric(targetBorder, binaryClassPredictionBorder));
             break;
         }
         case ELossFunction::BalancedErrorRate: {
             CB_ENSURE(approxDimension == 1, "Balanced Error Rate is used only for binary classification problems.");
-            validParams = {"border"};
-            result.emplace_back(MakeBinClassBalancedErrorRate(targetBorder));
+            validParams.insert("border");
+            result.emplace_back(MakeBinClassBalancedErrorRate(targetBorder, binaryClassPredictionBorder));
             break;
         }
         case ELossFunction::Kappa: {
             if (approxDimension == 1) {
-                validParams = {"border"};
-                result.emplace_back(MakeBinClassKappaMetric(targetBorder));
+                validParams.insert("border");
+                result.emplace_back(MakeBinClassKappaMetric(targetBorder, binaryClassPredictionBorder));
             } else {
                 result.emplace_back(MakeMultiClassKappaMetric(approxDimension));
             }
@@ -4174,8 +4174,8 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
         }
         case ELossFunction::WKappa: {
             if (approxDimension == 1) {
-                validParams = {"border"};
-                result.emplace_back(MakeBinClassWKappaMetric(targetBorder));
+                validParams.insert("border");
+                result.emplace_back(MakeBinClassWKappaMetric(targetBorder, binaryClassPredictionBorder));
             } else {
                 result.emplace_back(MakeMultiClassWKappaMetric(approxDimension));
             }
@@ -4284,6 +4284,10 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             }
             break;
         }
+    }
+
+    if (IsBinaryClassCompatibleMetric(metric)) {
+        validParams.insert(NCatboostOptions::TMetricOptions::PREDICTION_BORDER_PARAM);
     }
 
     validParams.insert("hints");
