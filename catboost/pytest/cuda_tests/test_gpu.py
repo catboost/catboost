@@ -2556,8 +2556,12 @@ def model_based_eval_catboost_gpu(params):
 
 @pytest.mark.parametrize(
     'dataset',
-    [{'base': 'querywise', 'cd': 'train.cd'}, {'base': 'adult', 'train': 'train_small', 'test': 'test_small', 'cd': 'train.cd'}],
-    ids=['querywise', 'adult']
+    [
+        {'base': 'querywise', 'cd': 'train.cd'},
+        {'base': 'adult', 'train': 'train_small', 'test': 'test_small', 'cd': 'train.cd'},
+        {'base': 'adult', 'train': 'train_small', 'test': 'test_small', 'cd': 'train_with_id.cd'}
+    ],
+    ids=['querywise', 'adult', 'with_names']
 )
 def test_model_based_eval(dataset):
     test_err_log = 'test_error.log'
@@ -2577,51 +2581,60 @@ def test_model_based_eval(dataset):
             '-T', '4',
             '-w', '0.01',
             '--test-err-log', test_err_log,
+            '--data-partition', 'DocParallel',
+            '--random-strength', '0',
+            '--bootstrap-type', 'No',
+            '--has-time',
         )
 
+    ignored_features = '10:11:12:13:15' if dataset['cd'] != 'train_with_id.cd' else 'C7:C8:C9:F3:F5'
+    features_to_evaluate = '10,11,12,13;15' if dataset['cd'] != 'train_with_id.cd' else '10,11,C9-F3;F5'
+
+    zero_out_tested = yatest.common.test_output_path('zero_out_tested')
     fit_catboost_gpu(
         get_params() + (
             '--snapshot-file', 'baseline_model_snapshot',
-            '-I', '10:11:12:13:15:20:31',
-            '--train-dir', 'zero_out_tested',
+            '-I', ignored_features,
+            '--train-dir', zero_out_tested,
         ))
 
     model_based_eval_catboost_gpu(
         get_params() + (
             '--baseline-model-snapshot', 'baseline_model_snapshot',
-            '--features-to-evaluate', '10,11,12,13;15,20,31',
+            '--features-to-evaluate', features_to_evaluate,
             '--offset', '20',
             '--experiment-size', '10',
             '--experiment-count', '2',
-            '--train-dir', 'zero_out_tested',
+            '--train-dir', zero_out_tested,
         ))
 
+    use_tested = yatest.common.test_output_path('use_tested')
     fit_catboost_gpu(
         get_params() + (
             '--snapshot-file', 'baseline_model_snapshot',
-            '--train-dir', 'use_tested',
+            '--train-dir', use_tested,
         ))
 
     model_based_eval_catboost_gpu(
         get_params() + (
             '--baseline-model-snapshot', 'baseline_model_snapshot',
-            '--features-to-evaluate', '10,11,12,13;15,20,31',
+            '--features-to-evaluate', features_to_evaluate,
             '--offset', '20',
             '--experiment-size', '10',
             '--experiment-count', '2',
             '--use-evaluated-features-in-baseline-model',
-            '--train-dir', 'use_tested',
+            '--train-dir', use_tested,
         ))
 
     return [
-        local_canonical_file(os.path.join('zero_out_tested', 'feature_set0_fold0', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('zero_out_tested', 'feature_set0_fold1', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('zero_out_tested', 'feature_set1_fold0', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('zero_out_tested', 'feature_set1_fold1', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('use_tested', 'feature_set0_fold0', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('use_tested', 'feature_set0_fold1', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('use_tested', 'feature_set1_fold0', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('use_tested', 'feature_set1_fold1', test_err_log), diff_tool=diff_tool())
+        local_canonical_file(os.path.join(zero_out_tested, 'feature_set0_fold0', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join(zero_out_tested, 'feature_set0_fold1', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join(zero_out_tested, 'feature_set1_fold0', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join(zero_out_tested, 'feature_set1_fold1', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join(use_tested, 'feature_set0_fold0', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join(use_tested, 'feature_set0_fold1', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join(use_tested, 'feature_set1_fold0', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join(use_tested, 'feature_set1_fold1', test_err_log), diff_tool=diff_tool())
     ]
 
 

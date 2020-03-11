@@ -3047,70 +3047,104 @@
     ],
     "test_gpu.test_model_based_eval[adult]": [
         {
-            "checksum": "fe4c26b00c1fb7d29514bd4362089c0c",
+            "checksum": "f7cac7f3a983db349400fa4958399c52",
             "uri": "file://test_gpu.test_model_based_eval_adult_/test_error.log"
         },
         {
-            "checksum": "d282b988f3dbdbcb69703102949fc423",
+            "checksum": "0634684ba6729d538a03045bf712fd32",
+            "uri": "file://test_gpu.test_model_based_eval_adult_/test_error.log.0"
+        },
+        {
+            "checksum": "f7cac7f3a983db349400fa4958399c52",
             "uri": "file://test_gpu.test_model_based_eval_adult_/test_error.log.1"
         },
         {
-            "checksum": "9c72bc7c78b294a53e34aeb5cdebad70",
+            "checksum": "0634684ba6729d538a03045bf712fd32",
             "uri": "file://test_gpu.test_model_based_eval_adult_/test_error.log.2"
         },
         {
-            "checksum": "f6543b7eba9035c6c893d5a2e84582c2",
+            "checksum": "cd5ec79cc200cb480211e0af625dcae9",
             "uri": "file://test_gpu.test_model_based_eval_adult_/test_error.log.3"
         },
         {
-            "checksum": "81b6ae234633d867f0c1046dc1731920",
+            "checksum": "3c23822d72ee66d7665c47442cb3cd6f",
             "uri": "file://test_gpu.test_model_based_eval_adult_/test_error.log.4"
         },
         {
-            "checksum": "9f06418d318b55869b4fc27decc50992",
+            "checksum": "cd5ec79cc200cb480211e0af625dcae9",
             "uri": "file://test_gpu.test_model_based_eval_adult_/test_error.log.5"
         },
         {
-            "checksum": "f99834737eb73ebbd19a8768081199da",
+            "checksum": "3c23822d72ee66d7665c47442cb3cd6f",
             "uri": "file://test_gpu.test_model_based_eval_adult_/test_error.log.6"
-        },
-        {
-            "checksum": "8eaca2a5bd4d70298094ff7825eb253f",
-            "uri": "file://test_gpu.test_model_based_eval_adult_/test_error.log.7"
         }
     ],
     "test_gpu.test_model_based_eval[querywise]": [
         {
-            "checksum": "6beee5edcba11c037ab2b84d7b59a75b",
+            "checksum": "cf1b4eabf526ed56f903ed2417cc0051",
             "uri": "file://test_gpu.test_model_based_eval_querywise_/test_error.log"
         },
         {
-            "checksum": "b3498d001506aaf3dcbd10023d58989d",
+            "checksum": "b00abd00e5de521e56b90dfd6eb28754",
             "uri": "file://test_gpu.test_model_based_eval_querywise_/test_error.log.0"
         },
         {
-            "checksum": "52b9c5f7c7488e21e3516c7c4c29c17d",
+            "checksum": "4f57d9ffb6357362e8b63234b560f24a",
             "uri": "file://test_gpu.test_model_based_eval_querywise_/test_error.log.1"
         },
         {
-            "checksum": "8390d5b4703b9564681813f9e2e328a7",
+            "checksum": "a3d20dd4e593b38a586787d30b6cbd0c",
             "uri": "file://test_gpu.test_model_based_eval_querywise_/test_error.log.2"
         },
         {
-            "checksum": "434edd35e192b752accf3436650e13b4",
+            "checksum": "3a55f6ac692267a3150cb086996f3e1e",
             "uri": "file://test_gpu.test_model_based_eval_querywise_/test_error.log.3"
         },
         {
-            "checksum": "9723da44d2f5a5c2690d7ee9cd4eacf7",
+            "checksum": "d884f36f5e2cdde695e3a9f21a3dc1aa",
             "uri": "file://test_gpu.test_model_based_eval_querywise_/test_error.log.4"
         },
         {
-            "checksum": "d4257c47f5fd3458e93143a5398eeffd",
+            "checksum": "8bb317d4ac92c4f495508fb8b8dca375",
             "uri": "file://test_gpu.test_model_based_eval_querywise_/test_error.log.5"
         },
         {
-            "checksum": "fe3b3733b52f7cd5856371573fb995c2",
+            "checksum": "e6038fd7d408c58ab2bfc1d7d49fdc3b",
             "uri": "file://test_gpu.test_model_based_eval_querywise_/test_error.log.6"
+        }
+    ],
+    "test_gpu.test_model_based_eval[with_names]": [
+        {
+            "checksum": "f7cac7f3a983db349400fa4958399c52",
+            "uri": "file://test_gpu.test_model_based_eval_with_names_/test_error.log"
+        },
+        {
+            "checksum": "0634684ba6729d538a03045bf712fd32",
+            "uri": "file://test_gpu.test_model_based_eval_with_names_/test_error.log.0"
+        },
+        {
+            "checksum": "f7cac7f3a983db349400fa4958399c52",
+            "uri": "file://test_gpu.test_model_based_eval_with_names_/test_error.log.1"
+        },
+        {
+            "checksum": "0634684ba6729d538a03045bf712fd32",
+            "uri": "file://test_gpu.test_model_based_eval_with_names_/test_error.log.2"
+        },
+        {
+            "checksum": "cd5ec79cc200cb480211e0af625dcae9",
+            "uri": "file://test_gpu.test_model_based_eval_with_names_/test_error.log.3"
+        },
+        {
+            "checksum": "3c23822d72ee66d7665c47442cb3cd6f",
+            "uri": "file://test_gpu.test_model_based_eval_with_names_/test_error.log.4"
+        },
+        {
+            "checksum": "cd5ec79cc200cb480211e0af625dcae9",
+            "uri": "file://test_gpu.test_model_based_eval_with_names_/test_error.log.5"
+        },
+        {
+            "checksum": "3c23822d72ee66d7665c47442cb3cd6f",
+            "uri": "file://test_gpu.test_model_based_eval_with_names_/test_error.log.6"
         }
     ],
     "test_gpu.test_multi_leaf_estimation_method[Gradient]": [

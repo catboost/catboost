@@ -546,8 +546,7 @@ static void BindModelBasedEvalParams(NLastGetopt::TOpts* parserPtr, NJson::TJson
         .RequiredArgument("INDEXES[;INDEXES...]")
         .Help("Evaluate impact of each set of features on test error; each set is a comma-separated list of indices and index intervals, e.g. 4,78-89,312.")
         .Handler1T<TString>([plainJsonPtr](const TString& indicesLine) {
-            auto featuresToEvaluate = ParseIndexSetsLine(indicesLine);
-            NCatboostOptions::TJsonFieldHelper<TVector<TVector<int>>>::Write(featuresToEvaluate, &(*plainJsonPtr)["features_to_evaluate"]);
+            (*plainJsonPtr)["features_to_evaluate"] = indicesLine;
         });
     parser
         .AddLongOption("baseline-model-snapshot")

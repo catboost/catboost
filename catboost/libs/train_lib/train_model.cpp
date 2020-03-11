@@ -1214,6 +1214,14 @@ void TrainModel(
     CATBOOST_INFO_LOG << runTimer.Passed() / 60 << " min passed" << Endl;
 }
 
+static void ValidateFeaturesToEvaluate(const NJson::TJsonValue& trainOptionsJson, ui32 featureCount) {
+    const auto maxFeatureToEvaluateIdx = GetOptionFeaturesToEvaluate(trainOptionsJson).back();
+    CB_ENSURE(
+        maxFeatureToEvaluateIdx < featureCount,
+        "Feature index " << maxFeatureToEvaluateIdx << " is too large; dataset has only "
+        << featureCount << " features");
+}
+
 static void ModelBasedEval(
     const NJson::TJsonValue& trainOptionsJson,
     const NCatboostOptions::TOutputFilesOptions& outputOptions,
@@ -1244,6 +1252,8 @@ static void ModelBasedEval(
     const auto learnFeaturesLayout = pools.Learn->MetaInfo.FeaturesLayout;
     NCatboostOptions::TCatBoostOptions catBoostOptions(taskType);
     catBoostOptions.Load(updatedTrainOptionsJson);
+
+    ValidateFeaturesToEvaluate(trainOptionsJson, pools.Learn->MetaInfo.GetFeatureCount());
 
     if (!quantizedFeaturesInfo) {
         quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
@@ -1354,6 +1364,8 @@ void ModelBasedEval(
         &classLabels,
         &executor,
         &profile);
+
+    ValidateFeaturesToEvaluate(trainJson, pools.Learn->MetaInfo.GetFeatureCount());
 
     // create here to possibly load borders
     auto quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(

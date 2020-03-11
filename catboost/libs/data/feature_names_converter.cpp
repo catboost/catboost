@@ -2,6 +2,7 @@
 
 #include <catboost/libs/column_description/cd_parser.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/private/libs/options/json_helper.h>
 
 #include <util/string/split.h>
 #include <util/string/type.h>
@@ -58,23 +59,31 @@ static bool IsArrayOfIntegers(const NJson::TJsonValue& ignoredFeaturesJson) {
     });
 }
 
+static TMap<TString, ui32> MakeIndicesFromNames(const NCatboostOptions::TPoolLoadParams& poolLoadParams) {
+    TMap<TString, ui32> indicesFromNames;
+    if (poolLoadParams.ColumnarPoolFormatParams.CdFilePath.Inited()) {
+        const TVector<TColumn> columns = ReadCD(poolLoadParams.ColumnarPoolFormatParams.CdFilePath,
+                                                TCdParserDefaults(EColumn::Num));
+        ui32 featureIdx = 0;
+        for (const auto& column : columns) {
+            if (IsFactorColumn(column.Type)) {
+                if (!column.Id.empty()) {
+                    indicesFromNames[column.Id] = featureIdx;
+                }
+                featureIdx++;
+            }
+        }
+    }
+    return indicesFromNames;
+}
+
 static void ConvertStringsArrayIntoIndicesArray(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* ignoredFeaturesJson) {
     if (IsNumbersOrRangesConvert(*ignoredFeaturesJson)) {
         ConvertStringIndicesIntoIntegerIndices(ignoredFeaturesJson);
     } else {
         CB_ENSURE(!poolLoadParams.LearnSetPath.Scheme.Contains("quantized") || poolLoadParams.ColumnarPoolFormatParams.CdFilePath.Inited(),
                 "quatized pool without CD file doesn't support ignoring features by names");
-        const TVector<TColumn> columns = ReadCD(poolLoadParams.ColumnarPoolFormatParams.CdFilePath, TCdParserDefaults(EColumn::Num));
-        ui32 currentId = 0;
-        TMap<TString, ui32> indicesFromNames;
-        for (const auto& column : columns) {
-            if (IsFactorColumn(column.Type)) {
-                if (!column.Id.empty()) {
-                    indicesFromNames[column.Id] = currentId;
-                }
-                currentId++;
-            }
-        }
+        const auto& indicesFromNames = MakeIndicesFromNames(poolLoadParams);
         ConvertNamesIntoIndices(indicesFromNames, ignoredFeaturesJson);
     }
 }
@@ -154,19 +163,43 @@ void ConvertMonotoneConstraintsFromStringToIndices(const NCatboostOptions::TPool
         return;
     }
 
-    TMap<TString, ui32> indicesFromNames;
-    if (poolLoadParams.ColumnarPoolFormatParams.CdFilePath.Inited()) {
-        const TVector<TColumn> columns = ReadCD(poolLoadParams.ColumnarPoolFormatParams.CdFilePath,
-                                                TCdParserDefaults(EColumn::Num));
-        ui32 featureIdx = 0;
-        for (const auto& column : columns) {
-            if (IsFactorColumn(column.Type)) {
-                if (!column.Id.empty()) {
-                    indicesFromNames[column.Id] = featureIdx;
-                }
-                featureIdx++;
-            }
-        }
-    }
+    const auto& indicesFromNames = MakeIndicesFromNames(poolLoadParams);
+
     ConvertMonotoneConstraintsFromStringToIndices(indicesFromNames, &treeOptions);
 }
+
+ui32 ConvertToIndex(const TString& nameOrIndex, const TMap<TString, ui32>& indicesFromNames) {
+    if (IsNumber(nameOrIndex)) {
+        return FromString<ui32>(nameOrIndex);
+    } else {
+        CB_ENSURE(
+            indicesFromNames.contains(nameOrIndex),
+            "String " + nameOrIndex + " is not a feature name");
+        return indicesFromNames.at(nameOrIndex);
+    }
+}
+
+void ConvertFeaturesToEvaluateFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* catBoostJsonOptions) {
+    if (catBoostJsonOptions->Has("features_to_evaluate")) {
+        const auto& indicesFromNames = MakeIndicesFromNames(poolLoadParams);
+        const auto& featureNamesToEvaluate = (*catBoostJsonOptions)["features_to_evaluate"].GetString();
+        TVector<TVector<int>> featuresToEvaluate;
+        for (const auto& nameSet : StringSplitter(featureNamesToEvaluate).Split(';')) {
+            const TString nameSetAsString(nameSet);
+            featuresToEvaluate.emplace_back(TVector<int>{});
+            for (const auto& nameOrRange : StringSplitter(nameSetAsString).Split(',')) {
+                const TString nameOrRangeAsString(nameOrRange);
+                auto left = nameOrRangeAsString;
+                auto right = nameOrRangeAsString;
+                StringSplitter(nameOrRangeAsString).Split('-').TryCollectInto(&left, &right);
+                for (ui32 idx : xrange(ConvertToIndex(left, indicesFromNames), ConvertToIndex(right, indicesFromNames) + 1)) {
+                    featuresToEvaluate.back().emplace_back(idx);
+                }
+            }
+        }
+        NCatboostOptions::TJsonFieldHelper<TVector<TVector<int>>>::Write(
+            featuresToEvaluate,
+            &(*catBoostJsonOptions)["features_to_evaluate"]);
+    }
+}
+
