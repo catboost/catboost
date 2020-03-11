@@ -28,7 +28,7 @@ namespace NCatboostOptions {
         TOption<TLossDescription> ObjectiveMetric;
         TOption<TVector<TLossDescription>> CustomMetrics;
 
-        static constexpr char PREDICTION_BORDER_PARAM[] = "prediction_border";
+        static constexpr char PREDICTION_BORDER_PARAM[] = "proba_border";
     };
 }
 

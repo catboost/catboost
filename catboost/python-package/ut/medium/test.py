@@ -6142,11 +6142,11 @@ def test_weights_in_eval_metric(metric):
 
 
 @pytest.mark.parametrize('metric_name', ['Accuracy', 'Precision', 'Recall', 'F1'])
-@pytest.mark.parametrize('prediction_border', [0.25, 0.55, 0.75])
-def test_prediction_border_in_eval_metric(metric_name, prediction_border):
-    metric_with_border = "{metric_name}:prediction_border={prediction_border}".format(
+@pytest.mark.parametrize('proba_border', [0.25, 0.55, 0.75])
+def test_prediction_border_in_eval_metric(metric_name, proba_border):
+    metric_with_border = "{metric_name}:proba_border={proba_border}".format(
         metric_name=metric_name,
-        prediction_border=prediction_border
+        proba_border=proba_border
     )
     metric_no_params = metric_name
     prediction_probas = np.array([0.06314072, 0.77672081, 0.00885847, 0.87585758, 0.70030717,
@@ -6158,12 +6158,12 @@ def test_prediction_border_in_eval_metric(metric_name, prediction_border):
 
     # We test that the metrics are correctly rounding the probability. Thus, the results with a custom border should
     # be identical if we just round the predictions before evaluating the metric with the given threshold.
-    binarized_predictions = np.where(prediction_probas >= prediction_border, 1.0, -1.0)
+    binarized_predictions = np.where(prediction_probas >= proba_border, 1.0, -1.0)
 
     result_with_border = eval_metric(label, predictions, metric_with_border)
     result_expected = eval_metric(label, binarized_predictions, metric_no_params)
 
-    assert np.isclose(result_with_border, result_expected)
+    assert result_with_border == result_expected
 
 
 def test_dataframe_with_custom_index():

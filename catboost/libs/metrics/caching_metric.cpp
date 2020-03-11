@@ -142,8 +142,8 @@ namespace {
             : ClassesCount(classesCount)
             , IsMultiClass(true) {
         }
-        explicit TMCCCachingMetric(double targetBorder, double predictionBorder)
-            : TargetBorder(targetBorder), PredictionBorder(predictionBorder)
+        explicit TMCCCachingMetric(double predictionBorder)
+            : TargetBorder(GetDefaultTargetBorder()), PredictionBorder(predictionBorder)
             , IsMultiClass(false) {
         }
         TMetricHolder Eval(
@@ -251,8 +251,8 @@ namespace {
             : ClassesCount(classesCount)
             , IsMultiClass(true) {
         }
-        explicit TZeroOneLossCachingMetric(double targetBorder, double predictionBorder)
-            : TargetBorder(targetBorder)
+        explicit TZeroOneLossCachingMetric(double predictionBorder)
+            : TargetBorder(GetDefaultTargetBorder())
             , PredictionBorder(predictionBorder)
             , IsMultiClass(false) {
         }
@@ -331,8 +331,8 @@ void TZeroOneLossCachingMetric::GetBestValue(EMetricBestValue *valueType, float 
     *valueType = EMetricBestValue::Min;
 }
 
-THolder<IMetric> MakeZeroOneLossMetric(double targetBorder, double predictionBorder) {
-    return MakeHolder<TZeroOneLossCachingMetric>(targetBorder, predictionBorder);
+THolder<IMetric> MakeZeroOneLossMetric(double predictionBorder) {
+    return MakeHolder<TZeroOneLossCachingMetric>(predictionBorder);
 }
 
 THolder<IMetric> MakeZeroOneLossMetric(int classCount) {
@@ -343,8 +343,8 @@ THolder<IMetric> MakeZeroOneLossMetric(int classCount) {
 
 namespace {
     struct TAccuracyCachingMetric : public TCachingMetric {
-        explicit TAccuracyCachingMetric(double targetBorder, double predictionBorder)
-            : TargetBorder(targetBorder)
+        explicit TAccuracyCachingMetric(double predictionBorder)
+            : TargetBorder(GetDefaultTargetBorder())
             , PredictionBorder(predictionBorder)
             , IsMultiClass(false) {
         }
@@ -428,9 +428,9 @@ void TAccuracyCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) c
 
 namespace {
     struct TRecallCachingMetric: public TCachingMetric {
-        explicit TRecallCachingMetric(double targetBorder, double predictionBorder)
+        explicit TRecallCachingMetric(double predictionBorder)
             : ClassesCount(BinaryClassesCount)
-            , TargetBorder(targetBorder)
+            , TargetBorder(GetDefaultTargetBorder())
             , PredictionBorder(predictionBorder)
             , IsMultiClass(false) {
         }
@@ -469,8 +469,8 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeBinClassRecallMetric(double targetBorder, double predictionBorder) {
-    return MakeHolder<TRecallCachingMetric>(targetBorder, predictionBorder);
+THolder<IMetric> MakeBinClassRecallMetric(double predictionBorder) {
+    return MakeHolder<TRecallCachingMetric>(predictionBorder);
 }
 
 THolder<IMetric> MakeMultiClassRecallMetric(int classesCount, int positiveClass) {
@@ -528,9 +528,9 @@ void TRecallCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) con
 
 namespace {
     struct TPrecisionCachingMetric: public TCachingMetric {
-        explicit TPrecisionCachingMetric(double targetBorder, double predictionBorder)
+        explicit TPrecisionCachingMetric(double predictionBorder)
             : ClassesCount(BinaryClassesCount)
-            , TargetBorder(targetBorder)
+            , TargetBorder(GetDefaultTargetBorder())
             , PredictionBorder(predictionBorder)
             , IsMultiClass(false) {
         }
@@ -569,8 +569,8 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeBinClassPrecisionMetric(double targetBorder, double predictionBorder) {
-    return MakeHolder<TPrecisionCachingMetric>(targetBorder, predictionBorder);
+THolder<IMetric> MakeBinClassPrecisionMetric(double predictionBorder) {
+    return MakeHolder<TPrecisionCachingMetric>(predictionBorder);
 }
 
 THolder<IMetric> MakeMultiClassPrecisionMetric(int classesCount, int positiveClass) {
@@ -629,9 +629,9 @@ void TPrecisionCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) 
 
 namespace {
     struct TF1CachingMetric: public TCachingMetric {
-        explicit TF1CachingMetric(double targetBorder, double predictionBorder)
+        explicit TF1CachingMetric(double predictionBorder)
             : ClassesCount(BinaryClassesCount)
-            , TargetBorder(targetBorder)
+            , TargetBorder(GetDefaultTargetBorder())
             , PredictionBorder(predictionBorder)
             , IsMultiClass(false) {
         }
@@ -671,8 +671,8 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeBinClassF1Metric(double targetBorder, double predictionBorder) {
-    return MakeHolder<TF1CachingMetric>(targetBorder, predictionBorder);
+THolder<IMetric> MakeBinClassF1Metric(double predictionBorder) {
+    return MakeHolder<TF1CachingMetric>(predictionBorder);
 }
 
 THolder<IMetric> MakeMultiClassF1Metric(int classesCount, int positiveClass) {
@@ -739,9 +739,9 @@ namespace {
     struct TTotalF1CachingMetric: public TCachingMetric {
         static constexpr int StatsCardinality = 3;
 
-        explicit TTotalF1CachingMetric(double targetBorder, double predictionBorder, EF1AverageType averageType)
+        explicit TTotalF1CachingMetric(double predictionBorder, EF1AverageType averageType)
             : ClassesCount(BinaryClassesCount)
-            , TargetBorder(targetBorder)
+            , TargetBorder(GetDefaultTargetBorder())
             , PredictionBorder(predictionBorder)
             , IsMultiClass(false)
             , AverageType(averageType) {
@@ -979,8 +979,7 @@ static TVector<THolder<IMetric>> CreateMetric(int approxDimension, const TMap<TS
     if (approxDimension == 1) {
         const float predictionBorder = NCatboostOptions::GetPredictionBorderFromLossParams(params).GetOrElse(
                 GetDefaultPredictionBorder());
-        const float targetBorder = GetDefaultTargetBorder();
-        result.emplace_back(MakeHolder<TMetricType>(targetBorder, predictionBorder));
+        result.emplace_back(MakeHolder<TMetricType>(predictionBorder));
     } else {
         result.emplace_back(MakeHolder<TMetricType>(approxDimension));
     }
@@ -1021,8 +1020,7 @@ TVector<THolder<IMetric>> CreateCachingMetrics(ELossFunction metric, const TMap<
             if (approxDimension == 1) {
                 const double predictionBorder = NCatboostOptions::GetPredictionBorderFromLossParams(params).GetOrElse(
                         GetDefaultPredictionBorder());
-                result.emplace_back(MakeHolder<TTotalF1CachingMetric>(GetDefaultTargetBorder(), predictionBorder,
-                        averageType));
+                result.emplace_back(MakeHolder<TTotalF1CachingMetric>(predictionBorder, averageType));
             } else {
                 result.emplace_back(MakeHolder<TTotalF1CachingMetric>(approxDimension, averageType));
             }
