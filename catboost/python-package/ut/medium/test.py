@@ -11,7 +11,7 @@ import sys
 import tempfile
 import json
 from catboost import (
-    TMultiRegressionMetric,
+    MultiLabelCustomMetric,
     CatBoost,
     CatBoostClassifier,
     CatBoostRegressor,
@@ -267,7 +267,7 @@ def load_simple_dataset_as_lists(is_test):
 
 @pytest.mark.parametrize('niter', [100, 500])
 def test_multiregression_custom_eval(niter, n=10):
-    class MultiRMSE(TMultiRegressionMetric):
+    class MultiRMSE(MultiLabelCustomMetric):
         def get_final_error(self, error, weight):
             if (weight == 0):
                 return 0
@@ -306,15 +306,16 @@ def test_multiregression_custom_eval(niter, n=10):
     test_pool = Pool(data=xs,
                      label=ys)
 
-    model = CatBoostRegressor(loss_function='MultiRMSE', iterations=niter, use_best_model=True, eval_metric=MultiRMSE())
-    model.fit(train_pool, eval_set=test_pool)
-    pred1 = model.predict(test_pool)
+    model1 = CatBoostRegressor(loss_function='MultiRMSE', iterations=niter, use_best_model=True, eval_metric=MultiRMSE())
+    model1.fit(train_pool, eval_set=test_pool)
+    pred1 = model1.predict(test_pool)
 
     model2 = CatBoostRegressor(loss_function='MultiRMSE', iterations=niter, use_best_model=True, eval_metric="MultiRMSE")
     model2.fit(train_pool, eval_set=test_pool)
     pred2 = model2.predict(test_pool)
 
     assert np.all(pred1 == pred2)
+    assert np.all(model1.evals_result_ == model2.evals_result_)
 
 
 @pytest.mark.parametrize('niter', [100, 500])

@@ -108,11 +108,21 @@ class _NumpyAwareEncoder(JSONEncoder):
             return obj.tolist()
         return JSONEncoder.default(self, obj)
 
-class TMultiRegressionMetric:
-    pass
 
 class CatBoostError(Exception):
     pass
+
+
+class MultiLabelCustomMetric:
+    def evaluate(self):
+        raise CatBoostError("evaluate method is not implemented")
+    
+    def is_max_optimal(self):
+        raise CatBoostError("is_max_optimal method is not implemented")
+
+    def get_final_error(self, error, weight):
+        raise CatBoostError("get_final_error method is not implemented")
+
 
 cdef public object PyCatboostExceptionType = <object>CatBoostError
 
@@ -1713,7 +1723,7 @@ cdef TCustomRandomDistributionGenerator _BuildCustomRandomDistributionGenerator(
 cdef TCustomMetricDescriptor _BuildCustomMetricDescriptor(object metricObject):
     cdef TCustomMetricDescriptor descriptor
     descriptor.CustomData = <void*>metricObject
-    if (issubclass(metricObject.__class__, TMultiRegressionMetric)):
+    if (issubclass(metricObject.__class__, MultiLabelCustomMetric)):
         descriptor.EvalMultiregressionFunc = &_MultiregressionMetricEval
     else:
         descriptor.EvalFunc = &_MetricEval
