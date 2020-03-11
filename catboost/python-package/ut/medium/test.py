@@ -5115,7 +5115,7 @@ def test_best_score(task_type):
     best_score = model.best_score_
     assert best_score.keys() == evals_result.keys()
     for pool_name in best_score:
-        assert best_score[pool_name].keys() == evals_result[pool_name].keys()
+        assert set(best_score[pool_name].keys()) == set(evals_result[pool_name].keys())
         for metric_name in best_score[pool_name]:
             if metric_name == 'CtrFactor':
                 assert abs(best_score[pool_name][metric_name] - 1) == min(abs(value - 1) for value in evals_result[pool_name][metric_name])

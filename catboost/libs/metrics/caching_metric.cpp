@@ -992,7 +992,7 @@ static TVector<THolder<IMetric>> CreateMetricClasswise(int approxDimension, cons
     if (approxDimension == 1) {
         const float predictionBorder = NCatboostOptions::GetPredictionBorderFromLossParams(params).GetOrElse(
                 GetDefaultPredictionBorder());
-        result.emplace_back(MakeHolder<TMetricType>(GetDefaultTargetBorder(), predictionBorder));
+        result.emplace_back(MakeHolder<TMetricType>(predictionBorder));
     } else {
         for (int i : xrange(approxDimension)) {
             result.emplace_back(MakeHolder<TMetricType>(approxDimension, i));
