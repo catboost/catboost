@@ -2481,6 +2481,26 @@ def test_cv_with_save_snapshot(task_type):
         )
 
 
+def test_cv_small_data():
+    cv_data = [["France", 1924, 44],
+               ["USA", 1932, 37],
+               ["Switzerland", 1928, 25],
+               ["Norway", 1952, 30],
+               ["Japan", 1972, 35],
+               ["Mexico", 1968, 112]]
+    labels = [1, 1, 0, 0, 0, 1]
+    pool = Pool(data=cv_data,
+                label=labels,
+                cat_features=[0])
+    params = {
+        "iterations": 100,
+        "depth": 2,
+        "loss_function": "Logloss",
+        "verbose": False
+    }
+    cv(pool, params, fold_count=2)
+
+
 def test_grid_search_aliases(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoost(

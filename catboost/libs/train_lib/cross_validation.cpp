@@ -320,7 +320,7 @@ void TrainBatch(
         skipMetricOnTrain,
         upToIteration,
         foldContext);
-    
+
     modelTrainer->TrainModel(
         internalOptions,
         catboostOption,
@@ -537,6 +537,7 @@ void CrossValidate(
     }
 
     UpdateYetiRankEvalMetric(trainingData->MetaInfo.TargetStats, Nothing(), &catBoostOptions);
+    UpdateSampleRateOption(allDataObjectCount, &catBoostOptions);
 
     InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric,
                                  &catBoostOptions.MetricOptions->EvalMetric);
@@ -815,7 +816,7 @@ void CrossValidate(
             }
         }
     }
-    
+
     if (!outputFileOptions.GetRocOutputPath().empty()) {
         CB_ENSURE(
             catBoostOptions.LossFunctionDescription->GetLossFunction() == ELossFunction::Logloss,
