@@ -1117,6 +1117,13 @@ static void BindDataProcessingParams(NLastGetopt::TOpts* parserPtr, NJson::TJson
         .Handler0([plainJsonPtr]() {
             (*plainJsonPtr)["dev_group_features"] = true;
         });
+
+    parser
+        .AddLongOption("auto-class-weights")
+        .NoArgument()
+        .Handler0([plainJsonPtr](){
+            (*plainJsonPtr)["auto_class_weights"] = true;
+        });
 }
 
 static void BindDistributedTrainingParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
