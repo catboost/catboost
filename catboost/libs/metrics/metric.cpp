@@ -3162,7 +3162,7 @@ namespace {
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     private:
         const int TopSize;
-        const double TargetBorder = GetDefaultTargetBorder();
+        const double TargetBorder = 0.0;
     };
 }
 
@@ -3171,8 +3171,7 @@ THolder<IMetric> MakePrecisionAtKMetric(int topSize) {
 }
 
 TPrecisionAtKMetric::TPrecisionAtKMetric(int topSize)
-        : TopSize(topSize)
-        , TargetBorder(GetDefaultTargetBorder()) {
+        : TopSize(topSize) {
     UseWeights.SetDefaultValue(true);
 }
 
@@ -3241,7 +3240,7 @@ namespace {
 
     private:
         const int TopSize;
-        const double TargetBorder = GetDefaultTargetBorder();
+        const double TargetBorder = 0.0;
     };
 }
 
@@ -3250,8 +3249,7 @@ THolder<IMetric> MakeRecallAtKMetric(int topSize) {
 }
 
 TRecallAtKMetric::TRecallAtKMetric(int topSize)
-        : TopSize(topSize)
-        , TargetBorder(GetDefaultTargetBorder()) {
+        : TopSize(topSize) {
     UseWeights.SetDefaultValue(true);
 }
 
