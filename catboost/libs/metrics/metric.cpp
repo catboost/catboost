@@ -145,18 +145,18 @@ TMetricHolder TCrossEntropyMetric::EvalSingleThread(
     const auto impl = [=] (auto isExpApprox, auto hasDelta, auto hasWeight, auto isLogloss, float targetBorder, TConstArrayRef<double> approx, TConstArrayRef<double> approxDelta) {
         int tailBegin;
         auto holder = NMixedSimdOps::EvalCrossEntropyVectorized(
-                isExpApprox,
-                hasDelta,
-                hasWeight,
-                isLogloss,
-                approx,
-                approxDelta,
-                target,
-                weight,
-                targetBorder,
-                begin,
-                end,
-                &tailBegin);
+            isExpApprox,
+            hasDelta,
+            hasWeight,
+            isLogloss,
+            approx,
+            approxDelta,
+            target,
+            weight,
+            targetBorder,
+            begin,
+            end,
+            &tailBegin);
         for (int i = tailBegin; i < end; ++i) {
             const float w = hasWeight ? weight[i] : 1;
             const float prob = isLogloss ? target[i] > targetBorder : target[i];
@@ -2619,8 +2619,8 @@ void TFairLossMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 namespace {
     struct TBalancedAccuracyMetric: public TAdditiveMetric<TBalancedAccuracyMetric> {
         explicit TBalancedAccuracyMetric(double predictionBorder)
-                : TargetBorder(GetDefaultTargetBorder()),
-                  PredictionBorder(predictionBorder)
+                : TargetBorder(GetDefaultTargetBorder())
+                , PredictionBorder(predictionBorder)
         {
         }
         TMetricHolder EvalSingleThread(
@@ -2664,8 +2664,10 @@ TMetricHolder TBalancedAccuracyMetric::EvalSingleThread(
 }
 
 TString TBalancedAccuracyMetric::GetDescription() const {
-    return BuildDescription(ELossFunction::BalancedAccuracy, UseWeights, "%.3g", MakeTargetBorderParam(TargetBorder),
-                            MakePredictionBorderParam(PredictionBorder));
+    return BuildDescription(
+            ELossFunction::BalancedAccuracy, UseWeights, "%.3g", MakeTargetBorderParam(TargetBorder),
+            MakePredictionBorderParam(PredictionBorder)
+    );
 }
 
 void TBalancedAccuracyMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
@@ -2681,8 +2683,8 @@ double TBalancedAccuracyMetric::GetFinalError(const TMetricHolder& error) const 
 namespace {
     struct TBalancedErrorRate: public TAdditiveMetric<TBalancedErrorRate> {
         explicit TBalancedErrorRate(double predictionBorder)
-                : TargetBorder(GetDefaultTargetBorder()),
-                  PredictionBorder(predictionBorder)
+                : TargetBorder(GetDefaultTargetBorder())
+                , PredictionBorder(predictionBorder)
         {
         }
 
@@ -2743,8 +2745,7 @@ double TBalancedErrorRate::GetFinalError(const TMetricHolder& error) const {
 
 namespace {
     struct TKappaMetric: public TAdditiveMetric<TKappaMetric> {
-        explicit TKappaMetric(int classCount = 2,
-                double predictionBorder = GetDefaultPredictionBorder())
+        explicit TKappaMetric(int classCount = 2, double predictionBorder = GetDefaultPredictionBorder())
             : TargetBorder(GetDefaultTargetBorder())
             , PredictionBorder(predictionBorder)
             , ClassCount(classCount) {
@@ -3957,7 +3958,7 @@ static TVector<TVector<T>> ConstructSquareMatrix(const TString& matrixString) {
 }
 
 static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString, TString> params, int approxDimension) {
-    double binaryClassPredictionBorder = NCatboostOptions::GetPredictionBorderFromLossParams(params).GetOrElse(
+    const double binaryClassPredictionBorder = NCatboostOptions::GetPredictionBorderFromLossParams(params).GetOrElse(
             GetDefaultPredictionBorder());
 
     TVector<THolder<IMetric>> result;

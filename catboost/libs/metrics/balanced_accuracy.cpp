@@ -32,8 +32,10 @@ TMetricHolder CalcBalancedAccuracyMetric(TConstArrayRef<TVector<double>> approx,
             &approxPositive
     );
 
-    GetSpecificity(approx, target, weight, begin, end, positiveClass, targetBorder,
-            predictionBorderLogit, &metric.Stats[2], &metric.Stats[3]);
+    GetSpecificity(
+            approx, target, weight, begin, end, positiveClass, targetBorder, predictionBorderLogit,
+            &metric.Stats[2], &metric.Stats[3]
+    );
 
     return metric;
 }

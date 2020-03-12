@@ -285,8 +285,7 @@ struct TNonAdditiveMetric: public TMetric {
     }
 };
 
-THolder<IMetric> MakeCrossEntropyMetric(
-    ELossFunction lossFunction);
+THolder<IMetric> MakeCrossEntropyMetric(ELossFunction lossFunction);
 
 THolder<IMetric> MakeCtrFactorMetric();
 
@@ -383,11 +382,9 @@ THolder<IMetric> MakePairAccuracyMetric();
 
 THolder<IMetric> MakeMAPKMetric(int topSize = -1);
 
-THolder<IMetric> MakeRecallAtKMetric(
-    int topSize = -1);
+THolder<IMetric> MakeRecallAtKMetric(int topSize = -1);
 
-THolder<IMetric> MakePrecisionAtKMetric(
-    int topSize = -1);
+THolder<IMetric> MakePrecisionAtKMetric(int topSize = -1);
 
 THolder<IMetric> MakeCustomMetric(const TCustomMetricDescriptor& descriptor);
 

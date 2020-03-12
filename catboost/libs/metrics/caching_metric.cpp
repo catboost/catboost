@@ -143,8 +143,10 @@ namespace {
             , IsMultiClass(true) {
         }
         explicit TMCCCachingMetric(double predictionBorder)
-            : TargetBorder(GetDefaultTargetBorder()), PredictionBorder(predictionBorder)
-            , IsMultiClass(false) {
+            : TargetBorder(GetDefaultTargetBorder())
+            , PredictionBorder(predictionBorder)
+            , IsMultiClass(false)
+        {
         }
         TMetricHolder Eval(
             const TVector<TVector<double>>& approx,
