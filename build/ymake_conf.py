@@ -1058,6 +1058,11 @@ class GnuToolchain(Toolchain):
         if target.is_armv7_neon:
             self.c_flags_platform.append('-mfpu=neon')
 
+        if target.is_arm or target.is_ppc64le:
+            # On linux, ARM and PPC default to unsigned char
+            # However, Arcadia requires char to be signed
+            self.c_flags_platform.append('-fsigned-char')
+
         if self.tc.is_clang or self.tc.is_gcc and self.tc.version_at_least(8, 2):
             target_flags = select(default=[], selectors=[
                 (target.is_linux and target.is_ppc64le, ['-mcpu=power9', '-mtune=power9', '-maltivec']),
@@ -1075,12 +1080,6 @@ class GnuToolchain(Toolchain):
 
             if target.is_ios:
                 self.c_flags_platform.append('-D__IOS__=1')
-
-            if target.is_android:
-                self.c_flags_platform.append('-fsigned-char')
-
-            if target.is_armv7:
-                self.c_flags_platform.append('-fsigned-char')
 
             if self.tc.is_from_arcadia:
                 if target.is_apple:
