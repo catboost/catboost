@@ -243,6 +243,9 @@ ALLOW adfox -> contrib/python/pycrypto
 ALLOW alice/vins/api -> contrib/python/pycrypto
 ALLOW antiadblock/cryprox/cryprox -> contrib/python/pycrypto
 ALLOW balancer/test/functional/aab_cookie_verify -> contrib/python/pycrypto
+ALLOW billing/balance_utils -> contrib/python/pycrypto
+ALLOW billing/balance_utils/tests -> contrib/python/pycrypto
+ALLOW billing/snout/yb_snout_api -> contrib/python/pycrypto
 ALLOW crypta -> contrib/python/pycrypto
 ALLOW devtools/experimental/addappter/addappter -> contrib/python/pycrypto
 ALLOW direct/infra/direct-utils/direct-apps-juggler/share/direct-apps-juggler/sandbox/common -> contrib/python/pycrypto
