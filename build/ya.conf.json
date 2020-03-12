@@ -36,6 +36,9 @@
         "nm": {
             "description": "Run nm"
         },
+        "objcopy": {
+            "description": "Run objcopy"
+        },
         "svn": {
             "description": "Subversion command-line client"
         },
@@ -1713,6 +1716,10 @@
                 "strip": {
                     "bottle": "clang7",
                     "executable": "llvm-strip"
+                },
+                "objcopy": {
+                    "bottle": "clang7",
+                    "executable": "llvm-objcopy"
                 }
             },
             "platforms": [
@@ -1799,6 +1806,10 @@
                 "strip": {
                     "bottle": "clang7",
                     "executable": "llvm-strip"
+                },
+                "objcopy": {
+                    "bottle": "clang7",
+                    "executable": "llvm-objcopy"
                 }
             },
             "platforms": [
@@ -5603,6 +5614,10 @@
                 "llvm-strip": [
                     "bin",
                     "llvm-strip"
+                ],
+                "llvm-objcopy": [
+                    "bin",
+                    "llvm-objcopy"
                 ]
             }
         },
