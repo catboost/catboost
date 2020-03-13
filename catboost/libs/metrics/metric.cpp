@@ -3162,7 +3162,7 @@ namespace {
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
     private:
         const int TopSize;
-        const double TargetBorder = 0.0;
+        const double TargetBorder = GetDefaultTargetBorder();
     };
 }
 
@@ -3240,7 +3240,7 @@ namespace {
 
     private:
         const int TopSize;
-        const double TargetBorder = 0.0;
+        const double TargetBorder = GetDefaultTargetBorder();
     };
 }
 

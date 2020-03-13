@@ -168,7 +168,7 @@ namespace {
 
     private:
         const int ClassesCount = BinaryClassesCount;
-        const double TargetBorder = 0.0;
+        const double TargetBorder = GetDefaultTargetBorder();
         const double PredictionBorder = GetDefaultPredictionBorder();
         const bool IsMultiClass = false;
     };
@@ -777,7 +777,7 @@ namespace {
 
     private:
         const int ClassesCount = BinaryClassesCount;
-        const double TargetBorder = 0.0;
+        const double TargetBorder = GetDefaultTargetBorder();
         const double PredictionBorder = GetDefaultPredictionBorder();
         const bool IsMultiClass = false;
         const EF1AverageType AverageType;
