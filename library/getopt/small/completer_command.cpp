@@ -104,7 +104,7 @@ namespace NLastGetopt {
                 } else if (shell == "zsh") {
                     TZshCompletionGenerator(opts).Generate(command, Cout);
                 } else {
-                    Cerr << "Unknown shell name " << DebugQuote(shell) << Endl;
+                    Cerr << "Unknown shell name " << TString{shell}.Quote() << Endl;
                     exit(1);
                 }
                 exit(0);

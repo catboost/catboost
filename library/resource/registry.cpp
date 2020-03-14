@@ -31,14 +31,14 @@ namespace {
                         Y_VERIFY(false, "Redefinition of key %s:\n"
                                  "  old value: %s,\n"
                                  "  new value: %s.",
-                                 DebugQuote(key).c_str(),
+                                 TString{key}.Quote().c_str(),
                                  Decompress(value).Quote().c_str(),
                                  Decompress(data).Quote().c_str());
                     } else {
                         Y_VERIFY(false, "Redefinition of key %s,"
                                  " old size: %lu,"
                                  " new size: %lu.",
-                                 DebugQuote(key).c_str(), vsize, dsize);
+                                 TString{key}.Quote().c_str(), vsize, dsize);
                     }
                 }
             } else {
