@@ -33,7 +33,9 @@ def generate(limit):
     count(limit)
     get_elem(limit)
     map_args(limit)
+    map_args_n(limit)
     map_args_with_last(limit)
+    map_args_with_last_n(limit)
     all_but_last(limit)
     last(limit)
     impl_dispatcher()
@@ -94,6 +96,23 @@ def map_args(limit):
               'ACTION, __VA_ARGS__))'.format(i, i - 1))
 
 
+def map_args_n(limit):
+    print(textwrap.dedent('''
+        /**
+         * Expands a macro for each of the variable arguments with it's sequence number and value.
+         * Corresponding sequence numbers will expand in descending order.
+         * Doesn't work with empty arguments list.
+         */
+    '''.rstrip()))
+    print('#define Y_MAP_ARGS_N(ACTION, ...) Y_PASS_VA_ARGS(Y_PASS_VA_ARGS(Y_CAT('
+          '__Y_MAP_ARGS_N_, Y_COUNT_ARGS(__VA_ARGS__)))(ACTION, __VA_ARGS__))')
+    print('#define __Y_MAP_ARGS_N_0(...)')
+    print('#define __Y_MAP_ARGS_N_1(ACTION, x, ...) ACTION(1, x)')
+    for i in xrange(2, limit + 1):
+        print('#define __Y_MAP_ARGS_N_{}(ACTION, x, ...) ACTION({}, x) Y_PASS_VA_ARGS(__Y_MAP_ARGS_N_{}('
+              'ACTION, __VA_ARGS__))'.format(i, i, i - 1))
+
+
 def map_args_with_last(limit):
     print(textwrap.dedent('''
         /**
@@ -109,6 +128,24 @@ def map_args_with_last(limit):
     for i in xrange(2, limit + 1):
         print('#define __Y_MAP_ARGS_WITH_LAST_{}(ACTION, LAST_ACTION, x, ...) ACTION(x) Y_PASS_VA_ARGS('
               '__Y_MAP_ARGS_WITH_LAST_{}(ACTION, LAST_ACTION, __VA_ARGS__))'.format(i, i - 1))
+
+
+def map_args_with_last_n(limit):
+    print(textwrap.dedent('''
+        /**
+         * Expands a macro for each of the variable arguments with it's sequence number and value.
+         * Corresponding sequence numbers will expand in descending order.
+         * Doesn't work with empty arguments list.
+         */
+    '''.rstrip()))
+    print('#define Y_MAP_ARGS_WITH_LAST_N(ACTION, LAST_ACTION, ...) Y_PASS_VA_ARGS(Y_PASS_VA_ARGS('
+          'Y_CAT(__Y_MAP_ARGS_WITH_LAST_N_, Y_COUNT_ARGS(__VA_ARGS__)))(ACTION, LAST_ACTION, '
+          '__VA_ARGS__))')
+    print('#define __Y_MAP_ARGS_WITH_LAST_N_0(...)')
+    print('#define __Y_MAP_ARGS_WITH_LAST_N_1(ACTION, LAST_ACTION, x, ...) LAST_ACTION(1, x)')
+    for i in xrange(2, limit + 1):
+        print('#define __Y_MAP_ARGS_WITH_LAST_N_{}(ACTION, LAST_ACTION, x, ...) ACTION({}, x) Y_PASS_VA_ARGS('
+              '__Y_MAP_ARGS_WITH_LAST_N_{}(ACTION, LAST_ACTION, __VA_ARGS__))'.format(i, i, i - 1))
 
 
 def all_but_last(limit):
