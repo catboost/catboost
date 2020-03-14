@@ -4,12 +4,35 @@ ALLOW contrib/restricted/abseil-cpp -> contrib/restricted/abseil-cpp
 ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp
 ALLOW contrib/libs/libbpf -> contrib/restricted/libelf
 ALLOW contrib/restricted/libelf -> contrib/restricted/libelf
+ALLOW contrib/restricted/mpg123 -> contrib/restricted/mpg123
+
+ALLOW contrib/restricted/libsoup -> contrib/restricted/libsoup
+ALLOW contrib/restricted/libsoup -> contrib/restricted/glib
+
+ALLOW contrib/restricted/glib -> contrib/restricted/glib
+ALLOW contrib/restricted/glib -> contrib/restricted/libelf
 
 ALLOW contrib/restricted/gstreamer -> contrib/restricted/gstreamer
+ALLOW contrib/restricted/gstreamer -> contrib/restricted/glib
+
 ALLOW contrib/restricted/gst-plugins-base -> contrib/restricted/gst-plugins-base
+ALLOW contrib/restricted/gst-plugins-base -> contrib/restricted/glib
+ALLOW contrib/restricted/gst-plugins-base -> contrib/restricted/gstreamer
 ALLOW contrib/restricted/gst-plugins-good -> contrib/restricted/gst-plugins-good
+ALLOW contrib/restricted/gst-plugins-good -> contrib/restricted/gst-plugins-base
+ALLOW contrib/restricted/gst-plugins-good -> contrib/restricted/glib
+ALLOW contrib/restricted/gst-plugins-good -> contrib/restricted/gstreamer
+ALLOW contrib/restricted/gst-plugins-good -> contrib/restricted/libsoup
+ALLOW contrib/restricted/gst-plugins-good -> contrib/restricted/mpg123
 ALLOW contrib/restricted/gst-plugins-bad -> contrib/restricted/gst-plugins-bad
+ALLOW contrib/restricted/gst-plugins-bad -> contrib/restricted/gst-plugins-base
+ALLOW contrib/restricted/gst-plugins-bad -> contrib/restricted/glib
+ALLOW contrib/restricted/gst-plugins-bad -> contrib/restricted/gstreamer
 ALLOW contrib/restricted/gst-libav -> contrib/restricted/gst-libav
+ALLOW contrib/restricted/gst-libav -> contrib/restricted/gst-plugins-base
+ALLOW contrib/restricted/gst-libav -> contrib/restricted/glib
+ALLOW contrib/restricted/gst-libav -> contrib/restricted/gstreamer
+
 
 ALLOW yandex_io -> contrib/restricted/glib
 ALLOW yandex_io -> contrib/restricted/gstreamer
@@ -20,7 +43,11 @@ ALLOW yandex_io -> contrib/restricted/gst-libav
 
 ALLOW extsearch/audio/kernel/recoglib -> contrib/restricted/mpg123
 
+ALLOW library/containers/absl_flat_hash -> contrib/restricted/abseil-cpp/absl/container
+
 # contrib/libs/boost is just a proxy towards contrib/restricted/boost - hence all the rules are duplicated
+ALLOW contrib/restricted/boost -> contrib/restricted/boost
+
 ALLOW adfox -> contrib/libs/boost
 ALLOW adfox -> contrib/restricted/boost
 ALLOW ads -> contrib/libs/boost
@@ -100,5 +127,4 @@ ALLOW tools/idl -> contrib/restricted/boost
 
 DENY .* -> contrib/libs/boost
 DENY .* -> contrib/restricted/boost
-
 DENY .* -> contrib/restricted
