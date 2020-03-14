@@ -55,6 +55,6 @@
   - YXAccountManager/YALAuthenticatorTypes.h
   - YXAccountManager/YALAccountManager.h
 
-- source_filter: "^contrib/deprecated/boost"
+- source_filter: "^contrib/restricted/boost"
   includes:
   - atomic.h

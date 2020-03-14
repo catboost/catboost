@@ -243,14 +243,14 @@
     - cuda.h:        contrib/libs/tf/tensorflow/core/platform/cuda.h
 
 # unused legacy include in boost
-- source_filter: "^contrib/deprecated/boost"
+- source_filter: "^contrib/restricted/boost"
   includes:
     - atomic.h
     - fstream.h
     - ../include/fenv.h
 
 # libc++ internal implementation details
-- source_filter: "^contrib/deprecated/boost/boost/asio/detail"
+- source_filter: "^contrib/restricted/boost/boost/asio/detail"
   includes:
   - __config
 - source_filter: "yandex_io/external_libs/(boost/include/boost|websocketpp/include)/asio/detail"
@@ -411,7 +411,7 @@
   includes:
     - png.h
 
-- source_filter: "^(contrib/deprecated/boost/boost/mpi|catboost/cuda/cuda_lib/mpi|cv/imgclassifiers/danet/distributed/network)"
+- source_filter: "^(contrib/restricted/boost/boost/mpi|catboost/cuda/cuda_lib/mpi|cv/imgclassifiers/danet/distributed/network)"
   includes:
     - mpi.h
 
