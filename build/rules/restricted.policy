@@ -1,39 +1,15 @@
+# == Rules for contrib/restricted section ==
+#
+# NOTE: rules should be ordered from specific to generic (first matching rule is used)
+# See rule syntax docs: https://wiki.yandex-team.ru/devrules/overall/peerdirprohibition/
+
 ALLOW contrib/libs/clickhouse -> contrib/restricted/apache-orc
-ALLOW contrib/restricted/apache-orc -> contrib/restricted/apache-orc
-ALLOW contrib/restricted/abseil-cpp -> contrib/restricted/abseil-cpp
+
 ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp
+
 ALLOW contrib/libs/libbpf -> contrib/restricted/libelf
-ALLOW contrib/restricted/libelf -> contrib/restricted/libelf
-ALLOW contrib/restricted/mpg123 -> contrib/restricted/mpg123
 
-ALLOW contrib/restricted/libsoup -> contrib/restricted/libsoup
-ALLOW contrib/restricted/libsoup -> contrib/restricted/glib
-
-ALLOW contrib/restricted/glib -> contrib/restricted/glib
-ALLOW contrib/restricted/glib -> contrib/restricted/libelf
-
-ALLOW contrib/restricted/gstreamer -> contrib/restricted/gstreamer
-ALLOW contrib/restricted/gstreamer -> contrib/restricted/glib
-
-ALLOW contrib/restricted/gst-plugins-base -> contrib/restricted/gst-plugins-base
-ALLOW contrib/restricted/gst-plugins-base -> contrib/restricted/glib
-ALLOW contrib/restricted/gst-plugins-base -> contrib/restricted/gstreamer
-ALLOW contrib/restricted/gst-plugins-good -> contrib/restricted/gst-plugins-good
-ALLOW contrib/restricted/gst-plugins-good -> contrib/restricted/gst-plugins-base
-ALLOW contrib/restricted/gst-plugins-good -> contrib/restricted/glib
-ALLOW contrib/restricted/gst-plugins-good -> contrib/restricted/gstreamer
-ALLOW contrib/restricted/gst-plugins-good -> contrib/restricted/libsoup
-ALLOW contrib/restricted/gst-plugins-good -> contrib/restricted/mpg123
-ALLOW contrib/restricted/gst-plugins-bad -> contrib/restricted/gst-plugins-bad
-ALLOW contrib/restricted/gst-plugins-bad -> contrib/restricted/gst-plugins-base
-ALLOW contrib/restricted/gst-plugins-bad -> contrib/restricted/glib
-ALLOW contrib/restricted/gst-plugins-bad -> contrib/restricted/gstreamer
-ALLOW contrib/restricted/gst-libav -> contrib/restricted/gst-libav
-ALLOW contrib/restricted/gst-libav -> contrib/restricted/gst-plugins-base
-ALLOW contrib/restricted/gst-libav -> contrib/restricted/glib
-ALLOW contrib/restricted/gst-libav -> contrib/restricted/gstreamer
-
-
+# GLib and GStreamer are LGPL
 ALLOW yandex_io -> contrib/restricted/glib
 ALLOW yandex_io -> contrib/restricted/gstreamer
 ALLOW yandex_io -> contrib/restricted/gst-plugins-base
@@ -41,10 +17,13 @@ ALLOW yandex_io -> contrib/restricted/gst-plugins-good
 ALLOW yandex_io -> contrib/restricted/gst-plugins-bad
 ALLOW yandex_io -> contrib/restricted/gst-libav
 
+# mpg123 is LGPL
 ALLOW extsearch/audio/kernel/recoglib -> contrib/restricted/mpg123
 
+# Allowed subset of abseil is exported via library/
 ALLOW library/containers/absl_flat_hash -> contrib/restricted/abseil-cpp/absl/container
 
+# Only allow boost in yandex projects listed below
 ALLOW adfox -> contrib/restricted/boost
 ALLOW ads -> contrib/restricted/boost
 ALLOW advq -> contrib/restricted/boost
@@ -79,10 +58,16 @@ ALLOW yabs/telephony -> contrib/restricted/boost
 ALLOW yandex_io -> contrib/restricted/boost
 ALLOW yweb/robot/js -> contrib/restricted/boost
 
-ALLOW contrib/restricted/boost -> contrib/restricted/boost
+# Allow boost in all contrib projects
 ALLOW contrib/deprecated -> contrib/restricted/boost
 ALLOW contrib/libs -> contrib/restricted/boost
 ALLOW contrib/python/horovod -> contrib/restricted/boost
 ALLOW contrib/tools -> contrib/restricted/boost
 
+# Default policies:
+
+# 1. All peerdirs within contrib/restricted are permitted
+ALLOW contrib/restricted -> contrib/restricted
+
+# 2. All peerdirs to contrib/restricted from outside are prohibited
 DENY .* -> contrib/restricted
