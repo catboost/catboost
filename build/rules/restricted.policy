@@ -9,8 +9,16 @@ ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp
 
 ALLOW contrib/libs/libbpf -> contrib/restricted/libelf
 
-# GLib and GStreamer are LGPL
+# ALSA library is LGPL
+ALLOW yandex_io -> contrib/restricted/alsa-lib
+
+# Avahi is LGPL
+ALLOW yandex_io -> contrib/restricted/avahi
+
+# GLib is LGPL
 ALLOW yandex_io -> contrib/restricted/glib
+
+# GStreamer is LGPL
 ALLOW yandex_io -> contrib/restricted/gstreamer
 ALLOW yandex_io -> contrib/restricted/gst-plugins-base
 ALLOW yandex_io -> contrib/restricted/gst-plugins-good
@@ -19,6 +27,9 @@ ALLOW yandex_io -> contrib/restricted/gst-libav
 
 # mpg123 is LGPL
 ALLOW extsearch/audio/kernel/recoglib -> contrib/restricted/mpg123
+
+# OpenAL Soft is LGPL
+ALLOW yandex_io -> contrib/restricted/openal
 
 # Allowed subset of abseil is exported via library/
 ALLOW library/containers/absl_flat_hash -> contrib/restricted/abseil-cpp/absl/container
