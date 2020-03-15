@@ -1,4 +1,5 @@
 from collections import OrderedDict
+import filecmp
 import hashlib
 import math
 import numpy as np
@@ -7108,3 +7109,24 @@ def test_to_regressor_wrong_type():
     model.fit(train_pool)
     with pytest.raises(CatBoostError):
         to_regressor(model)
+
+
+def test_load_and_save_quantization_borders():
+    borders1_file = test_output_path('borders1.dat')
+    borders2_file = test_output_path('borders2.dat')
+    borders3_file = test_output_path('borders3.dat')
+
+    pool1 = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    pool1.quantize(border_count=32)
+    pool1.save_quantization_borders(borders1_file)
+
+    pool2 = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    pool2.quantize(border_count=10)
+    pool2.save_quantization_borders(borders2_file)
+
+    pool3 = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    pool3.quantize(input_borders=borders2_file)
+    pool3.save_quantization_borders(borders3_file)
+
+    assert filecmp.cmp(borders2_file, borders3_file)
+    assert not filecmp.cmp(borders1_file, borders2_file)

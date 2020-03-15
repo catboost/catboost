@@ -511,7 +511,7 @@ cdef extern from "catboost/libs/data/objects.h" namespace "NCB":
         TMaybeData[const TFloatValuesHolder*] GetFloatFeature(ui32 floatFeatureIdx) except +ProcessException
 
     cdef cppclass TQuantizedObjectsDataProvider(TObjectsDataProvider):
-        pass
+        TQuantizedFeaturesInfoPtr GetQuantizedFeaturesInfo() except +ProcessException
 
     cdef THashMap[ui32, TString] MergeCatFeaturesHashToString(const TObjectsDataProvider& objectsData) except +ProcessException
 
@@ -1267,7 +1267,10 @@ cdef float _FLOAT_NAN = float('nan')
 cdef extern from "catboost/libs/data/borders_io.h" namespace "NCB" nogil:
     void LoadBordersAndNanModesFromFromFileInMatrixnetFormat(
         const TString& path,
-        TQuantizedFeaturesInfo* quantizedFeaturesInfo) except *
+        TQuantizedFeaturesInfo* quantizedFeaturesInfo) except +ProcessException
+    void SaveBordersAndNanModesToFileInMatrixnetFormat(
+        const TString& path,
+        const TQuantizedFeaturesInfo& quantizedFeaturesInfo) except +ProcessException
 
 cdef extern from "catboost/libs/data/loader.h" namespace "NCB" nogil:
     int IsMissingValue(const TStringBuf& s)
@@ -3853,6 +3856,21 @@ cdef class _PoolBase:
             thread_count
         )
         self.target_type = pool.target_type
+
+
+    cpdef save_quantization_borders(self, output_file):
+        cdef TQuantizedObjectsDataProvider* quantized_objects_data_provider = dynamic_cast_to_TQuantizedObjectsDataProvider(
+            self.__pool.Get()[0].ObjectsData.Get()
+        )
+        if not quantized_objects_data_provider:
+            raise CatBoostError("Pool is not quantized")
+
+        cdef TString fname = to_arcadia_string(output_file)
+        cdef TQuantizedFeaturesInfoPtr quantized_features_info = quantized_objects_data_provider[0].GetQuantizedFeaturesInfo()
+
+        with nogil:
+            SaveBordersAndNanModesToFileInMatrixnetFormat(fname, quantized_features_info.Get()[0])
+
 
     @property
     def is_empty_(self):
