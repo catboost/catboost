@@ -3,6 +3,7 @@
 #include <string_view>
 #include <util/system/yassert.h>
 
+#include "chartraits.h"
 #include "utility.h"
 
 template <typename TDerived, typename TCharType, typename TTraits>
