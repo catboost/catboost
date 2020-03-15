@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fwd.h"
+#include "strbase.h"
 #include "string.h"
 #include "utility.h"
 #include "typetraits.h"
