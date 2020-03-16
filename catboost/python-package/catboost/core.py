@@ -3048,13 +3048,11 @@ class CatBoost(_CatBoostBase):
                 fold_count, partition_random_seed, shuffle, stratified, train_size,
                 search_by_train_test_split, calc_cv_statistics, custom_folds, verbose
             )
-
-        if not self.is_fitted():
-            self.set_params(**cv_result['params'])
-        else:
-            raise CatBoostError("Model was fitted before hyperparameters tuning. You can't change hyperparameters of fitted model.")
         
         if refit:
+            if self.is_fitted():
+                raise CatBoostError("Model was fitted before hyperparameters tuning. You can't change hyperparameters of fitted model.")
+            self.set_params(**cv_result['params'])
             self.fit(X, y, silent=True)
         return cv_result
 
