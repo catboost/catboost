@@ -4989,6 +4989,12 @@ cdef class _MetricCalcerBase:
         raise CatBoostError('Can\'t deepcopy _MetricCalcerBase object')
 
 
+cdef to_tvector(np.ndarray[double, ndim=1, mode="c"] x):
+    cdef TVector[double] result
+    result.assign(<double *>x.data, <double *>x.data + x.shape[0])
+    return result
+
+
 cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_id_param, subgroup_id_param, pairs_param, thread_count):
     if (len(label_param[0]) != len(approx_param[0])):
         raise CatBoostError('Label and approx should have same sizes.')
@@ -4996,25 +5002,17 @@ cpdef _eval_metric_util(label_param, approx_param, metric, weight_param, group_i
 
     cdef TVector[TVector[float]] label
     for labelIdx in range(len(label_param)):
-        label.emplace_back(doc_count)
-        for docIdx in range(doc_count):
-            label[labelIdx][docIdx] = float(label_param[labelIdx][docIdx])
+        label.push_back(to_tvector(np.array(label_param[labelIdx], dtype='double').ravel()))
 
-    approx_dimention = len(approx_param)
     cdef TVector[TVector[double]] approx
-    approx.resize(approx_dimention)
-    for i in range(approx_dimention):
-        approx[i].resize(doc_count)
-        for j in range(doc_count):
-            approx[i][j] = float(approx_param[i][j])
+    for i in range(len(approx_param)):
+        approx.push_back(to_tvector(np.array(approx_param[i], dtype='double').ravel()))
 
     cdef TVector[float] weight
     if weight_param is not None:
         if (len(weight_param) != doc_count):
             raise CatBoostError('Label and weight should have same sizes.')
-        weight.resize(doc_count)
-        for i in range(doc_count):
-            weight[i] = float(weight_param[i])
+        weight = to_tvector(np.array(weight_param, dtype='double').ravel())
 
     cdef TString group_id_strbuf
 
