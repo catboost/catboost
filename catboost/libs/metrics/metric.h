@@ -308,6 +308,8 @@ THolder<IMetric> MakeMAPEMetric();
 
 THolder<IMetric> MakePoissonMetric();
 
+THolder<IMetric> MakeTweedieMetric(double variance_power);
+
 //Mean squared logarithmic error regression loss
 THolder<IMetric> MakeMSLEMetric();
 
@@ -403,8 +405,6 @@ THolder<IMetric> MakeBinClassNormalizedGiniMetric(double border);
 THolder<IMetric> MakeMultiClassNormalizedGiniMetric(int positiveClass);
 
 THolder<IMetric> MakeFairLossMetric(double smoothness);
-
-THolder<IMetric> MakeTweedieMetric(double variance_power);
 
 TVector<THolder<IMetric>> CreateMetricsFromDescription(const TVector<TString>& description, int approxDim);
 
