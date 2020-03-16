@@ -42,7 +42,8 @@ namespace NLastGetopt {
         L << "_" << command << "() {";
         {
             I;
-            L << "local state line desc modes curcontext=\"$curcontext\" ret=1";
+            L << "local state line desc modes context curcontext=\"$curcontext\" ret=1";
+            L << "local words_orig=(\"${words[@]}\")";
             L;
             Visit(TOverloaded{
                 [&out, &manager](const TModChooser* modChooser) {
@@ -91,6 +92,9 @@ namespace NLastGetopt {
                 L << "desc='modes'";
                 L << "modes=(";
                 for (auto& mode : modes) {
+                    if (mode->Hidden) {
+                        continue;
+                    }
                     if (!mode->Name.empty()) {
                         I;
                         if (!mode->Description.empty()) {
@@ -133,7 +137,7 @@ namespace NLastGetopt {
                     I;
 
                     for (auto& mode : modes) {
-                        if (mode->Name.empty()) {
+                        if (mode->Name.empty() || mode->Hidden) {
                             continue;
                         }
 
