@@ -78,6 +78,7 @@ def onjava_module(unit, *args):
         'MODULE_ARGS': unit.get('MODULE_ARGS'),
         'PEERDIR': unit.get_module_dirs('PEERDIRS'),
         'MANAGED_PEERS': '${MANAGED_PEERS}',
+        'MANAGED_PEERS_CLOSURE': '${MANAGED_PEERS_CLOSURE}',
         'EXCLUDE': extract_macro_calls(unit, 'EXCLUDE_VALUE', args_delim),
         'JAVA_SRCS': extract_macro_calls(unit, 'JAVA_SRCS_VALUE', args_delim),
         'JAVAC_FLAGS': extract_macro_calls(unit, 'JAVAC_FLAGS_VALUE', args_delim),
