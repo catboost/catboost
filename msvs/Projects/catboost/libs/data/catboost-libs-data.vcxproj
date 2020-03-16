@@ -86,6 +86,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\cat_feature_perfect_hash_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\cb_dsv_loader.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\columns.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\data\columns.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\composite_columns.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\data_provider.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\data_provider_builders.cpp"/>
@@ -143,6 +144,33 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Message>$B/catboost/libs/data/baseline.h_serialized.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)..\catboost\libs\data\baseline.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data\baseline.h_serialized.cpp;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\catboost\libs\data\columns.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\data
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/data/columns.h" "--include-path" "catboost/libs/data/columns.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data/columns.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\catboost\libs\data
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/data/columns.h" "--include-path" "catboost/libs/data/columns.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/data/columns.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/catboost/libs/data/columns.h_serialized.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\catboost\libs\data\columns.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\data\columns.h_serialized.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\catboost\libs\data\order.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -230,7 +258,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\cat_feature_perfect_hash.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\cat_feature_perfect_hash_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\cb_dsv_loader.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\columns.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\composite_columns.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\data_provider.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\data_provider_builders.h"/>
