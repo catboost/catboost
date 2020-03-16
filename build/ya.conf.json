@@ -319,6 +319,9 @@
         },
         "jstyle": {
             "description": "Java styler"
+        },
+        "ya_sed": {
+            "description": "This tool simplifies replacing of some text in Arcadia"
         }
     },
     "toolchain": {
@@ -5252,6 +5255,34 @@
                     "default": true
                 }
             ]
+        },
+        "ya_sed": {
+            "tools": {
+                "ya_sed": {
+                    "bottle": "ya_sed",
+                    "executable": "ya_sed"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
         }
     },
     "bottles": {
@@ -7314,6 +7345,19 @@
                     "idea-community",
                     "bin",
                     "format.bat"
+                ]
+            }
+        },
+        "ya_sed": {
+            "formula": {
+                "sandbox_id": [
+                    629482065
+                ],
+                "match": "ya_sed"
+            },
+            "executable": {
+                "ya_sed": [
+                    "ya_sed"
                 ]
             }
         }
