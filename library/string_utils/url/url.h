@@ -1,6 +1,27 @@
 #pragma once
 
 #include <util/generic/fwd.h>
+#include <util/generic/strbuf.h>
+
+namespace NUrl {
+
+    /**
+     * Splits URL to host and path
+     * Example:
+     * auto [host, path] = SplitUrlToHostAndPath(url);
+     *
+     * @param[in] url                   any URL
+     * @param[out] <host, path>     parsed host and path
+     */
+    struct TSplitUrlToHostAndPathResult {
+        TStringBuf host;
+        TStringBuf path;
+    };
+
+    Y_PURE_FUNCTION
+    TSplitUrlToHostAndPathResult SplitUrlToHostAndPath(const TStringBuf url);
+
+} // namespace NUrl
 
 Y_PURE_FUNCTION
 size_t GetHttpPrefixSize(const char* url, bool ignorehttps = false) noexcept;
@@ -91,7 +112,7 @@ bool TryGetSchemeHostAndPort(const TStringBuf url, TStringBuf& scheme, TStringBu
 /**
  * Extracts scheme, host and port from URL.
  *
- * This function preform the same actions as TryGetSchemeHostAndPort(), but in
+ * This function perform the same actions as TryGetSchemeHostAndPort(), but in
  * case of impossibility to parse port number throws yexception.
  *
  * @param[in] url       any URL

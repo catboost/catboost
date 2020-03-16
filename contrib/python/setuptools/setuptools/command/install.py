@@ -114,7 +114,7 @@ class install(orig.install):
             args.insert(0, setuptools.bootstrap_install_from)
 
         cmd.args = args
-        cmd.run()
+        cmd.run(show_deprecation=False)
         setuptools.bootstrap_install_from = None
 
 

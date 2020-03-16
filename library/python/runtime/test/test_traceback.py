@@ -13,6 +13,7 @@ import yatest.common as yc
 def clean_traceback(traceback):
     traceback = re.sub(r'\033\[(\d|;)+?m', '', traceback)  # strip ANSI codes
     traceback = re.sub(r' at 0x[0-9a-fA-F]+', '', traceback)  # remove object ids
+    traceback = re.sub(r'line \d+', 'line XXX', traceback)  # remove line numbers
     return traceback
 
 

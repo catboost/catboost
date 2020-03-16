@@ -58,8 +58,6 @@ bool IsUserDefined(ELossFunction lossFunction);
 
 bool IsEmbeddingFeatureEstimator(EFeatureCalcerType estimatorType);
 
-bool ShouldSkipFstrGrowPolicy(EGrowPolicy growPolicy);
-
 bool IsBuildingFullBinaryTree(EGrowPolicy growPolicy);
 
 bool IsPlainOnlyModeScoreFunction(EScoreFunction scoreFunction);
@@ -67,3 +65,8 @@ bool IsPlainOnlyModeScoreFunction(EScoreFunction scoreFunction);
 bool ShouldBinarizeLabel(ELossFunction lossFunction);
 
 bool IsCvStratifiedObjective(TStringBuf lossDescription);
+
+EFstrType AdjustFeatureImportanceType(EFstrType type, ELossFunction lossFunction);
+EFstrType AdjustFeatureImportanceType(EFstrType type, TStringBuf lossDescription);
+
+bool IsInternalFeatureImportanceType(EFstrType type);

@@ -1049,7 +1049,11 @@ static void EvaluateFeaturesImpl(
         } else {
             CATBOOST_WARNING_LOG << "Feature set " << featureSetIdx
                 << " consists of ignored or constant features; eval feature assumes baseline data = testing data for this feature set" << Endl;
-            results->BestMetrics[/*isTest*/1][featureSetIdx] = results->BestMetrics[/*isTest*/0][featureSetIdx];
+            const auto baselineIdx = useCommonBaseline ? 0 : featureSetIdx;
+            results->MetricsHistory[/*isTest*/1][featureSetIdx] = results->MetricsHistory[/*isTest*/0][baselineIdx];
+            results->FeatureStrengths[/*isTest*/1][featureSetIdx] = results->FeatureStrengths[/*isTest*/0][baselineIdx];
+            results->RegularFeatureStrengths[/*isTest*/1][featureSetIdx] = results->RegularFeatureStrengths[/*isTest*/0][baselineIdx];
+            results->BestMetrics[/*isTest*/1][featureSetIdx] = results->BestMetrics[/*isTest*/0][baselineIdx];
         }
     }
     for (auto isTest : {false, true}) {
@@ -1107,9 +1111,11 @@ static void CountDisjointFolds(
             }
         }
     }
+    CB_ENSURE(
+        featureEvalOptions.FoldSize.Get() > 0 || featureEvalOptions.RelativeFoldSize.Get() > 0,
+        "Please specify positive fold size or positive relative fold size");
     if (featureEvalOptions.FoldSize.Get() > 0) {
         *absoluteFoldSize = featureEvalOptions.FoldSize.Get();
-        CB_ENSURE(*absoluteFoldSize > 0, "Fold size must be positive");
     } else {
         *absoluteFoldSize = featureEvalOptions.RelativeFoldSize.Get() * samplingUnitsCount;
         CB_ENSURE(

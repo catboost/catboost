@@ -13,6 +13,7 @@
 #include <util/network/socket.h>
 #include <util/stream/pipe.h>
 #include <util/stream/str.h>
+#include <util/string/cast.h>
 #include <util/system/info.h>
 
 #include <errno.h>

@@ -2,8 +2,6 @@
 
 RECURSE(
     blackhole
-    boost
-    boost/libs/test
     folly
     glib
     glib/gio
@@ -28,10 +26,3 @@ RECURSE(
     uriparser
     wangle
 )
-
-
-IF(OS_LINUX OR OS_DARWIN)
-    RECURSE(
-    
-)
-ENDIF()

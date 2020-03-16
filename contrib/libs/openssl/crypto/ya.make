@@ -151,6 +151,10 @@ IF (OS_WINDOWS AND ARCH_X86_64)
     )
 ENDIF()
 
+IF(OS_WINDOWS)
+    SET_COMPILE_OUTPUTS_MODIFIERS(NOREL)
+ENDIF()
+
 SRCS(
     aes/aes_cbc.c
     aes/aes_cfb.c

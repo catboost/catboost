@@ -105,6 +105,7 @@ namespace NCatboostDistributed {
         TProfileInfo profile;
         CATBOOST_DEBUG_LOG << "Load quantized pool section for worker " << hostId << "..." << Endl;
         auto pools = NCB::ReadTrainDatasets(
+            /*taskType*/ETaskType::CPU,
             poolLoadOptions,
             params->ObjectsOrder,
             /*readTest*/false,
@@ -183,7 +184,6 @@ namespace NCatboostDistributed {
             params->TargetClassifiers,
             /*featuresCheckSum*/ 0, // unused in case of localData
             /*foldCreationParamsCheckSum*/ 0,
-            ParseMemorySizeDescription(trainParams.SystemOptions->CpuUsedRamLimit.Get()),
             /*initModel*/ Nothing(),
             /*initModelApplyCompatiblePools*/ NCB::TDataProviders(),
             &NPar::LocalExecutor());
@@ -762,7 +762,7 @@ namespace NCatboostDistributed {
     void TErrorCalcer::DoMap(
         NPar::IUserContext* ctx,
         int hostId,
-        TInput* /*unused*/,
+        TInput* useAveragingFold,
         TOutput* additiveStats
     ) const {
         const auto& localData = TLocalTensorSearchData::GetRef();
@@ -781,9 +781,9 @@ namespace NCatboostDistributed {
         }
 
         auto calculatedErrors = EvalErrorsWithCaching(
-            localData.Progress->AvrgApprox,
-            /*approxDelta*/{},
-            /*isExpApprox*/false,
+            *useAveragingFold ? localData.Progress->AveragingFold.BodyTailArr[0].Approx : localData.Progress->AvrgApprox,
+            *useAveragingFold ? localData.ApproxDeltas : /*approxDelta*/TVector<TVector<double>>{},
+            *useAveragingFold ? localData.StoreExpApprox : /*isExpApprox*/false,
             GetTrainData(trainData)->TargetData->GetTarget().GetOrElse(TConstArrayRef<TConstArrayRef<float>>()),
             GetWeights(*GetTrainData(trainData)->TargetData),
             GetTrainData(trainData)->TargetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>()),
@@ -852,7 +852,7 @@ namespace NCatboostDistributed {
             for (auto leaf : xrange(leafCount)) {
                 localData.ExactDiff[dimension][leaf].clear();
             }
-            minMaxDiffs[dimension].assign(leafCount, {std::numeric_limits<double>::max(), std::numeric_limits<double>::min()});
+            minMaxDiffs[dimension].assign(leafCount, {std::numeric_limits<double>::max(), std::numeric_limits<double>::lowest()});
             avrgFoldIndexing.ForEach([&](int idx, int srcIdx) {
                 const double diff = target[dimension][srcIdx] - localData.Progress->AvrgApprox[dimension][srcIdx];
                 const double weight = weights.empty() ? 1.0 : weights[srcIdx];
@@ -1004,6 +1004,16 @@ namespace NCatboostDistributed {
         *outTotalEqualSumWeights = std::move(totalEqualSumWeights);
     }
 
+    void TArmijoStartPointBackupper::DoMap(NPar::IUserContext* /*ctx*/, int /*hostId*/, TInput* isRestore, TOutput* /*unused*/) const {
+        auto& localData = TLocalTensorSearchData::GetRef();
+        if (*isRestore) {
+            CB_ENSURE_INTERNAL(!localData.BacktrackingStart.empty(), "Need saved backtracking start point to restore from");
+            localData.ApproxDeltas = localData.BacktrackingStart;
+        } else {
+            localData.BacktrackingStart = localData.ApproxDeltas;
+        }
+    };
+
 } // NCatboostDistributed
 
 using namespace NCatboostDistributed;
@@ -1038,3 +1048,5 @@ REGISTER_SAVELOAD_NM_CLASS(0xd66d4e1, NCatboostDistributed, TDatasetLoader);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4e3, NCatboostDistributed, TQuantileExactApproxStarter);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4e4, NCatboostDistributed, TQuantileArraySplitter);
 REGISTER_SAVELOAD_NM_CLASS(0xd66d4e5, NCatboostDistributed, TQuantileEqualWeightsCalcer);
+
+REGISTER_SAVELOAD_NM_CLASS(0xd66d4e6, NCatboostDistributed, TArmijoStartPointBackupper);

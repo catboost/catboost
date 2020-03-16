@@ -151,9 +151,13 @@ namespace NCatboostDistributed {
         OBJECT_NOCOPY_METHODS(TDeltaMultiUpdater);
         void DoMap(NPar::IUserContext* ctx, int hostId, TInput* leafValues, TOutput* /*unused*/) const final;
     };
-    class TErrorCalcer: public NPar::TMapReduceCmd<TUnusedInitializedParam, THashMap<TString, TMetricHolder>> {
+    class TErrorCalcer: public NPar::TMapReduceCmd<bool, THashMap<TString, TMetricHolder>> {
         OBJECT_NOCOPY_METHODS(TErrorCalcer);
-        void DoMap(NPar::IUserContext* ctx, int hostId, TInput* /*unused*/, TOutput* additiveStats) const final;
+        void DoMap(NPar::IUserContext* ctx, int hostId, TInput* useAveragingFold, TOutput* additiveStats) const final;
+    };
+    class TArmijoStartPointBackupper: public NPar::TMapReduceCmd<bool, TUnusedInitializedParam> {
+        OBJECT_NOCOPY_METHODS(TArmijoStartPointBackupper);
+        void DoMap(NPar::IUserContext* ctx, int hostId, TInput* isRestore, TOutput* /*unused*/) const final;
     };
     class TLeafWeightsGetter: public NPar::TMapReduceCmd<TUnusedInitializedParam, TVector<double>> {
         OBJECT_NOCOPY_METHODS(TLeafWeightsGetter);

@@ -18,7 +18,11 @@ Y_UNIT_TEST_SUITE(TIOService) {
         bool Execute(int ec) override {
             UNIT_ASSERT_VALUES_EQUAL(ec, 0);
 
+#ifdef _win_
+            if (::send(Fd(), "", 1, 0) != 1) {
+#else
             if (::write(Fd(), "", 1) != 1) {
+#endif
                 return true;
             }
             return !--RunTimes;
@@ -39,7 +43,11 @@ Y_UNIT_TEST_SUITE(TIOService) {
             UNIT_ASSERT_VALUES_EQUAL(ec, 0);
 
             char byte;
+#ifdef _win_
+            ssize_t res = ::recv(Fd(), &byte, 1, 0);
+#else
             ssize_t res = ::read(Fd(), &byte, 1);
+#endif
             if (res != 1) {
                 return true;
             }

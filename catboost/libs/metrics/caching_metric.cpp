@@ -2,6 +2,7 @@
 #include "metric.h"
 #include "description_utils.h"
 #include "classification_utils.h"
+#include "enums.h"
 
 #include <catboost/libs/helpers/dispatch_generic_lambda.h>
 #include <catboost/private/libs/options/enum_helpers.h>
@@ -707,15 +708,17 @@ namespace {
     struct TTotalF1CachingMetric: public TCachingMetric {
         static constexpr int StatsCardinality = 3;
 
-        explicit TTotalF1CachingMetric(double border)
+        explicit TTotalF1CachingMetric(double border, EF1AverageType averageType)
             : ClassesCount(BinaryClassesCount)
             , Border(border)
-            , IsMultiClass(false) {
+            , IsMultiClass(false)
+            , AverageType(averageType) {
         }
 
-        explicit TTotalF1CachingMetric(int classesCount)
+        explicit TTotalF1CachingMetric(int classesCount, EF1AverageType averageType)
             : ClassesCount(classesCount)
-            , IsMultiClass(true) {
+            , IsMultiClass(true)
+            , AverageType(averageType) {
         }
 
         TMetricHolder Eval(
@@ -742,11 +745,12 @@ namespace {
         int ClassesCount = BinaryClassesCount;
         double Border = 0.0;
         bool IsMultiClass = false;
+        EF1AverageType AverageType;
     };
 }
 
-THolder<IMetric> MakeTotalF1Metric(int classesCount) {
-    return MakeHolder<TTotalF1CachingMetric>(classesCount);
+THolder<IMetric> MakeTotalF1Metric(int classesCount, EF1AverageType averageType) {
+    return MakeHolder<TTotalF1CachingMetric>(classesCount, averageType);
 }
 
 TMetricHolder TTotalF1CachingMetric::Eval(
@@ -819,8 +823,17 @@ double TTotalF1CachingMetric::GetFinalError(const TMetricHolder& error) const {
         double truePositive = error.Stats[StatsCardinality * i + 2];
 
         double f1 = classSize + classPredictedSize != 0 ? 2 * truePositive / (classSize + classPredictedSize) : 0.0;
-        numerator += f1 * classSize;
-        denumerator += classSize;
+
+        if (AverageType == EF1AverageType::Weighted) {
+            numerator += f1 * classSize;
+            denumerator += classSize;
+        } else if (AverageType == EF1AverageType::Micro) {
+            numerator += 2 * truePositive;
+            denumerator += classSize + classPredictedSize;
+        } else if (AverageType == EF1AverageType::Macro) {
+            numerator += f1;
+            denumerator += 1;
+        }
     }
 
     return numerator / denumerator;
@@ -958,7 +971,19 @@ TVector<THolder<IMetric>> CreateCachingMetrics(ELossFunction metric, const TMap<
             return CreateMetricClasswise<TF1CachingMetric>(approxDimension);
         }
         case ELossFunction::TotalF1: {
-            return CreateMetric<TTotalF1CachingMetric>(approxDimension);
+            *validParams = TSet<TString>{"average"};
+            EF1AverageType averageType = EF1AverageType::Weighted;
+            if (params.contains("average")) {
+                averageType = FromString<EF1AverageType>(params.at("average"));
+            }
+
+            TVector<THolder<IMetric>> result;
+            if (approxDimension == 1) {
+                result.emplace_back(MakeHolder<TTotalF1CachingMetric>(GetDefaultTargetBorder(), averageType));
+            } else {
+                result.emplace_back(MakeHolder<TTotalF1CachingMetric>(approxDimension, averageType));
+            }
+            return result;
         }
         case ELossFunction::MCC: {
             return CreateMetric<TMCCCachingMetric>(approxDimension);

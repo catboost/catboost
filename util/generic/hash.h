@@ -1418,6 +1418,8 @@ namespace NPrivate {
     inline TString MapKeyToString(char* key) {
         return MapKeyToString(TStringBuf(key));
     }
+
+    [[noreturn]] void ThrowKeyNotFoundInHashTableException(const TStringBuf keyRepresentation);
 }
 
 template <class Key, class T, class HashFcn, class EqualKey, class Alloc>
@@ -1652,8 +1654,8 @@ public:
         using namespace ::NPrivate;
         const_iterator it = find(key);
 
-        if (it == end()) {
-            ythrow yexception() << "Key not found in hashtable: " << MapKeyToString(key);
+        if (Y_UNLIKELY(it == end())) {
+            ::NPrivate::ThrowKeyNotFoundInHashTableException(MapKeyToString(key));
         }
 
         return it->second;
@@ -1664,8 +1666,8 @@ public:
         using namespace ::NPrivate;
         iterator it = find(key);
 
-        if (it == end()) {
-            ythrow yexception() << "Key not found in hashtable: " << MapKeyToString(key);
+        if (Y_UNLIKELY(it == end())) {
+            ::NPrivate::ThrowKeyNotFoundInHashTableException(MapKeyToString(key));
         }
 
         return it->second;

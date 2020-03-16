@@ -18,6 +18,7 @@
 #include <util/random/fast.h>
 
 #include <util/string/hex.h>
+#include <util/string/cast.h>
 
 #include "comptrie.h"
 #include "set.h"

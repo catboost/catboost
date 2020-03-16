@@ -315,18 +315,38 @@ namespace NJson {
                   rapidjson::Reader& reader,
                   TRapidJsonCompliantInputStream& is,
                   THandler& handler) {
+
+            ui8 flags = ReaderConfigToRapidJsonFlags::NOCOMMENTS_VALID_NOESCAPE;
+
             if (config.AllowComments) {
-                if (config.DontValidateUtf8) {
+                flags |= ReaderConfigFlags::COMMENTS;
+            }
+
+            if (config.DontValidateUtf8) {
+                flags &= ~(ReaderConfigFlags::VALIDATE);
+            }
+
+            if (config.AllowEscapedApostrophe) {
+                flags |= ReaderConfigFlags::ESCAPE;
+            }
+
+            switch (flags) {
+                case ReaderConfigToRapidJsonFlags::COMMENTS_NOVALID_NOESCAPE:
                     return reader.Parse<rapidjson::kParseCommentsFlag>(is, handler);
-                } else {
+                case ReaderConfigToRapidJsonFlags::COMMENTS_VALID_NOESCAPE:
                     return reader.Parse<rapidjson::kParseCommentsFlag | rapidjson::kParseValidateEncodingFlag>(is, handler);
-                }
-            } else {
-                if (config.DontValidateUtf8) {
-                    return reader.Parse<rapidjson::kParseNoFlags>(is, handler);
-                } else {
+                case ReaderConfigToRapidJsonFlags::COMMENTS_VALID_ESCAPE:
+                    return reader.Parse<rapidjson::kParseCommentsFlag | rapidjson::kParseValidateEncodingFlag | rapidjson::kParseEscapedApostropheFlag>(is, handler);
+                case ReaderConfigToRapidJsonFlags::COMMENTS_NOVALID_ESCAPE:
+                    return reader.Parse<rapidjson::kParseCommentsFlag | rapidjson::kParseEscapedApostropheFlag>(is, handler);
+                case ReaderConfigToRapidJsonFlags::NOCOMMENTS_VALID_NOESCAPE:
                     return reader.Parse<rapidjson::kParseValidateEncodingFlag>(is, handler);
-                }
+                case ReaderConfigToRapidJsonFlags::NOCOMMENTS_VALID_ESCAPE:
+                    return reader.Parse<rapidjson::kParseValidateEncodingFlag | rapidjson::kParseEscapedApostropheFlag>(is, handler);
+                case  ReaderConfigToRapidJsonFlags::NOCOMMENTS_NOVALID_ESCAPE:
+                    return reader.Parse<rapidjson::kParseEscapedApostropheFlag>(is, handler);
+                default:
+                    return reader.Parse<rapidjson::kParseNoFlags>(is, handler);
             }
         }
 
@@ -503,6 +523,13 @@ namespace NJson {
     bool ReadJson(IInputStream* in, bool allowComments, TJsonCallbacks* cbs) {
         TJsonReaderConfig config;
         config.AllowComments = allowComments;
+        return ReadJson(in, &config, cbs);
+    }
+
+    bool ReadJson(IInputStream* in, bool allowComments, bool allowEscapedApostrophe, TJsonCallbacks* cbs) {
+        TJsonReaderConfig config;
+        config.AllowComments = allowComments;
+        config.AllowEscapedApostrophe = allowEscapedApostrophe;
         return ReadJson(in, &config, cbs);
     }
 

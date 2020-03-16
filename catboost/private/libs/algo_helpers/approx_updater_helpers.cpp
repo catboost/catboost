@@ -10,8 +10,10 @@ static void NormalizeLeafValues(const TVector<double>& leafWeightsSum, TVector<d
         averageLeafValue += (*leafValues)[leafIdx] * leafWeightsSum[leafIdx];
     }
     averageLeafValue /= Accumulate(leafWeightsSum, /*val*/0.0);
-    for (auto& leafValue : *leafValues) {
-        leafValue -= averageLeafValue;
+    for (size_t leafIdx : xrange(leafWeightsSum.size())) {
+        if (abs(leafWeightsSum[leafIdx]) > 1e-9) {
+            (*leafValues)[leafIdx] -= averageLeafValue;
+        }
     }
 }
 

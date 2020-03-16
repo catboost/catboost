@@ -60,6 +60,7 @@ namespace NCB {
     struct IQuantizedPoolLoader {
         virtual ~IQuantizedPoolLoader() = default;
         virtual TQuantizedPool LoadQuantizedPool(TLoadQuantizedPoolParameters params) = 0;
+        virtual TVector<ui8> LoadQuantizedColumn(ui32 columnIdx) = 0;
     };
 
     using TQuantizedPoolLoaderFactory =

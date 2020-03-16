@@ -37,6 +37,7 @@ namespace NCB {
         THashMap<TString, ui32> UIntOptions;
         THashMap<TString, double> DoubleOptions;
         THashMap<TString, TString> StringOptions;
+        THashMap<TString, TVector<double>> ListOfDoublesOptions;
     public:
         void SetOptionsFromJson(
             const THashMap<TString, NJson::TJsonValue>& options,

@@ -78,6 +78,33 @@ namespace NCB {
                         TValueWithCount{bin, (ui32)hashedCatDefaultValue->Count}
                     );
                 }
+            } else {
+                // cannot update DefaultMap mapping, only insert as a regular element
+
+                if (perfectHashMap.DefaultMap &&
+                    (perfectHashMap.DefaultMap->SrcValue == hashedCatDefaultValue->Value))
+                {
+                    perfectHashMap.DefaultMap->DstValueWithCount.Count
+                        += (ui32)hashedCatDefaultValue->Count;
+                } else {
+                    auto it = perfectHashMap.Map.find(hashedCatDefaultValue->Value);
+                    if (it == perfectHashMap.Map.end()) {
+                        CB_ENSURE(
+                            perfectHashMap.Map.size() != MAX_UNIQ_CAT_VALUES,
+                            "Error: categorical feature with id #" << *catFeatureIdx
+                            << " has more than " << MAX_UNIQ_CAT_VALUES
+                            << " unique values, which is currently unsupported"
+                        );
+                        const ui32 bin = (ui32)perfectHashMap.GetSize();
+                        perfectHashMap.Map.emplace_hint(
+                            it,
+                            hashedCatDefaultValue->Value,
+                            TValueWithCount{bin, (ui32)hashedCatDefaultValue->Count}
+                        );
+                    } else {
+                        it->second.Count += (ui32)hashedCatDefaultValue->Count;
+                    }
+                }
             }
         }
 

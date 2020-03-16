@@ -543,7 +543,8 @@ Y_HIDDEN void _YandexAbort();
 #define Y_PRAGMA_NO_DEPRECATED
 #endif
 
-#if defined(__clang__) || defined(__GNUC__)
+// Memory sanitizer sometimes doesn't correctly set parameter shadow of constant functions.
+#if (defined(__clang__) || defined(__GNUC__)) && !defined(_msan_enabled_)
 /**
  * @def Y_CONST_FUNCTION
    methods and functions, marked with this method are promised to:

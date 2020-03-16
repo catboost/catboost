@@ -29,6 +29,7 @@
   - prfchwintrin.h
   - rdseedintrin.h
   - rtmintrin.h
+  - s390intrin.h
   - sanitizer/asan_interface.h
   - sanitizer/common_interface_defs.h
   - sanitizer/coverage_interface.h

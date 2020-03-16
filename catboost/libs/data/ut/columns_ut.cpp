@@ -1,4 +1,5 @@
 #include <catboost/libs/data/columns.h>
+#include <catboost/libs/data/composite_columns.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
 #include <util/generic/is_in.h>

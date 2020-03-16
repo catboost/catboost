@@ -78,9 +78,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\library\token\generated\custom_decompositions.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\token\charfilter.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\token\formtype.h_serialized.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\token\generated\custom_decompositions.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\token\nlptypes.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\token\nlptypes.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\library\token\token_util.cpp"/>

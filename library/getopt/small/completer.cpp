@@ -246,7 +246,7 @@ namespace NLastGetopt::NComp {
     void TCustomCompleter::RegisterCustomCompleter(TCustomCompleter* completer) noexcept {
         Y_VERIFY(completer);
         if (Head) {
-            Head->Next_ = Head;
+            completer->Next_ = Head;
         }
         Head = completer;
     }
@@ -272,7 +272,7 @@ namespace NLastGetopt::NComp {
         }
 
         void GenerateZsh(TFormattedOutput& out, TCompleterManager&) const override {
-            L << "compadd ${@} ${expl[@]} \"${(@f)$($words " << SpecialFlag << " " << Completer_->GetUniqueName() << " 2> /dev/null)}\"";
+            L << "compadd ${@} ${expl[@]} \"${(@f)$($words_orig " << SpecialFlag << " " << Completer_->GetUniqueName() << ")}\"";
         }
 
     private:

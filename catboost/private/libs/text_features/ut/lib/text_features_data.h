@@ -31,10 +31,9 @@ namespace NCBTest {
     void CreateTextDataForTest(
         TVector<TTextFeature>* features,
         TVector<TTokenizedTextFeature>* tokenizedFeatures,
+        TVector<NCB::TDigitizer>* digitizers,
         TVector<NCB::TTextFeatureCalcerPtr>* calcers,
-        TVector<NCB::TDictionaryPtr>* dictionaries,
-        NCB::TTokenizerPtr* tokenizer,
-        TVector<TVector<ui32>>* perFeatureDictionaries,
+        TVector<TVector<ui32>>* perFeatureDigitizers,
         TVector<TVector<ui32>>* perTokenizedFeatureCalcers
     );
 

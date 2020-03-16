@@ -167,13 +167,20 @@ namespace NThreading {
             }
 
             void SetException(std::exception_ptr e) {
+                bool success = TrySetException(std::move(e));
+                if (Y_UNLIKELY(!success)) {
+                    ythrow TFutureException() << "value already set";
+                }
+            }
+
+            bool TrySetException(std::exception_ptr e) {
                 TSystemEvent* readyEvent;
                 TCallbackList<T> callbacks;
 
                 with_lock (StateLock) {
                     int state = AtomicGet(State);
                     if (Y_UNLIKELY(state != NotReady)) {
-                        ythrow TFutureException() << "value already set";
+                        return false;
                     }
 
                     Exception = std::move(e);
@@ -194,6 +201,8 @@ namespace NThreading {
                         callback(temp);
                     }
                 }
+
+                return true;
             }
 
             template <typename F>
@@ -344,13 +353,20 @@ namespace NThreading {
             }
 
             void SetException(std::exception_ptr e) {
+                bool success = TrySetException(std::move(e));
+                if (Y_UNLIKELY(!success)) {
+                    ythrow TFutureException() << "value already set";
+                }
+            }
+
+            bool TrySetException(std::exception_ptr e) {
                 TSystemEvent* readyEvent = nullptr;
                 TCallbackList<void> callbacks;
 
                 with_lock (StateLock) {
                     int state = AtomicGet(State);
                     if (Y_UNLIKELY(state != NotReady)) {
-                        ythrow TFutureException() << "value already set";
+                        return false;
                     }
 
                     Exception = std::move(e);
@@ -371,6 +387,8 @@ namespace NThreading {
                         callback(temp);
                     }
                 }
+
+                return true;
             }
 
             template <typename F>
@@ -900,6 +918,12 @@ namespace NThreading {
     }
 
     template <typename T>
+    inline bool TPromise<T>::TrySetException(std::exception_ptr e) {
+        EnsureInitialized();
+        return State->TrySetException(std::move(e));
+    }
+
+    template <typename T>
     inline TFuture<T> TPromise<T>::GetFuture() const {
         EnsureInitialized();
         return TFuture<T>(State);
@@ -983,6 +1007,11 @@ namespace NThreading {
     inline void TPromise<void>::SetException(std::exception_ptr e) {
         EnsureInitialized();
         State->SetException(std::move(e));
+    }
+
+    inline bool TPromise<void>::TrySetException(std::exception_ptr e) {
+        EnsureInitialized();
+        return State->TrySetException(std::move(e));
     }
 
     inline TFuture<void> TPromise<void>::GetFuture() const {

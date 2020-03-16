@@ -26,7 +26,15 @@ namespace NTextProcessing::NTokenizer {
 
         bool NeedToModifyTokens() const;
 
+        void Save(IOutputStream* stream) const;
+        void Load(IInputStream* stream);
+
+        bool operator==(const TTokenizer& rhs) const;
+        bool operator!=(const TTokenizer& rhs) const;
+
     private:
+        void Initialize();
+
         TTokenizerOptions Options;
         THolder<ILemmerImplementation> Lemmer;
         bool NeedToModifyTokensFlag = false;

@@ -44,6 +44,8 @@
 #endif
 
 #if defined(_linux_)
+#undef SIOCGSTAMP
+#undef SIOCGSTAMPNS
 #include <linux/sockios.h>
 #define FIONWRITE SIOCOUTQ
 #endif

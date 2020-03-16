@@ -1,6 +1,7 @@
 #include "quantized_features_info.h"
 
 #include "feature_index.h"
+#include "sparse_columns.h"
 
 #include <catboost/libs/helpers/checksum.h>
 #include <catboost/libs/helpers/dbg_output.h>

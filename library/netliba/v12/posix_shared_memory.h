@@ -18,7 +18,7 @@ struct TPosixSharedMemory: public TSharedMemory {
 
 #else
 #if defined(_linux_)
-#include <linux/limits.h> // for PATH_MAX
+#include <limits.h> // for PATH_MAX
 #elif defined(_darwin_)
 #include <sys/posix_shm.h>
 #endif

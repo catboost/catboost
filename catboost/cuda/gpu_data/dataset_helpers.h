@@ -60,37 +60,57 @@ namespace NCatboostCuda {
         }
 
         void Write(const TVector<ui32>& featureIds) {
+            TVector<ui32> floatFeatureIds;
             for (auto feature : featureIds) {
                 if (FeaturesManager.IsCtr(feature)) {
                     continue;
                 } else if (FeaturesManager.IsFloat(feature)) {
-                    WriteFloatFeature(feature,
-                                      DataProvider);
+                    floatFeatureIds.push_back(feature);
                 } else if (FeaturesManager.IsCat(feature)) {
                     CB_ENSURE(FeaturesManager.UseForOneHotEncoding(feature));
                     WriteOneHotFeature(feature, DataProvider);
+                    CheckInterrupted(); // check after long-lasting operation
                 }
+            }
+            constexpr ui32 FeatureBlockSize = 16;
+            const auto featureCount = floatFeatureIds.size();
+            for (auto featureIdx : xrange<ui32>(0, featureCount, FeatureBlockSize)) {
+                const auto begin = floatFeatureIds.begin() + featureIdx;
+                const auto end = floatFeatureIds.begin() + Min<ui32>(featureCount, featureIdx + FeatureBlockSize);
+                WriteFloatFeatures(MakeArrayRef(begin, end), DataProvider);
                 CheckInterrupted(); // check after long-lasting operation
             }
         }
 
     private:
-        void WriteFloatFeature(const ui32 feature,
+        void WriteFloatFeatures(TConstArrayRef<ui32> features,
                                const NCB::TTrainingDataProvider& dataProvider) {
-            const auto featureId = FeaturesManager.GetDataProviderId(feature);
-            const auto& featureMetaInfo = dataProvider.MetaInfo.FeaturesLayout->GetExternalFeaturesMetaInfo()[featureId];
-            CB_ENSURE(featureMetaInfo.IsAvailable,
-                      TStringBuilder() << "Feature #" << featureId << " is empty");
-            CB_ENSURE(featureMetaInfo.Type == EFeatureType::Float,
-                      TStringBuilder() << "Feature #" << featureId << " is not float");
-
-            auto floatFeatureIdx = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(featureId);
-
-            const auto& featuresHolder = **(dataProvider.ObjectsData->GetFloatFeature(*floatFeatureIdx));
-            IndexBuilder.template Write<ui8>(DataSetId,
-                                             feature,
-                                             dataProvider.ObjectsData->GetQuantizedFeaturesInfo()->GetBinCount(floatFeatureIdx),
-                                             *featuresHolder.ExtractValues(LocalExecutor));
+            for (auto feature : features) {
+                const auto featureId = FeaturesManager.GetDataProviderId(feature);
+                const auto& featureMetaInfo = dataProvider.MetaInfo.FeaturesLayout->GetExternalFeaturesMetaInfo()[featureId];
+                CB_ENSURE(featureMetaInfo.IsAvailable,
+                        TStringBuilder() << "Feature #" << featureId << " is empty");
+                CB_ENSURE(featureMetaInfo.Type == EFeatureType::Float,
+                        TStringBuilder() << "Feature #" << featureId << " is not float");
+            }
+            const auto& objectsData = *dataProvider.ObjectsData;
+            const auto featureCount = features.size();
+            TVector<NCB::TMaybeOwningArrayHolder<ui8>> featureValues(featureCount);
+            TVector<ui32> featureBinCounts(featureCount);
+            LocalExecutor->ExecRangeWithThrow(
+                [&] (int taskIdx) {
+                    const auto feature = features[taskIdx];
+                    const auto featureId = FeaturesManager.GetDataProviderId(feature);
+                    const auto floatFeatureIdx = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(featureId);
+                    featureBinCounts[taskIdx] = objectsData.GetQuantizedFeaturesInfo()->GetBinCount(floatFeatureIdx);
+                    const auto& featuresHolder = **(objectsData.GetFloatFeature(*floatFeatureIdx));
+                    featureValues[taskIdx] = featuresHolder.ExtractValues(LocalExecutor);
+                },
+                0, featureCount, NPar::TLocalExecutor::WAIT_COMPLETE
+            );
+            for (auto taskIdx : xrange(featureCount)) {
+                IndexBuilder.template Write<ui8>(DataSetId, features[taskIdx], featureBinCounts[taskIdx], *featureValues[taskIdx]);
+            }
         }
 
         void WriteOneHotFeature(const ui32 feature,

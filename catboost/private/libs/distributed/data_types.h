@@ -122,6 +122,9 @@ namespace NCatboostDistributed {
         TArray2D<double> PairwiseBuckets;
         int GradientIteration;
 
+        // Starting point for gradient walker
+        TVector<TVector<double>> BacktrackingStart;
+
         // data used by Exact approx calcer
         TVector<TVector<TVector<std::pair<double, double>>>> ExactDiff; // [dim][leaf][]
         TVector<TVector<TMinMax<int>>> SplitBounds; // [dim][leaf]

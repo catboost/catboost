@@ -231,6 +231,12 @@ enum class EFstrType {
     PredictionDiff
 };
 
+enum class EFstrCalculatedInFitType {
+    PredictionValuesChange,
+    LossFunctionChange,
+    FeatureImportance
+};
+
 enum class EPreCalcShapValues {
     Auto,
     UsePreCalc,

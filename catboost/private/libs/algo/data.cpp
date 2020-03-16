@@ -260,7 +260,7 @@ namespace NCB {
         NPar::TLocalExecutor* localExecutor
     ) {
         const TTextDigitizers& digitizers = dataProvider.GetQuantizedFeaturesInfo()->GetTextDigitizers();
-        auto dictionary = digitizers.GetDictionary(tokenizedTextFeatureIdx);
+        auto dictionary = digitizers.GetDigitizer(tokenizedTextFeatureIdx).Dictionary;
         const TTokenizedTextValuesHolder* textColumn = *dataProvider.GetTextFeature(tokenizedTextFeatureIdx);
 
         if (const auto* denseData = dynamic_cast<const TTokenizedTextArrayValuesHolder*>(textColumn)) {

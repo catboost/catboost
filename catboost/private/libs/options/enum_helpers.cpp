@@ -1,6 +1,8 @@
 #include "enum_helpers.h"
 #include "loss_description.h"
 
+#include <catboost/libs/logging/logging.h>
+
 #include <util/generic/array_ref.h>
 #include <util/generic/is_in.h>
 #include <util/generic/strbuf.h>
@@ -621,13 +623,6 @@ bool IsEmbeddingFeatureEstimator(EFeatureCalcerType estimatorType) {
     );
 }
 
-bool ShouldSkipFstrGrowPolicy(EGrowPolicy growPolicy) {
-    return (
-        growPolicy == EGrowPolicy::Depthwise ||
-        growPolicy == EGrowPolicy::Lossguide
-    );
-}
-
 bool IsBuildingFullBinaryTree(EGrowPolicy growPolicy) {
     return (
         growPolicy == EGrowPolicy::SymmetricTree ||
@@ -639,5 +634,43 @@ bool IsPlainOnlyModeScoreFunction(EScoreFunction scoreFunction) {
     return (
         scoreFunction != EScoreFunction::Cosine &&
         scoreFunction != EScoreFunction::NewtonCosine
+    );
+}
+
+EFstrType AdjustFeatureImportanceType(EFstrType type, ELossFunction lossFunction) {
+    if (type == EFstrType::InternalInteraction) {
+        return EFstrType::Interaction;
+    }
+    if (type == EFstrType::InternalFeatureImportance || type == EFstrType::FeatureImportance) {
+        return IsGroupwiseMetric(lossFunction)
+           ? EFstrType::LossFunctionChange
+           : EFstrType::PredictionValuesChange;
+    }
+    return type;
+}
+
+EFstrType AdjustFeatureImportanceType(EFstrType type, TStringBuf lossDescription) {
+    switch (type) {
+        case EFstrType::InternalInteraction: {
+            return EFstrType::Interaction;
+        }
+        case EFstrType::FeatureImportance:
+        case EFstrType::InternalFeatureImportance: {
+            if (!lossDescription.empty()) {
+                return AdjustFeatureImportanceType(type, ParseLossType(lossDescription));
+            }
+            CATBOOST_WARNING_LOG << "Optimized objective is not known, "
+                                    "so use PredictionValuesChange for feature importance." << Endl;
+            return EFstrType::PredictionValuesChange;
+        }
+        default:
+            return type;
+    }
+}
+
+bool IsInternalFeatureImportanceType(EFstrType type) {
+    return (
+        type == EFstrType::InternalFeatureImportance ||
+        type == EFstrType::InternalInteraction
     );
 }

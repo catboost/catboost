@@ -12,3 +12,12 @@ void TSerializer<TBuffer>::Load(IInputStream* rh, TBuffer& buf) {
     buf.Resize(s);
     ::LoadPodArray(rh, buf.Data(), buf.Size());
 }
+
+
+[[noreturn]] void NPrivate::ThrowLoadEOFException(size_t typeSize, size_t realSize, TStringBuf structName) {
+    ythrow TLoadEOF() << "can not load " << structName << "(" << typeSize << ", " << realSize << " bytes)";
+}
+
+[[noreturn]] void NPrivate::ThrowUnexpectedVariantTagException(ui8 tagIndex) {
+    ythrow TLoadEOF() << "Unexpected tag value " << tagIndex << " while loading TVariant";
+}

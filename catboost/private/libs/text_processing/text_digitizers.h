@@ -8,43 +8,51 @@
 #include <util/generic/map.h>
 #include <util/generic/set.h>
 #include <util/generic/vector.h>
+#include <util/str_stl.h>
 
 namespace NCB {
+
+    struct TDigitizerId {
+        TGuid TokenizerId;
+        TGuid DictionaryId;
+
+        bool operator==(const TDigitizerId& other) const {
+            return std::tie(TokenizerId, DictionaryId) == std::tie(other.TokenizerId, other.DictionaryId);
+        }
+    };
+
+    struct TDigitizer {
+        TTokenizerPtr Tokenizer;
+        TDictionaryPtr Dictionary;
+
+        TDigitizerId Id() const {
+            return {Tokenizer->Id(), Dictionary->Id()};
+        }
+
+        bool operator==(const TDigitizer& other) const {
+            return Id() == other.Id();
+        }
+    };
 
     class TTextDigitizers {
     public:
         TTextDigitizers() = default;
 
-        void AddDigitizer(ui32 srcTextIdx, ui32 dstTextIdx, TTokenizerPtr tokenizer, TDictionaryPtr dictionary) {
+        void AddDigitizer(ui32 srcTextIdx, ui32 dstTextIdx, TDigitizer digitizer) {
             CB_ENSURE(
-                !Tokenizers.contains(dstTextIdx),
-                "Attempt to add rewrite tokenizer for dstTextIdx=" << dstTextIdx
-            );
-            CB_ENSURE(
-                !Dictionaries.contains(dstTextIdx),
-                "Attempt to add rewrite dictionary for dstTextIdx=" << dstTextIdx
+                !Digitizers.contains(dstTextIdx),
+                "Attempt to add rewrite digitizer for dstTextIdx=" << dstTextIdx
             );
             SourceToDestinationIndexes[srcTextIdx].insert(dstTextIdx);
-            IdToTokenizer[tokenizer->Id()] = tokenizer;
-            Tokenizers[dstTextIdx] = std::move(tokenizer);
-            IdToDictionary[dictionary->Id()] = dictionary;
-            Dictionaries[dstTextIdx] = std::move(dictionary);
+            Digitizers[dstTextIdx] = std::move(digitizer);
         }
 
         bool HasDigitizer(ui32 dstTextIdx) {
-            CB_ENSURE_INTERNAL(
-                Tokenizers.contains(dstTextIdx) == Dictionaries.contains(dstTextIdx),
-                "Each dictionary should have own tokenizer and vice versa."
-            );
-            return Tokenizers.contains(dstTextIdx);
+            return Digitizers.contains(dstTextIdx);
         }
 
-        TTokenizerPtr GetTokenizer(ui32 dstTextIdx) const {
-            return Tokenizers.at(dstTextIdx);
-        }
-
-        TDictionaryPtr GetDictionary(ui32 dstTextIdx) const {
-            return Dictionaries.at(dstTextIdx);
+        TDigitizer GetDigitizer(ui32 dstTextIdx) const {
+            return Digitizers.at(dstTextIdx);
         }
 
         ui32 GetSourceTextsCount() const {
@@ -52,11 +60,7 @@ namespace NCB {
         }
 
         ui32 GetDigitizedTextsCount() const {
-            CB_ENSURE_INTERNAL(
-                Tokenizers.size() == Dictionaries.size(),
-                "Tokenizers and Dictionaries maps should have the same size."
-            );
-            return Tokenizers.size();
+            return Digitizers.size();
         }
 
         ui32 GetDigitizedTextsCount(ui32 sourceTextIdx) const {
@@ -74,8 +78,8 @@ namespace NCB {
                 const auto sourceText = sourceTextAccessor(sourceTextIdx);
 
                 for (ui32 digitizedTextIdx: digitizedSetIndices) {
-                    const auto& dictionary = Dictionaries.at(digitizedTextIdx);
-                    const auto& tokenizer = Tokenizers.at(digitizedTextIdx);
+                    const auto& dictionary = Digitizers.at(digitizedTextIdx).Dictionary;
+                    const auto& tokenizer = Digitizers.at(digitizedTextIdx).Tokenizer;
 
                     TTextColumnBuilder textColumnBuilder(tokenizer, dictionary, sourceText.Size());
                     sourceText.ForEach(
@@ -90,33 +94,33 @@ namespace NCB {
             }
         }
 
-        TTokenizerPtr GetTokenizer() const {
-            // TODO(nikitxskv): It will be fixed in second part of adding tokenizers to catboost..
-            return CreateTokenizer();
-        }
+        TVector<TDigitizer> GetDigitizers() const {
+            TVector<TDigitizer> digitizers;
+            digitizers.resize(Digitizers.size());
 
-        TVector<TDictionaryPtr> GetDictionaries() const {
-            TVector<TDictionaryPtr> dictionaries;
-            dictionaries.resize(Dictionaries.size());
-
-            for (const auto& [dstTextIdx, dictionary]: Dictionaries) {
-                dictionaries[dstTextIdx] = dictionary;
+            for (const auto& [dstTextIdx, digitizer]: Digitizers) {
+                digitizers[dstTextIdx]= digitizer;
             }
 
-            return dictionaries;
+            return digitizers;
         }
 
     private:
         // Original text feature index -> Tokenized & Dictionarized feature index
         TMap<ui32, TSet<ui32>> SourceToDestinationIndexes;
 
-        THashMap<TGuid, TTokenizerPtr> IdToTokenizer;
-        // Tokenized & Dictionarized feature index -> Tokenizer
-        TMap<ui32, TTokenizerPtr> Tokenizers;
-
-        THashMap<TGuid, TDictionaryPtr> IdToDictionary;
-        // Tokenized & Dictionarized feature index -> Dictionary
-        TMap<ui32, TDictionaryPtr> Dictionaries;
+        // Tokenized & Dictionarized feature index -> Digitizer
+        TMap<ui32, TDigitizer> Digitizers;
     };
 
 }
+
+template <>
+struct THash<NCB::TDigitizer> {
+    size_t operator()(const NCB::TDigitizer& digitizer) const noexcept {
+        return THash<std::pair<NCB::TGuid, NCB::TGuid>>()(std::make_pair(
+            digitizer.Tokenizer->Id(),
+            digitizer.Dictionary->Id()
+        ));
+    }
+};

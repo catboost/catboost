@@ -167,7 +167,7 @@ class T##N: public ::NLastGetopt::NComp::TCustomCompleter {             \
         TStringBuf GetUniqueName() const override { return #N; }        \
     };                                                                  \
     T##N N = T##N();                                                    \
-    ::NLastGetopt::NComp::TCustomCompleter::TReg _N_REG = &N;           \
+    ::NLastGetopt::NComp::TCustomCompleter::TReg _Reg_##N = &N;         \
     void T##N::GenerateCompletions(Y_DECLARE_UNUSED int argc, Y_DECLARE_UNUSED const char** argv)
 
     /// Launches this binary with a specially formed flags.

@@ -46,11 +46,11 @@
   includes:
   - __config:   contrib/libs/cxxsupp/libcxx/include/__config
 
-- source_filter: "^contrib/deprecated/boost/boost/asio/detail"
+- source_filter: "^contrib/restricted/boost/boost/asio/detail"
   includes:
   - __config:   contrib/libs/cxxsupp/libcxx/include/__config
 
-- source_filter: "quasar/yandex_io/daemons/external_libs/(boost/include/boost|websocketpp/include)/asio/detail"
+- source_filter: "yandex_io/external_libs/(boost/include/boost|websocketpp/include)/asio/detail"
   includes:
   - __config:   contrib/libs/cxxsupp/libcxx/include/__config
 

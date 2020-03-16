@@ -509,7 +509,7 @@ class _ClassBuilder(object):
             for name in self._attr_names:
                 if (
                     name not in base_names
-                    and getattr(cls, name, _sentinel) != _sentinel
+                    and getattr(cls, name, _sentinel) is not _sentinel
                 ):
                     try:
                         delattr(cls, name)
@@ -859,7 +859,7 @@ def attrs(
         Please note:
 
             1. This is achieved by installing a custom ``__setattr__`` method
-               on your class so you can't implement an own one.
+               on your class, so you can't implement your own.
 
             2. True immutability is impossible in Python.
 

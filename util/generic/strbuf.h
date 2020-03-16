@@ -1,6 +1,7 @@
 #pragma once
 
 #include "fwd.h"
+#include "strbase.h"
 #include "string.h"
 #include "utility.h"
 #include "typetraits.h"
@@ -411,14 +412,6 @@ public: // string subsequences
         return TdSelf(*this).RSeek(len);
     }
 
-    TBasicString<TCharType> ToString() const {
-        return {Start, Length};
-    }
-
-    TBasicString<TCharType> Quote() const {
-        return ToString().Quote();
-    }
-
 private:
     inline size_t ChopImpl(size_t shift) noexcept {
         if (shift > length())
@@ -481,18 +474,6 @@ private:
 };
 
 std::ostream& operator<< (std::ostream& os, TStringBuf buf);
-
-static inline TString ToString(const TStringBuf str) {
-    return TString(str);
-}
-
-static inline TUtf16String ToWtring(const TWtringBuf wtr) {
-    return TUtf16String(wtr);
-}
-
-static inline TUtf32String ToUtf32String(const TUtf32String wtr) {
-    return TUtf32String(wtr);
-}
 
 template <typename TCharType, size_t size>
 constexpr inline TBasicStringBuf<TCharType> AsStringBuf(const TCharType (&str)[size]) noexcept {

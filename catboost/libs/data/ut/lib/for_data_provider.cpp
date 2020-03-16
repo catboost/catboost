@@ -1,6 +1,7 @@
 #include "for_data_provider.h"
 
 #include <catboost/libs/cat_feature/cat_feature.h>
+#include <catboost/libs/data/sparse_columns.h>
 #include <catboost/libs/data/util.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 

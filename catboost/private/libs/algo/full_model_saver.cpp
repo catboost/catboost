@@ -36,14 +36,14 @@ namespace {
             : WasBuilt(false)
             , FeatureEstimators(estimators)
             , TextDigitizers(textDigitizers)
-            , PerFeatureDictionaries()
+            , PerFeatureDigitizers()
             , PerTokenizedFeatureCalcers()
             , LocalExecutor(localExecutor)
         {
             const ui32 textFeatureCount = textDigitizers.GetSourceTextsCount();
             const ui32 tokenizedFeatureCount = textDigitizers.GetDigitizedTextsCount();
 
-            PerFeatureDictionaries.resize(textFeatureCount);
+            PerFeatureDigitizers.resize(textFeatureCount);
             PerTokenizedFeatureCalcers.resize(tokenizedFeatureCount);
         }
 
@@ -55,8 +55,9 @@ namespace {
             const ui32 textFeatureIdx = estimatorSourceId.TextFeatureId;
             const ui32 tokenizedFeatureIdx = estimatorSourceId.TokenizedFeatureId;
 
-            TDictionaryPtr dictionary = TextDigitizers.GetDictionary(tokenizedFeatureIdx);
-            const ui32 dictionaryFlatIdx = AddDictionary(dictionary);
+            TDigitizer digitizer = TextDigitizers.GetDigitizer(tokenizedFeatureIdx);
+            const ui32 digitizerFlatIdx = AddDigitizer(digitizer);
+            CalcerToDigitizer[calcerId] = digitizer.Id();
 
             TVector<ui32> localIds;
             for (const auto& estimatedFeature : estimatedFeatures) {
@@ -64,17 +65,37 @@ namespace {
             }
 
             const ui32 calcerFlatIdx = AddCalcer(MakeFinalFeatureCalcer(calcerId, MakeConstArrayRef(localIds)));
-            CalcerToDictionary[calcerId] = dictionary->Id();
 
             AddEstimatedFeature(textFeatureIdx, calcerFlatIdx, estimatedFeatures);
             RegisterIndices(
                 textFeatureIdx,
                 tokenizedFeatureIdx,
-                dictionaryFlatIdx,
+                digitizerFlatIdx,
                 calcerFlatIdx
             );
 
             return *this;
+        }
+
+        void InitializeDigitizer(
+            TVector<TDigitizer>* digitizers,
+            TVector<TVector<ui32>>* perFeatureDigitizers
+        ) {
+            digitizers->resize(DigitizerToId.size());
+            for (const auto& [digitizer, id]: DigitizerToId) {
+                (*digitizers)[id] = digitizer;
+            }
+
+            perFeatureDigitizers->resize(PerFeatureDigitizers.size());
+
+            for (ui32 textFeature: xrange(PerFeatureDigitizers.size())) {
+                auto& digitizersIds = (*perFeatureDigitizers)[textFeature];
+                for (const auto& [tokenizedFeature, digitizerId]: PerFeatureDigitizers[textFeature]) {
+                    Y_UNUSED(tokenizedFeature); // we need just sort by tokenized feature index
+                    digitizersIds.push_back(digitizerId);
+                }
+                textFeature++;
+            }
         }
 
         void Build(
@@ -84,23 +105,9 @@ namespace {
             CB_ENSURE_INTERNAL(!WasBuilt, "TTextCollectionBuilder: Build can be done only once");
             WasBuilt = true;
 
-            TVector<TDictionaryPtr> dictionaries;
-            dictionaries.resize(DictionaryToId.size());
-            for (const auto& [dictionary, id]: DictionaryToId) {
-                dictionaries[id] = dictionary;
-            }
-
-            TVector<TVector<ui32>> perFeatureDictionaries;
-            perFeatureDictionaries.resize(PerFeatureDictionaries.size());
-
-            for (ui32 textFeature: xrange(PerFeatureDictionaries.size())) {
-                auto& dictionariesIds = perFeatureDictionaries[textFeature];
-                for (const auto& [tokenizedFeature, dictionaryId]: PerFeatureDictionaries[textFeature]) {
-                    Y_UNUSED(tokenizedFeature); // we need just sort by tokenized feature index
-                    dictionariesIds.push_back(dictionaryId);
-                }
-                textFeature++;
-            }
+            TVector<TDigitizer> digitizers;
+            TVector<TVector<ui32>> perFeatureDigitizers;
+            InitializeDigitizer(&digitizers, &perFeatureDigitizers);
 
             EraseIf(
                 PerTokenizedFeatureCalcers,
@@ -109,28 +116,24 @@ namespace {
                 }
             );
 
-            CheckFeatureIndexes(Calcers, dictionaries, perFeatureDictionaries, PerTokenizedFeatureCalcers);
+            CheckFeatureIndexes(digitizers, Calcers, perFeatureDigitizers, PerTokenizedFeatureCalcers);
 
             *textProcessingCollection = TTextProcessingCollection(
-                Calcers,
-                dictionaries,
-                perFeatureDictionaries,
-                PerTokenizedFeatureCalcers,
-                TextDigitizers.GetTokenizer()
+                digitizers, Calcers, perFeatureDigitizers, PerTokenizedFeatureCalcers
             );
 
             *estimatedFeatures = EstimatedFeatures;
         }
 
     private:
-        ui32 AddDictionary(TDictionaryPtr dictionary) {
-            if (DictionaryToId.contains(dictionary)) {
-                return DictionaryToId[dictionary];
+        ui32 AddDigitizer(TDigitizer digitizer) {
+            if (DigitizerToId.contains(digitizer)) {
+                return DigitizerToId[digitizer];
             }
 
-            const ui32 dictionaryIdx = DictionaryToId.size();
-            DictionaryToId[dictionary] = dictionaryIdx;
-            return dictionaryIdx;
+            const ui32 digitizerIdx = DigitizerToId.size();
+            DigitizerToId[digitizer] = digitizerIdx;
+            return digitizerIdx;
         }
 
         ui32 AddCalcer(TTextFeatureCalcerPtr&& calcer) {
@@ -156,25 +159,20 @@ namespace {
             }
         }
 
-        void RegisterIndices(
-            ui32 textFeatureId,
-            ui32 tokenizedFeatureId,
-            ui32 dictionaryId,
-            ui32 calcerId
-        ) {
-            PerFeatureDictionaries[textFeatureId][tokenizedFeatureId] = dictionaryId;
+        void RegisterIndices(ui32 textFeatureId, ui32 tokenizedFeatureId, ui32 digitizerId, ui32 calcerId) {
+            PerFeatureDigitizers[textFeatureId][tokenizedFeatureId] = digitizerId;
             PerTokenizedFeatureCalcers[tokenizedFeatureId].push_back(calcerId);
         }
 
         void CheckFeatureIndexes(
+            const TVector<TDigitizer>& digitizers,
             const TVector<TTextFeatureCalcerPtr>& calcers,
-            const TVector<TDictionaryPtr>& dictionaries,
-            const TVector<TVector<ui32>>& perFeatureDictionaries,
+            const TVector<TVector<ui32>>& perFeatureDigitizers,
             const TVector<TVector<ui32>>& perTokenizedFeatureCalcers
         ) {
             ui32 tokenizedFeatureId = 0;
-            for (const auto& featureDictionaries: perFeatureDictionaries) {
-                for (ui32 dictionaryId: featureDictionaries) {
+            for (const auto& featureDigitizers: perFeatureDigitizers) {
+                for (ui32 digitizerId: featureDigitizers) {
                     CB_ENSURE(
                         tokenizedFeatureId < perTokenizedFeatureCalcers.size(),
                         "Tokenized feature id=" << tokenizedFeatureId
@@ -187,12 +185,13 @@ namespace {
                     );
                     for (ui32 calcerId: calcersIds) {
                         const TGuid& calcerGuid = calcers[calcerId]->Id();
-                        const TGuid& dictionaryGuid = dictionaries[dictionaryId]->Id();
+                        const auto& digitizerGuid = digitizers[digitizerId].Id();
                         CB_ENSURE(
-                            CalcerToDictionary[calcerGuid] == dictionaryGuid,
+                            CalcerToDigitizer[calcerGuid] == digitizerGuid,
                             "FeatureCalcer id=" << calcerGuid << " should be computed for "
                                 << "tokenized feature id=" << tokenizedFeatureId
-                                << " with dictionary id=" << dictionaryGuid << Endl;
+                                << " with tokenizer id=" << digitizerGuid.TokenizerId << " and "
+                                << " with dictionary id=" << digitizerGuid.DictionaryId << Endl
                         );
                     }
                     tokenizedFeatureId++;
@@ -215,13 +214,13 @@ namespace {
         const TFeatureEstimators& FeatureEstimators;
         const TTextDigitizers& TextDigitizers;
 
-        TVector<TMap<ui32, ui32>> PerFeatureDictionaries;
+        TVector<TMap<ui32, ui32>> PerFeatureDigitizers;
         TVector<TVector<ui32>> PerTokenizedFeatureCalcers;
 
+        THashMap<TDigitizer, ui32> DigitizerToId;
         TVector<TTextFeatureCalcerPtr> Calcers;
-        THashMap<TDictionaryPtr, ui32> DictionaryToId;
 
-        THashMap<TGuid, TGuid> CalcerToDictionary;
+        THashMap<TGuid, TDigitizerId> CalcerToDigitizer;
         TVector<TEstimatedFeature> EstimatedFeatures;
 
         NPar::TLocalExecutor* LocalExecutor;

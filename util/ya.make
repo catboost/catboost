@@ -291,6 +291,7 @@ JOIN_SRCS(
     system/madvise.cpp
     system/maxlen.cpp
     system/mem_info.cpp
+    system/mincore.cpp
     system/mktemp.cpp
     system/mlock.cpp
     system/mutex.cpp

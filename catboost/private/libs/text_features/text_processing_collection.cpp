@@ -29,6 +29,17 @@ namespace NCB {
         }
     }
 
+    static void TokenizeTextFeature(
+        TConstArrayRef<TStringBuf> textFeature,
+        size_t docCount,
+        TTokenizerPtr tokenizer,
+        TVector<TTokensWithBuffer>* tokens
+    ) {
+        for (ui32 docId: xrange(docCount)) {
+            tokenizer->Tokenize(textFeature[docId], &(*tokens)[docId]);
+        }
+    }
+
     void TTextProcessingCollection::CalcFeatures(
         TConstArrayRef<TStringBuf> textFeature,
         ui32 textFeatureIdx,
@@ -42,13 +53,16 @@ namespace NCB {
 
         TVector<TTokensWithBuffer> tokens;
         tokens.yresize(docCount);
-        for (ui32 docId: xrange(docCount)) {
-            Tokenizer->Tokenize(textFeature[docId], &tokens[docId]);
-        }
+        TTokenizerPtr previousTokenizer;
 
-        for (ui32 dictionaryId: PerFeatureDictionaries[textFeatureIdx]) {
-            const auto& dictionary = Dictionaries[dictionaryId];
-            const ui32 tokenizedFeatureIdx = GetTokenizedFeatureId(textFeatureIdx, dictionaryId);
+        for (ui32 digitizerId: PerFeatureDigitizers[textFeatureIdx]) {
+            const auto& dictionary = Digitizers[digitizerId].Dictionary;
+            const ui32 tokenizedFeatureIdx = GetTokenizedFeatureId(textFeatureIdx, digitizerId);
+
+            if (!previousTokenizer || Digitizers[digitizerId].Tokenizer != previousTokenizer) {
+                TokenizeTextFeature(textFeature, docCount, Digitizers[digitizerId].Tokenizer, &tokens);
+                previousTokenizer = Digitizers[digitizerId].Tokenizer;
+            }
 
             for (ui32 calcerId: PerTokenizedFeatureCalcers[tokenizedFeatureIdx]) {
                 const auto& calcer = FeatureCalcers[calcerId];
@@ -125,15 +139,17 @@ namespace NCB {
         using namespace flatbuffers;
         FlatBufferBuilder builder;
 
-        auto calcerId = FBSerializeGuidArray(builder, FeatureCalcerId);
+        auto tokenizerId = FBSerializeGuidArray(builder, TokenizerId);
         auto dictionaryId = FBSerializeGuidArray(builder, DictionaryId);
-        auto perFeatureDictionaries = FBSerializeAdjacencyList(builder, PerFeatureDictionaries);
+        auto calcerId = FBSerializeGuidArray(builder, FeatureCalcerId);
+        auto perFeatureDigitizers = FBSerializeAdjacencyList(builder, PerFeatureDigitizers);
         auto perTokenizedFeatureCalcers = FBSerializeAdjacencyList(builder, PerTokenizedFeatureCalcers);
 
         NCatBoostFbs::TCollectionHeaderBuilder headerBuilder(builder);
-        headerBuilder.add_CalcerId(calcerId);
+        headerBuilder.add_TokenizerId(tokenizerId);
         headerBuilder.add_DictionaryId(dictionaryId);
-        headerBuilder.add_PerFeatureDictionaries(perFeatureDictionaries);
+        headerBuilder.add_CalcerId(calcerId);
+        headerBuilder.add_PerFeatureDigitizers(perFeatureDigitizers);
         headerBuilder.add_PerTokenizedFeatureCalcers(perTokenizedFeatureCalcers);
         auto header = headerBuilder.Finish();
         builder.Finish(header);
@@ -153,10 +169,25 @@ namespace NCB {
         );
 
         auto headerTable = flatbuffers::GetRoot<NCatBoostFbs::TCollectionHeader>(arrayHolder.Get());
-        FBDeserializeGuidArray(*headerTable->CalcerId(), &FeatureCalcerId);
+        FBDeserializeGuidArray(*headerTable->TokenizerId(), &TokenizerId);
         FBDeserializeGuidArray(*headerTable->DictionaryId(), &DictionaryId);
-        FBDeserializeAdjacencyList(*headerTable->PerFeatureDictionaries(), &PerFeatureDictionaries);
+        FBDeserializeGuidArray(*headerTable->CalcerId(), &FeatureCalcerId);
+        FBDeserializeAdjacencyList(*headerTable->PerFeatureDigitizers(), &PerFeatureDigitizers);
         FBDeserializeAdjacencyList(*headerTable->PerTokenizedFeatureCalcers(), &PerTokenizedFeatureCalcers);
+    }
+
+    static void SaveGuidAndType(
+        const TGuid& guid,
+        NCatBoostFbs::EPartType type,
+        flatbuffers::FlatBufferBuilder* builder,
+        TCountingOutput* stream
+    ) {
+        const auto fbsPartGuid = CreateFbsGuid(guid);
+        auto collectionPart = NCatBoostFbs::CreateTCollectionPart(*builder, type, &fbsPartGuid);
+        builder->Finish(collectionPart);
+
+        ::Save(stream, static_cast<ui64>(builder->GetSize()));
+        stream->Write(builder->GetBufferPointer(), builder->GetSize());
     }
 
     void TTextProcessingCollection::Save(IOutputStream* s) const {
@@ -166,6 +197,14 @@ namespace NCB {
         AddPadding(&stream, SerializationAlignment);
 
         SaveHeader(&stream);
+
+        for (ui32 digitizerId : xrange(Digitizers.size())) {
+            flatbuffers::FlatBufferBuilder builder;
+            SaveGuidAndType(TokenizerId[digitizerId], NCatBoostFbs::EPartType::EPartType_Tokenizer, &builder, &stream);
+            Digitizers[digitizerId].Tokenizer->Save(&stream);
+            SaveGuidAndType(DictionaryId[digitizerId], NCatBoostFbs::EPartType::EPartType_Dictionary, &builder, &stream);
+            Digitizers[digitizerId].Dictionary->Save(&stream);
+        }
 
         for (ui32 calcerId : xrange(FeatureCalcers.size())) {
             flatbuffers::FlatBufferBuilder builder;
@@ -181,22 +220,6 @@ namespace NCB {
             stream.Write(builder.GetBufferPointer(), builder.GetSize());
 
             TTextCalcerSerializer::Save(&stream, *FeatureCalcers[calcerId]);
-        }
-
-        for (ui32 dictionaryId : xrange(Dictionaries.size())) {
-            flatbuffers::FlatBufferBuilder builder;
-
-            const auto fbsPartGuid = CreateFbsGuid(DictionaryId[dictionaryId]);
-            auto collectionPart = NCatBoostFbs::CreateTCollectionPart(
-                builder,
-                NCatBoostFbs::EPartType::EPartType_Dictionary,
-                &fbsPartGuid);
-            builder.Finish(collectionPart);
-
-            ::Save(&stream, static_cast<ui64>(builder.GetSize()));
-            stream.Write(builder.GetBufferPointer(), builder.GetSize());
-
-            Dictionaries[dictionaryId]->Save(&stream);
         }
     }
 
@@ -225,9 +248,9 @@ namespace NCB {
         LoadHeader(&stream);
 
         THashMap<TGuid, ui32> guidId;
-        for (ui32 i = 0; i < FeatureCalcerId.size(); i++) {
-            CB_ENSURE_INTERNAL(!guidId.contains(FeatureCalcerId[i]), "Failed to deserialize: Get duplicated guid");
-            guidId[FeatureCalcerId[i]] = i;
+        for (ui32 i = 0; i < TokenizerId.size(); i++) {
+            CB_ENSURE_INTERNAL(!guidId.contains(TokenizerId[i]), "Failed to deserialize: Get duplicated guid");
+            guidId[TokenizerId[i]] = i;
         }
 
         for (ui32 i = 0; i < DictionaryId.size(); i++) {
@@ -235,8 +258,14 @@ namespace NCB {
             guidId[DictionaryId[i]] = i;
         }
 
+        for (ui32 i = 0; i < FeatureCalcerId.size(); i++) {
+            CB_ENSURE_INTERNAL(!guidId.contains(FeatureCalcerId[i]), "Failed to deserialize: Get duplicated guid");
+            guidId[FeatureCalcerId[i]] = i;
+        }
+
+        CB_ENSURE(TokenizerId.size() == DictionaryId.size(), "Failed to deserialize: TokenizerId.size should be equal to DictionaryId.size");
+        Digitizers.resize(TokenizerId.size());
         FeatureCalcers.resize(FeatureCalcerId.size());
-        Dictionaries.resize(DictionaryId.size());
 
         ui64 headerSize;
         while (TryLoad(&stream, headerSize)) {
@@ -250,10 +279,15 @@ namespace NCB {
             auto collectionPart = flatbuffers::GetRoot<NCatBoostFbs::TCollectionPart>(buffer.Get());
             const auto partId = GuidFromFbs(collectionPart->Id());
 
-            if (collectionPart->PartType() == NCatBoostFbs::EPartType_FeatureCalcer) {
-                TTextFeatureCalcerPtr calcer = TTextCalcerSerializer::Load(&stream);
-                FeatureCalcers[guidId[partId]] = calcer;
-                CB_ENSURE(partId == calcer->Id(), "Failed to deserialize: CalcerId not equal to PartId");
+            if (collectionPart->PartType() == NCatBoostFbs::EPartType_Tokenizer) {
+                auto tokenizer = MakeIntrusive<TTokenizer>();
+                tokenizer->Load(&stream);
+                CB_ENSURE(
+                    partId == tokenizer->Id(),
+                    "Failed to deserialize: TokenizerId not equal to PartId"
+                );
+
+                Digitizers[guidId[partId]].Tokenizer = std::move(tokenizer);
             } else if (collectionPart->PartType() == NCatBoostFbs::EPartType_Dictionary) {
                 auto dictionary = MakeIntrusive<TDictionaryProxy>();
                 dictionary->Load(&stream);
@@ -262,24 +296,28 @@ namespace NCB {
                     "Failed to deserialize: DictionaryId not equal to PartId"
                 );
 
-                Dictionaries[guidId[partId]] = std::move(dictionary);
+                Digitizers[guidId[partId]].Dictionary = std::move(dictionary);
+            } else if (collectionPart->PartType() == NCatBoostFbs::EPartType_FeatureCalcer) {
+                TTextFeatureCalcerPtr calcer = TTextCalcerSerializer::Load(&stream);
+                FeatureCalcers[guidId[partId]] = calcer;
+                CB_ENSURE(partId == calcer->Id(), "Failed to deserialize: CalcerId not equal to PartId");
             } else {
                 CB_ENSURE(false, "Failed to deserialize: Unknown part type");
             }
         }
 
         CB_ENSURE(
-            AllOf(FeatureCalcers, [](const TTextFeatureCalcerPtr& calcerPtr) {
-                return calcerPtr;
-            } ),
-            "Failed to deserialize: Some of calcers are missing"
+            AllOf(Digitizers, [](const TDigitizer& digitizer) {
+                return digitizer.Tokenizer && digitizer.Dictionary;
+            }),
+            "Failed to deserialize: Some of tokenizers or dictionaries are missing"
         );
 
         CB_ENSURE(
-            AllOf(Dictionaries, [](const TDictionaryPtr& dictionaryPtr) {
-                return dictionaryPtr;
-            } ),
-            "Failed to deserialize: Some of dictionaries are missing"
+            AllOf(FeatureCalcers, [](const TTextFeatureCalcerPtr& calcerPtr) {
+                return calcerPtr;
+            }),
+            "Failed to deserialize: Some of calcers are missing"
         );
 
         CalcRuntimeData();
@@ -287,41 +325,42 @@ namespace NCB {
     }
 
     TTextProcessingCollection::TTextProcessingCollection(
+        TVector<TDigitizer> digitizers,
         TVector<TTextFeatureCalcerPtr> calcers,
-        TVector<TDictionaryPtr> dictionaries,
-        TVector<TVector<ui32>> perFeatureDictionaries,
-        TVector<TVector<ui32>> perTokenizedFeatureCalcers,
-        TTokenizerPtr tokenizer)
-        : Tokenizer(std::move(tokenizer))
-        , Dictionaries(std::move(dictionaries))
+        TVector<TVector<ui32>> perFeatureDigitizers,
+        TVector<TVector<ui32>> perTokenizedFeatureCalcers
+    )
+        : Digitizers(std::move(digitizers))
         , FeatureCalcers(std::move(calcers))
-        , PerFeatureDictionaries(std::move(perFeatureDictionaries))
-        , PerTokenizedFeatureCalcers(std::move(perTokenizedFeatureCalcers)) {
+        , PerFeatureDigitizers(std::move(perFeatureDigitizers))
+        , PerTokenizedFeatureCalcers(std::move(perTokenizedFeatureCalcers))
+    {
+        TokenizerId.resize(Digitizers.size());
+        DictionaryId.resize(Digitizers.size());
+        for (ui32 idx : xrange(Digitizers.size())) {
+            TokenizerId[idx] = Digitizers[idx].Tokenizer->Id();
+            DictionaryId[idx] = Digitizers[idx].Dictionary->Id();
+        }
 
         FeatureCalcerId.resize(FeatureCalcers.size());
         for (ui32 idx : xrange(FeatureCalcers.size())) {
             FeatureCalcerId[idx] = FeatureCalcers[idx]->Id();
         }
 
-        DictionaryId.resize(Dictionaries.size());
-        for (ui32 idx : xrange(Dictionaries.size())) {
-            DictionaryId[idx] = Dictionaries[idx]->Id();
-        }
-
         CalcRuntimeData();
         CheckPerFeatureIdx();
     }
 
-    ui32 TTextProcessingCollection::GetTokenizedFeatureId(ui32 textFeatureIdx, ui32 dictionaryIdx) const {
-        return TokenizedFeatureId.at(std::make_pair(textFeatureIdx, dictionaryIdx));
+    ui32 TTextProcessingCollection::GetTokenizedFeatureId(ui32 textFeatureIdx, ui32 digitizerIdx) const {
+        return TokenizedFeatureId.at(std::make_pair(textFeatureIdx, digitizerIdx));
     }
 
     void TTextProcessingCollection::CalcRuntimeData() {
         ui32 tokenizedFeatureIdx = 0;
         ui32 currentOffset = 0;
-        for (ui32 textFeatureIdx: xrange(PerFeatureDictionaries.size())) {
-            for (ui32 dictionaryId: PerFeatureDictionaries[textFeatureIdx]) {
-                auto pairIdx = std::make_pair(textFeatureIdx, dictionaryId);
+        for (ui32 textFeatureIdx: xrange(PerFeatureDigitizers.size())) {
+            for (ui32 digitizerId: PerFeatureDigitizers[textFeatureIdx]) {
+                auto pairIdx = std::make_pair(textFeatureIdx, digitizerId);
                 TokenizedFeatureId[pairIdx] = tokenizedFeatureIdx;
 
                 for (ui32 calcerId: PerTokenizedFeatureCalcers[tokenizedFeatureIdx]) {
@@ -339,8 +378,8 @@ namespace NCB {
     }
 
     ui32 TTextProcessingCollection::GetFirstTextFeatureCalcer(ui32 textFeatureIdx) const {
-        const ui32 firstDictionary = PerFeatureDictionaries[textFeatureIdx][0];
-        const ui32 tokenizedFeature = GetTokenizedFeatureId(textFeatureIdx, firstDictionary);
+        const ui32 firstDigitizer = PerFeatureDigitizers[textFeatureIdx][0];
+        const ui32 tokenizedFeature = GetTokenizedFeatureId(textFeatureIdx, firstDigitizer);
         return PerTokenizedFeatureCalcers[tokenizedFeature][0];
     }
 
@@ -353,12 +392,12 @@ namespace NCB {
     }
 
     void TTextProcessingCollection::CheckPerFeatureIdx() const {
-        for (ui32 featureId: xrange(PerFeatureDictionaries.size())) {
-            for (ui32 dictionaryId: PerFeatureDictionaries[featureId]) {
+        for (ui32 featureId: xrange(PerFeatureDigitizers.size())) {
+            for (ui32 digitizerId: PerFeatureDigitizers[featureId]) {
                 CB_ENSURE(
-                    dictionaryId < Dictionaries.size(),
-                    "For feature id=" << featureId << " specified dictionary id=" << dictionaryId
-                        << " which is greater than number of dictionaries"
+                    digitizerId < Digitizers.size(),
+                    "For feature id=" << featureId << " specified digitizer id=" << digitizerId
+                        << " which is greater than number of digitizers"
                 );
             }
         }
@@ -376,15 +415,17 @@ namespace NCB {
 
     bool TTextProcessingCollection::operator==(const TTextProcessingCollection& rhs) {
         return std::tie(
+            TokenizerId,
             DictionaryId,
             FeatureCalcerId,
-            PerFeatureDictionaries,
+            PerFeatureDigitizers,
             PerTokenizedFeatureCalcers,
             TokenizedFeatureId
         ) == std::tie(
+            rhs.TokenizerId,
             rhs.DictionaryId,
             rhs.FeatureCalcerId,
-            rhs.PerFeatureDictionaries,
+            rhs.PerFeatureDigitizers,
             rhs.PerTokenizedFeatureCalcers,
             rhs.TokenizedFeatureId
         );
@@ -407,8 +448,8 @@ namespace NCB {
     ui32 TTextProcessingCollection::NumberOfOutputFeatures(ui32 textFeatureId) const {
         ui32 sum = 0;
 
-        for (const auto& dictionaryId: PerFeatureDictionaries[textFeatureId]) {
-            const ui32 tokenizedFeatureId = GetTokenizedFeatureId(textFeatureId, dictionaryId);
+        for (const auto& digitizerId: PerFeatureDigitizers[textFeatureId]) {
+            const ui32 tokenizedFeatureId = GetTokenizedFeatureId(textFeatureId, digitizerId);
             for (ui32 calcerId: PerTokenizedFeatureCalcers[tokenizedFeatureId]) {
                 sum += FeatureCalcers[calcerId]->FeatureCount();
             }
@@ -418,7 +459,7 @@ namespace NCB {
     }
 
     ui32 TTextProcessingCollection::GetTextFeatureCount() const {
-        return PerFeatureDictionaries.size();
+        return PerFeatureDigitizers.size();
     }
 
     ui32 TTextProcessingCollection::GetTokenizedFeatureCount() const {
@@ -456,9 +497,9 @@ namespace NCB {
 
     TVector<TEvaluatedFeature> TTextProcessingCollection::GetProducedFeatures() const {
         TVector<TEvaluatedFeature> evaluatedFeatures;
-        for (ui32 textFeatureId : xrange(PerFeatureDictionaries.size())) {
-            for (ui32 dictionaryId : PerFeatureDictionaries[textFeatureId]) {
-                const ui32 tokenizedFeatureId = GetTokenizedFeatureId(textFeatureId, dictionaryId);
+        for (ui32 textFeatureId : xrange(PerFeatureDigitizers.size())) {
+            for (ui32 digitizerId : PerFeatureDigitizers[textFeatureId]) {
+                const ui32 tokenizedFeatureId = GetTokenizedFeatureId(textFeatureId, digitizerId);
                 for (ui32 calcerId: PerTokenizedFeatureCalcers[tokenizedFeatureId]) {
                     CreateEvaluatedCalcerFeatures(
                         textFeatureId,

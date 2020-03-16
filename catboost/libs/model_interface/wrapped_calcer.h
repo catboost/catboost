@@ -79,12 +79,43 @@ public:
         double result;
         const float* floatPtr = floatFeatures.data();
         std::vector<const char*> catFeaturesPtrs;
-        catFeaturesPtrs.reserve(catFeatures.size());
-        for (const auto& str : catFeatures) {
-            catFeaturesPtrs.push_back(str.data());
-        }
+        FromStringToCharVector(catFeatures, &catFeaturesPtrs);
         const char** catFeaturesPtr = catFeaturesPtrs.data();
         if (!CalcModelPrediction(CalcerHolder.get(), 1, &floatPtr, floatFeatures.size(), &catFeaturesPtr, catFeatures.size(), &result, 1)) {
+            throw std::runtime_error(GetErrorString());
+        }
+        return result;
+    }
+
+    /**
+     * Evaluate model on single object float features vector, vector of categorical features strings and
+     * vector of text features strings.
+     * Don't work on multiclass models (models with ApproxDimension > 1)
+     * @param[in] features
+     * @return double raw model prediction
+     */
+    double Calc(
+        const std::vector<float>& floatFeatures,
+        const std::vector<std::string>& catFeatures,
+        const std::vector<std::string>& textFeatures
+    ) const {
+        double result;
+        const float* floatPtr = floatFeatures.data();
+
+        std::vector<const char*> catFeaturesPtrs;
+        FromStringToCharVector(catFeatures, &catFeaturesPtrs);
+        const char** catFeaturesPtr = catFeaturesPtrs.data();
+
+        std::vector<const char*> textFeaturesPtrs;
+        FromStringToCharVector(textFeatures, &textFeaturesPtrs);
+        const char** textFeaturesPtr = textFeaturesPtrs.data();
+        if (!CalcModelPredictionText(
+            CalcerHolder.get(), 1,
+            &floatPtr, floatFeatures.size(),
+            &catFeaturesPtr, catFeatures.size(),
+            &textFeaturesPtr, textFeatures.size(),
+            &result, 1
+        )) {
             throw std::runtime_error(GetErrorString());
         }
         return result;
@@ -112,22 +143,21 @@ public:
         }
         return result;
     }
+
     /**
-     * Evaluate model on float features vector and vector of hashed categorical feature values.
+     * Evaluate model on float features vector and vector of categorical feature values.
      * **WARNING** categorical features string values should not contain zero bytes in the middle of the string (latter this could be changed).
      * If so, use GetStringCatFeatureHash from model_calcer_wrapper.h and use CalcHashed method.
      * **WARNING** currently supports only singleclass models (no multiclassification support).
      * TODO(kirillovs): implement multiclass models support here.
      * @param floatFeatures
-     * @param catFeatureHashes
+     * @param catFeature
      * @return vector of raw prediction values
      */
     std::vector<double> Calc(const std::vector<std::vector<float>>& floatFeatures,
                              const std::vector<std::vector<std::string>>& catFeatures) const {
         std::vector<double> result(floatFeatures.size());
         std::vector<const float*> floatPtrsVector;
-        std::vector<const char*> catFeaturesPtrsVector;
-        std::vector<const char**> charPtrPtrsVector;
         size_t floatFeatureCount = 0;
 
         for (const auto& floatFeatureVec : floatFeatures) {
@@ -138,25 +168,9 @@ public:
         }
 
         size_t catFeatureCount = 0;
-        size_t currentOffset = 0;
-        for (const auto& stringVec : catFeatures) {
-            if (catFeatureCount == 0) {
-                catFeatureCount = stringVec.size();
-            }
-            if (catFeatureCount != stringVec.size()) {
-                throw std::runtime_error("All categorical feature vectors should be of the same length");
-            }
-        }
-        if (catFeatureCount != 0) {
-            catFeaturesPtrsVector.reserve(catFeatures.size() * catFeatureCount);
-            for (const auto& stringVec : catFeatures) {
-                for (const auto& string : stringVec) {
-                    catFeaturesPtrsVector.push_back(string.data());
-                }
-                charPtrPtrsVector.push_back(catFeaturesPtrsVector.data() + currentOffset);
-                currentOffset += catFeatureCount;
-            }
-        }
+        std::vector<const char*> catFeaturesPtrsVector;
+        std::vector<const char**> charPtrPtrsVector;
+        FromStringToCharVectors(catFeatures, &catFeatureCount, &catFeaturesPtrsVector, &charPtrPtrsVector);
 
         if (!CalcModelPrediction(
             CalcerHolder.get(),
@@ -164,7 +178,57 @@ public:
             floatPtrsVector.data(), floatFeatureCount,
             charPtrPtrsVector.data(), catFeatureCount,
             result.data(), result.size())
-            ) {
+        ) {
+            throw std::runtime_error(GetErrorString());
+        }
+        return result;
+    }
+
+    /**
+     * Evaluate model on float features vector and vector of categorical and text feature values.
+     * **WARNING** categorical and text features string values should not contain zero bytes in the middle of the string (latter this could be changed).
+     * If so, use GetStringCatFeatureHash from model_calcer_wrapper.h and use CalcHashed method.
+     * **WARNING** currently supports only singleclass models (no multiclassification support).
+     * TODO(kirillovs): implement multiclass models support here.
+     * @param floatFeatures
+     * @param catFeatures
+     * @param textFeatures
+     * @return vector of raw prediction values
+     */
+    std::vector<double> Calc(
+        const std::vector<std::vector<float>>& floatFeatures,
+        const std::vector<std::vector<std::string>>& catFeatures,
+        const std::vector<std::vector<std::string>>& textFeatures
+    ) const {
+        std::vector<double> result(floatFeatures.size());
+        std::vector<const float*> floatPtrsVector;
+        size_t floatFeatureCount = 0;
+
+        for (const auto& floatFeatureVec : floatFeatures) {
+            if (floatFeatureCount == 0) {
+                floatFeatureCount = floatFeatureVec.size();
+            }
+            floatPtrsVector.push_back(floatFeatureVec.data());
+        }
+
+        size_t catFeatureCount = 0;
+        std::vector<const char*> catFeaturesPtrsVector;
+        std::vector<const char**> charPtrPtrsVector;
+        FromStringToCharVectors(catFeatures, &catFeatureCount, &catFeaturesPtrsVector, &charPtrPtrsVector);
+
+        size_t textFeatureCount = 0;
+        std::vector<const char*> textFeaturesPtrsVector;
+        std::vector<const char**> charTextPtrPtrsVector;
+        FromStringToCharVectors(textFeatures, &textFeatureCount, &textFeaturesPtrsVector, &charTextPtrPtrsVector);
+
+        if (!CalcModelPredictionText(
+            CalcerHolder.get(),
+            result.size(),
+            floatPtrsVector.data(), floatFeatureCount,
+            charPtrPtrsVector.data(), catFeatureCount,
+            charTextPtrPtrsVector.data(), textFeatureCount,
+            result.data(), result.size()
+        )) {
             throw std::runtime_error(GetErrorString());
         }
         return result;
@@ -246,6 +310,41 @@ public:
     }
 
 private:
+    void FromStringToCharVector(const std::vector<std::string>& stringFeatures, std::vector<const char*>* charFeatures) const {
+        charFeatures->clear();
+        charFeatures->reserve(stringFeatures.size());
+        for (const auto& str : stringFeatures) {
+            charFeatures->push_back(str.data());
+        }
+    }
+
+    void FromStringToCharVectors(
+        const std::vector<std::vector<std::string>>& stringFeatures,
+        size_t* featureCount,
+        std::vector<const char*>* featuresPtrsVector,
+        std::vector<const char**>* charPtrPtrsVector
+    ) const {
+        size_t currentTextOffset = 0;
+        for (const auto& stringVec : stringFeatures) {
+            if (*featureCount == 0) {
+                *featureCount = stringVec.size();
+            }
+            if (*featureCount != stringVec.size()) {
+                throw std::runtime_error("All text feature vectors should be of the same length");
+            }
+        }
+        if (*featureCount != 0) {
+            featuresPtrsVector->reserve(stringFeatures.size() * (*featureCount));
+            for (const auto& stringVec : stringFeatures) {
+                for (const auto& string : stringVec) {
+                    featuresPtrsVector->push_back(string.data());
+                }
+                charPtrPtrsVector->push_back(featuresPtrsVector->data() + currentTextOffset);
+                currentTextOffset += *featureCount;
+            }
+        }
+    }
+
     using CalcerHolderType = std::unique_ptr<ModelCalcerHandle, std::function<void(ModelCalcerHandle*)>>;
     CalcerHolderType CalcerHolder;
 };

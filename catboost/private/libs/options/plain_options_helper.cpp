@@ -955,6 +955,16 @@ void NCatboostOptions::CleanPlainJson(
         DeleteSeenOption(plainOptionsJsonEfficient, "simple_ctr");
     }
 
+    if ((*plainOptionsJsonEfficient)["boosting_type"].GetStringSafe() == ToString(EBoostingType::Plain)) {
+        DeleteSeenOption(plainOptionsJsonEfficient, "approx_on_full_history");
+        DeleteSeenOption(plainOptionsJsonEfficient, "fold_len_multiplier");
+        if (!hasCatFeatures) {
+            DeleteSeenOption(plainOptionsJsonEfficient, "permutation_count");
+            DeleteSeenOption(plainOptionsJsonEfficient, "fold_permutation_block");
+            DeleteSeenOption(plainOptionsJsonEfficient, "has_time");
+        }
+    }
+
     if (!hasTextFeatures) {
         DeleteSeenOption(plainOptionsJsonEfficient, "tokenizers");
         DeleteSeenOption(plainOptionsJsonEfficient, "dictionaries");

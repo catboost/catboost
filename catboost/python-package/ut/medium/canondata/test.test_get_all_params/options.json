@@ -1,5 +1,4 @@
 {
-    "approx_on_full_history": false, 
     "bayesian_matrix_reg": 0.10000000149011612, 
     "best_model_min_trees": 1, 
     "boost_from_average": true, 
@@ -17,7 +16,6 @@
     "depth": 6, 
     "eval_metric": "RMSE", 
     "feature_border_type": "GreedyLogSum", 
-    "fold_len_multiplier": 2, 
     "fold_permutation_block": 0, 
     "grow_policy": "SymmetricTree", 
     "has_time": false, 

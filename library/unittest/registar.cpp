@@ -10,6 +10,7 @@
 #include <util/system/guard.h>
 #include <util/system/tls.h>
 #include <util/system/error.h>
+#include <util/string/cast.h>
 
 bool NUnitTest::ShouldColorizeDiff = true;
 bool NUnitTest::ContinueOnFail = false;
