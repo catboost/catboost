@@ -31,7 +31,7 @@ buildscript {{
     }}
 
     dependencies {{
-        classpath 'com.android.tools.build:gradle:2.3.0+'
+        classpath 'com.android.tools.build:gradle:3.5.3'
     }}
 }}
 
@@ -63,7 +63,7 @@ android {{
     {keystore}
 
     compileSdkVersion 28
-    buildToolsVersion "28.0.2"
+    buildToolsVersion "28.0.3"
 
 
     defaultConfig {{
@@ -83,17 +83,17 @@ android {{
 
     applicationVariants.all {{ variant ->
         variant.outputs.each {{ output ->
-            output.outputFile = file("$projectDir/output/{app_id}.apk")
+            def fileName = "$projectDir/output/{app_id}.apk"
+            output.outputFileName = new File(output.outputFile.parent, fileName).getName()
         }}
     }}
 
     dependencies {{
-        compile 'com.android.support:support-v4:28.0.0'
-        compile 'com.google.android.gms:play-services-location:11.8.0'
-
-        compile 'com.android.support:support-compat:27.0.0'
-        compile 'com.google.android.gms:play-services-gcm:11.8.0'
-        compile 'com.evernote:android-job:1.2.6'
+        implementation 'com.google.android.gms:play-services-location:16.0.0'
+        implementation 'com.google.android.gms:play-services-gcm:16.0.0'
+        implementation 'com.evernote:android-job:1.2.6'
+        implementation 'androidx.annotation:annotation:1.1.0'
+        implementation 'androidx.core:core:1.1.0'
     }}
 }}
 """
@@ -174,10 +174,16 @@ if __name__ == '__main__':
 
     args.build_gradle = os.path.join(args.output_dir, 'build.gradle')
     args.settings_gradle = os.path.join(args.output_dir, 'settings.gradle')
+    args.gradle_properties = os.path.join(args.output_dir, 'gradle.properties')
 
     content = gen_build_script(args)
     with open(args.build_gradle, 'w') as f:
         f.write(content)
+
+    with open(args.gradle_properties, 'w') as f:
+        f.write('''android.enableJetifier=true
+        android.useAndroidX=true
+        org.gradle.jvmargs=-Xmx8192m -XX:MaxPermSize=512m''')
 
     if args.bundle_name:
         with open(args.settings_gradle, 'w') as f:

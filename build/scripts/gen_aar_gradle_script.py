@@ -38,7 +38,7 @@ ext.androidArs = [
 def minVersion = 15
 def compileVersion = 28
 def targetVersion = 28
-def buildVersion = '28.0.2'
+def buildVersion = '28.0.3'
 
 import com.android.build.gradle.LibraryPlugin
 import java.util.regex.Matcher
@@ -62,7 +62,7 @@ buildscript {{
     }}
 
     dependencies {{
-        classpath 'com.android.tools.build:gradle:2.3.0+'
+        classpath 'com.android.tools.build:gradle:3.5.3'
         classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
     }}
 }}
@@ -112,58 +112,50 @@ android {{
 
     dependencies {{
         for (bundle in bundles)
-            compile("$bundle") {{
+            implementation("$bundle") {{
                 transitive = true
             }}
         for (bundle in androidArs)
-            compile (bundle) {{
+            implementation (bundle) {{
                 transitive = true
             }}
     }}
-}}
 
-android.libraryVariants.all {{ variant ->
-    def suffix = variant.buildType.name.capitalize()
-    variant.outputs.each {{ output ->
-        def outputFile = output.outputFile
-        if (outputFile != null && outputFile.name.endsWith('.aar')) {{
-           def newName = outputFile.name.replace('-'+suffix.toLowerCase(), packageSuffix)
-           output.outputFile = new File(outputFile.parent, newName)
+    android.libraryVariants.all {{ variant ->
+        def suffix = variant.buildType.name.capitalize()
+
+        def sourcesJarTask = project.tasks.create(name: "sourcesJar${{suffix}}", type: Jar) {{
+            classifier = 'sources'
+            from android.sourceSets.main.java.srcDirs
+            include '**/*.java'
         }}
+
+        def manifestFile = android.sourceSets.main.manifest.srcFile
+        def manifestXml = new XmlParser().parse(manifestFile)
+
+        def packageName = manifestXml['@package']
+        def tokens = packageName.tokenize('.')
+        tokens.pop();
+        def groupName = tokens.join('.')
+
+        def androidNs = new groovy.xml.Namespace("http://schemas.android.com/apk/res/android")
+        def packageVersion = manifestXml.attributes()[androidNs.versionName]
+
+        def writePomTask = project.tasks.create(name: "writePom${{suffix}}") {{
+            pom {{
+                project {{
+                    groupId groupName
+                    version packageVersion
+                    packaging 'aar'
+                }}
+            }}.writeTo("$buildDir/${{rootProject.name}}$packageSuffix-pom.xml")
+        }}
+
+        tasks["bundle${{suffix}}Aar"].dependsOn sourcesJarTask
+        tasks["bundle${{suffix}}Aar"].dependsOn writePomTask
     }}
-
-    def sourcesJarTask = project.tasks.create(name: "sourcesJar${{suffix}}", type: Jar) {{
-        classifier = 'sources'
-        from android.sourceSets.main.java.srcDirs
-        include '**/*.java'
-    }}
-
-    def manifestFile = android.sourceSets.main.manifest.srcFile
-    def manifestXml = new XmlParser().parse(manifestFile)
-
-    def packageName = manifestXml['@package']
-    def tokens = packageName.tokenize('.')
-    tokens.pop();
-    def groupName = tokens.join('.')
-
-    def androidNs = new groovy.xml.Namespace("http://schemas.android.com/apk/res/android")
-    def packageVersion = manifestXml.attributes()[androidNs.versionName]
-
-    def writePomTask = project.tasks.create(name: "writePom${{suffix}}") {{
-        pom {{
-            project {{
-                groupId groupName
-                version packageVersion
-                packaging 'aar'
-            }}
-        }}.writeTo("$buildDir/${{rootProject.name}}$packageSuffix-pom.xml")
-    }}
-
-    tasks["bundle$suffix"].dependsOn sourcesJarTask
-    tasks["bundle$suffix"].dependsOn writePomTask
 }}
 """
-
 
 def gen_build_script(args):
 
