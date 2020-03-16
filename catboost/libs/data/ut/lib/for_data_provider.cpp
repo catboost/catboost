@@ -91,18 +91,18 @@ namespace NCB {
         }
     }
 
-    template <class T, EFeatureValuesType FeatureValuesType>
+    template <class T, EFeatureValuesType ValuesType>
     bool SimpleEqual(
         const TExpectedFeatureColumn<T>& lhs,
-        const TTypedFeatureValuesHolder<T, FeatureValuesType>& rhs
+        const ITypedFeatureValuesHolder<T, ValuesType>& rhs
     ) {
         if (const auto* lhsDenseData = GetIf<TVector<T>>(&lhs)) {
             return Equal<T>(*rhs.ExtractValues(&NPar::LocalExecutor()), *lhsDenseData);
         } else {
             const auto& lhsSparseArray = Get<TConstPolymorphicValuesSparseArray<T, ui32>>(lhs);
-
+            using TColumn = ITypedFeatureValuesHolder<T, ValuesType>;
             if (const auto* rhsSparseArrayHolder
-                    = dynamic_cast<const TSparsePolymorphicArrayValuesHolder<T, FeatureValuesType>*>(&rhs))
+                    = dynamic_cast<const TSparsePolymorphicArrayValuesHolder<TColumn>*>(&rhs))
             {
                 const auto& rhsSparseArray = rhsSparseArrayHolder->GetData();
                 // compare field-by-field because lhsSparseArray and rhsSparseArray have different types (const and non-const)
@@ -112,8 +112,25 @@ namespace NCB {
                         rhsSparseArray.GetNonDefaultValues().GetImpl().GetBlockIterator()
                     ) &&
                     (lhsSparseArray.GetDefaultValue() == rhsSparseArray.GetDefaultValue());
-            } else if (const auto* rhsSparseArrayHolder
-                           = dynamic_cast<const TSparseCompressedValuesHolderImpl<T, FeatureValuesType>*>(&rhs))
+            } else {
+                UNIT_FAIL("bad column type for sparse data");
+            }
+            Y_UNREACHABLE();
+        }
+    }
+
+    template <class T, EFeatureValuesType ValuesType>
+    bool SimpleEqual(
+        const TExpectedFeatureColumn<T>& lhs,
+        const IQuantizedFeatureValuesHolder<T, ValuesType>& rhs
+    ) {
+        if (const auto* lhsDenseData = GetIf<TVector<T>>(&lhs)) {
+            return Equal<T>(*rhs.ExtractValues(&NPar::LocalExecutor()), *lhsDenseData);
+        } else {
+            using TColumn = IQuantizedFeatureValuesHolder<T, ValuesType>;
+            const auto& lhsSparseArray = Get<TConstPolymorphicValuesSparseArray<T, ui32>>(lhs);
+            if (const auto* rhsSparseArrayHolder
+                           = dynamic_cast<const TSparseCompressedValuesHolderImpl<TColumn>*>(&rhs))
             {
                 const auto& rhsSparseArray = rhsSparseArrayHolder->GetData();
                 TVector<T> lhsValues = lhsSparseArray.ExtractValues();

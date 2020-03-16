@@ -70,17 +70,17 @@ inline static void SetBucketIndex(
 }
 
 
-template <class T, NCB::EFeatureValuesType FeatureValuesType, typename TBucketIndexType>
+template <class TColumn, typename TBucketIndexType>
 inline static void ExtractBucketIndex(
     const TCalcScoreFold& fold,
-    const TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
+    const TColumn& column,
     TIndexRange<ui32> docIndexRange,
     int groupSize,
     const TVector<ui32>& groupPartsBucketsOffsets,
     TVector<TBucketIndexType>* bucketIdx // already of proper size
 ) {
     if (const auto* denseColumnData
-        = dynamic_cast<const TCompressedValuesHolderImpl<T, FeatureValuesType>*>(&column))
+        = dynamic_cast<const TCompressedValuesHolderImpl<TColumn>*>(&column))
     {
         // Simple indexing possible only at first level now
         const bool simpleIndexing = (fold.LeavesBounds.size() == 1) && (fold.NonCtrDataPermutationBlockSize == fold.GetDocCount());
@@ -91,8 +91,7 @@ inline static void ExtractBucketIndex(
 
         const TCompressedArray& compressedArray = *denseColumnData->GetCompressedData().GetSrc();
 
-        DispatchBitsPerKeyToDataType(
-            compressedArray,
+        compressedArray.DispatchBitsPerKeyToDataType(
             "ExtractBucketIndex",
             [&] (const auto* columnData) {
                 SetBucketIndex(

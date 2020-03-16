@@ -16,19 +16,18 @@ static TConstArrayRef<ui8> GetCtrValues(const TSplit& split, const TOnlineCTR& c
     return ctr.Feature[split.Ctr.CtrIdx][split.Ctr.TargetBorderIdx][split.Ctr.PriorIdx];
 }
 
-template <typename T, EFeatureValuesType FeatureValuesType, class TCmpOp>
+template <typename TColumn, class TCmpOp>
 inline std::function<bool(ui32)> BuildNodeSplitFunction(
-    const TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
+    const TColumn& column,
     TCmpOp cmpOp) {
 
     if (const auto* columnData
-        = dynamic_cast<const TCompressedValuesHolderImpl<T, FeatureValuesType>*>(&column))
+        = dynamic_cast<const TCompressedValuesHolderImpl<TColumn>*>(&column))
     {
         const TCompressedArray* compressedArray = columnData->GetCompressedData().GetSrc();
 
         std::function<bool(ui32)> func;
-        NCB::DispatchBitsPerKeyToDataType(
-            *compressedArray,
+        compressedArray->DispatchBitsPerKeyToDataType(
             "BuildNodeSplitFunction",
             [&func, cmpOp=std::move(cmpOp)] (const auto* featureData) {
                 func = [featureData, cmpOp=std::move(cmpOp)] (ui32 objIdx) {
@@ -41,16 +40,16 @@ inline std::function<bool(ui32)> BuildNodeSplitFunction(
     }
 }
 
-template <typename T, EFeatureValuesType FeatureValuesType, class TCmpOp>
+template <typename TColumn, class TCmpOp>
 std::function<bool(ui32)> BuildNodeSplitFunction(
     TMaybe<TExclusiveBundleIndex> maybeExclusiveBundleIndex,
     TMaybe<TPackedBinaryIndex> maybeBinaryIndex,
     TMaybe<TFeaturesGroupIndex> maybeFeaturesGroupIndex,
     TConstArrayRef<TExclusiveFeaturesBundle> exclusiveFeaturesBundlesMetaData,
-    const TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
-    std::function<const TExclusiveFeatureBundleHolder*(ui32)>&& getExclusiveFeaturesBundle,
-    std::function<const TBinaryPacksHolder*(ui32)>&& getBinaryFeaturesPack,
-    std::function<const TFeaturesGroupHolder*(ui32)>&& getFeaturesGroup,
+    const TColumn& column,
+    std::function<const IExclusiveFeatureBundleArray*(ui32)>&& getExclusiveFeaturesBundle,
+    std::function<const IBinaryPacksArray*(ui32)>&& getBinaryFeaturesPack,
+    std::function<const IFeaturesGroupArray*(ui32)>&& getFeaturesGroup,
     TCmpOp cmpOp) {
 
     auto buildNodeSplitFunction = [&] (const auto& column, auto&& cmpOp) {

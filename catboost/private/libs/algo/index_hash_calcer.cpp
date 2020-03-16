@@ -55,7 +55,7 @@ void CalcHashes(
         const auto packIdx = objectsDataProvider.GetCatFeatureToPackedBinaryIndex(catFeatureIdx);
         const auto groupIdx = objectsDataProvider.GetCatFeatureToFeaturesGroupIndex(catFeatureIdx);
         if ((!bundleIdx && !packIdx && !groupIdx) || !processAggregatedFeatures || perfectHashedToHashedCatValuesMap) {
-            auto featureCalcHashParams = ExtractColumnLocation<ui32, EFeatureValuesType::PerfectHashedCategorical>(
+            auto featureCalcHashParams = ExtractColumnLocation<IQuantizedCatValuesHolder>(
                 bundleIdx,
                 packIdx,
                 groupIdx,
@@ -93,7 +93,7 @@ void CalcHashes(
         const auto packIdx = objectsDataProvider.GetFloatFeatureToPackedBinaryIndex(floatFeatureIdx);
         const auto groupIdx = objectsDataProvider.GetFloatFeatureToFeaturesGroupIndex(floatFeatureIdx);
         if ((!bundleIdx && !packIdx && !groupIdx) || !processAggregatedFeatures) {
-            auto featureCalcHashParams = ExtractColumnLocation<ui8, EFeatureValuesType::QuantizedFloat>(
+            auto featureCalcHashParams = ExtractColumnLocation<IQuantizedFloatValuesHolder>(
                 bundleIdx,
                 packIdx,
                 groupIdx,
@@ -139,7 +139,7 @@ void CalcHashes(
         const auto bundleIdx = objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx);
         const auto groupIdx = objectsDataProvider.GetCatFeatureToFeaturesGroupIndex(catFeatureIdx);
         if ((!bundleIdx && !maybeBinaryIndex) || !processAggregatedFeatures) {
-            auto featureCalcHashParams = ExtractColumnLocation<ui32, EFeatureValuesType::PerfectHashedCategorical>(
+            auto featureCalcHashParams = ExtractColumnLocation<IQuantizedCatValuesHolder>(
                 bundleIdx,
                 maybeBinaryIndex,
                 groupIdx,

@@ -80,6 +80,25 @@ namespace NCB {
         }
     }
 
+    // TODO(kirillovs): replace with effective block-quantizer from model evaluation code
+    template <typename TQuantizedBin>
+    void QuantizeBlock(TConstArrayRef<float> srcFeatureData,
+                  bool allowNans,
+                  ENanMode nanMode,
+                  ui32 featureIdx, // for error message
+
+                  // if nanMode != ENanMode::Forbidden borders must include -min_float or +max_float
+                  TConstArrayRef<float> borders,
+                  TArrayRef<TQuantizedBin> quantizedData) {
+        Y_ASSERT(srcFeatureData.size() == quantizedData.size());
+        for (size_t i : xrange(srcFeatureData.size())) {
+            quantizedData[i] = Quantize<TQuantizedBin>(featureIdx,
+                                                         allowNans,
+                                                         nanMode,
+                                                         borders,
+                                                         srcFeatureData[i]);
+        }
+    }
 
     template <typename TQuantizedBin>
     void Quantize(const ITypedArraySubset<float>& srcFeatureData,

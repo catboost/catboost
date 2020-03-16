@@ -1054,23 +1054,26 @@ namespace NCB {
      *  SubsetIndexingIterator is a template parameter instead of IDynamicIteratorPtr to allow inlining
      *    for concrete iterator types to avoid double dynamic dispatch.
      */
-    template <class TDstValue, class TArrayLike, class TSubsetIndexingIterator>
+    template <class TDstValue, class TArrayLike, class TSubsetIndexingIterator, class TTransformer>
     class TArraySubsetBlockIterator final : public IDynamicBlockIterator<TDstValue> {
     public:
         TArraySubsetBlockIterator(
             TArrayLike src,
             size_t subsetSize,
-            TSubsetIndexingIterator&& subsetIndexingIterator)
+            TSubsetIndexingIterator&& subsetIndexingIterator,
+            TTransformer&& transformer
+        )
             : Src(std::move(src))
             , RemainingSize(subsetSize)
             , SubsetIndexingIterator(std::move(subsetIndexingIterator))
+            , Transformer(std::move(transformer))
         {}
 
         TConstArrayRef<TDstValue> Next(size_t maxBlockSize = Max<size_t>()) override {
             const size_t dstBlockSize = Min(maxBlockSize, RemainingSize);
             Buffer.yresize(dstBlockSize);
             for (auto& dstElement : Buffer) {
-                dstElement = Src[*SubsetIndexingIterator.Next()];
+                dstElement = Transformer(Src[*SubsetIndexingIterator.Next()]);
             }
             RemainingSize -= dstBlockSize;
             return Buffer;
@@ -1081,8 +1084,65 @@ namespace NCB {
         size_t RemainingSize;
         TSubsetIndexingIterator SubsetIndexingIterator;
         TVector<TDstValue> Buffer;
+        TTransformer Transformer;
     };
 
+    template <class TDstValue, class TArrayLike, class TTransformer>
+    IDynamicBlockIteratorPtr<TDstValue> MakeTransformingArraySubsetBlockIterator(
+        const TArraySubsetIndexing<ui32>* subsetIndexing,
+        TArrayLike src,
+        ui32 offset,
+        TTransformer&& transformer
+    ) {
+        const ui32 size = subsetIndexing->Size();
+        const ui32 remainingSize = size - offset;
+
+        switch (subsetIndexing->index()) {
+            case TVariantIndexV<TFullSubset<ui32>, TArraySubsetIndexing<ui32>::TBase>:
+                return MakeHolder<
+                        TArraySubsetBlockIterator<TDstValue, TArrayLike, TRangeIterator<ui32>, TTransformer>
+                    >(
+                        std::move(src),
+                        remainingSize,
+                        TRangeIterator<ui32>(TIndexRange<ui32>(offset, size)),
+                        std::move(transformer)
+                    );
+            case TVariantIndexV<TRangesSubset<ui32>, TArraySubsetIndexing<ui32>::TBase>:
+                return MakeHolder<
+                        TArraySubsetBlockIterator<TDstValue, TArrayLike, TRangesSubsetIterator<ui32>, TTransformer>
+                    >(
+                        std::move(src),
+                        remainingSize,
+                        TRangesSubsetIterator<ui32>(subsetIndexing->Get<TRangesSubset<ui32>>(), offset),
+                        std::move(transformer)
+                    );
+            case TVariantIndexV<TIndexedSubset<ui32>, TArraySubsetIndexing<ui32>::TBase>:
+                {
+                    using TIterator = TStaticIteratorRangeAsDynamic<const ui32*>;
+
+                    const auto& indexedSubset = subsetIndexing->Get<TIndexedSubset<ui32>>();
+
+                    return MakeHolder<TArraySubsetBlockIterator<TDstValue, TArrayLike, TIterator, TTransformer>>(
+                        std::move(src),
+                        remainingSize,
+                        TIterator(indexedSubset.begin() + offset, indexedSubset.end()),
+                        std::move(transformer)
+                    );
+                }
+            default:
+                Y_UNREACHABLE();
+        }
+        Y_UNREACHABLE();
+    }
+
+    template <class TDstValue, class TArrayLike>
+    IDynamicBlockIteratorPtr<TDstValue> MakeArraySubsetBlockIterator(
+        const TArraySubsetIndexing<ui32>* subsetIndexing,
+        TArrayLike src,
+        ui32 offset
+    ) {
+        return MakeTransformingArraySubsetBlockIterator<TDstValue, TArrayLike, TIdentity>(subsetIndexing, src, offset, TIdentity());
+    }
 
     // index in dst data or NOT_PRESENT if not present in subset
     template <class TSize>

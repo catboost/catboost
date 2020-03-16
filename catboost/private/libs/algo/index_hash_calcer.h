@@ -28,20 +28,18 @@ struct TCalcHashInGroupContext {
 };
 
 
-template <class T, NCB::EFeatureValuesType FeatureValuesType, class F> // F args are (index, value)
+template <class TColumn, class F> // F args are (index, value)
 inline void ProcessColumnForCalcHashes(
-    const NCB::TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
+    const TColumn& column,
     const NCB::TFeaturesArraySubsetIndexing& featuresSubsetIndexing,
     F&& f,
     NPar::TLocalExecutor* localExecutor) {
 
-    using TDenseHolder = NCB::TCompressedValuesHolderImpl<T, FeatureValuesType>;
-
+    using TDenseHolder = NCB::TCompressedValuesHolderImpl<TColumn>;
     if (const auto* denseColumnData = dynamic_cast<const TDenseHolder*>(&column)) {
         const TCompressedArray& compressedArray = *denseColumnData->GetCompressedData().GetSrc();
 
-        NCB::DispatchBitsPerKeyToDataType(
-            compressedArray,
+        compressedArray.DispatchBitsPerKeyToDataType(
             "ProcessColumnForCalcHashes",
             [&] (const auto* histogram) {
                 featuresSubsetIndexing.ParallelForEach(
@@ -58,9 +56,9 @@ inline void ProcessColumnForCalcHashes(
     }
 }
 
-template <class T, NCB::EFeatureValuesType FeatureValuesType, class TGetBinFromHistogramValue, class F>
+template <class TColumn, class TGetBinFromHistogramValue, class F>
 inline void ProcessColumnForCalcHashes(
-    const NCB::TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
+    const TColumn& column,
     const NCB::TFeaturesArraySubsetIndexing& featuresSubsetIndexing,
     TGetBinFromHistogramValue&& getBinFromHistogramValue,
     F&& f,
@@ -75,9 +73,9 @@ inline void ProcessColumnForCalcHashes(
         localExecutor);
 }
 
-template <class TValue, NCB::EFeatureValuesType FeatureValuesType, class TColumn>
+template <class TValue, class TColumn>
 inline void GetRawColumn(const TColumn& column, const void** rawPtr, ui32* bitsPerKey) {
-    using TDenseHolder = NCB::TCompressedValuesHolderImpl<TValue, FeatureValuesType>;
+    using TDenseHolder = NCB::TCompressedValuesHolderImpl<TColumn>;
     const auto* denseColumnData = dynamic_cast<const TDenseHolder*>(&column);
     CB_ENSURE(denseColumnData, "Wrong column type");
     const TCompressedArray& compressedArray = *denseColumnData->GetCompressedData().GetSrc();
@@ -87,7 +85,7 @@ inline void GetRawColumn(const TColumn& column, const void** rawPtr, ui32* bitsP
         *bitsPerKey <= sizeof(TValue) * 8, "BitsPerKey " << *bitsPerKey << " exceeds maximum width " << sizeof(TValue) * 8);
 }
 
-template <class T, NCB::EFeatureValuesType FeatureValuesType, class F>
+template <class TColumn, class F>
 inline void ProcessFeatureForCalcHashes(
     TMaybe<NCB::TExclusiveBundleIndex> maybeExclusiveBundleIndex,
     TMaybe<NCB::TPackedBinaryIndex> maybeBinaryIndex,
@@ -99,11 +97,11 @@ inline void ProcessFeatureForCalcHashes(
     TArrayRef<NCB::TBinaryFeaturesPack> binaryFeaturesBitMasks,
     TArrayRef<NCB::TBinaryFeaturesPack> projBinaryFeatureValues,
     TArrayRef<TVector<TCalcHashInGroupContext>> featuresInGroups,
-    std::function<const NCB::TTypedFeatureValuesHolder<T, FeatureValuesType>*()>&& getFeatureColumn,
+    std::function<const TColumn*()>&& getFeatureColumn,
     std::function<const NCB::TExclusiveFeaturesBundle(ui32)>&& getExclusiveFeatureBundleMetaData,
-    std::function<const NCB::TExclusiveFeatureBundleHolder*(ui32)>&& getExclusiveFeatureBundle,
-    std::function<const NCB::TBinaryPacksHolder*(ui32)>&& getBinaryFeaturesPack,
-    std::function<const NCB::TFeaturesGroupHolder*(ui32)>&& getFeaturesGroup,
+    std::function<const NCB::IExclusiveFeatureBundleArray*(ui32)>&& getExclusiveFeatureBundle,
+    std::function<const NCB::IBinaryPacksArray*(ui32)>&& getBinaryFeaturesPack,
+    std::function<const NCB::IFeaturesGroupArray*(ui32)>&& getFeaturesGroup,
     F&& f,
     NPar::TLocalExecutor* localExecutor) {
 
@@ -298,21 +296,21 @@ struct TCalcHashParams {
     }
 };
 
-template <class T, NCB::EFeatureValuesType FeatureValuesType>
+template <class TColumn>
 inline TCalcHashParams ExtractColumnLocation(
     TMaybe<NCB::TExclusiveBundleIndex> maybeExclusiveBundleIndex,
     TMaybe<NCB::TPackedBinaryIndex> maybeBinaryIndex,
     TMaybe<NCB::TFeaturesGroupIndex> maybeFeaturesGroupIndex,
-    std::function<const NCB::TTypedFeatureValuesHolder<T, FeatureValuesType>*()>&& getFeatureColumn,
+    std::function<const TColumn*()>&& getFeatureColumn,
     std::function<const NCB::TExclusiveFeaturesBundle(ui32)>&& getExclusiveFeatureBundleMetaData,
-    std::function<const NCB::TExclusiveFeatureBundleHolder*(ui32)>&& getExclusiveFeatureBundle,
-    std::function<const NCB::TBinaryPacksHolder*(ui32)>&& getBinaryFeaturesPack,
-    std::function<const NCB::TFeaturesGroupHolder*(ui32)>&& getFeaturesGroup
+    std::function<const NCB::IExclusiveFeatureBundleArray*(ui32)>&& getExclusiveFeatureBundle,
+    std::function<const NCB::IBinaryPacksArray*(ui32)>&& getBinaryFeaturesPack,
+    std::function<const NCB::IFeaturesGroupArray*(ui32)>&& getFeaturesGroup
 ) {
     TCalcHashParams calcHashParams;
     if (maybeExclusiveBundleIndex) {
         const ui32 bundleIdx = maybeExclusiveBundleIndex->BundleIdx;
-        GetRawColumn<ui16, NCB::EFeatureValuesType::ExclusiveFeatureBundle>(
+        GetRawColumn<ui16>(
             *getExclusiveFeatureBundle(bundleIdx),
             &calcHashParams.RawColumnPtr,
             &calcHashParams.BitsPerKey);
@@ -320,20 +318,20 @@ inline TCalcHashParams ExtractColumnLocation(
         const auto boundsInBundle = metaData.Parts[maybeExclusiveBundleIndex->InBundleIdx].Bounds;
         calcHashParams.Bounds = boundsInBundle;
     } else if (maybeBinaryIndex) {
-        GetRawColumn<ui8, NCB::EFeatureValuesType::BinaryPack>(
+        GetRawColumn<ui8>(
             *getBinaryFeaturesPack(maybeBinaryIndex->PackIdx),
             &calcHashParams.RawColumnPtr,
             &calcHashParams.BitsPerKey);
         calcHashParams.BitIdx = maybeBinaryIndex->BitIdx;
     } else if (maybeFeaturesGroupIndex) {
         const ui32 groupIdx = maybeFeaturesGroupIndex->GroupIdx;
-        GetRawColumn<ui32, NCB::EFeatureValuesType::FeaturesGroup>(
+        GetRawColumn<ui32>(
             *getFeaturesGroup(groupIdx),
             &calcHashParams.RawColumnPtr,
             &calcHashParams.BitsPerKey);
         calcHashParams.InGroupIdx = maybeFeaturesGroupIndex->InGroupIdx;
     } else {
-        GetRawColumn<T, FeatureValuesType>(
+        GetRawColumn<typename TColumn::TValueType>(
             *getFeatureColumn(),
             &calcHashParams.RawColumnPtr,
             &calcHashParams.BitsPerKey);

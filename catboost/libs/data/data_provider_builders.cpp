@@ -3,6 +3,7 @@
 #include "data_provider.h"
 #include "feature_index.h"
 #include "lazy_columns.h"
+#include "sparse_columns.h"
 #include "objects.h"
 #include "sparse_columns.h"
 #include "target.h"
@@ -824,12 +825,12 @@ namespace NCB {
                 PerFeatureData[*perTypeFeatureIdx].DefaultValue = value;
             }
 
-            template <EFeatureValuesType ColumnType>
+            template <class TColumn>
             void GetResult(
                 const TFeaturesArraySubsetIndexing* subsetIndexing,
                 ESparseArrayIndexingType sparseArrayIndexingType,
                 TFeaturesLayout* featuresLayout,
-                TVector<THolder<TTypedFeatureValuesHolder<T, ColumnType>>>* result
+                TVector<THolder<TColumn>>* result
             ) {
                 size_t featureCount = (size_t)featuresLayout->GetFeatureCount(FeatureType);
 
@@ -863,14 +864,14 @@ namespace NCB {
                     if (metaInfo.IsAvailable) {
                         if (metaInfo.IsSparse) {
                             result->push_back(
-                                MakeHolder<TSparsePolymorphicArrayValuesHolder<T, ColumnType>>(
+                                MakeHolder<TSparsePolymorphicArrayValuesHolder<TColumn>>(
                                     /* featureId */ flatFeatureIdx,
                                     std::move(*(sparseData[perTypeFeatureIdx]))
                                 )
                             );
                         } else {
                             result->push_back(
-                                MakeHolder<TPolymorphicArrayValuesHolder<T, ColumnType>>(
+                                MakeHolder<TPolymorphicArrayValuesHolder<TColumn>>(
                                     /* featureId */ flatFeatureIdx,
                                     TMaybeOwningConstArrayHolder<T>::CreateOwning(
                                         PerFeatureData[perTypeFeatureIdx].DenseDstView,
@@ -1993,13 +1994,13 @@ namespace NCB {
                 }
             }
 
-            template <class T, EFeatureValuesType FeatureValuesType>
+            template <class TColumn>
             void GetResult(
                 ui32 objectCount,
                 const TFeaturesLayout& featuresLayout,
                 const TFeaturesArraySubsetIndexing* subsetIndexing,
-                const TVector<THolder<TBinaryPacksHolder>>& binaryFeaturesData,
-                TVector<THolder<TTypedFeatureValuesHolder<T, FeatureValuesType>>>* result
+                const TVector<THolder<IBinaryPacksArray>>& binaryFeaturesData,
+                TVector<THolder<TColumn>>* result
             ) {
                 CB_ENSURE_INTERNAL(
                     DenseDataStorage.size() == DenseDstView.size(),
@@ -2023,7 +2024,7 @@ namespace NCB {
                             auto packedBinaryIndex = *FeatureIdxToPackedBinaryIndex[perTypeFeatureIdx];
 
                             result->push_back(
-                                MakeHolder<TPackedBinaryValuesHolderImpl<T, FeatureValuesType>>(
+                                MakeHolder<TPackedBinaryValuesHolderImpl<TColumn>>(
                                     featureId,
                                     binaryFeaturesData[packedBinaryIndex.PackIdx].Get(),
                                     packedBinaryIndex.BitIdx
@@ -2031,7 +2032,7 @@ namespace NCB {
                             );
                         } else {
                             result->push_back(
-                                MakeHolder<TCompressedValuesHolderImpl<T, FeatureValuesType>>(
+                                MakeHolder<TCompressedValuesHolderImpl<TColumn>>(
                                     featureId,
                                     TCompressedArray(
                                         objectCount,
@@ -2127,7 +2128,7 @@ namespace NCB {
                     auto flatFeatureIdx = featuresLayout.GetExternalFeatureIdx(perTypeFeatureIdx, EFeatureType::Float);
                     CB_ENSURE(!flatFeatureIdxToPackedBinaryIdx[flatFeatureIdx], "Packed lazy columns are not supported");
                     lazyQuantizedColumns.push_back(
-                        MakeHolder<TLazyCompressedValuesHolderImpl<ui8, EFeatureValuesType::QuantizedFloat>>(
+                        MakeHolder<TLazyCompressedValuesHolderImpl<IQuantizedFloatValuesHolder>>(
                             flatFeatureIdx,
                             &subsetIndexing,
                             PoolLoader)

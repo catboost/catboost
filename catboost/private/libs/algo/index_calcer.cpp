@@ -83,17 +83,16 @@ inline void UpdateIndicesForSplit(
     }
 }
 
-template <typename T, EFeatureValuesType FeatureValuesType, class TCmpOp>
+template <typename TColumn, class TCmpOp>
 inline void ScheduleUpdateIndicesForSplit(
     const TIndexedSubset<ui32>& columnsIndexing,
-    const TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
+    const TColumn& column,
     TCmpOp cmpOp,
     int level,
     TIndexType* indices,
     TVector<std::function<void(TIndexRange<ui32>)>>* updateBlockCallbacks) {
-
     if (const auto* columnData
-            = dynamic_cast<const TCompressedValuesHolderImpl<T, FeatureValuesType>*>(&column))
+            = dynamic_cast<const TCompressedValuesHolderImpl<TColumn>*>(&column))
     {
         const auto* columnsIndexingPtr = &columnsIndexing;
         const TCompressedArray* compressedArray = columnData->GetCompressedData().GetSrc();
@@ -106,8 +105,7 @@ inline void ScheduleUpdateIndicesForSplit(
              compressedArray]
                 (TIndexRange<ui32> indexRange) {
 
-                NCB::DispatchBitsPerKeyToDataType(
-                    *compressedArray,
+                compressedArray->DispatchBitsPerKeyToDataType(
                     "UpdateIndicesForSplit",
                     [=] (const auto* histogram) {
                         UpdateIndicesForSplit(
@@ -125,17 +123,17 @@ inline void ScheduleUpdateIndicesForSplit(
 }
 
 
-template <typename T, EFeatureValuesType FeatureValuesType, class TCmpOp>
+template <typename TColumn, class TCmpOp>
 void ScheduleUpdateIndicesForSplit(
     TMaybe<TExclusiveBundleIndex> maybeExclusiveBundleIndex,
     TMaybe<TPackedBinaryIndex> maybeBinaryIndex,
     TMaybe<TFeaturesGroupIndex> maybeFeaturesGroupIndex,
     TConstArrayRef<TExclusiveFeaturesBundle> exclusiveFeaturesBundlesMetaData,
     const TIndexedSubset<ui32>& columnsIndexing,
-    const TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
-    std::function<const TExclusiveFeatureBundleHolder*(ui32)>&& getExclusiveFeaturesBundle,
-    std::function<const TBinaryPacksHolder*(ui32)>&& getBinaryFeaturesPack,
-    std::function<const TFeaturesGroupHolder*(ui32)>&& getFeaturesGroup,
+    const TColumn& column,
+    std::function<const IExclusiveFeatureBundleArray*(ui32)>&& getExclusiveFeaturesBundle,
+    std::function<const IBinaryPacksArray*(ui32)>&& getBinaryFeaturesPack,
+    std::function<const IFeaturesGroupArray*(ui32)>&& getFeaturesGroup,
     TCmpOp cmpOp,
     int level,
     TIndexType* indices,

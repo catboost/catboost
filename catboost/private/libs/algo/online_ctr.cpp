@@ -516,7 +516,7 @@ static void CopyCatColumnToHash(
 ) {
     const void* rawColumnPtr;
     ui32 bitsPerKey;
-    GetRawColumn<ui32, EFeatureValuesType::PerfectHashedCategorical>(
+    GetRawColumn<ui32>(
         catColumn,
         &rawColumnPtr,
         &bitsPerKey
@@ -579,7 +579,7 @@ void ComputeOnlineCTRs(
         TArrayRef<ui64> hashArrView(hashArr);
         if (learnSampleCount > 0) {
             if (!canUpdateHashOnce) {
-                ProcessFeatureForCalcHashes<ui32, EFeatureValuesType::PerfectHashedCategorical>(
+                ProcessFeatureForCalcHashes<IQuantizedCatValuesHolder>(
                     data.Learn->ObjectsData->GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
                     data.Learn->ObjectsData->GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
                     data.Learn->ObjectsData->GetCatFeatureToFeaturesGroupIndex(catFeatureIdx),
@@ -619,7 +619,7 @@ void ComputeOnlineCTRs(
             const auto canUpdateHashOnce = data.Test[testIdx]->ObjectsData->GetExclusiveFeatureBundlesSize() + data.Test[testIdx]->ObjectsData->GetBinaryFeaturesPacksSize() == 0;
 
             if (!canUpdateHashOnce) {
-                ProcessFeatureForCalcHashes<ui32, EFeatureValuesType::PerfectHashedCategorical>(
+                ProcessFeatureForCalcHashes<IQuantizedCatValuesHolder>(
                     data.Test[testIdx]->ObjectsData->GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
                     data.Test[testIdx]->ObjectsData->GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
                     data.Test[testIdx]->ObjectsData->GetCatFeatureToFeaturesGroupIndex(catFeatureIdx),

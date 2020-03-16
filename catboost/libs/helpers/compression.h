@@ -196,8 +196,37 @@ public:
         return reinterpret_cast<const char*>((*Storage).data());
     }
 
-    template <class T>
-    NCB::IDynamicBlockWithExactIteratorPtr<T> GetBlockIterator(ui64 offset) const;
+    template<class T>
+    NCB::IDynamicBlockWithExactIteratorPtr<T> GetTypedBlockIterator(ui64 offset) const;
+
+    inline NCB::IDynamicBlockIteratorBasePtr GetBlockIterator(ui64 offset, ui64 count) const;
+
+    inline NCB::IDynamicBlockIteratorBasePtr GetBlockIterator(ui64 offset, const NCB::TArraySubsetIndexing<ui32>* subsetIndexing) const;
+
+    // calls generic f with 'const T' pointer to raw data of compressedArray with the appropriate T
+    template <class F>
+    inline void DispatchBitsPerKeyToDataType(
+        const TStringBuf errorMessagePrefix,
+        F&& f
+    ) const {
+        const auto bitsPerKey = GetBitsPerKey();
+        const char* rawDataPtr = GetRawPtr();
+        switch (bitsPerKey) {
+            case 8:
+                f((const ui8*)rawDataPtr);
+                break;
+            case 16:
+                f((const ui16*)rawDataPtr);
+                break;
+            case 32:
+                f((const ui32*)rawDataPtr);
+                break;
+            default:
+                CB_ENSURE_INTERNAL(
+                    false,
+                    errorMessagePrefix << "unsupported bitsPerKey: " << bitsPerKey);
+        }
+    }
 
 private:
     ui64 Size = 0;
@@ -209,13 +238,15 @@ private:
 template <class T>
 class TGenericCompressedArrayBlockIterator final : public NCB::IDynamicBlockWithExactIterator<T> {
 public:
-    TGenericCompressedArrayBlockIterator(TCompressedArray compressedArray, ui64 offset = 0)
+    TGenericCompressedArrayBlockIterator(TCompressedArray compressedArray, ui64 offset = 0, ui64 count = 0)
         : CompressedArray(std::move(compressedArray))
         , Index(offset)
-    {}
+        , Count(count == 0 ? CompressedArray.GetSize() - Index : count)
+    {
+    }
 
     TConstArrayRef<T> Next(size_t size = Max<size_t>()) override {
-        return NextExact(Min((ui64)size, CompressedArray.GetSize() - Index));
+        return NextExact(Min((ui64)size, Count));
     }
 
     TConstArrayRef<T> NextExact(size_t exactBlockSize) override {
@@ -231,13 +262,13 @@ public:
 private:
     TCompressedArray CompressedArray;
     ui64 Index;
-
+    ui64 Count;
     TVector<T> UncompressedBuffer;
 };
 
-
+// TODO(kirillovs): This looks messy, maybe we don't want such ugly optimisations?
 template <class T>
-NCB::IDynamicBlockWithExactIteratorPtr<T> TCompressedArray::GetBlockIterator(ui64 offset) const {
+NCB::IDynamicBlockWithExactIteratorPtr<T> TCompressedArray::GetTypedBlockIterator(ui64 offset) const {
     static_assert(std::is_same_v<T, ui8> || std::is_same_v<T, ui16> || std::is_same_v<T, ui32>);
 
     CB_ENSURE(
@@ -257,6 +288,71 @@ NCB::IDynamicBlockWithExactIteratorPtr<T> TCompressedArray::GetBlockIterator(ui6
     return MakeHolder<TGenericCompressedArrayBlockIterator<T>>(*this, offset);
 }
 
+inline NCB::IDynamicBlockIteratorBasePtr TCompressedArray::GetBlockIterator(ui64 offset, ui64 count) const {
+    if (GetBitsPerKey() == 8) {
+        return MakeHolder<NCB::TArrayBlockIterator<ui8>>(GetRawArray<ui8>().subspan(offset, count));
+    }
+    if (GetBitsPerKey() == 16) {
+        return MakeHolder<NCB::TArrayBlockIterator<ui16>>(GetRawArray<ui16>().subspan(offset, count));
+    }
+    if (GetBitsPerKey() == 32) {
+        return MakeHolder<NCB::TArrayBlockIterator<ui32>>(GetRawArray<ui32>().subspan(offset, count));
+    }
+    if (GetBitsPerKey() < 8) {
+        return MakeHolder<TGenericCompressedArrayBlockIterator<ui8>>(*this, offset, count);
+    }
+    if (GetBitsPerKey() < 16) {
+        return MakeHolder<TGenericCompressedArrayBlockIterator<ui16>>(*this, offset, count);
+    }
+    return MakeHolder<TGenericCompressedArrayBlockIterator<ui32>>(*this, offset, count);
+}
+
+inline NCB::IDynamicBlockIteratorBasePtr TCompressedArray::GetBlockIterator(ui64 offset, const NCB::TArraySubsetIndexing<ui32>* subsetIndexing) const {
+    using namespace NCB;
+    const ui32 size = subsetIndexing->Size();
+    const ui32 remainingSize = size - offset;
+
+    auto consecutiveSubsetBegin = subsetIndexing->GetConsecutiveSubsetBegin();
+    if (consecutiveSubsetBegin.Defined()) {
+        return GetBlockIterator(*consecutiveSubsetBegin + offset, remainingSize);
+    }
+    auto getIter = [&] (auto dataRef) -> NCB::IDynamicBlockIteratorBasePtr {
+        using TInterfaceValue = std::remove_cvref_t<decltype(dataRef[0])>;
+        return MakeArraySubsetBlockIterator<TInterfaceValue>(
+            subsetIndexing,
+            dataRef,
+            offset
+        );
+    };
+    if (GetBitsPerKey() == 8) {
+        return getIter(GetRawArray<ui8>());
+    }
+    if (GetBitsPerKey() == 16) {
+        return getIter(GetRawArray<ui16>());
+    }
+    if (GetBitsPerKey() == 32) {
+        return getIter(GetRawArray<ui32>());
+    }
+    if (GetBitsPerKey() < 8) {
+        return MakeArraySubsetBlockIterator<ui8>(
+            subsetIndexing,
+            *this,
+            offset
+        );
+    }
+    if (GetBitsPerKey() < 16) {
+        return MakeArraySubsetBlockIterator<ui16>(
+            subsetIndexing,
+            *this,
+            offset
+        );
+    }
+    return MakeArraySubsetBlockIterator<ui32>(
+        subsetIndexing,
+        *this,
+        offset
+    );
+}
 
 template <class TStorageType, class T>
 inline TVector<TStorageType> CompressVector(const T* data, ui32 size, ui32 bitsPerKey) {

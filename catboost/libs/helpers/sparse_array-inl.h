@@ -875,7 +875,7 @@ namespace NCB {
     {
     public:
         explicit TNonDefaultValuesBlockIterator(const TCompressedArray& container, size_t offset = 0)
-            : Impl(container.GetBlockIterator<TValue>(offset))
+            : Impl(container.GetTypedBlockIterator<TValue>(offset))
         {}
 
         inline TConstArrayRef<TValue> NextExact(size_t exactBlockSize) override {

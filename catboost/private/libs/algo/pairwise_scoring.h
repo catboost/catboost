@@ -340,7 +340,7 @@ inline void ComputePairwiseStats(
 }
 
 
-template <class T, NCB::EFeatureValuesType FeatureValuesType>
+template <class TColumn>
 inline void ComputePairwiseStats(
     const TCalcScoreFold& fold,
     TConstArrayRef<double> weightedDerivatives,
@@ -353,23 +353,24 @@ inline void ComputePairwiseStats(
     TMaybe<const NCB::TExclusiveFeaturesBundle*> exclusiveFeaturesBundle,
     // used only if SplitEnsembleType == ESplitEnsembleType::FeaturesGroup
     TMaybe<const NCB::TFeaturesGroup*> featuresGroup,
-    const NCB::TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
+    const TColumn& column,
     NCB::TIndexRange<int> docIndexRange,
     NCB::TIndexRange<int> pairIndexRange,
     TPairwiseStats* output
 ) {
     ESplitEnsembleType splitEnsembleType;
-    if constexpr (FeatureValuesType == NCB::EFeatureValuesType::BinaryPack) {
+    const auto featureValuesType = column.GetType();
+    if (featureValuesType == NCB::EFeatureValuesType::BinaryPack) {
         splitEnsembleType = ESplitEnsembleType::BinarySplits;
-    } else if constexpr (FeatureValuesType == NCB::EFeatureValuesType::ExclusiveFeatureBundle) {
+    } else if (featureValuesType == NCB::EFeatureValuesType::ExclusiveFeatureBundle) {
         splitEnsembleType = ESplitEnsembleType::ExclusiveBundle;
-    } else if constexpr (FeatureValuesType == NCB::EFeatureValuesType::FeaturesGroup) {
+    } else if (featureValuesType == NCB::EFeatureValuesType::FeaturesGroup) {
         splitEnsembleType = ESplitEnsembleType::FeaturesGroup;
     } else {
         splitEnsembleType = ESplitEnsembleType::OneFeature;
     }
 
-    using TDenseColumnData = NCB::TCompressedValuesHolderImpl<T, FeatureValuesType>;
+    using TDenseColumnData = NCB::TCompressedValuesHolderImpl<TColumn>;
 
     if (const auto* denseColumnData = dynamic_cast<const TDenseColumnData*>(&column)) {
         const ui32* bucketIndexing
@@ -377,8 +378,7 @@ inline void ComputePairwiseStats(
 
         const TCompressedArray& compressedArray = *denseColumnData->GetCompressedData().GetSrc();
 
-        NCB::DispatchBitsPerKeyToDataType(
-            compressedArray,
+        compressedArray.DispatchBitsPerKeyToDataType(
             "ComputePairwiseStats",
             [&] (const auto* bucketSrcData) {
                 ComputePairwiseStats<decltype(*bucketSrcData)>(

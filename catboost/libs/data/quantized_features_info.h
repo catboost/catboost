@@ -232,13 +232,14 @@ namespace NCB {
 
         void CheckCorrectFeature(const IFeatureValuesHolder& feature) const {
             CB_ENSURE_INTERNAL(
-                IsConsistentWithLayout(feature, *FeaturesLayout),
+                FeaturesLayout->IsCorrectExternalFeatureIdxAndType(
+                    feature.GetId(), feature.GetFeatureType()
+                ),
                 "feature #" << feature.GetId() << " is not consistent with featuresLayout"
             );
         }
 
         friend class TCatFeaturesPerfectHashHelper;
-        friend class TObjectsSerialization;
 
         inline ENanMode ComputeNanMode(const TFloatValuesHolder& feature) const;
 

@@ -160,8 +160,12 @@ namespace NCB {
 
         const IQuantizedFloatValuesHolder* values = dynamic_cast<const IQuantizedFloatValuesHolder*>(feature.GetRef());
         CB_ENSURE_INTERNAL(values, "Cannot access values of float feature #" << featureNum);
-        TMaybeOwningArrayHolder<ui8> extractedValues = values->ExtractValues(&executor);
-        TVector<int> binNums((*extractedValues).begin(), (*extractedValues).end());
+        TVector<int> binNums(values->GetSize());
+        auto binNumsWriteIter = binNums.begin();
+        auto blockFunc = [&binNumsWriteIter] (auto block) {
+            binNumsWriteIter = Copy(block.begin(), block.end(), binNumsWriteIter);
+        };
+        IQuantizedFloatValuesHolder::ForEachBlock(values->GetBlockIterator(), blockFunc);
 
         size_t numBins = quantizedFeaturesInfo->GetBorders(TFloatFeatureIdx(featureNum)).size() + 1;
         TVector<float> meanTarget(numBins, 0.);
@@ -279,14 +283,16 @@ namespace NCB {
         CB_ENSURE_INTERNAL(catFeatureMaybe, "Categorical feature #" << featureNum << " not found");
         const THashedCatValuesHolder* catFeatureHolder = catFeatureMaybe.GetRef();
         CB_ENSURE_INTERNAL(catFeatureHolder, "Cannot access values of categorical feature #" << featureNum);
-        TMaybeOwningArrayHolder<ui32> featureValues = catFeatureHolder->ExtractValues(&executor);
 
         TVector<int> binNums;
         binNums.reserve(oneHotUniqueValues.size());
-        for (auto val : *featureValues) {
-            auto it = std::find(oneHotUniqueValues.begin(), oneHotUniqueValues.end(), val);
-            binNums.push_back(it - oneHotUniqueValues.begin()); // Unknown values will be at bin #oneHotUniqueValues.size()
-        }
+        auto blockIterator = catFeatureHolder->GetBlockIterator();
+        while (auto block = blockIterator->Next(1024)) {
+            for (auto val : block) {
+                auto it = std::find(oneHotUniqueValues.begin(), oneHotUniqueValues.end(), val);
+                binNums.push_back(it - oneHotUniqueValues.begin()); // Unknown values will be at bin #oneHotUniqueValues.size()
+            }
+        };
 
         size_t numBins = oneHotUniqueValues.size() + 1;
         TVector<float> meanTarget(numBins, 0.);

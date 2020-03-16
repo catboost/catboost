@@ -103,16 +103,16 @@ inline static void SetSingleIndex(
 }
 
 
-template <class T, EFeatureValuesType FeatureValuesType, typename TFullIndexType>
+template <class TColumn, typename TFullIndexType>
 inline static void BuildSingleIndex(
     const TCalcScoreFold& fold,
-    const TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
+    const TColumn& column,
     const TStatsIndexer& indexer,
     NCB::TIndexRange<int> docIndexRange,
     TVector<TFullIndexType>* singleIdx // already of proper size
 ) {
     if (const auto* denseColumnData
-            = dynamic_cast<const TCompressedValuesHolderImpl<T, FeatureValuesType>*>(&column))
+            = dynamic_cast<const TCompressedValuesHolderImpl<TColumn>*>(&column))
     {
         const bool simpleIndexing = fold.NonCtrDataPermutationBlockSize == fold.GetDocCount();
         const ui32* docInDataProviderIndexing =
@@ -123,8 +123,7 @@ inline static void BuildSingleIndex(
 
         const TCompressedArray& compressedArray = *denseColumnData->GetCompressedData().GetSrc();
 
-        DispatchBitsPerKeyToDataType(
-            compressedArray,
+        compressedArray.DispatchBitsPerKeyToDataType(
             "BuildSingleIndex",
             [&] (const auto* histogram) {
                 SetSingleIndex(

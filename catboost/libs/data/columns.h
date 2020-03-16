@@ -4,6 +4,7 @@
 
 #include <catboost/private/libs/data_types/text.h>
 #include <catboost/libs/helpers/array_subset.h>
+#include <catboost/libs/helpers/checksum.h>
 #include <catboost/libs/helpers/compression.h>
 #include <catboost/libs/helpers/dynamic_iterator.h>
 #include <catboost/libs/helpers/exception.h>
@@ -44,26 +45,32 @@ namespace NCB {
         FeaturesGroup               //aggregate of several quantized float features
     };
 
+
+    //feature values storage optimized for memory usage
     using TFeaturesArraySubsetIndexing = TArraySubsetIndexing<ui32>;
     using TFeaturesArraySubsetInvertedIndexing = TArraySubsetInvertedIndexing<ui32>;
-    using TCompressedArraySubset = TArraySubset<TCompressedArray, ui32>;
     using TConstCompressedArraySubset = TArraySubset<const TCompressedArray, ui32>;
 
     template <class T>
     using TConstPtrArraySubset = TArraySubset<const T*, ui32>;
 
+    struct TCloningParams {
+        bool MakeConsecutive = false;
+        const TFeaturesArraySubsetIndexing* SubsetIndexing = nullptr;
+        // used for sparse columns
+        TMaybe<const TFeaturesArraySubsetInvertedIndexing*> InvertedSubsetIndexing;
+    };
+
     class IFeatureValuesHolder: TMoveOnly {
     public:
         virtual ~IFeatureValuesHolder() = default;
 
-        IFeatureValuesHolder(EFeatureValuesType type,
+        IFeatureValuesHolder(EFeatureValuesType featureValuesType,
                              ui32 featureId,
-                             ui32 size,
-                             bool isSparse)
-            : Type(type)
-            , FeatureId(featureId)
+                             ui32 size)
+            : FeatureId(featureId)
             , Size(size)
-            , IsSparse(isSparse)
+            , FeatureValuesType(featureValuesType)
         {
         }
 
@@ -71,7 +78,7 @@ namespace NCB {
         IFeatureValuesHolder& operator=(IFeatureValuesHolder&& arg) noexcept = default;
 
         EFeatureType GetFeatureType() const {
-            switch (Type) {
+            switch (GetType()) {
                 case EFeatureValuesType::Float:
                 case EFeatureValuesType::QuantizedFloat:
                     return EFeatureType::Float;
@@ -90,10 +97,6 @@ namespace NCB {
             return EFeatureType::Float; // to keep compiler happy
         }
 
-        EFeatureValuesType GetType() const {
-            return Type;
-        }
-
         ui32 GetSize() const {
             return Size;
         }
@@ -102,161 +105,176 @@ namespace NCB {
             return FeatureId;
         }
 
-        bool GetIsSparse() const {
-            return IsSparse;
+        EFeatureValuesType GetType() const {
+            return FeatureValuesType;
         }
 
+        virtual const IFeatureValuesHolder* GetParent() const {
+            return nullptr;
+        }
+
+        virtual ui32 CalcChecksum(NPar::TLocalExecutor* localExecutor) const = 0;
+        virtual bool IsSparse() const = 0;
+
+        virtual ui64 EstimateMemoryForCloning(
+            const TCloningParams& cloningParams
+        ) const = 0;
+
+        virtual THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
+            const TCloningParams& cloningParams,
+            NPar::TLocalExecutor* localExecutor
+        ) const = 0;
+
     private:
-        EFeatureValuesType Type;
         ui32 FeatureId;
         ui32 Size;
-        bool IsSparse;
+        EFeatureValuesType FeatureValuesType;
     };
-
-    using TFeatureColumnPtr = THolder<IFeatureValuesHolder>;
-
-
-    inline bool IsConsistentWithLayout(
-        const IFeatureValuesHolder& feature,
-        const TFeaturesLayout& featuresLayout
-    ) {
-        return featuresLayout.IsCorrectExternalFeatureIdxAndType(feature.GetId(), feature.GetFeatureType());
-    }
 
     /*******************************************************************************************************
      * Common interfaces
      */
 
-    template <class T, EFeatureValuesType TType>
-    struct TTypedFeatureValuesHolder : public IFeatureValuesHolder {
-        TTypedFeatureValuesHolder(ui32 featureId, ui32 size, bool isSparse)
-            : IFeatureValuesHolder(TType, featureId, size, isSparse)
+    template <typename T, EFeatureValuesType ValuesType>
+    struct ITypedFeatureValuesHolder : public IFeatureValuesHolder {
+        using TValueType = T;
+        ITypedFeatureValuesHolder(ui32 featureId, ui32 size)
+            : IFeatureValuesHolder(ValuesType, featureId, size)
         {}
-
         virtual TMaybeOwningArrayHolder<T> ExtractValues(NPar::TLocalExecutor* localExecutor) const = 0;
 
         virtual IDynamicBlockIteratorPtr<T> GetBlockIterator(ui32 offset = 0) const = 0;
+
+        ui32 CalcChecksum(NPar::TLocalExecutor* localExecutor) const override {
+            const auto repackedHolder = ExtractValues(localExecutor);
+            return UpdateCheckSum(0, *repackedHolder);
+        }
     };
 
-
-    template <class T, EFeatureValuesType TType>
-    struct TCloneableWithSubsetIndexingValuesHolder : public TTypedFeatureValuesHolder<T, TType>
-    {
-        TCloneableWithSubsetIndexingValuesHolder(ui32 featureId, ui32 size)
-            : TTypedFeatureValuesHolder<T, TType>(featureId, size, /*isSparse*/ false)
+    template <typename T, EFeatureValuesType ValuesType, typename TBaseInterface = IFeatureValuesHolder>
+    struct IQuantizedFeatureValuesHolder : public TBaseInterface {
+        using TValueType = T;
+        IQuantizedFeatureValuesHolder(ui32 featureId, ui32 size)
+            : TBaseInterface(ValuesType, featureId, size)
         {}
+        virtual TMaybeOwningArrayHolder<T> ExtractValues(NPar::TLocalExecutor* localExecutor) const = 0;
 
-        /* note: subsetIndexing is already a composition - this is an optimization to call compose once per
-         * all features data and not for each feature
-         */
-        virtual THolder<TCloneableWithSubsetIndexingValuesHolder> CloneWithNewSubsetIndexing(
-            const TFeaturesArraySubsetIndexing* subsetIndexing
-        ) const = 0;
+        virtual IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const = 0;
+
+        template<class TBlockCallable>
+        static void ForEachBlock(IDynamicBlockIteratorBasePtr&& blockIterator, TBlockCallable&& blockCallable, size_t blockSize = 1024) {
+            if (auto ui8iter = dynamic_cast<IDynamicBlockIterator<ui8>*>(blockIterator.Get())) {
+                while (auto block = ui8iter->Next(blockSize)) {
+                    blockCallable(block);
+                }
+            } else if (auto ui16iter = dynamic_cast<IDynamicBlockIterator<ui16>*>(blockIterator.Get())) {
+                while (auto block = ui16iter->Next(blockSize)) {
+                    blockCallable(block);
+                }
+            } else if (auto ui32iter = dynamic_cast<IDynamicBlockIterator<ui32>*>(blockIterator.Get())) {
+                while (auto block = ui32iter->Next(blockSize)) {
+                    blockCallable(block);
+                }
+            } else {
+                Y_VERIFY(0, "Unexpected iterator basetype");
+            }
+        }
+
+        ui32 CalcChecksum(NPar::TLocalExecutor* localExecutor) const override {
+            Y_UNUSED(localExecutor);
+            ui32 checkSum = 0;
+            auto blockFunc = [&checkSum] (auto block) {
+                checkSum = UpdateCheckSum(checkSum, block);
+            };
+            ForEachBlock(this->GetBlockIterator(), std::move(blockFunc));
+            return checkSum;
+        }
     };
 
     /*******************************************************************************************************
      * Raw data
      */
 
-    template <class T, EFeatureValuesType TType>
-    class TPolymorphicArrayValuesHolder: public TCloneableWithSubsetIndexingValuesHolder<T, TType> {
+    template <class TBase>
+    class TPolymorphicArrayValuesHolder: public TBase {
+    public:
+        using TValueType = typename TBase::TValueType;
     public:
         TPolymorphicArrayValuesHolder(ui32 featureId,
-                                      ITypedArraySubsetPtr<T>&& data)
-            : TCloneableWithSubsetIndexingValuesHolder<T, TType>(featureId, data->GetSize())
+                                      ITypedArraySubsetPtr<TValueType>&& data)
+            : TBase(featureId, data->GetSize())
             , Data(std::move(data))
         {}
 
         TPolymorphicArrayValuesHolder(ui32 featureId,
-                                      TMaybeOwningConstArrayHolder<T> srcData,
+                                      TMaybeOwningConstArrayHolder<TValueType> srcData,
                                       const TFeaturesArraySubsetIndexing* subsetIndexing)
-            : TPolymorphicArrayValuesHolder(
-                featureId,
-                MakeIntrusive<TTypeCastArraySubset<T, T>>(std::move(srcData), subsetIndexing)
-            )
+            : TBase(featureId, subsetIndexing->Size())
+            , Data(MakeIntrusive<TTypeCastArraySubset<TValueType, TValueType>>(std::move(srcData), subsetIndexing))
         {}
 
+        bool IsSparse() const override {
+            return false;
+        }
 
-        THolder<TCloneableWithSubsetIndexingValuesHolder<T, TType>> CloneWithNewSubsetIndexing(
-            const TFeaturesArraySubsetIndexing* subsetIndexing
+        ui64 EstimateMemoryForCloning(
+            const TCloningParams& cloningParams
         ) const override {
+            CB_ENSURE_INTERNAL(
+                !cloningParams.MakeConsecutive,
+                "Consecutive cloning of TPolymorphicArrayValuesHolder unimplemented"
+            );
+            return 0;
+        }
+
+        THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
+            const TCloningParams& cloningParams,
+            NPar::TLocalExecutor* localExecutor
+        ) const override {
+            Y_UNUSED(localExecutor);
+            CB_ENSURE_INTERNAL(
+                !cloningParams.MakeConsecutive,
+                "Consecutive cloning of TPolymorphicArrayValuesHolder unimplemented"
+            );
             return MakeHolder<TPolymorphicArrayValuesHolder>(
                 this->GetId(),
-                Data->CloneWithNewSubsetIndexing(subsetIndexing)
+                Data->CloneWithNewSubsetIndexing(cloningParams.SubsetIndexing)
             );
         }
 
-        TMaybeOwningArrayHolder<T> ExtractValues(NPar::TLocalExecutor* localExecutor) const override {
-            TVector<T> result;
+        TMaybeOwningArrayHolder<TValueType> ExtractValues(NPar::TLocalExecutor* localExecutor) const override {
+            TVector<TValueType> result;
             result.yresize(Data->GetSize());
-            TArrayRef<T> resultRef = result;
+            TArrayRef<TValueType> resultRef = result;
 
             Data->ParallelForEach(
-                [=] (ui32 dstIdx, T value) {
+                [=] (ui32 dstIdx, TValueType value) {
                     resultRef[dstIdx] = value;
                 },
                 localExecutor
             );
-            return TMaybeOwningArrayHolder<T>::CreateOwning(std::move(result));
+            return TMaybeOwningArrayHolder<TValueType>::CreateOwning(std::move(result));
         }
 
-        IDynamicBlockIteratorPtr<T> GetBlockIterator(ui32 offset = 0) const override {
+        IDynamicBlockIteratorPtr<TValueType> GetBlockIterator(ui32 offset = 0) const override {
             return Data->GetBlockIterator(offset);
         }
 
-        ITypedArraySubsetPtr<T> GetData() const {
+        ITypedArraySubsetPtr<TValueType> GetData() const {
             return Data;
         }
 
     private:
-        ITypedArraySubsetPtr<T> Data;
+        ITypedArraySubsetPtr<TValueType> Data;
     };
-
-    using TFloatValuesHolder = TTypedFeatureValuesHolder<float, EFeatureValuesType::Float>;
-    using TFloatArrayValuesHolder = TPolymorphicArrayValuesHolder<float, EFeatureValuesType::Float>;
-
-    using THashedCatValuesHolder = TTypedFeatureValuesHolder<ui32, EFeatureValuesType::HashedCategorical>;
-    using THashedCatArrayValuesHolder = TPolymorphicArrayValuesHolder<ui32, EFeatureValuesType::HashedCategorical>;
-
-    using TStringTextValuesHolder = TTypedFeatureValuesHolder<TString, EFeatureValuesType::StringText>;
-    using TStringTextArrayValuesHolder = TPolymorphicArrayValuesHolder<TString, EFeatureValuesType::StringText>;
 
     /*******************************************************************************************************
      * Quantized/prepared for quantization data
      */
 
-    // calls generic f with 'const T' pointer to raw data of compressedArray with the appropriate T
-    template <class F>
-    inline void DispatchBitsPerKeyToDataType(
-        const TCompressedArray& compressedArray,
-        const TStringBuf errorMessagePrefix,
-        F&& f
-    ) {
-        const auto bitsPerKey = compressedArray.GetBitsPerKey();
-        const char* rawDataPtr = compressedArray.GetRawPtr();
-        switch (bitsPerKey) {
-            case 8:
-                f((const ui8*)rawDataPtr);
-                break;
-            case 16:
-                f((const ui16*)rawDataPtr);
-                break;
-            case 32:
-                f((const ui32*)rawDataPtr);
-                break;
-            default:
-                CB_ENSURE_INTERNAL(
-                    false,
-                    errorMessagePrefix << "unsupported bitsPerKey: " << bitsPerKey);
-        }
-    }
 
-
-    template <class T, EFeatureValuesType TType>
-    class TCompressedValuesHolderImpl : public TCloneableWithSubsetIndexingValuesHolder<T, TType> {
-    public:
-        using TBase = TCloneableWithSubsetIndexingValuesHolder<T, TType>;
-
+    template <class TBase>
+    class TCompressedValuesHolderImpl : public TBase {
     public:
         TCompressedValuesHolderImpl(ui32 featureId,
                                     TCompressedArray srcData,
@@ -269,36 +287,120 @@ namespace NCB {
             CB_ENSURE(SubsetIndexing, "subsetIndexing is empty");
         }
 
-        THolder<TCloneableWithSubsetIndexingValuesHolder<T, TType>> CloneWithNewSubsetIndexing(
-            const TFeaturesArraySubsetIndexing* subsetIndexing
+        bool IsSparse() const override {
+            return false;
+        }
+
+        ui32 CalcChecksum(NPar::TLocalExecutor* localExecutor) const override {
+            TConstCompressedArraySubset compressedDataSubset = GetCompressedData();
+
+            auto consecutiveSubsetBegin = compressedDataSubset.GetSubsetIndexing()->GetConsecutiveSubsetBegin();
+            const ui32 columnValuesBitWidth = GetBitsPerKey();
+            if (consecutiveSubsetBegin.Defined()) {
+                ui8 byteSize = columnValuesBitWidth / 8;
+                return UpdateCheckSum(
+                    0,
+                    MakeArrayRef(
+                        compressedDataSubset.GetSrc()->GetRawPtr() + *consecutiveSubsetBegin * byteSize,
+                        compressedDataSubset.Size())
+                );
+            }
+            return TBase::CalcChecksum(localExecutor);
+        }
+
+        ui64 EstimateMemoryForCloning(
+            const TCloningParams& cloningParams
         ) const override {
-            return MakeHolder<TCompressedValuesHolderImpl>(TBase::GetId(), SrcData, subsetIndexing);
+            if (!cloningParams.MakeConsecutive) {
+                return 0;
+            } else {
+                const ui32 objectCount = this->GetSize();
+                const ui32 bitsPerKey = this->GetBitsPerKey();
+                TIndexHelper<ui64> indexHelper(bitsPerKey);
+                return indexHelper.CompressedSize(objectCount);
+            }
+        }
+
+        THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
+            const TCloningParams& cloningParams,
+            NPar::TLocalExecutor* localExecutor
+        ) const override {
+            if (!cloningParams.MakeConsecutive) {
+                return MakeHolder<TCompressedValuesHolderImpl>(
+                    TBase::GetId(),
+                    SrcData,
+                    cloningParams.SubsetIndexing
+                );
+            } else {
+                const ui32 objectCount = this->GetSize();
+                const ui32 bitsPerKey = this->GetBitsPerKey();
+                TIndexHelper<ui64> indexHelper(bitsPerKey);
+                const ui32 dstStorageSize = indexHelper.CompressedSize(objectCount);
+
+                TVector<ui64> storage;
+                storage.yresize(dstStorageSize);
+
+                if (bitsPerKey == 8) {
+                    auto dstBuffer = (ui8*)(storage.data());
+
+                    GetArrayData<ui8>().ParallelForEach(
+                        [dstBuffer](ui32 idx, ui8 value) {
+                            dstBuffer[idx] = value;
+                        },
+                        localExecutor
+                    );
+                } else if (bitsPerKey == 16) {
+                    auto dstBuffer = (ui16*)(storage.data());
+
+                    GetArrayData<ui16>().ParallelForEach(
+                        [dstBuffer](ui32 idx, ui16 value) {
+                            dstBuffer[idx] = value;
+                        },
+                        localExecutor
+                    );
+                } else {
+                    auto dstBuffer = (ui32*)(storage.data());
+
+                    GetArrayData<ui32>().ParallelForEach(
+                        [dstBuffer](ui32 idx, ui32 value) {
+                            dstBuffer[idx] = value;
+                        },
+                        localExecutor
+                    );
+                }
+
+                return MakeHolder<TCompressedValuesHolderImpl>(
+                    this->GetId(),
+                    TCompressedArray(
+                        objectCount,
+                        bitsPerKey,
+                        TMaybeOwningArrayHolder<ui64>::CreateOwning(std::move(storage))
+                    ),
+                    cloningParams.SubsetIndexing
+                );
+            }
         }
 
         TConstCompressedArraySubset GetCompressedData() const {
             return {&SrcData, SubsetIndexing};
         }
 
-        template <class T2 = T>
+        template <class T2 = typename TBase::TValueType>
         TConstPtrArraySubset<T2> GetArrayData() const {
             SrcData.CheckIfCanBeInterpretedAsRawArray<T2>();
             return TConstPtrArraySubset<T2>((const T2**)&SrcDataRawPtr, SubsetIndexing);
         }
 
         // in some cases non-standard T can be useful / more efficient
-        template <class T2 = T>
+        template <class T2 = typename TBase::TValueType>
         TMaybeOwningArrayHolder<T2> ExtractValuesT(NPar::TLocalExecutor* localExecutor) const {
             return TMaybeOwningArrayHolder<T2>::CreateOwning(
                 ::NCB::GetSubset<T2>(SrcData, *SubsetIndexing, localExecutor)
             );
         }
 
-        IDynamicBlockIteratorPtr<T> GetBlockIterator(ui32 offset = 0) const override {
-            /* TODO(akhropov): implement  TTypedFeatureValuesHolder::GetIterator that will support
-             *  non-consecutive data as well. MLTOOLS-3185.
-             */
-
-            return SrcData.GetBlockIterator<T>(SubsetIndexing->GetConsecutiveSubsetBeginNonChecked() + offset);
+        IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const override {
+            return SrcData.GetBlockIterator(offset, SubsetIndexing);
         }
 
         template <class F>
@@ -330,8 +432,8 @@ namespace NCB {
             }
         }
 
-        TMaybeOwningArrayHolder<T> ExtractValues(NPar::TLocalExecutor* localExecutor) const override {
-            return ExtractValuesT<T>(localExecutor);
+        TMaybeOwningArrayHolder<typename TBase::TValueType> ExtractValues(NPar::TLocalExecutor* localExecutor) const override {
+            return ExtractValuesT<typename TBase::TValueType>(localExecutor);
         }
 
         ui32 GetBitsPerKey() const {
@@ -344,21 +446,22 @@ namespace NCB {
         const TFeaturesArraySubsetIndexing* SubsetIndexing;
     };
 
-    using IQuantizedFloatValuesHolder = TTypedFeatureValuesHolder<ui8, EFeatureValuesType::QuantizedFloat>;
+    using TFloatValuesHolder = ITypedFeatureValuesHolder<float, EFeatureValuesType::Float>;
+    using TFloatArrayValuesHolder = TPolymorphicArrayValuesHolder<TFloatValuesHolder>;
 
-    using ICloneableQuantizedFloatValuesHolder
-        = TCloneableWithSubsetIndexingValuesHolder<ui8, EFeatureValuesType::QuantizedFloat>;
+    using THashedCatValuesHolder = ITypedFeatureValuesHolder<ui32, EFeatureValuesType::HashedCategorical>;
+    using THashedCatArrayValuesHolder = TPolymorphicArrayValuesHolder<THashedCatValuesHolder>;
 
-    using TQuantizedFloatValuesHolder
-        = TCompressedValuesHolderImpl<ui8, EFeatureValuesType::QuantizedFloat>;
+    using TStringTextValuesHolder = ITypedFeatureValuesHolder<TString, EFeatureValuesType::StringText>;
+    using TStringTextArrayValuesHolder = TPolymorphicArrayValuesHolder<TStringTextValuesHolder>;
 
-    using IQuantizedCatValuesHolder
-        = TTypedFeatureValuesHolder<ui32, EFeatureValuesType::PerfectHashedCategorical>;
+    using TTokenizedTextValuesHolder = ITypedFeatureValuesHolder<TText, EFeatureValuesType::TokenizedText>;
+    using TTokenizedTextArrayValuesHolder = TPolymorphicArrayValuesHolder<TTokenizedTextValuesHolder>;
 
-    using ICloneableQuantizedCatValuesHolder
-        = TCloneableWithSubsetIndexingValuesHolder<ui32, EFeatureValuesType::PerfectHashedCategorical>;
+    using IQuantizedFloatValuesHolder = IQuantizedFeatureValuesHolder<ui8, EFeatureValuesType::QuantizedFloat>;
+    using IQuantizedCatValuesHolder = IQuantizedFeatureValuesHolder<ui32, EFeatureValuesType::PerfectHashedCategorical>;
 
-    using TTokenizedTextValuesHolder = TTypedFeatureValuesHolder<TText, EFeatureValuesType::TokenizedText>;
-    using TTokenizedTextArrayValuesHolder = TPolymorphicArrayValuesHolder<TText, EFeatureValuesType::TokenizedText>;
+    using TQuantizedFloatValuesHolder = TCompressedValuesHolderImpl<IQuantizedFloatValuesHolder>;
+    using TQuantizedCatValuesHolder = TCompressedValuesHolderImpl<IQuantizedCatValuesHolder>;
 
 }
