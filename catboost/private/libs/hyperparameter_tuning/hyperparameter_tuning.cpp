@@ -950,6 +950,7 @@ namespace {
             }
 
             InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
+            UpdateSampleRateOption(data->GetObjectCount(), &catBoostOptions);
             NCB::TFeaturesLayoutPtr featuresLayout = data->MetaInfo.FeaturesLayout;
             NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo;
 
@@ -1178,7 +1179,7 @@ namespace NCB {
 
         double bestParamsSetMetricValue = Max<double>();
         TVector<TCVResult> bestCvResult;
-        
+
         for (auto gridEnumerator : xrange(paramGrids.size())) {
             auto grid = paramGrids[gridEnumerator];
             // Preparing parameters for cartesian product
@@ -1284,7 +1285,6 @@ namespace NCB {
         bool isSearchUsingTrainTestSplit,
         bool returnCvStat,
         int verbose) {
-        
 
         // CatBoost options
         NJson::TJsonValue jsonParams;

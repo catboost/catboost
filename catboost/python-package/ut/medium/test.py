@@ -2501,6 +2501,26 @@ def test_cv_small_data():
     cv(pool, params, fold_count=2)
 
 
+def test_tune_hyperparams_small_data():
+    train_data = [[1, 4, 5, 6],
+                  [4, 5, 6, 7],
+                  [30, 40, 50, 60],
+                  [20, 30, 70, 60],
+                  [10, 80, 40, 30],
+                  [10, 10, 20, 30]]
+    train_labels = [10, 20, 30, 15, 10, 25]
+    grid = {
+        'learning_rate': [0.03, 0.1],
+        'depth': [4, 6],
+        'l2_leaf_reg': [1, 9],
+        'iterations': [10]
+    }
+    CatBoost().randomized_search(grid, X=train_data, y=train_labels, search_by_train_test_split=True)
+    CatBoost().randomized_search(grid, X=train_data, y=train_labels, search_by_train_test_split=False)
+    CatBoost().grid_search(grid, X=train_data, y=train_labels, search_by_train_test_split=True)
+    CatBoost().grid_search(grid, X=train_data, y=train_labels, search_by_train_test_split=False)
+
+
 def test_grid_search_aliases(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoost(
