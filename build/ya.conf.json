@@ -15,6 +15,9 @@
         "cling": {
             "description": "Run cling"
         },
+        "cue": {
+            "description": "Validate and define text-based and dynamic configuration"
+        },
         "dctl": {
             "description": "Run Yandex.Deploy CLI"
         },
@@ -827,6 +830,28 @@
                 "yo": {
                     "bottle": "yo",
                     "executable": "yo"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "cue": {
+            "tools": {
+                "cue": {
+                    "bottle": "cue",
+                    "executable": "cue"
                 }
             },
             "platforms": [
@@ -5373,6 +5398,20 @@
             "executable": {
                 "yo": [
                     "yo"
+                ]
+            }
+        },
+        "cue": {
+            "formula": {
+                "sandbox_id": [
+                    631593996,
+                    631593924
+                ],
+                "match": "cue"
+            },
+            "executable": {
+                "cue": [
+                    "cue"
                 ]
             }
         },
