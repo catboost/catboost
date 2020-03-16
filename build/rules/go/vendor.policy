@@ -215,6 +215,9 @@ ALLOW .* -> vendor/golang.org/x/text
 # golang.org/x/time
 ALLOW .* -> vendor/golang.org/x/time
 
+# golang.org/x/image/webp
+ALLOW .* -> vendor/golang.org/x/image/webp
+
 # experimental implementation of Go error inspection. Use x/xerrors instead.
 ALLOW .* -> vendor/golang.org/x/exp/errors
 
