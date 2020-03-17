@@ -83,19 +83,21 @@ namespace NCatboostCuda {
         using TParent::GetTarget;
         using TParent::GetTotalWeight;
 
-        TAdditiveStatistic ComputeStats(const TConstVec& point, double alpha) const {
-            TVector<float> result;
+        TAdditiveStatistic ComputeStats(const TConstVec& point,
+                                        const TMap<TString, TString>& params) const {
             auto tmp = TVec::Create(point.GetMapping().RepeatOnAllDevices(1));
 
-            ApproximatePointwise(GetTarget().GetTargets(),
-                                 GetTarget().GetWeights(),
-                                 point,
-                                 Type,
-                                 alpha,
-                                 &tmp,
-                                 (TVec*)nullptr,
-                                 (TVec*)nullptr);
-
+            Approximate(GetTarget().GetTargets(),
+                        GetTarget().GetWeights(),
+                        point,
+                        NCatboostOptions::GetAlpha(params),
+                        UseBorder(),
+                        GetBorder(),
+                        &tmp,
+                        /*der*/nullptr,
+                        /*der2Row*/0,
+                        /*der2*/nullptr);
+            TVector<float> result;
             NCudaLib::TCudaBufferReader<TVec>(tmp)
                 .SetFactorSlice(TSlice(0, 1))
                 .SetReadSlice(TSlice(0, 1))
@@ -105,15 +107,6 @@ namespace NCatboostCuda {
             const double multiplier = (Type == ELossFunction::MAE ? 2.0 : 1.0);
 
             return MakeSimpleAdditiveStatistic(result[0] * multiplier, weight);
-        }
-
-        TAdditiveStatistic ComputeStats(const TConstVec& point) const {
-            return ComputeStats(point, Alpha);
-        }
-
-        TAdditiveStatistic ComputeStats(const TConstVec& point,
-                                        const TMap<TString, TString>& params) const {
-            return ComputeStats(point, NCatboostOptions::GetAlpha(params));
         }
 
         void GradientAt(const TConstVec& point,
@@ -153,35 +146,18 @@ namespace NCatboostCuda {
                          ui32 der2Row,
                          TVec* der2,
                          ui32 stream = 0) const {
-            CB_ENSURE(der2Row == 0);
-
-            switch (Type) {
-                case ELossFunction::CrossEntropy:
-                case ELossFunction::Logloss: {
-                    ApproximateCrossEntropy(target,
-                                            weights,
-                                            point,
-                                            value,
-                                            der,
-                                            der2,
-                                            UseBorder(),
-                                            GetBorder(),
-                                            stream);
-                    break;
-                }
-                default: {
-                    ApproximatePointwise(target,
-                                         weights,
-                                         point,
-                                         Type,
-                                         Alpha,
-                                         value,
-                                         der,
-                                         der2,
-                                         stream);
-                    break;
-                }
-            }
+            Approximate(
+                target,
+                weights,
+                point,
+                GetAlpha(),
+                UseBorder(),
+                GetBorder(),
+                value,
+                der,
+                der2Row,
+                der2,
+                stream);
         }
 
         void StochasticDer(const TConstVec& point,
@@ -304,6 +280,48 @@ namespace NCatboostCuda {
 
         bool UseBorder() const {
             return Type == ELossFunction::Logloss;
+        }
+
+        void Approximate(const TConstVec& target,
+                         const TConstVec& weights,
+                         const TConstVec& point,
+                         double alpha,
+                         bool useBorder,
+                         double border,
+                         TVec* value,
+                         TVec* der,
+                         ui32 der2Row,
+                         TVec* der2,
+                         ui32 stream = 0) const {
+            CB_ENSURE(der2Row == 0);
+
+            switch (Type) {
+                case ELossFunction::CrossEntropy:
+                case ELossFunction::Logloss: {
+                    ApproximateCrossEntropy(target,
+                                            weights,
+                                            point,
+                                            value,
+                                            der,
+                                            der2,
+                                            useBorder,
+                                            border,
+                                            stream);
+                    break;
+                }
+                default: {
+                    ApproximatePointwise(target,
+                                         weights,
+                                         point,
+                                         Type,
+                                         alpha,
+                                         value,
+                                         der,
+                                         der2,
+                                         stream);
+                    break;
+                }
+            }
         }
 
     private:
