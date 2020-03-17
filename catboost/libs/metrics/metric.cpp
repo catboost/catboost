@@ -3041,9 +3041,10 @@ TMetricHolder THammingLossMetric::EvalSingleThread(
     Y_ASSERT(target.size() == approx[0].size());
     TMetricHolder error(2);
     const bool isMulticlass = approx.size() > 1;
+    const double predictionLogitBorder = NCB::Logit(PredictionBorder);
 
     for (int i = begin; i < end; ++i) {
-        int approxClass = GetApproxClass(approx, i, PredictionBorder);
+        int approxClass = GetApproxClass(approx, i, predictionLogitBorder);
         const float targetVal = isMulticlass ? target[i] : target[i] > TargetBorder;
         int targetClass = static_cast<int>(targetVal);
 
