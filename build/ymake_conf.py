@@ -1262,6 +1262,7 @@ class GnuCompiler(Compiler):
             self.c_flags.append('$OPTIMIZE')
             if self.build.build_type == 'minsizerel':
                 self.optimize = '-Os'
+                self.c_foptions.extend(['-ffunction-sections', '-fdata-sections'])
             else:
                 self.optimize = '-O3'
 
@@ -1580,6 +1581,9 @@ class LD(Linker):
                 self.ar = 'ar'
 
         self.ld_flags = []
+
+        if self.build.build_type == 'minsizerel':
+            self.ld_flags.append('-Wl,--gc-sections')
 
         if self.musl.value:
             self.ld_flags.extend(['-Wl,--no-as-needed'])
