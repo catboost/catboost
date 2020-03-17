@@ -308,6 +308,8 @@ THolder<IMetric> MakeMAPEMetric();
 
 THolder<IMetric> MakePoissonMetric();
 
+THolder<IMetric> MakeTweedieMetric(double variance_power);
+
 //Mean squared logarithmic error regression loss
 THolder<IMetric> MakeMSLEMetric();
 

@@ -331,6 +331,9 @@ MakeRegister(LossInfos,
     RankingRegistree(FilteredDCG, ERankingType::Order,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsGroupwise
+    ),
+    Registree(Tweedie,
+        EMetricAttribute::IsRegression
     )
 )
 
@@ -419,7 +422,8 @@ static const TVector<ELossFunction> RegressionObjectives = {
     ELossFunction::MAPE,
     ELossFunction::Poisson,
     ELossFunction::Lq,
-    ELossFunction::Huber
+    ELossFunction::Huber,
+    ELossFunction::Tweedie
 };
 
 static const TVector<ELossFunction> MultiRegressionObjectives = {

@@ -181,6 +181,16 @@ int NCatboostOptions::GetStochasticFilterNumEstimations(const TLossDescription& 
     return 1;
 }
 
+double NCatboostOptions::GetTweedieParam(const TLossDescription& lossFunctionConfig) {
+    Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::Tweedie);
+    const auto& lossParams = lossFunctionConfig.GetLossParams();
+    if (lossParams.contains("variance_power")) {
+        return FromString<double>(lossParams.at("variance_power"));
+    } else {
+        CB_ENSURE(false, "For " << ELossFunction::Tweedie << " variance_power parameter is mandatory");
+    }
+}
+
 NCatboostOptions::TLossDescription NCatboostOptions::ParseLossDescription(TStringBuf stringLossDescription) {
     TLossDescription description;
     description.LossFunction.Set(ParseLossType(stringLossDescription));

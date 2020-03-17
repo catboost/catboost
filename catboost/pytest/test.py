@@ -8528,3 +8528,21 @@ def test_total_f1_params(average):
         cd=data_file('cloudness_small', 'train.cd'),
         loss_function='MultiClass'
     )
+
+
+def test_tweedie():
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Tweedie:variance_power=1.5',
+        '-f', data_file('adult_crossentropy', 'train_proba'),
+        '--column-description', data_file('adult_crossentropy', 'train.cd'),
+        '-i', '100',
+        '--learning-rate', '0.5',
+        '--learn-err-log', learn_error_path
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(learn_error_path)]
