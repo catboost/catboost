@@ -687,6 +687,23 @@ namespace {
         oneIterLogger.OutputParameters(parametersToken, jsonParams);
     }
 
+    bool ParseJsonParams(
+        const NJson::TJsonValue& modelParamsToBeTried,
+        NCatboostOptions::TCatBoostOptions *catBoostOptions,
+        NCatboostOptions::TOutputFilesOptions *outputFileOptions) {
+        try {
+            NJson::TJsonValue jsonParams;
+            NJson::TJsonValue outputJsonParams;
+            NCatboostOptions::PlainJsonToOptions(modelParamsToBeTried, &jsonParams, &outputJsonParams);
+            *catBoostOptions = NCatboostOptions::LoadOptions(jsonParams);
+            outputFileOptions->Load(outputJsonParams);
+
+            return true;
+        } catch (const TCatBoostException&) {
+            return false;
+        }
+    }
+
     double TuneHyperparamsCV(
         const TVector<TString>& paramNames,
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
@@ -747,12 +764,12 @@ namespace {
                 modelParamsToBeTried
             );
 
-            NJson::TJsonValue jsonParams;
-            NJson::TJsonValue outputJsonParams;
-            NCatboostOptions::PlainJsonToOptions(*modelParamsToBeTried, &jsonParams, &outputJsonParams);
-            NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
+            NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::CPU);
             NCatboostOptions::TOutputFilesOptions outputFileOptions;
-            outputFileOptions.Load(outputJsonParams);
+            bool areParamsValid = ParseJsonParams(*modelParamsToBeTried, &catBoostOptions, &outputFileOptions);
+            if (!areParamsValid) {
+                continue;
+            }
 
             TString tmpDir;
             if (outputFileOptions.AllowWriteFiles()) {
@@ -936,16 +953,16 @@ namespace {
                 modelParamsToBeTried
             );
 
-            NJson::TJsonValue jsonParams;
-            NJson::TJsonValue outputJsonParams;
-            NCatboostOptions::PlainJsonToOptions(*modelParamsToBeTried, &jsonParams, &outputJsonParams);
-            NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
+            NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::CPU);
             NCatboostOptions::TOutputFilesOptions outputFileOptions;
-            outputFileOptions.Load(outputJsonParams);
-            static const bool allowWriteFiles = outputFileOptions.AllowWriteFiles();
+            bool areParamsValid = ParseJsonParams(*modelParamsToBeTried, &catBoostOptions, &outputFileOptions);
+            if (!areParamsValid) {
+                continue;
+            }
 
+            static const bool allowWriteFiles = outputFileOptions.AllowWriteFiles();
             TString tmpDir;
-            if (outputFileOptions.AllowWriteFiles()) {
+            if (allowWriteFiles) {
                 NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputFileOptions.GetTrainDir(), &tmpDir);
             }
 
