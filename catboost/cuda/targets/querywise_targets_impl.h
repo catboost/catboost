@@ -44,12 +44,14 @@ namespace NCatboostCuda {
                               const TSlice& slice)
             : TParent(target, slice)
             , Params(target.GetParams())
+            , ScoreMetric(target.GetScoreMetricType())
         {
         }
 
         TQuerywiseTargetsImpl(const TQuerywiseTargetsImpl& target)
             : TParent(target)
             , Params(target.GetParams())
+            , ScoreMetric(target.GetScoreMetricType())
         {
         }
 
@@ -58,12 +60,14 @@ namespace NCatboostCuda {
                               TTarget<TMapping>&& target)
             : TParent(basedOn, std::move(target))
             , Params(basedOn.GetParams())
+            , ScoreMetric(basedOn.GetScoreMetricType())
         {
         }
 
         TQuerywiseTargetsImpl(TQuerywiseTargetsImpl&& other)
             : TParent(std::move(other))
             , Params(other.Params)
+            , ScoreMetric(other.GetScoreMetricType())
         {
         }
 
