@@ -4176,7 +4176,7 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             break;
         }
         case ELossFunction::HammingLoss:
-            result.push_back(MakeHammingLossMetric(approxDimension > 1));
+            result.push_back(MakeHammingLossMetric(GetDefaultPredictionBorder(), approxDimension > 1));
             validParams = {"border"};
             break;
         case ELossFunction::HingeLoss:
