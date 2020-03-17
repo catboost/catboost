@@ -113,14 +113,51 @@ class CatBoostError(Exception):
     pass
 
 
+@cython.embedsignature(True)
 class MultiLabelCustomMetric:
-    def evaluate(self):
+    def evaluate(self, approxes, targets, weights):
+        """
+        Evaluates metric value.
+
+        Parameters
+        ----------
+        approxes : list of lists of float
+            Vectors of approx labels.
+
+        targets : list of lists of float
+            Vectors of true labels.
+        
+        weights : list of float, optional (default=None)
+            Weight for each instance.
+        
+        Returns
+        -------
+            weighted error : float
+            total weight : float
+
+        """
         raise CatBoostError("evaluate method is not implemented")
     
     def is_max_optimal(self):
         raise CatBoostError("is_max_optimal method is not implemented")
 
     def get_final_error(self, error, weight):
+        """
+        Returns final value of metric based on error and weight.
+
+        Parameters
+        ----------
+        error : float
+            Sum of errors in all instances.
+        
+        weight : float
+            Sum of weights of all instances.
+        
+        Returns
+        -------
+        metric value : float
+
+        """
         raise CatBoostError("get_final_error method is not implemented")
 
 
