@@ -50,8 +50,8 @@ private:
                     !strcmp(name, "mrj") || !strcmp(name, "mhr") ||
                     !strcmp(name, "sjn") || !strcmp(name, "ceb") ||
                     !strcmp(name, "koi") || !strcmp(name, "pap") ||
+                    !strcmp(name, "sah") || !strncmp(name, "bas-", 4) ||
                     !strcmp(name, "uz-Cyrl") || !strcmp(name, "kk-Latn") ||
-                    !strncmp(name, "bas-", 4) ||
                     !strcmp(name, "tr-ipa") || !strcmp(name, "emj"));
 
         if (strlen(name))
