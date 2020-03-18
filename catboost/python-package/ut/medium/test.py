@@ -33,6 +33,7 @@ from pandas import read_csv, DataFrame, Series, Categorical, SparseArray
 from six import PY3
 from six.moves import xrange
 import scipy.sparse
+import scipy.special
 
 
 from catboost_pytest_lib import (
@@ -5114,7 +5115,7 @@ def test_best_score(task_type):
     best_score = model.best_score_
     assert best_score.keys() == evals_result.keys()
     for pool_name in best_score:
-        assert best_score[pool_name].keys() == evals_result[pool_name].keys()
+        assert set(best_score[pool_name].keys()) == set(evals_result[pool_name].keys())
         for metric_name in best_score[pool_name]:
             if metric_name == 'CtrFactor':
                 assert abs(best_score[pool_name][metric_name] - 1) == min(abs(value - 1) for value in evals_result[pool_name][metric_name])
@@ -6138,6 +6139,31 @@ def test_weights_in_eval_metric(metric):
     result_with_no_weights = eval_metric(label, predictions, metric)
     result_with_weights = eval_metric(label, predictions, metric, weights)
     assert not np.isclose(result_with_no_weights, result_with_weights)
+
+
+@pytest.mark.parametrize('metric_name', ['Accuracy', 'Precision', 'Recall', 'F1'])
+@pytest.mark.parametrize('proba_border', [0.25, 0.55, 0.75])
+def test_prediction_border_in_eval_metric(metric_name, proba_border):
+    metric_with_border = "{metric_name}:proba_border={proba_border}".format(
+        metric_name=metric_name,
+        proba_border=proba_border
+    )
+    metric_no_params = metric_name
+    prediction_probas = np.array([0.06314072, 0.77672081, 0.00885847, 0.87585758, 0.70030717,
+                                  0.42210464, 0.00698532, 0.08357631, 0.87840924, 0.71889332,
+                                  0.27881971, 0.03881581, 0.12708005, 0.04321602, 0.46778848,
+                                  0.34862325, 0.95195515, 0.08093261, 0.79914953, 0.50639467])
+    label = np.array([0, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1])
+    predictions = scipy.special.logit(prediction_probas)
+
+    # We test that the metrics are correctly rounding the probability. Thus, the results with a custom border should
+    # be identical if we just round the predictions before evaluating the metric with the given threshold.
+    binarized_predictions = np.where(prediction_probas >= proba_border, 1.0, -1.0)
+
+    result_with_border = eval_metric(label, predictions, metric_with_border)
+    result_expected = eval_metric(label, binarized_predictions, metric_no_params)
+
+    assert result_with_border == result_expected
 
 
 def test_dataframe_with_custom_index():

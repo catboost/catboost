@@ -11,4 +11,5 @@ TMetricHolder CalcKappaMatrix(TConstArrayRef<TVector<double>> approx,
                               TConstArrayRef<float> target,
                               int begin,
                               int end,
-                              double border);
+                              double targetBorder,
+                              double predictionBorder);

@@ -9,7 +9,6 @@
 #include <util/string/strip.h>
 #include <util/string/subst.h>
 
-
 ELossFunction ParseLossType(const TStringBuf lossDescription) {
     const TVector<TStringBuf> tokens = StringSplitter(lossDescription).Split(':').Limit(2);
     CB_ENSURE(!tokens.empty(), "custom loss is missing in description: " << lossDescription);

@@ -4,7 +4,7 @@
 
 struct TMetricHolder;
 
-int GetApproxClass(TConstArrayRef<TVector<double>> approx, int docIdx);
+int GetApproxClass(TConstArrayRef<TVector<double>> approx, int docIdx, double predictionLogitBorder);
 
 void GetPositiveStats(
         TConstArrayRef<TVector<double>> approx,
@@ -13,7 +13,8 @@ void GetPositiveStats(
         int begin,
         int end,
         int positiveClass,
-        double border,
+        double targetBorder,
+        double predictionLogitBorder,
         double* truePositive,
         double* targetPositive,
         double* approxPositive
@@ -26,28 +27,8 @@ void GetSpecificity(
         int begin,
         int end,
         int positiveClass,
-        double border,
+        double targetBorder,
+        double predictionLogitBorder,
         double* trueNegative,
         double* targetNegative
-);
-
-void GetTotalPositiveStats(
-        TConstArrayRef<TVector<double>> approx,
-        TConstArrayRef<float> target,
-        TConstArrayRef<float> weight,
-        int begin,
-        int end,
-        TVector<double>* truePositive,
-        TVector<double>* targetPositive,
-        TVector<double>* approxPositive,
-        double border
-);
-
-TMetricHolder GetAccuracy(
-        const TVector<TVector<double>>& approx,
-        TConstArrayRef<float> target,
-        TConstArrayRef<float> weight,
-        int begin,
-        int end,
-        double border
 );

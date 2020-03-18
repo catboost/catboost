@@ -27,6 +27,8 @@ namespace NCatboostOptions {
         TOption<TLossDescription> EvalMetric;
         TOption<TLossDescription> ObjectiveMetric;
         TOption<TVector<TLossDescription>> CustomMetrics;
+
+        static constexpr char PREDICTION_BORDER_PARAM[] = "proba_border";
     };
 }
 

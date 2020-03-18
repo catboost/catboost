@@ -23,6 +23,7 @@
 #include <cmath>
 
 using NCatboostOptions::GetDefaultTargetBorder;
+using NCatboostOptions::GetDefaultPredictionBorder;
 
 template <typename T>
 struct TMetricParam {
@@ -284,11 +285,9 @@ struct TNonAdditiveMetric: public TMetric {
     }
 };
 
-THolder<IMetric> MakeCrossEntropyMetric(
-    ELossFunction lossFunction,
-    double border = GetDefaultTargetBorder());
+THolder<IMetric> MakeCrossEntropyMetric(ELossFunction lossFunction);
 
-THolder<IMetric> MakeCtrFactorMetric(double border = GetDefaultTargetBorder());
+THolder<IMetric> MakeCtrFactorMetric();
 
 THolder<IMetric> MakeRMSEMetric();
 
@@ -345,23 +344,23 @@ THolder<IMetric> MakeRankingAucMetric();
 THolder<IMetric> MakeMultiClassAucMetric(int positiveClass);
 THolder<IMetric> MakeMuAucMetric(const TMaybe<TVector<TVector<double>>>& misclassCostMatrix = Nothing());
 
-THolder<IMetric> MakeBinClassPrecisionMetric(double border = GetDefaultTargetBorder());
+THolder<IMetric> MakeBinClassPrecisionMetric(double predictionBorder = GetDefaultPredictionBorder());
 THolder<IMetric> MakeMultiClassPrecisionMetric(int classesCount, int positiveClass);
 
-THolder<IMetric> MakeBinClassRecallMetric(double border = GetDefaultTargetBorder());
+THolder<IMetric> MakeBinClassRecallMetric(double predictionBorder = GetDefaultPredictionBorder());
 THolder<IMetric> MakeMultiClassRecallMetric(int classesCount, int positiveClass);
 
-THolder<IMetric> MakeBinClassBalancedAccuracyMetric(double border = GetDefaultTargetBorder());
+THolder<IMetric> MakeBinClassBalancedAccuracyMetric(double predictionBorder = GetDefaultPredictionBorder());
 
-THolder<IMetric> MakeBinClassBalancedErrorRate(double border = GetDefaultTargetBorder());
+THolder<IMetric> MakeBinClassBalancedErrorRate(double predictionBorder = GetDefaultPredictionBorder());
 
-THolder<IMetric> MakeBinClassKappaMetric(double border = GetDefaultTargetBorder());
+THolder<IMetric> MakeBinClassKappaMetric(double predictionBorder = GetDefaultPredictionBorder());
 THolder<IMetric> MakeMultiClassKappaMetric(int classCount = 2);
 
-THolder<IMetric> MakeBinClassWKappaMetric(double border = GetDefaultTargetBorder());
+THolder<IMetric> MakeBinClassWKappaMetric(double predictionBorder = GetDefaultPredictionBorder());
 THolder<IMetric> MakeMultiClassWKappaMetric(int classCount = 2);
 
-THolder<IMetric> MakeBinClassF1Metric(double border = GetDefaultTargetBorder());
+THolder<IMetric> MakeBinClassF1Metric(double predictionBorder = GetDefaultPredictionBorder());
 THolder<IMetric> MakeMultiClassF1Metric(int classesCount, int positiveClass);
 
 THolder<IMetric> MakeTotalF1Metric(int classesCount = 2, EF1AverageType averageType = EF1AverageType::Weighted);
@@ -373,23 +372,19 @@ THolder<IMetric> MakeBrierScoreMetric();
 THolder<IMetric> MakeHingeLossMetric();
 
 THolder<IMetric> MakeHammingLossMetric(
-    double border = GetDefaultTargetBorder(),
+    double predictionBorder = GetDefaultPredictionBorder(),
     bool isMulticlass = false);
 
-THolder<IMetric> MakeZeroOneLossMetric(double border = GetDefaultTargetBorder());
+THolder<IMetric> MakeZeroOneLossMetric(double predictionBorder = GetDefaultPredictionBorder());
 THolder<IMetric> MakeZeroOneLossMetric(int classCount);
 
 THolder<IMetric> MakePairAccuracyMetric();
 
-THolder<IMetric> MakeMAPKMetric(int topSize = -1, double border = GetDefaultTargetBorder());
+THolder<IMetric> MakeMAPKMetric(int topSize = -1);
 
-THolder<IMetric> MakeRecallAtKMetric(
-    int topSize = -1,
-    double border = GetDefaultTargetBorder());
+THolder<IMetric> MakeRecallAtKMetric(int topSize = -1);
 
-THolder<IMetric> MakePrecisionAtKMetric(
-    int topSize = -1,
-    double border = GetDefaultTargetBorder());
+THolder<IMetric> MakePrecisionAtKMetric(int topSize = -1);
 
 THolder<IMetric> MakeCustomMetric(const TCustomMetricDescriptor& descriptor);
 
@@ -401,7 +396,7 @@ THolder<IMetric> MakeAverageGainMetric(float topSize);
 
 THolder<IMetric> MakeHuberLossMetric(double delta);
 
-THolder<IMetric> MakeBinClassNormalizedGiniMetric(double border);
+THolder<IMetric> MakeBinClassNormalizedGiniMetric();
 THolder<IMetric> MakeMultiClassNormalizedGiniMetric(int positiveClass);
 
 THolder<IMetric> MakeFairLossMetric(double smoothness);
