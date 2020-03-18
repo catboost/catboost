@@ -160,6 +160,21 @@ namespace NCB {
         return NCB::TMaybeOwningArrayHolder<ui8>::CreateOwning(std::move(result));
     }
 
+    IDynamicBlockIteratorBasePtr TExternalFloatSparseValuesHolder::GetBlockIterator(ui32 offset) const {
+        const auto flatFeatureIdx = GetId();
+        const auto floatFeatureIdx = QuantizedFeaturesInfo->GetPerTypeFeatureIdx<EFeatureType::Float>(*this);
+        const auto nanMode = QuantizedFeaturesInfo->GetNanMode(floatFeatureIdx);
+        bool allowNans = (nanMode != ENanMode::Forbidden) ||
+            QuantizedFeaturesInfo->GetFloatFeaturesAllowNansInTestOnly();
+
+        TConstArrayRef<float> borders = QuantizedFeaturesInfo->GetBorders(floatFeatureIdx);
+
+        auto transformer = [=, quantizedFeaturesInfoHolder = QuantizedFeaturesInfo] (float srcValue) -> ui8 {
+            return Quantize<ui8>(flatFeatureIdx, allowNans, nanMode, borders, srcValue);
+        };
+        return SrcData.GetTransformingBlockIterator<ui8>(std::move(transformer), offset);
+    }
+
     template <class TDst>
     static ui64 EstimateCpuRamLimitForCreateQuantizedSparseSubset(
         const TFeaturesArraySubsetInvertedIndexing& subsetInvertedIndexing,
@@ -334,6 +349,18 @@ namespace NCB {
         );
 
         return NCB::TMaybeOwningArrayHolder<ui32>::CreateOwning(std::move(result));
+    }
+
+    IDynamicBlockIteratorBasePtr TExternalCatSparseValuesHolder::GetBlockIterator(ui32 offset) const {
+        const auto catFeatureIdx = QuantizedFeaturesInfo->GetPerTypeFeatureIdx<EFeatureType::Categorical>(
+            *this
+        );
+        const auto& perfectHash = QuantizedFeaturesInfo->GetCategoricalFeaturesPerfectHash(catFeatureIdx);
+
+        auto transformer = [quantizedFeaturesInfoHolder = QuantizedFeaturesInfo, &perfectHash] (ui32 srcValue) -> ui32 {
+            return perfectHash.Find(srcValue)->Value;
+        };
+        return SrcData.GetTransformingBlockIterator<ui32>(std::move(transformer), offset);
     }
 
     ui64 TExternalCatSparseValuesHolder::EstimateMemoryForCloning(

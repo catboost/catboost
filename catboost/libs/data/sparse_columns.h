@@ -43,9 +43,7 @@ namespace NCB {
         }
 
         IDynamicBlockIteratorPtr<T> GetBlockIterator(ui32 offset = 0) const override {
-            return MakeHolder<typename TConstPolymorphicValuesSparseArray<T, ui32>::TBlockIterator>(
-                Data.GetBlockIterator(offset)
-            );
+            return Data.GetBlockIterator(offset);
         }
 
         const TConstPolymorphicValuesSparseArray<T, ui32>& GetData() const {
@@ -91,9 +89,7 @@ namespace NCB {
         }
 
         IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const override {
-            return MakeHolder<typename TSparseCompressedArray<typename TBase::TValueType, ui32>::TBlockIterator>(
-                Data.GetBlockIterator(offset)
-            );
+            return Data.GetBlockIterator(offset);
         }
 
         const TSparseCompressedArray<typename TBase::TValueType, ui32>& GetData() const {
@@ -105,7 +101,7 @@ namespace NCB {
             ui32 checkSum = 0;
             constexpr size_t BLOCK_SIZE = 10000;
             auto blockIterator = Data.GetBlockIterator();
-            while (auto block = blockIterator.Next(BLOCK_SIZE)) {
+            while (auto block = blockIterator->Next(BLOCK_SIZE)) {
                 checkSum = UpdateCheckSum(checkSum, block);
             }
             return checkSum;

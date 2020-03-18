@@ -110,14 +110,7 @@ namespace NCB {
 
         NCB::TMaybeOwningArrayHolder<ui8> ExtractValues(NPar::TLocalExecutor* localExecutor) const override;
 
-        IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const override {
-            Y_UNUSED(offset);
-            /* TODO(akhropov): Implement block iterators for external columns.
-            *  Not currently used as external columns are used only in GPU training
-            */
-            Y_FAIL("GetBlockIterator unimplemented for external columns");
-            Y_UNREACHABLE();
-        }
+        IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const override;
 
     private:
         TConstPolymorphicValuesSparseArray<float, ui32> SrcData;
@@ -150,14 +143,7 @@ namespace NCB {
 
         NCB::TMaybeOwningArrayHolder<ui32> ExtractValues(NPar::TLocalExecutor* localExecutor) const override;
 
-        IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const override {
-            Y_UNUSED(offset);
-            /* TODO(akhropov): Implement block iterators for external columns.
-            *  Not currently used as external columns are used only in GPU training
-            */
-            Y_FAIL("GetBlockIterator unimplemented for external columns");
-            Y_UNREACHABLE();
-        }
+        IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const override;
 
     private:
         TConstPolymorphicValuesSparseArray<ui32, ui32> SrcData;

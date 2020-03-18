@@ -907,38 +907,40 @@ namespace NCB {
     };
 
 
-    template <class TValue, class TContainer, class TSize>
-    TSparseArrayBaseBlockIterator<TValue, TContainer, TSize>::TSparseArrayBaseBlockIterator(
+    template <class TBaseValue, class TInterfaceValue, class TContainer, class TSize, class TTransformer>
+    TSparseArrayBaseBlockIterator<TBaseValue, TInterfaceValue, TContainer, TSize, TTransformer>::TSparseArrayBaseBlockIterator(
         TSize size,
         ISparseArrayIndexingBlockIteratorPtr<TSize> indexingBlockIteratorPtr,
-        TValue defaultValue,
-        TNonDefaultValuesBlockIterator<TValue, TContainer>&& nonDefaultValuesBlockIterator,
-        TSize offset)
+        TBaseValue defaultValue,
+        TNonDefaultValuesBlockIterator<TBaseValue, TContainer>&& nonDefaultValuesBlockIterator,
+        TSize offset,
+        TTransformer&& transformer)
         : Index(offset)
         , Size(size)
         , IndexingBlockIteratorPtr(std::move(indexingBlockIteratorPtr))
         , NonDefaultValuesBlockIterator(std::move(nonDefaultValuesBlockIterator))
-        , DefaultValue(defaultValue)
+        , TransformedDefaultValue(transformer(defaultValue))
+        , Transformer(std::move(transformer))
     {}
 
-    template <class TValue, class TContainer, class TSize>
+    template <class TBaseValue, class TInterfaceValue, class TContainer, class TSize, class TTransformer>
     inline
-    TConstArrayRef<TValue>
-        TSparseArrayBaseBlockIterator<TValue, TContainer, TSize>::Next(size_t maxBlockSize) {
+    TConstArrayRef<TInterfaceValue>
+        TSparseArrayBaseBlockIterator<TBaseValue, TInterfaceValue, TContainer, TSize, TTransformer>::Next(size_t maxBlockSize) {
             const TSize blockSize = Min(Size - Index, (TSize)Min(size_t(Max<TSize>()), maxBlockSize));
             Buffer.yresize(blockSize);
-            Fill(Buffer.begin(), Buffer.end(), DefaultValue);
+            Fill(Buffer.begin(), Buffer.end(), TransformedDefaultValue);
             const TSize blockEnd = Index + blockSize;
 
             TConstArrayRef<TSize> nonDefaultIndices = IndexingBlockIteratorPtr->NextUpToBound(blockEnd);
 
-            TConstArrayRef<TValue> nonDefaultValues = NonDefaultValuesBlockIterator.NextExact(
+            TConstArrayRef<TBaseValue> nonDefaultValues = NonDefaultValuesBlockIterator.NextExact(
                 nonDefaultIndices.size()
             );
             auto nonDefaultValuesIterator = nonDefaultValues.begin();
 
             for (auto nonDefaultIdx : nonDefaultIndices) {
-                Buffer[nonDefaultIdx - Index] = *nonDefaultValuesIterator++;
+                Buffer[nonDefaultIdx - Index] = Transformer(*nonDefaultValuesIterator++);
             }
             Index = blockEnd;
             return Buffer;
@@ -1073,23 +1075,6 @@ namespace NCB {
             );
     }
     */
-
-
-    template <class TValue, class TContainer, class TSize>
-    typename TSparseArrayBase<TValue, TContainer, TSize>::TBlockIterator
-        TSparseArrayBase<TValue, TContainer, TSize>::GetBlockIterator(TSize offset) const {
-            ISparseArrayIndexingBlockIteratorPtr<TSize> indexingBlockIterator;
-            TSize nonDefaultOffset;
-            Indexing->GetBlockIteratorAndNonDefaultBegin(offset, &indexingBlockIterator, &nonDefaultOffset);
-
-            return TSparseArrayBaseBlockIterator<TNonConstValue, TContainer, TSize>(
-                GetSize(),
-                std::move(indexingBlockIterator),
-                GetDefaultValue(),
-                TNonDefaultValuesBlockIterator<TNonConstValue, TContainer>(NonDefaultValues, nonDefaultOffset),
-                offset
-            );
-    }
 
 
     template <class TDstValue, class TSrcValue, class TSize>

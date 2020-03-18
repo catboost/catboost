@@ -406,26 +406,28 @@ namespace NCB {
         inline TConstArrayRef<TValue> NextExact(size_t exactBlockSize) override;
     };
 
-    template <class TValue, class TContainer, class TSize = size_t>
-    class TSparseArrayBaseBlockIterator final : public IDynamicBlockIterator<TValue> {
+    template <class TBaseValue, class TInterfaceValue, class TContainer, class TSize, class TTransformer>
+    class TSparseArrayBaseBlockIterator final : public IDynamicBlockIterator<TInterfaceValue> {
     public:
         TSparseArrayBaseBlockIterator(
             TSize size,
             ISparseArrayIndexingBlockIteratorPtr<TSize> indexingBlockIteratorPtr,
-            TValue defaultValue,
-            TNonDefaultValuesBlockIterator<TValue, TContainer>&& nonDefaultValuesBlockIterator,
-            TSize offset);
+            TBaseValue defaultValue,
+            TNonDefaultValuesBlockIterator<TBaseValue, TContainer>&& nonDefaultValuesBlockIterator,
+            TSize offset,
+            TTransformer&& transformer);
 
-        inline TConstArrayRef<TValue> Next(size_t maxBlockSize = Max<size_t>()) override;
+        inline TConstArrayRef<TInterfaceValue> Next(size_t maxBlockSize = Max<size_t>()) override;
 
     public:
         TSize Index;
         TSize Size;
         ISparseArrayIndexingBlockIteratorPtr<TSize> IndexingBlockIteratorPtr;
-        TNonDefaultValuesBlockIterator<TValue, TContainer> NonDefaultValuesBlockIterator;
-        TValue DefaultValue;
+        TNonDefaultValuesBlockIterator<TBaseValue, TContainer> NonDefaultValuesBlockIterator;
 
-        TVector<TValue> Buffer;
+        TInterfaceValue TransformedDefaultValue;
+        TVector<TInterfaceValue> Buffer;
+        TTransformer Transformer;
     };
 
 
@@ -442,7 +444,6 @@ namespace NCB {
         using TIndexingPtr = TIntrusivePtr<TSparseArrayIndexing<TSize>>;
         using TIndexingImpl = typename TIndexing::TImpl;
         using TNonConstValue = typename std::remove_const<TValue>::type;
-        using TBlockIterator = TSparseArrayBaseBlockIterator<TNonConstValue, TContainer, TSize>;
 
     public:
         // needed because of IBinSaver
@@ -494,7 +495,25 @@ namespace NCB {
 
         TVector<TNonConstValue> ExtractValues() const;
 
-        TBlockIterator GetBlockIterator(TSize offset = 0) const;
+        template <typename TInterfaceValue, class TTransformer>
+        IDynamicBlockIteratorPtr<TInterfaceValue> GetTransformingBlockIterator(TTransformer&& transformer, TSize offset = 0) const {
+            ISparseArrayIndexingBlockIteratorPtr<TSize> indexingBlockIterator;
+            TSize nonDefaultOffset;
+            Indexing->GetBlockIteratorAndNonDefaultBegin(offset, &indexingBlockIterator, &nonDefaultOffset);
+
+            return MakeHolder<TSparseArrayBaseBlockIterator<TNonConstValue, TInterfaceValue, TContainer, TSize, TTransformer>>(
+                GetSize(),
+                std::move(indexingBlockIterator),
+                GetDefaultValue(),
+                TNonDefaultValuesBlockIterator<TNonConstValue, TContainer>(NonDefaultValues, nonDefaultOffset),
+                offset,
+                std::move(transformer)
+            );
+        }
+
+        IDynamicBlockIteratorPtr<TNonConstValue> GetBlockIterator(TSize offset = 0) const {
+            return GetTransformingBlockIterator<TNonConstValue>(TIdentity(), offset);
+        }
 
         size_t EstimateGetSubsetCpuRamUsage(
             const TArraySubsetInvertedIndexing<TSize>& subsetInvertedIndexing,
