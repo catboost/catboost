@@ -45,6 +45,8 @@ namespace NCatboostCuda {
             : TParent(target, slice)
             , Params(target.GetParams())
             , ScoreMetric(target.GetScoreMetricType())
+            , PairsTotalWeight(target.GetPairsTotalWeight())
+            , TotalWeightedTarget(target.GetTotalWeightedTarget())
         {
         }
 
@@ -52,6 +54,8 @@ namespace NCatboostCuda {
             : TParent(target)
             , Params(target.GetParams())
             , ScoreMetric(target.GetScoreMetricType())
+            , PairsTotalWeight(target.GetPairsTotalWeight())
+            , TotalWeightedTarget(target.GetTotalWeightedTarget())
         {
         }
 
@@ -60,14 +64,16 @@ namespace NCatboostCuda {
                               TTarget<TMapping>&& target)
             : TParent(basedOn, std::move(target))
             , Params(basedOn.GetParams())
-            , ScoreMetric(basedOn.GetScoreMetricType())
         {
+            Init(basedOn.GetParams());
         }
 
         TQuerywiseTargetsImpl(TQuerywiseTargetsImpl&& other)
             : TParent(std::move(other))
             , Params(other.Params)
             , ScoreMetric(other.GetScoreMetricType())
+            , PairsTotalWeight(other.GetPairsTotalWeight())
+            , TotalWeightedTarget(other.GetTotalWeightedTarget())
         {
         }
 
@@ -287,6 +293,14 @@ namespace NCatboostCuda {
 
         static constexpr EOracleType OracleType() {
             return EOracleType::Pointwise;
+        }
+
+        double GetPairsTotalWeight() const {
+            return PairsTotalWeight;
+        }
+
+        double GetTotalWeightedTarget() const {
+            return TotalWeightedTarget;
         }
 
     private:
