@@ -184,6 +184,8 @@ class EFstrType(Enum):
     ShapValues = 4
     """Calculate most important features explaining difference in predictions for a pair of documents"""
     PredictionDiff = 5
+    """Calculate SHAP Interaction Values pairwise between every feature for every object."""
+    ShapInteractionValues = 6
 
 
 def _get_features_indices(features, feature_names):
@@ -1264,8 +1266,8 @@ class _CatBoostBase(object):
         metrics_description_list = metrics_description if isinstance(metrics_description, list) else [metrics_description]
         return self._object._base_eval_metrics(pool, metrics_description_list, ntree_start, ntree_end, eval_period, thread_count, result_dir, tmp_dir)
 
-    def _calc_fstr(self, type, pool, thread_count, verbose, shap_mode):
-        return self._object._calc_fstr(type.name, pool, thread_count, verbose, shap_mode)
+    def _calc_fstr(self, type, pool, thread_count, verbose, shap_mode, interaction_indices):
+        return self._object._calc_fstr(type.name, pool, thread_count, verbose, shap_mode, interaction_indices)
 
     def _calc_ostr(self, train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose):
         return self._object._calc_ostr(train_pool, test_pool, top_size, ostr_type, update_method, importance_values_sign, thread_count, verbose)
@@ -2197,7 +2199,7 @@ class CatBoost(_CatBoostBase):
         else:
             return np.array(getattr(self, "_prediction_values_change", None))
 
-    def get_feature_importance(self, data=None, type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False, fstr_type=None, shap_mode="Auto"):
+    def get_feature_importance(self, data=None, type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False, fstr_type=None, shap_mode="Auto", interaction_indices=None):
         """
         Parameters
         ----------
@@ -2218,6 +2220,8 @@ class CatBoost(_CatBoostBase):
                     PredictionValuesChange for non-ranking metrics and LossFunctionChange for ranking metrics
                 - ShapValues
                     Calculate SHAP Values for every object.
+                - ShapInteractionValues
+                    Calculate SHAP Interaction Values between each pair of features for every object
                 - Interaction
                     Calculate pairwise score between every feature.
                 - PredictionDiff
@@ -2252,6 +2256,9 @@ class CatBoost(_CatBoostBase):
                 - "NoPreCalc"
                     Use direct SHAP Values calculation calculation with complexity O(NTLD^2). Direct algorithm
                     is faster when N < L (algorithm from https://arxiv.org/abs/1802.03888)
+        interaction_indices : list of int or string (feature_idx_1, feature_idx_2), optional (default=None)
+            used only for ShapInteractionValues type
+            Calculate SHAP Interaction Values between pair of features feature_idx_1 and feature_idx_2 for every object
         Returns
         -------
         depends on type:
@@ -2263,6 +2270,11 @@ class CatBoost(_CatBoostBase):
                 np.ndarray of shape (n_objects, n_features + 1) with Shap values (float) for (object, feature).
                 In case of multiclass the returned value is np.ndarray of shape
                 (n_objects, classes_count, n_features + 1). For each object it contains Shap values (float).
+                Values are calculated for RawFormulaVal predictions.
+            - ShapInteractionValues
+                np.array of shape (n_objects, n_features + 1, n_features + 1) whith Shap interaction values (float) for (object, feature(i), feature(j)).
+                In case of multiclass the returned value is np.array of shape
+                (n_objects, classes_count, n_features + 1, , n_features + 1). For each object it contains Shap interaction values (float).
                 Values are calculated for RawFormulaVal predictions.
             - Interaction
                 list of length [n_features] of 3-element lists of (first_feature_index, second_feature_index, interaction_score (float))
@@ -2313,7 +2325,7 @@ class CatBoost(_CatBoostBase):
                 raise CatBoostError("data is empty.")
 
         with log_fixup():
-            fstr, feature_names = self._calc_fstr(type, data, thread_count, verbose, shap_mode)
+            fstr, feature_names = self._calc_fstr(type, data, thread_count, verbose, shap_mode, interaction_indices)
         if type in (EFstrType.PredictionValuesChange, EFstrType.LossFunctionChange, EFstrType.PredictionDiff):
             feature_importances = [value[0] for value in fstr]
             attribute_name = None
@@ -2344,6 +2356,13 @@ class CatBoost(_CatBoostBase):
                     return DataFrame(result)
                 else:
                     return np.array(result)
+        elif type == EFstrType.ShapInteractionValues:
+            if isinstance(fstr[0][0], ARRAY_TYPES):
+                return np.array([np.array([np.array([
+                    feature2 for feature2 in feature1]) for feature1 in doc]) for doc in fstr])
+            else:
+                return np.array([np.array([np.array([np.array([
+                    feature2 for feature2 in feature1]) for feature1 in dimension]) for dimension in doc]) for doc in fstr])
         elif type == EFstrType.Interaction:
             result = [[int(row[0]), int(row[1]), row[2]] for row in fstr]
             if prettified:

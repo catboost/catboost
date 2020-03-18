@@ -916,11 +916,11 @@
         "uri": "file://test.test_shap_feature_importance_CPU_/feature_importance.npy"
     },
     "test.test_shap_feature_importance_asymmetric[CPU-Depthwise]": {
-        "checksum": "f078cb66ae14b8b3338281cef4c0091a",
+        "checksum": "58f72932c7fdb0fce7059a71cf4e5352",
         "uri": "file://test.test_shap_feature_importance_asymmetric_CPU-Depthwise_/feature_importance.npy"
     },
     "test.test_shap_feature_importance_asymmetric[CPU-Lossguide]": {
-        "checksum": "597c785d7b6013d9fc2f84f7eab78dcb",
+        "checksum": "d52c2e99cdb279e25552dfa178f3b45c",
         "uri": "file://test.test_shap_feature_importance_asymmetric_CPU-Lossguide_/feature_importance.npy"
     },
     "test.test_shap_feature_importance_multiclass[CPU]": {
@@ -934,6 +934,14 @@
     "test.test_shap_feature_importance_with_langevin": {
         "checksum": "12533ea576101ffe5532389c18df9554",
         "uri": "file://test.test_shap_feature_importance_with_langevin/feature_importance.npy"
+    },
+    "test.test_shap_interaction_feature_importance[CPU]": {
+        "checksum": "d176d73d7d148a85ee73cfe2df643030",
+        "uri": "file://test.test_shap_interaction_feature_importance_CPU_/feature_importance.npy"
+    },
+    "test.test_shap_interaction_feature_importance_multiclass[CPU]": {
+        "checksum": "d304d766147925d904c68177bfe78a50",
+        "uri": "file://test.test_shap_interaction_feature_importance_multiclass_CPU_/feature_importance.npy"
     },
     "test.test_shap_multiclass[CPU]": {
         "checksum": "2469f9a95204f063d4c63be32a8a8721",

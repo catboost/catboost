@@ -1233,6 +1233,26 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         int logPeriod
     ) nogil except +ProcessException
 
+    cdef TVector[TVector[TVector[double]]] GetFeatureInteraction(
+        const EFstrType type,
+        const TFullModel& model,
+        const TDataProviderPtr dataset,
+        const TMaybe[pair[int, int]]& pairOfFeatures,
+        int threadCount,
+        EPreCalcShapValues mode,
+        int logPeriod
+    ) nogil except +ProcessException
+
+    cdef TVector[TVector[TVector[TVector[double]]]] GetFeatureInteractionMulti(
+        const EFstrType type,
+        const TFullModel& model,
+        const TDataProviderPtr dataset,
+        const TMaybe[pair[int, int]]& pairOfFeatures,
+        int threadCount,
+        EPreCalcShapValues mode,
+        int logPeriod
+    ) nogil except +ProcessException
+
     TVector[TString] GetMaybeGeneratedModelFeatureIds(
         const TFullModel& model,
         const TDataProviderPtr dataset
@@ -1482,6 +1502,23 @@ cdef _3d_vector_of_double_to_np_array(const TVector[TVector[TVector[double]]]& v
             for k in xrange(sub_subvec_size):
                 result[i][j][k] = vectors[i][j][k]
     return result
+
+
+cdef _4d_vector_of_double_to_np_array(TVector[TVector[TVector[TVector[double]]]]& vectors):
+    cdef size_t subvec_size = vectors[0].size() if not vectors.empty() else 0
+    cdef size_t sub_subvec_size = vectors[0][0].size() if subvec_size != 0 else 0
+    cdef size_t sub_subsubvec_size = vectors[0][0][0].size() if sub_subvec_size != 0 else 0
+    result = np.empty([vectors.size(), subvec_size, sub_subvec_size, sub_subsubvec_size], dtype=_npfloat64)
+    for i in xrange(vectors.size()):
+        assert vectors[i].size() == subvec_size, "All subvectors should have the same length"
+        for j in xrange(subvec_size):
+            assert vectors[i][j].size() == sub_subvec_size, "All subvectors should have the same length"
+            for k in xrange(sub_subvec_size):
+                assert vectors[i][j][k].size() == sub_subsubvec_size, "All subvectors should have the same length"
+                for t in xrange(sub_subsubvec_size):
+                    result[i][j][k][t] = vectors[i][j][k][t]
+    return result
+
 
 cdef _vector_of_uints_to_np_array(const TVector[ui32]& vec):
     result = np.empty(vec.size(), dtype=np.uint32)
@@ -3877,6 +3914,34 @@ cpdef _have_equal_features(_PoolBase pool1, _PoolBase pool2, bool_t ignore_spars
     )
 
 
+cdef pair[int, int] _check_and_get_interaction_indices(_PoolBase pool, interaction_indices):
+    cdef pair[int, int] pair_of_features
+    if not isinstance(interaction_indices, list):
+        raise CatBoostError(
+            "interaction_indices is not a list type")
+    if len(interaction_indices) != 2:
+        raise CatBoostError(
+            "interaction_indices must contain two numbers or string")
+    if isinstance(interaction_indices[0], str):
+        feature_names = pool.get_feature_names()
+        if not isinstance(interaction_indices[1], str):
+            raise CatBoostError(
+                "interaction_indices must have one type")
+        for idx in range(0, len(feature_names)):
+            if interaction_indices[0] == feature_names[idx]:
+                pair_of_features.first = idx
+            if interaction_indices[1] == feature_names[idx]:
+                pair_of_features.second = idx
+        return pair_of_features
+
+    if not isinstance(interaction_indices[0], int) or not isinstance(interaction_indices[1], int):
+        raise CatBoostError(
+            "interaction_indices must have either string or int type")
+    pair_of_features.first = interaction_indices[0]
+    pair_of_features.second = interaction_indices[1]
+    return pair_of_features
+
+
 cdef TQuantizedFeaturesInfoPtr _init_quantized_feature_info(TDataProviderPtr pool, _input_borders) except *:
     cdef TQuantizedFeaturesInfoPtr quantizedFeaturesInfo
     quantizedFeaturesInfo = new TQuantizedFeaturesInfo(
@@ -4163,7 +4228,7 @@ cdef class _CatBoost:
     cpdef _get_loss_function_name(self):
         return self.__model.GetLossFunctionName()
 
-    cpdef _calc_fstr(self, type_name, _PoolBase pool, int thread_count, int verbose, shap_mode_name):
+    cpdef _calc_fstr(self, type_name, _PoolBase pool, int thread_count, int verbose, shap_mode_name, interaction_indices):
         thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TString] feature_ids = GetMaybeGeneratedModelFeatureIds(
             dereference(self.__model),
@@ -4179,6 +4244,7 @@ cdef class _CatBoost:
 
         cdef EFstrType fstr_type = string_to_fstr_type(type_name)
         cdef EPreCalcShapValues shap_mode = string_to_shap_mode(shap_mode_name)
+        cdef TMaybe[pair[int, int]] pair_of_features
 
         if type_name == 'ShapValues' and dereference(self.__model).GetDimensionsCount() > 1:
             with nogil:
@@ -4191,6 +4257,33 @@ cdef class _CatBoost:
                     verbose
                 )
             return _3d_vector_of_double_to_np_array(fstr_multi), native_feature_ids
+        elif type_name == 'ShapInteractionValues':
+            if interaction_indices is not None:
+                pair_of_features = _check_and_get_interaction_indices(pool, interaction_indices)
+            if dereference(self.__model).GetDimensionsCount() > 1:
+                with nogil:
+                    fstr_4d = GetFeatureInteractionMulti(
+                        fstr_type,
+                        dereference(self.__model),
+                        dataProviderPtr,
+                        pair_of_features,
+                        thread_count,
+                        shap_mode,
+                        verbose
+                    )
+                return _4d_vector_of_double_to_np_array(fstr_4d), native_feature_ids
+            else:
+                with nogil:
+                    fstr_multi = GetFeatureInteraction(
+                        fstr_type,
+                        dereference(self.__model),
+                        dataProviderPtr,
+                        pair_of_features,
+                        thread_count,  
+                        shap_mode,
+                        verbose
+                    )
+                return _3d_vector_of_double_to_np_array(fstr_multi), native_feature_ids
         else:
             with nogil:
                 fstr = GetFeatureImportances(

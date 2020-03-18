@@ -28,8 +28,28 @@ public:
     Y_SAVELOAD_DEFINE(Feature, Value);
 };
 
+struct TFixedFeatureParams {
+    enum class EMode {
+        FixedOn, FixedOff, NotFixed
+    };
+
+    int Feature = -1;
+    EMode FixedFeatureMode = EMode::NotFixed;
+
+public:
+    TFixedFeatureParams() = default;
+
+    TFixedFeatureParams(int feature, EMode fixedFeatureMode)
+        : Feature(feature)
+        , FixedFeatureMode(fixedFeatureMode)
+        {
+        }
+};
+
+
 struct TShapPreparedTrees {
     TVector<TVector<TVector<TShapValue>>> ShapValuesByLeafForAllTrees; // [treeIdx][leafIdx][shapFeature] trees * 2^d * d
+    TVector<TVector<TVector<TVector<TVector<double>>>>> ShapInteractionValuesByLeafForAllTrees; // [treeIdx][leafIdx][dim][feature1][feature2]
     TVector<TVector<double>> MeanValuesForAllTrees;
     TVector<double> AverageApproxByTree;
     TVector<int> BinFeatureCombinationClass;
@@ -68,26 +88,34 @@ void CalcShapValuesForDocumentMulti(
     const TFullModel& model,
     const TShapPreparedTrees& preparedTrees,
     const NCB::NModelEvaluation::IQuantizedData* binarizedFeaturesForBlock,
+    const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     int flatFeatureCount,
     TConstArrayRef<NCB::NModelEvaluation::TCalcerIndexType> docIndexes,
     size_t documentIdx,
     TVector<TVector<double>>* shapValues
 );
 
-TShapPreparedTrees PrepareTrees(const TFullModel& model, NPar::TLocalExecutor* localExecutor);
+TShapPreparedTrees PrepareTrees(
+    const TFullModel& model,
+    const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
+    NPar::TLocalExecutor* localExecutor
+);
+
 TShapPreparedTrees PrepareTrees(
     const TFullModel& model,
     const NCB::TDataProvider* dataset, // can be nullptr if model has LeafWeights
     int logPeriod,
     EPreCalcShapValues mode,
+    const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     NPar::TLocalExecutor* localExecutor,
     bool calcInternalValues = false
 );
 
-// returned: ShapValues[documentIdx][dimenesion][feature]
+// returned: ShapValues[documentIdx][dimension][feature]
 TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     const TFullModel& model,
     const NCB::TDataProvider& dataset,
+    const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     int logPeriod,
     EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor
@@ -97,6 +125,27 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
 TVector<TVector<double>> CalcShapValues(
     const TFullModel& model,
     const NCB::TDataProvider& dataset,
+    const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
+    int logPeriod,
+    EPreCalcShapValues mode,
+    NPar::TLocalExecutor* localExecutor
+);
+
+// returned: ShapInteractionValues[documentIdx][dimension][feature(i)][feature(j)] 
+TVector<TVector<TVector<TVector<double>>>> CalcShapInteractionValuesMulti(
+    const TFullModel& model,
+    const NCB::TDataProvider& dataset,
+    const TMaybe<std::pair<int, int>>& pairOfFeatures,
+    int logPeriod,
+    EPreCalcShapValues mode,
+    NPar::TLocalExecutor* localExecutor
+);
+
+// returned: ShapInteractionValues[documentIdx][feature1][feature2]
+TVector<TVector<TVector<double>>> CalcShapInteractionValues(
+    const TFullModel& model,
+    const NCB::TDataProvider& dataset,
+    const TMaybe<std::pair<int, int>>& pairOfFeatures,
     int logPeriod,
     EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor
