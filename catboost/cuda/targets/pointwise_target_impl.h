@@ -106,7 +106,7 @@ namespace NCatboostCuda {
             const double weight = GetTotalWeight();
             const double multiplier = (Type == ELossFunction::MAE ? 2.0 : 1.0);
 
-            return MakeSimpleAdditiveStatistic(result[0] * multiplier, weight);
+            return MakeSimpleAdditiveStatistic(-result[0] * multiplier, weight);
         }
 
         void GradientAt(const TConstVec& point,

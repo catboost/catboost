@@ -118,7 +118,7 @@ namespace NCatboostCuda {
                 .SetReadSlice(TSlice(0, 1))
                 .ReadReduce(result);
 
-            return MakeSimpleAdditiveStatistic(result[0], weight);
+            return MakeSimpleAdditiveStatistic(-result[0], weight);
         }
 
         void GradientAt(const TConstVec& point,
