@@ -87,15 +87,31 @@ struct TCustomMetricDescriptor {
         int begin,
         int end,
         void* customData);
+
+    using TEvalMultiregressionFuncPtr = TMetricHolder (*)(
+        TConstArrayRef<TVector<double>> approx,
+        TConstArrayRef<TConstArrayRef<float>> target,
+        TConstArrayRef<float> weight,
+        int begin,
+        int end,
+        void* customData);
+
     using TGetDescriptionFuncPtr = TString (*)(void* customData);
     using TIsMaxOptimalFuncPtr = bool (*)(void* customData);
     using TGetFinalErrorFuncPtr = double (*)(const TMetricHolder& error, void* customData);
 
     void* CustomData = nullptr;
-    TEvalFuncPtr EvalFunc = nullptr;
+    TMaybe<TEvalFuncPtr> EvalFunc;
+    TMaybe<TEvalMultiregressionFuncPtr> EvalMultiregressionFunc;
     TGetDescriptionFuncPtr GetDescriptionFunc = nullptr;
     TIsMaxOptimalFuncPtr IsMaxOptimalFunc = nullptr;
     TGetFinalErrorFuncPtr GetFinalErrorFunc = nullptr;
+
+    bool IsMultiregressionMetric() const {
+        CB_ENSURE(EvalFunc.Defined() || EvalMultiregressionFunc.Defined(), "Any custom eval function must be defined");
+        CB_ENSURE(EvalFunc.Empty() || EvalMultiregressionFunc.Empty(), "Only one custom eval function must be defined");
+        return EvalMultiregressionFunc.Defined();
+    }
 };
 
 struct IMetric {

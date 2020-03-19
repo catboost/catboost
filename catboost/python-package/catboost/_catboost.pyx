@@ -112,6 +112,55 @@ class _NumpyAwareEncoder(JSONEncoder):
 class CatBoostError(Exception):
     pass
 
+
+@cython.embedsignature(True)
+class MultiLabelCustomMetric:
+    def evaluate(self, approxes, targets, weights):
+        """
+        Evaluates metric value.
+
+        Parameters
+        ----------
+        approxes : list of lists of float
+            Vectors of approx labels.
+
+        targets : list of lists of float
+            Vectors of true labels.
+        
+        weights : list of float, optional (default=None)
+            Weight for each instance.
+        
+        Returns
+        -------
+            weighted error : float
+            total weight : float
+
+        """
+        raise CatBoostError("evaluate method is not implemented")
+    
+    def is_max_optimal(self):
+        raise CatBoostError("is_max_optimal method is not implemented")
+
+    def get_final_error(self, error, weight):
+        """
+        Returns final value of metric based on error and weight.
+
+        Parameters
+        ----------
+        error : float
+            Sum of errors in all instances.
+        
+        weight : float
+            Sum of weights of all instances.
+        
+        Returns
+        -------
+        metric value : float
+
+        """
+        raise CatBoostError("get_final_error method is not implemented")
+
+
 cdef public object PyCatboostExceptionType = <object>CatBoostError
 
 
@@ -983,12 +1032,20 @@ cdef extern from "catboost/libs/metrics/metric.h":
     cdef cppclass TCustomMetricDescriptor:
         void* CustomData
 
-        TMetricHolder (*EvalFunc)(
+        ctypedef TMetricHolder (*TEvalFuncPtr)(
             const TVector[TVector[double]]& approx,
             const TConstArrayRef[float] target,
             const TConstArrayRef[float] weight,
-            int begin, int end, void* customData
-        ) with gil
+            int begin, int end, void* customData) with gil
+        
+        ctypedef TMetricHolder (*TEvalMultiregressionFuncPtr)(
+            const TConstArrayRef[TVector[double]] approx,
+            const TConstArrayRef[TConstArrayRef[float]] target,
+            const TConstArrayRef[float] weight,
+            int begin, int end, void* customData) with gil
+
+        TMaybe[TEvalFuncPtr] EvalFunc
+        TMaybe[TEvalMultiregressionFuncPtr] EvalMultiregressionFunc
 
         TString (*GetDescriptionFunc)(void *customData) except * with gil
         bool_t (*IsMaxOptimalFunc)(void *customData) except * with gil
@@ -1589,6 +1646,38 @@ cdef TMetricHolder _MetricEval(
     holder.Stats[1] = weight_
     return holder
 
+cdef TMetricHolder _MultiregressionMetricEval(
+    TConstArrayRef[TVector[double]] approx,
+    TConstArrayRef[TConstArrayRef[float]] target,
+    TConstArrayRef[float] weight,
+    int begin,
+    int end,
+    void* customData
+) with gil:
+    cdef metricObject = <object>customData
+    cdef TString errorMessage
+    cdef TMetricHolder holder
+    holder.Stats.resize(2)
+
+    approxes = [_DoubleArrayWrapper.create(approx[i].data() + begin, end - begin) for i in xrange(approx.size())]
+    targets = [_FloatArrayWrapper.create(target[i].data() + begin, end - begin) for i in xrange(target.size())]
+
+    if weight.size() == 0:
+        weights = None
+    else:
+        weights = _FloatArrayWrapper.create(weight.data() + begin, end - begin)
+
+    try:
+        error, weight_ = metricObject.evaluate(approxes, targets, weights)
+    except:
+        errorMessage = to_arcadia_string(traceback.format_exc())
+        with nogil:
+            ThrowCppExceptionWithMessage(errorMessage)
+
+    holder.Stats[0] = error
+    holder.Stats[1] = weight_
+    return holder
+
 cdef double _RandomDistGen(
     void* customFunction
 ) with gil:
@@ -1674,12 +1763,14 @@ cdef TCustomRandomDistributionGenerator _BuildCustomRandomDistributionGenerator(
 cdef TCustomMetricDescriptor _BuildCustomMetricDescriptor(object metricObject):
     cdef TCustomMetricDescriptor descriptor
     descriptor.CustomData = <void*>metricObject
-    descriptor.EvalFunc = &_MetricEval
+    if (issubclass(metricObject.__class__, MultiLabelCustomMetric)):
+        descriptor.EvalMultiregressionFunc = &_MultiregressionMetricEval
+    else:
+        descriptor.EvalFunc = &_MetricEval
     descriptor.GetDescriptionFunc = &_MetricGetDescription
     descriptor.IsMaxOptimalFunc = &_MetricIsMaxOptimal
     descriptor.GetFinalErrorFunc = &_MetricGetFinalError
     return descriptor
-
 
 cdef TCustomObjectiveDescriptor _BuildCustomObjectiveDescriptor(object objectiveObject):
     cdef TCustomObjectiveDescriptor descriptor
