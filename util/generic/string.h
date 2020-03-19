@@ -16,6 +16,7 @@
 #include "explicit_type.h"
 #include "reserve.h"
 #include "strbase.h"
+#include "strbuf.h"
 
 #if defined(address_sanitizer_enabled) || defined(thread_sanitizer_enabled)
 #include "hide_ptr.h"
