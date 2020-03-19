@@ -722,6 +722,8 @@ def onjava_test(unit, *args):
 
 def onjava_test_deps(unit, *args):
     assert unit.get('MODULE_TYPE') is not None
+    assert len(args) == 1
+    mode = args[0]
 
     path = _common.strip_roots(unit.path())
 
@@ -746,6 +748,8 @@ def onjava_test_deps(unit, *args):
         'SYSTEM_PROPERTIES': '',
         'TEST-CWD': '',
     }
+    if mode == 'strict':
+        test_record['STRICT_CLASSPATH_CLASH'] = 'yes'
 
     data = dump_test(unit, test_record)
     unit.set_property(['DART_DATA', data])
