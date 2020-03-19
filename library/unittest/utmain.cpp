@@ -11,6 +11,7 @@
 
 #include <util/generic/hash.h>
 #include <util/generic/hash_set.h>
+#include <util/generic/scope.h>
 #include <util/generic/string.h>
 #include <util/generic/yexception.h>
 
@@ -664,6 +665,7 @@ int UTMAIN(int argc, char** argv) {
     try {
 #endif
         NPlugin::OnStartMain(argc, argv);
+        Y_DEFER { NPlugin::OnStopMain(argc, argv); };
 
         TColoredProcessor processor(GetExecPath());
         IOutputStream* listStream = &Cout;
@@ -761,8 +763,6 @@ int UTMAIN(int argc, char** argv) {
                 break;
             }
         }
-
-        NPlugin::OnStopMain(argc, argv);
         return ret;
 #ifndef UT_SKIP_EXCEPTIONS
     } catch (...) {
