@@ -126,10 +126,10 @@ class MultiLabelCustomMetric:
 
         targets : list of lists of float
             Vectors of true labels.
-        
+
         weights : list of float, optional (default=None)
             Weight for each instance.
-        
+
         Returns
         -------
             weighted error : float
@@ -137,7 +137,7 @@ class MultiLabelCustomMetric:
 
         """
         raise CatBoostError("evaluate method is not implemented")
-    
+
     def is_max_optimal(self):
         raise CatBoostError("is_max_optimal method is not implemented")
 
@@ -149,10 +149,10 @@ class MultiLabelCustomMetric:
         ----------
         error : float
             Sum of errors in all instances.
-        
+
         weight : float
             Sum of weights of all instances.
-        
+
         Returns
         -------
         metric value : float
@@ -1037,7 +1037,7 @@ cdef extern from "catboost/libs/metrics/metric.h":
             const TConstArrayRef[float] target,
             const TConstArrayRef[float] weight,
             int begin, int end, void* customData) with gil
-        
+
         ctypedef TMetricHolder (*TEvalMultiregressionFuncPtr)(
             const TConstArrayRef[TVector[double]] approx,
             const TConstArrayRef[TConstArrayRef[float]] target,
@@ -4021,7 +4021,9 @@ cdef class _CatBoost:
 
     def __dealloc__(self):
         del self.__model
-        for i in range(self.__test_evals.size()):
+
+        cdef int i
+        for i in xrange(self.__test_evals.size()):
             del self.__test_evals[i]
 
     def __eq__(self, _CatBoost other):
