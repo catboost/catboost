@@ -205,7 +205,7 @@ namespace CatBoostNet {
         /// Dispose of unmanaged resources
         /// </summary>
         protected virtual void Dispose(bool fromDisposeMethod) {
-            if (isDisposed) {
+            if (!isDisposed) {
                 CatboostNativeInterface.ModelCalcerDelete(ModelContainer.ModelHandler);
                 isDisposed = true;
             }
