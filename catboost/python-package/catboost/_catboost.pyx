@@ -7,16 +7,16 @@ from six import iteritems, string_types, PY3
 from six.moves import range
 from json import dumps, loads, JSONEncoder
 from copy import deepcopy
-from collections import Sequence, defaultdict
+from collections import defaultdict
 import functools
 import traceback
 import numbers
 
 import sys
 if sys.version_info >= (3, 3):
-    from collections.abc import Iterable
+    from collections.abc import Iterable, Sequence
 else:
-    from collections import Iterable
+    from collections import Iterable, Sequence
 
 import numpy as np
 cimport numpy as np  # noqa
