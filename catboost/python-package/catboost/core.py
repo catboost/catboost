@@ -1835,8 +1835,8 @@ class CatBoost(_CatBoostBase):
     def _validate_prediction_type(self, prediction_type):
         if not isinstance(prediction_type, STRING_TYPES):
             raise CatBoostError("Invalid prediction_type type={}: must be str().".format(type(prediction_type)))
-        if prediction_type not in ('Class', 'RawFormulaVal', 'Probability', 'LogProbability', 'Poisson'):
-            raise CatBoostError("Invalid value of prediction_type={}: must be Class, RawFormulaVal, Probability, LogProbability, Poisson.".format(prediction_type))
+        if prediction_type not in ('Class', 'RawFormulaVal', 'Probability', 'LogProbability', 'Exponent'):
+            raise CatBoostError("Invalid value of prediction_type={}: must be Class, RawFormulaVal, Probability, LogProbability, Exponent.".format(prediction_type))
 
     def _predict(self, data, prediction_type, ntree_start, ntree_end, thread_count, verbose, parent_method_name):
         verbose = verbose or self.get_param('verbose')
@@ -2771,7 +2771,7 @@ class CatBoost(_CatBoostBase):
             prediction_type = 'Probability' if self.get_param('loss_function') in ['CrossEntropy', 'Logloss'] \
                 else 'RawFormulaVal'
 
-        if prediction_type not in ['Class', 'Probability', 'RawFormulaVal', 'Poisson']:
+        if prediction_type not in ['Class', 'Probability', 'RawFormulaVal', 'Exponent']:
             raise CatBoostError('Unknown prediction type "{}"'.format(prediction_type))
 
         if feature is None:

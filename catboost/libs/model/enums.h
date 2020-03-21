@@ -4,7 +4,7 @@ namespace NCB { // split due to CUDA-compiler inability to support nested namesp
     namespace NModelEvaluation {
         enum class EPredictionType {
             RawFormulaVal,
-            Poisson,
+            Exponent,
             Probability,
             Class
         };

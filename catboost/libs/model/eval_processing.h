@@ -54,10 +54,10 @@ inline void CalcLogSoftmax(const TConstArrayRef<double> approx, TVector<double>*
 
 //approx and target could overlap
 inline void InvertSign(const TConstArrayRef<double> approx, TArrayRef<double> target) {
-    Y_ASSERT(approx.size() == target.size());
-    for (size_t i = 0; i < approx.size(); ++i) {
-        target[i] = -approx[i];
-    }
+     Y_ASSERT(approx.size() == target.size());
+     for (size_t i = 0; i < approx.size(); ++i) {
+         target[i] = -approx[i];
+     }
 }
 
 inline TVector<double> InvertSign(const TConstArrayRef<double> approx) {
@@ -88,6 +88,15 @@ inline TVector<double> CalcSigmoid(const TConstArrayRef<double> approx) {
     return probabilities;
 }
 
+inline TVector<double> CalcExponent(const TConstArrayRef<double> approx) {
+    TVector<double> exponents;
+    exponents.yresize(approx.size());
+    for (size_t i = 0; i < approx.size(); ++i) {
+        exponents[i] =  exp(approx[i]);
+    }
+    return exponents;
+}
+
 //approx and target could overlap
 inline void CalcLogSigmoid(const TConstArrayRef<double> approx, TArrayRef<double> target) {
     Y_ASSERT(approx.size() == target.size());
@@ -96,15 +105,6 @@ inline void CalcLogSigmoid(const TConstArrayRef<double> approx, TArrayRef<double
     for (auto& val : target) {
         val = -std::log(1. + val);
     }
-}
-
-inline TVector<double> CalcExponent(const TConstArrayRef<double> approx) {
-    TVector<double> exponents;
-    exponents.yresize(approx.size());
-    for (size_t i = 0; i < approx.size(); ++i) {
-        exponents[i] = exp(approx[i]);
-    }
-    return exponents;
 }
 
 inline TVector<double> CalcLogSigmoid(const TConstArrayRef<double> approx) {
@@ -123,22 +123,22 @@ namespace NCB::NModelEvaluation {
     class TEvalResultProcessor {
     public:
         TEvalResultProcessor(
-                size_t docCount,
-                TArrayRef<double> results,
-                EPredictionType predictionType,
-                TScaleAndBias scaleAndBias,
-                ui32 approxDimension,
-                ui32 blockSize,
-                TMaybe<double> binclassProbabilityBorder = Nothing()
+            size_t docCount,
+            TArrayRef<double> results,
+            EPredictionType predictionType,
+            TScaleAndBias scaleAndBias,
+            ui32 approxDimension,
+            ui32 blockSize,
+            TMaybe<double> binclassProbabilityBorder = Nothing()
         );
 
         inline TArrayRef<double> GetResultBlockView(ui32 blockId, ui32 dimension) {
             return Results.Slice(
-                    blockId * BlockSize * dimension,
-                    Min<ui32>(
-                            BlockSize * dimension,
-                            Results.size() - (blockId * BlockSize * dimension)
-                    )
+                blockId * BlockSize * dimension,
+                Min<ui32>(
+                    BlockSize * dimension,
+                    Results.size() - (blockId * BlockSize * dimension)
+                )
             );
         }
 

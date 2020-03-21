@@ -313,7 +313,7 @@ void TGPUCatboostEvaluationContext::EvalQuantizedData(
             1
         );
         break;
-    case NCB::NModelEvaluation::EPredictionType::Poisson:
+    case NCB::NModelEvaluation::EPredictionType::Exponent:
         ythrow yexception() << "Unimplemented on GPU";
         break;
     case NCB::NModelEvaluation::EPredictionType::Probability:
