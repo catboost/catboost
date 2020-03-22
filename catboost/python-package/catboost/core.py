@@ -183,8 +183,10 @@ class EFstrType(Enum):
     Interaction = 3
     """Calculate SHAP Values for every object."""
     ShapValues = 4
+    """Calculate approximate SHAP Values for every object."""
+    ApproximateShapValues = 5
     """Calculate most important features explaining difference in predictions for a pair of documents"""
-    PredictionDiff = 5
+    PredictionDiff = 6
 
 
 def _get_features_indices(features, feature_names):
@@ -2219,6 +2221,8 @@ class CatBoost(_CatBoostBase):
                     PredictionValuesChange for non-ranking metrics and LossFunctionChange for ranking metrics
                 - ShapValues
                     Calculate SHAP Values for every object.
+                - ApproximateShapValues
+                    Calculate approximate SHAP Values for every object.
                 - Interaction
                     Calculate pairwise score between every feature.
                 - PredictionDiff
@@ -2260,7 +2264,7 @@ class CatBoost(_CatBoostBase):
                 list of length [n_features] with feature_importance values (float) for feature
             - PredictionValuesChange, LossFunctionChange, PredictionDiff with prettified=True
                 list of length [n_features] with (feature_id (string), feature_importance (float)) pairs, sorted by feature_importance in descending order
-            - ShapValues
+            - ShapValues, ApproximateShapValues
                 np.ndarray of shape (n_objects, n_features + 1) with Shap values (float) for (object, feature).
                 In case of multiclass the returned value is np.ndarray of shape
                 (n_objects, classes_count, n_features + 1). For each object it contains Shap values (float).
@@ -2335,7 +2339,7 @@ class CatBoost(_CatBoostBase):
                 return DataFrame(feature_importances, columns=columns)
             else:
                 return np.array(feature_importances)
-        elif type == EFstrType.ShapValues:
+        elif (type == EFstrType.ShapValues) or (type == EFstrType.ApproximateShapValues):
             if isinstance(fstr[0][0], ARRAY_TYPES):
                 return np.array([np.array([np.array([
                     value for value in dimension]) for dimension in doc]) for doc in fstr])

@@ -229,6 +229,7 @@ enum class EFstrType {
     Interaction,
     InternalInteraction,
     ShapValues,
+    ApproximateShapValues,
     PredictionDiff
 };
 
@@ -242,6 +243,11 @@ enum class EPreCalcShapValues {
     Auto,
     UsePreCalc,
     NoPreCalc
+};
+
+enum class ECalcTypeShapValues {
+    Approximate,
+    Normal
 };
 
 enum class EObservationsToBootstrap {

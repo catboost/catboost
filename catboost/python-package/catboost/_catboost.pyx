@@ -4273,7 +4273,7 @@ cdef class _CatBoost:
         cdef EFstrType fstr_type = string_to_fstr_type(type_name)
         cdef EPreCalcShapValues shap_mode = string_to_shap_mode(shap_mode_name)
 
-        if type_name == 'ShapValues' and dereference(self.__model).GetDimensionsCount() > 1:
+        if (type_name == 'ShapValues' or type_name == 'ApproximateShapValues') and dereference(self.__model).GetDimensionsCount() > 1:
             with nogil:
                 fstr_multi = GetFeatureImportancesMulti(
                     fstr_type,

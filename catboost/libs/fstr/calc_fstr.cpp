@@ -254,7 +254,9 @@ static bool TryGetObjectiveMetric(const TFullModel& model, NCatboostOptions::TLo
 static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
         const TFullModel& model,
         const TDataProvider& dataProvider,
-        NPar::TLocalExecutor* localExecutor)
+        NPar::TLocalExecutor* localExecutor,
+        ECalcTypeShapValues calcType
+)
 {
     NCatboostOptions::TLossDescription metricDescription;
     CB_ENSURE(TryGetObjectiveMetric(model, metricDescription), "Cannot calculate LossFunctionChange feature importances without metric, need model with params");
@@ -282,7 +284,8 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     auto targetData = CreateModelCompatibleProcessedDataProvider(dataset, {metricDescription}, model, GetMonopolisticFreeCpuRam(), &rand, localExecutor).TargetData;
     CB_ENSURE(targetData->GetTargetDimension() <= 1, "Multi-dimensional target fstr is unimplemented yet");
 
-    TShapPreparedTrees preparedTrees = PrepareTrees(model, &dataset, 0, EPreCalcShapValues::Auto, localExecutor, true);
+    TShapPreparedTrees preparedTrees = PrepareTrees(model, &dataset, 0, EPreCalcShapValues::Auto, localExecutor,
+            calcType, true);
 
     TVector<TMetricHolder> scores(featuresCount + 1);
 
@@ -351,7 +354,8 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
             featuresCount,
             objectsData,
             &shapValues,
-            localExecutor);
+            localExecutor,
+            calcType);
 
         for (int featureIdx = 0; featureIdx < featuresCount; ++featureIdx) {
             NPar::TLocalExecutor::TExecRangeParams blockParams(begin, end);
@@ -428,7 +432,7 @@ TVector<std::pair<double, TFeature>> CalcFeatureEffect(
             dataset,
             "Dataset is not provided for " << EFstrType::LossFunctionChange << ", choose "
                 << EFstrType::PredictionValuesChange << " fstr type explicitly or provide dataset.");
-        return CalcFeatureEffectLossChange(model, *dataset.Get(), localExecutor);
+        return CalcFeatureEffectLossChange(model, *dataset.Get(), localExecutor, ECalcTypeShapValues::Normal);
     } else {
         CB_ENSURE_INTERNAL(
             type == EFstrType::PredictionValuesChange || type == EFstrType::InternalFeatureImportance,
@@ -715,7 +719,15 @@ TVector<TVector<double>> GetFeatureImportances(
             NPar::TLocalExecutor localExecutor;
             localExecutor.RunAdditionalThreads(threadCount - 1);
 
-            return CalcShapValues(model, *dataset, logPeriod, mode, &localExecutor);
+            return CalcShapValues(model, *dataset, logPeriod, mode, &localExecutor, ECalcTypeShapValues::Normal);
+        }
+        case EFstrType::ApproximateShapValues: {
+            CB_ENSURE(dataset, "Dataset is not provided");
+
+            NPar::TLocalExecutor localExecutor;
+            localExecutor.RunAdditionalThreads(threadCount - 1);
+
+            return CalcShapValues(model, *dataset, logPeriod, mode, &localExecutor, ECalcTypeShapValues::Approximate);
         }
         case EFstrType::PredictionDiff: {
             NPar::TLocalExecutor localExecutor;
@@ -740,7 +752,8 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
     TSetLoggingVerboseOrSilent inThisScope(logPeriod);
     CB_ENSURE(model.GetTreeCount(), "Model is not trained");
 
-    CB_ENSURE(fstrType == EFstrType::ShapValues, "Only shap values can provide multi approxes.");
+    CB_ENSURE((fstrType == EFstrType::ShapValues) || (fstrType == EFstrType::ApproximateShapValues),
+            "Only shap values can provide multi approxes.");
 
     CB_ENSURE(dataset, "Dataset is not provided");
     CheckModelAndDatasetCompatibility(model, *dataset->ObjectsData.Get());
@@ -748,7 +761,10 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
 
-    return CalcShapValuesMulti(model, *dataset, logPeriod, mode, &localExecutor);
+    ECalcTypeShapValues calcType =
+            fstrType == EFstrType::ShapValues ? ECalcTypeShapValues::Normal : ECalcTypeShapValues::Approximate;
+
+    return CalcShapValuesMulti(model, *dataset, logPeriod, mode, &localExecutor, calcType);
 }
 
 TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const TDataProviderPtr dataset) {
