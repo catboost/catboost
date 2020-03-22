@@ -39,10 +39,9 @@ struct TCandidateInfo {
     TSplitEnsemble SplitEnsemble;
     TRandomScore BestScore;
     int BestBinId = -1;
-    bool ShouldDropAfterScoreCalc = false;
 
 public:
-    SAVELOAD(SplitEnsemble, BestScore, BestBinId, ShouldDropAfterScoreCalc);
+    SAVELOAD(SplitEnsemble, BestScore, BestBinId);
 
     TSplit GetBestSplit(
         const NCB::TQuantizedForCPUObjectsDataProvider& objectsData,
