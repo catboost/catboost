@@ -720,10 +720,10 @@ public:
 
     bool IsContinueTraining(const TMetricsAndTimeLeftHistory& /*history*/) override {
         ++IterationIdx;
-        constexpr double HeartbeatSeconds = 1;
+        constexpr double HeartbeatSeconds = 600;
         if (TrainTimer.Passed() > HeartbeatSeconds) {
             TSetLogging infomationMode(ELoggingLevel::Info);
-            CATBOOST_INFO_LOG << "Train iteration " << IterationIdx << " of " << IterationCount << Endl;
+            CATBOOST_NOTICE_LOG << "Status after (another) " << HeartbeatSeconds << " seconds: iteration " << IterationIdx << " of " << IterationCount << Endl;
             TrainTimer.Reset();
         }
         return /*continue training*/true;
@@ -803,6 +803,13 @@ static bool HaveFeaturesToEvaluate(const TVector<TTrainingDataProviders>& foldsD
         }
     }
     return true;
+}
+
+static ui32 GetTrainingCount(const NCatboostOptions::TFeatureEvalOptions& featureEvalOptions) {
+    const auto useCommonBaseline = featureEvalOptions.FeatureEvalMode != NCB::EFeatureEvalMode::OneVsOthers;
+    const ui32 foldCount = featureEvalOptions.FoldCount;
+    const ui32 featureSetCount = featureEvalOptions.FeaturesToEvaluate->size();
+    return foldCount * (useCommonBaseline ? featureSetCount + 1 : 2 * featureSetCount);
 }
 
 static void EvaluateFeaturesImpl(
@@ -926,6 +933,11 @@ static void EvaluateFeaturesImpl(
         results->SetHeaderInfo(metrics, featureEvalOptions.FeaturesToEvaluate);
     }
 
+    const ui32 trainingCount = GetTrainingCount(featureEvalOptions);
+    CATBOOST_NOTICE_LOG << "Feature evaluation requires training " << trainingCount << " model(s); "
+        "if training takes more than 10 minutes to complete, progress is printed every 10 minutes" << Endl;
+    ui32 trainingIdx = 0;
+
     const ui32 offsetInRange = cvParams.Initialized() ? 0 : featureEvalOptions.Offset.Get();
     const auto trainFullModels = [&] (
         bool isTest,
@@ -936,6 +948,9 @@ static void EvaluateFeaturesImpl(
         const bool isCalcFstr = !outputFileOptions.CreateFstrIternalFullPath().empty();
         const bool isCalcRegularFstr = !outputFileOptions.CreateFstrRegularFullPath().empty();
         for (auto foldIdx : xrange(foldCount)) {
+            ++trainingIdx;
+            CATBOOST_NOTICE_LOG << "Training model number " << trainingIdx << " of " << trainingCount << Endl;
+
             const bool haveSummary = callbacks->HaveEvalFeatureSummary(
                 foldRangeBegin,
                 featureSetIdx,
