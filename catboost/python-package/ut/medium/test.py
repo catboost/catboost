@@ -7112,21 +7112,23 @@ def test_to_regressor_wrong_type():
 
 
 def test_load_and_save_quantization_borders():
-    borders1_file = test_output_path('borders1.dat')
-    borders2_file = test_output_path('borders2.dat')
-    borders3_file = test_output_path('borders3.dat')
+    borders_32_file = test_output_path('borders_32.dat')
+    borders_10_file = test_output_path('borders_10.dat')
+    borders_from_input_borders_file = test_output_path('borders_from_input_borders.dat')
 
-    pool1 = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
-    pool1.quantize(border_count=32)
-    pool1.save_quantization_borders(borders1_file)
+    pool_border_count_32 = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    pool_border_count_32.quantize(border_count=32)
+    pool_border_count_32.save_quantization_borders(borders_32_file)
 
-    pool2 = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
-    pool2.quantize(border_count=10)
-    pool2.save_quantization_borders(borders2_file)
+    pool_border_count_10 = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    pool_border_count_10.quantize(border_count=10)
+    pool_border_count_10.save_quantization_borders(borders_10_file)
 
-    pool3 = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
-    pool3.quantize(input_borders=borders2_file)
-    pool3.save_quantization_borders(borders3_file)
+    pool_from_input_borders = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    pool_from_input_borders.quantize(input_borders=borders_10_file)
+    pool_from_input_borders.save_quantization_borders(borders_from_input_borders_file)
 
-    assert filecmp.cmp(borders2_file, borders3_file)
-    assert not filecmp.cmp(borders1_file, borders2_file)
+    assert filecmp.cmp(borders_10_file, borders_from_input_borders_file)
+    assert not filecmp.cmp(borders_32_file, borders_10_file)
+
+    return [local_canonical_file(borders_32_file), local_canonical_file(borders_10_file)]

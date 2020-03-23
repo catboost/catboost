@@ -3859,6 +3859,21 @@ cdef class _PoolBase:
 
 
     cpdef save_quantization_borders(self, output_file):
+        """
+        Save file with borders used in numeric features binarization.
+        File format is described here: https://catboost.ai/docs/concepts/input-data_custom-borders.html
+
+        Parameters
+        ----------
+        output_file : string
+            Output file name.
+
+        Examples
+        --------
+        >>> train.quantize()
+        >>> train.save_quantization_borders("borders.dat")
+        >>> test.quantize(input_borders="borders.dat")
+        """
         cdef TQuantizedObjectsDataProvider* quantized_objects_data_provider = dynamic_cast_to_TQuantizedObjectsDataProvider(
             self.__pool.Get()[0].ObjectsData.Get()
         )
