@@ -3860,7 +3860,7 @@ cdef class _PoolBase:
 
     cpdef save_quantization_borders(self, output_file):
         """
-        Save file with borders used in numeric features binarization.
+        Save file with borders used in numeric features quantization.
         File format is described here: https://catboost.ai/docs/concepts/input-data_custom-borders.html
 
         Parameters
