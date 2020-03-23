@@ -14,5 +14,4 @@ RECURSE(
     scan
     url
     url/ut
-    ztstrbuf
 )

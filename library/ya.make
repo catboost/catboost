@@ -30,6 +30,7 @@ RECURSE(
     comptrie/benchmark
     containers
     coroutine
+    cpp
     cppparser
     cpuid_check
     dbg_output
