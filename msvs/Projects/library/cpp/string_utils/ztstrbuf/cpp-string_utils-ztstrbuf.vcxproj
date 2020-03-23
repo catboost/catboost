@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{0CFFC6E4-F8B3-39F9-648C-BB92778F0461}</ProjectGUID>
+    <ProjectGUID>{688172E5-10D8-86DE-424B-EACBFC9BE1DA}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-string_utils-ztstrbuf</ProjectName>
+    <ProjectName>cpp-string_utils-ztstrbuf</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-string_utils-ztstrbuf</TargetName>
+    <TargetName>cpp-string_utils-ztstrbuf</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\string_utils\ztstrbuf\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\0CFFC6E4-F8B3-39F9-648C-BB92778F0461\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\string_utils\ztstrbuf\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\688172E5-10D8-86DE-424B-EACBFC9BE1DA\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\string_utils\ztstrbuf\ztstrbuf.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\string_utils\ztstrbuf\ztstrbuf.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\string_utils\ztstrbuf\ztstrbuf.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\string_utils\ztstrbuf\ztstrbuf.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

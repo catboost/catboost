@@ -1056,6 +1056,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\coroutine\listener\library-coroutine-listener.vcxproj">
       <Project>B4028C7F-B714-C057-20FD-5CC1C3A20526</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\ztstrbuf\cpp-string_utils-ztstrbuf.vcxproj">
+      <Project>688172E5-10D8-86DE-424B-EACBFC9BE1DA</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cppparser\library-cppparser.vcxproj">
       <Project>83424DDB-2D39-C993-71FE-34F2A604EE5E</Project>
     </ProjectReference>
@@ -1316,9 +1319,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\url\library-string_utils-url.vcxproj">
       <Project>F79D59BA-A429-102B-7C71-A1F895119240</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\ztstrbuf\library-string_utils-ztstrbuf.vcxproj">
-      <Project>0CFFC6E4-F8B3-39F9-648C-BB92778F0461</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\svnversion\library-svnversion.vcxproj">
       <Project>EB1297E8-310F-2F45-45A8-54D412024564</Project>
