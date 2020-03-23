@@ -420,7 +420,7 @@ namespace NLastGetopt {
                 auto& line = L << "COMPREPLY+=( $(compgen -W '";
                 TStringBuf sep = "";
                 for (auto& mode : modes) {
-                    if (!mode->Hidden) {
+                    if (!mode->Hidden && !mode->NoCompletion) {
                         line << sep << B(mode->Name);
                         sep = " ";
                     }
@@ -437,7 +437,7 @@ namespace NLastGetopt {
                 I;
 
                 for (auto& mode : modes) {
-                    if (mode->Name.empty() || mode->Hidden) {
+                    if (mode->Name.empty() || mode->Hidden || mode->NoCompletion) {
                         continue;
                     }
 
