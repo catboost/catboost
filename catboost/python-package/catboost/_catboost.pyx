@@ -1233,17 +1233,7 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         int logPeriod
     ) nogil except +ProcessException
 
-    cdef TVector[TVector[TVector[double]]] GetFeatureInteraction(
-        const EFstrType type,
-        const TFullModel& model,
-        const TDataProviderPtr dataset,
-        const TMaybe[pair[int, int]]& pairOfFeatures,
-        int threadCount,
-        EPreCalcShapValues mode,
-        int logPeriod
-    ) nogil except +ProcessException
-
-    cdef TVector[TVector[TVector[TVector[double]]]] GetFeatureInteractionMulti(
+    cdef TVector[TVector[TVector[TVector[double]]]] CalcShapFeatureInteractionMulti(
         const EFstrType type,
         const TFullModel& model,
         const TDataProviderPtr dataset,
@@ -1504,19 +1494,34 @@ cdef _3d_vector_of_double_to_np_array(const TVector[TVector[TVector[double]]]& v
     return result
 
 
-cdef _4d_vector_of_double_to_np_array(TVector[TVector[TVector[TVector[double]]]]& vectors):
-    cdef size_t subvec_size = vectors[0].size() if not vectors.empty() else 0
-    cdef size_t sub_subvec_size = vectors[0][0].size() if subvec_size != 0 else 0
-    cdef size_t sub_subsubvec_size = vectors[0][0][0].size() if sub_subvec_size != 0 else 0
-    result = np.empty([vectors.size(), subvec_size, sub_subvec_size, sub_subsubvec_size], dtype=_npfloat64)
-    for i in xrange(vectors.size()):
-        assert vectors[i].size() == subvec_size, "All subvectors should have the same length"
-        for j in xrange(subvec_size):
-            assert vectors[i][j].size() == sub_subvec_size, "All subvectors should have the same length"
-            for k in xrange(sub_subvec_size):
-                assert vectors[i][j][k].size() == sub_subsubvec_size, "All subvectors should have the same length"
-                for t in xrange(sub_subsubvec_size):
-                    result[i][j][k][t] = vectors[i][j][k][t]
+cdef _4d_vector_of_double_to_rebasing_3d_np_array(TVector[TVector[TVector[TVector[double]]]]& vectors):
+    cdef size_t featuresCount = vectors.size() if not vectors.empty() else 0
+    assert featuresCount == vectors[0].size()
+    cdef size_t approx_dimension = vectors[0][0].size() if featuresCount != 0 else 0
+    assert approx_dimension == 1
+    cdef size_t doc_size = vectors[0][0][0].size() if approx_dimension != 0 else 0
+    result = np.empty([doc_size, featuresCount, featuresCount], dtype=_npfloat64)
+    cdef size_t doc, feature1, feature2
+    for doc in xrange(doc_size):
+        for feature1 in xrange(featuresCount):
+            for feature2 in xrange(featuresCount):
+                result[doc][feature1][feature2] = vectors[feature1][feature2][0][doc]
+    return result
+
+
+cdef _4d_vector_of_double_to_rebasing_4d_np_array(TVector[TVector[TVector[TVector[double]]]]& vectors):
+    cdef size_t featuresCount = vectors.size() if not vectors.empty() else 0
+    assert featuresCount == vectors[0].size()
+    cdef size_t approx_dimension = vectors[0][0].size() if featuresCount != 0 else 0
+    assert approx_dimension > 1
+    cdef size_t doc_size = vectors[0][0][0].size() if approx_dimension != 0 else 0
+    result = np.empty([doc_size, approx_dimension, featuresCount, featuresCount], dtype=_npfloat64)
+    cdef size_t doc, dim, feature1, feature2
+    for doc in xrange(doc_size):
+        for dim in xrange(approx_dimension):
+            for feature1 in xrange(featuresCount):
+                for feature2 in xrange(featuresCount):
+                    result[doc][dim][feature1][feature2] = vectors[feature1][feature2][dim][doc]
     return result
 
 
@@ -4260,30 +4265,20 @@ cdef class _CatBoost:
         elif type_name == 'ShapInteractionValues':
             if interaction_indices is not None:
                 pair_of_features = _check_and_get_interaction_indices(pool, interaction_indices)
+            with nogil:
+                fstr_4d = CalcShapFeatureInteractionMulti(
+                    fstr_type,
+                    dereference(self.__model),
+                    dataProviderPtr,
+                    pair_of_features,
+                    thread_count,
+                    shap_mode,
+                    verbose
+                )
             if dereference(self.__model).GetDimensionsCount() > 1:
-                with nogil:
-                    fstr_4d = GetFeatureInteractionMulti(
-                        fstr_type,
-                        dereference(self.__model),
-                        dataProviderPtr,
-                        pair_of_features,
-                        thread_count,
-                        shap_mode,
-                        verbose
-                    )
-                return _4d_vector_of_double_to_np_array(fstr_4d), native_feature_ids
+                return _4d_vector_of_double_to_rebasing_4d_np_array(fstr_4d), native_feature_ids
             else:
-                with nogil:
-                    fstr_multi = GetFeatureInteraction(
-                        fstr_type,
-                        dereference(self.__model),
-                        dataProviderPtr,
-                        pair_of_features,
-                        thread_count,  
-                        shap_mode,
-                        verbose
-                    )
-                return _3d_vector_of_double_to_np_array(fstr_multi), native_feature_ids
+                return _4d_vector_of_double_to_rebasing_3d_np_array(fstr_4d), native_feature_ids
         else:
             with nogil:
                 fstr = GetFeatureImportances(

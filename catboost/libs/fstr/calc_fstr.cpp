@@ -282,7 +282,15 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     auto targetData = CreateModelCompatibleProcessedDataProvider(dataset, {metricDescription}, model, GetMonopolisticFreeCpuRam(), &rand, localExecutor).TargetData;
     CB_ENSURE(targetData->GetTargetDimension() <= 1, "Multi-dimensional target fstr is unimplemented yet");
 
-    TShapPreparedTrees preparedTrees = PrepareTrees(model, &dataset, 0, EPreCalcShapValues::Auto, /*fixedFeatureParams*/ Nothing(), localExecutor, true);
+    TShapPreparedTrees preparedTrees = PrepareTrees(model, &dataset, EPreCalcShapValues::Auto, localExecutor, true);
+    CalcShapValuesByLeaf(
+        model,
+        /*fixedFeatureParams*/ Nothing(),
+        /*logPeriod*/ 0,
+        preparedTrees.CalcInternalValues,
+        localExecutor,
+        &preparedTrees
+    );
 
     TVector<TMetricHolder> scores(featuresCount + 1);
 
@@ -751,35 +759,31 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
     return CalcShapValuesMulti(model, *dataset, /*fixedFeatureParams*/ Nothing(), logPeriod, mode, &localExecutor);
 }
 
-static bool IsInRange(const int low, const int high, const int x) {
-    return low <= x && x < high;
+static void ValidateFeatureIndex(int featureCount, int featureIdx) {
+    CB_ENSURE(featureIdx < featureCount, "Feature index " << featureIdx << " exceeds feature count " << featureCount);
 }
 
- static void CheckFeatureInteractionBetweenPair(
-    const int flatFeatureCount,
-    const std::pair<int, int> pairOfFeatures
-) {
-    TString errorMessage = "Not correct feature idx ";
-    CB_ENSURE(IsInRange(0, flatFeatureCount, pairOfFeatures.first), errorMessage + ToString(pairOfFeatures.first));
-    CB_ENSURE(IsInRange(0, flatFeatureCount, pairOfFeatures.second), errorMessage + ToString(pairOfFeatures.second));
+static void ValidateFeaturePair(int flatFeatureCount, std::pair<int, int> featurePair) {
+    ValidateFeatureIndex(flatFeatureCount, featurePair.first);
+    ValidateFeatureIndex(flatFeatureCount, featurePair.second);
 }
 
- static void CheckFeatureInteraction(
+static void ValidateFeatureInteractionParams(
     const EFstrType fstrType,
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset
 ) {
     CB_ENSURE(model.GetTreeCount(), "Model is not trained");
 
-     CB_ENSURE_INTERNAL(
+    CB_ENSURE_INTERNAL(
         fstrType == EFstrType::ShapInteractionValues,
         ToString<EFstrType>(fstrType) + " is not suitable for calc shap interaction values"
     );
 
-     CB_ENSURE(dataset, "Dataset is not provided");   
+    CB_ENSURE(dataset, "Dataset is not provided");   
 }
 
- TVector<TVector<TVector<double>>> GetFeatureInteraction(
+TVector<TVector<TVector<TVector<double>>>> CalcShapFeatureInteractionMulti(
     const EFstrType fstrType,
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset,
@@ -788,37 +792,16 @@ static bool IsInRange(const int low, const int high, const int x) {
     EPreCalcShapValues mode,
     int logPeriod
 ) {
-    CheckFeatureInteraction(fstrType, model, dataset);
+    ValidateFeatureInteractionParams(fstrType, model, dataset);
     if (pairOfFeatures.Defined()) {
         const int flatFeatureCount = SafeIntegerCast<int>(dataset->MetaInfo.GetFeatureCount());
-        CheckFeatureInteractionBetweenPair(flatFeatureCount, pairOfFeatures.GetRef());
-    }
-
-     NPar::TLocalExecutor localExecutor;
-     localExecutor.RunAdditionalThreads(threadCount - 1);
-
-     return CalcShapInteractionValues(model, *dataset, pairOfFeatures, logPeriod, mode, &localExecutor);
-}
-
- TVector<TVector<TVector<TVector<double>>>> GetFeatureInteractionMulti(
-    const EFstrType fstrType,
-    const TFullModel& model,
-    const NCB::TDataProviderPtr dataset,
-    const TMaybe<std::pair<int, int>>& pairOfFeatures,
-    int threadCount,
-    EPreCalcShapValues mode,
-    int logPeriod
-) {
-    CheckFeatureInteraction(fstrType, model, dataset);
-    if (pairOfFeatures.Defined()) {
-        const int flatFeatureCount = SafeIntegerCast<int>(dataset->MetaInfo.GetFeatureCount());
-        CheckFeatureInteractionBetweenPair(flatFeatureCount, pairOfFeatures.GetRef());
+        ValidateFeaturePair(flatFeatureCount, pairOfFeatures.GetRef());
     }
 
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
 
-     return CalcShapInteractionValuesMulti(model, *dataset, pairOfFeatures, logPeriod, mode, &localExecutor);
+    return CalcShapInteractionValuesMulti(model, *dataset, pairOfFeatures, logPeriod, mode, &localExecutor);
 }
 
 TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const TDataProviderPtr dataset) {

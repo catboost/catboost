@@ -3215,9 +3215,9 @@ def test_shap_interaction_value_between_pair():
                 interaction_indices=[feature_idx_1, feature_idx_2]
             )
             if feature_idx_1 == feature_idx_2:
-                assert interaction_value.shape == (doc_count, 1, 1)
-            else:
                 assert interaction_value.shape == (doc_count, 2, 2)
+            else:
+                assert interaction_value.shape == (doc_count, 3, 3)
             for doc_idx in range(doc_count):
                 if feature_idx_1 == feature_idx_2:
                     assert abs(interaction_value[doc_idx][0][0] - shap_interaction_values[doc_idx][feature_idx_1][feature_idx_2]) < 1e-6
@@ -3249,9 +3249,9 @@ def test_shap_interaction_value_between_pair_multi():
                 interaction_indices=[feature_idx_1, feature_idx_2]
             )
             if feature_idx_1 == feature_idx_2:
-                assert interaction_value.shape == (doc_count, classes_count, 1, 1)
-            else:
                 assert interaction_value.shape == (doc_count, classes_count, 2, 2)
+            else:
+                assert interaction_value.shape == (doc_count, classes_count, 3, 3)
 
             for doc_idx in range(checked_doc_count):
                 for class_idx in range(classes_count):

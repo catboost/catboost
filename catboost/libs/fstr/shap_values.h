@@ -97,18 +97,24 @@ void CalcShapValuesForDocumentMulti(
 
 TShapPreparedTrees PrepareTrees(
     const TFullModel& model,
-    const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     NPar::TLocalExecutor* localExecutor
 );
 
 TShapPreparedTrees PrepareTrees(
     const TFullModel& model,
     const NCB::TDataProvider* dataset, // can be nullptr if model has LeafWeights
-    int logPeriod,
     EPreCalcShapValues mode,
-    const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     NPar::TLocalExecutor* localExecutor,
     bool calcInternalValues = false
+);
+
+void CalcShapValuesByLeaf(
+    const TFullModel& model,
+    const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
+    int logPeriod,
+    bool calcInternalValues,
+    NPar::TLocalExecutor* localExecutor,
+    TShapPreparedTrees* preparedTrees 
 );
 
 // returned: ShapValues[documentIdx][dimension][feature]
@@ -131,18 +137,8 @@ TVector<TVector<double>> CalcShapValues(
     NPar::TLocalExecutor* localExecutor
 );
 
-// returned: ShapInteractionValues[documentIdx][dimension][feature(i)][feature(j)] 
+// returned: ShapInteractionValues[featureIdx1][featureIdx2][dim][documentIdx]
 TVector<TVector<TVector<TVector<double>>>> CalcShapInteractionValuesMulti(
-    const TFullModel& model,
-    const NCB::TDataProvider& dataset,
-    const TMaybe<std::pair<int, int>>& pairOfFeatures,
-    int logPeriod,
-    EPreCalcShapValues mode,
-    NPar::TLocalExecutor* localExecutor
-);
-
-// returned: ShapInteractionValues[documentIdx][feature1][feature2]
-TVector<TVector<TVector<double>>> CalcShapInteractionValues(
     const TFullModel& model,
     const NCB::TDataProvider& dataset,
     const TMaybe<std::pair<int, int>>& pairOfFeatures,
