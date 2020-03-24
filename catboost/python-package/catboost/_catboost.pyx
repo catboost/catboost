@@ -2,6 +2,7 @@
 # coding: utf-8
 # cython: wraparound=False
 
+import atexit
 import six
 from six import iteritems, string_types, PY3
 from six.moves import range
@@ -976,6 +977,11 @@ cdef extern from "util/system/info.h" namespace "NSystemInfo":
     cdef size_t CachedNumberOfCpus() except +ProcessException
     cdef size_t TotalMemorySize() except +ProcessException
 
+
+cdef extern from "util/system/atexit.h":
+    cdef void ManualRunAtExitFinalizers()
+
+
 cdef extern from "catboost/libs/metrics/metric_holder.h":
     cdef cppclass TMetricHolder:
         TVector[double] Stats
@@ -1471,6 +1477,14 @@ cdef extern from "catboost/private/libs/hyperparameter_tuning/hyperparameter_tun
         bool_t isSearchUsingCV,
         bool_t isReturnCvResults,
         int verbose) nogil except +ProcessException
+
+
+cpdef run_atexit_finalizers():
+    ManualRunAtExitFinalizers()
+
+
+atexit.register(run_atexit_finalizers)
+
 
 cdef inline float _FloatOrNan(object obj) except *:
     try:
