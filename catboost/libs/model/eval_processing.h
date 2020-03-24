@@ -27,6 +27,19 @@ inline void CalcSoftmax(const TConstArrayRef<double> approx, TArrayRef<double> s
     }
 }
 
+inline TVector<double> CalcExponent(const TConstArrayRef<double> approx) {
+    TVector<double> exponents;
+    exponents.yresize(approx.size());
+
+    for (size_t dim = 0; dim < approx.size(); ++dim) {
+        exponents[dim] = approx[dim];
+    }
+
+    FastExpInplace(exponents.data(), exponents.ysize());
+    return exponents;
+}
+
+
 inline void CalcSoftmax(const TConstArrayRef<double> approx, TVector<double>* softmax) {
     CalcSoftmax(approx, *softmax);
 }
@@ -86,15 +99,6 @@ inline TVector<double> CalcSigmoid(const TConstArrayRef<double> approx) {
         probabilities[i] = 1. / (1. + exp(-approx[i]));
     }
     return probabilities;
-}
-
-inline TVector<double> CalcExponent(const TConstArrayRef<double> approx) {
-    TVector<double> exponents;
-    exponents.yresize(approx.size());
-    for (size_t i = 0; i < approx.size(); ++i) {
-        exponents[i] =  exp(approx[i]);
-    }
-    return exponents;
 }
 
 //approx and target could overlap
