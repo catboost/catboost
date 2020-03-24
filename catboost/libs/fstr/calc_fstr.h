@@ -99,24 +99,22 @@ TVector<TVector<double>> GetFeatureImportances(
     EPreCalcShapValues mode,
     int logPeriod = 0);
 
+TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
+    const EFstrType type,
+    const TFullModel& model,
+    const NCB::TDataProviderPtr dataset,
+    int threadCount,
+    EPreCalcShapValues mode,
+    int logPeriod = 0);  
+
 TVector<TVector<TVector<TVector<double>>>> CalcShapFeatureInteractionMulti(
-    const EFstrType type,
+    const EFstrType fstrType,
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset,
     const TMaybe<std::pair<int, int>>& pairOfFeatures,
     int threadCount,
     EPreCalcShapValues mode,
     int logPeriod = 0);
-
-TVector<TVector<TVector<TVector<double>>>> GetFeatureInteractionMulti(
-    const EFstrType type,
-    const TFullModel& model,
-    const NCB::TDataProviderPtr dataset,
-    const TMaybe<std::pair<int, int>>& pairOfFeatures,
-    int threadCount,
-    EPreCalcShapValues mode,
-    int logPeriod = 0);
-
 
 /*
  * model is the primary source of featureIds,
