@@ -207,6 +207,8 @@ namespace NLastGetopt {
                 line << ":";
                 if (spec.Completer_) {
                     line << spec.Completer_->GenerateZshAction(manager);
+                } else {
+                    line << "_default";
                 }
                 line << "' \\";
             }
@@ -223,6 +225,8 @@ namespace NLastGetopt {
                 line << ":";
                 if (spec.Completer_) {
                     line << spec.Completer_->GenerateZshAction(manager);
+                } else {
+                    line << "_default";
                 }
                 line << "' \\";
             }
@@ -358,6 +362,8 @@ namespace NLastGetopt {
 
             if (opt.Completer_) {
                 line << C(opt.Completer_->GenerateZshAction(manager));
+            } else {
+                line << "_default";
             }
         }
 
