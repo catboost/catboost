@@ -244,6 +244,12 @@ enum class EPreCalcShapValues {
     NoPreCalc
 };
 
+enum class ECalcShapValues {
+    TreeSHAP,
+    IndependentTreeSHAP,
+    /*TODO(ivankozlov98): implement Approximate mode for calc*/ Approximate
+};
+
 enum class EObservationsToBootstrap {
     LearnAndTest,
     TestOnly

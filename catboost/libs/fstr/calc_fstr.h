@@ -95,6 +95,8 @@ TVector<TVector<double>> GetFeatureImportances(
     const EFstrType type,
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset, // can be nullptr
+    const NCB::TDataProviderPtr referenceDataset, // can be nullptr
+    ECalcShapValues modeCalcShapValues,
     int threadCount,
     EPreCalcShapValues mode,
     int logPeriod = 0);
@@ -103,6 +105,8 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
     const EFstrType type,
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset,
+    const NCB::TDataProviderPtr referenceDataset, // can be nullptr
+    ECalcShapValues modeCalcShapValues,
     int threadCount,
     EPreCalcShapValues mode,
     int logPeriod = 0);

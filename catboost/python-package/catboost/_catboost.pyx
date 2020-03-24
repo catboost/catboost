@@ -336,6 +336,9 @@ cdef extern from "catboost/private/libs/options/enums.h":
     cdef cppclass ECrossValidation:
         pass
 
+    cdef cppclass ECalcShapValues:
+        pass
+
     cdef ECrossValidation ECrossValidation_TimeSeries "ECrossValidation::TimeSeries"
     cdef ECrossValidation ECrossValidation_Classical "ECrossValidation::Classical"
     cdef ECrossValidation ECrossValidation_Inverted "ECrossValidation::Inverted"
@@ -1219,6 +1222,8 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         const EFstrType type,
         const TFullModel& model,
         const TDataProviderPtr dataset,
+        const TDataProviderPtr referenceDataset,
+        ECalcShapValues modeCalcShapValues,
         int threadCount,
         EPreCalcShapValues mode,
         int logPeriod
@@ -1228,6 +1233,8 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         const EFstrType type,
         const TFullModel& model,
         const TDataProviderPtr dataset,
+        const TDataProviderPtr referenceDataset,
+        ECalcShapValues modeCalcShapValues,
         int threadCount,
         EPreCalcShapValues mode,
         int logPeriod
@@ -4163,7 +4170,7 @@ cdef class _CatBoost:
     cpdef _get_loss_function_name(self):
         return self.__model.GetLossFunctionName()
 
-    cpdef _calc_fstr(self, type_name, _PoolBase pool, int thread_count, int verbose, shap_mode_name):
+    cpdef _calc_fstr(self, type_name, _PoolBase pool, int thread_count, int verbose, _PoolBase references_data, shap_mode_name):
         thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TString] feature_ids = GetMaybeGeneratedModelFeatureIds(
             dereference(self.__model),
@@ -4177,6 +4184,13 @@ cdef class _CatBoost:
         if pool:
             dataProviderPtr = pool.__pool
 
+        cdef ECalcShapValues calc_shap_values_mode
+        TryFromString[ECalcShapValues](to_arcadia_string("TreeSHAP"), calc_shap_values_mode)
+        cdef TDataProviderPtr referenceDataProviderPtr
+        if references_data:
+            referenceDataProviderPtr = references_data.__pool
+            TryFromString[ECalcShapValues](to_arcadia_string("IndependentTreeSHAP"), calc_shap_values_mode)
+
         cdef EFstrType fstr_type = string_to_fstr_type(type_name)
         cdef EPreCalcShapValues shap_mode = string_to_shap_mode(shap_mode_name)
 
@@ -4186,6 +4200,8 @@ cdef class _CatBoost:
                     fstr_type,
                     dereference(self.__model),
                     dataProviderPtr,
+                    referenceDataProviderPtr,
+                    calc_shap_values_mode,
                     thread_count,
                     shap_mode,
                     verbose
@@ -4197,6 +4213,8 @@ cdef class _CatBoost:
                     fstr_type,
                     dereference(self.__model),
                     dataProviderPtr,
+                    referenceDataProviderPtr,
+                    calc_shap_values_mode,
                     thread_count,
                     shap_mode,
                     verbose

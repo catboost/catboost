@@ -28,6 +28,80 @@ public:
     Y_SAVELOAD_DEFINE(Feature, Value);
 };
 
+struct TContribution {
+    TVector<double> PositiveContribution;
+    TVector<double> NegativeContribution;
+
+public:
+
+    explicit TContribution(size_t approxDimension)
+        : PositiveContribution(approxDimension)
+        , NegativeContribution(approxDimension)
+        {
+        }
+};
+
+class TInternalIndependentTreeShapCalcer {
+private:
+    const TModelTrees& Forest;
+    const TVector<int>& BinFeatureCombinationClass;
+    const TVector<TVector<double>>& Weights;
+    TVector<int> ListOfFeaturesDocumentLeaf;
+    TVector<int> ListOfFeaturesDocumentLeafReference;
+    size_t DocumentLeafIdx;
+    size_t DocumentLeafIdxReference;
+    size_t TreeIdx;
+    TVector<TVector<double>>& ShapValuesInternalByDepth;
+
+public:
+    TInternalIndependentTreeShapCalcer(
+        const TModelTrees& forest,
+        const TVector<int>& binFeatureCombinationClass,
+        const TVector<TVector<double>>& weights,
+        size_t classCount,
+        size_t documentLeafIdx,
+        size_t documentLeafIdxReference,
+        size_t treeIdx,
+        TVector<TVector<double>>* shapValuesInternalByDepth
+    )
+        : Forest(forest)
+        , BinFeatureCombinationClass(binFeatureCombinationClass)
+        , Weights(weights)
+        , ListOfFeaturesDocumentLeaf(classCount)
+        , ListOfFeaturesDocumentLeafReference(classCount)
+        , DocumentLeafIdx(documentLeafIdx)
+        , DocumentLeafIdxReference(documentLeafIdxReference)
+        , TreeIdx(treeIdx)
+        , ShapValuesInternalByDepth(*shapValuesInternalByDepth)
+    {
+    }
+
+    TContribution Calc(
+        int depth = 0,
+        size_t nodeIdx = 0,
+        ui32 uniqueFeaturesCount = 0,
+        ui32 featureMatchedForegroundCount = 0
+    );
+};
+
+struct TIndependentTreeShapParams {
+    TConstArrayRef<TConstArrayRef<float>> TransformedTargetOfInputDataset;
+    TConstArrayRef<TConstArrayRef<float>> TransformedTargetOfReferenceDataset;
+    TVector<TVector<double>> Weights;
+    TVector<TVector<TVector<TVector<TVector<double>>>>> ShapValueByDepthBetweenLeafesForAllTrees;// [treeIdx][leafIdx(foregroundLeafIdx)][leafIdx(referenceLeafIdx)][depth][dimension]
+    TVector<TVector<NCB::NModelEvaluation::TCalcerIndexType>> ReferenceLeafIndicesForAllTrees;// [treeIdx][refIdx] -> leafIdx on refIdx
+    TVector<TVector<TVector<ui32>>> ReferenceIndicesForAllTrees;// [treeIdx][leafIdx] -> TVector<ui32> ref Indices
+    TVector<bool> IsCalcForAllLeafesForAllTrees;
+
+public:
+    TIndependentTreeShapParams(
+        const TFullModel& model,
+        const NCB::TDataProvider& dataset,
+        const NCB::TDataProvider& referenceDataset,
+        NPar::TLocalExecutor* localExecutor
+    );
+};
+
 struct TShapPreparedTrees {
     TVector<TVector<TVector<TShapValue>>> ShapValuesByLeafForAllTrees; // [treeIdx][leafIdx][shapFeature] trees * 2^d * d
     TVector<TVector<double>> MeanValuesForAllTrees;
@@ -38,6 +112,7 @@ struct TShapPreparedTrees {
     bool CalcInternalValues;
     TVector<double> LeafWeightsForAllTrees;
     TVector<TVector<TVector<double>>> SubtreeWeightsForAllTrees;
+    TMaybe<TIndependentTreeShapParams> IndependentTreeShapParams;
 
 public:
     TShapPreparedTrees() = default;
@@ -70,6 +145,7 @@ void CalcShapValuesForDocumentMulti(
     const NCB::NModelEvaluation::IQuantizedData* binarizedFeaturesForBlock,
     int flatFeatureCount,
     TConstArrayRef<NCB::NModelEvaluation::TCalcerIndexType> docIndexes,
+    ECalcShapValues modeCalcShapValues,
     size_t documentIdx,
     TVector<TVector<double>>* shapValues
 );
@@ -78,8 +154,10 @@ TShapPreparedTrees PrepareTrees(const TFullModel& model, NPar::TLocalExecutor* l
 TShapPreparedTrees PrepareTrees(
     const TFullModel& model,
     const NCB::TDataProvider* dataset, // can be nullptr if model has LeafWeights
+    const NCB::TDataProviderPtr referenceDataset, // can be nullptr if calc in mode no independent
     int logPeriod,
     EPreCalcShapValues mode,
+    ECalcShapValues modeCalcShapValues,
     NPar::TLocalExecutor* localExecutor,
     bool calcInternalValues = false
 );
@@ -88,8 +166,10 @@ TShapPreparedTrees PrepareTrees(
 TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     const TFullModel& model,
     const NCB::TDataProvider& dataset,
+    const NCB::TDataProviderPtr referenceDataset,
     int logPeriod,
     EPreCalcShapValues mode,
+    ECalcShapValues modeCalcShapValues,
     NPar::TLocalExecutor* localExecutor
 );
 
@@ -97,11 +177,14 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
 TVector<TVector<double>> CalcShapValues(
     const TFullModel& model,
     const NCB::TDataProvider& dataset,
+    const NCB::TDataProviderPtr referenceDataset,
     int logPeriod,
     EPreCalcShapValues mode,
+    ECalcShapValues modeCalcShapValues,
     NPar::TLocalExecutor* localExecutor
 );
 
+// TODO (to add parameter modeCalcShapValues)
 // outputs for each document in order for each dimension in order an array of feature contributions
 void CalcAndOutputShapValues(
     const TFullModel& model,

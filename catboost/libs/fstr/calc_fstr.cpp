@@ -240,17 +240,6 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
     return result;
 }
 
-static bool TryGetObjectiveMetric(const TFullModel& model, NCatboostOptions::TLossDescription& lossDescription) {
-    if (model.ModelInfo.contains("params")) {
-        const auto &params = ReadTJsonValue(model.ModelInfo.at("params"));
-        if (params.Has("metrics") && params["metrics"].Has("objective_metric")) {
-            lossDescription.Load(params["metrics"]["objective_metric"]);
-            return true;
-        }
-    }
-    return TryGetLossDescription(model, lossDescription);
-}
-
 static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
         const TFullModel& model,
         const TDataProvider& dataProvider,
@@ -282,7 +271,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     auto targetData = CreateModelCompatibleProcessedDataProvider(dataset, {metricDescription}, model, GetMonopolisticFreeCpuRam(), &rand, localExecutor).TargetData;
     CB_ENSURE(targetData->GetTargetDimension() <= 1, "Multi-dimensional target fstr is unimplemented yet");
 
-    TShapPreparedTrees preparedTrees = PrepareTrees(model, &dataset, 0, EPreCalcShapValues::Auto, localExecutor, true);
+    TShapPreparedTrees preparedTrees = PrepareTrees(model, &dataset, /*referenceDataset*/ nullptr, 0, EPreCalcShapValues::Auto, ECalcShapValues::TreeSHAP, localExecutor, true);
 
     TVector<TMetricHolder> scores(featuresCount + 1);
 
@@ -683,6 +672,8 @@ TVector<TVector<double>> GetFeatureImportances(
     const EFstrType fstrType,
     const TFullModel& model,
     const TDataProviderPtr dataset, // can be nullptr
+    const TDataProviderPtr referenceDataset, // can be nullptr
+    ECalcShapValues modeCalcShapValues,
     int threadCount,
     EPreCalcShapValues mode,
     int logPeriod)
@@ -715,7 +706,7 @@ TVector<TVector<double>> GetFeatureImportances(
             NPar::TLocalExecutor localExecutor;
             localExecutor.RunAdditionalThreads(threadCount - 1);
 
-            return CalcShapValues(model, *dataset, logPeriod, mode, &localExecutor);
+            return CalcShapValues(model, *dataset, referenceDataset, logPeriod, mode, modeCalcShapValues, &localExecutor);
         }
         case EFstrType::PredictionDiff: {
             NPar::TLocalExecutor localExecutor;
@@ -733,6 +724,8 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
     const EFstrType fstrType,
     const TFullModel& model,
     const TDataProviderPtr dataset,
+    const NCB::TDataProviderPtr referenceDataset, // can be nullptr
+    ECalcShapValues modeCalcShapValues,
     int threadCount,
     EPreCalcShapValues mode,
     int logPeriod)
@@ -748,7 +741,7 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
 
-    return CalcShapValuesMulti(model, *dataset, logPeriod, mode, &localExecutor);
+    return CalcShapValuesMulti(model, *dataset, referenceDataset, logPeriod, mode, modeCalcShapValues, &localExecutor);
 }
 
 TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const TDataProviderPtr dataset) {

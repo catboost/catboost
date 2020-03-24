@@ -2980,11 +2980,21 @@ def test_interaction_feature_importance(task_type):
     return local_canonical_file(fimp_npy_path)
 
 
-def test_shap_feature_importance(task_type):
+def make_reference_data(pool, calc_shap_mode):
+    reference_data = None
+    if calc_shap_mode == "IndependentTreeSHAP":
+        quarter_size = pool.num_row() / 4
+        reference_data = pool.slice(list(range(quarter_size)))
+    return reference_data
+
+
+@pytest.mark.parametrize('calc_shap_mode', ['TreeSHAP', 'IndependentTreeSHAP'])
+def test_shap_feature_importance(task_type, calc_shap_mode):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    reference_data = make_reference_data(pool, calc_shap_mode)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, max_ctr_complexity=1, task_type=task_type, devices='0')
     model.fit(pool)
-    shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool)
+    shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, reference_data=reference_data)
     assert np.allclose(model.predict(pool, prediction_type='RawFormulaVal'), np.sum(shaps, axis=1))
 
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
@@ -2992,12 +3002,14 @@ def test_shap_feature_importance(task_type):
     return local_canonical_file(fimp_npy_path)
 
 
-def test_shap_feature_importance_multiclass(task_type):
+@pytest.mark.parametrize('calc_shap_mode', ['TreeSHAP', 'IndependentTreeSHAP'])
+def test_shap_feature_importance_multiclass(task_type, calc_shap_mode):
     pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    reference_data = make_reference_data(pool, calc_shap_mode)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass')
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
-    np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool)), 9))
+    np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool, reference_data=reference_data)), 9))
     return local_canonical_file(fimp_npy_path)
 
 
@@ -3098,14 +3110,16 @@ def test_loss_function_change_asymmetric(task_type, grow_policy):
     return local_canonical_file(fimp_npy_path)
 
 
-def test_shap_feature_importance_modes(task_type):
+@pytest.mark.parametrize('calc_shap_mode', ['TreeSHAP', 'IndependentTreeSHAP'])
+def test_shap_feature_importance_modes(task_type, calc_shap_mode):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    reference_data = make_reference_data(pool, calc_shap_mode)
     model = CatBoostClassifier(iterations=5, task_type=task_type)
     model.fit(pool)
     modes = ["Auto", "UsePreCalc", "NoPreCalc"]
     shaps_for_modes = []
     for mode in modes:
-        shaps_for_modes.append(model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_mode=mode))
+        shaps_for_modes.append(model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_mode=mode, reference_data=reference_data))
     for i in range(len(modes) - 1):
         assert np.all(np.abs(shaps_for_modes[i] - shaps_for_modes[i - 1]) < 1e-9)
 
@@ -3344,10 +3358,12 @@ def test_shap(task_type):
     return local_canonical_file(fimp_txt_path)
 
 
-def test_shap_complex_ctr(task_type):
+@pytest.mark.parametrize('calc_shap_mode', ['TreeSHAP', 'IndependentTreeSHAP'])
+def test_shap_complex_ctr(task_type, calc_shap_mode):
     pool = Pool([[0, 0, 0], [0, 1, 0], [1, 0, 1], [1, 1, 2]], [0, 0, 5, 8], cat_features=[0, 1, 2])
+    reference_data = make_reference_data(pool, calc_shap_mode)
     model = train(pool, {'random_seed': 12302113, 'iterations': 100, 'task_type': task_type, 'devices': '0'})
-    shap_values = model.get_feature_importance(type=EFstrType.ShapValues, data=pool)
+    shap_values = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, reference_data=reference_data)
     predictions = model.predict(pool)
     assert(len(predictions) == len(shap_values))
     for pred_idx in range(len(predictions)):
@@ -3926,16 +3942,21 @@ def test_model_and_pool_compatibility():
         model.get_feature_importance(type=EFstrType.ShapValues, data=pool2)
 
 
-def test_shap_verbose():
+@pytest.mark.parametrize('calc_shap_mode', ['TreeSHAP', 'IndependentTreeSHAP'])
+def test_shap_verbose(calc_shap_mode):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    reference_data = make_reference_data(pool, calc_shap_mode)
 
     model = CatBoost(dict(iterations=250))
     model.fit(pool)
 
     tmpfile = test_output_path('test_data_dumps')
     with LogStdout(open(tmpfile, 'w')):
-        model.get_feature_importance(type=EFstrType.ShapValues, data=pool, verbose=12)
-    assert(_count_lines(tmpfile) == 5)
+        model.get_feature_importance(type=EFstrType.ShapValues, data=pool, verbose=12, reference_data=reference_data)
+    if calc_shap_mode == "TreeSHAP":
+        assert(_count_lines(tmpfile) == 5)
+    else:
+        assert(_count_lines(tmpfile) == 6)
 
 
 def test_eval_set_with_nans(task_type):
@@ -3979,8 +4000,10 @@ def test_learning_rate_auto_set_in_cv(task_type):
     return local_canonical_file(remove_time_from_json(JSON_LOG_PATH))
 
 
-def test_shap_multiclass(task_type):
+@pytest.mark.parametrize('calc_shap_mode', ['TreeSHAP', 'IndependentTreeSHAP'])
+def test_shap_multiclass(task_type, calc_shap_mode):
     pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
+    reference_data = make_reference_data(pool, calc_shap_mode)
     classifier = CatBoostClassifier(iterations=50, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
     classifier.fit(pool)
     pred = classifier.predict(pool, prediction_type='Probability')
@@ -3988,6 +4011,7 @@ def test_shap_multiclass(task_type):
     shap_values = classifier.get_feature_importance(
         type=EFstrType.ShapValues,
         data=pool,
+        reference_data=reference_data,
         thread_count=8
     )
     features_count = pool.num_col()
@@ -3995,7 +4019,7 @@ def test_shap_multiclass(task_type):
     assert pred.shape == (len(pred), classes_count)
     assert shap_values.shape == (len(pred), classes_count, features_count + 1)
     fimp_txt_path = test_output_path(FIMP_TXT_PATH)
-    np.savetxt(fimp_txt_path, shap_values.reshape(len(pred), -1), fmt='%.9f')
+    np.savetxt(fimp_txt_path, shap_values.reshape(len(pred), -1))
     shap_values = np.sum(shap_values, axis=2)
     for doc_id in range(len(pred)):
         shap_probas = np.exp(shap_values[doc_id]) / np.sum(np.exp(shap_values[doc_id]))
