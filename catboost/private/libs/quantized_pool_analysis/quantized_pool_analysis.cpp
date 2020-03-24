@@ -162,10 +162,10 @@ namespace NCB {
         CB_ENSURE_INTERNAL(values, "Cannot access values of float feature #" << featureNum);
         TVector<int> binNums(values->GetSize());
         auto binNumsWriteIter = binNums.begin();
-        auto blockFunc = [&binNumsWriteIter] (auto block) {
+        auto blockFunc = [&binNumsWriteIter] (size_t /*blockStartIdx*/, auto block) {
             binNumsWriteIter = Copy(block.begin(), block.end(), binNumsWriteIter);
         };
-        IQuantizedFloatValuesHolder::ForEachBlock(values->GetBlockIterator(), blockFunc);
+        values->ForEachBlock(std::move(blockFunc));
 
         size_t numBins = quantizedFeaturesInfo->GetBorders(TFloatFeatureIdx(featureNum)).size() + 1;
         TVector<float> meanTarget(numBins, 0.);

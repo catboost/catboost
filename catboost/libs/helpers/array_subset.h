@@ -200,19 +200,27 @@ namespace NCB {
         // default constructor is necessary for BinSaver serialization & Cython
         TArraySubsetIndexing()
             : TArraySubsetIndexing(TFullSubset<TSize>(0))
-        {}
+        {
+            ConsecutiveSubsetBeginCache = GetConsecutiveSubsetBeginImpl();
+        }
 
         explicit TArraySubsetIndexing(TFullSubset<TSize>&& subset)
             : TBase(std::move(subset))
-        {}
+        {
+            ConsecutiveSubsetBeginCache = GetConsecutiveSubsetBeginImpl();
+        }
 
         explicit TArraySubsetIndexing(TRangesSubset<TSize>&& subset)
             : TBase(std::move(subset))
-        {}
+        {
+            ConsecutiveSubsetBeginCache = GetConsecutiveSubsetBeginImpl();
+        }
 
         explicit TArraySubsetIndexing(TIndexedSubset<TSize>&& subset)
             : TBase(std::move(subset))
-        {}
+        {
+            ConsecutiveSubsetBeginCache = GetConsecutiveSubsetBeginImpl();
+        }
 
         friend bool operator ==(const TArraySubsetIndexing& a, const TArraySubsetIndexing& b) {
             return static_cast<const TBase&>(a) == static_cast<const TBase&>(b);
@@ -257,9 +265,11 @@ namespace NCB {
         decltype(auto) Get() const {
             return ::Get<T>((const TBase&)*this);
         }
-
-        // returns Nothing() if subset is not consecutive
         TMaybe<TSize> GetConsecutiveSubsetBegin() const {
+            return ConsecutiveSubsetBeginCache;
+        }
+        // returns Nothing() if subset is not consecutive
+        TMaybe<TSize> GetConsecutiveSubsetBeginImpl() const {
             switch (TBase::index()) {
                 case TVariantIndexV<TFullSubset<TSize>, TBase>:
                     return TSize(0);
@@ -554,6 +564,8 @@ namespace NCB {
                 NPar::TLocalExecutor::WAIT_COMPLETE
             );
         }
+    private:
+        TMaybe<TSize> ConsecutiveSubsetBeginCache;
     };
 
     template <class TS, class TSize>

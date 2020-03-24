@@ -206,8 +206,6 @@ public:
     TBucketStatsCache PrevTreeLevelStats;
     TProfileInfo Profile;
 
-    bool LearnAndTestDataPackingAreCompatible;
-
 private:
     bool UseTreeLevelCachingFlag;
     bool HasWeights;

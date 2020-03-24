@@ -44,6 +44,11 @@ namespace NCB {
                 << sizeof(NCB::TBinaryFeaturesPack) * CHAR_BIT << ')'
             );
         }
+        TPackedBinaryValuesHolderImpl(ui32 featureId, THolder<TBinaryPacksArrayHolder>&& packsData, ui8 bitIdx)
+            : TPackedBinaryValuesHolderImpl(featureId, packsData.Get(), bitIdx)
+        {
+            PacksDataHolder = std::move(packsData);
+        }
 
         ui8 GetBitIdx() const {
             return BitIdx;
@@ -56,18 +61,21 @@ namespace NCB {
         ui64 EstimateMemoryForCloning(
             const TCloningParams& cloningParams
         ) const override {
-            Y_UNUSED(cloningParams);
-            CB_ENSURE_INTERNAL(false, "TPackedBinaryValuesHolderImpl cloning not implemented");
-            return 0;
+            return PacksData->EstimateMemoryForCloning(cloningParams);
         }
 
         THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
             const TCloningParams& cloningParams,
             NPar::TLocalExecutor* localExecutor
         ) const override {
-            Y_UNUSED(cloningParams);
-            Y_UNUSED(localExecutor);
-            CB_ENSURE_INTERNAL(false, "TPackedBinaryValuesHolderImpl cloning not implemented");
+            return MakeHolder<TPackedBinaryValuesHolderImpl>(
+                this->GetId(),
+                DynamicHolderCast<TBinaryPacksArrayHolder>(
+                    PacksData->CloneWithNewSubsetIndexing(cloningParams, localExecutor),
+                    "Column type changed after cloning"
+                ),
+                BitIdx
+            );
         }
 
         // in some cases non-standard T can be useful / more efficient
@@ -113,6 +121,7 @@ namespace NCB {
     private:
         const TBinaryPacksArrayHolder* PacksData;
         ui8 BitIdx;
+        THolder<TBinaryPacksArrayHolder> PacksDataHolder;
     };
 
     template <class TBase>
@@ -146,6 +155,14 @@ namespace NCB {
             CB_ENSURE_INTERNAL(boundsInBundle.End <= maxBound, "boundsInBundle.End > maxBound");
         }
 
+        TBundlePartValuesHolderImpl(ui32 featureId,
+                                    THolder<TExclusiveFeatureBundleArrayHolder>&& bundlesData,
+                                    NCB::TBoundsInBundle boundsInBundle)
+            : TBundlePartValuesHolderImpl(featureId, bundlesData.Get(), boundsInBundle)
+        {
+            BundlesDataHolder = std::move(bundlesData);
+        }
+
         bool IsSparse() const override {
             return BundlesData->IsSparse();
         }
@@ -153,9 +170,7 @@ namespace NCB {
         ui64 EstimateMemoryForCloning(
             const TCloningParams& cloningParams
         ) const override {
-            Y_UNUSED(cloningParams);
-            CB_ENSURE_INTERNAL(false, "TBundlePartValuesHolderImpl cloning not implemented");
-            return 0;
+            return BundlesData->EstimateMemoryForCloning(cloningParams);
         }
 
 
@@ -163,9 +178,14 @@ namespace NCB {
             const TCloningParams& cloningParams,
             NPar::TLocalExecutor* localExecutor
         ) const override {
-            Y_UNUSED(cloningParams);
-            Y_UNUSED(localExecutor);
-            CB_ENSURE_INTERNAL(false, "TBundlePartValuesHolderImpl cloning not implemented");
+            return MakeHolder<TBundlePartValuesHolderImpl>(
+                this->GetId(),
+                DynamicHolderCast<TExclusiveFeatureBundleArrayHolder>(
+                    BundlesData->CloneWithNewSubsetIndexing(cloningParams, localExecutor),
+                    "Column type changed after cloning"
+                ),
+                BoundsInBundle
+            );
         }
 
         TMaybeOwningArrayHolder<typename TBase::TValueType> ExtractValues(NPar::TLocalExecutor* localExecutor) const override {
@@ -237,6 +257,7 @@ namespace NCB {
         const TExclusiveFeatureBundleArrayHolder* BundlesData;
         ui32 BundleSizeInBytes;
         NCB::TBoundsInBundle BoundsInBundle;
+        THolder<TExclusiveFeatureBundleArrayHolder> BundlesDataHolder;
     };
 
 
@@ -261,6 +282,14 @@ namespace NCB {
             GroupSizeInBytes = bitsPerKey / CHAR_BIT;
         }
 
+        TFeaturesGroupPartValuesHolderImpl(ui32 featureId,
+                                           THolder<TFeaturesGroupArrayHolder>&& groupData,
+                                           ui32 inGroupIdx)
+            : TFeaturesGroupPartValuesHolderImpl(featureId, groupData.Get(), inGroupIdx)
+        {
+            GroupDataHolder = std::move(groupData);
+        }
+
         bool IsSparse() const override {
             return GroupData->IsSparse();
         }
@@ -268,18 +297,21 @@ namespace NCB {
         ui64 EstimateMemoryForCloning(
             const TCloningParams& cloningParams
         ) const override {
-            Y_UNUSED(cloningParams);
-            CB_ENSURE_INTERNAL(false, "TFeaturesGroupPartValuesHolderImpl cloning not implemented");
-            return 0;
+            return GroupData->EstimateMemoryForCloning(cloningParams);
         }
 
         THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
             const TCloningParams& cloningParams,
             NPar::TLocalExecutor* localExecutor
         ) const override {
-            Y_UNUSED(cloningParams);
-            Y_UNUSED(localExecutor);
-            CB_ENSURE_INTERNAL(false, "TFeaturesGroupPartValuesHolderImpl cloning not implemented");
+            return MakeHolder<TFeaturesGroupPartValuesHolderImpl>(
+                this->GetId(),
+                DynamicHolderCast<TFeaturesGroupArrayHolder>(
+                    GroupData->CloneWithNewSubsetIndexing(cloningParams, localExecutor),
+                    "Column type changed after cloning"
+                ),
+                InGroupIdx
+            );
         }
 
         TMaybeOwningArrayHolder<typename TBase::TValueType> ExtractValues(NPar::TLocalExecutor* localExecutor) const override {
@@ -346,6 +378,7 @@ namespace NCB {
         const TFeaturesGroupArrayHolder* GroupData;
         ui32 GroupSizeInBytes;
         ui32 InGroupIdx;
+        THolder<TFeaturesGroupArrayHolder> GroupDataHolder;
     };
 
 

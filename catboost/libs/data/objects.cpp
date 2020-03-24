@@ -603,11 +603,13 @@ static void GetSubsetWithScheduling(
                         cloningParams,
                         localExecutor
                     );
-                    CB_ENSURE_INTERNAL(
-                        dynamic_cast<TColumn*>(clonedColumn.Get()) != nullptr,
+                    *dstHolderPtr = DynamicHolderCast<TColumn>(
+                        srcDataPtr->CloneWithNewSubsetIndexing(
+                            cloningParams,
+                            localExecutor
+                        ),
                         "Column type changed after cloning"
                     );
-                    dstHolderPtr->Reset(dynamic_cast<TColumn*>(clonedColumn.Release())); // TODO(kirillovs): this is awful
                 }
             }
         );
@@ -1826,15 +1828,13 @@ static void MakeConsecutiveIfDenseColumnDataWithScheduling(
                 TCloningParams cloningParams;
                 cloningParams.MakeConsecutive = true;
                 cloningParams.SubsetIndexing = newSubsetIndexing;
-                auto clonedColumn = src.CloneWithNewSubsetIndexing(
-                    cloningParams,
-                    localExecutor
-                );
-                CB_ENSURE_INTERNAL(
-                    dynamic_cast<TColumn*>(clonedColumn.Get()) != nullptr,
+                *dst = DynamicHolderCast<TColumn>(
+                    src.CloneWithNewSubsetIndexing(
+                        cloningParams,
+                        localExecutor
+                    ),
                     "Column type changed after cloning"
                 );
-                dst->Reset(dynamic_cast<TColumn*>(clonedColumn.Release()));
             }
         );
     } else {

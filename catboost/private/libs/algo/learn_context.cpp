@@ -247,7 +247,6 @@ TLearnContext::TLearnContext(
     , OutputOptions(outputOptions)
     , Files(outputOptions, fileNamesPrefix)
     , Profile((int)Params.BoostingOptions->IterationCount)
-    , LearnAndTestDataPackingAreCompatible(false)
     , UseTreeLevelCachingFlag(false)
     , HasWeights(data.Learn->MetaInfo.HasWeights) {
 
@@ -351,14 +350,6 @@ TLearnContext::TLearnContext(
     }
     LearnProgress->SerializedTrainParams = ToString(Params);
     LearnProgress->EnableSaveLoadApprox = Params.SystemOptions->IsSingleHost();
-
-    LearnAndTestDataPackingAreCompatible = true;
-    for (const auto& testData : data.Test) {
-        if (!testData->ObjectsData->IsPackingCompatibleWith(*data.Learn->ObjectsData)) {
-            LearnAndTestDataPackingAreCompatible = false;
-            break;
-        }
-    }
 
     const ui32 maxBodyTailCount = Max(1, GetMaxBodyTailCount(LearnProgress->Folds));
     UseTreeLevelCachingFlag = NeedToUseTreeLevelCaching(Params, maxBodyTailCount, LearnProgress->ApproxDimension);

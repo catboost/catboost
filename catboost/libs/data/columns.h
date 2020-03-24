@@ -45,6 +45,14 @@ namespace NCB {
         FeaturesGroup               //aggregate of several quantized float features
     };
 
+    template<class TDst, class TSrc>
+    THolder<TDst> DynamicHolderCast(THolder<TSrc>&& srcHolder, TStringBuf errorMessage) {
+        CB_ENSURE_INTERNAL(
+            dynamic_cast<TDst*>(srcHolder.Get()) != nullptr,
+            errorMessage
+        );
+        return THolder<TDst>(dynamic_cast<TDst*>(srcHolder.Release()));
+    }
 
     //feature values storage optimized for memory usage
     using TFeaturesArraySubsetIndexing = TArraySubsetIndexing<ui32>;
@@ -151,6 +159,19 @@ namespace NCB {
         }
     };
 
+    template<class TTypedIteratorFunc>
+    static void DispatchIteratorType(IDynamicBlockIteratorBase* blockIterator, TTypedIteratorFunc&& typedIteratorFunc) {
+        if (auto ui8iter = dynamic_cast<IDynamicBlockIterator<ui8>*>(blockIterator)) {
+            typedIteratorFunc(ui8iter);
+        } else if (auto ui16iter = dynamic_cast<IDynamicBlockIterator<ui16>*>(blockIterator)) {
+            typedIteratorFunc(ui16iter);
+        } else if (auto ui32iter = dynamic_cast<IDynamicBlockIterator<ui32>*>(blockIterator)) {
+            typedIteratorFunc(ui32iter);
+        } else {
+            Y_VERIFY(0, "Unexpected iterator basetype");
+        }
+    }
+
     template <typename T, EFeatureValuesType ValuesType, typename TBaseInterface = IFeatureValuesHolder>
     struct IQuantizedFeatureValuesHolder : public TBaseInterface {
         using TValueType = T;
@@ -161,32 +182,51 @@ namespace NCB {
 
         virtual IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const = 0;
 
+
+
         template<class TBlockCallable>
-        static void ForEachBlock(IDynamicBlockIteratorBasePtr&& blockIterator, TBlockCallable&& blockCallable, size_t blockSize = 1024) {
-            if (auto ui8iter = dynamic_cast<IDynamicBlockIterator<ui8>*>(blockIterator.Get())) {
-                while (auto block = ui8iter->Next(blockSize)) {
-                    blockCallable(block);
+        static void ForEachBlockRange(IDynamicBlockIteratorBasePtr&& blockIterator, size_t blockStartIdx, size_t upperLimit, TBlockCallable&& blockCallable, size_t blockSize = 1024) {
+            DispatchIteratorType(
+                blockIterator.Get(),
+                [blockStartIdx, upperLimit, blockCallable = std::move(blockCallable), blockSize] (auto typedIter) mutable {
+                    while (auto block = typedIter->Next(Min(blockSize, upperLimit - blockStartIdx))) {
+                        blockCallable(blockStartIdx, block);
+                        blockStartIdx += block.size();
+                        if (blockStartIdx >= upperLimit) {
+                            break;
+                        }
+                    }
                 }
-            } else if (auto ui16iter = dynamic_cast<IDynamicBlockIterator<ui16>*>(blockIterator.Get())) {
-                while (auto block = ui16iter->Next(blockSize)) {
-                    blockCallable(block);
-                }
-            } else if (auto ui32iter = dynamic_cast<IDynamicBlockIterator<ui32>*>(blockIterator.Get())) {
-                while (auto block = ui32iter->Next(blockSize)) {
-                    blockCallable(block);
-                }
-            } else {
-                Y_VERIFY(0, "Unexpected iterator basetype");
-            }
+            );
+        }
+
+        template<class TBlockCallable>
+        void ForEachBlock(TBlockCallable&& blockCallable, size_t blockSize = 1024) const {
+            ForEachBlockRange(this->GetBlockIterator(0), 0, this->GetSize(), std::move(blockCallable), blockSize);
+        }
+
+        template<class TBlockCallable>
+        void ParallelForEachBlock(NPar::TLocalExecutor* localExecutor, TBlockCallable&& blockCallable, size_t blockSize = 1024) const {
+            NPar::TLocalExecutor::TExecRangeParams blockParams(0, this->GetSize());
+            blockParams.SetBlockCount(localExecutor->GetThreadCount() + 1);
+            // round per-thread block size to iteration block size
+            blockParams.SetBlockSize(Min<int>(this->GetSize(), CeilDiv<int>(blockParams.GetBlockSize(), blockSize) * blockSize));
+            localExecutor->ExecRangeWithThrow(
+                [blockCallable = std::move(blockCallable), blockParams, blockSize, this] (int blockId) {
+                    const int blockFirstId = blockParams.FirstId + blockId * blockParams.GetBlockSize();
+                    const int blockLastId = Min(blockParams.LastId, blockFirstId + blockParams.GetBlockSize());
+                    ForEachBlockRange(this->GetBlockIterator(blockFirstId), blockFirstId, blockLastId, blockCallable, blockSize);
+                }, 0, blockParams.GetBlockCount(), NPar::TLocalExecutor::WAIT_COMPLETE
+            );
         }
 
         ui32 CalcChecksum(NPar::TLocalExecutor* localExecutor) const override {
             Y_UNUSED(localExecutor);
             ui32 checkSum = 0;
-            auto blockFunc = [&checkSum] (auto block) {
+            auto blockFunc = [&checkSum] (size_t /*blockStartIdx*/, auto block) {
                 checkSum = UpdateCheckSum(checkSum, block);
             };
-            ForEachBlock(this->GetBlockIterator(), std::move(blockFunc));
+            ForEachBlock(std::move(blockFunc));
             return checkSum;
         }
     };
