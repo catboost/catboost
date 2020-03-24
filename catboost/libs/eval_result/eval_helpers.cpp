@@ -218,12 +218,7 @@ void PrepareEval(const EPredictionType predictionType,
             }
             break;
         case EPredictionType::Exponent:
-//            TVector<double> exponents;
-//            exponents.yresize(approx[0].size());
-//            CalcSoftmax(approx[0], exponents);
-//            *result = {CalcExponent(approx[0])};
             *result = {CalcExponent(approx[0])};
-//            *result = approx;
             break;
         case EPredictionType::RawFormulaVal:
             *result = approx;
