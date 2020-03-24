@@ -561,7 +561,7 @@ cdef extern from "catboost/libs/data/objects.h" namespace "NCB":
         TMaybeData[const TFloatValuesHolder*] GetFloatFeature(ui32 floatFeatureIdx) except +ProcessException
 
     cdef cppclass TQuantizedObjectsDataProvider(TObjectsDataProvider):
-        pass
+        TQuantizedFeaturesInfoPtr GetQuantizedFeaturesInfo() except +ProcessException
 
     cdef THashMap[ui32, TString] MergeCatFeaturesHashToString(const TObjectsDataProvider& objectsData) except +ProcessException
 
@@ -1330,7 +1330,10 @@ cdef float _FLOAT_NAN = float('nan')
 cdef extern from "catboost/libs/data/borders_io.h" namespace "NCB" nogil:
     void LoadBordersAndNanModesFromFromFileInMatrixnetFormat(
         const TString& path,
-        TQuantizedFeaturesInfo* quantizedFeaturesInfo) except *
+        TQuantizedFeaturesInfo* quantizedFeaturesInfo) except +ProcessException
+    void SaveBordersAndNanModesToFileInMatrixnetFormat(
+        const TString& path,
+        const TQuantizedFeaturesInfo& quantizedFeaturesInfo) except +ProcessException
 
 cdef extern from "catboost/libs/data/loader.h" namespace "NCB" nogil:
     int IsMissingValue(const TStringBuf& s)
@@ -3958,6 +3961,36 @@ cdef class _PoolBase:
             thread_count
         )
         self.target_type = pool.target_type
+
+
+    cpdef save_quantization_borders(self, output_file):
+        """
+        Save file with borders used in numeric features quantization.
+        File format is described here: https://catboost.ai/docs/concepts/input-data_custom-borders.html
+
+        Parameters
+        ----------
+        output_file : string
+            Output file name.
+
+        Examples
+        --------
+        >>> train.quantize()
+        >>> train.save_quantization_borders("borders.dat")
+        >>> test.quantize(input_borders="borders.dat")
+        """
+        cdef TQuantizedObjectsDataProvider* quantized_objects_data_provider = dynamic_cast_to_TQuantizedObjectsDataProvider(
+            self.__pool.Get()[0].ObjectsData.Get()
+        )
+        if not quantized_objects_data_provider:
+            raise CatBoostError("Pool is not quantized")
+
+        cdef TString fname = to_arcadia_string(output_file)
+        cdef TQuantizedFeaturesInfoPtr quantized_features_info = quantized_objects_data_provider[0].GetQuantizedFeaturesInfo()
+
+        with nogil:
+            SaveBordersAndNanModesToFileInMatrixnetFormat(fname, quantized_features_info.Get()[0])
+
 
     @property
     def is_empty_(self):
