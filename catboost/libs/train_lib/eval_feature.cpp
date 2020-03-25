@@ -805,11 +805,16 @@ static bool HaveFeaturesToEvaluate(const TVector<TTrainingDataProviders>& foldsD
     return true;
 }
 
-static ui32 GetTrainingCount(const NCatboostOptions::TFeatureEvalOptions& featureEvalOptions) {
+static ui32 GetTrainingCountPerFold(const NCatboostOptions::TFeatureEvalOptions& featureEvalOptions) {
     const auto useCommonBaseline = featureEvalOptions.FeatureEvalMode != NCB::EFeatureEvalMode::OneVsOthers;
-    const ui32 foldCount = featureEvalOptions.FoldCount;
     const ui32 featureSetCount = featureEvalOptions.FeaturesToEvaluate->size();
-    return foldCount * (useCommonBaseline ? featureSetCount + 1 : 2 * featureSetCount);
+    return useCommonBaseline ? featureSetCount + 1 : 2 * featureSetCount;
+}
+
+
+static ui32 GetTrainingCount(const NCatboostOptions::TFeatureEvalOptions& featureEvalOptions) {
+    const ui32 foldCount = featureEvalOptions.FoldCount;
+    return foldCount * GetTrainingCountPerFold(featureEvalOptions);
 }
 
 static void EvaluateFeaturesImpl(
@@ -827,11 +832,6 @@ static void EvaluateFeaturesImpl(
     const ui32 foldCount = cvParams.Initialized() ? cvParams.FoldCount : featureEvalOptions.FoldCount.Get();
     CB_ENSURE(data->ObjectsData->GetObjectCount() > foldCount, "Pool is too small to be split into folds");
     CB_ENSURE(data->ObjectsData->GetObjectCount() > featureEvalOptions.FoldSize.Get(), "Pool is too small to be split into folds");
-    // TODO(akhropov): implement ordered split. MLTOOLS-2486.
-    CB_ENSURE(
-        data->ObjectsData->GetOrder() != EObjectsOrder::Ordered,
-        "Feature evaluation for ordered objects data is not yet implemented"
-    );
 
     const ui64 cpuUsedRamLimit
         = ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get());
@@ -933,10 +933,7 @@ static void EvaluateFeaturesImpl(
         results->SetHeaderInfo(metrics, featureEvalOptions.FeaturesToEvaluate);
     }
 
-    const ui32 trainingCount = GetTrainingCount(featureEvalOptions);
-    CATBOOST_NOTICE_LOG << "Feature evaluation requires training " << trainingCount << " model(s); "
-        "if training takes more than 10 minutes to complete, progress is printed every 10 minutes" << Endl;
-    ui32 trainingIdx = 0;
+    ui32 trainingIdx = foldRangeBegin * GetTrainingCountPerFold(featureEvalOptions);
 
     const ui32 offsetInRange = cvParams.Initialized() ? 0 : featureEvalOptions.Offset.Get();
     const auto trainFullModels = [&] (
@@ -949,7 +946,7 @@ static void EvaluateFeaturesImpl(
         const bool isCalcRegularFstr = !outputFileOptions.CreateFstrRegularFullPath().empty();
         for (auto foldIdx : xrange(foldCount)) {
             ++trainingIdx;
-            CATBOOST_NOTICE_LOG << "Training model number " << trainingIdx << " of " << trainingCount << Endl;
+            CATBOOST_NOTICE_LOG << "Training model number " << trainingIdx << Endl;
 
             const bool haveSummary = callbacks->HaveEvalFeatureSummary(
                 foldRangeBegin,
@@ -1194,6 +1191,10 @@ TFeatureEvaluationSummary EvaluateFeatures(
     if (outputFileOptions.SaveSnapshot() && NFs::Exists(absoluteSnapshotPath)) {
         callbacks->LoadSnapshot(taskType, absoluteSnapshotPath);
     }
+
+    const ui32 trainingCount = GetTrainingCount(featureEvalOptions);
+    CATBOOST_NOTICE_LOG << "Feature evaluation requires training " << trainingCount << " model(s); "
+        "if training takes more than 10 minutes to complete, progress is printed every 10 minutes" << Endl;
 
     auto foldRangePart = featureEvalOptions;
     foldRangePart.FoldSize = absoluteFoldSize;
