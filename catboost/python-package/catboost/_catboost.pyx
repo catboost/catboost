@@ -1486,7 +1486,7 @@ cpdef run_atexit_finalizers():
     ManualRunAtExitFinalizers()
 
 
-atexit.register(run_atexit_finalizers)
+# atexit.register(run_atexit_finalizers) TODO(kirillovs): temporarily disabled
 
 
 cdef inline float _FloatOrNan(object obj) except *:
