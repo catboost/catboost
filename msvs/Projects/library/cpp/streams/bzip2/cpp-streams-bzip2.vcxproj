@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{D2BE05C4-A3E9-F005-03A2-D5BA7CA9894C}</ProjectGUID>
+    <ProjectGUID>{95C394B7-2CA8-E01E-1BBA-F2E5311273E7}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-streams-bzip2</ProjectName>
+    <ProjectName>cpp-streams-bzip2</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-streams-bzip2</TargetName>
+    <TargetName>cpp-streams-bzip2</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\streams\bzip2\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\D2BE05C4-A3E9-F005-03A2-D5BA7CA9894C\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\streams\bzip2\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\95C394B7-2CA8-E01E-1BBA-F2E5311273E7\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\streams\bzip2\bzip2.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\streams\bzip2\bzip2.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\streams\bzip2\bzip2.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\streams\bzip2\bzip2.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
