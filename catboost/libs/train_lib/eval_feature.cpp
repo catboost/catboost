@@ -826,6 +826,7 @@ static void EvaluateFeaturesImpl(
     ui32 foldRangeBegin,
     const TCvDataPartitionParams& cvParams,
     TDataProviderPtr data,
+    ui32 processedFoldCount,
     TFeatureEvaluationCallbacks* callbacks,
     TFeatureEvaluationSummary* results
 ) {
@@ -933,7 +934,7 @@ static void EvaluateFeaturesImpl(
         results->SetHeaderInfo(metrics, featureEvalOptions.FeaturesToEvaluate);
     }
 
-    ui32 trainingIdx = foldRangeBegin * GetTrainingCountPerFold(featureEvalOptions);
+    ui32 trainingIdx = processedFoldCount * GetTrainingCountPerFold(featureEvalOptions);
 
     const ui32 offsetInRange = cvParams.Initialized() ? 0 : featureEvalOptions.Offset.Get();
     const auto trainFullModels = [&] (
@@ -1213,6 +1214,7 @@ TFeatureEvaluationSummary EvaluateFeatures(
             /*foldRangeBegin*/ foldRangeIdx * disjointFoldCount,
             cvParams,
             data,
+            processedFoldCount,
             callbacks.Get(),
             &summary
         );
