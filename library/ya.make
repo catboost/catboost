@@ -111,7 +111,6 @@ RECURSE(
     sse
     statistics
     statistics/ut
-    streams
     string_utils
     svnversion
     svnversion/java

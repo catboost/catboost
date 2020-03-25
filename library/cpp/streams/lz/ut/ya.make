@@ -1,4 +1,4 @@
-UNITTEST_FOR(library/streams/lz)
+UNITTEST_FOR(library/cpp/streams/lz)
 
 
 
