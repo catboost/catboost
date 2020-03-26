@@ -378,6 +378,8 @@ namespace NCatboostCuda {
 
             TVector<TVector<double>> rawValues(approxDimension);
 
+            CheckMetrics(updatedCatboostOptions.MetricOptions);
+
             TGpuTrainResult gpuFormatModel = TrainModelImpl(
                 internalOptions,
                 updatedCatboostOptions,
@@ -526,6 +528,8 @@ namespace NCatboostCuda {
                 labelConverter,
                 trainingData.Learn->TargetData->GetTargetDimension()
             );
+
+            CheckMetrics(updatedCatboostOptions.MetricOptions);
 
             ModelBasedEvalImpl(
                 updatedCatboostOptions,

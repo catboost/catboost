@@ -194,7 +194,9 @@ enum class ELossFunction {
     FilteredDCG,
 
     /* multi-regression */
-    MultiRMSE
+    MultiRMSE,
+
+    Combination
 };
 
 enum class ERankingType {
