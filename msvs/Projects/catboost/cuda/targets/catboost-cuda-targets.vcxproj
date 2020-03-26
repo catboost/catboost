@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\auc.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\combination_targets_impl.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\dcg.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\gpu_metrics.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\targets\kernel.cpp"/>
@@ -184,6 +185,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\build\platform\cuda\cuda_runtime_include.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\auc.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\combination_targets_impl.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\dcg.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\gpu_metrics.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\cuda\targets\kernel.h"/>
