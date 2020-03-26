@@ -1,16 +1,17 @@
-import urllib2
+import datetime as dt
+import errno
 import hashlib
-import tarfile
+import json
+import logging
+import os
+import pwd
 import random
+import shutil
+import socket
 import string
 import sys
-import os
-import logging
-import json
-import socket
-import shutil
-import errno
-import datetime as dt
+import tarfile
+import urllib2
 
 import retry
 
@@ -29,7 +30,7 @@ def add_common_arguments(parser):
     parser.add_argument('--rename', action='append', default=[], metavar='FILE', help='rename FILE to the corresponding output')
     parser.add_argument('--executable', action='store_true', help='make outputs executable')
     parser.add_argument('--log-path')
-    parser.add_argument('outputs', nargs='*')
+    parser.add_argument('outputs', nargs='*', default=[])
 
 
 def ensure_dir(path):
@@ -37,6 +38,7 @@ def ensure_dir(path):
         os.makedirs(path)
 
 
+# Reference code: library/python/fs/__init__.py
 def hardlink_or_copy(src, dst):
     ensure_dir(os.path.dirname(dst))
 
@@ -48,8 +50,8 @@ def hardlink_or_copy(src, dst):
         except OSError as e:
             if e.errno == errno.EEXIST:
                 return
-            elif e.errno == errno.EXDEV:
-                sys.stderr.write("Can't make cross-device hardlink - fallback to copy: {} -> {}\n".format(src, dst))
+            elif e.errno in (errno.EXDEV, errno.EMLINK, errno.EINVAL, errno.EACCES):
+                sys.stderr.write("Can't make hardlink (errno={}) - fallback to copy: {} -> {}\n".format(e.errno, src, dst))
                 shutil.copy(src, dst)
             else:
                 raise
@@ -274,9 +276,22 @@ def fetch_url(url, unpack, resource_file_name, expected_md5=None, expected_sha1=
     return tmp_file_name
 
 
+def chmod(filename, mode):
+    stat = os.stat(filename)
+    if stat.st_mode & 0o777 != mode:
+        try:
+            os.chmod(filename, mode)
+        except OSError:
+            sys.stderr.write("{} st_mode: {} pwuid: {}\n".format(filename, stat.st_mode, pwd.getpwuid(os.stat(filename).st_uid)))
+            raise
+
+
 def process(fetched_file, file_name, args, remove=True):
     assert len(args.rename) <= len(args.outputs), (
         'too few outputs to rename', args.rename, 'into', args.outputs)
+
+    # Forbid changes to the loaded resource
+    chmod(fetched_file, 0o444)
 
     if not os.path.isfile(fetched_file):
         raise ResourceIsDirectoryError('Resource must be a file, not a directory: %s' % fetched_file)
@@ -296,9 +311,16 @@ def process(fetched_file, file_name, args, remove=True):
 
     if args.untar_to:
         ensure_dir(args.untar_to)
+        # Extract only requested files
         try:
             with tarfile.open(fetched_file, mode='r:*') as tar:
-                tar.extractall(args.untar_to)
+                inputs = set(map(os.path.normpath, args.rename + args.outputs[len(args.rename):]))
+                members = [entry for entry in tar if os.path.normpath(os.path.join(args.untar_to, entry.name)) in inputs]
+                tar.extractall(args.untar_to, members=members)
+            # Forbid changes to the loaded resource data
+            for root, _, files in os.walk(args.untar_to):
+                for filename in files:
+                    chmod(os.path.join(root, filename), 0o444)
         except tarfile.ReadError as e:
             logging.exception(e)
             raise ResourceUnpackingError('File {} cannot be untared'.format(fetched_file))
@@ -311,10 +333,12 @@ def process(fetched_file, file_name, args, remove=True):
             hardlink_or_copy(src, dst)
         else:
             logging.info('Renaming %s to %s', src, dst)
+            if os.path.exists(dst):
+                raise ResourceUnpackingError("Target file already exists ({} -> {})".format(src, dst))
             if remove:
                 rename_or_copy_and_remove(src, dst)
             else:
-                shutil.copy(src, dst)
+                hardlink_or_copy(src, dst)
 
     for path in args.outputs:
         if not os.path.exists(path):
@@ -322,7 +346,7 @@ def process(fetched_file, file_name, args, remove=True):
         if not os.path.isfile(path):
             raise OutputIsDirectoryError('Output must be a file, not a directory: %s' % os.path.abspath(path))
         if args.executable:
-            os.chmod(path, os.stat(path).st_mode | 0o111)
+            chmod(path, os.stat(path).st_mode | 0o111)
         if os.path.abspath(path) == os.path.abspath(fetched_file):
             remove = False
 
