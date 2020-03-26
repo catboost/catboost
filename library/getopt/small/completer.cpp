@@ -3,6 +3,7 @@
 #include "completion_generator.h"
 
 #include <util/string/cast.h>
+#include <util/generic/fwd.h>
 
 using NLastGetopt::NEscaping::Q;
 using NLastGetopt::NEscaping::QQ;
@@ -226,14 +227,25 @@ namespace NLastGetopt::NComp {
             return;
         }
 
-        for (int i = 1; i < argc - 1; ++i) {
+        for (int i = 1; i < argc - 4; ++i) {
             if (SpecialFlag == argv[i]) {
                 auto name = TStringBuf(argv[i + 1]);
+                auto curIdx = FromString<int>(argv[i + 2]);
+                auto prefix = TStringBuf(argv[i + 3]);
+                auto suffix = TStringBuf(argv[i + 4]);
+
+                auto cur = TStringBuf();
+                if (0 <= curIdx && curIdx < i) {
+                    cur = TStringBuf(argv[curIdx]);
+                }
+                if (cur && !prefix && !suffix) {
+                    prefix = cur;  // bash does not send prefix and suffix
+                }
 
                 auto head = Head;
                 while (head) {
                     if (head->GetUniqueName() == name) {
-                        head->GenerateCompletions(i, argv);
+                        head->GenerateCompletions(i, argv, curIdx, cur, prefix, suffix);
                     }
                     head = head->Next_;
                 }
@@ -245,15 +257,31 @@ namespace NLastGetopt::NComp {
 
     void TCustomCompleter::RegisterCustomCompleter(TCustomCompleter* completer) noexcept {
         Y_VERIFY(completer);
-        if (Head) {
-            completer->Next_ = Head;
-        }
+        completer->Next_ = Head;
         Head = completer;
     }
 
     void TCustomCompleter::AddCompletion(TStringBuf completion) {
         Cout << completion << Endl;  // this was easy =)
         // TODO: support option descriptions and messages
+    }
+
+    void TMultipartCustomCompleter::GenerateCompletions(int argc, const char** argv, int curIdx, TStringBuf cur, TStringBuf prefix, TStringBuf suffix) {
+        auto root = TStringBuf();
+        if (prefix.Contains(Sep_)) {
+            auto tmp = TStringBuf();
+            prefix.RSplit(Sep_, root, tmp);
+        }
+
+        if (root) {
+            Cout << root << Sep_ << Endl;
+        } else {
+            Cout << Endl;
+        }
+
+        Cout << Sep_ << Endl;
+
+        GenerateCompletionParts(argc, argv, curIdx, cur, prefix, suffix, root);
     }
 
     class TLaunchSelf: public ICompleter {
@@ -264,7 +292,9 @@ namespace NLastGetopt::NComp {
         }
 
         void GenerateBash(TFormattedOutput& out) const override {
-            L << "COMPREPLY+=( $(compgen -W \"$(${COMP_WORDS[@]}} " << SpecialFlag << " " << Completer_->GetUniqueName() << ")\" -- ${cur}) )";
+            L << "IFS=$'\\n'";
+            L << "COMPREPLY+=( $(compgen -W \"$(${words[@]} " << SpecialFlag << " " << Completer_->GetUniqueName() << " \"${cword}\" \"\" \"\")\" -- ${cur}) )";
+            L << "IFS=$' \\t\\n'";
         }
 
         TStringBuf GenerateZshAction(TCompleterManager& manager) const override {
@@ -272,7 +302,7 @@ namespace NLastGetopt::NComp {
         }
 
         void GenerateZsh(TFormattedOutput& out, TCompleterManager&) const override {
-            L << "compadd ${@} ${expl[@]} \"${(@f)$($words_orig " << SpecialFlag << " " << Completer_->GetUniqueName() << ")}\"";
+            L << "compadd ${@} ${expl[@]} -- \"${(@f)$(${words_orig[@]} " << SpecialFlag << " " << Completer_->GetUniqueName() << " \"${current_orig}\" \"${prefix_orig}\" \"${suffix_orig}\")}\"";
         }
 
     private:
@@ -281,6 +311,55 @@ namespace NLastGetopt::NComp {
 
     ICompleterPtr LaunchSelf(TCustomCompleter& completer) {
         return MakeSimpleShared<TLaunchSelf>(&completer);
+    }
+
+    class TLaunchSelfMultiPart: public ICompleter {
+    public:
+        TLaunchSelfMultiPart(TCustomCompleter* completer)
+            : Completer_(completer)
+        {
+        }
+
+        void GenerateBash(TFormattedOutput& out) const override {
+            L << "IFS=$'\\n'";
+            L << "items=( $(${words[@]} " << SpecialFlag << " " << Completer_->GetUniqueName() << " \"${cword}\" \"\" \"\") )";
+            L << "candidates=$(compgen -W \"${items[*]:1}\" -- \"$cur\")";
+            L << "COMPREPLY+=( $candidates )";
+            L << "[[ $candidates == *\"${items[1]}\" ]] && need_space=\"\"";
+            L << "IFS=$' \\t\\n'";
+        }
+
+        TStringBuf GenerateZshAction(TCompleterManager& manager) const override {
+            return manager.GetCompleterID(this);
+        }
+
+        void GenerateZsh(TFormattedOutput& out, TCompleterManager&) const override {
+            L << "local items=( \"${(@f)$(${words_orig[@]} " << SpecialFlag << " " << Completer_->GetUniqueName() << " \"${current_orig}\" \"${prefix_orig}\" \"${suffix_orig}\")}\" )";
+            L;
+            L << "local rempat=${items[1]}";
+            L << "shift items";
+            L;
+            L << "local sep=${items[1]}";
+            L << "shift items";
+            L;
+            L << "local files=( ${items:#*\"${sep}\"} )";
+            L << "local filenames=( ${files#\"${rempat}\"} )";
+            L << "local dirs=( ${(M)items:#*\"${sep}\"} )";
+            L << "local dirnames=( ${dirs#\"${rempat}\"} )";
+            L;
+            L << "local need_suf";
+            L << "compset -S \"${sep}*\" || need_suf=\"1\"";
+            L;
+            L << "compadd ${@} ${expl[@]} -d filenames -- ${(q)files}";
+            L << "compadd ${@} ${expl[@]} ${need_suf:+-S\"${sep}\"} -q -d dirnames -- ${(q)dirs%\"${sep}\"}";
+        }
+
+    private:
+        TCustomCompleter* Completer_;
+    };
+
+    ICompleterPtr LaunchSelfMultiPart(TCustomCompleter& completer) {
+        return MakeSimpleShared<TLaunchSelfMultiPart>(&completer);
     }
 
 #undef I

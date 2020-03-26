@@ -44,6 +44,9 @@ namespace NLastGetopt {
             I;
             L << "local state line desc modes context curcontext=\"$curcontext\" ret=1";
             L << "local words_orig=(\"${words[@]}\")";
+            L << "local current_orig=\"$((CURRENT - 1))\"";
+            L << "local prefix_orig=\"$PREFIX\"";
+            L << "local suffix_orig=\"$SUFFIX\"";
             L;
             Visit(TOverloaded{
                 [&out, &manager](const TModChooser* modChooser) {
@@ -379,10 +382,13 @@ namespace NLastGetopt {
             I;
             L << "COMPREPLY=()";
             L;
-            L << "local i args opts";
+            L << "local i args opts items candidates";
             L;
-            L << "local cur=\"${COMP_WORDS[COMP_CWORD]}\"";
-            L << "local prev=\"${COMP_WORDS[COMP_CWORD-1]}\"";
+            L << "local cur prev words cword";
+            L << "_get_comp_words_by_ref -n \"\\\"'><=;|&(:\" cur prev words cword";
+            L;
+            L << "local need_space=\"1\"";
+            L << "local IFS=$' \\t\\n'";
             L;
             Visit(TOverloaded{
                 [&out, &manager](const TModChooser* modChooser) {
@@ -393,11 +399,32 @@ namespace NLastGetopt {
                 }
             }, Options_);
             L;
+            L;
+            L << "__ltrim_colon_completions \"$cur\"";
+            L;
+            L << "IFS=$'\\n'";
+            L << "if [ ${#COMPREPLY[@]} -ne 0 ]; then";
+            {
+                I;
+                L << "if [[ -z $need_space ]]; then";
+                {
+                    I;
+                    L << "COMPREPLY=( $(printf \"%q\\n\" \"${COMPREPLY[@]}\") )";
+                }
+                L << "else";
+                {
+                    I;
+                    L << "COMPREPLY=( $(printf \"%q \\n\" \"${COMPREPLY[@]}\") )";
+                }
+                L << "fi";
+            }
+            L << "fi";
+            L;
             L << "return 0";
         }
         L << "}";
         L;
-        L << "complete -o default -F _" << command << " " << command;
+        L << "complete -o nospace -o default -F _" << command << " " << command;
 
         out.Print(stream);
     }
@@ -405,7 +432,7 @@ namespace NLastGetopt {
     void TBashCompletionGenerator::GenerateModesCompletion(TFormattedOutput& out, const TModChooser& chooser, NComp::TCompleterManager& manager, size_t level) {
         auto modes = chooser.GetUnsortedModes();
 
-        L << "if [[ ${COMP_CWORD} == " << level << " ]] ; then";
+        L << "if [[ ${cword} == " << level << " ]] ; then";
         {
             I;
             L << "if [[ ${cur} == -* ]] ;  then";
@@ -438,7 +465,7 @@ namespace NLastGetopt {
         L << "else";
         {
             I;
-            L << "case \"${COMP_WORDS[" << level << "]}\" in";
+            L << "case \"${words[" << level << "]}\" in";
             {
                 I;
 
@@ -555,10 +582,10 @@ namespace NLastGetopt {
                         }
                     }
                     line << ")'";
-                    L << "for (( i=" << level << "; i < COMP_CWORD; i++ )); do";
+                    L << "for (( i=" << level << "; i < cword; i++ )); do";
                     {
                         I;
-                        L << "if [[ ${COMP_WORDS[i]} != -* && ${COMP_WORDS[i-1]} != $opts ]]; then";
+                        L << "if [[ ${words[i]} != -* && ${words[i-1]} != $opts ]]; then";
                         {
                             I;
                             L << "(( args++ ))";

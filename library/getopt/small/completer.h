@@ -6,6 +6,7 @@
 #include <util/generic/hash.h>
 
 #include <utility>
+#include <util/generic/fwd.h>
 
 namespace NLastGetopt::NComp {
     class ICompleter;
@@ -150,27 +151,84 @@ namespace NLastGetopt::NComp {
         virtual ~TCustomCompleter() = default;
 
     public:
-        virtual void GenerateCompletions(int argc, const char** argv) = 0;
+        /// @param argc total number of command line arguments.
+        /// @param argv array of command line arguments.
+        /// @param curIdx index of the currently completed argument, may be equal to `argc` if cursor is at the end
+        ///        of line.
+        /// @param cur currently completed argument.
+        /// @param prefix part of the currently completed argument before the cursor.
+        /// @param suffix part of the currently completed argument after the cursor.
+        virtual void GenerateCompletions(int argc, const char** argv, int curIdx, TStringBuf cur, TStringBuf prefix, TStringBuf suffix) = 0;
         virtual TStringBuf GetUniqueName() const = 0;
 
     protected:
         void AddCompletion(TStringBuf completion);
 
     private:
-        TCustomCompleter* Next_;
+        TCustomCompleter* Next_ = nullptr;
     };
 
-#define Y_COMPLETER(N)                                                  \
-class T##N: public ::NLastGetopt::NComp::TCustomCompleter {             \
-    public:                                                             \
-        void GenerateCompletions(int argc, const char** argv) override; \
-        TStringBuf GetUniqueName() const override { return #N; }        \
-    };                                                                  \
-    T##N N = T##N();                                                    \
-    ::NLastGetopt::NComp::TCustomCompleter::TReg _Reg_##N = &N;         \
-    void T##N::GenerateCompletions(Y_DECLARE_UNUSED int argc, Y_DECLARE_UNUSED const char** argv)
+    /// Custom completer for objects that consist of multiple parts split by a common separator, such as file paths.
+    class TMultipartCustomCompleter: public TCustomCompleter {
+    public:
+        TMultipartCustomCompleter(TStringBuf sep)
+            : Sep_(sep)
+        {
+            Y_VERIFY(!Sep_.empty());
+        }
 
-    /// Launches this binary with a specially formed flags.
+    public:
+        void GenerateCompletions(int argc, const char** argv, int curIdx, TStringBuf cur, TStringBuf prefix, TStringBuf suffix) final;
+
+    public:
+        /// @param argc same as in `GenerateCompletions`.
+        /// @param argv same as in `GenerateCompletions`.
+        /// @param curIdx same as in `GenerateCompletions`.
+        /// @param cur same as in `GenerateCompletions`.
+        /// @param prefix same as in `GenerateCompletions`.
+        /// @param suffix same as in `GenerateCompletions`.
+        /// @param root part of the currently completed argument before the last separator.
+        virtual void GenerateCompletionParts(int argc, const char** argv, int curIdx, TStringBuf cur, TStringBuf prefix, TStringBuf suffix, TStringBuf root) = 0;
+
+    protected:
+        TStringBuf Sep_;
+    };
+
+#define Y_COMPLETER(N)                                                                                                 \
+class T##N: public ::NLastGetopt::NComp::TCustomCompleter {                                                            \
+    public:                                                                                                            \
+        void GenerateCompletions(int, const char**, int, TStringBuf, TStringBuf, TStringBuf) override;                 \
+        TStringBuf GetUniqueName() const override { return #N; }                                                       \
+    };                                                                                                                 \
+    T##N N = T##N();                                                                                                   \
+    ::NLastGetopt::NComp::TCustomCompleter::TReg _Reg_##N = &N;                                                        \
+    void T##N::GenerateCompletions(                                                                                    \
+        Y_DECLARE_UNUSED int argc,                                                                                     \
+        Y_DECLARE_UNUSED const char** argv,                                                                            \
+        Y_DECLARE_UNUSED int curIdx,                                                                                   \
+        Y_DECLARE_UNUSED TStringBuf cur,                                                                               \
+        Y_DECLARE_UNUSED TStringBuf prefix,                                                                            \
+        Y_DECLARE_UNUSED TStringBuf suffix)
+
+#define Y_MULTIPART_COMPLETER(N, SEP)                                                                                  \
+class T##N: public ::NLastGetopt::NComp::TMultipartCustomCompleter {                                                   \
+    public:                                                                                                            \
+        T##N() : ::NLastGetopt::NComp::TMultipartCustomCompleter(SEP) {}                                               \
+        void GenerateCompletionParts(int, const char**, int, TStringBuf, TStringBuf, TStringBuf, TStringBuf) override; \
+        TStringBuf GetUniqueName() const override { return #N; }                                                       \
+    };                                                                                                                 \
+    T##N N = T##N();                                                                                                   \
+    ::NLastGetopt::NComp::TCustomCompleter::TReg _Reg_##N = &N;                                                        \
+    void T##N::GenerateCompletionParts(                                                                                \
+        Y_DECLARE_UNUSED int argc,                                                                                     \
+        Y_DECLARE_UNUSED const char** argv,                                                                            \
+        Y_DECLARE_UNUSED int curIdx,                                                                                   \
+        Y_DECLARE_UNUSED TStringBuf cur,                                                                               \
+        Y_DECLARE_UNUSED TStringBuf prefix,                                                                            \
+        Y_DECLARE_UNUSED TStringBuf suffix,                                                                            \
+        Y_DECLARE_UNUSED TStringBuf root)
+
+    /// Launches this binary with a specially formed flags and retrieves completions from stdout.
     ///
     /// Your application must be set up in a certain way for this to work.
     ///
@@ -198,4 +256,51 @@ class T##N: public ::NLastGetopt::NComp::TCustomCompleter {             \
     /// }
     /// ```
     ICompleterPtr LaunchSelf(TCustomCompleter& completer);
+
+    /// Launches this binary with a specially formed flags and retrieves completions from stdout.
+    ///
+    /// Your application must be set up in a certain way for this to work. See `LaunchSelf` for more info.
+    ///
+    /// Multipart completion is designed for objects that consist of multiple parts split by a common separator.
+    /// It is ideal for completing remote file paths, for example.
+    ///
+    /// Multipart completers format stdout in the following way.
+    ///
+    /// On the first line, they print a common prefix that should be stripped from all completions. For example,
+    /// if you complete paths, this prefix would be a common directory.
+    ///
+    /// On the second line, they print a separator. If some completion ends with this separator, shell will not add
+    /// a whitespace after the item is completed. For example, if you complete paths, the separator would be a slash.
+    ///
+    /// On the following lines, they print completions, as formed by the `AddCompletion` function.
+    ///
+    /// For example, if a user invokes completion like this:
+    ///
+    /// ```
+    /// $ program //home/logs/<tab><tab>
+    /// ```
+    ///
+    /// The stdout might look like this:
+    ///
+    /// ```
+    /// //home/logs/
+    /// /
+    /// //home/logs/access-log
+    /// //home/logs/redir-log
+    /// //home/logs/blockstat-log
+    /// ```
+    ///
+    /// Then autocompletion will look like this:
+    ///
+    /// ```
+    /// $ program //home/logs/<tab><tab>
+    ///  -- yt path --
+    /// access-log     redir-log     blockstat-log
+    /// ```
+    ///
+    /// Note: stdout lines with completion suggestions *must* be formatted by the `AddCompletion` function
+    /// because their format may change in the future.
+    ///
+    /// Note: we recommend using `Y_MULTIPART_COMPLETER` because it will handle all stdout printing for you.
+    ICompleterPtr LaunchSelfMultiPart(TCustomCompleter& completer);
 }
