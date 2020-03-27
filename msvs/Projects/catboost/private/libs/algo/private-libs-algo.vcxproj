@@ -91,6 +91,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\confusion_matrix.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\ctr_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\data.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\feature_penalties_calcer.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\features_data_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\fold.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\full_model_saver.cpp"/>
@@ -132,6 +133,7 @@
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\confusion_matrix.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\ctr_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\data.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\feature_penalties_calcer.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\features_data_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\fold.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\full_model_saver.h"/>
