@@ -311,7 +311,7 @@ Y_UNIT_TEST_SUITE(TPointwiseHistogramTest) {
                                           const TCudaBuffer<ui32, typename TLayout::TSamplesMapping>& indices,
                                           ui32 depth,
                                           ui32 foldCount) {
-        for (auto policy : NCatboostCuda::GetAllGroupingPolicies()) {
+        for (auto policy : GetEnumAllValues<NCatboostCuda::EFeaturesGroupingPolicy>()) {
             if (calcer.HasHelperForPolicy(policy)) {
                 auto& scoreHelper = calcer.GetHelperForPolicy(policy);
                 auto histogram = scoreHelper.ReadHistograms();

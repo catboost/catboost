@@ -486,7 +486,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
             NCudaLib::GetCudaManager().Barrier();
 
             if (featuresScoreCalcer) {
-                for (auto policy : GetAllGroupingPolicies()) {
+                for (auto policy : GetEnumAllValues<NCatboostCuda::EFeaturesGroupingPolicy>()) {
                     if (featuresScoreCalcer->HasHelperForPolicy(policy)) {
                         const TBinaryFeatureSplitResults& results = featuresScoreCalcer->GetResultsForPolicy(
                             policy);
@@ -501,7 +501,7 @@ Y_UNIT_TEST_SUITE(TPairwiseHistogramTest) {
             }
 
             if (simpleCtrScoreCalcer) {
-                for (auto policy : GetAllGroupingPolicies()) {
+                for (auto policy : GetEnumAllValues<NCatboostCuda::EFeaturesGroupingPolicy>()) {
                     if (simpleCtrScoreCalcer->HasHelperForPolicy(policy)) {
                         const TBinaryFeatureSplitResults& results = simpleCtrScoreCalcer->GetResultsForPolicy(policy);
                         CheckResults(policy,

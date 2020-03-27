@@ -40,7 +40,8 @@ namespace NCatboostCuda {
 
         auto uncompressedCatFeature = catFeature.ExtractValues(LocalExecutor);
         TSingleBuffer<ui32> tmp = TSingleBuffer<ui32>::Create(
-            NCudaLib::TSingleMapping(DeviceId, (*uncompressedCatFeature).size()));
+            NCudaLib::TSingleMapping(DeviceId, docCount)
+        );
         tmp.Write(*uncompressedCatFeature);
         const auto uniqueValues = FeaturesManager.GetBinCount(featureId);
         const auto compressedSize = CompressedSize<ui64>((ui32)docCount, uniqueValues);
