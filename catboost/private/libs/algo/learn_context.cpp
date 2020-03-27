@@ -579,6 +579,8 @@ TLearnProgress::TLearnProgress(
             localExecutor
         );
     }
+
+    UsedFeatures.resize(data.Learn->ObjectsData->GetFeaturesLayout()->GetExternalFeatureCount(), false);
 }
 
 

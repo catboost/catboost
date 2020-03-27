@@ -15,6 +15,7 @@ SRCS(
     calc_score_cache.cpp
     ctr_helper.cpp
     data.cpp
+    feature_penalties_calcer.cpp
     features_data_helpers.cpp
     fold.cpp
     full_model_saver.cpp

@@ -255,6 +255,11 @@
         "min_data_in_leaf": 1, 
         "model_size_reg": 0.5, 
         "monotone_constraints": {}, 
+        "penalties": {
+            "feature_weights": {}, 
+            "first_feature_use_penalties": {}, 
+            "penalties_coefficient": 1
+        }, 
         "random_strength": 1, 
         "rsm": 1, 
         "sampling_frequency": "PerTree", 

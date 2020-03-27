@@ -7231,3 +7231,156 @@ def test_load_and_save_quantization_borders():
     assert not filecmp.cmp(borders_32_file, borders_10_file)
 
     return [local_canonical_file(borders_32_file), local_canonical_file(borders_10_file)]
+
+
+def test_feature_weights_work():
+    pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    most_important_feature_index = 3
+    classifier_params = {
+        'iterations': 5,
+        'learning_rate': 0.03,
+        'task_type': 'CPU',
+        'devices': '0',
+        'loss_function': 'MultiClass',
+    }
+
+    model_without_feature_weights = CatBoostClassifier(**classifier_params)
+    model_without_feature_weights.fit(pool)
+    importance_without_feature_weights = model_without_feature_weights.get_feature_importance(
+        type=EFstrType.PredictionValuesChange,
+        data=pool
+    )[most_important_feature_index]
+
+    model_with_feature_weights = CatBoostClassifier(
+        feature_weights={most_important_feature_index: 0.1},
+        **classifier_params
+    )
+    model_with_feature_weights.fit(pool)
+    importance_with_feature_weights = model_with_feature_weights.get_feature_importance(
+        type=EFstrType.PredictionValuesChange,
+        data=pool
+    )[most_important_feature_index]
+
+    assert importance_with_feature_weights < importance_without_feature_weights
+
+
+def test_different_formats_of_feature_weights():
+    train_pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    test_pool = Pool(AIRLINES_5K_TEST_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+
+    feature_weights_array = np.array([1, 1, 1, 0.1, 1, 1, 1, 2])
+    feature_weights_list = [1, 1, 1, 0.1, 1, 1, 1, 2]
+    feature_weights_dict_1 = {3: 0.1, 7: 2}
+    feature_weights_dict_2 = {'DepTime': 0.1, 'Distance': 2}
+    feature_weights_string_1 = "(1,1,1,0.1,1,1,1,2)"
+    feature_weights_string_2 = "3:0.1,7:2"
+    feature_weights_string_3 = "DepTime:0.1,Distance:2"
+
+    common_options = dict(iterations=50)
+    model1 = CatBoostClassifier(feature_weights=feature_weights_array, **common_options)
+    model1.fit(train_pool)
+    predictions1 = model1.predict(test_pool)
+    for feature_weights in [
+        feature_weights_list,
+        feature_weights_dict_1,
+        feature_weights_dict_2,
+        feature_weights_string_1,
+        feature_weights_string_2,
+        feature_weights_string_3
+    ]:
+        model2 = CatBoostClassifier(feature_weights=feature_weights, **common_options)
+        model2.fit(train_pool)
+        predictions2 = model2.predict(test_pool)
+        assert all(predictions1 == predictions2)
+
+
+def test_first_feature_use_penalties_work():
+    pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    most_important_feature_index = 3
+    classifier_params = {
+        'iterations': 5,
+        'learning_rate': 0.03,
+        'task_type': 'CPU',
+        'devices': '0',
+        'loss_function': 'MultiClass',
+    }
+
+    model_without_feature_penalties = CatBoostClassifier(**classifier_params)
+    model_without_feature_penalties.fit(pool)
+    importance_without_feature_penalties = model_without_feature_penalties.get_feature_importance(
+        type=EFstrType.PredictionValuesChange,
+        data=pool
+    )[most_important_feature_index]
+
+    model_with_feature_penalties = CatBoostClassifier(
+        first_feature_use_penalties={most_important_feature_index: 100},
+        **classifier_params
+    )
+    model_with_feature_penalties.fit(pool)
+    importance_with_feature_penalties = model_with_feature_penalties.get_feature_importance(
+        type=EFstrType.PredictionValuesChange,
+        data=pool
+    )[most_important_feature_index]
+
+    assert importance_with_feature_penalties < importance_without_feature_penalties
+
+
+def test_different_formats_of_first_feature_use_penalties():
+    train_pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    test_pool = Pool(AIRLINES_5K_TEST_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+
+    first_feature_use_penalties_array = np.array([0, 0, 0, 10, 0, 0, 0, 2])
+    first_feature_use_penalties_list = [0, 0, 0, 10, 0, 0, 0, 2]
+    first_feature_use_penalties_dict_1 = {3: 10, 7: 2}
+    first_feature_use_penalties_dict_2 = {'DepTime': 10, 'Distance': 2}
+    first_feature_use_penalties_string_1 = "(0,0,0,10,0,0,0,2)"
+    first_feature_use_penalties_string_2 = "3:10,7:2"
+    first_feature_use_penalties_string_3 = "DepTime:10,Distance:2"
+
+    common_options = dict(iterations=50)
+    model1 = CatBoostClassifier(first_feature_use_penalties=first_feature_use_penalties_array, **common_options)
+    model1.fit(train_pool)
+    predictions1 = model1.predict(test_pool)
+    for first_feature_use_penalties in [
+        first_feature_use_penalties_list,
+        first_feature_use_penalties_dict_1,
+        first_feature_use_penalties_dict_2,
+        first_feature_use_penalties_string_1,
+        first_feature_use_penalties_string_2,
+        first_feature_use_penalties_string_3
+    ]:
+        model2 = CatBoostClassifier(first_feature_use_penalties=first_feature_use_penalties, **common_options)
+        model2.fit(train_pool)
+        predictions2 = model2.predict(test_pool)
+        assert all(predictions1 == predictions2)
+
+
+def test_penalties_coefficient_work():
+    pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    most_important_feature_index = 3
+    classifier_params = {
+        'iterations': 5,
+        'learning_rate': 0.03,
+        'task_type': 'CPU',
+        'devices': '0',
+        'loss_function': 'MultiClass',
+    }
+
+    model_without_feature_penalties = CatBoostClassifier(**classifier_params)
+    model_without_feature_penalties.fit(pool)
+
+    model_with_feature_penalties = CatBoostClassifier(
+        first_feature_use_penalties={most_important_feature_index: 100},
+        **classifier_params
+    )
+    model_with_feature_penalties.fit(pool)
+
+    model_with_zero_feature_penalties = CatBoostClassifier(
+        first_feature_use_penalties={most_important_feature_index: 100},
+        penalties_coefficient=0,
+        **classifier_params
+    )
+    model_with_zero_feature_penalties.fit(pool)
+
+    assert any(model_without_feature_penalties.predict_proba(pool)[0] == model_with_zero_feature_penalties.predict_proba(pool)[0])
+    assert any(model_without_feature_penalties.predict_proba(pool)[0] != model_with_feature_penalties.predict_proba(pool)[0])

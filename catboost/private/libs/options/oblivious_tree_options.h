@@ -2,6 +2,7 @@
 
 #include "option.h"
 #include "bootstrap_options.h"
+#include "feature_penalties_options.h"
 
 #include <util/system/types.h>
 
@@ -52,5 +53,6 @@ namespace NCatboostOptions {
 
         TCpuOnlyOption<TMap<ui32, int>> MonotoneConstraints;
         TCpuOnlyOption <bool> DevLeafwiseApproxes;
+        TCpuOnlyOption<TFeaturePenaltiesOptions> FeaturePenalties;
     };
 }

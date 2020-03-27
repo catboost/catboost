@@ -16,6 +16,7 @@ SRCS(
     defaults_helper.cpp
     enum_helpers.cpp
     feature_eval_options.cpp
+    feature_penalties_options.cpp
     json_helper.cpp
     load_options.cpp
     loss_description.cpp
@@ -26,6 +27,7 @@ SRCS(
     option.cpp
     output_file_options.cpp
     overfitting_detector_options.cpp
+    parse_per_feature_options.cpp
     plain_options_helper.cpp
     runtime_text_options.cpp
     split_params.cpp

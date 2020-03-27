@@ -98,6 +98,33 @@ public:
             return MultiHash(OneHotFeatureBaseHash, FeatureIdx);
         }
     }
+
+    template <class Function>
+    // Function must get two params - internal feature idx (int) and EFeatureType
+    void IterateOverUsedFeatures(Function&& f) const {
+        if (Type == ESplitType::FloatFeature) {
+            Y_ASSERT(FeatureIdx != -1);
+            f(FeatureIdx, EFeatureType::Float);
+        } else if (Type == ESplitType::OneHotFeature) {
+            Y_ASSERT(FeatureIdx != -1);
+            f(FeatureIdx, EFeatureType::Categorical);
+        } else if (Type == ESplitType::EstimatedFeature) {
+            Y_ASSERT(FeatureIdx != -1);
+            f(FeatureIdx, EFeatureType::Text);
+        } else if (Type == ESplitType::OnlineCtr) {
+            for (const int catFeatureIdx : Ctr.Projection.CatFeatures) {
+                f(catFeatureIdx, EFeatureType::Categorical);
+            }
+            for (const auto& binFeature : Ctr.Projection.BinFeatures) {
+                f(binFeature.FloatFeature, EFeatureType::Float);
+            }
+            for (const auto& oneHotFeature : Ctr.Projection.OneHotFeatures) {
+                f(oneHotFeature.CatFeatureIdx, EFeatureType::Categorical);
+            }
+        } else {
+            ythrow TCatBoostException() << "Unknown feature type" << Type;
+        }
+    }
 };
 
 

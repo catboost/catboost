@@ -23,3 +23,7 @@ TString WriteTJsonValue(const NJson::TJsonValue& jsonValue) {
     }
     return out.Str();
 }
+
+void FromJson(const NJson::TJsonValue& value, TString* result) {
+    *result = value.GetString();
+}

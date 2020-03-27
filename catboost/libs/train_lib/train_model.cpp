@@ -1425,6 +1425,9 @@ void TrainModel(
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &trainOptionsJson, &outputFilesOptionsJson);
     ConvertMonotoneConstraintsToCanonicalFormat(&trainOptionsJson);
     ConvertMonotoneConstraintsFromStringToIndices(pools.Learn.Get()->MetaInfo, &trainOptionsJson);
+    NCatboostOptions::ConvertAllFeaturePenaltiesToCanonicalFormat(&trainOptionsJson);
+    ConvertAllFeaturePenaltiesFromStringToIndices(pools.Learn.Get()->MetaInfo, &trainOptionsJson);
+
     CB_ENSURE(!plainJsonParams.Has("node_type") || plainJsonParams["node_type"] == "SingleHost", "CatBoost Python module does not support distributed training");
 
     NCatboostOptions::TOutputFilesOptions outputOptions;

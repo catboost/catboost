@@ -1,5 +1,6 @@
 #include "greedy_tensor_search.h"
 
+#include "feature_penalties_calcer.h"
 #include "fold.h"
 #include "helpers.h"
 #include "index_calcer.h"
@@ -599,6 +600,7 @@ static void SelectCtrsToDropAfterCalc(
     }
 }
 
+
 static void CalcBestScore(
     const TTrainingForCPUDataProviders& data,
     const TSplitTree& currentTree,
@@ -677,6 +679,13 @@ static void CalcBestScore(
                 scoreStDev,
                 *candidatesContext,
                 &candidate.Candidates);
+
+            AddFeaturePenaltiesToBestSplits(
+                ctx,
+                *data.Learn->ObjectsData,
+                candidatesContext->OneHotMaxSize,
+                &candidate.Candidates
+            );
         },
         0,
         candList.ysize(),
@@ -755,6 +764,13 @@ static void CalcBestScoreLeafwise(
                 scoreStDev,
                 *candidatesContext,
                 &candidate.Candidates);
+
+            AddFeaturePenaltiesToBestSplits(
+                ctx,
+                *data.Learn->ObjectsData,
+                candidatesContext->OneHotMaxSize,
+                &candidate.Candidates
+            );
 
             if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr) && candidate.ShouldDropCtrAfterCalc) {
                 fold->GetCtrRef(splitEnsemble.SplitCandidate.Ctr.Projection).Feature.clear();
@@ -928,6 +944,19 @@ static void ProcessCtrSplit(
     }
 }
 
+static void MarkFeaturesAsUsed(
+    const TSplit& split,
+    const TFeaturesLayout& layout,
+    TVector<bool>* usedFeatures
+) {
+    const auto markFeatureAsUsed = [&layout, usedFeatures](const int internalFeatureIndex, const EFeatureType type) {
+        const auto externalFeatureIndex = layout.GetExternalFeatureIdx(internalFeatureIndex, type);
+        (*usedFeatures)[externalFeatureIndex] = true;
+    };
+
+    split.IterateOverUsedFeatures(markFeatureAsUsed);
+}
+
 static TSplitTree GreedyTensorSearchOblivious(
     const TTrainingForCPUDataProviders& data,
     double modelLength,
@@ -977,6 +1006,8 @@ static TSplitTree GreedyTensorSearchOblivious(
         if (bestSplit.Type == ESplitType::OnlineCtr) {
             ProcessCtrSplit(data, bestSplit, fold, ctx);
         }
+
+        MarkFeaturesAsUsed(bestSplit, *ctx->Layout, &ctx->LearnProgress->UsedFeatures);
 
         if (ctx->Params.SystemOptions->IsSingleHost()) {
             SetPermutedIndices(
@@ -1094,6 +1125,14 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
     subsetsForLeafs[0] = xrange(learnSampleCount).operator TIndexedSubset<ui32>();
 
     while (!queue.empty() && currentStructure.GetLeafCount() < ctx->Params.ObliviousTreeOptions->MaxLeaves) {
+        /*
+         * There is a problem with feature penalties calculation.
+         * We consider a feature unused until we extracted a split with it from the queue.
+         * Before that, all new splits are calculated with penalty for that feature.
+         * And when first split by this feature is extracted from the queue, all other
+         * splits in the queue should be recalculated without penalty for that feature.
+         * However, we don't do it for performance and code simplicity.
+         */
         const TSplitLeafCandidate curSplitLeaf = queue.top();
         queue.pop();
 
@@ -1103,6 +1142,8 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
         if (bestSplit.Type == ESplitType::OnlineCtr) {
             ProcessCtrSplit(data, bestSplit, fold, ctx);
         }
+        MarkFeaturesAsUsed(bestSplit, *ctx->Layout, &ctx->LearnProgress->UsedFeatures);
+
         const auto& node = currentStructure.AddSplit(bestSplit, curSplitLeaf.Leaf);
         const TIndexType splittedNodeIdx = curSplitLeaf.Leaf;
         const TIndexType leftChildIdx = ~node.Left;
@@ -1198,6 +1239,8 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
             if (bestSplit.Type == ESplitType::OnlineCtr) {
                 ProcessCtrSplit(data, bestSplit, fold, ctx);
             }
+            MarkFeaturesAsUsed(bestSplit, *ctx->Layout, &ctx->LearnProgress->UsedFeatures);
+
             const auto& node = currentStructure.AddSplit(bestSplit, leafToSplit);
             const TIndexType leftChildIdx = ~node.Left;
             const TIndexType rightChildIdx = ~node.Right;

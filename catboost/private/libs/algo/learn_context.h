@@ -103,6 +103,8 @@ struct TLearnProgress {
     ui32 SeparateInitModelCheckSum = 0;
 
     TRestorableFastRng64 Rand;
+
+    TVector<bool> UsedFeatures;
 public:
     TLearnProgress();
     TLearnProgress(
