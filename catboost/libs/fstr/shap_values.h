@@ -78,10 +78,17 @@ TShapPreparedTrees PrepareTrees(const TFullModel& model, NPar::TLocalExecutor* l
 TShapPreparedTrees PrepareTrees(
     const TFullModel& model,
     const NCB::TDataProvider* dataset, // can be nullptr if model has LeafWeights
-    int logPeriod,
     EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor,
     bool calcInternalValues = false
+);
+
+void CalcShapValuesByLeaf(
+    const TFullModel& model,
+    int logPeriod,
+    bool calcInternalValues,
+    NPar::TLocalExecutor* localExecutor,
+    TShapPreparedTrees* preparedTrees 
 );
 
 // returned: ShapValues[documentIdx][dimenesion][feature]
