@@ -4,7 +4,7 @@ import hashlib
 import json
 import logging
 import os
-import pwd
+import platform
 import random
 import shutil
 import socket
@@ -277,11 +277,16 @@ def fetch_url(url, unpack, resource_file_name, expected_md5=None, expected_sha1=
 
 
 def chmod(filename, mode):
+    if platform.system().lower() == 'windows':
+        # https://docs.microsoft.com/en-us/windows/win32/fileio/hard-links-and-junctions:
+        # hard to reset read-only attribute for removal if there are multiple hardlinks
+        return
     stat = os.stat(filename)
     if stat.st_mode & 0o777 != mode:
         try:
             os.chmod(filename, mode)
         except OSError:
+            import pwd
             sys.stderr.write("{} st_mode: {} pwuid: {}\n".format(filename, stat.st_mode, pwd.getpwuid(os.stat(filename).st_uid)))
             raise
 
