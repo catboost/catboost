@@ -4430,7 +4430,7 @@ class CatBoostRegressor(CatBoost):
                          verbose_eval, metric_period, silent, early_stopping_rounds,
                          save_snapshot, snapshot_file, snapshot_interval, init_model)
 
-    def predict(self, data, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
+    def predict(self, data, prediction_type=None, ntree_start=0, ntree_end=0, thread_count=-1, verbose=None):
         """
         Predict with data.
 
@@ -4441,6 +4441,11 @@ class CatBoostRegressor(CatBoost):
             Data to apply model on.
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
             as a list of features for a single object.
+
+        prediction_type : string, optional (default='RawFormulaValue')
+            Can be:
+            - 'RawFormulaVal' : return raw formula value.
+            - 'Exponent' : return Exponent of raw formula value.
 
         ntree_start: int, optional (default=0)
             Model is applied on the interval [ntree_start, ntree_end) (zero-based indexing).
@@ -4463,9 +4468,14 @@ class CatBoostRegressor(CatBoost):
             If data is for a single object, the return value is single float formula return value
             otherwise one-dimensional numpy.ndarray of formula return values for each object.
         """
-        return self._predict(data, "RawFormulaVal", ntree_start, ntree_end, thread_count, verbose, 'predict')
+        if prediction_type is None:
+            prediction_type = 'RawFormulaVal'
+            params = self.get_all_params()
+            if params['loss_function'] == 'Poisson':
+                prediction_type='Exponent'
+        return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict')
 
-    def staged_predict(self, data, ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
+    def staged_predict(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
         """
         Predict target at each stage for data.
 
@@ -4501,7 +4511,7 @@ class CatBoostRegressor(CatBoost):
             If data is for a single object, the return value is single float formula return value
             otherwise one-dimensional numpy.ndarray of formula return values for each object.
         """
-        return self._staged_predict(data, "RawFormulaVal", ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict')
+        return self._staged_predict(data, prediction_type, ntree_start, ntree_end, eval_period, thread_count, verbose, 'staged_predict')
 
     def score(self, X, y=None):
         """

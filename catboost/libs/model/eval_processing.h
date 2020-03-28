@@ -27,16 +27,9 @@ inline void CalcSoftmax(const TConstArrayRef<double> approx, TArrayRef<double> s
     }
 }
 
-inline TVector<double> CalcExponent(const TConstArrayRef<double> approx) {
-    TVector<double> exponents;
-    exponents.yresize(approx.size());
-
-    for (size_t dim = 0; dim < approx.size(); ++dim) {
-        exponents[dim] = approx[dim];
-    }
-
-    FastExpInplace(exponents.data(), exponents.ysize());
-    return exponents;
+inline TVector<double> CalcExponent(TVector<double> approx) {
+    FastExpInplace(approx.data(), approx.ysize());
+    return approx;
 }
 
 
@@ -88,6 +81,10 @@ inline void CalcSigmoid(const TConstArrayRef<double> approx, TArrayRef<double> t
     for (auto& val : target) {
         val = 1. / (1. + val);
     }
+}
+
+inline void CalcExponent(TArrayRef<double> approx) {
+    FastExpInplace(approx.data(), approx.ysize());
 }
 
 inline TVector<double> CalcSigmoid(const TConstArrayRef<double> approx) {
@@ -171,9 +168,13 @@ namespace NCB::NModelEvaluation {
                 if (PredictionType == EPredictionType::Probability) {
                     CalcSigmoid(blockView, blockView);
                 } else {
-                    Y_ASSERT(PredictionType == EPredictionType::Class);
-                    for (auto& val : blockView) {
-                        val = val > BinclassRawValueBorder;
+                    if (PredictionType == EPredictionType::Exponent) {
+                        CalcExponent(blockView);
+                    } else {
+                        Y_ASSERT(PredictionType == EPredictionType::Class);
+                        for (auto& val : blockView) {
+                            val = val > BinclassRawValueBorder;
+                        }
                     }
                 }
             } else {
