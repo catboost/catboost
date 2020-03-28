@@ -963,9 +963,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\accurate_accumulate\library-accurate_accumulate.vcxproj">
       <Project>F147C10C-CE54-5773-ED1B-953056696152</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\archive\library-archive.vcxproj">
-      <Project>95CEA565-3E6E-D90C-D44B-E5E7C2117159</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\binsaver\library-binsaver.vcxproj">
       <Project>9C4284EC-342F-438F-B12F-EF54AD02C9C0</Project>
     </ProjectReference>
@@ -1055,6 +1052,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\coroutine\listener\library-coroutine-listener.vcxproj">
       <Project>B4028C7F-B714-C057-20FD-5CC1C3A20526</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\archive\library-cpp-archive.vcxproj">
+      <Project>784F4D3A-0D73-0E90-2CCD-EF41C31F84C8</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\streams\brotli\cpp-streams-brotli.vcxproj">
       <Project>88BDDF2B-3A41-DF09-EA33-A8354BC1FD2B</Project>

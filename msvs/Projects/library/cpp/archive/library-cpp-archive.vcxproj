@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{95CEA565-3E6E-D90C-D44B-E5E7C2117159}</ProjectGUID>
+    <ProjectGUID>{784F4D3A-0D73-0E90-2CCD-EF41C31F84C8}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-archive</ProjectName>
+    <ProjectName>library-cpp-archive</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-archive</TargetName>
+    <TargetName>library-cpp-archive</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\archive\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\95CEA565-3E6E-D90C-D44B-E5E7C2117159\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\archive\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\784F4D3A-0D73-0E90-2CCD-EF41C31F84C8\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,11 +78,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\archive\directory_models_archive_reader.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\archive\yarchive.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\archive\directory_models_archive_reader.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\archive\models_archive_reader.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\archive\yarchive.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\archive\directory_models_archive_reader.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\archive\yarchive.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\archive\directory_models_archive_reader.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\archive\models_archive_reader.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\archive\yarchive.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
