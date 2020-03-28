@@ -35,7 +35,7 @@ ALLOW contrib/libs/geos/capi/ctypes -> library/python/ctypes
 ALLOW contrib/libs/leveldb -> library/deprecated/mapped_file
 ALLOW contrib/libs/leveldb -> library/logger
 ALLOW contrib/libs/leveldb -> library/digest/crc32c
-ALLOW contrib/libs/lua -> library/archive
+ALLOW contrib/libs/lua -> library/cpp/archive
 ALLOW contrib/libs/phonedetect/src -> library/digest/md5
 ALLOW contrib/python/horovod/horovod/common/syms -> library/python/symbols/registry
 ALLOW contrib/python/opensfm -> library/vl_feat

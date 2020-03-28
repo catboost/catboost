@@ -1,6 +1,7 @@
 
 
 RECURSE(
+    archive/ut
     streams
     string_utils
 )

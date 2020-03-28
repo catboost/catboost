@@ -3,7 +3,7 @@ PROGRAM()
 
 
 PEERDIR(
-    library/archive
+    library/cpp/archive
     library/digest/md5
     library/getopt/small
 )

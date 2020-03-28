@@ -3,10 +3,10 @@ UNITTEST()
 
 
 PEERDIR(
-    ADDINCL library/archive
+    ADDINCL library/cpp/archive
 )
 
-SRCDIR(library/archive)
+SRCDIR(library/cpp/archive)
 
 SRCS(
     yarchive_ut.cpp

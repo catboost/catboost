@@ -4,7 +4,6 @@ RECURSE(
     accurate_accumulate
     accurate_accumulate/benchmark
     accurate_accumulate/benchmark/metrics
-    archive/ut
     binsaver
     binsaver/ut_util
     binsaver/ut
