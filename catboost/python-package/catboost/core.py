@@ -4470,9 +4470,12 @@ class CatBoostRegressor(CatBoost):
         """
         if prediction_type is None:
             prediction_type = 'RawFormulaVal'
-            params = self.get_all_params()
-            if params['loss_function'] in ('Poisson', 'Tweedie'):
-                prediction_type='Exponent'
+            # TODO(ilyzhin) change on get_all_params after MLTOOLS-4758
+            params = deepcopy(self._init_params)
+            _process_synonyms(params)
+            if 'loss_function' in params:
+                if params['loss_function'] in ('Poisson', 'Tweedie'):
+                    prediction_type = 'Exponent'
         return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict')
 
     def staged_predict(self, data, prediction_type='RawFormulaVal', ntree_start=0, ntree_end=0, eval_period=1, thread_count=-1, verbose=None):
