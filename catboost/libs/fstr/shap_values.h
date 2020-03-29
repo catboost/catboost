@@ -44,19 +44,22 @@ public:
 class TInternalIndependentTreeShapCalcer {
 private:
     const TModelTrees& Forest;
-    const TVector<int>& BinFeatureCombinationClass;
+    const TVector<int>& BinFeatureCombinationClassByDepth;
     const TVector<TVector<double>>& Weights;
     TVector<int> ListOfFeaturesDocumentLeaf;
     TVector<int> ListOfFeaturesDocumentLeafReference;
     size_t DocumentLeafIdx;
     size_t DocumentLeafIdxReference;
     size_t TreeIdx;
+    int DepthOfTree;
+    size_t ApproxDimension;
+    const double* LeafValuesPtr;
     TVector<TVector<double>>& ShapValuesInternalByDepth;
 
 public:
     TInternalIndependentTreeShapCalcer(
         const TModelTrees& forest,
-        const TVector<int>& binFeatureCombinationClass,
+        const TVector<int>& binFeatureCombinationClassByDepth,
         const TVector<TVector<double>>& weights,
         size_t classCount,
         size_t documentLeafIdx,
@@ -65,15 +68,18 @@ public:
         TVector<TVector<double>>* shapValuesInternalByDepth
     )
         : Forest(forest)
-        , BinFeatureCombinationClass(binFeatureCombinationClass)
-        , Weights(weights)
-        , ListOfFeaturesDocumentLeaf(classCount)
-        , ListOfFeaturesDocumentLeafReference(classCount)
-        , DocumentLeafIdx(documentLeafIdx)
-        , DocumentLeafIdxReference(documentLeafIdxReference)
-        , TreeIdx(treeIdx)
-        , ShapValuesInternalByDepth(*shapValuesInternalByDepth)
-    {
+        , BinFeatureCombinationClassByDepth(binFeatureCombinationClassByDepth) 
+        , Weights(weights) 
+        , ListOfFeaturesDocumentLeaf(classCount) 
+        , ListOfFeaturesDocumentLeafReference(classCount) 
+        , DocumentLeafIdx(documentLeafIdx) 
+        , DocumentLeafIdxReference(documentLeafIdxReference) 
+        , TreeIdx(treeIdx) 
+        , DepthOfTree(Forest.GetTreeSizes()[TreeIdx]) 
+        , ApproxDimension(Forest.GetDimensionsCount()) 
+        , LeafValuesPtr(Forest.GetFirstLeafPtrForTree(TreeIdx)) 
+        , ShapValuesInternalByDepth(*shapValuesInternalByDepth) 
+    { 
     }
 
     TContribution Calc(
@@ -88,16 +94,18 @@ struct TIndependentTreeShapParams {
     TConstArrayRef<TConstArrayRef<float>> TransformedTargetOfInputDataset;
     TConstArrayRef<TConstArrayRef<float>> TransformedTargetOfReferenceDataset;
     TVector<TVector<double>> Weights;
-    TVector<TVector<TVector<TVector<TVector<double>>>>> ShapValueByDepthBetweenLeafesForAllTrees;// [treeIdx][leafIdx(foregroundLeafIdx)][leafIdx(referenceLeafIdx)][depth][dimension]
-    TVector<TVector<NCB::NModelEvaluation::TCalcerIndexType>> ReferenceLeafIndicesForAllTrees;// [treeIdx][refIdx] -> leafIdx on refIdx
-    TVector<TVector<TVector<ui32>>> ReferenceIndicesForAllTrees;// [treeIdx][leafIdx] -> TVector<ui32> ref Indices
+    TVector<TVector<TVector<TVector<TVector<double>>>>> ShapValueByDepthBetweenLeavesForAllTrees; // [treeIdx][leafIdx(foregroundLeafIdx)][leafIdx(referenceLeafIdx)][depth][dimension]
+    TVector<TVector<NCB::NModelEvaluation::TCalcerIndexType>> ReferenceLeafIndicesForAllTrees; // [treeIdx][refIdx] -> leafIdx on refIdx
+    TVector<TVector<TVector<ui32>>> ReferenceIndicesForAllTrees; // [treeIdx][leafIdx] -> TVector<ui32> ref Indices
     TVector<bool> IsCalcForAllLeafesForAllTrees;
+    TVector<TVector<int>> BinFeatureCombinationClassByDepthForAllTrees;
 
 public:
     TIndependentTreeShapParams(
         const TFullModel& model,
         const NCB::TDataProvider& dataset,
         const NCB::TDataProvider& referenceDataset,
+        const TVector<int>& binFeatureCombinationClass,
         NPar::TLocalExecutor* localExecutor
     );
 };

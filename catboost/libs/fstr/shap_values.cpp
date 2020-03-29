@@ -159,60 +159,54 @@ static TContribution SumContributions(
     return result;
 }
 
- // Independent Tree SHAP
+// Independent Tree SHAP
 TContribution TInternalIndependentTreeShapCalcer::Calc(
     int depth,
     size_t nodeIdx,
     ui32 uniqueFeaturesCount,
     ui32 featureMatchedDatasetSampleCount
 ) {
-    const auto approxDimension = Forest.GetDimensionsCount();
-    const double* leafValuesPtr = Forest.GetFirstLeafPtrForTree(TreeIdx);
-    if (depth == Forest.GetTreeSizes()[TreeIdx]) {
-        TContribution contribution{approxDimension}; // (pos, neg) = (0, 0)
+    if (depth == DepthOfTree) {
+        TContribution contribution{ApproxDimension}; // (pos, neg) = (0, 0)
         if (featureMatchedDatasetSampleCount == 0) {
-            for (size_t dimension = 0; dimension < approxDimension; ++dimension) {
-                double value = leafValuesPtr[nodeIdx * approxDimension + dimension];
+            for (size_t dimension = 0; dimension < ApproxDimension; ++dimension) {
+                double value = LeafValuesPtr[nodeIdx * ApproxDimension + dimension];
                 ShapValuesInternalByDepth[depth][dimension] += value;
             }
         }
         if (uniqueFeaturesCount != 0) {
             if (featureMatchedDatasetSampleCount != 0) {
-                for (size_t dimension = 0; dimension < approxDimension; ++dimension) {
-                    contribution.PositiveContribution[dimension] =
-                        Weights[featureMatchedDatasetSampleCount - 1][uniqueFeaturesCount]
-                        * leafValuesPtr[nodeIdx * approxDimension + dimension]; 
+                double weight = Weights[featureMatchedDatasetSampleCount - 1][uniqueFeaturesCount];
+                for (size_t dimension = 0; dimension < ApproxDimension; ++dimension) {
+                    contribution.PositiveContribution[dimension] = weight * LeafValuesPtr[nodeIdx * ApproxDimension + dimension]; 
                 }
             }
             if (featureMatchedDatasetSampleCount != uniqueFeaturesCount) {
-                for (size_t dimension = 0; dimension < approxDimension; ++dimension) {
-                    contribution.NegativeContribution[dimension] =
-                        -Weights[featureMatchedDatasetSampleCount][uniqueFeaturesCount]
-                        * leafValuesPtr[nodeIdx * approxDimension + dimension];
+                double weight = -Weights[featureMatchedDatasetSampleCount][uniqueFeaturesCount];
+                for (size_t dimension = 0; dimension < ApproxDimension; ++dimension) {
+                    contribution.NegativeContribution[dimension] = weight * LeafValuesPtr[nodeIdx * ApproxDimension + dimension];
                 }
             }
         }
         return contribution;
     }
-    const size_t remainingDepth = Forest.GetTreeSizes()[TreeIdx] - depth - 1;
-    const int combinationClass = BinFeatureCombinationClass[
-        Forest.GetTreeSplits()[Forest.GetTreeStartOffsets()[TreeIdx] + remainingDepth]
-    ];
+    const int combinationClass = BinFeatureCombinationClassByDepth[depth];
     constexpr size_t None = (size_t)(-1);
     size_t nextNodeIdx = None;
+	const size_t remainingDepth = DepthOfTree - depth - 1;
     // for current object, who fall down to leadIdx [documentLeafIdx]
     const bool isGoRight = (DocumentLeafIdx >> remainingDepth) & 1;
     const size_t goNodeIdx = nodeIdx * 2 + isGoRight;
     // for current reference object, who fall down to leadIdx [documentLeafIdx]
-    const bool isGoRightRefernce = (DocumentLeafIdxReference >> remainingDepth) & 1;
-    const size_t goNodeIdxRefernce = nodeIdx * 2 + isGoRightRefernce;             
+    const bool isGoRightReference = (DocumentLeafIdxReference >> remainingDepth) & 1;
+    const size_t goNodeIdxReference = nodeIdx * 2 + isGoRightReference;             
     if (ListOfFeaturesDocumentLeaf[combinationClass] > 0) {
         nextNodeIdx = goNodeIdx;
     } else {
         if (ListOfFeaturesDocumentLeafReference[combinationClass] > 0) {
-            nextNodeIdx = goNodeIdxRefernce;
+            nextNodeIdx = goNodeIdxReference;
         } else {
-            if (goNodeIdx == goNodeIdxRefernce) {
+            if (goNodeIdx == goNodeIdxReference) {
                 nextNodeIdx = goNodeIdx;
             } 
         }
@@ -225,9 +219,9 @@ TContribution TInternalIndependentTreeShapCalcer::Calc(
             featureMatchedDatasetSampleCount
         );
     }
-    TContribution contribution{approxDimension};
-    TContribution contributionReference{approxDimension};
-    if (goNodeIdx != goNodeIdxRefernce) {
+    TContribution contribution{ApproxDimension};
+    TContribution contributionReference{ApproxDimension};
+    if (goNodeIdx != goNodeIdxReference) {
         // go to direction of sample
         ListOfFeaturesDocumentLeaf[combinationClass]++;
         contribution = Calc(
@@ -241,13 +235,13 @@ TContribution TInternalIndependentTreeShapCalcer::Calc(
         ListOfFeaturesDocumentLeafReference[combinationClass]++;
         contributionReference = Calc(
             depth + 1,
-            goNodeIdxRefernce,
+            goNodeIdxReference,
             uniqueFeaturesCount + 1,
             featureMatchedDatasetSampleCount
         );
         ListOfFeaturesDocumentLeafReference[combinationClass]--;
     }
-    for (size_t dimension = 0; dimension < approxDimension; ++dimension) {
+    for (size_t dimension = 0; dimension < ApproxDimension; ++dimension) {
         double value = contribution.PositiveContribution[dimension] + contributionReference.NegativeContribution[dimension];
         ShapValuesInternalByDepth[depth][dimension] += value;
     }
@@ -506,13 +500,13 @@ static void UnpackInternalShaps(const TVector<TShapValue>& shapValuesInternal, c
 static void CalcObliviousShapValuesByDepthForLeaf(
     const TModelTrees& forest,
     const TVector<NCB::NModelEvaluation::TCalcerIndexType>& referenceLeafIndices,
-    const TVector<int>& binFeatureCombinationClass,
+    const TVector<int>& binFeatureCombinationClassByDepth,
     const TVector<TVector<double>>& weights,
     size_t classCount,
     size_t documentLeafIdx,
     size_t treeIdx,
     bool isCalcForAllLeafes,
-    TVector<TVector<TVector<double>>>* shapValueByDepthBetweenLeafes
+    TVector<TVector<TVector<double>>>* shapValueByDepthBetweenLeaves
 ) {
     const size_t depthOfTree = forest.GetTreeSizes()[treeIdx];
     const size_t approxDimension = forest.GetDimensionsCount();
@@ -520,11 +514,11 @@ static void CalcObliviousShapValuesByDepthForLeaf(
     const size_t leafCount = isCalcForAllLeafes ? leafCountInTree : referenceLeafIndices.size(); 
     for (size_t idx = 0; idx < leafCount; ++idx) {
         const size_t leafIdx = isCalcForAllLeafes ? idx : referenceLeafIndices[idx];
-        TVector<TVector<double>>& shapValuesInternalByDepth = shapValueByDepthBetweenLeafes->at(leafIdx);
+        TVector<TVector<double>>& shapValuesInternalByDepth = shapValueByDepthBetweenLeaves->at(leafIdx);
         shapValuesInternalByDepth.assign(depthOfTree + 1, TVector<double>(approxDimension, 0.0));
         TInternalIndependentTreeShapCalcer calcerIntenalShaps{
             forest,
-            binFeatureCombinationClass,
+            binFeatureCombinationClassByDepth,
             weights,
             classCount,
             documentLeafIdx,
@@ -944,8 +938,8 @@ static void UnpackInternalShapsForDocumentOneDimension(
     for (int classIdx : xrange(combinationClassFeatures.ysize())) {
         const TVector<int> &flatFeatures = combinationClassFeatures[classIdx];
         double coefficient = flatFeatures.size();
+        double addValue = shapValuesInternal[classIdx] / coefficient;
         for (int flatFeatureIdx : flatFeatures) {
-            double addValue = shapValuesInternal[classIdx] / coefficient;
             (*shapValues)[flatFeatureIdx] += addValue;
         }
     }
@@ -976,7 +970,7 @@ static void IndependentTreeShap(
             SetValuesToShapValuesByAllReferences(
                 forest,
                 preparedTrees.BinFeatureCombinationClass,
-                independentTreeShapParams.ShapValueByDepthBetweenLeafesForAllTrees[treeIdx][docIndexes[treeIdx]],
+                independentTreeShapParams.ShapValueByDepthBetweenLeavesForAllTrees[treeIdx][docIndexes[treeIdx]],
                 independentTreeShapParams.ReferenceIndicesForAllTrees[treeIdx],
                 independentTreeShapParams.ReferenceLeafIndicesForAllTrees[treeIdx],
                 treeIdx,
@@ -986,22 +980,22 @@ static void IndependentTreeShap(
             );
         } else {
             const size_t leafCount = (size_t(1) << forest.GetTreeSizes()[treeIdx]);
-            TVector<TVector<TVector<double>>> shapValueByDepthBetweenLeafes(leafCount);
+            TVector<TVector<TVector<double>>> shapValueByDepthBetweenLeaves(leafCount);
             CalcObliviousShapValuesByDepthForLeaf(
                 forest,
                 independentTreeShapParams.ReferenceLeafIndicesForAllTrees[treeIdx],
-                preparedTrees.BinFeatureCombinationClass,
+                independentTreeShapParams.BinFeatureCombinationClassByDepthForAllTrees[treeIdx],
                 independentTreeShapParams.Weights,
                 preparedTrees.CombinationClassFeatures.size(),
                 docIndexes[treeIdx],
                 treeIdx,
                 independentTreeShapParams.IsCalcForAllLeafesForAllTrees[treeIdx],
-                &shapValueByDepthBetweenLeafes
+                &shapValueByDepthBetweenLeaves
             );
             SetValuesToShapValuesByAllReferences(
                 forest,
                 preparedTrees.BinFeatureCombinationClass,
-                shapValueByDepthBetweenLeafes,
+                shapValueByDepthBetweenLeaves,
                 independentTreeShapParams.ReferenceIndicesForAllTrees[treeIdx],
                 independentTreeShapParams.ReferenceLeafIndicesForAllTrees[treeIdx],
                 treeIdx,
@@ -1022,7 +1016,7 @@ static void IndependentTreeShap(
                 &shapValueOneDimension
             );
             double rescaleCoefficient = referenceCount;
-            //TODO(ivankozlov98): need norm transformed coeffient
+            // TODO(ivankozlov98): need norm transformed coeffient
             double totalCoeffient = 1.0 / rescaleCoefficient;
             for (int flatFeatureIdx = 0; flatFeatureIdx < flatFeatureCount; ++flatFeatureIdx) {
                 (*shapValues)[dimension][flatFeatureIdx] +=
@@ -1209,21 +1203,21 @@ static void CalcIndependentTreeShapValuesByLeafForTreeBlock(
 ) {
     const size_t leafCount = (size_t(1) << forest.GetTreeSizes()[treeIdx]);
     const auto& independentTreeShapParams = *preparedTrees->IndependentTreeShapParams;
-    auto& shapValueByDepthForLeaf = preparedTrees->IndependentTreeShapParams->ShapValueByDepthBetweenLeafesForAllTrees[treeIdx];
+    auto& shapValueByDepthForLeaf = preparedTrees->IndependentTreeShapParams->ShapValueByDepthBetweenLeavesForAllTrees[treeIdx];
     shapValueByDepthForLeaf.resize(leafCount);
     for (size_t leafIdx = 0; leafIdx < leafCount; ++leafIdx) {
-        auto& shapValueByDepthBetweenLeafes = shapValueByDepthForLeaf[leafIdx];
-        shapValueByDepthBetweenLeafes.resize(leafCount);
+        auto& shapValueByDepthBetweenLeaves = shapValueByDepthForLeaf[leafIdx];
+        shapValueByDepthBetweenLeaves.resize(leafCount);
         CalcObliviousShapValuesByDepthForLeaf(
             forest,
             independentTreeShapParams.ReferenceLeafIndicesForAllTrees[treeIdx],
-            preparedTrees->BinFeatureCombinationClass,
+            independentTreeShapParams.BinFeatureCombinationClassByDepthForAllTrees[treeIdx],
             independentTreeShapParams.Weights,
             preparedTrees->CombinationClassFeatures.size(),
             leafIdx,
             treeIdx,
             independentTreeShapParams.IsCalcForAllLeafesForAllTrees[treeIdx],
-            &shapValueByDepthBetweenLeafes
+            &shapValueByDepthBetweenLeaves
         );
     }
 }
@@ -1374,15 +1368,15 @@ TMaybe<ELossFunction> TryGuessModelMultiClassLoss(const TFullModel& model) {
 }
 
 static inline ui64 GetBinominalCoeffient(ui64 n, ui64 k) { 
-    ui64 binomilCoefficient = 1; 
+    ui64 binomialCoefficient = 1; 
     if (k > n - k) {
         k = n - k; 
     }
     for (ui64 i = 0; i < k; ++i) { 
-        binomilCoefficient *= (n - i); 
-        binomilCoefficient /= (i + 1); 
+        binomialCoefficient *= (n - i);
+        binomialCoefficient /= (i + 1); 
     } 
-    return binomilCoefficient; 
+    return binomialCoefficient; 
 } 
 
 static TVector<TVector<double>> CalcWeightsForIndependentTreeShap(const TFullModel& model) {
@@ -1405,6 +1399,7 @@ TIndependentTreeShapParams::TIndependentTreeShapParams(
     const TFullModel& model,
     const TDataProvider& dataset,
     const TDataProvider& referenceDataset,
+    const TVector<int>& binFeatureCombinationClass,
     NPar::TLocalExecutor* localExecutor
 ) {
     Weights = CalcWeightsForIndependentTreeShap(model);
@@ -1421,7 +1416,7 @@ TIndependentTreeShapParams::TIndependentTreeShapParams(
     ReferenceLeafIndicesForAllTrees.assign(treeCount, TVector<NCB::NModelEvaluation::TCalcerIndexType>(referenceCount, 0));
     ReferenceIndicesForAllTrees.resize(treeCount);
     for (size_t treeIdx = 0; treeIdx < treeCount; ++treeIdx) {
-        const size_t leafCount = (size_t(1) << forest.GetTreeSizes()[treeIdx]);
+        const size_t leafCount = size_t(1) << forest.GetTreeSizes()[treeIdx];
         ReferenceIndicesForAllTrees[treeIdx].resize(leafCount);
         const bool isCalcForAllLeafes = (referenceCount >= leafCount);
         IsCalcForAllLeafesForAllTrees.emplace_back(isCalcForAllLeafes);
@@ -1434,6 +1429,19 @@ TIndependentTreeShapParams::TIndependentTreeShapParams(
             ReferenceIndicesForAllTrees[treeIdx][leafIdx].emplace_back(referenceIdx);
         }
     }
+
+    BinFeatureCombinationClassByDepthForAllTrees.resize(treeCount);
+    for (size_t treeIdx = 0; treeIdx < treeCount; ++treeIdx) {
+        const size_t depthOfTree = forest.GetTreeSizes()[treeIdx];
+        BinFeatureCombinationClassByDepthForAllTrees[treeIdx].reserve(depthOfTree);
+        for (size_t depth = 0; depth < depthOfTree; ++depth) {
+			const size_t remainingDepth = depthOfTree - depth - 1;
+            const int combinationClass = binFeatureCombinationClass[
+                forest.GetTreeSplits()[forest.GetTreeStartOffsets()[treeIdx] + remainingDepth]
+            ];
+            BinFeatureCombinationClassByDepthForAllTrees[treeIdx].emplace_back(combinationClass);
+        }
+    }
     auto targetProviderOfreferenceDataset =
         CreateModelCompatibleProcessedDataProvider(referenceDataset, {metricDescription}, model, GetMonopolisticFreeCpuRam(), /*rand*/ nullptr, localExecutor).TargetData;
     // TODO(ivankozlov98): calculate target for input dataset and reference dataset
@@ -1442,7 +1450,7 @@ TIndependentTreeShapParams::TIndependentTreeShapParams(
     auto targetProviderOfInputDataset =
         CreateModelCompatibleProcessedDataProvider(dataset, {metricDescription}, model, GetMonopolisticFreeCpuRam(), /*rand*/ nullptr, localExecutor).TargetData;
     TransformedTargetOfInputDataset = targetProviderOfInputDataset->GetTarget().GetOrElse(TConstArrayRef<TConstArrayRef<float>>());
-    ShapValueByDepthBetweenLeafesForAllTrees.resize(treeCount);
+    ShapValueByDepthBetweenLeavesForAllTrees.resize(treeCount);
 }
 
 TShapPreparedTrees PrepareTrees(
@@ -1500,6 +1508,7 @@ TShapPreparedTrees PrepareTrees(
             model,
             *dataset,
             *referenceDataset,
+            preparedTrees.BinFeatureCombinationClass,
             localExecutor
         );
     }
