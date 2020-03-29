@@ -4474,7 +4474,7 @@ class CatBoostRegressor(CatBoost):
             params = deepcopy(self._init_params)
             _process_synonyms(params)
             if 'loss_function' in params:
-                if params['loss_function'] in ('Poisson', 'Tweedie'):
+                if 'Poisson' in params['loss_function'] or 'Tweedie' in params['loss_function']:
                     prediction_type = 'Exponent'
         return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict')
 
