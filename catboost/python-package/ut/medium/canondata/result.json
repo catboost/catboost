@@ -768,8 +768,12 @@
         "uri": "file://test.test_predict_sklearn_regress_CPU_/model.bin"
     },
     "test.test_prediction_diff_feature_importance": {
-        "checksum": "e7bb93f9bb3c92f1235aa7777f94fd8d",
+        "checksum": "f357a8e6247ed1653577a2f05d75a373",
         "uri": "file://test.test_prediction_diff_feature_importance/feature_importance.npy"
+    },
+    "test.test_prediction_diff_nonsym_feature_importance": {
+        "checksum": "7cd24fb10fb46bd0ad83eef6787bb7aa",
+        "uri": "file://test.test_prediction_diff_nonsym_feature_importance/feature_importance.npy"
     },
     "test.test_prediction_plot": {
         "checksum": "6bb8477936dd5ddd8f03bd3523bf2a8c",

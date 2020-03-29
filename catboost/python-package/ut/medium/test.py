@@ -2996,6 +2996,19 @@ def test_prediction_diff_feature_importance():
     return local_canonical_file(fimp_npy_path)
 
 
+def test_prediction_diff_nonsym_feature_importance():
+    pool_file = 'higgs'
+    pool = Pool(data_file(pool_file, 'train_small'), column_description=data_file(pool_file, 'train.cd'))
+    model = CatBoostClassifier(iterations=2, grow_policy='Lossguide', depth=3, max_leaves=5, learning_rate=0.03, max_ctr_complexity=1, devices='0', random_seed=30)
+    model.fit(pool)
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.array(model.get_feature_importance(
+        type=EFstrType.PredictionDiff,
+        data=pool.get_features()[:2]
+    )))
+    return local_canonical_file(fimp_npy_path)
+
+
 def test_od(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
