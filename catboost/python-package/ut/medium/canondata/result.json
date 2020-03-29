@@ -935,6 +935,14 @@
         "checksum": "12533ea576101ffe5532389c18df9554",
         "uri": "file://test.test_shap_feature_importance_with_langevin/feature_importance.npy"
     },
+    "test.test_shap_interaction_feature_importance[CPU]": {
+        "checksum": "834622d0089ee6f392a626182d1b08b9",
+        "uri": "file://test.test_shap_interaction_feature_importance_CPU_/feature_importance.npy"
+    },
+    "test.test_shap_interaction_feature_importance_multiclass[CPU]": {
+        "checksum": "c1c53f6fc7f5b77ff39b60b098b5a068",
+        "uri": "file://test.test_shap_interaction_feature_importance_multiclass_CPU_/feature_importance.npy"
+    },
     "test.test_shap_multiclass[CPU]": {
         "checksum": "2469f9a95204f063d4c63be32a8a8721",
         "uri": "file://test.test_shap_multiclass_CPU_/feature_importance.txt"

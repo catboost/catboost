@@ -3357,6 +3357,157 @@ def test_shap_complex_ctr(task_type):
     return local_canonical_file(fimp_txt_path)
 
 
+def test_shap_interaction_feature_importance(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, max_ctr_complexity=1, task_type=task_type, devices='0')
+    model.fit(pool)
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.ShapInteractionValues, data=pool)))
+    return local_canonical_file(fimp_npy_path)
+
+
+def test_shap_interaction_feature_importance_multiclass(task_type):
+    pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass')
+    model.fit(pool)
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.ShapInteractionValues, data=pool)))
+    return local_canonical_file(fimp_npy_path)
+
+
+def test_shap_interaction_feature_on_symmetric(task_type):
+    pool = Pool(SMALL_CATEGORIAL_FILE, column_description=SMALL_CATEGORIAL_CD_FILE)
+    model = CatBoost(params={'loss_function': 'RMSE', 'iterations': 2, 'task_type': task_type, 'devices': '0', 'one_hot_max_size': 4})
+    model.fit(pool)
+    shap_interaction_values = model.get_feature_importance(
+        type=EFstrType.ShapInteractionValues,
+        data=pool,
+        thread_count=8
+    )
+
+    doc_count = pool.num_row()
+    shap_interaction_values = shap_interaction_values[:, :-1, :-1]
+    for doc_idx in range(doc_count):
+        assert np.all(np.abs(shap_interaction_values[doc_idx] - shap_interaction_values[doc_idx].T) < 1e-8)
+
+
+def test_shap_interaction_feature_importance_asymmetric_and_symmetric(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(
+        iterations=5,
+        learning_rate=0.03,
+        max_ctr_complexity=1,
+        task_type=task_type,
+        devices='0')
+    model.fit(pool)
+    shap_interaction_symm = np.array(model.get_feature_importance(type=EFstrType.ShapInteractionValues, data=pool))
+    model._convert_to_asymmetric_representation()
+    shap_interaction_asymm = np.array(model.get_feature_importance(type=EFstrType.ShapInteractionValues, data=pool))
+    assert np.all(shap_interaction_symm - shap_interaction_asymm < 1e-8)
+
+
+def test_properties_shap_interaction_values(task_type):
+    pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
+    classifier = CatBoostClassifier(iterations=50, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
+    classifier.fit(pool)
+    shap_values = classifier.get_feature_importance(
+        type=EFstrType.ShapValues,
+        data=pool,
+        thread_count=8
+    )
+
+    shap_interaction_values = classifier.get_feature_importance(
+        type=EFstrType.ShapInteractionValues,
+        data=pool,
+        thread_count=8
+    )
+
+    features_count = pool.num_col()
+    doc_count = pool.num_row()
+    classes_count = 3
+    assert shap_interaction_values.shape == (doc_count, classes_count, features_count + 1, features_count + 1)
+
+    shap_values = shap_values[:, :, :-1]
+    shap_interaction_values = shap_interaction_values[:, :, :-1, :-1]
+
+    for doc_idx in range(doc_count):
+        for class_idx in range(classes_count):
+            for feature_idx_1 in range(features_count):
+                # check that sum(Ф(i, j)) = ф(i)
+                sum_current_interaction_row = np.sum(shap_interaction_values[doc_idx][class_idx][feature_idx_1])
+                assert np.allclose(
+                    shap_values[doc_idx][class_idx][feature_idx_1],
+                    sum_current_interaction_row
+                )
+
+
+def test_shap_interaction_value_between_pair():
+    pool = Pool(SMALL_CATEGORIAL_FILE, column_description=SMALL_CATEGORIAL_CD_FILE)
+    model = CatBoost(params={'loss_function': 'RMSE', 'iterations': 2, 'devices': '0', 'one_hot_max_size': 4})
+    model.fit(pool)
+    shap_interaction_values = model.get_feature_importance(
+    type=EFstrType.ShapInteractionValues,
+        data=pool,
+        thread_count=8
+    )
+    features_count = pool.num_col()
+    doc_count = pool.num_row()
+
+    for feature_idx_1 in range(features_count):
+        for feature_idx_2 in range(features_count):
+            interaction_value = model.get_feature_importance(
+                type=EFstrType.ShapInteractionValues,
+                data=pool,
+                thread_count=8,
+                interaction_indices=[feature_idx_1, feature_idx_2]
+            )
+            if feature_idx_1 == feature_idx_2:
+                assert interaction_value.shape == (doc_count, 2, 2)
+            else:
+                assert interaction_value.shape == (doc_count, 3, 3)
+            for doc_idx in range(doc_count):
+                if feature_idx_1 == feature_idx_2:
+                    assert abs(interaction_value[doc_idx][0][0] - shap_interaction_values[doc_idx][feature_idx_1][feature_idx_2]) < 1e-6
+                else:
+                    assert abs(interaction_value[doc_idx][0][1] - shap_interaction_values[doc_idx][feature_idx_1][feature_idx_2]) < 1e-6
+
+
+def test_shap_interaction_value_between_pair_multi():
+    pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
+    classifier = CatBoostClassifier(iterations=10, loss_function='MultiClass', thread_count=8, devices='0')
+    classifier.fit(pool)
+
+    shap_interaction_values = classifier.get_feature_importance(
+        type=EFstrType.ShapInteractionValues,
+        data=pool,
+        thread_count=8
+    )
+    features_count = pool.num_col()
+    doc_count = pool.num_row()
+    checked_doc_count = doc_count / 3
+    classes_count = 3
+
+    for feature_idx_1 in range(features_count):
+        for feature_idx_2 in range(features_count):
+            interaction_value = classifier.get_feature_importance(
+                type=EFstrType.ShapInteractionValues,
+                data=pool,
+                thread_count=8,
+                interaction_indices=[feature_idx_1, feature_idx_2]
+            )
+            if feature_idx_1 == feature_idx_2:
+                assert interaction_value.shape == (doc_count, classes_count, 2, 2)
+            else:
+                assert interaction_value.shape == (doc_count, classes_count, 3, 3)
+
+            for doc_idx in range(checked_doc_count):
+                for class_idx in range(classes_count):
+                    if feature_idx_1 == feature_idx_2:
+                        assert abs(interaction_value[doc_idx][class_idx][0][0] - shap_interaction_values[doc_idx][class_idx][feature_idx_1][feature_idx_2]) < 1e-6
+                    else:
+                        assert abs(interaction_value[doc_idx][class_idx][0][1] - shap_interaction_values[doc_idx][class_idx][feature_idx_1][feature_idx_2]) < 1e-6
+
+
 def random_xy(num_rows, num_cols_x, seed=20181219, prng=None):
     if prng is None:
         prng = np.random.RandomState(seed=20181219)
