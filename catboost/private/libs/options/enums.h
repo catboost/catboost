@@ -220,6 +220,7 @@ enum class EPredictionType {
     LogProbability,
     Class,
     RawFormulaVal,
+    Exponent,
     InternalRawFormulaVal
 };
 
