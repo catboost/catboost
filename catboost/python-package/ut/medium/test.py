@@ -6823,6 +6823,7 @@ def test_log_proba():
     assert np.allclose(log_pred_1, np.log(pred))
     assert np.allclose(log_pred_1, log_pred_2)
 
+
 def test_exponent():
     # poisson regression
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)

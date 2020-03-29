@@ -4442,7 +4442,7 @@ class CatBoostRegressor(CatBoost):
             If data is a simple list (not list of lists) or a one-dimensional numpy.ndarray it is interpreted
             as a list of features for a single object.
 
-        prediction_type : string, optional (default='RawFormulaValue')
+        prediction_type : string, optional (default='RawFormulaVal')
             Can be:
             - 'RawFormulaVal' : return raw formula value.
             - 'Exponent' : return Exponent of raw formula value.
