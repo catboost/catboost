@@ -4471,7 +4471,7 @@ class CatBoostRegressor(CatBoost):
         if prediction_type is None:
             prediction_type = 'RawFormulaVal'
             params = self.get_all_params()
-            if params['loss_function'] == 'Poisson':
+            if params['loss_function'] in ('Poisson', 'Tweedie'):
                 prediction_type='Exponent'
         return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict')
 

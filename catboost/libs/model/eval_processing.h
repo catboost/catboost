@@ -83,10 +83,6 @@ inline void CalcSigmoid(const TConstArrayRef<double> approx, TArrayRef<double> t
     }
 }
 
-inline void CalcExponent(TArrayRef<double> approx) {
-    FastExpInplace(approx.data(), approx.ysize());
-}
-
 inline TVector<double> CalcSigmoid(const TConstArrayRef<double> approx) {
     TVector<double> probabilities;
     probabilities.yresize(approx.size());
@@ -165,18 +161,21 @@ namespace NCB::NModelEvaluation {
             }
             if (ApproxDimension == 1) {
                 auto blockView = GetResultBlockView(blockId, 1);
+
                 if (PredictionType == EPredictionType::Probability) {
                     CalcSigmoid(blockView, blockView);
-                } else {
-                    if (PredictionType == EPredictionType::Exponent) {
-                        CalcExponent(blockView);
-                    } else {
-                        Y_ASSERT(PredictionType == EPredictionType::Class);
-                        for (auto& val : blockView) {
-                            val = val > BinclassRawValueBorder;
-                        }
+                }
+
+                if (PredictionType == EPredictionType::Exponent) {
+                    FastExpInplace(blockView.data(), blockView.ysize());;
+                }
+
+                if (PredictionType == EPredictionType::Class) {
+                    for (auto &val : blockView) {
+                        val = val > BinclassRawValueBorder;
                     }
                 }
+
             } else {
                 if (PredictionType == EPredictionType::Probability) {
                     auto blockView = GetResultBlockView(blockId, ApproxDimension);
