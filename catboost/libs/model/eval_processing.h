@@ -161,21 +161,17 @@ namespace NCB::NModelEvaluation {
             }
             if (ApproxDimension == 1) {
                 auto blockView = GetResultBlockView(blockId, 1);
-
                 if (PredictionType == EPredictionType::Probability) {
                     CalcSigmoid(blockView, blockView);
                 }
-
                 if (PredictionType == EPredictionType::Exponent) {
                     FastExpInplace(blockView.data(), blockView.ysize());;
                 }
-
                 if (PredictionType == EPredictionType::Class) {
                     for (auto &val : blockView) {
                         val = val > BinclassRawValueBorder;
                     }
                 }
-
             } else {
                 if (PredictionType == EPredictionType::Probability) {
                     auto blockView = GetResultBlockView(blockId, ApproxDimension);
