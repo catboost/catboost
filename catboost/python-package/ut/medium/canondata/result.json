@@ -822,11 +822,11 @@
         "uri": "file://test.test_pairs_without_groupid/catboost_training.json"
     },
     "test.test_pmml_export[binclass]": {
-        "checksum": "34922c585bc4d41c737ac4250c2eaad1",
+        "checksum": "970e041bed7d1eebba4542f5eea611c1",
         "uri": "file://test.test_pmml_export_binclass_/model.pmml"
     },
     "test.test_pmml_export[regression]": {
-        "checksum": "531b686502bd6a5b5903a03d7141f3ff",
+        "checksum": "094f90861f5a3e03eeef3f03133f868c",
         "uri": "file://test.test_pmml_export_regression_/model.pmml"
     },
     "test.test_predict_class[CPU]": {
