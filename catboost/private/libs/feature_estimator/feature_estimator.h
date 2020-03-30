@@ -69,11 +69,6 @@ namespace NCB {
     class IFeatureEstimator : public TThrRefBase {
     public:
 
-
-        ~IFeatureEstimator() {
-
-        }
-
         //Meta to allocate memory for datasets, for example
         //Or to estimate necessary memory
         virtual TEstimatedFeaturesMeta FeaturesMeta() const = 0;
