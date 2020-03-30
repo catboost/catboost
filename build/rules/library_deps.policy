@@ -26,5 +26,5 @@ ALLOW library/text_processing/yandex_specific_lemmer -> kernel/lemmer
 ALLOW library/digest/benchmark -> yabs/server/util
 ALLOW library/eventlog/rt/tool -> search/idl
 ALLOW library/dolbilo/planner -> search/idl
-ALLOW library/vowpalwabbit/tools/vw_ops -> ml/differential_evolution
+ALLOW library/cpp/vowpalwabbit/tools/vw_ops -> ml/differential_evolution
 DENY library -> .*
