@@ -183,10 +183,10 @@ class EFstrType(Enum):
     Interaction = 3
     """Calculate SHAP Values for every object."""
     ShapValues = 4
-    """Calculate approximate SHAP Values for every object."""
-    ApproximateShapValues = 5
     """Calculate most important features explaining difference in predictions for a pair of documents"""
-    PredictionDiff = 6
+    PredictionDiff = 5
+    """Calculate approximate SHAP Values for every object."""
+    ApproximateShapValues = 6
 
 
 def _get_features_indices(features, feature_names):
