@@ -407,7 +407,7 @@ static inline TVector<double> ContructRescaleCoefficients(
 }
 
 static inline void SetBiasValues(const TFullModel& model, TVector<TVector<double>>* values) {
-    const size_t documentsCount = values[0].size();
+    const size_t documentsCount = (*values)[0].size();
     for (size_t dimension = 0; dimension < values->size(); ++dimension) {
         TArrayRef<double> valuesRef = MakeArrayRef(values->at(dimension));
         for (size_t documentIdx = 0; documentIdx < documentsCount; ++documentIdx) {
@@ -526,6 +526,21 @@ static void CalcShapInteraction(
     }
 }
 
+static inline void SetSymmetricValues(TInteractionValuesFull* shapInteractionValues) {
+    CB_ENSURE_INTERNAL(
+        shapInteractionValues->size() == 3 && (*shapInteractionValues)[0].size() == 3,
+        "Shap interaction values must be contain two features and bias"
+    );
+    const size_t approxDimension = (*shapInteractionValues)[0][0].size();
+    const size_t documentCount = (*shapInteractionValues)[0][0][0].size();
+    for (size_t dimension : xrange(approxDimension)) {
+        for (size_t documentIdx : xrange(documentCount)) {
+            (*shapInteractionValues)[1][0][dimension][documentIdx] =
+                (*shapInteractionValues)[0][1][dimension][documentIdx];
+        }
+    }
+}
+
 TInteractionValuesFull CalcShapInteractionValuesMulti(
     const TFullModel& model,
     const TDataProvider& dataset,
@@ -552,6 +567,9 @@ TInteractionValuesFull CalcShapInteractionValuesMulti(
             &preparedTrees,
             &shapInteractionValues
         );
+        if (pairOfFeatures->first != pairOfFeatures->second) {
+            SetSymmetricValues(&shapInteractionValues);
+        }
     } else {
         CalcShapInteraction<TInteractionValuesFull>(
             model,

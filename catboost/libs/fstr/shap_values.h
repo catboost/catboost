@@ -107,6 +107,16 @@ void CalcShapValuesForDocumentMulti(
     TVector<TVector<double>>* shapValues
 );
 
+void CalcShapValuesForDocumentMulti(
+    const TFullModel& model,
+    const TShapPreparedTrees& preparedTrees,
+    const NCB::NModelEvaluation::IQuantizedData* binarizedFeaturesForBlock,
+    int flatFeatureCount,
+    TConstArrayRef<NCB::NModelEvaluation::TCalcerIndexType> docIndexes,
+    size_t documentIdx,
+    TVector<TVector<double>>* shapValues
+);
+
 TShapPreparedTrees PrepareTrees(const TFullModel& model, NPar::TLocalExecutor* localExecutor);
 TShapPreparedTrees PrepareTrees(
     const TFullModel& model,
