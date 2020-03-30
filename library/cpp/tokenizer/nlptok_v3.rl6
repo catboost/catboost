@@ -6,7 +6,7 @@
 #endif
 
 #include <util/generic/yexception.h>
-#include <library/tokenizer/nlpparser.h>
+#include <library/cpp/tokenizer/nlpparser.h>
 
 #ifdef __clang__
     #pragma clang diagnostic ignored "-Wunused-variable"
@@ -87,29 +87,53 @@
 
     tokchar = ( yalpha );
 
-    include MultitokenDef "multitoken_v2.rl";
+    include MultitokenDef "multitoken_v3.rl";
 
     main :=  |*
 
     # multitoken/integer
     ( compositemultitoken | ( ( tokprefix $update_prefix )? multitoken ( nowordbreak multitoken )* toksuffix? ) ) {
-        ProcessMultitoken(ts, te);
+        Y_ASSERT(Base.GetCurrentToken());
+        if (Y_UNLIKELY(!Base.GetCurrentToken())) {
+            ProcessMultitoken(ts, te);
+            LastTokenSuffixLength = 0;
+        } else {
+            size_t suffixLength = Base.GetCurrentToken()->GetSuffixLength();
+            bool createSuffixToken = Base.GetTokenCount() > 0 && (Base.GetToken(0).GetNlpType() == NLP_WORD || Base.GetToken(0).GetNlpType() == NLP_INTEGER || Base.GetToken(0).GetNlpType() == NLP_MARK);
+            if (!KeepAffixes) {
+                Base.GetCurrentToken()->ResetSuffix();
+            }
+            ProcessMultitoken(ts, te);
+            if (createSuffixToken) {
+                if (!KeepAffixes) {
+                    for (size_t i = suffixLength; i > 0; --i) {
+                        MakeEntry(te - i, 1, NLP_WORD);
+                    }
+                }
+                LastTokenSuffixLength = suffixLength;
+            }
+            p -= suffixLength;
+        }
     };
 
     ( cc_surrogatelead | cc_surrogatetail )+ {
+        LastTokenSuffixLength = 0;
         ProcessSurrogatePairs(ts, te);
     };
 
     ( cc_ideograph+ ) {
+        LastTokenSuffixLength = 0;
         ProcessIdeographs(ts, te);
     };
 
     #sentbreak
     ( miscsent ) {
+        LastTokenSuffixLength = 0;
         p = ts + MakeSentenceBreak(ts, te - ts) - 1;
     };
 
     abzparabreak {
+        LastTokenSuffixLength = 0;
         MakeEntry(ts, te - ts, SpacePreserve ? NLP_PARABREAK : NLP_MISCTEXT);
     };
 
@@ -120,13 +144,14 @@
     #         if this plus is removed then in both cases accents will be parts of the words
     #         BUT the plus should not be removed from the parser because of performance
     #         since accent should follow accented symbol this behavior is OK
-    ( nobrmisc - tokprefix )+ {
+    ( nobrmisc+ ) {
         CancelToken();
-        MakeEntry(ts, te - ts, NLP_MISCTEXT);
+        p += MakeMisctextEntry(ts, te - ts, pe - te);
     };
 
     # fallback
     ( othermisc+ ) {
+        LastTokenSuffixLength = 0;
 #ifdef NLP_DEBUG
         Cdbg << Sprintf("met othermisc at %p\n", (void *)ts);
         Cdbg.write(ts, te - ts);
@@ -137,12 +162,14 @@
     };
 
     ( yc_lf+ | yc_cr+ | termpunct+ ) {
+        LastTokenSuffixLength = 0;
         CancelToken();
-        MakeEntry(ts, te - ts, NLP_MISCTEXT);
+        p += MakeMisctextEntry(ts, te - ts, pe - te);
     };
 
     # single char scanner because prefixes must be a part of token
     ( tokprefix ) {
+        LastTokenSuffixLength = 0;
         CancelToken();
         MakeEntry(ts, te - ts, NLP_MISCTEXT);
     };
@@ -157,7 +184,7 @@
     write data;
 }%%
 
-template<> void TVersionedNlpParser<2>::ExecuteImpl(const unsigned char* text, size_t len) {
+void TVersionedNlpParser<3>::ExecuteImpl(const unsigned char* text, size_t len) {
     Y_ASSERT(text);
     Text = text;
     const unsigned char *p = text, *pe = p + len; // 'pe' must never be dereferenced

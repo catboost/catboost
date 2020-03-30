@@ -38,7 +38,7 @@ ENDIF()
 
 RUN_PROGRAM(
     tools/triecompiler special_tokens.trie -0 -i special_tokens.txt -w
-    CWD ${ARCADIA_ROOT}/library/tokenizer
+    CWD ${ARCADIA_ROOT}/library/cpp/tokenizer
     OUT_NOAUTO special_tokens.trie
     IN special_tokens.txt
 )

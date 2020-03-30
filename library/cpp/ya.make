@@ -7,6 +7,8 @@ RECURSE(
     archive/ut
     streams
     string_utils
+    tokenizer
+    tokenizer/ut
 )
 
 IF (OS_WINDOWS)

@@ -3,10 +3,10 @@ UNITTEST()
 
 
 PEERDIR(
-    ADDINCL library/tokenizer
+    ADDINCL library/cpp/tokenizer
 )
 
-SRCDIR(library/tokenizer)
+SRCDIR(library/cpp/tokenizer)
 
 SRCS(
     split_ut.cpp

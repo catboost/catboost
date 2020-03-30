@@ -119,8 +119,6 @@ RECURSE(
     token/serialization
     token/serialization/ut
     token/ut
-    tokenizer
-    tokenizer/ut
     unicode
     unittest
     unittest/fat
