@@ -13,7 +13,7 @@ bool IsFreePort(ui16 port) {
 }
 
 void get_port_ranges() {
-    for (int i = 1; i < 1000; ++i) {
+    for (int i = 1; i < 10; ++i) {
         TPortManager pm;
         ui16 port = pm.GetPortsRange(1024, i);
         for (int p = port; p < port + i; ++p) {
