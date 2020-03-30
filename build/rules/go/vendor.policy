@@ -305,6 +305,7 @@ ALLOW .* -> vendor/github.com/NVIDIA/gpu-monitoring-tools/bindings/go
 
 # Opentracing interface and implementation.
 ALLOW .* -> vendor/github.com/uber/jaeger-client-go
+ALLOW .* -> vendor/github.com/uber/jaeger-lib/metrics
 ALLOW .* -> vendor/github.com/jaegertracing/jaeger-client-go
 ALLOW .* -> vendor/github.com/opentracing/opentracing-go
 
@@ -467,7 +468,6 @@ ALLOW yt/jaeger/plugin/cmd/collector -> vendor/github.com/pkg/errors
 # CONTRIB-865. Jaeger YT plugin. responsible: prime@
 ALLOW yt/jaeger/plugin -> vendor/github.com/jaegertracing/jaeger
 ALLOW yt/jaeger/plugin -> vendor/github.com/uber/jaeger-lib
-ALLOW yt/jaeger/plugin -> vendor/github.com/uber/jaeger-client-go
 ALLOW yt/jaeger/plugin -> vendor/github.com/spf13/viper
 ALLOW yt/jaeger/plugin -> vendor/github.com/gorilla
 ALLOW yt/jaeger/plugin -> vendor/github.com/gogo
