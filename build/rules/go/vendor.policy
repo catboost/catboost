@@ -308,6 +308,10 @@ ALLOW .* -> vendor/github.com/uber/jaeger-client-go
 ALLOW .* -> vendor/github.com/jaegertracing/jaeger-client-go
 ALLOW .* -> vendor/github.com/opentracing/opentracing-go
 
+# Opentracing contribs
+# CONTRIB-1778
+ALLOW .* -> vendor/github.com/opentracing-contrib/go-stdlib
+
 # CONTRIB-1299. Date parser. resposible: tserakhau@
 ALLOW .* -> vendor/github.com/araddon/dateparse
 
