@@ -288,7 +288,7 @@ namespace NCB {
         bool hasNans = false;
 
         auto processNonDefaultValue = [&] (ui32 /*idx*/, float value) {
-            if (IsNan(value)) {
+            if (std::isnan(value)) {
                 hasNans = true;
             } else {
                 featureValues.Values.push_back(value);
@@ -334,7 +334,7 @@ namespace NCB {
 
             const ui32 defaultValuesSampleCount = sampleCount - nonDefaultValuesInSampleCount;
             if (defaultValuesSampleCount) {
-                if (IsNan(sparseData.GetDefaultValue())) {
+                if (std::isnan(sparseData.GetDefaultValue())) {
                     hasNans = true;
                 } else {
                     featureValues.DefaultValue.ConstructInPlace(
@@ -410,7 +410,7 @@ namespace NCB {
         }
 
         Y_FORCE_INLINE bool IsNonDefault(float srcValue) const {
-            if (IsNan(srcValue)) {
+            if (std::isnan(srcValue)) {
                 CB_ENSURE(
                     AllowNans,
                     "There are NaNs in test dataset (feature number "
@@ -506,22 +506,41 @@ namespace NCB {
             }
         }
 
+        template<typename TBlockValueType>
+        void ProcessDenseValueBlock(
+            size_t blockStartIdx,
+            TConstArrayRef<TBlockValueType> block
+        ) const {
+            Y_ASSERT(block.size() <= BLOCK_SIZE);
+            ui64 mask = 0;
+            ui32 nonDefaultInBlock = 0;
+            for (auto i : xrange(block.size())) {
+                if (IsNonDefaultFunctor.IsNonDefault(block[i])) {
+                    ++nonDefaultInBlock;
+                    mask += (ui64(1) << i);
+                }
+            }
+            *DstNonDefaultCount += nonDefaultInBlock;
+            if (Y_LIKELY(mask != 0)) {
+                DstMasks->push_back(std::pair<ui32, ui64>(blockStartIdx / BLOCK_SIZE, mask));
+            }
+        }
+
         void ProcessDenseColumn(
             const TPolymorphicArrayValuesHolder<TColumn>& denseColumn,
             const TFeaturesArraySubsetIndexing& incrementalIndexing
         ) const {
-            ui32 currentBlockIdx = Max<ui32>();
-            ui64 currentBlockMask = 0;
-
-            denseColumn.GetData()->CloneWithNewSubsetIndexing(&incrementalIndexing)->ForEach(
-                [&] (ui32 idx, T srcValue) {
-                    if (IsNonDefaultFunctor.IsNonDefault(srcValue)) {
-                        UpdateInIncrementalOrder(idx, &currentBlockIdx, &currentBlockMask);
-                    }
+            auto clonedData = denseColumn.GetData()->CloneWithNewSubsetIndexing(&incrementalIndexing);
+            auto iter = clonedData->GetBlockIterator();
+            size_t blockStartIdx = 0;
+            while (auto bigBlock = iter->Next(4096)) {
+                for (size_t smallBlockStart = 0; smallBlockStart < bigBlock.size(); smallBlockStart += 64) {
+                    ProcessDenseValueBlock(
+                        blockStartIdx + smallBlockStart,
+                        bigBlock.Slice(smallBlockStart, Min<ui32>(64, bigBlock.size() - smallBlockStart))
+                    );
                 }
-            );
-            if (currentBlockIdx != Max<ui32>()) {
-                DstMasks->push_back(std::pair<ui32, ui64>(currentBlockIdx, currentBlockMask));
+                blockStartIdx += bigBlock.size();
             }
         }
 
