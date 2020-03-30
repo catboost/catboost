@@ -7,7 +7,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/accurate_accumulate
+    library/cpp/accurate_accumulate
 )
 
 END()

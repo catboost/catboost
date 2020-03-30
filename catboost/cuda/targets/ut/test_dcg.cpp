@@ -11,7 +11,7 @@
 #include <catboost/libs/metrics/dcg.h>
 #include <catboost/libs/metrics/sample.h>
 
-#include <library/accurate_accumulate/accurate_accumulate.h>
+#include <library/cpp/accurate_accumulate/accurate_accumulate.h>
 #include <library/float16/float16.h>
 
 #include <util/generic/algorithm.h>

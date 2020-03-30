@@ -1,9 +1,6 @@
 
 
 RECURSE(
-    accurate_accumulate
-    accurate_accumulate/benchmark
-    accurate_accumulate/benchmark/metrics
     binsaver
     binsaver/ut_util
     binsaver/ut
