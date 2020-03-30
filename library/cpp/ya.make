@@ -11,6 +11,12 @@ RECURSE(
     tokenizer/ut
 )
 
+IF (OS_LINUX)
+    RECURSE(
+    
+)
+ENDIF()
+
 IF (OS_WINDOWS)
     RECURSE(
     
@@ -20,4 +26,3 @@ ELSE()
     
 )
 ENDIF()
-
