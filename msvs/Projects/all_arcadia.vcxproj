@@ -960,9 +960,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
       <Project>1959E211-4FF5-553B-2DD1-9BDC1CFDC107</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\accurate_accumulate\library-accurate_accumulate.vcxproj">
-      <Project>F147C10C-CE54-5773-ED1B-953056696152</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\binsaver\library-binsaver.vcxproj">
       <Project>9C4284EC-342F-438F-B12F-EF54AD02C9C0</Project>
     </ProjectReference>
@@ -1052,6 +1049,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\coroutine\listener\library-coroutine-listener.vcxproj">
       <Project>B4028C7F-B714-C057-20FD-5CC1C3A20526</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\accurate_accumulate\library-cpp-accurate_accumulate.vcxproj">
+      <Project>7F8E70FD-CC97-C5C2-A4A3-48036C893265</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\archive\library-cpp-archive.vcxproj">
       <Project>784F4D3A-0D73-0E90-2CCD-EF41C31F84C8</Project>
