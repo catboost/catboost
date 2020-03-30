@@ -50,6 +50,10 @@ struct TFixedString {
     {
     }
 
+    /* implicit */ constexpr operator std::basic_string_view<TCharType>() const {
+        return std::basic_string_view<TCharType, std::char_traits<TCharType>>(Start, Length);
+    }
+
     Y_PURE_FUNCTION
     inline TFixedString SubString(size_t pos, size_t n) const noexcept {
         pos = Min(pos, Length);
@@ -63,6 +67,8 @@ struct TFixedString {
 
 template <typename TDerived, typename TCharType, typename TTraitsType = TCharTraits<TCharType>>
 class TStringBase {
+    using TStringView = std::basic_string_view<TCharType>;
+
 public:
     using TChar = TCharType;
     using TTraits = TTraitsType;
@@ -240,6 +246,12 @@ public: // style-guide compliant methods
         return 0 == Len();
     }
 
+private:
+    static inline TStringView LegacySubString(const TStringView view, size_t p, size_t n) noexcept {
+        p = Min(p, view.length());
+        return view.substr(p, n);
+    }
+
 public:
     // ~~~ Comparison ~~~ : FAMILY0(int, compare)
     static int compare(const TSelf& s1, const TSelf& s2) noexcept {
@@ -254,8 +266,8 @@ public:
         return TTraits::Compare(s1.Ptr(), s1.Len(), p, StrLen(p));
     }
 
-    static int compare(const TFixedString s1, const TFixedString s2) noexcept {
-        return TTraits::Compare(s1.Start, s1.Length, s2.Start, s2.Length);
+    static int compare(const TStringView s1, const TStringView s2) noexcept {
+        return TTraits::Compare(s1.data(), s1.length(), s2.data(), s2.length());
     }
 
     template <class T>
@@ -263,20 +275,20 @@ public:
         return compare(*this, t);
     }
 
-    inline int compare(size_t p, size_t n, const TFixedString t) const noexcept {
-        return compare(TFixedString(*this).SubString(p, n), t);
+    inline int compare(size_t p, size_t n, const TStringView t) const noexcept {
+        return compare(LegacySubString(*this, p, n), t);
     }
 
-    inline int compare(size_t p, size_t n, const TFixedString t, size_t p1, size_t n1) const noexcept {
-        return compare(TFixedString(*this).SubString(p, n), t.SubString(p1, n1));
+    inline int compare(size_t p, size_t n, const TStringView t, size_t p1, size_t n1) const noexcept {
+        return compare(LegacySubString(*this, p, n), LegacySubString(t, p1, n1));
     }
 
-    inline int compare(size_t p, size_t n, const TFixedString t, size_t n1) const noexcept {
-        return compare(TFixedString(*this).SubString(p, n), t.SubString(0, n1));
+    inline int compare(size_t p, size_t n, const TStringView t, size_t n1) const noexcept {
+        return compare(LegacySubString(*this, p, n), LegacySubString(t, 0, n1));
     }
 
     inline int compare(const TCharType* p, size_t len) const noexcept {
-        return compare(*this, TFixedString(p, len));
+        return compare(*this, TStringView(p, len));
     }
 
     static bool equal(const TSelf& s1, const TSelf& s2) noexcept {
@@ -295,8 +307,8 @@ public:
         return equal(s2, p);
     }
 
-    static bool equal(const TFixedString s1, const TFixedString s2) noexcept {
-        return TTraits::Equal(s1.Start, s1.Length, s2.Start, s2.Length);
+    static bool equal(const TStringView s1, const TStringView s2) noexcept {
+        return TTraits::Equal(s1.data(), s1.length(), s2.data(), s2.length());
     }
 
     template <class T>
@@ -304,16 +316,16 @@ public:
         return equal(*this, t);
     }
 
-    inline bool equal(size_t p, size_t n, const TFixedString t) const noexcept {
-        return equal(TFixedString(*this).SubString(p, n), t);
+    inline bool equal(size_t p, size_t n, const TStringView t) const noexcept {
+        return equal(LegacySubString(*this, p, n), t);
     }
 
-    inline bool equal(size_t p, size_t n, const TFixedString t, size_t p1, size_t n1) const noexcept {
-        return equal(TFixedString(*this).SubString(p, n), t.SubString(p1, n1));
+    inline bool equal(size_t p, size_t n, const TStringView t, size_t p1, size_t n1) const noexcept {
+        return equal(LegacySubString(*this, p, n), LegacySubString(t, p1, n1));
     }
 
-    inline bool equal(size_t p, size_t n, const TFixedString t, size_t n1) const noexcept {
-        return equal(TFixedString(*this).SubString(p, n), t.SubString(0, n1));
+    inline bool equal(size_t p, size_t n, const TStringView t, size_t n1) const noexcept {
+        return equal(LegacySubString(*this, p, n), LegacySubString(t, 0, n1));
     }
 
     static inline bool StartsWith(const TCharType* what, size_t whatLen, const TCharType* with, size_t withLen) noexcept {
@@ -328,8 +340,8 @@ public:
         return StartsWith(Ptr(), Len(), s, n);
     }
 
-    inline bool StartsWith(const TFixedString s) const noexcept {
-        return StartsWith(s.Start, s.Length);
+    inline bool StartsWith(const TStringView s) const noexcept {
+        return StartsWith(s.data(), s.length());
     }
 
     inline bool StartsWith(TCharType ch) const noexcept {
@@ -340,8 +352,8 @@ public:
         return EndsWith(Ptr(), Len(), s, n);
     }
 
-    inline bool EndsWith(const TFixedString s) const noexcept {
-        return EndsWith(s.Start, s.Length);
+    inline bool EndsWith(const TStringView s) const noexcept {
+        return EndsWith(s.data(), s.length());
     }
 
     inline bool EndsWith(TCharType ch) const noexcept {
@@ -444,11 +456,11 @@ public:
     /**
      * @return                          Position of the substring inside this string, or `npos` if not found.
      */
-    inline size_t find(const TFixedString s, size_t pos = 0) const noexcept {
-        if (Y_UNLIKELY(!s.Length)) {
+    inline size_t find(const TStringView s, size_t pos = 0) const noexcept {
+        if (Y_UNLIKELY(!s.length())) {
             return pos <= Len() ? pos : npos;
         }
-        return GenericFind<TTraits::Find>(s.Start, s.Length, pos);
+        return GenericFind<TTraits::Find>(s.data(), s.length(), pos);
     }
 
     inline size_t find(TCharType c, size_t pos = 0) const noexcept {
@@ -470,16 +482,16 @@ public:
         return off(TTraits::RFind(Ptr(), c, pos));
     }
 
-    inline size_t rfind(const TFixedString str, size_t pos = npos) const {
-        return off(TTraits::RFind(Ptr(), Len(), str.Start, str.Length, pos));
+    inline size_t rfind(const TStringView str, size_t pos = npos) const {
+        return off(TTraits::RFind(Ptr(), Len(), str.data(), str.length(), pos));
     }
 
     //~~~~Contains~~~~
     /**
      * @returns                         Whether this string contains the provided substring.
      */
-    inline bool Contains(const TFixedString s, size_t pos = 0) const noexcept {
-        return !s.Length || find(s, pos) != npos;
+    inline bool Contains(const TStringView s, size_t pos = 0) const noexcept {
+        return !s.length() || find(s, pos) != npos;
     }
 
     inline bool Contains(TChar c, size_t pos = 0) const noexcept {
@@ -499,12 +511,12 @@ public:
         return find(c, pos);
     }
 
-    inline size_t find_first_of(const TFixedString set) const noexcept {
+    inline size_t find_first_of(const TStringView set) const noexcept {
         return find_first_of(set, 0);
     }
 
-    inline size_t find_first_of(const TFixedString set, size_t pos) const noexcept {
-        return GenericFind<TTraits::FindFirstOf>(set.Start, set.Length, pos);
+    inline size_t find_first_of(const TStringView set, size_t pos) const noexcept {
+        return GenericFind<TTraits::FindFirstOf>(set.data(), set.length(), pos);
     }
 
     inline size_t find_first_not_of(TCharType c) const noexcept {
@@ -512,23 +524,23 @@ public:
     }
 
     inline size_t find_first_not_of(TCharType c, size_t pos) const noexcept {
-        return find_first_not_of(TFixedString(&c, 1), pos);
+        return find_first_not_of(TStringView(&c, 1), pos);
     }
 
-    inline size_t find_first_not_of(const TFixedString set) const noexcept {
+    inline size_t find_first_not_of(const TStringView set) const noexcept {
         return find_first_not_of(set, 0);
     }
 
-    inline size_t find_first_not_of(const TFixedString set, size_t pos) const noexcept {
-        return GenericFind<TTraits::FindFirstNotOf>(set.Start, set.Length, pos);
+    inline size_t find_first_not_of(const TStringView set, size_t pos) const noexcept {
+        return GenericFind<TTraits::FindFirstNotOf>(set.data(), set.length(), pos);
     }
 
     inline size_t find_last_of(TCharType c, size_t pos = npos) const noexcept {
         return find_last_of(&c, pos, 1);
     }
 
-    inline size_t find_last_of(const TFixedString set, size_t pos = npos) const noexcept {
-        return find_last_of(set.Start, pos, set.Length);
+    inline size_t find_last_of(const TStringView set, size_t pos = npos) const noexcept {
+        return find_last_of(set.data(), pos, set.length());
     }
 
     inline size_t find_last_of(const TCharType* set, size_t pos, size_t n) const noexcept {
@@ -551,8 +563,8 @@ public:
         return find_last_not_of(&c, pos, 1);
     }
 
-    inline size_t find_last_not_of(const TFixedString set, size_t pos = npos) const noexcept {
-        return find_last_not_of(set.Start, pos, set.Length);
+    inline size_t find_last_not_of(const TStringView set, size_t pos = npos) const noexcept {
+        return find_last_not_of(set.data(), pos, set.length());
     }
 
     inline size_t find_last_not_of(const TCharType* set, size_t pos, size_t n) const noexcept {
