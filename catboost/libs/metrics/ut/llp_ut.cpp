@@ -25,7 +25,7 @@ Y_UNIT_TEST(LLPTest) {
         TVector<float> target{1, 0, 0};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeLLPMetric();
+        const auto metric = MakeLLPMetric(ELossFunction::LogLikelihoodOfPrediction, /*params=*/{});
         metric->UseWeights = true;
         TMetricHolder score = metric->Eval(approx, target, {}, {}, 0, target.size(), executor);
 
@@ -37,7 +37,7 @@ Y_UNIT_TEST(LLPTest) {
         TVector<float> weight{1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeLLPMetric();
+        const auto metric = MakeLLPMetric(ELossFunction::LogLikelihoodOfPrediction, /*params=*/{});
         metric->UseWeights = true;
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
@@ -49,7 +49,7 @@ Y_UNIT_TEST(LLPTest) {
         TVector<float> weight{1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeLLPMetric();
+        const auto metric = MakeLLPMetric(ELossFunction::LogLikelihoodOfPrediction, /*params=*/{});
         metric->UseWeights = true;
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
@@ -61,7 +61,7 @@ Y_UNIT_TEST(LLPTest) {
         TVector<float> weight{1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeLLPMetric();
+        const auto metric = MakeLLPMetric(ELossFunction::LogLikelihoodOfPrediction, /*params=*/{});
         metric->UseWeights = true;
 
         for (int i = 1; i <= 10; i++) {
@@ -76,7 +76,7 @@ Y_UNIT_TEST(LLPTest) {
         TVector<float> weight{0.9f, 0.25f, 9.f, 20.f, 1.f};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeLLPMetric();
+        const auto metric = MakeLLPMetric(ELossFunction::LogLikelihoodOfPrediction, /*params=*/{});
         metric->UseWeights = true;
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
@@ -88,7 +88,7 @@ Y_UNIT_TEST(LLPTest) {
         TVector<float> weight{10.f, 10.f, 90.f};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeLLPMetric();
+        const auto metric = MakeLLPMetric(ELossFunction::LogLikelihoodOfPrediction, /*params=*/{});
         metric->UseWeights = true;
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
@@ -100,7 +100,7 @@ Y_UNIT_TEST(LLPTest) {
         TVector<float> weight{90.f, 10.f, 10.f};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeLLPMetric();
+        const auto metric = MakeLLPMetric(ELossFunction::LogLikelihoodOfPrediction, /*params=*/{});
         metric->UseWeights = true;
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 

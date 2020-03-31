@@ -196,7 +196,7 @@
         "uri": "file://test.test_cv_query_CPU_/catboost_training.json"
     },
     "test.test_cv_skip_train[CPU]": {
-        "checksum": "e329d0741ff010d79cef67c590c50d9a",
+        "checksum": "92c8bf49c438ce90ee8d2014f7f2e314",
         "uri": "file://test.test_cv_skip_train_CPU_/catboost_training.json"
     },
     "test.test_cv_skip_train_default[CPU]": {
@@ -798,7 +798,7 @@
         "uri": "file://test.test_pairs_generation_CPU_/catboost_training.json"
     },
     "test.test_pairs_generation_with_max_pairs[CPU]": {
-        "checksum": "9aa61e2afdb8dea65192dde19a3fbbb9",
+        "checksum": "6e8bc238c1e0d1c04606fde7f6535f54",
         "uri": "file://test.test_pairs_generation_with_max_pairs_CPU_/catboost_training.json"
     },
     "test.test_pairs_without_groupid": {

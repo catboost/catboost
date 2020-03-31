@@ -1,4 +1,4 @@
-iter	PairLogit
+iter	PairLogit:max_pairs=30
 0	0.6874798308
 1	0.6822301655
 2	0.6749957698

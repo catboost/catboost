@@ -11,7 +11,7 @@ Y_UNIT_TEST(MedianAbsoluteErrorTest) {
         TVector<float> weight{1, 1, 1, 1};
         NPar::TLocalExecutor executor;
 
-        const auto metric = MakeMedianAbsoluteErrorMetric();
+        const auto metric = MakeMedianAbsoluteErrorMetric(ELossFunction::MedianAbsoluteError, /*params=*/{});
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.5, 1e-1);
@@ -22,7 +22,7 @@ Y_UNIT_TEST(MedianAbsoluteErrorTest) {
         TVector<float> weight{1, 1, 1};
         NPar::TLocalExecutor executor;
 
-        const auto metric = MakeMedianAbsoluteErrorMetric();
+        const auto metric = MakeMedianAbsoluteErrorMetric(ELossFunction::MedianAbsoluteError, /*params=*/{});
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.99143, 1e-4);
@@ -33,7 +33,7 @@ Y_UNIT_TEST(MedianAbsoluteErrorTest) {
         TVector<float> weight{1, 1};
         NPar::TLocalExecutor executor;
 
-        const auto metric = MakeMedianAbsoluteErrorMetric();
+        const auto metric = MakeMedianAbsoluteErrorMetric(ELossFunction::MedianAbsoluteError, /*params=*/{});
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 4.2598, 1e-4);
