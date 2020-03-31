@@ -3,6 +3,7 @@
 #include "compare_documents.h"
 #include "feature_str.h"
 #include "shap_values.h"
+#include "shap_interaction_values.h"
 #include "util.h"
 
 #include <catboost/private/libs/algo/apply.h>
@@ -282,8 +283,15 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     auto targetData = CreateModelCompatibleProcessedDataProvider(dataset, {metricDescription}, model, GetMonopolisticFreeCpuRam(), &rand, localExecutor).TargetData;
     CB_ENSURE(targetData->GetTargetDimension() <= 1, "Multi-dimensional target fstr is unimplemented yet");
 
-    TShapPreparedTrees preparedTrees = PrepareTrees(model, &dataset, 0, EPreCalcShapValues::Auto, localExecutor, true);
-
+    TShapPreparedTrees preparedTrees = PrepareTrees(model, &dataset, EPreCalcShapValues::Auto, localExecutor, true);
+    CalcShapValuesByLeaf(
+        model,
+        /*fixedFeatureParams*/ Nothing(),
+        /*logPeriod*/ 0,
+        preparedTrees.CalcInternalValues,
+        localExecutor,
+        &preparedTrees
+    );
     TVector<TMetricHolder> scores(featuresCount + 1);
 
     TConstArrayRef<TQueryInfo> targetQueriesInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
@@ -715,7 +723,7 @@ TVector<TVector<double>> GetFeatureImportances(
             NPar::TLocalExecutor localExecutor;
             localExecutor.RunAdditionalThreads(threadCount - 1);
 
-            return CalcShapValues(model, *dataset, logPeriod, mode, &localExecutor);
+            return CalcShapValues(model, *dataset, /*fixedFeatureParams*/ Nothing(), logPeriod, mode, &localExecutor);
         }
         case EFstrType::PredictionDiff: {
             NPar::TLocalExecutor localExecutor;
@@ -748,7 +756,28 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
 
-    return CalcShapValuesMulti(model, *dataset, logPeriod, mode, &localExecutor);
+    return CalcShapValuesMulti(model, *dataset, /*fixedFeatureParams*/ Nothing(), logPeriod, mode, &localExecutor);
+}
+
+TVector<TVector<TVector<TVector<double>>>> CalcShapFeatureInteractionMulti(
+    const EFstrType fstrType,
+    const TFullModel& model,
+    const NCB::TDataProviderPtr dataset,
+    const TMaybe<std::pair<int, int>>& pairOfFeatures,
+    int threadCount,
+    EPreCalcShapValues mode,
+    int logPeriod
+) {
+    ValidateFeatureInteractionParams(fstrType, model, dataset);
+    if (pairOfFeatures.Defined()) {
+        const int flatFeatureCount = SafeIntegerCast<int>(dataset->MetaInfo.GetFeatureCount());
+        ValidateFeaturePair(flatFeatureCount, pairOfFeatures.GetRef());
+    }
+
+    NPar::TLocalExecutor localExecutor;
+    localExecutor.RunAdditionalThreads(threadCount - 1);
+
+    return CalcShapInteractionValuesMulti(model, *dataset, pairOfFeatures, logPeriod, mode, &localExecutor);
 }
 
 TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const TDataProviderPtr dataset) {

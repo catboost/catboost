@@ -1297,6 +1297,16 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         int logPeriod
     ) nogil except +ProcessException
 
+    cdef TVector[TVector[TVector[TVector[double]]]] CalcShapFeatureInteractionMulti(
+        const EFstrType type,
+        const TFullModel& model,
+        const TDataProviderPtr dataset,
+        const TMaybe[pair[int, int]]& pairOfFeatures,
+        int threadCount,
+        EPreCalcShapValues mode,
+        int logPeriod
+    ) nogil except +ProcessException
+
     TVector[TString] GetMaybeGeneratedModelFeatureIds(
         const TFullModel& model,
         const TDataProviderPtr dataset
@@ -1556,6 +1566,35 @@ cdef _3d_vector_of_double_to_np_array(const TVector[TVector[TVector[double]]]& v
             assert vectors[i][j].size() == sub_subvec_size, "All subvectors should have the same length"
             for k in xrange(sub_subvec_size):
                 result[i][j][k] = vectors[i][j][k]
+    return result
+
+cdef _reorder_axes_for_python_3d_shap_values(TVector[TVector[TVector[TVector[double]]]]& vectors):
+    cdef size_t featuresCount = vectors.size() if not vectors.empty() else 0
+    assert featuresCount == vectors[0].size()
+    cdef size_t approx_dimension = vectors[0][0].size() if featuresCount != 0 else 0
+    assert approx_dimension == 1
+    cdef size_t doc_size = vectors[0][0][0].size() if approx_dimension != 0 else 0
+    result = np.empty([doc_size, featuresCount, featuresCount], dtype=_npfloat64)
+    cdef size_t doc, feature1, feature2
+    for doc in xrange(doc_size):
+        for feature1 in xrange(featuresCount):
+            for feature2 in xrange(featuresCount):
+                result[doc][feature1][feature2] = vectors[feature1][feature2][0][doc]
+    return result
+
+cdef _reorder_axes_for_python_4d_shap_values(TVector[TVector[TVector[TVector[double]]]]& vectors):
+    cdef size_t featuresCount = vectors.size() if not vectors.empty() else 0
+    assert featuresCount == vectors[0].size()
+    cdef size_t approx_dimension = vectors[0][0].size() if featuresCount != 0 else 0
+    assert approx_dimension > 1
+    cdef size_t doc_size = vectors[0][0][0].size() if approx_dimension != 0 else 0
+    result = np.empty([doc_size, approx_dimension, featuresCount, featuresCount], dtype=_npfloat64)
+    cdef size_t doc, dim, feature1, feature2
+    for doc in xrange(doc_size):
+        for dim in xrange(approx_dimension):
+            for feature1 in xrange(featuresCount):
+                for feature2 in xrange(featuresCount):
+                    result[doc][dim][feature1][feature2] = vectors[feature1][feature2][dim][doc]
     return result
 
 cdef _vector_of_uints_to_np_array(const TVector[ui32]& vec):
@@ -4016,6 +4055,34 @@ cpdef _have_equal_features(_PoolBase pool1, _PoolBase pool2, bool_t ignore_spars
     )
 
 
+cdef pair[int, int] _check_and_get_interaction_indices(_PoolBase pool, interaction_indices):
+    cdef pair[int, int] pair_of_features
+    if not isinstance(interaction_indices, list):
+        raise CatBoostError(
+            "interaction_indices is not a list type")
+    if len(interaction_indices) != 2:
+        raise CatBoostError(
+            "interaction_indices must contain two numbers or string")
+    if isinstance(interaction_indices[0], str):
+        feature_names = pool.get_feature_names()
+        if not isinstance(interaction_indices[1], str):
+            raise CatBoostError(
+                "interaction_indices must have one type")
+        for idx in range(0, len(feature_names)):
+            if interaction_indices[0] == feature_names[idx]:
+                pair_of_features.first = idx
+            if interaction_indices[1] == feature_names[idx]:
+                pair_of_features.second = idx
+        return pair_of_features
+
+    if not isinstance(interaction_indices[0], int) or not isinstance(interaction_indices[1], int):
+        raise CatBoostError(
+            "interaction_indices must have either string or int type")
+    pair_of_features.first = interaction_indices[0]
+    pair_of_features.second = interaction_indices[1]
+    return pair_of_features
+
+
 cdef TQuantizedFeaturesInfoPtr _init_quantized_feature_info(TDataProviderPtr pool, _input_borders) except *:
     cdef TQuantizedFeaturesInfoPtr quantizedFeaturesInfo
     quantizedFeaturesInfo = new TQuantizedFeaturesInfo(
@@ -4304,7 +4371,7 @@ cdef class _CatBoost:
     cpdef _get_loss_function_name(self):
         return self.__model.GetLossFunctionName()
 
-    cpdef _calc_fstr(self, type_name, _PoolBase pool, int thread_count, int verbose, shap_mode_name):
+    cpdef _calc_fstr(self, type_name, _PoolBase pool, int thread_count, int verbose, shap_mode_name, interaction_indices):
         thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TString] feature_ids = GetMaybeGeneratedModelFeatureIds(
             dereference(self.__model),
@@ -4320,6 +4387,7 @@ cdef class _CatBoost:
 
         cdef EFstrType fstr_type = string_to_fstr_type(type_name)
         cdef EPreCalcShapValues shap_mode = string_to_shap_mode(shap_mode_name)
+        cdef TMaybe[pair[int, int]] pair_of_features
 
         if type_name == 'ShapValues' and dereference(self.__model).GetDimensionsCount() > 1:
             with nogil:
@@ -4332,6 +4400,23 @@ cdef class _CatBoost:
                     verbose
                 )
             return _3d_vector_of_double_to_np_array(fstr_multi), native_feature_ids
+        elif type_name == 'ShapInteractionValues':
+            if interaction_indices is not None:
+                pair_of_features = _check_and_get_interaction_indices(pool, interaction_indices)
+            with nogil:
+                fstr_4d = CalcShapFeatureInteractionMulti(
+                    fstr_type,
+                    dereference(self.__model),
+                    dataProviderPtr,
+                    pair_of_features,
+                    thread_count,
+                    shap_mode,
+                    verbose
+                )
+            if dereference(self.__model).GetDimensionsCount() > 1:
+                return _reorder_axes_for_python_4d_shap_values(fstr_4d), native_feature_ids
+            else:
+                return _reorder_axes_for_python_3d_shap_values(fstr_4d), native_feature_ids
         else:
             with nogil:
                 fstr = GetFeatureImportances(
