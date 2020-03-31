@@ -844,6 +844,7 @@ void CalcShapValuesForDocumentMulti(
     const size_t treeCount = model.GetTreeCount();
     for (size_t treeIdx = 0; treeIdx < treeCount; ++treeIdx) {
         if (preparedTrees.CalcShapValuesByLeafForAllTrees && model.IsOblivious()) {
+            Y_ASSERT(docIndexes[treeIdx] < preparedTrees.ShapValuesByLeafForAllTrees[treeIdx].size());
             for (const TShapValue& shapValue : preparedTrees.ShapValuesByLeafForAllTrees[treeIdx][docIndexes[treeIdx]]) {
                 for (int dimension = 0; dimension < approxDimension; ++dimension) {
                     (*shapValues)[dimension][shapValue.Feature] += shapValue.Value[dimension];
@@ -1232,7 +1233,16 @@ TShapPreparedTrees PrepareTrees(
         !model.ModelTrees->GetLeafWeights().empty(),
         "Model must have leaf weights or sample pool must be provided"
     );
-    return PrepareTrees(model, nullptr, EPreCalcShapValues::Auto, localExecutor);
+    TShapPreparedTrees preparedTrees = PrepareTrees(model, nullptr, EPreCalcShapValues::Auto, localExecutor);
+    CalcShapValuesByLeaf(
+        model,
+        /*fixedFeatureParams*/ Nothing(),
+        /*logPeriod*/ 0,
+        preparedTrees.CalcInternalValues,
+        localExecutor,
+        &preparedTrees
+    );
+    return preparedTrees;
 }
 
 void CalcShapValuesInternalForFeature(
