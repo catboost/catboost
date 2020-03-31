@@ -284,8 +284,8 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     auto targetData = CreateModelCompatibleProcessedDataProvider(dataset, {metricDescription}, model, GetMonopolisticFreeCpuRam(), &rand, localExecutor).TargetData;
     CB_ENSURE(targetData->GetTargetDimension() <= 1, "Multi-dimensional target fstr is unimplemented yet");
 
-    TShapPreparedTrees preparedTrees = PrepareTrees(model, &dataset, 0, EPreCalcShapValues::Auto, localExecutor,
-            calcType, true);
+    TShapPreparedTrees preparedTrees = PrepareTrees(model, &dataset, 0, EPreCalcShapValues::Auto, localExecutor, true,
+            calcType);
 
     TVector<TMetricHolder> scores(featuresCount + 1);
 

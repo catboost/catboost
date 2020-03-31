@@ -1269,8 +1269,8 @@ TShapPreparedTrees PrepareTrees(
     int logPeriod,
     EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor,
-    ECalcTypeShapValues calcType,
-    bool calcInternalValues
+    bool calcInternalValues,
+    ECalcTypeShapValues calcType
 ) {
     const size_t treeCount = model.GetTreeCount();
     const size_t treeBlockSize = CB_THREAD_LIMIT; // least necessary for threading
@@ -1359,7 +1359,7 @@ TShapPreparedTrees PrepareTrees(
         !model.ModelTrees->GetLeafWeights().empty(),
         "Model must have leaf weights or sample pool must be provided"
     );
-    return PrepareTrees(model, nullptr, 0, EPreCalcShapValues::Auto, localExecutor, calcType);
+    return PrepareTrees(model, nullptr, 0, EPreCalcShapValues::Auto, localExecutor, false, calcType);
 }
 
 void CalcShapValuesInternalForFeature(
@@ -1505,8 +1505,8 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
         logPeriod,
         mode,
         localExecutor,
-        calcType,
-        /*calcInternalValues=*/false
+        /*calcInternalValues=*/false,
+        calcType
     );
 
     const size_t documentCount = dataset.ObjectsGrouping->GetObjectCount();
@@ -1604,8 +1604,8 @@ void CalcAndOutputShapValues(
         logPeriod,
         mode,
         localExecutor,
-        calcType,
-        /*calcInternalValues=*/false
+        /*calcInternalValues=*/false,
+        calcType
     );
 
     CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "SHAP values");

@@ -74,21 +74,23 @@ void CalcShapValuesForDocumentMulti(
     TConstArrayRef<NCB::NModelEvaluation::TCalcerIndexType> docIndexes,
     size_t documentIdx,
     TVector<TVector<double>>* shapValues,
-    ECalcTypeShapValues calcType
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
 );
 
 TShapPreparedTrees PrepareTrees(
-        const TFullModel& model,
-        NPar::TLocalExecutor* localExecutor,
-        ECalcTypeShapValues calcType);
+    const TFullModel& model,
+    NPar::TLocalExecutor* localExecutor,
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
+);
+
 TShapPreparedTrees PrepareTrees(
     const TFullModel& model,
     const NCB::TDataProvider* dataset, // can be nullptr if model has LeafWeights
     int logPeriod,
     EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor,
-    ECalcTypeShapValues calcType,
-    bool calcInternalValues = false
+    bool calcInternalValues = false,
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
 );
 
 // returned: ShapValues[documentIdx][dimenesion][feature]
@@ -98,7 +100,7 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     int logPeriod,
     EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor,
-    ECalcTypeShapValues calcType
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
 );
 
 // returned: ShapValues[documentIdx][feature]
@@ -108,7 +110,7 @@ TVector<TVector<double>> CalcShapValues(
     int logPeriod,
     EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor,
-    ECalcTypeShapValues calcType
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
 );
 
 // outputs for each document in order for each dimension in order an array of feature contributions
@@ -119,7 +121,7 @@ void CalcAndOutputShapValues(
     int logPeriod,
     EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor,
-    ECalcTypeShapValues calcType
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
 );
 
 void CalcShapValuesInternalForFeature(
@@ -132,5 +134,5 @@ void CalcShapValuesInternalForFeature(
     const NCB::TObjectsDataProvider& objectsData,
     TVector<TVector<TVector<double>>>* shapValues, // [docIdx][featureIdx][dim]
     NPar::TLocalExecutor* localExecutor,
-    ECalcTypeShapValues calcType
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
 );
