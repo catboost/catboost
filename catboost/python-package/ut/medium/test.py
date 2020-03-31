@@ -3501,7 +3501,7 @@ def test_shap_interaction_value_between_pair():
     model = CatBoost(params={'loss_function': 'RMSE', 'iterations': 2, 'devices': '0', 'one_hot_max_size': 4})
     model.fit(pool)
     shap_interaction_values = model.get_feature_importance(
-    type=EFstrType.ShapInteractionValues,
+        type=EFstrType.ShapInteractionValues,
         data=pool,
         thread_count=8
     )
