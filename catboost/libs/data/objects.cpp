@@ -892,42 +892,6 @@ bool NCB::TQuantizedObjectsDataProvider::HasSparseData() const {
 }
 
 template <class T>
-static ui32 CalcCompressedFeatureChecksum(
-    ui32 checkSum,
-    const TCompressedValuesHolderImpl<T>& columnData
-) {
-    TConstCompressedArraySubset compressedDataSubset = columnData.GetCompressedData();
-
-    auto consecutiveSubsetBegin = compressedDataSubset.GetSubsetIndexing()->GetConsecutiveSubsetBegin();
-    const ui32 columnValuesBitWidth = columnData.GetBitsPerKey();
-    if (consecutiveSubsetBegin.Defined()) {
-        ui8 byteSize = columnValuesBitWidth / 8;
-        return UpdateCheckSum(
-            checkSum,
-            MakeArrayRef(
-                compressedDataSubset.GetSrc()->GetRawPtr() + *consecutiveSubsetBegin * byteSize,
-                compressedDataSubset.Size())
-        );
-    }
-
-    if (columnValuesBitWidth == 8) {
-        columnData.ForEach([&](ui32 /*idx*/, ui8 element) {
-            checkSum = UpdateCheckSum(checkSum, element);
-        });
-    } else if (columnValuesBitWidth == 16) {
-        columnData.ForEach([&](ui32 /*idx*/, ui16 element) {
-            checkSum = UpdateCheckSum(checkSum, element);
-        });
-    } else {
-        Y_ASSERT(columnValuesBitWidth == 32);
-        columnData.ForEach([&](ui32 /*idx*/, ui32 element) {
-            checkSum = UpdateCheckSum(checkSum, element);
-        });
-    }
-    return checkSum;
-}
-
-template <class T>
 static ui32 CalcSparseCompressedFeatureChecksum(
     ui32 checkSum,
     const TSparseCompressedValuesHolderImpl<T>& columnData
