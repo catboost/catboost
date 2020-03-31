@@ -78,10 +78,6 @@ TString TMetric::GetDescription() const {
     return BuildDescriptionFromParamsMap(LossFunction, descriptionParamsCopy);
 }
 
-TMap<TString, TString>* TMetric::MutableDescriptionParams() {
-    return &DescriptionParams;
-}
-
 void TMetric::AddHint(const TString& key, const TString& value) {
     Hints[key] = value;
 }

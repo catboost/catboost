@@ -158,12 +158,15 @@ struct TMetric: public IMetric {
     virtual const TMap<TString, TString>& GetHints() const override;
     virtual void AddHint(const TString& key, const TString& value) override;
     virtual bool NeedTarget() const override;
+    // The default implementation of metric description formatting.
+    // It uses LossFunction and DescriptionParams, which is user-specified metric options,
+    // and constructs a Metric:key1=value1;key2=value2 string from them.
+    // UseWeights is included in the description if the weights have been specified.
     virtual TString GetDescription() const override;
-    TMap<TString, TString>* MutableDescriptionParams();
 private:
     TMap<TString, TString> Hints;
     const ELossFunction LossFunction;
-    TMap<TString, TString> DescriptionParams;
+    const TMap<TString, TString> DescriptionParams;
 };
 
 struct TMultiRegressionMetric: public TMetric {
