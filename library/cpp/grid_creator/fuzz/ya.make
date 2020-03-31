@@ -13,7 +13,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/grid_creator
+    library/cpp/grid_creator
 )
 
 END()

@@ -8,7 +8,7 @@
 
 #include <catboost/libs/helpers/sparse_array.h>
 
-#include <library/grid_creator/binarization.h>
+#include <library/cpp/grid_creator/binarization.h>
 #include <library/json/json_value.h>
 
 #include <util/generic/map.h>

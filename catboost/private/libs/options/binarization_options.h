@@ -3,7 +3,7 @@
 #include "enums.h"
 #include "option.h"
 
-#include <library/grid_creator/binarization.h>
+#include <library/cpp/grid_creator/binarization.h>
 
 // TODO(yazevnul): make fwd header for library/json
 namespace NJson {

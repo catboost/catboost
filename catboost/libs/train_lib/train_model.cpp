@@ -39,7 +39,7 @@
 #include <catboost/private/libs/pairs/util.h>
 #include <catboost/private/libs/target/classification_target_helper.h>
 
-#include <library/grid_creator/binarization.h>
+#include <library/cpp/grid_creator/binarization.h>
 #include <library/json/json_prettifier.h>
 
 #include <util/generic/cast.h>

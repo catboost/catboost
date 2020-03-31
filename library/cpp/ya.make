@@ -5,6 +5,9 @@ RECURSE(
     accurate_accumulate/benchmark
     accurate_accumulate/benchmark/metrics
     archive/ut
+    grid_creator
+    grid_creator/fuzz
+    grid_creator/ut
     streams
     string_utils
     tokenizer

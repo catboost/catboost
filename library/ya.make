@@ -52,9 +52,6 @@ RECURSE(
     getopt/last_getopt_demo
     getopt/small
     getopt/ut
-    grid_creator
-    grid_creator/fuzz
-    grid_creator/ut
     http
     json
     json/flex_buffers

@@ -31,7 +31,7 @@ PEERDIR(
     catboost/libs/overfitting_detector
     catboost/private/libs/pairs
     catboost/private/libs/target
-    library/grid_creator
+    library/cpp/grid_creator
     library/json
     library/object_factory
     library/threading/local_executor

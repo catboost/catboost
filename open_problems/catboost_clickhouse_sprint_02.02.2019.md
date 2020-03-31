@@ -90,7 +90,7 @@ Methods to add this parameter to:
 ## 6. Weight in greedy binarization
 
 Decision tree learning is a greedy algorithm:  on each iteration for each input feature f with N samples algorithm search for best split of points f > c, where c is some condition. CatBoost doesn't use all possible conditions. Instead we select conditions that will be used for each feature before training. We need to select the most representative conditions. As a result we convert numerical feature to discrete one: feature value is replaced with number of conditions that are true for this feature value (e.g. if we have feature 10 and conditions 1, 2, 8, 12 => 10 will be replaced with 3 
- The most straightforward way to find conditions is to use quantiles of feature distribution. But this approach can't deal with highly imbalance features (e.g. 99% of ones and 1% of other). To achieve best quality we want to find such condition that after binarization will be of "similar" size. So in library/grid_creator/binarization.cpp we have several algorithms to deal with this problem.
+ The most straightforward way to find conditions is to use quantiles of feature distribution. But this approach can't deal with highly imbalance features (e.g. 99% of ones and 1% of other). To achieve best quality we want to find such condition that after binarization will be of "similar" size. So in library/cpp/grid_creator/binarization.cpp we have several algorithms to deal with this problem.
 
  CatBoost uses as a default  TMedianInBinBinarizer. This class implements a greedy algorithm. Assume we have feature with values v_1, …, v_n. First, we create set with 2 conditions c_0 = min(v_1, …, v_n) and c_1 = max(v_1, …, v_n). Then on each iteration goes through all current splits c_0 < c_1 … < c_k. We search for conditions c_{i} and c_{i+1} and new condition c, which will maximise next score: log(#{points with v between c_i and c}) + log(#{points v between c and c_{i+1}). Then new condition c is added to set of all condition and algorithm starts next iterations. 
 
@@ -264,8 +264,8 @@ Reference:
 * About Quantization in CatBoost: <https://tech.yandex.com/catboost/doc/dg/concepts/binarization-docpage/>
 * Quantization options handling: <https://github.com/catboost/catboost/blob/master/catboost/private/libs/options/binarization_options.h>
 * Quantization in CatBoost is called from <https://github.com/catboost/catboost/blob/e7d668e5e1fd2f549640fc80dc97598f260e3c4e/catboost/libs/data/quantization.cpp#L179-L183>
-* Quantization library is here: <https://github.com/catboost/catboost/tree/master/library/grid_creator>
-* Quantization function that accepts weights is here: <https://github.com/catboost/catboost/blob/e7d668e5e1fd2f549640fc80dc97598f260e3c4e/library/grid_creator/binarization.cpp#L640>
+* Quantization library is here: <https://github.com/catboost/catboost/tree/master/library/cpp/grid_creator>
+* Quantization function that accepts weights is here: <https://github.com/catboost/catboost/blob/e7d668e5e1fd2f549640fc80dc97598f260e3c4e/library/cpp/grid_creator/binarization.cpp#L640>
 
 
 ## 24. Add `SampleId` as a main name for sample id column in a column description file.

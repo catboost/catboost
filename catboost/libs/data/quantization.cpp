@@ -23,7 +23,7 @@
 #include <catboost/private/libs/quantization/utils.h>
 #include <catboost/private/libs/quantization_schema/quantize.h>
 
-#include <library/grid_creator/binarization.h>
+#include <library/cpp/grid_creator/binarization.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/cast.h>

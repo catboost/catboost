@@ -77,7 +77,7 @@ PEERDIR(
     library/dot_product
     library/fast_exp
     library/fast_log
-    library/grid_creator
+    library/cpp/grid_creator
     library/json
     library/malloc/api
     library/object_factory

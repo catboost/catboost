@@ -42,7 +42,7 @@ PEERDIR(
     catboost/private/libs/ctr_description
     catboost/private/libs/data_util
     library/getopt/small
-    library/grid_creator
+    library/cpp/grid_creator
     library/json
     library/text_processing/dictionary
     library/text_processing/tokenizer

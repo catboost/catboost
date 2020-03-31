@@ -1,4 +1,4 @@
-#include <library/grid_creator/binarization.h>
+#include <library/cpp/grid_creator/binarization.h>
 
 #include <library/unittest/registar.h>
 #include <library/unittest/gtest.h>
