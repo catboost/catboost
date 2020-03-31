@@ -238,11 +238,15 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
             }
             Shuffle(features.begin(), features.end());
             referenceFeatures = TSet<ui32>(features.begin(), features.end());
-            ui32 id = builder.AddDataSet(binarizationInfoProvider,
-                                         desc,
-                                         docsMapping,
-                                         features,
-                                         new TVector<ui32>(order));
+            ui32 id = builder.AddDataSet(
+                binarizationInfoProvider,
+                desc,
+                docsMapping,
+                features,
+                MakeAtomicShared<NCB::TFeaturesArraySubsetIndexing>(
+                    std::move(order)
+                )
+            );
             builder.PrepareToWrite();
             UNIT_ASSERT_EQUAL(id, 0u);
 

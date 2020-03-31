@@ -8,7 +8,8 @@ namespace NCatboostCuda {
     enum class EFeaturesGroupingPolicy {
         BinaryFeatures,
         HalfByteFeatures,
-        OneByteFeatures
+        OneByteFeatures,
+        TwoByteFeatures
     };
 
     template <EFeaturesGroupingPolicy>
@@ -47,6 +48,16 @@ namespace NCatboostCuda {
         }
     };
 
+    template <>
+    struct TFeaturePolicyTraits<EFeaturesGroupingPolicy::TwoByteFeatures> {
+        static constexpr ui32 BitsPerFeature() {
+            return 16u;
+        }
+
+        static constexpr ui32 FeaturesPerInt() {
+            return 32 / BitsPerFeature();
+        }
+    };
 
     template <EFeaturesGroupingPolicy Policy>
     class TCompressedIndexHelper {

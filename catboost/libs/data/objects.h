@@ -423,6 +423,10 @@ namespace NCB {
         bool HasDenseData() const override;
         bool HasSparseData() const override;
 
+        const TFeaturesArraySubsetIndexing& GetFeaturesArraySubsetIndexing() const {
+            return *CommonData.SubsetIndexing;
+        }
+
         /* can return nullptr if this feature is unavailable
          * (ignored or this data provider contains only subset of features)
          */
