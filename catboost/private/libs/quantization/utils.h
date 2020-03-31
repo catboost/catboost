@@ -50,7 +50,7 @@ namespace NCB {
                              float value) {
         static_assert(std::is_unsigned<TBinType>::value, "TBinType must be an unsigned integer");
 
-        if (IsNan(value)) {
+        if (std::isnan(value)) {
             // For ENanMode::Forbidden we choose 0 because that's how it's done on CPU both for
             // training and model application, see:
             //
@@ -68,7 +68,7 @@ namespace NCB {
                                   TConstArrayRef<float> borders,
                                   float srcValue) {
 
-        if (IsNan(srcValue)) {
+        if (std::isnan(srcValue)) {
             CB_ENSURE(
                 allowNans,
                 "There are NaNs in test dataset (feature number "

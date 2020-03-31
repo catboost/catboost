@@ -8,7 +8,7 @@
 
 namespace NCB {
     inline size_t Quantize(const float value, const TConstArrayRef<float> borders, const ENanMode nanMode) {
-        if (IsNan(value)) {
+        if (std::isnan(value)) {
             // Before r548266 NaNs were forbidden if `nanMode==ENanMode::Forbidden`, but it was
             // decided that this feature is too annoing, and we should allays allow NaNs (especially
             // in case when learn doesn't have them while test set has).

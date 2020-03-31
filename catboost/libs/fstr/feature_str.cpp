@@ -133,7 +133,7 @@ TVector<double> CalculateEffectToInfoRate(const TVector<double>& effect,
     auto efficiencyMax = double{};
     for (const auto& index : xrange(featuresEfficiency.size())) {
         const auto efficiency = effect[index] / (info[index] + 1e-20);
-        if (!IsNan(efficiency)) {
+        if (!std::isnan(efficiency)) {
             efficiencyMax = Max(efficiencyMax, efficiency);
         }
         featuresEfficiency[index] = efficiency;

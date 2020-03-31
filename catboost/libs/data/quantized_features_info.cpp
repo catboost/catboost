@@ -187,17 +187,17 @@ namespace NCB {
 
         if (const auto* denseData = dynamic_cast<const TFloatArrayValuesHolder*>(&feature)) {
             hasNans
-                = denseData->GetData()->Find([] (size_t /*idx*/, float value) { return IsNan(value); });
+                = denseData->GetData()->Find([] (size_t /*idx*/, float value) { return std::isnan(value); });
         } else if (const auto* sparseData = dynamic_cast<const TFloatSparseValuesHolder*>(&feature)) {
             const TConstPolymorphicValuesSparseArray<float, ui32>& sparseArray = sparseData->GetData();
-            if (IsNan(sparseArray.GetDefaultValue())) {
+            if (std::isnan(sparseArray.GetDefaultValue())) {
                 hasNans = true;
             } else {
                 hasNans = false;
                 auto blockIterator = sparseArray.GetNonDefaultValues().GetImpl().GetBlockIterator();
                 while (auto block = blockIterator->Next()) {
                     for (auto element : block) {
-                        if (IsNan(element)) {
+                        if (std::isnan(element)) {
                             hasNans = true;
                             break;
                         }
