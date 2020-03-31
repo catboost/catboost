@@ -926,11 +926,11 @@
         "uri": "file://test.test_shap_feature_importance_CPU_/feature_importance.npy"
     },
     "test.test_shap_feature_importance_asymmetric[CPU-Depthwise]": {
-        "checksum": "f078cb66ae14b8b3338281cef4c0091a",
+        "checksum": "9a37b8f1860dd18e4f371855cf53b565",
         "uri": "file://test.test_shap_feature_importance_asymmetric_CPU-Depthwise_/feature_importance.npy"
     },
     "test.test_shap_feature_importance_asymmetric[CPU-Lossguide]": {
-        "checksum": "597c785d7b6013d9fc2f84f7eab78dcb",
+        "checksum": "db46759eaf425b498f58c3ec8bba0ad1",
         "uri": "file://test.test_shap_feature_importance_asymmetric_CPU-Lossguide_/feature_importance.npy"
     },
     "test.test_shap_feature_importance_multiclass[CPU]": {

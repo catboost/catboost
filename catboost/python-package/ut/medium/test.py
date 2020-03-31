@@ -3133,7 +3133,7 @@ def test_shap_feature_importance_asymmetric(task_type, grow_policy):
         devices='0')
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
-    np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool)))
+    np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool)), 9))
     return local_canonical_file(fimp_npy_path)
 
 
