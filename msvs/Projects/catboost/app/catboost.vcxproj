@@ -484,6 +484,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\coroutine\listener\library-coroutine-listener.vcxproj">
       <Project>{B4028C7F-B714-C057-20FD-5CC1C3A20526}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\grid_creator\library-cpp-grid_creator.vcxproj">
+      <Project>{E6C33C80-F1BD-2340-891E-B453369FDC5C}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\streams\brotli\cpp-streams-brotli.vcxproj">
       <Project>{88BDDF2B-3A41-DF09-EA33-A8354BC1FD2B}</Project>
     </ProjectReference>
@@ -531,9 +534,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\getopt\small\library-getopt-small.vcxproj">
       <Project>{DB9C26F0-E241-89AB-6F12-8CE533A7E012}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\grid_creator\library-grid_creator.vcxproj">
-      <Project>{779D8853-F643-71C6-90BD-D7B34A2441E9}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\http\io\library-http-io.vcxproj">
       <Project>{7AAD42F7-318F-829E-0019-82746753CD46}</Project>

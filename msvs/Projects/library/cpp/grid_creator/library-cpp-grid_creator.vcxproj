@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{779D8853-F643-71C6-90BD-D7B34A2441E9}</ProjectGUID>
+    <ProjectGUID>{E6C33C80-F1BD-2340-891E-B453369FDC5C}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-grid_creator</ProjectName>
+    <ProjectName>library-cpp-grid_creator</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-grid_creator</TargetName>
+    <TargetName>library-cpp-grid_creator</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\grid_creator\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\779D8853-F643-71C6-90BD-D7B34A2441E9\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\grid_creator\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\E6C33C80-F1BD-2340-891E-B453369FDC5C\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,13 +78,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\grid_creator\binarization.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\grid_creator\binarization.h_serialized.cpp"/>
-    <CustomBuild Include="$(SolutionDir)..\library\grid_creator\binarization.h">
+    <ClCompile Include="$(SolutionDir)..\library\cpp\grid_creator\binarization.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\cpp\grid_creator\binarization.h_serialized.cpp"/>
+    <CustomBuild Include="$(SolutionDir)..\library\cpp\grid_creator\binarization.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\grid_creator
+cd /d $(SolutionDir)$(Configuration)\library\cpp\grid_creator
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/grid_creator/binarization.h" "--include-path" "library/grid_creator/binarization.h" "--output" "$(SolutionDir)$(Configuration)/library/grid_creator/binarization.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/grid_creator/binarization.h" "--include-path" "library/cpp/grid_creator/binarization.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/grid_creator/binarization.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -93,9 +93,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\grid_creator
+cd /d $(SolutionDir)$(Configuration)\library\cpp\grid_creator
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/grid_creator/binarization.h" "--include-path" "library/grid_creator/binarization.h" "--output" "$(SolutionDir)$(Configuration)/library/grid_creator/binarization.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/grid_creator/binarization.h" "--include-path" "library/cpp/grid_creator/binarization.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/grid_creator/binarization.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -103,9 +103,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/grid_creator/binarization.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\grid_creator\binarization.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\grid_creator\binarization.h_serialized.cpp;</Outputs>
+      <Message>$B/library/cpp/grid_creator/binarization.h_serialized.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\library\cpp\grid_creator\binarization.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\cpp\grid_creator\binarization.h_serialized.cpp;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
