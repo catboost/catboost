@@ -149,7 +149,7 @@ namespace NCatboostCuda {
             return *this;
         }
 
-        template<typename IQuantizedFeatureColumn>
+        template <typename IQuantizedFeatureColumn>
         TSharedCompressedIndexBuilder& Write(
             const ui32 dataSetId,
             const ui32 featureId,
@@ -209,7 +209,7 @@ namespace NCatboostCuda {
                         writePtr[i] = block[i];
                     }
                 },
-                1024
+                1024 /*blockSize*/
             );
             //TODO(noxoomo): we could optimize this (for feature-parallel datasets)
             // by async write (common machines have 2 pci root complex, so it could be almost 2 times faster)

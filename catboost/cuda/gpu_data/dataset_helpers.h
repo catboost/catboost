@@ -141,13 +141,14 @@ namespace NCatboostCuda {
     };
 
     struct TPreQuantizedColumn {
+    public:
         TPreQuantizedColumn(ui32 featureId, TConstArrayRef<ui8> prequantizedVals)
             : FullSubsetIndexing(NCB::TFullSubset<ui32>(prequantizedVals.size()))
             , ValuesHolder(
                 featureId,
                 TCompressedArray(
                     prequantizedVals.size(),
-                    8,
+                    /*bitsPerKey*/ 8,
                     NCB::TMaybeOwningArrayHolder<ui64>::CreateNonOwning(
                         TArrayRef<ui64>(
                             (ui64*)prequantizedVals.begin(),
@@ -158,6 +159,7 @@ namespace NCatboostCuda {
                 &FullSubsetIndexing
             )
         {}
+    public:
         NCB::TFeaturesArraySubsetIndexing FullSubsetIndexing;
         NCB::TQuantizedFloatValuesHolder ValuesHolder;
     };
