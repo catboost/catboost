@@ -45,5 +45,6 @@ private:
 private:
     ui32 SampleCount;
     float SampleRate;
+    const ui32 BlockSize = 8192;
     TMaybe<float> Lambda;
 };
