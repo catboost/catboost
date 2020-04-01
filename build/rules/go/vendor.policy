@@ -7,7 +7,7 @@ ALLOW .* -> vendor/cuelang.org/go
 ALLOW .* -> vendor/github.com/360EntSecGroup-Skylar/excelize/v2
 
 # in-process redis server for tests
-ALLOW .* -> vendor/github.com/alicebob/miniredis
+ALLOW .* -> vendor/github.com/alicebob/miniredis/v2
 
 # AMQP client with RabbitMQ extensions
 ALLOW .* -> vendor/github.com/streadway/amqp
