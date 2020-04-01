@@ -316,21 +316,21 @@
         "lkvm": {
             "description": "kvmtool is a userland tool for creating and controlling KVM guests"
         },
-	"blkparse": {
-	    "description": "produce formatted output of event streams of block devices from blktrace utility"
-	},
-	"iowatcher": {
-	    "description": "Create visualizations from blktrace results"
-	},
-	"blktrace": {
-	    "description": "generate traces of the i/o traffic on block devices"
-	},
-	"blkiomon": {
-	    "description": "monitor block device I/O based o blktrace data"
-	},
-	"btt": {
-	    "description": "analyse block i/o traces produces by blktrace"
-	},
+        "blkparse": {
+            "description": "produce formatted output of event streams of block devices from blktrace utility"
+        },
+        "iowatcher": {
+            "description": "Create visualizations from blktrace results"
+        },
+        "blktrace": {
+            "description": "generate traces of the i/o traffic on block devices"
+        },
+        "blkiomon": {
+            "description": "monitor block device I/O based o blktrace data"
+        },
+        "btt": {
+            "description": "analyse block i/o traces produces by blktrace"
+        },
         "optrace": {
             "description": "optrace records output files written by each process",
             "visible": false
@@ -7094,7 +7094,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 642939217,
+                "sandbox_id": 643554064,
                 "match": "horadric"
             },
             "executable": {
@@ -7416,38 +7416,37 @@
             },
             "executable": {
                 "blkparse": [
-		    "blktrace",
-		    "usr",
-		    "bin",
-		    "blkparse"
+                    "blktrace",
+                    "usr",
+                    "bin",
+                    "blkparse"
                 ],
                 "iowatcher": [
-		    "blktrace",
-		    "usr",
-		    "bin",
-		    "iowatcher"
+                    "blktrace",
+                    "usr",
+                    "bin",
+                    "iowatcher"
                 ],
                 "blktrace": [
-		    "blktrace",
-		    "usr",
-		    "bin",
-		    "blktrace"
+                    "blktrace",
+                    "usr",
+                    "bin",
+                    "blktrace"
                 ],
                 "blkiomon": [
-		    "blktrace",
-		    "usr",
-		    "bin",
-		    "blkiomon"
+                    "blktrace",
+                    "usr",
+                    "bin",
+                    "blkiomon"
                 ],
                 "btt": [
-		    "blktrace",
-		    "usr",
-		    "bin",
-		    "btt"
+                    "blktrace",
+                    "usr",
+                    "bin",
+                    "btt"
                 ]
             }
         },
-	
         "vmexec": {
             "formula": {
                 "sandbox_id": [
