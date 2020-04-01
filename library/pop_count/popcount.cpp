@@ -28,9 +28,3 @@ static const ui8 PopCountLUT16Impl[1 << 16] = {
 
 ui8 const* PopCountLUT16 = PopCountLUT16Impl;
 #endif
-
-#if defined(_x86_64_)
-#include <util/system/cpu_id.h>
-
-extern const bool HavePOPCNTInstr = NX86::HavePOPCNT();
-#endif

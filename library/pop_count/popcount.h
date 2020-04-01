@@ -1,6 +1,7 @@
 #pragma once
 
 #include <util/generic/typelist.h>
+#include <util/system/cpu_id.h>
 #include <util/system/defaults.h>
 #include <util/system/hi_lo.h>
 #include <util/system/platform.h>
@@ -37,9 +38,7 @@ static inline ui32 PopCountImpl(ui32 n) {
     return __popcnt(n);
 #else
 #if defined(_x86_64_)
-    extern const bool HavePOPCNTInstr;
-
-    if (HavePOPCNTInstr) {
+    if (NX86::CachedHavePOPCNT()) {
         ui32 r;
 
         __asm__("popcnt %1, %0;"
@@ -71,9 +70,7 @@ static inline ui32 PopCountImpl(ui64 n) {
     return __popcnt64(n);
 #else
 #if defined(_x86_64_)
-    extern const bool HavePOPCNTInstr;
-
-    if (HavePOPCNTInstr) {
+    if (NX86::CachedHavePOPCNT()) {
         ui64 r;
 
         __asm__("popcnt %1, %0;"
