@@ -48,8 +48,12 @@ IF(NOT CATBOOST_OPENSOURCE)
     PEERDIR(
         catboost//private/libs/for_python_package
         contrib/python/matplotlib
-        contrib/python/plotly
     )
+    IF (NOT OS_WINDOWS)
+        PEERDIR(
+            contrib/python/plotly
+        )
+    ENDIF()
 ENDIF()
 
 IF(HAVE_CUDA)
