@@ -1056,6 +1056,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\archive\library-cpp-archive.vcxproj">
       <Project>784F4D3A-0D73-0E90-2CCD-EF41C31F84C8</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\float16\float16_avx_impl\cpp-float16-float16_avx_impl.vcxproj">
+      <Project>F57F05E6-1E3F-09BD-5A80-D4BD0020EF71</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\float16\library-cpp-float16.vcxproj">
+      <Project>DA490E26-CB28-8400-F219-1BBFD4E3C060</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\grid_creator\library-cpp-grid_creator.vcxproj">
       <Project>E6C33C80-F1BD-2340-891E-B453369FDC5C</Project>
     </ProjectReference>
@@ -1121,12 +1127,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\fast_log\library-fast_log.vcxproj">
       <Project>B07A4621-4CF7-3047-5301-F164A4A90693</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\float16\float16_avx_impl\library-float16-float16_avx_impl.vcxproj">
-      <Project>E5D2F8A6-52D9-A48D-9522-A4F4E5EA6626</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\float16\library-float16.vcxproj">
-      <Project>1C45FF0F-0120-CA53-5202-C69A88A98E2E</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\getopt\library-getopt.vcxproj">
       <Project>1B84398E-CEDA-82B5-EE84-A684324BB064</Project>
