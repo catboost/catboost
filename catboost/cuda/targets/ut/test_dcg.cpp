@@ -12,7 +12,7 @@
 #include <catboost/libs/metrics/sample.h>
 
 #include <library/cpp/accurate_accumulate/accurate_accumulate.h>
-#include <library/float16/float16.h>
+#include <library/cpp/float16/float16.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>

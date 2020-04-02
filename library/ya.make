@@ -46,8 +46,6 @@ RECURSE(
     fast_exp/benchmark
     fast_exp/ut
     fast_log
-    float16
-    float16/ut
     getopt
     getopt/last_getopt_demo
     getopt/small

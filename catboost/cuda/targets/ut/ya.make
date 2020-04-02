@@ -28,7 +28,7 @@ PEERDIR(
     catboost/libs/helpers
     catboost/libs/metrics
     library/cpp/accurate_accumulate
-    library/float16
+    library/cpp/float16
 )
 
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)
