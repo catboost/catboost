@@ -2,7 +2,7 @@
 #include <util/datetime/cputimer.h>
 #include <util/generic/type_name.h>
 
-#include <library/pop_count/popcount.h>
+#include <library/cpp/pop_count/popcount.h>
 #include <library/testing/benchmark/bench.h>
 
 template <class F, class I>

@@ -1,4 +1,4 @@
-UNITTEST_FOR(library/pop_count)
+UNITTEST_FOR(library/cpp/pop_count)
 
 
 

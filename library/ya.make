@@ -93,9 +93,6 @@ RECURSE(
     packers
     packers/ut
     par
-    pop_count
-    pop_count/benchmark
-    pop_count/ut
     python
     resource
     resource/ut

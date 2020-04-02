@@ -4,7 +4,7 @@ BENCHMARK()
 
 PEERDIR(
     util/draft
-    library/pop_count
+    library/cpp/pop_count
 )
 
 SRCS(

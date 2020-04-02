@@ -56,12 +56,12 @@ PEERDIR(
     contrib/libs/flatbuffers
     library/binsaver
     library/containers/2d_array
+    library/cpp/pop_count
     library/dbg_output
     library/digest/crc32c
     library/digest/md5
     library/json
     library/malloc/api
-    library/pop_count
     library/threading/local_executor
 )
 

@@ -8,7 +8,7 @@
 #include <catboost/libs/helpers/double_array_iterator.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
 
-#include <library/pop_count/popcount.h>
+#include <library/cpp/pop_count/popcount.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>

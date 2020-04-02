@@ -5,7 +5,7 @@
 #include "exception.h"
 #include "serialization.h"
 
-#include <library/pop_count/popcount.h>
+#include <library/cpp/pop_count/popcount.h>
 
 #include <util/generic/bitops.h>
 #include <util/generic/cast.h>

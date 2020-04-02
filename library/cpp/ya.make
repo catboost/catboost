@@ -10,6 +10,9 @@ RECURSE(
     grid_creator
     grid_creator/fuzz
     grid_creator/ut
+    pop_count
+    pop_count/benchmark
+    pop_count/ut
     streams
     string_utils
     tokenizer
