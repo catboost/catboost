@@ -73,7 +73,6 @@ public:
     using TChar = TCharType;
     using TTraits = TTraitsType;
     using TSelf = TStringBase<TDerived, TChar, TTraits>;
-    using TFixedString = ::TFixedString<TChar, TTraits>;
 
     using size_type = size_t;
     static constexpr size_t npos = size_t(-1);
