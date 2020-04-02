@@ -431,6 +431,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\accurate_accumulate\library-cpp-accurate_accumulate.vcxproj">
       <Project>{7F8E70FD-CC97-C5C2-A4A3-48036C893265}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\dot_product\library-cpp-dot_product.vcxproj">
+      <Project>{BAB48646-C601-88C8-A272-6E1619FA017C}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\float16\float16_avx_impl\cpp-float16-float16_avx_impl.vcxproj">
       <Project>{F57F05E6-1E3F-09BD-5A80-D4BD0020EF71}</Project>
     </ProjectReference>
@@ -481,9 +484,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\dns\library-dns.vcxproj">
       <Project>{8C356353-67D3-3399-7DA3-792F6D7BF6D5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\dot_product\library-dot_product.vcxproj">
-      <Project>{C9E27228-EB15-9076-28B8-5DEE405DB9A4}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\enumbitset\library-enumbitset.vcxproj">
       <Project>{001BC0D7-D4A9-8F1B-F8D9-077578710964}</Project>
