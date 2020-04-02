@@ -113,6 +113,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\stack_array\library-containers-stack_array.vcxproj">
       <Project>{8FDE35EC-9B80-AF55-62B5-130D5EF3D68A}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\terminate_handler\library-cpp-terminate_handler.vcxproj">
+      <Project>{8776CDC6-8FD3-11B1-5A42-EAE93F81174A}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpuid_check\library-cpuid_check.vcxproj">
       <Project>{B2E67D35-D818-4BB5-60B7-B6EEC460B8F8}</Project>
     </ProjectReference>
@@ -136,9 +139,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\malloc\system\library-malloc-system.vcxproj">
       <Project>{B5163097-6C21-9F9C-985E-1E21018EDE5E}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\terminate_handler\library-terminate_handler.vcxproj">
-      <Project>{4E4966F6-2368-4B6C-B986-DF5B07F94F72}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
       <Project>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</Project>

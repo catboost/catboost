@@ -104,6 +104,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\stack_array\library-containers-stack_array.vcxproj">
       <Project>{8FDE35EC-9B80-AF55-62B5-130D5EF3D68A}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\terminate_handler\library-cpp-terminate_handler.vcxproj">
+      <Project>{8776CDC6-8FD3-11B1-5A42-EAE93F81174A}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\dbg_output\library-dbg_output.vcxproj">
       <Project>{806C141C-ADC5-203A-DF01-02F7E1563621}</Project>
     </ProjectReference>
@@ -118,9 +121,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\lcs\library-lcs.vcxproj">
       <Project>{E815EB4E-987D-1ECC-5BB6-03920E993386}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\terminate_handler\library-terminate_handler.vcxproj">
-      <Project>{4E4966F6-2368-4B6C-B986-DF5B07F94F72}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\unittest\library-unittest.vcxproj">
       <Project>{370FE76E-4632-6C9C-415B-0652D0E1566F}</Project>

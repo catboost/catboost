@@ -327,6 +327,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\pop_count\library-cpp-pop_count.vcxproj">
       <Project>{6B557DF5-6D6B-ECE1-B5B5-9CD1B8625387}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\terminate_handler\library-cpp-terminate_handler.vcxproj">
+      <Project>{8776CDC6-8FD3-11B1-5A42-EAE93F81174A}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\tokenizer\library-cpp-tokenizer.vcxproj">
       <Project>{033EAD89-E9BA-0341-D614-91C40D7F543A}</Project>
     </ProjectReference>
@@ -410,9 +413,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\svnversion\library-svnversion.vcxproj">
       <Project>{EB1297E8-310F-2F45-45A8-54D412024564}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\terminate_handler\library-terminate_handler.vcxproj">
-      <Project>{4E4966F6-2368-4B6C-B986-DF5B07F94F72}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\text_processing\dictionary\idl\text_processing-dictionary-idl.vcxproj">
       <Project>{939B289A-1787-7277-2983-EC29354F300F}</Project>

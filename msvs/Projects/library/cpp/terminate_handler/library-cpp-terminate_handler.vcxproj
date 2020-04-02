@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{4E4966F6-2368-4B6C-B986-DF5B07F94F72}</ProjectGUID>
+    <ProjectGUID>{8776CDC6-8FD3-11B1-5A42-EAE93F81174A}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-terminate_handler</ProjectName>
+    <ProjectName>library-cpp-terminate_handler</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-terminate_handler</TargetName>
+    <TargetName>library-cpp-terminate_handler</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\terminate_handler\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\4E4966F6-2368-4B6C-B986-DF5B07F94F72\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\terminate_handler\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\8776CDC6-8FD3-11B1-5A42-EAE93F81174A\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,10 +78,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\terminate_handler\segv_handler.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\terminate_handler\terminate_handler.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\terminate_handler\segv_handler.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\terminate_handler\terminate_handler.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\terminate_handler\segv_handler.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\terminate_handler\terminate_handler.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\terminate_handler\segv_handler.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\terminate_handler\terminate_handler.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
