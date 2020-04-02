@@ -1,4 +1,4 @@
-UNITTEST_FOR(library/dot_product)
+UNITTEST_FOR(library/cpp/dot_product)
 
 
 

@@ -7,7 +7,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/dot_product
+    library/cpp/dot_product
     contrib/libs/eigen
 )
 

@@ -37,9 +37,6 @@ RECURSE(
     digest
     dns
     dns/ut
-    dot_product
-    dot_product/bench
-    dot_product/ut
     enumbitset
     enumbitset/ut
     fast_exp

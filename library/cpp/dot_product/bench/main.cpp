@@ -1,4 +1,4 @@
-#include <library/dot_product/dot_product.h>
+#include <library/cpp/dot_product/dot_product.h>
 
 #include <library/testing/benchmark/bench.h>
 

@@ -5,6 +5,9 @@ RECURSE(
     accurate_accumulate/benchmark
     accurate_accumulate/benchmark/metrics
     archive/ut
+    dot_product
+    dot_product/bench
+    dot_product/ut
     float16
     float16/ut
     grid_creator

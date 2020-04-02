@@ -74,7 +74,7 @@ PEERDIR(
     library/containers/stack_vector
     library/digest/crc32c
     library/digest/md5
-    library/dot_product
+    library/cpp/dot_product
     library/fast_exp
     library/fast_log
     library/cpp/grid_creator
