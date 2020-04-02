@@ -96,13 +96,8 @@ def on_go_process_srcs(unit):
             if is_cgo_export:
                 is_cgo_export = False
                 if ext in ('.c', '.cc', '.cpp', '.cxx', '.C'):
-                    if not f.startswith(('${BINDIR}/', '${ARCADIA_BUILD_ROOT}/')):
-                        copy_file_args = [f, f, 'OUTPUT_INCLUDES', '${BINDIR}/_cgo_export.h']
-                        resolved_f = unit.resolve_arc_path([f])
-                        if resolved_f != f:
-                            copy_file_args.append(resolved_f)
-                        unit.oncopy_file(copy_file_args)
-                        f = '${BINDIR}/' + f
+                    unit.oncopy_file_with_context([f, f, 'OUTPUT_INCLUDES', '${BINDIR}/_cgo_export.h'])
+                    f = '${BINDIR}/' + f
                 else:
                     ymake.report_configure_error('Unmatched CGO_EXPORT keyword in SRCS()/_GO_SRCS() macro')
             ext_files.append(f)
