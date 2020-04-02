@@ -4,7 +4,7 @@ LIBRARY()
 
 PEERDIR(
     library/unittest
-    library/terminate_handler
+    library/cpp/terminate_handler
 )
 
 SRCS(

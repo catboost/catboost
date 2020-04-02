@@ -15,6 +15,8 @@ RECURSE(
     pop_count/ut
     streams
     string_utils
+    terminate_handler
+    terminate_handler/sample
     tokenizer
     tokenizer/ut
 )

@@ -7,7 +7,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/terminate_handler
+    library/cpp/terminate_handler
 )
 
 END()
