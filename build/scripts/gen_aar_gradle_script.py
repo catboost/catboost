@@ -112,11 +112,11 @@ android {{
 
     dependencies {{
         for (bundle in bundles)
-            implementation("$bundle") {{
+            compile("$bundle") {{
                 transitive = true
             }}
         for (bundle in androidArs)
-            implementation (bundle) {{
+            compile(bundle) {{
                 transitive = true
             }}
     }}
@@ -134,9 +134,7 @@ android {{
         def manifestXml = new XmlParser().parse(manifestFile)
 
         def packageName = manifestXml['@package']
-        def tokens = packageName.tokenize('.')
-        tokens.pop();
-        def groupName = tokens.join('.')
+        def groupName = packageName.tokenize('.')[0..-2].join('.')
 
         def androidNs = new groovy.xml.Namespace("http://schemas.android.com/apk/res/android")
         def packageVersion = manifestXml.attributes()[androidNs.versionName]
