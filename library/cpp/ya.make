@@ -5,6 +5,7 @@ RECURSE(
     accurate_accumulate/benchmark
     accurate_accumulate/benchmark/metrics
     archive/ut
+    containers
     dot_product
     dot_product/bench
     dot_product/ut

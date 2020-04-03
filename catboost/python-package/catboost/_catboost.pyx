@@ -970,7 +970,7 @@ cdef extern from "library/json/writer/json_value.h" namespace "NJson":
         const TString& GetString() except +ProcessException
 
 
-cdef extern from "library/containers/2d_array/2d_array.h":
+cdef extern from "library/cpp/containers/2d_array/2d_array.h":
     cdef cppclass TArray2D[T]:
         T* operator[] (size_t index) const
 
