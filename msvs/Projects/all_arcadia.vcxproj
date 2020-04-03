@@ -1014,9 +1014,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\comptrie\library-comptrie.vcxproj">
       <Project>76943172-A17F-362F-8E2E-D4DEC653984D</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\containers\2d_array\library-containers-2d_array.vcxproj">
-      <Project>57275066-CBBF-3FD5-137B-685E648981E5</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\compact_vector\library-containers-compact_vector.vcxproj">
       <Project>047C7A50-2D9A-391C-C42D-8B39A296D2D2</Project>
     </ProjectReference>
@@ -1055,6 +1052,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\archive\library-cpp-archive.vcxproj">
       <Project>784F4D3A-0D73-0E90-2CCD-EF41C31F84C8</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\2d_array\cpp-containers-2d_array.vcxproj">
+      <Project>245105A8-ED48-C3D9-83C3-D6894AA984B0</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\dot_product\library-cpp-dot_product.vcxproj">
       <Project>BAB48646-C601-88C8-A272-6E1619FA017C</Project>
