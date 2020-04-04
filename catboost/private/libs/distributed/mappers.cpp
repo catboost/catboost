@@ -117,6 +117,7 @@ namespace NCatboostDistributed {
 
         NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::CPU);
         catBoostOptions.Load(GetJson(params->TrainOptions));
+        catBoostOptions.SystemOptions->FileWithHosts->clear();
         TLabelConverter labelConverter;
         auto quantizedFeaturesInfo = MakeIntrusive<NCB::TQuantizedFeaturesInfo>(
             params->FeaturesLayout,
