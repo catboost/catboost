@@ -224,6 +224,10 @@
             "description": "Run contexts_difference tool",
             "visible": false
         },
+        "ycmerge": {
+            "description": "Run ycmerge tool",
+            "visible": false
+        },
         "ygdiff": {
             "description": "Run ygdiff tool",
             "visible": false
@@ -4823,6 +4827,34 @@
                 }
             ]
         },
+        "ycmerge": {
+            "tools": {
+                "ycmerge": {
+                    "bottle": "ycmerge",
+                    "executable": "ycmerge"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "ygdiff": {
             "tools": {
                 "ygdiff": {
@@ -7177,6 +7209,17 @@
             "executable": {
                 "contexts_difference": [
                     "contexts_difference"
+                ]
+            }
+        },
+        "ycmerge": {
+            "formula": {
+                "sandbox_id": 645781369,
+                "match": "ycmerge"
+            },
+            "executable": {
+                "ycmerge": [
+                    "ycmerge"
                 ]
             }
         },
