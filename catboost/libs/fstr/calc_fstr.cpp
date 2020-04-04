@@ -243,17 +243,6 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
     return result;
 }
 
-static bool TryGetObjectiveMetric(const TFullModel& model, NCatboostOptions::TLossDescription& lossDescription) {
-    if (model.ModelInfo.contains("params")) {
-        const auto &params = ReadTJsonValue(model.ModelInfo.at("params"));
-        if (params.Has("metrics") && params["metrics"].Has("objective_metric")) {
-            lossDescription.Load(params["metrics"]["objective_metric"]);
-            return true;
-        }
-    }
-    return TryGetLossDescription(model, lossDescription);
-}
-
 static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     const TFullModel& model,
     const TDataProvider& dataProvider,

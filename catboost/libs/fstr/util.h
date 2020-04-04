@@ -15,4 +15,6 @@ TVector<double> CollectLeavesStatistics(
 
 bool TryGetLossDescription(const TFullModel& model, NCatboostOptions::TLossDescription& lossDescription);
 
+bool TryGetObjectiveMetric(const TFullModel& model, NCatboostOptions::TLossDescription& lossDescription);
+
 void CheckNonZeroApproxForZeroWeightLeaf(const TFullModel& model);

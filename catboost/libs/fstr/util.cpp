@@ -91,6 +91,17 @@ bool TryGetLossDescription(const TFullModel& model, NCatboostOptions::TLossDescr
     return true;
 }
 
+bool TryGetObjectiveMetric(const TFullModel& model, NCatboostOptions::TLossDescription& lossDescription) {
+    if (model.ModelInfo.contains("params")) {
+        const auto &params = ReadTJsonValue(model.ModelInfo.at("params"));
+        if (params.Has("metrics") && params["metrics"].Has("objective_metric")) {
+            lossDescription.Load(params["metrics"]["objective_metric"]);
+            return true;
+        }
+    }
+    return TryGetLossDescription(model, lossDescription);
+}
+
 void CheckNonZeroApproxForZeroWeightLeaf(const TFullModel& model) {
     for (size_t leafIdx = 0; leafIdx < model.ModelTrees->GetLeafWeights().size(); ++leafIdx) {
         size_t approxDimension = model.GetDimensionsCount();
