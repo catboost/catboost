@@ -96,7 +96,7 @@ namespace NCatboostCuda {
 
         ui32 GetFeatureManagerIdForCatFeature(ui32 dataProviderId) const;
 
-        ui32 GetFeatureManagerIdForFloatFeature(ui32 dataProviderId) const;
+        const TVector<ui32>& GetFeatureManagerIdForFloatFeature(ui32 dataProviderId) const;
 
         ui32 GetDataProviderId(ui32 featureId) const {
             return FeatureManagerIdToDataProviderId.at(featureId);
@@ -226,20 +226,31 @@ namespace NCatboostCuda {
 
 
     private:
-        ui32 RegisterDataProviderCatFeature(ui32 featureId) {
+        void RegisterDataProviderCatFeature(ui32 featureId) {
             CB_ENSURE(!DataProviderCatFeatureIdToFeatureManagerId.contains(featureId));
             const ui32 id = RequestNewId();
             DataProviderCatFeatureIdToFeatureManagerId[featureId] = id;
             FeatureManagerIdToDataProviderId[id] = featureId;
-            return id;
         }
 
-        ui32 RegisterDataProviderFloatFeature(ui32 featureId) {
+        void RegisterDataProviderFloatFeature(ui32 featureId) {
             CB_ENSURE(!DataProviderFloatFeatureIdToFeatureManagerId.contains(featureId));
-            const ui32 id = RequestNewId();
-            DataProviderFloatFeatureIdToFeatureManagerId[featureId] = id;
-            FeatureManagerIdToDataProviderId[id] = featureId;
-            return id;
+            auto internalFeatureId = QuantizedFeaturesInfo->GetFeaturesLayout()->GetInternalFeatureIdx<EFeatureType::Float>(
+                featureId
+            );
+            if (!QuantizedFeaturesInfo->HasBorders(internalFeatureId) || QuantizedFeaturesInfo->GetBorders(internalFeatureId).empty()) {
+                const ui32 id = RequestNewId();
+                DataProviderFloatFeatureIdToFeatureManagerId[featureId].push_back(id);
+                FeatureManagerIdToDataProviderId[id] = featureId;
+                return;
+            }
+            auto& borders = QuantizedFeaturesInfo->GetBorders(internalFeatureId);
+            for (ui32 bordersSliceStart = 0; bordersSliceStart < borders.size(); bordersSliceStart += 255) {
+                const ui32 id = RequestNewId();
+                DataProviderFloatFeatureIdToFeatureManagerId[featureId].push_back(id);
+                FeatureManagerIdToDataProviderId[id] = featureId;
+                Borders[id].assign(borders.begin() + bordersSliceStart, borders.begin() + Min<ui32>(bordersSliceStart + 255, borders.size()));
+            }
         }
 
 
@@ -297,7 +308,7 @@ namespace NCatboostCuda {
         mutable TMap<TCtr, ui32> KnownCtrs;
         mutable TMap<ui32, TCtr> InverseCtrs;
 
-        mutable TMap<ui32, ui32> DataProviderFloatFeatureIdToFeatureManagerId;
+        mutable TMap<ui32, TVector<ui32>> DataProviderFloatFeatureIdToFeatureManagerId;
         mutable TMap<ui32, ui32> DataProviderCatFeatureIdToFeatureManagerId;
         mutable TMap<ui32, ui32> FeatureManagerIdToDataProviderId;
 
@@ -313,7 +324,7 @@ namespace NCatboostCuda {
         const NCatboostOptions::TCatFeatureParams& CatFeatureOptions;
 
 
-        // for ctr features, for float - get from QuantizedFeaturesInfo
+        // for ctr features and float features
         THashMap<ui32, TVector<float>> Borders;
 
         NCB::TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;

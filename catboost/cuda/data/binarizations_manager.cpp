@@ -70,11 +70,6 @@ namespace NCatboostCuda {
     }
 
     bool TBinarizedFeaturesManager::HasBorders(ui32 featureId) const {
-        if (IsFloat(featureId)) {
-            return QuantizedFeaturesInfo->HasBorders(
-                QuantizedFeaturesInfo->GetFeaturesLayout()->GetInternalFeatureIdx<EFeatureType::Float>(
-                    FeatureManagerIdToDataProviderId[featureId]));
-        }
         return Borders.contains(featureId);
     }
 
@@ -144,18 +139,13 @@ namespace NCatboostCuda {
         return DataProviderCatFeatureIdToFeatureManagerId.at(dataProviderId);
     }
 
-    ui32 TBinarizedFeaturesManager::GetFeatureManagerIdForFloatFeature(ui32 dataProviderId) const {
+    const TVector<ui32>& TBinarizedFeaturesManager::GetFeatureManagerIdForFloatFeature(ui32 dataProviderId) const {
         CB_ENSURE(DataProviderFloatFeatureIdToFeatureManagerId.contains(dataProviderId),
                   "Error: feature #" << dataProviderId << " is not float");
         return DataProviderFloatFeatureIdToFeatureManagerId.at(dataProviderId);
     }
 
     const TVector<float>& TBinarizedFeaturesManager::GetBorders(ui32 featureId) const {
-        if (IsFloat(featureId)) {
-            return QuantizedFeaturesInfo->GetBorders(
-                QuantizedFeaturesInfo->GetFeaturesLayout()->GetInternalFeatureIdx<EFeatureType::Float>(
-                    FeatureManagerIdToDataProviderId[featureId]));
-        }
         CB_ENSURE(Borders.contains(featureId), "Can't find borders for feature #" << featureId);
         return Borders.at(featureId);
     }
@@ -317,7 +307,7 @@ namespace NCatboostCuda {
         TVector<ui32> featureIds;
 
         for (const auto& feature : DataProviderCatFeatureIdToFeatureManagerId) {
-            if (metaInfo[feature.first].IsAvailable && !IgnoredFeatures.contains(feature.second)) {
+            if (metaInfo[feature.first].IsAvailable && !IgnoredFeatures.contains(feature.first)) {
                 featureIds.push_back(feature.second);
             }
         }
@@ -332,8 +322,8 @@ namespace NCatboostCuda {
         TVector<ui32> featureIds;
 
         for (const auto& feature : DataProviderFloatFeatureIdToFeatureManagerId) {
-            if (metaInfo[feature.first].IsAvailable && !IgnoredFeatures.contains(feature.second)) {
-                featureIds.push_back(feature.second);
+            if (metaInfo[feature.first].IsAvailable && !IgnoredFeatures.contains(feature.first)) {
+                featureIds.insert(featureIds.end(), feature.second.begin(), feature.second.end());
             }
         }
         return featureIds;

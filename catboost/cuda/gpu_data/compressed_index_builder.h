@@ -149,12 +149,13 @@ namespace NCatboostCuda {
             return *this;
         }
 
-        template <typename IQuantizedFeatureColumn>
+        template <typename IQuantizedFeatureColumn, typename TValueProcessor = TIdentity>
         TSharedCompressedIndexBuilder& Write(
             const ui32 dataSetId,
             const ui32 featureId,
             const ui32 binCount,
-            IQuantizedFeatureColumn* quantizedFeatureColumn
+            IQuantizedFeatureColumn* quantizedFeatureColumn,
+            TValueProcessor&& valueProcessor = TIdentity()
         ) {
             CB_ENSURE(IsWritingStage, "Error: prepare to write first");
             CB_ENSURE(dataSetId < GatherIndex.size(), "DataSet id is out of bounds: " << dataSetId << " "
@@ -203,10 +204,10 @@ namespace NCatboostCuda {
             writeBins.yresize(quantizedFeatureColumn->GetSize());
             quantizedFeatureColumn->ParallelForEachBlock(
                 LocalExecutor,
-                [writeBinsPtr = writeBins.data()] (size_t blockStartIdx, auto block) {
+                [writeBinsPtr = writeBins.data(), valueProcessor = std::move(valueProcessor)] (size_t blockStartIdx, auto block) {
                     auto writePtr = writeBinsPtr + blockStartIdx;
                     for (auto i : xrange(block.size())) {
-                        writePtr[i] = block[i];
+                        writePtr[i] = valueProcessor(block[i]);
                     }
                 },
                 1024 /*blockSize*/

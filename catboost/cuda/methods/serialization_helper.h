@@ -169,7 +169,8 @@ namespace NCatboostCuda {
             if (FeaturesMap.FloatFeatures.contains(featureId)) {
                 return;
             }
-            FeaturesMap.FloatFeatures[featureId] = TModelFeaturesMap::TFloatFeature(FeaturesManager.GetDataProviderId(featureId),
+            // we store here featureManager id to store info about wide features splitted into N subfeatures
+            FeaturesMap.FloatFeatures[featureId] = TModelFeaturesMap::TFloatFeature(featureId,
                                                                                     FeaturesManager.GetBorders(featureId));
         }
 

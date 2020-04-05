@@ -67,9 +67,8 @@ ui32 NCatboostCuda::UpdateFeatureId(TBinarizedFeaturesManager& featuresManager,
         }
     } else if (map.FloatFeatures.contains(featureId)) {
         auto& floatInfo = map.FloatFeatures.at(featureId);
-        const ui32 featureManagerId = featuresManager.GetFeatureManagerIdForFloatFeature(floatInfo.Feature);
-        ValidateBorders(floatInfo, featuresManager, featureManagerId);
-        return featureManagerId;
+        ValidateBorders(floatInfo, featuresManager, floatInfo.Feature);
+        return floatInfo.Feature;
     } else if (map.CatFeaturesMap.contains(featureId)) {
         const ui32 dataProviderId = map.CatFeaturesMap.at(featureId);
         return featuresManager.GetFeatureManagerIdForCatFeature(dataProviderId);
