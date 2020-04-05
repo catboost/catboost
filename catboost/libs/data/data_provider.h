@@ -523,7 +523,7 @@ namespace NCB {
         }
 
         TFeaturesLayoutPtr GetFeaturesLayout() const {
-            return Learn->MetaInfo.GetFeaturesLayout();
+            return Learn->MetaInfo.FeaturesLayout;
         }
 
         template <class TNewObjectsDataProvider>
