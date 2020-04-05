@@ -363,17 +363,6 @@ namespace NKernel {
     }
 
 
-    inline int OneHotCount(const TCFeature* features, int fCount) {
-        int count = 0;
-        for (int i = 0; i < fCount; ++i) {
-            if (features[i].OneHotFeature) {
-                ++count;
-            }
-        }
-        return count;
-    }
-
-
     template <bool OneHotPass>
     void ComputePairwiseHistogramOneByte5BitsImpl(const TCFeature* features,
                                                   const TCFeature* featuresCpu,
