@@ -324,7 +324,7 @@ namespace NCatboostCuda {
             auto binarizedWriter = [&](
                 ui32 dataSetId,
                 TConstArrayRef<ui8> binarizedFeature,
-                TEstimatedFeature feature,
+                NCB::TEstimatedFeatureId feature,
                 ui8 binCount
             ) {
                 const auto featureId = FeaturesManager.GetId(feature);

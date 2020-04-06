@@ -28,15 +28,6 @@ NCatboostCuda::TCtr NCatboostCuda::MigrateCtr(TBinarizedFeaturesManager& feature
 }
 
 
-template <>
-void Out<NCatboostCuda::TEstimatedFeature>(IOutputStream& out, const  NCatboostCuda::TEstimatedFeature& feature) {
-    out << "estimatorId=" << feature.EstimatorId.Id;
-    if (feature.EstimatorId.IsOnline) {
-        out << "(online)";
-    }
-    out << ", id=" << feature.LocalFeatureId;
-}
-
 template <class TFeatInfo>
 inline void ValidateBorders(const TFeatInfo& featureInfo, const NCatboostCuda::TBinarizedFeaturesManager& manager, ui32 id) {
     CB_ENSURE(featureInfo.Borders == manager.GetBorders(id),

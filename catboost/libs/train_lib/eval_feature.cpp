@@ -530,6 +530,7 @@ TIntrusivePtr<TTrainingDataProvider> MakeFeatureSubsetDataProvider(
     TDataMetaInfo newMetaInfo = trainingDataProvider->MetaInfo;
     newMetaInfo.FeaturesLayout = newObjects->GetFeaturesLayout();
     return MakeIntrusive<TTrainingDataProvider>(
+        trainingDataProvider->OriginalFeaturesLayout,
         TDataMetaInfo(newMetaInfo),
         trainingDataProvider->ObjectsGrouping,
         newObjects,
@@ -543,6 +544,11 @@ TTrainingDataProviders MakeFeatureSubsetTrainingData(
     TTrainingDataProviders newTrainingData;
     newTrainingData.Learn = MakeFeatureSubsetDataProvider(ignoredFeatures, trainingData.Learn);
     newTrainingData.Test.push_back(MakeFeatureSubsetDataProvider(ignoredFeatures, trainingData.Test[0]));
+
+    newTrainingData.FeatureEstimators = trainingData.FeatureEstimators;
+
+    // TODO(akhropov): correctly support ignoring indices based on source data
+    newTrainingData.EstimatedObjectsData = trainingData.EstimatedObjectsData;
 
     return newTrainingData;
 }

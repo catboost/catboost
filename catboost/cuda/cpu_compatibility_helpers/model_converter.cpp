@@ -234,7 +234,7 @@ TFullModel TModelConverter::Convert(
         const auto& featureBorders = FeaturesManager.GetBorders(split.FeatureId);
         const float border = featureBorders.at(split.BinIdx);
 
-        TEstimatedFeature estimatedFeature = FeaturesManager.GetEstimatedFeature(split.FeatureId);
+        NCB::TEstimatedFeatureId estimatedFeature = FeaturesManager.GetEstimatedFeature(split.FeatureId);
         TFeatureEstimatorsPtr featureEstimators = FeaturesManager.GetFeatureEstimators();
         const TGuid& estimatorGuid = featureEstimators->GetEstimatorGuid(estimatedFeature.EstimatorId);
 

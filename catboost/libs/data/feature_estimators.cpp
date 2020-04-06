@@ -3,6 +3,18 @@
 #include <catboost/libs/helpers/exception.h>
 
 #include <util/generic/xrange.h>
+#include <util/stream/output.h>
+
+
+template <>
+void Out<NCB::TEstimatedFeatureId>(IOutputStream& out, const NCB::TEstimatedFeatureId& feature) {
+    out << "estimatorId=" << feature.EstimatorId.Id;
+    if (feature.EstimatorId.IsOnline) {
+        out << "(online)";
+    }
+    out << ", id=" << feature.LocalFeatureId;
+}
+
 
 namespace NCB {
 
@@ -40,6 +52,10 @@ namespace NCB {
             "There is no estimator with " << LabeledOutput(guid)
         );
         TEstimatorId estimatorId = EstimatorGuidToFlatId.at(guid);
+        return EstimatorToSourceFeatures.at(estimatorId);
+    }
+
+    TEstimatorSourceId TFeatureEstimators::GetEstimatorSourceFeatureIdx(TEstimatorId estimatorId) const {
         return EstimatorToSourceFeatures.at(estimatorId);
     }
 

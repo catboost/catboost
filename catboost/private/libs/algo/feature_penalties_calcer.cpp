@@ -14,6 +14,7 @@ namespace NCB {
 
     static float GetSplitFeatureWeight(
         const TSplit& split,
+        const TCombinedEstimatedFeaturesContext& estimatedFeaturesContext,
         const TFeaturesLayout& layout,
         const NCatboostOptions::TPerFeaturePenalty& featureWeights
     ) {
@@ -22,7 +23,7 @@ namespace NCB {
         const auto addPenaltyFunc = [&](const int internalFeatureIdx, const EFeatureType type) {
             result *= GetFeaturePenalty(featureWeights, layout, internalFeatureIdx, type);
         };
-        split.IterateOverUsedFeatures(addPenaltyFunc);
+        split.IterateOverUsedFeatures(estimatedFeaturesContext, addPenaltyFunc);
 
         return result;
     }
@@ -47,6 +48,7 @@ namespace NCB {
 
     static float GetSplitFirstFeatureUsePenalty(
         const TSplit& split,
+        const TCombinedEstimatedFeaturesContext& estimatedFeaturesContext,
         const TFeaturesLayout& layout,
         const TVector<bool>& usedFeatures,
         const NCatboostOptions::TPerFeaturePenalty& featurePenalties,
@@ -57,7 +59,7 @@ namespace NCB {
         const auto addPenaltyFunc = [&](const int internalFeatureIdx, const EFeatureType type) {
             result += GetFeatureFirstUsePenalty(featurePenalties, layout, usedFeatures, internalFeatureIdx, type);
         };
-        split.IterateOverUsedFeatures(addPenaltyFunc);
+        split.IterateOverUsedFeatures(estimatedFeaturesContext, addPenaltyFunc);
 
         result *= penaltiesCoefficient;
         return result;
@@ -65,7 +67,8 @@ namespace NCB {
 
     void AddFeaturePenaltiesToBestSplits(
         TLearnContext* ctx,
-        const NCB::TQuantizedForCPUObjectsDataProvider& objectsData,
+        const TTrainingForCPUDataProviders& trainingData,
+        const TFold& fold,
         ui32 oneHotMaxSize,
         TVector<TCandidateInfo>* candidates
     ) {
@@ -78,15 +81,17 @@ namespace NCB {
 
         for (auto& cand : *candidates) {
             double& score = cand.BestScore.Val;
-            const auto bestSplit = cand.GetBestSplit(objectsData, oneHotMaxSize);
+            const auto bestSplit = cand.GetBestSplit(trainingData, fold, oneHotMaxSize);
 
             score *= GetSplitFeatureWeight(
                 bestSplit,
+                ctx->LearnProgress->EstimatedFeaturesContext,
                 layout,
                 featureWeights
             );
             score -= GetSplitFirstFeatureUsePenalty(
                 bestSplit,
+                ctx->LearnProgress->EstimatedFeaturesContext,
                 layout,
                 usedFeatures,
                 firstFeatureUsePenalty,

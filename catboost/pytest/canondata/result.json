@@ -3929,10 +3929,430 @@
         "checksum": "3dd905b6e943198c7f12b9a0d35660bf",
         "uri": "file://test.test_feature_id_fstr_Plain_/fstr.tsv"
     },
+    "test.test_fit_binclass_with_text_features[BM25-ByDelimiter-Ordered]": [
+        {
+            "checksum": "158aaba5acb556c970dfa18fdaed55c5",
+            "uri": "file://test.test_fit_binclass_with_text_features_BM25-ByDelimiter-Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "8c2429ae9454f19c72bf8e70fdf98c48",
+            "uri": "file://test.test_fit_binclass_with_text_features_BM25-ByDelimiter-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BM25-ByDelimiter-Plain]": [
+        {
+            "checksum": "9d037421cfcebbf98200a55d771e5de3",
+            "uri": "file://test.test_fit_binclass_with_text_features_BM25-ByDelimiter-Plain_/learn.tsv"
+        },
+        {
+            "checksum": "aa65f9d444fd0ae06307dc523be304de",
+            "uri": "file://test.test_fit_binclass_with_text_features_BM25-ByDelimiter-Plain_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BM25-BySense-Ordered]": [
+        {
+            "checksum": "5dc0e39412d019c3b30e5e7e8ea19604",
+            "uri": "file://test.test_fit_binclass_with_text_features_BM25-BySense-Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "f5bc77edaea17449eacf00a1da0669ca",
+            "uri": "file://test.test_fit_binclass_with_text_features_BM25-BySense-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BM25-BySense-Plain]": [
+        {
+            "checksum": "7d8a77f7228250c4e11b2b98534f8b4b",
+            "uri": "file://test.test_fit_binclass_with_text_features_BM25-BySense-Plain_/learn.tsv"
+        },
+        {
+            "checksum": "981b06afec3f65e6a6ebc66f66c105a6",
+            "uri": "file://test.test_fit_binclass_with_text_features_BM25-BySense-Plain_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW,NaiveBayes,BM25-ByDelimiter-Ordered]": [
+        {
+            "checksum": "e00f0a24f19a960722caf02e5a43ac2f",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-ByDelimiter-Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "831054383a7b1ead1b66e8cb348ba459",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-ByDelimiter-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW,NaiveBayes,BM25-ByDelimiter-Plain]": [
+        {
+            "checksum": "3e2cd9c15f758b8da88e1f09a36496e6",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-ByDelimiter-Plain_/learn.tsv"
+        },
+        {
+            "checksum": "f73dfc5d01d7e574916f86c0245a4a6e",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-ByDelimiter-Plain_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW,NaiveBayes,BM25-BySense-Ordered]": [
+        {
+            "checksum": "e243a42f4284b35a5e381cd1129c3336",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-BySense-Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "6ff8c4596ebec7a591be800c4753d011",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-BySense-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW,NaiveBayes,BM25-BySense-Plain]": [
+        {
+            "checksum": "e07f5da888f26fd75b93033501b4b0fb",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-BySense-Plain_/learn.tsv"
+        },
+        {
+            "checksum": "5510e4b2bcfa18f320dc461254b0c0d0",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-BySense-Plain_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW,NaiveBayes-ByDelimiter-Ordered]": [
+        {
+            "checksum": "2b7ce13a62166bbfc3f1fea88cfa432f",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes-ByDelimiter-Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "0c3435c7c1c9c3dc8d3e0ca5a40a32be",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes-ByDelimiter-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW,NaiveBayes-ByDelimiter-Plain]": [
+        {
+            "checksum": "bee2c71a3cd75c69ff2c607d1b8662c4",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes-ByDelimiter-Plain_/learn.tsv"
+        },
+        {
+            "checksum": "87f19207d1c31c4740927cf22a5e9810",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes-ByDelimiter-Plain_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW,NaiveBayes-BySense-Ordered]": [
+        {
+            "checksum": "8faa9a88dd8dab835d0ac22ded282835",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes-BySense-Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "dd163469166f64486c36d762392eed67",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes-BySense-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW,NaiveBayes-BySense-Plain]": [
+        {
+            "checksum": "a10f962ac418d638fd87d20b2d0ad617",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes-BySense-Plain_/learn.tsv"
+        },
+        {
+            "checksum": "fe9c9e6b4e6cac70d7f54e4e64fa45c4",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes-BySense-Plain_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW-ByDelimiter-Ordered]": [
+        {
+            "checksum": "1a6f28263e5b8848215c3eddab50b757",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW-ByDelimiter-Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "62308830de586f2da9b9f8ec820cab92",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW-ByDelimiter-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW-ByDelimiter-Plain]": [
+        {
+            "checksum": "edc8e93d9c2b0c5daa819815fb411df9",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW-ByDelimiter-Plain_/learn.tsv"
+        },
+        {
+            "checksum": "505999d1a81d749fc5272d0ac94c0333",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW-ByDelimiter-Plain_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW-BySense-Ordered]": [
+        {
+            "checksum": "c99cb9af195906bcab184c42c638f6f3",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW-BySense-Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "248ed17549e2f2fac90458cddb269ae6",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW-BySense-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW-BySense-Plain]": [
+        {
+            "checksum": "370c6bd4abb306443b2a5b65611de719",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW-BySense-Plain_/learn.tsv"
+        },
+        {
+            "checksum": "3aa8f9bb1df0dc14b07c5d2b09828403",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW-BySense-Plain_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[NaiveBayes-ByDelimiter-Ordered]": [
+        {
+            "checksum": "6f79bdcf3c355d4d1dde68cc5b1cc092",
+            "uri": "file://test.test_fit_binclass_with_text_features_NaiveBayes-ByDelimiter-Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "d229ae0095d616504d1c2b642a6fa1cf",
+            "uri": "file://test.test_fit_binclass_with_text_features_NaiveBayes-ByDelimiter-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[NaiveBayes-ByDelimiter-Plain]": [
+        {
+            "checksum": "8f354e62ef5ff1929c5741befe343c25",
+            "uri": "file://test.test_fit_binclass_with_text_features_NaiveBayes-ByDelimiter-Plain_/learn.tsv"
+        },
+        {
+            "checksum": "a7fd8ff2e18c4a7d03ce3726c1588ae2",
+            "uri": "file://test.test_fit_binclass_with_text_features_NaiveBayes-ByDelimiter-Plain_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[NaiveBayes-BySense-Ordered]": [
+        {
+            "checksum": "29ae78e88a3c61a2b8dedc1eec8f9608",
+            "uri": "file://test.test_fit_binclass_with_text_features_NaiveBayes-BySense-Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "61e05fd484fb4eb0577b4452d4b14bf0",
+            "uri": "file://test.test_fit_binclass_with_text_features_NaiveBayes-BySense-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[NaiveBayes-BySense-Plain]": [
+        {
+            "checksum": "e7820707bfc730f23a8cd37af5a3f26a",
+            "uri": "file://test.test_fit_binclass_with_text_features_NaiveBayes-BySense-Plain_/learn.tsv"
+        },
+        {
+            "checksum": "a24e4fbd4dc5827e7295cd986a262dc2",
+            "uri": "file://test.test_fit_binclass_with_text_features_NaiveBayes-BySense-Plain_/test.tsv"
+        }
+    ],
     "test.test_fit_multiclass_with_class_names": [
         {
             "checksum": "e7da5ba492b90f5e42e1cfc182d00625",
             "uri": "file://test.test_fit_multiclass_with_class_names/eval.txt"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClass-BM25-ByDelimiter]": [
+        {
+            "checksum": "88f8731a8557ca091f991abb91edaff5",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BM25-ByDelimiter_/learn.tsv"
+        },
+        {
+            "checksum": "ee0889a4484f042869ddbc49ce7aa41f",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BM25-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClass-BM25-BySense]": [
+        {
+            "checksum": "b3d848ff4a3bee3684251bda554af64b",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BM25-BySense_/learn.tsv"
+        },
+        {
+            "checksum": "2ba67c1d9f74bde8bfb50ff0768119b2",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BM25-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClass-BoW,NaiveBayes,BM25-ByDelimiter]": [
+        {
+            "checksum": "4a9a89a7ef54393346d51b387ae3014d",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_BM25-ByDelimiter_/learn.tsv"
+        },
+        {
+            "checksum": "25f9272dfc0e2913ac6d2e541ffbefa6",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_BM25-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClass-BoW,NaiveBayes,BM25-BySense]": [
+        {
+            "checksum": "27e235fee54251a9410a6a863330312e",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_BM25-BySense_/learn.tsv"
+        },
+        {
+            "checksum": "a3aad42cc4d8b9fecd02dfa9b7c0ba5e",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_BM25-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClass-BoW,NaiveBayes-ByDelimiter]": [
+        {
+            "checksum": "b109b2da3227cde51e8bd416de868422",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes-ByDelimiter_/learn.tsv"
+        },
+        {
+            "checksum": "fa19457cdac6c7510929befa41d43132",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClass-BoW,NaiveBayes-BySense]": [
+        {
+            "checksum": "f9601ec2d07c232ca2c8e5830e4cca9d",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes-BySense_/learn.tsv"
+        },
+        {
+            "checksum": "744d95473b5df61f2b1c791e5a2720cb",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClass-BoW-ByDelimiter]": [
+        {
+            "checksum": "788b976476c849671d24b2eaee6adc84",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW-ByDelimiter_/learn.tsv"
+        },
+        {
+            "checksum": "d3a00a8150797c5babfc6c9b4247dbba",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClass-BoW-BySense]": [
+        {
+            "checksum": "0314b314baa69fb9454a6b1b08df7fc5",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW-BySense_/learn.tsv"
+        },
+        {
+            "checksum": "24bc9e8a139c8267f644263b658c9a59",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClass-NaiveBayes-ByDelimiter]": [
+        {
+            "checksum": "07584b4d9aa0cbfa22bd22d543026e46",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-NaiveBayes-ByDelimiter_/learn.tsv"
+        },
+        {
+            "checksum": "15211f773f23f7fcfeed8e322cbe21e8",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-NaiveBayes-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClass-NaiveBayes-BySense]": [
+        {
+            "checksum": "92342c035ec5df315c0ec19ca4af11f2",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-NaiveBayes-BySense_/learn.tsv"
+        },
+        {
+            "checksum": "cb9ba9d33794b6ff79ab365e5b6173ac",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-NaiveBayes-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BM25-ByDelimiter]": [
+        {
+            "checksum": "41a525ad8c043387e1449381f2df6136",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BM25-ByDelimiter_/learn.tsv"
+        },
+        {
+            "checksum": "15d15aeb31ac1a61995bbb756004c378",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BM25-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BM25-BySense]": [
+        {
+            "checksum": "2f02122b9a4fd859e555977df8eb8ec8",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BM25-BySense_/learn.tsv"
+        },
+        {
+            "checksum": "58d8a994450229de4eee7a806d2594a5",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BM25-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW,NaiveBayes,BM25-ByDelimiter]": [
+        {
+            "checksum": "1eb4713357188dc2b04c84b9744087aa",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes_BM25-ByDelimiter_/learn.tsv"
+        },
+        {
+            "checksum": "1defa653ade520172b2d0724834713a5",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes_BM25-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW,NaiveBayes,BM25-BySense]": [
+        {
+            "checksum": "708b5d1ef8bb787a31ad5a9afd7cfcde",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes_BM25-BySense_/learn.tsv"
+        },
+        {
+            "checksum": "33ccd1fac7ef632eb5270cc46183c214",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes_BM25-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW,NaiveBayes-ByDelimiter]": [
+        {
+            "checksum": "30c21c638ca37583e82c1d04be46605f",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes-ByDelimiter_/learn.tsv"
+        },
+        {
+            "checksum": "7b3d1d32ffc9695658d2681ef52eb7f4",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW,NaiveBayes-BySense]": [
+        {
+            "checksum": "a423f0a6abc4fb37fab528f76dfca6c1",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes-BySense_/learn.tsv"
+        },
+        {
+            "checksum": "ff2e9a122e56cbb623ac301c9620849c",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW-ByDelimiter]": [
+        {
+            "checksum": "b61a523fe20ea40cdaea4e23be25420a",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW-ByDelimiter_/learn.tsv"
+        },
+        {
+            "checksum": "2bd23c66084e8b9d35c76e036088a27a",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW-BySense]": [
+        {
+            "checksum": "bf7f737244ea61a826192439573451ad",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW-BySense_/learn.tsv"
+        },
+        {
+            "checksum": "c4a18e03af93127ee463b0548334c48b",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClassOneVsAll-NaiveBayes-ByDelimiter]": [
+        {
+            "checksum": "b285931ebb4f151fdc72253d15a3575a",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-NaiveBayes-ByDelimiter_/learn.tsv"
+        },
+        {
+            "checksum": "6075721135b09bacb1fd96b6175c8316",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-NaiveBayes-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClassOneVsAll-NaiveBayes-BySense]": [
+        {
+            "checksum": "4f349f9ea6f38ed8f46ed6cc064c0973",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-NaiveBayes-BySense_/learn.tsv"
+        },
+        {
+            "checksum": "de1a6cc8adc224bbac3773dcf2c79ca0",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-NaiveBayes-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_with_per_feature_text_options[Ordered]": [
+        {
+            "checksum": "cc6e9a554b6ebe89442037ce1e5c9d0b",
+            "uri": "file://test.test_fit_with_per_feature_text_options_Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "be81655e2bc777d6db76b8a16fca68db",
+            "uri": "file://test.test_fit_with_per_feature_text_options_Ordered_/test.tsv"
+        }
+    ],
+    "test.test_fit_with_per_feature_text_options[Plain]": [
+        {
+            "checksum": "85d3f3ec14dc4c7d9b8693c35a4cbd9e",
+            "uri": "file://test.test_fit_with_per_feature_text_options_Plain_/learn.tsv"
+        },
+        {
+            "checksum": "ad1d9a16eaf83e24a67bb4d3b71dd3e6",
+            "uri": "file://test.test_fit_with_per_feature_text_options_Plain_/test.tsv"
         }
     ],
     "test.test_fold_len_multiplier[calc_block=5000000-Ordered]": [
@@ -8067,6 +8487,36 @@
             "uri": "file://test.test_shrink_model_Plain-SymmetricTree_/test.eval"
         }
     ],
+    "test.test_shrink_model_with_text_features[Depthwise]": [
+        {
+            "checksum": "a58a79bad342b255b1dab4d1d39eb8bd",
+            "uri": "file://test.test_shrink_model_with_text_features_Depthwise_/learn.tsv"
+        },
+        {
+            "checksum": "512b3f6fa38fde7970a6907160cf0405",
+            "uri": "file://test.test_shrink_model_with_text_features_Depthwise_/test.tsv"
+        }
+    ],
+    "test.test_shrink_model_with_text_features[Lossguide]": [
+        {
+            "checksum": "6f51d643e4a4150074f6392f869fff4b",
+            "uri": "file://test.test_shrink_model_with_text_features_Lossguide_/learn.tsv"
+        },
+        {
+            "checksum": "325c87848c2f10e74c98f4d5d0fbb127",
+            "uri": "file://test.test_shrink_model_with_text_features_Lossguide_/test.tsv"
+        }
+    ],
+    "test.test_shrink_model_with_text_features[SymmetricTree]": [
+        {
+            "checksum": "1f42697f45c50f7ef106b9938f40f7a9",
+            "uri": "file://test.test_shrink_model_with_text_features_SymmetricTree_/learn.tsv"
+        },
+        {
+            "checksum": "af05eca49444cf628d30c44170c8f285",
+            "uri": "file://test.test_shrink_model_with_text_features_SymmetricTree_/test.tsv"
+        }
+    ],
     "test.test_simple_ctr": [
         {
             "checksum": "ca542e6d5ad9612fde10e9106b0ef224",
@@ -8213,6 +8663,86 @@
         {
             "checksum": "e83adfad28be1014a8624391baa237ee",
             "uri": "file://test.test_target_border/test.eval"
+        }
+    ],
+    "test.test_text_processing_options[MultiClass-dictionaries0]": [
+        {
+            "checksum": "b523a1153235901f2b9468832d348424",
+            "uri": "file://test.test_text_processing_options_MultiClass-dictionaries0_/learn.tsv"
+        },
+        {
+            "checksum": "cc6e2a91938927ca88c3f933ef7d3859",
+            "uri": "file://test.test_text_processing_options_MultiClass-dictionaries0_/test.tsv"
+        }
+    ],
+    "test.test_text_processing_options[MultiClass-dictionaries1]": [
+        {
+            "checksum": "f39ac50e11f66df89e658d0701c2f370",
+            "uri": "file://test.test_text_processing_options_MultiClass-dictionaries1_/learn.tsv"
+        },
+        {
+            "checksum": "ed07d411a8de155dc1b1eff3c3604884",
+            "uri": "file://test.test_text_processing_options_MultiClass-dictionaries1_/test.tsv"
+        }
+    ],
+    "test.test_text_processing_options[MultiClass-dictionaries2]": [
+        {
+            "checksum": "3ef47c1fb7238ebd5fbf02e63e6acf0d",
+            "uri": "file://test.test_text_processing_options_MultiClass-dictionaries2_/learn.tsv"
+        },
+        {
+            "checksum": "50974df51a6dde059383a6e9e24c4ec0",
+            "uri": "file://test.test_text_processing_options_MultiClass-dictionaries2_/test.tsv"
+        }
+    ],
+    "test.test_text_processing_options[MultiClass-dictionaries3]": [
+        {
+            "checksum": "eb1d7298f1b5aa58f8223e51c9a1c920",
+            "uri": "file://test.test_text_processing_options_MultiClass-dictionaries3_/learn.tsv"
+        },
+        {
+            "checksum": "a31cc5fc67e9451e53b165bcdf9eee00",
+            "uri": "file://test.test_text_processing_options_MultiClass-dictionaries3_/test.tsv"
+        }
+    ],
+    "test.test_text_processing_options[MultiClassOneVsAll-dictionaries0]": [
+        {
+            "checksum": "00cacdce141296fabae353dfc3602246",
+            "uri": "file://test.test_text_processing_options_MultiClassOneVsAll-dictionaries0_/learn.tsv"
+        },
+        {
+            "checksum": "cf852253b27caae2595bc99b7e453043",
+            "uri": "file://test.test_text_processing_options_MultiClassOneVsAll-dictionaries0_/test.tsv"
+        }
+    ],
+    "test.test_text_processing_options[MultiClassOneVsAll-dictionaries1]": [
+        {
+            "checksum": "529527d272aae1992916592893e2c8d2",
+            "uri": "file://test.test_text_processing_options_MultiClassOneVsAll-dictionaries1_/learn.tsv"
+        },
+        {
+            "checksum": "6f70018ffebd90b46b70591e5e6da469",
+            "uri": "file://test.test_text_processing_options_MultiClassOneVsAll-dictionaries1_/test.tsv"
+        }
+    ],
+    "test.test_text_processing_options[MultiClassOneVsAll-dictionaries2]": [
+        {
+            "checksum": "3de3124533d4b36f1354f1ac487800b4",
+            "uri": "file://test.test_text_processing_options_MultiClassOneVsAll-dictionaries2_/learn.tsv"
+        },
+        {
+            "checksum": "b344b8a490c22eddc1e5d37a8dd2a287",
+            "uri": "file://test.test_text_processing_options_MultiClassOneVsAll-dictionaries2_/test.tsv"
+        }
+    ],
+    "test.test_text_processing_options[MultiClassOneVsAll-dictionaries3]": [
+        {
+            "checksum": "910c6625bd827efde252b729fd32902a",
+            "uri": "file://test.test_text_processing_options_MultiClassOneVsAll-dictionaries3_/learn.tsv"
+        },
+        {
+            "checksum": "218a6d3e21e767716fc606730d669231",
+            "uri": "file://test.test_text_processing_options_MultiClassOneVsAll-dictionaries3_/test.tsv"
         }
     ],
     "test.test_time[Ordered]": [

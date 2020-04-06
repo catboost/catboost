@@ -10,6 +10,7 @@
 #include <catboost/libs/helpers/clear_array.h>
 #include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/model/online_ctr.h>
+#include <catboost/private/libs/options/binarization_options.h>
 #include <catboost/private/libs/options/defaults_helper.h>
 
 #include <util/generic/array_ref.h>
@@ -88,6 +89,18 @@ public:
         return std::tie(OnlineSingleCtrs, OnlineCTR);
     }
 
+    const NCB::TEstimatedForCPUObjectsDataProviders& GetOnlineEstimatedFeatures() const {
+        return OnlineEstimatedFeatures;
+    }
+
+    NCB::TEstimatedForCPUObjectsDataProviders& GetOnlineEstimatedFeatures() {
+        return OnlineEstimatedFeatures;
+    }
+
+    const NCB::TQuantizedEstimatedFeaturesInfo& GetOnlineEstimatedFeaturesInfo() const {
+        return OnlineEstimatedFeatures.QuantizedEstimatedFeaturesInfo;
+    }
+
     template <typename T>
     void AssignPermuted(TConstArrayRef<T> source, TVector<T>* dest) const {
         *dest = NCB::GetSubset<T>(source, LearnPermutation->GetObjectsIndexing());
@@ -116,7 +129,7 @@ public:
     void LoadApproxes(IInputStream* s);
 
     static TFold BuildDynamicFold(
-        const NCB::TTrainingForCPUDataProvider& learnData,
+        const NCB::TTrainingForCPUDataProviders& data,
         const TVector<TTargetClassifier>& targetClassifiers,
         bool shuffle,
         ui32 permuteBlockSize,
@@ -125,12 +138,14 @@ public:
         bool storeExpApproxes,
         bool hasPairwiseWeights,
         TMaybe<double> startingApprox,
+        const NCatboostOptions::TBinarizationOptions& onlineEstimatedFeaturesQuantizationOptions,
+        NCB::TQuantizedFeaturesInfoPtr onlineEstimatedFeaturesQuantizedInfo, // can be nullptr
         TRestorableFastRng64* rand,
         NPar::TLocalExecutor* localExecutor
     );
 
     static TFold BuildPlainFold(
-        const NCB::TTrainingForCPUDataProvider& learnData,
+        const NCB::TTrainingForCPUDataProviders& data,
         const TVector<TTargetClassifier>& targetClassifiers,
         bool shuffle,
         ui32 permuteBlockSize,
@@ -138,6 +153,8 @@ public:
         bool storeExpApproxes,
         bool hasPairwiseWeights,
         TMaybe<double> startingApprox,
+        const NCatboostOptions::TBinarizationOptions& onlineEstimatedFeaturesQuantizationOptions,
+        NCB::TQuantizedFeaturesInfoPtr onlineEstimatedFeaturesQuantizedInfo, // can be nullptr
         TRestorableFastRng64* rand,
         NPar::TLocalExecutor* localExecutor
     );
@@ -149,6 +166,10 @@ public:
         return LearnPermutation->GetObjectsIndexing().Get<NCB::TIndexedSubset<ui32>>();
     }
 
+    TConstArrayRef<ui32> GetLearnPermutationOfflineEstimatedFeaturesSubset() const {
+        return GetLearnPermutationArray();
+    }
+
 private:
     void AssignTarget(
         NCB::TMaybeData<TConstArrayRef<TConstArrayRef<float>>> target,
@@ -157,6 +178,14 @@ private:
     );
 
     void SetWeights(TConstArrayRef<float> weights, ui32 learnSampleCount);
+
+    void InitOnlineEstimatedFeatures(
+        const NCatboostOptions::TBinarizationOptions& quantizationOptions,
+        NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+        const NCB::TTrainingForCPUDataProviders& data,
+        NPar::TLocalExecutor* localExecutor,
+        TRestorableFastRng64* rand
+    );
 
 public:
     TVector<TQueryInfo> LearnQueriesInfo;
@@ -191,5 +220,7 @@ private:
 
     TOnlineCTRHash OnlineSingleCtrs;
     TOnlineCTRHash OnlineCTR;
+
+    NCB::TEstimatedForCPUObjectsDataProviders OnlineEstimatedFeatures;
 };
 

@@ -53,7 +53,10 @@ inline void CalcScoresForLeaf(
                 allStats.Add(leafStats);
             }
 
-            if (splitType == ESplitType::OnlineCtr || splitType == ESplitType::FloatFeature) {
+            if (splitType == ESplitType::OnlineCtr ||
+                splitType == ESplitType::FloatFeature ||
+                splitType == ESplitType::EstimatedFeature)
+            {
                 TBucketStats trueStats = allStats;
                 TBucketStats falseStats{0, 0, 0, 0};
                 for (int splitIdx = 0; splitIdx < bucketCount - 1; ++splitIdx) {

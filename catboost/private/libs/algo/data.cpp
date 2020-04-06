@@ -1,7 +1,7 @@
 #include "data.h"
 
 #include "approx_dimension.h"
-
+#include "estimated_features.h"
 
 #include <catboost/libs/data/borders_io.h>
 #include <catboost/libs/data/quantization.h>
@@ -75,6 +75,7 @@ namespace NCB {
         const ui64 cpuRamLimit = ParseMemorySizeDescription(params->SystemOptions->CpuUsedRamLimit.Get());
 
         auto trainingData = MakeIntrusive<TTrainingDataProvider>();
+        trainingData->OriginalFeaturesLayout = srcData->MetaInfo.FeaturesLayout;
         trainingData->MetaInfo = srcData->MetaInfo;
         trainingData->ObjectsGrouping = srcData->ObjectsGrouping;
 
@@ -409,6 +410,19 @@ namespace NCB {
                 quantizedFeaturesInfo->GetTextProcessingOptions().GetTokenizedFeatureDescriptions(),
                 trainingData,
                 localExecutor);
+
+            if (params->GetTaskType() == ETaskType::CPU) {
+                trainingData.EstimatedObjectsData = CreateEstimatedFeaturesData(
+                    params->DataProcessingOptions->FloatFeaturesBinarization.Get(),
+                    /*maxSubsetSizeForBuildBordersAlgorithms*/ 100000,
+                    /*quantizedFeaturesInfo*/ nullptr,
+                    trainingData,
+                    trainingData.FeatureEstimators,
+                    /*learnPermutation*/ Nothing(), // offline features
+                    localExecutor,
+                    rand
+                ).Cast<TQuantizedObjectsDataProvider>();
+            }
         }
 
         if (params->MetricOptions->EvalMetric.IsSet() && (srcData.Test.size() > 0)) {

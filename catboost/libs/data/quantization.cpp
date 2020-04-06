@@ -146,30 +146,16 @@ namespace NCB {
         NPar::TLocalExecutor* localExecutor
     ) {
         if (NeedToCalcBorders(featuresLayoutForQuantization, quantizedFeaturesInfo)) {
-            const ui32 objectCount = srcIndexing.Size();
-            const ui32 sampleSize = GetSampleSizeForBorderSelectionType(
-                objectCount,
+            TFeaturesArraySubsetIndexing subsetIndexing = GetArraySubsetForBuildBorders(
+                srcIndexing.Size(),
                 /*TODO(kirillovs): iterate through all per feature binarization settings and select smallest
                  * sample size
                  */
                 quantizedFeaturesInfo.GetFloatFeatureBinarization(Max<ui32>()).BorderSelectionType,
-                options.MaxSubsetSizeForBuildBordersAlgorithms
+                srcObjectsOrder == EObjectsOrder::RandomShuffled,
+                options.MaxSubsetSizeForBuildBordersAlgorithms,
+                rand
             );
-            TFeaturesArraySubsetIndexing subsetIndexing;
-            if (sampleSize < objectCount) {
-                if (srcObjectsOrder == EObjectsOrder::RandomShuffled) {
-                    // just get first sampleSize elements
-                    TVector<TSubsetBlock<ui32>> blocks = {TSubsetBlock<ui32>({0, sampleSize}, 0)};
-                    subsetIndexing = TFeaturesArraySubsetIndexing(
-                        TRangesSubset<ui32>(sampleSize, std::move(blocks))
-                    );
-                } else {
-                    TIndexedSubset<ui32> randomShuffle = SampleIndices<ui32>(objectCount, sampleSize, rand);
-                    subsetIndexing = TFeaturesArraySubsetIndexing(std::move(randomShuffle));
-                }
-            } else {
-                subsetIndexing = TFeaturesArraySubsetIndexing(TFullSubset<ui32>(objectCount));
-            }
             return TSubsetIndexingForBuildBorders(srcIndexing, subsetIndexing, localExecutor);
         } else {
             return TSubsetIndexingForBuildBorders();

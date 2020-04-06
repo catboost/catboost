@@ -102,7 +102,7 @@ namespace NCatboostCuda {
             return FeatureManagerIdToDataProviderId.at(featureId);
         }
 
-        TEstimatedFeature GetEstimatedFeature(ui32 featureId) const {
+        NCB::TEstimatedFeatureId GetEstimatedFeature(ui32 featureId) const {
             return FeatureManagerIdToEstimatedFeatureId.at(featureId);
         }
 
@@ -148,12 +148,12 @@ namespace NCatboostCuda {
             return KnownCtrs[ctr];
         }
 
-        ui32 GetId(const TEstimatedFeature& feature) const {
+        ui32 GetId(const NCB::TEstimatedFeatureId& feature) const {
             CB_ENSURE(EstimatedFeatureToFeatureManagerId.contains(feature), "Unknown estimated features, this is probably a bug");
             return EstimatedFeatureToFeatureManagerId[feature];
         }
 
-        const NCatboostOptions::TBinarizationOptions& GetBinarizationDescription(const TEstimatedFeature&) const {
+        const NCatboostOptions::TBinarizationOptions& GetBinarizationDescription(const NCB::TEstimatedFeatureId&) const {
             return QuantizedFeaturesInfo->GetFloatFeatureBinarization(Max<ui32>());
         }
 
@@ -271,14 +271,14 @@ namespace NCatboostCuda {
 
         void RegisterFeatureEstimator(const NCB::TEstimatorId& estimatorId, const NCB::TEstimatedFeaturesMeta& meta) {
             for (ui32 f = 0; f < meta.FeaturesCount; ++f) {
-                TEstimatedFeature feature{estimatorId, f};
+                NCB::TEstimatedFeatureId feature{estimatorId, f};
                 const ui32 maxBins = QuantizedFeaturesInfo->GetFloatFeatureBinarization(Max<ui32>()).BorderCount + 1;
                 ui32 maxBinsUpperBoundHint = meta.UniqueValuesUpperBoundHint ? (*meta.UniqueValuesUpperBoundHint)[f] : maxBins;
                 AddEstimatedFeature(feature, maxBinsUpperBoundHint);
             }
         }
 
-        ui32 AddEstimatedFeature(const TEstimatedFeature& feature, ui32 maxBins) {
+        ui32 AddEstimatedFeature(const NCB::TEstimatedFeatureId& feature, ui32 maxBins) {
             CB_ENSURE(!EstimatedFeatureToFeatureManagerId.contains(feature));
             const ui32 id = RequestNewId();
             EstimatedFeatureToFeatureManagerId[feature] = id;
@@ -312,9 +312,9 @@ namespace NCatboostCuda {
         mutable TMap<ui32, ui32> DataProviderCatFeatureIdToFeatureManagerId;
         mutable TMap<ui32, ui32> FeatureManagerIdToDataProviderId;
 
-        mutable TMap<TEstimatedFeature, ui32> EstimatedFeatureToFeatureManagerId;
+        mutable TMap<NCB::TEstimatedFeatureId, ui32> EstimatedFeatureToFeatureManagerId;
         mutable TMap<ui32, ui32> EstimatedFeatureUpperBoundHints;
-        mutable TMap<ui32, TEstimatedFeature> FeatureManagerIdToEstimatedFeatureId;
+        mutable TMap<ui32, NCB::TEstimatedFeatureId> FeatureManagerIdToEstimatedFeatureId;
 
         mutable ui32 Cursor = 0;
 

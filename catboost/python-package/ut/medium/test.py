@@ -1174,9 +1174,6 @@ def fit_from_file(params, learn_file, test_file, cd_file):
 
 
 def test_fit_with_texts(task_type):
-    if task_type == 'CPU':
-        return
-
     params = {
         'dictionaries': [
             {'dictionary_id': 'UniGram', 'token_level_type': 'Letter', 'occurrence_lower_bound': '1'},
