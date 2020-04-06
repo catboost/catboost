@@ -306,8 +306,11 @@ static void CalcTreeStats(
 static void InitPreparedTrees(
     const TFullModel& model,
     const TDataProvider* dataset, // can be nullptr if model has LeafWeights
+    const TDataProviderPtr referenceDataset,
     EPreCalcShapValues mode,
     bool calcInternalValues,
+    ECalcTypeShapValues calcType,
+    EModelOutputType modelOutputType,
     NPar::TLocalExecutor* localExecutor,
     TShapPreparedTrees* preparedTrees 
 ) {
@@ -344,6 +347,16 @@ static void InitPreparedTrees(
         &preparedTrees->BinFeatureCombinationClass,
         &preparedTrees->CombinationClassFeatures
     );
+    if (calcType == ECalcTypeShapValues::IndependentTreeSHAP) {
+        preparedTrees->IndependentTreeShapParams = TIndependentTreeShapParams(
+            model,
+            *dataset,
+            *referenceDataset,
+            preparedTrees->BinFeatureCombinationClass,
+            modelOutputType,
+            localExecutor
+        );
+    }
 }
 
 static void InitLeafWeights(
@@ -383,14 +396,17 @@ static inline bool IsMultiClassification(const TFullModel& model) {
 TShapPreparedTrees PrepareTrees(
     const TFullModel& model,
     const TDataProvider* dataset, // can be nullptr if model has LeafWeights
+    const TDataProviderPtr referenceDataset,
     EPreCalcShapValues mode,
+    ECalcTypeShapValues calcType,
+    EModelOutputType modelOutputType,
     NPar::TLocalExecutor* localExecutor,
     bool calcInternalValues
 ) {
     TVector<double> leafWeights;
     InitLeafWeights(model, dataset, localExecutor, &leafWeights);
     TShapPreparedTrees preparedTrees;
-    InitPreparedTrees(model, dataset, mode, calcInternalValues, localExecutor, &preparedTrees);
+    InitPreparedTrees(model, dataset, referenceDataset, mode, calcInternalValues, calcType, modelOutputType, localExecutor, &preparedTrees);
     const bool isMultiClass = IsMultiClassification(model);
     CalcTreeStats(*model.ModelTrees, leafWeights, isMultiClass, &preparedTrees);
     return preparedTrees;
@@ -404,10 +420,11 @@ TShapPreparedTrees PrepareTrees(
         !model.ModelTrees->GetLeafWeights().empty(),
         "Model must have leaf weights or sample pool must be provided"
     );
-    TShapPreparedTrees preparedTrees = PrepareTrees(model, nullptr, EPreCalcShapValues::Auto, localExecutor);
+    TShapPreparedTrees preparedTrees = PrepareTrees(model, nullptr, nullptr, EPreCalcShapValues::Auto, ECalcTypeShapValues::TreeSHAP, EModelOutputType::Raw, localExecutor);
     CalcShapValuesByLeaf(
         model,
         /*fixedFeatureParams*/ Nothing(),
+        /*calcType*/ ECalcTypeShapValues::TreeSHAP,
         /*logPeriod*/ 0,
         preparedTrees.CalcInternalValues,
         localExecutor,

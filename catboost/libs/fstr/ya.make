@@ -6,6 +6,7 @@ SRCS(
     calc_fstr.cpp
     compare_documents.cpp
     feature_str.cpp
+    independent_tree_shap.cpp
     output_fstr.cpp
     partial_dependence.cpp
     shap_exact.cpp

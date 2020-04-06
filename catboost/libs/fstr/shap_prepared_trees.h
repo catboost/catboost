@@ -1,5 +1,7 @@
 #pragma once
 
+#include "independent_tree_shap.h"
+
 #include <catboost/libs/data/data_provider.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/private/libs/options/enums.h>
@@ -36,6 +38,7 @@ struct TShapPreparedTrees {
     bool CalcInternalValues;
     TVector<double> LeafWeightsForAllTrees;
     TVector<TVector<TVector<double>>> SubtreeWeightsForAllTrees;
+    TMaybe<TIndependentTreeShapParams> IndependentTreeShapParams;
 
 public:
     TShapPreparedTrees() = default;
@@ -66,7 +69,10 @@ TShapPreparedTrees PrepareTrees(const TFullModel& model, NPar::TLocalExecutor* l
 TShapPreparedTrees PrepareTrees(
     const TFullModel& model,
     const NCB::TDataProvider* dataset, // can be nullptr if model has LeafWeights
+    const NCB::TDataProviderPtr referenceDataset, // can be nullptr if using Independent Tree SHAP algorithm
     EPreCalcShapValues mode,
+    ECalcTypeShapValues calcType,
+    EModelOutputType modelOutputType,
     NPar::TLocalExecutor* localExecutor,
     bool calcInternalValues = false
 );

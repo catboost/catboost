@@ -15,7 +15,7 @@ using namespace NCB;
 
 
 TVector<double> CollectLeavesStatistics(
-    const NCB::TDataProvider& dataset,
+    const TDataProvider& dataset,
     const TFullModel& model,
     NPar::TLocalExecutor* localExecutor) {
 
