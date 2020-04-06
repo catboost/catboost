@@ -9,6 +9,9 @@ ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp
 
 ALLOW contrib/libs/libbpf -> contrib/restricted/libelf
 
+# For HBase client: CONTRIB-1790
+ALLOW passport/cpp -> contrib/restricted/thrift
+
 # ALSA library is LGPL
 ALLOW yandex_io -> contrib/restricted/alsa-lib
 
@@ -80,5 +83,8 @@ ALLOW contrib/tools -> contrib/restricted/boost
 # 1. All peerdirs within contrib/restricted are permitted
 ALLOW contrib/restricted -> contrib/restricted
 
-# 2. All peerdirs to contrib/restricted from outside are prohibited
+# 2. Allow junk for debug purposes
+ALLOW junk -> contrib/restricted
+
+# 3. All peerdirs to contrib/restricted from outside are prohibited
 DENY .* -> contrib/restricted
