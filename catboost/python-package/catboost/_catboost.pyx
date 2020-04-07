@@ -446,6 +446,8 @@ cdef extern from "catboost/libs/data/features_layout.h" namespace "NCB":
         TConstArrayRef[ui32] GetCatFeatureInternalIdxToExternalIdx() except +ProcessException
         TConstArrayRef[ui32] GetTextFeatureInternalIdxToExternalIdx() except +ProcessException
 
+    ctypedef TIntrusivePtr[TFeaturesLayout] TFeaturesLayoutPtr
+
 
 cdef extern from "catboost/libs/data/meta_info.h" namespace "NCB":
     cdef cppclass TTargetStats:
@@ -556,6 +558,7 @@ cdef extern from "catboost/libs/data/objects.h" namespace "NCB":
         TMaybeData[TConstArrayRef[TSubgroupId]] GetSubgroupIds() except +ProcessException
         TMaybeData[TConstArrayRef[ui64]] GetTimestamp() except +ProcessException
         const THashMap[ui32, TString]& GetCatFeaturesHashToString(ui32 catFeatureIdx) except +ProcessException
+        TFeaturesLayoutPtr GetFeaturesLayout() except +ProcessException
 
     cdef cppclass TRawObjectsDataProvider(TObjectsDataProvider):
         void SetGroupIds(TConstArrayRef[TStringBuf] groupStringIds) except +ProcessException
@@ -3737,6 +3740,7 @@ cdef class _PoolBase:
         _input_borders = params.pop("input_borders", None)
         prep_params = _PreprocessParams(params)
         cdef TQuantizedFeaturesInfoPtr quantizedFeaturesInfo
+        cdef TQuantizedObjectsDataProviderPtr quantizedObjects
 
         if (_input_borders):
             quantizedFeaturesInfo = _init_quantized_feature_info(self.__pool, _input_borders)
@@ -3744,9 +3748,12 @@ cdef class _PoolBase:
         with nogil:
             SetPythonInterruptHandler()
             try:
-                self.__pool.Get()[0].ObjectsData = ConstructQuantizedPoolFromRawPool(self.__pool, prep_params.tree, quantizedFeaturesInfo)
+                quantizedObjects = ConstructQuantizedPoolFromRawPool(self.__pool, prep_params.tree, quantizedFeaturesInfo)
             finally:
                 ResetPythonInterruptHandler()
+
+        self.__pool.Get()[0].ObjectsData = quantizedObjects
+        self.__pool.Get()[0].MetaInfo.FeaturesLayout = quantizedObjects.Get()[0].GetFeaturesLayout()
 
     cpdef get_feature_names(self):
         feature_names = []
