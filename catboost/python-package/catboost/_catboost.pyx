@@ -18,6 +18,7 @@ if sys.version_info >= (3, 3):
     from collections.abc import Iterable, Sequence
 else:
     from collections import Iterable, Sequence
+import platform
 
 import numpy as np
 cimport numpy as np  # noqa
@@ -1497,7 +1498,8 @@ cpdef run_atexit_finalizers():
     ManualRunAtExitFinalizers()
 
 
-# atexit.register(run_atexit_finalizers) TODO(kirillovs): temporarily disabled
+if not getattr(sys, "is_standalone_binary", False) and platform.system() == 'Windows':
+    atexit.register(run_atexit_finalizers)
 
 
 cdef inline float _FloatOrNan(object obj) except *:
