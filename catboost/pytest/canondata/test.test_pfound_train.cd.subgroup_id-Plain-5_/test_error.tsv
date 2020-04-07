@@ -1,4 +1,4 @@
-iter	QueryRMSE	PFound:top=5
+iter	QueryRMSE	PFound:hints=skip_train~false;top=5
 0	0.07610380379	0.1649968531
 1	0.07602032384	0.1923940917
 2	0.0760017148	0.1933110254

@@ -9,6 +9,7 @@ SRCS(
     brier_score.cpp
     classification_utils.cpp
     dcg.cpp
+    description_utils.cpp
     hinge_loss.cpp
     kappa.cpp
     llp.cpp

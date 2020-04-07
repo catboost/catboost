@@ -1,4 +1,4 @@
-iter	QueryRMSE	AverageGain:top=100
+iter	QueryRMSE	AverageGain:hints=skip_train~false;top=100
 0	0.06908428747	0.0526293006
 1	0.06892170492	0.0526293006
 2	0.06877569897	0.0526293006
