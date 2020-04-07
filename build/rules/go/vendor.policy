@@ -62,6 +62,9 @@ ALLOW .* -> vendor/github.com/gofrs/uuid
 # websocket protocol
 ALLOW .* -> vendor/github.com/gorilla/websocket
 
+# http sessions with cookie and filesystem session storage
+ALLOW .* -> vendor/github.com/gorilla/sessions
+
 # S2 geometry
 ALLOW .* -> vendor/github.com/golang/geo
 
