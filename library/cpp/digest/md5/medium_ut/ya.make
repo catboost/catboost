@@ -1,4 +1,4 @@
-UNITTEST_FOR(library/digest/md5)
+UNITTEST_FOR(library/cpp/digest/md5)
 
 SIZE(MEDIUM)
 

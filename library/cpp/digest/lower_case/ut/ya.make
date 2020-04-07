@@ -1,4 +1,4 @@
-UNITTEST_FOR(library/digest/lower_case)
+UNITTEST_FOR(library/cpp/digest/lower_case)
 
 
 

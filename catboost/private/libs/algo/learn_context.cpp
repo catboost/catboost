@@ -18,8 +18,8 @@
 #include <catboost/private/libs/index_range/index_range.h>
 #include <catboost/private/libs/options/defaults_helper.h>
 
-#include <library/digest/crc32c/crc32c.h>
-#include <library/digest/md5/md5.h>
+#include <library/cpp/digest/crc32c/crc32c.h>
+#include <library/cpp/digest/md5/md5.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/digest/multi.h>

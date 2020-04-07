@@ -3,7 +3,7 @@ BENCHMARK()
 
 
 PEERDIR(
-    library/digest/md5
+    library/cpp/digest/md5
 )
 
 SRCS(

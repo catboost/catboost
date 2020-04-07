@@ -1,6 +1,6 @@
 #include "langs.h"
 
-#include <library/digest/lower_case/hash_ops.h>
+#include <library/cpp/digest/lower_case/hash_ops.h>
 
 #include <util/generic/array_size.h>
 #include <util/generic/hash.h>

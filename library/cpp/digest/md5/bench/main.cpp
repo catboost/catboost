@@ -1,5 +1,5 @@
 #include <library/testing/benchmark/bench.h>
-#include <library/digest/md5/md5.h>
+#include <library/cpp/digest/md5/md5.h>
 
 #include <util/generic/xrange.h>
 

@@ -73,8 +73,8 @@ PEERDIR(
     library/cpp/containers/2d_array
     library/containers/dense_hash
     library/containers/stack_vector
-    library/digest/crc32c
-    library/digest/md5
+    library/cpp/digest/crc32c
+    library/cpp/digest/md5
     library/cpp/dot_product
     library/fast_exp
     library/fast_log

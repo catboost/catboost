@@ -32,7 +32,6 @@ RECURSE(
     deprecated
     diff
     diff/ut
-    digest
     dns
     dns/ut
     enumbitset
