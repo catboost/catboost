@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{98B506A2-A065-0821-3BB0-07FDF5C590A5}</ProjectGUID>
+    <ProjectGUID>{BAEF14A6-3BF3-DC3E-9335-9B6BF43917BC}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-digest-lower_case</ProjectName>
+    <ProjectName>cpp-digest-crc32c</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-digest-lower_case</TargetName>
+    <TargetName>cpp-digest-crc32c</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\digest\lower_case\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\98B506A2-A065-0821-3BB0-07FDF5C590A5\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\digest\crc32c\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\BAEF14A6-3BF3-DC3E-9335-9B6BF43917BC\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,16 +78,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\digest\lower_case\hash_ops.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\digest\lower_case\lchash.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\digest\lower_case\lciter.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\digest\lower_case\hash_ops.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\digest\lower_case\lchash.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\digest\lower_case\lciter.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\digest\crc32c\crc32c.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\digest\crc32c\crc32c.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
   <ItemGroup>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\crcutil\contrib-libs-crcutil.vcxproj">
+      <Project>{1EE751F2-33FA-3640-4C59-F20313BE143E}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\contrib-libs-cxxsupp.vcxproj">
       <Project>{8D7C41B0-2344-C558-29D8-570B39498A2F}</Project>
     </ProjectReference>
