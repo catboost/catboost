@@ -377,9 +377,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\chromium_trace\library-chromium_trace.vcxproj">
       <Project>{9541389A-C448-428A-BEEE-604F1A02F5EA}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\colorizer\library-colorizer.vcxproj">
-      <Project>{439BAFF9-1167-D24B-92A2-3A00BEE420B1}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\dense_hash\library-containers-dense_hash.vcxproj">
       <Project>{45F2062A-3F31-B7B8-9501-F0C86DB74515}</Project>
     </ProjectReference>
@@ -409,6 +406,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\coroutine\listener\library-coroutine-listener.vcxproj">
       <Project>{B4028C7F-B714-C057-20FD-5CC1C3A20526}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\colorizer\library-cpp-colorizer.vcxproj">
+      <Project>{78881F22-8136-23DF-843E-58AA6DB6D337}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\2d_array\cpp-containers-2d_array.vcxproj">
       <Project>{245105A8-ED48-C3D9-83C3-D6894AA984B0}</Project>
