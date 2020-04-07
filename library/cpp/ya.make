@@ -5,6 +5,8 @@ RECURSE(
     accurate_accumulate/benchmark
     accurate_accumulate/benchmark/metrics
     archive/ut
+    colorizer
+    colorizer/ut
     containers
     dot_product
     dot_product/bench

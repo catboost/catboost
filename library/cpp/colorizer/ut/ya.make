@@ -1,4 +1,4 @@
-UNITTEST_FOR(library/colorizer)
+UNITTEST_FOR(library/cpp/colorizer)
 
 
 

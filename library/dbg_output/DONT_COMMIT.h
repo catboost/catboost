@@ -10,7 +10,7 @@
 #include "dumpers.cpp"
 #include "engine.cpp"
 
-#include <library/colorizer/colors.cpp>
-#include <library/colorizer/output.cpp>
+#include <library/cpp/colorizer/colors.cpp>
+#include <library/cpp/colorizer/output.cpp>
 
 #undef DBGDUMP_INLINE_IF_INCLUDED
