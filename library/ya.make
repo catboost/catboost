@@ -123,12 +123,6 @@ IF (HAVE_CUDA)
 )
 ENDIF()
 
-IF (OS_LINUX)
-    RECURSE(
-    
-)
-ENDIF()
-
 IF (OS_WINDOWS)
     RECURSE(
     
