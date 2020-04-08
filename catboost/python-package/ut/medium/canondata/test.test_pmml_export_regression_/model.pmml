@@ -1,24 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <PMML version="4.3" xmlns="http://www.dmg.org/PMML-4_3" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
 <Header copyright="(c) catboost team" description="CatBoostModel_for_regression" modelVersion="1">
-<Application name="CatBoost" version="Git info:
-    Commit: e468fc490339b0bba69948b132441ecbdeb5d077
-    Branch: heads/master
-    Author: LordProtoss &lt;lordprotoss@mail.ru&gt;
-    Summary: Default types and order fixing
-    git-svn info:
-    Last Changed Rev: 6500329
+<Application name="CatBoost" version="Svn info:
+    URL: svn+ssh://arcadia.yandex.ru/arc/trunk/arcadia
+    Last Changed Rev: 6552171
+    Last Changed Author: dolotov-e
+    Last Changed Date: 2020-04-01T07:30:36.732542Z
 
 Other info:
-    Build by: ubuntu
-    Top src dir: /home/ubuntu/Git/catboost
-    Top build dir: /home/ubuntu/.ya/build
-    Hostname: ubuntu-VirtualBox
+    Build by: eermishkina
+    Top src dir: /place/home/eermishkina/trunc/arcadia
+    Top build dir: /place/home/eermishkina/.ya/build
+    Hostname: su57.search.yandex.net
     Host information: 
-        Linux ubuntu-VirtualBox 5.3.0-46-generic #38~18.04.1-Ubuntu SMP Tue Mar 31 04:17:56 UTC 2020 x86_64
+        Linux su57.search.yandex.net 4.4.88-42 #1 SMP Mon Sep 18 14:33:37 UTC 2017 x86_64
 
     "/>
-<Timestamp>2020-04-08T21:19:16Z</Timestamp>
+<Timestamp>2020-04-01T13:41:20Z</Timestamp>
 </Header>
 <DataDictionary>
 <DataField name="feature_3" optype="continuous" dataType="float"/>
