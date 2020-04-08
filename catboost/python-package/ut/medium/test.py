@@ -1319,8 +1319,24 @@ def test_export_to_python_with_cat_features_from_pandas(task_type):
     return local_canonical_file(output_python_model_path)
 
 
-@pytest.mark.parametrize('problem_type', ['binclass', 'multiclass', 'regression'])
-def test_onnx_export(problem_type):
+ONNX_TEST_PARAMETERS = [
+    ('binclass', False),
+    ('binclass', True),
+    ('multiclass', False),
+    ('regression', False),
+    ('regression', True)
+]
+
+
+@pytest.mark.parametrize(
+    'problem_type,boost_from_average',
+    ONNX_TEST_PARAMETERS,
+    ids=[
+        'problem_type=%s-boost_from_average=%s' % (problem_type, boost_from_average)
+        for problem_type, boost_from_average in ONNX_TEST_PARAMETERS
+    ]
+)
+def test_onnx_export(problem_type, boost_from_average):
     if problem_type == 'binclass':
         loss_function = 'Logloss'
         train_path = TRAIN_FILE
@@ -1346,7 +1362,8 @@ def test_onnx_export(problem_type):
             'depth': 4,
 
             # onnx format export does not yet support categorical features so ignore them
-            'ignored_features': train_pool.get_cat_feature_indices()
+            'ignored_features': train_pool.get_cat_feature_indices(),
+            'boost_from_average': boost_from_average
         }
     )
 
@@ -1366,8 +1383,15 @@ def test_onnx_export(problem_type):
     return compare_canonical_models(output_onnx_model_path, diff_limit=1e-18)
 
 
-@pytest.mark.parametrize('problem_type', ['binclass', 'multiclass', 'regression'])
-def test_onnx_import(problem_type):
+@pytest.mark.parametrize(
+    'problem_type,boost_from_average',
+    ONNX_TEST_PARAMETERS,
+    ids=[
+        'problem_type=%s-boost_from_average=%s' % (problem_type, boost_from_average)
+        for problem_type, boost_from_average in ONNX_TEST_PARAMETERS
+    ]
+)
+def test_onnx_import(problem_type, boost_from_average):
     if problem_type == 'binclass':
         loss_function = 'Logloss'
         train_path = TRAIN_FILE
@@ -1395,7 +1419,8 @@ def test_onnx_import(problem_type):
             'loss_function': loss_function,
             'iterations': 5,
             'depth': 4,
-            'ignored_features': train_pool.get_cat_feature_indices()
+            'ignored_features': train_pool.get_cat_feature_indices(),
+            'boost_from_average': boost_from_average
         }
     )
 
@@ -1420,7 +1445,8 @@ def test_onnx_import(problem_type):
             'loss_function': loss_function,
             'iterations': 5,
             'depth': 4,
-            'ignored_features': train_pool.get_cat_feature_indices()
+            'ignored_features': train_pool.get_cat_feature_indices(),
+            'boost_from_average': boost_from_average
         }
     )
 

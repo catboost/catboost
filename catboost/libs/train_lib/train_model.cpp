@@ -968,18 +968,18 @@ static void TrainModel(
 
     const bool needInitModelApplyCompatiblePools = initModel.Defined();
 
-    const bool isQuantizedLearn = dynamic_cast<TQuantizedObjectsDataProvider*>(pools.Learn->ObjectsData.Get());
-
     TString tmpDir;
     if (outputOptions.AllowWriteFiles()) {
         NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputOptions.GetTrainDir(), &tmpDir);
     }
 
+    const bool haveLearnFeaturesInMemory = HaveLearnFeaturesInMemory(poolLoadOptions, catBoostOptions);
+    CB_ENSURE_INTERNAL(
+        haveLearnFeaturesInMemory || poolLoadOptions, "Learn dataset is not loaded, and load options are not provided");
     TTrainingDataProviders trainingData = GetTrainingData(
         needInitModelApplyCompatiblePools ? pools : std::move(pools),
         /* borders */ Nothing(), // borders are already loaded to quantizedFeaturesInfo
-        /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/
-            HaveLearnFeaturesInMemory(poolLoadOptions, catBoostOptions),
+        /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/ haveLearnFeaturesInMemory,
         outputOptions.AllowWriteFiles(),
         tmpDir,
         quantizedFeaturesInfo,
@@ -990,7 +990,7 @@ static void TrainModel(
         initModel);
     if (catBoostOptions.SystemOptions->IsMaster()) {
         InitializeMaster(catBoostOptions.SystemOptions);
-        if (isQuantizedLearn && IsSharedFs(poolLoadOptions->LearnSetPath)) {
+        if (!haveLearnFeaturesInMemory) {
             SetTrainDataFromQuantizedPool(
                 *poolLoadOptions,
                 catBoostOptions,
@@ -1019,6 +1019,10 @@ static void TrainModel(
         &updatedOutputOptions.UseBestModel,
         &catBoostOptions
     );
+
+    CB_ENSURE(
+        haveLearnFeaturesInMemory || catBoostOptions.BoostingOptions->BoostingType == EBoostingType::Plain,
+        "Only plain boosting is supported in distributed training for schema " << poolLoadOptions->LearnSetPath.Scheme);
 
     // Eval metric may not be set. If that's the case, we assign it to objective metric
     InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
@@ -1112,9 +1116,6 @@ void TrainModel(
     CB_ENSURE(
         haveLearnFeaturesInMemory || !isLossFunctionChangeFstr,
         "Only " << EFstrType::PredictionValuesChange << " is supported in distributed training for schema " << loadOptions.LearnSetPath.Scheme);
-    CB_ENSURE(
-        haveLearnFeaturesInMemory || catBoostOptions.BoostingOptions->BoostingType == EBoostingType::Plain,
-        "Only plain boosting is supported in distributed training for schema " << loadOptions.LearnSetPath.Scheme);
     TDataProviders pools = LoadPools(
         loadOptions,
         catBoostOptions.GetTaskType(),
