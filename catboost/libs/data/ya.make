@@ -41,10 +41,10 @@ SRCS(
 )
 
 PEERDIR(
+    library/cpp/pop_count
     library/dbg_output
     library/json
     library/object_factory
-    library/pop_count
     library/string_utils/csv
     library/threading/future
     library/threading/local_executor

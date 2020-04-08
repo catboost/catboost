@@ -3027,3 +3027,54 @@ def test_metric_description(dataset_has_weights):
                 expected_custom_metrics_descriptions = [custom_metric_loss]
             assert unique_metrics_descriptions == set(s.lower() for s in [expected_objective_metric_description] + [expected_eval_metric_description] + expected_custom_metrics_descriptions)
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+@pytest.mark.parametrize('boosting_type', ['Plain', 'Ordered'])
+@pytest.mark.parametrize('loss_function', ['Logloss', 'QuerySoftMax', 'RMSE', 'QueryRMSE'])
+def test_combination(boosting_type, loss_function):
+    learn_file = data_file('querywise', 'train')
+    test_file = data_file('querywise', 'test')
+    cd_file = data_file('querywise', 'train.cd')
+    params = {
+        '-f': learn_file,
+        '-t': test_file,
+        '--cd': cd_file,
+        '--boosting-type': boosting_type,
+        '-i': '10',
+        '-w': '0.01',
+        '-T': '4',
+        '--leaf-estimation-method': 'Newton',
+        '--leaf-estimation-iterations': '1'
+    }
+
+    weight = {'Logloss': '0.0', 'QuerySoftMax': '0.0', 'RMSE': '0.0', 'QueryRMSE': '0.0'}
+    weight[loss_function] = '1.0'
+    combination_loss = 'Combination:'
+    combination_loss += 'loss0=Logloss;weight0=' + weight['Logloss'] + ';'
+    combination_loss += 'loss1=QuerySoftMax;weight1=' + weight['QuerySoftMax'] + ';'
+    combination_loss += 'loss2=RMSE;weight2=' + weight['RMSE'] + ';'
+    combination_loss += 'loss3=QueryRMSE;weight3=' + weight['QueryRMSE']
+
+    output_eval_path_combination = yatest.common.test_output_path('test.eval.combination')
+    params.update({
+        '--loss-function': combination_loss,
+        '--eval-file': output_eval_path_combination,
+    })
+    fit_catboost_gpu(params)
+
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    params.update({
+        '--loss-function': loss_function,
+        '--eval-file': output_eval_path,
+    })
+    if loss_function == 'Logloss':
+        params.update({
+            '--target-border': '0.5'
+        })
+    if loss_function == 'RMSE':
+        params.update({
+            '--boost-from-average': 'False'
+        })
+    fit_catboost_gpu(params)
+
+    assert filecmp.cmp(output_eval_path_combination, output_eval_path)

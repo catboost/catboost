@@ -1,0 +1,177 @@
+#include <algorithm>
+#include <cstring>
+
+#ifdef NLP_DEBUG
+#   include <util/string/printf.h>
+#endif
+
+#include <util/generic/yexception.h>
+#include <library/cpp/tokenizer/nlpparser.h>
+
+#ifdef __clang__
+    #pragma clang diagnostic ignored "-Wunused-variable"
+#endif
+
+%%{
+    machine NlpLexerDefinitions;
+    include Symbols "symbols.rl";
+
+    sp             = cc_space | cc_nbsp;
+    nlf            = (yc_cr ? yc_cr ? yc_lf @1) | (yc_cr @0);    # '\r'?'\r'?'\n'|'\r', with priorities;
+    nlfasblank     = sp{,4} nlf sp{,4};
+    blankornlf     = sp{1,4} | nlfasblank;
+    hyphenation    = cc_minus.nlfasblank;
+    dashopen       = cc_minus.blankornlf;
+    dashclose      = blankornlf.cc_minus;
+    open           = cc_openpunct | dashopen;
+    close          = cc_clospunct | dashclose;
+    wordbreak      = cc_zero;
+
+    sep            = cc_tab | cc_space;    # [ \t];
+    nobrmisc       = miscnlp - yc_lf - yc_cr - termpunct;
+    blank1         = sep | cc_nbsp;
+    parap2         = nlf.nobrmisc*.nlf - nlf;
+    abzs5          = nlf.blank1.blank1.blank1.blank1.blank1;
+    abzparabreak   = (parap2 | abzs5).(nobrmisc | yc_lf | yc_cr)*;
+
+    action mark_sentence_break {
+        MarkSentenceBreak(p);
+    }
+
+    action ensure_sentence_break {
+        EnsureSentenceBreak(p);
+    }
+
+    action reset_sentence_break {
+        ResetSentenceBreak();
+    }
+
+    sentprefixchar = cc_openpunct | cc_minus | cc_plus | tokprefix | cc_copyrightsign | cc_asterisk;
+    sentprefix = ( ( sentprefixchar+ >mark_sentence_break sp* ) )? ( ytitle >ensure_sentence_break );
+    sentprefix_cjk = ( ( sentprefixchar+ >mark_sentence_break sp* ) )? ( cjk_title >ensure_sentence_break );
+
+    betweensent = miscnlp - cc_comma - cc_numerosign - yc_lf - yc_cr - cc_ampersand;
+    # TODO: it could be introduced "conditional" and "unconditional" sentence breaks, i.e.
+    #       "conditional" sentence break: "." spaces "capital alpha"
+    #       "unconditional" sentence break: ('?'+ | '!'+ | '.'{2,}) spaces "capital alpha"
+    miscsent_general = ( termpunct+ >reset_sentence_break ) betweensent* ( yc_sp | cc_nbsp | wordbreak )+ betweensent* sentprefix;
+    # The spaces between sentences are not obligatory
+    miscsent_cjk = ( cjk_termpunct+ >reset_sentence_break ) betweensent* ( yc_sp | cc_nbsp | wordbreak )* betweensent* sentprefix_cjk;
+    miscsent = miscsent_general | miscsent_cjk;
+
+    action set_softhyphen {
+        SetSoftHyphen();
+    }
+
+    action set_hyphenation {
+        SetHyphenation();
+    }
+
+    nowordbreak = ( ( cc_softhyphen+ %set_softhyphen ) | ( hyphenation %set_hyphenation ) );
+}%%
+
+%%{
+    machine NlpLexer;
+    include NlpLexerDefinitions;
+
+    # - token can't consist of accents only
+    # - accent should follow accented symbol but if accent is in the front of token it is interpreted as a part of token
+    # - accent can follow nowordbreak symbol (for ex. " exa&shy;&#x301;mple ", it can be checked in a browser, actually it is the same
+    #   as " exa&#x301;&shy;mple ") and in this case it will be the first symbol of the next token, so 'accent*' is added to the front
+    #   of the 'nexttoken' parser
+    # - accent can follow token delimiter and is the first symbol of the next token in this case
+    # - accent can follow not a misc. character but for ex. termpunct [!.;?], in this case it will be considered as
+    #   the start symbol of token: 'text!&#x301token'
+    # - do not convert less than 2 utf8 bytes because all national symbols encoded minimum in 2 utf8 bytes
+    #   quite often single encoded bytes are in docs but they cause to many misoperations: 1000%3000, %action, etc.
+
+    tokchar = ( yalpha );
+
+    include MultitokenDef "multitoken_v2.rl";
+
+    main :=  |*
+
+    # multitoken/integer
+    ( compositemultitoken | ( ( tokprefix $update_prefix )? multitoken ( nowordbreak multitoken )* toksuffix? ) ) {
+        ProcessMultitoken(ts, te);
+    };
+
+    ( cc_surrogatelead | cc_surrogatetail )+ {
+        ProcessSurrogatePairs(ts, te);
+    };
+
+    ( cc_ideograph+ ) {
+        ProcessIdeographs(ts, te);
+    };
+
+    #sentbreak
+    ( miscsent ) {
+        p = ts + MakeSentenceBreak(ts, te - ts) - 1;
+    };
+
+    abzparabreak {
+        MakeEntry(ts, te - ts, SpacePreserve ? NLP_PARABREAK : NLP_MISCTEXT);
+    };
+
+    # misc
+    # tokprefix subtracted because this parser eats the prefix symbol (#@$) of token
+    # ( .. )+ this plus causes to consider accent in the front of word as miscnlp in case: [a 'cd] -> [a][ '][cd]
+    #         at the same time if accent is in the beginning of the string it is a part of word: ['cd]
+    #         if this plus is removed then in both cases accents will be parts of the words
+    #         BUT the plus should not be removed from the parser because of performance
+    #         since accent should follow accented symbol this behavior is OK
+    ( nobrmisc - tokprefix )+ {
+        CancelToken();
+        MakeEntry(ts, te - ts, NLP_MISCTEXT);
+    };
+
+    # fallback
+    ( othermisc+ ) {
+#ifdef NLP_DEBUG
+        Cdbg << Sprintf("met othermisc at %p\n", (void *)ts);
+        Cdbg.write(ts, te - ts);
+        Cdbg << Endl;
+#endif
+        CancelToken();
+        MakeEntry(ts, te - ts, NLP_MISCTEXT);
+    };
+
+    ( yc_lf+ | yc_cr+ | termpunct+ ) {
+        CancelToken();
+        MakeEntry(ts, te - ts, NLP_MISCTEXT);
+    };
+
+    # single char scanner because prefixes must be a part of token
+    ( tokprefix ) {
+        CancelToken();
+        MakeEntry(ts, te - ts, NLP_MISCTEXT);
+    };
+
+    EOF {
+        Y_ASSERT(*ts == 0);
+        MakeEntry(ts, 1, NLP_MISCTEXT);
+    };
+
+    *|;
+
+    write data;
+}%%
+
+template<> void TVersionedNlpParser<2>::ExecuteImpl(const unsigned char* text, size_t len) {
+    Y_ASSERT(text);
+    Text = text;
+    const unsigned char *p = text, *pe = p + len; // 'pe' must never be dereferenced
+    const unsigned char *ts, *te, *eof = pe;
+    int act, cs;
+
+    %% write init;
+    %% write exec;
+
+    if (cs == NlpLexer_error)
+        throw yexception() << "execute error at position " << static_cast<int>(p - text);
+    else if (cs < NlpLexer_first_final)
+        throw yexception() << "execute finished in non-final state";
+
+    Y_UNUSED(act);
+}
+

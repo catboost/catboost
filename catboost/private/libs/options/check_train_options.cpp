@@ -25,4 +25,9 @@ void CheckFitParams(
     if (options.MetricOptions->EvalMetric.IsSet() && options.MetricOptions->EvalMetric->GetLossFunction() == ELossFunction::PythonUserDefinedPerObject) {
         CB_ENSURE(evalMetricDescriptor != nullptr, "Error: provide eval metric descriptor for custom eval metric");
     }
+
+    const auto& penaltiesOptions = options.ObliviousTreeOptions->FeaturePenalties;
+    if (penaltiesOptions.IsSet() && penaltiesOptions->PenaltiesCoefficient.IsSet()) {
+        CB_ENSURE(penaltiesOptions->PenaltiesCoefficient >= 0, "Error: penalties coefficient should be nonnegative");
+    }
 }

@@ -47,7 +47,7 @@ namespace NCB {
             Digitizers[dstTextIdx] = std::move(digitizer);
         }
 
-        bool HasDigitizer(ui32 dstTextIdx) {
+        bool HasDigitizer(ui32 dstTextIdx) const {
             return Digitizers.contains(dstTextIdx);
         }
 

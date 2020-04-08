@@ -28,6 +28,38 @@ public:
     Y_SAVELOAD_DEFINE(Feature, Value);
 };
 
+struct TFixedFeatureParams {
+    enum class EMode {
+        FixedOn, FixedOff, NotFixed
+    };
+
+    int Feature = -1;
+    EMode FixedFeatureMode = EMode::NotFixed;
+
+public:
+    TFixedFeatureParams() = default;
+
+    TFixedFeatureParams(int feature, EMode fixedFeatureMode)
+        : Feature(feature)
+        , FixedFeatureMode(fixedFeatureMode)
+        {
+        }
+};
+
+struct TConditionsFeatureFraction {
+    double HotConditionFeatureFraction;
+    double ColdConditionFeatureFraction;
+
+public:
+    TConditionsFeatureFraction(
+        const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
+        int combinationClass,
+        double conditionFeatureFraction,
+        double hotCoefficient,
+        double coldCoefficient
+    );
+};
+
 struct TShapPreparedTrees {
     TVector<TVector<TVector<TShapValue>>> ShapValuesByLeafForAllTrees; // [treeIdx][leafIdx][shapFeature] trees * 2^d * d
     TVector<TVector<double>> MeanValuesForAllTrees;
@@ -70,8 +102,20 @@ void CalcShapValuesForDocumentMulti(
     const TFullModel& model,
     const TShapPreparedTrees& preparedTrees,
     const NCB::NModelEvaluation::IQuantizedData* binarizedFeaturesForBlock,
+    const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     int flatFeatureCount,
-    TConstArrayRef<NCB::NModelEvaluation::TCalcerIndexType> docIndexes,
+    TConstArrayRef<NCB::NModelEvaluation::TCalcerIndexType> docIndices,
+    size_t documentIdx,
+    TVector<TVector<double>>* shapValues,
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
+);
+
+void CalcShapValuesForDocumentMulti(
+    const TFullModel& model,
+    const TShapPreparedTrees& preparedTrees,
+    const NCB::NModelEvaluation::IQuantizedData* binarizedFeaturesForBlock,
+    int flatFeatureCount,
+    TConstArrayRef<NCB::NModelEvaluation::TCalcerIndexType> docIndices,
     size_t documentIdx,
     TVector<TVector<double>>* shapValues,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
@@ -86,17 +130,27 @@ TShapPreparedTrees PrepareTrees(
 TShapPreparedTrees PrepareTrees(
     const TFullModel& model,
     const NCB::TDataProvider* dataset, // can be nullptr if model has LeafWeights
-    int logPeriod,
     EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor,
     bool calcInternalValues = false,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
 );
 
-// returned: ShapValues[documentIdx][dimenesion][feature]
+void CalcShapValuesByLeaf(
+    const TFullModel& model,
+    const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
+    int logPeriod,
+    bool calcInternalValues,
+    NPar::TLocalExecutor* localExecutor,
+    TShapPreparedTrees* preparedTrees,
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
+);
+
+// returned: ShapValues[documentIdx][dimension][feature]
 TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     const TFullModel& model,
     const NCB::TDataProvider& dataset,
+    const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     int logPeriod,
     EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor,
@@ -107,8 +161,22 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
 TVector<TVector<double>> CalcShapValues(
     const TFullModel& model,
     const NCB::TDataProvider& dataset,
+    const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     int logPeriod,
     EPreCalcShapValues mode,
+    NPar::TLocalExecutor* localExecutor,
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
+);
+
+// returned: ShapValues[featureIdx][dim][documentIdx]
+TVector<TVector<TVector<double>>> CalcShapValueWithQuantizedData(
+    const TFullModel& model, 
+    const TVector<TIntrusivePtr<NCB::NModelEvaluation::IQuantizedData>>& quantizedFeatures,
+    const TVector<TVector<NCB::NModelEvaluation::TCalcerIndexType>>& indexes,
+    const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
+    const size_t documentCount,
+    int logPeriod,
+    TShapPreparedTrees* preparedTrees,
     NPar::TLocalExecutor* localExecutor,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
 );

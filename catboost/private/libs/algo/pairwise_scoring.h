@@ -354,6 +354,8 @@ inline void ComputePairwiseStats(
     // used only if SplitEnsembleType == ESplitEnsembleType::FeaturesGroup
     TMaybe<const NCB::TFeaturesGroup*> featuresGroup,
     const TColumn& column,
+    bool isEstimatedData,
+    bool isOnlineEstimatedData,
     NCB::TIndexRange<int> docIndexRange,
     NCB::TIndexRange<int> pairIndexRange,
     TPairwiseStats* output
@@ -373,8 +375,16 @@ inline void ComputePairwiseStats(
     using TDenseColumnData = NCB::TCompressedValuesHolderImpl<TColumn>;
 
     if (const auto* denseColumnData = dynamic_cast<const TDenseColumnData*>(&column)) {
-        const ui32* bucketIndexing
-            = fold.LearnPermutationFeaturesSubset.Get<NCB::TIndexedSubset<ui32>>().data();
+        const ui32* bucketIndexing = nullptr;
+        if (isEstimatedData) {
+            if (isOnlineEstimatedData) {
+                bucketIndexing = fold.IndexInFold.data();
+            } else {
+                bucketIndexing = fold.GetLearnPermutationOfflineEstimatedFeaturesSubset().data();
+            }
+        } else {
+            bucketIndexing = fold.LearnPermutationFeaturesSubset.Get<NCB::TIndexedSubset<ui32>>().data();
+        }
 
         const TCompressedArray& compressedArray = *denseColumnData->GetCompressedData().GetSrc();
 

@@ -58,6 +58,19 @@ LEAF_ESTIMATION_METHOD = ['Gradient', 'Newton']
 SCORE_CALC_OBJ_BLOCK_SIZES = ['60', '5000000']
 SCORE_CALC_OBJ_BLOCK_SIZES_IDS = ['calc_block=60', 'calc_block=5000000']
 
+SEPARATOR_TYPES = [
+    'ByDelimiter',
+    'BySense',
+]
+
+TEXT_FEATURE_ESTIMATORS = [
+    'BoW',
+    'NaiveBayes',
+    'BM25',
+    'BoW,NaiveBayes',
+    'BoW,NaiveBayes,BM25'
+]
+
 
 def diff_tool(threshold=None):
     return get_limited_precision_dsv_diff_tool(threshold, True)
@@ -3339,7 +3352,7 @@ def test_loglikelihood_of_prediction(boosting_type):
         '--test-err-log', test_error_path,
     )
     yatest.common.execute(cmd)
-    return [local_canonical_file(learn_error_path, diff_tool(1e-8)), local_canonical_file(test_error_path, diff_tool(1e-8))]
+    return [local_canonical_file(learn_error_path, diff_tool(1e-7)), local_canonical_file(test_error_path, diff_tool(1e-7))]
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -8546,3 +8559,279 @@ def test_tweedie():
     yatest.common.execute(cmd)
 
     return [local_canonical_file(learn_error_path)]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('separator_type', SEPARATOR_TYPES)
+@pytest.mark.parametrize('feature_estimators', TEXT_FEATURE_ESTIMATORS)
+def test_fit_binclass_with_text_features(boosting_type, separator_type, feature_estimators):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn.tsv')
+    test_error_path = yatest.common.test_output_path('test.tsv')
+
+    test_eval_path = yatest.common.test_output_path('test.eval')
+    calc_eval_path = yatest.common.test_output_path('calc.eval')
+
+    tokenizers = [{'tokenizer_id': separator_type, 'separator_type': separator_type, 'token_types': ['Word']}]
+    dictionaries = [{'dictionary_id': 'Word'}, {'dictionary_id': 'Bigram', 'gram_order': '2'}]
+    dicts = {'BoW': ['Bigram', 'Word'], 'NaiveBayes': ['Word'], 'BM25': ['Word']}
+    feature_processing = [{'feature_calcers': [calcer], 'dictionaries_names': dicts[calcer], 'tokenizers_names': [separator_type]} for calcer in feature_estimators.split(',')]
+
+    text_processing = {'feature_processing': {'default': feature_processing}, 'dictionaries': dictionaries, 'tokenizers': tokenizers}
+
+    pool_name = 'rotten_tomatoes'
+    test_file = data_file(pool_name, 'test')
+    cd_file = data_file(pool_name, 'cd_binclass')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '--eval-metric', 'AUC',
+        '-f', data_file(pool_name, 'train'),
+        '-t', test_file,
+        '--text-processing', json.dumps(text_processing),
+        '--column-description', cd_file,
+        '--boosting-type', boosting_type,
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--eval-file', test_eval_path,
+        '--output-columns', 'RawFormulaVal',
+        '--use-best-model', 'false',
+    )
+    yatest.common.execute(cmd)
+
+    apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
+    assert filecmp.cmp(test_eval_path, calc_eval_path)
+
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+@pytest.mark.parametrize('separator_type', SEPARATOR_TYPES)
+@pytest.mark.parametrize('feature_estimators', TEXT_FEATURE_ESTIMATORS)
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
+def test_fit_multiclass_with_text_features(separator_type, feature_estimators, loss_function):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn.tsv')
+    test_error_path = yatest.common.test_output_path('test.tsv')
+
+    test_eval_path = yatest.common.test_output_path('test.eval')
+    calc_eval_path = yatest.common.test_output_path('calc.eval')
+
+    tokenizers = [{'tokenizer_id': separator_type, 'separator_type': separator_type, 'token_types': ['Word']}]
+    dictionaries = [{'dictionary_id': 'Word'}, {'dictionary_id': 'Bigram', 'gram_order': '2'}]
+    dicts = {'BoW': ['Bigram', 'Word'], 'NaiveBayes': ['Word'], 'BM25': ['Word']}
+    feature_processing = [{'feature_calcers': [calcer], 'dictionaries_names': dicts[calcer], 'tokenizers_names': [separator_type]} for calcer in feature_estimators.split(',')]
+
+    text_processing = {'feature_processing': {'default': feature_processing}, 'dictionaries': dictionaries, 'tokenizers': tokenizers}
+
+    pool_name = 'rotten_tomatoes'
+    test_file = data_file(pool_name, 'test')
+    cd_file = data_file(pool_name, 'cd')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '--eval-metric', 'Accuracy',
+        '-f', data_file(pool_name, 'train'),
+        '-t', test_file,
+        '--text-processing', json.dumps(text_processing),
+        '--column-description', cd_file,
+        '--boosting-type', 'Plain',
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--eval-file', test_eval_path,
+        '--output-columns', 'RawFormulaVal',
+        '--use-best-model', 'false',
+    )
+    yatest.common.execute(cmd)
+
+    apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
+    assert filecmp.cmp(test_eval_path, calc_eval_path)
+
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+@pytest.mark.parametrize('grow_policy', GROW_POLICIES)
+def test_shrink_model_with_text_features(grow_policy):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn.tsv')
+    test_error_path = yatest.common.test_output_path('test.tsv')
+
+    test_eval_path = yatest.common.test_output_path('test.eval')
+    calc_eval_path = yatest.common.test_output_path('calc.eval')
+
+    loss_function = 'MultiClass'
+    feature_estimators = 'BoW,NaiveBayes,BM25'
+
+    dictionaries = [{'dictionary_id': 'Word'}, {'dictionary_id': 'Bigram', 'gram_order': '2'}]
+    dicts = {'BoW': ['Bigram', 'Word'], 'NaiveBayes': ['Word'], 'BM25': ['Word']}
+    feature_processing = [{'feature_calcers': [calcer], 'dictionaries_names': dicts[calcer]} for calcer in feature_estimators.split(',')]
+
+    text_processing = {'feature_processing': {'default': feature_processing}, 'dictionaries': dictionaries}
+
+    pool_name = 'rotten_tomatoes'
+    test_file = data_file(pool_name, 'test')
+    cd_file = data_file(pool_name, 'cd')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '--eval-metric', 'Accuracy',
+        '-f', data_file(pool_name, 'train'),
+        '-t', test_file,
+        '--column-description', cd_file,
+        '--text-processing', json.dumps(text_processing),
+        '--grow-policy', grow_policy,
+        '--boosting-type', 'Plain',
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--eval-file', test_eval_path,
+        '--output-columns', 'RawFormulaVal',
+        '--use-best-model', 'true',
+    )
+    yatest.common.execute(cmd)
+
+    apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
+    assert filecmp.cmp(test_eval_path, calc_eval_path)
+
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+DICTIONARIES_OPTIONS = [
+    {
+        "Simple": "token_level_type=Word:occurrence_lower_bound=50"
+    },
+    {
+        "UniGramOccur5": "occurrence_lower_bound=5:token_level_type=Letter",
+        "BiGramOccur2": "occurrence_lower_bound=2:gram_order=2:token_level_type=Letter",
+        "WordDictOccur1": "occurrence_lower_bound=1:token_level_type=Word",
+        "WordDictOccur2": "occurrence_lower_bound=2:token_level_type=Word",
+        "WordDictOccur3": "occurrence_lower_bound=3:token_level_type=Word"
+    },
+    {
+        "Unigram": "gram_order=1:token_level_type=Letter:occurrence_lower_bound=50",
+        "Bigram": "gram_order=2:token_level_type=Letter:occurrence_lower_bound=50",
+        "Trigram": "gram_order=3:token_level_type=Letter:occurrence_lower_bound=50"
+    },
+    {
+        "Letter": "token_level_type=Letter:occurrence_lower_bound=50",
+        "Word": "token_level_type=Word:occurrence_lower_bound=50"
+    }
+]
+
+
+@pytest.mark.parametrize('dictionaries', DICTIONARIES_OPTIONS)
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
+def test_text_processing_options(dictionaries, loss_function):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn.tsv')
+    test_error_path = yatest.common.test_output_path('test.tsv')
+
+    test_eval_path = yatest.common.test_output_path('test.eval')
+    calc_eval_path = yatest.common.test_output_path('calc.eval')
+
+    dictionaries = ','.join([key + ':' + value for key, value in dictionaries.items()])
+    feature_estimators = 'BM25,BoW,NaiveBayes'
+
+    pool_name = 'rotten_tomatoes'
+    test_file = data_file(pool_name, 'test')
+    cd_file = data_file(pool_name, 'cd')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '--eval-metric', 'Accuracy',
+        '-f', data_file(pool_name, 'train'),
+        '-t', test_file,
+        '--column-description', cd_file,
+        '--dictionaries', dictionaries,
+        '--feature-calcers', feature_estimators,
+        '--boosting-type', 'Plain',
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--eval-file', test_eval_path,
+        '--output-columns', 'RawFormulaVal',
+        '--use-best-model', 'false',
+    )
+    yatest.common.execute(cmd)
+
+    apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
+    assert filecmp.cmp(test_eval_path, calc_eval_path)
+
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_fit_with_per_feature_text_options(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn.tsv')
+    test_error_path = yatest.common.test_output_path('test.tsv')
+
+    test_eval_path = yatest.common.test_output_path('test.eval')
+    calc_eval_path = yatest.common.test_output_path('calc.eval')
+
+    text_processing = {
+        'tokenizers': [
+            {'tokenizer_id': 'Space', 'delimiter': ' '},
+            {'tokenizer_id': 'Comma', 'delimiter': ','},
+        ],
+        'dictionaries': [
+            {'dictionary_id': 'Word', 'token_level_type': 'Word', 'occurrence_lower_bound': '50'},
+            {'dictionary_id': 'Bigram', 'token_level_type': 'Word', 'gram_order': '2', 'occurrence_lower_bound': '50'},
+            {'dictionary_id': 'Trigram', 'token_level_type': 'Letter', 'gram_order': '3', 'occurrence_lower_bound': '50'},
+        ],
+        'feature_processing': {
+            '0': [
+                {'tokenizers_names': ['Space'], 'dictionaries_names': ['Word'], 'feature_calcers': ['BoW', 'NaiveBayes']},
+                {'tokenizers_names': ['Space'], 'dictionaries_names': ['Bigram', 'Trigram'], 'feature_calcers': ['BoW']},
+            ],
+            '1': [
+                {'tokenizers_names': ['Space'], 'dictionaries_names': ['Word'], 'feature_calcers': ['BoW', 'NaiveBayes', 'BM25']},
+                {'tokenizers_names': ['Space'], 'dictionaries_names': ['Trigram'], 'feature_calcers': ['BoW', 'BM25']},
+            ],
+            '2': [
+                {'tokenizers_names': ['Space'], 'dictionaries_names': ['Word', 'Bigram', 'Trigram'], 'feature_calcers': ['BoW']},
+            ],
+        }
+    }
+
+    pool_name = 'rotten_tomatoes'
+    test_file = data_file(pool_name, 'test')
+    cd_file = data_file(pool_name, 'cd_binclass')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '--eval-metric', 'AUC',
+        '-f', data_file(pool_name, 'train'),
+        '-t', test_file,
+        '--text-processing', json.dumps(text_processing),
+        '--column-description', cd_file,
+        '--boosting-type', boosting_type,
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--eval-file', test_eval_path,
+        '--output-columns', 'RawFormulaVal',
+        '--use-best-model', 'false',
+    )
+    yatest.common.execute(cmd)
+
+    apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
+    assert filecmp.cmp(test_eval_path, calc_eval_path)
+
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]

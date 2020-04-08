@@ -87,23 +87,40 @@ void SetTrainDataFromQuantizedPool(
 }
 
 void SetTrainDataFromMaster(
-    NCB::TTrainingForCPUDataProviderPtr trainData,
+    const TTrainingForCPUDataProviders& trainData,
     ui64 cpuUsedRamLimit,
     NPar::TLocalExecutor* localExecutor
 ) {
     const int workerCount = TMasterEnvironment::GetRef().RootEnvironment->GetSlaveCount();
-    auto workerParts = Split(*trainData->ObjectsGrouping, (ui32)workerCount);
+    auto workerParts = Split(*trainData.Learn->ObjectsGrouping, (ui32)workerCount);
     for (int workerIdx = 0; workerIdx < workerCount; ++workerIdx) {
+        const TObjectsGroupingSubset objectsGroupingSubset = NCB::GetSubset(
+            trainData.Learn->ObjectsGrouping,
+            std::move(workerParts[workerIdx]),
+            EObjectsOrder::Ordered);
+
+        NCB::TTrainingForCPUDataProviders workerTrainData;
+        workerTrainData.Learn = trainData.Learn->GetSubset(
+            objectsGroupingSubset,
+            cpuUsedRamLimit,
+            localExecutor);
+        workerTrainData.FeatureEstimators = trainData.FeatureEstimators;
+        if (trainData.EstimatedObjectsData.Learn) {
+            workerTrainData.EstimatedObjectsData.Learn =
+                dynamic_cast<TQuantizedForCPUObjectsDataProvider*>(
+                    trainData.EstimatedObjectsData.Learn->GetSubset(
+                        objectsGroupingSubset,
+                        cpuUsedRamLimit,
+                        localExecutor).Get());
+        }
+        workerTrainData.EstimatedObjectsData.FeatureEstimators
+            = trainData.EstimatedObjectsData.FeatureEstimators;
+        workerTrainData.EstimatedObjectsData.QuantizedEstimatedFeaturesInfo
+            = trainData.EstimatedObjectsData.QuantizedEstimatedFeaturesInfo;
+
         TMasterEnvironment::GetRef().SharedTrainData->SetContextData(
             workerIdx,
-            new NCatboostDistributed::TTrainData(
-                trainData->GetSubset(
-                    NCB::GetSubset(
-                        trainData->ObjectsGrouping,
-                        std::move(workerParts[workerIdx]),
-                        EObjectsOrder::Ordered),
-                    cpuUsedRamLimit,
-                    localExecutor)),
+            new NCatboostDistributed::TTrainData(std::move(workerTrainData)),
             NPar::DELETE_RAW_DATA); // only workers
     }
 }
@@ -234,59 +251,71 @@ void MapCalcScore(
 template <typename TBinCalcMapper, typename TScoreCalcMapper>
 void MapGenericRemoteCalcScore(
     double scoreStDev,
-    TCandidatesContext* candidatesContext,
+    TVector<TCandidatesContext>* candidatesContexts,
     TLearnContext* ctx) {
 
     Y_ASSERT(ctx->Params.SystemOptions->IsMaster());
 
-    auto& candidateList = candidatesContext->CandidateList;
+    // Flatten candidateLists from all contexts to ensure even parallelization
+    TCandidateList allCandidatesList;
+    for (auto& candidatesContext : *candidatesContexts) {
+        allCandidatesList.insert(
+            allCandidatesList.end(),
+            candidatesContext.CandidateList.begin(),
+            candidatesContext.CandidateList.end());
+    }
 
     NPar::TJobDescription job;
-    NPar::Map(&job, new TBinCalcMapper(), &candidateList);
+    NPar::Map(&job, new TBinCalcMapper(), &allCandidatesList);
     NPar::RemoteMap(&job, new TScoreCalcMapper);
     NPar::TJobExecutor exec(&job, TMasterEnvironment::GetRef().SharedTrainData);
     TVector<typename TScoreCalcMapper::TOutput> allScores;
     exec.GetRemoteMapResults(&allScores);
     // set best split for each candidate
-    const int candidateCount = candidateList.ysize();
-    Y_ASSERT(candidateCount == allScores.ysize());
+    Y_ASSERT(allCandidatesList.size() == allScores.size());
     const ui64 randSeed = ctx->LearnProgress->Rand.GenRand();
-    ctx->LocalExecutor->ExecRange(
-        [&] (int candidateIdx) {
-            auto& candidates = candidateList[candidateIdx].Candidates;
-            Y_VERIFY(candidates.size() > 0);
 
-            SetBestScore(
-                randSeed + candidateIdx,
-                allScores[candidateIdx],
-                scoreStDev,
-                *candidatesContext,
-                &candidates);
-        },
-        0,
-        candidateCount,
-        NPar::TLocalExecutor::WAIT_COMPLETE);
+    size_t allScoresOffset = 0;
+    for (auto& candidatesContext : *candidatesContexts) {
+        auto& candidateList = candidatesContext.CandidateList;
+        ctx->LocalExecutor->ExecRange(
+            [&] (int candidateIdx) {
+                auto& candidates = candidateList[candidateIdx].Candidates;
+                Y_VERIFY(candidates.size() > 0);
+
+                SetBestScore(
+                    randSeed + candidateIdx,
+                    allScores[allScoresOffset + candidateIdx],
+                    scoreStDev,
+                    candidatesContext,
+                    &candidates);
+            },
+            0,
+            candidateList.ysize(),
+            NPar::TLocalExecutor::WAIT_COMPLETE);
+        allScoresOffset += candidateList.size();
+    }
 }
 
 void MapRemotePairwiseCalcScore(
     double scoreStDev,
-    TCandidatesContext* candidatesContext,
+    TVector<TCandidatesContext>* candidatesContexts,
     TLearnContext* ctx) {
 
     MapGenericRemoteCalcScore<TRemotePairwiseBinCalcer, TRemotePairwiseScoreCalcer>(
         scoreStDev,
-        candidatesContext,
+        candidatesContexts,
         ctx);
 }
 
 void MapRemoteCalcScore(
     double scoreStDev,
-    TCandidatesContext* candidatesContext,
+    TVector<TCandidatesContext>* candidatesContexts,
     TLearnContext* ctx) {
 
     MapGenericRemoteCalcScore<TRemoteBinCalcer, TRemoteScoreCalcer>(
         scoreStDev,
-        candidatesContext,
+        candidatesContexts,
         ctx);
 }
 
@@ -449,7 +478,7 @@ template <typename TApproxDefs>
 void MapSetApproxes(
     const IDerCalcer& error,
     const TVariant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
-    TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData,
+    const NCB::TTrainingForCPUDataProviders data, // only test part is used
     TVector<TVector<double>>* averageLeafValues,
     TVector<double>* sumLeafWeights,
     TLearnContext* ctx) {
@@ -563,15 +592,15 @@ void MapSetApproxes(
     const auto indices = BuildIndices(
         /*unused fold*/{ },
         splitTree,
-        /*learnData*/{ },
-        testData,
+        data,
+        EBuildIndicesDataParts::TestOnly,
         ctx->LocalExecutor);
     UpdateAvrgApprox(
         error.GetIsExpApprox(),
         /*learnSampleCount*/ 0,
         indices,
         *averageLeafValues,
-        testData,
+        data.Test,
         ctx->LearnProgress.Get(),
         ctx->LocalExecutor);
 }
@@ -642,24 +671,24 @@ public:
 void MapSetApproxesSimple(
     const IDerCalcer& error,
     const TVariant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
-    TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData,
+    const NCB::TTrainingForCPUDataProviders data, // only test part is used
     TVector<TVector<double>>* averageLeafValues,
     TVector<double>* sumLeafWeights,
     TLearnContext* ctx) {
 
-    MapSetApproxes<TSetApproxesSimpleDefs>(error, splitTree, testData, averageLeafValues, sumLeafWeights, ctx);
+    MapSetApproxes<TSetApproxesSimpleDefs>(error, splitTree, data, averageLeafValues, sumLeafWeights, ctx);
 }
 
 void MapSetApproxesMulti(
     const IDerCalcer& error,
     const TVariant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
-    TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData,
+    const NCB::TTrainingForCPUDataProviders data, // only test part is used
     TVector<TVector<double>>* averageLeafValues,
     TVector<double>* sumLeafWeights,
     TLearnContext* ctx) {
 
     CB_ENSURE(!error.GetIsExpApprox(), "Multi-class does not support exponentiated approxes");
-    MapSetApproxes<TSetApproxesMultiDefs>(error, splitTree, testData, averageLeafValues, sumLeafWeights, ctx);
+    MapSetApproxes<TSetApproxesMultiDefs>(error, splitTree, data, averageLeafValues, sumLeafWeights, ctx);
 }
 
 void MapSetDerivatives(TLearnContext* ctx) {

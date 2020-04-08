@@ -69,11 +69,39 @@ inline static void SetBucketIndex(
 
 }
 
+static void GetIndexingParams(
+    const TCalcScoreFold& fold,
+    bool isEstimatedData,
+    bool isOnlineData,
+    const ui32** objectIndexing,
+    int* beginOffset
+) {
+    // Simple indexing possible only at first level now
+    if (isOnlineData) {
+        const bool simpleIndexing = (fold.LeavesBounds.ysize() == 1)
+            && (fold.OnlineDataPermutationBlockSize == fold.GetDocCount());
+        *objectIndexing = simpleIndexing ? nullptr : GetDataPtr(fold.IndexInFold);
+        *beginOffset = 0;
+    } else if (isEstimatedData) {
+        *objectIndexing = fold.GetLearnPermutationOfflineEstimatedFeaturesSubset().data();
+        *beginOffset = 0;
+    } else {
+        const bool simpleIndexing = (fold.LeavesBounds.size() == 1) &&
+            (fold.MainDataPermutationBlockSize == fold.GetDocCount());
+        *objectIndexing = simpleIndexing
+            ? nullptr
+            : fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
+        *beginOffset = simpleIndexing ? fold.FeaturesSubsetBegin : 0;
+    }
+}
+
 
 template <class TColumn, typename TBucketIndexType>
 inline static void ExtractBucketIndex(
     const TCalcScoreFold& fold,
     const TColumn& column,
+    bool isEstimatedData,
+    bool isOnlineData,
     TIndexRange<ui32> docIndexRange,
     int groupSize,
     const TVector<ui32>& groupPartsBucketsOffsets,
@@ -82,12 +110,9 @@ inline static void ExtractBucketIndex(
     if (const auto* denseColumnData
         = dynamic_cast<const TCompressedValuesHolderImpl<TColumn>*>(&column))
     {
-        // Simple indexing possible only at first level now
-        const bool simpleIndexing = (fold.LeavesBounds.size() == 1) && (fold.NonCtrDataPermutationBlockSize == fold.GetDocCount());
-        const ui32* docInDataProviderIndexing = simpleIndexing
-            ? nullptr
-            : fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
-        const int docInDataProviderBeginOffset = simpleIndexing ? fold.FeaturesSubsetBegin : 0;
+        const ui32* objectIndexing;
+        int beginOffset;
+        GetIndexingParams(fold, isEstimatedData, isOnlineData, &objectIndexing, &beginOffset);
 
         const TCompressedArray& compressedArray = *denseColumnData->GetCompressedData().GetSrc();
 
@@ -96,8 +121,8 @@ inline static void ExtractBucketIndex(
             [&] (const auto* columnData) {
                 SetBucketIndex(
                     columnData,
-                    docInDataProviderIndexing,
-                    docInDataProviderBeginOffset,
+                    objectIndexing,
+                    beginOffset,
                     docIndexRange,
                     groupSize,
                     groupPartsBucketsOffsets,
@@ -125,14 +150,19 @@ inline static void ExtractBucketIndex(
 ) {
     if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr)) {
         const TCtr& ctr = splitEnsemble.SplitCandidate.Ctr;
-        // Simple indexing possible only at first level
-        const bool simpleIndexing = (fold.LeavesBounds.ysize() == 1)
-            && (fold.CtrDataPermutationBlockSize == fold.GetDocCount());
-        const ui32* docInFoldIndexing = simpleIndexing ? nullptr : GetDataPtr(fold.IndexInFold);
+        const ui32* objectIndexing;
+        int beginOffset;
+        GetIndexingParams(
+            fold,
+            /*isEstimatedData*/ false,
+            /*isOnlineData*/true,
+            &objectIndexing,
+            &beginOffset
+        );
         SetBucketIndex(
             GetCtr(allCtrs, ctr.Projection).Feature[ctr.CtrIdx][ctr.TargetBorderIdx][ctr.PriorIdx].data(),
-            docInFoldIndexing,
-            0,
+            objectIndexing,
+            beginOffset,
             docIndexRange,
             groupSize,
             groupPartsBucketsOffsets,
@@ -143,6 +173,8 @@ inline static void ExtractBucketIndex(
             ExtractBucketIndex(
                 fold,
                 column,
+                splitEnsemble.IsEstimated,
+                splitEnsemble.IsOnlineEstimated,
                 docIndexRange,
                 groupSize,
                 groupPartsBucketsOffsets,
@@ -154,7 +186,9 @@ inline static void ExtractBucketIndex(
             case ESplitEnsembleType::OneFeature:
             {
                 const auto& splitCandidate = splitEnsemble.SplitCandidate;
-                if (splitCandidate.Type == ESplitType::FloatFeature) {
+                if ((splitCandidate.Type == ESplitType::FloatFeature) ||
+                    (splitCandidate.Type == ESplitType::EstimatedFeature))
+                {
                     extractBucketIndexFunc(
                         **objectsDataProvider.GetNonPackedFloatFeature((ui32)splitCandidate.FeatureIdx)
                     );

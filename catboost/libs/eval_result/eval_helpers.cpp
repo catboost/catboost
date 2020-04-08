@@ -217,6 +217,9 @@ void PrepareEval(const EPredictionType predictionType,
                 }
             }
             break;
+        case EPredictionType::Exponent:
+            *result = {CalcExponent(approx[0])};
+            break;
         case EPredictionType::RawFormulaVal:
             *result = approx;
             break;

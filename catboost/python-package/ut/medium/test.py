@@ -1,4 +1,5 @@
 from collections import OrderedDict
+import filecmp
 import hashlib
 import math
 import numpy as np
@@ -1173,9 +1174,6 @@ def fit_from_file(params, learn_file, test_file, cd_file):
 
 
 def test_fit_with_texts(task_type):
-    if task_type == 'CPU':
-        return
-
     params = {
         'dictionaries': [
             {'dictionary_id': 'UniGram', 'token_level_type': 'Letter', 'occurrence_lower_bound': '1'},
@@ -3050,7 +3048,7 @@ def test_approximate_shap_feature_importance(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, max_ctr_complexity=1, task_type=task_type, devices='0')
     model.fit(pool)
-    shaps = model.get_feature_importance(type=EFstrType.ApproximateShapValues, data=pool)
+    shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Approximate")
     assert np.allclose(model.predict(pool, prediction_type='RawFormulaVal'), np.sum(shaps, axis=1))
 
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
@@ -3072,7 +3070,8 @@ def test_approximate_shap_feature_importance_multiclass(task_type):
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass')
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
-    np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ApproximateShapValues, data=pool)), 9))
+    np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool,
+                                                                           shap_calc_type="Approximate")), 9))
     return local_canonical_file(fimp_npy_path)
 
 
@@ -3111,7 +3110,7 @@ def test_approximate_shap_feature_importance_ranking(task_type):
         }
     )
     model.fit(pool)
-    shaps = model.get_feature_importance(type=EFstrType.ApproximateShapValues, data=pool)
+    shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Approximate")
     assert np.allclose(model.predict(pool), np.sum(shaps, axis=1))
 
     if task_type == 'GPU':
@@ -3146,9 +3145,11 @@ def test_approximate_shap_feature_importance_asymmetric_and_symmetric(task_type)
         task_type=task_type,
         devices='0')
     model.fit(pool)
-    shap_symm = np.array(model.get_feature_importance(type=EFstrType.ApproximateShapValues, data=pool))
+    shap_symm = np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool,
+                                                      shap_calc_type="Approximate"))
     model._convert_to_asymmetric_representation()
-    shap_asymm = np.array(model.get_feature_importance(type=EFstrType.ApproximateShapValues, data=pool))
+    shap_asymm = np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool,
+                                                       shap_calc_type="Approximate"))
     assert np.all(shap_symm - shap_asymm < 1e-8)
 
 
@@ -3168,7 +3169,7 @@ def test_approximate_shap_feature_importance_with_langevin():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, depth=10, langevin=True, diffusion_temperature=1000)
     model.fit(pool)
-    shaps = model.get_feature_importance(type=EFstrType.ApproximateShapValues, data=pool)
+    shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Approximate")
     assert np.allclose(model.predict(pool, prediction_type='RawFormulaVal'), np.sum(shaps, axis=1))
 
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
@@ -3203,7 +3204,7 @@ def test_shap_feature_importance_asymmetric(task_type, grow_policy):
         devices='0')
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
-    np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool)))
+    np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool)), 9))
     return local_canonical_file(fimp_npy_path)
 
 
@@ -3480,6 +3481,157 @@ def test_shap_complex_ctr(task_type):
     fimp_txt_path = test_output_path(FIMP_TXT_PATH)
     np.savetxt(fimp_txt_path, shap_values)
     return local_canonical_file(fimp_txt_path)
+
+
+def test_shap_interaction_feature_importance(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, max_ctr_complexity=1, task_type=task_type, devices='0')
+    model.fit(pool)
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.ShapInteractionValues, data=pool)))
+    return local_canonical_file(fimp_npy_path)
+
+
+def test_shap_interaction_feature_importance_multiclass(task_type):
+    pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass')
+    model.fit(pool)
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.array(model.get_feature_importance(type=EFstrType.ShapInteractionValues, data=pool)))
+    return local_canonical_file(fimp_npy_path)
+
+
+def test_shap_interaction_feature_on_symmetric(task_type):
+    pool = Pool(SMALL_CATEGORIAL_FILE, column_description=SMALL_CATEGORIAL_CD_FILE)
+    model = CatBoost(params={'loss_function': 'RMSE', 'iterations': 2, 'task_type': task_type, 'devices': '0', 'one_hot_max_size': 4})
+    model.fit(pool)
+    shap_interaction_values = model.get_feature_importance(
+        type=EFstrType.ShapInteractionValues,
+        data=pool,
+        thread_count=8
+    )
+
+    doc_count = pool.num_row()
+    shap_interaction_values = shap_interaction_values[:, :-1, :-1]
+    for doc_idx in range(doc_count):
+        assert np.all(np.abs(shap_interaction_values[doc_idx] - shap_interaction_values[doc_idx].T) < 1e-8)
+
+
+def test_shap_interaction_feature_importance_asymmetric_and_symmetric(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(
+        iterations=5,
+        learning_rate=0.03,
+        max_ctr_complexity=1,
+        task_type=task_type,
+        devices='0')
+    model.fit(pool)
+    shap_interaction_symm = np.array(model.get_feature_importance(type=EFstrType.ShapInteractionValues, data=pool))
+    model._convert_to_asymmetric_representation()
+    shap_interaction_asymm = np.array(model.get_feature_importance(type=EFstrType.ShapInteractionValues, data=pool))
+    assert np.all(shap_interaction_symm - shap_interaction_asymm < 1e-8)
+
+
+def test_properties_shap_interaction_values(task_type):
+    pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
+    classifier = CatBoostClassifier(iterations=50, loss_function='MultiClass', thread_count=8, task_type=task_type, devices='0')
+    classifier.fit(pool)
+    shap_values = classifier.get_feature_importance(
+        type=EFstrType.ShapValues,
+        data=pool,
+        thread_count=8
+    )
+
+    shap_interaction_values = classifier.get_feature_importance(
+        type=EFstrType.ShapInteractionValues,
+        data=pool,
+        thread_count=8
+    )
+
+    features_count = pool.num_col()
+    doc_count = pool.num_row()
+    classes_count = 3
+    assert shap_interaction_values.shape == (doc_count, classes_count, features_count + 1, features_count + 1)
+
+    shap_values = shap_values[:, :, :-1]
+    shap_interaction_values = shap_interaction_values[:, :, :-1, :-1]
+
+    for doc_idx in range(doc_count):
+        for class_idx in range(classes_count):
+            for feature_idx_1 in range(features_count):
+                # check that sum(Ф(i, j)) = ф(i)
+                sum_current_interaction_row = np.sum(shap_interaction_values[doc_idx][class_idx][feature_idx_1])
+                assert np.allclose(
+                    shap_values[doc_idx][class_idx][feature_idx_1],
+                    sum_current_interaction_row
+                )
+
+
+def test_shap_interaction_value_between_pair():
+    pool = Pool(SMALL_CATEGORIAL_FILE, column_description=SMALL_CATEGORIAL_CD_FILE)
+    model = CatBoost(params={'loss_function': 'RMSE', 'iterations': 2, 'devices': '0', 'one_hot_max_size': 4})
+    model.fit(pool)
+    shap_interaction_values = model.get_feature_importance(
+        type=EFstrType.ShapInteractionValues,
+        data=pool,
+        thread_count=8
+    )
+    features_count = pool.num_col()
+    doc_count = pool.num_row()
+
+    for feature_idx_1 in range(features_count):
+        for feature_idx_2 in range(features_count):
+            interaction_value = model.get_feature_importance(
+                type=EFstrType.ShapInteractionValues,
+                data=pool,
+                thread_count=8,
+                interaction_indices=[feature_idx_1, feature_idx_2]
+            )
+            if feature_idx_1 == feature_idx_2:
+                assert interaction_value.shape == (doc_count, 2, 2)
+            else:
+                assert interaction_value.shape == (doc_count, 3, 3)
+            for doc_idx in range(doc_count):
+                if feature_idx_1 == feature_idx_2:
+                    assert abs(interaction_value[doc_idx][0][0] - shap_interaction_values[doc_idx][feature_idx_1][feature_idx_2]) < 1e-6
+                else:
+                    assert abs(interaction_value[doc_idx][0][1] - shap_interaction_values[doc_idx][feature_idx_1][feature_idx_2]) < 1e-6
+
+
+def test_shap_interaction_value_between_pair_multi():
+    pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
+    classifier = CatBoostClassifier(iterations=10, loss_function='MultiClass', thread_count=8, devices='0')
+    classifier.fit(pool)
+
+    shap_interaction_values = classifier.get_feature_importance(
+        type=EFstrType.ShapInteractionValues,
+        data=pool,
+        thread_count=8
+    )
+    features_count = pool.num_col()
+    doc_count = pool.num_row()
+    checked_doc_count = doc_count / 3
+    classes_count = 3
+
+    for feature_idx_1 in range(features_count):
+        for feature_idx_2 in range(features_count):
+            interaction_value = classifier.get_feature_importance(
+                type=EFstrType.ShapInteractionValues,
+                data=pool,
+                thread_count=8,
+                interaction_indices=[feature_idx_1, feature_idx_2]
+            )
+            if feature_idx_1 == feature_idx_2:
+                assert interaction_value.shape == (doc_count, classes_count, 2, 2)
+            else:
+                assert interaction_value.shape == (doc_count, classes_count, 3, 3)
+
+            for doc_idx in range(checked_doc_count):
+                for class_idx in range(classes_count):
+                    if feature_idx_1 == feature_idx_2:
+                        assert abs(interaction_value[doc_idx][class_idx][0][0] - shap_interaction_values[doc_idx][class_idx][feature_idx_1][feature_idx_2]) < 1e-6
+                    else:
+                        assert abs(interaction_value[doc_idx][class_idx][0][1] - shap_interaction_values[doc_idx][class_idx][feature_idx_1][feature_idx_2]) < 1e-6
 
 
 def random_xy(num_rows, num_cols_x, seed=20181219, prng=None):
@@ -7126,6 +7278,16 @@ def test_log_proba():
     assert np.allclose(log_pred_1, log_pred_2)
 
 
+def test_exponent():
+    # poisson regression
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    classifier = CatBoostRegressor(iterations=2, objective='Poisson')
+    classifier.fit(pool)
+    pred = classifier.predict(pool, prediction_type='RawFormulaVal')
+    exp_pred = classifier.predict(pool)
+    assert np.allclose(exp_pred, np.exp(pred))
+
+
 def test_staged_log_proba():
     # multiclass with softmax
     pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
@@ -7278,3 +7440,179 @@ def test_to_regressor_wrong_type():
     model.fit(train_pool)
     with pytest.raises(CatBoostError):
         to_regressor(model)
+
+
+def test_load_and_save_quantization_borders():
+    borders_32_file = test_output_path('borders_32.dat')
+    borders_10_file = test_output_path('borders_10.dat')
+    borders_from_input_borders_file = test_output_path('borders_from_input_borders.dat')
+
+    pool_border_count_32 = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    pool_border_count_32.quantize(border_count=32)
+    pool_border_count_32.save_quantization_borders(borders_32_file)
+
+    pool_border_count_10 = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    pool_border_count_10.quantize(border_count=10)
+    pool_border_count_10.save_quantization_borders(borders_10_file)
+
+    pool_from_input_borders = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+    pool_from_input_borders.quantize(input_borders=borders_10_file)
+    pool_from_input_borders.save_quantization_borders(borders_from_input_borders_file)
+
+    assert filecmp.cmp(borders_10_file, borders_from_input_borders_file)
+    assert not filecmp.cmp(borders_32_file, borders_10_file)
+
+    return [local_canonical_file(borders_32_file), local_canonical_file(borders_10_file)]
+
+
+def test_feature_weights_work():
+    pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    most_important_feature_index = 3
+    classifier_params = {
+        'iterations': 5,
+        'learning_rate': 0.03,
+        'task_type': 'CPU',
+        'devices': '0',
+        'loss_function': 'MultiClass',
+    }
+
+    model_without_feature_weights = CatBoostClassifier(**classifier_params)
+    model_without_feature_weights.fit(pool)
+    importance_without_feature_weights = model_without_feature_weights.get_feature_importance(
+        type=EFstrType.PredictionValuesChange,
+        data=pool
+    )[most_important_feature_index]
+
+    model_with_feature_weights = CatBoostClassifier(
+        feature_weights={most_important_feature_index: 0.1},
+        **classifier_params
+    )
+    model_with_feature_weights.fit(pool)
+    importance_with_feature_weights = model_with_feature_weights.get_feature_importance(
+        type=EFstrType.PredictionValuesChange,
+        data=pool
+    )[most_important_feature_index]
+
+    assert importance_with_feature_weights < importance_without_feature_weights
+
+
+def test_different_formats_of_feature_weights():
+    train_pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    test_pool = Pool(AIRLINES_5K_TEST_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+
+    feature_weights_array = np.array([1, 1, 1, 0.1, 1, 1, 1, 2])
+    feature_weights_list = [1, 1, 1, 0.1, 1, 1, 1, 2]
+    feature_weights_dict_1 = {3: 0.1, 7: 2}
+    feature_weights_dict_2 = {'DepTime': 0.1, 'Distance': 2}
+    feature_weights_string_1 = "(1,1,1,0.1,1,1,1,2)"
+    feature_weights_string_2 = "3:0.1,7:2"
+    feature_weights_string_3 = "DepTime:0.1,Distance:2"
+
+    common_options = dict(iterations=50)
+    model1 = CatBoostClassifier(feature_weights=feature_weights_array, **common_options)
+    model1.fit(train_pool)
+    predictions1 = model1.predict(test_pool)
+    for feature_weights in [
+        feature_weights_list,
+        feature_weights_dict_1,
+        feature_weights_dict_2,
+        feature_weights_string_1,
+        feature_weights_string_2,
+        feature_weights_string_3
+    ]:
+        model2 = CatBoostClassifier(feature_weights=feature_weights, **common_options)
+        model2.fit(train_pool)
+        predictions2 = model2.predict(test_pool)
+        assert all(predictions1 == predictions2)
+
+
+def test_first_feature_use_penalties_work():
+    pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    most_important_feature_index = 3
+    classifier_params = {
+        'iterations': 5,
+        'learning_rate': 0.03,
+        'task_type': 'CPU',
+        'devices': '0',
+        'loss_function': 'MultiClass',
+    }
+
+    model_without_feature_penalties = CatBoostClassifier(**classifier_params)
+    model_without_feature_penalties.fit(pool)
+    importance_without_feature_penalties = model_without_feature_penalties.get_feature_importance(
+        type=EFstrType.PredictionValuesChange,
+        data=pool
+    )[most_important_feature_index]
+
+    model_with_feature_penalties = CatBoostClassifier(
+        first_feature_use_penalties={most_important_feature_index: 100},
+        **classifier_params
+    )
+    model_with_feature_penalties.fit(pool)
+    importance_with_feature_penalties = model_with_feature_penalties.get_feature_importance(
+        type=EFstrType.PredictionValuesChange,
+        data=pool
+    )[most_important_feature_index]
+
+    assert importance_with_feature_penalties < importance_without_feature_penalties
+
+
+def test_different_formats_of_first_feature_use_penalties():
+    train_pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    test_pool = Pool(AIRLINES_5K_TEST_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+
+    first_feature_use_penalties_array = np.array([0, 0, 0, 10, 0, 0, 0, 2])
+    first_feature_use_penalties_list = [0, 0, 0, 10, 0, 0, 0, 2]
+    first_feature_use_penalties_dict_1 = {3: 10, 7: 2}
+    first_feature_use_penalties_dict_2 = {'DepTime': 10, 'Distance': 2}
+    first_feature_use_penalties_string_1 = "(0,0,0,10,0,0,0,2)"
+    first_feature_use_penalties_string_2 = "3:10,7:2"
+    first_feature_use_penalties_string_3 = "DepTime:10,Distance:2"
+
+    common_options = dict(iterations=50)
+    model1 = CatBoostClassifier(first_feature_use_penalties=first_feature_use_penalties_array, **common_options)
+    model1.fit(train_pool)
+    predictions1 = model1.predict(test_pool)
+    for first_feature_use_penalties in [
+        first_feature_use_penalties_list,
+        first_feature_use_penalties_dict_1,
+        first_feature_use_penalties_dict_2,
+        first_feature_use_penalties_string_1,
+        first_feature_use_penalties_string_2,
+        first_feature_use_penalties_string_3
+    ]:
+        model2 = CatBoostClassifier(first_feature_use_penalties=first_feature_use_penalties, **common_options)
+        model2.fit(train_pool)
+        predictions2 = model2.predict(test_pool)
+        assert all(predictions1 == predictions2)
+
+
+def test_penalties_coefficient_work():
+    pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    most_important_feature_index = 3
+    classifier_params = {
+        'iterations': 5,
+        'learning_rate': 0.03,
+        'task_type': 'CPU',
+        'devices': '0',
+        'loss_function': 'MultiClass',
+    }
+
+    model_without_feature_penalties = CatBoostClassifier(**classifier_params)
+    model_without_feature_penalties.fit(pool)
+
+    model_with_feature_penalties = CatBoostClassifier(
+        first_feature_use_penalties={most_important_feature_index: 100},
+        **classifier_params
+    )
+    model_with_feature_penalties.fit(pool)
+
+    model_with_zero_feature_penalties = CatBoostClassifier(
+        first_feature_use_penalties={most_important_feature_index: 100},
+        penalties_coefficient=0,
+        **classifier_params
+    )
+    model_with_zero_feature_penalties.fit(pool)
+
+    assert any(model_without_feature_penalties.predict_proba(pool)[0] == model_with_zero_feature_penalties.predict_proba(pool)[0])
+    assert any(model_without_feature_penalties.predict_proba(pool)[0] != model_with_feature_penalties.predict_proba(pool)[0])

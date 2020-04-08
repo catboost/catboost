@@ -443,6 +443,17 @@ Y_UNIT_TEST_SUITE(DateTimeTest) {
         UNIT_ASSERT_DOUBLES_EQUAL(TDuration::Minutes(1) / TDuration::Seconds(10), 6.0, 1e-9);
     }
 
+    Y_UNIT_TEST(TestDurationGetters) {
+        const TDuration value = TDuration::MicroSeconds(1234567);
+        UNIT_ASSERT_VALUES_EQUAL(value.Seconds(), 1);
+        UNIT_ASSERT_DOUBLES_EQUAL(value.SecondsFloat(), 1.234567, 1e-9);
+
+        UNIT_ASSERT_VALUES_EQUAL(value.MilliSeconds(), 1234);
+        UNIT_ASSERT_DOUBLES_EQUAL(value.MillisecondsFloat(), 1234.567, 1e-9);
+
+        UNIT_ASSERT_VALUES_EQUAL(value.MicroSeconds(), 1234567);
+    }
+
     template <class T>
     void TestTimeUnits() {
         T withTime = T::MicroSeconds(1249571946000000L);

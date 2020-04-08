@@ -181,14 +181,17 @@ namespace NCatboostCuda {
                 if (!NeedPriorEstimation(currentFeatureDescription)) {
                     return;
                 }
-                auto values = catFeatureValues.ExtractValues(localExecutor);
 
                 for (ui32 i = 0; i < currentFeatureDescription.size(); ++i) {
                     if (currentFeatureDescription[i].Type == ECtrType::Borders && options.TargetBinarization->BorderCount == 1u) {
                         ui32 uniqueValues = dataProvider.ObjectsData->GetQuantizedFeaturesInfo()->GetUniqueValuesCounts(TCatFeatureIdx((ui32)catFeatureIdx)).OnAll;
 
-                        TBetaPriorEstimator::TBetaPrior prior = TBetaPriorEstimator::EstimateBetaPrior(binarizedTarget.data(),
-                                                                                                       (*values).data(), (*values).size(), uniqueValues);
+                        TBetaPriorEstimator::TBetaPrior prior = TBetaPriorEstimator::EstimateBetaPrior(
+                            binarizedTarget.data(),
+                            catFeatureValues.GetBlockIterator(),
+                            catFeatureValues.GetSize(),
+                            uniqueValues
+                        );
 
                         CATBOOST_INFO_LOG << "Estimate borders-ctr prior for feature #" << catFeatureFlatIdx << ": " << prior.Alpha << " / " << prior.Beta << Endl;
                         currentFeatureDescription[i].Priors = {{(float)prior.Alpha, (float)(prior.Alpha + prior.Beta)}};
@@ -378,6 +381,8 @@ namespace NCatboostCuda {
 
             TVector<TVector<double>> rawValues(approxDimension);
 
+            CheckMetrics(updatedCatboostOptions.MetricOptions);
+
             TGpuTrainResult gpuFormatModel = TrainModelImpl(
                 internalOptions,
                 updatedCatboostOptions,
@@ -526,6 +531,8 @@ namespace NCatboostCuda {
                 labelConverter,
                 trainingData.Learn->TargetData->GetTargetDimension()
             );
+
+            CheckMetrics(updatedCatboostOptions.MetricOptions);
 
             ModelBasedEvalImpl(
                 updatedCatboostOptions,

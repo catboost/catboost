@@ -11,7 +11,7 @@
 #include <util/system/fs.h>
 #include <util/ysaveload.h>
 
-#include <library/digest/md5/md5.h>
+#include <library/cpp/digest/md5/md5.h>
 
 class TMD5Output : public IOutputStream {
 public:

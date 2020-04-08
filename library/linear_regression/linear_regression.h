@@ -3,7 +3,7 @@
 #include "linear_model.h"
 #include "welford.h"
 
-#include <library/accurate_accumulate/accurate_accumulate.h>
+#include <library/cpp/accurate_accumulate/accurate_accumulate.h>
 
 #include <util/generic/vector.h>
 #include <util/generic/hash.h>

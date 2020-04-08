@@ -11,7 +11,7 @@
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/options/restrictions.h>
 
-#include <library/containers/2d_array/2d_array.h>
+#include <library/cpp/containers/2d_array/2d_array.h>
 #include <library/fast_exp/fast_exp.h>
 #include <library/threading/local_executor/local_executor.h>
 

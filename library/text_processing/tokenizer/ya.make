@@ -12,7 +12,7 @@ PEERDIR(
     library/json
     library/langs
     library/object_factory
-    library/tokenizer
+    library/cpp/tokenizer
 )
 
 IF (NOT CATBOOST_OPENSOURCE AND NOT NO_YANDEX_LEMMER)

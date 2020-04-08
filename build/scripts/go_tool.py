@@ -11,6 +11,8 @@ import threading
 arc_project_prefix = 'a.yandex-team.ru/'
 std_lib_prefix = 'contrib/go/_std/src/'
 vendor_prefix = 'vendor/'
+vet_info_ext = '.vet.out'
+vet_report_ext = '.vet.txt'
 
 
 def compare_versions(version1, version2):
@@ -105,11 +107,11 @@ def create_import_config(peers, gen_importmap, import_map={}, module_map={}):
 
 
 def vet_info_output_name(path):
-    return path + '.vet.out'
+    return '{}{}'.format(path, vet_info_ext)
 
 
 def vet_report_output_name(path):
-    return path + '.vet.txt'
+    return '{}{}'.format(path, vet_report_ext)
 
 
 def get_source_path(args):
@@ -596,6 +598,8 @@ if __name__ == '__main__':
     parser.add_argument('++vcs', nargs='?', default=None)
     parser.add_argument('++vet', nargs='?', const=True, default=False)
     parser.add_argument('++vet-flags', nargs='*', default=None)
+    parser.add_argument('++vet-info-ext', default=vet_info_ext)
+    parser.add_argument('++vet-report-ext', default=vet_report_ext)
     parser.add_argument('++arc-source-root')
     parser.add_argument('++musl', action='store_true')
     parser.add_argument('++skip-tests', nargs='*', default=None)
@@ -634,6 +638,8 @@ if __name__ == '__main__':
 
     arc_project_prefix = args.arc_project_prefix
     std_lib_prefix = args.std_lib_prefix
+    vet_info_ext = args.vet_info_ext
+    vet_report_ext = args.vet_report_ext
 
     # compute root relative module dir path
     assert args.output is None or args.output_root == os.path.dirname(args.output)

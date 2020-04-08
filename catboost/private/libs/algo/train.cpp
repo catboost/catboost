@@ -145,8 +145,8 @@ void CalcApproxesLeafwise(
     *indices = BuildIndices(
         ctx->LearnProgress->AveragingFold,
         tree,
-        data.Learn,
-        data.Test,
+        data,
+        EBuildIndicesDataParts::All,
         ctx->LocalExecutor
     );
     auto statistics = BuildSubset(
@@ -393,11 +393,11 @@ void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnCont
             const bool isMultiRegression = dynamic_cast<const TMultiDerCalcer*>(error.Get()) != nullptr;
 
             if (isMultiRegression) {
-                MapSetApproxesMulti(*error, bestTree, data.Test, &treeValues, &sumLeafWeights, ctx);
+                MapSetApproxesMulti(*error, bestTree, data, &treeValues, &sumLeafWeights, ctx);
             } else if (ctx->LearnProgress->ApproxDimension == 1) {
-                MapSetApproxesSimple(*error, bestTree, data.Test, &treeValues, &sumLeafWeights, ctx);
+                MapSetApproxesSimple(*error, bestTree, data, &treeValues, &sumLeafWeights, ctx);
             } else {
-                MapSetApproxesMulti(*error, bestTree, data.Test, &treeValues, &sumLeafWeights, ctx);
+                MapSetApproxesMulti(*error, bestTree, data, &treeValues, &sumLeafWeights, ctx);
             }
         }
 

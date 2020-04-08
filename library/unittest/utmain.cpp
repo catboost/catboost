@@ -2,7 +2,7 @@
 #include "registar.h"
 #include "utmain.h"
 
-#include <library/colorizer/colors.h>
+#include <library/cpp/colorizer/colors.h>
 
 #include <library/json/writer/json.h>
 #include <library/json/writer/json_value.h>

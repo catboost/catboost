@@ -30,6 +30,10 @@ namespace NPar {
     class TLocalExecutor;
 }
 
+namespace NCatboostOptions {
+    struct TBinarizationOptions;
+}
+
 
 struct TFoldsCreationParams {
     bool IsOrderedBoosting;
@@ -74,6 +78,7 @@ struct TLearnProgress {
 
     TVector<TCatFeature> CatFeatures;
     TVector<TFloatFeature> FloatFeatures;
+    TVector<TTextFeature> TextFeatures;
 
     int ApproxDimension = 1;
     TLabelConverter LabelConverter;
@@ -103,6 +108,10 @@ struct TLearnProgress {
     ui32 SeparateInitModelCheckSum = 0;
 
     TRestorableFastRng64 Rand;
+
+    TVector<bool> UsedFeatures;
+
+    NCB::TCombinedEstimatedFeaturesContext EstimatedFeaturesContext;
 public:
     TLearnProgress();
     TLearnProgress(
@@ -118,6 +127,7 @@ public:
         const TVector<TTargetClassifier>& targetClassifiers,
         ui32 featuresCheckSum,
         ui32 foldCreationParamsCheckSum,
+        const NCatboostOptions::TBinarizationOptions& estimatedFeaturesQuantizationOptions,
         TMaybe<TFullModel*> initModel,
         NCB::TDataProviders initModelApplyCompatiblePools,
         NPar::TLocalExecutor* localExecutor);
@@ -138,6 +148,8 @@ public:
     ui32 GetCurrentTrainingIterationCount() const;
     ui32 GetCompleteModelTreesSize() const; // includes init model size if it's a continuation training
     ui32 GetInitModelTreesSize() const;
+
+    NCB::TQuantizedEstimatedFeaturesInfo GetOnlineEstimatedFeaturesInfo() const;
 };
 
 class TCommonContext : public TNonCopyable {
@@ -205,8 +217,6 @@ public:
     TCalcScoreFold SampledDocs;
     TBucketStatsCache PrevTreeLevelStats;
     TProfileInfo Profile;
-
-    bool LearnAndTestDataPackingAreCompatible;
 
 private:
     bool UseTreeLevelCachingFlag;

@@ -203,7 +203,7 @@ namespace NStatistics {
         More details on: http://www.johndcook.com/skewness_kurtosis.html
 
         You might use types different from 'float', 'double', 'long double', for example
-        TKahanAccumulator<T> from library/accurate_accumulate.
+        TKahanAccumulator<T> from library/cpp/accurate_accumulate.
         If TStoreFloatType is not one of 'float', 'double', 'long double' it must have
         TStoreFloatType::TValueType.
     */

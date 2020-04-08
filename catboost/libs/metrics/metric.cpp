@@ -3594,7 +3594,7 @@ THolder<IMetric> MakeCustomMetric(const TCustomMetricDescriptor& descriptor) {
 /* UserDefinedPerObjectMetric */
 
 namespace {
-    class TUserDefinedPerObjectMetric : public TMetric { 
+    class TUserDefinedPerObjectMetric : public TMetric {
     public:
         explicit TUserDefinedPerObjectMetric(const TMap<TString, TString>& params);
         TMetricHolder Eval(
@@ -3986,6 +3986,72 @@ void TAverageGain::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
 
+/* CombinationLoss */
+
+namespace {
+    class TCombinationLoss : public TAdditiveMetric<TCombinationLoss> {
+    public:
+        explicit TCombinationLoss(const TMap<TString, TString>& params)
+        : Params(params)
+        {
+        }
+
+        TMetricHolder EvalSingleThread(
+            const TVector<TVector<double>>& approx,
+            const TVector<TVector<double>>& approxDelta,
+            bool isExpApprox,
+            TConstArrayRef<float> target,
+            TConstArrayRef<float> weight,
+            TConstArrayRef<TQueryInfo> queriesInfo,
+            int queryStartIndex,
+            int queryEndIndex
+        ) const;
+        EErrorType GetErrorType() const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+    private:
+        TMap<TString, TString> Params;
+    };
+}
+
+THolder<IMetric> MakeCombinationLoss(const TMap<TString, TString>& params) {
+    return MakeHolder<TCombinationLoss>(params);
+}
+
+TMetricHolder TCombinationLoss::EvalSingleThread(
+    const TVector<TVector<double>>& /*approx*/,
+    const TVector<TVector<double>>& /*approxDelta*/,
+    bool /*isExpApprox*/,
+    TConstArrayRef<float> /*target*/,
+    TConstArrayRef<float> /*weight*/,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+    int /*queryStartIndex*/,
+    int /*queryEndIndex*/
+) const {
+    CB_ENSURE(false, "Combination loss is implemented only on GPU");
+}
+
+EErrorType TCombinationLoss::GetErrorType() const {
+    return EErrorType::QuerywiseError;
+}
+
+TString TCombinationLoss::GetDescription() const {
+    TString description;
+    for (const auto& [param, value] : Params) {
+        description += BuildDescription(TMetricParam<TString>(param, value, /*userDefined*/true));
+    }
+    return description;
+}
+
+void TCombinationLoss::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
+}
+
+double TCombinationLoss::GetFinalError(const TMetricHolder& error) const {
+    return error.Stats[0];
+}
+
 /* Create */
 
 static void CheckParameters(
@@ -4052,7 +4118,17 @@ static TVector<TVector<T>> ConstructSquareMatrix(const TString& matrixString) {
     return result;
 }
 
-static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString, TString> params, int approxDimension) {
+static bool HintedToEvalOnTrain(const TMap<TString, TString>& params) {
+    const bool hasHints = params.contains("hints");
+    const auto& hints = hasHints ? ParseHintsDescription(params.at("hints")) : TMap<TString, TString>();
+    return hasHints && hints.contains("skip_train") && hints.at("skip_train") == "false";
+}
+
+static bool HintedToEvalOnTrain(const NCatboostOptions::TLossDescription& metricDescription) {
+    return HintedToEvalOnTrain(metricDescription.GetLossParams());
+}
+
+static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<TString, TString>& params, int approxDimension) {
     const double binaryClassPredictionBorder = NCatboostOptions::GetPredictionBorderFromLossParams(params).GetOrElse(
             GetDefaultPredictionBorder());
 
@@ -4366,6 +4442,18 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
             }
             break;
         }
+        case ELossFunction::Combination: {
+            CB_ENSURE(approxDimension == 1, "Combination loss cannot be used in multi-classification");
+            CB_ENSURE(params.size() >= 2, "Combination loss must have 2 or more parameters");
+            CB_ENSURE(params.size() % 2 == 0, "Combination loss must have even number of parameters, not " << params.size());
+            const ui32 lossCount = params.size() / 2;
+            for (ui32 idx : xrange(lossCount)) {
+                validParams.insert(GetCombinationLossKey(idx));
+                validParams.insert(GetCombinationWeightKey(idx));
+            }
+            result.push_back(MakeCombinationLoss(params));
+            break;
+        }
         default: {
             result = CreateCachingMetrics(metric, params, approxDimension, &validParams);
 
@@ -4390,6 +4478,9 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
         for (THolder<IMetric>& metricHolder : result) {
             metricHolder->AddHint("skip_train", "true");
         }
+        if (!HintedToEvalOnTrain(params)) {
+            CATBOOST_INFO_LOG << "Metric " << metric << " is not calculated on train by default. To calculate this metric on train, add hints=skip_train~false to metric parameters." << Endl;
+        }
     }
 
     if (params.contains("hints")) { // TODO(smirnovpavel): hints shouldn't be added for each metric
@@ -4409,6 +4500,10 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, TMap<TString
     }
 
     CheckParameters(ToString(metric), validParams, params);
+
+    if (metric == ELossFunction::Combination) {
+        CheckCombinationParameters(params);
+    }
 
     return result;
 }
@@ -4459,13 +4554,6 @@ static void SetHintToCalcMetricOnTrain(const THashSet<TString>& metricsToCalcOnT
             error->AddHint("skip_train", "false");
         }
     }
-}
-
-static bool HintedToEvalOnTrain(const NCatboostOptions::TLossDescription& metricDescription) {
-    const auto& params = metricDescription.GetLossParams();
-    const bool hasHints = params.contains("hints");
-    const auto& hints = hasHints ? ParseHintsDescription(params.at("hints")) : TMap<TString, TString>();
-    return hasHints && hints.contains("skip_train") && hints.at("skip_train") == "false";
 }
 
 void InitializeEvalMetricIfNotSet(
@@ -4827,79 +4915,6 @@ TQueryCrossEntropyMetric::TQueryCrossEntropyMetric(double alpha)
 
 void TQueryCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Min;
-}
-
-static bool IsFromAucFamily(ELossFunction loss) {
-    return loss == ELossFunction::AUC
-        || loss == ELossFunction::NormalizedGini;
-}
-
-void CheckMetric(const ELossFunction metric, const ELossFunction modelLoss) {
-    if (metric == ELossFunction::PythonUserDefinedPerObject || modelLoss == ELossFunction::PythonUserDefinedPerObject) {
-        return;
-    }
-
-    CB_ENSURE(
-        IsMultiRegressionMetric(metric) == IsMultiRegressionMetric(modelLoss),
-        "metric [" + ToString(metric) + "] and loss [" + ToString(modelLoss) + "] are incompatible"
-    );
-
-    /* [loss -> metric]
-     * ranking             -> ranking compatible
-     * binclass only       -> binclass compatible
-     * multiclass only     -> multiclass compatible
-     * classification only -> classification compatible
-     */
-
-    if (IsRankingMetric(modelLoss)) {
-        CB_ENSURE(
-            // accept classification
-            IsBinaryClassCompatibleMetric(metric) && IsBinaryClassCompatibleMetric(modelLoss)
-            // accept ranking
-            || IsRankingMetric(metric) && (GetRankingType(metric) != ERankingType::CrossEntropy) == (GetRankingType(modelLoss) != ERankingType::CrossEntropy)
-            // accept regression
-            || IsRegressionMetric(metric) && GetRankingType(modelLoss) == ERankingType::AbsoluteValue
-            // accept auc like
-            || IsFromAucFamily(metric),
-            "metric [" + ToString(metric) + "] is incompatible with loss [" + ToString(modelLoss) + "] (not compatible with ranking)"
-        );
-    }
-
-    if (IsBinaryClassOnlyMetric(modelLoss)) {
-        CB_ENSURE(IsBinaryClassCompatibleMetric(metric),
-                  "metric [" + ToString(metric) + "] is incompatible with loss [" + ToString(modelLoss) + "] (no binclass support)");
-    }
-
-    if (IsMultiClassOnlyMetric(modelLoss)) {
-        CB_ENSURE(IsMultiClassCompatibleMetric(metric),
-                  "metric [" + ToString(metric) + "] is incompatible with loss [" + ToString(modelLoss) + "] (no multiclass support)");
-    }
-
-    if (IsClassificationOnlyMetric(modelLoss)) {
-        CB_ENSURE(IsClassificationMetric(metric),
-                  "metric [" + ToString(metric) + "] is incompatible with loss [" + ToString(modelLoss) + "] (no classification support)");
-    }
-
-    /* [metric -> loss]
-     * binclass only       -> binclass compatible
-     * multiclass only     -> multiclass compatible
-     * classification only -> classification compatible
-     */
-
-    if (IsBinaryClassOnlyMetric(metric)) {
-        CB_ENSURE(IsBinaryClassCompatibleMetric(modelLoss),
-                  "loss [" + ToString(modelLoss) + "] is incompatible with metric [" + ToString(metric) + "] (no binclass support)");
-    }
-
-    if (IsMultiClassOnlyMetric(metric)) {
-        CB_ENSURE(IsMultiClassCompatibleMetric(modelLoss),
-                  "loss [" + ToString(modelLoss) + "] is incompatible with metric [" + ToString(metric) + "] (no multiclass support)");
-    }
-
-    if (IsClassificationOnlyMetric(metric)) {
-        CB_ENSURE(IsClassificationMetric(modelLoss),
-                  "loss [" + ToString(modelLoss) + "] is incompatible with metric [" + ToString(metric) + "] (no classification support)");
-    }
 }
 
 void CheckMetrics(const TVector<THolder<IMetric>>& metrics, const ELossFunction modelLoss) {

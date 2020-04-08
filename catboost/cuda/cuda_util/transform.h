@@ -1,6 +1,7 @@
 #pragma once
 
 #include <catboost/cuda/cuda_lib/fwd.h>
+#include <catboost/cuda/cuda_lib/cuda_base.h>
 
 #include <type_traits>
 
@@ -54,6 +55,17 @@ void MultiplyVector(
     NCudaLib::TCudaBuffer<std::remove_const_t<T>, TMapping>& x,
     T y,
     ui32 stream = 0);
+
+template <typename T, class TMapping>
+void MultiplyAddVector(
+    NCudaLib::TCudaBuffer<std::remove_const_t<T>, TMapping>& x,
+    NCudaLib::TCudaBuffer<std::remove_const_t<T>, TMapping>& y,
+    T value,
+    ui32 stream = 0
+) {
+    MultiplyVector(y, value, stream);
+    AddVector(x, y, stream);
+}
 
 template <typename T, class TMapping>
 void DivideVector(

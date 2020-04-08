@@ -2,7 +2,7 @@
 
 #include <catboost/libs/helpers/vector_helpers.h>
 
-#include <library/grid_creator/binarization.h>
+#include <library/cpp/grid_creator/binarization.h>
 
 #include <util/generic/algorithm.h>
 

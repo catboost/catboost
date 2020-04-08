@@ -840,6 +840,16 @@ namespace NCB {
         }
 
         TMaybe<float> targetBorder;
+        if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, "params")) {
+            NJson::TJsonValue paramsJson = ReadTJsonValue(*modelInfoParams);
+
+            const auto& dataProcessingOptions = paramsJson["data_processing_options"];
+            const bool haveTargetBorder = dataProcessingOptions.Has("target_border")
+                && !dataProcessingOptions["target_border"].IsNull();
+            if (haveTargetBorder) {
+                targetBorder = dataProcessingOptions["target_border"].GetDouble();
+            }
+        }
 
         const bool shouldBinarizeLabel = AnyOf(
             updatedMetricsDescriptions,
@@ -847,18 +857,9 @@ namespace NCB {
                 return ShouldBinarizeLabel(lossDescription.GetLossFunction());
             }
         );
-
-        if (shouldBinarizeLabel && classLabels.empty() && !classCount) {
-            if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, "params")) {
-                NJson::TJsonValue paramsJson = ReadTJsonValue(*modelInfoParams);
-
-                if (paramsJson["data_processing_options"].Has("target_border")) {
-                    targetBorder = paramsJson["data_processing_options"]["target_border"].GetDouble();
-                }
-            } else {
-                targetBorder = GetDefaultTargetBorder();
-                CATBOOST_WARNING_LOG << "Cannot restore border parameter, falling to default border = " << *targetBorder << Endl;
-            }
+        if (shouldBinarizeLabel && !targetBorder && classLabels.empty() && !classCount) {
+            targetBorder = GetDefaultTargetBorder();
+            CATBOOST_WARNING_LOG << "Cannot restore border parameter, falling to default border = " << *targetBorder << Endl;
         }
 
         TProcessedDataProvider result;

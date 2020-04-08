@@ -603,11 +603,13 @@ static void GetSubsetWithScheduling(
                         cloningParams,
                         localExecutor
                     );
-                    CB_ENSURE_INTERNAL(
-                        dynamic_cast<TColumn*>(clonedColumn.Get()) != nullptr,
+                    *dstHolderPtr = DynamicHolderCast<TColumn>(
+                        srcDataPtr->CloneWithNewSubsetIndexing(
+                            cloningParams,
+                            localExecutor
+                        ),
                         "Column type changed after cloning"
                     );
-                    dstHolderPtr->Reset(dynamic_cast<TColumn*>(clonedColumn.Release())); // TODO(kirillovs): this is awful
                 }
             }
         );
@@ -887,42 +889,6 @@ bool NCB::TQuantizedObjectsDataProvider::HasSparseData() const {
     return ::HasSparseData(Data.FloatFeatures) ||
         ::HasSparseData(Data.CatFeatures) ||
         ::HasSparseData(Data.TextFeatures);
-}
-
-template <class T>
-static ui32 CalcCompressedFeatureChecksum(
-    ui32 checkSum,
-    const TCompressedValuesHolderImpl<T>& columnData
-) {
-    TConstCompressedArraySubset compressedDataSubset = columnData.GetCompressedData();
-
-    auto consecutiveSubsetBegin = compressedDataSubset.GetSubsetIndexing()->GetConsecutiveSubsetBegin();
-    const ui32 columnValuesBitWidth = columnData.GetBitsPerKey();
-    if (consecutiveSubsetBegin.Defined()) {
-        ui8 byteSize = columnValuesBitWidth / 8;
-        return UpdateCheckSum(
-            checkSum,
-            MakeArrayRef(
-                compressedDataSubset.GetSrc()->GetRawPtr() + *consecutiveSubsetBegin * byteSize,
-                compressedDataSubset.Size())
-        );
-    }
-
-    if (columnValuesBitWidth == 8) {
-        columnData.ForEach([&](ui32 /*idx*/, ui8 element) {
-            checkSum = UpdateCheckSum(checkSum, element);
-        });
-    } else if (columnValuesBitWidth == 16) {
-        columnData.ForEach([&](ui32 /*idx*/, ui16 element) {
-            checkSum = UpdateCheckSum(checkSum, element);
-        });
-    } else {
-        Y_ASSERT(columnValuesBitWidth == 32);
-        columnData.ForEach([&](ui32 /*idx*/, ui32 element) {
-            checkSum = UpdateCheckSum(checkSum, element);
-        });
-    }
-    return checkSum;
 }
 
 template <class T>
@@ -1826,15 +1792,13 @@ static void MakeConsecutiveIfDenseColumnDataWithScheduling(
                 TCloningParams cloningParams;
                 cloningParams.MakeConsecutive = true;
                 cloningParams.SubsetIndexing = newSubsetIndexing;
-                auto clonedColumn = src.CloneWithNewSubsetIndexing(
-                    cloningParams,
-                    localExecutor
-                );
-                CB_ENSURE_INTERNAL(
-                    dynamic_cast<TColumn*>(clonedColumn.Get()) != nullptr,
+                *dst = DynamicHolderCast<TColumn>(
+                    src.CloneWithNewSubsetIndexing(
+                        cloningParams,
+                        localExecutor
+                    ),
                     "Column type changed after cloning"
                 );
-                dst->Reset(dynamic_cast<TColumn*>(clonedColumn.Release()));
             }
         );
     } else {

@@ -487,6 +487,10 @@ class Build(object):
         return self.build_type == 'debug' or self.build_type.endswith('-debug')
 
     @property
+    def is_size_optimized(self):
+        return self.build_type == 'minsizerel'
+
+    @property
     def is_coverage(self):
         return self.build_type == 'coverage'
 
@@ -1058,6 +1062,11 @@ class GnuToolchain(Toolchain):
         if target.is_armv7_neon:
             self.c_flags_platform.append('-mfpu=neon')
 
+        if target.is_armv7 and build.is_size_optimized:
+            # Enable ARM Thumb2 variable-length instruction encoding
+            # to reduce code size
+            self.c_flags_platform.append('-mthumb')
+
         if target.is_arm or target.is_ppc64le:
             # On linux, ARM and PPC default to unsigned char
             # However, Arcadia requires char to be signed
@@ -1260,8 +1269,15 @@ class GnuCompiler(Compiler):
 
         if self.build.is_release:
             self.c_flags.append('$OPTIMIZE')
-            if self.build.build_type == 'minsizerel':
-                self.optimize = '-Os'
+            if self.build.is_size_optimized:
+                # -Oz is clang's more size-aggressive version of -Os
+                # For ARM specifically, clang -Oz is on par with gcc -Os:
+                # https://github.com/android/ndk/issues/133#issuecomment-365763507
+                if self.tc.is_clang:
+                    self.optimize = '-Oz'
+                else:
+                    self.optimize = '-Os'
+
                 self.c_foptions.extend(['-ffunction-sections', '-fdata-sections'])
             else:
                 self.optimize = '-O3'
@@ -1477,9 +1493,12 @@ class Linker(object):
         """
         self.tc = tc
         self.build = build
+
         if self.tc.is_from_arcadia and self.build.host.is_linux and not (self.build.target.is_apple or self.build.target.is_android or self.build.target.is_windows):
+
             if self.tc.is_clang:
-                self.type = Linker.LLD
+                # DEVTOOLSSUPPORT-47 LLD cannot deal with extsearch/images/saas/base/imagesrtyserver
+                self.type = Linker.GOLD if is_positive('USE_LTO') and not is_positive('MUSL') else Linker.LLD
             elif self.tc.is_gcc and (self.build.target.is_linux_armv7 or self.build.target.is_yocto_lg_wk7y or self.build.target.is_yocto_jbl_portable_music or self.build.target.is_yocto_aacrh64_lightcomm_mt8516):
                 self.type = Linker.BFD
             else:
@@ -1582,7 +1601,7 @@ class LD(Linker):
 
         self.ld_flags = []
 
-        if self.build.build_type == 'minsizerel':
+        if self.build.is_size_optimized:
             self.ld_flags.append('-Wl,--gc-sections')
 
         if self.musl.value:

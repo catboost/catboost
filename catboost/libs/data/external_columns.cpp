@@ -58,20 +58,30 @@ namespace NCB {
             QuantizedFeaturesInfo->GetFloatFeaturesAllowNansInTestOnly();
         auto featureIdx = GetId();
 
-        auto transformer = [floatFeatureIdx, allowNans, nanMode, featureIdx, quantizedFeaturesInfo = QuantizedFeaturesInfo] (TConstArrayRef<float> src, TArrayRef<ui8> dst) {
+         auto transformer = [
+            allowNans, nanMode, featureIdx,
+            bordersArrRef = MakeArrayRef(QuantizedFeaturesInfo->GetBorders(floatFeatureIdx))
+        ] (TConstArrayRef<float> src, auto& dst) {
             QuantizeBlock(
                 src,
                 allowNans,
                 nanMode,
                 featureIdx,
-                quantizedFeaturesInfo->GetBorders(floatFeatureIdx),
-                dst
+                bordersArrRef,
+                MakeArrayRef(dst)
             );
         };
-        return MakeBlockTransformerIterator<ui8>(
-            SrcData->GetBlockIterator(offset),
-            std::move(transformer)
-        );
+        if (QuantizedFeaturesInfo->GetBorders(floatFeatureIdx).size() < 256) {
+            return MakeBlockTransformerIterator<ui8>(
+                SrcData->GetBlockIterator(offset),
+                std::move(transformer)
+            );
+        } else {
+            return MakeBlockTransformerIterator<ui16>(
+                SrcData->GetBlockIterator(offset),
+                std::move(transformer)
+            );
+        }
     }
 
 
@@ -168,11 +178,17 @@ namespace NCB {
             QuantizedFeaturesInfo->GetFloatFeaturesAllowNansInTestOnly();
 
         TConstArrayRef<float> borders = QuantizedFeaturesInfo->GetBorders(floatFeatureIdx);
-
-        auto transformer = [=, quantizedFeaturesInfoHolder = QuantizedFeaturesInfo] (float srcValue) -> ui8 {
-            return Quantize<ui8>(flatFeatureIdx, allowNans, nanMode, borders, srcValue);
-        };
-        return SrcData.GetTransformingBlockIterator<ui8>(std::move(transformer), offset);
+        if (borders.size() < 256) {
+            auto transformer = [=, quantizedFeaturesInfoHolder = QuantizedFeaturesInfo] (float srcValue) -> ui8 {
+                return Quantize<ui8>(flatFeatureIdx, allowNans, nanMode, borders, srcValue);
+            };
+            return SrcData.GetTransformingBlockIterator<ui8>(std::move(transformer), offset);
+        } else {
+            auto transformer = [=, quantizedFeaturesInfoHolder = QuantizedFeaturesInfo] (float srcValue) -> ui16 {
+                return Quantize<ui16>(flatFeatureIdx, allowNans, nanMode, borders, srcValue);
+            };
+            return SrcData.GetTransformingBlockIterator<ui16>(std::move(transformer), offset);
+        }
     }
 
     template <class TDst>

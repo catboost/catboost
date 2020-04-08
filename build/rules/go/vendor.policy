@@ -7,7 +7,7 @@ ALLOW .* -> vendor/cuelang.org/go
 ALLOW .* -> vendor/github.com/360EntSecGroup-Skylar/excelize/v2
 
 # in-process redis server for tests
-ALLOW .* -> vendor/github.com/alicebob/miniredis
+ALLOW .* -> vendor/github.com/alicebob/miniredis/v2
 
 # AMQP client with RabbitMQ extensions
 ALLOW .* -> vendor/github.com/streadway/amqp
@@ -61,6 +61,9 @@ ALLOW .* -> vendor/github.com/gofrs/uuid
 
 # websocket protocol
 ALLOW .* -> vendor/github.com/gorilla/websocket
+
+# http sessions with cookie and filesystem session storage
+ALLOW .* -> vendor/github.com/gorilla/sessions
 
 # S2 geometry
 ALLOW .* -> vendor/github.com/golang/geo
@@ -305,8 +308,13 @@ ALLOW .* -> vendor/github.com/NVIDIA/gpu-monitoring-tools/bindings/go
 
 # Opentracing interface and implementation.
 ALLOW .* -> vendor/github.com/uber/jaeger-client-go
+ALLOW .* -> vendor/github.com/uber/jaeger-lib/metrics
 ALLOW .* -> vendor/github.com/jaegertracing/jaeger-client-go
 ALLOW .* -> vendor/github.com/opentracing/opentracing-go
+
+# Opentracing contribs
+# CONTRIB-1778
+ALLOW .* -> vendor/github.com/opentracing-contrib/go-stdlib
 
 # CONTRIB-1299. Date parser. resposible: tserakhau@
 ALLOW .* -> vendor/github.com/araddon/dateparse
@@ -424,11 +432,13 @@ ALLOW cloud -> vendor/github.com/rcrowley/go-metrics
 # IGNIETFERRO-1287
 ALLOW cloud/compute/snapshot/snapshot/config -> vendor/github.com/pkg/errors
 ALLOW cloud/compute/snapshot/snapshot/lib/chunker -> vendor/github.com/pkg/errors
-ALLOW cloud/compute/snapshot/snapshot/lib/nbd -> vendor/github.com/pkg/errors
 ALLOW contrib/go/patched/hugo -> vendor/github.com/pkg/errors
 ALLOW edadeal/backend/go/charm/internal/pkg/store/pg -> vendor/github.com/pkg/errors
-ALLOW extsearch/video/station/starter -> vendor/github.com/pkg/errors
-ALLOW infra/yp_service_discovery/golang/resolver -> vendor/github.com/pkg/errors
+ALLOW extsearch/video/station/starter/downloader -> vendor/github.com/pkg/errors
+ALLOW extsearch/video/station/starter/input -> vendor/github.com/pkg/errors
+ALLOW extsearch/video/station/starter/players -> vendor/github.com/pkg/errors
+ALLOW extsearch/video/station/starter/pusher -> vendor/github.com/pkg/errors
+ALLOW extsearch/video/station/starter/rules -> vendor/github.com/pkg/errors
 ALLOW library/go/yandex/solomon/reporters/pusher/httppusher -> vendor/github.com/pkg/errors
 ALLOW locdoc/doc/daas-farm/pkg/daasclient -> vendor/github.com/pkg/errors
 ALLOW locdoc/doc/daas-farm/pkg/menugen -> vendor/github.com/pkg/errors
@@ -443,16 +453,12 @@ ALLOW market/sre/services/rtcstats2graphite/src/internal/yasm -> vendor/github.c
 ALLOW market/sre/tools/ya-gde/src/cmd/getthefacts -> vendor/github.com/pkg/errors
 ALLOW market/sre/tools/ya-gde/src/pkg/hostinfo -> vendor/github.com/pkg/errors
 ALLOW market/sre/tools/ya-gde/src/pkg/util -> vendor/github.com/pkg/errors
-ALLOW orgvisits/witness -> vendor/github.com/pkg/errors
 ALLOW quasar/go/blackbox -> vendor/github.com/pkg/errors
 ALLOW toolbox/bunker -> vendor/github.com/pkg/errors
-ALLOW toolbox/pg-pinger/pinger -> vendor/github.com/pkg/errors
 ALLOW transfer_manager/go/pkg/abstract -> vendor/github.com/pkg/errors
-ALLOW transfer_manager/go/pkg/server/impl -> vendor/github.com/pkg/errors
 ALLOW yabs/telephony/platform/inventory/api/http -> vendor/github.com/pkg/errors
 ALLOW yabs/telephony/platform/inventory/core -> vendor/github.com/pkg/errors
 ALLOW yabs/telephony/platform/push-service/api/http -> vendor/github.com/pkg/errors
-ALLOW yt/go/guid -> vendor/github.com/pkg/errors
 ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/pkg/errors
 ALLOW yt/jaeger/plugin/cmd/collector -> vendor/github.com/pkg/errors
 
@@ -462,8 +468,6 @@ ALLOW yt/jaeger/plugin/cmd/collector -> vendor/github.com/pkg/errors
 
 # CONTRIB-865. Jaeger YT plugin. responsible: prime@
 ALLOW yt/jaeger/plugin -> vendor/github.com/jaegertracing/jaeger
-ALLOW yt/jaeger/plugin -> vendor/github.com/uber/jaeger-lib
-ALLOW yt/jaeger/plugin -> vendor/github.com/uber/jaeger-client-go
 ALLOW yt/jaeger/plugin -> vendor/github.com/spf13/viper
 ALLOW yt/jaeger/plugin -> vendor/github.com/gorilla
 ALLOW yt/jaeger/plugin -> vendor/github.com/gogo

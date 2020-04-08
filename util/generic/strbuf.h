@@ -467,7 +467,7 @@ private:
         }
     }
 
-private:
+public:
     using TBaseStr::Length;
     using TBaseStr::Start;
 };

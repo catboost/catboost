@@ -340,7 +340,7 @@ namespace NCB {
     };
 
     // for use while building and storing this part in TQuantizedObjectsDataProvider
-    struct TQuantizedObjectsData {
+    struct TQuantizedObjectsData : public TMoveOnly {
     public:
         /* some feature holders can contain nullptr
          *  (ignored or this data provider contains only subset of features)
@@ -422,6 +422,10 @@ namespace NCB {
 
         bool HasDenseData() const override;
         bool HasSparseData() const override;
+
+        const TFeaturesArraySubsetIndexing& GetFeaturesArraySubsetIndexing() const {
+            return *CommonData.SubsetIndexing;
+        }
 
         /* can return nullptr if this feature is unavailable
          * (ignored or this data provider contains only subset of features)
@@ -796,6 +800,8 @@ namespace NCB {
         // store directly instead of looking up in Data.QuantizedFeaturesInfo for runtime efficiency
         TVector<TCatFeatureUniqueValuesCounts> CatFeatureUniqueValuesCounts; // [catFeatureIdx]
     };
+
+    using TQuantizedForCPUObjectsDataProviderPtr = TIntrusivePtr<TQuantizedForCPUObjectsDataProvider>;
 
 
     // needed to make friends with TObjectsDataProvider s

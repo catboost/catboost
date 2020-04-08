@@ -36,7 +36,12 @@ ELSEIF (OS_IOS)
     LDFLAGS(-lc++abi)
 	CFLAGS(-DLIBCXX_BUILDING_LIBCXXABI)
 ELSEIF (CLANG OR MUSL OR OS_DARWIN OR USE_LTO)
-    DEFAULT(CXX_RT "libcxxrt")
+    IF (ARCH_ARM7)
+        # XXX: libcxxrt support for ARM is currently broken
+        DEFAULT(CXX_RT "glibcxx_static")
+    ELSE()
+        DEFAULT(CXX_RT "libcxxrt")
+    ENDIF()
     IF (MUSL)
         ADDINCL(
             GLOBAL contrib/libs/musl/arch/x86_64

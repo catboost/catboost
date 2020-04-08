@@ -14,12 +14,10 @@
 NCatboostOptions::TBinarizationOptions::TBinarizationOptions(
     const EBorderSelectionType borderSelectionType,
     const ui32 discretization,
-    const ENanMode nanMode,
-    ETaskType taskType)
+    const ENanMode nanMode)
     : BorderSelectionType("border_type", borderSelectionType)
     , BorderCount("border_count", discretization)
     , NanMode("nan_mode", nanMode)
-    , TaskType(taskType)
 {
 }
 
@@ -46,7 +44,7 @@ void NCatboostOptions::TBinarizationOptions::Save(NJson::TJsonValue* options) co
 }
 
 void NCatboostOptions::TBinarizationOptions::Validate() const {
-    CB_ENSURE(BorderCount.Get() <= GetMaxBinCount(TaskType), "Invalid border count: " << BorderCount.Get() << " (max border count: " << GetMaxBinCount(TaskType) << ")");
+    CB_ENSURE(BorderCount.Get() <= GetMaxBinCount(), "Invalid border count: " << BorderCount.Get() << " (max border count: " << GetMaxBinCount() << ")");
 }
 
 ui64 NCatboostOptions::TBinarizationOptions::GetHash() const {

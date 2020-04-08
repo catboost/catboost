@@ -1,12 +1,13 @@
 #pragma once
 
+#include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/polymorphic_type_containers.h>
 
 #include <catboost/private/libs/options/binarization_options.h>
 #include <catboost/private/libs/options/enums.h>
 
-#include <library/grid_creator/binarization.h>
+#include <library/cpp/grid_creator/binarization.h>
 
 #include <library/threading/local_executor/local_executor.h>
 
@@ -15,6 +16,9 @@
 #include <util/generic/vector.h>
 
 #include <type_traits>
+
+
+struct TRestorableFastRng64;
 
 
 namespace NCB {
@@ -50,7 +54,7 @@ namespace NCB {
                              float value) {
         static_assert(std::is_unsigned<TBinType>::value, "TBinType must be an unsigned integer");
 
-        if (IsNan(value)) {
+        if (std::isnan(value)) {
             // For ENanMode::Forbidden we choose 0 because that's how it's done on CPU both for
             // training and model application, see:
             //
@@ -68,7 +72,7 @@ namespace NCB {
                                   TConstArrayRef<float> borders,
                                   float srcValue) {
 
-        if (IsNan(srcValue)) {
+        if (std::isnan(srcValue)) {
             CB_ENSURE(
                 allowNans,
                 "There are NaNs in test dataset (feature number "
@@ -131,7 +135,13 @@ namespace NCB {
         return Min<ui32>(vecSize, slowSubsetSize);
     };
 
-    TVector<float> BuildBorders(const TVector<float>& floatFeature,
+    TArraySubsetIndexing<ui32> GetArraySubsetForBuildBorders(ui32 objectCount,
+                                                             EBorderSelectionType borderSelectionType,
+                                                             bool isRandomShuffled,
+                                                             ui32 slowSubsetSize,
+                                                             TRestorableFastRng64* rand);
+
+    TVector<float> BuildBorders(TConstArrayRef<float> floatFeature,
                                 const ui32 seed,
                                 const NCatboostOptions::TBinarizationOptions& config);
 

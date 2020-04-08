@@ -1,24 +1,36 @@
 #include "prior_estimator.h"
 
+#include <catboost/libs/data/columns.h>
+
 TBetaPriorEstimator::TBetaPrior
-TBetaPriorEstimator::EstimateBetaPrior(const TBetaPriorEstimator::TClassesType* classes, const ui32* bins, ui32 length,
-                                       size_t uniqueValues, ui32 iterations, double* resultLikelihood) {
+TBetaPriorEstimator::EstimateBetaPrior(
+    const TBetaPriorEstimator::TClassesType* classes,
+    NCB::IDynamicBlockIteratorBasePtr&& quantizedValuesIteratorPtr,
+    ui32 length,
+    size_t uniqueValues,
+    ui32 iterations,
+    double* resultLikelihood
+) {
     TBetaPrior cursor = {0.5, 0.5};
     TVector<double> positiveCounts(uniqueValues);
     TVector<double> totalCounts(uniqueValues);
-    {
-        double sum = 0;
-
-        for (ui32 i = 0; i < length; ++i) {
-            positiveCounts[bins[i]] += classes[i] ? 1.0 : 0.0;
-            totalCounts[bins[i]]++;
-            sum += classes[i] ? 1.0 : 0.0;
-        }
-        {
+    NCB::DispatchIteratorType(
+        quantizedValuesIteratorPtr.Get(),
+        [&] (auto typedIterator) {
+            ui32 i = 0;
+            double sum = 0;
+            while (auto block = typedIterator->Next(4096)) {
+                for (ui32 inBlockId = 0; inBlockId < block.size(); ++i, ++inBlockId) {
+                    positiveCounts[block[inBlockId]] += classes[i] ? 1.0 : 0.0;
+                    totalCounts[block[inBlockId]]++;
+                    sum += classes[i] ? 1.0 : 0.0;
+                }
+            }
+            Y_ASSERT(length == i);
             cursor.Alpha = sum / length;
             cursor.Beta = 1.0 - cursor.Alpha;
         }
-    }
+    );
 
     for (ui32 i = 0; i < iterations; ++i) {
         //CATBOOST_DEBUG_LOG << "Point (" << cursor.Alpha << ", " << cursor.Beta << "), LogLikelihood " << Likelihood(positiveCounts, totalCounts, cursor) << Endl;

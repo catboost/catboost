@@ -1,5 +1,6 @@
 #pragma once
 
+#include <catboost/libs/helpers/dynamic_iterator.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 #include <contrib/libs/gamma_function_apache_math_port/gamma_function.h>
@@ -40,11 +41,14 @@ public:
     };
 
     using TClassesType = ui8;
-    static TBetaPrior EstimateBetaPrior(const TClassesType* classes,
-                                        const ui32* bins, ui32 length,
-                                        size_t uniqueValues,
-                                        ui32 iterations = 50,
-                                        double* resultLikelihood = nullptr);
+    static TBetaPrior EstimateBetaPrior(
+        const TClassesType* classes,
+        NCB::IDynamicBlockIteratorBasePtr&& quantizedValuesIterator,
+        ui32 length,
+        size_t uniqueValues,
+        ui32 iterations = 50,
+        double* resultLikelihood = nullptr
+    );
 
 private:
     struct TDerivatives {

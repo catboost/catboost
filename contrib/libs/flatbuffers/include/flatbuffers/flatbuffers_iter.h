@@ -78,7 +78,6 @@ typename std::enable_if<sizeof(T) != 1, T>::type extractValue(const Iter& spot)
         std::memcpy(&ret, getRawPointer(spot), sizeof(T));
         return ret;
     }
-        return *(reinterpret_cast<const T*>(getRawPointer(spot)));
     Iter itr = spot;
     alignas(T) uint8_t buf[sizeof(T)];
     for (std::size_t i = 0; i < sizeof(T); ++i) {

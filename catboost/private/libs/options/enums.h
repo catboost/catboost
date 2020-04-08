@@ -194,7 +194,9 @@ enum class ELossFunction {
     FilteredDCG,
 
     /* multi-regression */
-    MultiRMSE
+    MultiRMSE,
+
+    Combination
 };
 
 enum class ERankingType {
@@ -218,6 +220,7 @@ enum class EPredictionType {
     LogProbability,
     Class,
     RawFormulaVal,
+    Exponent,
     InternalRawFormulaVal
 };
 
@@ -230,7 +233,7 @@ enum class EFstrType {
     InternalInteraction,
     ShapValues,
     PredictionDiff,
-    ApproximateShapValues
+    ShapInteractionValues
 };
 
 enum class EFstrCalculatedInFitType {

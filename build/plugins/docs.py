@@ -23,9 +23,6 @@ def macro_calls_to_dict(unit, calls):
             unit.message(['error', 'Invalid variables specification "{}": value expected to be in form %name%=%value% (with no spaces)'.format(arg)])
             return None
 
-        if kv[1] == 'true':
-            kv[1] = 'yes'
-
         return kv
 
     return dict(filter(None, map(split_args, calls)))

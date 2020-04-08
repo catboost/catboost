@@ -27,6 +27,12 @@ inline void CalcSoftmax(const TConstArrayRef<double> approx, TArrayRef<double> s
     }
 }
 
+inline TVector<double> CalcExponent(TVector<double> approx) {
+    FastExpInplace(approx.data(), approx.ysize());
+    return approx;
+}
+
+
 inline void CalcSoftmax(const TConstArrayRef<double> approx, TVector<double>* softmax) {
     CalcSoftmax(approx, *softmax);
 }
@@ -157,9 +163,12 @@ namespace NCB::NModelEvaluation {
                 auto blockView = GetResultBlockView(blockId, 1);
                 if (PredictionType == EPredictionType::Probability) {
                     CalcSigmoid(blockView, blockView);
-                } else {
-                    Y_ASSERT(PredictionType == EPredictionType::Class);
-                    for (auto& val : blockView) {
+                }
+                if (PredictionType == EPredictionType::Exponent) {
+                    FastExpInplace(blockView.data(), blockView.ysize());;
+                }
+                if (PredictionType == EPredictionType::Class) {
+                    for (auto &val : blockView) {
                         val = val > BinclassRawValueBorder;
                     }
                 }

@@ -59,7 +59,7 @@ static bool IsArrayOfIntegers(const NJson::TJsonValue& ignoredFeaturesJson) {
     });
 }
 
-static TMap<TString, ui32> MakeIndicesFromNames(const NCatboostOptions::TPoolLoadParams& poolLoadParams) {
+TMap<TString, ui32> MakeIndicesFromNames(const NCatboostOptions::TPoolLoadParams& poolLoadParams) {
     TMap<TString, ui32> indicesFromNames;
     if (poolLoadParams.ColumnarPoolFormatParams.CdFilePath.Inited()) {
         const TVector<TColumn> columns = ReadCD(poolLoadParams.ColumnarPoolFormatParams.CdFilePath,
@@ -73,6 +73,18 @@ static TMap<TString, ui32> MakeIndicesFromNames(const NCatboostOptions::TPoolLoa
                 featureIdx++;
             }
         }
+    }
+    return indicesFromNames;
+}
+
+TMap<TString, ui32> MakeIndicesFromNames(const NCB::TDataMetaInfo& metaInfo) {
+    TMap<TString, ui32> indicesFromNames;
+    ui32 columnIdx = 0;
+    for (const auto& columnInfo : metaInfo.FeaturesLayout->GetExternalFeaturesMetaInfo()) {
+        if (!columnInfo.Name.empty()) {
+            indicesFromNames[columnInfo.Name] = columnIdx;
+        }
+        columnIdx++;
     }
     return indicesFromNames;
 }
@@ -120,24 +132,33 @@ void ConvertIgnoredFeaturesFromStringToIndices(const NCB::TDataMetaInfo& metaInf
     }
 }
 
-static void ConvertMonotoneConstraintsFromStringToIndices(const TMap<TString, ui32>& indicesFromNames, NJson::TJsonValue* treeOptions) {
+void ConvertPerFeatureOptionsFromStringToIndices(const TMap<TString, ui32>& indicesFromNames, NJson::TJsonValue* options) {
     if (indicesFromNames.empty()) {
         return;
     }
-    auto& constraintsRef = (*treeOptions)["monotone_constraints"];
-    Y_ASSERT(constraintsRef.GetType() == NJson::EJsonValueType::JSON_MAP);
-    bool needConvert = AnyOf(constraintsRef.GetMap(), [](auto element) {
+    auto& optionsRef = *options;
+    Y_ASSERT(optionsRef.GetType() == NJson::EJsonValueType::JSON_MAP);
+    bool needConvert = AnyOf(optionsRef.GetMap(), [](auto& element) {
         int index = 0;
         return !TryFromString(element.first, index);
     });
     if (needConvert) {
-        NJson::TJsonValue constraintsWithIndices(NJson::EJsonValueType::JSON_MAP);
-        for (const auto& [featureName, value] : constraintsRef.GetMap()) {
-            CB_ENSURE(indicesFromNames.contains(featureName), "Unknown feature name in monotone constraints: " << featureName);
-            constraintsWithIndices.InsertValue(ToString(indicesFromNames.at(featureName)), value);
+        NJson::TJsonValue optionsWithIndices(NJson::EJsonValueType::JSON_MAP);
+        for (const auto& [featureName, value] : optionsRef.GetMap()) {
+            auto it = indicesFromNames.find(featureName);
+            CB_ENSURE(it != indicesFromNames.end(), "Unknown feature name: " << featureName);
+            optionsWithIndices.InsertValue(ToString(it->second), value);
         }
-        constraintsRef.Swap(constraintsWithIndices);
+        optionsRef.Swap(optionsWithIndices);
     }
+}
+
+static inline void ConvertPerFeatureOptionsFromStringToIndices(const NCB::TDataMetaInfo& metaInfo, NJson::TJsonValue* options) {
+    ConvertPerFeatureOptionsFromStringToIndices(MakeIndicesFromNames(metaInfo), options);
+}
+
+static inline void ConvertPerFeatureOptionsFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* options) {
+    ConvertPerFeatureOptionsFromStringToIndices(MakeIndicesFromNames(poolLoadParams), options);
 }
 
 void ConvertMonotoneConstraintsFromStringToIndices(const NCB::TDataMetaInfo& metaInfo, NJson::TJsonValue* catBoostJsonOptions) {
@@ -146,15 +167,7 @@ void ConvertMonotoneConstraintsFromStringToIndices(const NCB::TDataMetaInfo& met
         return;
     }
 
-    TMap<TString, ui32> indicesFromNames;
-    ui32 columnIdx = 0;
-    for (const auto& columnInfo : metaInfo.FeaturesLayout->GetExternalFeaturesMetaInfo()) {
-        if (!columnInfo.Name.empty()) {
-            indicesFromNames[columnInfo.Name] = columnIdx;
-        }
-        columnIdx++;
-    }
-    ConvertMonotoneConstraintsFromStringToIndices(indicesFromNames, &treeOptions);
+    ConvertPerFeatureOptionsFromStringToIndices(metaInfo, &treeOptions["monotone_constraints"]);
 }
 
 void ConvertMonotoneConstraintsFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* catBoostJsonOptions) {
@@ -163,9 +176,7 @@ void ConvertMonotoneConstraintsFromStringToIndices(const NCatboostOptions::TPool
         return;
     }
 
-    const auto& indicesFromNames = MakeIndicesFromNames(poolLoadParams);
-
-    ConvertMonotoneConstraintsFromStringToIndices(indicesFromNames, &treeOptions);
+    ConvertPerFeatureOptionsFromStringToIndices(poolLoadParams, &treeOptions["monotone_constraints"]);
 }
 
 ui32 ConvertToIndex(const TString& nameOrIndex, const TMap<TString, ui32>& indicesFromNames) {
@@ -202,4 +213,3 @@ void ConvertFeaturesToEvaluateFromStringToIndices(const NCatboostOptions::TPoolL
             &(*catBoostJsonOptions)["features_to_evaluate"]);
     }
 }
-

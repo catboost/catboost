@@ -165,3 +165,6 @@ size_t NormalizeHostName(char* dest, const TStringBuf source, size_t dest_size, 
 Y_PURE_FUNCTION
 TStringBuf RemoveFinalSlash(TStringBuf str) noexcept;
 
+TStringBuf CutUrlPrefixes(TStringBuf url) noexcept;
+bool DoesUrlPathStartWithToken(TStringBuf url, const TStringBuf& token) noexcept;
+

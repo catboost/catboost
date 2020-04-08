@@ -3,6 +3,7 @@
 #include "compare_documents.h"
 #include "feature_str.h"
 #include "shap_values.h"
+#include "shap_interaction_values.h"
 #include "util.h"
 
 #include <catboost/private/libs/algo/apply.h>
@@ -252,10 +253,10 @@ static bool TryGetObjectiveMetric(const TFullModel& model, NCatboostOptions::TLo
 }
 
 static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
-        const TFullModel& model,
-        const TDataProvider& dataProvider,
-        NPar::TLocalExecutor* localExecutor,
-        ECalcTypeShapValues calcType
+    const TFullModel& model,
+    const TDataProvider& dataProvider,
+    NPar::TLocalExecutor* localExecutor,
+    ECalcTypeShapValues calcType
 )
 {
     NCatboostOptions::TLossDescription metricDescription;
@@ -284,9 +285,17 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     auto targetData = CreateModelCompatibleProcessedDataProvider(dataset, {metricDescription}, model, GetMonopolisticFreeCpuRam(), &rand, localExecutor).TargetData;
     CB_ENSURE(targetData->GetTargetDimension() <= 1, "Multi-dimensional target fstr is unimplemented yet");
 
-    TShapPreparedTrees preparedTrees = PrepareTrees(model, &dataset, 0, EPreCalcShapValues::Auto, localExecutor, true,
+    TShapPreparedTrees preparedTrees = PrepareTrees(model, &dataset, EPreCalcShapValues::Auto, localExecutor, true,
             calcType);
-
+    CalcShapValuesByLeaf(
+        model,
+        /*fixedFeatureParams*/ Nothing(),
+        /*logPeriod*/ 0,
+        preparedTrees.CalcInternalValues,
+        localExecutor,
+        &preparedTrees,
+        calcType
+    );
     TVector<TMetricHolder> scores(featuresCount + 1);
 
     TConstArrayRef<TQueryInfo> targetQueriesInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
@@ -418,10 +427,12 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
 }
 
 TVector<std::pair<double, TFeature>> CalcFeatureEffect(
-        const TFullModel& model,
-        const TDataProviderPtr dataset,
-        EFstrType type,
-        NPar::TLocalExecutor* localExecutor)
+    const TFullModel& model,
+    const TDataProviderPtr dataset,
+    EFstrType type,
+    NPar::TLocalExecutor* localExecutor,
+    ECalcTypeShapValues calcType
+)
 {
     type = AdjustFeatureImportanceType(type, model.GetLossFunctionName());
     if (type != EFstrType::PredictionValuesChange) {
@@ -432,7 +443,7 @@ TVector<std::pair<double, TFeature>> CalcFeatureEffect(
             dataset,
             "Dataset is not provided for " << EFstrType::LossFunctionChange << ", choose "
                 << EFstrType::PredictionValuesChange << " fstr type explicitly or provide dataset.");
-        return CalcFeatureEffectLossChange(model, *dataset.Get(), localExecutor, ECalcTypeShapValues::Normal);
+        return CalcFeatureEffectLossChange(model, *dataset.Get(), localExecutor, calcType);
     } else {
         CB_ENSURE_INTERNAL(
             type == EFstrType::PredictionValuesChange || type == EFstrType::InternalFeatureImportance,
@@ -504,7 +515,9 @@ TVector<double> CalcRegularFeatureEffect(
     const TFullModel& model,
     const TDataProviderPtr dataset,
     EFstrType type,
-    NPar::TLocalExecutor* localExecutor)
+    NPar::TLocalExecutor* localExecutor,
+    ECalcTypeShapValues calcType
+)
 {
     const NCB::TFeaturesLayout layout(
         TVector<TFloatFeature>(
@@ -518,7 +531,7 @@ TVector<double> CalcRegularFeatureEffect(
     );
 
     TVector<TFeatureEffect> regularEffect = CalcRegularFeatureEffect(
-        CalcFeatureEffect(model, dataset, type, localExecutor),
+        CalcFeatureEffect(model, dataset, type, localExecutor, calcType),
         model.GetNumCatFeatures(),
         model.GetNumFloatFeatures());
 
@@ -624,7 +637,9 @@ static TVector<TVector<double>> CalcFstr(
     const TFullModel& model,
     const TDataProviderPtr dataset,
     EFstrType type,
-    NPar::TLocalExecutor* localExecutor)
+    NPar::TLocalExecutor* localExecutor,
+    ECalcTypeShapValues calcType
+)
 {
     CB_ENSURE(
         !model.ModelTrees->GetLeafWeights().empty() || (dataset != nullptr),
@@ -634,7 +649,7 @@ static TVector<TVector<double>> CalcFstr(
         "CalcFstr is not implemented for models with text features"
     );
 
-    TVector<double> regularEffect = CalcRegularFeatureEffect(model, dataset, type, localExecutor);
+    TVector<double> regularEffect = CalcRegularFeatureEffect(model, dataset, type, localExecutor, calcType);
     TVector<TVector<double>> result;
     for (const auto& value : regularEffect){
         TVector<double> vec = {value};
@@ -689,7 +704,9 @@ TVector<TVector<double>> GetFeatureImportances(
     const TDataProviderPtr dataset, // can be nullptr
     int threadCount,
     EPreCalcShapValues mode,
-    int logPeriod)
+    int logPeriod,
+    ECalcTypeShapValues calcType
+)
 {
     TSetLoggingVerboseOrSilent inThisScope(logPeriod);
     CB_ENSURE(model.GetTreeCount(), "Model is not trained");
@@ -706,7 +723,7 @@ TVector<TVector<double>> GetFeatureImportances(
             NPar::TLocalExecutor localExecutor;
             localExecutor.RunAdditionalThreads(threadCount - 1);
 
-            return CalcFstr(model, dataset, fstrType, &localExecutor);
+            return CalcFstr(model, dataset, fstrType, &localExecutor, calcType);
         }
         case EFstrType::Interaction:
             if (dataset) {
@@ -719,15 +736,8 @@ TVector<TVector<double>> GetFeatureImportances(
             NPar::TLocalExecutor localExecutor;
             localExecutor.RunAdditionalThreads(threadCount - 1);
 
-            return CalcShapValues(model, *dataset, logPeriod, mode, &localExecutor, ECalcTypeShapValues::Normal);
-        }
-        case EFstrType::ApproximateShapValues: {
-            CB_ENSURE(dataset, "Dataset is not provided");
-
-            NPar::TLocalExecutor localExecutor;
-            localExecutor.RunAdditionalThreads(threadCount - 1);
-
-            return CalcShapValues(model, *dataset, logPeriod, mode, &localExecutor, ECalcTypeShapValues::Approximate);
+            return CalcShapValues(model, *dataset, /*fixedFeatureParams*/ Nothing(), logPeriod, mode, &localExecutor,
+                                  calcType);
         }
         case EFstrType::PredictionDiff: {
             NPar::TLocalExecutor localExecutor;
@@ -747,12 +757,14 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
     const TDataProviderPtr dataset,
     int threadCount,
     EPreCalcShapValues mode,
-    int logPeriod)
+    int logPeriod,
+    ECalcTypeShapValues calcType
+)
 {
     TSetLoggingVerboseOrSilent inThisScope(logPeriod);
     CB_ENSURE(model.GetTreeCount(), "Model is not trained");
 
-    CB_ENSURE((fstrType == EFstrType::ShapValues) || (fstrType == EFstrType::ApproximateShapValues),
+    CB_ENSURE(fstrType == EFstrType::ShapValues,
             "Only shap values can provide multi approxes.");
 
     CB_ENSURE(dataset, "Dataset is not provided");
@@ -761,10 +773,30 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
 
-    ECalcTypeShapValues calcType =
-            fstrType == EFstrType::ShapValues ? ECalcTypeShapValues::Normal : ECalcTypeShapValues::Approximate;
+    return CalcShapValuesMulti(model, *dataset, /*fixedFeatureParams*/ Nothing(), logPeriod, mode, &localExecutor,
+                               calcType);
+}
 
-    return CalcShapValuesMulti(model, *dataset, logPeriod, mode, &localExecutor, calcType);
+TVector<TVector<TVector<TVector<double>>>> CalcShapFeatureInteractionMulti(
+    const EFstrType fstrType,
+    const TFullModel& model,
+    const NCB::TDataProviderPtr dataset,
+    const TMaybe<std::pair<int, int>>& pairOfFeatures,
+    int threadCount,
+    EPreCalcShapValues mode,
+    int logPeriod,
+    ECalcTypeShapValues calcType
+) {
+    ValidateFeatureInteractionParams(fstrType, model, dataset);
+    if (pairOfFeatures.Defined()) {
+        const int flatFeatureCount = SafeIntegerCast<int>(dataset->MetaInfo.GetFeatureCount());
+        ValidateFeaturePair(flatFeatureCount, pairOfFeatures.GetRef());
+    }
+
+    NPar::TLocalExecutor localExecutor;
+    localExecutor.RunAdditionalThreads(threadCount - 1);
+
+    return CalcShapInteractionValuesMulti(model, *dataset, pairOfFeatures, logPeriod, mode, &localExecutor, calcType);
 }
 
 TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const TDataProviderPtr dataset) {

@@ -113,7 +113,7 @@ public:
     using TBase = TStringBase<TBasicString, TCharType, TTraits>;
     using TDataTraits = ::NDetail::TStringDataTraits<TCharType>;
     using TData = typename TDataTraits::TData;
-    using TFixedString = typename TBase::TFixedString;
+    using TFixedString = ::TFixedString<TCharType, TTraits>;
 
     using TCharRef = TBasicCharRef<TBasicString>; // TODO: reference
     using char_type = TCharType; // TODO: DROP

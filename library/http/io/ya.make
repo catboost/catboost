@@ -4,9 +4,9 @@ LIBRARY()
 
 PEERDIR(
     library/blockcodecs
-    library/streams/brotli
-    library/streams/bzip2
-    library/streams/lzma
+    library/cpp/streams/brotli
+    library/cpp/streams/bzip2
+    library/cpp/streams/lzma
 )
 
 SRCS(
