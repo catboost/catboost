@@ -781,17 +781,25 @@
         "checksum": "9a4058bbf3261506f9fb0df62b5c9d8a",
         "uri": "file://test.test_ones_weight_CPU_/model.bin"
     },
-    "test.test_onnx_export[binclass]": {
-        "checksum": "615ecdf76501f855a29a8565eef1e111",
-        "uri": "file://test.test_onnx_export_binclass_/model.onnx"
+    "test.test_onnx_export[problem_type=binclass-boost_from_average=False]": {
+        "checksum": "700c78e0593aac2c4c43ed9106ce95ca",
+        "uri": "file://test.test_onnx_export_problem_type=binclass-boost_from_average=False_/model.onnx"
     },
-    "test.test_onnx_export[multiclass]": {
-        "checksum": "95a021ab5fd652276edcdf0b918dabe5",
-        "uri": "file://test.test_onnx_export_multiclass_/model.onnx"
+    "test.test_onnx_export[problem_type=binclass-boost_from_average=True]": {
+        "checksum": "006d123ba9474717ccfb70de26fb6195",
+        "uri": "file://test.test_onnx_export_problem_type=binclass-boost_from_average=True_/model.onnx"
     },
-    "test.test_onnx_export[regression]": {
-        "checksum": "721233895b434fb8d40f55bc3ca5a8a1",
-        "uri": "file://test.test_onnx_export_regression_/model.onnx"
+    "test.test_onnx_export[problem_type=multiclass-boost_from_average=False]": {
+        "checksum": "d732423e0ecd207c87779c392f037dc2",
+        "uri": "file://test.test_onnx_export_problem_type=multiclass-boost_from_average=False_/model.onnx"
+    },
+    "test.test_onnx_export[problem_type=regression-boost_from_average=False]": {
+        "checksum": "e71d72cc1aef62d565a71b2868768186",
+        "uri": "file://test.test_onnx_export_problem_type=regression-boost_from_average=False_/model.onnx"
+    },
+    "test.test_onnx_export[problem_type=regression-boost_from_average=True]": {
+        "checksum": "5a6fd5063c6ec547583b26614e081809",
+        "uri": "file://test.test_onnx_export_problem_type=regression-boost_from_average=True_/model.onnx"
     },
     "test.test_pairs_generation[CPU]": {
         "checksum": "51fb3a6749748c80961bf1d829808e4a",
