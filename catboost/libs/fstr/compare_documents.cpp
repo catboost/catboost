@@ -15,7 +15,7 @@ static void CalcObliviousIndicatorCoefficients(
     TArrayRef<ui32> treeLeafIdxes,
     TVector<TVector<double>>* floatFeatureImpact
 ) {
-    const auto treeSplitOffsets = model.ModelTrees->GetTreeStartOffsets();
+    const auto& treeSplitOffsets = model.ModelTrees->GetTreeStartOffsets();
     floatFeatureImpact->resize(model.ModelTrees->GetFloatFeatures().size());
 
     for (ui32 featureIdx = 0; featureIdx < floatFeatureImpact->size(); ++featureIdx) {
@@ -50,12 +50,13 @@ static double CalcNonSymmetricLeafValue(
     int splitIdx,
     const TVector<double>& featureValues
 ) {
-    const auto treeSplits = model.ModelTrees->GetTreeSplits();
-    const auto stepNodes = model.ModelTrees->GetNonSymmetricStepNodes();
+    const auto& treeSplits = model.ModelTrees->GetTreeSplits();
+    const auto& stepNodes = model.ModelTrees->GetNonSymmetricStepNodes();
+    const auto& binFeatures = model.ModelTrees->GetBinFeatures();
 
     int nextNodeStep = 0;
     do {
-        auto split = model.ModelTrees->GetBinFeatures()[treeSplits[splitIdx]];
+        const auto& split = binFeatures[treeSplits[splitIdx]];
         double featureValue = featureValues[split.FloatFeature.FloatFeature];
         double splitValue = split.FloatFeature.Split;
         nextNodeStep = (featureValue > splitValue) ? stepNodes[splitIdx].RightSubtreeDiff : stepNodes[splitIdx].LeftSubtreeDiff;
@@ -78,8 +79,9 @@ static void CalcNonSymmetricIndicatorCoefficients(
         (*floatFeatureImpact)[featureIdx].resize(model.ModelTrees->GetFloatFeatures()[featureIdx].Borders.size() + 1);
     }
 
-    const auto treeSplits = model.ModelTrees->GetTreeSplits();
-    const auto stepNodes = model.ModelTrees->GetNonSymmetricStepNodes();
+    const auto& treeSplits = model.ModelTrees->GetTreeSplits();
+    const auto& stepNodes = model.ModelTrees->GetNonSymmetricStepNodes();
+    const auto& binFeatures = model.ModelTrees->GetBinFeatures();
 
     for (size_t treeId = 0; treeId < model.ModelTrees->GetTreeCount(); ++treeId) {
         size_t leafOffset = model.ModelTrees->GetFirstLeafOffsets()[treeId];
@@ -87,7 +89,7 @@ static void CalcNonSymmetricIndicatorCoefficients(
         size_t splitIdx = model.ModelTrees->GetTreeStartOffsets()[treeId];
         int nextSplitStep = 0;
         do {
-            auto split = model.ModelTrees->GetBinFeatures()[treeSplits[splitIdx]];
+            const auto& split = binFeatures[treeSplits[splitIdx]];
             double featureValue = featureValues[split.FloatFeature.FloatFeature];
             double splitValue = split.FloatFeature.Split;
             int newSplitStep = featureValue > splitValue ? stepNodes[splitIdx].LeftSubtreeDiff : stepNodes[splitIdx].RightSubtreeDiff;
@@ -175,7 +177,7 @@ TVector<TVector<double>> GetPredictionDiff(
     const auto& binSplits = model.ModelTrees->GetBinFeatures();
 
     TVector<TVector<double>> floatFeatureValues(dataProvider.GetObjectCount());
-    for (size_t idx=0; idx < dataProvider.GetObjectCount(); ++idx) {
+    for (size_t idx = 0; idx < dataProvider.GetObjectCount(); ++idx) {
         floatFeatureValues[idx].resize(model.GetNumFloatFeatures());
     }
 
@@ -239,12 +241,7 @@ TVector<TVector<double>> GetPredictionDiff(
     }
     TVector<TVector<double>> result(impact[0].size());
     for (size_t featureIdx = 0; featureIdx < impact[0].size(); ++ featureIdx) {
-        double diff = std::abs(impact[0][featureIdx] + impact[1][featureIdx]);
-        if (std::abs(predict[0] - predict[1]) < diff) {
-            result[featureIdx].push_back(diff);
-        } else {
-            result[featureIdx].push_back(0.);
-        }
+        result[featureIdx].push_back(std::abs(impact[0][featureIdx] + impact[1][featureIdx]));
     }
     return result;
 }
