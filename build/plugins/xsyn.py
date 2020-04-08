@@ -15,9 +15,9 @@ class Xsyn(iw.CustomCommand):
 
     def input(self):
         return common.make_tuples([
-            '$S/library/xml/parslib/xsyn2ragel.py',
+            '$S/library/cpp/xml/parslib/xsyn2ragel.py',
             self._path,
-            '$S/library/xml/parslib/xmlpars.xh'
+            '$S/library/cpp/xml/parslib/xmlpars.xh'
         ])
 
     def output(self):
