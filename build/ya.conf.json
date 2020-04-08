@@ -260,6 +260,9 @@
         "yo": {
             "description": "Tool for managing vendor/ directory"
         },
+        "releaser": {
+            "description": "Release tool"
+        },
         "tvmknife": {
             "description": "Tool for debugging and testing with TVM tickets"
         },
@@ -914,6 +917,28 @@
                 {
                     "host": {
                         "os": "WIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "releaser": {
+            "tools": {
+                "releaser": {
+                    "bottle": "releaser",
+                    "executable": "releaser"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
                     },
                     "default": true
                 }
@@ -5525,6 +5550,19 @@
             "executable": {
                 "yoimports": [
                     "yoimports"
+                ]
+            }
+        },
+        "releaser": {
+            "formula": {
+                "sandbox_id": [
+                    647693292
+                ],
+                "match": "releaser"
+            },
+            "executable": {
+                "releaser": [
+                    "releaser"
                 ]
             }
         },
