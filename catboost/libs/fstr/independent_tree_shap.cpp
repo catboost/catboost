@@ -475,11 +475,11 @@ static TVector<TVector<double>> CalcWeightsForIndependentTreeShap(const TFullMod
     return weights;
 }
 
-double MSETransform(double target, double approx) {
+static double MSETransform(double target, double approx) {
     return (target - approx) * (target - approx); 
 }
 
-double LoglossTransform(double target, double approx) {
+static double LoglossTransform(double target, double approx) {
     return log(1 + exp(approx)) - target * approx;
 }
 
