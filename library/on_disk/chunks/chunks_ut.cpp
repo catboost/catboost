@@ -56,7 +56,7 @@ public:
                 TPlainHash<ui64, ui16> reader(temp);
                 ui16 value = 0;
                 UNIT_ASSERT(reader.Find(5, &value));
-                UNIT_ASSERT_EQUAL(7, value)
+                UNIT_ASSERT_EQUAL(7, value);
                 UNIT_ASSERT(!reader.Find(6, &value));
             }
         }
