@@ -6,8 +6,9 @@
 #include "typetraits.h"
 
 template <typename TCharType, typename TTraits>
-class TBasicStringBuf: public TStringBase<TBasicStringBuf<TCharType, TTraits>, TCharType, TTraits> {
+class TBasicStringBuf: public TFixedString<TCharType, TTraits>, public TStringBase<TBasicStringBuf<TCharType, TTraits>, TCharType, TTraits> {
     using TdSelf = TBasicStringBuf;
+    using TBaseStr = TFixedString<TCharType, TTraits>;
     using TBase = TStringBase<TdSelf, TCharType, TTraits>;
 
 public:
@@ -16,65 +17,58 @@ public:
     using traits_type = TTraits;
 
     constexpr inline TBasicStringBuf(const TCharType* data, size_t len) noexcept
-        : Start(data)
-        , Length(len)
+        : TBaseStr(data, len)
     {
     }
 
     inline TBasicStringBuf(const TCharType* data) noexcept
-        : Start(data)
-        , Length(TBase::StrLen(data))
+        : TBaseStr(data, TBase::StrLen(data))
     {
     }
 
-    constexpr inline TBasicStringBuf(const TCharType* beg, const TCharType* end) noexcept
-        : Start(beg)
-        , Length(end - beg)
+    inline TBasicStringBuf(const TCharType* beg, const TCharType* end) noexcept
+        : TBaseStr(beg, end)
     {
+        Y_ASSERT(beg <= end);
     }
 
     template <typename D, typename T>
     inline TBasicStringBuf(const TStringBase<D, TCharType, T>& str) noexcept
-        : Start(str.data())
-        , Length(str.size())
+        : TBaseStr(str)
     {
     }
 
     template <typename T, typename A>
     inline TBasicStringBuf(const std::basic_string<TCharType, T, A>& str) noexcept
-        : Start(str.data())
-        , Length(str.size())
+        : TBaseStr(str)
     {
     }
 
     template <typename TCharTraits>
     constexpr TBasicStringBuf(std::basic_string_view<TCharType, TCharTraits> view) noexcept
-        : TBasicStringBuf(view.data(), view.size())
+        : TBaseStr(view.data(), view.size())
     {
     }
 
-    constexpr inline TBasicStringBuf() noexcept
-        : Start(nullptr)
-        , Length(0)
+    constexpr TBasicStringBuf() noexcept
+        : TBaseStr()
     {
     }
 
-    inline TBasicStringBuf(const TBasicStringBuf& src, size_t pos, size_t n) noexcept
-        : TBasicStringBuf(src)
+    constexpr inline TBasicStringBuf(const TBaseStr& src) noexcept
+        : TBaseStr(src)
+    {
+    }
+
+    inline TBasicStringBuf(const TBaseStr& src, size_t pos, size_t n) noexcept
+        : TBaseStr(src)
     {
         Skip(pos).Trunc(n);
     }
 
-    inline TBasicStringBuf(const TBasicStringBuf& src, size_t pos) noexcept
+    inline TBasicStringBuf(const TBaseStr& src, size_t pos) noexcept
         : TBasicStringBuf(src, pos, TBase::npos)
     {
-    }
-
-    Y_PURE_FUNCTION
-    inline TBasicStringBuf SubString(size_t pos, size_t n) const noexcept {
-        pos = Min(pos, Length);
-        n = Min(n, Length - pos);
-        return TBasicStringBuf(Start + pos, n);
     }
 
 public: // required by TStringBase
@@ -474,8 +468,8 @@ private:
     }
 
 public:
-    const TCharType* Start;
-    size_t Length;
+    using TBaseStr::Length;
+    using TBaseStr::Start;
 };
 
 std::ostream& operator<< (std::ostream& os, TStringBuf buf);
