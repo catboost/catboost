@@ -1113,9 +1113,16 @@ void TrainModel(
     const bool isLossFunctionChangeFstr = needFstr && fstrType == EFstrType::LossFunctionChange;
 
     const bool haveLearnFeaturesInMemory = HaveLearnFeaturesInMemory(&loadOptions, catBoostOptions);
-    CB_ENSURE(
-        haveLearnFeaturesInMemory || !isLossFunctionChangeFstr,
-        "Only " << EFstrType::PredictionValuesChange << " is supported in distributed training for schema " << loadOptions.LearnSetPath.Scheme);
+    if (needFstr && !haveLearnFeaturesInMemory && fstrType != EFstrType::PredictionValuesChange) {
+        const auto& pathScheme = loadOptions.LearnSetPath.Scheme;
+        CB_ENSURE(
+            !outputOptions.IsFstrTypeSet(),
+            "Only fstr type " << EFstrType::PredictionValuesChange << " is supported in distributed training for schema " << pathScheme);
+        CATBOOST_WARNING_LOG << "Recommended fstr type " << fstrType << " is not supported in distributed training for schema "
+            << pathScheme << ";" << " fstr type is set to " << EFstrType::PredictionValuesChange << Endl;
+        fstrType = EFstrType::PredictionValuesChange;
+    }
+
     TDataProviders pools = LoadPools(
         loadOptions,
         catBoostOptions.GetTaskType(),
@@ -1243,7 +1250,7 @@ void TrainModel(
             &executor,
             &fstrRegularFileName,
             &fstrInternalFileName,
-            outputOptions.GetFstrType());
+            fstrType);
     }
 
     CATBOOST_INFO_LOG << runTimer.Passed() / 60 << " min passed" << Endl;
