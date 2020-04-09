@@ -88,6 +88,31 @@ class YaTestLoggingFileHandler(logging.FileHandler):
     pass
 
 
+class _TokenFilterFormatter(logging.Formatter):
+    def __init__(self, fmt):
+        super(_TokenFilterFormatter, self).__init__(fmt)
+        self._replacements = []
+        if not self._replacements:
+            if six.PY2:
+                for k, v in os.environ.iteritems():
+                    if k.endswith('TOKEN') and v:
+                        self._replacements.append(v)
+            elif six.PY3:
+                for k, v in os.environ.items():
+                    if k.endswith('TOKEN') and v:
+                        self._replacements.append(v)
+            self._replacements = sorted(self._replacements)
+
+    def _filter(self, s):
+        for r in self._replacements:
+            s = s.replace(r, "[SECRET]")
+
+        return s
+
+    def format(self, record):
+        return self._filter(super(_TokenFilterFormatter, self).format(record))
+
+
 def setup_logging(log_path, level=logging.DEBUG, *other_logs):
     logs = [log_path] + list(other_logs)
     root_logger = logging.getLogger()
@@ -98,7 +123,7 @@ def setup_logging(log_path, level=logging.DEBUG, *other_logs):
     for log_file in logs:
         file_handler = YaTestLoggingFileHandler(log_file)
         log_format = '%(asctime)s - %(levelname)s - %(name)s - %(funcName)s: %(message)s'
-        file_handler.setFormatter(logging.Formatter(log_format))
+        file_handler.setFormatter(_TokenFilterFormatter(log_format))
         file_handler.setLevel(level)
         root_logger.addHandler(file_handler)
 
