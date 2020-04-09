@@ -64,6 +64,10 @@ static inline TString BuildDescription(const TString& description, const TParams
     return TStringBuilder() << description << sep << tail;
 }
 
-static inline TMetricParam<double> MakeBorderParam(double border) {
-    return {"border", border, border != GetDefaultTargetBorder()};
+static inline TMetricParam<double> MakeTargetBorderParam(double targetBorder) {
+    return {"border", targetBorder, targetBorder != GetDefaultTargetBorder()};
+}
+
+static inline TMetricParam<double> MakePredictionBorderParam(double predictionBorder) {
+    return {NCatboostOptions::TMetricOptions::PREDICTION_BORDER_PARAM, predictionBorder, predictionBorder != GetDefaultPredictionBorder()};
 }

@@ -1,0 +1,19 @@
+RESOURCES_LIBRARY()
+
+
+
+# Clone this task to rebuild grpc_cpp from trunk:
+#
+# https://sandbox.yandex-team.ru/task/606999549/view
+
+IF (HOST_OS_LINUX)
+    DECLARE_EXTERNAL_RESOURCE(ARCADIA_GRPC_CPP sbr:1345418373)
+ELSEIF (HOST_OS_DARWIN)
+    DECLARE_EXTERNAL_RESOURCE(ARCADIA_GRPC_CPP sbr:1345418132)
+ELSEIF (HOST_OS_WINDOWS)
+    DECLARE_EXTERNAL_RESOURCE(ARCADIA_GRPC_CPP sbr:1345418255)
+ELSE()
+    MESSAGE(FATAL_ERROR Unsupported host platform for prebuilt arcadia grpc_cpp)
+ENDIF()
+
+END()

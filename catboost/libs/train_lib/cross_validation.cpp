@@ -415,7 +415,7 @@ void Train(
     );
     if (foldContext->FullModel.Defined()) {
         TFileOutput modelFile(JoinFsPaths(trainDir, foldContext->OutputOptions.ResultModelPath.Get()));
-        foldContext->FullModel.Save(&modelFile);
+        foldContext->FullModel->Save(&modelFile);
     }
     const auto skipMetricOnTrain = GetSkipMetricOnTrain(metrics);
     for (const auto& trainMetrics : metricsAndTimeHistory.LearnMetricsHistory) {
@@ -537,6 +537,7 @@ void CrossValidate(
     }
 
     UpdateYetiRankEvalMetric(trainingData->MetaInfo.TargetStats, Nothing(), &catBoostOptions);
+    UpdateSampleRateOption(allDataObjectCount, &catBoostOptions);
 
     InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric,
                                  &catBoostOptions.MetricOptions->EvalMetric);

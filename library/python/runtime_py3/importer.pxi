@@ -263,6 +263,57 @@ class ResourceImporter(object):
             if m:
                 yield prefix + m.group(1), m.group(2) is not None
 
+    def get_resource_reader(self, fullname):
+        try:
+            if not self.is_package(fullname):
+                return None
+        except ImportError:
+            return None
+        return _ResfsResourceReader(self, fullname)
+
+
+class _ResfsResourceReader:
+
+    def __init__(self, importer, fullname):
+        self.importer = importer
+        self.fullname = fullname
+
+        import os
+        self.prefix = "{}/".format(os.path.dirname(self.importer.get_filename(self.fullname)))
+
+    def open_resource(self, resource):
+        path = f'{self.prefix}{resource}'
+        from io import BytesIO
+        try:
+            return BytesIO(self.importer.get_data(path))
+        except OSError:
+            raise FileNotFoundError(path)
+
+    def resource_path(self, resource):
+        # All resources are in the binary file, so there is no path to the file.
+        # Raising FileNotFoundError tells the higher level API to extract the
+        # binary data and create a temporary file.
+        raise FileNotFoundError
+
+    def is_resource(self, name):
+        path = f'{self.prefix}{name}'
+        try:
+            self.importer.get_data(path)
+        except OSError:
+            return False
+        return True
+
+    def contents(self):
+        subdirs_seen = set()
+        for key in resfs_files(self.prefix):
+            relative = key[len(self.prefix):]
+            res_or_subdir, *other = relative.split(b'/')
+            if not other:
+                yield _s(res_or_subdir)
+            elif res_or_subdir not in subdirs_seen:
+                subdirs_seen.add(res_or_subdir)
+                yield _s(res_or_subdir)
+
 
 class BuiltinSubmoduleImporter(BuiltinImporter):
     @classmethod

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/accurate_accumulate/accurate_accumulate.h>
+#include <library/cpp/accurate_accumulate/accurate_accumulate.h>
 
 #include <util/ysaveload.h>
 

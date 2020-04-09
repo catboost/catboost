@@ -180,7 +180,9 @@ Atomic64 Release_Load(volatile const Atomic64* ptr);
 "Atomic operations are not supported on your platform"
 
 #if defined(__has_feature) && __has_feature(thread_sanitizer)
+#if !defined(THREAD_SANITIZER)
 #define THREAD_SANITIZER
+#endif
 #endif
 
 // ThreadSanitizer, http://clang.llvm.org/docs/ThreadSanitizer.html.

@@ -8,6 +8,7 @@ TMetricHolder CalcBalancedAccuracyMetric(TConstArrayRef<TVector<double>> approx,
                                          int begin,
                                          int end,
                                          int positiveClass,
-                                         double border);
+                                         double targetBorder,
+                                         double predictionBorder);
 
 double CalcBalancedAccuracyMetric(const TMetricHolder& error);

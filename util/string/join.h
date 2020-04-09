@@ -2,6 +2,7 @@
 
 #include <util/generic/string.h>
 #include <util/generic/typetraits.h>
+#include <util/string/cast.h>
 #include "cast.h"
 
 /*

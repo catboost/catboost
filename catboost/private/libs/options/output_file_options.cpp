@@ -243,6 +243,10 @@ EFstrType NCatboostOptions::TOutputFilesOptions::GetFstrType() const {
     return FstrType.Get();
 }
 
+bool NCatboostOptions::TOutputFilesOptions::IsFstrTypeSet() const {
+    return FstrType.IsSet();
+}
+
 TString NCatboostOptions::TOutputFilesOptions::CreateTrainingOptionsFullPath() const {
     return GetFullPath(TrainingOptionsFileName.Get());
 }
@@ -324,6 +328,10 @@ void NCatboostOptions::TOutputFilesOptions::Validate() const {
     CB_ENSURE(GetVerbosePeriod() % GetMetricPeriod() == 0,
         "verbose should be a multiple of metric_period, got " <<
         GetVerbosePeriod() << " vs " << GetMetricPeriod());
+
+    EFstrCalculatedInFitType fstrType;
+    CB_ENSURE(TryFromString<EFstrCalculatedInFitType>(ToString(FstrType.Get()), fstrType),
+        "Unsupported fstr type " << FstrType.Get());
 }
 
 TString NCatboostOptions::TOutputFilesOptions::GetFullPath(const TString& fileName) const {

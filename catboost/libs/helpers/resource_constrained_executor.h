@@ -56,6 +56,10 @@ namespace NCB {
          */
         void ExecTasks();
 
+        NPar::TLocalExecutor* GetExecutorPtr() {
+            return &LocalExecutor;
+        }
+
     private:
         NPar::TLocalExecutor& LocalExecutor;
         TString ResourceName;

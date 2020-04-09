@@ -151,6 +151,10 @@ IF (OS_WINDOWS AND ARCH_X86_64)
     )
 ENDIF()
 
+IF(OS_WINDOWS)
+    SET_COMPILE_OUTPUTS_MODIFIERS(NOREL)
+ENDIF()
+
 SRCS(
     aes/aes_cbc.c
     aes/aes_cfb.c
@@ -846,6 +850,13 @@ IF (OS_DARWIN AND ARCH_X86_64)
 ENDIF()
 
 IF (OS_LINUX AND ARCH_ARM7)
+    IF (CLANG)
+        # XXX: This is a workarond for 'out of range immediate fixup value' 
+        # error with clang integrated assembler:
+        # https://github.com/openssl/openssl/issues/7878
+        CFLAGS(-mno-thumb)
+    ENDIF()
+
     CFLAGS(
         -DOPENSSL_PIC
         -DOPENSSL_BN_ASM_GF2m

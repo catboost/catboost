@@ -26,7 +26,7 @@ PEERDIR(
     library/blockcodecs
     library/chromium_trace
     library/containers/ring_buffer
-    library/digest/crc32c
+    library/cpp/digest/crc32c
     library/logger/global
     library/neh
     library/netliba/v12

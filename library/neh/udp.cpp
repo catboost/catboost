@@ -24,6 +24,7 @@
 #include <util/system/error.h>
 #include <util/stream/mem.h>
 #include <util/stream/buffer.h>
+#include <util/string/cast.h>
 
 using namespace NNeh;
 using namespace NDns;

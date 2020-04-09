@@ -3,7 +3,7 @@
 #include <catboost/private/libs/data_types/query.h>
 #include <catboost/private/libs/options/restrictions.h>
 
-#include <library/containers/2d_array/2d_array.h>
+#include <library/cpp/containers/2d_array/2d_array.h>
 
 #include <util/generic/fwd.h>
 

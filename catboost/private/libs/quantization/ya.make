@@ -8,7 +8,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/grid_creator
+    library/cpp/grid_creator
     library/threading/local_executor
     catboost/libs/helpers
     catboost/private/libs/options

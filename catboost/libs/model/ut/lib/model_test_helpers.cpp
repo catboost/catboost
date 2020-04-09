@@ -111,6 +111,7 @@ TDataProviderPtr GetAdultPool() {
     TVector<NJson::TJsonValue> classLabels;
 
     return ReadDataset(
+        /*taskType*/Nothing(),
         readDatasetMainParams.PoolPath,
         TPathWithScheme(),
         TPathWithScheme(),
@@ -156,6 +157,7 @@ TDataProviderPtr GetMultiClassPool() {
     TVector<NJson::TJsonValue> classLabels;
 
     return ReadDataset(
+        /*taskType*/Nothing(),
         readDatasetMainParams.PoolPath,
         TPathWithScheme(),
         TPathWithScheme(),

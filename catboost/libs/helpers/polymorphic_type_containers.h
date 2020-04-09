@@ -143,42 +143,9 @@ namespace NCB {
         }
 
         IDynamicBlockIteratorPtr<TInterfaceValue> GetBlockIterator(ui32 offset = 0) const override {
-            const ui32 size = GetSize();
-            const ui32 remainingSize = size - offset;
-
-            switch (SubsetIndexing->index()) {
-                case TVariantIndexV<TFullSubset<ui32>, TArraySubsetIndexing<ui32>::TBase>:
-                    return MakeHolder<
-                            TArraySubsetBlockIterator<TInterfaceValue, TData, TRangeIterator<ui32>>
-                        >(
-                            Data,
-                            remainingSize,
-                            TRangeIterator<ui32>(TIndexRange<ui32>(offset, GetSize()))
-                        );
-                case TVariantIndexV<TRangesSubset<ui32>, TArraySubsetIndexing<ui32>::TBase>:
-                    return MakeHolder<
-                            TArraySubsetBlockIterator<TInterfaceValue, TData, TRangesSubsetIterator<ui32>>
-                        >(
-                            Data,
-                            remainingSize,
-                            TRangesSubsetIterator<ui32>(SubsetIndexing->Get<TRangesSubset<ui32>>(), offset)
-                        );
-                case TVariantIndexV<TIndexedSubset<ui32>, TArraySubsetIndexing<ui32>::TBase>:
-                    {
-                        using TIterator = TStaticIteratorRangeAsDynamic<const ui32*>;
-
-                        const auto& indexedSubset = SubsetIndexing->Get<TIndexedSubset<ui32>>();
-
-                        return MakeHolder<TArraySubsetBlockIterator<TInterfaceValue, TData, TIterator>>(
-                            Data,
-                            remainingSize,
-                            TIterator(indexedSubset.begin() + offset, indexedSubset.end())
-                        );
-                    }
-                default:
-                    Y_UNREACHABLE();
-            }
-            Y_UNREACHABLE();
+            return MakeArraySubsetBlockIterator<TInterfaceValue>(
+                SubsetIndexing, Data, offset
+            );
         }
 
         TIntrusivePtr<ITypedArraySubset<TInterfaceValue>> CloneWithNewSubsetIndexing(
@@ -208,11 +175,12 @@ namespace NCB {
                 auto subRange = indexRanges.GetRange(subRangeIdx);
                 subRangeIterators->push_back(
                     MakeHolder<
-                        TArraySubsetBlockIterator<TInterfaceValue, TData, TRangeIterator<ui32>>
+                        TArraySubsetBlockIterator<TInterfaceValue, TData, TRangeIterator<ui32>, TIdentity>
                     >(
                         Data,
                         subRange.GetSize(),
-                        TRangeIterator<ui32>(subRange)
+                        TRangeIterator<ui32>(subRange),
+                        TIdentity()
                     )
                 );
                 subRangeStarts->push_back(subRange.Begin);
@@ -236,7 +204,7 @@ namespace NCB {
                     auto subRange = indexRanges.GetRange(subRangeIdx);
                     subRangeIterators->push_back(
                         MakeHolder<
-                            TArraySubsetBlockIterator<TInterfaceValue, TData, TRangesSubsetIterator<ui32>>
+                            TArraySubsetBlockIterator<TInterfaceValue, TData, TRangesSubsetIterator<ui32>, TIdentity>
                         >(
                             Data,
                             subRange.GetSize(),
@@ -245,7 +213,8 @@ namespace NCB {
                                 subRange.Begin,
                                 &block + 1,
                                 subRange.End
-                            )
+                            ),
+                            TIdentity()
                         )
                     );
                     subRangeStarts->push_back(block.DstBegin + subRange.Begin);
@@ -273,11 +242,12 @@ namespace NCB {
                 auto subRange = indexRanges.GetRange(subRangeIdx);
                 subRangeIterators->push_back(
                     MakeHolder<
-                        TArraySubsetBlockIterator<TInterfaceValue, TData, TIterator>
+                        TArraySubsetBlockIterator<TInterfaceValue, TData, TIterator, TIdentity>
                     >(
                         Data,
                         subRange.GetSize(),
-                        TIterator(indexedSubsetBegin + subRange.Begin, indexedSubsetBegin + subRange.End)
+                        TIterator(indexedSubsetBegin + subRange.Begin, indexedSubsetBegin + subRange.End),
+                        TIdentity()
                     )
                 );
                 subRangeStarts->push_back(subRange.Begin);

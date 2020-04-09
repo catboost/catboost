@@ -2,7 +2,7 @@
 
 #include <library/yson/node/node.h>
 
-#include <library/pybind/cast.h>
+#include <library/cpp/pybind/cast.h>
 
 #include <Python.h>
 

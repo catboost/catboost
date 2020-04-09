@@ -16,16 +16,33 @@ using namespace NCB;
 const size_t TSplitCandidate::FloatFeatureBaseHash = 12321;
 const size_t TSplitCandidate::CtrBaseHash = 89321;
 const size_t TSplitCandidate::OneHotFeatureBaseHash = 517931;
+const size_t TSplitCandidate::EstimatedFeatureBaseHash = 2123719;
 
 TModelSplit TSplit::GetModelSplit(
     const TLearnContext& ctx,
-    const TPerfectHashedToHashedCatValuesMap& perfectHashedToHashedCatValuesMap
+    const TPerfectHashedToHashedCatValuesMap& perfectHashedToHashedCatValuesMap,
+    const TFeatureEstimators& featureEstimators,
+    const TQuantizedEstimatedFeaturesInfo& offlineEstimatedFeaturesInfo,
+    const TQuantizedEstimatedFeaturesInfo& onlineEstimatedFeaturesInfo
 ) const {
     TModelSplit split;
     split.Type = Type;
     if (Type == ESplitType::FloatFeature) {
         split.FloatFeature.FloatFeature = FeatureIdx;
         split.FloatFeature.Split = ctx.LearnProgress->FloatFeatures[FeatureIdx].Borders[BinBorder];
+    } else if (Type == ESplitType::EstimatedFeature) {
+        const auto& estimatedFeaturesInfo = (
+            IsOnlineEstimatedFeature ? onlineEstimatedFeaturesInfo : offlineEstimatedFeaturesInfo
+        );
+        const TEstimatedFeatureId estimatedFeatureId = estimatedFeaturesInfo.Layout[FeatureIdx];
+
+        split.EstimatedFeature.SourceFeatureId
+            = featureEstimators.GetEstimatorSourceFeatureIdx(estimatedFeatureId.EstimatorId).TextFeatureId;
+        split.EstimatedFeature.CalcerId = featureEstimators.GetEstimatorGuid(estimatedFeatureId.EstimatorId);
+        split.EstimatedFeature.LocalId = SafeIntegerCast<int>(estimatedFeatureId.LocalFeatureId);
+        split.EstimatedFeature.Split = estimatedFeaturesInfo.QuantizedFeaturesInfo->GetBorders(
+            TFloatFeatureIdx(SafeIntegerCast<ui32>(FeatureIdx))
+        )[BinBorder];
     } else if (Type == ESplitType::OneHotFeature) {
         split.OneHotFeature.CatFeatureIdx = FeatureIdx;
         split.OneHotFeature.Value = perfectHashedToHashedCatValuesMap[FeatureIdx][BinBorder];
@@ -60,6 +77,7 @@ TModelSplit TSplit::GetModelSplit(
         split.OnlineCtr.Ctr.Shift = shift[Ctr.PriorIdx];
         split.OnlineCtr.Ctr.Scale = ctrInfo.BorderCount / norm[Ctr.PriorIdx];
         split.OnlineCtr.Border = EmulateUi8Rounding(BinBorder);
+        split.OnlineCtr.Canonize();
     }
     return split;
 }
@@ -79,7 +97,9 @@ int GetBucketCount(
                 const auto& splitCandidate = splitEnsemble.SplitCandidate;
                 if (splitCandidate.Type == ESplitType::OnlineCtr) {
                     return splitCandidate.Ctr.BorderCount + 1;
-                } else if (splitCandidate.Type == ESplitType::FloatFeature) {
+                } else if ((splitCandidate.Type == ESplitType::FloatFeature) ||
+                           (splitCandidate.Type == ESplitType::EstimatedFeature))
+                {
                     return int(
                         quantizedFeaturesInfo.GetBorders(TFloatFeatureIdx(splitCandidate.FeatureIdx)).size()
                     ) + 1;

@@ -603,8 +603,11 @@ namespace NCatboostCuda {
                 result.push_back(new TGpuQuerywiseMetric(metricDescription, approxDim));
                 break;
             }
+            case ELossFunction::Combination:
             case ELossFunction::QueryCrossEntropy: {
-                CB_ENSURE(targetObjective == ELossFunction::QueryCrossEntropy, "Error: could compute QueryCrossEntropy metric on GPU only for QueryCrossEntropyObjective");
+                CB_ENSURE(
+                    targetObjective == ELossFunction::QueryCrossEntropy || targetObjective == ELossFunction::Combination,
+                    "Error: metric " << metricType << " on GPU requires loss function QueryCrossEntropy or Combination");
                 result.push_back(new TTargetFallbackMetric(metricDescription, approxDim));
                 break;
             }

@@ -312,7 +312,7 @@ void NCatboostCuda::TComputeSplitPropertiesByBlocksHelper::Rebuild(const TComput
     TVector<TPolicyFeatures> groups;
     {
         TComputeSplitPropsGroupsBuilder groupsBuilder;
-        for (EFeaturesGroupingPolicy policy : GetAllGroupingPolicies()) {
+        for (EFeaturesGroupingPolicy policy : GetEnumAllValues<NCatboostCuda::EFeaturesGroupingPolicy>()) {
             if (DataSet.HasFeatures()) {
                 const auto& features = DataSet.GetFeatures();
                 if (features.HasFeaturesForPolicy(policy)) {

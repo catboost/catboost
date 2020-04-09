@@ -3,6 +3,7 @@
 #include "pathsplit.h"
 
 #include <util/generic/yexception.h>
+#include <util/string/cast.h>
 #include <util/system/compiler.h>
 #include <util/system/file.h>
 #include <util/system/fs.h>

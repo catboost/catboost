@@ -9,7 +9,6 @@
 #include <util/string/strip.h>
 #include <util/string/subst.h>
 
-
 ELossFunction ParseLossType(const TStringBuf lossDescription) {
     const TVector<TStringBuf> tokens = StringSplitter(lossDescription).Split(':').Limit(2);
     CB_ENSURE(!tokens.empty(), "custom loss is missing in description: " << lossDescription);
@@ -181,6 +180,16 @@ int NCatboostOptions::GetStochasticFilterNumEstimations(const TLossDescription& 
     return 1;
 }
 
+double NCatboostOptions::GetTweedieParam(const TLossDescription& lossFunctionConfig) {
+    Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::Tweedie);
+    const auto& lossParams = lossFunctionConfig.GetLossParams();
+    if (lossParams.contains("variance_power")) {
+        return FromString<double>(lossParams.at("variance_power"));
+    } else {
+        CB_ENSURE(false, "For " << ELossFunction::Tweedie << " variance_power parameter is mandatory");
+    }
+}
+
 NCatboostOptions::TLossDescription NCatboostOptions::ParseLossDescription(TStringBuf stringLossDescription) {
     TLossDescription description;
     description.LossFunction.Set(ParseLossType(stringLossDescription));
@@ -285,3 +294,103 @@ TString BuildMetricOptionDescription(const NJson::TJsonValue& lossOptions) {
     return paramType;
 }
 
+
+static bool IsFromAucFamily(ELossFunction loss) {
+    return loss == ELossFunction::AUC
+        || loss == ELossFunction::NormalizedGini;
+}
+
+void CheckMetric(const ELossFunction metric, const ELossFunction modelLoss) {
+    if (metric == ELossFunction::PythonUserDefinedPerObject || modelLoss == ELossFunction::PythonUserDefinedPerObject) {
+        return;
+    }
+
+    CB_ENSURE(
+        IsMultiRegressionMetric(metric) == IsMultiRegressionMetric(modelLoss),
+        "metric [" + ToString(metric) + "] and loss [" + ToString(modelLoss) + "] are incompatible"
+    );
+
+    /* [loss -> metric]
+     * ranking             -> ranking compatible
+     * binclass only       -> binclass compatible
+     * multiclass only     -> multiclass compatible
+     * classification only -> classification compatible
+     */
+
+    if (IsRankingMetric(modelLoss)) {
+        CB_ENSURE(
+            // accept classification
+            IsBinaryClassCompatibleMetric(metric) && IsBinaryClassCompatibleMetric(modelLoss)
+            // accept ranking
+            || IsRankingMetric(metric) && (GetRankingType(metric) != ERankingType::CrossEntropy) == (GetRankingType(modelLoss) != ERankingType::CrossEntropy)
+            // accept regression
+            || IsRegressionMetric(metric) && GetRankingType(modelLoss) == ERankingType::AbsoluteValue
+            // accept auc like
+            || IsFromAucFamily(metric),
+            "metric [" + ToString(metric) + "] is incompatible with loss [" + ToString(modelLoss) + "] (not compatible with ranking)"
+        );
+    }
+
+    if (IsBinaryClassOnlyMetric(modelLoss)) {
+        CB_ENSURE(IsBinaryClassCompatibleMetric(metric),
+                  "metric [" + ToString(metric) + "] is incompatible with loss [" + ToString(modelLoss) + "] (no binclass support)");
+    }
+
+    if (IsMultiClassOnlyMetric(modelLoss)) {
+        CB_ENSURE(IsMultiClassCompatibleMetric(metric),
+                  "metric [" + ToString(metric) + "] is incompatible with loss [" + ToString(modelLoss) + "] (no multiclass support)");
+    }
+
+    if (IsClassificationOnlyMetric(modelLoss)) {
+        CB_ENSURE(IsClassificationMetric(metric),
+                  "metric [" + ToString(metric) + "] is incompatible with loss [" + ToString(modelLoss) + "] (no classification support)");
+    }
+
+    /* [metric -> loss]
+     * binclass only       -> binclass compatible
+     * multiclass only     -> multiclass compatible
+     * classification only -> classification compatible
+     */
+
+    if (IsBinaryClassOnlyMetric(metric)) {
+        CB_ENSURE(IsBinaryClassCompatibleMetric(modelLoss),
+                  "loss [" + ToString(modelLoss) + "] is incompatible with metric [" + ToString(metric) + "] (no binclass support)");
+    }
+
+    if (IsMultiClassOnlyMetric(metric)) {
+        CB_ENSURE(IsMultiClassCompatibleMetric(modelLoss),
+                  "loss [" + ToString(modelLoss) + "] is incompatible with metric [" + ToString(metric) + "] (no multiclass support)");
+    }
+
+    if (IsClassificationOnlyMetric(metric)) {
+        CB_ENSURE(IsClassificationMetric(modelLoss),
+                  "loss [" + ToString(modelLoss) + "] is incompatible with metric [" + ToString(metric) + "] (no classification support)");
+    }
+}
+
+ELossFunction GetMetricFromCombination(const TMap<TString, TString>& params) {
+    TMaybe<ELossFunction> referenceLoss;
+    IterateOverCombination(
+        params,
+        [&] (const auto& loss, float /*weight*/) {
+            if (!referenceLoss) {
+                referenceLoss = loss.GetLossFunction();
+            } else {
+                CheckMetric(*referenceLoss, loss.GetLossFunction());
+            }
+    });
+    CB_ENSURE(referenceLoss, "Combination loss must have one or more non-zero weights");
+    return *referenceLoss;
+}
+
+void CheckCombinationParameters(const TMap<TString, TString>& params) {
+    (void)GetMetricFromCombination(params);
+}
+
+TString GetCombinationLossKey(ui32 idx) {
+    return "loss" + ToString(idx);
+}
+
+TString GetCombinationWeightKey(ui32 idx) {
+    return "weight" + ToString(idx);
+}

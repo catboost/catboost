@@ -2,7 +2,7 @@
 
 #include "last_getopt_opt.h"
 
-#include <library/colorizer/fwd.h>
+#include <library/cpp/colorizer/fwd.h>
 
 #include <util/generic/map.h>
 

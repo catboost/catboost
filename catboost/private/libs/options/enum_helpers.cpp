@@ -1,6 +1,8 @@
 #include "enum_helpers.h"
 #include "loss_description.h"
 
+#include <catboost/libs/logging/logging.h>
+
 #include <util/generic/array_ref.h>
 #include <util/generic/is_in.h>
 #include <util/generic/strbuf.h>
@@ -25,7 +27,8 @@ namespace {
         IsPairwise                     = 1 << 5,
 
         /* various */
-        IsUserDefined                  = 1 << 6
+        IsUserDefined                  = 1 << 6,
+        IsCombination                  = 1 << 7
     };
 
     using EMetricAttributes = TFlags<EMetricAttribute>;
@@ -46,6 +49,7 @@ namespace {
                       || HasFlags(EMetricAttribute::IsGroupwise)
                       || HasFlags(EMetricAttribute::IsPairwise)
                       || HasFlags(EMetricAttribute::IsUserDefined)
+                      || HasFlags(EMetricAttribute::IsCombination)
                       || HasFlags(EMetricAttribute::IsMultiRegression),
                       "no type (regression, classification, ranking) for [" + ToString(loss) + "]");
         }
@@ -61,6 +65,7 @@ namespace {
                       || HasFlags(EMetricAttribute::IsGroupwise)
                       || HasFlags(EMetricAttribute::IsPairwise)
                       || HasFlags(EMetricAttribute::IsUserDefined)
+                      || HasFlags(EMetricAttribute::IsCombination)
                       || HasFlags(EMetricAttribute::IsMultiRegression),
                       "no type (regression, classification, ranking) for [" + ToString(loss) + "]");
         }
@@ -289,6 +294,9 @@ MakeRegister(LossInfos,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsMultiClassCompatible
     ),
+    Registree(Combination,
+        EMetricAttribute::IsCombination
+    ),
     RankingRegistree(PairAccuracy, ERankingType::CrossEntropy,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsGroupwise
@@ -329,6 +337,9 @@ MakeRegister(LossInfos,
     RankingRegistree(FilteredDCG, ERankingType::Order,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsGroupwise
+    ),
+    Registree(Tweedie,
+        EMetricAttribute::IsRegression
     )
 )
 
@@ -417,7 +428,8 @@ static const TVector<ELossFunction> RegressionObjectives = {
     ELossFunction::MAPE,
     ELossFunction::Poisson,
     ELossFunction::Lq,
-    ELossFunction::Huber
+    ELossFunction::Huber,
+    ELossFunction::Tweedie
 };
 
 static const TVector<ELossFunction> MultiRegressionObjectives = {
@@ -441,7 +453,8 @@ static const TVector<ELossFunction> RankingObjectives = {
     ELossFunction::QueryCrossEntropy,
     ELossFunction::StochasticFilter,
     ELossFunction::UserPerObjMetric,
-    ELossFunction::UserQuerywiseMetric
+    ELossFunction::UserQuerywiseMetric,
+    ELossFunction::Combination
 };
 
 static const TVector<ELossFunction> Objectives = []() {
@@ -621,13 +634,6 @@ bool IsEmbeddingFeatureEstimator(EFeatureCalcerType estimatorType) {
     );
 }
 
-bool ShouldSkipFstrGrowPolicy(EGrowPolicy growPolicy) {
-    return (
-        growPolicy == EGrowPolicy::Depthwise ||
-        growPolicy == EGrowPolicy::Lossguide
-    );
-}
-
 bool IsBuildingFullBinaryTree(EGrowPolicy growPolicy) {
     return (
         growPolicy == EGrowPolicy::SymmetricTree ||
@@ -639,5 +645,43 @@ bool IsPlainOnlyModeScoreFunction(EScoreFunction scoreFunction) {
     return (
         scoreFunction != EScoreFunction::Cosine &&
         scoreFunction != EScoreFunction::NewtonCosine
+    );
+}
+
+EFstrType AdjustFeatureImportanceType(EFstrType type, ELossFunction lossFunction) {
+    if (type == EFstrType::InternalInteraction) {
+        return EFstrType::Interaction;
+    }
+    if (type == EFstrType::InternalFeatureImportance || type == EFstrType::FeatureImportance) {
+        return IsGroupwiseMetric(lossFunction)
+           ? EFstrType::LossFunctionChange
+           : EFstrType::PredictionValuesChange;
+    }
+    return type;
+}
+
+EFstrType AdjustFeatureImportanceType(EFstrType type, TStringBuf lossDescription) {
+    switch (type) {
+        case EFstrType::InternalInteraction: {
+            return EFstrType::Interaction;
+        }
+        case EFstrType::FeatureImportance:
+        case EFstrType::InternalFeatureImportance: {
+            if (!lossDescription.empty()) {
+                return AdjustFeatureImportanceType(type, ParseLossType(lossDescription));
+            }
+            CATBOOST_WARNING_LOG << "Optimized objective is not known, "
+                                    "so use PredictionValuesChange for feature importance." << Endl;
+            return EFstrType::PredictionValuesChange;
+        }
+        default:
+            return type;
+    }
+}
+
+bool IsInternalFeatureImportanceType(EFstrType type) {
+    return (
+        type == EFstrType::InternalFeatureImportance ||
+        type == EFstrType::InternalInteraction
     );
 }

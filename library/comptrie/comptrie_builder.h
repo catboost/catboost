@@ -58,7 +58,7 @@ public:
     // add already serialized data
     bool AddPtr(const TSymbol* key, size_t keylen, const char* data);
     bool AddPtr(const TKeyBuf& key, const char* data) {
-        return AddPtr(~key, +key, data);
+        return AddPtr(key.data(), key.size(), data);
     }
 
     bool AddSubtreeInFile(const TSymbol* key, size_t keylen, const TString& filename);

@@ -82,6 +82,8 @@
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime_py3\8288ea8d5b234d40a3ee2fa911.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime_py3\__res.pyx.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime_py3\__res.reg3.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime_py3\sitecustomize.pyx.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\runtime_py3\sitecustomize.reg3.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\runtime_py3\_2b4abc78e6ab1ee2f75363efd0.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
@@ -177,6 +179,10 @@ cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
 if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "__res" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/__res.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "sitecustomize" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/sitecustomize.reg3.cpp"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
@@ -188,21 +194,29 @@ cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
 if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "__res" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/__res.reg3.cpp"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/gen_py3_reg.py" "sitecustomize" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/sitecustomize.reg3.cpp"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/runtime_py3/__res.reg3.cpp	</Message>
+      <Message>$B/library/python/runtime_py3/__res.reg3.cpp	$B/library/python/runtime_py3/sitecustomize.reg3.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\gen_py3_reg.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\runtime_py3\__res.reg3.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\runtime_py3\__res.reg3.cpp;$(SolutionDir)$(Configuration)\library\python\runtime_py3\sitecustomize.reg3.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\contrib\tools\cython\cython.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
 if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "__res" "--init-suffix" "__res" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/runtime_py3/__res.pyx" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/libs/python/Include" "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I$(SolutionDir)../contrib/libs/zlib/include" "-I$(SolutionDir)../contrib/libs/double-conversion/include" "-I$(SolutionDir)../contrib/libs/openssl/include" "-I$(SolutionDir)../contrib/libs/python/Include" "$(SolutionDir)../library/python/runtime_py3/__res.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/__res.pyx.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "sitecustomize" "--init-suffix" "sitecustomize" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/runtime_py3/sitecustomize.pyx" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/libs/python/Include" "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I$(SolutionDir)../contrib/libs/zlib/include" "-I$(SolutionDir)../contrib/libs/double-conversion/include" "-I$(SolutionDir)../contrib/libs/openssl/include" "-I$(SolutionDir)../contrib/libs/python/Include" "$(SolutionDir)../library/python/runtime_py3/sitecustomize.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/sitecustomize.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -215,15 +229,19 @@ cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
 if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "__res" "--init-suffix" "__res" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/runtime_py3/__res.pyx" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/libs/python/Include" "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I$(SolutionDir)../contrib/libs/zlib/include" "-I$(SolutionDir)../contrib/libs/double-conversion/include" "-I$(SolutionDir)../contrib/libs/openssl/include" "-I$(SolutionDir)../contrib/libs/python/Include" "$(SolutionDir)../library/python/runtime_py3/__res.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/__res.pyx.cpp"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\runtime_py3
+if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../contrib/tools/cython/cython.py" "-E" "UNAME_SYSNAME=Windows" "--module-name" "sitecustomize" "--init-suffix" "sitecustomize" "--source-root" "$(SolutionDir).." "-X" "set_initial_path=library/python/runtime_py3/sitecustomize.pyx" "--cplus" "-I$(SolutionDir)$(Configuration)" "-I$(SolutionDir).." "-I$(SolutionDir)../contrib/libs/python/Include" "-I$(SolutionDir)../contrib/tools/cython/Cython/Includes" "-I$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I$(SolutionDir)../contrib/libs/zlib/include" "-I$(SolutionDir)../contrib/libs/double-conversion/include" "-I$(SolutionDir)../contrib/libs/openssl/include" "-I$(SolutionDir)../contrib/libs/python/Include" "$(SolutionDir)../library/python/runtime_py3/sitecustomize.pyx" "-o" "$(SolutionDir)$(Configuration)/library/python/runtime_py3/sitecustomize.pyx.cpp"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/runtime_py3/__res.pyx.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\contrib\tools\cython\cython.py;$(SolutionDir)..\library\python\runtime_py3\__res.pyx;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\runtime_py3\__res.pyx.cpp;</Outputs>
+      <Message>$B/library/python/runtime_py3/__res.pyx.cpp	$B/library/python/runtime_py3/sitecustomize.pyx.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\contrib\tools\cython\cython.py;$(SolutionDir)..\library\python\runtime_py3\__res.pyx;$(SolutionDir)..\library\python\runtime_py3\sitecustomize.pyx;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\runtime_py3\__res.pyx.cpp;$(SolutionDir)$(Configuration)\library\python\runtime_py3\sitecustomize.pyx.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\library\python\runtime_py3\__res.pyx">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal

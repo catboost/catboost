@@ -1,6 +1,6 @@
 #include "langs.h"
 
-#include <library/digest/lower_case/hash_ops.h>
+#include <library/cpp/digest/lower_case/hash_ops.h>
 
 #include <util/generic/array_size.h>
 #include <util/generic/hash.h>
@@ -149,7 +149,7 @@ namespace {
         {LANG_EMJ, SCRIPT_LATIN, "Emoji", "emj", "emj", nullptr},
         {LANG_UYG, SCRIPT_ARABIC, "Uyghur", "uig", "ug", nullptr},
         {LANG_BRE, SCRIPT_LATIN, "Breton", "bre", "br", nullptr},
-        {LANG_SAH, SCRIPT_CYRILLIC, "Yakut ", "sah", "sa", nullptr},
+        {LANG_SAH, SCRIPT_CYRILLIC, "Yakut ", "sah", "sah", nullptr},
         {LANG_KAZ_LAT, SCRIPT_LATIN, "Latin Kazakh", "kazlat", "kk-Latn", nullptr},
     };
 

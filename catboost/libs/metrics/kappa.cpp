@@ -8,6 +8,7 @@
 #include <util/generic/array_ref.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
+#include <catboost/libs/helpers/math_utils.h>
 
 static TVector<TVector<int>> GetWeights(EKappaMetricType type, int classCount) {
     TVector<TVector<int>> weights(classCount, TVector<int>(classCount));
@@ -65,13 +66,15 @@ TMetricHolder CalcKappaMatrix(TConstArrayRef<TVector<double>> approx,
                               TConstArrayRef<float> target,
                               int begin,
                               int end,
-                              double border) {
+                              double targetBorder,
+                              double predictionBorder) {
     int classCount = approx.size() == 1 ? 2 : static_cast<int>(approx.size());
     TMetricHolder metric(classCount * classCount);
+    const double predictionLogitBorder = NCB::Logit(predictionBorder);
 
     for (int i = begin; i < end; ++i) {
-        const float targetVal = classCount > 1 ? target[i] : target[i] > border;
-        metric.Stats[GetApproxClass(approx, i) * classCount + static_cast<int>(targetVal)] += 1;
+        const float targetVal = classCount > 1 ? target[i] : target[i] > targetBorder;
+        metric.Stats[GetApproxClass(approx, i, predictionLogitBorder) * classCount + static_cast<int>(targetVal)] += 1;
     }
     return metric;
 }

@@ -140,13 +140,27 @@ class _Execution(object):
         return self._command
 
     @property
+    def returncode(self):
+        return self.exit_code
+
+    @property
     def exit_code(self):
+        """
+        Deprecated, use returncode
+        """
         if self._exit_code is None:
             self._exit_code = self._process.returncode
         return self._exit_code
 
     @property
+    def stdout(self):
+        return self.std_out
+
+    @property
     def std_out(self):
+        """
+        Deprecated, use stdout
+        """
         if self._std_out is not None:
             return self._std_out
         if self._process.stdout and not self._user_stdout:
@@ -154,7 +168,14 @@ class _Execution(object):
             return self._std_out
 
     @property
+    def stderr(self):
+        return self.std_err
+
+    @property
     def std_err(self):
+        """
+        Deprecated, use stderr
+        """
         if self._std_err is not None:
             return self._std_err
         if self._process.stderr and not self._user_stderr:
@@ -613,7 +634,7 @@ def _win_kill_process_tree(pid):
 
 
 def _run_readelf(binary_path):
-    return subprocess.check_output([runtime.binary_path('contrib/python/pyelftools/readelf/readelf'), '-s', runtime.binary_path(binary_path)])
+    return str(subprocess.check_output([runtime.binary_path('contrib/python/pyelftools/readelf/readelf'), '-s', runtime.binary_path(binary_path)]))
 
 
 def check_glibc_version(binary_path):

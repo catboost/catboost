@@ -4,11 +4,19 @@ import sys
 import shutil
 
 if __name__ == '__main__':
+    # Support @response-file notation for windows to reduce cmd length
+    if sys.argv[1].startswith('@'):
+        with open(sys.argv[1][1:]) as afile:
+            sys.argv[1:] = afile.read().splitlines()
+
     mode = sys.argv[1]
     args = sys.argv[2:]
 
     if mode == 'copy':
         shutil.copy(args[0], args[1])
+    elif mode == 'copy_tree_no_link':
+        dst = args[1]
+        shutil.copytree(args[0], dst, ignore=lambda dirname, names: [n for n in names if os.path.islink(os.path.join(dirname, n))])
     elif mode == 'copy_files':
         src = args[0]
         dst = args[1]

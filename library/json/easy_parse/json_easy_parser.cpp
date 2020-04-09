@@ -1,5 +1,6 @@
 #include "json_easy_parser.h"
 #include <library/json/json_reader.h>
+#include <util/string/cast.h>
 #include <util/string/split.h>
 #include <util/string/strip.h>
 
@@ -159,7 +160,7 @@ namespace NJson {
                 Pop();
                 UpdateRule();
             }
-            Stack.push_back(TPathElem(key.ToString()));
+            Stack.push_back(TPathElem(TString{key}));
             if (CurrentFieldIdx >= 0)
                 HasFormatError = true;
             else

@@ -31,7 +31,7 @@ static void CreateEstimators(
             NCB::TTextColumn::CreateOwning(
                 std::move(tokenizedFeatures[tokenizedFeatureId])
             ),
-            textDigitizers.GetDictionary(tokenizedFeatureId)
+            textDigitizers.GetDigitizer(tokenizedFeatureId).Dictionary
         );
         TVector<TTextDataSetPtr> testTexts{learnTexts};
 

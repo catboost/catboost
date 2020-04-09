@@ -19,6 +19,17 @@
 
 class TModelPartsCachingSerializer;
 
+
+/* make sure floating-point values do not contain negative zeros -
+ * flatbuffers serializer will deserialize them as positive zeros
+ */
+inline void CanonizeFloatForFbs(float* value) {
+    if (*value == -0.0f) {
+        *value = 0.0f;
+    }
+}
+
+
 struct TFloatSplit {
     int FloatFeature = 0;
     float Split = 0.f;
@@ -43,6 +54,13 @@ public:
     }
 
     Y_SAVELOAD_DEFINE(FloatFeature, Split)
+
+    /* make sure floating-point values do not contain negative zeros -
+     * flatbuffers serializer will deserialize them as positive zeros
+     */
+    void Canonize() {
+        CanonizeFloatForFbs(&Split);
+    }
 };
 
 template <>
@@ -87,6 +105,13 @@ public:
     }
 
     Y_SAVELOAD_DEFINE(SourceFeatureId, CalcerId, LocalId, Split)
+
+    /* make sure floating-point values do not contain negative zeros -
+     * flatbuffers serializer will deserialize them as positive zeros
+     */
+    void Canonize() {
+        CanonizeFloatForFbs(&Split);
+    }
 };
 
 template <>
@@ -176,6 +201,15 @@ public:
     flatbuffers::Offset<NCatBoostFbs::TFeatureCombination> FBSerialize(TModelPartsCachingSerializer& serializer) const;
 
     void FBDeserialize(const NCatBoostFbs::TFeatureCombination* fbObj);
+
+    /* make sure floating-point values do not contain negative zeros -
+     * flatbuffers serializer will deserialize them as positive zeros
+     */
+    void Canonize() {
+        for (auto& binFeature : BinFeatures) {
+            binFeature.Canonize();
+        }
+    }
 };
 
 template <>
@@ -213,6 +247,13 @@ public:
 
     flatbuffers::Offset<NCatBoostFbs::TModelCtrBase> FBSerialize(TModelPartsCachingSerializer& serializer) const;
     void FBDeserialize(const NCatBoostFbs::TModelCtrBase* fbObj);
+
+    /* make sure floating-point values do not contain negative zeros -
+     * flatbuffers serializer will deserialize them as positive zeros
+     */
+    void Canonize() {
+        Projection.Canonize();
+    }
 };
 
 template <>
@@ -266,6 +307,17 @@ public:
 
     flatbuffers::Offset<NCatBoostFbs::TModelCtr> FBSerialize(TModelPartsCachingSerializer& serializer) const;
     void FBDeserialize(const NCatBoostFbs::TModelCtr* fbObj);
+
+    /* make sure floating-point values do not contain negative zeros -
+     * flatbuffers serializer will deserialize them as positive zeros
+     */
+    void Canonize() {
+        Base.Canonize();
+        CanonizeFloatForFbs(&PriorNum);
+        CanonizeFloatForFbs(&PriorDenom);
+        CanonizeFloatForFbs(&Shift);
+        CanonizeFloatForFbs(&Scale);
+    }
 };
 
 template <>
@@ -303,6 +355,14 @@ public:
     }
 
     Y_SAVELOAD_DEFINE(Ctr, Border);
+
+    /* make sure floating-point values do not contain negative zeros -
+     * flatbuffers serializer will deserialize them as positive zeros
+     */
+    void Canonize() {
+        Ctr.Canonize();
+        CanonizeFloatForFbs(&Border);
+    }
 };
 
 template <>

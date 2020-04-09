@@ -60,37 +60,71 @@ namespace NCatboostCuda {
         }
 
         void Write(const TVector<ui32>& featureIds) {
+            TVector<ui32> floatFeatureIds;
             for (auto feature : featureIds) {
                 if (FeaturesManager.IsCtr(feature)) {
                     continue;
                 } else if (FeaturesManager.IsFloat(feature)) {
-                    WriteFloatFeature(feature,
-                                      DataProvider);
+                    floatFeatureIds.push_back(feature);
                 } else if (FeaturesManager.IsCat(feature)) {
                     CB_ENSURE(FeaturesManager.UseForOneHotEncoding(feature));
                     WriteOneHotFeature(feature, DataProvider);
+                    CheckInterrupted(); // check after long-lasting operation
                 }
+            }
+            constexpr ui32 FeatureBlockSize = 16;
+            const auto featureCount = floatFeatureIds.size();
+            for (auto featureIdx : xrange<ui32>(0, featureCount, FeatureBlockSize)) {
+                const auto begin = floatFeatureIds.begin() + featureIdx;
+                const auto end = floatFeatureIds.begin() + Min<ui32>(featureCount, featureIdx + FeatureBlockSize);
+                WriteFloatFeatures(MakeArrayRef(begin, end), DataProvider);
                 CheckInterrupted(); // check after long-lasting operation
             }
         }
 
     private:
-        void WriteFloatFeature(const ui32 feature,
+        void WriteFloatFeatures(TConstArrayRef<ui32> features,
                                const NCB::TTrainingDataProvider& dataProvider) {
-            const auto featureId = FeaturesManager.GetDataProviderId(feature);
-            const auto& featureMetaInfo = dataProvider.MetaInfo.FeaturesLayout->GetExternalFeaturesMetaInfo()[featureId];
-            CB_ENSURE(featureMetaInfo.IsAvailable,
-                      TStringBuilder() << "Feature #" << featureId << " is empty");
-            CB_ENSURE(featureMetaInfo.Type == EFeatureType::Float,
-                      TStringBuilder() << "Feature #" << featureId << " is not float");
+            for (auto feature : features) {
+                const auto featureId = FeaturesManager.GetDataProviderId(feature);
+                const auto& featureMetaInfo = dataProvider.MetaInfo.FeaturesLayout->GetExternalFeaturesMetaInfo()[featureId];
+                CB_ENSURE(featureMetaInfo.IsAvailable,
+                        TStringBuilder() << "Feature #" << featureId << " is empty");
+                CB_ENSURE(featureMetaInfo.Type == EFeatureType::Float,
+                        TStringBuilder() << "Feature #" << featureId << " is not float");
+            }
+            const auto& objectsData = *dataProvider.ObjectsData;
+            const auto featureCount = features.size();
+            TVector<ui32> featureBinCounts(featureCount);
+            for (auto taskIdx : xrange(featureCount)) {
+                const auto feature = features[taskIdx];
+                const auto dataProviderFeatureId = FeaturesManager.GetDataProviderId(feature);
+                const auto floatFeatureIdx = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(dataProviderFeatureId);
+                auto& subFeatures = FeaturesManager.GetFeatureManagerIdForFloatFeature(dataProviderFeatureId);
 
-            auto floatFeatureIdx = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(featureId);
-
-            const auto& featuresHolder = **(dataProvider.ObjectsData->GetFloatFeature(*floatFeatureIdx));
-            IndexBuilder.template Write<ui8>(DataSetId,
-                                             feature,
-                                             dataProvider.ObjectsData->GetQuantizedFeaturesInfo()->GetBinCount(floatFeatureIdx),
-                                             *featuresHolder.ExtractValues(LocalExecutor));
+                if (subFeatures.size() == 1) {
+                    IndexBuilder.Write(
+                        DataSetId,
+                        features[taskIdx],
+                        FeaturesManager.GetBinCount(feature),
+                        *objectsData.GetFloatFeature(*floatFeatureIdx)
+                    );
+                } else {
+                    auto subFeaturePosition = std::find(subFeatures.begin(), subFeatures.end(), feature);
+                    CB_ENSURE_INTERNAL(subFeaturePosition != subFeatures.end(), "Sub feature not found");
+                    auto subFeatureId = subFeaturePosition - subFeatures.begin();
+                    ui16 baseValue = subFeatureId * 255;
+                    IndexBuilder.Write(
+                        DataSetId,
+                        features[taskIdx],
+                        FeaturesManager.GetBinCount(feature),
+                        *objectsData.GetFloatFeature(*floatFeatureIdx),
+                        [baseValue] (ui16 value) -> ui8 {
+                            return (ui8)Min(Max(value - baseValue, 0), 255);
+                        }
+                    );
+                }
+            }
         }
 
         void WriteOneHotFeature(const ui32 feature,
@@ -105,10 +139,12 @@ namespace NCatboostCuda {
             auto catFeatureIdx = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(featureId);
 
             const auto& featuresHolder = **(dataProvider.ObjectsData->GetCatFeature(*catFeatureIdx));
-            IndexBuilder.template Write<ui32>(DataSetId,
-                                              feature,
-                                              dataProvider.ObjectsData->GetQuantizedFeaturesInfo()->GetUniqueValuesCounts(catFeatureIdx).OnAll,
-                                              *featuresHolder.ExtractValues(LocalExecutor));
+            IndexBuilder.Write(
+                DataSetId,
+                feature,
+                dataProvider.ObjectsData->GetQuantizedFeaturesInfo()->GetUniqueValuesCounts(catFeatureIdx).OnAll,
+                &featuresHolder
+            );
         }
 
     private:
@@ -117,6 +153,30 @@ namespace NCatboostCuda {
         ui32 DataSetId = -1;
         TSharedCompressedIndexBuilder<TLayoutPolicy>& IndexBuilder;
         NPar::TLocalExecutor* LocalExecutor;
+    };
+
+    struct TPreQuantizedColumn {
+    public:
+        TPreQuantizedColumn(ui32 featureId, TConstArrayRef<ui8> prequantizedVals)
+            : FullSubsetIndexing(NCB::TFullSubset<ui32>(prequantizedVals.size()))
+            , ValuesHolder(
+                featureId,
+                TCompressedArray(
+                    prequantizedVals.size(),
+                    /*bitsPerKey*/ 8,
+                    NCB::TMaybeOwningArrayHolder<ui64>::CreateNonOwning(
+                        TArrayRef<ui64>(
+                            (ui64*)prequantizedVals.begin(),
+                            (ui64*)prequantizedVals.end()
+                        )
+                    )
+                ),
+                &FullSubsetIndexing
+            )
+        {}
+    public:
+        NCB::TFeaturesArraySubsetIndexing FullSubsetIndexing;
+        NCB::TQuantizedFloatValuesHolder ValuesHolder;
     };
 
     template <class TLayoutPolicy = TFeatureParallelLayout>
@@ -147,19 +207,22 @@ namespace NCatboostCuda {
                     CtrCalcer.ComputeBinarizedCtrs(group, &learnCtrs, &testCtrs);
                     for (ui32 i = 0; i < group.size(); ++i) {
                         const ui32 featureId = group[i];
-                        IndexBuilder.template Write<ui8>(DataSetId,
-                                                         featureId,
-                                                         learnCtrs[i].BinCount,
-                                                         learnCtrs[i].BinarizedCtr);
+                        TPreQuantizedColumn prequantizedLearnColumn(featureId, learnCtrs[i].BinarizedCtr);
+                        IndexBuilder.Write(
+                            DataSetId,
+                            featureId,
+                            learnCtrs[i].BinCount,
+                            &prequantizedLearnColumn.ValuesHolder);
 
                         if (testCtrs.size()) {
                             CB_ENSURE(TestDataSetId != (ui32)-1, "Error: set test dataset");
                             CB_ENSURE(testCtrs[i].BinCount == learnCtrs[i].BinCount);
-
-                            IndexBuilder.template Write<ui8>(TestDataSetId,
-                                                             featureId,
-                                                             testCtrs[i].BinCount,
-                                                             testCtrs[i].BinarizedCtr);
+                            TPreQuantizedColumn prequantizedTestColumn(featureId, testCtrs[i].BinarizedCtr);
+                            IndexBuilder.Write(
+                                TestDataSetId,
+                                featureId,
+                                testCtrs[i].BinCount,
+                                &prequantizedTestColumn.ValuesHolder);
                         }
                     }
                     CheckInterrupted(); // check after long-lasting operation
@@ -261,17 +324,21 @@ namespace NCatboostCuda {
             auto binarizedWriter = [&](
                 ui32 dataSetId,
                 TConstArrayRef<ui8> binarizedFeature,
-                TEstimatedFeature feature,
+                NCB::TEstimatedFeatureId feature,
                 ui8 binCount
             ) {
                 const auto featureId = FeaturesManager.GetId(feature);
                 if (featureIds.contains(featureId)) {
-                    IndexBuilder.template Write<ui8>(dataSetId,
-                                                     featureId,
-                                                     binCount,
-                                                     binarizedFeature);
+
+                    TPreQuantizedColumn prequantizedColumn(featureId, binarizedFeature);
+                    IndexBuilder.Write(
+                        dataSetId,
+                        featureId,
+                        binCount,
+                        &prequantizedColumn.ValuesHolder
+                    );
                 }
-                CheckInterrupted(); // check after long-lasting operation
+                CheckInterrupted(); // check after long-lasting operation*/
             };
 
             TEstimatorsExecutor::TBinarizedFeatureVisitor learnWriter = std::bind(binarizedWriter,

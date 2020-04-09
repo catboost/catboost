@@ -16,15 +16,6 @@ namespace CatBoostNetTests {
         public void RunIrisTest() {
             var workdir = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "testbed", "iris");
             var dsPath = Path.Combine(workdir, "iris.data");
-
-            try {
-                DownloadHelpers.DownloadDataset(
-                    "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data",
-                    dsPath);
-            } catch (WebException) {
-                Assert.Fail("Failed to download Iris dataset");
-            }
-
             var df = Frame.ReadCsv(dsPath, hasHeaders: false);
             df.RenameColumns(new Collection<string>
             {
@@ -35,7 +26,7 @@ namespace CatBoostNetTests {
             var data = df.ToArray2D<float>();
 
             var model = new CatBoostModelEvaluator(Path.Combine(workdir, "iris_model.cbm"));
-            model.CatFeaturesIndices = new Collection<int> { };
+            model.CatFeaturesIndices = new Collection<int>();
             double[,] res = model.EvaluateBatch(data, new string[df.RowCount, 0]);
 
             string[] targetLabelList = new string[] { "Iris-setosa", "Iris-versicolor", "Iris-virginica" };
@@ -44,25 +35,18 @@ namespace CatBoostNetTests {
                 int argmax = Enumerable.Range(0, res.GetLength(1)).Select(j => Tuple.Create(res[i, j], j)).Max().Item2;
                 string predLabel = targetLabelList[argmax];
                 if (predLabel != target[i]) {
+                    Console.WriteLine(predLabel);
+                    Console.WriteLine(target[i]);
                     errors += $"#{i + 1} ";
                 }
             }
-            Assert.AreEqual(errors.Length, 1, $"Iris test failed on samples: #{errors}");
-
+            Assert.AreEqual(errors.Length, 0, $"Iris test failed on samples: #{errors}");
         }
 
         [TestMethod]
         public void RunBostonTest() {
             var workdir = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "testbed", "boston");
             var dsPath = Path.Combine(workdir, "housing.data");
-
-            try {
-                DownloadHelpers.DownloadDataset(
-                    "https://archive.ics.uci.edu/ml/machine-learning-databases/housing/housing.data",
-                    dsPath);
-            } catch (WebException) {
-                Assert.Fail("Failed to download Boston dataset");
-            }
 
             List<float[]> featureList = new List<float[]>();
             List<double> targetList = new List<double>();
@@ -93,7 +77,7 @@ namespace CatBoostNetTests {
             }
 
             var model = new CatBoostModelEvaluator(Path.Combine(workdir, "boston_housing_model.cbm"));
-            model.CatFeaturesIndices = new Collection<int> { };
+            model.CatFeaturesIndices = new Collection<int>();
             double[,] res = model.EvaluateBatch(features, new string[featureList.Count, 0]);
 
             var deltas = Enumerable.Range(0, featureList.Count).Select(i => new {
@@ -118,14 +102,6 @@ namespace CatBoostNetTests {
         public void RunMushroomTest() {
             var workdir = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "testbed", "mushrooms");
             var dsPath = Path.Combine(workdir, "mushrooms.csv");
-
-            try {
-                DownloadHelpers.DownloadDataset(
-                    "https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data",
-                    dsPath);
-            } catch (WebException) {
-                Assert.Fail("Failed to download Mushroom dataset");
-            }
 
             var df = Frame.ReadCsv(dsPath, hasHeaders: false);
             var target = df.Rows.Select(obj => obj.Value["Column1"]).Values.Select(x => (string)x).ToArray();

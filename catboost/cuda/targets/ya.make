@@ -4,6 +4,7 @@ LIBRARY()
 
 SRCS(
     auc.cpp
+    combination_targets_impl.cpp
     gpu_metrics.cpp
     kernel/dcg.cu
     kernel/multilogit.cu

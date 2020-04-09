@@ -3,6 +3,7 @@
 #include "compare_documents.h"
 #include "feature_str.h"
 #include "shap_values.h"
+#include "shap_interaction_values.h"
 #include "util.h"
 
 #include <catboost/private/libs/algo/apply.h>
@@ -282,8 +283,15 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     auto targetData = CreateModelCompatibleProcessedDataProvider(dataset, {metricDescription}, model, GetMonopolisticFreeCpuRam(), &rand, localExecutor).TargetData;
     CB_ENSURE(targetData->GetTargetDimension() <= 1, "Multi-dimensional target fstr is unimplemented yet");
 
-    TShapPreparedTrees preparedTrees = PrepareTrees(model, &dataset, 0, EPreCalcShapValues::Auto, localExecutor, true);
-
+    TShapPreparedTrees preparedTrees = PrepareTrees(model, &dataset, EPreCalcShapValues::Auto, localExecutor, true);
+    CalcShapValuesByLeaf(
+        model,
+        /*fixedFeatureParams*/ Nothing(),
+        /*logPeriod*/ 0,
+        preparedTrees.CalcInternalValues,
+        localExecutor,
+        &preparedTrees
+    );
     TVector<TMetricHolder> scores(featuresCount + 1);
 
     TConstArrayRef<TQueryInfo> targetQueriesInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
@@ -419,14 +427,20 @@ TVector<std::pair<double, TFeature>> CalcFeatureEffect(
         EFstrType type,
         NPar::TLocalExecutor* localExecutor)
 {
-    type = GetFeatureImportanceType(model, bool(dataset), type);
+    type = AdjustFeatureImportanceType(type, model.GetLossFunctionName());
     if (type != EFstrType::PredictionValuesChange) {
         CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "feature effect");
     }
     if (type == EFstrType::LossFunctionChange) {
-        CB_ENSURE(dataset, "dataset is not provided");
+        CB_ENSURE(
+            dataset,
+            "Dataset is not provided for " << EFstrType::LossFunctionChange << ", choose "
+                << EFstrType::PredictionValuesChange << " fstr type explicitly or provide dataset.");
         return CalcFeatureEffectLossChange(model, *dataset.Get(), localExecutor);
     } else {
+        CB_ENSURE_INTERNAL(
+            type == EFstrType::PredictionValuesChange || type == EFstrType::InternalFeatureImportance,
+            "Inappropriate fstr type " << type);
         return CalcFeatureEffectAverageChange(model, dataset, localExecutor);
     }
 }
@@ -704,12 +718,12 @@ TVector<TVector<double>> GetFeatureImportances(
             }
             return CalcInteraction(model);
         case EFstrType::ShapValues: {
-            CB_ENSURE(dataset, "dataset is not provided");
+            CB_ENSURE(dataset, "Dataset is not provided");
 
             NPar::TLocalExecutor localExecutor;
             localExecutor.RunAdditionalThreads(threadCount - 1);
 
-            return CalcShapValues(model, *dataset, logPeriod, mode, &localExecutor);
+            return CalcShapValues(model, *dataset, /*fixedFeatureParams*/ Nothing(), logPeriod, mode, &localExecutor);
         }
         case EFstrType::PredictionDiff: {
             NPar::TLocalExecutor localExecutor;
@@ -736,13 +750,34 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
 
     CB_ENSURE(fstrType == EFstrType::ShapValues, "Only shap values can provide multi approxes.");
 
-    CB_ENSURE(dataset, "dataset is not provided");
+    CB_ENSURE(dataset, "Dataset is not provided");
     CheckModelAndDatasetCompatibility(model, *dataset->ObjectsData.Get());
 
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
 
-    return CalcShapValuesMulti(model, *dataset, logPeriod, mode, &localExecutor);
+    return CalcShapValuesMulti(model, *dataset, /*fixedFeatureParams*/ Nothing(), logPeriod, mode, &localExecutor);
+}
+
+TVector<TVector<TVector<TVector<double>>>> CalcShapFeatureInteractionMulti(
+    const EFstrType fstrType,
+    const TFullModel& model,
+    const NCB::TDataProviderPtr dataset,
+    const TMaybe<std::pair<int, int>>& pairOfFeatures,
+    int threadCount,
+    EPreCalcShapValues mode,
+    int logPeriod
+) {
+    ValidateFeatureInteractionParams(fstrType, model, dataset);
+    if (pairOfFeatures.Defined()) {
+        const int flatFeatureCount = SafeIntegerCast<int>(dataset->MetaInfo.GetFeatureCount());
+        ValidateFeaturePair(flatFeatureCount, pairOfFeatures.GetRef());
+    }
+
+    NPar::TLocalExecutor localExecutor;
+    localExecutor.RunAdditionalThreads(threadCount - 1);
+
+    return CalcShapInteractionValuesMulti(model, *dataset, pairOfFeatures, logPeriod, mode, &localExecutor);
 }
 
 TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const TDataProviderPtr dataset) {
@@ -765,7 +800,7 @@ TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const
             if (!AllFeatureIdsEmpty(datasetFeaturesMetaInfo)) {
                 CB_ENSURE(
                     datasetFeaturesMetaInfo.size() >= modelFeatureIds.size(),
-                    "dataset has less features than the model"
+                    "Dataset has less features than the model"
                 );
                 for (auto i : xrange(modelFeatureIds.size())) {
                     modelFeatureIds[i] = datasetFeaturesMetaInfo[i].Name;
@@ -781,30 +816,4 @@ TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const
         }
     }
     return modelFeatureIds;
-}
-
-EFstrType GetFeatureImportanceType(
-    const TFullModel& model,
-    bool haveDataset,
-    EFstrType type)
-{
-    if (type == EFstrType::FeatureImportance) {
-        const auto& lossName = model.GetLossFunctionName();
-        if (lossName) {
-            if (IsGroupwiseMetric(lossName)) {
-                if (haveDataset) {
-                    return EFstrType::LossFunctionChange;
-                } else {
-                    CATBOOST_WARNING_LOG << "Can't calculate LossFunctionChange feature importance without dataset for ranking metric,"
-                                            " will use PredictionValuesChange feature importance" << Endl;
-                }
-            }
-        } else {
-            CATBOOST_WARNING_LOG << "Optimized objective is not known,"
-                                    " so use PredictionValuesChange for feature importance." << Endl;
-        }
-        return EFstrType::PredictionValuesChange;
-    } else {
-        return type;
-    }
 }

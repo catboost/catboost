@@ -1,6 +1,12 @@
 import sys
 
 
+# Support @response-file notation for windows to reduce cmd length
+if sys.argv[1].startswith('@'):
+    with open(sys.argv[1][1:]) as afile:
+        sys.argv[1:] = afile.read().splitlines()
+
+
 with open(sys.argv[1], 'w') as f:
     f.write('#if defined(__GNUC__)\n')
     f.write('#pragma GCC diagnostic ignored "-Wunknown-pragmas"\n')

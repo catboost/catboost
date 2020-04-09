@@ -34,7 +34,7 @@ namespace NCsvFormat {
 
             do {
                 TStringBuf buf = Consume();
-                ret.push_back(buf.ToString());
+                ret.push_back(TString{buf});
             } while (Step());
 
             return ret;

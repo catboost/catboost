@@ -588,7 +588,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                 for (auto offset : xrange(expectedArray.size())) {
                     size_t i = offset;
                     auto blockIterator = sparseArray.GetBlockIterator(offset);
-                    while (auto block = blockIterator.Next(maxBlockSize)) {
+                    while (auto block = blockIterator->Next(maxBlockSize)) {
                         UNIT_ASSERT(block.size() <= maxBlockSize);
                         for (auto v : block) {
                             UNIT_ASSERT(areValuesEqual(v, expectedArray[i]));

@@ -42,3 +42,11 @@ def repl():
 
 def resource_files():
     sys.stdout.buffer.write(b'\n'.join(sorted(__res.resfs_files()) + [b'']))
+
+
+def run_constructors():
+    for key, module_name in __res.iter_keys(b'py/constructors/'):
+        import importlib
+        module = importlib.import_module(module_name.decode())
+        init_func = getattr(module, __res.find(key).decode())
+        init_func()

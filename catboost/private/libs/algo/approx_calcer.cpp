@@ -569,9 +569,6 @@ static void CalcExactLeafDeltas(
 
     Y_ASSERT(leafCount == leafDeltas->size());
     for (size_t i = 0; i < leafCount; i++) {
-        Y_ASSERT(i < (*leafDeltas).size());
-        Y_ASSERT(i < leafSamples.size());
-        Y_ASSERT(i < leafWeights.size());
         double& leafDelta = (*leafDeltas)[i];
         leafDelta = *NCB::CalcOptimumConstApprox(lossDescription, leafSamples[i], leafWeights[i]);
     }
@@ -941,7 +938,7 @@ void CalcLeafValues(
     TVector<TVector<double>>* leafDeltas,
     TVector<TIndexType>* indices) {
 
-    *indices = BuildIndices(fold, tree, data.Learn, data.Test, ctx->LocalExecutor);
+    *indices = BuildIndices(fold, tree, data, EBuildIndicesDataParts::All, ctx->LocalExecutor);
     const int approxDimension = ctx->LearnProgress->AveragingFold.GetApproxDimension();
     Y_VERIFY(fold.GetLearnSampleCount() == data.Learn->GetObjectCount());
     const int leafCount = GetLeafCount(tree);
@@ -968,7 +965,12 @@ void CalcApproxForLeafStruct(
     TLearnContext* ctx,
     TVector<TVector<TVector<double>>>* approxesDelta // [bodyTailId][approxDim][docIdxInPermuted]
 ) {
-    const TVector<TIndexType> indices = BuildIndices(fold, tree, data.Learn, /*testData*/ {}, ctx->LocalExecutor);
+    const TVector<TIndexType> indices = BuildIndices(
+        fold,
+        tree,
+        data,
+        EBuildIndicesDataParts::LearnOnly,
+        ctx->LocalExecutor);
     const int approxDimension = ctx->LearnProgress->ApproxDimension;
     const int leafCount = GetLeafCount(tree);
     const auto treeMonotoneConstraints = GetTreeMonotoneConstraints(

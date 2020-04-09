@@ -1,6 +1,7 @@
 #include "tensor_search_helpers.h"
 
 #include "calc_score_cache.h"
+#include "fold.h"
 #include "mvs.h"
 
 #include <catboost/libs/data/objects.h>
@@ -15,11 +16,38 @@
 
 using namespace NCB;
 
+
+const TQuantizedForCPUObjectsDataProvider& GetLearnObjectsData(
+    const TSplitCandidate& splitCandidate,
+    const TTrainingForCPUDataProviders& data,
+    const TFold& fold
+) {
+    if (splitCandidate.Type == ESplitType::EstimatedFeature) {
+        if (splitCandidate.IsOnlineEstimatedFeature) {
+            return *(fold.GetOnlineEstimatedFeatures().Learn);
+        }
+        return *(data.EstimatedObjectsData.Learn);
+    }
+    return *(data.Learn->ObjectsData);
+}
+
+
 TSplit TCandidateInfo::GetBestSplit(
-    const TQuantizedForCPUObjectsDataProvider& objectsData,
+    const TTrainingForCPUDataProviders& data,
+    const TFold& fold,
     ui32 oneHotMaxSize
 ) const {
-    return GetSplit(BestBinId, objectsData, oneHotMaxSize);
+    const TQuantizedForCPUObjectsDataProviderPtr objectsData = [&] () {
+        if (SplitEnsemble.IsOnlineEstimated) {
+            return fold.GetOnlineEstimatedFeatures().Learn;
+        }
+        if (SplitEnsemble.IsEstimated) {
+            return data.EstimatedObjectsData.Learn;
+        }
+        return data.Learn->ObjectsData;
+    }();
+
+    return GetSplit(BestBinId, *objectsData, oneHotMaxSize);
 }
 
 TSplit TCandidateInfo::GetSplit(
@@ -27,6 +55,16 @@ TSplit TCandidateInfo::GetSplit(
     const TQuantizedForCPUObjectsDataProvider& objectsData,
     ui32 oneHotMaxSize
 ) const {
+    auto getCandidateType = [&] (EFeatureType featureType) {
+        if (SplitEnsemble.IsEstimated) {
+            return ESplitType::EstimatedFeature;
+        } else if (featureType == EFeatureType::Float) {
+            return ESplitType::FloatFeature;
+        } else {
+            return ESplitType::OneHotFeature;
+        }
+    };
+
     switch (SplitEnsemble.Type) {
         case ESplitEnsembleType::OneFeature:
             return TSplit(SplitEnsemble.SplitCandidate, binId);
@@ -35,11 +73,10 @@ TSplit TCandidateInfo::GetSplit(
                 TPackedBinaryIndex packedBinaryIndex(SplitEnsemble.BinarySplitsPackRef.PackIdx, binId);
                 auto featureInfo = objectsData.GetPackedBinaryFeatureSrcIndex(packedBinaryIndex);
                 TSplitCandidate splitCandidate;
-                splitCandidate.Type
-                    = featureInfo.FeatureType == EFeatureType::Float ?
-                        ESplitType::FloatFeature :
-                        ESplitType::OneHotFeature;
+
+                splitCandidate.Type = getCandidateType(featureInfo.FeatureType);
                 splitCandidate.FeatureIdx = featureInfo.FeatureIdx;
+                splitCandidate.IsOnlineEstimatedFeature = SplitEnsemble.IsOnlineEstimated;
 
                 return TSplit(
                     std::move(splitCandidate),
@@ -64,10 +101,7 @@ TSplit TCandidateInfo::GetSplit(
 
                     if (binInBundlePart < binFeatureSize) {
                         TSplitCandidate splitCandidate;
-                        splitCandidate.Type
-                            = bundlePart.FeatureType == EFeatureType::Float ?
-                                ESplitType::FloatFeature :
-                                ESplitType::OneHotFeature;
+                        splitCandidate.Type = getCandidateType(bundlePart.FeatureType);
                         splitCandidate.FeatureIdx = bundlePart.FeatureIdx;
 
                         return TSplit(std::move(splitCandidate), binInBundlePart);
@@ -89,7 +123,7 @@ TSplit TCandidateInfo::GetSplit(
                     ui32 splitIdxInPart = binId - splitIdxOffset;
                     if (splitIdxInPart < part.BucketCount - 1) {
                         TSplitCandidate splitCandidate;
-                        splitCandidate.Type = ESplitType::FloatFeature;
+                        splitCandidate.Type = getCandidateType(part.FeatureType);
                         splitCandidate.FeatureIdx = part.FeatureIdx;
 
                         return TSplit(std::move(splitCandidate), splitIdxInPart);
@@ -202,6 +236,10 @@ THolder<IDerCalcer> BuildError(
                 isStoreExpApprox);
         case ELossFunction::Huber:
             return MakeHolder<THuberError>(NCatboostOptions::GetHuberParam(params.LossFunctionDescription), isStoreExpApprox);
+        case ELossFunction::Tweedie:
+            return MakeHolder<TTweedieError>(
+                NCatboostOptions::GetTweedieParam(params.LossFunctionDescription),
+                isStoreExpApprox);
         default:
             CB_ENSURE(false, "provided error function is not supported");
     }
@@ -374,6 +412,7 @@ static void CalcWeightedData(
 
 void Bootstrap(
     const NCatboostOptions::TCatBoostOptions& params,
+    bool hasOfflineEstimatedFeatures,
     const TVector<TIndexType>& indices,
     const TVector<TVector<TVector<double>>>& leafValues,
     TFold* fold,
@@ -438,7 +477,16 @@ void Bootstrap(
     if (!isPairwiseScoring) {
         CalcWeightedData(learnSampleCount, params.BoostingOptions->BoostingType.Get(), localExecutor, fold);
     }
-    sampledDocs->Sample(*fold, samplingUnit, indices, rand, localExecutor, performRandomChoice, shouldSortByLeaf, leavesCount);
+    sampledDocs->Sample(
+        *fold,
+        samplingUnit,
+        hasOfflineEstimatedFeatures,
+        indices,
+        rand,
+        localExecutor,
+        performRandomChoice,
+        shouldSortByLeaf,
+        leavesCount);
     CB_ENSURE(sampledDocs->GetDocCount() > 0, "Too few sampling units (subsample=" << takenFraction
         << ", bootstrap_type=" << bootstrapType << "): please increase sampling rate or disable sampling");
 }

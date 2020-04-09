@@ -39,6 +39,10 @@ static inline T ThreadIdHashFunction(T t) noexcept {
     /*
      * we must permute threadid bits, because some strange platforms(such Linux)
      * have strange threadid numeric properties
+     *
+     * Because they are alligned pointers to pthread_t rather that tid.
+     * Currently there is no way to get tid without syscall (slightly slower)
+     * (pthread_getthreadid_np is not implemeted in glibc/musl for some reason).
      */
     return IntHash(t);
 }

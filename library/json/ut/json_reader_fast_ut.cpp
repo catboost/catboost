@@ -3,6 +3,7 @@
 #include <library/unittest/registar.h>
 
 #include <library/string_utils/relaxed_escaper/relaxed_escaper.h>
+#include <util/string/cast.h>
 #include <util/string/printf.h>
 
 namespace NJson {

@@ -7,6 +7,7 @@
 #include <util/generic/strbuf.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
+#include <util/string/cast.h>
 #include <util/system/yassert.h>
 
 #define KEEP_EMPTY_TOKENS 0x01
