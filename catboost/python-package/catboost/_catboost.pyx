@@ -4425,6 +4425,8 @@ cdef class _CatBoost:
                 )
             return _3d_vector_of_double_to_np_array(fstr_multi), native_feature_ids
         elif type_name == 'ShapInteractionValues':
+            # TODO: Ensure sensible results of non-'Normal' calculation types for ShapInteractionValues
+            assert shap_calc_type == "Normal", "Only 'Normal' calculation type is supported for ShapInteractionValues"
             if interaction_indices is not None:
                 pair_of_features = _check_and_get_interaction_indices(pool, interaction_indices)
             with nogil:
