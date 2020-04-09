@@ -253,7 +253,6 @@ template<typename T> T EndianSwap(T t) {
   #pragma warning(pop)
 #endif
 
-
 template<typename T> T EndianScalar(T t) {
   #if FLATBUFFERS_LITTLEENDIAN
     return t;
@@ -263,7 +262,10 @@ template<typename T> T EndianScalar(T t) {
 }
 
 template<typename T> T ReadScalar(const void *p) {
-  return EndianScalar(*reinterpret_cast<const T *>(p));
+  //copy-paste of util ReadUnaligned
+  T tmp;
+  memcpy(&tmp, p, sizeof(T));
+  return EndianScalar(tmp);
 }
 
 template<typename T> void WriteScalar(void *p, T t) {
