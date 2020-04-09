@@ -18,7 +18,74 @@
 #include <util/generic/utility.h>
 #include <util/generic/ymath.h>
 
+
 using namespace NCB;
+
+
+namespace {
+    struct TContribution {
+        TVector<double> PositiveContribution;
+        TVector<double> NegativeContribution;
+
+    public:
+
+        explicit TContribution(size_t approxDimension)
+            : PositiveContribution(approxDimension)
+            , NegativeContribution(approxDimension)
+            {
+            }
+    };
+
+    class TInternalIndependentTreeShapCalcer {
+    private:
+        const TModelTrees& Forest;
+        const TVector<int>& BinFeatureCombinationClassByDepth;
+        const TVector<TVector<double>>& Weights;
+        TVector<int> ListOfFeaturesDocumentLeaf;
+        TVector<int> ListOfFeaturesDocumentLeafReference;
+        size_t DocumentLeafIdx;
+        size_t DocumentLeafIdxReference;
+        size_t TreeIdx;
+        int DepthOfTree;
+        size_t ApproxDimension;
+        const double* LeafValuesPtr;
+        TVector<TVector<double>>& ShapValuesInternalByDepth;
+
+    public:
+        TInternalIndependentTreeShapCalcer(
+            const TModelTrees& forest,
+            const TVector<int>& binFeatureCombinationClassByDepth,
+            const TVector<TVector<double>>& weights,
+            size_t classCount,
+            size_t documentLeafIdx,
+            size_t documentLeafIdxReference,
+            size_t treeIdx,
+            TVector<TVector<double>>* shapValuesInternalByDepth
+        )
+            : Forest(forest)
+            , BinFeatureCombinationClassByDepth(binFeatureCombinationClassByDepth) 
+            , Weights(weights) 
+            , ListOfFeaturesDocumentLeaf(classCount) 
+            , ListOfFeaturesDocumentLeafReference(classCount) 
+            , DocumentLeafIdx(documentLeafIdx) 
+            , DocumentLeafIdxReference(documentLeafIdxReference) 
+            , TreeIdx(treeIdx) 
+            , DepthOfTree(Forest.GetTreeSizes()[TreeIdx]) 
+            , ApproxDimension(Forest.GetDimensionsCount()) 
+            , LeafValuesPtr(Forest.GetFirstLeafPtrForTree(TreeIdx)) 
+            , ShapValuesInternalByDepth(*shapValuesInternalByDepth) 
+        { 
+        }
+
+        TContribution Calc(
+            int depth = 0,
+            size_t nodeIdx = 0,
+            ui32 uniqueFeaturesCount = 0,
+            ui32 featureMatchedForegroundCount = 0
+        );
+    };
+} //anonymous
+
 
 static TContribution SumContributions(
     const TContribution& lhs,
@@ -340,15 +407,15 @@ void IndependentTreeShap(
     const auto& transformFunc = independentTreeShapParams.TransformFunction;
     const auto& approxOfDataset = independentTreeShapParams.ApproxOfDataset;
     const auto& approxOfReferenceDataset = independentTreeShapParams.ApproxOfReferenceDataset;
-    TConstArrayRef<double> targetOfDocumentRef = MakeConstArrayRef(independentTreeShapParams.TargetOfDataset[documentIdx]);
-    TConstArrayRef<double> transformedTargetOfDocumentRef = MakeConstArrayRef(independentTreeShapParams.TransformedTargetOfDataset[documentIdx]);
+    const auto& targetOfDataset = independentTreeShapParams.TargetOfDataset;
+    const auto& transformedTargetOfDataset = independentTreeShapParams.TransformedTargetOfDataset;
 
     for (int dimension = 0; dimension < approxDimension; ++dimension) {
         TConstArrayRef<double> approxOfReferenceDatasetRef = MakeConstArrayRef(approxOfReferenceDataset[dimension]); 
         TArrayRef<double> shapValuesRef = MakeArrayRef((*shapValues)[dimension]);
         const double approxOfDocument = approxOfDataset[dimension][documentIdx];
-        const double targetOfDocument = targetOfDocumentRef[dimension];
-        const double transformedTargetOfDocument = transformedTargetOfDocumentRef[dimension];
+        const double targetOfDocument = targetOfDataset[dimension][documentIdx];
+        const double transformedTargetOfDocument = transformedTargetOfDataset[dimension][documentIdx];
 
         for (size_t referenceIdx = 0; referenceIdx < referenceCount; ++referenceIdx) {
             TVector<double> shapValueOneDimension(flatFeatureCount);
@@ -428,37 +495,25 @@ static inline TTransformFunc GetTransformFunction(const NCatboostOptions::TLossD
     Y_UNREACHABLE();
 }
 
-TVector<TVector<double>> TransformVector(const TVector<TVector<double>>& vector) {    
-    TVector<TVector<double>> transformedVector;
-    if (vector.size() == 0) {
-        return transformedVector;
-    }
-
-    transformedVector.assign(vector[0].size(), TVector<double>(vector.size(), 0.0));
-    for (auto i : xrange(vector[0].size())) {
-        for (auto j : xrange(vector.size())) {
-            transformedVector[i][j] = vector[j][i];
-        }
-    }
-    return transformedVector;
-}
-
-TVector<TVector<double>> GetTransformedTarget(
+static TVector<TVector<double>> GetTransformedTarget(
     const TVector<TVector<double>>& approx,
     const TVector<TVector<double>>& targetData,
     const TTransformFunc& transformFunction
 ) {
     CB_ENSURE_INTERNAL(
-        approx[0].size() == targetData.size() && approx.size() == targetData[0].size(),
+        approx.size() == targetData.size() && approx[0].size() == targetData[0].size(),
         "Approx and target must have same sizes"
     );
-    TVector<TVector<double>> transformedTarget(targetData.size());
-    for (auto documentIdx : xrange(targetData.size())) {
-        transformedTarget[documentIdx].resize(targetData[documentIdx].size());
-        for (auto dimension : xrange(targetData[documentIdx].size())) {
-            transformedTarget[documentIdx][dimension] = transformFunction(
-                targetData[documentIdx][dimension],
-                approx[dimension][documentIdx]
+    TVector<TVector<double>> transformedTarget(approx.size(), TVector<double>(approx[0].size(), 0.0));
+    for (auto dimension : xrange(approx.size())) {
+        TConstArrayRef<double> targetDataRef = MakeConstArrayRef(targetData[dimension]);
+        TConstArrayRef<double> approxRef = MakeConstArrayRef(approx[dimension]);
+        TArrayRef<double> transformedTargetRef = MakeArrayRef(transformedTarget[dimension]);
+
+        for (auto documentIdx : xrange(approxRef.size())) {        
+            transformedTargetRef[documentIdx] = transformFunction(
+                targetDataRef[documentIdx],
+                approxRef[documentIdx]
             );
         }
     }
@@ -471,28 +526,10 @@ void TIndependentTreeShapParams::InitTransformedData(
     const NCatboostOptions::TLossDescription& metricDescription,
     NPar::TLocalExecutor* localExecutor
 ) {
-    auto targetDataProvider =
-        CreateModelCompatibleProcessedDataProvider(dataset, {metricDescription}, model, GetMonopolisticFreeCpuRam(), nullptr, localExecutor).TargetData;
-    CB_ENSURE(targetDataProvider->GetTarget(), "Label must be provided");
-    auto targetDataRef = *(targetDataProvider->GetTarget());
-    TVector<TVector<double>> targetDataVector(targetDataRef.size());
-    for (auto idx : xrange(targetDataRef.size())) {
-        targetDataVector[idx].resize(targetDataRef[idx].size());
-        for (auto idx1 : xrange(targetDataRef[idx].size())) {
-            targetDataVector[idx][idx1] = targetDataRef[idx][idx1];
-        }
-        //targetDataVector[idx] = TVector<double>(targetDataRef[idx].begin(), targetDataRef[idx].end());
-    }
-    TargetOfDataset = TransformVector(targetDataVector);
-    const size_t approxDimension = model.GetDimensionsCount();
-    const size_t documentCount = dataset.ObjectsGrouping->GetObjectCount();
-    TransformedTargetOfDataset.assign(documentCount, TVector<double>(approxDimension, 0.0));
     switch (ModelOutputType)
     {
         case EModelOutputType::Probability: {
-            TransformedTargetOfDataset = TransformVector( 
-                ApplyModelMulti(model, *dataset.ObjectsData, EPredictionType::Probability, 0, 0, localExecutor)
-            );
+            TransformedTargetOfDataset = ApplyModelMulti(model, *dataset.ObjectsData, EPredictionType::Probability, 0, 0, localExecutor);
             break;
         }
         case EModelOutputType::LossFunction : {
@@ -560,6 +597,17 @@ TIndependentTreeShapParams::TIndependentTreeShapParams(
     }
     ApproxOfDataset = ApplyModelMulti(model, *dataset.ObjectsData, EPredictionType::RawFormulaVal, 0, 0, localExecutor);
     ApproxOfReferenceDataset = ApplyModelMulti(model, *referenceDataset.ObjectsData, EPredictionType::RawFormulaVal, 0, 0, localExecutor);
+    auto targetDataProvider =
+        CreateModelCompatibleProcessedDataProvider(dataset, {metricDescription}, model, GetMonopolisticFreeCpuRam(), nullptr, localExecutor).TargetData;
+    CB_ENSURE(targetDataProvider->GetTarget(), "Label must be provided");
+    auto targetOfDatasetRef = *(targetDataProvider->GetTarget());
+    TargetOfDataset.resize(targetOfDatasetRef.size());
+    for (size_t dimension = 0; dimension < targetOfDatasetRef.size(); ++dimension) {
+        TargetOfDataset[dimension].resize(targetOfDatasetRef[dimension].size());
+        for (size_t documentIdx = 0; documentIdx < targetOfDatasetRef[dimension].size(); ++documentIdx) {
+            TargetOfDataset[dimension][documentIdx] = targetOfDatasetRef[dimension][documentIdx];
+        }
+    }
     InitTransformedData(model, dataset, metricDescription, localExecutor);
     ShapValueByDepthBetweenLeavesForAllTrees.resize(treeCount);
 }

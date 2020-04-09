@@ -9,69 +9,9 @@
 #include <util/generic/vector.h>
 
 
-struct TContribution {
-    TVector<double> PositiveContribution;
-    TVector<double> NegativeContribution;
-
-public:
-
-    explicit TContribution(size_t approxDimension)
-        : PositiveContribution(approxDimension)
-        , NegativeContribution(approxDimension)
-        {
-        }
-};
-
-class TInternalIndependentTreeShapCalcer {
-private:
-    const TModelTrees& Forest;
-    const TVector<int>& BinFeatureCombinationClassByDepth;
-    const TVector<TVector<double>>& Weights;
-    TVector<int> ListOfFeaturesDocumentLeaf;
-    TVector<int> ListOfFeaturesDocumentLeafReference;
-    size_t DocumentLeafIdx;
-    size_t DocumentLeafIdxReference;
-    size_t TreeIdx;
-    int DepthOfTree;
-    size_t ApproxDimension;
-    const double* LeafValuesPtr;
-    TVector<TVector<double>>& ShapValuesInternalByDepth;
-
-public:
-    TInternalIndependentTreeShapCalcer(
-        const TModelTrees& forest,
-        const TVector<int>& binFeatureCombinationClassByDepth,
-        const TVector<TVector<double>>& weights,
-        size_t classCount,
-        size_t documentLeafIdx,
-        size_t documentLeafIdxReference,
-        size_t treeIdx,
-        TVector<TVector<double>>* shapValuesInternalByDepth
-    )
-        : Forest(forest)
-        , BinFeatureCombinationClassByDepth(binFeatureCombinationClassByDepth) 
-        , Weights(weights) 
-        , ListOfFeaturesDocumentLeaf(classCount) 
-        , ListOfFeaturesDocumentLeafReference(classCount) 
-        , DocumentLeafIdx(documentLeafIdx) 
-        , DocumentLeafIdxReference(documentLeafIdxReference) 
-        , TreeIdx(treeIdx) 
-        , DepthOfTree(Forest.GetTreeSizes()[TreeIdx]) 
-        , ApproxDimension(Forest.GetDimensionsCount()) 
-        , LeafValuesPtr(Forest.GetFirstLeafPtrForTree(TreeIdx)) 
-        , ShapValuesInternalByDepth(*shapValuesInternalByDepth) 
-    { 
-    }
-
-    TContribution Calc(
-        int depth = 0,
-        size_t nodeIdx = 0,
-        ui32 uniqueFeaturesCount = 0,
-        ui32 featureMatchedForegroundCount = 0
-    );
-};
-
-using TTransformFunc = double(*)(double target, double approx);
+namespace {
+    using TTransformFunc = double(*)(double target, double approx);
+}
 
 struct TIndependentTreeShapParams {
     TVector<TVector<double>> TransformedTargetOfDataset; // [documentIdx][dim]
