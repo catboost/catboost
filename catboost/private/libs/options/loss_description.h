@@ -40,6 +40,19 @@ namespace NCatboostOptions {
         TOption<TMap<TString, TString>> LossParams;
     };
 
+    template <typename T>
+    T GetParamOrDefault(const TMap<TString, TString>& lossParams, const TString& paramName, T defaultValue) {
+        if (lossParams.contains(paramName)) {
+            return FromString<T>(lossParams.at(paramName));
+        }
+        return defaultValue;
+    }
+
+    template <typename T>
+    T GetParamOrDefault(const TLossDescription& lossFunctionConfig, const TString& paramName, T defaultValue) {
+        return GetParamOrDefault(lossFunctionConfig.GetLossParams(), paramName, defaultValue);
+    }
+
     double GetLogLossBorder(const TLossDescription& lossFunctionConfig);
 
     double GetAlpha(const TMap<TString, TString>& lossParams);
