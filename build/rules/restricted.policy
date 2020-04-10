@@ -37,6 +37,9 @@ ALLOW yandex_io -> contrib/restricted/openal
 # Allowed subset of abseil is exported via library/
 ALLOW library/containers/absl_flat_hash -> contrib/restricted/abseil-cpp/absl/container
 
+# Prefer using skynet for data distribution
+ALLOW maps/infra/ecstatic/ymtorrent -> contrib/restricted/libtorrent
+
 # Only allow boost in yandex projects listed below
 ALLOW adfox -> contrib/restricted/boost
 ALLOW ads -> contrib/restricted/boost
