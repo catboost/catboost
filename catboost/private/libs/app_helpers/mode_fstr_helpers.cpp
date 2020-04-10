@@ -142,17 +142,7 @@ void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
                                     params.OutputPath.Path,
                                     params.Verbose,
                                     EPreCalcShapValues::Auto,
-                                    localExecutor.Get(),
-                                    ECalcTypeShapValues::Normal);
-            break;
-        case EFstrType::ApproximateShapValues:
-            CalcAndOutputShapValues(model,
-                                    *poolLoader(),
-                                    params.OutputPath.Path,
-                                    params.Verbose,
-                                    EPreCalcShapValues::Auto,
-                                    localExecutor.Get(),
-                                    ECalcTypeShapValues::Approximate);
+                                    localExecutor.Get());
             break;
         case EFstrType::PredictionDiff:
             CalcAndOutputPredictionDiff(
