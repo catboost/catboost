@@ -17,8 +17,6 @@ RECURSE(
     chromium_trace/benchmark
     chromium_trace/examples
     chromium_trace/ut
-    colorizer
-    colorizer/ut
     comptrie
     comptrie/loader
     comptrie/loader/ut
@@ -34,7 +32,6 @@ RECURSE(
     deprecated
     diff
     diff/ut
-    digest
     dns
     dns/ut
     enumbitset
@@ -120,12 +117,6 @@ RECURSE(
 IF (HAVE_CUDA)
     RECURSE(
     cuda
-)
-ENDIF()
-
-IF (OS_LINUX)
-    RECURSE(
-    
 )
 ENDIF()
 

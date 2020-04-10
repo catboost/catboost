@@ -108,11 +108,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\flat_hash\library-containers-flat_hash.vcxproj">
       <Project>{5FD588BE-C0D3-668F-80A4-E122B11CEE84}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\lower_case\cpp-digest-lower_case.vcxproj">
+      <Project>{93A05BE8-043A-10FC-0497-840803A20BA0}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\tokenizer\library-cpp-tokenizer.vcxproj">
       <Project>{033EAD89-E9BA-0341-D614-91C40D7F543A}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\digest\lower_case\library-digest-lower_case.vcxproj">
-      <Project>{98B506A2-A065-0821-3BB0-07FDF5C590A5}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\enumbitset\library-enumbitset.vcxproj">
       <Project>{001BC0D7-D4A9-8F1B-F8D9-077578710964}</Project>

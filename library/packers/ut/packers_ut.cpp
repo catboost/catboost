@@ -54,7 +54,7 @@ void TPackersTest::TestPacker(const TData& data) {
 
     TData dataTmp;
     TPacker().UnpackLeaf(buf.Get(), dataTmp);
-    UNIT_ASSERT(data == dataTmp)
+    UNIT_ASSERT(data == dataTmp);
 }
 
 template <class TData, class TPacker>

@@ -4,7 +4,7 @@
 #include "last_getopt.h"
 #include "wrap.h"
 
-#include <library/colorizer/colors.h>
+#include <library/cpp/colorizer/colors.h>
 
 #include <util/string/subst.h>
 

@@ -392,9 +392,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\chromium_trace\library-chromium_trace.vcxproj">
       <Project>{9541389A-C448-428A-BEEE-604F1A02F5EA}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\colorizer\library-colorizer.vcxproj">
-      <Project>{439BAFF9-1167-D24B-92A2-3A00BEE420B1}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\dense_hash\library-containers-dense_hash.vcxproj">
       <Project>{45F2062A-3F31-B7B8-9501-F0C86DB74515}</Project>
     </ProjectReference>
@@ -428,8 +425,20 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\accurate_accumulate\library-cpp-accurate_accumulate.vcxproj">
       <Project>{7F8E70FD-CC97-C5C2-A4A3-48036C893265}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\colorizer\library-cpp-colorizer.vcxproj">
+      <Project>{78881F22-8136-23DF-843E-58AA6DB6D337}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\2d_array\cpp-containers-2d_array.vcxproj">
       <Project>{245105A8-ED48-C3D9-83C3-D6894AA984B0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\crc32c\cpp-digest-crc32c.vcxproj">
+      <Project>{BAEF14A6-3BF3-DC3E-9335-9B6BF43917BC}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\lower_case\cpp-digest-lower_case.vcxproj">
+      <Project>{93A05BE8-043A-10FC-0497-840803A20BA0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\md5\cpp-digest-md5.vcxproj">
+      <Project>{4FF825A6-758B-94D9-9960-004CE22E96DF}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\dot_product\library-cpp-dot_product.vcxproj">
       <Project>{BAB48646-C601-88C8-A272-6E1619FA017C}</Project>
@@ -472,15 +481,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\diff\library-diff.vcxproj">
       <Project>{CDAC90AB-9242-5B30-D7E1-EED4B6E4FEAC}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\digest\crc32c\library-digest-crc32c.vcxproj">
-      <Project>{60AC81ED-1273-F1B9-1D99-3ED29CC2B4D0}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\digest\lower_case\library-digest-lower_case.vcxproj">
-      <Project>{98B506A2-A065-0821-3BB0-07FDF5C590A5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\digest\md5\library-digest-md5.vcxproj">
-      <Project>{ECB75138-E9C8-5662-6E1E-06BCA3ED01E6}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\dns\library-dns.vcxproj">
       <Project>{8C356353-67D3-3399-7DA3-792F6D7BF6D5}</Project>

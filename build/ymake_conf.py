@@ -487,6 +487,10 @@ class Build(object):
         return self.build_type == 'debug' or self.build_type.endswith('-debug')
 
     @property
+    def is_size_optimized(self):
+        return self.build_type == 'minsizerel'
+
+    @property
     def is_coverage(self):
         return self.build_type == 'coverage'
 
@@ -1058,6 +1062,11 @@ class GnuToolchain(Toolchain):
         if target.is_armv7_neon:
             self.c_flags_platform.append('-mfpu=neon')
 
+        if target.is_armv7 and build.is_size_optimized:
+            # Enable ARM Thumb2 variable-length instruction encoding
+            # to reduce code size
+            self.c_flags_platform.append('-mthumb')
+
         if target.is_arm or target.is_ppc64le:
             # On linux, ARM and PPC default to unsigned char
             # However, Arcadia requires char to be signed
@@ -1260,8 +1269,15 @@ class GnuCompiler(Compiler):
 
         if self.build.is_release:
             self.c_flags.append('$OPTIMIZE')
-            if self.build.build_type == 'minsizerel':
-                self.optimize = '-Os'
+            if self.build.is_size_optimized:
+                # -Oz is clang's more size-aggressive version of -Os
+                # For ARM specifically, clang -Oz is on par with gcc -Os:
+                # https://github.com/android/ndk/issues/133#issuecomment-365763507
+                if self.tc.is_clang:
+                    self.optimize = '-Oz'
+                else:
+                    self.optimize = '-Os'
+
                 self.c_foptions.extend(['-ffunction-sections', '-fdata-sections'])
             else:
                 self.optimize = '-O3'
@@ -1585,7 +1601,7 @@ class LD(Linker):
 
         self.ld_flags = []
 
-        if self.build.build_type == 'minsizerel':
+        if self.build.is_size_optimized:
             self.ld_flags.append('-Wl,--gc-sections')
 
         if self.musl.value:

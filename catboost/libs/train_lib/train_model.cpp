@@ -299,7 +299,12 @@ static void InitializeSamplingStructures(
     const int defaultCalcStatsObjBlockSize = static_cast<int>(ctx->Params.ObliviousTreeOptions->DevScoreCalcObjBlockSize);
 
     if (ctx->UseTreeLevelCaching()) {
-        ctx->SmallestSplitSideDocs.Create(ctx->LearnProgress->Folds, isPairwiseScoring, defaultCalcStatsObjBlockSize);
+        ctx->SmallestSplitSideDocs.Create(
+            ctx->LearnProgress->Folds,
+            isPairwiseScoring,
+            data.EstimatedObjectsData.GetFeatureCount() != 0,
+            defaultCalcStatsObjBlockSize
+        );
         ctx->PrevTreeLevelStats.Create(
             ctx->LearnProgress->Folds,
             CountNonCtrBuckets(
@@ -312,6 +317,7 @@ static void InitializeSamplingStructures(
     ctx->SampledDocs.Create(
         ctx->LearnProgress->Folds,
         isPairwiseScoring,
+        data.EstimatedObjectsData.GetFeatureCount() != 0,
         defaultCalcStatsObjBlockSize,
         GetBernoulliSampleRate(ctx->Params.ObliviousTreeOptions->BootstrapConfig)
     ); // TODO(espetrov): create only if sample rate < 1
@@ -535,17 +541,30 @@ static void SaveModel(
         quantizedFeaturesInfo.UnloadCatFeaturePerfectHashFromRam(tmpDir);
     }
 
+    const TQuantizedEstimatedFeaturesInfo onlineQuantizedEstimatedFeaturesInfo
+        = ctx.LearnProgress->GetOnlineEstimatedFeaturesInfo();
+
     TModelTrees modelTrees;
     THashMap<TFeatureCombination, TProjection> featureCombinationToProjectionMap;
     const std::function<TModelSplit(TSplit)> getModelSplit = [&] (const TSplit& split) {
-        auto modelSplit = split.GetModelSplit(ctx, perfectHashedToHashedCatValuesMap);
+        auto modelSplit = split.GetModelSplit(
+            ctx,
+            perfectHashedToHashedCatValuesMap,
+            *trainingDataForCpu.FeatureEstimators,
+            trainingDataForCpu.EstimatedObjectsData.QuantizedEstimatedFeaturesInfo,
+            onlineQuantizedEstimatedFeaturesInfo
+        );
         if (modelSplit.Type == ESplitType::OnlineCtr) {
             featureCombinationToProjectionMap[modelSplit.OnlineCtr.Ctr.Base.Projection] = split.Ctr.Projection;
         }
         return modelSplit;
     };
     if (ctx.Params.ObliviousTreeOptions->GrowPolicy == EGrowPolicy::SymmetricTree) {
-        TObliviousTreeBuilder builder(ctx.LearnProgress->FloatFeatures, ctx.LearnProgress->CatFeatures, {}, ctx.LearnProgress->ApproxDimension);
+        TObliviousTreeBuilder builder(
+            ctx.LearnProgress->FloatFeatures,
+            ctx.LearnProgress->CatFeatures,
+            ctx.LearnProgress->TextFeatures,
+            ctx.LearnProgress->ApproxDimension);
         for (size_t treeId = 0; treeId < ctx.LearnProgress->TreeStruct.size(); ++treeId) {
             TVector<TModelSplit> modelSplits;
             Y_ASSERT(HoldsAlternative<TSplitTree>(ctx.LearnProgress->TreeStruct[treeId]));
@@ -557,7 +576,11 @@ static void SaveModel(
         }
         builder.Build(&modelTrees);
     } else {
-        TNonSymmetricTreeModelBuilder builder(ctx.LearnProgress->FloatFeatures, ctx.LearnProgress->CatFeatures, {}, ctx.LearnProgress->ApproxDimension);
+        TNonSymmetricTreeModelBuilder builder(
+            ctx.LearnProgress->FloatFeatures,
+            ctx.LearnProgress->CatFeatures,
+            ctx.LearnProgress->TextFeatures,
+            ctx.LearnProgress->ApproxDimension);
         for (size_t treeId = 0; treeId < ctx.LearnProgress->TreeStruct.size(); ++treeId) {
             Y_ASSERT(HoldsAlternative<TNonSymmetricTreeStructure>(ctx.LearnProgress->TreeStruct[treeId]));
             const auto& structure = Get<TNonSymmetricTreeStructure>(ctx.LearnProgress->TreeStruct[treeId]);
@@ -594,23 +617,6 @@ static void SaveModel(
     datasetDataForFinalCtrs.TargetClassesCount = &ctx.LearnProgress->AveragingFold.TargetClassesCount;
 
     {
-        NCB::TCoreModelToFullModelConverter coreModelToFullModelConverter(
-            ctx.Params,
-            ctx.OutputOptions,
-            classificationTargetHelper,
-            ctx.Params.CatFeatureParams->CtrLeafCountLimit,
-            ctx.Params.CatFeatureParams->StoreAllSimpleCtrs,
-            ctx.OutputOptions.GetFinalCtrComputationMode(),
-            EFinalFeatureCalcersComputationMode::Skip // TODO(d-kruchinin) support feature estimators on CPU
-        );
-
-        coreModelToFullModelConverter.WithBinarizedDataComputedFrom(
-            std::move(datasetDataForFinalCtrs),
-            std::move(featureCombinationToProjectionMap)
-        ).WithPerfectHashedToHashedCatValuesMap(
-            &perfectHashedToHashedCatValuesMap
-        ).WithObjectsDataFrom(trainingDataForCpu.Learn->ObjectsData);
-
         const bool addResultModelToInitModel = ctx.LearnProgress->SeparateInitModelTreesSize != 0;
 
         TMaybe<TFullModel> fullModel;
@@ -624,9 +630,38 @@ static void SaveModel(
 
         *modelPtr->ModelTrees.GetMutable() = std::move(modelTrees);
         modelPtr->SetScaleAndBias({1, ctx.LearnProgress->StartingApprox.GetOrElse(0)});
-
         modelPtr->UpdateDynamicData();
-        coreModelToFullModelConverter.WithCoreModelFrom(modelPtr);
+
+        EFinalFeatureCalcersComputationMode featureCalcerComputationMode
+            = ctx.OutputOptions.GetFinalFeatureCalcerComputationMode();
+        if (modelPtr->ModelTrees->GetTextFeatures().empty() ||
+            modelPtr->ModelTrees->GetEstimatedFeatures().empty()
+        ) {
+            featureCalcerComputationMode = EFinalFeatureCalcersComputationMode::Skip;
+        }
+
+        NCB::TCoreModelToFullModelConverter coreModelToFullModelConverter(
+            ctx.Params,
+            ctx.OutputOptions,
+            classificationTargetHelper,
+            ctx.Params.CatFeatureParams->CtrLeafCountLimit,
+            ctx.Params.CatFeatureParams->StoreAllSimpleCtrs,
+            ctx.OutputOptions.GetFinalCtrComputationMode(),
+            featureCalcerComputationMode
+        );
+
+        coreModelToFullModelConverter.WithBinarizedDataComputedFrom(
+            std::move(datasetDataForFinalCtrs),
+            std::move(featureCombinationToProjectionMap)
+        ).WithPerfectHashedToHashedCatValuesMap(
+            &perfectHashedToHashedCatValuesMap
+        ).WithCoreModelFrom(
+            modelPtr
+        ).WithObjectsDataFrom(
+            trainingDataForCpu.Learn->ObjectsData
+        ).WithFeatureEstimators(
+            trainingDataForCpu.FeatureEstimators
+        );
 
         if (dstModel || addResultModelToInitModel) {
             coreModelToFullModelConverter.Do(true, modelPtr, ctx.LocalExecutor);
@@ -686,7 +721,6 @@ namespace {
             TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
             THolder<TLearnProgress>* dstLearnProgress
         ) const override {
-            CB_ENSURE(trainingData.FeatureEstimators->Empty(), "Feature calcers are not supported in CPU training yet");
             TTrainingForCPUDataProviders trainingDataForCpu
                 = trainingData.Cast<TQuantizedForCPUObjectsDataProvider>();
 
@@ -934,18 +968,18 @@ static void TrainModel(
 
     const bool needInitModelApplyCompatiblePools = initModel.Defined();
 
-    const bool isQuantizedLearn = dynamic_cast<TQuantizedObjectsDataProvider*>(pools.Learn->ObjectsData.Get());
-
     TString tmpDir;
     if (outputOptions.AllowWriteFiles()) {
         NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputOptions.GetTrainDir(), &tmpDir);
     }
 
+    const bool haveLearnFeaturesInMemory = HaveLearnFeaturesInMemory(poolLoadOptions, catBoostOptions);
+    CB_ENSURE_INTERNAL(
+        haveLearnFeaturesInMemory || poolLoadOptions, "Learn dataset is not loaded, and load options are not provided");
     TTrainingDataProviders trainingData = GetTrainingData(
         needInitModelApplyCompatiblePools ? pools : std::move(pools),
         /* borders */ Nothing(), // borders are already loaded to quantizedFeaturesInfo
-        /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/
-            HaveLearnFeaturesInMemory(poolLoadOptions, catBoostOptions),
+        /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/ haveLearnFeaturesInMemory,
         outputOptions.AllowWriteFiles(),
         tmpDir,
         quantizedFeaturesInfo,
@@ -956,7 +990,7 @@ static void TrainModel(
         initModel);
     if (catBoostOptions.SystemOptions->IsMaster()) {
         InitializeMaster(catBoostOptions.SystemOptions);
-        if (isQuantizedLearn && IsSharedFs(poolLoadOptions->LearnSetPath)) {
+        if (!haveLearnFeaturesInMemory) {
             SetTrainDataFromQuantizedPool(
                 *poolLoadOptions,
                 catBoostOptions,
@@ -966,7 +1000,7 @@ static void TrainModel(
             );
         } else {
             SetTrainDataFromMaster(
-                trainingData.Cast<TQuantizedForCPUObjectsDataProvider>().Learn,
+                trainingData.Cast<TQuantizedForCPUObjectsDataProvider>(),
                 ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get()),
                 executor
             );
@@ -985,6 +1019,10 @@ static void TrainModel(
         &updatedOutputOptions.UseBestModel,
         &catBoostOptions
     );
+
+    CB_ENSURE(
+        haveLearnFeaturesInMemory || catBoostOptions.BoostingOptions->BoostingType == EBoostingType::Plain,
+        "Only plain boosting is supported in distributed training for schema " << poolLoadOptions->LearnSetPath.Scheme);
 
     // Eval metric may not be set. If that's the case, we assign it to objective metric
     InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
@@ -1075,12 +1113,16 @@ void TrainModel(
     const bool isLossFunctionChangeFstr = needFstr && fstrType == EFstrType::LossFunctionChange;
 
     const bool haveLearnFeaturesInMemory = HaveLearnFeaturesInMemory(&loadOptions, catBoostOptions);
-    CB_ENSURE(
-        haveLearnFeaturesInMemory || !isLossFunctionChangeFstr,
-        "Only " << EFstrType::PredictionValuesChange << " is supported in distributed training for schema " << loadOptions.LearnSetPath.Scheme);
-    CB_ENSURE(
-        haveLearnFeaturesInMemory || catBoostOptions.BoostingOptions->BoostingType == EBoostingType::Plain,
-        "Only plain boosting is supported in distributed training for schema " << loadOptions.LearnSetPath.Scheme);
+    if (needFstr && !haveLearnFeaturesInMemory && fstrType != EFstrType::PredictionValuesChange) {
+        const auto& pathScheme = loadOptions.LearnSetPath.Scheme;
+        CB_ENSURE(
+            !outputOptions.IsFstrTypeSet(),
+            "Only fstr type " << EFstrType::PredictionValuesChange << " is supported in distributed training for schema " << pathScheme);
+        CATBOOST_WARNING_LOG << "Recommended fstr type " << fstrType << " is not supported in distributed training for schema "
+            << pathScheme << ";" << " fstr type is set to " << EFstrType::PredictionValuesChange << Endl;
+        fstrType = EFstrType::PredictionValuesChange;
+    }
+
     TDataProviders pools = LoadPools(
         loadOptions,
         catBoostOptions.GetTaskType(),
@@ -1208,7 +1250,7 @@ void TrainModel(
             &executor,
             &fstrRegularFileName,
             &fstrInternalFileName,
-            outputOptions.GetFstrType());
+            fstrType);
     }
 
     CATBOOST_INFO_LOG << runTimer.Passed() / 60 << " min passed" << Endl;

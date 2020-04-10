@@ -4,6 +4,11 @@ import sys
 import shutil
 
 if __name__ == '__main__':
+    # Support @response-file notation for windows to reduce cmd length
+    if sys.argv[1].startswith('@'):
+        with open(sys.argv[1][1:]) as afile:
+            sys.argv[1:] = afile.read().splitlines()
+
     mode = sys.argv[1]
     args = sys.argv[2:]
 

@@ -15,7 +15,7 @@ static void CalcIndicatorCoefficients(
     TArrayRef<ui32> treeLeafIdxes,
     TVector<TVector<double>>* floatFeatureImpact
 ) {
-    const auto treeSplitOffsets = model.ModelTrees->GetTreeStartOffsets();
+    const auto& treeSplitOffsets = model.ModelTrees->GetTreeStartOffsets();
     floatFeatureImpact->resize(model.ModelTrees->GetFloatFeatures().size());
 
     for (ui32 featureIdx = 0; featureIdx < floatFeatureImpact->size(); ++featureIdx) {
@@ -34,11 +34,11 @@ static void CalcIndicatorCoefficients(
             if (abs(diff) < 1e-12) {
                 continue;
             }
-            const auto splitIdx = model.ModelTrees->GetTreeSplits()[treeSplitOffsets[treeId] + depthIdx];
+            const int splitIdx = model.ModelTrees->GetTreeSplits()[treeSplitOffsets[treeId] + depthIdx];
             auto split = binSplits[splitIdx];
-            Y_ASSERT(split.Type == ESplitType::FloatFeature);
+            CB_ENSURE_INTERNAL(split.Type == ESplitType::FloatFeature, "Models only with float features are supported");
             int featureIdx = split.FloatFeature.FloatFeature;
-            auto splitNewIdx = borderIdxForSplit[splitIdx] + ((leafIdx >> depthIdx) & 1);
+            ui32 splitNewIdx = borderIdxForSplit[splitIdx] + ((leafIdx >> depthIdx) & 1);
             (*floatFeatureImpact)[featureIdx][splitNewIdx] += diff;
         }
         offset += (1ull << treeDepth);
@@ -91,11 +91,11 @@ TVector<TVector<double>> GetPredictionDiff(
     CB_ENSURE(model.IsOblivious(), "Is not supported for non symmetric trees");
     CB_ENSURE(model.ModelTrees->GetDimensionsCount() == 1,  "Is not supported for multiclass");
     CB_ENSURE(dataProvider.GetObjectCount() == 2, "PredictionDiff requires 2 documents for compare");
-    CB_ENSURE(model.GetNumCatFeatures() == 0, "Model with categorical features are not supported ");
+    CB_ENSURE(model.GetNumCatFeatures() == 0, "Models with categorical features are not supported");
 
     TVector<ui32> leafIdxes = CalcLeafIndexesMulti(model, dataProvider.ObjectsData, 0, 0);
 
-    const auto *const rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(dataProvider.ObjectsData.Get());
+    const auto* const rawObjectsData = dynamic_cast<const TRawObjectsDataProvider*>(dataProvider.ObjectsData.Get());
 
     const auto& binSplits = model.ModelTrees->GetBinFeatures();
 

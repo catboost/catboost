@@ -9,6 +9,7 @@
 #include <catboost/cuda/models/region_model.h>
 #include <catboost/cuda/models/non_symmetric_tree.h>
 #include <utility>
+#include <catboost/libs/data/feature_estimators.h>
 #include <catboost/libs/logging/logging.h>
 
 namespace NCatboostCuda {
@@ -54,12 +55,12 @@ namespace NCatboostCuda {
         };
 
         struct TCalculatedFeature {
-            TEstimatedFeature Feature;
+            NCB::TEstimatedFeatureId Feature;
             TVector<float> Borders;
 
             TCalculatedFeature() = default;
 
-            TCalculatedFeature(const TEstimatedFeature& id,
+            TCalculatedFeature(const NCB::TEstimatedFeatureId& id,
                               TVector<float> borders)
                 : Feature(id)
                 , Borders(std::move(borders))
@@ -169,7 +170,8 @@ namespace NCatboostCuda {
             if (FeaturesMap.FloatFeatures.contains(featureId)) {
                 return;
             }
-            FeaturesMap.FloatFeatures[featureId] = TModelFeaturesMap::TFloatFeature(FeaturesManager.GetDataProviderId(featureId),
+            // we store here featureManager id to store info about wide features splitted into N subfeatures
+            FeaturesMap.FloatFeatures[featureId] = TModelFeaturesMap::TFloatFeature(featureId,
                                                                                     FeaturesManager.GetBorders(featureId));
         }
 

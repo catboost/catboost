@@ -132,8 +132,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cgiparam\library-cgiparam.vcxproj">
       <Project>{AF572C0E-2445-0F56-2E4F-8E4C656C4786}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\digest\lower_case\library-digest-lower_case.vcxproj">
-      <Project>{98B506A2-A065-0821-3BB0-07FDF5C590A5}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\lower_case\cpp-digest-lower_case.vcxproj">
+      <Project>{93A05BE8-043A-10FC-0497-840803A20BA0}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\quote\library-string_utils-quote.vcxproj">
       <Project>{075BADF5-1D74-1D82-2261-20891F7B1B30}</Project>

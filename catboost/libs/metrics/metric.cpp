@@ -4118,6 +4118,16 @@ static TVector<TVector<T>> ConstructSquareMatrix(const TString& matrixString) {
     return result;
 }
 
+static bool HintedToEvalOnTrain(const TMap<TString, TString>& params) {
+    const bool hasHints = params.contains("hints");
+    const auto& hints = hasHints ? ParseHintsDescription(params.at("hints")) : TMap<TString, TString>();
+    return hasHints && hints.contains("skip_train") && hints.at("skip_train") == "false";
+}
+
+static bool HintedToEvalOnTrain(const NCatboostOptions::TLossDescription& metricDescription) {
+    return HintedToEvalOnTrain(metricDescription.GetLossParams());
+}
+
 static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<TString, TString>& params, int approxDimension) {
     const double binaryClassPredictionBorder = NCatboostOptions::GetPredictionBorderFromLossParams(params).GetOrElse(
             GetDefaultPredictionBorder());
@@ -4468,6 +4478,9 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
         for (THolder<IMetric>& metricHolder : result) {
             metricHolder->AddHint("skip_train", "true");
         }
+        if (!HintedToEvalOnTrain(params)) {
+            CATBOOST_INFO_LOG << "Metric " << metric << " is not calculated on train by default. To calculate this metric on train, add hints=skip_train~false to metric parameters." << Endl;
+        }
     }
 
     if (params.contains("hints")) { // TODO(smirnovpavel): hints shouldn't be added for each metric
@@ -4541,13 +4554,6 @@ static void SetHintToCalcMetricOnTrain(const THashSet<TString>& metricsToCalcOnT
             error->AddHint("skip_train", "false");
         }
     }
-}
-
-static bool HintedToEvalOnTrain(const NCatboostOptions::TLossDescription& metricDescription) {
-    const auto& params = metricDescription.GetLossParams();
-    const bool hasHints = params.contains("hints");
-    const auto& hints = hasHints ? ParseHintsDescription(params.at("hints")) : TMap<TString, TString>();
-    return hasHints && hints.contains("skip_train") && hints.at("skip_train") == "false";
 }
 
 void InitializeEvalMetricIfNotSet(

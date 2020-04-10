@@ -220,7 +220,7 @@ Y_UNIT_TEST_SUITE(NehHttp) {
                 const int yes = 1;
                 ::setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&yes, sizeof(yes));
             }
-            UNIT_ASSERT_C(bind(serverSocket, serverEp.SockAddr(), serverEp.SockAddrLen()) != SOCKET_ERROR, "can't bind server socket")
+            UNIT_ASSERT_C(bind(serverSocket, serverEp.SockAddr(), serverEp.SockAddrLen()) != SOCKET_ERROR, "can't bind server socket");
             UNIT_ASSERT_C(listen(serverSocket, 2) != SOCKET_ERROR, "can't listen on server socket");
 
             // Test system for max send buf size

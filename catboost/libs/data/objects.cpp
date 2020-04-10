@@ -403,6 +403,9 @@ static bool AreFeaturesValuesEqual(
     if (!lhs) {
         return !rhs;
     }
+    if (!rhs) {
+        return false;
+    }
     if (lhs->GetSize() != rhs->GetSize()) {
         return false;
     }

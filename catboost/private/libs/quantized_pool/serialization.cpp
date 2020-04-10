@@ -935,8 +935,14 @@ namespace NCB {
                     featuresLayout->GetInternalFeatureIdx<EFeatureType::Float>(externalFeatureIdx);
 
                 //for quantizationSchema
-                borders.push_back(quantizedFeaturesInfo->GetBorders(floatFeatureIdx));
-                nanModes.push_back(quantizedFeaturesInfo->GetNanMode(floatFeatureIdx));
+                const auto featureBorders = quantizedFeaturesInfo->HasBorders(floatFeatureIdx)
+                    ? quantizedFeaturesInfo->GetBorders(floatFeatureIdx)
+                    : TVector<float>();
+                const auto featureNanMode = quantizedFeaturesInfo->HasNanMode(floatFeatureIdx)
+                    ? quantizedFeaturesInfo->GetNanMode(floatFeatureIdx)
+                    : ENanMode::Forbidden;
+                borders.push_back(featureBorders);
+                nanModes.push_back(featureNanMode);
                 featureIndices.push_back(featureIndices.size());
 
                 //for floatFeatures

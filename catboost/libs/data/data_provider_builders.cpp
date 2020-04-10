@@ -1277,11 +1277,7 @@ namespace NCB {
 
             TConstArrayRef<NJson::TJsonValue> schemaClassLabels = poolQuantizationSchema.ClassLabels;
 
-            if (metaInfo.TargetType == ERawTargetType::String) {
-                CB_ENSURE(
-                    !schemaClassLabels.empty(),
-                    "poolQuantizationSchema must have class labels when target data type is String"
-                );
+            if (metaInfo.TargetType == ERawTargetType::String && !schemaClassLabels.empty()) {
                 CB_ENSURE(
                     schemaClassLabels[0].GetType() == NJson::JSON_STRING,
                     "poolQuantizationSchema must have string class labels when target data type is String"

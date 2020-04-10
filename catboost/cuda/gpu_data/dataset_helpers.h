@@ -98,17 +98,32 @@ namespace NCatboostCuda {
             TVector<ui32> featureBinCounts(featureCount);
             for (auto taskIdx : xrange(featureCount)) {
                 const auto feature = features[taskIdx];
-                const auto featureId = FeaturesManager.GetDataProviderId(feature);
-                const auto floatFeatureIdx = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(featureId);
-                auto featureBinCounts = objectsData.GetQuantizedFeaturesInfo()->GetBinCount(floatFeatureIdx);
-                const auto& featuresHolder = **(objectsData.GetFloatFeature(*floatFeatureIdx));
+                const auto dataProviderFeatureId = FeaturesManager.GetDataProviderId(feature);
+                const auto floatFeatureIdx = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(dataProviderFeatureId);
+                auto& subFeatures = FeaturesManager.GetFeatureManagerIdForFloatFeature(dataProviderFeatureId);
 
-                IndexBuilder.Write(
-                    DataSetId,
-                    features[taskIdx],
-                    featureBinCounts,
-                    &featuresHolder
-                );
+                if (subFeatures.size() == 1) {
+                    IndexBuilder.Write(
+                        DataSetId,
+                        features[taskIdx],
+                        FeaturesManager.GetBinCount(feature),
+                        *objectsData.GetFloatFeature(*floatFeatureIdx)
+                    );
+                } else {
+                    auto subFeaturePosition = std::find(subFeatures.begin(), subFeatures.end(), feature);
+                    CB_ENSURE_INTERNAL(subFeaturePosition != subFeatures.end(), "Sub feature not found");
+                    auto subFeatureId = subFeaturePosition - subFeatures.begin();
+                    ui16 baseValue = subFeatureId * 255;
+                    IndexBuilder.Write(
+                        DataSetId,
+                        features[taskIdx],
+                        FeaturesManager.GetBinCount(feature),
+                        *objectsData.GetFloatFeature(*floatFeatureIdx),
+                        [baseValue] (ui16 value) -> ui8 {
+                            return (ui8)Min(Max(value - baseValue, 0), 255);
+                        }
+                    );
+                }
             }
         }
 
@@ -309,7 +324,7 @@ namespace NCatboostCuda {
             auto binarizedWriter = [&](
                 ui32 dataSetId,
                 TConstArrayRef<ui8> binarizedFeature,
-                TEstimatedFeature feature,
+                NCB::TEstimatedFeatureId feature,
                 ui8 binCount
             ) {
                 const auto featureId = FeaturesManager.GetId(feature);

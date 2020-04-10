@@ -44,4 +44,8 @@ DEPENDS(
     catboost/python-package/ut/medium/python_binary
 )
 
+IF (CATBOOST_OPENSOURCE AND AUTOCHECK)
+    INCLUDE(${ARCADIA_ROOT}/catboost//oss/checks/check_deps.inc)
+ENDIF()
+
 END()

@@ -38,29 +38,7 @@ yatest_logger = logging.getLogger("ya.test")
 
 
 _pytest.main.EXIT_NOTESTSCOLLECTED = 0
-COVERAGE_INSTANCE = [0]
-COVERAGE_ENV_NAME = 'PYTHON_COVERAGE_PREFIX'
 SHUTDOWN_REQUESTED = False
-
-# Start coverage collection as soon as possible to avoid missing coverage for modules imported from plugins
-if COVERAGE_ENV_NAME in os.environ:
-    try:
-        import coverage
-    except ImportError:
-        coverage = None
-        logging.exception("Failed to import coverage module - no coverage will be collected")
-
-    if coverage:
-        cov = coverage.Coverage(
-            data_file=os.environ.get(COVERAGE_ENV_NAME),
-            concurrency=['multiprocessing', 'thread'],
-            auto_data=True,
-            branch=True,
-            # debug=['pid', 'trace', 'sys', 'config'],
-        )
-        cov.start()
-        COVERAGE_INSTANCE[0] = cov
-        logging.info("Coverage will be collected during testing. pid: %d", os.getpid())
 
 
 def to_str(s):
@@ -110,6 +88,31 @@ class YaTestLoggingFileHandler(logging.FileHandler):
     pass
 
 
+class _TokenFilterFormatter(logging.Formatter):
+    def __init__(self, fmt):
+        super(_TokenFilterFormatter, self).__init__(fmt)
+        self._replacements = []
+        if not self._replacements:
+            if six.PY2:
+                for k, v in os.environ.iteritems():
+                    if k.endswith('TOKEN') and v:
+                        self._replacements.append(v)
+            elif six.PY3:
+                for k, v in os.environ.items():
+                    if k.endswith('TOKEN') and v:
+                        self._replacements.append(v)
+            self._replacements = sorted(self._replacements)
+
+    def _filter(self, s):
+        for r in self._replacements:
+            s = s.replace(r, "[SECRET]")
+
+        return s
+
+    def format(self, record):
+        return self._filter(super(_TokenFilterFormatter, self).format(record))
+
+
 def setup_logging(log_path, level=logging.DEBUG, *other_logs):
     logs = [log_path] + list(other_logs)
     root_logger = logging.getLogger()
@@ -120,7 +123,7 @@ def setup_logging(log_path, level=logging.DEBUG, *other_logs):
     for log_file in logs:
         file_handler = YaTestLoggingFileHandler(log_file)
         log_format = '%(asctime)s - %(levelname)s - %(name)s - %(funcName)s: %(message)s'
-        file_handler.setFormatter(logging.Formatter(log_format))
+        file_handler.setFormatter(_TokenFilterFormatter(log_format))
         file_handler.setLevel(level)
         root_logger.addHandler(file_handler)
 
@@ -219,11 +222,6 @@ def pytest_configure(config):
             if envvar + '_ORIGINAL' in os.environ:
                 os.environ[envvar] = os.environ[envvar + '_ORIGINAL']
 
-    config.coverage = None
-    if COVERAGE_INSTANCE[0]:
-        cov_prefix = os.environ[COVERAGE_ENV_NAME]
-        config.coverage_data_dir = os.path.dirname(cov_prefix)
-
     if config.option.root_dir:
         config.rootdir = config.invocation_dir = py.path.local(config.option.root_dir)
 
@@ -253,8 +251,11 @@ def pytest_configure(config):
 
 
 def _smooth_shutdown(*args):
-    if COVERAGE_INSTANCE[0]:
-        COVERAGE_INSTANCE[0].stop()
+    try:
+        import library.python.coverage
+        library.python.coverage.stop_coverage_tracing()
+    except ImportError:
+        pass
     pytest.exit("Smooth shutdown requested")
 
 

@@ -292,6 +292,7 @@ namespace NCB {
     template <class TTObjectsDataProvider>
     class TProcessedDataProviderTemplate : public TThrRefBase {
     public:
+        TFeaturesLayoutPtr OriginalFeaturesLayout; // because Quantize can be destructive now
         TDataMetaInfo MetaInfo;
         TObjectsGroupingPtr ObjectsGrouping;
         TIntrusivePtr<TTObjectsDataProvider> ObjectsData;
@@ -301,12 +302,14 @@ namespace NCB {
         TProcessedDataProviderTemplate() = default;
 
         TProcessedDataProviderTemplate(
+            TFeaturesLayoutPtr originalFeaturesLayout,
             TDataMetaInfo&& metaInfo,
             TObjectsGroupingPtr objectsGrouping,
             TIntrusivePtr<TTObjectsDataProvider> objectsData,
             TTargetDataProviderPtr targetData
         )
-            : MetaInfo(std::move(metaInfo))
+            : OriginalFeaturesLayout(std::move(originalFeaturesLayout))
+            , MetaInfo(std::move(metaInfo))
             , ObjectsGrouping(objectsGrouping)
             , ObjectsData(std::move(objectsData))
             , TargetData(std::move(targetData))
@@ -315,6 +318,7 @@ namespace NCB {
         /* does not share serialized data with external structures
          *
          *  order of serialization is the following
+         *  [OriginalFeaturesLayout]
          *  [MetaInfo]
          *  [ObjectsGrouping]
          *  [ObjectsData.CommonData.NonSharedPart]
@@ -361,6 +365,7 @@ namespace NCB {
             ExecuteTasksInParallel(&tasks, localExecutor);
 
             auto subset = MakeIntrusive<TProcessedDataProviderTemplate>(
+                OriginalFeaturesLayout,
                 TDataMetaInfo(MetaInfo), // assuming copying it is not very expensive
                 objectsDataSubset->GetObjectsGrouping(),
                 std::move(objectsDataSubset),
@@ -372,10 +377,11 @@ namespace NCB {
         }
 
         template <class TNewObjectsDataProvider>
-        TProcessedDataProviderTemplate<TNewObjectsDataProvider> Cast() {
+        TProcessedDataProviderTemplate<TNewObjectsDataProvider> Cast() const {
             TProcessedDataProviderTemplate<TNewObjectsDataProvider> newDataProvider;
             auto* newObjectsDataProvider = dynamic_cast<TNewObjectsDataProvider*>(ObjectsData.Get());
             CB_ENSURE_INTERNAL(newObjectsDataProvider, "Cannot cast to requested objects type");
+            newDataProvider.OriginalFeaturesLayout = OriginalFeaturesLayout;
             newDataProvider.MetaInfo = MetaInfo;
             newDataProvider.ObjectsGrouping = ObjectsGrouping;
             newDataProvider.ObjectsData = newObjectsDataProvider;
@@ -401,6 +407,7 @@ namespace NCB {
 
     template <class TTObjectsDataProvider>
     int TProcessedDataProviderTemplate<TTObjectsDataProvider>::operator&(IBinSaver& binSaver) {
+        AddWithShared(&binSaver, &OriginalFeaturesLayout);
         AddWithShared(&binSaver, &MetaInfo);
         AddWithShared(&binSaver, &ObjectsGrouping);
         if (binSaver.IsReading()) {
@@ -500,6 +507,128 @@ namespace NCB {
         return result;
     }
 
+
+    struct TQuantizedEstimatedFeaturesInfo {
+    public:
+        TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
+        TVector<TEstimatedFeatureId> Layout; // [objectDataProvider FeatureIdx]
+
+    public:
+         inline int operator&(IBinSaver& binSaver) {
+             AddWithSharedMulti(&binSaver, QuantizedFeaturesInfo);
+             binSaver.Add(0, &Layout);
+             return 0;
+         }
+    };
+
+    template <class TTObjectsDataProvider>
+    void SerializeNonShared(IBinSaver* binSaver, TIntrusivePtr<TTObjectsDataProvider>* objectsData) {
+        bool nonEmpty;
+        TFeaturesLayoutPtr featuresLayout;
+        TObjectsGroupingPtr objectsGrouping;
+
+        if (binSaver->IsReading()) {
+            binSaver->Add(0, &nonEmpty);
+            if (!nonEmpty) {
+                objectsData->Reset();
+                return;
+            }
+
+            AddWithSharedMulti(binSaver, featuresLayout, objectsGrouping);
+
+            TObjectsSerialization::Load<TTObjectsDataProvider>(
+                std::move(featuresLayout),
+                std::move(objectsGrouping),
+                binSaver,
+                objectsData
+            );
+        } else {
+            nonEmpty = objectsData->Get() != nullptr;
+            binSaver->Add(0, &nonEmpty);
+            if (!nonEmpty) {
+                return;
+            }
+            featuresLayout = (*objectsData)->GetFeaturesLayout();
+            objectsGrouping = (*objectsData)->GetObjectsGrouping();
+            AddWithSharedMulti(binSaver, featuresLayout, objectsGrouping);
+
+            TObjectsSerialization::SaveNonSharedPart<TTObjectsDataProvider>(**objectsData, binSaver);
+        }
+    }
+
+    template <class TTObjectsDataProvider>
+    class TEstimatedObjectsDataProvidersTemplate {
+    public:
+        using TTObjectsDataProviderPtr = TIntrusivePtr<TTObjectsDataProvider>;
+
+        TTObjectsDataProviderPtr Learn; // can be nullptr
+        TVector<TTObjectsDataProviderPtr> Test;
+
+        TFeatureEstimatorsPtr FeatureEstimators;
+
+        TQuantizedEstimatedFeaturesInfo QuantizedEstimatedFeaturesInfo;
+
+    public:
+        // FeatureEstimators is non-serializable
+        inline int operator&(IBinSaver& binSaver) {
+             SerializeNonShared(&binSaver, &Learn);
+             size_t testCount;
+             if (!binSaver.IsReading()) {
+                 testCount = Test.size();
+             }
+             binSaver.Add(0, &testCount);
+             if (binSaver.IsReading()) {
+                 Test.resize(testCount);
+             }
+             for (auto& testPart : Test) {
+                 SerializeNonShared(&binSaver, &testPart);
+             }
+             binSaver.Add(0, &QuantizedEstimatedFeaturesInfo);
+             return 0;
+         }
+
+        ui32 GetFeatureCount() const {
+            return QuantizedEstimatedFeaturesInfo.Layout.size();
+        }
+
+        TQuantizedFeaturesInfoPtr GetQuantizedFeaturesInfo() const {
+            return QuantizedEstimatedFeaturesInfo.QuantizedFeaturesInfo;
+        }
+
+        ui32 CalcFeaturesCheckSum(NPar::TLocalExecutor* localExecutor) const {
+            ui32 checkSum = 0;
+            if (Learn) {
+                checkSum += Learn->CalcFeaturesCheckSum(localExecutor);
+            }
+            for (const auto& testData : Test) {
+                checkSum += testData->CalcFeaturesCheckSum(localExecutor);
+            }
+            return checkSum;
+        }
+
+        template <class TNewObjectsDataProvider>
+        TEstimatedObjectsDataProvidersTemplate<TNewObjectsDataProvider> Cast() const {
+            TEstimatedObjectsDataProvidersTemplate<TNewObjectsDataProvider> newData;
+            if (Learn) {
+                newData.Learn = dynamic_cast<TNewObjectsDataProvider*>(Learn.Get());
+                CB_ENSURE_INTERNAL(newData.Learn, "Cannot cast to requested objects type");
+            }
+            for (auto& testData : Test) {
+                newData.Test.emplace_back(
+                    dynamic_cast<TNewObjectsDataProvider*>(testData.Get())
+                );
+                CB_ENSURE_INTERNAL(newData.Test.back(), "Cannot cast to requested objects type");
+            }
+            newData.FeatureEstimators = FeatureEstimators;
+            newData.QuantizedEstimatedFeaturesInfo = QuantizedEstimatedFeaturesInfo;
+            return newData;
+        }
+    };
+
+    using TEstimatedForCPUObjectsDataProviders
+        = TEstimatedObjectsDataProvidersTemplate<TQuantizedForCPUObjectsDataProvider>;
+
+
     template <class TTObjectsDataProvider>
     class TTrainingDataProvidersTemplate {
     public:
@@ -509,10 +638,19 @@ namespace NCB {
 
         TTrainingDataProviderTemplatePtr Learn;
         TVector<TTrainingDataProviderTemplatePtr> Test;
+
         TFeatureEstimatorsPtr FeatureEstimators = MakeIntrusive<TFeatureEstimators>();
 
+        // not filled for GPU to save memory
+        TEstimatedObjectsDataProvidersTemplate<TTObjectsDataProvider> EstimatedObjectsData;
+
     public:
-        SAVELOAD_WITH_SHARED(Learn, Test)
+        // FeatureEstimators is non-serializable
+        inline int operator&(IBinSaver& binSaver) {
+             AddWithSharedMulti(&binSaver, Learn, Test);
+             binSaver.Add(0, &EstimatedObjectsData);
+             return 0;
+         }
 
         ui32 GetTestSampleCount() const {
             return NCB::GetObjectCount<TTObjectsDataProvider>(Test);
@@ -523,11 +661,11 @@ namespace NCB {
         }
 
         TFeaturesLayoutPtr GetFeaturesLayout() const {
-            return Learn->MetaInfo.GetFeaturesLayout();
+            return Learn->MetaInfo.FeaturesLayout;
         }
 
         template <class TNewObjectsDataProvider>
-        TTrainingDataProvidersTemplate<TNewObjectsDataProvider> Cast() {
+        TTrainingDataProvidersTemplate<TNewObjectsDataProvider> Cast() const {
             using TNewData = TProcessedDataProviderTemplate<TNewObjectsDataProvider>;
 
             TTrainingDataProvidersTemplate<TNewObjectsDataProvider> newData;
@@ -537,6 +675,9 @@ namespace NCB {
                     MakeIntrusive<TNewData>(testData->template Cast<TNewObjectsDataProvider>())
                 );
             }
+            newData.FeatureEstimators = FeatureEstimators;
+            newData.EstimatedObjectsData = EstimatedObjectsData.template Cast<TNewObjectsDataProvider>();
+
             return newData;
         }
 
@@ -545,6 +686,7 @@ namespace NCB {
             for (const auto& testData : Test) {
                 checkSum += testData->ObjectsData->CalcFeaturesCheckSum(localExecutor);
             }
+            checkSum += EstimatedObjectsData.CalcFeaturesCheckSum(localExecutor);
             return checkSum;
         }
     };
