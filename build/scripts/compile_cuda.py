@@ -137,7 +137,8 @@ def main():
     # directory.  To stabilize the names of these symbols we need to fix mtime,
     # timezone, and cwd.
     os.environ['LD_PRELOAD'] = mtime0
-    os.environ['TZ'] = 'UTC'
+    os.environ['TZ'] = 'UTC0'  # POSIX fixed offset format.
+    os.environ['TZDIR'] = '/var/empty'  # Against counterfeit /usr/share/zoneinfo/$TZ.
 
     if dump_args:
         sys.stdout.write('\n'.join(command))
