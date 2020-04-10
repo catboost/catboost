@@ -849,9 +849,13 @@
         "checksum": "9842358f4b8a9a7427b8be7bc46c9956",
         "uri": "file://test.test_prediction_diff_feature_importance/feature_importance.npy"
     },
-    "test.test_prediction_diff_nonsym_feature_importance": {
-        "checksum": "8aa2a68ab4867bc8be41bf2a98f3d9a3",
-        "uri": "file://test.test_prediction_diff_nonsym_feature_importance/feature_importance.npy"
+    "test.test_prediction_diff_nonsym_feature_importance[Lossguide]": {
+        "checksum": "140c0e29e0539f15e561e4c900257da7",
+        "uri": "file://test.test_prediction_diff_nonsym_feature_importance_Lossguide_/feature_importance.txt"
+    },
+    "test.test_prediction_diff_nonsym_feature_importance[Depthwise]": {
+        "checksum": "9287b46613e4de35e19e169bd38a4d6b",
+        "uri": "file://test.test_prediction_diff_nonsym_feature_importance_Depthwise_/feature_importance.txt"
     },
     "test.test_prediction_plot": {
         "checksum": "c8096f03bb3dcc5d6f1ea88209bd798d",
