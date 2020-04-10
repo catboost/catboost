@@ -1185,7 +1185,8 @@ void CalcShapValuesForDocumentMulti(
     int featuresCount,
     TConstArrayRef<NModelEvaluation::TCalcerIndexType> docIndices,
     size_t documentIdxInBlock,
-    TVector<TVector<double>>* shapValues
+    TVector<TVector<double>>* shapValues,
+    ECalcTypeShapValues calcType
 ) {
     CalcShapValuesForDocumentMulti(
         model,
@@ -1195,7 +1196,8 @@ void CalcShapValuesForDocumentMulti(
         featuresCount,
         docIndices,
         documentIdxInBlock,
-        shapValues
+        shapValues,
+        calcType
     );
 }
 
