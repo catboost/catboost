@@ -248,11 +248,11 @@
         "gofmt": {
             "description": "Run gofmt tool (1.13.6)"
         },
-        "go_1.14.1": {
-            "description": "Run go tool (1.14.1)"
+        "go_1.14.2": {
+            "description": "Run go tool (1.14.2)"
         },
-        "gofmt_1.14.1": {
-            "description": "Run gofmt tool (1.14.1)"
+        "gofmt_1.14.2": {
+            "description": "Run gofmt tool (1.14.2)"
         },
         "godoc": {
             "description": "Arcadia version of godoc"
@@ -5045,19 +5045,19 @@
                 "version": "1.13.6"
             }
         },
-        "golang_1_14_1": {
+        "golang_1_14_2": {
             "tools": {
-                "golang_1.14.1": {
-                    "bottle": "golang_1.14.1",
-                    "executable": "golang_1.14.1"
+                "golang_1.14.2": {
+                    "bottle": "golang_1.14.2",
+                    "executable": "golang_1.14.2"
                 },
-                "go_1.14.1": {
-                    "bottle": "golang_1.14.1",
-                    "executable": "go_1.14.1"
+                "go_1.14.2": {
+                    "bottle": "golang_1.14.2",
+                    "executable": "go_1.14.2"
                 },
-                "gofmt_1.14.1": {
-                    "bottle": "golang_1.14.1",
-                    "executable": "gofmt_1.14.1"
+                "gofmt_1.14.2": {
+                    "bottle": "golang_1.14.2",
+                    "executable": "gofmt_1.14.2"
                 }
             },
             "platforms": [
@@ -5082,7 +5082,7 @@
             ],
             "params": {
                 "type": "golang",
-                "version": "1.14.1"
+                "version": "1.14.2"
             }
         },
         "godoc": {
@@ -7369,21 +7369,21 @@
                 ]
             }
         },
-        "golang_1.14.1": {
+        "golang_1.14.2": {
             "formula": {
                 "sandbox_id": [
-                    634638788,
-                    634639535,
-                    634640440
+                    649065905,
+                    649066533,
+                    649067244
                 ],
                 "match": "GOLANG"
             },
             "executable": {
-                "go_1.14.1": [
+                "go_1.14.2": [
                     "bin",
                     "go"
                 ],
-                "gofmt_1.14.1": [
+                "gofmt_1.14.2": [
                     "bin",
                     "gofmt"
                 ]
