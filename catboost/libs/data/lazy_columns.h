@@ -81,11 +81,6 @@ namespace NCB {
             );
         }
 
-        TMaybeOwningArrayHolder<typename TBase::TValueType> ExtractValues(NPar::TLocalExecutor* /*localExecutor*/) const override {
-            const ui32 featureId = TBase::GetId();
-            return TMaybeOwningArrayHolder<typename TBase::TValueType>::CreateOwning(PoolLoader->LoadQuantizedColumn(featureId));
-        }
-
     private:
         std::shared_ptr<TLoadedColumnData> GetColumnData() const {
             with_lock(LoadDataLock) {

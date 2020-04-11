@@ -23,32 +23,6 @@ namespace NCB {
         );
     }
 
-    NCB::TMaybeOwningArrayHolder<ui8> TExternalFloatValuesHolder::ExtractValues(
-        NPar::TLocalExecutor* localExecutor
-    ) const {
-        TVector<ui8> result;
-        result.yresize(GetSize());
-
-        const auto floatFeatureIdx = QuantizedFeaturesInfo->GetPerTypeFeatureIdx<EFeatureType::Float>(*this);
-        const auto nanMode = QuantizedFeaturesInfo->GetNanMode(floatFeatureIdx);
-
-        // it's ok even if it is learn data, for learn nans are checked at CalcBordersAndNanMode stage
-        bool allowNans = (nanMode != ENanMode::Forbidden) ||
-            QuantizedFeaturesInfo->GetFloatFeaturesAllowNansInTestOnly();
-
-        Quantize(
-            *SrcData,
-            allowNans,
-            nanMode,
-            GetId(),
-            QuantizedFeaturesInfo->GetBorders(floatFeatureIdx),
-            MakeArrayRef(result),
-            localExecutor
-        );
-
-        return NCB::TMaybeOwningArrayHolder<ui8>::CreateOwning(std::move(result));
-    }
-
     IDynamicBlockIteratorBasePtr TExternalFloatValuesHolder::GetBlockIterator(ui32 offset) const {
         const auto floatFeatureIdx = QuantizedFeaturesInfo->GetPerTypeFeatureIdx<EFeatureType::Float>(*this);
         const auto nanMode = QuantizedFeaturesInfo->GetNanMode(floatFeatureIdx);
@@ -97,30 +71,6 @@ namespace NCB {
         );
     }
 
-    NCB::TMaybeOwningArrayHolder<ui32> TExternalCatValuesHolder::ExtractValues(
-        NPar::TLocalExecutor* localExecutor
-    ) const {
-        TVector<ui32> result;
-        result.yresize(GetSize());
-
-        TArrayRef<ui32> resultRef = result;
-
-        const auto catFeatureIdx = QuantizedFeaturesInfo->GetPerTypeFeatureIdx<EFeatureType::Categorical>(
-            *this
-        );
-        const auto& perfectHash = QuantizedFeaturesInfo->GetCategoricalFeaturesPerfectHash(catFeatureIdx);
-
-        SrcData->ParallelForEach(
-            [resultRef, &perfectHash] (ui32 idx, ui32 srcValue) {
-                resultRef[idx] = perfectHash.Find(srcValue)->Value;
-            },
-            localExecutor,
-            BINARIZATION_BLOCK_SIZE
-        );
-
-        return NCB::TMaybeOwningArrayHolder<ui32>::CreateOwning(std::move(result));
-    }
-
     IDynamicBlockIteratorBasePtr TExternalCatValuesHolder::GetBlockIterator(ui32 offset) const {
         const auto catFeatureIdx = QuantizedFeaturesInfo->GetPerTypeFeatureIdx<EFeatureType::Categorical>(
             *this
@@ -136,38 +86,6 @@ namespace NCB {
             SrcData->GetBlockIterator(offset),
             std::move(transformer)
         );
-    }
-
-    NCB::TMaybeOwningArrayHolder<ui8> TExternalFloatSparseValuesHolder::ExtractValues(
-        NPar::TLocalExecutor* localExecutor
-    ) const {
-        Y_UNUSED(localExecutor);
-
-        const auto flatFeatureIdx = GetId();
-        const auto floatFeatureIdx = QuantizedFeaturesInfo->GetPerTypeFeatureIdx<EFeatureType::Float>(*this);
-        const auto nanMode = QuantizedFeaturesInfo->GetNanMode(floatFeatureIdx);
-
-        // it's ok even if it is learn data, for learn nans are checked at CalcBordersAndNanMode stage
-        bool allowNans = (nanMode != ENanMode::Forbidden) ||
-            QuantizedFeaturesInfo->GetFloatFeaturesAllowNansInTestOnly();
-
-        TConstArrayRef<float> borders = QuantizedFeaturesInfo->GetBorders(floatFeatureIdx);
-
-        const ui8 quantizedDefaultValue
-            = Quantize<ui8>(flatFeatureIdx, allowNans, nanMode, borders, SrcData.GetDefaultValue());
-
-        TVector<ui8> result(GetSize(), quantizedDefaultValue);
-
-        TArrayRef<ui8> resultRef = result;
-
-        SrcData.ForEachNonDefault(
-            [=] (ui32 nonDefaultIdx, float srcValue) {
-                resultRef[nonDefaultIdx]
-                    = Quantize<ui8>(flatFeatureIdx, allowNans, nanMode, borders, srcValue);
-            }
-        );
-
-        return NCB::TMaybeOwningArrayHolder<ui8>::CreateOwning(std::move(result));
     }
 
     IDynamicBlockIteratorBasePtr TExternalFloatSparseValuesHolder::GetBlockIterator(ui32 offset) const {
@@ -234,7 +152,7 @@ namespace NCB {
         return Max(ramUsedDuringBuilding, ramUsedDuringSparseCompressedValuesHolderImplCreation);
     }
 
-    template <class TDstColumn, class TValue, class TSize, class TQuantizeValueFunction>
+    template <class TDstColumn, typename TDstColumnValueType, class TValue, class TSize, class TQuantizeValueFunction>
     static THolder<IFeatureValuesHolder> CreateQuantizedSparseSubset(
         ui32 featureId,
         const TConstPolymorphicValuesSparseArray<TValue, TSize>& srcData,
@@ -245,7 +163,7 @@ namespace NCB {
         TConstArrayRef<ui32> invertedIndicesArray = invertedIndexedSubset.GetMapping();
 
         TVector<ui32> dstVectorIndexing;
-        TVector<typename TDstColumn::TValueType> dstValues;
+        TVector<TDstColumnValueType> dstValues;
 
         srcData.ForEachNonDefault(
             [&](ui32 srcIdx, TValue value) {
@@ -257,8 +175,8 @@ namespace NCB {
             }
         );
 
-        std::function<TCompressedArray(TVector<typename TDstColumn::TValueType>&&)> createNonDefaultValuesContainer
-            = [&] (TVector<typename TDstColumn::TValueType>&& dstValues) {
+        std::function<TCompressedArray(TVector<TDstColumnValueType>&&)> createNonDefaultValuesContainer
+            = [&] (TVector<TDstColumnValueType>&& dstValues) {
                 return TCompressedArray(
                     dstValues.size(),
                     bitsPerKey,
@@ -268,7 +186,7 @@ namespace NCB {
 
         return MakeHolder<TSparseCompressedValuesHolderImpl<TDstColumn>>(
             featureId,
-            MakeSparseArrayBase<typename TDstColumn::TValueType, TCompressedArray, ui32>(
+            MakeSparseArrayBase<TDstColumnValueType, TCompressedArray, ui32>(
                 invertedIndexedSubset.GetSize(),
                 std::move(dstVectorIndexing),
                 std::move(dstValues),
@@ -327,7 +245,7 @@ namespace NCB {
 
             TConstArrayRef<float> borders = QuantizedFeaturesInfo->GetBorders(floatFeatureIdx);
 
-            return CreateQuantizedSparseSubset<IQuantizedFloatValuesHolder>(
+            return CreateQuantizedSparseSubset<IQuantizedFloatValuesHolder, ui8>(
                 this->GetId(),
                 this->SrcData,
                 Get<TInvertedIndexedSubset<ui32>>(*subsetInvertedIndexing),
@@ -339,32 +257,6 @@ namespace NCB {
                 sizeof(ui8) * CHAR_BIT
             );
         }
-    }
-
-
-    NCB::TMaybeOwningArrayHolder<ui32> TExternalCatSparseValuesHolder::ExtractValues(
-        NPar::TLocalExecutor* localExecutor
-    ) const {
-        Y_UNUSED(localExecutor);
-
-        const auto catFeatureIdx = QuantizedFeaturesInfo->GetPerTypeFeatureIdx<EFeatureType::Categorical>(
-            *this
-        );
-        const auto& perfectHash = QuantizedFeaturesInfo->GetCategoricalFeaturesPerfectHash(catFeatureIdx);
-
-        const ui32 defaultPerfectHashValue = perfectHash.Find(SrcData.GetDefaultValue())->Value;
-
-        TVector<ui32> result(GetSize(), defaultPerfectHashValue);
-
-        TArrayRef<ui32> resultRef = result;
-
-        SrcData.ForEachNonDefault(
-            [=, &perfectHash] (ui32 nonDefaultIdx, ui32 srcValue) {
-                resultRef[nonDefaultIdx] = perfectHash.Find(srcValue)->Value;
-            }
-        );
-
-        return NCB::TMaybeOwningArrayHolder<ui32>::CreateOwning(std::move(result));
     }
 
     IDynamicBlockIteratorBasePtr TExternalCatSparseValuesHolder::GetBlockIterator(ui32 offset) const {
@@ -417,7 +309,7 @@ namespace NCB {
                 return perfectHash.Find(srcValue)->Value;
             };
 
-            return CreateQuantizedSparseSubset<IQuantizedCatValuesHolder>(
+            return CreateQuantizedSparseSubset<IQuantizedCatValuesHolder, ui32>(
                 this->GetId(),
                 this->SrcData,
                 Get<TInvertedIndexedSubset<ui32>>(*subsetInvertedIndexing),

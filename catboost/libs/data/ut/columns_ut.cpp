@@ -118,8 +118,8 @@ Y_UNIT_TEST_SUITE(Columns) {
         for (auto bitIdx : xrange(ui8(8))) {
             TQuantizedFloatPackedBinaryValuesHolder valuesHolder(bitIdx, binaryPackColumn.Get(), bitIdx);
 
-            auto values = valuesHolder.ExtractValues(&localExecutor);
-            UNIT_ASSERT(Equal<ui8>(*values, expectedFeatureValues[bitIdx]));
+            auto values = valuesHolder.ExtractValues<ui8>(&localExecutor);
+            UNIT_ASSERT(Equal<ui8>(values, expectedFeatureValues[bitIdx]));
         }
     }
 }

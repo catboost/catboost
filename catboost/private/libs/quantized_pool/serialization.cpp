@@ -959,8 +959,9 @@ namespace NCB {
                         "GetFloatFeature returned nullptr for feature " << externalFeatureIdx << " which is not ignored");
 
                     //init feature
+                    auto bins = feature.GetRef()->ExtractValues<ui8>(localExecutor);
                     maybeFeatureColumn = GenerateSrcColumn<ui8>(
-                        static_cast<TConstArrayRef<ui8>>(*feature.GetRef()->ExtractValues(localExecutor)),
+                        MakeArrayRef(bins),
                         EColumn::Num
                     );
                 } else {
