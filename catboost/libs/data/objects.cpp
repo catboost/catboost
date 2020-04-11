@@ -894,23 +894,6 @@ bool NCB::TQuantizedObjectsDataProvider::HasSparseData() const {
         ::HasSparseData(Data.TextFeatures);
 }
 
-template <class T>
-static ui32 CalcSparseCompressedFeatureChecksum(
-    ui32 checkSum,
-    const TSparseCompressedValuesHolderImpl<T>& columnData
-) {
-    const TSparseCompressedArray<T, ui32>& data = columnData.GetData();
-
-    constexpr size_t BLOCK_SIZE = 10000;
-    auto blockIterator = data.GetBlockIterator();
-    while (auto block = blockIterator.Next(BLOCK_SIZE)) {
-        checkSum = UpdateCheckSum(checkSum, block);
-    }
-
-    return checkSum;
-}
-
-
 template <EFeatureType FeatureType, class T>
 static ui32 CalcFeatureValuesCheckSum(
     ui32 init,
