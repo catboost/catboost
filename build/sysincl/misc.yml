@@ -14,10 +14,6 @@
 # Btw: seems that this ADDINCL should be made global and removed from projects
 # that use this header
 - includes:
-    - iconv.h:       contrib/libs/libiconv/iconv.h
-
-- source_filter: "^contrib/restricted/glib/glib/gconvert.c"
-  includes:
     - iconv.h:       contrib/libs/libiconv/include/iconv.h
 
 - includes:
@@ -51,7 +47,6 @@
 - source_filter: "^contrib/libs/libunistring"
   includes:
     - alloca.h:      contrib/libs/libunistring/alloca.h
-    - iconv.h:       contrib/libs/libiconv/include/iconv.h
     - langinfo.h:    contrib/libs/libunistring/langinfo.h
     - limits.h:      contrib/libs/libunistring/limits.h
     - math.h:        contrib/libs/libunistring/math.h
@@ -146,10 +141,6 @@
     - http.h:        contrib/libs/curl/lib/http.h
     - inet_ntop.h:   contrib/libs/curl/lib/inet_ntop.h
     - share.h:       contrib/libs/curl/lib/share.h
-
-- source_filter: "^contrib/libs/gdal"
-  includes:
-    - iconv.h:       contrib/libs/libiconv/include/iconv.h
 
 - source_filter: "^contrib/libs/zeromq"
   includes:
@@ -276,10 +267,6 @@
 - source_filter: "^contrib/libs/apr"
   includes:
     - atomic.h
-
-- source_filter: "^contrib/libs/apr-util"
-  includes:
-    - iconv.h: contrib/libs/libiconv/include/iconv.h
 
 - source_filter: "^contrib/libs/(apr|httpd|llvm)"
   includes:
