@@ -8,6 +8,7 @@ RECURSE(
     colorizer
     colorizer/ut
     containers
+    cppparser
     digest
     dot_product
     dot_product/bench
