@@ -138,7 +138,7 @@ ALLOW .* -> vendor/github.com/montanaflynn/stats
 ALLOW .* -> vendor/github.com/go-openapi
 
 # redis client
-ALLOW .* -> vendor/github.com/go-redis/redis
+ALLOW .* -> vendor/github.com/go-redis/redis/v7
 
 # library for accessing the GitHub API v3
 ALLOW .* -> vendor/github.com/google/go-github/v25/github
