@@ -96,8 +96,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cppparser\library-cppparser.vcxproj">
-      <Project>{83424DDB-2D39-C993-71FE-34F2A604EE5E}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cppparser\library-cpp-cppparser.vcxproj">
+      <Project>{561DA281-60D6-43CF-765F-96A120F7EFFC}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
