@@ -181,7 +181,7 @@ namespace NCB {
             : TBaseInterface(ValuesType, featureId, size)
         {}
 
-        template<typename TExtractType>
+        template <typename TExtractType>
         TVector<TExtractType> ExtractValues(NPar::TLocalExecutor* localExecutor, size_t copyBlockSize = 1024) const {
             TVector<TExtractType> result;
             result.yresize(this->GetSize());
