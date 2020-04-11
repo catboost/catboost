@@ -41,6 +41,8 @@
 #include <limits>
 #include <tuple>
 
+#include <iostream>
+
 /* TMetric */
 
 static inline double OverflowSafeLogitProb(double approx) {
@@ -3378,6 +3380,143 @@ void TMAPKMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
 
+/* Precision-Recall AUC */
+
+namespace {
+    struct TPrecisionRecallAUCMetric : public TNonAdditiveMetric {
+        explicit TPrecisionRecallAUCMetric(int positiveClass)
+            : PositiveClass(positiveClass), IsMultiClass(true) {
+            UseWeights.MakeIgnored();
+        }
+
+        explicit TPrecisionRecallAUCMetric() {
+            UseWeights.MakeIgnored();
+        }
+
+        TMetricHolder Eval(
+                const TVector<TVector<double>>& approx,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
+                int begin,
+                int end,
+                NPar::TLocalExecutor& executor) const override {
+                    return Eval(approx, /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
+                }
+        TMetricHolder Eval(
+                const TVector<TVector<double>>& approx,
+                const TVector<TVector<double>>& approxDelta,
+                bool isExpApprox,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
+                int begin,
+                int end,
+                NPar::TLocalExecutor& executor) const override;
+        TString GetDescription() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+
+        private:
+            int PositiveClass = 1;
+            bool IsMultiClass = false;
+    };
+}
+
+THolder<IMetric> MakeMultiClassPrecisionRecallAUCMetric(int positiveClass) {
+    return MakeHolder<TPrecisionRecallAUCMetric>(positiveClass);
+}
+
+THolder<IMetric> MakeBinClassPrecisionRecallAUCMetric() {
+    return MakeHolder<TPrecisionRecallAUCMetric>();
+}
+
+TMetricHolder TPrecisionRecallAUCMetric::Eval(
+    const TVector<TVector<double>>& approx,
+    const TVector<TVector<double>>& approxDelta,
+    bool isExpApprox,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> /*weight*/,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+    int begin,
+    int end,
+    NPar::TLocalExecutor& /*executor*/
+) const {
+    Y_ASSERT(!isExpApprox);
+    Y_ASSERT((approx.size() > 1) == IsMultiClass);
+    Y_ASSERT(approx[0].size() == target.size());
+
+    TMetricHolder error(2);
+    error.Stats[1] = 1;
+
+    int elemCount = end - begin;
+    
+    TVector<std::pair<double, float>> approxWithTarget;
+    approxWithTarget.reserve(elemCount);
+
+    const auto realApprox = [&](int idx) {
+        return approx[IsMultiClass ? PositiveClass : 0][idx]
+        + (approxDelta.empty() ? 0.0 : approxDelta[IsMultiClass ? PositiveClass : 0][idx]);
+    };
+
+    for (int i = begin; i < end; ++i) {
+        approxWithTarget.emplace_back(realApprox(i), target[i]);
+    }
+    
+    std::sort(approxWithTarget.begin(), approxWithTarget.end());
+
+    int curNegCount = 0;
+    int curTp = std::count(target.begin(), target.end(), PositiveClass);
+    int curFp = elemCount - curTp;
+    int curFn = 0;
+
+    CB_ENSURE(curTp > 0, "No element of a positive class");
+
+    double prevPrecision = 0;
+    double prevRecall = 1;
+    double& auc = error.Stats[0];
+
+    auto isApproxesEqual = [] (double approxL, double approxR) {
+        return Abs(approxL - approxR) < 1e-8;
+    };
+
+    while (curNegCount <= elemCount) {
+        double precision = (curTp == 0 && curFp == 0) ? 1 : curTp / (curTp + curFp + 0.0); 
+        double recall = curTp / (curTp + curFn + 0.0);
+
+        auc += (prevRecall - recall) * (prevPrecision + precision) / 2;
+
+        prevRecall = recall;
+        prevPrecision = precision;
+
+        auto moveOneBorder = [&]() {
+            if (curNegCount < elemCount) {
+                if (approxWithTarget[curNegCount].second == PositiveClass) {
+                    --curTp;
+                    ++curFn;  
+                } else {
+                    --curFp;
+                }
+            }
+            ++curNegCount;
+        };
+        
+        moveOneBorder();
+        while (curNegCount < elemCount && isApproxesEqual(approxWithTarget[curNegCount - 1].first, approxWithTarget[curNegCount].first)) {
+            moveOneBorder();
+        }
+    }
+
+    return error;
+}
+
+TString TPrecisionRecallAUCMetric::GetDescription() const {
+    return ToString(ELossFunction::PrecisionRecallAUC);
+}
+
+void TPrecisionRecallAUCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
+}
+
 /* Custom */
 
 namespace {
@@ -4052,6 +4191,7 @@ double TCombinationLoss::GetFinalError(const TMetricHolder& error) const {
     return error.Stats[0];
 }
 
+
 /* Create */
 
 static void CheckParameters(
@@ -4202,6 +4342,15 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
             break;
         case ELossFunction::MSLE:
             result.push_back(MakeMSLEMetric());
+            break;
+        case ELossFunction::PrecisionRecallAUC:
+            if (approxDimension == 1) {
+                result.push_back(MakeBinClassPrecisionRecallAUCMetric());
+            } else {
+                for (int i : xrange(approxDimension)) {
+                    result.push_back(MakeMultiClassPrecisionRecallAUCMetric(i));
+                }
+            }
             break;
         case ELossFunction::MultiClass:
             result.push_back(MakeMultiClassMetric());

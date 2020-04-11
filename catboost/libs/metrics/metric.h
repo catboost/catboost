@@ -410,6 +410,9 @@ THolder<IMetric> MakeUserDefinedQuerywiseMetric(const TMap<TString, TString>& pa
 
 THolder<IMetric> MakeAverageGainMetric(float topSize);
 
+THolder<IMetric> MakeMultiClassPrecisionRecallAUCMetric(int positiveClass);
+THolder<IMetric> MakeBinClassPrecisionRecallAUCMetric();
+
 THolder<IMetric> MakeHuberLossMetric(double delta);
 
 THolder<IMetric> MakeBinClassNormalizedGiniMetric();

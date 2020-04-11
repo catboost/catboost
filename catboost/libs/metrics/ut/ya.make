@@ -31,6 +31,7 @@ SRCS(
     zero_one_loss_ut.cpp
     total_f1_ut.cpp
     tweedie_ut.cpp
+    pr_auc_ut.cpp
 )
 
 END()
