@@ -41,8 +41,6 @@
 #include <limits>
 #include <tuple>
 
-#include <iostream>
-
 /* TMetric */
 
 static inline double OverflowSafeLogitProb(double approx) {
