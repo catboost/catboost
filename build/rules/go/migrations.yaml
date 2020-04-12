@@ -520,4 +520,3 @@ migrations:
       - a.yandex-team.ru/yabs/vh/cms-pgaas/dhdd/util_test
       - a.yandex-team.ru/yabs/vh/cms-pgaas/transcoded
       - a.yandex-team.ru/yabs/telephony/platform/db-cleaner/internal
-      - a.yandex-team.ru/yaphone/gotifier/cmd
