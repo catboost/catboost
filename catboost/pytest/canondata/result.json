@@ -8463,6 +8463,12 @@
             "uri": "file://test.test_set_class_names_implicitly/eval.txt"
         }
     ],
+    "test.test_shap_approximate": [
+        {
+            "checksum": "e94557ee4c4071fe6670f1fcc5473a34",
+            "uri": "file://test.test_shap_approximate/shapval"
+        }
+    ],
     "test.test_shrink_model[Ordered-SymmetricTree]": [
         {
             "checksum": "086c6063ade9c34af13a6f195847a924",
