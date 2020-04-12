@@ -453,7 +453,6 @@ ALLOW market/sre/services/rtcstats2graphite/src/internal/yasm -> vendor/github.c
 ALLOW market/sre/tools/ya-gde/src/cmd/getthefacts -> vendor/github.com/pkg/errors
 ALLOW market/sre/tools/ya-gde/src/pkg/hostinfo -> vendor/github.com/pkg/errors
 ALLOW market/sre/tools/ya-gde/src/pkg/util -> vendor/github.com/pkg/errors
-ALLOW quasar/go/blackbox -> vendor/github.com/pkg/errors
 ALLOW toolbox/bunker -> vendor/github.com/pkg/errors
 ALLOW transfer_manager/go/pkg/abstract -> vendor/github.com/pkg/errors
 ALLOW yabs/telephony/platform/inventory/api/http -> vendor/github.com/pkg/errors
