@@ -535,4 +535,7 @@ ALLOW yabs/telephony/platform/internal/rtp -> vendor/github.com/wernerd/GoRTP
 ALLOW quasar/iot/adapters/tuya_adapter -> vendor/github.com/TuyaInc/tuya_pulsar_sdk_go
 ALLOW quasar/iot/adapters/tuya_adapter/server -> vendor/github.com/sirupsen/logrus
 
+# SUBBOTNIK-90
+ALLOW infra/rtc/instance_resolver/pkg/clients/iss3 -> vendor/git.apache.org/thrift.git/lib/go
+
 DENY .* -> vendor/
