@@ -1,5 +1,5 @@
 #include <library/unittest/registar.h>
-#include <library/archive/yarchive.h>
+#include <library/cpp/archive/yarchive.h>
 #include <util/memory/blob.h>
 
 extern "C" {

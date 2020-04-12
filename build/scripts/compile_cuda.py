@@ -133,9 +133,12 @@ def main():
     # {basename} is {input}.cpp1.ii with non-C chars translated to _, {len} is
     # {basename} length, and {hash} is the hash of first exported symbol in
     # {input}.cpp1.ii if there is one, otherwise it is based on its modification
-    # time and the current working directory.  To stabilize the names of these
-    # symbols we need to fix mtime and cwd.
+    # time (converted to string in the local timezone) and the current working
+    # directory.  To stabilize the names of these symbols we need to fix mtime,
+    # timezone, and cwd.
     os.environ['LD_PRELOAD'] = mtime0
+    os.environ['TZ'] = 'UTC0'  # POSIX fixed offset format.
+    os.environ['TZDIR'] = '/var/empty'  # Against counterfeit /usr/share/zoneinfo/$TZ.
 
     if dump_args:
         sys.stdout.write('\n'.join(command))

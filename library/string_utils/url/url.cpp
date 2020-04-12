@@ -398,3 +398,28 @@ TStringBuf RemoveFinalSlash(TStringBuf str) noexcept {
     }
     return str;
 }
+
+TStringBuf CutUrlPrefixes(TStringBuf url) noexcept {
+    url = CutSchemePrefix(url);
+    url = CutWWWPrefix(url);
+    return url;
+}
+
+bool DoesUrlPathStartWithToken(TStringBuf url, const TStringBuf& token) noexcept {
+    url = CutSchemePrefix(url);
+    const TStringBuf noHostSuffix = url.After('/');
+    if (noHostSuffix == url) {
+        // no slash => no suffix with token info
+        return false;
+    }
+    const bool suffixHasPrefix = noHostSuffix.StartsWith(token);
+    if (!suffixHasPrefix) {
+        return false;
+    }
+    const bool slashAfterPrefix = noHostSuffix.find("/", token.length()) == token.length();
+    const bool qMarkAfterPrefix = noHostSuffix.find("?", token.length()) == token.length();
+    const bool nothingAfterPrefix = noHostSuffix.length() <= token.length();
+    const bool prefixIsToken = slashAfterPrefix || qMarkAfterPrefix || nothingAfterPrefix;
+    return prefixIsToken;
+}
+

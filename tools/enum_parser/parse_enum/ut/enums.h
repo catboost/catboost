@@ -178,6 +178,15 @@ enum EDestructionPriorityTest {
     second
 };
 
+
+enum class NotifyingStatus
+{
+    NEW = 0,
+    FAILED_WILL_RETRY = 1,
+    FAILED_NO_MORE_TRIALS = 2,
+    SENT = 3
+};
+
 /*
  * Still unsupported features:
  *

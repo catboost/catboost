@@ -2,7 +2,7 @@
 
 #include <catboost/libs/helpers/vector_helpers.h>
 
-#include <library/grid_creator/binarization.h>
+#include <library/cpp/grid_creator/binarization.h>
 
 #include <util/generic/algorithm.h>
 
@@ -75,6 +75,7 @@ TTargetClassifier BuildTargetClassifier(
         case ELossFunction::Huber:
         case ELossFunction::UserPerObjMetric:
         case ELossFunction::UserQuerywiseMetric:
+        case ELossFunction::Tweedie:
             return TTargetClassifier(
                 SelectBorders(target, targetBorderCount, targetBorderType, allowConstLabel));
 

@@ -12,6 +12,95 @@
 
 using namespace NCB;
 
+namespace {
+    template <class TValue, class TReturnValue = TMaybe<TValue>>
+    class TDynamicIteratorAsStatic {
+    public:
+        using iterator_category = std::input_iterator_tag;
+        using value_type = TValue;
+        using difference_type = size_t;
+        using pointer = TReturnValue;
+        using reference = TValue&;
+
+        using IBaseIterator = IDynamicIterator<TValue, TReturnValue>;
+
+    public:
+        // use as end() sentinel
+        TDynamicIteratorAsStatic() = default;
+
+        // baseIteratorPtr must be non-nullptr
+        explicit TDynamicIteratorAsStatic(THolder<IBaseIterator> baseIteratorPtr)
+            : Current(baseIteratorPtr->Next())
+            , BaseIteratorPtr(baseIteratorPtr.Release())
+        {}
+
+        reference operator*() {
+            return *Current;
+        }
+
+        TDynamicIteratorAsStatic& operator++() {
+            Current = BaseIteratorPtr->Next();
+            return *this;
+        }
+
+        // this iterator is non-copyable so return TReturnValue to make '*it++' idiom work
+        TReturnValue operator++(int) {
+            TReturnValue result = std::move(Current);
+            Current = BaseIteratorPtr->Next();
+            return result;
+        }
+
+        // the only valid comparison is comparison with end() sentinel
+        bool operator==(const TDynamicIteratorAsStatic& rhs) const {
+            Y_ASSERT(!rhs.BaseIteratorPtr);
+            return Current == IBaseIterator::END_VALUE;
+        }
+
+        // the only valid comparison is comparison with end() sentinel
+        bool operator!=(const TDynamicIteratorAsStatic& rhs) const {
+            Y_ASSERT(!rhs.BaseIteratorPtr);
+            return Current != IBaseIterator::END_VALUE;
+        }
+
+    private:
+        TReturnValue Current;
+        TIntrusivePtr<IBaseIterator> BaseIteratorPtr; // TIntrusivePtr for copyability
+    };
+
+    template <class TBaseIterator, class TIndex = size_t>
+    class TStaticIteratorRangeAsSparseDynamic final
+        : public IDynamicSparseIterator<typename std::iterator_traits<TBaseIterator>::value_type, TIndex> {
+    public:
+        using TValue = typename std::iterator_traits<TBaseIterator>::value_type;
+        using IBase = IDynamicSparseIterator<TValue, TIndex>;
+
+    public:
+        TStaticIteratorRangeAsSparseDynamic(TBaseIterator begin, TBaseIterator end)
+            : Begin(std::move(begin))
+            , End(std::move(end))
+            , Index(0)
+        {}
+
+        template <class TContainer>
+        explicit TStaticIteratorRangeAsSparseDynamic(const TContainer& container)
+            : TStaticIteratorRangeAsSparseDynamic(container.begin(), container.end())
+        {}
+
+        TMaybe<std::pair<TIndex, TValue>> Next() override {
+            if (Begin == End) {
+                return IBase::END_VALUE;
+            }
+            return MakeMaybe(std::pair<TIndex, TValue>(Index++, *Begin++));
+        }
+
+    private:
+        TBaseIterator Begin;
+        TBaseIterator End;
+        TIndex Index;
+    };
+
+}
+
 
 Y_UNIT_TEST_SUITE(DynamicIterator) {
     Y_UNIT_TEST(TStaticIteratorRangeAsDynamic) {

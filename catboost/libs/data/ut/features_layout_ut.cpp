@@ -188,11 +188,11 @@ Y_UNIT_TEST_SUITE(TestFeaturesLayout) {
 
         UNIT_ASSERT_EQUAL(layout.GetInternalFeatureIdx(0), 0);
         UNIT_ASSERT_EQUAL(layout.GetInternalFeatureIdx(2), 1);
-        UNIT_ASSERT_EQUAL(layout.GetInternalFeatureIdx(3), Max<ui32>())
+        UNIT_ASSERT_EQUAL(layout.GetInternalFeatureIdx(3), Max<ui32>());
         UNIT_ASSERT_EQUAL(layout.GetInternalFeatureIdx(5), 3);
 
         UNIT_ASSERT_EQUAL(layout.GetInternalFeatureIdx(1), 0);
-        UNIT_ASSERT_EQUAL(layout.GetInternalFeatureIdx(4), Max<ui32>())
+        UNIT_ASSERT_EQUAL(layout.GetInternalFeatureIdx(4), Max<ui32>());
         UNIT_ASSERT_EQUAL(layout.GetInternalFeatureIdx(6), 2);
 
         UNIT_ASSERT_EQUAL(layout.GetExternalFeatureType(0), EFeatureType::Float);

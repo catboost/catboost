@@ -2,7 +2,7 @@
 
 #include "last_getopt_opts.h"
 
-#include <library/colorizer/fwd.h>
+#include <library/cpp/colorizer/fwd.h>
 
 #include <util/generic/hash_set.h>
 #include <util/generic/list.h>

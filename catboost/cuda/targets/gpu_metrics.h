@@ -96,7 +96,6 @@ namespace NCatboostCuda {
             CB_ENSURE(target.GetScoreMetricType() == metric, "Error: can't compute metric " << metric << " on GPU");
             TMetricHolder stats = target.ComputeStats(point,
                                                       GetMetricDescription().GetLossParams());
-            stats.Stats[0] *= -1;
             return stats;
         };
     };

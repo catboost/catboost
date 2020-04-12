@@ -26,8 +26,6 @@ namespace NPar {
 
 namespace NCB {
 
-    static_assert(CHAR_BIT == 8, "CatBoost requires CHAR_BIT == 8");
-
     struct TRawObjectsData;
     class TFeaturesLayout;
     class TQuantizedFeaturesInfo;

@@ -107,6 +107,14 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
     EPreCalcShapValues mode,
     int logPeriod = 0);
 
+TVector<TVector<TVector<TVector<double>>>> CalcShapFeatureInteractionMulti(
+    const EFstrType fstrType,
+    const TFullModel& model,
+    const NCB::TDataProviderPtr dataset,
+    const TMaybe<std::pair<int, int>>& pairOfFeatures,
+    int threadCount,
+    EPreCalcShapValues mode,
+    int logPeriod = 0);
 
 /*
  * model is the primary source of featureIds,

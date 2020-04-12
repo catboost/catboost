@@ -11,7 +11,7 @@
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/options/restrictions.h>
 
-#include <library/containers/2d_array/2d_array.h>
+#include <library/cpp/containers/2d_array/2d_array.h>
 #include <library/fast_exp/fast_exp.h>
 #include <library/threading/local_executor/local_executor.h>
 
@@ -980,6 +980,39 @@ private:
 
     double CalcDer3(double /*approx*/, float /*target*/) const override {
         return HUBER_DER3;
+    }
+};
+
+class TTweedieError final : public IDerCalcer {
+public:
+    const double VariancePower;
+
+public:
+    TTweedieError(double variance_power, bool isExpApprox)
+        : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 3)
+        , VariancePower(variance_power)
+    {
+        Y_ASSERT(VariancePower > 1 && VariancePower < 2);
+        CB_ENSURE(isExpApprox == false, "Approx format does not match");
+    }
+
+private:
+    double CalcDer(double approx, float target) const override {
+        double der = target * std::exp((1 - VariancePower) * approx);
+        der -= std::exp((2 - VariancePower) * approx);
+        return der;
+    }
+
+    double CalcDer2(double approx, float target) const override {
+        double der2 = target * std::exp((1 - VariancePower) * approx) * (1 - VariancePower);
+        der2 -= std::exp((2 - VariancePower) * approx) * (2 - VariancePower);
+        return der2;
+    }
+
+    double CalcDer3(double approx, float target) const override {
+        double der3 = target * std::exp((1 - VariancePower) * approx) * Sqr(1 - VariancePower);
+        der3 -= std::exp((2 - VariancePower) * approx) * Sqr(2 - VariancePower);
+        return der3;
     }
 };
 

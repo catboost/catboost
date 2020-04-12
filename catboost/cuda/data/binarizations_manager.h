@@ -96,13 +96,13 @@ namespace NCatboostCuda {
 
         ui32 GetFeatureManagerIdForCatFeature(ui32 dataProviderId) const;
 
-        ui32 GetFeatureManagerIdForFloatFeature(ui32 dataProviderId) const;
+        const TVector<ui32>& GetFeatureManagerIdForFloatFeature(ui32 dataProviderId) const;
 
         ui32 GetDataProviderId(ui32 featureId) const {
             return FeatureManagerIdToDataProviderId.at(featureId);
         }
 
-        TEstimatedFeature GetEstimatedFeature(ui32 featureId) const {
+        NCB::TEstimatedFeatureId GetEstimatedFeature(ui32 featureId) const {
             return FeatureManagerIdToEstimatedFeatureId.at(featureId);
         }
 
@@ -148,12 +148,12 @@ namespace NCatboostCuda {
             return KnownCtrs[ctr];
         }
 
-        ui32 GetId(const TEstimatedFeature& feature) const {
+        ui32 GetId(const NCB::TEstimatedFeatureId& feature) const {
             CB_ENSURE(EstimatedFeatureToFeatureManagerId.contains(feature), "Unknown estimated features, this is probably a bug");
             return EstimatedFeatureToFeatureManagerId[feature];
         }
 
-        const NCatboostOptions::TBinarizationOptions& GetBinarizationDescription(const TEstimatedFeature&) const {
+        const NCatboostOptions::TBinarizationOptions& GetBinarizationDescription(const NCB::TEstimatedFeatureId&) const {
             return QuantizedFeaturesInfo->GetFloatFeatureBinarization(Max<ui32>());
         }
 
@@ -226,20 +226,31 @@ namespace NCatboostCuda {
 
 
     private:
-        ui32 RegisterDataProviderCatFeature(ui32 featureId) {
+        void RegisterDataProviderCatFeature(ui32 featureId) {
             CB_ENSURE(!DataProviderCatFeatureIdToFeatureManagerId.contains(featureId));
             const ui32 id = RequestNewId();
             DataProviderCatFeatureIdToFeatureManagerId[featureId] = id;
             FeatureManagerIdToDataProviderId[id] = featureId;
-            return id;
         }
 
-        ui32 RegisterDataProviderFloatFeature(ui32 featureId) {
+        void RegisterDataProviderFloatFeature(ui32 featureId) {
             CB_ENSURE(!DataProviderFloatFeatureIdToFeatureManagerId.contains(featureId));
-            const ui32 id = RequestNewId();
-            DataProviderFloatFeatureIdToFeatureManagerId[featureId] = id;
-            FeatureManagerIdToDataProviderId[id] = featureId;
-            return id;
+            auto internalFeatureId = QuantizedFeaturesInfo->GetFeaturesLayout()->GetInternalFeatureIdx<EFeatureType::Float>(
+                featureId
+            );
+            if (!QuantizedFeaturesInfo->HasBorders(internalFeatureId) || QuantizedFeaturesInfo->GetBorders(internalFeatureId).empty()) {
+                const ui32 id = RequestNewId();
+                DataProviderFloatFeatureIdToFeatureManagerId[featureId].push_back(id);
+                FeatureManagerIdToDataProviderId[id] = featureId;
+                return;
+            }
+            auto& borders = QuantizedFeaturesInfo->GetBorders(internalFeatureId);
+            for (ui32 bordersSliceStart = 0; bordersSliceStart < borders.size(); bordersSliceStart += 255) {
+                const ui32 id = RequestNewId();
+                DataProviderFloatFeatureIdToFeatureManagerId[featureId].push_back(id);
+                FeatureManagerIdToDataProviderId[id] = featureId;
+                Borders[id].assign(borders.begin() + bordersSliceStart, borders.begin() + Min<ui32>(bordersSliceStart + 255, borders.size()));
+            }
         }
 
 
@@ -260,14 +271,14 @@ namespace NCatboostCuda {
 
         void RegisterFeatureEstimator(const NCB::TEstimatorId& estimatorId, const NCB::TEstimatedFeaturesMeta& meta) {
             for (ui32 f = 0; f < meta.FeaturesCount; ++f) {
-                TEstimatedFeature feature{estimatorId, f};
+                NCB::TEstimatedFeatureId feature{estimatorId, f};
                 const ui32 maxBins = QuantizedFeaturesInfo->GetFloatFeatureBinarization(Max<ui32>()).BorderCount + 1;
                 ui32 maxBinsUpperBoundHint = meta.UniqueValuesUpperBoundHint ? (*meta.UniqueValuesUpperBoundHint)[f] : maxBins;
                 AddEstimatedFeature(feature, maxBinsUpperBoundHint);
             }
         }
 
-        ui32 AddEstimatedFeature(const TEstimatedFeature& feature, ui32 maxBins) {
+        ui32 AddEstimatedFeature(const NCB::TEstimatedFeatureId& feature, ui32 maxBins) {
             CB_ENSURE(!EstimatedFeatureToFeatureManagerId.contains(feature));
             const ui32 id = RequestNewId();
             EstimatedFeatureToFeatureManagerId[feature] = id;
@@ -297,13 +308,13 @@ namespace NCatboostCuda {
         mutable TMap<TCtr, ui32> KnownCtrs;
         mutable TMap<ui32, TCtr> InverseCtrs;
 
-        mutable TMap<ui32, ui32> DataProviderFloatFeatureIdToFeatureManagerId;
+        mutable TMap<ui32, TVector<ui32>> DataProviderFloatFeatureIdToFeatureManagerId;
         mutable TMap<ui32, ui32> DataProviderCatFeatureIdToFeatureManagerId;
         mutable TMap<ui32, ui32> FeatureManagerIdToDataProviderId;
 
-        mutable TMap<TEstimatedFeature, ui32> EstimatedFeatureToFeatureManagerId;
+        mutable TMap<NCB::TEstimatedFeatureId, ui32> EstimatedFeatureToFeatureManagerId;
         mutable TMap<ui32, ui32> EstimatedFeatureUpperBoundHints;
-        mutable TMap<ui32, TEstimatedFeature> FeatureManagerIdToEstimatedFeatureId;
+        mutable TMap<ui32, NCB::TEstimatedFeatureId> FeatureManagerIdToEstimatedFeatureId;
 
         mutable ui32 Cursor = 0;
 
@@ -313,7 +324,7 @@ namespace NCatboostCuda {
         const NCatboostOptions::TCatFeatureParams& CatFeatureOptions;
 
 
-        // for ctr features, for float - get from QuantizedFeaturesInfo
+        // for ctr features and float features
         THashMap<ui32, TVector<float>> Borders;
 
         NCB::TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;

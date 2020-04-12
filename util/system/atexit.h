@@ -12,3 +12,11 @@ void AtExit(TTraditionalAtExitFunc func);
 void AtExit(TTraditionalAtExitFunc func, size_t priority);
 
 bool ExitStarted();
+
+/**
+ * Generally it's a bad idea to call this method except for some rare cases,
+ * like graceful python DLL module unload.
+ * This function is not threadsafe.
+ * Calls in the moment when application is not terminating - bad idea.
+ */
+void ManualRunAtExitFinalizers();

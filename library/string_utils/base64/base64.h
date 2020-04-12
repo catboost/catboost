@@ -2,6 +2,7 @@
 
 #include <util/system/defaults.h>
 #include <util/generic/strbuf.h>
+#include <util/generic/string.h>
 
 /* @return Size of the buffer required to decode Base64 encoded data of size `len`.
  */

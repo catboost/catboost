@@ -372,6 +372,12 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "mvs_reg", &bootstrapOptions, &seenKeys);
     CopyOption(plainOptions, "sampling_unit", &bootstrapOptions, &seenKeys);
 
+    auto& featurePenaltiesOptions = treeOptions["penalties"];
+    featurePenaltiesOptions.SetType(NJson::JSON_MAP);
+    CopyOption(plainOptions, "feature_weights", &featurePenaltiesOptions, &seenKeys);
+    CopyOption(plainOptions, "penalties_coefficient", &featurePenaltiesOptions, &seenKeys);
+    CopyOption(plainOptions, "first_feature_use_penalties", &featurePenaltiesOptions, &seenKeys);
+
     //feature evaluation options
     if (GetTaskType(plainOptions) == ETaskType::GPU) {
         auto& modelBasedEvalOptions = trainOptions["model_based_eval_options"];
@@ -711,6 +717,24 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
             CB_ENSURE(optionsCopyTreeBootstrap.GetMapSafe().empty(), "bootstrap: key " + optionsCopyTreeBootstrap.GetMapSafe().begin()->first + " wasn't added to plain options.");
             DeleteSeenOption(&optionsCopyTree, "bootstrap");
         }
+
+        if (treeOptions.Has("penalties")) {
+            const auto& penaltiesOptions = treeOptions["penalties"];
+            auto& optionsCopyTreePenalties = optionsCopyTree["penalties"];
+
+            CopyOption(penaltiesOptions, "feature_weights", &plainOptionsJson, &seenKeys);
+            DeleteSeenOption(&optionsCopyTreePenalties, "feature_weights");
+
+            CopyOption(penaltiesOptions, "penalties_coefficient", &plainOptionsJson, &seenKeys);
+            DeleteSeenOption(&optionsCopyTreePenalties, "penalties_coefficient");
+
+            CopyOption(penaltiesOptions, "first_feature_use_penalties", &plainOptionsJson, &seenKeys);
+            DeleteSeenOption(&optionsCopyTreePenalties, "first_feature_use_penalties");
+
+            CB_ENSURE(optionsCopyTreePenalties.GetMapSafe().empty(), "penalties: key " + optionsCopyTreePenalties.GetMapSafe().begin()->first + " wasn't added to plain options.");
+            DeleteSeenOption(&optionsCopyTree, "penalties");
+        }
+
         CB_ENSURE(optionsCopyTree.GetMapSafe().empty(), "tree_learner_options: key " + optionsCopyTree.GetMapSafe().begin()->first + " wasn't added to plain options.");
         DeleteSeenOption(&optionsCopy, "tree_learner_options");
     }

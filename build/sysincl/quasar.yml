@@ -32,7 +32,7 @@
   - mingw-threads/mingw.thread.h
   - mingw-threads/mingw.mutex.h
   - mingw-threads/mingw.condition_variable.h
-- source_filter: "^yandex_io/services/wifid/wpa_supplicant/"
+- source_filter: "^yandex_io/external_libs/wpa_supplicant/"
   includes:
   - private/android_filesystem_config.h
   - cutils/sockets.h

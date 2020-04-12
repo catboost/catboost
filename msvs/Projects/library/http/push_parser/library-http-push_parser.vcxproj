@@ -165,17 +165,17 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
       <Project>{E62EED19-EC2A-B4C3-0650-0923E4030E8B}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\streams\brotli\cpp-streams-brotli.vcxproj">
+      <Project>{88BDDF2B-3A41-DF09-EA33-A8354BC1FD2B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\streams\bzip2\cpp-streams-bzip2.vcxproj">
+      <Project>{95C394B7-2CA8-E01E-1BBA-F2E5311273E7}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\streams\lzma\cpp-streams-lzma.vcxproj">
+      <Project>{A75DC6C1-858D-5097-8CB6-68A4A62E2D73}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\http\io\library-http-io.vcxproj">
       <Project>{7AAD42F7-318F-829E-0019-82746753CD46}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\streams\brotli\library-streams-brotli.vcxproj">
-      <Project>{C372D0A1-5406-DEDE-C1E4-5FDC44B12554}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\streams\bzip2\library-streams-bzip2.vcxproj">
-      <Project>{D2BE05C4-A3E9-F005-03A2-D5BA7CA9894C}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\streams\lzma\library-streams-lzma.vcxproj">
-      <Project>{E67D1C28-54CB-F906-6A94-75D8A616C435}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>

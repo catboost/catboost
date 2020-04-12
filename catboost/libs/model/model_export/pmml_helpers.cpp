@@ -18,6 +18,7 @@
 #include <util/string/builder.h>
 #include <util/system/types.h>
 
+#include <algorithm>
 
 static void OutputHeader(
     const TFullModel& model,
@@ -225,6 +226,7 @@ static void OutputNode(
     size_t layer,
     size_t leafIdx,
     const TOneHotValuesToIdx& oneHotValuesToIdx,
+    TConstArrayRef<double> nodeWeights,
     TXmlOutputContext* xmlOut) {
 
     TXmlElementOutputContext node(xmlOut, "Node");
@@ -237,6 +239,9 @@ static void OutputNode(
             "score",
             modelTrees.GetLeafValues()[treeFirstGlobalLeafIdx + leafIdx + 1 - (size_t(1) << layer)]);
     }
+    xmlOut->AddAttr(
+        "recordCount",
+        nodeWeights[leafIdx]);
 
     // predicate
     if ((layer != 0) && (leafIdx % 2 == 0)) {
@@ -292,9 +297,35 @@ static void OutputNode(
                 layer + 1,
                 childLeafIdx,
                 oneHotValuesToIdx,
+                nodeWeights,
                 xmlOut);
         }
     }
+}
+
+static TVector<double> CalculateNodeWeights(
+    const TModelTrees& modelTrees,
+    size_t treeIdx,
+    size_t treeFirstGlobalLeafIdx) {
+
+    auto lastLayer = SafeIntegerCast<size_t>(modelTrees.GetTreeSizes()[treeIdx]);
+    auto knownIdxBegin = (size_t(1) << lastLayer) - 1;
+
+    TVector<double> weights(2 * knownIdxBegin + 1);
+    std::copy_n(
+        modelTrees.GetLeafWeights().begin() + treeFirstGlobalLeafIdx,
+        size_t(1) << lastLayer,
+        weights.begin() + knownIdxBegin);
+    while (knownIdxBegin > 0) {
+        auto prevLayerBegin = knownIdxBegin / 2;
+        auto readIdx = knownIdxBegin;
+        for (auto writeIdx = prevLayerBegin; writeIdx != knownIdxBegin; ++writeIdx) {
+            weights[writeIdx] = weights[readIdx++];
+            weights[writeIdx] += weights[readIdx++];
+        }
+        knownIdxBegin = prevLayerBegin;
+    }
+    return weights;
 }
 
 static void OutputTree(
@@ -320,6 +351,8 @@ static void OutputTree(
         xmlOut->AddAttr("name", targetName).AddAttr("optype", "continuous").AddAttr("dataType", "double");
     }
 
+    auto weights = CalculateNodeWeights(*model.ModelTrees, treeIdx, treeFirstGlobalLeafIdx);
+
     OutputNode(
         *model.ModelTrees,
         treeIdx,
@@ -327,6 +360,7 @@ static void OutputTree(
         /*layer*/ 0,
         /*leafIdx*/ 0,
         oneHotValuesToIdx,
+        weights,
         xmlOut);
 }
 

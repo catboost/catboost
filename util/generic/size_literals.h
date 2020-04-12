@@ -22,6 +22,14 @@ constexpr ui64 operator"" _TB(unsigned long long value) noexcept {
     return value * 1024_GB;
 }
 
+constexpr ui64 operator"" _PB(unsigned long long value) noexcept {
+    return value * 1024_TB;
+}
+
+constexpr ui64 operator"" _EB(unsigned long long value) noexcept {
+    return value * 1024_PB;
+}
+
 // Signed literals
 
 namespace NPrivate {
@@ -46,4 +54,12 @@ constexpr i64 operator"" _GBs(unsigned long long value) noexcept {
 
 constexpr i64 operator"" _TBs(unsigned long long value) noexcept {
     return ::NPrivate::SignedCast(value * 1024_GB);
+}
+
+constexpr i64 operator"" _PBs(unsigned long long value) noexcept {
+    return ::NPrivate::SignedCast(value * 1024_TB);
+}
+
+constexpr i64 operator"" _EBs(unsigned long long value) noexcept {
+    return ::NPrivate::SignedCast(value * 1024_PB);
 }

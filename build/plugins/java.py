@@ -78,6 +78,7 @@ def onjava_module(unit, *args):
         'MODULE_ARGS': unit.get('MODULE_ARGS'),
         'PEERDIR': unit.get_module_dirs('PEERDIRS'),
         'MANAGED_PEERS': '${MANAGED_PEERS}',
+        'MANAGED_PEERS_CLOSURE': '${MANAGED_PEERS_CLOSURE}',
         'EXCLUDE': extract_macro_calls(unit, 'EXCLUDE_VALUE', args_delim),
         'JAVA_SRCS': extract_macro_calls(unit, 'JAVA_SRCS_VALUE', args_delim),
         'JAVAC_FLAGS': extract_macro_calls(unit, 'JAVAC_FLAGS_VALUE', args_delim),
@@ -110,6 +111,9 @@ def onjava_module(unit, *args):
         'TEST_DATA': extract_macro_calls(unit, 'TEST_DATA_VALUE', args_delim),
         'JAVA_FORBIDDEN_LIBRARIES': extract_macro_calls(unit, 'JAVA_FORBIDDEN_LIBRARIES_VALUE', args_delim),
     }
+    if unit.get('SAVE_JAVAC_GENERATED_SRCS_DIR') and unit.get('SAVE_JAVAC_GENERATED_SRCS_TAR'):
+        data['SAVE_JAVAC_GENERATED_SRCS_DIR'] = extract_macro_calls(unit, 'SAVE_JAVAC_GENERATED_SRCS_DIR', args_delim)
+        data['SAVE_JAVAC_GENERATED_SRCS_TAR'] = extract_macro_calls(unit, 'SAVE_JAVAC_GENERATED_SRCS_TAR', args_delim)
 
     if unit.get('JAVA_ADD_DLLS_VALUE') == 'yes':
         data['ADD_DLLS_FROM_DEPENDS'] = extract_macro_calls(unit, 'JAVA_ADD_DLLS_VALUE', args_delim)
@@ -201,9 +205,9 @@ def onjava_module(unit, *args):
     unit.set_property(['JAVA_DART_DATA', dart])
     if unit.get('MODULE_TYPE') in ('JAVA_PROGRAM', 'JAVA_LIBRARY', 'JTEST', 'TESTNG', 'JUNIT5') and not unit.path().startswith('$S/contrib/java'):
         jdeps_val = (unit.get('CHECK_JAVA_DEPS_VALUE') or '').lower()
-        if jdeps_val and jdeps_val not in ('yes', 'no'):
-            ymake.report_configure_error('CHECK_JAVA_DEPS: "yes" or "no" required')
-        if jdeps_val == 'yes':
-            unit.onjava_test_deps()
+        if jdeps_val and jdeps_val not in ('yes', 'no', 'strict'):
+            ymake.report_configure_error('CHECK_JAVA_DEPS: "yes", "no" or "strict" required')
+        if jdeps_val and jdeps_val != 'no':
+            unit.onjava_test_deps(jdeps_val)
         if unit.get('LINT_LEVEL_VALUE') != "none":
             unit.onadd_check(['JAVA_STYLE', unit.get('LINT_LEVEL_VALUE')])

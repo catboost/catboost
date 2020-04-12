@@ -4,7 +4,7 @@ UNITTEST()
 
 PEERDIR(
     ADDINCL library/token
-    library/tokenizer
+    library/cpp/tokenizer
     kernel/reqerror
     kernel/qtree/request
 )

@@ -590,25 +590,9 @@ namespace NThreading {
     ////////////////////////////////////////////////////////////////////////////////
 
     template <typename T>
-    inline TFuture<T>::TFuture() {
-    }
-
-    template <typename T>
-    inline TFuture<T>::TFuture(const TFuture<T>& other)
-        : State(other.State)
-    {
-    }
-
-    template <typename T>
-    inline TFuture<T>::TFuture(const TIntrusivePtr<TFutureState>& state)
+    inline TFuture<T>::TFuture(const TIntrusivePtr<TFutureState>& state) noexcept
         : State(state)
     {
-    }
-
-    template <typename T>
-    inline TFuture<T>& TFuture<T>::operator=(const TFuture<T>& other) {
-        State = other.State;
-        return *this;
     }
 
     template <typename T>
@@ -721,22 +705,9 @@ namespace NThreading {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-    inline TFuture<void>::TFuture() {
-    }
-
-    inline TFuture<void>::TFuture(const TFuture<void>& other)
-        : State(other.State)
-    {
-    }
-
-    inline TFuture<void>::TFuture(const TIntrusivePtr<TFutureState>& state)
+    inline TFuture<void>::TFuture(const TIntrusivePtr<TFutureState>& state) noexcept
         : State(state)
     {
-    }
-
-    inline TFuture<void>& TFuture<void>::operator=(const TFuture<void>& other) {
-        State = other.State;
-        return *this;
     }
 
     inline void TFuture<void>::Swap(TFuture<void>& other) {
@@ -826,25 +797,9 @@ namespace NThreading {
     ////////////////////////////////////////////////////////////////////////////////
 
     template <typename T>
-    inline TPromise<T>::TPromise() {
-    }
-
-    template <typename T>
-    inline TPromise<T>::TPromise(const TPromise<T>& other)
-        : State(other.State)
-    {
-    }
-
-    template <typename T>
-    inline TPromise<T>::TPromise(const TIntrusivePtr<TFutureState>& state)
+    inline TPromise<T>::TPromise(const TIntrusivePtr<TFutureState>& state) noexcept
         : State(state)
     {
-    }
-
-    template <typename T>
-    inline TPromise<T>& TPromise<T>::operator=(const TPromise<T>& other) {
-        State = other.State;
-        return *this;
     }
 
     template <typename T>
@@ -948,22 +903,9 @@ namespace NThreading {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-    inline TPromise<void>::TPromise() {
-    }
-
-    inline TPromise<void>::TPromise(const TPromise<void>& other)
-        : State(other.State)
-    {
-    }
-
-    inline TPromise<void>::TPromise(const TIntrusivePtr<TFutureState>& state)
+    inline TPromise<void>::TPromise(const TIntrusivePtr<TFutureState>& state) noexcept
         : State(state)
     {
-    }
-
-    inline TPromise<void>& TPromise<void>::operator=(const TPromise<void>& other) {
-        State = other.State;
-        return *this;
     }
 
     inline void TPromise<void>::Swap(TPromise<void>& other) {

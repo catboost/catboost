@@ -3,7 +3,7 @@
 #include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
 #include <util/generic/hash.h>
-#include <library/containers/2d_array/2d_array.h>
+#include <library/cpp/containers/2d_array/2d_array.h>
 
 namespace NCatboostCuda {
     struct TCtrStat {

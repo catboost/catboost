@@ -11,7 +11,7 @@ namespace NCatboostCuda {
         TGpuBordersBuilder bordersBuilder(FeaturesManager);
         for (const auto& estimator : estimatorIds) {
             auto featureVisitor = [&](TBinarizedFeatureVisitor visitor, ui32 featureId, TConstArrayRef<float> values) {
-                TEstimatedFeature feature{estimator, featureId};
+                NCB::TEstimatedFeatureId feature{estimator, featureId};
                 auto id = FeaturesManager.GetId(feature);
                 auto borders = bordersBuilder.GetOrComputeBorders(id, FeaturesManager.GetBinarizationDescription(feature), values);
                 auto binarized = NCB::BinarizeLine<ui8>(values,
@@ -86,7 +86,7 @@ namespace NCatboostCuda {
                     TVector<ui8> binarized(binFeatures.size());
                     const ui8 binCount = 2;
                     for (ui32 i: xrange(featureIds.size())) {
-                        TEstimatedFeature feature{estimator, featureIds[i]};
+                        NCB::TEstimatedFeatureId feature{estimator, featureIds[i]};
 
                         auto id = FeaturesManager.GetId(feature);
                         if (!FeaturesManager.HasBorders(id)) {

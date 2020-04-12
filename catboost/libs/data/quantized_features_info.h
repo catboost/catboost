@@ -15,7 +15,7 @@
 #include <catboost/private/libs/quantization/utils.h>
 
 #include <library/binsaver/bin_saver.h>
-#include <library/grid_creator/binarization.h>
+#include <library/cpp/grid_creator/binarization.h>
 #include <library/dbg_output/dump.h>
 #include <library/threading/local_executor/local_executor.h>
 
@@ -232,13 +232,14 @@ namespace NCB {
 
         void CheckCorrectFeature(const IFeatureValuesHolder& feature) const {
             CB_ENSURE_INTERNAL(
-                IsConsistentWithLayout(feature, *FeaturesLayout),
+                FeaturesLayout->IsCorrectExternalFeatureIdxAndType(
+                    feature.GetId(), feature.GetFeatureType()
+                ),
                 "feature #" << feature.GetId() << " is not consistent with featuresLayout"
             );
         }
 
         friend class TCatFeaturesPerfectHashHelper;
-        friend class TObjectsSerialization;
 
         inline ENanMode ComputeNanMode(const TFloatValuesHolder& feature) const;
 

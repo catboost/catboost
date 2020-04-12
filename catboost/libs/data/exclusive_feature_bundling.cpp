@@ -8,7 +8,7 @@
 #include <catboost/libs/helpers/double_array_iterator.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
 
-#include <library/pop_count/popcount.h>
+#include <library/cpp/pop_count/popcount.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
@@ -24,6 +24,8 @@
 
 
 namespace NCB {
+
+    static_assert(CHAR_BIT == 8, "CatBoost requires CHAR_BIT == 8");
 
     // [flatFeatureIdx] -> (blockIdx, nonZero Mask)
     using TFeaturesNonDefaultMasks = TVector<TVector<std::pair<ui32, ui64>>>;
@@ -342,9 +344,9 @@ namespace NCB {
             const ui32 perTypeFeatureIdx = featuresLayout.GetInternalFeatureIdx(flatFeatureIdx);
             bool isSparse = false;
             if (featureMetaInfo.Type == EFeatureType::Float) {
-                isSparse = rawObjectsData.FloatFeatures[perTypeFeatureIdx]->GetIsSparse();
+                isSparse = rawObjectsData.FloatFeatures[perTypeFeatureIdx]->IsSparse();
             } else if (featureMetaInfo.Type == EFeatureType::Categorical) {
-                isSparse = rawObjectsData.CatFeatures[perTypeFeatureIdx]->GetIsSparse();
+                isSparse = rawObjectsData.CatFeatures[perTypeFeatureIdx]->IsSparse();
             } else {
                 CB_ENSURE(false, featureMetaInfo.Type << " is not supported for feature bundles");
             }

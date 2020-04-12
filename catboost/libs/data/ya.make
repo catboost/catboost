@@ -41,10 +41,10 @@ SRCS(
 )
 
 PEERDIR(
+    library/cpp/pop_count
     library/dbg_output
     library/json
     library/object_factory
-    library/pop_count
     library/string_utils/csv
     library/threading/future
     library/threading/local_executor
@@ -66,6 +66,7 @@ PEERDIR(
 )
 
 GENERATE_ENUM_SERIALIZATION(baseline.h)
+GENERATE_ENUM_SERIALIZATION(columns.h)
 GENERATE_ENUM_SERIALIZATION(order.h)
 GENERATE_ENUM_SERIALIZATION(target.h)
 GENERATE_ENUM_SERIALIZATION(visitor.h)

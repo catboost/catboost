@@ -9,8 +9,19 @@ ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp
 
 ALLOW contrib/libs/libbpf -> contrib/restricted/libelf
 
-# GLib and GStreamer are LGPL
+# For HBase client: CONTRIB-1790
+ALLOW passport/cpp -> contrib/restricted/thrift
+
+# ALSA library is LGPL
+ALLOW yandex_io -> contrib/restricted/alsa-lib
+
+# Avahi is LGPL
+ALLOW yandex_io -> contrib/restricted/avahi
+
+# GLib is LGPL
 ALLOW yandex_io -> contrib/restricted/glib
+
+# GStreamer is LGPL
 ALLOW yandex_io -> contrib/restricted/gstreamer
 ALLOW yandex_io -> contrib/restricted/gst-plugins-base
 ALLOW yandex_io -> contrib/restricted/gst-plugins-good
@@ -20,8 +31,14 @@ ALLOW yandex_io -> contrib/restricted/gst-libav
 # mpg123 is LGPL
 ALLOW extsearch/audio/kernel/recoglib -> contrib/restricted/mpg123
 
+# OpenAL Soft is LGPL
+ALLOW yandex_io -> contrib/restricted/openal
+
 # Allowed subset of abseil is exported via library/
 ALLOW library/containers/absl_flat_hash -> contrib/restricted/abseil-cpp/absl/container
+
+# Prefer using skynet for data distribution
+ALLOW maps/infra/ecstatic/ymtorrent -> contrib/restricted/libtorrent
 
 # Only allow boost in yandex projects listed below
 ALLOW adfox -> contrib/restricted/boost
@@ -69,5 +86,8 @@ ALLOW contrib/tools -> contrib/restricted/boost
 # 1. All peerdirs within contrib/restricted are permitted
 ALLOW contrib/restricted -> contrib/restricted
 
-# 2. All peerdirs to contrib/restricted from outside are prohibited
+# 2. Allow junk for debug purposes
+ALLOW junk -> contrib/restricted
+
+# 3. All peerdirs to contrib/restricted from outside are prohibited
 DENY .* -> contrib/restricted

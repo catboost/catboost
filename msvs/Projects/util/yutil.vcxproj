@@ -324,6 +324,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\util\generic\size_literals.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\stack.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\store_policy.h"/>
+    <ClInclude Include="$(SolutionDir)..\util\generic\strbase.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\strbuf.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\strfcpy.h"/>
     <ClInclude Include="$(SolutionDir)..\util\generic\string.h"/>

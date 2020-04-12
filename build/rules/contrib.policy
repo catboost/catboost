@@ -67,6 +67,8 @@ DENY .* ->  contrib/python/backports/weakref
 ALLOW contrib/python/opentracing -> contrib/python/thrift
 ALLOW contrib/python/thrift/tests -> contrib/python/thrift
 ALLOW contrib/python/jaeger-client -> contrib/python/thrift
+ALLOW search/mon/wabbajack/libs/generated/iss3 -> contrib/python/thrift
+ALLOW search/mon/wabbajack/libs/modlib/api_wrappers/casher -> contrib/python/thrift
 DENY .* -> contrib/python/thrift
 
 ALLOW sandbox/projects/mail/Load/FuritaShooting -> contrib/python/jsonlib
@@ -160,6 +162,7 @@ DENY .* -> contrib/deprecated/python/xmpppy
 ALLOW contrib/python/fancycompleter -> contrib/python/pyrepl
 DENY .* -> contrib/python/pyrepl
 
+ALLOW intranet/yandex_directory/src -> contrib/python/pycrypto
 ALLOW addappter/backend -> contrib/python/pycrypto
 ALLOW adfox -> contrib/python/pycrypto
 ALLOW alice/vins/api -> contrib/python/pycrypto

@@ -1,25 +1,41 @@
 #pragma once
 
 #include "columns.h"
-#include "exclusive_feature_bundling.h"
+
 #include "feature_grouping.h"
+#include "exclusive_feature_bundling.h"
 #include "packed_binary_features.h"
 
+
 namespace NCB {
-    using TBinaryPacksHolder
-        = TTypedFeatureValuesHolder<NCB::TBinaryFeaturesPack, EFeatureValuesType::BinaryPack>;
-    using TBinaryPacksArrayHolder
-        = TCompressedValuesHolderImpl<NCB::TBinaryFeaturesPack, EFeatureValuesType::BinaryPack>;
 
-    template <class T, EFeatureValuesType TType>
-    class TPackedBinaryValuesHolderImpl : public TTypedFeatureValuesHolder<T, TType> {
-    public:
-        using TBase = TTypedFeatureValuesHolder<T, TType>;
+    struct ICompositeValuesHolder : public IFeatureValuesHolder {
+        ICompositeValuesHolder(EFeatureValuesType featureValuesType,
+                             ui32 featureId,
+                             ui32 size)
+            : IFeatureValuesHolder(featureValuesType, featureId, size)
+        {}
 
+    };
+
+    template <typename T, EFeatureValuesType ValuesType>
+    using ICompositeColumnTemplate = IQuantizedFeatureValuesHolder<T, ValuesType, ICompositeValuesHolder>;
+
+    using IBinaryPacksArray = ICompositeColumnTemplate<NCB::TBinaryFeaturesPack, EFeatureValuesType::BinaryPack>;
+    using IFeaturesGroupArray = ICompositeColumnTemplate<ui8, EFeatureValuesType::FeaturesGroup>;
+    using IExclusiveFeatureBundleArray = ICompositeColumnTemplate<ui16, EFeatureValuesType::ExclusiveFeatureBundle>;
+
+    using TBinaryPacksArrayHolder = TCompressedValuesHolderImpl<IBinaryPacksArray>;
+    using TFeaturesGroupArrayHolder = TCompressedValuesHolderImpl<IFeaturesGroupArray>;
+    using TExclusiveFeatureBundleArrayHolder = TCompressedValuesHolderImpl<IExclusiveFeatureBundleArray>;
+
+
+    template <class TBase>
+    class TPackedBinaryValuesHolderImpl : public TBase {
     public:
-        TPackedBinaryValuesHolderImpl(ui32 featureId, const TBinaryPacksHolder* packsData, ui8 bitIdx)
-            : TBase(featureId, packsData->GetSize(), packsData->GetIsSparse())
-            , PacksData(packsData)
+        TPackedBinaryValuesHolderImpl(ui32 featureId, const IBinaryPacksArray* packsData, ui8 bitIdx)
+            : TBase(featureId, packsData->GetSize())
+            , PacksData(dynamic_cast<const TBinaryPacksArrayHolder*>(packsData))
             , BitIdx(bitIdx)
         {
             CB_ENSURE(
@@ -28,94 +44,81 @@ namespace NCB {
                 << sizeof(NCB::TBinaryFeaturesPack) * CHAR_BIT << ')'
             );
         }
+        TPackedBinaryValuesHolderImpl(ui32 featureId, THolder<TBinaryPacksArrayHolder>&& packsData, ui8 bitIdx)
+            : TPackedBinaryValuesHolderImpl(featureId, packsData.Get(), bitIdx)
+        {
+            PacksDataHolder = std::move(packsData);
+        }
 
         ui8 GetBitIdx() const {
             return BitIdx;
         }
 
-        // in some cases non-standard T can be useful / more efficient
-        template <class T2 = T>
-        TMaybeOwningArrayHolder<T> ExtractValuesT(NPar::TLocalExecutor* localExecutor) const {
-            Y_UNUSED(localExecutor);
-
-            if (const auto* packsArrayData = dynamic_cast<const TBinaryPacksArrayHolder*>(PacksData)) {
-                TVector<T> dst;
-                dst.yresize(this->GetSize());
-                TArrayRef<T> dstRef(dst);
-
-                NCB::TBinaryFeaturesPack bitMask = NCB::TBinaryFeaturesPack(1) << BitIdx;
-
-                auto visitor = [dstRef, bitIdx = BitIdx, bitMask](ui32 objectIdx, NCB::TBinaryFeaturesPack pack) {
-                    dstRef[objectIdx] = (pack & bitMask) >> bitIdx;
-                };
-                packsArrayData->ForEach(visitor);
-
-                return TMaybeOwningArrayHolder<T>::CreateOwning(std::move(dst));
-            } else {
-                Y_FAIL("PacksData is not TBinaryPacksArrayHolder");
-            }
+        bool IsSparse() const {
+            return PacksData->IsSparse();
         }
 
-        TMaybeOwningArrayHolder<T> ExtractValues(NPar::TLocalExecutor* localExecutor) const override {
-            return ExtractValuesT<T>(localExecutor);
+        ui64 EstimateMemoryForCloning(
+            const TCloningParams& cloningParams
+        ) const override {
+            return PacksData->EstimateMemoryForCloning(cloningParams);
         }
 
-        IDynamicBlockIteratorPtr<T> GetBlockIterator(ui32 offset = 0) const override {
-            if (const auto* packsArrayData = dynamic_cast<const TBinaryPacksArrayHolder*>(PacksData)) {
-                auto compressedArrayData = packsArrayData->GetCompressedData();
-                const TCompressedArray& compressedArray = *compressedArrayData.GetSrc();
-                const TFeaturesArraySubsetIndexing* subsetIndexing = compressedArrayData.GetSubsetIndexing();
+        THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
+            const TCloningParams& cloningParams,
+            NPar::TLocalExecutor* localExecutor
+        ) const override {
+            return MakeHolder<TPackedBinaryValuesHolderImpl>(
+                this->GetId(),
+                DynamicHolderCast<TBinaryPacksArrayHolder>(
+                    PacksData->CloneWithNewSubsetIndexing(cloningParams, localExecutor),
+                    "Column type changed after cloning"
+                ),
+                BitIdx
+            );
+        }
 
-                NCB::TBinaryFeaturesPack bitMask = NCB::TBinaryFeaturesPack(1) << BitIdx;
+        IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const override {
+            auto compressedArrayData = PacksData->GetCompressedData();
+            const TCompressedArray& compressedArray = *compressedArrayData.GetSrc();
+            const TFeaturesArraySubsetIndexing* subsetIndexing = compressedArrayData.GetSubsetIndexing();
 
-                auto transformer = [bitIdx = BitIdx, bitMask](TBinaryFeaturesPack pack) {
-                    return (pack & bitMask) >> bitIdx;
-                };
+            NCB::TBinaryFeaturesPack bitMask = NCB::TBinaryFeaturesPack(1) << BitIdx;
 
-                return
-                    MakeHolder<TTransformArrayBlockIterator<T, TBinaryFeaturesPack, decltype(transformer)>>(
-                        compressedArray.GetRawArray<const TBinaryFeaturesPack>().subspan(
-                            subsetIndexing->GetConsecutiveSubsetBeginNonChecked() + offset
-                        ),
-                        std::move(transformer)
-                    );
-            } else {
-                Y_FAIL("PacksData is not TBinaryPacksArrayHolder");
-            }
+            auto transformer = [bitIdx = BitIdx, bitMask](TBinaryFeaturesPack pack) {
+                return (pack & bitMask) >> bitIdx;
+            };
+            return MakeTransformingArraySubsetBlockIterator<ui8>(
+                subsetIndexing,
+                compressedArray.GetRawArray<const TBinaryFeaturesPack>(),
+                offset,
+                std::move(transformer)
+            );
         }
 
     private:
-        const TBinaryPacksHolder* PacksData;
+        const TBinaryPacksArrayHolder* PacksData;
         ui8 BitIdx;
+        THolder<TBinaryPacksArrayHolder> PacksDataHolder;
     };
 
-    using TExclusiveFeatureBundleHolder
-        = TTypedFeatureValuesHolder<ui16, EFeatureValuesType::ExclusiveFeatureBundle>;
-    using TExclusiveFeatureBundleArrayHolder
-        = TCompressedValuesHolderImpl<ui16, EFeatureValuesType::ExclusiveFeatureBundle>;
-
-    template <class T, EFeatureValuesType TType>
-    class TBundlePartValuesHolderImpl : public TTypedFeatureValuesHolder<T, TType> {
-    public:
-        using TBase = TTypedFeatureValuesHolder<T, TType>;
-
+    template <class TBase>
+    class TBundlePartValuesHolderImpl : public TBase {
     public:
         TBundlePartValuesHolderImpl(ui32 featureId,
-                                    const TExclusiveFeatureBundleHolder* bundlesData,
+                                    const IExclusiveFeatureBundleArray* bundlesData,
                                     NCB::TBoundsInBundle boundsInBundle)
-            : TBase(featureId, bundlesData->GetSize(), bundlesData->GetIsSparse())
-            , BundlesData(bundlesData)
+            : TBase(featureId, bundlesData->GetSize())
+            , BundlesData(dynamic_cast<const TExclusiveFeatureBundleArrayHolder*>(bundlesData))
             , BundleSizeInBytes(0) // inited below
             , BoundsInBundle(boundsInBundle)
         {
             CB_ENSURE_INTERNAL(bundlesData, "bundlesData is empty");
-
+            CB_ENSURE_INTERNAL(BundlesData, "Expected TExclusiveFeatureBundleArrayHolder");
             ui32 bitsPerKey;
-            if (const auto* denseData = dynamic_cast<const TExclusiveFeatureBundleArrayHolder*>(BundlesData)) {
-                bitsPerKey = denseData->GetBitsPerKey();
-            } else {
-                CB_ENSURE_INTERNAL(false, "Unsupported bundlesData type");
-            }
+
+            bitsPerKey = BundlesData->GetBitsPerKey();
+
             CB_ENSURE_INTERNAL(
                 (bitsPerKey == CHAR_BIT) || (bitsPerKey == (2 * CHAR_BIT)),
                 "Unsupported " << LabeledOutput(bitsPerKey)
@@ -130,52 +133,68 @@ namespace NCB {
             CB_ENSURE_INTERNAL(boundsInBundle.End <= maxBound, "boundsInBundle.End > maxBound");
         }
 
-        TMaybeOwningArrayHolder<T> ExtractValues(NPar::TLocalExecutor* localExecutor) const override {
-            switch (BundleSizeInBytes) {
-                case 1:
-                    return ExtractValuesImpl<ui8>(localExecutor);
-                case 2:
-                    return ExtractValuesImpl<ui16>(localExecutor);
-                default:
-                    Y_UNREACHABLE();
-            }
-            Y_UNREACHABLE();
+        TBundlePartValuesHolderImpl(ui32 featureId,
+                                    THolder<TExclusiveFeatureBundleArrayHolder>&& bundlesData,
+                                    NCB::TBoundsInBundle boundsInBundle)
+            : TBundlePartValuesHolderImpl(featureId, bundlesData.Get(), boundsInBundle)
+        {
+            BundlesDataHolder = std::move(bundlesData);
         }
 
-        IDynamicBlockIteratorPtr<T> GetBlockIterator(ui32 offset = 0) const override {
-            if (const auto* bundlesArrayData
-                = dynamic_cast<const TExclusiveFeatureBundleArrayHolder*>(BundlesData))
-            {
-                auto compressedArrayData = bundlesArrayData->GetCompressedData();
-                const TCompressedArray& compressedArray = *compressedArrayData.GetSrc();
-                const TFeaturesArraySubsetIndexing* subsetIndexing = compressedArrayData.GetSubsetIndexing();
+        bool IsSparse() const override {
+            return BundlesData->IsSparse();
+        }
 
-                IDynamicBlockIteratorPtr<T> result;
+        ui64 EstimateMemoryForCloning(
+            const TCloningParams& cloningParams
+        ) const override {
+            return BundlesData->EstimateMemoryForCloning(cloningParams);
+        }
 
-                DispatchBitsPerKeyToDataType(
-                    compressedArray,
-                    "TBundlePartValuesHolderImpl::GetBlockIterator",
-                    [&] (const auto* histogram) {
-                        using TBundle = std::remove_cvref_t<decltype(*histogram)>;
 
-                        auto transformer = [boundsInBundle = BoundsInBundle] (TBundle bundle) {
-                            return GetBinFromBundle<T>(bundle, boundsInBundle);
-                        };
+        THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
+            const TCloningParams& cloningParams,
+            NPar::TLocalExecutor* localExecutor
+        ) const override {
+            return MakeHolder<TBundlePartValuesHolderImpl>(
+                this->GetId(),
+                DynamicHolderCast<TExclusiveFeatureBundleArrayHolder>(
+                    BundlesData->CloneWithNewSubsetIndexing(cloningParams, localExecutor),
+                    "Column type changed after cloning"
+                ),
+                BoundsInBundle
+            );
+        }
 
-                        result = MakeHolder<TTransformArrayBlockIterator<T, TBundle, decltype(transformer)>>(
-                            TArrayRef(
-                                histogram + subsetIndexing->GetConsecutiveSubsetBeginNonChecked() + offset,
-                                TBase::GetSize() - offset
-                            ),
-                            std::move(transformer)
-                        );
-                    }
-                );
+        IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const  override {
+            auto compressedArrayData = BundlesData->GetCompressedData();
+            const TCompressedArray& compressedArray = *compressedArrayData.GetSrc();
+            const TFeaturesArraySubsetIndexing* subsetIndexing = compressedArrayData.GetSubsetIndexing();
 
-                return result;
-            } else {
-                Y_FAIL("BundlesData is not TBundlesArrayData");
-            }
+            IDynamicBlockIteratorPtr<ui8> result;
+
+            compressedArray.DispatchBitsPerKeyToDataType(
+                "TBundlePartValuesHolderImpl::GetBlockIterator",
+                [&] (const auto* histogram) {
+                    using TBundle = std::remove_cvref_t<decltype(*histogram)>;
+
+                    auto transformer = [boundsInBundle = BoundsInBundle] (TBundle bundle) {
+                        return GetBinFromBundle<ui8>(bundle, boundsInBundle);
+                    };
+
+                    result = MakeTransformingArraySubsetBlockIterator<ui8>(
+                        subsetIndexing,
+                        TArrayRef(
+                            histogram,
+                            compressedArray.GetSize()
+                        ),
+                        offset,
+                        std::move(transformer)
+                    );
+                }
+            );
+
+            return result;
         }
 
         ui32 GetBundleSizeInBytes() const {
@@ -187,58 +206,27 @@ namespace NCB {
         }
 
     private:
-        template <class TBundle>
-        TMaybeOwningArrayHolder<T> ExtractValuesImpl(NPar::TLocalExecutor* localExecutor) const {
-            if (const auto* bundlesArrayData
-                = dynamic_cast<const TExclusiveFeatureBundleArrayHolder*>(BundlesData))
-            {
-                TVector<T> dst;
-                dst.yresize(this->GetSize());
-                TArrayRef<T> dstRef(dst);
-
-                auto visitor = [dstRef, boundsInBundle = BoundsInBundle] (ui32 objectIdx, auto bundle) {
-                    dstRef[objectIdx] = GetBinFromBundle<T>(bundle, boundsInBundle);
-                };
-                bundlesArrayData->GetArrayData<TBundle>().ParallelForEach(visitor, localExecutor);
-
-                return TMaybeOwningArrayHolder<T>::CreateOwning(std::move(dst));
-            } else {
-                Y_FAIL("PacksData is not TBundlesArrayData");
-            }
-        }
-
-    private:
-        const TExclusiveFeatureBundleHolder* BundlesData;
+        const TExclusiveFeatureBundleArrayHolder* BundlesData;
         ui32 BundleSizeInBytes;
         NCB::TBoundsInBundle BoundsInBundle;
+        THolder<TExclusiveFeatureBundleArrayHolder> BundlesDataHolder;
     };
 
-    using TFeaturesGroupHolder
-        = TTypedFeatureValuesHolder<ui8, EFeatureValuesType::FeaturesGroup>;
-    using TFeaturesGroupArrayHolder
-        = TCompressedValuesHolderImpl<ui8, EFeatureValuesType::FeaturesGroup>;
 
-    template <class T, EFeatureValuesType TType> // T - is always ui8 now
-    class TFeaturesGroupPartValuesHolderImpl : public TTypedFeatureValuesHolder<T, TType> {
-    public:
-        using TBase = TTypedFeatureValuesHolder<T, TType>;
-
+    template <class TBase>
+    class TFeaturesGroupPartValuesHolderImpl : public TBase {
     public:
         TFeaturesGroupPartValuesHolderImpl(ui32 featureId,
-                                           const TFeaturesGroupHolder* groupData,
+                                           const IFeaturesGroupArray* groupData,
                                            ui32 inGroupIdx)
-            : TBase(featureId, groupData->GetSize(), groupData->GetIsSparse())
-            , GroupData(groupData)
+            : TBase(featureId, groupData->GetSize())
+            , GroupData(dynamic_cast<const TFeaturesGroupArrayHolder*>(groupData))
             , GroupSizeInBytes(0) // inited below
             , InGroupIdx(inGroupIdx)
         {
-            CB_ENSURE_INTERNAL(groupData, "groupData is empty");
+            CB_ENSURE_INTERNAL(GroupData, "groupData is empty or is not TFeaturesGroupArrayHolder");
             ui32 bitsPerKey;
-            if (const auto* denseData = dynamic_cast<const TFeaturesGroupArrayHolder*>(GroupData)) {
-                bitsPerKey = denseData->GetBitsPerKey();
-            } else {
-                CB_ENSURE_INTERNAL(false, "Unsupported groupData type");
-            }
+            bitsPerKey = GroupData->GetBitsPerKey();
             CB_ENSURE_INTERNAL(
                 (bitsPerKey == CHAR_BIT) || (bitsPerKey == 2 * CHAR_BIT) || (bitsPerKey == 4 * CHAR_BIT),
                 "Unsupported " << LabeledOutput(bitsPerKey)
@@ -246,91 +234,81 @@ namespace NCB {
             GroupSizeInBytes = bitsPerKey / CHAR_BIT;
         }
 
-        TMaybeOwningArrayHolder<T> ExtractValues(NPar::TLocalExecutor* localExecutor) const override {
-            switch(GroupSizeInBytes) {
-                case 1:
-                    return ExtractValuesImpl<ui8>(localExecutor);
-                case 2:
-                    return ExtractValuesImpl<ui16>(localExecutor);
-                case 4:
-                    return ExtractValuesImpl<ui32>(localExecutor);
-                default:
-                    Y_UNREACHABLE();
-            }
-            Y_UNREACHABLE();
+        TFeaturesGroupPartValuesHolderImpl(ui32 featureId,
+                                           THolder<TFeaturesGroupArrayHolder>&& groupData,
+                                           ui32 inGroupIdx)
+            : TFeaturesGroupPartValuesHolderImpl(featureId, groupData.Get(), inGroupIdx)
+        {
+            GroupDataHolder = std::move(groupData);
         }
 
-        IDynamicBlockIteratorPtr<T> GetBlockIterator(ui32 offset = 0) const override {
-            if (const auto* groupsArrayData = dynamic_cast<const TFeaturesGroupArrayHolder*>(GroupData)) {
-                auto compressedArrayData = groupsArrayData->GetCompressedData();
-                const TCompressedArray& compressedArray = *compressedArrayData.GetSrc();
-                const TFeaturesArraySubsetIndexing* subsetIndexing = compressedArrayData.GetSubsetIndexing();
-
-                IDynamicBlockIteratorPtr<T> result;
-
-                DispatchBitsPerKeyToDataType(
-                    compressedArray,
-                    "TFeaturesGroupPartValuesHolderImpl::GetBlockIterator",
-                    [&] (const auto* histogram) {
-                        using TGroup = std::remove_cvref_t<decltype(*histogram)>;
-
-                        auto transformer = [firstBitPos = InGroupIdx * CHAR_BIT] (TGroup group) {
-                            return group >> firstBitPos;
-                        };
-
-                        result = MakeHolder<TTransformArrayBlockIterator<T, TGroup, decltype(transformer)>>(
-                            TArrayRef(
-                                histogram + subsetIndexing->GetConsecutiveSubsetBeginNonChecked() + offset,
-                                TBase::GetSize() - offset
-                            ),
-                            std::move(transformer)
-                        );
-                    }
-                );
-
-                return result;
-            } else {
-                Y_FAIL("GroupsData is not TFeaturesGroupArrayData");
-            }
+        bool IsSparse() const override {
+            return GroupData->IsSparse();
         }
 
-    private:
-        template <typename TGroup>
-        TMaybeOwningArrayHolder<T> ExtractValuesImpl(NPar::TLocalExecutor* localExecutor) const {
-            if (const auto* bundlesArrayData = dynamic_cast<const TFeaturesGroupArrayHolder*>(GroupData)) {
-                TVector<T> dst;
-                dst.yresize(this->GetSize());
-                TArrayRef<T> dstRef(dst);
+        ui64 EstimateMemoryForCloning(
+            const TCloningParams& cloningParams
+        ) const override {
+            return GroupData->EstimateMemoryForCloning(cloningParams);
+        }
 
-                auto visitor = [dstRef, firstBitPos = InGroupIdx * CHAR_BIT](ui32 objectIdx, TGroup group) {
-                    dstRef[objectIdx] = (group >> firstBitPos);
-                };
+        THolder<IFeatureValuesHolder> CloneWithNewSubsetIndexing(
+            const TCloningParams& cloningParams,
+            NPar::TLocalExecutor* localExecutor
+        ) const override {
+            return MakeHolder<TFeaturesGroupPartValuesHolderImpl>(
+                this->GetId(),
+                DynamicHolderCast<TFeaturesGroupArrayHolder>(
+                    GroupData->CloneWithNewSubsetIndexing(cloningParams, localExecutor),
+                    "Column type changed after cloning"
+                ),
+                InGroupIdx
+            );
+        }
 
-                bundlesArrayData->GetArrayData<TGroup>().ParallelForEach(visitor, localExecutor);
+        IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const override {
+            auto compressedArrayData = GroupData->GetCompressedData();
+            const TCompressedArray& compressedArray = *compressedArrayData.GetSrc();
+            const TFeaturesArraySubsetIndexing* subsetIndexing = compressedArrayData.GetSubsetIndexing();
 
-                return TMaybeOwningArrayHolder<T>::CreateOwning(std::move(dst));
-            } else {
-                Y_FAIL("GroupsData is not TFeaturesGroupArrayData");
-            }
+            IDynamicBlockIteratorPtr<ui8> result;
+
+            compressedArray.DispatchBitsPerKeyToDataType(
+                "TFeaturesGroupPartValuesHolderImpl::GetBlockIterator",
+                [&] (const auto* histogram) {
+                    using TGroup = std::remove_cvref_t<decltype(*histogram)>;
+
+                    auto transformer = [firstBitPos = InGroupIdx * CHAR_BIT] (TGroup group) {
+                        return group >> firstBitPos;
+                    };
+
+                    result = MakeTransformingArraySubsetBlockIterator<ui8>(
+                        subsetIndexing,
+                        TArrayRef(
+                            histogram,
+                            compressedArray.GetSize()
+                        ),
+                        offset,
+                        std::move(transformer)
+                    );
+                }
+            );
+            return result;
         }
 
     private:
-        const TFeaturesGroupHolder* GroupData;
+        const TFeaturesGroupArrayHolder* GroupData;
         ui32 GroupSizeInBytes;
         ui32 InGroupIdx;
+        THolder<TFeaturesGroupArrayHolder> GroupDataHolder;
     };
 
-    using TQuantizedFloatPackedBinaryValuesHolder
-        = TPackedBinaryValuesHolderImpl<ui8, EFeatureValuesType::QuantizedFloat>;
-    using TQuantizedFloatBundlePartValuesHolder
-        = TBundlePartValuesHolderImpl<ui8, EFeatureValuesType::QuantizedFloat>;
-    using TQuantizedFloatGroupPartValuesHolder
-        = TFeaturesGroupPartValuesHolderImpl<ui8, EFeatureValuesType::QuantizedFloat>;
 
-    using TQuantizedCatValuesHolder
-        = TCompressedValuesHolderImpl<ui32, EFeatureValuesType::PerfectHashedCategorical>;
-    using TQuantizedCatPackedBinaryValuesHolder
-        = TPackedBinaryValuesHolderImpl<ui32, EFeatureValuesType::PerfectHashedCategorical>;
-    using TQuantizedCatBundlePartValuesHolder
-        = TBundlePartValuesHolderImpl<ui32, EFeatureValuesType::PerfectHashedCategorical>;
+    using TQuantizedFloatPackedBinaryValuesHolder = TPackedBinaryValuesHolderImpl<IQuantizedFloatValuesHolder>;
+    using TQuantizedCatPackedBinaryValuesHolder = TPackedBinaryValuesHolderImpl<IQuantizedCatValuesHolder>;
+
+    using TQuantizedFloatBundlePartValuesHolder = TBundlePartValuesHolderImpl<IQuantizedFloatValuesHolder>;
+    using TQuantizedCatBundlePartValuesHolder = TBundlePartValuesHolderImpl<IQuantizedCatValuesHolder>;
+
+    using TQuantizedFloatGroupPartValuesHolder = TFeaturesGroupPartValuesHolderImpl<IQuantizedFloatValuesHolder>;
 }

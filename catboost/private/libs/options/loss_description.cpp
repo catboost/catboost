@@ -9,7 +9,6 @@
 #include <util/string/strip.h>
 #include <util/string/subst.h>
 
-
 ELossFunction ParseLossType(const TStringBuf lossDescription) {
     const TVector<TStringBuf> tokens = StringSplitter(lossDescription).Split(':').Limit(2);
     CB_ENSURE(!tokens.empty(), "custom loss is missing in description: " << lossDescription);
@@ -71,18 +70,11 @@ bool NCatboostOptions::TLossDescription::operator!=(const TLossDescription& rhs)
 
 double NCatboostOptions::GetLogLossBorder(const TLossDescription& lossFunctionConfig) {
     Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::Logloss);
-    const auto& lossParams = lossFunctionConfig.GetLossParams();
-    if (lossParams.contains("border")) {
-        return FromString<float>(lossParams.at("border"));
-    }
-    return GetDefaultTargetBorder();
+    return GetParamOrDefault(lossFunctionConfig, "border", GetDefaultTargetBorder());
 }
 
 double NCatboostOptions::GetAlpha(const TMap<TString, TString>& lossParams) {
-    if (lossParams.contains("alpha")) {
-        return FromString<float>(lossParams.at("alpha"));
-    }
-    return 0.5;
+    return GetParamOrDefault(lossParams, "alpha", 0.5);
 }
 
 double NCatboostOptions::GetAlpha(const TLossDescription& lossFunctionConfig) {
@@ -91,10 +83,7 @@ double NCatboostOptions::GetAlpha(const TLossDescription& lossFunctionConfig) {
 }
 
 double NCatboostOptions::GetAlphaQueryCrossEntropy(const TMap<TString, TString>& lossParams) {
-    if (lossParams.contains("alpha")) {
-        return FromString<float>(lossParams.at("alpha"));
-    }
-    return 0.95;
+    return GetParamOrDefault(lossParams, "alpha", 0.95);
 }
 
 double NCatboostOptions::GetAlphaQueryCrossEntropy(const TLossDescription& lossFunctionConfig) {
@@ -103,82 +92,66 @@ double NCatboostOptions::GetAlphaQueryCrossEntropy(const TLossDescription& lossF
 }
 
 int NCatboostOptions::GetYetiRankPermutations(const TLossDescription& lossFunctionConfig) {
-    Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::YetiRank || lossFunctionConfig.GetLossFunction()  == ELossFunction::YetiRankPairwise);
-    const auto& lossParams = lossFunctionConfig.GetLossParams();
-    if (lossParams.contains("permutations")) {
-        return FromString<int>(lossParams.at("permutations"));
-    }
-    return 10;
+    Y_ASSERT(
+        lossFunctionConfig.GetLossFunction() == ELossFunction::YetiRank ||
+        lossFunctionConfig.GetLossFunction() == ELossFunction::YetiRankPairwise);
+    return GetParamOrDefault(lossFunctionConfig, "permutations", 10);
 }
 
 double NCatboostOptions::GetYetiRankDecay(const TLossDescription& lossFunctionConfig) {
-    Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::YetiRank || lossFunctionConfig.GetLossFunction()  == ELossFunction::YetiRankPairwise);
-    const auto& lossParams = lossFunctionConfig.GetLossParams();
-    if (lossParams.contains("decay")) {
-        return FromString<double>(lossParams.at("decay"));
-    }
+    Y_ASSERT(
+        lossFunctionConfig.GetLossFunction() == ELossFunction::YetiRank ||
+        lossFunctionConfig.GetLossFunction() == ELossFunction::YetiRankPairwise);
     //TODO(nikitxskv): try to find the best default
-    return 0.99;
+    return GetParamOrDefault(lossFunctionConfig, "decay", 0.99);
 }
 
 double NCatboostOptions::GetLqParam(const TLossDescription& lossFunctionConfig) {
     Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::Lq);
     const auto& lossParams = lossFunctionConfig.GetLossParams();
-    if (lossParams.contains("q")) {
-        return FromString<double>(lossParams.at("q"));
-    } else {
-        CB_ENSURE(false, "For " << ELossFunction::Lq << " q parameter is mandatory");
-    }
+    CB_ENSURE(lossParams.contains("q"), "For " << ELossFunction::Lq << " q parameter is mandatory");
+    return FromString<double>(lossParams.at("q"));
 }
 
 double NCatboostOptions::GetHuberParam(const TLossDescription& lossFunctionConfig) {
     Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::Huber);
     const auto& lossParams = lossFunctionConfig.GetLossParams();
-    if (lossParams.contains("delta")) {
-        return FromString<double>(lossParams.at("delta"));
-    } else {
-        CB_ENSURE(false, "For " << ELossFunction::Huber << " delta parameter is mandatory");
-    }
+    CB_ENSURE(lossParams.contains("delta"), "For " << ELossFunction::Huber << " delta parameter is mandatory");
+    return FromString<double>(lossParams.at("delta"));
 }
 
 double NCatboostOptions::GetQuerySoftMaxLambdaReg(const TLossDescription& lossFunctionConfig) {
     Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::QuerySoftMax);
-    const auto& lossParams = lossFunctionConfig.GetLossParams();
-    if (lossParams.contains("lambda")) {
-        return FromString<double>(lossParams.at("lambda"));
-    }
-    return 0.01;
+    return GetParamOrDefault(lossFunctionConfig, "lambda", 0.01);
 }
 
 ui32 NCatboostOptions::GetMaxPairCount(const TLossDescription& lossFunctionConfig) {
     Y_ASSERT(IsPairwiseMetric(lossFunctionConfig.GetLossFunction()));
     if (IsPairLogit(lossFunctionConfig.GetLossFunction())) {
-        const auto& lossParams = lossFunctionConfig.GetLossParams();
-        if (lossParams.contains("max_pairs")) {
-            auto max_pairs = FromString<ui32>(lossParams.at("max_pairs"));
-            CB_ENSURE(max_pairs > 0, "Max generated pairs count should be positive");
-            return max_pairs;
-        }
+        ui32 max_pairs = GetParamOrDefault(lossFunctionConfig, "max_pairs", (ui32)MAX_AUTOGENERATED_PAIRS_COUNT);
+        CB_ENSURE(max_pairs > 0, "Max generated pairs count should be positive");
+        return max_pairs;
     }
     return (ui32)MAX_AUTOGENERATED_PAIRS_COUNT;
 }
 
 double NCatboostOptions::GetStochasticFilterSigma(const TLossDescription& lossDescription) {
     Y_ASSERT(lossDescription.GetLossFunction() == ELossFunction::StochasticFilter);
-    const auto& lossParams = lossDescription.GetLossParams();
-    if (lossParams.contains("sigma")) {
-        return FromString<double>(lossParams.at("sigma"));
-    }
-    return 1.;
+    return GetParamOrDefault(lossDescription, "sigma", 1.0);
 }
 
 int NCatboostOptions::GetStochasticFilterNumEstimations(const TLossDescription& lossDescription) {
     Y_ASSERT(lossDescription.GetLossFunction() == ELossFunction::StochasticFilter);
-    const auto& lossParams = lossDescription.GetLossParams();
-    if (lossParams.contains("num_estimations")) {
-        return FromString<int>(lossParams.at("num_estimations"));
-    }
-    return 1;
+    return GetParamOrDefault(lossDescription, "num_estimations", 1);
+}
+
+double NCatboostOptions::GetTweedieParam(const TLossDescription& lossFunctionConfig) {
+    Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::Tweedie);
+    const auto& lossParams = lossFunctionConfig.GetLossParams();
+    CB_ENSURE(
+        lossParams.contains("variance_power"),
+        "For " << ELossFunction::Tweedie << " variance_power parameter is mandatory");
+    return FromString<double>(lossParams.at("variance_power"));
 }
 
 NCatboostOptions::TLossDescription NCatboostOptions::ParseLossDescription(TStringBuf stringLossDescription) {
@@ -285,3 +258,103 @@ TString BuildMetricOptionDescription(const NJson::TJsonValue& lossOptions) {
     return paramType;
 }
 
+
+static bool IsFromAucFamily(ELossFunction loss) {
+    return loss == ELossFunction::AUC
+        || loss == ELossFunction::NormalizedGini;
+}
+
+void CheckMetric(const ELossFunction metric, const ELossFunction modelLoss) {
+    if (metric == ELossFunction::PythonUserDefinedPerObject || modelLoss == ELossFunction::PythonUserDefinedPerObject) {
+        return;
+    }
+
+    CB_ENSURE(
+        IsMultiRegressionMetric(metric) == IsMultiRegressionMetric(modelLoss),
+        "metric [" + ToString(metric) + "] and loss [" + ToString(modelLoss) + "] are incompatible"
+    );
+
+    /* [loss -> metric]
+     * ranking             -> ranking compatible
+     * binclass only       -> binclass compatible
+     * multiclass only     -> multiclass compatible
+     * classification only -> classification compatible
+     */
+
+    if (IsRankingMetric(modelLoss)) {
+        CB_ENSURE(
+            // accept classification
+            IsBinaryClassCompatibleMetric(metric) && IsBinaryClassCompatibleMetric(modelLoss)
+            // accept ranking
+            || IsRankingMetric(metric) && (GetRankingType(metric) != ERankingType::CrossEntropy) == (GetRankingType(modelLoss) != ERankingType::CrossEntropy)
+            // accept regression
+            || IsRegressionMetric(metric) && GetRankingType(modelLoss) == ERankingType::AbsoluteValue
+            // accept auc like
+            || IsFromAucFamily(metric),
+            "metric [" + ToString(metric) + "] is incompatible with loss [" + ToString(modelLoss) + "] (not compatible with ranking)"
+        );
+    }
+
+    if (IsBinaryClassOnlyMetric(modelLoss)) {
+        CB_ENSURE(IsBinaryClassCompatibleMetric(metric),
+                  "metric [" + ToString(metric) + "] is incompatible with loss [" + ToString(modelLoss) + "] (no binclass support)");
+    }
+
+    if (IsMultiClassOnlyMetric(modelLoss)) {
+        CB_ENSURE(IsMultiClassCompatibleMetric(metric),
+                  "metric [" + ToString(metric) + "] is incompatible with loss [" + ToString(modelLoss) + "] (no multiclass support)");
+    }
+
+    if (IsClassificationOnlyMetric(modelLoss)) {
+        CB_ENSURE(IsClassificationMetric(metric),
+                  "metric [" + ToString(metric) + "] is incompatible with loss [" + ToString(modelLoss) + "] (no classification support)");
+    }
+
+    /* [metric -> loss]
+     * binclass only       -> binclass compatible
+     * multiclass only     -> multiclass compatible
+     * classification only -> classification compatible
+     */
+
+    if (IsBinaryClassOnlyMetric(metric)) {
+        CB_ENSURE(IsBinaryClassCompatibleMetric(modelLoss),
+                  "loss [" + ToString(modelLoss) + "] is incompatible with metric [" + ToString(metric) + "] (no binclass support)");
+    }
+
+    if (IsMultiClassOnlyMetric(metric)) {
+        CB_ENSURE(IsMultiClassCompatibleMetric(modelLoss),
+                  "loss [" + ToString(modelLoss) + "] is incompatible with metric [" + ToString(metric) + "] (no multiclass support)");
+    }
+
+    if (IsClassificationOnlyMetric(metric)) {
+        CB_ENSURE(IsClassificationMetric(modelLoss),
+                  "loss [" + ToString(modelLoss) + "] is incompatible with metric [" + ToString(metric) + "] (no classification support)");
+    }
+}
+
+ELossFunction GetMetricFromCombination(const TMap<TString, TString>& params) {
+    TMaybe<ELossFunction> referenceLoss;
+    IterateOverCombination(
+        params,
+        [&] (const auto& loss, float /*weight*/) {
+            if (!referenceLoss) {
+                referenceLoss = loss.GetLossFunction();
+            } else {
+                CheckMetric(*referenceLoss, loss.GetLossFunction());
+            }
+    });
+    CB_ENSURE(referenceLoss, "Combination loss must have one or more non-zero weights");
+    return *referenceLoss;
+}
+
+void CheckCombinationParameters(const TMap<TString, TString>& params) {
+    (void)GetMetricFromCombination(params);
+}
+
+TString GetCombinationLossKey(ui32 idx) {
+    return "loss" + ToString(idx);
+}
+
+TString GetCombinationWeightKey(ui32 idx) {
+    return "weight" + ToString(idx);
+}

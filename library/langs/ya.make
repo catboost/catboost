@@ -8,7 +8,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/digest/lower_case
+    library/cpp/digest/lower_case
 )
 
 GENERATE_ENUM_SERIALIZATION(scripts.h)

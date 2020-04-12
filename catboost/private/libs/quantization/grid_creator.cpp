@@ -47,7 +47,7 @@ namespace NCB {
         copy.reserve(values.size());
         for (ui32 i = 0; i < values.size(); ++i) {
             const float val = values[i];
-            if (IsNan(val)) {
+            if (std::isnan(val)) {
                 CB_ENSURE(nanMode != ENanMode::Forbidden, "Error: NaN in features, but NaNs are forbidden");
                 continue;
             } else {

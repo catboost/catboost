@@ -239,4 +239,33 @@ Y_UNIT_TEST_SUITE(TUtilUrlTest) {
         };
         UNIT_ASSERT_EXCEPTION(testCase(), yexception);
     }
+
+    Y_UNIT_TEST(TestCutUrlPrefixes) {
+        UNIT_ASSERT_VALUES_EQUAL("ya.ru/bebe", CutUrlPrefixes("http://ya.ru/bebe"));
+        UNIT_ASSERT_VALUES_EQUAL("yaru", CutUrlPrefixes("yaru"));
+        UNIT_ASSERT_VALUES_EQUAL("ya.ru://zzz", CutUrlPrefixes("yaru://ya.ru://zzz"));
+        UNIT_ASSERT_VALUES_EQUAL("ya.ru://zzz", CutUrlPrefixes("ya.ru://zzz"));
+        UNIT_ASSERT_VALUES_EQUAL("ya.ru://zzz", CutUrlPrefixes("ftp://ya.ru://zzz"));
+        UNIT_ASSERT_VALUES_EQUAL("", CutUrlPrefixes("https://"));
+
+        UNIT_ASSERT_VALUES_EQUAL("ya.ru/bebe", CutUrlPrefixes("https://www.ya.ru/bebe"));
+        UNIT_ASSERT_VALUES_EQUAL("yaru", CutUrlPrefixes("www.yaru"));
+        UNIT_ASSERT_VALUES_EQUAL("ya.ru://zzz", CutUrlPrefixes("yaru://www.ya.ru://zzz"));
+        UNIT_ASSERT_VALUES_EQUAL("ya.ru://zzz", CutUrlPrefixes("www.ya.ru://zzz"));
+        UNIT_ASSERT_VALUES_EQUAL("ya.ru://zzz", CutUrlPrefixes("ftp://www.ya.ru://zzz"));
+        UNIT_ASSERT_VALUES_EQUAL("", CutUrlPrefixes("http://www."));
+    }
+
+    Y_UNIT_TEST(TestUrlPathStartWithToken) {
+        UNIT_ASSERT_VALUES_EQUAL(true, DoesUrlPathStartWithToken("http://ya.ru/bebe/zzz", "bebe"));
+        UNIT_ASSERT_VALUES_EQUAL(true, DoesUrlPathStartWithToken("http://ya.ru/bebe?zzz", "bebe"));
+        UNIT_ASSERT_VALUES_EQUAL(true, DoesUrlPathStartWithToken("http://ya.ru/bebe/", "bebe"));
+        UNIT_ASSERT_VALUES_EQUAL(true, DoesUrlPathStartWithToken("http://ya.ru/bebe?", "bebe"));
+        UNIT_ASSERT_VALUES_EQUAL(true, DoesUrlPathStartWithToken("https://ya.ru/bebe", "bebe"));
+        UNIT_ASSERT_VALUES_EQUAL(false, DoesUrlPathStartWithToken("http://ya.ru/bebe.zzz", "bebe"));
+        UNIT_ASSERT_VALUES_EQUAL(false, DoesUrlPathStartWithToken("http://ya.ru/", "bebe"));
+        UNIT_ASSERT_VALUES_EQUAL(false, DoesUrlPathStartWithToken("http://ya.ru", "bebe"));
+        UNIT_ASSERT_VALUES_EQUAL(false, DoesUrlPathStartWithToken("http://bebe", "bebe"));
+        UNIT_ASSERT_VALUES_EQUAL(false, DoesUrlPathStartWithToken("https://bebe/", "bebe"));
+    }
 }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/digest/lower_case/hash_ops.h>
+#include <library/cpp/digest/lower_case/hash_ops.h>
 
 #include <util/str_stl.h>
 

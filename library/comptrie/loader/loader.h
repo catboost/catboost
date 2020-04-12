@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/archive/yarchive.h>
+#include <library/cpp/archive/yarchive.h>
 #include <util/generic/string.h>
 #include <util/generic/ptr.h>
 #include <util/generic/yexception.h>

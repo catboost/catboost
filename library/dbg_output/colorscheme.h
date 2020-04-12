@@ -1,7 +1,7 @@
 #pragma once
 
 #include "engine.h"
-#include <library/colorizer/output.h>
+#include <library/cpp/colorizer/output.h>
 
 #ifndef DBG_OUTPUT_DEFAULT_COLOR_SCHEME
 #define DBG_OUTPUT_DEFAULT_COLOR_SCHEME NDbgDump::NColorScheme::TPlain
@@ -68,7 +68,7 @@ namespace NDbgDump {
             }
 
             // Background color modifiers
-            // TODO: support backgrounds in library/colorizer
+            // TODO: support backgrounds in library/cpp/colorizer
             DBG_OUTPUT_COLOR_HANDLER(Key) {
                 if (Depth++ == 0 && Colors.IsTTY()) {
                     stream << DumpRaw(AsStringBuf("\033[42m"));

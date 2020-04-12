@@ -85,6 +85,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\flatbuffers\include\flatbuffers\base.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\flatbuffers\include\flatbuffers\code_generators.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\flatbuffers\include\flatbuffers\flatbuffers.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\flatbuffers\include\flatbuffers\flatbuffers_iter.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\flatbuffers\include\flatbuffers\flatc.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\flatbuffers\include\flatbuffers\flexbuffers.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\flatbuffers\include\flatbuffers\hash.h"/>

@@ -2,7 +2,7 @@
 
 #include <contrib/libs/pugixml/pugixml.hpp>
 
-#include <library/string_utils/ztstrbuf/ztstrbuf.h>
+#include <library/cpp/string_utils/ztstrbuf/ztstrbuf.h>
 
 #include <util/generic/ptr.h>
 

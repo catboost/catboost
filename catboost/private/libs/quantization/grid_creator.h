@@ -2,7 +2,7 @@
 
 #include <catboost/private/libs/options/binarization_options.h>
 
-#include <library/grid_creator/binarization.h>
+#include <library/cpp/grid_creator/binarization.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
