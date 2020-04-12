@@ -888,7 +888,7 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         .RequiredArgument("String")
         .Help("Weights to multiply splits gain where specific feature is used. Possible formats: \"(1,0.5,10,1)\" or \"1:0.5,2:10\" or \"FeatureName1:0.5,FeatureName2:10\". Should be nonnegative.")
         .Handler1T<TString>([plainJsonPtr](const TString& featureWeights) {
-            (*plainJsonPtr)["feature-weights"] = featureWeights;
+            (*plainJsonPtr)["feature_weights"] = featureWeights;
         });
 
     parser
@@ -896,7 +896,7 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         .RequiredArgument("Float")
         .Help("Common coefficient for feature penalties. 1 by default. Should be nonnegative.")
         .Handler1T<float>([plainJsonPtr](const float penalties_coefficient) {
-            (*plainJsonPtr)["penalties-coefficient"] = penalties_coefficient;
+            (*plainJsonPtr)["penalties_coefficient"] = penalties_coefficient;
         });
 
     parser
@@ -904,7 +904,7 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         .RequiredArgument("String")
         .Help("Penalties for first use of feature in model. Possible formats: \"(0,0.5,10,0)\" or \"1:0.5,2:10\" or \"FeatureName1:0.5,FeatureName2:10\" Should be nonnegative.")
         .Handler1T<TString>([plainJsonPtr](const TString& firstFeatureUsePenalty) {
-            (*plainJsonPtr)["first-feature-use-penalties"] = firstFeatureUsePenalty;
+            (*plainJsonPtr)["first_feature_use_penalties"] = firstFeatureUsePenalty;
         });
 }
 
