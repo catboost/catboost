@@ -231,8 +231,6 @@ migrations:
       - a.yandex-team.ru/noc/go-blackbox_test
       - a.yandex-team.ru/noc/go-startrek
       - a.yandex-team.ru/noc/go-startrek_test
-      - a.yandex-team.ru/plus/morda/cmd
-      - a.yandex-team.ru/plus/morda/internal/bigb
       - a.yandex-team.ru/quasar/gackend
       - a.yandex-team.ru/quasar/gackend/db
       - a.yandex-team.ru/quasar/gackend_test
