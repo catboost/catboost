@@ -761,11 +761,6 @@ namespace NCB {
             return FeaturesGroupsData.FlatFeatureIndexToGroupPart[flatFeatureIdx];
         }
 
-        /* binary packs and bundles in *this are compatible with rhs
-         * useful for low-level compatibility (for example when calculating hashes by packs/bundles)
-         */
-        bool IsPackingCompatibleWith(const TQuantizedForCPUObjectsDataProvider& rhs) const;
-
     protected:
         friend class TObjectsSerialization;
 

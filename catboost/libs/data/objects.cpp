@@ -2159,17 +2159,6 @@ static void CheckFeaturesByType(
     }
 }
 
-bool NCB::TQuantizedForCPUObjectsDataProvider::IsPackingCompatibleWith(
-    const NCB::TQuantizedForCPUObjectsDataProvider& rhs
-) const {
-    return GetQuantizedFeaturesInfo()->IsSupersetOf(*rhs.GetQuantizedFeaturesInfo()) &&
-        (PackedBinaryFeaturesData.PackedBinaryToSrcIndex
-         == rhs.PackedBinaryFeaturesData.PackedBinaryToSrcIndex) &&
-        (ExclusiveFeatureBundlesData.MetaData == rhs.ExclusiveFeatureBundlesData.MetaData) &&
-        (FeaturesGroupsData.MetaData == rhs.FeaturesGroupsData.MetaData);
-}
-
-
 void NCB::TQuantizedForCPUObjectsDataProvider::Check(
     const TPackedBinaryFeaturesData& packedBinaryData,
     const TExclusiveFeatureBundlesData& exclusiveFeatureBundlesData,
