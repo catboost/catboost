@@ -98,14 +98,14 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\api\cpp-malloc-api.vcxproj">
+      <Project>{98AF9344-15D9-0539-93F4-0E901C36E301}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\system\cpp-malloc-system.vcxproj">
+      <Project>{54C3F326-D733-B490-93B9-EEA3BE28C3A9}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpuid_check\library-cpuid_check.vcxproj">
       <Project>{B2E67D35-D818-4BB5-60B7-B6EEC460B8F8}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\malloc\api\library-malloc-api.vcxproj">
-      <Project>{32459880-AE0E-8CCD-4A48-44F805C4FC9B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\malloc\system\library-malloc-system.vcxproj">
-      <Project>{B5163097-6C21-9F9C-985E-1E21018EDE5E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>

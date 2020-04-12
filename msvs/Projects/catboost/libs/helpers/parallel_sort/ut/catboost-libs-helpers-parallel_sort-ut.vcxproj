@@ -113,6 +113,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\colorizer\library-cpp-colorizer.vcxproj">
       <Project>{78881F22-8136-23DF-843E-58AA6DB6D337}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\api\cpp-malloc-api.vcxproj">
+      <Project>{98AF9344-15D9-0539-93F4-0E901C36E301}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\system\cpp-malloc-system.vcxproj">
+      <Project>{54C3F326-D733-B490-93B9-EEA3BE28C3A9}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\terminate_handler\library-cpp-terminate_handler.vcxproj">
       <Project>{8776CDC6-8FD3-11B1-5A42-EAE93F81174A}</Project>
     </ProjectReference>
@@ -133,12 +139,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\lcs\library-lcs.vcxproj">
       <Project>{E815EB4E-987D-1ECC-5BB6-03920E993386}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\malloc\api\library-malloc-api.vcxproj">
-      <Project>{32459880-AE0E-8CCD-4A48-44F805C4FC9B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\malloc\system\library-malloc-system.vcxproj">
-      <Project>{B5163097-6C21-9F9C-985E-1E21018EDE5E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
       <Project>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</Project>

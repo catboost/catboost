@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{32459880-AE0E-8CCD-4A48-44F805C4FC9B}</ProjectGUID>
+    <ProjectGUID>{54C3F326-D733-B490-93B9-EEA3BE28C3A9}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-malloc-api</ProjectName>
+    <ProjectName>cpp-malloc-system</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-malloc-api</TargetName>
+    <TargetName>cpp-malloc-system</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\malloc\api\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\32459880-AE0E-8CCD-4A48-44F805C4FC9B\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\malloc\system\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\54C3F326-D733-B490-93B9-EEA3BE28C3A9\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\malloc\api\malloc.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\malloc\api\malloc.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\malloc\system\malloc-info.cpp"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -89,6 +88,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\cxxsupp\libcxx\libs-cxxsupp-libcxx.vcxproj">
       <Project>{671FE333-6D0D-E7E3-0E1D-D4CB43CF879D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\api\cpp-malloc-api.vcxproj">
+      <Project>{98AF9344-15D9-0539-93F4-0E901C36E301}</Project>
     </ProjectReference>
   </ItemGroup>
 </Project>

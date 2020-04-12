@@ -180,6 +180,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\grid_creator\library-cpp-grid_creator.vcxproj">
       <Project>{E6C33C80-F1BD-2340-891E-B453369FDC5C}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\api\cpp-malloc-api.vcxproj">
+      <Project>{98AF9344-15D9-0539-93F4-0E901C36E301}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\pop_count\library-cpp-pop_count.vcxproj">
       <Project>{6B557DF5-6D6B-ECE1-B5B5-9CD1B8625387}</Project>
     </ProjectReference>
@@ -218,9 +221,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\logger\library-logger.vcxproj">
       <Project>{83A191D5-D636-DE22-2633-0CBA3DEA99BB}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\malloc\api\library-malloc-api.vcxproj">
-      <Project>{32459880-AE0E-8CCD-4A48-44F805C4FC9B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
       <Project>{F7622D70-2702-4C7E-04DA-52DC56DF911E}</Project>
