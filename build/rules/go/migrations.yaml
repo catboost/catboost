@@ -506,9 +506,3 @@ migrations:
       - a.yandex-team.ru/transfer_manager/go/pkg/worker
       - a.yandex-team.ru/transfer_manager/go/pkg/worker_test
       - a.yandex-team.ru/transfer_manager/go/proto/cdc_server
-      - a.yandex-team.ru/yabs/vh/cms-pgaas/dhdd
-      - a.yandex-team.ru/yabs/vh/cms-pgaas/dhdd/db
-      - a.yandex-team.ru/yabs/vh/cms-pgaas/dhdd/io
-      - a.yandex-team.ru/yabs/vh/cms-pgaas/dhdd/util
-      - a.yandex-team.ru/yabs/vh/cms-pgaas/dhdd/util_test
-      - a.yandex-team.ru/yabs/vh/cms-pgaas/transcoded
