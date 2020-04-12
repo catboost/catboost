@@ -443,7 +443,6 @@ migrations:
       - a.yandex-team.ru/rtc/janus/janus_test
       - a.yandex-team.ru/rtmapreduce/tools/sli
       - a.yandex-team.ru/rtmapreduce/tools/sli_test
-      - a.yandex-team.ru/solomon/tools/solomon-sync
       - a.yandex-team.ru/transfer_manager/go/cmd/cdc_server
       - a.yandex-team.ru/transfer_manager/go/cmd/pg_to_ch
       - a.yandex-team.ru/transfer_manager/go/internal/config
