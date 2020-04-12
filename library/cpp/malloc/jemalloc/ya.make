@@ -6,11 +6,11 @@ NO_UTIL()
 
 IF (OS_ANDROID)
     PEERDIR(
-        library/malloc/system
+        library/cpp/malloc/system
     )
 ELSE()
     PEERDIR(
-        library/malloc/api
+        library/cpp/malloc/api
         contrib/libs/jemalloc
     )
     SRCS(

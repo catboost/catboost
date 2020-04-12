@@ -18,6 +18,7 @@ RECURSE(
     grid_creator
     grid_creator/fuzz
     grid_creator/ut
+    malloc
     pop_count
     pop_count/benchmark
     pop_count/ut

@@ -80,7 +80,7 @@ PEERDIR(
     library/fast_log
     library/cpp/grid_creator
     library/json
-    library/malloc/api
+    library/cpp/malloc/api
     library/object_factory
     library/sse
     library/svnversion

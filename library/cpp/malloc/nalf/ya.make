@@ -17,7 +17,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/malloc/api
+    library/cpp/malloc/api
 )
 
 END()

@@ -6,7 +6,7 @@
 #include <catboost/private/libs/distributed/master.h>
 #include <catboost/libs/logging/logging.h>
 
-#include <library/malloc/api/malloc.h>
+#include <library/cpp/malloc/api/malloc.h>
 
 #include <functional>
 

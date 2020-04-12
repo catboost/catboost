@@ -72,7 +72,6 @@ RECURSE(
     logger/global
     logger/global/ut
     logger/ut
-    malloc
     neh
     neh/asio/ut
     neh/ut

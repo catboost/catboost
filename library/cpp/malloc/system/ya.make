@@ -5,7 +5,7 @@ NO_UTIL()
 
 
 PEERDIR(
-    library/malloc/api
+    library/cpp/malloc/api
 )
 
 SRCS(

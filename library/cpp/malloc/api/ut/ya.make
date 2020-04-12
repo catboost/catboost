@@ -3,7 +3,7 @@ UNITTEST()
 
 
 PEERDIR(
-    library/malloc/api/helpers
+    library/cpp/malloc/api/helpers
 )
 
 SRCS(
