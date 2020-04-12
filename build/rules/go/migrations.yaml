@@ -321,8 +321,6 @@ migrations:
       - a.yandex-team.ru/rtc/sipgw/balancer_test
       - a.yandex-team.ru/cloud/iam/accessservice/client/go/cloudauth
       - a.yandex-team.ru/cloud/iam/accessservice/client/go/cloudauth_test
-      - a.yandex-team.ru/commerce/blogs_pumpkin/controllers
-      - a.yandex-team.ru/commerce/blogs_pumpkin/controllers_test
       - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/gfront
       - a.yandex-team.ru/quasar/iot/steelix/server
       - a.yandex-team.ru/quasar/iot/steelix/server_test
