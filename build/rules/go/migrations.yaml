@@ -14,38 +14,6 @@ migrations:
       - ST1017
       - ST1018
     packages:
-      - a.yandex-team.ru/adfox/infra/admon/internal
-      - a.yandex-team.ru/admins/combaine/senders/solomon
-      - a.yandex-team.ru/admins/combaine/senders/solomon_test
-      - a.yandex-team.ru/alice/gamma/metrics/solomon
-      - a.yandex-team.ru/alice/gamma/metrics/solomon_test
-      - a.yandex-team.ru/alice/gamma/sdk/golang
-      - a.yandex-team.ru/alice/gamma/sdk/golang_test
-      - a.yandex-team.ru/alice/gamma/server
-      - a.yandex-team.ru/alice/gamma/server/skills
-      - a.yandex-team.ru/alice/gamma/server/storage
-      - a.yandex-team.ru/alice/gamma/server/webhook
-      - a.yandex-team.ru/alice/gamma/server/webhook/api
-      - a.yandex-team.ru/alice/gamma/server/webhook/api/admin
-      - a.yandex-team.ru/alice/gamma/server/webhook/api_test
-      - a.yandex-team.ru/alice/gamma/server/webhook/handlers
-      - a.yandex-team.ru/alice/gamma/server/webhook/handlers_test
-      - a.yandex-team.ru/alice/gamma/server/ydb
-      - a.yandex-team.ru/alice/gamma/server/ydb_test
-      - a.yandex-team.ru/alice/gamma/skills/akinator/game
-      - a.yandex-team.ru/alice/gamma/skills/akinator/game_test
-      - a.yandex-team.ru/alice/gamma/skills/akinator/resources/actors
-      - a.yandex-team.ru/alice/gamma/skills/battleship/game
-      - a.yandex-team.ru/alice/gamma/skills/battleship/game_test
-      - a.yandex-team.ru/alice/gamma/skills/cheat_game/resources/questions
-      - a.yandex-team.ru/alice/gamma/skills/odd_word_game/game
-      - a.yandex-team.ru/alice/gamma/skills/odd_word_game/game_test
-      - a.yandex-team.ru/alice/gamma/skills/song_search
-      - a.yandex-team.ru/alice/gamma/skills/song_search/api
-      - a.yandex-team.ru/alice/gamma/skills/song_search/api_test
-      - a.yandex-team.ru/alice/gamma/skills/word_game/resources/default_definitions
-      - a.yandex-team.ru/alice/gamma/skills/zoology/resources/animals
-      - a.yandex-team.ru/alice/megamind/example_apps/go/apps
       - a.yandex-team.ru/cloud/blockstore/public/sdk/go/client
       - a.yandex-team.ru/cloud/blockstore/public/sdk/go/client/ut
       - a.yandex-team.ru/cloud/compute/go-common/database/kikimr
@@ -75,102 +43,21 @@ migrations:
       - a.yandex-team.ru/cloud/serverless/triggers/internal/queue-processor
       - a.yandex-team.ru/cloud/serverless/triggers/metrics
       - a.yandex-team.ru/cloud/serverless/triggers/pkg/ymq
-      - a.yandex-team.ru/commerce/blogs-pumpkin/controllers
-      - a.yandex-team.ru/commerce/blogs-pumpkin/controllers_test
-      - a.yandex-team.ru/direct/infra/dt-db-manager/cmd/server
-      - a.yandex-team.ru/direct/infra/dt-db-manager/internal/sshrequest
-      - a.yandex-team.ru/direct/infra/dt-db-manager/internal/support
-      - a.yandex-team.ru/direct/infra/dt-db-manager/internal/support_test
-      - a.yandex-team.ru/direct/infra/dt-graphite-ch-cacher/cmd/cacher
-      - a.yandex-team.ru/direct/infra/dt-graphite-ch-cacher/cmd/check-graphite
-      - a.yandex-team.ru/direct/infra/dt-graphite-ch-cacher/internal/siphash
-      - a.yandex-team.ru/direct/infra/ppchouse/cmd/dt-clickhouse-backup
-      - a.yandex-team.ru/direct/infra/ppchouse/cmd/dt-clickhouse-copytables
-      - a.yandex-team.ru/direct/infra/ppchouse/cmd/dt-monitoring-clicktables
-      - a.yandex-team.ru/direct/infra/ppchouse/cmd/dt-monitoring-loadlogs
-      - a.yandex-team.ru/disk/admin/abyssync/lib
-      - a.yandex-team.ru/disk/admin/loggiver2yasmagent
-      - a.yandex-team.ru/disk/admin/reals_resolver
-      - a.yandex-team.ru/district/feed_reader/app/bin
-      - a.yandex-team.ru/district/feed_reader/app/config
-      - a.yandex-team.ru/district/feed_reader/app/lib/recommender
-      - a.yandex-team.ru/district/feed_reader/app/lib/recommender/ut
-      - a.yandex-team.ru/edadeal/backend/go/dyngo/cmd/amqpgen
-      - a.yandex-team.ru/edadeal/backend/go/dyngo/internal/app/bootstrap
-      - a.yandex-team.ru/edadeal/backend/go/dyngo/internal/pkg/config
-      - a.yandex-team.ru/edadeal/backend/go/internal/ammogen
-      - a.yandex-team.ru/edadeal/backend/go/internal/ammogen_test
-      - a.yandex-team.ru/edadeal/backend/go/nachalnik/internal/app/bootstrap
-      - a.yandex-team.ru/edadeal/backend/go/nachalnik/internal/pkg/config
-      - a.yandex-team.ru/extsearch/video/robot/parsers/rt_parser/proxy
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/dler
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/gfront/client
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/comb
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/comb_test
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/db
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/queue
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/queue_test
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/segment_test
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/tcode
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/tcode_test
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/testutil
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/tstor
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/util
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/nitc
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/video-manager/service
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/qproxy
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/remux
-      - a.yandex-team.ru/extsearch/video/station/starter/client
-      - a.yandex-team.ru/extsearch/video/station/starter/downloader
-      - a.yandex-team.ru/extsearch/video/station/starter/downloader_test
-      - a.yandex-team.ru/extsearch/video/station/starter/players
-      - a.yandex-team.ru/extsearch/video/station/starter/players_test
-      - a.yandex-team.ru/extsearch/video/station/starter/pusher
-      - a.yandex-team.ru/extsearch/video/station/starter/pusher_test
-      - a.yandex-team.ru/extsearch/video/station/starter/rules
-      - a.yandex-team.ru/extsearch/video/station/starter/rules_test
-      - a.yandex-team.ru/extsearch/video/station/starter/server
-      - a.yandex-team.ru/extsearch/video/station/starter/server_test
-      - a.yandex-team.ru/extsearch/video/ugc/go/tusd/internal/metavalidator
-      - a.yandex-team.ru/extsearch/video/ugc/go/tusd/internal/metavalidator_test
-      - a.yandex-team.ru/extsearch/video/ugc/go/tusd/internal/yatusd
-      - a.yandex-team.ru/extsearch/video/ugc/go/uploader/internal/config
-      - a.yandex-team.ru/extsearch/video/ugc/go/uploader/internal/handlers
-      - a.yandex-team.ru/extsearch/video/ugc/go/uploader/internal/rt
-      - a.yandex-team.ru/games/backend
-      - a.yandex-team.ru/games/backend/cmd/external-games-backend
-      - a.yandex-team.ru/games/backend/cmd/internal-games-backend
-      - a.yandex-team.ru/games/backend/internal/config
-      - a.yandex-team.ru/games/backend/internal/db_utils
-      - a.yandex-team.ru/games/backend/internal/purchases_utils
-      - a.yandex-team.ru/games/backend/internal/rate_limiter
-      - a.yandex-team.ru/games/backend/internal/rate_limiter_test
-      - a.yandex-team.ru/games/backend/internal/request_utils
-      - a.yandex-team.ru/games/backend/pkg/app_types_service
-      - a.yandex-team.ru/games/backend/pkg/catalogue
-      - a.yandex-team.ru/games/backend/pkg/catalogue_test
-      - a.yandex-team.ru/games/backend/pkg/catalogue/middlewares
-      - a.yandex-team.ru/games/backend/pkg/categories_service
-      - a.yandex-team.ru/games/backend/pkg/games_service
-      - a.yandex-team.ru/games/backend/pkg/leader_boards_service
-      - a.yandex-team.ru/games/backend/pkg/payments_service
-      - a.yandex-team.ru/games/backend/pkg/payments_service/payments_storage
-      - a.yandex-team.ru/games/backend/pkg/payments_service/trust
-      - a.yandex-team.ru/games/backend/pkg/publishers_service
-      - a.yandex-team.ru/games/backend/pkg/rtx
-      - a.yandex-team.ru/games/backend/pkg/rtx_v2
-      - a.yandex-team.ru/games/backend/pkg/server
-      - a.yandex-team.ru/games/backend/pkg/server/catalogue
-      - a.yandex-team.ru/games/backend/pkg/server/catalogue/async_getter
-      - a.yandex-team.ru/games/backend/pkg/server_test
-      - a.yandex-team.ru/games/backend/pkg/server/light_catalogue
-      - a.yandex-team.ru/games/backend/pkg/server/light_catalogue/div_cards_service
-      - a.yandex-team.ru/games/backend/pkg/server/metrics
-      - a.yandex-team.ru/games/backend/pkg/server/metrics_test
-      - a.yandex-team.ru/games/backend/pkg/server/sdk/games_features_service
-      - a.yandex-team.ru/games/backend/pkg/users_service
-      - a.yandex-team.ru/games/backend/pkg/users_service_test
-      - a.yandex-team.ru/games/backend/pkg/users_service/storage
+      - a.yandex-team.ru/games/backend/pkg/server/sdk/games_features_service # ST1003: should not use underscores in package names
+      - a.yandex-team.ru/games/backend/pkg/server/light_catalogue/div_cards_service # ST1003: should not use underscores in package names
+      - a.yandex-team.ru/games/backend/pkg/server/light_catalogue # ST1003: should not use underscores in package names
+      - a.yandex-team.ru/games/backend/pkg/games_service # ST1003: should not use underscores in package names
+      - a.yandex-team.ru/games/backend/internal/purchases_utils # ST1003: should not use underscores in package names
+      - a.yandex-team.ru/games/backend/pkg/payments_service # ST1003: should not use underscores in package names
+      - a.yandex-team.ru/games/backend/pkg/rtx_v2 # ST1003: should not use underscores in package names
+      - a.yandex-team.ru/games/backend/pkg/payments_service/payments_storage # ST1003: should not use underscores in package names
+      - a.yandex-team.ru/games/backend/pkg/categories_service # ST1003: should not use underscores in package names
+      - a.yandex-team.ru/games/backend/pkg/app_types_service # ST1003: should not use underscores in package names
+      - a.yandex-team.ru/games/backend/pkg/publishers_service # ST1003: should not use underscores in package names
+      - a.yandex-team.ru/games/backend/pkg/server/catalogue/async_getter # ST1003: should not use underscores in package names
+      - a.yandex-team.ru/games/backend/pkg/leader_boards_service # ST1003: should not use underscores in package names
+      - a.yandex-team.ru/games/backend/pkg/users_service # ST1003: should not use underscores in package names
+      - a.yandex-team.ru/games/backend/internal/db_utils # ST1003: should not use underscores in package names
       - a.yandex-team.ru/infra/dist/repo-daemon/internal/mds
       - a.yandex-team.ru/infra/nanny2/pkg/hq/cache
       - a.yandex-team.ru/infra/nanny2/pkg/hq/housekeeping
