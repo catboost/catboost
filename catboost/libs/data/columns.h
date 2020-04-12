@@ -448,35 +448,6 @@ namespace NCB {
             return SrcData.GetBlockIterator(offset, SubsetIndexing);
         }
 
-        template <class F>
-        void ForEach(F&& f, const NCB::TFeaturesArraySubsetIndexing* featuresSubsetIndexing = nullptr) const {
-            if (!featuresSubsetIndexing) {
-                featuresSubsetIndexing = SubsetIndexing;
-            }
-            switch (SrcData.GetBitsPerKey()) {
-            case 8:
-                NCB::TConstPtrArraySubset<ui8>(
-                    GetArrayData<ui8>().GetSrc(),
-                    featuresSubsetIndexing
-                ).ForEach(std::move(f));
-                break;
-            case 16:
-                NCB::TConstPtrArraySubset<ui16>(
-                    GetArrayData<ui16>().GetSrc(),
-                    featuresSubsetIndexing
-                ).ForEach(std::move(f));
-                break;
-            case 32:
-                NCB::TConstPtrArraySubset<ui32>(
-                    GetArrayData<ui32>().GetSrc(),
-                    featuresSubsetIndexing
-                ).ForEach(std::move(f));
-                break;
-            default:
-                Y_UNREACHABLE();
-            }
-        }
-
         ui32 GetBitsPerKey() const {
             return SrcData.GetBitsPerKey();
         }
