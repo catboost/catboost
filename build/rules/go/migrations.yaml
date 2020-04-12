@@ -511,7 +511,6 @@ migrations:
       - a.yandex-team.ru/travel/avia/wizard/pkg/wizard/logging/yt/query_log
       - a.yandex-team.ru/travel/avia/wizard/tests/wizard/logging/yt/query_log
       - a.yandex-team.ru/travel/hotels/tools/geocounter_grpc_loadtesting/main
-      - a.yandex-team.ru/voicetech/infra/uniproxy/tools/ws-echo-shooter
       - a.yandex-team.ru/yabs/vh/cms-pgaas/dhdd
       - a.yandex-team.ru/yabs/vh/cms-pgaas/dhdd/db
       - a.yandex-team.ru/yabs/vh/cms-pgaas/dhdd/io
