@@ -394,6 +394,15 @@ static bool AreFeaturesValuesEqual(
     }
 }
 
+template <typename T, EFeatureValuesType ValuesType, typename TBaseInterface = IFeatureValuesHolder>
+static bool AreFeaturesValuesEqual(
+    const IQuantizedFeatureValuesHolder<T, ValuesType, TBaseInterface>& lhs,
+    const IQuantizedFeatureValuesHolder<T, ValuesType, TBaseInterface>& rhs
+) {
+    auto lhsValues = lhs.template ExtractValues<T>(&NPar::LocalExecutor());
+    auto rhsValues = rhs.template ExtractValues<T>(&NPar::LocalExecutor());
+    return lhsValues == rhsValues;
+}
 
 template <class TFeaturesValuesHolder>
 static bool AreFeaturesValuesEqual(
@@ -402,6 +411,9 @@ static bool AreFeaturesValuesEqual(
 ) {
     if (!lhs) {
         return !rhs;
+    }
+    if (!rhs) {
+        return false;
     }
     if (lhs->GetSize() != rhs->GetSize()) {
         return false;
@@ -891,23 +903,6 @@ bool NCB::TQuantizedObjectsDataProvider::HasSparseData() const {
         ::HasSparseData(Data.TextFeatures);
 }
 
-template <class T>
-static ui32 CalcSparseCompressedFeatureChecksum(
-    ui32 checkSum,
-    const TSparseCompressedValuesHolderImpl<T>& columnData
-) {
-    const TSparseCompressedArray<T, ui32>& data = columnData.GetData();
-
-    constexpr size_t BLOCK_SIZE = 10000;
-    auto blockIterator = data.GetBlockIterator();
-    while (auto block = blockIterator.Next(BLOCK_SIZE)) {
-        checkSum = UpdateCheckSum(checkSum, block);
-    }
-
-    return checkSum;
-}
-
-
 template <EFeatureType FeatureType, class T>
 static ui32 CalcFeatureValuesCheckSum(
     ui32 init,
@@ -1196,7 +1191,7 @@ static void SaveColumnData(
          * useful if in fact bitsPerKey < sizeof(T) * CHAR_BIT
          */
         SaveMulti(binSaver, ESavedColumnType::Dense);
-        SaveAsCompressedArray<typename TColumn::TValueType>(*(column.ExtractValues(localExecutor)), binSaver);
+        SaveAsCompressedArray<typename TColumn::TValueType>(column.template ExtractValues<typename TColumn::TValueType>(localExecutor), binSaver);
     }
 }
 
@@ -1249,25 +1244,29 @@ void NCB::DbgDumpQuantizedFeatures(
 
     featuresLayout.IterateOverAvailableFeatures<EFeatureType::Float>(
         [&] (TFloatFeatureIdx floatFeatureIdx) {
-            const auto values = (*quantizedObjectsDataProvider.GetFloatFeature(*floatFeatureIdx))
-                ->ExtractValues(&localExecutor);
-
-            for (auto objectIdx : xrange((*values).size())) {
-                (*out) << "(floatFeature=" << *floatFeatureIdx << ',' << LabeledOutput(objectIdx)
-                    << ").bin=" << ui32(values[objectIdx]) << Endl;
-            }
+            (*quantizedObjectsDataProvider.GetFloatFeature(*floatFeatureIdx))->ForEachBlock(
+                [out, floatFeatureIdx] (size_t blockStartOffset, auto block) {
+                    for (auto i : xrange(block.size())) {
+                        auto objectIdx = i + blockStartOffset;
+                        (*out) << "(floatFeature=" << *floatFeatureIdx << ',' << LabeledOutput(objectIdx)
+                            << ").bin=" << ui32(block[objectIdx]) << Endl;
+                    }
+                }
+            );
         }
     );
 
     featuresLayout.IterateOverAvailableFeatures<EFeatureType::Categorical>(
         [&] (TCatFeatureIdx catFeatureIdx) {
-            const auto values = (*quantizedObjectsDataProvider.GetCatFeature(*catFeatureIdx))
-                ->ExtractValues(&localExecutor);
-
-            for (auto objectIdx : xrange((*values).size())) {
-                (*out) << "(catFeature=" << *catFeatureIdx << ',' << LabeledOutput(objectIdx)
-                    << ").bin=" << ui32(values[objectIdx]) << Endl;
-            }
+            (*quantizedObjectsDataProvider.GetCatFeature(*catFeatureIdx))->ForEachBlock(
+                [out, catFeatureIdx] (size_t blockStartOffset, auto block) {
+                    for (auto i : xrange(block.size())) {
+                        auto objectIdx = i + blockStartOffset;
+                        (*out) << "(catFeature=" << *catFeatureIdx << ',' << LabeledOutput(objectIdx)
+                            << ").bin=" << ui32(block[objectIdx]) << Endl;
+                    }
+                }
+            );
         }
     );
 }

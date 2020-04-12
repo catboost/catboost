@@ -9,7 +9,7 @@ namespace CatBoostNet {
     /// if you just want to run common classification/regression task,
     /// use <see cref="CatBoostModel"/> instead.
     /// </summary>
-    public class CatBoostModelEvaluator {
+    public class CatBoostModelEvaluator : IDisposable {
         /// <summary>
         /// Structure for storing minimal model info — path to the model file
         /// and pointer to the model handler
@@ -55,7 +55,9 @@ namespace CatBoostNet {
         /// <summary>
         /// Low-level model evaluator destructor.
         /// </summary>
-        ~CatBoostModelEvaluator() => CatboostNativeInterface.ModelCalcerDelete(ModelContainer.ModelHandler);
+        ~CatBoostModelEvaluator() {
+            Dispose(false);
+        }
 
         /// <summary>
         /// Number of trees in the model
@@ -185,5 +187,28 @@ namespace CatBoostNet {
         /// </summary>
         private CatBoostModelContainer ModelContainer { get; }
 
+        /// <summary>
+        /// Do not dispose resources twice
+        /// </summary>
+        private bool isDisposed = false;
+
+        /// <summary>
+        /// Dispose of resources
+        /// Suppress finalization
+        /// </summary>
+        public void Dispose() {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Dispose of unmanaged resources
+        /// </summary>
+        protected virtual void Dispose(bool fromDisposeMethod) {
+            if (!isDisposed) {
+                CatboostNativeInterface.ModelCalcerDelete(ModelContainer.ModelHandler);
+                isDisposed = true;
+            }
+        }
     }
 }

@@ -258,7 +258,7 @@ class CppIterGenerator : public BaseGenerator {
       // The root datatype accessor:
       code_ += "template <typename Iter>";
       code_ += "inline \\";
-      code_ += "boost::optional<const {{CPP_NAME}}<Iter>> Get{{STRUCT_NAME}}(const Iter& buf) {";
+      code_ += "std::optional<{{CPP_NAME}}<Iter>> Get{{STRUCT_NAME}}(const Iter& buf) {";
       code_ += "  return yandex::maps::flatbuffers_iter::GetRoot<{{CPP_NAME}}<Iter>, Iter>(buf);";
       code_ += "}";
       code_ += "";
@@ -540,7 +540,7 @@ class CppIterGenerator : public BaseGenerator {
     FLATBUFFERS_ASSERT(field.key);
     const bool is_string = (field.value.type.base_type == BASE_TYPE_STRING);
 
-    code_ += "  bool KeyCompareLessThan(const boost::optional<{{STRUCT_NAME}}<Iter>>& o) const {";
+    code_ += "  bool KeyCompareLessThan(const std::optional<{{STRUCT_NAME}}<Iter>>& o) const {";
     if (is_string) {
       // use operator< of flatbuffers::String
       code_ += "    return {{FIELD_NAME}}() < o->{{FIELD_NAME}}();";
@@ -633,7 +633,7 @@ class CppIterGenerator : public BaseGenerator {
       }
       auto offset_str = GenFieldOffsetName(field);
       auto offset_type =
-          GenTypeGet(field.value.type, "", "const ", "", false);
+          GenTypeGet(field.value.type, "", "", "", false);
 
       auto call = accessor + offset_type + ">(" + offset_str;
       // Default value as second arg for non-pointer types.
@@ -642,7 +642,7 @@ class CppIterGenerator : public BaseGenerator {
 
       GenComment(field.doc_comment, "  ");
       code_.SetValue("FIELD_TYPE",
-          GenTypeGet(field.value.type, " ", "boost::optional<const ", "> ", true));
+          GenTypeGet(field.value.type, " ", "std::optional<", "> ", true));
       code_.SetValue("FIELD_VALUE", GenUnderlyingCast(field, true, call));
 
       code_ += "  {{FIELD_TYPE}}{{FIELD_NAME}}() const {";

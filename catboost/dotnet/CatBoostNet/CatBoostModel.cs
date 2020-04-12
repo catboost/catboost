@@ -31,7 +31,7 @@ namespace CatBoostNet
     /// If you need to implement a custom model code, use <see cref="CatBoostModelEvaluator"/>
     /// as the basic building block.
     /// </summary>
-    public class CatBoostModel : ITransformer
+    public class CatBoostModel : ITransformer, IDisposable
     {
         private CatBoostModelEvaluator Evaluator { get; }
 
@@ -220,6 +220,14 @@ namespace CatBoostNet
                     OutputValues = Enumerable.Range(0, res.GetLength(1)).Select(j => res[i, j]).ToArray()
                 })
             );
+        }
+
+        /// <summary>
+        /// Dispose of unmanaged resources
+        /// </summary>
+        public void Dispose()
+        {
+            Evaluator?.Dispose();
         }
     }
 }

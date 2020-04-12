@@ -174,15 +174,28 @@ namespace NCB {
 
     template <typename T, EFeatureValuesType ValuesType, typename TBaseInterface = IFeatureValuesHolder>
     struct IQuantizedFeatureValuesHolder : public TBaseInterface {
+    public:
         using TValueType = T;
+    public:
         IQuantizedFeatureValuesHolder(ui32 featureId, ui32 size)
             : TBaseInterface(ValuesType, featureId, size)
         {}
-        virtual TMaybeOwningArrayHolder<T> ExtractValues(NPar::TLocalExecutor* localExecutor) const = 0;
+
+        template <typename TExtractType>
+        TVector<TExtractType> ExtractValues(NPar::TLocalExecutor* localExecutor, size_t copyBlockSize = 1024) const {
+            TVector<TExtractType> result;
+            result.yresize(this->GetSize());
+            ParallelForEachBlock(
+                localExecutor,
+                [&result] (size_t blockStartIdx, auto vals) {
+                    Copy(vals.begin(), vals.end(), result.begin() + blockStartIdx);
+                },
+                copyBlockSize
+            );
+            return result;
+        }
 
         virtual IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const = 0;
-
-
 
         template<class TBlockCallable>
         static void ForEachBlockRange(IDynamicBlockIteratorBasePtr&& blockIterator, size_t blockStartIdx, size_t upperLimit, TBlockCallable&& blockCallable, size_t blockSize = 1024) {
@@ -425,18 +438,10 @@ namespace NCB {
             return {&SrcData, SubsetIndexing};
         }
 
-        template <class T2 = typename TBase::TValueType>
+        template <class T2>
         TConstPtrArraySubset<T2> GetArrayData() const {
             SrcData.CheckIfCanBeInterpretedAsRawArray<T2>();
             return TConstPtrArraySubset<T2>((const T2**)&SrcDataRawPtr, SubsetIndexing);
-        }
-
-        // in some cases non-standard T can be useful / more efficient
-        template <class T2 = typename TBase::TValueType>
-        TMaybeOwningArrayHolder<T2> ExtractValuesT(NPar::TLocalExecutor* localExecutor) const {
-            return TMaybeOwningArrayHolder<T2>::CreateOwning(
-                ::NCB::GetSubset<T2>(SrcData, *SubsetIndexing, localExecutor)
-            );
         }
 
         IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const override {
@@ -470,10 +475,6 @@ namespace NCB {
             default:
                 Y_UNREACHABLE();
             }
-        }
-
-        TMaybeOwningArrayHolder<typename TBase::TValueType> ExtractValues(NPar::TLocalExecutor* localExecutor) const override {
-            return ExtractValuesT<typename TBase::TValueType>(localExecutor);
         }
 
         ui32 GetBitsPerKey() const {

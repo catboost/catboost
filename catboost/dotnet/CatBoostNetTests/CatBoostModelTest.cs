@@ -21,18 +21,6 @@ namespace CatBoostNetTests
         {
             var workdir = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "testbed", "iris");
             var dsPath = Path.Combine(workdir, "iris.data");
-
-            try
-            {
-                DownloadHelpers.DownloadDataset(
-                    "https://archive.ics.uci.edu/ml/machine-learning-databases/iris/iris.data",
-                    dsPath);
-            }
-            catch (WebException)
-            {
-                Assert.Fail("Failed to download Iris dataset");
-            }
-
             MLContext mlContext = new MLContext();
 
             var model = new CatBoostModel(
@@ -68,18 +56,6 @@ namespace CatBoostNetTests
         {
             var workdir = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "testbed", "boston");
             var dsPath = Path.Combine(workdir, "housing.data");
-
-            try
-            {
-                DownloadHelpers.DownloadDataset(
-                    "https://archive.ics.uci.edu/ml/machine-learning-databases/housing/housing.data",
-                    dsPath);
-            }
-            catch (WebException)
-            {
-                Assert.Fail("Failed to download Boston dataset");
-            }
-
             var newDsPath = Path.Combine(workdir, "housing.csv");
             File.WriteAllText(newDsPath, "");
             File.AppendAllLines(
@@ -128,18 +104,6 @@ namespace CatBoostNetTests
         {
             var workdir = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, "testbed", "mushrooms");
             var dsPath = Path.Combine(workdir, "mushrooms.csv");
-
-            try
-            {
-                DownloadHelpers.DownloadDataset(
-                    "https://archive.ics.uci.edu/ml/machine-learning-databases/mushroom/agaricus-lepiota.data",
-                    dsPath);
-            }
-            catch (WebException)
-            {
-                Assert.Fail("Failed to download Mushroom dataset");
-            }
-
             MLContext mlContext = new MLContext();
 
             var model = new CatBoostModel(

@@ -1056,6 +1056,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\2d_array\cpp-containers-2d_array.vcxproj">
       <Project>245105A8-ED48-C3D9-83C3-D6894AA984B0</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cppparser\library-cpp-cppparser.vcxproj">
+      <Project>561DA281-60D6-43CF-765F-96A120F7EFFC</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\crc32c\cpp-digest-crc32c.vcxproj">
       <Project>BAEF14A6-3BF3-DC3E-9335-9B6BF43917BC</Project>
     </ProjectReference>
@@ -1097,9 +1100,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\tokenizer\library-cpp-tokenizer.vcxproj">
       <Project>033EAD89-E9BA-0341-D614-91C40D7F543A</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cppparser\library-cppparser.vcxproj">
-      <Project>83424DDB-2D39-C993-71FE-34F2A604EE5E</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpuid_check\library-cpuid_check.vcxproj">
       <Project>B2E67D35-D818-4BB5-60B7-B6EEC460B8F8</Project>

@@ -355,9 +355,9 @@ void THashTest::TestHMMapHas() {
     m.insert(std::pair<const char, int>('X', 10));
     m.insert(std::pair<const char, int>('X', 20));
     m.insert(std::pair<const char, int>('Y', 32));
-    UNIT_ASSERT(m.contains('X'))
-    UNIT_ASSERT(m.contains('Y'))
-    UNIT_ASSERT(!m.contains('Z'))
+    UNIT_ASSERT(m.contains('X'));
+    UNIT_ASSERT(m.contains('Y'));
+    UNIT_ASSERT(!m.contains('Z'));
 }
 
 void THashTest::TestHSetConstructorsAndAssignments() {

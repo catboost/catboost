@@ -71,7 +71,7 @@ private:
                 throw;
             }
         } catch (...) {
-            UNIT_ASSERT(CurrentExceptionMessage().Contains("ithappens"))
+            UNIT_ASSERT(CurrentExceptionMessage().Contains("ithappens"));
         }
     }
 
