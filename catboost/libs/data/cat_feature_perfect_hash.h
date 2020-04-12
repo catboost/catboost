@@ -169,9 +169,6 @@ namespace NCB {
 
         bool operator==(const TCatFeaturesPerfectHash& rhs) const;
 
-        // *this contains a superset of mapping in rhs
-        bool IsSupersetOf(const TCatFeaturesPerfectHash& rhs) const;
-
         const TCatFeaturePerfectHash& GetFeaturePerfectHash(const TCatFeatureIdx catFeatureIdx) const {
             CheckHasFeature(catFeatureIdx);
             if (!HasHashInRam) {

@@ -38,66 +38,6 @@ namespace NCB {
         return FeaturesPerfectHash == rhs.FeaturesPerfectHash;
     }
 
-    bool TCatFeaturesPerfectHash::IsSupersetOf(const TCatFeaturesPerfectHash& rhs) const {
-        if (this == &rhs) { // shortcut
-            return true;
-        }
-
-        const size_t rhsSize = rhs.CatFeatureUniqValuesCountsVector.size();
-        if (rhsSize > CatFeatureUniqValuesCountsVector.size()) {
-            return false;
-        }
-
-        for (auto catFeatureIdx : xrange(rhsSize)) {
-            const auto& counts = CatFeatureUniqValuesCountsVector[catFeatureIdx];
-            const auto& rhsCounts = rhs.CatFeatureUniqValuesCountsVector[catFeatureIdx];
-            if (rhsCounts.OnLearnOnly != counts.OnLearnOnly) {
-                return false;
-            }
-            if (rhsCounts.OnAll > counts.OnAll) {
-                return false;
-            }
-        }
-
-        if (!HasHashInRam) {
-            Load();
-        }
-        if (!rhs.HasHashInRam) {
-            rhs.Load();
-        }
-
-        // count differences are ok
-        for (auto catFeatureIdx : xrange(rhsSize)) {
-            const auto& featurePerfectHash = FeaturesPerfectHash[catFeatureIdx];
-
-            if (featurePerfectHash.DefaultMap) {
-                if (!rhs.FeaturesPerfectHash[catFeatureIdx].DefaultMap) {
-                    return false;
-                }
-                const auto& defaultMap = *featurePerfectHash.DefaultMap;
-                const auto& rhsDefaultMap = *rhs.FeaturesPerfectHash[catFeatureIdx].DefaultMap;
-                if (defaultMap.SrcValue != rhsDefaultMap.SrcValue) {
-                    return false;
-                }
-                if (defaultMap.DstValueWithCount.Value != rhsDefaultMap.DstValueWithCount.Value) {
-                    return false;
-                }
-            }
-
-            for (const auto& [hashedCatValue, valueWithCount] : rhs.FeaturesPerfectHash[catFeatureIdx].Map) {
-                const auto it = featurePerfectHash.Map.find(hashedCatValue);
-                if (it == featurePerfectHash.Map.end()) {
-                    return false;
-                } else if (valueWithCount.Value != it->second.Value) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
-    }
-
-
     void TCatFeaturesPerfectHash::UpdateFeaturePerfectHash(
         const TCatFeatureIdx catFeatureIdx,
         TCatFeaturePerfectHash&& perfectHash
