@@ -495,7 +495,6 @@ ALLOW security/impulse/api/internal/db -> vendor/github.com/jackc/pgx
 ALLOW security/impulse/api/repositories/scaninstance -> vendor/github.com/jackc/pgx
 ALLOW security/impulse/api/repositories/vulnerability -> vendor/github.com/jackc/pgx
 ALLOW security/impulse/api/usecases/idm -> vendor/github.com/jackc/pgx
-ALLOW security/sectools-web/internal/db -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/cmd/load_generator -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/pkg/configurator -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/pkg/dbaas -> vendor/github.com/jackc/pgx
