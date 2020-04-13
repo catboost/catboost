@@ -400,8 +400,6 @@ ALLOW .* -> vendor/github.com/fclairamb/ftpserver
 ALLOW .* -> vendor/github.com/siddontang/go-mysql/replication
 ALLOW .* -> vendor/github.com/siddontang/go-mysql/canal
 ALLOW .* -> vendor/github.com/siddontang/go-mysql/mysql
-# Ability to override default noisy logger
-ALLOW .* -> vendor/github.com/siddontang/go-log/log
 
 # CONTRIB-1656 golang sftp server library
 ALLOW .* -> vendor/github.com/pkg/sftp
