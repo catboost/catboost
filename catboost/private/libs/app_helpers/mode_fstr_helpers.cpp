@@ -83,6 +83,15 @@ void NCB::PrepareFstrModeParamsParser(
             CB_ENSURE(TryFromString<EFstrType>(fstrType, params.FstrType), fstrType + " fstr type is not supported");
         });
 
+    const auto customShapCalculationTypeDescription =
+            TString::Join("Should be one of: ", GetEnumAllNames<ECalcTypeShapValues>());
+    parser.AddLongOption("shap-calc-type")
+        .DefaultValue("Normal")
+        .Handler1T<TString>([&params](const TString& calcType) {
+            CB_ENSURE(TryFromString<ECalcTypeShapValues>(calcType, params.ShapCalcType),
+                    calcType + " shap calculation type is not supported");
+        });
+
     parser.AddLongOption("verbose", "Log writing period")
         .DefaultValue("0")
         .Handler1T<TString>([&params](const TString& verbose) {
@@ -142,7 +151,8 @@ void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
                                     params.OutputPath.Path,
                                     params.Verbose,
                                     EPreCalcShapValues::Auto,
-                                    localExecutor.Get());
+                                    localExecutor.Get(),
+                                    params.ShapCalcType);
             break;
         case EFstrType::PredictionDiff:
             CalcAndOutputPredictionDiff(

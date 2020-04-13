@@ -33,6 +33,8 @@ namespace NCB {
         NCB::TPathWithScheme PairsFilePath;
         NCB::TPathWithScheme FeatureNamesPath;
 
+        ECalcTypeShapValues ShapCalcType = ECalcTypeShapValues::Normal;
+
         void BindParserOpts(NLastGetopt::TOpts& parser);
     };
 

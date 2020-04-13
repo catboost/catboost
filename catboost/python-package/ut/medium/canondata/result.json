@@ -7,6 +7,22 @@
         "checksum": "46a954f2ea32a20437c802929f3b6544",
         "uri": "file://test.test_allow_writing_files_and_used_ram_limit_CPU-2Gb_/predictions.npy"
     },
+    "test.test_approximate_shap_feature_importance[CPU]": {
+        "checksum": "216dcdfd914ca8096c38ed87393d7a41",
+        "uri": "file://test.test_approximate_shap_feature_importance_CPU_/feature_importance.npy"
+    },
+    "test.test_approximate_shap_feature_importance_multiclass[CPU]": {
+        "checksum": "98a6dce2d871153973be046170969bba",
+        "uri": "file://test.test_approximate_shap_feature_importance_multiclass_CPU_/feature_importance.npy"
+    },
+    "test.test_approximate_shap_feature_importance_ranking[CPU]": {
+        "checksum": "cfd1a96e4021e70fd4287a25f9eef2fc",
+        "uri": "file://test.test_approximate_shap_feature_importance_ranking_CPU_/feature_importance.npy"
+    },
+    "test.test_approximate_shap_feature_importance_with_langevin": {
+        "checksum": "213621e797ed49454e3a00917b90d2b2",
+        "uri": "file://test.test_approximate_shap_feature_importance_with_langevin/feature_importance.npy"
+    },
     "test.test_binclass_with_nontrivial_classes": {
         "checksum": "cd9e4e4abe956e909ad840233083eaeb",
         "uri": "file://test.test_binclass_with_nontrivial_classes/catboost_training.json"
