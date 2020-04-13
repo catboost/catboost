@@ -83,7 +83,7 @@ bool TBasicString<char, TCharTraits<char>>::to_title(size_t pos, size_t n) {
 
 template<>
 TUtf16String&
-TBasicString<wchar16, TCharTraits<wchar16>>::AppendAscii(const ::TFixedString<char>& s) {
+TBasicString<wchar16, TCharTraits<wchar16>>::AppendAscii(const ::TStringBuf& s) {
     ReserveAndResize(size() + s.Length);
 
     auto dst = begin() + size() - s.Length;
@@ -97,7 +97,7 @@ TBasicString<wchar16, TCharTraits<wchar16>>::AppendAscii(const ::TFixedString<ch
 
 template<>
 TUtf16String&
-TBasicString<wchar16, TCharTraits<wchar16>>::AppendUtf8(const ::TFixedString<char>& s) {
+TBasicString<wchar16, TCharTraits<wchar16>>::AppendUtf8(const ::TStringBuf& s) {
     size_t oldSize = size();
     ReserveAndResize(size() + s.Length * 4);
     size_t written = 0;
@@ -126,7 +126,7 @@ bool TBasicString<wchar16, TCharTraits<wchar16>>::to_title(size_t pos, size_t n)
 
 template<>
 TUtf32String&
-TBasicString<wchar32, TCharTraits<wchar32>>::AppendAscii(const ::TFixedString<char>& s) {
+TBasicString<wchar32, TCharTraits<wchar32>>::AppendAscii(const ::TStringBuf& s) {
     ReserveAndResize(size() + s.Length);
 
     auto dst = begin() + size() - s.Length;
@@ -140,7 +140,7 @@ TBasicString<wchar32, TCharTraits<wchar32>>::AppendAscii(const ::TFixedString<ch
 
 template<>
 TUtf32String&
-TBasicString<wchar32, TCharTraits<wchar32>>::AppendUtf8(const ::TFixedString<char>& s) {
+TBasicString<wchar32, TCharTraits<wchar32>>::AppendUtf8(const ::TStringBuf& s) {
     size_t oldSize = size();
     ReserveAndResize(size() + s.Length * 4);
     size_t written = 0;
@@ -154,7 +154,7 @@ TBasicString<wchar32, TCharTraits<wchar32>>::AppendUtf8(const ::TFixedString<cha
 
 template<>
 TUtf32String&
-TBasicString<wchar32, TCharTraits<wchar32>>::AppendUtf16(const ::TFixedString<wchar16>& s) {
+TBasicString<wchar32, TCharTraits<wchar32>>::AppendUtf16(const ::TWtringBuf& s) {
     size_t oldSize = size();
     ReserveAndResize(size() + s.Length * 2);
 

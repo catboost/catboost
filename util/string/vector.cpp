@@ -64,19 +64,19 @@ static void SplitStringImplT(TVector<std::conditional_t<std::is_same<TChr, wchar
 }
 
 void ::NPrivate::SplitStringImpl(TVector<TString>* res, const char* ptr, const char* delim, size_t maxFields, int options) {
-    return SplitStringImplT<char>(res, TFixedString<char>(ptr), delim, maxFields, options);
+    return SplitStringImplT<char>(res, TStringBuf(ptr), delim, maxFields, options);
 }
 
 void ::NPrivate::SplitStringImpl(TVector<TString>* res, const char* ptr, size_t len, const char* delim, size_t maxFields, int options) {
-    return SplitStringImplT<char>(res, TFixedString<char>(ptr, len), delim, maxFields, options);
+    return SplitStringImplT<char>(res, TStringBuf(ptr, len), delim, maxFields, options);
 }
 
 void ::NPrivate::SplitStringImpl(TVector<TUtf16String>* res, const wchar16* ptr, const wchar16* delimiter, size_t maxFields, int options) {
-    return SplitStringImplT<wchar16>(res, TFixedString<wchar16>(ptr), delimiter, maxFields, options);
+    return SplitStringImplT<wchar16>(res, TWtringBuf(ptr), delimiter, maxFields, options);
 }
 
 void ::NPrivate::SplitStringImpl(TVector<TUtf16String>* res, const wchar16* ptr, size_t len, const wchar16* delimiter, size_t maxFields, int options) {
-    return SplitStringImplT<wchar16>(res, TFixedString<wchar16>(ptr, len), delimiter, maxFields, options);
+    return SplitStringImplT<wchar16>(res, TWtringBuf(ptr, len), delimiter, maxFields, options);
 }
 
 TUtf16String JoinStrings(const TVector<TUtf16String>& v, const TWtringBuf delim) {

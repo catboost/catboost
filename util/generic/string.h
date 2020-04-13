@@ -422,15 +422,15 @@ public:
      *    Certain invokations of this method will result in link-time error.
      *    You are free to implement corresponding methods in string.cpp if you need them.
      */
-    static TBasicString FromAscii(const ::TFixedString<char>& s) {
+    static TBasicString FromAscii(const ::TStringBuf& s) {
         return TBasicString().AppendAscii(s);
     }
 
-    static TBasicString FromUtf8(const ::TFixedString<char>& s) {
+    static TBasicString FromUtf8(const ::TStringBuf& s) {
         return TBasicString().AppendUtf8(s);
     }
 
-    static TBasicString FromUtf16(const ::TFixedString<wchar16>& s) {
+    static TBasicString FromUtf16(const ::TWtringBuf& s) {
         return TBasicString().AppendUtf16(s);
     }
 
@@ -574,17 +574,17 @@ public:
      *    Certain invokations of this method will result in link-time error.
      *    You are free to implement corresponding methods in string.cpp if you need them.
      */
-    auto AssignAscii(const ::TFixedString<char>& s) {
+    auto AssignAscii(const ::TStringBuf& s) {
         clear();
         return AppendAscii(s);
     }
 
-    auto AssignUtf8(const ::TFixedString<char>& s) {
+    auto AssignUtf8(const ::TStringBuf& s) {
         clear();
         return AppendUtf8(s);
     }
 
-    auto AssignUtf16(const ::TFixedString<wchar16>& s) {
+    auto AssignUtf16(const ::TWtringBuf& s) {
         clear();
         return AppendUtf16(s);
     }
@@ -714,11 +714,11 @@ public:
      *    Certain invokations of this method will result in link-time error.
      *    You are free to implement corresponding methods in string.cpp if you need them.
      */
-    TBasicString& AppendAscii(const ::TFixedString<char>& s);
+    TBasicString& AppendAscii(const ::TStringBuf& s);
 
-    TBasicString& AppendUtf8(const ::TFixedString<char>& s);
+    TBasicString& AppendUtf8(const ::TStringBuf& s);
 
-    TBasicString& AppendUtf16(const ::TFixedString<wchar16>& s);
+    TBasicString& AppendUtf16(const ::TWtringBuf& s);
 
     inline void push_back(TCharType c) {
         append(c);
