@@ -2758,9 +2758,6 @@ namespace {
         TString GetDescription() const override;
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
         double GetFinalError(const TMetricHolder& error) const override;
-        TBrierScoreMetric() {
-            UseWeights.MakeIgnored();
-        }
     };
 }
 
