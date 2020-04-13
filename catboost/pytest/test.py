@@ -2631,11 +2631,6 @@ def do_test_fstr(
                 yatest.common.execute(fstr_cmd)
             return
 
-    if grow_policy in ['Lossguide', 'Depthwise'] and fstr_type == 'PredictionDiff':
-        with pytest.raises(yatest.common.ExecutionError):
-            yatest.common.execute(fstr_cmd)
-        return
-
     yatest.common.execute(fstr_cmd)
 
     return local_canonical_file(output_fstr_path)

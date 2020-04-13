@@ -3201,6 +3201,20 @@ def test_prediction_diff_feature_importance():
     return local_canonical_file(fimp_npy_path)
 
 
+@pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
+def test_prediction_diff_nonsym_feature_importance(grow_policy):
+    pool_file = 'higgs'
+    pool = Pool(data_file(pool_file, 'train_small'), column_description=data_file(pool_file, 'train.cd'))
+    model = CatBoostClassifier(iterations=110, grow_policy=grow_policy, learning_rate=0.03, max_ctr_complexity=1, devices='0')
+    model.fit(pool)
+    fimp_txt_path = test_output_path(FIMP_TXT_PATH)
+    np.savetxt(fimp_txt_path, np.array(model.get_feature_importance(
+        type=EFstrType.PredictionDiff,
+        data=pool.get_features()[:2]
+    )))
+    return local_canonical_file(fimp_txt_path)
+
+
 def test_od(task_type):
     train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     test_pool = Pool(TEST_FILE, column_description=CD_FILE)
