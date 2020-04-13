@@ -34,8 +34,7 @@ namespace CatBoostNet {
                 ModelPath = path;
                 ModelHandler = CatboostNativeInterface.ModelCalcerCreate();
                 if (!CatboostNativeInterface.LoadFullModelFromFile(ModelHandler, ModelPath)) {
-                    string msg = "";
-                    // TODO Call `GetErrorString` without crashing everything
+                    var msg = CatboostNativeInterface.GetErrorStringConst(ModelHandler);
                     throw new CatBoostException(
                         "An error has occurred in the LoadFullModelFromFile() method in catboostmodel library.\n" +
                         $"Returned error message: {msg}"
@@ -73,6 +72,20 @@ namespace CatBoostNet {
         /// Number of categorical features used in the model input
         /// </summary>
         public uint CatFeaturesCount => CatboostNativeInterface.GetCatFeaturesCount(ModelContainer.ModelHandler);
+
+        /// <summary>
+        /// Use CUDA gpu device for model evaluation
+        /// </summary>
+        public bool EnableGpuEvaluation(int deviceId) {
+            return CatboostNativeInterface.EnableGPUEvaluation(ModelContainer.ModelHandler, deviceId);
+        }
+
+        /// <summary>
+        /// Get model metainfo for some key
+        /// </summary>
+        public string GetModelInfoValue(string key) {
+            return CatboostNativeInterface.GetModelInfoValueConst(ModelContainer.ModelHandler, key, (uint) key.Length);
+        }
 
         /// <summary>
         /// Indices of the categorical features in the model input
@@ -136,7 +149,7 @@ namespace CatBoostNet {
                 }
                 return resultMatrix;
             } else {
-                string msg = "";
+                var msg = CatboostNativeInterface.GetErrorStringConst(ModelContainer.ModelHandler);
                 throw new CatBoostException(
                     "An error has occurred in the CalcModelPredictionSingle() method in catboostmodel library.\n" +
                     $"Returned error message: {msg}"
@@ -169,7 +182,7 @@ namespace CatBoostNet {
             if (res) {
                 return results;
             } else {
-                string msg = "";
+                var msg = CatboostNativeInterface.GetErrorStringConst(ModelContainer.ModelHandler);
                 throw new CatBoostException(
                     "An error has occurred in the CalcModelPredictionSingle() method in catboostmodel library.\n" +
                     $"Returned error message: {msg}"
