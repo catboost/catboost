@@ -7211,6 +7211,36 @@ def test_quantized_pool_with_large_grid():
     assert filecmp.cmp(tsv_eval_path, quantized_eval_path)
 
 
+def test_learn_without_header_eval_with_header():
+    train_path = yatest.common.test_output_path('airlines_without_header')
+    with open(data_file('airlines_5K', 'train'), 'r') as with_header_file:
+        with open(train_path, 'w') as without_header_file:
+            without_header_file.writelines(with_header_file.readlines()[1:])
+
+    model_path = yatest.common.test_output_path('model.bin')
+
+    cmd_fit = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', train_path,
+        '--cd', data_file('airlines_5K', 'cd'),
+        '-i', '10',
+        '-m', model_path
+    )
+    yatest.common.execute(cmd_fit)
+
+    cmd_calc = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', data_file('airlines_5K', 'test'),
+        '--cd', data_file('airlines_5K', 'cd'),
+        '-m', model_path,
+        '--has-header'
+    )
+    yatest.common.execute(cmd_calc)
+
+
 def test_group_weights_file():
     first_eval_path = yatest.common.test_output_path('first.eval')
     second_eval_path = yatest.common.test_output_path('second.eval')
