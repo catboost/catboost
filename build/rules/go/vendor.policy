@@ -504,6 +504,7 @@ ALLOW transfer_manager/go/pkg/source/pg -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/pkg/storage/pg -> vendor/github.com/jackc/pgx
 ALLOW transfer_manager/go/pkg/worker/tasks -> vendor/github.com/jackc/pgx
 ALLOW travel/avia/shared_flights/status_importer/internal/db -> vendor/github.com/jackc/pgx
+ALLOW travel/avia/shared_flights/status_importer/internal/objects/db/carrier -> vendor/github.com/jackc/pgx
 ALLOW travel/avia/shared_flights/status_importer/internal/objects/db/flight-leg -> vendor/github.com/jackc/pgx
 ALLOW travel/avia/shared_flights/status_importer/internal/objects/db/station -> vendor/github.com/jackc/pgx
 ALLOW travel/avia/shared_flights/status_importer/internal/objects/db/status-source -> vendor/github.com/jackc/pgx
