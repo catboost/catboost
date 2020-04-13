@@ -1481,11 +1481,11 @@
     ],
     "test.test_custom_loss_for_classification[Ordered-CrossEntropy]": [
         {
-            "checksum": "94b7af5850c2ef5e78a78575e2b54a6d",
+            "checksum": "af6aadc1a598530f735d71c3850942c1",
             "uri": "file://test.test_custom_loss_for_classification_Ordered-CrossEntropy_/learn_error.tsv"
         },
         {
-            "checksum": "3e3b8243f08be6756dcde0386f8422f7",
+            "checksum": "0f98bce0613630d82f57bb4c2853f3ce",
             "uri": "file://test.test_custom_loss_for_classification_Ordered-CrossEntropy_/test_error.tsv"
         }
     ],
@@ -1501,11 +1501,11 @@
     ],
     "test.test_custom_loss_for_classification[Plain-CrossEntropy]": [
         {
-            "checksum": "7fa7894b58c29f6bff8df1fab920162e",
+            "checksum": "4dac80841a139f1a72ee699c433cb6d3",
             "uri": "file://test.test_custom_loss_for_classification_Plain-CrossEntropy_/learn_error.tsv"
         },
         {
-            "checksum": "8606252fcd99d4c0660f18f8edc1821a",
+            "checksum": "01385b8d75f34eed0b551b352445ac4c",
             "uri": "file://test.test_custom_loss_for_classification_Plain-CrossEntropy_/test_error.tsv"
         }
     ],

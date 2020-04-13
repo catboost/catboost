@@ -3,6 +3,7 @@
 #include "description_utils.h"
 #include "classification_utils.h"
 #include "enums.h"
+#include "kappa.h"
 
 #include <catboost/libs/helpers/dispatch_generic_lambda.h>
 #include <catboost/libs/helpers/math_utils.h>
@@ -878,6 +879,160 @@ double TTotalF1CachingMetric::GetFinalError(const TMetricHolder& error) const {
 
 void TTotalF1CachingMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
+}
+
+/* Kappa */
+
+namespace {
+    struct TKappaMetric: public TCachingMetric {
+        explicit TKappaMetric(int classCount = 2, double predictionBorder = GetDefaultPredictionBorder())
+            : TargetBorder(GetDefaultTargetBorder())
+            , PredictionBorder(predictionBorder)
+            , ClassCount(classCount) {
+        }
+        TMetricHolder Eval(
+                const TVector<TVector<double>>& approx,
+                const TVector<TVector<double>>& approxDelta,
+                bool isExpApprox,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
+                int begin,
+                int end,
+                TMaybe<TCache*> cache
+        ) const override;
+        TString GetDescription() const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        bool IsAdditiveMetric() const override {
+            return true;
+        }
+
+    private:
+        const double TargetBorder = GetDefaultTargetBorder();
+        const double PredictionBorder = GetDefaultPredictionBorder();
+        const int ClassCount;
+    };
+}
+
+THolder<IMetric> MakeBinClassKappaMetric(double predictionBorder) {
+    return MakeHolder<TKappaMetric>(/*classCount=*/2, predictionBorder);
+}
+
+THolder<IMetric> MakeMultiClassKappaMetric(int classCount) {
+    return MakeHolder<TKappaMetric>(classCount);
+}
+
+TMetricHolder TKappaMetric::Eval(
+    const TVector<TVector<double>>& approx,
+    const TVector<TVector<double>>& approxDelta,
+    bool isExpApprox,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+    int begin,
+    int end,
+    TMaybe<TCache*> cache
+) const {
+    Y_ASSERT(approxDelta.empty());
+    Y_ASSERT(!isExpApprox);
+
+    const auto MakeMatrix = [&]() {
+        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end,
+                TargetBorder, PredictionBorder);
+    };
+    return cache.Empty() || 1 ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), TargetBorder, PredictionBorder);
+}
+
+TString TKappaMetric::GetDescription() const {
+    return BuildDescription(ELossFunction::Kappa, "%.3g", MakeTargetBorderParam(TargetBorder),
+                            MakePredictionBorderParam(PredictionBorder));
+}
+
+void TKappaMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
+}
+
+double TKappaMetric::GetFinalError(const TMetricHolder& error) const {
+    return CalcKappa(error, ClassCount, EKappaMetricType::Cohen);
+}
+
+/* WKappa */
+
+namespace {
+    struct TWKappaMetric: public TCachingMetric {
+        explicit TWKappaMetric(int classCount = 2, double predictionBorder = GetDefaultPredictionBorder())
+            : TargetBorder(GetDefaultTargetBorder())
+            , PredictionBorder(predictionBorder)
+            , ClassCount(classCount) {
+        }
+
+        TMetricHolder Eval(
+                const TVector<TVector<double>>& approx,
+                const TVector<TVector<double>>& approxDelta,
+                bool isExpApprox,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
+                int begin,
+                int end,
+                TMaybe<TCache*> cache
+        ) const override;
+
+        TString GetDescription() const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        void GetBestValue(EMetricBestValue *valueType, float *bestValue) const override;
+        bool IsAdditiveMetric() const override {
+            return true;
+        }
+
+    private:
+        const double TargetBorder = GetDefaultTargetBorder();
+        const double PredictionBorder = GetDefaultPredictionBorder();
+        const int ClassCount;
+    };
+}
+
+THolder<IMetric> MakeBinClassWKappaMetric(double predictionBorder) {
+    return MakeHolder<TWKappaMetric>(/*classCount=*/2, predictionBorder);
+}
+
+THolder<IMetric> MakeMultiClassWKappaMetric(int classCount) {
+    return MakeHolder<TWKappaMetric>(classCount);
+}
+
+TMetricHolder TWKappaMetric::Eval(
+    const TVector<TVector<double>>& approx,
+    const TVector<TVector<double>>& approxDelta,
+    bool isExpApprox,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+    int begin,
+    int end,
+    TMaybe<TCache*> cache
+) const {
+    Y_ASSERT(approxDelta.empty());
+    Y_ASSERT(!isExpApprox);
+
+    const auto MakeMatrix = [&]() {
+        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end,
+                TargetBorder, PredictionBorder);
+    };
+    return cache.Empty() || 1 ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), TargetBorder, PredictionBorder);
+}
+
+TString TWKappaMetric::GetDescription() const {
+    return BuildDescription(ELossFunction::WKappa, "%.3g", MakeTargetBorderParam(TargetBorder),
+                            MakePredictionBorderParam(PredictionBorder));
+}
+
+void TWKappaMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
+}
+
+double TWKappaMetric::GetFinalError(const TMetricHolder& error) const {
+    return CalcKappa(error, ClassCount, EKappaMetricType::Weighted);
 }
 
 TVector<TMetricHolder> EvalErrorsWithCaching(
