@@ -13,7 +13,9 @@ ALLOW .* -> vendor/github.com/alicebob/miniredis/v2
 ALLOW .* -> vendor/github.com/streadway/amqp
 
 # AWS client libraries
-ALLOW .* -> vendor/github.com/aws/aws-sdk-go
+ALLOW .* -> vendor/github.com/aws/aws-sdk-go/aws
+ALLOW .* -> vendor/github.com/aws/aws-sdk-go/service/s3
+ALLOW .* -> vendor/github.com/aws/aws-sdk-go/service/sqs
 
 # TOML parser/encoder with reflection
 ALLOW .* -> vendor/github.com/BurntSushi/toml
