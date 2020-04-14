@@ -132,7 +132,6 @@ migrations:
       - a.yandex-team.ru/mail/so/spamstop/tools/smtp2http
       - a.yandex-team.ru/mail/payments-sdk-backend/backend/cmd/server
       - a.yandex-team.ru/mail/payments-sdk-backend/backend/cmd/server_test
-      - a.yandex-team.ru/market/idx/delivery/bin/delivery_uploader
       - a.yandex-team.ru/market/logistics/tracker-perf-testing
       - a.yandex-team.ru/market/sre/juggler/bundles/rtc/checks/fresh-hprof-files
       - a.yandex-team.ru/market/sre/library/golang/dispenser
