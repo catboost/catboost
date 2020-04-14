@@ -6825,9 +6825,9 @@
         "yd-migrate": {
             "formula": {
                 "sandbox_id": [
-                    624872951
+                    652676106
                 ],
-                "match": "deploy_migrate/bin"
+                "match": "yd_migrate"
             },
             "executable": {
                 "yd-migrate": [
