@@ -465,7 +465,6 @@ ALLOW yt/jaeger/plugin/cmd/collector -> vendor/github.com/pkg/errors
 
 # IGNIETFERRO-1396
 
-ALLOW browser/server/hyperstore/internal/cache -> vendor/github.com/jackc/pgx
 ALLOW bunker/api/cmd/api -> vendor/github.com/jackc/pgx
 ALLOW bunker/api/internal/db -> vendor/github.com/jackc/pgx
 ALLOW cloud/blockstore/tests/hwlab/pg_test/pgshooter -> vendor/github.com/jackc/pgx
