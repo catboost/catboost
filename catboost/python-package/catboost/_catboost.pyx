@@ -3468,6 +3468,7 @@ cdef class _PoolBase:
             resource_holders
         )
 
+        new_data_holders = None
         if isinstance(data, FeaturesData):
             new_data_holders = data
 
