@@ -29,7 +29,7 @@
 
 namespace NCatboostDistributed {
 
-    static const NCB::TTrainingForCPUDataProviders& GetTrainData(NPar::TCtxPtr<TTrainData> trainData) {
+    static const NCB::TTrainingDataProviders& GetTrainData(NPar::TCtxPtr<TTrainData> trainData) {
         if (trainData != nullptr) {
             return trainData->TrainData;
         } else {
@@ -38,7 +38,7 @@ namespace NCatboostDistributed {
     }
 
     static const NCB::TQuantizedForCPUObjectsDataProvider& GetLearnObjectsData(
-        const NCB::TTrainingForCPUDataProviders& trainingData,
+        const NCB::TTrainingDataProviders& trainingData,
         bool estimated
     ) {
         return *(estimated ? trainingData.EstimatedObjectsData.Learn : trainingData.Learn->ObjectsData);
@@ -146,7 +146,7 @@ namespace NCatboostDistributed {
             &labelConverter,
             &NPar::LocalExecutor(),
             localData.Rand.Get()
-        ).Cast<NCB::TQuantizedForCPUObjectsDataProvider>();
+        );
 
         CATBOOST_DEBUG_LOG << "Done for worker " << hostId << Endl;
     }
@@ -169,7 +169,7 @@ namespace NCatboostDistributed {
 
         const auto& trainParams = localData.Params;
 
-        const NCB::TTrainingForCPUDataProviders& trainingDataProviders = GetTrainData(trainData);
+        const NCB::TTrainingDataProviders& trainingDataProviders = GetTrainData(trainData);
 
         const TFoldsCreationParams foldsCreationParams(
             trainParams,
@@ -373,7 +373,7 @@ namespace NCatboostDistributed {
         TStats3D* stats3D
     ) {
         auto& localData = TLocalTensorSearchData::GetRef();
-        const NCB::TTrainingForCPUDataProviders& trainingData = GetTrainData(trainData);
+        const NCB::TTrainingDataProviders& trainingData = GetTrainData(trainData);
         CalcStatsAndScores(
             GetLearnObjectsData(trainingData, candidate.SplitEnsemble.IsEstimated),
             localData.Progress->AveragingFold.GetAllCtrs(),
@@ -400,7 +400,7 @@ namespace NCatboostDistributed {
         TPairwiseStats* pairwiseStats
     ) {
         auto& localData = TLocalTensorSearchData::GetRef();
-        const NCB::TTrainingForCPUDataProviders& trainingData = GetTrainData(trainData);
+        const NCB::TTrainingDataProviders& trainingData = GetTrainData(trainData);
         CalcStatsAndScores(
             GetLearnObjectsData(trainingData, candidate.SplitEnsemble.IsEstimated),
             localData.Progress->AveragingFold.GetAllCtrs(),
@@ -783,7 +783,7 @@ namespace NCatboostDistributed {
     ) const {
         const auto& localData = TLocalTensorSearchData::GetRef();
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
-        const NCB::TTrainingForCPUDataProvider& learnData = *(GetTrainData(trainData).Learn);
+        const NCB::TTrainingDataProvider& learnData = *(GetTrainData(trainData).Learn);
 
         const auto errors = CreateMetrics(
             localData.Params.MetricOptions,

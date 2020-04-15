@@ -615,7 +615,7 @@ static void SelectCtrsToDropAfterCalc(
 
 
 static void CalcBestScore(
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     const TSplitTree& currentTree,
     ui64 randSeed,
     double scoreStDev,
@@ -755,7 +755,7 @@ static void DoBootstrap(
 }
 
 static void CalcBestScoreLeafwise(
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     const TVector<TIndexType>& leafs,
     ui64 randSeed,
     double scoreStDev,
@@ -841,7 +841,7 @@ static double CalcScoreStDev(
 }
 
 static void CalcScores(
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     const TSplitTree& currentSplitTree,
     const double scoreStDev,
     TVector<TCandidatesContext>* candidatesContexts, // [dataset]
@@ -970,7 +970,7 @@ static TCandidatesContext SelectDatasetFeaturesForScoring(
 
 // returns vector ot per-dataset (main, online estimated, offline estimated) candidates contexts
 static TVector<TCandidatesContext> SelectFeaturesForScoring(
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     const TMaybe<TSplitTree>& currentSplitTree,
     TFold* fold,
     TLearnContext* ctx
@@ -1030,7 +1030,7 @@ static size_t CalcMaxFeatureValueCount(
 }
 
 static void ProcessCtrSplit(
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     const TSplit& bestSplit,
     TFold* fold,
     TLearnContext* ctx) {
@@ -1064,7 +1064,7 @@ static void MarkFeaturesAsUsed(
 }
 
 static TSplitTree GreedyTensorSearchOblivious(
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     double modelLength,
     TProfileInfo& profile,
     TVector<TIndexType>* indices,
@@ -1185,7 +1185,7 @@ static void SplitDocsSubset(
 }
 
 static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     double modelLength,
     TProfileInfo& profile,
     TVector<TIndexType>* indices,
@@ -1300,7 +1300,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchLossguide(
 
 
 static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     double modelLength,
     TProfileInfo& profile,
     TVector<TIndexType>* indices,
@@ -1404,7 +1404,7 @@ static TNonSymmetricTreeStructure GreedyTensorSearchDepthwise(
 
 
 void GreedyTensorSearch(
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     double modelLength,
     TProfileInfo& profile,
     TFold* fold,

@@ -1606,21 +1606,14 @@ namespace NCB {
 
             SetResultsTaken();
 
-            if (Options.CpuCompatibleFormat && !Options.GpuDistributedFormat) {
-                return MakeDataProvider<TQuantizedForCPUObjectsDataProvider>(
-                    /*objectsGrouping*/ Nothing(), // will init from data
-                    std::move(Data),
-                    Options.SkipCheck || !DatasetSubset.HasFeatures,
-                    LocalExecutor
-                )->CastMoveTo<TObjectsDataProvider>();
-            } else {
-                return MakeDataProvider<TQuantizedObjectsDataProvider>(
-                    /*objectsGrouping*/ Nothing(), // will init from data
-                    CastToBase(std::move(Data)),
-                    Options.SkipCheck,
-                    LocalExecutor
-                )->CastMoveTo<TObjectsDataProvider>();
-            }
+            return MakeDataProvider<TQuantizedForCPUObjectsDataProvider>(
+                /*objectsGrouping*/ Nothing(), // will init from data
+                std::move(Data),
+                // without HasFeatures dataprovider self-test fails on distributed train
+                // on quantized pool
+                Options.SkipCheck || !DatasetSubset.HasFeatures,
+                LocalExecutor
+            )->CastMoveTo<TObjectsDataProvider>();
         }
 
         void GetTargetAndBinaryFeaturesData() {
@@ -2136,9 +2129,9 @@ namespace NCB {
 
             SetResultsTaken();
 
-            return MakeDataProvider<TQuantizedObjectsDataProvider>(
+            return MakeDataProvider<TQuantizedForCPUObjectsDataProvider>(
                 /*objectsGrouping*/ Nothing(), // will init from data
-                CastToBase(std::move(dataRef)),
+                std::move(dataRef),
                 Options.SkipCheck,
                 LocalExecutor
             )->CastMoveTo<TObjectsDataProvider>();

@@ -61,7 +61,7 @@ Y_UNIT_TEST_SUITE(Quantization) {
                 quantizationOptions.PackBinaryFeaturesForCpu = packBinaryFeatures;
 
                 for (auto bundleExclusiveFeatures : bundleExclusiveFeaturesVariants) {
-                    quantizationOptions.BundleExclusiveFeaturesForCpu = bundleExclusiveFeatures;
+                    quantizationOptions.BundleExclusiveFeatures = bundleExclusiveFeatures;
 
                     for (auto clearSrcData : {false, true}) {
                         TTestCase testCase = generateTestCase(packBinaryFeatures);
@@ -85,17 +85,10 @@ Y_UNIT_TEST_SUITE(Quantization) {
                             &rand,
                             &localExecutor)->CastMoveTo<TObjectsDataProvider>();
 
-                        if (quantizationOptions.CpuCompatibleFormat) {
-                            Compare<TQuantizedForCPUObjectsDataProvider>(
+                        Compare<TQuantizedForCPUObjectsDataProvider>(
                                 std::move(quantizedDataProvider),
                                 testCase.ExpectedData
-                            );
-                        } else {
-                            Compare<TQuantizedObjectsDataProvider>(
-                                std::move(quantizedDataProvider),
-                                testCase.ExpectedData
-                            );
-                        }
+                        );
                     }
                 }
             }

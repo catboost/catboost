@@ -930,7 +930,7 @@ inline void CalcLeafValuesMultiForAllLeaves(
 }
 
 void CalcLeafValues(
-    const NCB::TTrainingForCPUDataProviders& data,
+    const NCB::TTrainingDataProviders& data,
     const IDerCalcer& error,
     const TFold& fold,
     const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,
@@ -957,7 +957,7 @@ void CalcLeafValues(
 
 // output is permuted (learnSampleCount samples are permuted by LearnPermutation, test is indexed directly)
 void CalcApproxForLeafStruct(
-    const NCB::TTrainingForCPUDataProviders& data,
+    const NCB::TTrainingDataProviders& data,
     const IDerCalcer& error,
     const TFold& fold,
     const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,

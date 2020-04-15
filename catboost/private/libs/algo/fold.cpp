@@ -39,7 +39,7 @@ static double SelectTailSize(ui32 oldSize, double multiplier) {
 }
 
 static void InitPermutationData(
-    const NCB::TTrainingForCPUDataProvider& learnData,
+    const NCB::TTrainingDataProvider& learnData,
     bool shuffle,
     ui32 permuteBlockSize,
     TRestorableFastRng64* rand,
@@ -95,7 +95,7 @@ static void InitPermutationData(
 
 
 TFold TFold::BuildDynamicFold(
-    const NCB::TTrainingForCPUDataProviders& data,
+    const NCB::TTrainingDataProviders& data,
     const TVector<TTargetClassifier>& targetClassifiers,
     bool shuffle,
     ui32 permuteBlockSize,
@@ -109,7 +109,7 @@ TFold TFold::BuildDynamicFold(
     TRestorableFastRng64* rand,
     NPar::TLocalExecutor* localExecutor
 ) {
-    const NCB::TTrainingForCPUDataProvider& learnData = *data.Learn;
+    const NCB::TTrainingDataProvider& learnData = *data.Learn;
 
     const ui32 learnSampleCount = learnData.GetObjectCount();
 
@@ -221,7 +221,7 @@ void TFold::SetWeights(TConstArrayRef<float> weights, ui32 learnSampleCount) {
 }
 
 TFold TFold::BuildPlainFold(
-    const NCB::TTrainingForCPUDataProviders& data,
+    const NCB::TTrainingDataProviders& data,
     const TVector<TTargetClassifier>& targetClassifiers,
     bool shuffle,
     ui32 permuteBlockSize,
@@ -234,7 +234,7 @@ TFold TFold::BuildPlainFold(
     TRestorableFastRng64* rand,
     NPar::TLocalExecutor* localExecutor
 ) {
-    const NCB::TTrainingForCPUDataProvider& learnData = *data.Learn;
+    const NCB::TTrainingDataProvider& learnData = *data.Learn;
 
     const ui32 learnSampleCount = learnData.GetObjectCount();
 
@@ -381,7 +381,7 @@ void TFold::LoadApproxes(IInputStream* s) {
 void TFold::InitOnlineEstimatedFeatures(
     const NCatboostOptions::TBinarizationOptions& quantizationOptions,
     TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
-    const NCB::TTrainingForCPUDataProviders& data,
+    const NCB::TTrainingDataProviders& data,
     NPar::TLocalExecutor* localExecutor,
     TRestorableFastRng64* rand
 ) {
@@ -389,7 +389,7 @@ void TFold::InitOnlineEstimatedFeatures(
         quantizationOptions,
         /*maxSubsetSizeForBuildBordersAlgorithms*/ 100000,
         std::move(quantizedFeaturesInfo),
-        data.Cast<TQuantizedObjectsDataProvider>(),
+        data,
         data.FeatureEstimators,
         GetLearnPermutationArray(),
         localExecutor,

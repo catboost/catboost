@@ -152,7 +152,7 @@ static TVector<const IMetric*> FilterTestMetrics(
     return filtered;
 }
 
-static TVector<int> FilterTestPools(const TTrainingForCPUDataProviders& trainingDataProviders, bool calcAllMetrics) {
+static TVector<int> FilterTestPools(const TTrainingDataProviders& trainingDataProviders, bool calcAllMetrics) {
     TVector<int> filtered;
     for (int i : xrange(trainingDataProviders.Test.size())) {
         const auto &testPool = trainingDataProviders.Test[i];
@@ -167,7 +167,7 @@ static TVector<int> FilterTestPools(const TTrainingForCPUDataProviders& training
 }
 
 void CalcErrors(
-    const TTrainingForCPUDataProviders& trainingDataProviders,
+    const TTrainingDataProviders& trainingDataProviders,
     const TVector<THolder<IMetric>>& errors,
     bool calcAllMetrics,
     bool calcErrorTrackerMetric,

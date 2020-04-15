@@ -860,7 +860,7 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetSubsetImpl(
         subsetCommonData.FeaturesLayout->IgnoreExternalFeatures(*ignoredFeatures);
     }
 
-    TQuantizedObjectsData subsetData;
+    TQuantizedForCPUObjectsData subsetData;
 
     auto resourceConstrainedExecutor = CreateCpuRamConstrainedExecutor(cpuRamLimit, localExecutor);
 
@@ -874,15 +874,15 @@ NCB::TObjectsDataProviderPtr NCB::TQuantizedObjectsDataProvider::GetSubsetImpl(
         );
     };
 
-    getSubsetWithScheduling(Data.FloatFeatures, &subsetData.FloatFeatures);
-    getSubsetWithScheduling(Data.CatFeatures, &subsetData.CatFeatures);
-    getSubsetWithScheduling(Data.TextFeatures, &subsetData.TextFeatures);
+    getSubsetWithScheduling(Data.FloatFeatures, &subsetData.Data.FloatFeatures);
+    getSubsetWithScheduling(Data.CatFeatures, &subsetData.Data.CatFeatures);
+    getSubsetWithScheduling(Data.TextFeatures, &subsetData.Data.TextFeatures);
 
     resourceConstrainedExecutor.ExecTasks();
 
-    subsetData.QuantizedFeaturesInfo = Data.QuantizedFeaturesInfo;
+    subsetData.Data.QuantizedFeaturesInfo = Data.QuantizedFeaturesInfo;
 
-    return MakeIntrusive<TQuantizedObjectsDataProvider>(
+    return MakeIntrusive<TQuantizedForCPUObjectsDataProvider>(
         objectsGroupingSubset.GetSubsetGrouping(),
         std::move(subsetCommonData),
         std::move(subsetData),
@@ -1625,9 +1625,6 @@ NCB::TQuantizedForCPUObjectsDataProvider::TQuantizedForCPUObjectsDataProvider(
         localExecutor
       )
 {
-    if (!skipCheck) {
-        Check(data.PackedBinaryFeaturesData, data.ExclusiveFeatureBundlesData, data.FeaturesGroupsData);
-    }
     PackedBinaryFeaturesData = std::move(data.PackedBinaryFeaturesData);
     ExclusiveFeatureBundlesData = std::move(data.ExclusiveFeatureBundlesData);
     FeaturesGroupsData = std::move(data.FeaturesGroupsData);
@@ -2159,25 +2156,21 @@ static void CheckFeaturesByType(
     }
 }
 
-void NCB::TQuantizedForCPUObjectsDataProvider::Check(
-    const TPackedBinaryFeaturesData& packedBinaryData,
-    const TExclusiveFeatureBundlesData& exclusiveFeatureBundlesData,
-    const TFeatureGroupsData& featuresGroupsData
-) const {
+void NCB::TQuantizedForCPUObjectsDataProvider::CheckCPUTrainCompatibility() const {
     CheckFeaturesByType(
         EFeatureType::Float,
         Data.FloatFeatures,
-        exclusiveFeatureBundlesData,
-        packedBinaryData,
-        featuresGroupsData,
+        ExclusiveFeatureBundlesData,
+        PackedBinaryFeaturesData,
+        FeaturesGroupsData,
         "Float"
     );
     CheckFeaturesByType(
         EFeatureType::Categorical,
         Data.CatFeatures,
-        exclusiveFeatureBundlesData,
-        packedBinaryData,
-        featuresGroupsData,
+        ExclusiveFeatureBundlesData,
+        PackedBinaryFeaturesData,
+        FeaturesGroupsData,
         "Cat"
     );
 }

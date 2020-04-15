@@ -44,7 +44,7 @@ public:
     SAVELOAD(SplitEnsemble, BestScore, BestBinId);
 
     TSplit GetBestSplit(
-        const NCB::TTrainingForCPUDataProviders& data,
+        const NCB::TTrainingDataProviders& data,
         const TFold& fold,
         ui32 oneHotMaxSize
     ) const;

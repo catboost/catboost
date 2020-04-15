@@ -20,7 +20,7 @@ void SetTrainDataFromQuantizedPool(
     TRestorableFastRng64* rand
 );
 void SetTrainDataFromMaster(
-    const NCB::TTrainingForCPUDataProviders& trainData,
+    const NCB::TTrainingDataProviders& trainData,
     ui64 cpuUsedRamLimit,
     NPar::TLocalExecutor* localExecutor);
 void MapBuildPlainFold(TLearnContext* ctx);
@@ -65,7 +65,7 @@ TVector<typename TMapper::TOutput> ApplyMapper(
 void MapSetApproxesSimple(
     const IDerCalcer& error,
     const TVariant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
-    const NCB::TTrainingForCPUDataProviders data, // only test part is used
+    const NCB::TTrainingDataProviders data, // only test part is used
     TVector<TVector<double>>* averageLeafValues,
     TVector<double>* sumLeafWeights,
     TLearnContext* ctx);
@@ -73,7 +73,7 @@ void MapSetApproxesSimple(
 void MapSetApproxesMulti(
     const IDerCalcer& error,
     const TVariant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
-    const NCB::TTrainingForCPUDataProviders data, // only test part is used
+    const NCB::TTrainingDataProviders data, // only test part is used
     TVector<TVector<double>>* averageLeafValues,
     TVector<double>* sumLeafWeights,
     TLearnContext* ctx);

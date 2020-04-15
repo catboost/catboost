@@ -117,7 +117,7 @@ public:
     TLearnProgress(
         bool isForWorkerLocalData,
         bool isSingleHost,
-        const NCB::TTrainingForCPUDataProviders& data,
+        const NCB::TTrainingDataProviders& data,
         int approxDimension,
         const TLabelConverter& labelConverter, // unused if isForWorkerLocalData
         ui64 randomSeed,
@@ -191,7 +191,7 @@ public:
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const NCatboostOptions::TOutputFilesOptions& outputOptions,
-        const NCB::TTrainingForCPUDataProviders& data,
+        const NCB::TTrainingDataProviders& data,
         const TLabelConverter& labelConverter,
         TMaybe<double> startingApprox,
         TMaybe<const TRestorableFastRng64*> initRand,

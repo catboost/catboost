@@ -34,10 +34,9 @@ namespace NCB {
 
     struct TQuantizationOptions {
         bool CpuCompatibleFormat = true;
-        bool GpuCompatibleFormat = true;
         ui64 CpuRamLimit = Max<ui64>();
         ui32 MaxSubsetSizeForBuildBordersAlgorithms = 200000;
-        bool BundleExclusiveFeaturesForCpu = true;
+        bool BundleExclusiveFeatures = true;
         TExclusiveFeaturesBundlingOptions ExclusiveFeaturesBundlingOptions{};
         bool PackBinaryFeaturesForCpu = true;
         bool GroupFeaturesForCpu = false;

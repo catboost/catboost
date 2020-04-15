@@ -19,7 +19,7 @@ using namespace NCB;
 
 const TQuantizedForCPUObjectsDataProvider& GetLearnObjectsData(
     const TSplitCandidate& splitCandidate,
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     const TFold& fold
 ) {
     if (splitCandidate.Type == ESplitType::EstimatedFeature) {
@@ -33,7 +33,7 @@ const TQuantizedForCPUObjectsDataProvider& GetLearnObjectsData(
 
 
 TSplit TCandidateInfo::GetBestSplit(
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     const TFold& fold,
     ui32 oneHotMaxSize
 ) const {

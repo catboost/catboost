@@ -910,39 +910,22 @@ Y_UNIT_TEST_SUITE(TQuantizedObjectsData) {
                 NPar::TLocalExecutor localExecutor;
                 localExecutor.RunAdditionalThreads(2);
 
-                THolder<TQuantizedObjectsDataProvider> objectsDataProvider;
+                THolder<TQuantizedForCPUObjectsDataProvider> objectsDataProvider;
 
-                if (taskType == ETaskType::CPU) {
-                    objectsDataProvider = MakeHolder<TQuantizedForCPUObjectsDataProvider>(
-                        GetMaybeSubsetDataProvider(
-                            TQuantizedForCPUObjectsDataProvider(
-                                Nothing(),
-                                std::move(commonDataCopy),
-                                std::move(data),
-                                false,
-                                &localExecutor
-                            ),
-                            subsetForGetSubset,
-                            objectsOrderForGetSubset,
+                objectsDataProvider = MakeHolder<TQuantizedForCPUObjectsDataProvider>(
+                    GetMaybeSubsetDataProvider(
+                        TQuantizedForCPUObjectsDataProvider(
+                            Nothing(),
+                            std::move(commonDataCopy),
+                            std::move(data),
+                            false,
                             &localExecutor
-                        )
-                    );
-                } else {
-                    objectsDataProvider = MakeHolder<TQuantizedObjectsDataProvider>(
-                        GetMaybeSubsetDataProvider(
-                            TQuantizedObjectsDataProvider(
-                                Nothing(),
-                                std::move(commonDataCopy),
-                                std::move(data.Data),
-                                false,
-                                &localExecutor
-                            ),
-                            subsetForGetSubset,
-                            objectsOrderForGetSubset,
-                            &localExecutor
-                        )
-                    );
-                }
+                        ),
+                        subsetForGetSubset,
+                        objectsOrderForGetSubset,
+                        &localExecutor
+                    )
+                );
 
                 UNIT_ASSERT_EQUAL(
                     *objectsDataProvider->GetObjectsGrouping(),

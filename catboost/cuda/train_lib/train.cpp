@@ -333,8 +333,8 @@ namespace NCatboostCuda {
                     ->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn()
                   > updatedCatboostOptions.CatFeatureParams.Get().OneHotMaxSize.Get());
 
-            TTrainingForCPUDataProviders trainingDataForFinalCtrCalculation;
-
+            TTrainingDataProviders trainingDataForFinalCtrCalculation;
+            // TODO(kirillovs): remove casts later
             if (saveFinalCtrsInModel) {
                 // do it at this stage to check before training
                 trainingDataForFinalCtrCalculation = trainingData.Cast<TQuantizedForCPUObjectsDataProvider>();

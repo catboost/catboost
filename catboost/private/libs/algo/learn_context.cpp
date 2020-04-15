@@ -228,7 +228,7 @@ TLearnContext::TLearnContext(
     const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
     const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
     const NCatboostOptions::TOutputFilesOptions& outputOptions,
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     const TLabelConverter& labelConverter,
     TMaybe<double> startingApprox,
     TMaybe<const TRestorableFastRng64*> initRand,
@@ -439,7 +439,7 @@ TLearnProgress::TLearnProgress() : Rand(0) {
 TLearnProgress::TLearnProgress(
     bool isForWorkerLocalData,
     bool isSingleHost,
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     int approxDimension,
     const TLabelConverter& labelConverter,
     ui64 randomSeed,

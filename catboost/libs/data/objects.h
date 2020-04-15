@@ -466,8 +466,7 @@ namespace NCB {
         TQuantizedObjectsData Data;
     };
 
-    using TQuantizedObjectsDataProviderPtr = TIntrusivePtr<TQuantizedObjectsDataProvider>;
-
+    
     void DbgDumpQuantizedFeatures(
         const TQuantizedObjectsDataProvider& quantizedObjectsDataProvider,
         IOutputStream* out
@@ -695,6 +694,7 @@ namespace NCB {
             return PackedBinaryFeaturesData.PackedBinaryToSrcIndex[packedBinaryIndex.GetLinearIdx()];
         }
 
+        void CheckCPUTrainCompatibility() const;
 
         size_t GetExclusiveFeatureBundlesSize() const {
             return ExclusiveFeatureBundlesData.MetaData.size();
@@ -775,12 +775,6 @@ namespace NCB {
         }
 
     private:
-        void Check(
-            const TPackedBinaryFeaturesData& packedBinaryData,
-            const TExclusiveFeatureBundlesData& exclusiveFeatureBundlesData,
-            const TFeatureGroupsData& featuresGroupsData
-        ) const;
-
         void CheckFeatureIsNotInAggregated(
             EFeatureType featureType,
             const TStringBuf featureTypeName,
@@ -796,6 +790,7 @@ namespace NCB {
         TVector<TCatFeatureUniqueValuesCounts> CatFeatureUniqueValuesCounts; // [catFeatureIdx]
     };
 
+    using TQuantizedObjectsDataProviderPtr = TIntrusivePtr<TQuantizedForCPUObjectsDataProvider>;
     using TQuantizedForCPUObjectsDataProviderPtr = TIntrusivePtr<TQuantizedForCPUObjectsDataProvider>;
 
 
