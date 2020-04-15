@@ -3262,10 +3262,10 @@ def test_shap_feature_importance_modes(task_type):
         assert np.all(np.abs(shaps_for_modes[i] - shaps_for_modes[i - 1]) < 1e-9)
 
 
-def test_prediction_diff_feature_importance():
+def test_prediction_diff_feature_importance(task_type):
     pool_file = 'higgs'
     pool = Pool(data_file(pool_file, 'train_small'), column_description=data_file(pool_file, 'train.cd'))
-    model = CatBoostClassifier(iterations=110, learning_rate=0.03, max_ctr_complexity=1, devices='0')
+    model = CatBoostClassifier(iterations=110, task_type=task_type, learning_rate=0.03, max_ctr_complexity=1, devices='0')
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.array(model.get_feature_importance(
@@ -3276,10 +3276,10 @@ def test_prediction_diff_feature_importance():
 
 
 @pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
-def test_prediction_diff_nonsym_feature_importance(grow_policy):
+def test_prediction_diff_nonsym_feature_importance(task_type, grow_policy):
     pool_file = 'higgs'
     pool = Pool(data_file(pool_file, 'train_small'), column_description=data_file(pool_file, 'train.cd'))
-    model = CatBoostClassifier(iterations=110, grow_policy=grow_policy, learning_rate=0.03, max_ctr_complexity=1, devices='0')
+    model = CatBoostClassifier(iterations=110, task_type=task_type, grow_policy=grow_policy, learning_rate=0.03, max_ctr_complexity=1, devices='0')
     model.fit(pool)
     fimp_txt_path = test_output_path(FIMP_TXT_PATH)
     np.savetxt(fimp_txt_path, np.array(model.get_feature_importance(
