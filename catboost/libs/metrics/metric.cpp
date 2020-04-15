@@ -3933,33 +3933,6 @@ static void CheckParameters(
     }
 }
 
-int GetParameterTop(const TMap<TString, TString>& params, ELossFunction metric) {
-    auto itTopSize = params.find("top");
-    int topSize = -1;
-
-    if (itTopSize != params.end()) {
-        topSize = FromString<int>(itTopSize->second);
-    }
-    TString metricName;
-    switch (metric) {
-        case ELossFunction::PrecisionAt:
-            metricName = "Precision at K";
-            break;
-
-        case ELossFunction::RecallAt:
-            metricName = "Recall at K";
-            break;
-
-        case ELossFunction::MAP:
-            metricName = "Mean Average Precision at K";
-            break;
-
-        default:
-            Y_ASSERT(false);
-    }
-    return topSize;
-}
-
 template <typename T>
 static TVector<TVector<T>> ConstructSquareMatrix(const TString& matrixString) {
     const TVector<TString> matrixVector = StringSplitter(matrixString).Split('/');
@@ -4010,7 +3983,7 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
             result.push_back(MakeRMSEMetric());
             break;
         case ELossFunction::Lq:
-            CB_ENSURE(params.contains("q"), "Metric " << ELossFunction::Lq << " requirese q as parameter");
+            CB_ENSURE(params.contains("q"), "Metric " << ELossFunction::Lq << " requires q as parameter");
             validParams={"q"};
             result.push_back(MakeLqMetric(FromString<float>(params.at("q"))));
             break;
@@ -4018,10 +3991,8 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
             result.push_back(MakeQuantileMetric(ELossFunction::MAE));
             break;
         case ELossFunction::Quantile: {
-            auto it = params.find("alpha");
-            double alpha = it != params.end() ? FromString<float>(it->second) : 0.5;
-            it = params.find("delta");
-            double delta = it != params.end() ? FromString<float>(it->second) : 1e-6;
+            double alpha = NCatboostOptions::GetParamOrDefault(params, "alpha", 0.5);
+            double delta = NCatboostOptions::GetParamOrDefault(params, "delta", 1e-6);
             result.push_back(MakeQuantileMetric(ELossFunction::Quantile, alpha, delta));
             validParams = {"alpha", "delta"};
             break;
@@ -4092,10 +4063,8 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
             validParams = {"lambda"};
             break;
         case ELossFunction::PFound: {
-            auto itTopSize = params.find("top");
-            auto itDecay = params.find("decay");
-            int topSize = itTopSize != params.end() ? FromString<int>(itTopSize->second) : -1;
-            double decay = itDecay != params.end() ? FromString<double>(itDecay->second) : 0.85;
+            int topSize = NCatboostOptions::GetParamOrDefault(params, "top", -1);
+            double decay = NCatboostOptions::GetParamOrDefault(params, "decay", 0.85);
             result.push_back(MakePFoundMetric(topSize, decay));
             validParams = {"top", "decay"};
             break;
@@ -4105,23 +4074,9 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
             break;
         case ELossFunction::DCG:
         case ELossFunction::NDCG: {
-            auto itTopSize = params.find("top");
-            auto itType = params.find("type");
-            auto itDenominator = params.find("denominator");
-            int topSize = itTopSize != params.end() ? FromString<int>(itTopSize->second) : -1;
-
-            ENdcgMetricType type = ENdcgMetricType::Base;
-
-            if (itType != params.end()) {
-                type = FromString<ENdcgMetricType>(itType->second);
-            }
-
-            ENdcgDenominatorType denominator = ENdcgDenominatorType::LogPosition;
-
-            if (itDenominator != params.end()) {
-                denominator = FromString<ENdcgDenominatorType>(itDenominator->second);
-            }
-
+            int topSize = NCatboostOptions::GetParamOrDefault(params, "top", -1);
+            auto type = NCatboostOptions::GetParamOrDefault(params, "type", ENdcgMetricType::Base);
+            auto denominator = NCatboostOptions::GetParamOrDefault(params, "denominator", ENdcgDenominatorType::LogPosition);
             result.emplace_back(new TDcgMetric(topSize, type, metric == ELossFunction::NDCG, denominator));
             validParams = {"top", "type", "denominator"};
             break;
@@ -4221,19 +4176,19 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
             result.emplace_back(MakePairAccuracyMetric());
             break;
         case ELossFunction::PrecisionAt: {
-            int topSize = GetParameterTop(params, ELossFunction::PrecisionAt);
+            int topSize = NCatboostOptions::GetParamOrDefault(params, "top", -1);
             validParams = {"top", "border"};
             result.emplace_back(MakePrecisionAtKMetric(topSize));
             break;
         }
         case ELossFunction::RecallAt: {
-            int topSize = GetParameterTop(params, ELossFunction::RecallAt);
+            int topSize = NCatboostOptions::GetParamOrDefault(params, "top", -1);
             validParams = {"top", "border"};
             result.emplace_back(MakeRecallAtKMetric(topSize));
             break;
         }
         case ELossFunction::MAP: {
-            int topSize = GetParameterTop(params, ELossFunction::MAP);
+            int topSize = NCatboostOptions::GetParamOrDefault(params, "top", -1);
             validParams = {"top", "border"};
             result.emplace_back(MakeMAPKMetric(topSize));
             break;
@@ -4264,31 +4219,15 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
             result.push_back(MakeHuberLossMetric(FromString<float>(params.at("delta"))));
             break;
         case ELossFunction::FilteredDCG: {
-            auto itType = params.find("type");
-            auto itDenominator = params.find("denominator");
-
-            ENdcgMetricType type = ENdcgMetricType::Base;
-
-            if (itType != params.end()) {
-                type = FromString<ENdcgMetricType>(itType->second);
-            }
-
-            ENdcgDenominatorType denomianator = ENdcgDenominatorType::Position;
-
-            if (itDenominator != params.end()) {
-                denomianator = FromString<ENdcgDenominatorType>(itDenominator->second);
-            }
-
+            auto type = NCatboostOptions::GetParamOrDefault(params, "type", ENdcgMetricType::Base);
+            auto denominator = NCatboostOptions::GetParamOrDefault(params, "denominator", ENdcgDenominatorType::Position);
             validParams={"sigma", "num_estimations", "type", "denominator"};
-            result.push_back(MakeFilteredDcgMetric(type, denomianator));
+            result.push_back(MakeFilteredDcgMetric(type, denominator));
             break;
         }
         case ELossFunction::FairLoss: {
-            double smoothness = TFairLossMetric::DefaultSmoothness;
-            if (params.contains("smoothness")) {
-                smoothness = FromString<double>(params.at("smoothness"));
-                validParams = {"smoothness"};
-            }
+            double smoothness = NCatboostOptions::GetParamOrDefault(params, "smoothness", TFairLossMetric::DefaultSmoothness);
+            validParams = {"smoothness"};
             result.push_back(MakeFairLossMetric(smoothness));
             break;
         }

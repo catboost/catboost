@@ -1411,11 +1411,11 @@
     ],
     "test.test_custom_loss[Ordered-Quantile:alpha=0.9]": [
         {
-            "checksum": "904a857c4eaa6d02c59b864d243f347b",
+            "checksum": "16e86b23acc84eb3779d1c309e72734b",
             "uri": "file://test.test_custom_loss_Ordered-Quantile_alpha=0.9_/learn_error.tsv"
         },
         {
-            "checksum": "58f7be53ed370c483cb3d6a8b65b1a36",
+            "checksum": "d406e0ab8a529ad54e9d31aa9d8c12a8",
             "uri": "file://test.test_custom_loss_Ordered-Quantile_alpha=0.9_/test_error.tsv"
         }
     ],
@@ -1461,11 +1461,11 @@
     ],
     "test.test_custom_loss[Plain-Quantile:alpha=0.9]": [
         {
-            "checksum": "f36e46f47b8142c3931a9485270a7ed3",
+            "checksum": "e2f1415322d96c7c2963ce9463d315c2",
             "uri": "file://test.test_custom_loss_Plain-Quantile_alpha=0.9_/learn_error.tsv"
         },
         {
-            "checksum": "27490baebc072e6609110d37cf627b5e",
+            "checksum": "83ebd3112782cc8a05cda531bf2ebe61",
             "uri": "file://test.test_custom_loss_Plain-Quantile_alpha=0.9_/test_error.tsv"
         }
     ],
@@ -4507,6 +4507,10 @@
         "checksum": "f785f6a50913d2df3777203ba5d1eed9",
         "uri": "file://test.test_fstr_with_class_weights_Depthwise-LossFunctionChange_/fstr.tsv"
     },
+    "test.test_fstr_with_class_weights[Depthwise-PredictionDiff]": {
+        "checksum": "5f2952f53ec669e2f424f06c52ac808c",
+        "uri": "file://test.test_fstr_with_class_weights_Depthwise-PredictionDiff_/fstr.tsv"
+    },
     "test.test_fstr_with_class_weights[Depthwise-PredictionValuesChange]": {
         "checksum": "710ffa1bef21ae333efe597085d7fa74",
         "uri": "file://test.test_fstr_with_class_weights_Depthwise-PredictionValuesChange_/fstr.tsv"
@@ -4522,6 +4526,10 @@
     "test.test_fstr_with_class_weights[Lossguide-LossFunctionChange]": {
         "checksum": "97ebb2bbfcea6497d50222d6a66cbc9b",
         "uri": "file://test.test_fstr_with_class_weights_Lossguide-LossFunctionChange_/fstr.tsv"
+    },
+    "test.test_fstr_with_class_weights[Lossguide-PredictionDiff]": {
+        "checksum": "cd2736ab9e56014d313147f70d44b513",
+        "uri": "file://test.test_fstr_with_class_weights_Lossguide-PredictionDiff_/fstr.tsv"
     },
     "test.test_fstr_with_class_weights[Lossguide-PredictionValuesChange]": {
         "checksum": "64338653ab202a7ce2a960f6b4d399b3",
@@ -4551,14 +4559,6 @@
         "checksum": "8d4b23c293a60c5491da29e9131bf12a",
         "uri": "file://test.test_fstr_with_class_weights_SymmetricTree-ShapValues_/fstr.tsv"
     },
-    "test.test_fstr_with_class_weights[Depthwise-PredictionDiff]": {
-        "checksum": "5f2952f53ec669e2f424f06c52ac808c",
-        "uri": "file://test.test_fstr_with_class_weights_Depthwise-PredictionDiff_/fstr.tsv"
-    },
-    "test.test_fstr_with_class_weights[Lossguide-PredictionDiff]": {
-        "checksum": "cd2736ab9e56014d313147f70d44b513",
-        "uri": "file://test.test_fstr_with_class_weights_Lossguide-PredictionDiff_/fstr.tsv"
-    },
     "test.test_fstr_with_target_border[Depthwise-InternalFeatureImportance]": {
         "checksum": "5f2952f53ec669e2f424f06c52ac808c",
         "uri": "file://test.test_fstr_with_target_border_Depthwise-InternalFeatureImportance_/fstr.tsv"
@@ -4566,6 +4566,10 @@
     "test.test_fstr_with_target_border[Depthwise-LossFunctionChange]": {
         "checksum": "01375589717b056bd01aa36564b1045b",
         "uri": "file://test.test_fstr_with_target_border_Depthwise-LossFunctionChange_/fstr.tsv"
+    },
+    "test.test_fstr_with_target_border[Depthwise-PredictionDiff]": {
+        "checksum": "2d9b5be0bf90c9741c351263213dba53",
+        "uri": "file://test.test_fstr_with_target_border_Depthwise-PredictionDiff_/fstr.tsv"
     },
     "test.test_fstr_with_target_border[Depthwise-PredictionValuesChange]": {
         "checksum": "22cef36b34b39e7082fae39792bdce81",
@@ -4575,14 +4579,6 @@
         "checksum": "f8aed9843cc19989eff38044f687bb7c",
         "uri": "file://test.test_fstr_with_target_border_Depthwise-ShapValues_/fstr.tsv"
     },
-    "test.test_fstr_with_target_border[Depthwise-PredictionDiff]": {
-        "checksum": "2d9b5be0bf90c9741c351263213dba53",
-        "uri": "file://test.test_fstr_with_target_border_Depthwise-PredictionDiff_/fstr.tsv"
-    },
-    "test.test_fstr_with_target_border[Lossguide-PredictionDiff]": {
-        "checksum": "289f599f75d514f6894b2abadc754a3f",
-        "uri": "file://test.test_fstr_with_target_border_Lossguide-PredictionDiff_/fstr.tsv"
-    },
     "test.test_fstr_with_target_border[Lossguide-InternalFeatureImportance]": {
         "checksum": "61a74590ddc093ddd58663909146d89d",
         "uri": "file://test.test_fstr_with_target_border_Lossguide-InternalFeatureImportance_/fstr.tsv"
@@ -4590,6 +4586,10 @@
     "test.test_fstr_with_target_border[Lossguide-LossFunctionChange]": {
         "checksum": "5b20b7beaa764611ce812b5e8487cdc4",
         "uri": "file://test.test_fstr_with_target_border_Lossguide-LossFunctionChange_/fstr.tsv"
+    },
+    "test.test_fstr_with_target_border[Lossguide-PredictionDiff]": {
+        "checksum": "289f599f75d514f6894b2abadc754a3f",
+        "uri": "file://test.test_fstr_with_target_border_Lossguide-PredictionDiff_/fstr.tsv"
     },
     "test.test_fstr_with_target_border[Lossguide-PredictionValuesChange]": {
         "checksum": "1485145440129b1eb6067540aee72a9d",
