@@ -847,6 +847,9 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
                     shrinkRate = 0.01;
                 }
             }
+            if (ObliviousTreeOptions->LeavesEstimationBacktrackingType.NotSet()) {
+                ObliviousTreeOptions->LeavesEstimationBacktrackingType.SetDefault(ELeavesEstimationStepBacktracking::No);
+            }
         }
 
         if (!ObliviousTreeOptions->MonotoneConstraints->empty() &&
