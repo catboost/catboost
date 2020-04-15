@@ -661,6 +661,8 @@ NCB::TQuantizedPoolDigest NCB::GetQuantizedPoolDigest(
                     ++digest.NumericFeature4BitCount;
                 } else if (borders.size() < 1 << 8) {
                     ++digest.NumericFeature8BitCount;
+                } else if (borders.size() < 1 << 16) {
+                    ++digest.NumericFeature16BitCount;
                 } else {
                     ythrow TCatBoostException() << "unsupported quantized feature bitness";
                 }
@@ -705,7 +707,8 @@ NCB::TQuantizedPoolDigest NCB::GetQuantizedPoolDigest(
     digest.NumericFeatureCount =
         digest.NumericFeature1BitCount +
         digest.NumericFeature4BitCount +
-        digest.NumericFeature8BitCount;
+        digest.NumericFeature8BitCount +
+        digest.NumericFeature16BitCount;
 
     digest.ClassesCount = quantizationSchema.classnames_size();
 
