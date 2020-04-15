@@ -2412,7 +2412,10 @@
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "werror_mode": "compiler_specific",
-                "gcc_version": "6.0"
+                "gcc_version": "6.0",
+                "target_opt": [
+                    "-DANDROID_FAKEID=6667994"
+                ]
             }
         },
         "clang6-android-x86_64": {
@@ -2487,7 +2490,10 @@
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "werror_mode": "compiler_specific",
-                "gcc_version": "6.0"
+                "gcc_version": "6.0",
+                "target_opt": [
+                    "-DANDROID_FAKEID=6667994"
+                ]
             }
         },
         "clang6-android-armv7a": {
@@ -2566,7 +2572,10 @@
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "werror_mode": "compiler_specific",
-                "gcc_version": "6.0"
+                "gcc_version": "6.0",
+                "target_opt": [
+                    "-DANDROID_FAKEID=6667994"
+                ]
             }
         },
         "clang6-android-armv7a_neon": {
@@ -2645,7 +2654,10 @@
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "werror_mode": "compiler_specific",
-                "gcc_version": "6.0"
+                "gcc_version": "6.0",
+                "target_opt": [
+                    "-DANDROID_FAKEID=6667994"
+                ]
             }
         },
         "clang6-android-armv8a": {
@@ -2724,7 +2736,10 @@
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "werror_mode": "compiler_specific",
-                "gcc_version": "6.0"
+                "gcc_version": "6.0",
+                "target_opt": [
+                    "-DANDROID_FAKEID=6667994"
+                ]
             }
         },
         "gcc49-android-armv8a": {
