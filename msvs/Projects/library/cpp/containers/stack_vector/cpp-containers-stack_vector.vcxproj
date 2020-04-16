@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{16887906-E366-16EA-B53A-A081633E4AB5}</ProjectGUID>
+    <ProjectGUID>{F5DBE463-173C-4593-95C1-EC1430946913}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-containers-stack_vector</ProjectName>
+    <ProjectName>cpp-containers-stack_vector</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-containers-stack_vector</TargetName>
+    <TargetName>cpp-containers-stack_vector</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\containers\stack_vector\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\16887906-E366-16EA-B53A-A081633E4AB5\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\containers\stack_vector\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\F5DBE463-173C-4593-95C1-EC1430946913\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\containers\stack_vector\stack_vec.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\containers\stack_vector\stack_vec.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\containers\stack_vector\stack_vec.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\containers\stack_vector\stack_vec.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

@@ -381,9 +381,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\stack_array\library-containers-stack_array.vcxproj">
       <Project>{8FDE35EC-9B80-AF55-62B5-130D5EF3D68A}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\containers\stack_vector\library-containers-stack_vector.vcxproj">
-      <Project>{16887906-E366-16EA-B53A-A081633E4AB5}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\coroutine\engine\library-coroutine-engine.vcxproj">
       <Project>{810DAE0F-1259-BCE1-AB1B-BB8F715CA0BD}</Project>
     </ProjectReference>
@@ -395,6 +392,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\2d_array\cpp-containers-2d_array.vcxproj">
       <Project>{245105A8-ED48-C3D9-83C3-D6894AA984B0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\stack_vector\cpp-containers-stack_vector.vcxproj">
+      <Project>{F5DBE463-173C-4593-95C1-EC1430946913}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\crc32c\cpp-digest-crc32c.vcxproj">
       <Project>{BAEF14A6-3BF3-DC3E-9335-9B6BF43917BC}</Project>
