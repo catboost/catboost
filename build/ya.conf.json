@@ -320,6 +320,9 @@
         "bpftrace": {
             "description": "High-level tracing language for Linux eBPF"
         },
+        "strace": {
+            "description": "the linux syscall tracer"
+        },
         "iperf": {
             "description": "network load tester"
         },
@@ -5248,6 +5251,22 @@
                 }
             ]
         },
+        "strace": {
+            "tools": {
+                "strace": {
+                    "bottle": "strace",
+                    "executable": "strace"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "stress-ng": {
             "tools": {
                 "stress-ng": {
@@ -7501,6 +7520,20 @@
                 "bpftrace": [
                     "bpftrace",
                     "bpftrace"
+                ]
+            }
+        },
+        "strace": {
+            "formula": {
+                "sandbox_id": [
+                    654255646
+                ],
+                "match": "infra/kernel/tools/strace/build/strace-static.tar.gz"
+            },
+            "executable": {
+                "strace": [
+                    "strace",
+                    "strace"
                 ]
             }
         },
