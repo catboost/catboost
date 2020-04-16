@@ -12,6 +12,7 @@
 #include "yetirank_helpers.h"
 
 #include <catboost/libs/data/data_provider.h>
+#include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/helpers/parallel_tasks.h>
 #include <catboost/libs/helpers/quantile.h>
 #include <catboost/libs/logging/logging.h>
@@ -713,8 +714,8 @@ static void CalcApproxDeltaSimple(
         TConstArrayRef<TQueryInfo> bodyTailQueryInfo(fold.LearnQueriesInfo.begin(), bt.BodyQueryFinish);
         TConstArrayRef<float> bodyTailTarget(fold.LearnTarget[0].begin(), bt.BodyFinish);
         const auto& additiveStats = EvalErrors(
-            bt.Approx,
-            approxDeltas,
+            To2DConstArrayRef<double>(bt.Approx),
+            To2DConstArrayRef<double>(approxDeltas),
             error.GetIsExpApprox(),
             bodyTailTarget,
             fold.GetLearnWeights(),
@@ -862,7 +863,7 @@ static void CalcLeafValuesSimple(
 
     const auto lossCalcerFunc = [&](const TVector<TVector<double>>& approx) {
         const auto& additiveStats = EvalErrors(
-            approx,
+            To2DConstArrayRef<double>(approx),
             /*approxDelta*/ {},
             error.GetIsExpApprox(),
             fold.LearnTarget[0],

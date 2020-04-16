@@ -107,8 +107,6 @@ double CalcMetric(
     const auto queryInfo = targetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>());
     const auto& additiveStats = EvalErrors(
         approx,
-        /*approxDelta*/{},
-        /*isExpApprox*/false,
         target,
         weights,
         queryInfo,

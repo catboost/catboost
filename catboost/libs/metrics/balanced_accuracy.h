@@ -2,7 +2,7 @@
 
 #include <util/generic/fwd.h>
 
-TMetricHolder CalcBalancedAccuracyMetric(TConstArrayRef<TVector<double>> approx,
+TMetricHolder CalcBalancedAccuracyMetric(TConstArrayRef<TConstArrayRef<double>> approx,
                                          TConstArrayRef<float> target,
                                          TConstArrayRef<float> weight,
                                          int begin,

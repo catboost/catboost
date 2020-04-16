@@ -99,6 +99,14 @@ inline void AssignRank2(TConstArrayRef<TConstArrayRef<T1>> src, TVector<TVector<
     }
 }
 
+template <typename T, typename T2DArrayLike>
+inline static TVector<TConstArrayRef<T>> To2DConstArrayRef(const T2DArrayLike& array) {
+    auto arrayView = TVector<TConstArrayRef<T>>();
+    for (const auto& subArray : array) {
+        arrayView.emplace_back(subArray);
+    }
+    return arrayView;
+}
 
 template <class T>
 bool Equal(TConstArrayRef<T> arrayRef, const TVector<T>& v) {

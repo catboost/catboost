@@ -125,8 +125,8 @@ struct IMetric {
         NPar::TLocalExecutor& executor
     ) const = 0;
     virtual TMetricHolder Eval(
-        const TVector<TVector<double>>& approx,
-        const TVector<TVector<double>>& approxDelta,
+        const TConstArrayRef<TConstArrayRef<double>> approx,
+        const TConstArrayRef<TConstArrayRef<double>> approxDelta,
         bool isExpApprox,
         TConstArrayRef<float> target,
         TConstArrayRef<float> weight,
@@ -183,8 +183,8 @@ struct TMultiRegressionMetric: public TMetric {
         CB_ENSURE(false, "Multiregression metrics should not be used like regular metric");
     }
     TMetricHolder Eval(
-        const TVector<TVector<double>>& /*approx*/,
-        const TVector<TVector<double>>& /*approxDelta*/,
+        const TConstArrayRef<TConstArrayRef<double>> /*approx*/,
+        const TConstArrayRef<TConstArrayRef<double>> /*approxDelta*/,
         bool /*isExpApprox*/,
         TConstArrayRef<float> /*target*/,
         TConstArrayRef<float> /*weight*/,
@@ -267,12 +267,12 @@ struct TAdditiveMetric: public TMetric {
         int end,
         NPar::TLocalExecutor& executor
     ) const final {
-        return Eval(approx, /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
+        return Eval(To2DConstArrayRef<double>(approx), /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
     }
 
     TMetricHolder Eval(
-        const TVector<TVector<double>>& approx,
-        const TVector<TVector<double>>& approxDelta,
+        const TConstArrayRef<TConstArrayRef<double>> approx,
+        const TConstArrayRef<TConstArrayRef<double>> approxDelta,
         bool isExpApprox,
         TConstArrayRef<float> target,
         TConstArrayRef<float> weight,
@@ -453,8 +453,8 @@ TMetricHolder EvalErrors(
 );
 
 TMetricHolder EvalErrors(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,

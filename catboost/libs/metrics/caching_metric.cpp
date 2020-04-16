@@ -7,6 +7,7 @@
 
 #include <catboost/libs/helpers/dispatch_generic_lambda.h>
 #include <catboost/libs/helpers/math_utils.h>
+#include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/private/libs/options/data_processing_options.h>
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <util/generic/string.h>
@@ -67,11 +68,11 @@ namespace {
             int end,
             NPar::TLocalExecutor& executor
         ) const override {
-            return Eval(approx, /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
+            return Eval(To2DConstArrayRef<double>(approx), /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
         }
         TMetricHolder Eval(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -91,8 +92,8 @@ namespace {
             }
         }
         virtual TMetricHolder Eval(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -106,7 +107,7 @@ namespace {
 /* Confusion matrix */
 
 static TMetricHolder BuildConfusionMatrix(
-    const TVector<TVector<double>>& approx,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
     int begin,
@@ -150,8 +151,8 @@ namespace {
         {
         }
         TMetricHolder Eval(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -180,8 +181,8 @@ THolder<IMetric> MakeMCCMetric(int classesCount) {
 }
 
 TMetricHolder TMCCCachingMetric::Eval(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -260,8 +261,8 @@ namespace {
             , IsMultiClass(false) {
         }
         TMetricHolder Eval(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -286,8 +287,8 @@ namespace {
 }
 
 TMetricHolder TZeroOneLossCachingMetric::Eval(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -357,8 +358,8 @@ namespace {
         }
 
         TMetricHolder Eval(
-            const TVector<TVector<double>> &approx,
-            const TVector<TVector<double>> &approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -383,8 +384,8 @@ namespace {
 }
 
 TMetricHolder TAccuracyCachingMetric::Eval(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -445,8 +446,8 @@ namespace {
         }
 
         TMetricHolder Eval(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -481,8 +482,8 @@ THolder<IMetric> MakeMultiClassRecallMetric(int classesCount, int positiveClass)
 }
 
 TMetricHolder TRecallCachingMetric::Eval(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -545,8 +546,8 @@ namespace {
         }
 
         TMetricHolder Eval(
-            const TVector<TVector<double>> &approx,
-            const TVector<TVector<double>> &approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -581,8 +582,8 @@ THolder<IMetric> MakeMultiClassPrecisionMetric(int classesCount, int positiveCla
 }
 
 TMetricHolder TPrecisionCachingMetric::Eval(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -646,8 +647,8 @@ namespace {
         }
 
         TMetricHolder Eval(
-            const TVector<TVector<double>> &approx,
-            const TVector<TVector<double>> &approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -683,8 +684,8 @@ THolder<IMetric> MakeMultiClassF1Metric(int classesCount, int positiveClass) {
 }
 
 TMetricHolder TF1CachingMetric::Eval(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -757,8 +758,8 @@ namespace {
         }
 
         TMetricHolder Eval(
-            const TVector<TVector<double>> &approx,
-            const TVector<TVector<double>> &approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -790,8 +791,8 @@ THolder<IMetric> MakeTotalF1Metric(int classesCount, EF1AverageType averageType)
 }
 
 TMetricHolder TTotalF1CachingMetric::Eval(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -891,8 +892,8 @@ namespace {
             , ClassCount(classCount) {
         }
         TMetricHolder Eval(
-                const TVector<TVector<double>>& approx,
-                const TVector<TVector<double>>& approxDelta,
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
                 bool isExpApprox,
                 TConstArrayRef<float> target,
                 TConstArrayRef<float> weight,
@@ -924,8 +925,8 @@ THolder<IMetric> MakeMultiClassKappaMetric(int classCount) {
 }
 
 TMetricHolder TKappaMetric::Eval(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -968,8 +969,8 @@ namespace {
         }
 
         TMetricHolder Eval(
-                const TVector<TVector<double>>& approx,
-                const TVector<TVector<double>>& approxDelta,
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
                 bool isExpApprox,
                 TConstArrayRef<float> target,
                 TConstArrayRef<float> weight,
@@ -1002,8 +1003,8 @@ THolder<IMetric> MakeMultiClassWKappaMetric(int classCount) {
 }
 
 TMetricHolder TWKappaMetric::Eval(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -1052,13 +1053,13 @@ TVector<TMetricHolder> EvalErrorsWithCaching(
     const auto calcCaching = [&](auto metric, auto from, auto to, auto *cache) {
         CB_ENSURE(!metric->NeedTarget() || target.size() == 1, "Metric [" + metric->GetDescription() + "] requires "
                   << (target.size() > 1 ? "one-dimensional" : "") <<  "target");
-        return metric->Eval(approx, approxDelta, isExpApprox, metric->NeedTarget() ? target[0] : TConstArrayRef<float>(),
+        return metric->Eval(To2DConstArrayRef<double>(approx), To2DConstArrayRef<double>(approxDelta), isExpApprox, metric->NeedTarget() ? target[0] : TConstArrayRef<float>(),
                             weight, queriesInfo, from, to, cache);
     };
     const auto calcNonCaching = [&](auto metric, auto from, auto to) {
         CB_ENSURE(!metric->NeedTarget() || target.size() == 1, "Metric [" + metric->GetDescription() + "] requires "
                   << (target.size() > 1 ? "one-dimensional" : "") <<  "target");
-        return metric->Eval(approx, approxDelta, isExpApprox, metric->NeedTarget() ? target[0] : TConstArrayRef<float>(),
+        return metric->Eval(To2DConstArrayRef<double>(approx), To2DConstArrayRef<double>(approxDelta), isExpApprox, metric->NeedTarget() ? target[0] : TConstArrayRef<float>(),
                             weight, queriesInfo, from, to, *localExecutor);
     };
     const auto calcMultiRegression = [&](auto metric, auto from, auto to) {

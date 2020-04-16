@@ -73,11 +73,11 @@ bool TMetric::NeedTarget() const {
     return GetErrorType() != EErrorType::PairwiseError;
 }
 
-static inline TConstArrayRef<double> GetRowRef(const TVector<TVector<double>>& matrix, size_t rowIdx) {
+static inline TConstArrayRef<double> GetRowRef(const TConstArrayRef<TConstArrayRef<double>> matrix, size_t rowIdx) {
     if (matrix.empty()) {
         return TArrayRef<double>();
     } else {
-        return MakeArrayRef(matrix[rowIdx]);
+        return matrix[rowIdx];
     }
 }
 
@@ -91,8 +91,8 @@ namespace {
     struct TCrossEntropyMetric: public TAdditiveMetric<TCrossEntropyMetric> {
         explicit TCrossEntropyMetric(ELossFunction lossFunction);
         TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -124,8 +124,8 @@ TCrossEntropyMetric::TCrossEntropyMetric(ELossFunction lossFunction)
 }
 
 TMetricHolder TCrossEntropyMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -236,8 +236,8 @@ namespace {
             : TargetBorder(GetDefaultTargetBorder()) {
         }
         TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -258,8 +258,8 @@ THolder<IMetric> MakeCtrFactorMetric() {
 }
 
 TMetricHolder TCtrFactorMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -359,8 +359,8 @@ void TMultiRMSEMetric::GetBestValue(EMetricBestValue* valueType, float* /*bestVa
 namespace {
     struct TRMSEMetric: public TAdditiveMetric<TRMSEMetric> {
         TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -379,8 +379,8 @@ THolder<IMetric> MakeRMSEMetric() {
 }
 
 TMetricHolder TRMSEMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -440,8 +440,8 @@ namespace {
         }
 
         TMetricHolder EvalSingleThread(
-                const TVector<TVector<double>>& approx,
-                const TVector<TVector<double>>& approxDelta,
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
                 bool isExpApprox,
                 TConstArrayRef<float> target,
                 TConstArrayRef<float> weight,
@@ -462,8 +462,8 @@ THolder<IMetric> MakeLqMetric(double q) {
 }
 
 TMetricHolder TLqMetric::EvalSingleThread(
-        const TVector<TVector<double>>& approx,
-        const TVector<TVector<double>>& approxDelta,
+        const TConstArrayRef<TConstArrayRef<double>> approx,
+        const TConstArrayRef<TConstArrayRef<double>> approxDelta,
         bool isExpApprox,
         TConstArrayRef<float> target,
         TConstArrayRef<float> weight,
@@ -517,8 +517,8 @@ namespace {
     public:
         explicit TQuantileMetric(ELossFunction lossFunction, double alpha, double delta);
         TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -552,8 +552,8 @@ TQuantileMetric::TQuantileMetric(ELossFunction lossFunction, double alpha, doubl
 }
 
 TMetricHolder TQuantileMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -624,8 +624,8 @@ namespace {
     public:
         explicit TExpectileMetric(ELossFunction lossFunction, double alpha);
         TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -655,8 +655,8 @@ TExpectileMetric::TExpectileMetric(ELossFunction lossFunction, double alpha)
 }
 
 TMetricHolder TExpectileMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -710,8 +710,8 @@ namespace {
     public:
         explicit TLogLinQuantileMetric(double alpha);
         TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -738,8 +738,8 @@ TLogLinQuantileMetric::TLogLinQuantileMetric(double alpha)
 }
 
 TMetricHolder TLogLinQuantileMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -806,8 +806,8 @@ void TLogLinQuantileMetric::GetBestValue(EMetricBestValue* valueType, float*) co
 namespace {
     struct TMAPEMetric : public TAdditiveMetric<TMAPEMetric> {
         TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -825,8 +825,8 @@ THolder<IMetric> MakeMAPEMetric() {
 }
 
 TMetricHolder TMAPEMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -878,8 +878,8 @@ namespace {
         }
 
         TMetricHolder EvalSingleThread(
-                const TVector<TVector<double>>& approx,
-                const TVector<TVector<double>>& approxDelta,
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
                 bool isExpApprox,
                 TConstArrayRef<float> target,
                 TConstArrayRef<float> weight,
@@ -900,8 +900,8 @@ THolder<IMetric> MakeNumErrorsMetric(double k) {
 }
 
 TMetricHolder TNumErrorsMetric::EvalSingleThread(
-        const TVector<TVector<double>>& approx,
-        const TVector<TVector<double>>& approxDelta,
+        const TConstArrayRef<TConstArrayRef<double>> approx,
+        const TConstArrayRef<TConstArrayRef<double>> approxDelta,
         bool isExpApprox,
         TConstArrayRef<float> target,
         TConstArrayRef<float> weight,
@@ -940,8 +940,8 @@ void TNumErrorsMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 namespace {
     struct TPoissonMetric : public TAdditiveMetric<TPoissonMetric> {
         TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -959,8 +959,8 @@ THolder<IMetric> MakePoissonMetric() {
 }
 
 TMetricHolder TPoissonMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -1035,8 +1035,8 @@ namespace {
         }
 
         TMetricHolder EvalSingleThread(
-                const TVector<TVector<double>>& approx,
-                const TVector<TVector<double>>& approxDelta,
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
                 bool isExpApprox,
                 TConstArrayRef<float> target,
                 TConstArrayRef<float> weight,
@@ -1057,8 +1057,8 @@ THolder<IMetric> MakeTweedieMetric(double variance_power) {
 }
 
 TMetricHolder TTweedieMetric::EvalSingleThread(
-        const TVector<TVector<double>>& approx,
-        const TVector<TVector<double>>& approxDelta,
+        const TConstArrayRef<TConstArrayRef<double>> approx,
+        const TConstArrayRef<TConstArrayRef<double>> approxDelta,
         bool isExpApprox,
         TConstArrayRef<float> target,
         TConstArrayRef<float> weight,
@@ -1111,8 +1111,8 @@ void TTweedieMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 namespace {
     struct TMSLEMetric : public TAdditiveMetric<TMSLEMetric> {
         TMetricHolder EvalSingleThread(
-                const TVector<TVector<double>>& approx,
-                const TVector<TVector<double>>& approxDelta,
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
                 bool isExpApprox,
                 TConstArrayRef<float> target,
                 TConstArrayRef<float> weight,
@@ -1131,8 +1131,8 @@ THolder<IMetric> MakeMSLEMetric() {
 }
 
 TMetricHolder TMSLEMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -1180,11 +1180,11 @@ namespace {
                 int begin,
                 int end,
                 NPar::TLocalExecutor& executor) const override {
-                    return Eval(approx, /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
+                    return Eval(To2DConstArrayRef<double>(approx), /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
                 }
         TMetricHolder Eval(
-                const TVector<TVector<double>>& approx,
-                const TVector<TVector<double>>& approxDelta,
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
                 bool isExpApprox,
                 TConstArrayRef<float> target,
                 TConstArrayRef<float> weight,
@@ -1205,8 +1205,8 @@ THolder<IMetric> MakeMedianAbsoluteErrorMetric() {
 }
 
 TMetricHolder TMedianAbsoluteErrorMetric::Eval(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> /*weight*/,
@@ -1257,8 +1257,8 @@ void TMedianAbsoluteErrorMetric::GetBestValue(EMetricBestValue* valueType, float
 namespace {
     struct TSMAPEMetric : public TAdditiveMetric<TSMAPEMetric> {
         TMetricHolder EvalSingleThread(
-                const TVector<TVector<double>>& approx,
-                const TVector<TVector<double>>& approxDelta,
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
                 bool isExpApprox,
                 TConstArrayRef<float> target,
                 TConstArrayRef<float> weight,
@@ -1277,8 +1277,8 @@ THolder<IMetric> MakeSMAPEMetric() {
 }
 
 TMetricHolder TSMAPEMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -1320,8 +1320,8 @@ void TSMAPEMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 namespace {
     struct TLLPMetric : public TAdditiveMetric<TLLPMetric> {
         TMetricHolder EvalSingleThread(
-                const TVector<TVector<double>>& approx,
-                const TVector<TVector<double>>& approxDelta,
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
                 bool isExpApprox,
                 TConstArrayRef<float> target,
                 TConstArrayRef<float> weight,
@@ -1341,8 +1341,8 @@ THolder<IMetric> MakeLLPMetric() {
 }
 
 TMetricHolder TLLPMetric::EvalSingleThread(
-        const TVector<TVector<double>>& approx,
-        const TVector<TVector<double>>& approxDelta,
+        const TConstArrayRef<TConstArrayRef<double>> approx,
+        const TConstArrayRef<TConstArrayRef<double>> approxDelta,
         bool isExpApprox,
         TConstArrayRef<float> target,
         TConstArrayRef<float> weight,
@@ -1376,8 +1376,8 @@ TVector<TString> TLLPMetric::GetStatDescriptions() const {
 namespace {
     struct TMultiClassMetric : public TAdditiveMetric<TMultiClassMetric> {
         TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -1394,7 +1394,7 @@ THolder<IMetric> MakeMultiClassMetric() {
     return MakeHolder<TMultiClassMetric>();
 }
 
-static void GetMultiDimensionalApprox(int idx, const TVector<TVector<double>>& approx, const TVector<TVector<double>>& approxDelta, TArrayRef<double> evaluatedApprox) {
+static void GetMultiDimensionalApprox(int idx, const TConstArrayRef<TConstArrayRef<double>> approx, const TConstArrayRef<TConstArrayRef<double>> approxDelta, TArrayRef<double> evaluatedApprox) {
     const auto approxDimension = approx.size();
     Y_ASSERT(approxDimension == evaluatedApprox.size());
     if (!approxDelta.empty()) {
@@ -1409,8 +1409,8 @@ static void GetMultiDimensionalApprox(int idx, const TVector<TVector<double>>& a
 }
 
 TMetricHolder TMultiClassMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -1465,8 +1465,8 @@ void TMultiClassMetric::GetBestValue(EMetricBestValue* valueType, float*) const 
 namespace {
     struct TMultiClassOneVsAllMetric : public TAdditiveMetric<TMultiClassOneVsAllMetric> {
         TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -1484,8 +1484,8 @@ THolder<IMetric> MakeMultiClassOneVsAllMetric() {
 }
 
 TMetricHolder TMultiClassOneVsAllMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -1534,8 +1534,8 @@ namespace {
         }
 
         TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -1554,8 +1554,8 @@ THolder<IMetric> MakePairLogitMetric() {
 }
 
 TMetricHolder TPairLogitMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> /*target*/,
     TConstArrayRef<float> /*weight*/,
@@ -1647,8 +1647,8 @@ namespace {
         }
 
         TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -1679,8 +1679,8 @@ THolder<IMetric> MakeQueryRMSEMetric() {
 }
 
 TMetricHolder TQueryRMSEMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -1766,8 +1766,8 @@ namespace {
     struct TPFoundMetric : public TAdditiveMetric<TPFoundMetric> {
         explicit TPFoundMetric(int topSize, double decay);
         TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -1797,8 +1797,8 @@ TPFoundMetric::TPFoundMetric(int topSize, double decay)
 }
 
 TMetricHolder TPFoundMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> /*weight*/,
@@ -1863,8 +1863,8 @@ namespace {
     struct TDcgMetric: public TAdditiveMetric<TDcgMetric> {
         explicit TDcgMetric(int topSize, ENdcgMetricType type, bool normalized, ENdcgDenominatorType denominator);
         TMetricHolder EvalSingleThread(
-                const TVector<TVector<double>>& approx,
-                const TVector<TVector<double>>& approxDelta,
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
                 bool isExpApprox,
                 TConstArrayRef<float> target,
                 TConstArrayRef<float> weight,
@@ -1898,8 +1898,8 @@ TDcgMetric::TDcgMetric(int topSize, ENdcgMetricType type, bool normalized, ENdcg
 }
 
 TMetricHolder TDcgMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> /*weight*/,
@@ -1957,8 +1957,8 @@ namespace {
         }
 
         TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -1975,7 +1975,7 @@ namespace {
             int start,
             int count,
             TConstArrayRef<double> approxes,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> targets,
             TConstArrayRef<float> weights,
@@ -1989,8 +1989,8 @@ THolder<IMetric> MakeQuerySoftMaxMetric() {
 }
 
 TMetricHolder TQuerySoftMaxMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -2021,7 +2021,7 @@ TMetricHolder TQuerySoftMaxMetric::EvalSingleQuery(
     int start,
     int count,
     TConstArrayRef<double> approxes,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> targets,
     TConstArrayRef<float> weights,
@@ -2104,8 +2104,8 @@ namespace {
             UseWeights.SetDefaultValue(true);
         }
         TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -2126,8 +2126,8 @@ namespace {
             UseWeights.SetDefaultValue(true);
         }
         TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -2153,12 +2153,12 @@ namespace {
             int end,
             NPar::TLocalExecutor& executor
         ) const override {
-            return Eval(approx, /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
+            return Eval(To2DConstArrayRef<double>(approx), /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
         }
 
         TMetricHolder Eval(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -2174,8 +2174,8 @@ namespace {
 }
 
 TMetricHolder TR2TargetSumMetric::EvalSingleThread(
-    const TVector<TVector<double>>& /*approx*/,
-    const TVector<TVector<double>>& /*approxDelta*/,
+    const TConstArrayRef<TConstArrayRef<double>> /*approx*/,
+    const TConstArrayRef<TConstArrayRef<double>> /*approxDelta*/,
     bool /*isExpApprox*/,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -2194,8 +2194,8 @@ TMetricHolder TR2TargetSumMetric::EvalSingleThread(
 }
 
 TMetricHolder TR2ImplMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool /*isExpApprox*/,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -2219,8 +2219,8 @@ THolder<IMetric> MakeR2Metric() {
 }
 
 TMetricHolder TR2Metric::Eval(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -2292,11 +2292,11 @@ namespace {
             int begin,
             int end,
             NPar::TLocalExecutor& executor) const override {
-                return Eval(approx, /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
+                return Eval(To2DConstArrayRef<double>(approx), /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
         }
         TMetricHolder Eval(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -2336,8 +2336,8 @@ THolder<IMetric> MakeMuAucMetric(const TMaybe<TVector<TVector<double>>>& misclas
 }
 
 TMetricHolder TAUCMetric::Eval(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -2354,7 +2354,9 @@ TMetricHolder TAUCMetric::Eval(
     }
 
     if (Type == EAucType::Mu) {
-        TVector<TVector<double>> currentApprox(approx);
+        TVector<TVector<double>> currentApprox;
+        ResizeRank2(approx.size(), approx[0].size(), currentApprox);
+        AssignRank2(MakeArrayRef(approx), &currentApprox);
         if (!approxDelta.empty()) {
             for (ui32 i = 0; i < approx.size(); ++i) {
                 for (ui32 j = 0; j < approx[i].size(); ++j) {
@@ -2471,11 +2473,11 @@ namespace {
             int begin,
             int end,
             NPar::TLocalExecutor& executor) const override {
-                return Eval(approx, /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
+                return Eval(To2DConstArrayRef<double>(approx), /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
         }
         TMetricHolder Eval(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -2501,8 +2503,8 @@ THolder<IMetric> MakeMultiClassNormalizedGiniMetric(int positiveClass) {
 }
 
 TMetricHolder TNormalizedGini::Eval(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -2561,8 +2563,8 @@ namespace {
             Y_ASSERT(smoothness > 0.0 && "Fair loss is not defined for negative smoothness");
         }
         TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -2582,8 +2584,8 @@ THolder<IMetric> MakeFairLossMetric(double smoothness) {
 }
 
 TMetricHolder TFairLossMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -2624,8 +2626,8 @@ namespace {
         {
         }
         TMetricHolder EvalSingleThread(
-                const TVector<TVector<double>>& approx,
-                const TVector<TVector<double>>& approxDelta,
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
                 bool isExpApprox,
                 TConstArrayRef<float> target,
                 TConstArrayRef<float> weight,
@@ -2649,8 +2651,8 @@ THolder<IMetric> MakeBinClassBalancedAccuracyMetric(double predictionBorder) {
 }
 
 TMetricHolder TBalancedAccuracyMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -2689,8 +2691,8 @@ namespace {
         }
 
         TMetricHolder EvalSingleThread(
-                const TVector<TVector<double>>& approx,
-                const TVector<TVector<double>>& approxDelta,
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
                 bool isExpApprox,
                 TConstArrayRef<float> target,
                 TConstArrayRef<float> weight,
@@ -2714,8 +2716,8 @@ THolder<IMetric> MakeBinClassBalancedErrorRate(double predictionBorder) {
 }
 
 TMetricHolder TBalancedErrorRate::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -2746,8 +2748,8 @@ double TBalancedErrorRate::GetFinalError(const TMetricHolder& error) const {
 namespace {
     struct TBrierScoreMetric : public TAdditiveMetric<TBrierScoreMetric> {
         TMetricHolder EvalSingleThread(
-                const TVector<TVector<double>>& approx,
-                const TVector<TVector<double>>& approxDelta,
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
                 bool isExpApprox,
                 TConstArrayRef<float> target,
                 TConstArrayRef<float> weight,
@@ -2766,8 +2768,8 @@ THolder<IMetric> MakeBrierScoreMetric() {
 }
 
 TMetricHolder TBrierScoreMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -2801,8 +2803,8 @@ namespace {
         }
 
         TMetricHolder EvalSingleThread(
-                const TVector<TVector<double>>& approx,
-                const TVector<TVector<double>>& approxDelta,
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
                 bool isExpApprox,
                 TConstArrayRef<float> target,
                 TConstArrayRef<float> weight,
@@ -2824,8 +2826,8 @@ THolder<IMetric> MakeHingeLossMetric() {
 }
 
 TMetricHolder THingeLossMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -2856,8 +2858,8 @@ namespace {
     struct THammingLossMetric : public TAdditiveMetric<THammingLossMetric> {
         explicit THammingLossMetric(double predictionBorder, bool isMultiClass);
         TMetricHolder EvalSingleThread(
-                const TVector<TVector<double>>& approx,
-                const TVector<TVector<double>>& approxDelta,
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
                 bool isExpApprox,
                 TConstArrayRef<float> target,
                 TConstArrayRef<float> weight,
@@ -2888,8 +2890,8 @@ THammingLossMetric::THammingLossMetric(double predictionBorder, bool isMultiClas
 }
 
 TMetricHolder THammingLossMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -2942,8 +2944,8 @@ namespace {
         }
 
         TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -2962,8 +2964,8 @@ THolder<IMetric> MakePairAccuracyMetric() {
 }
 
 TMetricHolder TPairAccuracyMetric::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> /*target*/,
     TConstArrayRef<float> /*weight*/,
@@ -3009,8 +3011,8 @@ namespace {
     struct TPrecisionAtKMetric: public TAdditiveMetric<TPrecisionAtKMetric> {
         explicit TPrecisionAtKMetric(int topSize);
         TMetricHolder EvalSingleThread(
-                const TVector<TVector<double>>& approx,
-                const TVector<TVector<double>>& approxDelta,
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
                 bool isExpApprox,
                 TConstArrayRef<float> target,
                 TConstArrayRef<float> weight,
@@ -3038,8 +3040,8 @@ TPrecisionAtKMetric::TPrecisionAtKMetric(int topSize)
 }
 
 TMetricHolder TPrecisionAtKMetric::EvalSingleThread(
-        const TVector<TVector<double>>& approx,
-        const TVector<TVector<double>>& approxDelta,
+        const TConstArrayRef<TConstArrayRef<double>> approx,
+        const TConstArrayRef<TConstArrayRef<double>> approxDelta,
         bool isExpApprox,
         TConstArrayRef<float> target,
         TConstArrayRef<float> /*weight*/,
@@ -3086,8 +3088,8 @@ namespace {
     struct TRecallAtKMetric: public TAdditiveMetric<TRecallAtKMetric> {
         explicit TRecallAtKMetric(int topSize);
         TMetricHolder EvalSingleThread(
-                const TVector<TVector<double>>& approx,
-                const TVector<TVector<double>>& approxDelta,
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
                 bool isExpApprox,
                 TConstArrayRef<float> target,
                 TConstArrayRef<float> weight,
@@ -3116,8 +3118,8 @@ TRecallAtKMetric::TRecallAtKMetric(int topSize)
 }
 
 TMetricHolder TRecallAtKMetric::EvalSingleThread(
-        const TVector<TVector<double>>& approx,
-        const TVector<TVector<double>>& approxDelta,
+        const TConstArrayRef<TConstArrayRef<double>> approx,
+        const TConstArrayRef<TConstArrayRef<double>> approxDelta,
         bool isExpApprox,
         TConstArrayRef<float> target,
         TConstArrayRef<float> /*weight*/,
@@ -3164,8 +3166,8 @@ namespace {
     struct TMAPKMetric: public TAdditiveMetric<TMAPKMetric> {
         explicit TMAPKMetric(int topSize);
         TMetricHolder EvalSingleThread(
-                const TVector<TVector<double>>& approx,
-                const TVector<TVector<double>>& approxDelta,
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
                 bool isExpApprox,
                 TConstArrayRef<float> target,
                 TConstArrayRef<float> weight,
@@ -3195,8 +3197,8 @@ TMAPKMetric::TMAPKMetric(int topSize)
 }
 
 TMetricHolder TMAPKMetric::EvalSingleThread(
-        const TVector<TVector<double>>& approx,
-        const TVector<TVector<double>>& approxDelta,
+        const TConstArrayRef<TConstArrayRef<double>> approx,
+        const TConstArrayRef<TConstArrayRef<double>> approxDelta,
         bool isExpApprox,
         TConstArrayRef<float> target,
         TConstArrayRef<float> /*weight*/,
@@ -3255,8 +3257,8 @@ namespace {
             NPar::TLocalExecutor& executor
         ) const override;
         TMetricHolder Eval(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -3266,15 +3268,10 @@ namespace {
             NPar::TLocalExecutor& executor
         ) const override {
             CB_ENSURE(!isExpApprox && approxDelta.empty(), "Custom metrics do not support approx deltas and exponentiated approxes");
-            return Eval(
-                approx,
-                target,
-                weight,
-                queriesInfo,
-                begin,
-                end,
-                executor
-            );
+            TVector<TVector<double>> localApprox;
+            ResizeRank2(approx.size(), approx[0].size(), localApprox);
+            AssignRank2(MakeArrayRef(approx), &localApprox);
+            return Eval(localApprox, target, weight, queriesInfo, begin, end, executor);
         }
         TString GetDescription() const override;
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
@@ -3468,8 +3465,8 @@ namespace {
             NPar::TLocalExecutor& executor
         ) const override;
         TMetricHolder Eval(
-            const TVector<TVector<double>>& /*approx*/,
-            const TVector<TVector<double>>& /*approxDelta*/,
+            const TConstArrayRef<TConstArrayRef<double>> /*approx*/,
+            const TConstArrayRef<TConstArrayRef<double>> /*approxDelta*/,
             bool /*isExpApprox*/,
             TConstArrayRef<float> /*target*/,
             TConstArrayRef<float> /*weight*/,
@@ -3536,8 +3533,8 @@ namespace {
     public:
         explicit TUserDefinedQuerywiseMetric(const TMap<TString, TString>& params);
         TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -3568,8 +3565,8 @@ TUserDefinedQuerywiseMetric::TUserDefinedQuerywiseMetric(const TMap<TString, TSt
 }
 
 TMetricHolder TUserDefinedQuerywiseMetric::EvalSingleThread(
-        const TVector<TVector<double>>& /*approx*/,
-        const TVector<TVector<double>>& approxDelta,
+        const TConstArrayRef<TConstArrayRef<double>> /*approx*/,
+        const TConstArrayRef<TConstArrayRef<double>> approxDelta,
         bool isExpApprox,
         TConstArrayRef<float> /*target*/,
         TConstArrayRef<float> /*weight*/,
@@ -3605,8 +3602,8 @@ namespace {
         }
 
         TMetricHolder EvalSingleThread(
-                const TVector<TVector<double>>& approx,
-                const TVector<TVector<double>>& approxDelta,
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
                 bool isExpApprox,
                 TConstArrayRef<float> target,
                 TConstArrayRef<float> weight,
@@ -3628,8 +3625,8 @@ THolder<IMetric> MakeHuberLossMetric(double delta) {
 }
 
 TMetricHolder THuberLossMetric::EvalSingleThread(
-        const TVector<TVector<double>>& approx,
-        const TVector<TVector<double>>& approxDelta,
+        const TConstArrayRef<TConstArrayRef<double>> approx,
+        const TConstArrayRef<TConstArrayRef<double>> approxDelta,
         bool isExpApprox,
         TConstArrayRef<float> target,
         TConstArrayRef<float> weight,
@@ -3639,7 +3636,7 @@ TMetricHolder THuberLossMetric::EvalSingleThread(
 ) const {
     Y_ASSERT(approxDelta.empty());
     Y_ASSERT(!isExpApprox);
-    const TVector<double> &approxVals = approx[0];
+    const auto approxVals = approx[0];
     Y_ASSERT(target.size() == approxVals.size());
 
     TMetricHolder error(2);
@@ -3676,8 +3673,8 @@ namespace {
         explicit TFilteredDcgMetric(ENdcgMetricType metricType, ENdcgDenominatorType denominatorType);
 
         TMetricHolder EvalSingleThread(
-                const TVector<TVector<double>>& approx,
-                const TVector<TVector<double>>& approxDelta,
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
                 bool isExpApprox,
                 TConstArrayRef<float> target,
                 TConstArrayRef<float> weight,
@@ -3707,8 +3704,8 @@ TFilteredDcgMetric::TFilteredDcgMetric(ENdcgMetricType metricType, ENdcgDenomina
 }
 
 TMetricHolder TFilteredDcgMetric::EvalSingleThread(
-        const TVector<TVector<double>>& approx,
-        const TVector<TVector<double>>& approxDelta,
+        const TConstArrayRef<TConstArrayRef<double>> approx,
+        const TConstArrayRef<TConstArrayRef<double>> approxDelta,
         bool isExpApprox,
         TConstArrayRef<float> target,
         TConstArrayRef<float> weight,
@@ -3763,8 +3760,8 @@ namespace {
         }
 
         TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -3785,8 +3782,8 @@ THolder<IMetric> MakeAverageGainMetric(float topSize) {
 }
 
 TMetricHolder TAverageGain::EvalSingleThread(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> /*weight*/,
@@ -3858,8 +3855,8 @@ namespace {
         }
 
         TMetricHolder EvalSingleThread(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -3881,8 +3878,8 @@ THolder<IMetric> MakeCombinationLoss(const TMap<TString, TString>& params) {
 }
 
 TMetricHolder TCombinationLoss::EvalSingleThread(
-    const TVector<TVector<double>>& /*approx*/,
-    const TVector<TVector<double>>& /*approxDelta*/,
+    const TConstArrayRef<TConstArrayRef<double>> /*approx*/,
+    const TConstArrayRef<TConstArrayRef<double>> /*approxDelta*/,
     bool /*isExpApprox*/,
     TConstArrayRef<float> /*target*/,
     TConstArrayRef<float> /*weight*/,
@@ -4523,8 +4520,8 @@ TMetricHolder EvalErrors(
 
 
 TMetricHolder EvalErrors(
-        const TVector<TVector<double>>& approx,
-        const TVector<TVector<double>>& approxDelta,
+        const TConstArrayRef<TConstArrayRef<double>> approx,
+        const TConstArrayRef<TConstArrayRef<double>> approxDelta,
         bool isExpApprox,
         TConstArrayRef<float> target,
         TConstArrayRef<float> weight,
@@ -4559,7 +4556,7 @@ TMetricHolder EvalErrors(
         return multiMetric->Eval(approx, approxDelta, target, weight, /*begin*/0, /*end*/target[0].size(), *localExecutor);
     } else {
         Y_ASSERT(target.size() == 1);
-        return EvalErrors(approx, approxDelta, isExpApprox, target[0], weight, queriesInfo, error, localExecutor);
+        return EvalErrors(To2DConstArrayRef<double>(approx), To2DConstArrayRef<double>(approxDelta), isExpApprox, target[0], weight, queriesInfo, error, localExecutor);
     }
 }
 
@@ -4611,8 +4608,8 @@ namespace {
     struct TQueryCrossEntropyMetric : public TAdditiveMetric<TQueryCrossEntropyMetric> {
         explicit TQueryCrossEntropyMetric(double alpha);
         TMetricHolder EvalSingleThread(
-                const TVector<TVector<double>>& approx,
-                const TVector<TVector<double>>& approxDelta,
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
                 bool isExpApprox,
                 TConstArrayRef<float> target,
                 TConstArrayRef<float> weight,
@@ -4675,8 +4672,8 @@ void TQueryCrossEntropyMetric::AddSingleQuery(const double* approxes, const floa
 }
 
 
-TMetricHolder TQueryCrossEntropyMetric::EvalSingleThread(const TVector<TVector<double>>& approx,
-                                                         const TVector<TVector<double>>& approxDelta,
+TMetricHolder TQueryCrossEntropyMetric::EvalSingleThread(const TConstArrayRef<TConstArrayRef<double>> approx,
+                                                         const TConstArrayRef<TConstArrayRef<double>> approxDelta,
                                                          bool isExpApprox,
                                                          TConstArrayRef<float> target,
                                                          TConstArrayRef<float> weight,
