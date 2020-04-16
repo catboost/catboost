@@ -316,6 +316,11 @@ def get_values_list(unit, key):
     return [r for r in res if r and r not in ['""', "''"]]
 
 
+def get_norm_paths(unit, key):
+    # return paths without trailing (back)slash
+    return [x.rstrip('\\/') for x in get_values_list(unit, key)]
+
+
 def get_unit_list_variable(unit, name):
     items = unit.get(name)
     if items:
@@ -379,7 +384,7 @@ def onadd_ytest(unit, *args):
         'TEST-RECIPES': prepare_recipes(unit.get("TEST_RECIPES_VALUE")),
         'TEST-ENV': prepare_env(unit.get("TEST_ENV_VALUE")),
         #  'TEST-PRESERVE-ENV': 'da',
-        'TEST-DATA': serialize_list(sorted(_common.filter_out_by_keyword(spec_args.get('DATA', []) + get_values_list(unit, 'TEST_DATA_VALUE'), 'AUTOUPDATED'))),
+        'TEST-DATA': serialize_list(sorted(_common.filter_out_by_keyword(spec_args.get('DATA', []) + get_norm_paths(unit, 'TEST_DATA_VALUE'), 'AUTOUPDATED'))),
         'TEST-TIMEOUT': ''.join(spec_args.get('TIMEOUT', [])) or unit.get('TEST_TIMEOUT') or '',
         'FORK-MODE': fork_mode,
         'SPLIT-FACTOR': ''.join(spec_args.get('SPLIT_FACTOR', [])) or unit.get('TEST_SPLIT_FACTOR') or '',
@@ -443,7 +448,7 @@ def onadd_test(unit, *args):
     test_dir = unit.path()
     tags = spec_args.get('TAG', []) + get_values_list(unit, 'TEST_TAGS_VALUE')
     requirements = spec_args.get('REQUIREMENTS', []) + get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')
-    test_data = spec_args.get("DATA", []) + get_values_list(unit, 'TEST_DATA_VALUE')
+    test_data = spec_args.get("DATA", []) + get_norm_paths(unit, 'TEST_DATA_VALUE')
     python_paths = get_values_list(unit, 'TEST_PYTHON_PATH_VALUE')
     if test_type == "PY_TEST":
         old_pytest = True
@@ -583,7 +588,7 @@ def onadd_pytest_script(unit, *args):
     test_files = get_values_list(unit, 'TEST_SRCS_VALUE')
     tags = get_values_list(unit, 'TEST_TAGS_VALUE')
     requirements = get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')
-    test_data = get_values_list(unit, 'TEST_DATA_VALUE')
+    test_data = get_norm_paths(unit, 'TEST_DATA_VALUE')
     data, data_files = get_canonical_test_resources(unit)
     test_data += data
     python_paths = get_values_list(unit, 'TEST_PYTHON_PATH_VALUE')
@@ -620,7 +625,7 @@ def add_test_to_dart(unit, test_type, binary_path=None, runner_bin=None):
     test_files = get_values_list(unit, 'TEST_SRCS_VALUE')
     tags = get_values_list(unit, 'TEST_TAGS_VALUE')
     requirements = get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')
-    test_data = get_values_list(unit, 'TEST_DATA_VALUE')
+    test_data = get_norm_paths(unit, 'TEST_DATA_VALUE')
     data, data_files = get_canonical_test_resources(unit)
     test_data += data
     python_paths = get_values_list(unit, 'TEST_PYTHON_PATH_VALUE')
@@ -668,7 +673,7 @@ def onjava_test(unit, *args):
     unit_path = unit.path()
     path = _common.strip_roots(unit_path)
 
-    test_data = get_values_list(unit, 'TEST_DATA_VALUE')
+    test_data = get_norm_paths(unit, 'TEST_DATA_VALUE')
     test_data.append('arcadia/build/scripts/unpacking_jtest_runner.py')
     test_data.append('arcadia/build/scripts/run_testng.py')
 
