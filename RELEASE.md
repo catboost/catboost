@@ -20,6 +20,7 @@ To write a multi-label metric, you need to define a python class which inherits 
 * Computation of SHAP interaction values for CatBoost models. You can pass type=EFstrType.ShapInteractionValues to `CatBoost.get_feature_importance` to get a matrix of SHAP values for every prediction.
 By default, SHAP interaction values are calculated for all features. You may specify features of interest using the `interaction_indices` argument.
 Implemented by @IvanKozlov98.
+* `PredictionDiff` model analysis method can now be used with models that contain non symmetric trees. Implemented by @felixandrer.
 
 ## New functionality:
 
