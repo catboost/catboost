@@ -144,6 +144,7 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
                                                                               compressedIndexBuilder,
                                                                               DataProvider,
                                                                               permutationIndependentCompressedDataSetId,
+                                                                              /*skipExclusiveBundles=*/ false,
                                                                               localExecutor);
         floatFeaturesWriter.Write(permutationIndependent);
     }
@@ -153,6 +154,7 @@ NCatboostCuda::TDocParallelDataSetsHolder NCatboostCuda::TDocParallelDataSetBuil
                                                                               compressedIndexBuilder,
                                                                               *LinkedTest,
                                                                               testDataSetId,
+                                                                              /*skipExclusiveBundles=*/ true,
                                                                               localExecutor);
         floatFeaturesWriter.Write(permutationIndependent);
     }

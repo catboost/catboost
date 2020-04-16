@@ -50,10 +50,12 @@ namespace NCatboostCuda {
                                       TSharedCompressedIndexBuilder<TLayoutPolicy>& indexBuilder,
                                       const NCB::TTrainingDataProvider& dataProvider,
                                       const ui32 dataSetId,
+                                      bool skipExclusiveFeatureBundles,
                                       NPar::TLocalExecutor* localExecutor)
             : FeaturesManager(featuresManager)
             , DataProvider(dataProvider)
             , DataSetId(dataSetId)
+            , SkipExclusiveFeatureBundles(skipExclusiveFeatureBundles)
             , IndexBuilder(indexBuilder)
             , LocalExecutor(localExecutor)
         {
@@ -66,6 +68,11 @@ namespace NCatboostCuda {
                     continue;
                 } else if (FeaturesManager.IsFloat(feature)) {
                     floatFeatureIds.push_back(feature);
+                } else if (FeaturesManager.IsFeatureBundle(feature)) {
+                    if (!SkipExclusiveFeatureBundles) {
+                        WriteExclusiveFeatureBundle(feature, DataProvider);
+                        CheckInterrupted(); // check after long-lasting operation
+                    }
                 } else if (FeaturesManager.IsCat(feature)) {
                     CB_ENSURE(FeaturesManager.UseForOneHotEncoding(feature));
                     WriteOneHotFeature(feature, DataProvider);
@@ -147,10 +154,23 @@ namespace NCatboostCuda {
             );
         }
 
+        void WriteExclusiveFeatureBundle(const ui32 feature,
+                                         const NCB::TTrainingDataProvider& dataProvider) {
+            auto exclusiveFeatureBundleIdx = FeaturesManager.GetExclusiveFeatureBundleIdxForFeatureManagerIdx(feature);
+            const auto& valuesHolder = dataProvider.ObjectsData->GetExclusiveFeaturesBundle(exclusiveFeatureBundleIdx);
+            IndexBuilder.Write(
+                DataSetId,
+                feature,
+                FeaturesManager.GetBinCount(feature),
+                &valuesHolder
+            );
+        }
+
     private:
         TBinarizedFeaturesManager& FeaturesManager;
         const NCB::TTrainingDataProvider& DataProvider;
         ui32 DataSetId = -1;
+        bool SkipExclusiveFeatureBundles = false;
         TSharedCompressedIndexBuilder<TLayoutPolicy>& IndexBuilder;
         NPar::TLocalExecutor* LocalExecutor;
     };

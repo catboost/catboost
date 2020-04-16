@@ -2626,8 +2626,7 @@ namespace NCB {
             quantizationOptions.ExclusiveFeaturesBundlingOptions.MaxConflictFraction
                 = params.ObliviousTreeOptions->SparseFeaturesConflictFraction.Get();
 
-            /* TODO(kirillovs): Sparse features support for GPU
-             * TODO(akhropov): Enable when sparse column scoring is supported
+            /* TODO(akhropov): Enable when sparse column scoring is supported
 
             float defaultValueFractionToEnableSparseStorage
                 = params.DataProcessingOptions->DevDefaultValueFractionToEnableSparseStorage.Get();
@@ -2641,24 +2640,15 @@ namespace NCB {
         } else {
             Y_ASSERT(params.GetTaskType() == ETaskType::GPU);
 
-            /*
-             * if there're any cat features format should be CPU-compatible to enable final CTR
-             * calculations.
-             * TODO(akhropov): compatibility with final CTR calculation should not depend on this flag
-             */
-            quantizationOptions.CpuCompatibleFormat
-                = srcData->MetaInfo.FeaturesLayout->GetCatFeatureCount() != 0;
-            if (quantizationOptions.CpuCompatibleFormat) {
-                /* don't spend time on bundling preprocessing because it won't be used
-                 *
-                 * TODO(akhropov): maybe there are cases where CPU RAM usage reduction is more important
-                 *    than calculation speed so it should be enabled
-                 */
-                quantizationOptions.BundleExclusiveFeatures = false;
+            quantizationOptions.CpuCompatibleFormat = true;
 
-                // grouping is unused on GPU
-                quantizationOptions.GroupFeaturesForCpu = false;
-            }
+            quantizationOptions.BundleExclusiveFeatures = true;
+            quantizationOptions.ExclusiveFeaturesBundlingOptions.MaxBuckets = Min<ui32>(
+                254, params.ObliviousTreeOptions->DevExclusiveFeaturesBundleMaxBuckets.Get());
+            quantizationOptions.ExclusiveFeaturesBundlingOptions.OnlyOneHotsAndBinaryFloats = true;
+
+            quantizationOptions.PackBinaryFeaturesForCpu = false;
+            quantizationOptions.GroupFeaturesForCpu = false;
         }
         quantizationOptions.CpuRamLimit
             = ParseMemorySizeDescription(params.SystemOptions->CpuUsedRamLimit.Get());
