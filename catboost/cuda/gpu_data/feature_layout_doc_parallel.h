@@ -82,7 +82,7 @@ namespace NCatboostCuda {
 
             CB_ENSURE(allFeatures.size() == GetDeviceCount() * featureCount);
             if (features.size()) {
-                auto layout = CreateLayout(features.size());
+                auto layout = CreateLayout(features.size() / GetDeviceCount());
                 result.CudaFeaturesDevice.Reset(layout);
                 result.CudaFeaturesDevice.Write(features);
             }
