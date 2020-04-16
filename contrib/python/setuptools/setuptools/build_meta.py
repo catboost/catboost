@@ -232,6 +232,12 @@ class _BuildMetaLegacyBackend(_BuildMetaBackend):
         if script_dir not in sys.path:
             sys.path.insert(0, script_dir)
 
+        # Some setup.py scripts (e.g. in pygame and numpy) use sys.argv[0] to
+        # get the directory of the source code. They expect it to refer to the
+        # setup.py script.
+        sys_argv_0 = sys.argv[0]
+        sys.argv[0] = setup_script
+
         try:
             super(_BuildMetaLegacyBackend,
                   self).run_setup(setup_script=setup_script)
@@ -242,6 +248,7 @@ class _BuildMetaLegacyBackend(_BuildMetaBackend):
             # the original path so that the path manipulation does not persist
             # within the hook after run_setup is called.
             sys.path[:] = sys_path
+            sys.argv[0] = sys_argv_0
 
 # The primary backend
 _BACKEND = _BuildMetaBackend()

@@ -24,7 +24,7 @@ from .upload import upload
 
 
 def _encode(s):
-    errors = 'surrogateescape' if six.PY3 else 'strict'
+    errors = 'strict' if six.PY2 else 'surrogateescape'
     return s.encode('utf-8', errors)
 
 
@@ -153,7 +153,7 @@ class upload_docs(upload):
         # set up the authentication
         credentials = _encode(self.username + ':' + self.password)
         credentials = standard_b64encode(credentials)
-        if six.PY3:
+        if not six.PY2:
             credentials = credentials.decode('ascii')
         auth = "Basic " + credentials
 
