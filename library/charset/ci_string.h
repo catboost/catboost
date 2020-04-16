@@ -222,7 +222,7 @@ struct ci_hash {
     inline size_t operator()(const char* s) const {
         return TCiString::hashVal(s, strlen(s));
     }
-    inline size_t operator()(const TFixedString<char>& s) const {
+    inline size_t operator()(const TStringBuf& s) const {
         return TCiString::hashVal(s.Start, s.Length);
     }
 };
@@ -245,7 +245,7 @@ struct TCIHash {
 
 template <>
 struct TCIHash<const char*> {
-    inline size_t operator()(const TFixedString<char>& s) const {
+    inline size_t operator()(const TStringBuf& s) const {
         return TCiString::hashVal(s.Start, s.Length);
     }
 };
@@ -275,7 +275,7 @@ struct ci_equal_to {
         return csYandex.stricmp(x, y) == 0;
     }
     // this implementation is not suitable for strings with zero characters inside, sorry
-    bool operator()(const TFixedString<char>& x, const TFixedString<char>& y) const {
+    bool operator()(const TStringBuf& x, const TStringBuf& y) const {
         return x.Length == y.Length && csYandex.strnicmp(x.Start, y.Start, y.Length) == 0;
     }
 };
