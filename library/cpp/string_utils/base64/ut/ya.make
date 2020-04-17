@@ -1,6 +1,6 @@
 
 
-UNITTEST_FOR(library/string_utils/base64)
+UNITTEST_FOR(library/cpp/string_utils/base64)
 
 SRCS(
     base64_ut.cpp
