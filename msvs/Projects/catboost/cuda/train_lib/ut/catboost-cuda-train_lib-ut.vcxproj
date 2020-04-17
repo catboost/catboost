@@ -471,6 +471,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\streams\lzma\cpp-streams-lzma.vcxproj">
       <Project>{A75DC6C1-858D-5097-8CB6-68A4A62E2D73}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\base64\cpp-string_utils-base64.vcxproj">
+      <Project>{A4764222-1478-DE04-CC5B-2369096E96BC}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\terminate_handler\library-cpp-terminate_handler.vcxproj">
       <Project>{8776CDC6-8FD3-11B1-5A42-EAE93F81174A}</Project>
     </ProjectReference>

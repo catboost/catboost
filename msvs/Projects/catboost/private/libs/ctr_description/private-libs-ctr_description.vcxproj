@@ -193,6 +193,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\pop_count\library-cpp-pop_count.vcxproj">
       <Project>{6B557DF5-6D6B-ECE1-B5B5-9CD1B8625387}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\base64\cpp-string_utils-base64.vcxproj">
+      <Project>{A4764222-1478-DE04-CC5B-2369096E96BC}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\dbg_output\library-dbg_output.vcxproj">
       <Project>{806C141C-ADC5-203A-DF01-02F7E1563621}</Project>
     </ProjectReference>

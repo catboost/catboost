@@ -220,6 +220,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\pop_count\library-cpp-pop_count.vcxproj">
       <Project>{6B557DF5-6D6B-ECE1-B5B5-9CD1B8625387}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\base64\cpp-string_utils-base64.vcxproj">
+      <Project>{A4764222-1478-DE04-CC5B-2369096E96BC}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\tokenizer\library-cpp-tokenizer.vcxproj">
       <Project>{033EAD89-E9BA-0341-D614-91C40D7F543A}</Project>
     </ProjectReference>
