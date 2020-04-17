@@ -34,10 +34,11 @@ static TVector<double> CalcMeanValueForTree(
     if (forest.IsOblivious()) {
         auto firstLeafPtr = forest.GetFirstLeafPtrForTree(treeIdx);
         const size_t maxDepth = forest.GetTreeSizes()[treeIdx];
+        const auto& subtreeWeightsOnMaxDepth = subtreeWeights[maxDepth];
         for (size_t leafIdx = 0; leafIdx < (size_t(1) << maxDepth); ++leafIdx) {
             for (int dimension = 0; dimension < approxDimension; ++dimension) {
                 meanValue[dimension] += firstLeafPtr[leafIdx * approxDimension + dimension]
-                                     * subtreeWeights[maxDepth][leafIdx];
+                                     * subtreeWeightsOnMaxDepth[leafIdx];
             }
         }
     } else {
@@ -45,12 +46,15 @@ static TVector<double> CalcMeanValueForTree(
         const bool isLastTree = treeIdx == forest.GetTreeStartOffsets().size() - 1;
         const size_t startOffset = forest.GetTreeStartOffsets()[treeIdx];
         const size_t endOffset = isLastTree ? totalNodesCount : forest.GetTreeStartOffsets()[treeIdx + 1];
+        const auto& leafValues = forest.GetLeafValues();
+        const auto& leafWeights = forest.GetLeafWeights();
+        const auto& nonSymmetricNodeIdToLeafId = forest.GetNonSymmetricNodeIdToLeafId();
+        const size_t leafValueCount = leafValues.size();
         for (size_t nodeIdx = startOffset; nodeIdx < endOffset; ++nodeIdx) {
+            size_t leafIdx = nonSymmetricNodeIdToLeafId[nodeIdx];
             for (int dimension = 0; dimension < approxDimension; ++dimension) {
-                size_t leafIdx = forest.GetNonSymmetricNodeIdToLeafId()[nodeIdx];
-                if (leafIdx < forest.GetLeafValues().size()) {
-                    meanValue[dimension] += forest.GetLeafValues()[leafIdx + dimension]
-                                        * forest.GetLeafWeights()[leafIdx / forest.GetDimensionsCount()];
+                if (leafIdx < leafValueCount) {
+                    meanValue[dimension] += leafValues[leafIdx + dimension] * leafWeights[leafIdx / approxDimension];
                 }
             }
         }
@@ -73,12 +77,13 @@ static TVector<size_t> GetReversedSubtreeForNonObliviousTree(
     const int startOffset = forest.GetTreeStartOffsets()[treeIdx];
     const int endOffset = isLastTree ? totalNodesCount : forest.GetTreeStartOffsets()[treeIdx + 1];
     const int treeSize = endOffset - startOffset;
+    const auto& nonSymmetricStepNodes = forest.GetNonSymmetricStepNodes();
 
     TVector<size_t> reversedTree(treeSize, 0);
     for (int nodeIdx = startOffset; nodeIdx < endOffset; ++nodeIdx) {
         const int localIdx = nodeIdx - startOffset;
-        const size_t leftDiff = forest.GetNonSymmetricStepNodes()[nodeIdx].LeftSubtreeDiff;
-        const size_t rightDiff = forest.GetNonSymmetricStepNodes()[nodeIdx].RightSubtreeDiff;
+        const size_t leftDiff = nonSymmetricStepNodes[nodeIdx].LeftSubtreeDiff;
+        const size_t rightDiff = nonSymmetricStepNodes[nodeIdx].RightSubtreeDiff;
         if (leftDiff != 0) {
             reversedTree[localIdx + leftDiff] = nodeIdx;
         }
@@ -99,17 +104,20 @@ static TVector<TVector<double>> CalcSubtreeWeightsForTree(
         const int treeDepth = forest.GetTreeSizes()[treeIdx];
         subtreeWeights.resize(treeDepth + 1);
         subtreeWeights[treeDepth].resize(size_t(1) << treeDepth);
+        TArrayRef<double> subtreeWeightsOnTreeDepth = MakeArrayRef(subtreeWeights[treeDepth]);
         const int weightOffset = forest.GetFirstLeafOffsets()[treeIdx] / forest.GetDimensionsCount();
 
         for (size_t nodeIdx = 0; nodeIdx < size_t(1) << treeDepth; ++nodeIdx) {
-            subtreeWeights[treeDepth][nodeIdx] = leafWeights[weightOffset + nodeIdx];
+            subtreeWeightsOnTreeDepth[nodeIdx] = leafWeights[weightOffset + nodeIdx];
         }
 
         for (int depth = treeDepth - 1; depth >= 0; --depth) {
             const size_t nodeCount = size_t(1) << depth;
             subtreeWeights[depth].resize(nodeCount);
+            TConstArrayRef<double> subtreeWeightsOnChild = MakeConstArrayRef(subtreeWeights[depth + 1]);
+            TArrayRef<double> subtreeWeightsOnParent = MakeArrayRef(subtreeWeights[depth]);
             for (size_t nodeIdx = 0; nodeIdx < nodeCount; ++nodeIdx) {
-                subtreeWeights[depth][nodeIdx] = subtreeWeights[depth + 1][nodeIdx * 2] + subtreeWeights[depth + 1][nodeIdx * 2 + 1];
+                subtreeWeightsOnParent[nodeIdx] = subtreeWeightsOnChild[nodeIdx * 2] + subtreeWeightsOnChild[nodeIdx * 2 + 1];
             }
         }
     } else {
@@ -117,15 +125,16 @@ static TVector<TVector<double>> CalcSubtreeWeightsForTree(
         TVector<size_t> reversedTree = GetReversedSubtreeForNonObliviousTree(forest, treeIdx);
         subtreeWeights.resize(1); // with respect to NonSymmetric format of TObliviousTree
         subtreeWeights[0].resize(reversedTree.size(), 0);
+        TArrayRef<double> subtreeWeightsOnParent = MakeArrayRef(subtreeWeights[0]);
         if (reversedTree.size() == 1) {
-            subtreeWeights[0][0] = leafWeights[forest.GetNonSymmetricNodeIdToLeafId()[startOffset] / forest.GetDimensionsCount()];
+            subtreeWeightsOnParent[0] = leafWeights[forest.GetNonSymmetricNodeIdToLeafId()[startOffset] / forest.GetDimensionsCount()];
         } else {
             for (size_t localIdx = reversedTree.size() - 1; localIdx > 0; --localIdx) {
                 size_t leafIdx = forest.GetNonSymmetricNodeIdToLeafId()[startOffset + localIdx] / forest.GetDimensionsCount();
                 if (leafIdx < leafWeights.size()) {
-                    subtreeWeights[0][localIdx] += leafWeights[leafIdx];
+                    subtreeWeightsOnParent[localIdx] += leafWeights[leafIdx];
                 }
-                subtreeWeights[0][reversedTree[localIdx] - startOffset] += subtreeWeights[0][localIdx];
+                subtreeWeightsOnParent[reversedTree[localIdx] - startOffset] += subtreeWeightsOnParent[localIdx];
             }
         }
     }
@@ -149,17 +158,16 @@ static void MapBinFeaturesToClasses(
         if (!floatFeature.UsedInModel()) {
             continue;
         }
-        featuresCombinations.emplace_back();
-        featuresCombinations.back() = { floatFeature.Position.FlatIndex };
+        featuresCombinations.emplace_back(1, floatFeature.Position.FlatIndex);
         featureBucketSizes.push_back(floatFeature.Borders.size());
     }
 
-    for (const TOneHotFeature& oneHotFeature: forest.GetOneHotFeatures()) {
-        featuresCombinations.emplace_back();
-        featuresCombinations.back() = {
+    for (const TOneHotFeature& oneHotFeature : forest.GetOneHotFeatures()) {
+        featuresCombinations.emplace_back(
+            1,
             (int)layout.GetExternalFeatureIdx(oneHotFeature.CatFeatureIndex,
             EFeatureType::Categorical)
-        };
+        );
         featureBucketSizes.push_back(oneHotFeature.Values.size());
     }
 
@@ -173,8 +181,8 @@ static void MapBinFeaturesToClasses(
         featureBucketSizes.push_back(ctrFeature.Borders.size());
     }
     TVector<size_t> featureFirstBinBucket(featureBucketSizes.size(), 0);
-    for (size_t i = 1; i < featureBucketSizes.size(); ++i) {
-        featureFirstBinBucket[i] = featureFirstBinBucket[i - 1] + featureBucketSizes[i - 1];
+    for (size_t idx : xrange((size_t)1, featureBucketSizes.size())) {
+        featureFirstBinBucket[idx] = featureFirstBinBucket[idx - 1] + featureBucketSizes[idx - 1];
     }
     TVector<int> sortedBinFeatures(featuresCombinations.size());
     Iota(sortedBinFeatures.begin(), sortedBinFeatures.end(), 0);
@@ -190,27 +198,22 @@ static void MapBinFeaturesToClasses(
     *combinationClassFeatures = TVector<TVector<int>>();
 
     int equivalenceClassesCount = 0;
-    for (ui32 featureIdx = 0; featureIdx < featuresCombinations.size(); ++featureIdx) {
+    for (ui32 featureIdx : xrange(featuresCombinations.size())) {
         int currentFeature = sortedBinFeatures[featureIdx];
         int previousFeature = featureIdx == 0 ? -1 : sortedBinFeatures[featureIdx - 1];
         if (featureIdx == 0 || featuresCombinations[currentFeature] != featuresCombinations[previousFeature]) {
             combinationClassFeatures->push_back(featuresCombinations[currentFeature]);
             ++equivalenceClassesCount;
         }
-        for (size_t binBucketId = featureFirstBinBucket[currentFeature];
-             binBucketId < featureFirstBinBucket[currentFeature] + featureBucketSizes[currentFeature];
-             ++binBucketId)
-        {
+        for (size_t bucketIdx : xrange(featureBucketSizes[currentFeature])) {
+            ui32 binBucketId = bucketIdx + featureFirstBinBucket[currentFeature];
             (*binFeatureCombinationClass)[binBucketId] = equivalenceClassesCount - 1;
         }
     }
 }
 
 static double CalcAverageApprox(const TVector<double>& averageApproxByClass) {
-    double result = 0;
-    for (double value : averageApproxByClass) {
-        result += value;
-    }
+    double result = Accumulate(averageApproxByClass.begin(), averageApproxByClass.end(), 0.0);
     return result / averageApproxByClass.size();
 }
 
@@ -225,18 +228,18 @@ bool IsPrepareTreesCalcShapValues(
             return true;
         case EPreCalcShapValues::NoPreCalc:
             return false;
-        case EPreCalcShapValues::Auto:
+        case EPreCalcShapValues::Auto: {
             if (dataset==nullptr) {
                 return true;
-            } else {
-                if (!model.IsOblivious()) {
-                    return false;
-                }
-                const size_t treeCount = model.GetTreeCount();
-                const TModelTrees& forest = *model.ModelTrees;
-                double treesAverageLeafCount = forest.GetLeafValues().size() / treeCount;
-                return treesAverageLeafCount < dataset->ObjectsGrouping->GetObjectCount();
             }
+            if (!model.IsOblivious()) {
+                return false;
+            }
+            const size_t treeCount = model.GetTreeCount();
+            const TModelTrees& forest = *model.ModelTrees;
+            double treesAverageLeafCount = forest.GetLeafValues().size() / treeCount;
+            return treesAverageLeafCount < dataset->ObjectsGrouping->GetObjectCount();
+        }
     }
     Y_UNREACHABLE();
 }
@@ -319,8 +322,8 @@ static void InitPreparedTrees(
     TVector<double> leafWeights;
     if (model.ModelTrees->GetLeafWeights().empty()) {
         CB_ENSURE(
-                dataset,
-                "PrepareTrees requires either non-empty LeafWeights in model or provided dataset"
+            dataset,
+            "PrepareTrees requires either non-empty LeafWeights in model or provided dataset"
         );
         CB_ENSURE(dataset->ObjectsGrouping->GetObjectCount() != 0, "To calculate shap values, dataset must contain objects.");
         CB_ENSURE(dataset->MetaInfo.GetFeatureCount() > 0, "To calculate shap values, dataset must contain features.");
@@ -352,7 +355,6 @@ static void InitPreparedTrees(
             model,
             *dataset,
             *referenceDataset,
-            preparedTrees->BinFeatureCombinationClass,
             modelOutputType,
             localExecutor
         );
@@ -368,8 +370,8 @@ static void InitLeafWeights(
     const auto& leafWeightsOfModels = model.ModelTrees->GetLeafWeights();
     if (leafWeightsOfModels.empty()) {
         CB_ENSURE(
-                dataset,
-                "To calculate shap values, either a model with leaf weights, or a dataset are required."
+            dataset,
+            "To calculate shap values, either a model with leaf weights, or a dataset are required."
         );
         CB_ENSURE(dataset->ObjectsGrouping->GetObjectCount() != 0, "To calculate shap values, dataset must contain objects.");
         CB_ENSURE(dataset->MetaInfo.GetFeatureCount() > 0, "To calculate shap values, dataset must contain features.");
