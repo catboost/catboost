@@ -145,6 +145,7 @@ enum class ELossFunction {
     QuerySoftMax,
     QueryCrossEntropy,
     StochasticFilter,
+    StochasticRank,
 
     /* user defined errors */
 

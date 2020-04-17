@@ -1907,8 +1907,20 @@ TMetricHolder TDcgMetric::EvalSingleThread(
     int queryStartIndex,
     int queryEndIndex
 ) const {
-    Y_ASSERT(approxDelta.empty());
     Y_ASSERT(!isExpApprox);
+    TConstArrayRef<double> approxesRef;
+    TVector<double> approxWithDelta;
+    if (approxDelta.empty()) {
+        approxesRef = approx.front();
+    } else {
+        Y_ASSERT(approx.front().size() == approxDelta.front().size());
+        approxWithDelta.yresize(approx.front().size());
+        for (size_t doc = 0; doc < approx.front().size(); ++doc) {
+            approxWithDelta[doc] = approx.front()[doc] + approxDelta.front()[doc];
+        }
+        approxesRef = approxWithDelta;
+    }
+
     TMetricHolder error(2);
     TVector<NMetrics::TSample> samples;
     for (int queryIndex = queryStartIndex; queryIndex < queryEndIndex; ++queryIndex) {
@@ -1918,7 +1930,7 @@ TMetricHolder TDcgMetric::EvalSingleThread(
         const float queryWeight = UseWeights ? queriesInfo[queryIndex].Weight : 1.f;
         NMetrics::TSample::FromVectors(
             MakeArrayRef(target.data() + queryBegin, querySize),
-            MakeArrayRef(approx.front().data() + queryBegin, querySize),
+            MakeArrayRef(approxesRef.data() + queryBegin, querySize),
             &samples);
         if (Normalized) {
             error.Stats[0] += queryWeight * CalcNdcg(samples, MetricType, TopSize, DenominatorType);
