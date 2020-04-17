@@ -1059,6 +1059,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cppparser\library-cpp-cppparser.vcxproj">
       <Project>561DA281-60D6-43CF-765F-96A120F7EFFC</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\diff\library-cpp-diff.vcxproj">
+      <Project>0E7915BD-803C-8F29-4ECB-42637EED30E3</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\crc32c\cpp-digest-crc32c.vcxproj">
       <Project>BAEF14A6-3BF3-DC3E-9335-9B6BF43917BC</Project>
     </ProjectReference>
@@ -1124,9 +1127,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\deprecated\split\library-deprecated-split.vcxproj">
       <Project>12DB8983-9B49-8E6F-8DFD-6A13F0FD9BF7</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\diff\library-diff.vcxproj">
-      <Project>CDAC90AB-9242-5B30-D7E1-EED4B6E4FEAC</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\dns\library-dns.vcxproj">
       <Project>8C356353-67D3-3399-7DA3-792F6D7BF6D5</Project>

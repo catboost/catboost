@@ -234,6 +234,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\2d_array\cpp-containers-2d_array.vcxproj">
       <Project>{245105A8-ED48-C3D9-83C3-D6894AA984B0}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\diff\library-cpp-diff.vcxproj">
+      <Project>{0E7915BD-803C-8F29-4ECB-42637EED30E3}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\crc32c\cpp-digest-crc32c.vcxproj">
       <Project>{BAEF14A6-3BF3-DC3E-9335-9B6BF43917BC}</Project>
     </ProjectReference>
@@ -257,9 +260,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\dbg_output\library-dbg_output.vcxproj">
       <Project>{806C141C-ADC5-203A-DF01-02F7E1563621}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\diff\library-diff.vcxproj">
-      <Project>{CDAC90AB-9242-5B30-D7E1-EED4B6E4FEAC}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\enumbitset\library-enumbitset.vcxproj">
       <Project>{001BC0D7-D4A9-8F1B-F8D9-077578710964}</Project>

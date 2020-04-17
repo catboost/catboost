@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{CDAC90AB-9242-5B30-D7E1-EED4B6E4FEAC}</ProjectGUID>
+    <ProjectGUID>{0E7915BD-803C-8F29-4ECB-42637EED30E3}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-diff</ProjectName>
+    <ProjectName>library-cpp-diff</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-diff</TargetName>
+    <TargetName>library-cpp-diff</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\diff\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\CDAC90AB-9242-5B30-D7E1-EED4B6E4FEAC\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\diff\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\0E7915BD-803C-8F29-4ECB-42637EED30E3\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\diff\diff.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\diff\diff.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\diff\diff.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\diff\diff.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
