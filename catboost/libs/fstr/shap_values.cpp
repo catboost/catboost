@@ -1,5 +1,6 @@
 #include "shap_values.h"
 
+#include "independent_tree_shap.h"
 #include "util.h"
 #include "shap_exact.h"
 
@@ -984,7 +985,6 @@ void CalcShapValuesForDocumentMulti(
             IndependentTreeShap(
                 model,
                 preparedTrees,
-                featuresCount,
                 docIndices,
                 documentIdx,
                 shapValues
