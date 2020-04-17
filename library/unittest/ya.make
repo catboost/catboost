@@ -5,7 +5,7 @@ LIBRARY()
 PEERDIR(
     library/cpp/colorizer
     library/dbg_output
-    library/diff
+    library/cpp/diff
     library/json/writer
 )
 

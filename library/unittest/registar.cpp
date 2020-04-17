@@ -1,6 +1,6 @@
 #include "registar.h"
 
-#include <library/diff/diff.h>
+#include <library/cpp/diff/diff.h>
 #include <library/cpp/colorizer/colors.h>
 
 #include <util/generic/bt_exception.h>

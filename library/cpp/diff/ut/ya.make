@@ -2,10 +2,10 @@ UNITTEST()
 
 
 
-SRCDIR(library/diff)
+SRCDIR(library/cpp/diff)
 
 PEERDIR(
-    library/diff
+    library/cpp/diff
 )
 
 SRCS(
