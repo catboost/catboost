@@ -206,9 +206,6 @@ namespace NCatboostCuda {
         }
 
         const NCudaLib::TDistributedObject<TCFeature>& GetTCFeature(ui32 featureId) const {
-            if (!HasFeature(featureId)) {
-                Cout << "WAT" << Endl;
-            }
             CB_ENSURE(HasFeature(featureId));
             if (HasFeatures() && GetFeatures().HasFeature(featureId)) {
                 return GetFeatures().GetTCFeature(featureId);
