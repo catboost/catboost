@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/containers/stack_vector/stack_vec.h>
+#include <library/cpp/containers/stack_vector/stack_vec.h>
 #include <library/cache/cache.h>
 
 #include <util/generic/noncopyable.h>
