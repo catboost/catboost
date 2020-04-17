@@ -84,6 +84,7 @@ FeaturesData = _catboost.FeaturesData
 _have_equal_features = _catboost._have_equal_features
 SPARSE_MATRIX_TYPES = _catboost.SPARSE_MATRIX_TYPES
 MultiLabelCustomMetric = _catboost.MultiLabelCustomMetric
+MultiLabelCustomError = _catboost.MultiLabelCustomError
 
 
 from contextlib import contextmanager  # noqa E402

@@ -4557,7 +4557,7 @@ void InitializeEvalMetricIfNotSet(
     CB_ENSURE(objectiveMetric.IsSet(), "Objective metric must be set.");
     const NCatboostOptions::TLossDescription& objectiveMetricDescription = objectiveMetric.Get();
     if (evalMetric->NotSet()) {
-        CB_ENSURE(objectiveMetricDescription.GetLossFunction() != ELossFunction::PythonUserDefinedPerObject,
+        CB_ENSURE(!IsUserDefined(objectiveMetricDescription.GetLossFunction()),
                   "If loss function is a user defined object, then the eval metric must be specified.");
         evalMetric->Set(objectiveMetricDescription);
     }
@@ -4575,7 +4575,7 @@ TVector<THolder<IMetric>> CreateMetrics(
     const NCatboostOptions::TLossDescription& evalMetricDescription = evalMetricOptions->EvalMetric.Get();
 
     TVector<THolder<IMetric>> createdObjectiveMetrics;
-    if (objectiveMetricDescription.GetLossFunction() != ELossFunction::PythonUserDefinedPerObject) {
+    if (!IsUserDefined(objectiveMetricDescription.GetLossFunction())) {
         createdObjectiveMetrics = CreateMetricFromDescription(
             objectiveMetricDescription,
             approxDimension);
@@ -4592,7 +4592,7 @@ TVector<THolder<IMetric>> CreateMetrics(
     THashSet<TString> usedDescriptions;
     THashSet<TString> metricsToCalcOnTrain;
 
-    if (evalMetricDescription.GetLossFunction() == ELossFunction::PythonUserDefinedPerObject) {
+    if (IsUserDefined(evalMetricDescription.GetLossFunction())) {
         metrics.emplace_back(MakeCustomMetric(*evalMetricDescriptor));
     } else {
         metrics = CreateMetricFromDescription(evalMetricDescription, approxDimension);

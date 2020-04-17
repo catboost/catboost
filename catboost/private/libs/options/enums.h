@@ -149,6 +149,7 @@ enum class ELossFunction {
     /* user defined errors */
 
     PythonUserDefinedPerObject,
+    PythonUserDefinedPerObjectMultiTarget,
     UserPerObjMetric,
     UserQuerywiseMetric,
 

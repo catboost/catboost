@@ -192,6 +192,8 @@ THolder<IDerCalcer> BuildError(
         }
         case ELossFunction::PythonUserDefinedPerObject:
             return MakeHolder<TCustomError>(params, descriptor);
+        case ELossFunction::PythonUserDefinedPerObjectMultiTarget:
+            return MakeHolder<TMultiLabelCustomError>(params, descriptor);
         case ELossFunction::UserPerObjMetric:
             return MakeHolder<TUserDefinedPerObjectError>(
                 params.LossFunctionDescription->GetLossParams(),
