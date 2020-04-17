@@ -115,7 +115,7 @@ class CatBoostError(Exception):
 
 
 @cython.embedsignature(True)
-class MultiLabelCustomMetric:
+class MultiRegressionCustomMetric:
     def evaluate(self, approxes, targets, weights):
         """
         Evaluates metric value.
@@ -163,7 +163,7 @@ class MultiLabelCustomMetric:
 
 
 @cython.embedsignature(True)
-class MultiLabelCustomError:
+class MultiRegressionCustomObjective:
     def calc_ders_multi(self, approxes, targets, weights):
         """
         Computes first derivative and Hessian matrix of the loss function with respect to the predicted value for each dimension.
@@ -176,7 +176,7 @@ class MultiLabelCustomError:
         targets : list of float
             Vector of true labels.
 
-        weights : list of float, optional (default=None)
+        weight : float, optional (default=None)
             Instance weight.
 
         Returns
@@ -1109,7 +1109,7 @@ cdef extern from "catboost/private/libs/algo_helpers/custom_objective_descriptor
             void* customData
         ) with gil
 
-        void (*CalcDersMultiLabel)(
+        void (*CalcDersMultiRegression)(
             TConstArrayRef[double] approx,
             TConstArrayRef[float] target,
             float weight,
@@ -1845,7 +1845,7 @@ cdef void _ObjectiveCalcDersMultiClass(
                 dereference(der2).Data[index] = num
                 index += 1
 
-cdef void _ObjectiveCalcDersMultiLabel(
+cdef void _ObjectiveCalcDersMultiRegression(
     TConstArrayRef[double] approx,
     TConstArrayRef[float] target,
     float weight,
@@ -1887,7 +1887,7 @@ cdef TCustomRandomDistributionGenerator _BuildCustomRandomDistributionGenerator(
 cdef TCustomMetricDescriptor _BuildCustomMetricDescriptor(object metricObject):
     cdef TCustomMetricDescriptor descriptor
     descriptor.CustomData = <void*>metricObject
-    if (issubclass(metricObject.__class__, MultiLabelCustomMetric)):
+    if (issubclass(metricObject.__class__, MultiRegressionCustomMetric)):
         descriptor.EvalMultiregressionFunc = &_MultiregressionMetricEval
     else:
         descriptor.EvalFunc = &_MetricEval
@@ -1900,7 +1900,7 @@ cdef TCustomObjectiveDescriptor _BuildCustomObjectiveDescriptor(object objective
     cdef TCustomObjectiveDescriptor descriptor
     descriptor.CustomData = <void*>objectiveObject
     descriptor.CalcDersRange = &_ObjectiveCalcDersRange
-    descriptor.CalcDersMultiLabel = &_ObjectiveCalcDersMultiLabel
+    descriptor.CalcDersMultiRegression = &_ObjectiveCalcDersMultiRegression
     descriptor.CalcDersMultiClass = &_ObjectiveCalcDersMultiClass
     return descriptor
 
@@ -1990,12 +1990,12 @@ cdef class _PreprocessParams:
 
         if params_to_json.get("loss_function") == "PythonUserDefinedPerObject":
             self.customObjectiveDescriptor = _BuildCustomObjectiveDescriptor(params["loss_function"])
-            if (issubclass(params["loss_function"].__class__, MultiLabelCustomError)):
+            if (issubclass(params["loss_function"].__class__, MultiRegressionCustomObjective)):
                 params_to_json["loss_function"] = "PythonUserDefinedPerObjectMultiTarget"
         
         if params_to_json.get("eval_metric") == "PythonUserDefinedPerObject":
             self.customMetricDescriptor = _BuildCustomMetricDescriptor(params["eval_metric"])
-            if (issubclass(params["eval_metric"].__class__, MultiLabelCustomMetric)):
+            if (issubclass(params["eval_metric"].__class__, MultiRegressionCustomMetric)):
                 params_to_json["eval_metric"] = "PythonUserDefinedPerObjectMultiTarget"
 
         dumps_params = dumps(params_to_json, cls=_NumpyAwareEncoder)

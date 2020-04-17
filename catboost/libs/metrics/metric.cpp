@@ -3494,9 +3494,9 @@ void TCustomMetric::AddHint(const TString& key, const TString& value) {
 /* CustomMultiRegression */
 
 namespace {
-    class TMultiLabelCustomMetric: public TMultiRegressionMetric {
+    class TMultiRegressionCustomMetric: public TMultiRegressionMetric {
     public:
-        explicit TMultiLabelCustomMetric(const TCustomMetricDescriptor& descriptor);
+        explicit TMultiRegressionCustomMetric(const TCustomMetricDescriptor& descriptor);
 
         TMetricHolder Eval(
             TConstArrayRef<TVector<double>> approx,
@@ -3544,13 +3544,13 @@ namespace {
     };
 }
 
-TMultiLabelCustomMetric::TMultiLabelCustomMetric(const TCustomMetricDescriptor& descriptor)
+TMultiRegressionCustomMetric::TMultiRegressionCustomMetric(const TCustomMetricDescriptor& descriptor)
         : Descriptor(descriptor)
 {
     UseWeights.SetDefaultValue(true);
 }
 
-TMetricHolder TMultiLabelCustomMetric::Eval_(
+TMetricHolder TMultiRegressionCustomMetric::Eval_(
     TConstArrayRef<TVector<double>> approx,
     TConstArrayRef<TConstArrayRef<float>> target,
     TConstArrayRef<float> weightIn,
@@ -3568,24 +3568,24 @@ TMetricHolder TMultiLabelCustomMetric::Eval_(
     return result;
 }
 
-TString TMultiLabelCustomMetric::GetDescription() const {
+TString TMultiRegressionCustomMetric::GetDescription() const {
     TString description = Descriptor.GetDescriptionFunc(Descriptor.CustomData);
     return BuildDescription(description, UseWeights);
 }
 
-void TMultiLabelCustomMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TMultiRegressionCustomMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     bool isMaxOptimal = Descriptor.IsMaxOptimalFunc(Descriptor.CustomData);
     *valueType = isMaxOptimal ? EMetricBestValue::Max : EMetricBestValue::Min;
 }
 
-double TMultiLabelCustomMetric::GetFinalError(const TMetricHolder& error) const {
+double TMultiRegressionCustomMetric::GetFinalError(const TMetricHolder& error) const {
     return Descriptor.GetFinalErrorFunc(error, Descriptor.CustomData);
 }
 
 
 THolder<IMetric> MakeCustomMetric(const TCustomMetricDescriptor& descriptor) {
     if (descriptor.IsMultiregressionMetric()) {
-        return MakeHolder<TMultiLabelCustomMetric>(descriptor);
+        return MakeHolder<TMultiRegressionCustomMetric>(descriptor);
     } else {
         return MakeHolder<TCustomMetric>(descriptor);
     }

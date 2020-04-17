@@ -811,10 +811,10 @@ private:
     TCustomObjectiveDescriptor Descriptor;
 };
 
-class TMultiLabelCustomError final : public TMultiDerCalcer {
+class TMultiRegressionCustomError final : public TMultiDerCalcer {
 public:
 
-    TMultiLabelCustomError(
+    TMultiRegressionCustomError(
         const NCatboostOptions::TCatBoostOptions& params,
         const TMaybe<TCustomObjectiveDescriptor>& descriptor
     )
@@ -831,14 +831,13 @@ public:
         TVector<double>* der,
         THessianInfo* der2
     ) const override {
-        Descriptor.CalcDersMultiLabel(approx, target, weight, der, der2, Descriptor.CustomData);
+        Descriptor.CalcDersMultiRegression(approx, target, weight, der, der2, Descriptor.CustomData);
     }
 
 private:
     TCustomObjectiveDescriptor Descriptor;
 };
 
-/* */
 
 inline double GetNumericParameter(const TMap<TString, TString>& params, const TString& key) {
     if (params.contains(key)) {
