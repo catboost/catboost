@@ -246,8 +246,8 @@ bool IsPrepareTreesCalcShapValues(
 
 static bool AreApproxesZeroForLastClass(
     const TModelTrees& forest,
-    size_t treeIdx) {
-
+    size_t treeIdx
+) {
     const int approxDimension = forest.GetDimensionsCount();
     const double Eps = 1e-12;
     if (forest.IsOblivious()) {
