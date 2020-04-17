@@ -25,7 +25,6 @@ Implemented by @IvanKozlov98.
 ## New functionality:
 
 * Text features are supported on CPU
-* It is now possible to set `one_hot_max_size` > 255 for GPU training.
 * It is now possible to set `border_count` > 255 for GPU training. This might be useful if you have a "golden feature", see [docs](https://catboost.ai/docs/concepts/parameter-tuning.html#golden-features).
 * Python Pool class now has `save_quantization_borders` method that allows to save resulting borders into a [file](https://catboost.ai/docs/concepts/output-data_custom-borders.html) and use it for quantization of other datasets. Quantization can be a bottleneck of training, especially on GPU. Doing quantization once for several trainings can significantly reduce running time. It is recommended for large dataset to perform quantization first, save quantization borders, use them to quantize validation dataset, and then use quantized training and validation datasets for further training.
 Use saved borders when quantizing other Pools by specifying `input_borders` parameter of the `quantize` method.
