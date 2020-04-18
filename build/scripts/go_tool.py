@@ -106,12 +106,12 @@ def create_import_config(peers, gen_importmap, import_map={}, module_map={}):
     return None
 
 
-def vet_info_output_name(path):
-    return '{}{}'.format(path, vet_info_ext)
+def vet_info_output_name(path, ext=None):
+    return '{}{}'.format(path, ext or vet_info_ext)
 
 
-def vet_report_output_name(path):
-    return '{}{}'.format(path, vet_report_ext)
+def vet_report_output_name(path, ext=None):
+    return '{}{}'.format(path, ext or vet_report_ext)
 
 
 def get_source_path(args):
@@ -634,7 +634,7 @@ if __name__ == '__main__':
     args.go_pack = os.path.join(args.tool_root, 'pack')
     args.go_vet = os.path.join(args.tool_root, 'vet') if args.vet is True else args.vet
     args.output = os.path.normpath(args.output)
-    args.vet_report_output = vet_report_output_name(args.output)
+    args.vet_report_output = vet_report_output_name(args.output, args.vet_report_ext)
     args.build_root = os.path.normpath(args.build_root) + os.path.sep
     args.output_root = os.path.normpath(args.output_root)
     args.import_map = {}
