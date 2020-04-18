@@ -14,7 +14,7 @@ Y_UNIT_TEST(SMAPETest) {
         TVector<float> target{1.2f, 2.0f, -0.3f, -1.5f, -1.5f, 0.3f, 0.0f, 0.3f, -0.15f, 0.3f, 0};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeSMAPEMetric(ELossFunction::SMAPE, /*params=*/{});
+        const auto metric = std::move(CreateMetric(ELossFunction::SMAPE, /*params=*/{}, /*approxDimensions=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, {}, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 118.24f, 1e-2);
@@ -24,7 +24,7 @@ Y_UNIT_TEST(SMAPETest) {
         TVector<float> target{1.2f, 2.0f, -0.3f, -1.5f, -1.5f, 0.3f, 0.0f, 0.3f, -0.15f, 0.3f, 0};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeSMAPEMetric(ELossFunction::SMAPE, /*params=*/{});
+        const auto metric = std::move(CreateMetric(ELossFunction::SMAPE, /*params=*/{}, /*approxDimensions=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, {}, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0, 1e-4);

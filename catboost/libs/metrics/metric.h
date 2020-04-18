@@ -25,6 +25,25 @@
 using NCatboostOptions::GetDefaultTargetBorder;
 using NCatboostOptions::GetDefaultPredictionBorder;
 
+struct TMetricConfig {
+    explicit TMetricConfig(ELossFunction metric, const TMap<TString, TString>& params,
+                           int approxDimension, double binaryClassPredictionBorder,
+                           TSet<TString>* validParams)
+        : metric(metric)
+        , params(params)
+        , approxDimension(approxDimension)
+        , binaryClassPredictionBorder(binaryClassPredictionBorder)
+        , validParams(validParams) {}
+
+    ELossFunction metric;
+    const TMap<TString, TString>& params;
+    const int approxDimension;
+    const double binaryClassPredictionBorder;
+    TSet<TString>* validParams;
+};
+
+using MetricsFactory = std::function<TVector<THolder<IMetric>>(const TMetricConfig&)>;
+
 template <typename T>
 struct TMetricParam {
     TMetricParam(const TString& name, const T& value, bool userDefined = false)
@@ -263,20 +282,6 @@ THolder<IMetric> MakeMAPEMetric(ELossFunction lossFunction, const TMap<TString, 
 
 THolder<IMetric> MakePoissonMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
 
-THolder<IMetric> MakeTweedieMetric(ELossFunction lossFunction, const TMap<TString, TString>& params, double variance_power);
-
-//Mean squared logarithmic error regression loss
-THolder<IMetric> MakeMSLEMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
-
-//Median absolute error regression loss
-THolder<IMetric> MakeMedianAbsoluteErrorMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
-
-//Symmetric mean absolute percentage error
-THolder<IMetric> MakeSMAPEMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
-
-//loglikelihood of prediction
-THolder<IMetric> MakeLLPMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
-
 THolder<IMetric> MakeMultiClassMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
 
 THolder<IMetric> MakeMultiClassOneVsAllMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
@@ -315,9 +320,6 @@ THolder<IMetric> MakeBinClassRecallMetric(ELossFunction lossFunction, const TMap
                                           double predictionBorder = GetDefaultPredictionBorder());
 THolder<IMetric> MakeMultiClassRecallMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
                                             int classesCount, int positiveClass);
-
-THolder<IMetric> MakeBinClassBalancedAccuracyMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                                    double predictionBorder = GetDefaultPredictionBorder());
 
 THolder<IMetric> MakeBinClassBalancedErrorRate(ELossFunction lossFunction, const TMap<TString, TString>& params,
                                                double predictionBorder = GetDefaultPredictionBorder());
@@ -389,6 +391,9 @@ TVector<THolder<IMetric>> CreateMetricsFromDescription(const TVector<TString>& d
 
 TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TLossDescription& description,
                                                       int approxDimension);
+
+// For tests.
+TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<TString, TString>& params, int approxDimension);
 
 TVector<THolder<IMetric>> CreateMetrics(
     TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
