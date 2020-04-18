@@ -66,7 +66,7 @@
       <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)$(Configuration)/library/unittest;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/google/protobuf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;$(SolutionDir)$(Configuration)\MSVS\262F6CF9-EB50-BD91-AC9B-1967CC6B84F7\cb_dsv_loader.obj;$(SolutionDir)$(Configuration)\MSVS\262F6CF9-EB50-BD91-AC9B-1967CC6B84F7\libsvm_loader.obj;$(SolutionDir)$(Configuration)\MSVS\A51525C5-634E-FC35-5327-3CD4A8F2B67F\formula_evaluator.obj;$(SolutionDir)$(Configuration)\MSVS\A51525C5-634E-FC35-5327-3CD4A8F2B67F\model_import_interface.obj;$(SolutionDir)$(Configuration)\MSVS\62440384-FCD2-5217-9DB5-BBEF00D51E9B\exists_checker.obj;$(SolutionDir)$(Configuration)\MSVS\62440384-FCD2-5217-9DB5-BBEF00D51E9B\line_data_reader.obj;$(SolutionDir)$(Configuration)\MSVS\99DC1DEE-5972-B246-E371-76454FEDA000\loader.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\bm25.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\bow.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\naive_bayesian.obj;$(SolutionDir)$(Configuration)\MSVS\B2E67D35-D818-4BB5-60B7-B6EEC460B8F8\cpu_id_check.obj;$(SolutionDir)$(Configuration)\MSVS\A245D45B-FF5F-420A-C3B0-FC67CC066227\lemmer_impl.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;$(SolutionDir)$(Configuration)\MSVS\262F6CF9-EB50-BD91-AC9B-1967CC6B84F7\cb_dsv_loader.obj;$(SolutionDir)$(Configuration)\MSVS\262F6CF9-EB50-BD91-AC9B-1967CC6B84F7\libsvm_loader.obj;$(SolutionDir)$(Configuration)\MSVS\A51525C5-634E-FC35-5327-3CD4A8F2B67F\formula_evaluator.obj;$(SolutionDir)$(Configuration)\MSVS\A51525C5-634E-FC35-5327-3CD4A8F2B67F\model_import_interface.obj;$(SolutionDir)$(Configuration)\MSVS\62440384-FCD2-5217-9DB5-BBEF00D51E9B\exists_checker.obj;$(SolutionDir)$(Configuration)\MSVS\62440384-FCD2-5217-9DB5-BBEF00D51E9B\line_data_reader.obj;$(SolutionDir)$(Configuration)\MSVS\99DC1DEE-5972-B246-E371-76454FEDA000\loader.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\bm25.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\bow.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\naive_bayesian.obj;$(SolutionDir)$(Configuration)\MSVS\A945C0FD-E868-BBA0-1189-19BBB2296292\cpu_id_check.obj;$(SolutionDir)$(Configuration)\MSVS\A245D45B-FF5F-420A-C3B0-FC67CC066227\lemmer_impl.obj;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  </AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
@@ -271,6 +271,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\stack_vector\cpp-containers-stack_vector.vcxproj">
       <Project>{F5DBE463-173C-4593-95C1-EC1430946913}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cpuid_check\library-cpp-cpuid_check.vcxproj">
+      <Project>{A945C0FD-E868-BBA0-1189-19BBB2296292}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\diff\library-cpp-diff.vcxproj">
       <Project>{0E7915BD-803C-8F29-4ECB-42637EED30E3}</Project>
     </ProjectReference>
@@ -306,9 +309,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\tokenizer\library-cpp-tokenizer.vcxproj">
       <Project>{033EAD89-E9BA-0341-D614-91C40D7F543A}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cpuid_check\library-cpuid_check.vcxproj">
-      <Project>{B2E67D35-D818-4BB5-60B7-B6EEC460B8F8}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\dbg_output\library-dbg_output.vcxproj">
       <Project>{806C141C-ADC5-203A-DF01-02F7E1563621}</Project>
