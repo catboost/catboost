@@ -9,6 +9,7 @@ RECURSE(
     colorizer/ut
     containers
     cppparser
+    cpuid_check
     diff
     diff/ut
     digest

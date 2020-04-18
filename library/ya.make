@@ -25,7 +25,6 @@ RECURSE(
     containers
     coroutine
     cpp
-    cpuid_check
     dbg_output
     dbg_output/ut
     deprecated
