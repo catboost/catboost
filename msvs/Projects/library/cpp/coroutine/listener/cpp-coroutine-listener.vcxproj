@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{B4028C7F-B714-C057-20FD-5CC1C3A20526}</ProjectGUID>
+    <ProjectGUID>{C43D7284-E485-A23F-D1EB-E5104D32806A}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-coroutine-listener</ProjectName>
+    <ProjectName>cpp-coroutine-listener</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-coroutine-listener</TargetName>
+    <TargetName>cpp-coroutine-listener</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\coroutine\listener\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\B4028C7F-B714-C057-20FD-5CC1C3A20526\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\coroutine\listener\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\C43D7284-E485-A23F-D1EB-E5104D32806A\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\coroutine\listener\listen.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\coroutine\listener\listen.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\coroutine\listener\listen.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\listener\listen.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -99,8 +99,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\intrusive_rb_tree\library-containers-intrusive_rb_tree.vcxproj">
       <Project>{53AA6AAE-E388-987D-9719-F611E55F76E8}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\coroutine\engine\library-coroutine-engine.vcxproj">
-      <Project>{810DAE0F-1259-BCE1-AB1B-BB8F715CA0BD}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\coroutine\engine\cpp-coroutine-engine.vcxproj">
+      <Project>{D4715C6C-9CC0-8DC2-580D-1131AC501867}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>
