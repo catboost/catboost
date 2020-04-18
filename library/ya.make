@@ -76,7 +76,6 @@ RECURSE(
     netliba
     object_factory
     object_factory/ut
-    on_disk
     openssl
     overloaded
     overloaded/ut
