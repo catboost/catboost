@@ -7,6 +7,22 @@
         "checksum": "46a954f2ea32a20437c802929f3b6544",
         "uri": "file://test.test_allow_writing_files_and_used_ram_limit_CPU-2Gb_/predictions.npy"
     },
+    "test.test_approximate_shap_feature_importance[CPU]": {
+        "checksum": "216dcdfd914ca8096c38ed87393d7a41",
+        "uri": "file://test.test_approximate_shap_feature_importance_CPU_/feature_importance.npy"
+    },
+    "test.test_approximate_shap_feature_importance_multiclass[CPU]": {
+        "checksum": "98a6dce2d871153973be046170969bba",
+        "uri": "file://test.test_approximate_shap_feature_importance_multiclass_CPU_/feature_importance.npy"
+    },
+    "test.test_approximate_shap_feature_importance_ranking[CPU]": {
+        "checksum": "cfd1a96e4021e70fd4287a25f9eef2fc",
+        "uri": "file://test.test_approximate_shap_feature_importance_ranking_CPU_/feature_importance.npy"
+    },
+    "test.test_approximate_shap_feature_importance_with_langevin": {
+        "checksum": "213621e797ed49454e3a00917b90d2b2",
+        "uri": "file://test.test_approximate_shap_feature_importance_with_langevin/feature_importance.npy"
+    },
     "test.test_binclass_with_nontrivial_classes": {
         "checksum": "cd9e4e4abe956e909ad840233083eaeb",
         "uri": "file://test.test_binclass_with_nontrivial_classes/catboost_training.json"
@@ -781,17 +797,25 @@
         "checksum": "9a4058bbf3261506f9fb0df62b5c9d8a",
         "uri": "file://test.test_ones_weight_CPU_/model.bin"
     },
-    "test.test_onnx_export[binclass]": {
-        "checksum": "615ecdf76501f855a29a8565eef1e111",
-        "uri": "file://test.test_onnx_export_binclass_/model.onnx"
+    "test.test_onnx_export[problem_type=binclass-boost_from_average=False]": {
+        "checksum": "700c78e0593aac2c4c43ed9106ce95ca",
+        "uri": "file://test.test_onnx_export_problem_type=binclass-boost_from_average=False_/model.onnx"
     },
-    "test.test_onnx_export[multiclass]": {
-        "checksum": "95a021ab5fd652276edcdf0b918dabe5",
-        "uri": "file://test.test_onnx_export_multiclass_/model.onnx"
+    "test.test_onnx_export[problem_type=binclass-boost_from_average=True]": {
+        "checksum": "006d123ba9474717ccfb70de26fb6195",
+        "uri": "file://test.test_onnx_export_problem_type=binclass-boost_from_average=True_/model.onnx"
     },
-    "test.test_onnx_export[regression]": {
-        "checksum": "721233895b434fb8d40f55bc3ca5a8a1",
-        "uri": "file://test.test_onnx_export_regression_/model.onnx"
+    "test.test_onnx_export[problem_type=multiclass-boost_from_average=False]": {
+        "checksum": "d732423e0ecd207c87779c392f037dc2",
+        "uri": "file://test.test_onnx_export_problem_type=multiclass-boost_from_average=False_/model.onnx"
+    },
+    "test.test_onnx_export[problem_type=regression-boost_from_average=False]": {
+        "checksum": "e71d72cc1aef62d565a71b2868768186",
+        "uri": "file://test.test_onnx_export_problem_type=regression-boost_from_average=False_/model.onnx"
+    },
+    "test.test_onnx_export[problem_type=regression-boost_from_average=True]": {
+        "checksum": "5a6fd5063c6ec547583b26614e081809",
+        "uri": "file://test.test_onnx_export_problem_type=regression-boost_from_average=True_/model.onnx"
     },
     "test.test_pairs_generation[CPU]": {
         "checksum": "51fb3a6749748c80961bf1d829808e4a",
@@ -837,9 +861,17 @@
         "checksum": "33cd8add092a7199fefc04fe525d6d58",
         "uri": "file://test.test_predict_sklearn_regress_CPU_/model.bin"
     },
-    "test.test_prediction_diff_feature_importance": {
+    "test.test_prediction_diff_feature_importance[CPU]": {
         "checksum": "9842358f4b8a9a7427b8be7bc46c9956",
-        "uri": "file://test.test_prediction_diff_feature_importance/feature_importance.npy"
+        "uri": "file://test.test_prediction_diff_feature_importance_CPU_/feature_importance.npy"
+    },
+    "test.test_prediction_diff_nonsym_feature_importance[CPU-Depthwise]": {
+        "checksum": "9287b46613e4de35e19e169bd38a4d6b",
+        "uri": "file://test.test_prediction_diff_nonsym_feature_importance_CPU-Depthwise_/feature_importance.txt"
+    },
+    "test.test_prediction_diff_nonsym_feature_importance[CPU-Lossguide]": {
+        "checksum": "140c0e29e0539f15e561e4c900257da7",
+        "uri": "file://test.test_prediction_diff_nonsym_feature_importance_CPU-Lossguide_/feature_importance.txt"
     },
     "test.test_prediction_plot": {
         "checksum": "c8096f03bb3dcc5d6f1ea88209bd798d",

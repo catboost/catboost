@@ -21,7 +21,7 @@ namespace std {
         bool operator()(const char* x, const char* y) const {
             return strcmp(x, y) == 0;
         }
-        bool operator()(const char* x, const TFixedString<char> y) const {
+        bool operator()(const char* x, const TStringBuf y) const {
             return strlen(x) == y.Length && memcmp(x, y.Start, y.Length) == 0;
         }
         using is_transparent = void;
@@ -64,7 +64,7 @@ struct hash<T*>: public ::hash<const T*> {
 template <>
 struct hash<const char*> {
     // note that const char* is implicitly converted to TFixedString
-    inline size_t operator()(const TFixedString<char> s) const noexcept {
+    inline size_t operator()(const TStringBuf s) const noexcept {
         return TString::hashVal(s.Start, s.Length);
     }
 };

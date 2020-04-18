@@ -108,7 +108,7 @@ class develop(namespaces.DevelopInstaller, easy_install):
         return path_to_setup
 
     def install_for_development(self):
-        if six.PY3 and getattr(self.distribution, 'use_2to3', False):
+        if not six.PY2 and getattr(self.distribution, 'use_2to3', False):
             # If we run 2to3 we can not do this inplace:
 
             # Ensure metadata is up-to-date

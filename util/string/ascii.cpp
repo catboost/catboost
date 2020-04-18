@@ -43,7 +43,7 @@ extern const unsigned char NPrivate::ASCII_LOWER[256] = {
 };
 // clang-format on
 
-int AsciiCompareIgnoreCase(const TFixedString<char> s1, const TFixedString<char> s2) noexcept {
+int AsciiCompareIgnoreCase(const TStringBuf s1, const TStringBuf s2) noexcept {
     if (s1.Length <= s2.Length) {
         if (int cmp = strnicmp(s1.Start, s2.Start, s1.Length)) {
             return cmp;

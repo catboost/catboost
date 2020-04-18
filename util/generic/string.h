@@ -113,7 +113,6 @@ public:
     using TBase = TStringBase<TBasicString, TCharType, TTraits>;
     using TDataTraits = ::NDetail::TStringDataTraits<TCharType>;
     using TData = typename TDataTraits::TData;
-    using TFixedString = ::TFixedString<TCharType, TTraits>;
 
     using TCharRef = TBasicCharRef<TBasicString>; // TODO: reference
     using char_type = TCharType; // TODO: DROP
@@ -403,7 +402,7 @@ public:
         TTraits::Copy(Data_, b, e - b);
     }
 
-    explicit TBasicString(const TFixedString s)
+    explicit TBasicString(const TBasicStringBuf<TCharType, TTraits> s)
         : Data_(Allocate(s.Length))
     {
         if (0 != s.Length) {
@@ -422,15 +421,15 @@ public:
      *    Certain invokations of this method will result in link-time error.
      *    You are free to implement corresponding methods in string.cpp if you need them.
      */
-    static TBasicString FromAscii(const ::TFixedString<char>& s) {
+    static TBasicString FromAscii(const ::TStringBuf& s) {
         return TBasicString().AppendAscii(s);
     }
 
-    static TBasicString FromUtf8(const ::TFixedString<char>& s) {
+    static TBasicString FromUtf8(const ::TStringBuf& s) {
         return TBasicString().AppendUtf8(s);
     }
 
-    static TBasicString FromUtf16(const ::TFixedString<wchar16>& s) {
+    static TBasicString FromUtf16(const ::TWtringBuf& s) {
         return TBasicString().AppendUtf16(s);
     }
 
@@ -440,7 +439,7 @@ public:
 
 private:
     template <typename... R>
-    static size_t SumLength(const TFixedString s1, const R&... r) noexcept {
+    static size_t SumLength(const TBasicStringBuf<TCharType, TTraits> s1, const R&... r) noexcept {
         return s1.Length + SumLength(r...);
     }
 
@@ -454,7 +453,7 @@ private:
     }
 
     template <typename... R>
-    static void CopyAll(TCharType* p, const TFixedString s, const R&... r) {
+    static void CopyAll(TCharType* p, const TBasicStringBuf<TCharType, TTraits> s, const R&... r) {
         TTraits::Copy(p, s.Start, s.Length);
         CopyAll(p + s.Length, r...);
     }
@@ -553,19 +552,19 @@ public:
         return AssignNoAlias(b, e - b);
     }
 
-    TBasicString& assign(const TFixedString s) {
+    TBasicString& assign(const TBasicStringBuf<TCharType, TTraits> s) {
         return assign(s.Start, s.Length);
     }
 
-    TBasicString& assign(const TFixedString s, size_t spos, size_t sn = TBase::npos) {
+    TBasicString& assign(const TBasicStringBuf<TCharType, TTraits> s, size_t spos, size_t sn = TBase::npos) {
         return assign(s.SubString(spos, sn));
     }
 
-    TBasicString& AssignNoAlias(const TFixedString s) {
+    TBasicString& AssignNoAlias(const TBasicStringBuf<TCharType, TTraits> s) {
         return AssignNoAlias(s.Start, s.Length);
     }
 
-    TBasicString& AssignNoAlias(const TFixedString s, size_t spos, size_t sn = TBase::npos) {
+    TBasicString& AssignNoAlias(const TBasicStringBuf<TCharType, TTraits> s, size_t spos, size_t sn = TBase::npos) {
         return AssignNoAlias(s.SubString(spos, sn));
     }
 
@@ -574,17 +573,17 @@ public:
      *    Certain invokations of this method will result in link-time error.
      *    You are free to implement corresponding methods in string.cpp if you need them.
      */
-    auto AssignAscii(const ::TFixedString<char>& s) {
+    auto AssignAscii(const ::TStringBuf& s) {
         clear();
         return AppendAscii(s);
     }
 
-    auto AssignUtf8(const ::TFixedString<char>& s) {
+    auto AssignUtf8(const ::TStringBuf& s) {
         clear();
         return AppendUtf8(s);
     }
 
-    auto AssignUtf16(const ::TFixedString<wchar16>& s) {
+    auto AssignUtf16(const ::TWtringBuf& s) {
         clear();
         return AppendUtf16(s);
     }
@@ -598,7 +597,7 @@ public:
         return *this;
     }
 
-    TBasicString& operator=(const TFixedString s) {
+    TBasicString& operator=(const TBasicStringBuf<TCharType, TTraits> s) {
         return assign(s);
     }
 
@@ -689,19 +688,19 @@ public:
         return *this;
     }
 
-    TBasicString& AppendNoAlias(const TFixedString s) {
+    TBasicString& AppendNoAlias(const TBasicStringBuf<TCharType, TTraits> s) {
         return AppendNoAlias(s.Start, s.Length);
     }
 
-    TBasicString& AppendNoAlias(const TFixedString s, size_t spos, size_t sn = TBase::npos) {
+    TBasicString& AppendNoAlias(const TBasicStringBuf<TCharType, TTraits> s, size_t spos, size_t sn = TBase::npos) {
         return AppendNoAlias(s.SubString(spos, sn));
     }
 
-    TBasicString& append(const TFixedString s) {
+    TBasicString& append(const TBasicStringBuf<TCharType, TTraits> s) {
         return append(s.Start, s.Length);
     }
 
-    TBasicString& append(const TFixedString s, size_t spos, size_t sn = TBase::npos) {
+    TBasicString& append(const TBasicStringBuf<TCharType, TTraits> s, size_t spos, size_t sn = TBase::npos) {
         return append(s.SubString(spos, sn));
     }
 
@@ -714,11 +713,11 @@ public:
      *    Certain invokations of this method will result in link-time error.
      *    You are free to implement corresponding methods in string.cpp if you need them.
      */
-    TBasicString& AppendAscii(const ::TFixedString<char>& s);
+    TBasicString& AppendAscii(const ::TStringBuf& s);
 
-    TBasicString& AppendUtf8(const ::TFixedString<char>& s);
+    TBasicString& AppendUtf8(const ::TStringBuf& s);
 
-    TBasicString& AppendUtf16(const ::TFixedString<wchar16>& s);
+    TBasicString& AppendUtf16(const ::TWtringBuf& s);
 
     inline void push_back(TCharType c) {
         append(c);
@@ -802,7 +801,7 @@ public:
         return std::move(s1);
     }
 
-    friend TBasicString operator+(TBasicString&& s1, const TFixedString s2) Y_WARN_UNUSED_RESULT {
+    friend TBasicString operator+(TBasicString&& s1, const TBasicStringBuf<TCharType, TTraits> s2) Y_WARN_UNUSED_RESULT {
         s1 += s2;
         return std::move(s1);
     }
@@ -821,7 +820,7 @@ public:
         return Join(s1, s2);
     }
 
-    friend TBasicString operator+(const TBasicString& s1, const TFixedString s2) Y_WARN_UNUSED_RESULT {
+    friend TBasicString operator+(const TBasicString& s1, const TBasicStringBuf<TCharType, TTraits> s2) Y_WARN_UNUSED_RESULT {
         return Join(s1, s2);
     }
 
@@ -830,7 +829,7 @@ public:
     }
 
     friend TBasicString operator+(const TBasicString& s1, TCharType s2) Y_WARN_UNUSED_RESULT {
-        return Join(s1, TFixedString(&s2, 1));
+        return Join(s1, TBasicStringBuf<TCharType, TTraits>(&s2, 1));
     }
 
     friend TBasicString operator+(const TCharType* s1, TBasicString&& s2) Y_WARN_UNUSED_RESULT {
@@ -838,12 +837,12 @@ public:
         return std::move(s2);
     }
 
-    friend TBasicString operator+(const TFixedString s1, TBasicString&& s2) Y_WARN_UNUSED_RESULT {
+    friend TBasicString operator+(const TBasicStringBuf<TCharType, TTraits> s1, TBasicString&& s2) Y_WARN_UNUSED_RESULT {
         s2.prepend(s1);
         return std::move(s2);
     }
 
-    friend TBasicString operator+(const TFixedString s1, const TBasicString& s2) Y_WARN_UNUSED_RESULT {
+    friend TBasicString operator+(const TBasicStringBuf<TCharType, TTraits> s1, const TBasicString& s2) Y_WARN_UNUSED_RESULT {
         return Join(s1, s2);
     }
 
@@ -872,7 +871,7 @@ public:
         return replace(0, 0, &c, 0, 1, 1);
     }
 
-    TBasicString& prepend(const TFixedString s, size_t spos = 0, size_t sn = TBase::npos) {
+    TBasicString& prepend(const TBasicStringBuf<TCharType, TTraits> s, size_t spos = 0, size_t sn = TBase::npos) {
         return insert(0, s, spos, sn);
     }
 
@@ -890,7 +889,7 @@ public:
     }
 
     TBasicString& insert(size_t pos, const TCharType* pc, size_t len) {
-        return insert(pos, TFixedString(pc, len));
+        return insert(pos, TBasicStringBuf<TCharType, TTraits>(pc, len));
     }
 
     TBasicString& insert(const_iterator pos, const_iterator b, const_iterator e) {
@@ -913,7 +912,7 @@ public:
         return this->insert(pos, 1, ch);
     }
 
-    TBasicString& insert(size_t pos, const TFixedString s, size_t spos = 0, size_t sn = TBase::npos) {
+    TBasicString& insert(size_t pos, const TBasicStringBuf<TCharType, TTraits> s, size_t spos = 0, size_t sn = TBase::npos) {
         return replace(pos, 0, s, spos, sn);
     }
 
@@ -958,7 +957,7 @@ public:
     }
 
     TBasicString& replace(size_t pos, size_t n, const TCharType* pc) {
-        return replace(pos, n, TFixedString(pc));
+        return replace(pos, n, TBasicStringBuf<TCharType, TTraits>(pc));
     }
 
     TBasicString& replace(size_t pos, size_t n, const TCharType* s, size_t len) {
@@ -977,7 +976,7 @@ public:
         }
     }
 
-    TBasicString& replace(size_t pos, size_t n, const TFixedString s, size_t spos = 0, size_t sn = TBase::npos) {
+    TBasicString& replace(size_t pos, size_t n, const TBasicStringBuf<TCharType, TTraits> s, size_t spos = 0, size_t sn = TBase::npos) {
         return replace(pos, n, s.Start, spos, sn, s.Length);
     }
 

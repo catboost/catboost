@@ -1737,7 +1737,7 @@ namespace NCB {
     }
 
     void TColumnsQuantizer::Do() {
-        if (Options.CpuCompatibleFormat && Options.BundleExclusiveFeaturesForCpu) {
+        if (Options.BundleExclusiveFeatures) {
             ScheduleAggregateFeatures<EFeatureValuesType::ExclusiveFeatureBundle>();
 
             /*
@@ -2195,12 +2195,6 @@ namespace NCB {
             NPar::TLocalExecutor* localExecutor,
             const TInitialBorders& initialBorders = Nothing()
         ) {
-             CB_ENSURE_INTERNAL(
-                options.CpuCompatibleFormat || options.GpuCompatibleFormat,
-                "TQuantizationOptions: at least one of CpuCompatibleFormat or GpuCompatibleFormat"
-                "options must be true"
-            );
-
             auto& srcObjectsCommonData = rawDataProvider->ObjectsData->CommonData;
 
             auto featuresLayout = InitFeaturesLayoutForQuantizedData(
@@ -2212,9 +2206,6 @@ namespace NCB {
             const bool clearSrcObjectsData = clearSrcData &&
                 (rawDataProvider->ObjectsData->RefCount() <= 1);
 
-            const bool bundleExclusiveFeatures =
-                options.CpuCompatibleFormat && options.BundleExclusiveFeaturesForCpu;
-
             /*
              * If these conditions are satisfied quantized features data is only needed for GPU
              *  so it is possible not to store all quantized features bins in CPU RAM
@@ -2223,9 +2214,10 @@ namespace NCB {
              *  Returned TQuantizedObjectsDataProvider will contain
              *  TExternalFloatValuesHolders and TExternalCatValuesHolders in features data holders.
              */
-            const bool storeFeaturesDataAsExternalValuesHolders = !options.CpuCompatibleFormat &&
+            const bool storeFeaturesDataAsExternalValuesHolders = false;
+            /* Temporarily switch ext columns-off to measure speed !options.CpuCompatibleFormat &&
                 !clearSrcObjectsData &&
-                !featuresLayout->GetTextFeatureCount();
+                !featuresLayout->GetTextFeatureCount();*/
 
             TObjectsGroupingPtr objectsGrouping = rawDataProvider->ObjectsGrouping;
 
@@ -2290,7 +2282,7 @@ namespace NCB {
                 );
 
                 const bool calcQuantizationAndNanModeOnlyInProcessFloatFeatures =
-                    calcQuantizationAndNanModeOnly || bundleExclusiveFeatures;
+                    calcQuantizationAndNanModeOnly || options.BundleExclusiveFeatures;
 
                 featuresLayout->IterateOverAvailableFeatures<EFeatureType::Float>(
                     [&] (TFloatFeatureIdx floatFeatureIdx) {
@@ -2329,7 +2321,7 @@ namespace NCB {
                                     // binary features are binarized later by packs
                                     if (clearSrcObjectsData &&
                                         (calcQuantizationAndNanModeOnly ||
-                                         (!bundleExclusiveFeatures &&
+                                         (!options.BundleExclusiveFeatures &&
                                           !IsFloatFeatureToBeBinarized(
                                               options,
                                               *quantizedFeaturesInfo,
@@ -2362,7 +2354,7 @@ namespace NCB {
                                             catFeatureIdx,
                                             **srcCatFeatureHolderPtr,
                                             options,
-                                            bundleExclusiveFeatures,
+                                            options.BundleExclusiveFeatures,
                                             storeFeaturesDataAsExternalValuesHolders,
                                             *incrementalIndexing,
                                             subsetIndexing.Get(),
@@ -2374,7 +2366,7 @@ namespace NCB {
                                         // exclusive features are bundled later by bundle,
                                         // binary features are binarized later by packs
                                         if (clearSrcObjectsData &&
-                                            (!bundleExclusiveFeatures &&
+                                            (!options.BundleExclusiveFeatures &&
                                               !IsCatFeatureToBeBinarized(
                                                   options,
                                                   *quantizedFeaturesInfo,
@@ -2429,7 +2421,7 @@ namespace NCB {
             data->ObjectsData.Data.QuantizedFeaturesInfo = quantizedFeaturesInfo;
 
 
-            if (bundleExclusiveFeatures) {
+            if (options.BundleExclusiveFeatures) {
                 data->ObjectsData.ExclusiveFeatureBundlesData = TExclusiveFeatureBundlesData(
                     *featuresLayout,
                     CreateExclusiveFeatureBundles(
@@ -2495,21 +2487,13 @@ namespace NCB {
             data->CommonObjectsData.FeaturesLayout = featuresLayout;
             data->CommonObjectsData.SubsetIndexing = std::move(subsetIndexing);
 
-            if (options.CpuCompatibleFormat) {
-                return MakeDataProvider<TQuantizedForCPUObjectsDataProvider>(
-                    objectsGrouping,
-                    std::move(*data),
-                    false,
-                    localExecutor
-                )->CastMoveTo<TQuantizedObjectsDataProvider>();
-            } else {
-                return MakeDataProvider<TQuantizedObjectsDataProvider>(
-                    objectsGrouping,
-                    CastToBase(std::move(*data)),
-                    false,
-                    localExecutor
-                );
-            }
+
+            return MakeDataProvider<TQuantizedForCPUObjectsDataProvider>(
+                objectsGrouping,
+                std::move(*data),
+                false,
+                localExecutor
+            );
         }
     };
 
@@ -2636,15 +2620,13 @@ namespace NCB {
         TQuantizationOptions quantizationOptions;
         quantizationOptions.GroupFeaturesForCpu = params.DataProcessingOptions->DevGroupFeatures.GetUnchecked();
         if (params.GetTaskType() == ETaskType::CPU) {
-            quantizationOptions.GpuCompatibleFormat = false;
 
             quantizationOptions.ExclusiveFeaturesBundlingOptions.MaxBuckets
                 = params.ObliviousTreeOptions->DevExclusiveFeaturesBundleMaxBuckets.Get();
             quantizationOptions.ExclusiveFeaturesBundlingOptions.MaxConflictFraction
                 = params.ObliviousTreeOptions->SparseFeaturesConflictFraction.Get();
 
-            /* TODO(kirillovs): Sparse features support for GPU
-             * TODO(akhropov): Enable when sparse column scoring is supported
+            /* TODO(akhropov): Enable when sparse column scoring is supported
 
             float defaultValueFractionToEnableSparseStorage
                 = params.DataProcessingOptions->DevDefaultValueFractionToEnableSparseStorage.Get();
@@ -2658,24 +2640,15 @@ namespace NCB {
         } else {
             Y_ASSERT(params.GetTaskType() == ETaskType::GPU);
 
-            /*
-             * if there're any cat features format should be CPU-compatible to enable final CTR
-             * calculations.
-             * TODO(akhropov): compatibility with final CTR calculation should not depend on this flag
-             */
-            quantizationOptions.CpuCompatibleFormat
-                = srcData->MetaInfo.FeaturesLayout->GetCatFeatureCount() != 0;
-            if (quantizationOptions.CpuCompatibleFormat) {
-                /* don't spend time on bundling preprocessing because it won't be used
-                 *
-                 * TODO(akhropov): maybe there are cases where CPU RAM usage reduction is more important
-                 *    than calculation speed so it should be enabled
-                 */
-                quantizationOptions.BundleExclusiveFeaturesForCpu = false;
+            quantizationOptions.CpuCompatibleFormat = true;
 
-                // grouping is unused on GPU
-                quantizationOptions.GroupFeaturesForCpu = false;
-            }
+            quantizationOptions.BundleExclusiveFeatures = true;
+            quantizationOptions.ExclusiveFeaturesBundlingOptions.MaxBuckets = Min<ui32>(
+                254, params.ObliviousTreeOptions->DevExclusiveFeaturesBundleMaxBuckets.Get());
+            quantizationOptions.ExclusiveFeaturesBundlingOptions.OnlyOneHotsAndBinaryFloats = true;
+
+            quantizationOptions.PackBinaryFeaturesForCpu = false;
+            quantizationOptions.GroupFeaturesForCpu = false;
         }
         quantizationOptions.CpuRamLimit
             = ParseMemorySizeDescription(params.SystemOptions->CpuUsedRamLimit.Get());

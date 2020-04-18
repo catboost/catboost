@@ -22,10 +22,10 @@ NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETa
       , GrowPolicy("grow_policy", EGrowPolicy::SymmetricTree)
       , MaxLeaves("max_leaves", 31)
       , MinDataInLeaf("min_data_in_leaf", 1)
+      , DevExclusiveFeaturesBundleMaxBuckets("dev_efb_max_buckets", taskType == ETaskType::CPU ? 1 << 10 : 254)
       , SamplingFrequency("sampling_frequency", ESamplingFrequency::PerTree, taskType)
       , ModelSizeReg("model_size_reg", 0.5f, taskType)
       , DevScoreCalcObjBlockSize("dev_score_calc_obj_block_size", 5000000, taskType)
-      , DevExclusiveFeaturesBundleMaxBuckets("dev_efb_max_buckets", 1 << 10, taskType)
       , SparseFeaturesConflictFraction("sparse_features_conflict_fraction", 0.0f, taskType)
       , ObservationsToBootstrap("observations_to_bootstrap", EObservationsToBootstrap::TestOnly, taskType) //it's specific for fold-based scheme, so here and not in bootstrap options
       , FoldSizeLossNormalization("fold_size_loss_normalization", false, taskType)
@@ -123,7 +123,7 @@ void NCatboostOptions::TObliviousTreeLearnerOptions::Validate() const {
         CB_ENSURE(MaxLeaves.Get() <= maxLeavesCount, "Maximum leaves count for Lossguide grow policy is " << maxLeavesCount);
     }
     CB_ENSURE(DevScoreCalcObjBlockSize.GetUnchecked() > 0, "DevScoreCalcObjBlockSize must be > 0");
-    CB_ENSURE(DevExclusiveFeaturesBundleMaxBuckets.GetUnchecked() < (1U << 16), "DevExclusiveFeaturesBundleMaxBuckets must be less than 65536");
+    CB_ENSURE(DevExclusiveFeaturesBundleMaxBuckets.Get() < (1U << 16), "DevExclusiveFeaturesBundleMaxBuckets must be less than 65536");
     CB_ENSURE(
         (SparseFeaturesConflictFraction.GetUnchecked() >= 0.f) && (SparseFeaturesConflictFraction.GetUnchecked() < 1.f),
         "SparseFeaturesConflictFraction should be in [0, 1)"

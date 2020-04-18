@@ -18,7 +18,7 @@
 #define FLATBUFFERS_ITER_H_
 
 #include "flatbuffers.h"
-#include <boost/optional.hpp>
+#include <optional>
 
 /// @file
 namespace yandex {
@@ -109,8 +109,8 @@ template<typename T> struct IndirectHelper {
   }
 };
 template<typename T> struct IndirectHelper<Offset<T>> {
-  typedef boost::optional<const T> return_type;
-  typedef boost::optional<T> mutable_return_type;
+  typedef std::optional<T> return_type;
+  typedef std::optional<T> mutable_return_type;
   static const size_t element_stride = sizeof(uoffset_t);
   template<typename Iter>
   static return_type Read(Iter p, uoffset_t i) {
@@ -270,7 +270,7 @@ public:
     auto search_result = std::lower_bound(begin(), end(), key, KeyCompare<K>);
 
     if (search_result == end() || (*search_result)->KeyCompareWithValue(key) != 0) {
-      return boost::none;  // Key not found.
+      return std::nullopt;  // Key not found.
     }
 
     return *search_result;
@@ -314,7 +314,7 @@ protected:
 
 // Convenient helper function to get the length of any vector, regardless
 // of wether it is null or not (the field is not set).
-template<typename T, typename Iter> static inline size_t VectorLength(const boost::optional<Vector<T, Iter>> &v) {
+template<typename T, typename Iter> static inline size_t VectorLength(const std::optional<Vector<T, Iter>> &v) {
   return v ? v->Length() : 0;
 }
 
@@ -342,16 +342,16 @@ inline voffset_t FieldIndexToOffset(voffset_t field_id) {
 /// @endcond
 
 /// @cond FLATBUFFERS_INTERNAL
-template<typename T, typename Iter> boost::optional<const T> GetMutableRoot(Iter begin) {
+template<typename T, typename Iter> std::optional<T> GetMutableRoot(Iter begin) {
   flatbuffers::EndianCheck();
   return T(begin + EndianScalar(extractValue<uoffset_t>(begin)));
 }
 
-template<typename T, typename Iter> boost::optional<const T> GetRoot(Iter begin) {
+template<typename T, typename Iter> std::optional<T> GetRoot(Iter begin) {
   return GetMutableRoot<T, Iter>(begin);
 }
 
-template<typename T, typename Iter> boost::optional<const T> GetSizePrefixedRoot(Iter buf) {
+template<typename T, typename Iter> std::optional<T> GetSizePrefixedRoot(Iter buf) {
   return GetRoot<T, Iter>(buf + sizeof(uoffset_t));
 }
 
@@ -406,22 +406,22 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
     return Verify(elem, sizeof(T));
   }
 
-  template<typename T> bool VerifyTable(const boost::optional<T>& table) {
+  template<typename T> bool VerifyTable(const std::optional<T>& table) {
     return !table || table->Verify(*this);
   }
 
-  template<typename T> bool Verify(const boost::optional<const Vector<T, Iter>>& vec) const {
+  template<typename T> bool Verify(const std::optional<Vector<T, Iter>>& vec) const {
     Iter end;
     return !vec ||
            VerifyVector(static_cast<Iter>(*vec), sizeof(T),
                         &end);
   }
 
-  template<typename T> bool Verify(const boost::optional<const Vector<const T, Iter>>& vec) const {
-    return Verify(*reinterpret_cast<const boost::optional<const Vector<T, Iter>> *>(&vec));
+  template<typename T> bool Verify(const std::optional<Vector<const T, Iter>>& vec) const {
+    return Verify(*reinterpret_cast<const std::optional<Vector<T, Iter>> *>(&vec));
   }
 
-  bool Verify(const boost::optional<const String<Iter>>& str) const {
+  bool Verify(const std::optional<String<Iter>>& str) const {
     Iter end;
     return !str ||
            (VerifyVector(static_cast<Iter>(*str), 1, &end) &&
@@ -446,7 +446,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   // Special case for string contents, after the above has been called.
-  bool VerifyVectorOfStrings(const boost::optional<const Vector<Offset<String<Iter>>, Iter>>& vec) const {
+  bool VerifyVectorOfStrings(const std::optional<Vector<Offset<String<Iter>>, Iter>>& vec) const {
       if (vec) {
         for (uoffset_t i = 0; i < vec->size(); i++) {
           if (!Verify(vec->Get(i))) return false;
@@ -456,7 +456,7 @@ class Verifier FLATBUFFERS_FINAL_CLASS {
   }
 
   // Special case for table contents, after the above has been called.
-  template<typename T> bool VerifyVectorOfTables(const boost::optional<const Vector<Offset<T>, Iter>>& vec) {
+  template<typename T> bool VerifyVectorOfTables(const std::optional<Vector<Offset<T>, Iter>>& vec) {
     if (vec) {
       for (uoffset_t i = 0; i < vec->size(); i++) {
         if (!vec->Get(i)->Verify(*this)) return false;
@@ -578,13 +578,13 @@ class Table {
     return field_offset ? ReadScalar<T>(data_ + field_offset) : defaultval;
   }
 
-  template<typename P> boost::optional<P> GetPointer(voffset_t field) {
+  template<typename P> std::optional<P> GetPointer(voffset_t field) {
     auto field_offset = GetOptionalFieldOffset(field);
     auto p = data_ + field_offset;
-    return field_offset ? boost::optional<P>(P(p + ReadScalar<uoffset_t>(p))) : boost::none;
+    return field_offset ? std::optional<P>(P(p + ReadScalar<uoffset_t>(p))) : std::nullopt;
   }
 
-  template<typename P> boost::optional<P> GetPointer(voffset_t field) const {
+  template<typename P> std::optional<P> GetPointer(voffset_t field) const {
     return const_cast<Table *>(this)->template GetPointer<P>(field);
   }
 

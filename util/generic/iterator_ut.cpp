@@ -56,6 +56,6 @@ Y_UNIT_TEST_SUITE(TInputRangeAdaptor) {
            UNIT_ASSERT_VALUES_EQUAL(part, *expected_part);
            ++expected_part;
         }
-        UNIT_ASSERT(expected_part == expected.end())
+        UNIT_ASSERT(expected_part == expected.end());
     }
 }

@@ -4,6 +4,7 @@
 
 #include <catboost/private/libs/ctr_description/ctr_config.h>
 #include <catboost/libs/data/cat_feature_perfect_hash.h>
+#include <catboost/libs/data/exclusive_feature_bundling.h>
 #include <catboost/libs/data/features_layout.h>
 #include <catboost/libs/data/feature_estimators.h>
 #include <catboost/libs/data/quantized_features_info.h>
@@ -32,6 +33,7 @@ namespace NCatboostCuda {
         TBinarizedFeaturesManager(const NCatboostOptions::TCatFeatureParams& catFeatureOptions,
                                   NCB::TFeatureEstimatorsPtr estimators,
                                   const NCB::TFeaturesLayout& featuresLayout,
+                                  const TVector<NCB::TExclusiveFeaturesBundle>& learnExclusiveFeatureBundles,
                                   NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo);
 
         TBinarizedFeaturesManager(const TBinarizedFeaturesManager& featureManager, const TVector<ui32>& ignoredFeatureIds);
@@ -74,6 +76,47 @@ namespace NCatboostCuda {
         bool IsTreeCtr(ui32 featureId) const {
             CB_ENSURE(featureId < Cursor);
             return IsCtr(featureId) && !GetCtr(featureId).IsSimple();
+        }
+
+        bool IsFeatureBundle(ui32 featureId) const {
+            CB_ENSURE(featureId < Cursor);
+            return FeatureManagerIdToExclusiveBundleId.contains(featureId);
+        }
+
+        const NCB::TExclusiveFeaturesBundle& GetFeatureBundleForFeatureId(ui32 featureId) const {
+            const auto exclusiveBundleId = FeatureManagerIdToExclusiveBundleId.at(featureId);
+            return LearnExclusiveFeatureBundles.at(exclusiveBundleId);
+        }
+
+        TBinarySplit TranslateFeatureBundleSplitToBinarySplit(ui32 featureId, ui32 split) const {
+            const auto exclusiveBundleId = FeatureManagerIdToExclusiveBundleId.at(featureId);
+            const auto& bundleParts = LearnExclusiveFeatureBundles.at(exclusiveBundleId).Parts;
+            ui32 partId = 0;
+            if (split > 0) {
+                for (auto i : xrange(bundleParts.size())) {
+                    if (split < bundleParts[i].Bounds.End) {
+                        partId = i;
+                        break;
+                    }
+                }
+            } else {
+                for (auto i : xrange(bundleParts.size())) {
+                    if (bundleParts[i].FeatureType == EFeatureType::Categorical) {
+                        partId = i;
+                        break;
+                    }
+                }
+            }
+            const auto& part = bundleParts[partId];
+            auto featuresLayout = QuantizedFeaturesInfo->GetFeaturesLayout();
+            auto dataProviderIdxForPart = featuresLayout->GetExternalFeatureIdx(part.FeatureIdx, part.FeatureType);
+            if (part.FeatureType == EFeatureType::Float) {
+                const auto floatIdx = DataProviderFloatFeatureIdToFeatureManagerId.at(dataProviderIdxForPart).at(0);
+                return TBinarySplit{floatIdx, split - part.Bounds.Begin, EBinSplitType::TakeGreater};
+            } else {
+                auto catIdx = DataProviderCatFeatureIdToFeatureManagerId.at(dataProviderIdxForPart);
+                return TBinarySplit{catIdx, split ? split - part.Bounds.Begin + 1 : 0, EBinSplitType::TakeBin};
+            }
         }
 
         bool IsEstimatedFeature(ui32 featureId) const {
@@ -128,6 +171,23 @@ namespace NCatboostCuda {
         }
 
         TVector<ui32> GetEstimatedFeatureIds() const;
+
+        TVector<ui32> GetExclusiveFeatureBundleIds() const {
+            TVector<ui32> result;
+            result.reserve(FeatureManagerIdToExclusiveBundleId.size());
+            for (auto it : FeatureManagerIdToExclusiveBundleId) {
+                result.push_back(it.first);
+            }
+            return result;
+        }
+
+        ui32 GetExclusiveFeatureBundleIdxForFeatureManagerIdx(ui32 localIdx) const {
+            return FeatureManagerIdToExclusiveBundleId.at(localIdx);
+        }
+
+        bool PresentInExclusiveFeatureBundle(ui32 featureId) const {
+            return FeatureManagerFeaturesToBundleId.contains(featureId);
+        }
 
         const TVector<float>& GetBorders(ui32 featureId) const;
 
@@ -269,6 +329,28 @@ namespace NCatboostCuda {
             );
         }
 
+        void RegisterFeatureBundles() {
+            if (!LearnExclusiveFeatureBundles) {
+                return;
+            }
+            auto featuresLayout = QuantizedFeaturesInfo->GetFeaturesLayout();
+            for (auto i : xrange(LearnExclusiveFeatureBundles.size())) {
+                auto managerId = RequestNewId();
+                FeatureManagerIdToExclusiveBundleId[managerId] = i;
+                for (auto& part : LearnExclusiveFeatureBundles[i].Parts) {
+                    auto dataProviderIdxForPart = featuresLayout->GetExternalFeatureIdx(part.FeatureIdx, part.FeatureType);
+                    if (part.FeatureType == EFeatureType::Float) {
+                        auto& floatIdxs = DataProviderFloatFeatureIdToFeatureManagerId.at(dataProviderIdxForPart);
+                        CB_ENSURE_INTERNAL(floatIdxs.size() == 1, "We don't expect wide float features in bundles on GPU");
+                        FeatureManagerFeaturesToBundleId[floatIdxs[0]] = i;
+                    } else {
+                        Y_ASSERT(part.FeatureType == EFeatureType::Categorical);
+                        FeatureManagerFeaturesToBundleId[DataProviderCatFeatureIdToFeatureManagerId.at(dataProviderIdxForPart)] = i;
+                    }
+                }
+            }
+        }
+
         void RegisterFeatureEstimator(const NCB::TEstimatorId& estimatorId, const NCB::TEstimatedFeaturesMeta& meta) {
             for (ui32 f = 0; f < meta.FeaturesCount; ++f) {
                 NCB::TEstimatedFeatureId feature{estimatorId, f};
@@ -345,5 +427,8 @@ namespace NCatboostCuda {
         TVector<TUserDefinedCombination> UserCombinations;
         TSet<ui32> IgnoredFeatures;
 
+        TVector<NCB::TExclusiveFeaturesBundle> LearnExclusiveFeatureBundles;
+        TMap<ui32, ui32> FeatureManagerIdToExclusiveBundleId;
+        THashMap<ui32, ui32> FeatureManagerFeaturesToBundleId;
     };
 }

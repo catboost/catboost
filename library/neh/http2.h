@@ -83,6 +83,9 @@ namespace NNeh {
         //enable tcp keepalive for outgoing requests sockets
         static bool TcpKeepAlive;
 
+        //enable limit requests per keep alive connection
+        static i32 LimitRequestsPerConnection;
+
         //set option, - return false, if option name not recognized
         static bool Set(TStringBuf name, TStringBuf value);
     };

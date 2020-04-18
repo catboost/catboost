@@ -160,7 +160,7 @@ std::function<bool(ui32)> BuildNodeSplitFunction(
 
 void UpdateIndices(
     const TSplitNode& node,
-    const TTrainingForCPUDataProviders& trainingData,
+    const TTrainingDataProviders& trainingData,
     const TIndexedSubset<ui32>& docsSubset,
     const TFold& fold,
     NPar::TLocalExecutor* localExecutor,
@@ -216,7 +216,7 @@ void UpdateIndices(
 
 void BuildIndicesForDataset(
     const TNonSymmetricTreeStructure& tree,
-    const TTrainingForCPUDataProviders& trainingData,
+    const TTrainingDataProviders& trainingData,
     const TFold& fold,
     ui32 sampleCount,
     const TVector<const TOnlineCTR*>& onlineCtrs,

@@ -79,17 +79,10 @@ namespace NCB {
         trainingData->MetaInfo = srcData->MetaInfo;
         trainingData->ObjectsGrouping = srcData->ObjectsGrouping;
 
-        if (auto* quantizedObjectsDataProviderPtr
-                = dynamic_cast<TQuantizedObjectsDataProvider*>(srcData->ObjectsData.Get()))
+        if (auto* quantizedForCPUObjectsDataProvider
+                = dynamic_cast<TQuantizedForCPUObjectsDataProvider*>(srcData->ObjectsData.Get()))
         {
             if (params->GetTaskType() == ETaskType::CPU) {
-                auto quantizedForCPUObjectsDataProvider
-                    = dynamic_cast<TQuantizedForCPUObjectsDataProvider*>(quantizedObjectsDataProviderPtr);
-                CB_ENSURE(
-                    quantizedForCPUObjectsDataProvider,
-                    "Quantized objects data is not compatible with CPU task type"
-                );
-
                 /*
                  * We need data to be consecutive for efficient blocked permutations
                  * but there're cases (e.g. CV with many folds) when limiting used CPU RAM is more important
@@ -112,18 +105,19 @@ namespace NCB {
                  */
                 CB_ENSURE(
                     (srcData->MetaInfo.FeaturesLayout->GetCatFeatureCount() == 0) ||
-                    dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(quantizedObjectsDataProviderPtr),
+                    quantizedForCPUObjectsDataProvider,
                     "Quantized objects data is not compatible with final CTR calculation"
                 );
             }
 
             if (params->DataProcessingOptions.Get().IgnoredFeatures.IsSet()) {
-                trainingData->ObjectsData = dynamic_cast<TQuantizedObjectsDataProvider*>(
-                    quantizedObjectsDataProviderPtr->GetFeaturesSubset(
+                trainingData->ObjectsData = dynamic_cast<TQuantizedForCPUObjectsDataProvider*>(
+                    quantizedForCPUObjectsDataProvider->GetFeaturesSubset(
                         params->DataProcessingOptions.Get().IgnoredFeatures,
-                        localExecutor).Get());
+                        localExecutor).Get()
+                );
             } else {
-                trainingData->ObjectsData = quantizedObjectsDataProviderPtr;
+                trainingData->ObjectsData = quantizedForCPUObjectsDataProvider;
             }
         } else {
             trainingData->ObjectsData = GetQuantizedObjectsData(
@@ -421,7 +415,7 @@ namespace NCB {
                     /*learnPermutation*/ Nothing(), // offline features
                     localExecutor,
                     rand
-                ).Cast<TQuantizedObjectsDataProvider>();
+                );
             }
         }
 

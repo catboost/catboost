@@ -106,12 +106,12 @@ def create_import_config(peers, gen_importmap, import_map={}, module_map={}):
     return None
 
 
-def vet_info_output_name(path):
-    return '{}{}'.format(path, vet_info_ext)
+def vet_info_output_name(path, ext=None):
+    return '{}{}'.format(path, ext or vet_info_ext)
 
 
-def vet_report_output_name(path):
-    return '{}{}'.format(path, vet_report_ext)
+def vet_report_output_name(path, ext=None):
+    return '{}{}'.format(path, ext or vet_report_ext)
 
 
 def get_source_path(args):
@@ -538,7 +538,21 @@ def do_link_test(args):
         xtest_lib_args.import_path = test_import_path + '_test'
         if test_lib_args:
             xtest_lib_args.module_map[test_import_path] = test_lib_args.output
+        need_append_ydx = args.ydx_file and args.srcs and args.vet_flags
+        if need_append_ydx:
+            def find_ydx_file_name(name, flags):
+                for i, elem in enumerate(flags):
+                    if elem.endswith(name):
+                        return (i, elem)
+                assert False, 'Unreachable code'
+
+            idx, ydx_file_name = find_ydx_file_name(args.ydx_file, args.vet_flags)
+            xtest_ydx_file_name = '{}_xtest'.format(ydx_file_name)
+            args.vet_flags[idx] = xtest_ydx_file_name
         do_link_lib(xtest_lib_args)
+        if need_append_ydx:
+            with open(ydx_file_name, 'ab') as dst_file, open(xtest_ydx_file_name, 'rb') as src_file:
+                dst_file.write(src_file.read())
 
     test_main_content = gen_test_main(args, test_lib_args, xtest_lib_args)
     test_main_name = os.path.join(args.output_root, '_test_main.go')
@@ -603,6 +617,7 @@ if __name__ == '__main__':
     parser.add_argument('++arc-source-root')
     parser.add_argument('++musl', action='store_true')
     parser.add_argument('++skip-tests', nargs='*', default=None)
+    parser.add_argument('++ydx-file', default='')
     args = parser.parse_args()
 
     # Temporary work around for noauto
@@ -619,7 +634,7 @@ if __name__ == '__main__':
     args.go_pack = os.path.join(args.tool_root, 'pack')
     args.go_vet = os.path.join(args.tool_root, 'vet') if args.vet is True else args.vet
     args.output = os.path.normpath(args.output)
-    args.vet_report_output = vet_report_output_name(args.output)
+    args.vet_report_output = vet_report_output_name(args.output, args.vet_report_ext)
     args.build_root = os.path.normpath(args.build_root) + os.path.sep
     args.output_root = os.path.normpath(args.output_root)
     args.import_map = {}

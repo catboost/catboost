@@ -12,15 +12,33 @@
 #include <catboost/libs/data/data_provider.h>
 
 namespace NCatboostCuda {
-    //damn proxy for learn set one-hots
+    //damn proxy for learn set one-hots and exclusive feature bundles
     class TBinarizationInfoProvider {
     public:
         ui32 GetFoldsCount(ui32 featureId) const;
 
         double GetGroupingLevel(ui32 featureId) const;
 
-        bool IsOneHot(ui32 featureId) const {
-            return Manager->IsCat(featureId);
+        bool IsEffectivelyOneHot(ui32 featureId) const {
+            return Manager->IsCat(featureId) || Manager->IsFeatureBundle(featureId);
+        }
+        bool SkipInSplitSearch(ui32 featureId) const {
+            return Manager->PresentInExclusiveFeatureBundle(featureId);
+        }
+
+        bool SkipFirstBucketInOneHot(ui32 featureId) const {
+            if (Manager->IsCat(featureId)) {
+                return false; // TODO(kirillovs): would be true for wide one-hots
+            } else if (Manager->IsFeatureBundle(featureId)) {
+                for (auto& part : Manager->GetFeatureBundleForFeatureId(featureId).Parts) {
+                    if (part.FeatureType == EFeatureType::Categorical) {
+                        // we don't need to skip zero bucket if any one-hot feature is in bundle as zero is a regular bucket
+                        return false;
+                    }
+                }
+                return true;
+            }
+            return false;
         }
 
         explicit TBinarizationInfoProvider(const TBinarizedFeaturesManager& manager,
@@ -36,32 +54,48 @@ namespace NCatboostCuda {
     };
 
     struct TCpuGrid {
+        TVector<ui32> AllFeatureIds;
+        TVector<ui32> AllFolds;
+        TVector<bool> SkipInSplitSearch;
+
         TVector<ui32> FeatureIds;
         TVector<ui32> Folds;
         TVector<bool> IsOneHot;
+        TVector<bool> SkipFirstBucketWhileScoring;
         TMap<ui32, ui32> InverseFeatures;
 
         template <class TFeaturesBinarizationDescription>
         TCpuGrid(const TFeaturesBinarizationDescription& info,
                  const TVector<ui32>& features)
-            : FeatureIds(features)
+            : AllFeatureIds(features)
         {
+            AllFolds.reserve(features.size());
             Folds.reserve(features.size());
             IsOneHot.reserve(features.size());
             for (ui32 i = 0; i < features.size(); ++i) {
-                IsOneHot.push_back(info.IsOneHot(features[i]));
+                IsOneHot.push_back(info.IsEffectivelyOneHot(features[i]));
+                const bool skipInSplitSearch = info.SkipInSplitSearch(features[i]);
+                SkipInSplitSearch.push_back(skipInSplitSearch);
                 const ui32 folds = info.GetFoldsCount(features[i]);
+                AllFolds.push_back(folds);
+                if (skipInSplitSearch) {
+                    continue;
+                }
+                FeatureIds.push_back(features[i]);
                 Folds.push_back(folds);
+                SkipFirstBucketWhileScoring.push_back(info.SkipFirstBucketInOneHot(features[i]));
             }
-            InverseFeatures = BuildInverseIndex(FeatureIds);
+            InverseFeatures = BuildInverseIndex(AllFeatureIds);
         }
 
         TCpuGrid Subgrid(const TVector<ui32>& indices) const {
             TCpuGrid grid;
+            grid.AllFeatureIds = AllFeatureIds;
             for (ui32 idx : indices) {
                 grid.FeatureIds.push_back(FeatureIds[idx]);
                 grid.Folds.push_back(Folds[idx]);
                 grid.IsOneHot.push_back(IsOneHot[idx]);
+                grid.SkipInSplitSearch.push_back(SkipInSplitSearch[idx]);
             }
             grid.InverseFeatures = TCpuGrid::BuildInverseIndex(grid.FeatureIds);
             return grid;

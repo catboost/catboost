@@ -43,11 +43,11 @@ namespace NCatboostDistributed {
     using TWorkerPairwiseStats = TVector<TVector<TPairwiseStats>>; // [cand][subCand]
 
     struct TTrainData : public IObjectBase {
-        NCB::TTrainingForCPUDataProviders TrainData;
+        NCB::TTrainingDataProviders TrainData;
 
     public:
         TTrainData() = default;
-        TTrainData(NCB::TTrainingForCPUDataProviders trainData)
+        TTrainData(NCB::TTrainingDataProviders trainData)
         : TrainData(std::move(trainData))
         {
         }
@@ -136,7 +136,7 @@ namespace NCatboostDistributed {
 
         NCatboostOptions::TCatBoostOptions Params;
 
-        NCB::TTrainingForCPUDataProviders TrainData;
+        NCB::TTrainingDataProviders TrainData;
         TVector<NJson::TJsonValue> ClassLabelsFromDataset;
 
         TFlatPairsInfo FlatPairs;

@@ -65,7 +65,7 @@ void AddLangevinNoiseToLeafDerivativesSum(
         if (sum.SumWeights < 1e-9) {
             continue;
         }
-        double scaledCoef = coef / sqrt(sum.SumWeights + scaledL2Regularizer);
+        double scaledCoef = coef * sqrt(sum.SumWeights + scaledL2Regularizer);
         sum.SumDer += scaledCoef * StdNormalDistribution<double>(rng);
     }
 }
@@ -86,7 +86,7 @@ void AddLangevinNoiseToLeafDerivativesSum(
         if (sum.SumWeights < 1e-9) {
             continue;
         }
-        double scaledCoef = coef / sqrt(sum.SumWeights + scaledL2Regularizer);
+        double scaledCoef = coef * sqrt(sum.SumWeights + scaledL2Regularizer);
         for (auto& der : sum.SumDer) {
             der += scaledCoef * StdNormalDistribution<double>(rng);
         }

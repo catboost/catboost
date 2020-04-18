@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include <library/malloc/api/malloc.h>
+#include <library/cpp/malloc/api/malloc.h>
 
 #include <util/system/compiler.h>
 #include <util/system/types.h>

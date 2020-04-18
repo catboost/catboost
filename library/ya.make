@@ -25,13 +25,10 @@ RECURSE(
     containers
     coroutine
     cpp
-    cppparser
     cpuid_check
     dbg_output
     dbg_output/ut
     deprecated
-    diff
-    diff/ut
     dns
     dns/ut
     enumbitset
@@ -73,7 +70,6 @@ RECURSE(
     logger/global
     logger/global/ut
     logger/ut
-    malloc
     neh
     neh/asio/ut
     neh/ut

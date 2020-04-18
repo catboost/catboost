@@ -126,7 +126,11 @@ namespace NCB {
 
             // because 0 bin is common for all features in the bundle
             const ui32 binCountInBundleNeeded = featureBinCount - 1;
-
+            if (options.OnlyOneHotsAndBinaryFloats) {
+                if (featureBinCount > 2) {
+                    continue;
+                }
+            }
             if (binCountInBundleNeeded >= options.MaxBuckets) {
                 continue;
             }

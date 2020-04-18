@@ -32,7 +32,7 @@ namespace NCB {
     using TRawBuilderData = TBuilderData<TRawObjectsData>;
     using TQuantizedBuilderData = TBuilderData<TQuantizedObjectsData>;
     using TQuantizedForCPUBuilderData = TBuilderData<TQuantizedForCPUObjectsData>;
-
+    
     TQuantizedBuilderData CastToBase(TQuantizedForCPUBuilderData&& builderData);
 
 
@@ -196,14 +196,9 @@ namespace NCB {
     using TRawDataProviderPtr = TIntrusivePtr<TRawDataProvider>;
     using TConstRawDataProviderPtr = TIntrusivePtr<const TRawDataProvider>;
 
-    using TQuantizedDataProvider = TDataProviderTemplate<TQuantizedObjectsDataProvider>;
+    using TQuantizedDataProvider = TDataProviderTemplate<TQuantizedForCPUObjectsDataProvider>;
     using TQuantizedDataProviderPtr = TIntrusivePtr<TQuantizedDataProvider>;
-    using TConstQuantizedDataProviderPtr = TIntrusivePtr<const TQuantizedDataProvider>;
-
-    using TQuantizedForCPUDataProvider = TDataProviderTemplate<TQuantizedForCPUObjectsDataProvider>;
-    using TQuantizedForCPUDataProviderPtr = TIntrusivePtr<TQuantizedForCPUDataProvider>;
-    using TConstQuantizedForCPUDataProviderPtr = TIntrusivePtr<const TQuantizedForCPUDataProvider>;
-
+    using TConstQuantizedDataProviderPtr = TIntrusivePtr<const TQuantizedForCPUObjectsDataProvider>;
 
     /*
      * TDataProviderTemplate can be either TRawObjectsDataProvider or TQuantized(ForCPU)ObjectsDataProvider
@@ -285,8 +280,7 @@ namespace NCB {
 
     using TDataProviders = TDataProvidersTemplate<TObjectsDataProvider>;
     using TRawDataProviders = TDataProvidersTemplate<TRawObjectsDataProvider>;
-    using TQuantizedDataProviders = TDataProvidersTemplate<TQuantizedObjectsDataProvider>;
-    using TQuantizedForCPUDataProviders = TDataProvidersTemplate<TQuantizedForCPUObjectsDataProvider>;
+    using TQuantizedDataProviders = TDataProvidersTemplate<TQuantizedForCPUObjectsDataProvider>;
 
 
     template <class TTObjectsDataProvider>
@@ -428,14 +422,8 @@ namespace NCB {
     using TProcessedDataProvider = TProcessedDataProviderTemplate<TObjectsDataProvider>;
     using TProcessedDataProviderPtr = TIntrusivePtr<TProcessedDataProvider>;
 
-    using TTrainingDataProvider = TProcessedDataProviderTemplate<TQuantizedObjectsDataProvider>;
+    using TTrainingDataProvider = TProcessedDataProviderTemplate<TQuantizedForCPUObjectsDataProvider>;
     using TTrainingDataProviderPtr = TIntrusivePtr<TTrainingDataProvider>;
-    using TConstTrainingDataProviderPtr = TIntrusivePtr<const TTrainingDataProviderPtr>;
-
-    using TTrainingForCPUDataProvider = TProcessedDataProviderTemplate<TQuantizedForCPUObjectsDataProvider>;
-    using TTrainingForCPUDataProviderPtr = TIntrusivePtr<TTrainingForCPUDataProvider>;
-    using TConstTrainingForCPUDataProviderPtr = TIntrusivePtr<const TTrainingForCPUDataProvider>;
-
 
     template <class TTObjectsDataProvider>
     inline ui32 GetObjectCount(
@@ -663,7 +651,8 @@ namespace NCB {
         TFeaturesLayoutPtr GetFeaturesLayout() const {
             return Learn->MetaInfo.FeaturesLayout;
         }
-
+        
+        // TODO(kirillovs): remove casts later
         template <class TNewObjectsDataProvider>
         TTrainingDataProvidersTemplate<TNewObjectsDataProvider> Cast() const {
             using TNewData = TProcessedDataProviderTemplate<TNewObjectsDataProvider>;
@@ -691,7 +680,6 @@ namespace NCB {
         }
     };
 
-    using TTrainingDataProviders = TTrainingDataProvidersTemplate<TQuantizedObjectsDataProvider>;
-    using TTrainingForCPUDataProviders = TTrainingDataProvidersTemplate<TQuantizedForCPUObjectsDataProvider>;
+    using TTrainingDataProviders = TTrainingDataProvidersTemplate<TQuantizedForCPUObjectsDataProvider>;
 
 }

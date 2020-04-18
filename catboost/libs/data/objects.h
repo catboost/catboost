@@ -466,8 +466,7 @@ namespace NCB {
         TQuantizedObjectsData Data;
     };
 
-    using TQuantizedObjectsDataProviderPtr = TIntrusivePtr<TQuantizedObjectsDataProvider>;
-
+    
     void DbgDumpQuantizedFeatures(
         const TQuantizedObjectsDataProvider& quantizedObjectsDataProvider,
         IOutputStream* out
@@ -695,6 +694,7 @@ namespace NCB {
             return PackedBinaryFeaturesData.PackedBinaryToSrcIndex[packedBinaryIndex.GetLinearIdx()];
         }
 
+        void CheckCPUTrainCompatibility() const;
 
         size_t GetExclusiveFeatureBundlesSize() const {
             return ExclusiveFeatureBundlesData.MetaData.size();
@@ -761,11 +761,6 @@ namespace NCB {
             return FeaturesGroupsData.FlatFeatureIndexToGroupPart[flatFeatureIdx];
         }
 
-        /* binary packs and bundles in *this are compatible with rhs
-         * useful for low-level compatibility (for example when calculating hashes by packs/bundles)
-         */
-        bool IsPackingCompatibleWith(const TQuantizedForCPUObjectsDataProvider& rhs) const;
-
     protected:
         friend class TObjectsSerialization;
 
@@ -780,12 +775,6 @@ namespace NCB {
         }
 
     private:
-        void Check(
-            const TPackedBinaryFeaturesData& packedBinaryData,
-            const TExclusiveFeatureBundlesData& exclusiveFeatureBundlesData,
-            const TFeatureGroupsData& featuresGroupsData
-        ) const;
-
         void CheckFeatureIsNotInAggregated(
             EFeatureType featureType,
             const TStringBuf featureTypeName,
@@ -801,6 +790,7 @@ namespace NCB {
         TVector<TCatFeatureUniqueValuesCounts> CatFeatureUniqueValuesCounts; // [catFeatureIdx]
     };
 
+    using TQuantizedObjectsDataProviderPtr = TIntrusivePtr<TQuantizedForCPUObjectsDataProvider>;
     using TQuantizedForCPUObjectsDataProviderPtr = TIntrusivePtr<TQuantizedForCPUObjectsDataProvider>;
 
 

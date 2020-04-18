@@ -9,7 +9,7 @@ SRCS(
 
 PEERDIR(
     library/lfalloc/dbg_info
-    library/cache
+    library/cpp/cache
 )
 
 END()

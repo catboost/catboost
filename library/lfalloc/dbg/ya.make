@@ -24,7 +24,7 @@ ELSE()
 ENDIF()
 
 PEERDIR(
-    library/malloc/api
+    library/cpp/malloc/api
 )
 
 SET(IDE_FOLDER "util")

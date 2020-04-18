@@ -2,9 +2,8 @@
 
 #include <library/unittest/registar.h>
 
-using TFixedStringA = TFixedString<char>;
-#define RESC_FIXED_STR(s) TFixedStringA(s, sizeof(s) - 1)
-static const TFixedStringA CommonTestData[] = {
+#define RESC_FIXED_STR(s) TStringBuf(s, sizeof(s) - 1)
+static const TStringBuf CommonTestData[] = {
     // Should be valid UTF-8.
     RESC_FIXED_STR("http://ya.ru/"), RESC_FIXED_STR("http://ya.ru/"),
     RESC_FIXED_STR("http://ya.ru/\\x17\\n"), RESC_FIXED_STR("http://ya.ru/\x17\n"),

@@ -242,23 +242,29 @@
         "apphost": {
             "description": "Run local apphost instance"
         },
-        "go": {
+        "go_1.13.6": {
             "description": "Run go tool (1.13.6)"
         },
-        "gofmt": {
+        "gofmt_1.13.6": {
             "description": "Run gofmt tool (1.13.6)"
         },
-        "go_1.14.1": {
-            "description": "Run go tool (1.14.1)"
+        "go": {
+            "description": "Run go tool (1.14.2)"
         },
-        "gofmt_1.14.1": {
-            "description": "Run gofmt tool (1.14.1)"
+        "gofmt": {
+            "description": "Run gofmt tool (1.14.2)"
         },
         "godoc": {
             "description": "Arcadia version of godoc"
         },
         "yo": {
             "description": "Tool for managing vendor/ directory"
+        },
+        "dlv": {
+            "description": "Debugger for the Go programming language"
+        },
+        "releaser": {
+            "description": "Release tool"
         },
         "tvmknife": {
             "description": "Tool for debugging and testing with TVM tickets"
@@ -313,6 +319,9 @@
         },
         "bpftrace": {
             "description": "High-level tracing language for Linux eBPF"
+        },
+        "strace": {
+            "description": "the linux syscall tracer"
         },
         "iperf": {
             "description": "network load tester"
@@ -869,6 +878,34 @@
                 }
             ]
         },
+        "dlv": {
+            "tools": {
+                "dlv": {
+                    "bottle": "delve",
+                    "executable": "dlv"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "cue": {
             "tools": {
                 "cue": {
@@ -914,6 +951,28 @@
                 {
                     "host": {
                         "os": "WIN"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "releaser": {
+            "tools": {
+                "releaser": {
+                    "bottle": "releaser",
+                    "executable": "releaser"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
                     },
                     "default": true
                 }
@@ -2356,7 +2415,10 @@
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "werror_mode": "compiler_specific",
-                "gcc_version": "6.0"
+                "gcc_version": "6.0",
+                "target_opt": [
+                    "-DANDROID_FAKEID=6667994"
+                ]
             }
         },
         "clang6-android-x86_64": {
@@ -2431,7 +2493,10 @@
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "werror_mode": "compiler_specific",
-                "gcc_version": "6.0"
+                "gcc_version": "6.0",
+                "target_opt": [
+                    "-DANDROID_FAKEID=6667994"
+                ]
             }
         },
         "clang6-android-armv7a": {
@@ -2510,7 +2575,10 @@
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "werror_mode": "compiler_specific",
-                "gcc_version": "6.0"
+                "gcc_version": "6.0",
+                "target_opt": [
+                    "-DANDROID_FAKEID=6667994"
+                ]
             }
         },
         "clang6-android-armv7a_neon": {
@@ -2589,7 +2657,10 @@
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "werror_mode": "compiler_specific",
-                "gcc_version": "6.0"
+                "gcc_version": "6.0",
+                "target_opt": [
+                    "-DANDROID_FAKEID=6667994"
+                ]
             }
         },
         "clang6-android-armv8a": {
@@ -2668,7 +2739,10 @@
                 "c_compiler": "$(CLANG)/bin/clang",
                 "cxx_compiler": "$(CLANG)/bin/clang++",
                 "werror_mode": "compiler_specific",
-                "gcc_version": "6.0"
+                "gcc_version": "6.0",
+                "target_opt": [
+                    "-DANDROID_FAKEID=6667994"
+                ]
             }
         },
         "gcc49-android-armv8a": {
@@ -4951,17 +5025,17 @@
         },
         "golang_1_13_6": {
             "tools": {
-                "golang": {
+                "golang_1.13.6": {
                     "bottle": "golang_1.13.6",
-                    "executable": "golang"
+                    "executable": "golangi_1.13.6"
                 },
-                "go": {
+                "go_1.13.6": {
                     "bottle": "golang_1.13.6",
-                    "executable": "go"
+                    "executable": "go_1.13.6"
                 },
-                "gofmt": {
+                "gofmt_1.13.6": {
                     "bottle": "golang_1.13.6",
-                    "executable": "gofmt"
+                    "executable": "gofmt_1.13.6"
                 }
             },
             "platforms": [
@@ -4989,19 +5063,19 @@
                 "version": "1.13.6"
             }
         },
-        "golang_1_14_1": {
+        "golang_1_14_2": {
             "tools": {
-                "golang_1.14.1": {
-                    "bottle": "golang_1.14.1",
-                    "executable": "golang_1.14.1"
+                "golang": {
+                    "bottle": "golang_1.14.2",
+                    "executable": "golang"
                 },
-                "go_1.14.1": {
-                    "bottle": "golang_1.14.1",
-                    "executable": "go_1.14.1"
+                "go": {
+                    "bottle": "golang_1.14.2",
+                    "executable": "go"
                 },
-                "gofmt_1.14.1": {
-                    "bottle": "golang_1.14.1",
-                    "executable": "gofmt_1.14.1"
+                "gofmt": {
+                    "bottle": "golang_1.14.2",
+                    "executable": "gofmt"
                 }
             },
             "platforms": [
@@ -5026,7 +5100,7 @@
             ],
             "params": {
                 "type": "golang",
-                "version": "1.14.1"
+                "version": "1.14.2"
             }
         },
         "godoc": {
@@ -5166,6 +5240,22 @@
                 "bpftrace": {
                     "bottle": "bpftrace",
                     "executable": "bpftrace"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
+        "strace": {
+            "tools": {
+                "strace": {
+                    "bottle": "strace",
+                    "executable": "strace"
                 }
             },
             "platforms": [
@@ -5440,7 +5530,7 @@
         "ymake": {
             "formula": {
                 "sandbox_id": [
-                    646551068
+                    651904396
                 ],
                 "match": "ymake"
             },
@@ -5464,7 +5554,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    641972015
+                    652632783
                 ],
                 "match": "arc"
             },
@@ -5488,14 +5578,27 @@
         "yo": {
             "formula": {
                 "sandbox_id": [
-                    604585822,
-                    604586037
+                    650884119,
+                    650884133
                 ],
                 "match": "yo"
             },
             "executable": {
                 "yo": [
                     "yo"
+                ]
+            }
+        },
+        "delve": {
+            "formula": {
+                "sandbox_id": [
+                    648343092
+                ],
+                "match": "delve"
+            },
+            "executable": {
+                "dlv": [
+                    "dlv"
                 ]
             }
         },
@@ -5528,10 +5631,23 @@
                 ]
             }
         },
+        "releaser": {
+            "formula": {
+                "sandbox_id": [
+                    647693292
+                ],
+                "match": "releaser"
+            },
+            "executable": {
+                "releaser": [
+                    "releaser"
+                ]
+            }
+        },
         "tvmknife": {
             "formula": {
                 "sandbox_id": [
-                    642534715
+                    650756547
                 ],
                 "match": "tvmknife"
             },
@@ -6505,7 +6621,7 @@
         },
         "ytyndexer": {
             "formula": {
-                "sandbox_id": 615958236,
+                "sandbox_id": 651914180,
                 "match": "YTYNDEXER"
             },
             "executable": {
@@ -6730,7 +6846,7 @@
         "yp": {
             "formula": {
                 "sandbox_id": [
-                    607441184
+                    653024184
                 ],
                 "match": "yp"
             },
@@ -6743,9 +6859,9 @@
         "yd-migrate": {
             "formula": {
                 "sandbox_id": [
-                    624872951
+                    652676106
                 ],
-                "match": "deploy_migrate/bin"
+                "match": "yd_migrate"
             },
             "executable": {
                 "yd-migrate": [
@@ -7126,7 +7242,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 647316576,
+                "sandbox_id": 655679865,
                 "match": "horadric"
             },
             "executable": {
@@ -7236,7 +7352,7 @@
         },
         "ya-tc": {
             "formula": {
-                "sandbox_id": 626470709,
+                "sandbox_id": 652995319,
                 "match": "ya-tc"
             },
             "executable": {
@@ -7258,7 +7374,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 644569263,
+                "sandbox_id": 650218036,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -7277,31 +7393,31 @@
                 "match": "GOLANG"
             },
             "executable": {
-                "go": [
+                "go_1.13.6": [
                     "bin",
                     "go"
                 ],
-                "gofmt": [
+                "gofmt_1.13.6": [
                     "bin",
                     "gofmt"
                 ]
             }
         },
-        "golang_1.14.1": {
+        "golang_1.14.2": {
             "formula": {
                 "sandbox_id": [
-                    634638788,
-                    634639535,
-                    634640440
+                    649065905,
+                    649066533,
+                    649067244
                 ],
                 "match": "GOLANG"
             },
             "executable": {
-                "go_1.14.1": [
+                "go": [
                     "bin",
                     "go"
                 ],
-                "gofmt_1.14.1": [
+                "gofmt": [
                     "bin",
                     "gofmt"
                 ]
@@ -7407,6 +7523,20 @@
                 ]
             }
         },
+        "strace": {
+            "formula": {
+                "sandbox_id": [
+                    654255646
+                ],
+                "match": "infra/kernel/tools/strace/build/strace-static.tar.gz"
+            },
+            "executable": {
+                "strace": [
+                    "strace",
+                    "strace"
+                ]
+            }
+        },
         "stress-ng": {
             "formula": {
                 "sandbox_id": [
@@ -7505,7 +7635,7 @@
         },
         "yfm": {
             "formula": {
-                "sandbox_id": 639860948,
+                "sandbox_id": 652174899,
                 "match": "yfm"
             },
             "executable": {
@@ -7527,7 +7657,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 645056203,
+                "sandbox_id": 654685057,
                 "match": "SEDEM archive"
             },
             "executable": {

@@ -385,6 +385,9 @@ cdef extern from "catboost/private/libs/options/enums.h":
     cdef cppclass EPreCalcShapValues:
         pass
 
+    cdef cppclass ECalcTypeShapValues:
+        pass
+
     cdef cppclass ECrossValidation:
         pass
 
@@ -1289,7 +1292,8 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         const TDataProviderPtr dataset,
         int threadCount,
         EPreCalcShapValues mode,
-        int logPeriod
+        int logPeriod,
+        ECalcTypeShapValues calcType
     ) nogil except +ProcessException
 
     cdef TVector[TVector[TVector[double]]] GetFeatureImportancesMulti(
@@ -1298,7 +1302,8 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         const TDataProviderPtr dataset,
         int threadCount,
         EPreCalcShapValues mode,
-        int logPeriod
+        int logPeriod,
+        ECalcTypeShapValues calcType
     ) nogil except +ProcessException
 
     cdef TVector[TVector[TVector[TVector[double]]]] CalcShapFeatureInteractionMulti(
@@ -1308,7 +1313,8 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         const TMaybe[pair[int, int]]& pairOfFeatures,
         int threadCount,
         EPreCalcShapValues mode,
-        int logPeriod
+        int logPeriod,
+        ECalcTypeShapValues calcType
     ) nogil except +ProcessException
 
     TVector[TString] GetMaybeGeneratedModelFeatureIds(
@@ -1884,6 +1890,12 @@ cdef EPreCalcShapValues string_to_shap_mode(shap_mode_str) except *:
     if not TryFromString[EPreCalcShapValues](to_arcadia_string(shap_mode_str), shap_mode):
         raise CatBoostError("Unknown shap values mode {}.".format(shap_mode_str))
     return shap_mode
+
+cdef ECalcTypeShapValues string_to_calc_type(shap_calc_type) except *:
+    cdef ECalcTypeShapValues calc_type
+    if not TryFromString[ECalcTypeShapValues](to_arcadia_string(shap_calc_type), calc_type):
+        raise CatBoostError("Unknown shap values calculation type {}.".format(shap_calc_type))
+    return calc_type
 
 
 cdef class _PreprocessParams:
@@ -3456,6 +3468,7 @@ cdef class _PoolBase:
             resource_holders
         )
 
+        new_data_holders = None
         if isinstance(data, FeaturesData):
             new_data_holders = data
 
@@ -4380,7 +4393,8 @@ cdef class _CatBoost:
     cpdef _get_loss_function_name(self):
         return self.__model.GetLossFunctionName()
 
-    cpdef _calc_fstr(self, type_name, _PoolBase pool, int thread_count, int verbose, shap_mode_name, interaction_indices):
+    cpdef _calc_fstr(self, type_name, _PoolBase pool, int thread_count, int verbose, shap_mode_name, interaction_indices,
+                     shap_calc_type):
         thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TString] feature_ids = GetMaybeGeneratedModelFeatureIds(
             dereference(self.__model),
@@ -4396,6 +4410,7 @@ cdef class _CatBoost:
 
         cdef EFstrType fstr_type = string_to_fstr_type(type_name)
         cdef EPreCalcShapValues shap_mode = string_to_shap_mode(shap_mode_name)
+        cdef ECalcTypeShapValues calc_type = string_to_calc_type(shap_calc_type)
         cdef TMaybe[pair[int, int]] pair_of_features
 
         if type_name == 'ShapValues' and dereference(self.__model).GetDimensionsCount() > 1:
@@ -4406,10 +4421,13 @@ cdef class _CatBoost:
                     dataProviderPtr,
                     thread_count,
                     shap_mode,
-                    verbose
+                    verbose,
+                    calc_type
                 )
             return _3d_vector_of_double_to_np_array(fstr_multi), native_feature_ids
         elif type_name == 'ShapInteractionValues':
+            # TODO: Ensure sensible results of non-'Normal' calculation types for ShapInteractionValues
+            assert shap_calc_type == "Normal", "Only 'Normal' calculation type is supported for ShapInteractionValues"
             if interaction_indices is not None:
                 pair_of_features = _check_and_get_interaction_indices(pool, interaction_indices)
             with nogil:
@@ -4420,7 +4438,8 @@ cdef class _CatBoost:
                     pair_of_features,
                     thread_count,
                     shap_mode,
-                    verbose
+                    verbose,
+                    calc_type
                 )
             if dereference(self.__model).GetDimensionsCount() > 1:
                 return _reorder_axes_for_python_4d_shap_values(fstr_4d), native_feature_ids
@@ -4434,7 +4453,8 @@ cdef class _CatBoost:
                     dataProviderPtr,
                     thread_count,
                     shap_mode,
-                    verbose
+                    verbose,
+                    calc_type
                 )
             return _2d_vector_of_double_to_np_array(fstr), native_feature_ids
 

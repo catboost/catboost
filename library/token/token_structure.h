@@ -222,8 +222,8 @@ struct TWideToken {
         }
     }
 
-    const TFixedString<wchar16> Text() const {
-        return TFixedString<wchar16>(Token, Leng);
+    const TWtringBuf Text() const {
+        return TWtringBuf(Token, Leng);
     }
 
     TWideToken Extract(size_t begin, size_t end) const {

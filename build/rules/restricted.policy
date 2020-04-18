@@ -3,6 +3,12 @@
 # NOTE: rules should be ordered from specific to generic (first matching rule is used)
 # See rule syntax docs: https://wiki.yandex-team.ru/devrules/overall/peerdirprohibition/
 
+# CityHash-1.0.2 is a specific version hardwired into ClickHouse public interface
+ALLOW clickhouse -> contrib/restricted/cityhash-1.0.2
+
+# Ryu is a fast enough alternative to double-conversion, but not the fastest.
+ALLOW clickhouse -> contrib/restricted/ryu
+
 ALLOW contrib/libs/clickhouse -> contrib/restricted/apache-orc
 
 ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp
@@ -37,12 +43,16 @@ ALLOW yandex_io -> contrib/restricted/openal
 # Allowed subset of abseil is exported via library/
 ALLOW library/containers/absl_flat_hash -> contrib/restricted/abseil-cpp/absl/container
 
+# Prefer using skynet for data distribution
+ALLOW maps/infra/ecstatic/ymtorrent -> contrib/restricted/libtorrent
+
 # Only allow boost in yandex projects listed below
 ALLOW adfox -> contrib/restricted/boost
 ALLOW ads -> contrib/restricted/boost
 ALLOW advq -> contrib/restricted/boost
 ALLOW alice/nlu -> contrib/restricted/boost
 ALLOW alice/vins_contrib/crfsuitex -> contrib/restricted/boost
+ALLOW clickhouse -> contrib/restricted/boost
 ALLOW devtools -> contrib/restricted/boost
 ALLOW extsearch/geo/poi_service/tools/storage_reader -> contrib/restricted/boost
 ALLOW infra/contrib/pdns -> contrib/restricted/boost

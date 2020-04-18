@@ -129,7 +129,7 @@ class test(Command):
 
     @contextlib.contextmanager
     def project_on_sys_path(self, include_dists=[]):
-        with_2to3 = six.PY3 and getattr(self.distribution, 'use_2to3', False)
+        with_2to3 = not six.PY2 and getattr(self.distribution, 'use_2to3', False)
 
         if with_2to3:
             # If we run 2to3 we can not do this inplace:
@@ -240,7 +240,7 @@ class test(Command):
         # Purge modules under test from sys.modules. The test loader will
         # re-import them from the build location. Required when 2to3 is used
         # with namespace packages.
-        if six.PY3 and getattr(self.distribution, 'use_2to3', False):
+        if not six.PY2 and getattr(self.distribution, 'use_2to3', False):
             module = self.test_suite.split('.')[0]
             if module in _namespace_packages:
                 del_modules = []

@@ -623,6 +623,34 @@ def test_stochastic_filter(sigma, num_estimations):
             local_canonical_file(test_error_path)]
 
 
+@pytest.mark.parametrize('metric', ['DCG', 'NDCG'])
+@pytest.mark.parametrize('top', [-1, 1, 10])
+@pytest.mark.parametrize('dcg_type', ['Base', 'Exp'])
+@pytest.mark.parametrize('denominator', ['Position', 'LogPosition'])
+def test_stochastic_rank(metric, top, dcg_type, denominator):
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    loss = 'StochasticRank:metric={};top={};type={};denominator={};hints=skip_train~false'.format(
+        metric, top, dcg_type, denominator)
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss,
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--cd', data_file('querywise', 'train.cd.query_id'),
+        '-i', '10',
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(learn_error_path),
+            local_canonical_file(test_error_path)]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('top', [2, 100])
 def test_averagegain_with_query_weights(boosting_type, top):
@@ -2630,11 +2658,6 @@ def do_test_fstr(
             with pytest.raises(yatest.common.ExecutionError):
                 yatest.common.execute(fstr_cmd)
             return
-
-    if grow_policy in ['Lossguide', 'Depthwise'] and fstr_type == 'PredictionDiff':
-        with pytest.raises(yatest.common.ExecutionError):
-            yatest.common.execute(fstr_cmd)
-        return
 
     yatest.common.execute(fstr_cmd)
 
@@ -6806,6 +6829,38 @@ def test_shap_verbose():
         assert line_count == 5
 
 
+def test_shap_approximate():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_values_path = yatest.common.test_output_path('shapval')
+    cmd_fit = [
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '--learning-rate', '0.5',
+        '-f', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '250',
+        '-T', '4',
+        '-m', output_model_path,
+    ]
+    yatest.common.execute(cmd_fit)
+    cmd_shap = [
+        CATBOOST_PATH,
+        'fstr',
+        '-o', output_values_path,
+        '--input-path', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--verbose', '0',
+        '--fstr-type', 'ShapValues',
+        '--shap-calc-type', 'Approximate',
+        '-T', '4',
+        '-m', output_model_path,
+    ]
+    yatest.common.execute(cmd_shap)
+
+    return [local_canonical_file(output_values_path)]
+
+
 @pytest.mark.parametrize('bagging_temperature', ['0', '1'])
 @pytest.mark.parametrize('sampling_unit', SAMPLING_UNIT_TYPES)
 @pytest.mark.parametrize(
@@ -7182,6 +7237,36 @@ def test_quantized_pool_with_large_grid():
     )
 
     assert filecmp.cmp(tsv_eval_path, quantized_eval_path)
+
+
+def test_learn_without_header_eval_with_header():
+    train_path = yatest.common.test_output_path('airlines_without_header')
+    with open(data_file('airlines_5K', 'train'), 'r') as with_header_file:
+        with open(train_path, 'w') as without_header_file:
+            without_header_file.writelines(with_header_file.readlines()[1:])
+
+    model_path = yatest.common.test_output_path('model.bin')
+
+    cmd_fit = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', train_path,
+        '--cd', data_file('airlines_5K', 'cd'),
+        '-i', '10',
+        '-m', model_path
+    )
+    yatest.common.execute(cmd_fit)
+
+    cmd_calc = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', data_file('airlines_5K', 'test'),
+        '--cd', data_file('airlines_5K', 'cd'),
+        '-m', model_path,
+        '--has-header'
+    )
+    yatest.common.execute(cmd_calc)
 
 
 def test_group_weights_file():

@@ -3,7 +3,7 @@ LIBRARY()
 
 
 PEERDIR(
-    library/containers/stack_vector
+    library/cpp/containers/stack_vector
     library/json/writer
     library/yson
 )

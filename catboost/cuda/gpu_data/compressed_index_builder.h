@@ -169,7 +169,7 @@ namespace NCatboostCuda {
             for (ui32 dev = 0; dev < feature.DeviceCount(); ++dev) {
                 if (!feature.IsEmpty(dev)) {
                     const ui32 folds = feature.At(dev).Folds;
-                    CB_ENSURE(binCount <= (folds + 1),
+                    CB_ENSURE(folds == 0 || binCount <= (folds + 1),
                                 "There are #" << folds + 1 << " but need at least " << binCount
                                             << " to store feature");
                 }
@@ -229,16 +229,11 @@ namespace NCatboostCuda {
         void Finish() {
             CB_ENSURE(!BuildIsDone, "Build could be finished only once");
             CATBOOST_DEBUG_LOG << "Compressed index was written in " << (Now() - StartWrite).SecondsFloat() << " seconds" << Endl;
-
             const ui32 blockCount = SeenFeatures.size();
 
             for (ui32 dataSetId = 0; dataSetId < blockCount; ++dataSetId) {
                 auto& ds = *CompressedIndex.DataSets[dataSetId];
-                const TDataSetDescription& description = ds.Description;
                 ds.PrintInfo();
-                for (ui32 f : ds.GetFeatures()) {
-                    CB_ENSURE(SeenFeatures[dataSetId].count(f), "Unseen feature #" << f << " in dataset " << description.Name);
-                }
             }
 
             BuildIsDone = true;

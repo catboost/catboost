@@ -155,6 +155,9 @@ void NCatboostCuda::PrintBestScore(const NCatboostCuda::TBinarizedFeaturesManage
 
 NCatboostCuda::TBinarySplit NCatboostCuda::ToSplit(const NCatboostCuda::TBinarizedFeaturesManager& manager, const TBestSplitProperties& props) {
     Y_VERIFY(props.Defined());
+    if (manager.IsFeatureBundle(props.FeatureId)) {
+        return manager.TranslateFeatureBundleSplitToBinarySplit(props.FeatureId, props.BinId);
+    }
     TBinarySplit bestSplit;
     bestSplit.FeatureId = props.FeatureId;
     bestSplit.BinIdx = props.BinId;

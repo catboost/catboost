@@ -20,16 +20,16 @@ using namespace NCB;
 
 Y_UNIT_TEST_SUITE(NonSymmetricIndexCalcerTest) {
     /*
-     * Creates simple TTrainingForCPUDataProviderPtr for test purposes from quantized features and target
+     * Creates simple TTrainingDataProviderPtr for test purposes from quantized features and target
      * Float features will have flat indices from 0 to quantizedFloatFeatures.size()
      * Cat features will have flat indices from quantizedFloatFeatures.size() to quantizedFloatFeatures.size() + quantizedCatFeatures.size()
      */
-    TTrainingForCPUDataProviderPtr CreateTrainingForCpuDataProviderFromQuantizedData(
+    TTrainingDataProviderPtr CreateTrainingForCpuDataProviderFromQuantizedData(
         const TVector<TVector<ui8>>& quantizedFloatFeatures,
         const TVector<TVector<ui8>>& quantizedCatFeatures,
         const TVector<float>& target) {
 
-        TDataProviderPtr dataProviderPtr = CreateDataProvider<IQuantizedFeaturesDataVisitor>(
+        auto dataProviderPtr = CreateDataProvider<IQuantizedFeaturesDataVisitor>(
             [&] (IQuantizedFeaturesDataVisitor* visitor) {
                 const ui32 floatFeatureCount = quantizedFloatFeatures.size();
                 const ui32 oheFeatureCount = quantizedCatFeatures.size();
@@ -92,7 +92,7 @@ Y_UNIT_TEST_SUITE(NonSymmetricIndexCalcerTest) {
         NPar::TLocalExecutor localExecutor;
         TRestorableFastRng64 rand(0);
         TMaybe<float> targetBorder = catBoostOptions.DataProcessingOptions->TargetBorder;
-        TTrainingForCPUDataProvider trainData = GetTrainingData(
+        return GetTrainingData(
             std::move(dataProviderPtr),
             true,
             "learn",
@@ -105,9 +105,8 @@ Y_UNIT_TEST_SUITE(NonSymmetricIndexCalcerTest) {
             &labelConverter,
             &targetBorder,
             &localExecutor,
-            &rand).Get()->Cast<TQuantizedForCPUObjectsDataProvider>();
+            &rand).Get();
 
-        return MakeIntrusive<TTrainingForCPUDataProvider>(trainData);
     }
 
     TArraySubsetIndexing<ui32> CreateLearnPermutationFeaturesSubset(size_t size) {
@@ -128,7 +127,7 @@ Y_UNIT_TEST_SUITE(NonSymmetricIndexCalcerTest) {
 
         const TVector<TIndexType> expectedIndices = {0, 0, 0, 0};
 
-        TTrainingForCPUDataProviders trainDataProviders;
+        TTrainingDataProviders trainDataProviders;
         trainDataProviders.Learn = CreateTrainingForCpuDataProviderFromQuantizedData(
             quantizedFloatFeatures,
             {},
@@ -180,7 +179,7 @@ Y_UNIT_TEST_SUITE(NonSymmetricIndexCalcerTest) {
         TVector<float> target = {1.0, 2.0, 1.5, 0.5, 1.0, 1.4};
         const TVector<TIndexType> expectedIndices = {2, 2, 1, 1, 0, 3};
 
-        TTrainingForCPUDataProviders trainDataProviders;
+        TTrainingDataProviders trainDataProviders;
         trainDataProviders.Learn = CreateTrainingForCpuDataProviderFromQuantizedData(
             quantizedFloatFeatures,
             {},
@@ -231,7 +230,7 @@ Y_UNIT_TEST_SUITE(NonSymmetricIndexCalcerTest) {
             {0, 2, 1, 0, 1, 3}
         };
         TVector<float> learnTarget = {1.0, 2.0, 1.5, 0.5, 1.0, 1.4};
-        TTrainingForCPUDataProviders trainDataProviders;
+        TTrainingDataProviders trainDataProviders;
         trainDataProviders.Learn = CreateTrainingForCpuDataProviderFromQuantizedData(
             learnQuantizedFloatFeatures,
             {},
@@ -324,7 +323,7 @@ Y_UNIT_TEST_SUITE(NonSymmetricIndexCalcerTest) {
         TVector<float> target = {1.0, 2.0, 1.5, 0.5, 1.0, 1.4};
         const TVector<TIndexType> expectedIndices = {4, 0, 2, 3, 1, 0};
 
-        TTrainingForCPUDataProviders trainDataProviders;
+        TTrainingDataProviders trainDataProviders;
         trainDataProviders.Learn = CreateTrainingForCpuDataProviderFromQuantizedData(
             quantizedFloatFeatures,
             quantizedCatFeatures,

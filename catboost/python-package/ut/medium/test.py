@@ -1319,8 +1319,24 @@ def test_export_to_python_with_cat_features_from_pandas(task_type):
     return local_canonical_file(output_python_model_path)
 
 
-@pytest.mark.parametrize('problem_type', ['binclass', 'multiclass', 'regression'])
-def test_onnx_export(problem_type):
+ONNX_TEST_PARAMETERS = [
+    ('binclass', False),
+    ('binclass', True),
+    ('multiclass', False),
+    ('regression', False),
+    ('regression', True)
+]
+
+
+@pytest.mark.parametrize(
+    'problem_type,boost_from_average',
+    ONNX_TEST_PARAMETERS,
+    ids=[
+        'problem_type=%s-boost_from_average=%s' % (problem_type, boost_from_average)
+        for problem_type, boost_from_average in ONNX_TEST_PARAMETERS
+    ]
+)
+def test_onnx_export(problem_type, boost_from_average):
     if problem_type == 'binclass':
         loss_function = 'Logloss'
         train_path = TRAIN_FILE
@@ -1346,7 +1362,8 @@ def test_onnx_export(problem_type):
             'depth': 4,
 
             # onnx format export does not yet support categorical features so ignore them
-            'ignored_features': train_pool.get_cat_feature_indices()
+            'ignored_features': train_pool.get_cat_feature_indices(),
+            'boost_from_average': boost_from_average
         }
     )
 
@@ -1366,8 +1383,15 @@ def test_onnx_export(problem_type):
     return compare_canonical_models(output_onnx_model_path, diff_limit=1e-18)
 
 
-@pytest.mark.parametrize('problem_type', ['binclass', 'multiclass', 'regression'])
-def test_onnx_import(problem_type):
+@pytest.mark.parametrize(
+    'problem_type,boost_from_average',
+    ONNX_TEST_PARAMETERS,
+    ids=[
+        'problem_type=%s-boost_from_average=%s' % (problem_type, boost_from_average)
+        for problem_type, boost_from_average in ONNX_TEST_PARAMETERS
+    ]
+)
+def test_onnx_import(problem_type, boost_from_average):
     if problem_type == 'binclass':
         loss_function = 'Logloss'
         train_path = TRAIN_FILE
@@ -1395,7 +1419,8 @@ def test_onnx_import(problem_type):
             'loss_function': loss_function,
             'iterations': 5,
             'depth': 4,
-            'ignored_features': train_pool.get_cat_feature_indices()
+            'ignored_features': train_pool.get_cat_feature_indices(),
+            'boost_from_average': boost_from_average
         }
     )
 
@@ -1420,7 +1445,8 @@ def test_onnx_import(problem_type):
             'loss_function': loss_function,
             'iterations': 5,
             'depth': 4,
-            'ignored_features': train_pool.get_cat_feature_indices()
+            'ignored_features': train_pool.get_cat_feature_indices(),
+            'boost_from_average': boost_from_average
         }
     )
 
@@ -3044,12 +3070,34 @@ def test_shap_feature_importance(task_type):
     return local_canonical_file(fimp_npy_path)
 
 
+def test_approximate_shap_feature_importance(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, max_ctr_complexity=1, task_type=task_type, devices='0')
+    model.fit(pool)
+    shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Approximate")
+    assert np.allclose(model.predict(pool, prediction_type='RawFormulaVal'), np.sum(shaps, axis=1))
+
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.around(np.array(shaps), 9))
+    return local_canonical_file(fimp_npy_path)
+
+
 def test_shap_feature_importance_multiclass(task_type):
     pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass')
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool)), 9))
+    return local_canonical_file(fimp_npy_path)
+
+
+def test_approximate_shap_feature_importance_multiclass(task_type):
+    pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass')
+    model.fit(pool)
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool,
+                                                                           shap_calc_type="Approximate")), 9))
     return local_canonical_file(fimp_npy_path)
 
 
@@ -3076,6 +3124,29 @@ def test_shap_feature_importance_ranking(task_type):
         return local_canonical_file(fimp_npy_path)
 
 
+def test_approximate_shap_feature_importance_ranking(task_type):
+    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
+    model = CatBoost(
+        {
+            "iterations": 20,
+            "learning_rate": 0.03,
+            "task_type": task_type,
+            "devices": "0",
+            "loss_function": "PairLogit"
+        }
+    )
+    model.fit(pool)
+    shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Approximate")
+    assert np.allclose(model.predict(pool), np.sum(shaps, axis=1))
+
+    if task_type == 'GPU':
+        return pytest.xfail(reason="On GPU models with loss Pairlogit are too unstable. MLTOOLS-4722")
+    else:
+        fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+        np.save(fimp_npy_path, np.around(np.array(shaps), 9))
+        return local_canonical_file(fimp_npy_path)
+
+
 def test_shap_feature_importance_asymmetric_and_symmetric(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(
@@ -3091,11 +3162,40 @@ def test_shap_feature_importance_asymmetric_and_symmetric(task_type):
     assert np.all(shap_symm - shap_asymm < 1e-8)
 
 
+def test_approximate_shap_feature_importance_asymmetric_and_symmetric(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(
+        iterations=5,
+        learning_rate=0.03,
+        max_ctr_complexity=1,
+        task_type=task_type,
+        devices='0')
+    model.fit(pool)
+    shap_symm = np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool,
+                                                      shap_calc_type="Approximate"))
+    model._convert_to_asymmetric_representation()
+    shap_asymm = np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool,
+                                                       shap_calc_type="Approximate"))
+    assert np.all(shap_symm - shap_asymm < 1e-8)
+
+
 def test_shap_feature_importance_with_langevin():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, depth=10, langevin=True, diffusion_temperature=1000)
     model.fit(pool)
     shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool)
+    assert np.allclose(model.predict(pool, prediction_type='RawFormulaVal'), np.sum(shaps, axis=1))
+
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.around(np.array(shaps), 9))
+    return local_canonical_file(fimp_npy_path)
+
+
+def test_approximate_shap_feature_importance_with_langevin():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, depth=10, langevin=True, diffusion_temperature=1000)
+    model.fit(pool)
+    shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Approximate")
     assert np.allclose(model.predict(pool, prediction_type='RawFormulaVal'), np.sum(shaps, axis=1))
 
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
@@ -3162,10 +3262,10 @@ def test_shap_feature_importance_modes(task_type):
         assert np.all(np.abs(shaps_for_modes[i] - shaps_for_modes[i - 1]) < 1e-9)
 
 
-def test_prediction_diff_feature_importance():
+def test_prediction_diff_feature_importance(task_type):
     pool_file = 'higgs'
     pool = Pool(data_file(pool_file, 'train_small'), column_description=data_file(pool_file, 'train.cd'))
-    model = CatBoostClassifier(iterations=110, learning_rate=0.03, max_ctr_complexity=1, devices='0')
+    model = CatBoostClassifier(iterations=110, task_type=task_type, learning_rate=0.03, max_ctr_complexity=1, devices='0')
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.array(model.get_feature_importance(
@@ -3173,6 +3273,20 @@ def test_prediction_diff_feature_importance():
         data=pool.get_features()[:2]
     )))
     return local_canonical_file(fimp_npy_path)
+
+
+@pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
+def test_prediction_diff_nonsym_feature_importance(task_type, grow_policy):
+    pool_file = 'higgs'
+    pool = Pool(data_file(pool_file, 'train_small'), column_description=data_file(pool_file, 'train.cd'))
+    model = CatBoostClassifier(iterations=110, task_type=task_type, grow_policy=grow_policy, learning_rate=0.03, max_ctr_complexity=1, devices='0')
+    model.fit(pool)
+    fimp_txt_path = test_output_path(FIMP_TXT_PATH)
+    np.savetxt(fimp_txt_path, np.array(model.get_feature_importance(
+        type=EFstrType.PredictionDiff,
+        data=pool.get_features()[:2]
+    )))
+    return local_canonical_file(fimp_txt_path)
 
 
 def test_od(task_type):

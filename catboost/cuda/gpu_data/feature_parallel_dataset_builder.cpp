@@ -178,6 +178,7 @@ namespace NCatboostCuda {
                                                                                       compressedIndexBuilder,
                                                                                       DataProvider,
                                                                                       permutationIndependentCompressedDataSetId,
+                                                                                      /*skipExclusiveBundles=*/ false,
                                                                                       localExecutor);
             floatFeaturesWriter.Write(permutationIndependent);
         }
@@ -187,6 +188,7 @@ namespace NCatboostCuda {
                                                                                       compressedIndexBuilder,
                                                                                       *LinkedTest,
                                                                                       testDataSetId,
+                                                                                      /*skipExclusiveBundles=*/ true,
                                                                                       localExecutor);
             floatFeaturesWriter.Write(permutationIndependent);
         }

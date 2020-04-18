@@ -97,7 +97,7 @@ namespace NCatboostCuda {
                 if (!PolicyBlocks.contains(policy)) {
                     return 0;
                 }
-                return PolicyBlocks.at(policy)->CudaFeaturesHost.size();
+                return PolicyBlocks.at(policy)->Grid.FeatureIds.size();
             }
 
             const TCudaBuffer<TCFeature, THistogramsMapping>& GetGrid(EFeaturesGroupingPolicy policy) const {

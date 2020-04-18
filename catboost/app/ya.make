@@ -72,4 +72,8 @@ ELSE()
     ALLOCATOR(LF)
 ENDIF()
 
+IF (CATBOOST_OPENSOURCE AND AUTOCHECK)
+    INCLUDE(${ARCADIA_ROOT}/catboost//oss/checks/check_deps.inc)
+ENDIF()
+
 END()

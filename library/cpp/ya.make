@@ -8,6 +8,9 @@ RECURSE(
     colorizer
     colorizer/ut
     containers
+    cppparser
+    diff
+    diff/ut
     digest
     dot_product
     dot_product/bench
@@ -17,6 +20,7 @@ RECURSE(
     grid_creator
     grid_creator/fuzz
     grid_creator/ut
+    malloc
     pop_count
     pop_count/benchmark
     pop_count/ut

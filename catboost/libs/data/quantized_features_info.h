@@ -81,9 +81,6 @@ namespace NCB {
 
         int operator&(IBinSaver& binSaver);
 
-        // *this contains a superset of quantized features in rhs
-        bool IsSupersetOf(const TQuantizedFeaturesInfo& rhs) const;
-
         // const because can be used with TReadGuard without changing the object
         TRWMutex& GetRWMutex() const {
             return RWMutex;
