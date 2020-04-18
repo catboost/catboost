@@ -8,6 +8,7 @@ RECURSE(
     colorizer
     colorizer/ut
     containers
+    coroutine
     cppparser
     cpuid_check
     diff

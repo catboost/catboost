@@ -23,7 +23,6 @@ RECURSE(
     comptrie/ut
     comptrie/benchmark
     containers
-    coroutine
     cpp
     dbg_output
     dbg_output/ut
