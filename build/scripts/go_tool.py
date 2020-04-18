@@ -538,7 +538,21 @@ def do_link_test(args):
         xtest_lib_args.import_path = test_import_path + '_test'
         if test_lib_args:
             xtest_lib_args.module_map[test_import_path] = test_lib_args.output
+        need_append_ydx = args.ydx_file and args.srcs and args.vet_flags
+        if need_append_ydx:
+            def find_ydx_file_name(name, flags):
+                for i, elem in enumerate(flags):
+                    if elem.endswith(name):
+                        return (i, elem)
+                assert False, 'Unreachable code'
+
+            idx, ydx_file_name = find_ydx_file_name(args.ydx_file, args.vet_flags)
+            xtest_ydx_file_name = '{}_xtest'.format(ydx_file_name)
+            args.vet_flags[idx] = xtest_ydx_file_name
         do_link_lib(xtest_lib_args)
+        if need_append_ydx:
+            with open(ydx_file_name, 'ab') as dst_file, open(xtest_ydx_file_name, 'rb') as src_file:
+                dst_file.write(src_file.read())
 
     test_main_content = gen_test_main(args, test_lib_args, xtest_lib_args)
     test_main_name = os.path.join(args.output_root, '_test_main.go')
@@ -603,6 +617,7 @@ if __name__ == '__main__':
     parser.add_argument('++arc-source-root')
     parser.add_argument('++musl', action='store_true')
     parser.add_argument('++skip-tests', nargs='*', default=None)
+    parser.add_argument('++ydx-file', default='')
     args = parser.parse_args()
 
     # Temporary work around for noauto
