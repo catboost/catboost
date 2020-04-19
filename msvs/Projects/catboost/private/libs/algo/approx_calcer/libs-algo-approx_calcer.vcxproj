@@ -79,8 +79,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\approx_calcer\approx_calcer_multi.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\approx_calcer\eval_additive_metric_with_leaves.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\algo\approx_calcer\leafwise_approx_calcer.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\approx_calcer\approx_calcer_multi.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\approx_calcer\eval_additive_metric_with_leaves.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\approx_calcer\gradient_walker.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\algo\approx_calcer\leafwise_approx_calcer.h"/>
   </ItemGroup>
