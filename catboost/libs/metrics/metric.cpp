@@ -41,19 +41,8 @@
 #include <limits>
 #include <tuple>
 
-
-namespace {
-    void AppendTemporaryMetricsVector(TVector<THolder<IMetric>>&& src, TVector<THolder<IMetric>>* dst) {
-        std::move(src.begin(), src.end(), std::back_inserter(*dst));
-    }
-
-    template <class MetricType>
-    TVector<THolder<IMetric>> AsVector(THolder<MetricType>&& metric) {
-        TVector<THolder<IMetric>> result;
-        result.emplace_back(std::move(metric));
-        return result;
-    }
-}
+using internal::AppendTemporaryMetricsVector;
+using internal::AsVector;
 
 /* TMetric */
 
@@ -2766,13 +2755,16 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeBinClassNormalizedGiniMetric(ELossFunction lossFunction, const TMap<TString, TString>& params) {
-    return MakeHolder<TNormalizedGini>(lossFunction, params);
-}
-
-THolder<IMetric> MakeMultiClassNormalizedGiniMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                                    int positiveClass) {
-    return MakeHolder<TNormalizedGini>(lossFunction, params, positiveClass);
+TVector<THolder<IMetric>> TNormalizedGini::Create(const TMetricConfig& config) {
+    if (config.approxDimension == 1) {
+        config.validParams->insert("border");
+        return AsVector(MakeHolder<TNormalizedGini>(config.metric, config.params));
+    }
+    TVector<THolder<IMetric>> result;
+    for (int i : xrange(config.approxDimension)) {
+        result.push_back(MakeHolder<TNormalizedGini>(config.metric, config.params, i));
+    }
+    return result;
 }
 
 TMetricHolder TNormalizedGini::Eval(
@@ -2855,8 +2847,11 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeFairLossMetric(ELossFunction lossFunction, const TMap<TString, TString>& params, double smoothness) {
-    return MakeHolder<TFairLossMetric>(lossFunction, params, smoothness);
+// static.
+TVector<THolder<IMetric>> TFairLossMetric::Create(const TMetricConfig& config) {
+    double smoothness = NCatboostOptions::GetParamOrDefault(config.params, "smoothness", TFairLossMetric::DefaultSmoothness);
+    config.validParams->insert("smoothness");
+    return AsVector(MakeHolder<TFairLossMetric>(config.metric, config.params, smoothness));
 }
 
 TMetricHolder TFairLossMetric::EvalSingleThread(
@@ -2984,9 +2979,12 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeBinClassBalancedErrorRate(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                               double predictionBorder) {
-    return MakeHolder<TBalancedErrorRate>(lossFunction, params, predictionBorder);
+// static.
+TVector<THolder<IMetric>> TBalancedErrorRate::Create(const TMetricConfig& config) {
+    CB_ENSURE(config.approxDimension == 1, "Balanced Error Rate is used only for binary classification problems.");
+    config.validParams->insert("border");
+    return AsVector(MakeHolder<TBalancedErrorRate>(config.metric, config.params,
+                                                   config.binaryClassPredictionBorder));
 }
 
 TMetricHolder TBalancedErrorRate::EvalSingleThread(
@@ -3090,8 +3088,9 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeHingeLossMetric(ELossFunction lossFunction, const TMap<TString, TString>& params) {
-    return MakeHolder<THingeLossMetric>(lossFunction, params);
+TVector<THolder<IMetric>> THingeLossMetric::Create(const TMetricConfig& config) {
+    config.validParams->insert("border");
+    return AsVector(MakeHolder<THingeLossMetric>(config.metric, config.params));
 }
 
 TMetricHolder THingeLossMetric::EvalSingleThread(
@@ -3145,9 +3144,11 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeHammingLossMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                       double predictionBorder) {
-    return MakeHolder<THammingLossMetric>(lossFunction, params, predictionBorder);
+// static.
+TVector<THolder<IMetric>> THammingLossMetric::Create(const TMetricConfig& config) {
+    config.validParams->insert("border");
+    return AsVector(MakeHolder<THammingLossMetric>(
+        config.metric, config.params, config.binaryClassPredictionBorder));
 }
 
 THammingLossMetric::THammingLossMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
@@ -3221,8 +3222,8 @@ namespace {
     };
 }
 
-THolder<IMetric> MakePairAccuracyMetric(ELossFunction lossFunction, const TMap<TString, TString>& params) {
-    return MakeHolder<TPairAccuracyMetric>(lossFunction, params);
+TVector<THolder<IMetric>> TPairAccuracyMetric::Create(const TMetricConfig& config) {
+    return AsVector(MakeHolder<TPairAccuracyMetric>(config.metric, config.params));
 }
 
 TMetricHolder TPairAccuracyMetric::EvalSingleThread(
@@ -3291,8 +3292,12 @@ namespace {
     };
 }
 
-THolder<IMetric> MakePrecisionAtKMetric(ELossFunction lossFunction, const TMap<TString, TString>& params, int topSize) {
-    return MakeHolder<TPrecisionAtKMetric>(lossFunction, params, topSize);
+// static.
+TVector<THolder<IMetric>> TPrecisionAtKMetric::Create(const TMetricConfig& config) {
+    int topSize = NCatboostOptions::GetParamOrDefault(config.params, "top", -1);
+    config.validParams->insert("top");
+    config.validParams->insert("border");
+    return AsVector(MakeHolder<TPrecisionAtKMetric>(config.metric, config.params, topSize));
 }
 
 TPrecisionAtKMetric::TPrecisionAtKMetric(ELossFunction lossFunction, const TMap<TString, TString>& params, int topSize)
@@ -3365,8 +3370,11 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeRecallAtKMetric(ELossFunction lossFunction, const TMap<TString, TString>& params, int topSize) {
-    return MakeHolder<TRecallAtKMetric>(lossFunction, params, topSize);
+TVector<THolder<IMetric>> TRecallAtKMetric::Create(const TMetricConfig& config) {
+    int topSize = NCatboostOptions::GetParamOrDefault(config.params, "top", -1);
+    config.validParams->insert("top");
+    config.validParams->insert("border");
+    return AsVector(MakeHolder<TRecallAtKMetric>(config.metric, config.params, topSize));
 }
 
 TRecallAtKMetric::TRecallAtKMetric(ELossFunction lossFunction, const TMap<TString, TString>& params, int topSize)
@@ -3439,8 +3447,12 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeMAPKMetric(ELossFunction lossFunction, const TMap<TString, TString>& params, int topSize) {
-    return MakeHolder<TMAPKMetric>(lossFunction, params, topSize);
+// static.
+TVector<THolder<IMetric>> TMAPKMetric::Create(const TMetricConfig& config) {
+    int topSize = NCatboostOptions::GetParamOrDefault(config.params, "top", -1);
+    config.validParams->insert("top");
+    config.validParams->insert("border");
+    return AsVector(MakeHolder<TMAPKMetric>(config.metric, config.params, topSize));
 }
 
 TMAPKMetric::TMAPKMetric(ELossFunction lossFunction, const TMap<TString, TString>& params, int topSize)
@@ -3740,8 +3752,10 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeUserDefinedPerObjectMetric(ELossFunction lossFunction, const TMap<TString, TString>& params) {
-    return MakeHolder<TUserDefinedPerObjectMetric>(lossFunction, params);
+// static.
+TVector<THolder<IMetric>> TUserDefinedPerObjectMetric::Create(const TMetricConfig& config) {
+    config.validParams->insert("alpha");
+    return AsVector(MakeHolder<TUserDefinedPerObjectMetric>(config.metric, config.params));
 }
 
 TUserDefinedPerObjectMetric::TUserDefinedPerObjectMetric(ELossFunction lossFunction,
@@ -3794,8 +3808,10 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeUserDefinedQuerywiseMetric(ELossFunction lossFunction, const TMap<TString, TString>& params) {
-    return MakeHolder<TUserDefinedQuerywiseMetric>(lossFunction, params);
+// static.
+TVector<THolder<IMetric>> TUserDefinedQuerywiseMetric::Create(const TMetricConfig& config) {
+    config.validParams->insert("alpha");
+    return AsVector(MakeHolder<TUserDefinedQuerywiseMetric>(config.metric, config.params));
 }
 
 TUserDefinedQuerywiseMetric::TUserDefinedQuerywiseMetric(ELossFunction lossFunction, const TMap<TString, TString>& params)
@@ -3861,8 +3877,12 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeHuberLossMetric(ELossFunction lossFunction, const TMap<TString, TString>& params, double delta) {
-    return MakeHolder<THuberLossMetric>(lossFunction, params, delta);
+// static.
+TVector<THolder<IMetric>> THuberLossMetric::Create(const TMetricConfig& config) {
+    CB_ENSURE(config.params.contains("delta"), "Metric " << ELossFunction::Huber << " requires delta as parameter");
+    config.validParams->insert("delta");
+    return AsVector(MakeHolder<THuberLossMetric>(
+        config.metric, config.params, FromString<float>(config.params.at("delta"))));
 }
 
 TMetricHolder THuberLossMetric::EvalSingleThread(
@@ -3931,9 +3951,16 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeFilteredDcgMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                       ENdcgMetricType type, ENdcgDenominatorType denominator) {
-    return MakeHolder<TFilteredDcgMetric>(lossFunction, params, type, denominator);
+// static.
+TVector<THolder<IMetric>> TFilteredDcgMetric::Create(const TMetricConfig& config) {
+    auto type = NCatboostOptions::GetParamOrDefault(config.params, "type", ENdcgMetricType::Base);
+    auto denominator = NCatboostOptions::GetParamOrDefault(config.params, "denominator", ENdcgDenominatorType::Position);
+    config.validParams->insert("sigma");
+    config.validParams->insert("num_estimations");
+    config.validParams->insert("type");
+    config.validParams->insert("denominator");
+    return AsVector(MakeHolder<TFilteredDcgMetric>(
+        config.metric, config.params,type, denominator));
 }
 
 TFilteredDcgMetric::TFilteredDcgMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
@@ -4118,8 +4145,17 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeCombinationLoss(ELossFunction lossFunction, const TMap<TString, TString>& params) {
-    return MakeHolder<TCombinationLoss>(lossFunction, params);
+// static.
+TVector<THolder<IMetric>> TCombinationLoss::Create(const TMetricConfig& config) {
+    CB_ENSURE(config.approxDimension == 1, "Combination loss cannot be used in multi-classification");
+    CB_ENSURE(config.params.size() >= 2, "Combination loss must have 2 or more parameters");
+    CB_ENSURE(config.params.size() % 2 == 0, "Combination loss must have even number of parameters, not " << config.params.size());
+    const ui32 lossCount = config.params.size() / 2;
+    for (ui32 idx : xrange(lossCount)) {
+        config.validParams->insert(GetCombinationLossKey(idx));
+        config.validParams->insert(GetCombinationWeightKey(idx));
+    }
+    return AsVector(MakeHolder<TCombinationLoss>(config.metric, config.params));
 }
 
 TMetricHolder TCombinationLoss::EvalSingleThread(
@@ -4155,6 +4191,165 @@ double TCombinationLoss::GetFinalError(const TMetricHolder& error) const {
     return error.Stats[0];
 }
 
+// TQueryCrossEntropyMetric
+
+static inline bool IsSingleClassQuery(const float* targets, int querySize) {
+    for (int i = 1; i < querySize; ++i) {
+        if (Abs(targets[i] - targets[0]) > 1e-20) {
+            return false;
+        }
+    }
+    return true;
+}
+
+static inline double BestQueryShift(const double* cursor,
+                                    const float* targets,
+                                    const float* weights,
+                                    int size) {
+    double bestShift = 0;
+    double left = -20;
+    double right = 20;
+
+    for (int i = 0; i < 30; ++i) {
+        double der = 0;
+        if (weights) {
+            for (int doc = 0; doc < size; ++doc) {
+                const double expApprox = exp(cursor[doc] + bestShift);
+                const double p = (std::isfinite(expApprox) ? (expApprox / (1.0 + expApprox)) : 1.0);
+                der += weights[doc] * (targets[doc] - p);
+            }
+        } else {
+            for (int doc = 0; doc < size; ++doc) {
+                const double expApprox = exp(cursor[doc] + bestShift);
+                const double p = (std::isfinite(expApprox) ? (expApprox / (1.0 + expApprox)) : 1.0);
+                der += (targets[doc] - p);
+            }
+        }
+
+        if (der > 0) {
+            left = bestShift;
+        } else {
+            right = bestShift;
+        }
+
+        bestShift = (left + right) / 2;
+    }
+    return bestShift;
+}
+
+namespace {
+    struct TQueryCrossEntropyMetric : public TAdditiveMetric<TQueryCrossEntropyMetric> {
+        explicit TQueryCrossEntropyMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
+                                          double alpha);
+        static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+        TMetricHolder EvalSingleThread(
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
+                bool isExpApprox,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
+                int queryStartIndex,
+                int queryEndIndex
+        ) const;
+        EErrorType GetErrorType() const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+
+    private:
+        void AddSingleQuery(const double* approxes,
+                            const float* target,
+                            const float* weight,
+                            int querySize,
+                            TMetricHolder* metricHolder) const;
+    private:
+        const double Alpha;
+        static constexpr double DefaultAlpha = 0.95;
+    };
+}
+
+// static.
+TVector<THolder<IMetric>> TQueryCrossEntropyMetric::Create(const TMetricConfig& config) {
+    auto it = config.params.find("alpha");
+    config.validParams->insert("alpha");
+    return AsVector(MakeHolder<TQueryCrossEntropyMetric>(
+        config.metric, config.params,
+        it != config.params.end() ? FromString<float>(it->second) : DefaultAlpha));
+}
+
+void TQueryCrossEntropyMetric::AddSingleQuery(const double* approxes, const float* targets, const float* weights, int querySize,
+                                              TMetricHolder* metricHolder) const {
+    const double bestShift = BestQueryShift(approxes, targets, weights, querySize);
+
+    double sum = 0;
+    double weight = 0;
+
+    const bool isSingleClassQuery = IsSingleClassQuery(targets, querySize);
+    for (int i = 0; i < querySize; ++i) {
+        const double approx = approxes[i];
+        const double target = targets[i];
+        const double w = weights ? weights[i] : 1.0;
+
+        const double expApprox = exp(approx);
+        const double shiftedExpApprox = exp(approx + bestShift);
+
+        {
+            const double logExpValPlusOne = std::isfinite(expApprox + 1) ? log(1 + expApprox) : approx;
+            const double llp = -w * (target * approx - logExpValPlusOne);
+            sum += (1.0 - Alpha) * llp;
+        }
+
+        if (!isSingleClassQuery) {
+            const double shiftedApprox = approx + bestShift;
+            const double logExpValPlusOne = std::isfinite(shiftedExpApprox + 1) ? log(1 + shiftedExpApprox) : shiftedApprox;
+            const double llmax = -w * (target * shiftedApprox - logExpValPlusOne);
+            sum += Alpha * llmax;
+        }
+        weight += w;
+    }
+
+    metricHolder->Stats[0] += sum;
+    metricHolder->Stats[1] += weight;
+}
+
+
+TMetricHolder TQueryCrossEntropyMetric::EvalSingleThread(const TConstArrayRef<TConstArrayRef<double>> approx,
+                                                         const TConstArrayRef<TConstArrayRef<double>> approxDelta,
+                                                         bool isExpApprox,
+                                                         TConstArrayRef<float> target,
+                                                         TConstArrayRef<float> weight,
+                                                         TConstArrayRef<TQueryInfo> queriesInfo,
+                                                         int queryStartIndex,
+                                                         int queryEndIndex) const {
+    Y_ASSERT(approxDelta.empty());
+    Y_ASSERT(!isExpApprox);
+    TMetricHolder result(2);
+    for (int qid = queryStartIndex; qid < queryEndIndex; ++qid) {
+        auto& qidInfo = queriesInfo[qid];
+        AddSingleQuery(
+                approx[0].data() + qidInfo.Begin,
+                target.data() + qidInfo.Begin,
+                weight.empty() ? nullptr : weight.data() + qidInfo.Begin,
+                qidInfo.End - qidInfo.Begin,
+                &result);
+    }
+    return result;
+}
+
+EErrorType TQueryCrossEntropyMetric::GetErrorType() const {
+    return EErrorType::QuerywiseError;
+}
+
+TQueryCrossEntropyMetric::TQueryCrossEntropyMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
+                                                   double alpha)
+        : TAdditiveMetric(lossFunction, params)
+        , Alpha(alpha) {
+    UseWeights.SetDefaultValue(true);
+}
+
+void TQueryCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Min;
+}
+
 /* Create */
 
 static void CheckParameters(
@@ -4174,24 +4369,6 @@ static void CheckParameters(
                   metricName + " metric shouldn't have " + param.first + " parameter. " + warning);
     }
 }
-template <typename T>
-static TVector<TVector<T>> ConstructSquareMatrix(const TString& matrixString) {
-    const TVector<TString> matrixVector = StringSplitter(matrixString).Split('/');
-    ui32 size = 0;
-    while (size * size < matrixVector.size()) {
-        size++;
-    }
-    CB_ENSURE(size * size == matrixVector.size(), "Size of Matrix should be a square of integer.");
-    TVector<TVector<T>> result(size);
-    for (ui32 i = 0; i < size; ++i) {
-        result[i].resize(size);
-        for (ui32 j = 0; j < size; ++j) {
-            CB_ENSURE(TryFromString<T>(matrixVector[i * size + j], result[i][j]), "Error while parsing AUC Mu missclassification matrix. Building matrix with size "
-                    << size << ", cannot parse \"" << matrixVector[i * size + j] << "\" as a float.");
-        }
-    }
-    return result;
-}
 
 static bool HintedToEvalOnTrain(const TMap<TString, TString>& params) {
     const bool hasHints = params.contains("hints");
@@ -4210,6 +4387,7 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<TString,
     TVector<THolder<IMetric>> result;
     TSet<TString> validParams;
     TMetricConfig config(metric, params, approxDimension, binaryClassPredictionBorder, &validParams);
+
     switch (metric) {
         case ELossFunction::MultiRMSE:
             AppendTemporaryMetricsVector(TMultiRMSEMetric::Create(config), &result);
@@ -4230,19 +4408,16 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<TString,
         case ELossFunction::Quantile:
             AppendTemporaryMetricsVector(TQuantileMetric::Create(config), &result);
             break;
-        case ELossFunction::Expectile: {
+        case ELossFunction::Expectile:
             AppendTemporaryMetricsVector(TExpectileMetric::Create(config), &result);
             break;
-        }
-        case ELossFunction::LogLinQuantile: {
+        case ELossFunction::LogLinQuantile:
             AppendTemporaryMetricsVector(TLogLinQuantileMetric::Create(config), &result);
             break;
-        }
         case ELossFunction::AverageGain:
-        case ELossFunction::QueryAverage: {
+        case ELossFunction::QueryAverage:
             AppendTemporaryMetricsVector(TAverageGain::Create(config), &result);
             break;
-        }
         case ELossFunction::MAPE:
             AppendTemporaryMetricsVector(TMAPEMetric::Create(config), &result);
             break;
@@ -4276,150 +4451,75 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<TString,
         case ELossFunction::QuerySoftMax:
             AppendTemporaryMetricsVector(TQuerySoftMaxMetric::Create(config), &result);
             break;
-        case ELossFunction::PFound: {
+        case ELossFunction::PFound:
             AppendTemporaryMetricsVector(TPFoundMetric::Create(config), &result);
             break;
-        }
         case ELossFunction::LogLikelihoodOfPrediction:
             AppendTemporaryMetricsVector(TLLPMetric::Create(config), &result);
             break;
         case ELossFunction::DCG:
-        case ELossFunction::NDCG: {
+        case ELossFunction::NDCG:
             AppendTemporaryMetricsVector(TDcgMetric::Create(config), &result);
             break;
-        }
         case ELossFunction::R2:
             AppendTemporaryMetricsVector(TR2Metric::Create(config), &result);
             break;
-        case ELossFunction::NumErrors: {
+        case ELossFunction::NumErrors:
             AppendTemporaryMetricsVector(TNumErrorsMetric::Create(config), &result);
             break;
-        }
-        case ELossFunction::AUC: {
+        case ELossFunction::AUC:
             AppendTemporaryMetricsVector(TAUCMetric::Create(config), &result);
             break;
-        }
-        case ELossFunction::BalancedAccuracy: {
+        case ELossFunction::BalancedAccuracy:
             AppendTemporaryMetricsVector(TBalancedAccuracyMetric::Create(config), &result);
             break;
-        }
-        case ELossFunction::BalancedErrorRate: {
-            CB_ENSURE(approxDimension == 1, "Balanced Error Rate is used only for binary classification problems.");
-            validParams.insert("border");
-            result.emplace_back(MakeBinClassBalancedErrorRate(metric, params, binaryClassPredictionBorder));
+        case ELossFunction::BalancedErrorRate:
+            AppendTemporaryMetricsVector(TBalancedErrorRate::Create(config), &result);
             break;
-        }
-        case ELossFunction::Kappa: {
-            if (approxDimension == 1) {
-                validParams.insert("border");
-                result.emplace_back(MakeBinClassKappaMetric(metric, params, binaryClassPredictionBorder));
-            } else {
-                result.emplace_back(MakeMultiClassKappaMetric(metric, params, approxDimension));
-            }
-            break;
-        }
-        case ELossFunction::WKappa: {
-            if (approxDimension == 1) {
-                validParams.insert("border");
-                result.emplace_back(MakeBinClassWKappaMetric(metric, params, binaryClassPredictionBorder));
-            } else {
-                result.emplace_back(MakeMultiClassWKappaMetric(metric, params, approxDimension));
-            }
-            break;
-        }
         case ELossFunction::HammingLoss:
-            result.push_back(MakeHammingLossMetric(metric, params,
-                                                   GetDefaultPredictionBorder()));
-            validParams = {"border"};
+            AppendTemporaryMetricsVector(THammingLossMetric::Create(config), &result);
             break;
         case ELossFunction::HingeLoss:
-            result.push_back(MakeHolder<THingeLossMetric>(metric, params));
-            validParams = {"border"};
+            AppendTemporaryMetricsVector(THingeLossMetric::Create(config), &result);
             break;
         case ELossFunction::PairAccuracy:
-            result.emplace_back(MakePairAccuracyMetric(metric, params));
+            AppendTemporaryMetricsVector(TPairAccuracyMetric::Create(config), &result);
             break;
-        case ELossFunction::PrecisionAt: {
-            int topSize = NCatboostOptions::GetParamOrDefault(params, "top", -1);
-            validParams = {"top", "border"};
-            result.emplace_back(MakePrecisionAtKMetric(metric, params, topSize));
+        case ELossFunction::PrecisionAt:
+            AppendTemporaryMetricsVector(TPrecisionAtKMetric::Create(config), &result);
             break;
-        }
-        case ELossFunction::RecallAt: {
-            int topSize = NCatboostOptions::GetParamOrDefault(params, "top", -1);
-            validParams = {"top", "border"};
-            result.emplace_back(MakeRecallAtKMetric(metric, params, topSize));
+        case ELossFunction::RecallAt:
+            AppendTemporaryMetricsVector(TRecallAtKMetric::Create(config), &result);
             break;
-        }
-        case ELossFunction::MAP: {
-            int topSize = NCatboostOptions::GetParamOrDefault(params, "top", -1);
-            validParams = {"top", "border"};
-            result.emplace_back(MakeMAPKMetric(metric, params, topSize));
+        case ELossFunction::MAP:
+            AppendTemporaryMetricsVector(TMAPKMetric::Create(config), &result);
             break;
-        }
-        case ELossFunction::UserPerObjMetric: {
-            result.emplace_back(MakeUserDefinedPerObjectMetric(metric, params));
-            validParams = {"alpha"};
+        case ELossFunction::UserPerObjMetric:
+            AppendTemporaryMetricsVector(TUserDefinedPerObjectMetric::Create(config), &result);
             break;
-        }
-        case ELossFunction::UserQuerywiseMetric: {
-            result.emplace_back(MakeUserDefinedQuerywiseMetric(metric, params));
-            validParams = {"alpha"};
+        case ELossFunction::UserQuerywiseMetric:
+            AppendTemporaryMetricsVector(TUserDefinedQuerywiseMetric::Create(config), &result);
             break;
-        }
-        case ELossFunction::QueryCrossEntropy: {
-            auto it = params.find("alpha");
-            if (it != params.end()) {
-                result.push_back(MakeQueryCrossEntropyMetric(metric, params, FromString<float>(it->second)));
-            } else {
-                result.push_back(MakeQueryCrossEntropyMetric(metric, params));
-            }
-            validParams = {"alpha"};
+        case ELossFunction::QueryCrossEntropy:
+            AppendTemporaryMetricsVector(TQueryCrossEntropyMetric::Create(config), &result);
             break;
-        }
         case ELossFunction::Huber:
-            CB_ENSURE(params.contains("delta"), "Metric " << ELossFunction::Huber << " requires delta as parameter");
-            validParams={"delta"};
-            result.push_back(MakeHuberLossMetric(metric, params, FromString<float>(params.at("delta"))));
+            AppendTemporaryMetricsVector(THuberLossMetric::Create(config), &result);
             break;
-        case ELossFunction::FilteredDCG: {
-            auto type = NCatboostOptions::GetParamOrDefault(params, "type", ENdcgMetricType::Base);
-            auto denominator = NCatboostOptions::GetParamOrDefault(params, "denominator", ENdcgDenominatorType::Position);
-            validParams={"sigma", "num_estimations", "type", "denominator"};
-            result.push_back(MakeFilteredDcgMetric(type, denominator));
+        case ELossFunction::FilteredDCG:
+            AppendTemporaryMetricsVector(TFilteredDcgMetric::Create(config), &result);
             break;
-        }
-        case ELossFunction::FairLoss: {
-            double smoothness = NCatboostOptions::GetParamOrDefault(params, "smoothness", TFairLossMetric::DefaultSmoothness);
-            validParams = {"smoothness"};
-            result.push_back(MakeFairLossMetric(smoothness));
+        case ELossFunction::FairLoss:
+            AppendTemporaryMetricsVector(TFairLossMetric::Create(config), &result);
             break;
-        }
-        case ELossFunction::NormalizedGini: {
-            if (approxDimension == 1) {
-                result.push_back(MakeBinClassNormalizedGiniMetric(metric, params));
-                validParams = {"border"};
-            } else {
-                for (int i : xrange(approxDimension)) {
-                    result.push_back(MakeMultiClassNormalizedGiniMetric(metric, params, i));
-                }
-            }
+        case ELossFunction::NormalizedGini:
+            AppendTemporaryMetricsVector(TNormalizedGini::Create(config), &result);
             break;
-        }
-        case ELossFunction::Combination: {
-            CB_ENSURE(approxDimension == 1, "Combination loss cannot be used in multi-classification");
-            CB_ENSURE(params.size() >= 2, "Combination loss must have 2 or more parameters");
-            CB_ENSURE(params.size() % 2 == 0, "Combination loss must have even number of parameters, not " << params.size());
-            const ui32 lossCount = params.size() / 2;
-            for (ui32 idx : xrange(lossCount)) {
-                validParams.insert(GetCombinationLossKey(idx));
-                validParams.insert(GetCombinationWeightKey(idx));
-            }
-            result.push_back(MakeCombinationLoss(metric, params));
+        case ELossFunction::Combination: 
+            AppendTemporaryMetricsVector(TCombinationLoss::Create(config), &result);
             break;
-        }
         default: {
-            result = CreateCachingMetrics(metric, params, approxDimension, &validParams);
+            result = CreateCachingMetrics(config);
 
             if (!result) {
                 CB_ENSURE(false, "Unsupported metric: " << metric);
@@ -4727,158 +4827,6 @@ TMetricHolder EvalErrors(
     }
 }
 
-static inline double BestQueryShift(const double* cursor,
-                                    const float* targets,
-                                    const float* weights,
-                                    int size) {
-    double bestShift = 0;
-    double left = -20;
-    double right = 20;
-
-    for (int i = 0; i < 30; ++i) {
-        double der = 0;
-        if (weights) {
-            for (int doc = 0; doc < size; ++doc) {
-                const double expApprox = exp(cursor[doc] + bestShift);
-                const double p = (std::isfinite(expApprox) ? (expApprox / (1.0 + expApprox)) : 1.0);
-                der += weights[doc] * (targets[doc] - p);
-            }
-        } else {
-            for (int doc = 0; doc < size; ++doc) {
-                const double expApprox = exp(cursor[doc] + bestShift);
-                const double p = (std::isfinite(expApprox) ? (expApprox / (1.0 + expApprox)) : 1.0);
-                der += (targets[doc] - p);
-            }
-        }
-
-        if (der > 0) {
-            left = bestShift;
-        } else {
-            right = bestShift;
-        }
-
-        bestShift = (left + right) / 2;
-    }
-    return bestShift;
-}
-
-static inline bool IsSingleClassQuery(const float* targets, int querySize) {
-    for (int i = 1; i < querySize; ++i) {
-        if (Abs(targets[i] - targets[0]) > 1e-20) {
-            return false;
-        }
-    }
-    return true;
-}
-
-namespace {
-    struct TQueryCrossEntropyMetric final: public TAdditiveMetric<TQueryCrossEntropyMetric> {
-        explicit TQueryCrossEntropyMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                          double alpha);
-        static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
-        TMetricHolder EvalSingleThread(
-                const TConstArrayRef<TConstArrayRef<double>> approx,
-                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
-                bool isExpApprox,
-                TConstArrayRef<float> target,
-                TConstArrayRef<float> weight,
-                TConstArrayRef<TQueryInfo> queriesInfo,
-                int queryStartIndex,
-                int queryEndIndex
-        ) const override;
-        EErrorType GetErrorType() const override;
-        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
-
-    private:
-        void AddSingleQuery(const double* approxes,
-                            const float* target,
-                            const float* weight,
-                            int querySize,
-                            TMetricHolder* metricHolder) const;
-    private:
-        const double Alpha;
-    };
-}
-
-THolder<IMetric> MakeQueryCrossEntropyMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                             double alpha) {
-    return MakeHolder<TQueryCrossEntropyMetric>(lossFunction, params, alpha);
-}
-
-void TQueryCrossEntropyMetric::AddSingleQuery(const double* approxes, const float* targets, const float* weights, int querySize,
-                                              TMetricHolder* metricHolder) const {
-    const double bestShift = BestQueryShift(approxes, targets, weights, querySize);
-
-    double sum = 0;
-    double weight = 0;
-
-    const bool isSingleClassQuery = IsSingleClassQuery(targets, querySize);
-    for (int i = 0; i < querySize; ++i) {
-        const double approx = approxes[i];
-        const double target = targets[i];
-        const double w = weights ? weights[i] : 1.0;
-
-        const double expApprox = exp(approx);
-        const double shiftedExpApprox = exp(approx + bestShift);
-
-        {
-            const double logExpValPlusOne = std::isfinite(expApprox + 1) ? log(1 + expApprox) : approx;
-            const double llp = -w * (target * approx - logExpValPlusOne);
-            sum += (1.0 - Alpha) * llp;
-        }
-
-        if (!isSingleClassQuery) {
-            const double shiftedApprox = approx + bestShift;
-            const double logExpValPlusOne = std::isfinite(shiftedExpApprox + 1) ? log(1 + shiftedExpApprox) : shiftedApprox;
-            const double llmax = -w * (target * shiftedApprox - logExpValPlusOne);
-            sum += Alpha * llmax;
-        }
-        weight += w;
-    }
-
-    metricHolder->Stats[0] += sum;
-    metricHolder->Stats[1] += weight;
-}
-
-
-TMetricHolder TQueryCrossEntropyMetric::EvalSingleThread(const TConstArrayRef<TConstArrayRef<double>> approx,
-                                                         const TConstArrayRef<TConstArrayRef<double>> approxDelta,
-                                                         bool isExpApprox,
-                                                         TConstArrayRef<float> target,
-                                                         TConstArrayRef<float> weight,
-                                                         TConstArrayRef<TQueryInfo> queriesInfo,
-                                                         int queryStartIndex,
-                                                         int queryEndIndex) const {
-    Y_ASSERT(approxDelta.empty());
-    Y_ASSERT(!isExpApprox);
-    TMetricHolder result(2);
-    for (int qid = queryStartIndex; qid < queryEndIndex; ++qid) {
-        auto& qidInfo = queriesInfo[qid];
-        AddSingleQuery(
-                approx[0].data() + qidInfo.Begin,
-                target.data() + qidInfo.Begin,
-                weight.empty() ? nullptr : weight.data() + qidInfo.Begin,
-                qidInfo.End - qidInfo.Begin,
-                &result);
-    }
-    return result;
-}
-
-EErrorType TQueryCrossEntropyMetric::GetErrorType() const {
-    return EErrorType::QuerywiseError;
-}
-
-TQueryCrossEntropyMetric::TQueryCrossEntropyMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                                   double alpha)
-        : TAdditiveMetric(lossFunction, params)
-        , Alpha(alpha) {
-    UseWeights.SetDefaultValue(true);
-}
-
-void TQueryCrossEntropyMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
-    *valueType = EMetricBestValue::Min;
-}
-
 void CheckMetrics(const TVector<THolder<IMetric>>& metrics, const ELossFunction modelLoss) {
     CB_ENSURE(!metrics.empty(), "No metrics specified for evaluation");
     for (int i = 0; i < metrics.ysize(); ++i) {
@@ -4940,3 +4888,11 @@ bool IsMinOptimal(TStringBuf lossFunction) {
 bool IsQuantileLoss(const ELossFunction& loss) {
     return loss == ELossFunction::Quantile || loss == ELossFunction::MAE;
 }
+
+namespace internal {
+
+void AppendTemporaryMetricsVector(TVector<THolder<IMetric>>&& src, TVector<THolder<IMetric>>* dst) {
+    std::move(src.begin(), src.end(), std::back_inserter(*dst));
+}
+
+} // namespace internal

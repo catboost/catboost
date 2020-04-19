@@ -489,3 +489,17 @@ void CheckPreprocessedTarget(
 void CheckMetrics(const TVector<THolder<IMetric>>& metrics, const ELossFunction modelLoss);
 
 bool IsQuantileLoss(const ELossFunction& loss);
+
+
+namespace internal {
+
+void AppendTemporaryMetricsVector(TVector<THolder<IMetric>>&& src, TVector<THolder<IMetric>>* dst);
+
+template <class MetricType>
+TVector<THolder<IMetric>> AsVector(THolder<MetricType>&& metric) {
+    TVector<THolder<IMetric>> result;
+    result.emplace_back(std::move(metric));
+    return result;
+}
+
+} // namespace internal

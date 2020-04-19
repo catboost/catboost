@@ -13,6 +13,9 @@
 #include <util/generic/string.h>
 #include <util/generic/set.h>
 
+using internal::AppendTemporaryMetricsVector;
+using internal::AsVector;
+
 constexpr int BinaryClassesCount = 2;
 static const TString ConfusionMatrixCacheKey = "Confusion Matrix";
 
@@ -867,11 +870,16 @@ void TTotalF1CachingMetric::GetBestValue(EMetricBestValue* valueType, float*) co
 
 namespace {
     struct TKappaMetric final: public TCachingMetric {
-        explicit TKappaMetric(int classCount = 2, double predictionBorder = GetDefaultPredictionBorder())
-            : TargetBorder(GetDefaultTargetBorder())
+        explicit TKappaMetric(ELossFunction lossFunction, const TMap<TString, TString>& descriptionParams,
+                              int classCount = 2, double predictionBorder = GetDefaultPredictionBorder())
+            : TCachingMetric(lossFunction, descriptionParams)
+            , TargetBorder(GetDefaultTargetBorder())
             , PredictionBorder(predictionBorder)
             , ClassCount(classCount) {
         }
+
+        static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+
         TMetricHolder Eval(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
                 const TConstArrayRef<TConstArrayRef<double>> approxDelta,
@@ -897,12 +905,14 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeBinClassKappaMetric(double predictionBorder) {
-    return MakeHolder<TKappaMetric>(/*classCount=*/2, predictionBorder);
-}
-
-THolder<IMetric> MakeMultiClassKappaMetric(int classCount) {
-    return MakeHolder<TKappaMetric>(classCount);
+// static.
+TVector<THolder<IMetric>> TKappaMetric::Create(const TMetricConfig& config) {
+    if (config.approxDimension == 1) {
+        config.validParams->insert("border");
+        return AsVector(MakeHolder<TKappaMetric>(config.metric, config.params, /*classCount=*/2, config.binaryClassPredictionBorder));
+    } else {
+        return AsVector(MakeHolder<TKappaMetric>(config.metric, config.params, config.approxDimension));
+    }
 }
 
 TMetricHolder TKappaMetric::Eval(
@@ -943,11 +953,15 @@ double TKappaMetric::GetFinalError(const TMetricHolder& error) const {
 
 namespace {
     struct TWKappaMetric final: public TCachingMetric {
-        explicit TWKappaMetric(int classCount = 2, double predictionBorder = GetDefaultPredictionBorder())
-            : TargetBorder(GetDefaultTargetBorder())
+        explicit TWKappaMetric(ELossFunction lossFunction, const TMap<TString, TString>& descriptionParams,
+                               int classCount = 2, double predictionBorder = GetDefaultPredictionBorder())
+            : TCachingMetric(lossFunction, descriptionParams)
+            , TargetBorder(GetDefaultTargetBorder())
             , PredictionBorder(predictionBorder)
             , ClassCount(classCount) {
         }
+
+        static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
 
         TMetricHolder Eval(
                 const TConstArrayRef<TConstArrayRef<double>> approx,
@@ -975,12 +989,14 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeBinClassWKappaMetric(double predictionBorder) {
-    return MakeHolder<TWKappaMetric>(/*classCount=*/2, predictionBorder);
-}
-
-THolder<IMetric> MakeMultiClassWKappaMetric(int classCount) {
-    return MakeHolder<TWKappaMetric>(classCount);
+// static.
+TVector<THolder<IMetric>> TWKappaMetric::Create(const TMetricConfig& config) {
+    if (config.approxDimension == 1) {
+        config.validParams->insert("border");
+        return AsVector(MakeHolder<TWKappaMetric>(config.metric, config.params, /*classCount=*/2, config.binaryClassPredictionBorder));
+    } else {
+        return AsVector(MakeHolder<TWKappaMetric>(config.metric, config.params, config.approxDimension));
+    }
 }
 
 TMetricHolder TWKappaMetric::Eval(
@@ -1142,59 +1158,62 @@ static TVector<THolder<IMetric>> CreateMetricClasswise(int approxDimension, cons
     return result;
 }
 
-TVector<THolder<IMetric>> CreateCachingMetrics(ELossFunction metric, const TMap<TString, TString>& params,
-        int approxDimension, TSet<TString>* validParams) {
-    *validParams = TSet<TString>{};
+TVector<THolder<IMetric>> CreateCachingMetrics(const TMetricConfig& config) {
+    *config.validParams = TSet<TString>{};
+    TVector<THolder<IMetric>> result;
 
-    switch(metric) {
+    switch(config.metric) {
         case ELossFunction::F1: {
-            return CreateMetricClasswise<TF1CachingMetric>(approxDimension, params, metric);
+            return CreateMetricClasswise<TF1CachingMetric>(config.approxDimension, config.params, config.metric);
         }
         case ELossFunction::TotalF1: {
-            validParams->insert("average");
+            config.validParams->insert("average");
             EF1AverageType averageType = EF1AverageType::Weighted;
-            if (params.contains("average")) {
-                averageType = FromString<EF1AverageType>(params.at("average"));
+            if (config.params.contains("average")) {
+                averageType = FromString<EF1AverageType>(config.params.at("average"));
             }
 
-            TVector<THolder<IMetric>> result;
-            if (approxDimension == 1) {
-                const double predictionBorder = NCatboostOptions::GetPredictionBorderFromLossParams(params).GetOrElse(
-                        GetDefaultPredictionBorder());
-                result.emplace_back(MakeHolder<TTotalF1CachingMetric>(metric, params, predictionBorder, averageType));
+            if (config.approxDimension == 1) {
+                result.emplace_back(MakeHolder<TTotalF1CachingMetric>(config.metric, config.params, config.binaryClassPredictionBorder, averageType));
             } else {
-                result.emplace_back(MakeHolder<TTotalF1CachingMetric>(metric, params, approxDimension, averageType));
+                result.emplace_back(MakeHolder<TTotalF1CachingMetric>(config.metric, config.params, config.approxDimension, averageType));
             }
             return result;
         }
         case ELossFunction::MCC: {
-            return CreateMetric<TMCCCachingMetric>(approxDimension, params, metric);
+            return CreateMetric<TMCCCachingMetric>(config.approxDimension, config.params, config.metric);
         }
         case ELossFunction::BrierScore: {
-            CB_ENSURE(approxDimension == 1, "Brier Score is used only for binary classification problems.");
-            TVector<THolder<IMetric>> result;
-            result.emplace_back(MakeBrierScoreMetric(metric, params));
+            CB_ENSURE(config.approxDimension == 1, "Brier Score is used only for binary classification problems.");
+            result.emplace_back(MakeBrierScoreMetric(config.metric, config.params));
             return result;
         }
         case ELossFunction::ZeroOneLoss: {
-            return CreateMetric<TZeroOneLossCachingMetric>(approxDimension, params, metric);
+            return CreateMetric<TZeroOneLossCachingMetric>(config.approxDimension, config.params, config.metric);
         }
         case ELossFunction::Accuracy: {
-            return CreateMetric<TAccuracyCachingMetric>(approxDimension, params, metric);
+            return CreateMetric<TAccuracyCachingMetric>(config.approxDimension, config.params, config.metric);
         }
         case ELossFunction::CtrFactor: {
-            TVector<THolder<IMetric>> result;
-            result.emplace_back(MakeCtrFactorMetric(metric, params));
+            result.emplace_back(MakeCtrFactorMetric(config.metric, config.params));
             return result;
         }
         case ELossFunction::Precision: {
-            return CreateMetricClasswise<TPrecisionCachingMetric>(approxDimension, params, metric);
+            return CreateMetricClasswise<TPrecisionCachingMetric>(config.approxDimension, config.params, config.metric);
         }
-        case ELossFunction::Recall: {
-            return CreateMetricClasswise<TRecallCachingMetric>(approxDimension, params, metric);
-        }
-        default: {
-            return {};
-        }
+        case ELossFunction::Recall: 
+            return CreateMetricClasswise<TRecallCachingMetric>(config.approxDimension, config.params, config.metric);
+            break;
+        case ELossFunction::Kappa:
+            AppendTemporaryMetricsVector(TKappaMetric::Create(config), &result);
+            break;
+        
+        case ELossFunction::WKappa:
+            AppendTemporaryMetricsVector(TWKappaMetric::Create(config), &result);
+            break;
+        default:
+            break;
     }
+
+    return result;
 }

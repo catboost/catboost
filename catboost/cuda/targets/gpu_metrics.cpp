@@ -475,6 +475,11 @@ namespace NCatboostCuda {
                            *localExecutor);
     }
 
+    static THolder<IMetric> CreateSingleMetric(ELossFunction metric, const TMap<TString, TString>& params, int approxDimension) {
+        THolder<IMetric> metricHolder = std::move(CreateMetric(metric, params, approxDimension)[0]);
+        return metricHolder;
+    }
+
     static TVector<THolder<IGpuMetric>> CreateGpuMetricFromDescription(ELossFunction targetObjective, const NCatboostOptions::TLossDescription& metricDescription, ui32 approxDim) {
         TVector<THolder<IGpuMetric>> result;
         const auto numClasses = approxDim == 1 ? 2 : approxDim;
@@ -487,6 +492,12 @@ namespace NCatboostCuda {
 
         auto metricType = metricDescription.GetLossFunction();
         const TMap<TString, TString>& params = metricDescription.GetLossParams();
+        const double binaryClassPredictionBorder = NCatboostOptions::GetPredictionBorderFromLossParams(params).GetOrElse(
+            GetDefaultPredictionBorder());
+        TSet<TString> unusedValidParams;
+
+        TMetricConfig config(metricType, params, approxDim, binaryClassPredictionBorder, &unusedValidParams);
+        
         switch (metricType) {
             case ELossFunction::Logloss:
             case ELossFunction::CrossEntropy:
@@ -528,32 +539,34 @@ namespace NCatboostCuda {
             case ELossFunction::AUC: {
                 if (approxDim == 1) {
                     if (IsClassificationObjective(targetObjective) || targetObjective == ELossFunction::QueryCrossEntropy) {
-                        result.emplace_back(new TGpuPointwiseMetric(MakeBinClassAucMetric(metricType, params), 1, 2, isMulticlass, metricDescription));
+                        result.emplace_back(new TGpuPointwiseMetric(CreateSingleMetric(metricType, params, approxDim), 1, 2, isMulticlass, metricDescription));
                     } else {
-                        result.emplace_back(new TCpuFallbackMetric(MakeBinClassAucMetric(metricType, params), metricDescription));
+                        result.emplace_back(new TCpuFallbackMetric(CreateSingleMetric(metricType, params, approxDim), metricDescription));
                     }
                 } else {
                     CATBOOST_WARNING_LOG << "AUC is not implemented on GPU. Will use CPU for metric computation, this could significantly affect learning time" << Endl;
+                    TVector<THolder<IMetric>> aucMetrics = CreateMetric(metricType, {{"type", "OneVsAll"}}, approxDim);
+
                     for (ui32 i = 0; i < approxDim; ++i) {
-                        result.emplace_back(new TCpuFallbackMetric(MakeMultiClassAucMetric(metricType, params, i), metricDescription));
+                        result.emplace_back(new TCpuFallbackMetric(std::move(aucMetrics[i]), metricDescription));
                     }
                 }
                 break;
             }
             case ELossFunction::Kappa: {
                 if (approxDim == 1) {
-                    result.emplace_back(new TCpuFallbackMetric(MakeBinClassKappaMetric(metricType, params), metricDescription));
+                    result.emplace_back(new TCpuFallbackMetric(CreateSingleMetric(metricType, params, approxDim), metricDescription));
                 } else {
-                    result.emplace_back(new TCpuFallbackMetric(MakeMultiClassKappaMetric(metricType, params, numClasses), metricDescription));
+                    result.emplace_back(new TCpuFallbackMetric(CreateSingleMetric(metricType, params, approxDim), metricDescription));
                 }
                 break;
             }
 
             case ELossFunction::WKappa: {
                 if (approxDim == 1) {
-                    result.emplace_back(new TCpuFallbackMetric(MakeBinClassWKappaMetric(metricType, params), metricDescription));
+                    result.emplace_back(new TCpuFallbackMetric(CreateSingleMetric(metricType, params, approxDim), metricDescription));
                 } else {
-                    result.emplace_back(new TCpuFallbackMetric(MakeMultiClassWKappaMetric(metricType, params, numClasses), metricDescription));
+                    result.emplace_back(new TCpuFallbackMetric(CreateSingleMetric(metricType, params, approxDim), metricDescription));
                 }
                 break;
             }
@@ -565,12 +578,12 @@ namespace NCatboostCuda {
                     border = FromString<float>(params.at("border"));
                 }
 
-                result.emplace_back(new TCpuFallbackMetric(MakeHammingLossMetric(metricType, params, border), metricDescription));
+                result.emplace_back(new TCpuFallbackMetric(CreateSingleMetric(metricType, params, approxDim), metricDescription));
                 break;
             }
 
             case ELossFunction::HingeLoss: {
-                result.emplace_back(new TCpuFallbackMetric(MakeHingeLossMetric(metricType, params), metricDescription));
+                result.emplace_back(new TCpuFallbackMetric(CreateSingleMetric(metricType, params, approxDim), metricDescription));
                 break;
             }
 
