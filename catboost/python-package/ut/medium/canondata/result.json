@@ -220,15 +220,15 @@
         "uri": "file://test.test_cv_skip_train_default_CPU_/catboost_training.json"
     },
     "test.test_cv_with_ignored_features[CPU-has_missing=False-data_type=integer]": {
-        "checksum": "d4599f3bab86247640dc83ff1b56fb36",
+        "checksum": "5e3ecad27679ad0bacc92c4f36b80c36",
         "uri": "file://test.test_cv_with_ignored_features_CPU-has_missing=False-data_type=integer_/catboost_training.json"
     },
     "test.test_cv_with_ignored_features[CPU-has_missing=False-data_type=string]": {
-        "checksum": "e952c543588873b1ad6400ac7f7a6e8f",
+        "checksum": "525eb4058fb080ba668ac36a5792e7bd",
         "uri": "file://test.test_cv_with_ignored_features_CPU-has_missing=False-data_type=string_/catboost_training.json"
     },
     "test.test_cv_with_ignored_features[CPU-has_missing=True-data_type=integer]": {
-        "checksum": "d4599f3bab86247640dc83ff1b56fb36",
+        "checksum": "5e3ecad27679ad0bacc92c4f36b80c36",
         "uri": "file://test.test_cv_with_ignored_features_CPU-has_missing=True-data_type=integer_/catboost_training.json"
     },
     "test.test_cv_with_not_binarized_target[CPU]": {
@@ -660,7 +660,7 @@
         "uri": "file://test.test_fit_on_scipy_sparse_spmatrix_features_density=0.8-features_dtype=uint8_/predictions.txt"
     },
     "test.test_full_history[CPU]": {
-        "checksum": "e0b13566866a390d44b933595a502f10",
+        "checksum": "38614213d3e65c2e2e0fa3e3cff10582",
         "uri": "file://test.test_full_history_CPU_/model.bin"
     },
     "test.test_get_all_params": {

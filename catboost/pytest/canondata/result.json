@@ -4843,25 +4843,25 @@
     ],
     "test.test_learning_rate_auto_set[false-Ordered]": [
         {
-            "checksum": "71c6dfbc69cb2e842add61fecb6ce04e",
+            "checksum": "3326aeb9ceaec7a0b469ae4fc300e1e5",
             "uri": "file://test.test_learning_rate_auto_set_false-Ordered_/test.eval"
         }
     ],
     "test.test_learning_rate_auto_set[false-Plain]": [
         {
-            "checksum": "3b11c9c9b509b9964b2eab81ea2cf8d4",
+            "checksum": "7800d424beea5dcaf645b5676ef5a135",
             "uri": "file://test.test_learning_rate_auto_set_false-Plain_/test.eval"
         }
     ],
     "test.test_learning_rate_auto_set[true-Ordered]": [
         {
-            "checksum": "7b1edb36e992d347d18ae4d6cf63dfdb",
+            "checksum": "f262609a6c20d9ae5f7d99216573ecda",
             "uri": "file://test.test_learning_rate_auto_set_true-Ordered_/test.eval"
         }
     ],
     "test.test_learning_rate_auto_set[true-Plain]": [
         {
-            "checksum": "8ce9217287f27b1345676334aae8c57b",
+            "checksum": "3c16c470fc338aa808e0d005aa448ca4",
             "uri": "file://test.test_learning_rate_auto_set_true-Plain_/test.eval"
         }
     ],
@@ -6335,13 +6335,13 @@
     ],
     "test.test_mvs_bootstrap[Ordered]": [
         {
-            "checksum": "283b28deaea7e1cbfa089694c7849192",
+            "checksum": "9d22f3d362d167b085641d7c307adf15",
             "uri": "file://test.test_mvs_bootstrap_Ordered_/test.eval"
         }
     ],
     "test.test_mvs_bootstrap[Plain]": [
         {
-            "checksum": "89b3fb3eaafc9d982d9e3e19ecb5b478",
+            "checksum": "c8e322f83d4460a3b2af78bf6855514c",
             "uri": "file://test.test_mvs_bootstrap_Plain_/test.eval"
         }
     ],
@@ -6787,7 +6787,7 @@
     ],
     "test.test_overfit_detector_inc_to_dec[Plain-Depthwise]": [
         {
-            "checksum": "f3a8f1f9397ebc14ce1aae1fb9da4000",
+            "checksum": "b7812c3666bda36324cb42ad3065ac8f",
             "uri": "file://test.test_overfit_detector_inc_to_dec_Plain-Depthwise_/test.eval"
         }
     ],
@@ -6811,7 +6811,7 @@
     ],
     "test.test_overfit_detector_iter[Plain-Depthwise]": [
         {
-            "checksum": "539ea4fda1eb4347ae5cc7ba1be76200",
+            "checksum": "9d2f7130dd4027f6faf6e6cd9e3c0ff0",
             "uri": "file://test.test_overfit_detector_iter_Plain-Depthwise_/test.eval"
         }
     ],
@@ -6835,7 +6835,7 @@
     ],
     "test.test_overfit_detector_with_resume_from_snapshot[IncToDec-Plain-Depthwise]": [
         {
-            "checksum": "f3a8f1f9397ebc14ce1aae1fb9da4000",
+            "checksum": "b7812c3666bda36324cb42ad3065ac8f",
             "uri": "file://test.test_overfit_detector_with_resume_from_snapshot_IncToDec-Plain-Depthwise_/test.eval"
         }
     ],
@@ -6859,7 +6859,7 @@
     ],
     "test.test_overfit_detector_with_resume_from_snapshot[Iter-Plain-Depthwise]": [
         {
-            "checksum": "539ea4fda1eb4347ae5cc7ba1be76200",
+            "checksum": "9d2f7130dd4027f6faf6e6cd9e3c0ff0",
             "uri": "file://test.test_overfit_detector_with_resume_from_snapshot_Iter-Plain-Depthwise_/test.eval"
         }
     ],
@@ -7223,7 +7223,7 @@
     ],
     "test.test_per_object_approx_on_full_history[Newton]": [
         {
-            "checksum": "8918ff7818d0bdbdc8fdf2ae0d32c210",
+            "checksum": "9a92c26c05135eb972759454b2d3091b",
             "uri": "file://test.test_per_object_approx_on_full_history_Newton_/test.eval"
         }
     ],
@@ -8497,7 +8497,7 @@
     ],
     "test.test_shap_approximate": [
         {
-            "checksum": "e94557ee4c4071fe6670f1fcc5473a34",
+            "checksum": "65f95869dbbd37cc635d0f3203c1b7d7",
             "uri": "file://test.test_shap_approximate/shapval"
         }
     ],
