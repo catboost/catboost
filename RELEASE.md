@@ -2,6 +2,7 @@
 
 ## New losses and metrics
 
+* New ranking objective 'StochasticRank', details in [paper](https://arxiv.org/abs/2003.02122).
 * `Tweedie` loss is supported now. It can be a good solution for right-skewed target with many zero values, see [tutorial](https://github.com/catboost/tutorials/blob/master/regression/tweedie.ipynb).
 When using `CatBoostRegressor.predict` function, default `prediction_type` for this loss will be equal to `Exponent`. Implemented by @ilya-pchelintsev (issue #577)
 * Classification metrics now support a new parameter `proba_border`. With this parameter you can set decision boundary for treating prediction as negative or positive. Implemented by @ivanychev.
