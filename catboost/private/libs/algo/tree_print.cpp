@@ -116,6 +116,9 @@ TString BuildDescription(const NCB::TFeaturesLayout& layout, const TSplitCandida
         result << " type" << (int)feature.Ctr.CtrIdx;
     } else if (feature.Type == ESplitType::FloatFeature) {
         result << BuildFeatureDescription(layout, feature.FeatureIdx, EFeatureType::Float);
+    } else if (feature.Type == ESplitType::EstimatedFeature) {
+        result << "estimated_" << (feature.IsOnlineEstimatedFeature ? "online" : "offline")
+            << "_feature " << feature.FeatureIdx;
     } else {
         Y_ASSERT(feature.Type == ESplitType::OneHotFeature);
         result << BuildFeatureDescription(layout, feature.FeatureIdx, EFeatureType::Categorical);
@@ -129,7 +132,7 @@ TString BuildDescription(const NCB::TFeaturesLayout& layout, const TSplit& featu
 
     if (feature.Type == ESplitType::OnlineCtr) {
         result << ", border=" << feature.BinBorder;
-    } else if (feature.Type == ESplitType::FloatFeature) {
+    } else if ((feature.Type == ESplitType::FloatFeature) || (feature.Type == ESplitType::EstimatedFeature)) {
         result << ", bin=" << feature.BinBorder;
     } else {
         Y_ASSERT(feature.Type == ESplitType::OneHotFeature);

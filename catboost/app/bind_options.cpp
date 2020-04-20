@@ -12,7 +12,7 @@
 #include <catboost/private/libs/options/plain_options_helper.h>
 
 #include <library/getopt/small/last_getopt_opts.h>
-#include <library/grid_creator/binarization.h>
+#include <library/cpp/grid_creator/binarization.h>
 #include <library/json/json_reader.h>
 #include <library/logger/log.h>
 #include <library/text_processing/dictionary/options.h>
@@ -100,7 +100,7 @@ inline static void BindPoolLoadParams(NLastGetopt::TOpts* parser, NCatboostOptio
         .Handler1T<TStringBuf>([loadParamsPtr](const TStringBuf& str) {
             for (const auto& path : StringSplitter(str).Split(',').SkipEmpty()) {
                 if (!path.Empty()) {
-                    loadParamsPtr->TestSetPaths.emplace_back(path.Token().ToString(), "dsv");
+                    loadParamsPtr->TestSetPaths.emplace_back(TString{path.Token()}, "dsv");
                 }
             }
             CB_ENSURE(!loadParamsPtr->TestSetPaths.empty(), "Empty test path");
@@ -271,7 +271,7 @@ static void BindOutputParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* p
         });
 
     const auto customFstrTypeDescription = TString::Join(
-            "Should be one of: ", GetEnumAllNames<EFstrType >());
+            "Should be one of: ", GetEnumAllNames<EFstrCalculatedInFitType>());
     parser.AddLongOption("fstr-type", customFstrTypeDescription)
         .RequiredArgument("fstr-type")
         .Handler1T<TString>([plainJsonPtr](const TString& name) {
@@ -546,8 +546,7 @@ static void BindModelBasedEvalParams(NLastGetopt::TOpts* parserPtr, NJson::TJson
         .RequiredArgument("INDEXES[;INDEXES...]")
         .Help("Evaluate impact of each set of features on test error; each set is a comma-separated list of indices and index intervals, e.g. 4,78-89,312.")
         .Handler1T<TString>([plainJsonPtr](const TString& indicesLine) {
-            auto featuresToEvaluate = ParseIndexSetsLine(indicesLine);
-            NCatboostOptions::TJsonFieldHelper<TVector<TVector<int>>>::Write(featuresToEvaluate, &(*plainJsonPtr)["features_to_evaluate"]);
+            (*plainJsonPtr)["features_to_evaluate"] = indicesLine;
         });
     parser
         .AddLongOption("baseline-model-snapshot")
@@ -882,6 +881,30 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         .NoArgument()
         .Handler0([plainJsonPtr]() {
             (*plainJsonPtr)["dev_leafwise_approxes"] = true;
+        });
+
+    parser
+        .AddLongOption("feature-weights")
+        .RequiredArgument("String")
+        .Help("Weights to multiply splits gain where specific feature is used. Possible formats: \"(1,0.5,10,1)\" or \"1:0.5,2:10\" or \"FeatureName1:0.5,FeatureName2:10\". Should be nonnegative.")
+        .Handler1T<TString>([plainJsonPtr](const TString& featureWeights) {
+            (*plainJsonPtr)["feature_weights"] = featureWeights;
+        });
+
+    parser
+        .AddLongOption("penalties-coefficient")
+        .RequiredArgument("Float")
+        .Help("Common coefficient for feature penalties. 1 by default. Should be nonnegative.")
+        .Handler1T<float>([plainJsonPtr](const float penalties_coefficient) {
+            (*plainJsonPtr)["penalties_coefficient"] = penalties_coefficient;
+        });
+
+    parser
+        .AddLongOption("first-feature-use-penalties")
+        .RequiredArgument("String")
+        .Help("Penalties for first use of feature in model. Possible formats: \"(0,0.5,10,0)\" or \"1:0.5,2:10\" or \"FeatureName1:0.5,FeatureName2:10\" Should be nonnegative.")
+        .Handler1T<TString>([plainJsonPtr](const TString& firstFeatureUsePenalty) {
+            (*plainJsonPtr)["first_feature_use_penalties"] = firstFeatureUsePenalty;
         });
 }
 

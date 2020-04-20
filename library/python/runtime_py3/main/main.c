@@ -123,6 +123,21 @@ static int pymain(int argc, char** argv) {
 
     PyObject* py_main = NULL;
 
+    {
+        PyObject* module = PyImport_ImportModule("library.python.runtime_py3.entry_points");
+        if (module == NULL) {
+            PyErr_Print();
+        } else {
+            PyObject* res = PyObject_CallMethod(module, "run_constructors", NULL);
+            if (res == NULL) {
+                PyErr_Print();
+            } else {
+                Py_DECREF(res);
+            }
+            Py_DECREF(module);
+        }
+    }
+
     if (entry_point == NULL) {
         PyObject* res = PyImport_ImportModule("__res");
         if (res == NULL) {

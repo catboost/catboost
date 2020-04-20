@@ -126,6 +126,7 @@ enum class ELossFunction {
     MedianAbsoluteError,
     SMAPE,
     Huber,
+    Tweedie,
 
     /* multiclassification errors */
 
@@ -144,6 +145,7 @@ enum class ELossFunction {
     QuerySoftMax,
     QueryCrossEntropy,
     StochasticFilter,
+    StochasticRank,
 
     /* user defined errors */
 
@@ -193,7 +195,9 @@ enum class ELossFunction {
     FilteredDCG,
 
     /* multi-regression */
-    MultiRMSE
+    MultiRMSE,
+
+    Combination
 };
 
 enum class ERankingType {
@@ -217,6 +221,7 @@ enum class EPredictionType {
     LogProbability,
     Class,
     RawFormulaVal,
+    Exponent,
     InternalRawFormulaVal
 };
 
@@ -228,13 +233,25 @@ enum class EFstrType {
     Interaction,
     InternalInteraction,
     ShapValues,
-    PredictionDiff
+    PredictionDiff,
+    ShapInteractionValues
+};
+
+enum class EFstrCalculatedInFitType {
+    PredictionValuesChange,
+    LossFunctionChange,
+    FeatureImportance
 };
 
 enum class EPreCalcShapValues {
     Auto,
     UsePreCalc,
     NoPreCalc
+};
+
+enum class ECalcTypeShapValues {
+    Approximate,
+    Normal
 };
 
 enum class EObservationsToBootstrap {

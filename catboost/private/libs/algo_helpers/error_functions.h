@@ -11,7 +11,7 @@
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/options/restrictions.h>
 
-#include <library/containers/2d_array/2d_array.h>
+#include <library/cpp/containers/2d_array/2d_array.h>
 #include <library/fast_exp/fast_exp.h>
 #include <library/threading/local_executor/local_executor.h>
 
@@ -370,17 +370,17 @@ private:
     double CalcDer(double approx, float target) const override {
         const double absLoss = abs(approx - target);
         const double absLossQ = std::pow(absLoss, Q - 1);
-        return Q * (approx - target > 0 ? 1 : -1)  * absLossQ;
+        return Q * (target - approx > 0 ? 1 : -1)  * absLossQ;
     }
 
     double CalcDer2(double approx, float target) const override {
         const double absLoss = abs(target - approx);
-        return Q * (Q - 1) * std::pow(absLoss, Q - 2);
+        return -Q * (Q - 1) * std::pow(absLoss, Q - 2);
     }
 
     double CalcDer3(double approx, float target) const override {
         const double absLoss = abs(target - approx);
-        return Q * (Q - 1) *  (Q - 2) * std::pow(absLoss, Q - 3) * (approx - target > 0 ? 1 : -1);
+        return Q * (Q - 1) *  (Q - 2) * std::pow(absLoss, Q - 3) * (target - approx > 0 ? 1 : -1);
     }
 };
 
@@ -945,6 +945,108 @@ private:
     }
 };
 
+class TStochasticRankError final : public IDerCalcer {
+    ELossFunction TargetMetric;
+    int TopSize;
+    ENdcgMetricType NumeratorType;
+    ENdcgDenominatorType DenominatorType;
+    double Sigma;           // scale
+    size_t NumEstimations;  // Monte Carlo method samples
+    double Mu;              // ties resolving coefficient
+    double Nu;              // approx norm addition
+    double Lambda;          // SFA coefficient
+
+    static constexpr double INV_SQRT_2PI = 0.398942280401432677939946;
+
+public:
+    TStochasticRankError(
+        ELossFunction targetMetric,
+        const TMap<TString, TString>& metricParams,
+        double sigma,
+        size_t numEstimations,
+        double mu,
+        double nu,
+        double lambda);
+
+    void CalcDersForQueries(
+        int queryStartIndex,
+        int queryEndIndex,
+        const TVector<double>& approxes,
+        const TVector<float>& target,
+        const TVector<float>& /*weights*/,
+        const TVector<TQueryInfo>& queriesInfo,
+        TArrayRef<TDers> ders,
+        ui64 randomSeed,
+        NPar::TLocalExecutor* localExecutor
+    ) const override;
+
+private:
+    void CalcDersForSingleQuery(
+        TConstArrayRef<double> approxes,
+        TConstArrayRef<float> targets,
+        ui64 randomSeed,
+        TArrayRef<TDers> ders
+    ) const;
+
+    void CalcMonteCarloEstimateForSingleQueryPermutation(
+        TConstArrayRef<float> targets,
+        const TVector<double>& approxes,
+        const TVector<double>& scores,
+        const TVector<size_t>& order,
+        const TVector<double>& posWeights,
+        const double noiseSum,
+        TArrayRef<TDers> ders
+    ) const;
+
+    double CalcMetricDiff(
+        size_t oldPos,
+        size_t newPos,
+        size_t queryTopSize,
+        const TVector<double>& posWeights,
+        double gain,
+        const TVector<double>& cumSum,
+        const TVector<double>& cumSumUp,
+        const TVector<double>& cumSumLow
+    ) const;
+
+    void CalcDCGCumulativeStatistics(
+        TConstArrayRef<float> targets,
+        const TVector<size_t>& order,
+        const TVector<double>& posWeights,
+        TArrayRef<double> cumSumRef,
+        TArrayRef<double> cumSumUpRef,
+        TArrayRef<double> cumSumLowRef
+    ) const;
+
+    TVector<double> ComputePosWeights(TConstArrayRef<float> targets, size_t queryTopSize) const;
+
+    double CalcDCG(const TVector<float>& sortedTargets, const TVector<double>& posWeights) const;
+
+    inline double CalcNumerator(float target) const {
+        return NumeratorType == ENdcgMetricType::Exp ? (Exp2(target) - 1) : target;
+    }
+
+    inline double CalcDenominator(size_t pos) const {
+        return DenominatorType == ENdcgDenominatorType::LogPosition ? Log2(2.0 + pos) : (1.0 + pos);
+    }
+
+    inline size_t GetQueryTopSize(size_t docCount) const {
+        if (TopSize == -1 || TopSize > (int)docCount) {
+            return docCount;
+        }
+        return TopSize;
+    }
+
+    inline double NormalDensity(double x, double mean, double sigma) const {
+        const long double z = Sqr((x - mean) / sigma);
+        return std::expl(-z / 2.0) * INV_SQRT_2PI / sigma;
+    }
+
+    inline double NormalDensityDiff(double x1, double x2, double mean, double sigma) const {
+        return NormalDensity(x1, mean, sigma) - NormalDensity(x2, mean, sigma);
+    }
+};
+
 class THuberError final : public IDerCalcer {
     static constexpr double HUBER_DER2 = -1.0;
     static constexpr double HUBER_DER3 = 0.0;
@@ -980,6 +1082,39 @@ private:
 
     double CalcDer3(double /*approx*/, float /*target*/) const override {
         return HUBER_DER3;
+    }
+};
+
+class TTweedieError final : public IDerCalcer {
+public:
+    const double VariancePower;
+
+public:
+    TTweedieError(double variance_power, bool isExpApprox)
+        : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 3)
+        , VariancePower(variance_power)
+    {
+        Y_ASSERT(VariancePower > 1 && VariancePower < 2);
+        CB_ENSURE(isExpApprox == false, "Approx format does not match");
+    }
+
+private:
+    double CalcDer(double approx, float target) const override {
+        double der = target * std::exp((1 - VariancePower) * approx);
+        der -= std::exp((2 - VariancePower) * approx);
+        return der;
+    }
+
+    double CalcDer2(double approx, float target) const override {
+        double der2 = target * std::exp((1 - VariancePower) * approx) * (1 - VariancePower);
+        der2 -= std::exp((2 - VariancePower) * approx) * (2 - VariancePower);
+        return der2;
+    }
+
+    double CalcDer3(double approx, float target) const override {
+        double der3 = target * std::exp((1 - VariancePower) * approx) * Sqr(1 - VariancePower);
+        der3 -= std::exp((2 - VariancePower) * approx) * Sqr(2 - VariancePower);
+        return der3;
     }
 };
 

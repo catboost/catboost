@@ -13,7 +13,7 @@ Y_UNIT_TEST(BinClassTest) {
         TVector<TQueryInfo> queries;
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeBinClassNormalizedGiniMetric(GetDefaultTargetBorder());
+        const auto metric = MakeBinClassNormalizedGiniMetric();
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.0, 1e-6);
@@ -25,7 +25,7 @@ Y_UNIT_TEST(BinClassTest) {
         TVector<TQueryInfo> queries;
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeBinClassNormalizedGiniMetric(GetDefaultTargetBorder());
+        const auto metric = MakeBinClassNormalizedGiniMetric();
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.125, 1e-6);
@@ -37,7 +37,7 @@ Y_UNIT_TEST(BinClassTest) {
         TVector<TQueryInfo> queries;
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeBinClassNormalizedGiniMetric(GetDefaultTargetBorder());
+        const auto metric = MakeBinClassNormalizedGiniMetric();
         metric->UseWeights = true;
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, target.size(), executor);
 
@@ -50,7 +50,7 @@ Y_UNIT_TEST(BinClassTest) {
         TVector<TQueryInfo> queries;
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeBinClassNormalizedGiniMetric(GetDefaultTargetBorder());
+        const auto metric = MakeBinClassNormalizedGiniMetric();
         metric->UseWeights = true;
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, target.size(), executor);
 
@@ -63,7 +63,7 @@ Y_UNIT_TEST(BinClassTest) {
         TVector<TQueryInfo> queries;
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeBinClassNormalizedGiniMetric(GetDefaultTargetBorder());
+        const auto metric = MakeBinClassNormalizedGiniMetric();
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1.0, 1e-6);

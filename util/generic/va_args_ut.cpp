@@ -16,6 +16,30 @@ Y_UNIT_TEST_SUITE(TMacroVarargMapTest) {
 #undef ADD
 #undef ID
     }
+
+    Y_UNIT_TEST(TestMapArgsN) {
+#define MAP_ARG(INDEX, X) Y_STRINGIZE(X)
+#define MAP_INDEX(INDEX, X) Y_STRINGIZE(INDEX)
+        static const char COMBINED_ARGS[] = Y_MAP_ARGS_N(MAP_ARG, 1, 2, 3);
+        UNIT_ASSERT_STRINGS_EQUAL(COMBINED_ARGS, "123");
+        static const char COMBINED_INDEXES[] = Y_MAP_ARGS_N(MAP_INDEX, 1, 2, 3);
+        UNIT_ASSERT_STRINGS_EQUAL(COMBINED_INDEXES, "321");
+#undef MAP_INDEX
+#undef MAP_ARG
+    }
+
+    Y_UNIT_TEST(TestMapArgsWithLastN) {
+#define ADD_ARG(INDEX, X) X +
+#define ID_ARG(INDEX, X) X
+#define MAP_INDEX(INDEX, X) Y_STRINGIZE(INDEX)
+        static const int SUM = Y_MAP_ARGS_WITH_LAST_N(ADD_ARG, ID_ARG, 1, 2, 3, 4 + 5);
+        UNIT_ASSERT_VALUES_EQUAL(SUM, 1 + 2 + 3 + 4 + 5);
+        static const char COMBINED_INDEXES[] = Y_MAP_ARGS_WITH_LAST_N(MAP_INDEX, MAP_INDEX, 1, 2, 3, 4 + 5);
+        UNIT_ASSERT_STRINGS_EQUAL(COMBINED_INDEXES, "4321");
+#undef MAP_INDEX
+#undef ADD_ARG
+#undef ID_ARG
+    }
 }
 
 Y_UNIT_TEST_SUITE(TestVaArgs) {

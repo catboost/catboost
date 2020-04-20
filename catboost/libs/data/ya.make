@@ -10,6 +10,7 @@ SRCS(
     cat_feature_perfect_hash_helper.cpp
     GLOBAL cb_dsv_loader.cpp
     columns.cpp
+    composite_columns.cpp
     data_provider.cpp
     data_provider_builders.cpp
     exclusive_feature_bundling.cpp
@@ -19,6 +20,7 @@ SRCS(
     feature_index.cpp
     features_layout.cpp
     feature_names_converter.cpp
+    lazy_columns.cpp
     GLOBAL libsvm_loader.cpp
     load_data.cpp
     loader.cpp
@@ -30,6 +32,7 @@ SRCS(
     packed_binary_features.cpp
     quantization.cpp
     quantized_features_info.cpp
+    sparse_columns.cpp
     target.cpp
     unaligned_mem.cpp
     util.cpp
@@ -38,10 +41,10 @@ SRCS(
 )
 
 PEERDIR(
+    library/cpp/pop_count
     library/dbg_output
     library/json
     library/object_factory
-    library/pop_count
     library/string_utils/csv
     library/threading/future
     library/threading/local_executor
@@ -63,6 +66,7 @@ PEERDIR(
 )
 
 GENERATE_ENUM_SERIALIZATION(baseline.h)
+GENERATE_ENUM_SERIALIZATION(columns.h)
 GENERATE_ENUM_SERIALIZATION(order.h)
 GENERATE_ENUM_SERIALIZATION(target.h)
 GENERATE_ENUM_SERIALIZATION(visitor.h)

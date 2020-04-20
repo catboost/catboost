@@ -25,6 +25,7 @@ namespace NJson {
 namespace NCB {
     // use from C++ code
     TDataProviderPtr ReadDataset(
+        TMaybe<ETaskType> taskType,
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
@@ -41,6 +42,7 @@ namespace NCB {
 
     // for use from context where there's no localExecutor and proper logging handling is unimplemented
     TDataProviderPtr ReadDataset(
+        TMaybe<ETaskType> taskType,
         const TPathWithScheme& poolPath,
         const TPathWithScheme& pairsFilePath, // can be uninited
         const TPathWithScheme& groupWeightsFilePath, // can be uninited
@@ -72,6 +74,7 @@ namespace NCB {
     );
 
     TDataProviders ReadTrainDatasets(
+        TMaybe<ETaskType> taskType,
         const NCatboostOptions::TPoolLoadParams& loadOptions,
         EObjectsOrder objectsOrder,
         bool readTestData,

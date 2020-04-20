@@ -1,3 +1,4 @@
+import os
 import sys
 
 import py
@@ -22,7 +23,10 @@ class LoadedModule(_pytest.python.Module):
 
     @property
     def nodeid(self):
-        return self.name
+        if os.getenv("CONFTEST_LOAD_POLICY") == "LOCAL":
+            return self._getobj().__file__
+        else:
+            return self.name
 
     def _getobj(self):
         module_name = self.name[:-(len(".py"))]
@@ -50,10 +54,11 @@ class DoctestModule(LoadedModule):
 
 # NOTE: Since we are overriding collect method of pytest session, pytest hooks are not invoked during collection.
 def pytest_ignore_collect(module, session):
-    if session.config.option.test_file_filter is None:
+    test_file_filter = getattr(session.config.option, 'test_file_filter', None)
+    if test_file_filter is None:
         return False
 
-    for filename in session.config.option.test_file_filter:
+    for filename in test_file_filter:
         if module.name != filename.replace("/", "."):
             return True
     return False

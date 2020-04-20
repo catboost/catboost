@@ -1858,7 +1858,7 @@ void TSSEEmulTest::Test_mm_storeu_pd() {
         for (size_t shift = 0; shift != 3; ++shift) {
             _mm_storeu_pd(&res[shift], value);
             for (size_t j = 0; j != 2; ++j) {
-                UNIT_ASSERT_EQUAL_C(res[j + shift], valueBits[i + j], "res: " << HexEncode(&res[shift], 16) << " vs etalon: " << HexEncode(&valueBits[i], 16))
+                UNIT_ASSERT_EQUAL_C(res[j + shift], valueBits[i + j], "res: " << HexEncode(&res[shift], 16) << " vs etalon: " << HexEncode(&valueBits[i], 16));
             }
         }
     }

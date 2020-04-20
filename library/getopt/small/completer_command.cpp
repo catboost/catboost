@@ -4,7 +4,7 @@
 #include "last_getopt.h"
 #include "wrap.h"
 
-#include <library/colorizer/colors.h>
+#include <library/cpp/colorizer/colors.h>
 
 #include <util/string/subst.h>
 
@@ -104,7 +104,7 @@ namespace NLastGetopt {
                 } else if (shell == "zsh") {
                     TZshCompletionGenerator(opts).Generate(command, Cout);
                 } else {
-                    Cerr << "Unknown shell name " << shell.Quote() << Endl;
+                    Cerr << "Unknown shell name " << TString{shell}.Quote() << Endl;
                     exit(1);
                 }
                 exit(0);

@@ -272,6 +272,12 @@ namespace NNeh {
         /// @urlParts[in]       Will construct url from `urlParts`, `msg.Data` is not used.
         bool MakeFullRequest(TMessage& msg, TConstArrayRef<TString> urlParts, TStringBuf headers, TStringBuf content, TStringBuf contentType = DefaultContentType, ERequestType reqType = DefaultRequestType, ERequestFlags flags = ERequestFlag::None);
 
+        /// Same as `MakeFullRequest` but it will add ERequestFlag::AbsoluteUri to the @a flags
+        /// and replace msg.Addr with @a proxyAddr
+        ///
+        /// @see `MakeFullrequest`.
+        bool MakeFullProxyRequest(TMessage& msg, TStringBuf proxyAddr, TStringBuf headers, TStringBuf content, TStringBuf contentType = DefaultContentType, ERequestType reqType = DefaultRequestType, ERequestFlags flags = ERequestFlag::None);
+
         size_t GetUrlPartsLength(TConstArrayRef<TString> urlParts);
         //part1&part2&...
         void JoinUrlParts(TConstArrayRef<TString> urlParts, IOutputStream& out);

@@ -17,6 +17,7 @@ SRCS(
     #test_dcg.cpp # TODO(akhropov): temporarily disabled because it works too slow for MEDIUM test. MLTOOLS-2679.
     test_multi_logit.cpp
     test_query_cross_entropy.cpp
+    test_combination.cpp
 )
 
 PEERDIR(
@@ -26,8 +27,8 @@ PEERDIR(
     catboost/cuda/ut_helpers
     catboost/libs/helpers
     catboost/libs/metrics
-    library/accurate_accumulate
-    library/float16
+    library/cpp/accurate_accumulate
+    library/cpp/float16
 )
 
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)

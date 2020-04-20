@@ -8,6 +8,7 @@
 #include <util/generic/string.h>
 #include <util/generic/maybe.h>
 #include <util/generic/vector.h>
+#include <util/string/cast.h>
 
 #include <stdarg.h>
 

@@ -15,7 +15,7 @@
 #include <catboost/private/libs/quantization/utils.h>
 
 #include <library/binsaver/bin_saver.h>
-#include <library/grid_creator/binarization.h>
+#include <library/cpp/grid_creator/binarization.h>
 #include <library/dbg_output/dump.h>
 #include <library/threading/local_executor/local_executor.h>
 
@@ -80,9 +80,6 @@ namespace NCB {
         }
 
         int operator&(IBinSaver& binSaver);
-
-        // *this contains a superset of quantized features in rhs
-        bool IsSupersetOf(const TQuantizedFeaturesInfo& rhs) const;
 
         // const because can be used with TReadGuard without changing the object
         TRWMutex& GetRWMutex() const {
@@ -232,13 +229,14 @@ namespace NCB {
 
         void CheckCorrectFeature(const IFeatureValuesHolder& feature) const {
             CB_ENSURE_INTERNAL(
-                IsConsistentWithLayout(feature, *FeaturesLayout),
+                FeaturesLayout->IsCorrectExternalFeatureIdxAndType(
+                    feature.GetId(), feature.GetFeatureType()
+                ),
                 "feature #" << feature.GetId() << " is not consistent with featuresLayout"
             );
         }
 
         friend class TCatFeaturesPerfectHashHelper;
-        friend class TObjectsSerialization;
 
         inline ENanMode ComputeNanMode(const TFloatValuesHolder& feature) const;
 

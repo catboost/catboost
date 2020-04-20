@@ -101,6 +101,10 @@ namespace {
     }
 }
 
+void ManualRunAtExitFinalizers() {
+    OnExit();
+}
+
 bool ExitStarted() {
     if (!atExit) {
         return false;

@@ -6,3 +6,9 @@ enum class EAucType {
     Mu,
     OneVsAll
 };
+
+enum class EF1AverageType {
+    Micro,
+    Macro,
+    Weighted
+};

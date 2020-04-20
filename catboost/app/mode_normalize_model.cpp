@@ -165,7 +165,8 @@ namespace {
                     TVector<NJson::TJsonValue>(),  // ClassLabels
                     modeParams.ThreadCount,
                     TPathWithScheme(),  // PairsFilePath
-                    TPathWithScheme()  // FeatureNamesPath
+                    TPathWithScheme(),  // FeatureNamesPath
+                    ECalcTypeShapValues::Normal
                 },
                 10000,  // blockSize
                 [&](const TDataProviderPtr datasetPart) {

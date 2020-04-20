@@ -6,8 +6,6 @@
 #include <library/http/io/headers.h>
 #include <library/unittest/registar.h>
 
-using TCharFixedString = TFixedString<char>;
-
 namespace {
     class THeadersExistence {
     public:
@@ -22,7 +20,7 @@ namespace {
         }
 
     public:
-        void Add(TCharFixedString name, TCharFixedString value) {
+        void Add(TStringBuf name, TStringBuf value) {
             Impl.emplace(TString(name), TString(value));
         }
 
@@ -55,7 +53,7 @@ class THttpHeadersTest: public TTestBase {
     UNIT_TEST_SUITE_END();
 
 private:
-    typedef void (*TAddHeaderFunction)(THttpHeaders&, TCharFixedString name, TCharFixedString value);
+    typedef void (*TAddHeaderFunction)(THttpHeaders&, TStringBuf name, TStringBuf value);
 
 public:
     void TestAddOperation1Arg();
@@ -66,11 +64,11 @@ public:
     void TestFindHeader();
 
 private:
-    static void AddHeaderImpl1Arg(THttpHeaders& headers, TCharFixedString name, TCharFixedString value) {
+    static void AddHeaderImpl1Arg(THttpHeaders& headers, TStringBuf name, TStringBuf value) {
         headers.AddHeader(THttpInputHeader(TString(name), TString(value)));
     }
 
-    static void AddHeaderImpl2Args(THttpHeaders& headers, TCharFixedString name, TCharFixedString value) {
+    static void AddHeaderImpl2Args(THttpHeaders& headers, TStringBuf name, TStringBuf value) {
         headers.AddHeader(TString(name), TString(value));
     }
 
@@ -149,7 +147,7 @@ void THttpHeadersTest::TestAddHeaderTemplateness() {
     h1.AddHeader("h1", "v1");
     h1.AddHeader("h2", TString("v2"));
     h1.AddHeader("h3", AsStringBuf("v3"));
-    h1.AddHeader("h4", TCharFixedString("v4"));
+    h1.AddHeader("h4", TStringBuf("v4"));
 
     THeadersExistence h2;
     h2.Add("h1", "v1");

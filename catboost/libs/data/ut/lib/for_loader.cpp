@@ -68,6 +68,7 @@ namespace NCB {
         localExecutor.RunAdditionalThreads(3);
 
         TDataProviderPtr dataProvider = ReadDataset(
+            /*taskType*/Nothing(),
             readDatasetMainParams.PoolPath,
             readDatasetMainParams.PairsFilePath, // can be uninited
             readDatasetMainParams.GroupWeightsFilePath, // can be uninited

@@ -29,6 +29,8 @@ SRCS(
     smape_ut.cpp
     stochastic_filter_ut.cpp
     zero_one_loss_ut.cpp
+    total_f1_ut.cpp
+    tweedie_ut.cpp
 )
 
 END()

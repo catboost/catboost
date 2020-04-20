@@ -57,6 +57,10 @@ bool TSystemOptions::IsSingleHost() const {
     return NodeType == ENodeType::SingleHost;
 }
 
+bool TSystemOptions::IsWorker() const {
+    return NodeType == ENodeType::Master && FileWithHosts->empty();
+}
+
 static bool IsInfinity(const TStringBuf value) {
     static const TStringBuf examples[] = {
         "",

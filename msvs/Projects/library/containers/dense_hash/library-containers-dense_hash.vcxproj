@@ -80,6 +80,7 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\library\containers\dense_hash\dense_hash.cpp"/>
     <ClInclude Include="$(SolutionDir)..\library\containers\dense_hash\dense_hash.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\containers\dense_hash\fwd.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

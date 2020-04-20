@@ -393,7 +393,7 @@ def onpy_srcs(unit, *args):
                     res += ['DEST', dest + '.yapyc3', path + '.yapyc3']
 
             unit.onresource_files(res)
-            add_python_lint_checks(unit, 3, [path for path, mod in pys])
+            add_python_lint_checks(unit, 3, [path for path, mod in pys] + unit.get(['_PY_EXTRA_LINT_FILES_VALUE']).split())
         else:
             for path, mod in pys:
                 root_rel_path = rootrel_arc_src(path, unit)
@@ -410,7 +410,7 @@ def onpy_srcs(unit, *args):
                     res += [dst, '/py_code/' + mod]
 
             unit.onresource(res)
-            add_python_lint_checks(unit, 2, [path for path, mod in pys])
+            add_python_lint_checks(unit, 2, [path for path, mod in pys] + unit.get(['_PY_EXTRA_LINT_FILES_VALUE']).split())
 
     if protos:
         if not upath.startswith('contrib/libs/protobuf/python/google_lib'):
@@ -538,3 +538,18 @@ def onpy_main(unit, arg):
         arg += ':main'
 
     py_main(unit, arg)
+
+
+def onpy_constructor(unit, arg):
+    """
+        @usage: PY_CONSTRUCTOR(package.module[:func])
+
+        Specifies the module or function which will be started before python's main()
+        init() is expected in the target module if no function is specified
+        Can be considered as __attribute__((constructor)) for python
+    """
+    if ':' not in arg:
+        arg = arg + '=init'
+    else:
+        arg[arg.index(':')] = '='
+    unit.onresource(['-', 'py/constructors/{}'.format(arg)])

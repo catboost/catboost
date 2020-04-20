@@ -10,14 +10,11 @@ import re
 from ._structures import Infinity
 
 
-__all__ = [
-    "parse", "Version", "LegacyVersion", "InvalidVersion", "VERSION_PATTERN"
-]
+__all__ = ["parse", "Version", "LegacyVersion", "InvalidVersion", "VERSION_PATTERN"]
 
 
 _Version = collections.namedtuple(
-    "_Version",
-    ["epoch", "release", "dev", "pre", "post", "local"],
+    "_Version", ["epoch", "release", "dev", "pre", "post", "local"]
 )
 
 
@@ -40,7 +37,6 @@ class InvalidVersion(ValueError):
 
 
 class _BaseVersion(object):
-
     def __hash__(self):
         return hash(self._key)
 
@@ -70,7 +66,6 @@ class _BaseVersion(object):
 
 
 class LegacyVersion(_BaseVersion):
-
     def __init__(self, version):
         self._version = str(version)
         self._key = _legacy_cmpkey(self._version)
@@ -90,6 +85,26 @@ class LegacyVersion(_BaseVersion):
         return self._version
 
     @property
+    def epoch(self):
+        return -1
+
+    @property
+    def release(self):
+        return None
+
+    @property
+    def pre(self):
+        return None
+
+    @property
+    def post(self):
+        return None
+
+    @property
+    def dev(self):
+        return None
+
+    @property
     def local(self):
         return None
 
@@ -101,13 +116,19 @@ class LegacyVersion(_BaseVersion):
     def is_postrelease(self):
         return False
 
+    @property
+    def is_devrelease(self):
+        return False
 
-_legacy_version_component_re = re.compile(
-    r"(\d+ | [a-z]+ | \.| -)", re.VERBOSE,
-)
+
+_legacy_version_component_re = re.compile(r"(\d+ | [a-z]+ | \.| -)", re.VERBOSE)
 
 _legacy_version_replacement_map = {
-    "pre": "c", "preview": "c", "-": "final-", "rc": "c", "dev": "@",
+    "pre": "c",
+    "preview": "c",
+    "-": "final-",
+    "rc": "c",
+    "dev": "@",
 }
 
 
@@ -154,6 +175,7 @@ def _legacy_cmpkey(version):
 
     return epoch, parts
 
+
 # Deliberately not anchored to the start and end of the string, to make it
 # easier for 3rd party code to reuse
 VERSION_PATTERN = r"""
@@ -190,10 +212,7 @@ VERSION_PATTERN = r"""
 
 class Version(_BaseVersion):
 
-    _regex = re.compile(
-        r"^\s*" + VERSION_PATTERN + r"\s*$",
-        re.VERBOSE | re.IGNORECASE,
-    )
+    _regex = re.compile(r"^\s*" + VERSION_PATTERN + r"\s*$", re.VERBOSE | re.IGNORECASE)
 
     def __init__(self, version):
         # Validate the version and parse it into pieces
@@ -205,18 +224,11 @@ class Version(_BaseVersion):
         self._version = _Version(
             epoch=int(match.group("epoch")) if match.group("epoch") else 0,
             release=tuple(int(i) for i in match.group("release").split(".")),
-            pre=_parse_letter_version(
-                match.group("pre_l"),
-                match.group("pre_n"),
-            ),
+            pre=_parse_letter_version(match.group("pre_l"), match.group("pre_n")),
             post=_parse_letter_version(
-                match.group("post_l"),
-                match.group("post_n1") or match.group("post_n2"),
+                match.group("post_l"), match.group("post_n1") or match.group("post_n2")
             ),
-            dev=_parse_letter_version(
-                match.group("dev_l"),
-                match.group("dev_n"),
-            ),
+            dev=_parse_letter_version(match.group("dev_l"), match.group("dev_n")),
             local=_parse_local_version(match.group("local")),
         )
 
@@ -237,31 +249,56 @@ class Version(_BaseVersion):
         parts = []
 
         # Epoch
-        if self._version.epoch != 0:
-            parts.append("{0}!".format(self._version.epoch))
+        if self.epoch != 0:
+            parts.append("{0}!".format(self.epoch))
 
         # Release segment
-        parts.append(".".join(str(x) for x in self._version.release))
+        parts.append(".".join(str(x) for x in self.release))
 
         # Pre-release
-        if self._version.pre is not None:
-            parts.append("".join(str(x) for x in self._version.pre))
+        if self.pre is not None:
+            parts.append("".join(str(x) for x in self.pre))
 
         # Post-release
-        if self._version.post is not None:
-            parts.append(".post{0}".format(self._version.post[1]))
+        if self.post is not None:
+            parts.append(".post{0}".format(self.post))
 
         # Development release
-        if self._version.dev is not None:
-            parts.append(".dev{0}".format(self._version.dev[1]))
+        if self.dev is not None:
+            parts.append(".dev{0}".format(self.dev))
 
         # Local version segment
-        if self._version.local is not None:
-            parts.append(
-                "+{0}".format(".".join(str(x) for x in self._version.local))
-            )
+        if self.local is not None:
+            parts.append("+{0}".format(self.local))
 
         return "".join(parts)
+
+    @property
+    def epoch(self):
+        return self._version.epoch
+
+    @property
+    def release(self):
+        return self._version.release
+
+    @property
+    def pre(self):
+        return self._version.pre
+
+    @property
+    def post(self):
+        return self._version.post[1] if self._version.post else None
+
+    @property
+    def dev(self):
+        return self._version.dev[1] if self._version.dev else None
+
+    @property
+    def local(self):
+        if self._version.local:
+            return ".".join(str(x) for x in self._version.local)
+        else:
+            return None
 
     @property
     def public(self):
@@ -272,27 +309,25 @@ class Version(_BaseVersion):
         parts = []
 
         # Epoch
-        if self._version.epoch != 0:
-            parts.append("{0}!".format(self._version.epoch))
+        if self.epoch != 0:
+            parts.append("{0}!".format(self.epoch))
 
         # Release segment
-        parts.append(".".join(str(x) for x in self._version.release))
+        parts.append(".".join(str(x) for x in self.release))
 
         return "".join(parts)
 
     @property
-    def local(self):
-        version_string = str(self)
-        if "+" in version_string:
-            return version_string.split("+", 1)[1]
-
-    @property
     def is_prerelease(self):
-        return bool(self._version.dev or self._version.pre)
+        return self.dev is not None or self.pre is not None
 
     @property
     def is_postrelease(self):
-        return bool(self._version.post)
+        return self.post is not None
+
+    @property
+    def is_devrelease(self):
+        return self.dev is not None
 
 
 def _parse_letter_version(letter, number):
@@ -326,7 +361,7 @@ def _parse_letter_version(letter, number):
         return letter, int(number)
 
 
-_local_version_seperators = re.compile(r"[\._-]")
+_local_version_separators = re.compile(r"[\._-]")
 
 
 def _parse_local_version(local):
@@ -336,7 +371,7 @@ def _parse_local_version(local):
     if local is not None:
         return tuple(
             part.lower() if not part.isdigit() else int(part)
-            for part in _local_version_seperators.split(local)
+            for part in _local_version_separators.split(local)
         )
 
 
@@ -347,12 +382,7 @@ def _cmpkey(epoch, release, pre, post, dev, local):
     # re-reverse it back into the correct order and make it a tuple and use
     # that for our sorting key.
     release = tuple(
-        reversed(list(
-            itertools.dropwhile(
-                lambda x: x == 0,
-                reversed(release),
-            )
-        ))
+        reversed(list(itertools.dropwhile(lambda x: x == 0, reversed(release))))
     )
 
     # We need to "trick" the sorting algorithm to put 1.0.dev0 before 1.0a0.
@@ -385,9 +415,6 @@ def _cmpkey(epoch, release, pre, post, dev, local):
         # - Numeric segments sort numerically
         # - Shorter versions sort before longer versions when the prefixes
         #   match exactly
-        local = tuple(
-            (i, "") if isinstance(i, int) else (-Infinity, i)
-            for i in local
-        )
+        local = tuple((i, "") if isinstance(i, int) else (-Infinity, i) for i in local)
 
     return epoch, release, pre, post, dev, local

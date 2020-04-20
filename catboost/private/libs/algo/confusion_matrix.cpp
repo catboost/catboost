@@ -39,7 +39,7 @@ TVector<double> MakeConfusionMatrix(
         const int end = Min(objectsCount, begin + blockSize);
         for (auto i : xrange(begin, end)) {
             const int realLabel = isMultiClass ? int(labels[i]) : labels[i] > GetDefaultTargetBorder();
-            const int predictedLabel = GetApproxClass(approxes, i);
+            const int predictedLabel = GetApproxClass(approxes, i, /*predictionLogitBorder=*/0.0);
 
             CB_ENSURE(0 <= realLabel && realLabel < classesCount, "Target label out of range");
             blockCms[blockId][realLabel * classesCount + predictedLabel] += 1;

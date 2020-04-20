@@ -518,12 +518,11 @@ enum class ETrainingKind {
 };
 
 
-template <typename TObjectsDataProvider> // TQuantizedForCPUObjectsDataProvider or TQuantizedObjectsDataProvider
 TIntrusivePtr<TTrainingDataProvider> MakeFeatureSubsetDataProvider(
     const TVector<ui32>& ignoredFeatures,
     NCB::TTrainingDataProviderPtr trainingDataProvider
 ) {
-    TIntrusivePtr<TObjectsDataProvider> newObjects = dynamic_cast<TObjectsDataProvider*>(
+    TQuantizedObjectsDataProviderPtr newObjects = dynamic_cast<TQuantizedForCPUObjectsDataProvider*>(
         trainingDataProvider->ObjectsData->GetFeaturesSubset(ignoredFeatures, &NPar::LocalExecutor()).Get());
     CB_ENSURE(
         newObjects,
@@ -531,15 +530,31 @@ TIntrusivePtr<TTrainingDataProvider> MakeFeatureSubsetDataProvider(
     TDataMetaInfo newMetaInfo = trainingDataProvider->MetaInfo;
     newMetaInfo.FeaturesLayout = newObjects->GetFeaturesLayout();
     return MakeIntrusive<TTrainingDataProvider>(
+        trainingDataProvider->OriginalFeaturesLayout,
         TDataMetaInfo(newMetaInfo),
         trainingDataProvider->ObjectsGrouping,
         newObjects,
         trainingDataProvider->TargetData);
 }
 
+TTrainingDataProviders MakeFeatureSubsetTrainingData(
+    const TVector<ui32>& ignoredFeatures,
+    const NCB::TTrainingDataProviders& trainingData
+) {
+    TTrainingDataProviders newTrainingData;
+    newTrainingData.Learn = MakeFeatureSubsetDataProvider(ignoredFeatures, trainingData.Learn);
+    newTrainingData.Test.push_back(MakeFeatureSubsetDataProvider(ignoredFeatures, trainingData.Test[0]));
+
+    newTrainingData.FeatureEstimators = trainingData.FeatureEstimators;
+
+    // TODO(akhropov): correctly support ignoring indices based on source data
+    newTrainingData.EstimatedObjectsData = trainingData.EstimatedObjectsData;
+
+    return newTrainingData;
+}
+
 
 static TVector<TTrainingDataProviders> UpdateIgnoredFeaturesInLearn(
-    ETaskType taskType,
     const NCatboostOptions::TFeatureEvalOptions& options,
     ETrainingKind trainingKind,
     ui32 testedFeatureSetIdx,
@@ -595,32 +610,9 @@ static TVector<TTrainingDataProviders> UpdateIgnoredFeaturesInLearn(
 
     TVector<TTrainingDataProviders> result;
     result.reserve(foldsData.size());
-    if (taskType == ETaskType::CPU) {
-        for (const auto& foldData : foldsData) {
-            TTrainingDataProviders newTrainingData;
-            newTrainingData.Learn = MakeFeatureSubsetDataProvider<TQuantizedForCPUObjectsDataProvider>(
-                ignoredFeatures,
-                foldData.Learn);
-            newTrainingData.Test.push_back(
-                MakeFeatureSubsetDataProvider<TQuantizedForCPUObjectsDataProvider>(
-                    ignoredFeatures,
-                    foldData.Test[0])
-            );
-            result.push_back(newTrainingData);
-        }
-    } else {
-        for (const auto& foldData : foldsData) {
-            TTrainingDataProviders newTrainingData;
-            newTrainingData.Learn = MakeFeatureSubsetDataProvider<TQuantizedObjectsDataProvider>(
-                ignoredFeatures,
-                foldData.Learn);
-            newTrainingData.Test.push_back(
-                MakeFeatureSubsetDataProvider<TQuantizedObjectsDataProvider>(
-                    ignoredFeatures,
-                    foldData.Test[0])
-            );
-            result.push_back(newTrainingData);
-        }
+
+    for (const auto& foldData : foldsData) {
+        result.push_back(MakeFeatureSubsetTrainingData(ignoredFeatures, foldData));
     }
     return result;
 }
@@ -720,10 +712,10 @@ public:
 
     bool IsContinueTraining(const TMetricsAndTimeLeftHistory& /*history*/) override {
         ++IterationIdx;
-        constexpr double HeartbeatSeconds = 1;
+        constexpr double HeartbeatSeconds = 600;
         if (TrainTimer.Passed() > HeartbeatSeconds) {
             TSetLogging infomationMode(ELoggingLevel::Info);
-            CATBOOST_INFO_LOG << "Train iteration " << IterationIdx << " of " << IterationCount << Endl;
+            CATBOOST_NOTICE_LOG << "Status after (another) " << HeartbeatSeconds << " seconds: iteration " << IterationIdx << " of " << IterationCount << Endl;
             TrainTimer.Reset();
         }
         return /*continue training*/true;
@@ -805,6 +797,18 @@ static bool HaveFeaturesToEvaluate(const TVector<TTrainingDataProviders>& foldsD
     return true;
 }
 
+static ui32 GetTrainingCountPerFold(const NCatboostOptions::TFeatureEvalOptions& featureEvalOptions) {
+    const auto useCommonBaseline = featureEvalOptions.FeatureEvalMode != NCB::EFeatureEvalMode::OneVsOthers;
+    const ui32 featureSetCount = featureEvalOptions.FeaturesToEvaluate->size();
+    return useCommonBaseline ? featureSetCount + 1 : 2 * featureSetCount;
+}
+
+
+static ui32 GetTrainingCount(const NCatboostOptions::TFeatureEvalOptions& featureEvalOptions) {
+    const ui32 foldCount = featureEvalOptions.FoldCount;
+    return foldCount * GetTrainingCountPerFold(featureEvalOptions);
+}
+
 static void EvaluateFeaturesImpl(
     const NCatboostOptions::TCatBoostOptions& catBoostOptions,
     const NCatboostOptions::TOutputFilesOptions& outputFileOptions,
@@ -814,17 +818,13 @@ static void EvaluateFeaturesImpl(
     ui32 foldRangeBegin,
     const TCvDataPartitionParams& cvParams,
     TDataProviderPtr data,
+    ui32 processedFoldCount,
     TFeatureEvaluationCallbacks* callbacks,
     TFeatureEvaluationSummary* results
 ) {
     const ui32 foldCount = cvParams.Initialized() ? cvParams.FoldCount : featureEvalOptions.FoldCount.Get();
     CB_ENSURE(data->ObjectsData->GetObjectCount() > foldCount, "Pool is too small to be split into folds");
     CB_ENSURE(data->ObjectsData->GetObjectCount() > featureEvalOptions.FoldSize.Get(), "Pool is too small to be split into folds");
-    // TODO(akhropov): implement ordered split. MLTOOLS-2486.
-    CB_ENSURE(
-        data->ObjectsData->GetOrder() != EObjectsOrder::Ordered,
-        "Feature evaluation for ordered objects data is not yet implemented"
-    );
 
     const ui64 cpuUsedRamLimit
         = ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get());
@@ -926,6 +926,8 @@ static void EvaluateFeaturesImpl(
         results->SetHeaderInfo(metrics, featureEvalOptions.FeaturesToEvaluate);
     }
 
+    ui32 trainingIdx = processedFoldCount * GetTrainingCountPerFold(featureEvalOptions);
+
     const ui32 offsetInRange = cvParams.Initialized() ? 0 : featureEvalOptions.Offset.Get();
     const auto trainFullModels = [&] (
         bool isTest,
@@ -936,6 +938,9 @@ static void EvaluateFeaturesImpl(
         const bool isCalcFstr = !outputFileOptions.CreateFstrIternalFullPath().empty();
         const bool isCalcRegularFstr = !outputFileOptions.CreateFstrRegularFullPath().empty();
         for (auto foldIdx : xrange(foldCount)) {
+            ++trainingIdx;
+            CATBOOST_NOTICE_LOG << "Training model number " << trainingIdx << Endl;
+
             const bool haveSummary = callbacks->HaveEvalFeatureSummary(
                 foldRangeBegin,
                 featureSetIdx,
@@ -1027,7 +1032,6 @@ static void EvaluateFeaturesImpl(
         const auto haveBaseline = featureSetIdx > 0 && useCommonBaseline;
         if (!haveBaseline) {
             auto newFoldsData = UpdateIgnoredFeaturesInLearn(
-                taskType,
                 featureEvalOptions,
                 ETrainingKind::Baseline,
                 featureSetIdx,
@@ -1039,7 +1043,6 @@ static void EvaluateFeaturesImpl(
         }
 
         auto newFoldsData = UpdateIgnoredFeaturesInLearn(
-            taskType,
             featureEvalOptions,
             ETrainingKind::Testing,
             featureSetIdx,
@@ -1049,7 +1052,11 @@ static void EvaluateFeaturesImpl(
         } else {
             CATBOOST_WARNING_LOG << "Feature set " << featureSetIdx
                 << " consists of ignored or constant features; eval feature assumes baseline data = testing data for this feature set" << Endl;
-            results->BestMetrics[/*isTest*/1][featureSetIdx] = results->BestMetrics[/*isTest*/0][featureSetIdx];
+            const auto baselineIdx = useCommonBaseline ? 0 : featureSetIdx;
+            results->MetricsHistory[/*isTest*/1][featureSetIdx] = results->MetricsHistory[/*isTest*/0][baselineIdx];
+            results->FeatureStrengths[/*isTest*/1][featureSetIdx] = results->FeatureStrengths[/*isTest*/0][baselineIdx];
+            results->RegularFeatureStrengths[/*isTest*/1][featureSetIdx] = results->RegularFeatureStrengths[/*isTest*/0][baselineIdx];
+            results->BestMetrics[/*isTest*/1][featureSetIdx] = results->BestMetrics[/*isTest*/0][baselineIdx];
         }
     }
     for (auto isTest : {false, true}) {
@@ -1107,9 +1114,11 @@ static void CountDisjointFolds(
             }
         }
     }
+    CB_ENSURE(
+        featureEvalOptions.FoldSize.Get() > 0 || featureEvalOptions.RelativeFoldSize.Get() > 0,
+        "Please specify positive fold size or positive relative fold size");
     if (featureEvalOptions.FoldSize.Get() > 0) {
         *absoluteFoldSize = featureEvalOptions.FoldSize.Get();
-        CB_ENSURE(*absoluteFoldSize > 0, "Fold size must be positive");
     } else {
         *absoluteFoldSize = featureEvalOptions.RelativeFoldSize.Get() * samplingUnitsCount;
         CB_ENSURE(
@@ -1174,6 +1183,10 @@ TFeatureEvaluationSummary EvaluateFeatures(
         callbacks->LoadSnapshot(taskType, absoluteSnapshotPath);
     }
 
+    const ui32 trainingCount = GetTrainingCount(featureEvalOptions);
+    CATBOOST_NOTICE_LOG << "Feature evaluation requires training " << trainingCount << " model(s); "
+        "if training takes more than 10 minutes to complete, progress is printed every 10 minutes" << Endl;
+
     auto foldRangePart = featureEvalOptions;
     foldRangePart.FoldSize = absoluteFoldSize;
     foldRangePart.Offset = offset % disjointFoldCount;
@@ -1191,6 +1204,7 @@ TFeatureEvaluationSummary EvaluateFeatures(
             /*foldRangeBegin*/ foldRangeIdx * disjointFoldCount,
             cvParams,
             data,
+            processedFoldCount,
             callbacks.Get(),
             &summary
         );

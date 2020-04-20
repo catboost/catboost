@@ -74,7 +74,7 @@ class NonDataProperty:
 class test(Command):
     """Command to run unit tests after in-place build"""
 
-    description = "run unit tests after in-place build"
+    description = "run unit tests after in-place build (deprecated)"
 
     user_options = [
         ('test-module=', 'm', "Run 'test_suite' in specified module"),
@@ -129,7 +129,7 @@ class test(Command):
 
     @contextlib.contextmanager
     def project_on_sys_path(self, include_dists=[]):
-        with_2to3 = six.PY3 and getattr(self.distribution, 'use_2to3', False)
+        with_2to3 = not six.PY2 and getattr(self.distribution, 'use_2to3', False)
 
         if with_2to3:
             # If we run 2to3 we can not do this inplace:
@@ -214,6 +214,14 @@ class test(Command):
         return itertools.chain(ir_d, tr_d, er_d)
 
     def run(self):
+        self.announce(
+            "WARNING: Testing via this command is deprecated and will be "
+            "removed in a future version. Users looking for a generic test "
+            "entry point independent of test runner are encouraged to use "
+            "tox.",
+            log.WARN,
+        )
+
         installed_dists = self.install_dists(self.distribution)
 
         cmd = ' '.join(self._argv)
@@ -232,7 +240,7 @@ class test(Command):
         # Purge modules under test from sys.modules. The test loader will
         # re-import them from the build location. Required when 2to3 is used
         # with namespace packages.
-        if six.PY3 and getattr(self.distribution, 'use_2to3', False):
+        if not six.PY2 and getattr(self.distribution, 'use_2to3', False):
             module = self.test_suite.split('.')[0]
             if module in _namespace_packages:
                 del_modules = []

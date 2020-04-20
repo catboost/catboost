@@ -241,7 +241,7 @@ class easy_install(Command):
         """
         Render the Setuptools version and installation details, then exit.
         """
-        ver = sys.version[:3]
+        ver = '{}.{}'.format(*sys.version_info)
         dist = get_distribution('setuptools')
         tmpl = 'setuptools {dist.version} from {dist.location} (Python {ver})'
         print(tmpl.format(**locals()))
@@ -410,7 +410,13 @@ class easy_install(Command):
         ]
         self._expand_attrs(dirs)
 
-    def run(self):
+    def run(self, show_deprecation=True):
+        if show_deprecation:
+            self.announce(
+                "WARNING: The easy_install command is deprecated "
+                "and will be removed in a future version."
+                , log.WARN,
+            )
         if self.verbose != self.distribution.verbose:
             log.set_verbosity(self.verbose)
         try:
@@ -1180,8 +1186,7 @@ class easy_install(Command):
         # to the setup.cfg file.
         ei_opts = self.distribution.get_option_dict('easy_install').copy()
         fetch_directives = (
-            'find_links', 'site_dirs', 'index_url', 'optimize',
-            'site_dirs', 'allow_hosts',
+            'find_links', 'site_dirs', 'index_url', 'optimize', 'allow_hosts',
         )
         fetch_options = {}
         for key, val in ei_opts.items():
@@ -1412,7 +1417,7 @@ def get_site_dirs():
                     os.path.join(
                         prefix,
                         "lib",
-                        "python" + sys.version[:3],
+                        "python{}.{}".format(*sys.version_info),
                         "site-packages",
                     ),
                     os.path.join(prefix, "lib", "site-python"),
@@ -1433,7 +1438,7 @@ def get_site_dirs():
                             home,
                             'Library',
                             'Python',
-                            sys.version[:3],
+                            '{}.{}'.format(*sys.version_info),
                             'site-packages',
                         )
                         sitedirs.append(home_sp)
@@ -1562,7 +1567,7 @@ def get_exe_prefixes(exe_filename):
                 continue
             if parts[0].upper() in ('PURELIB', 'PLATLIB'):
                 contents = z.read(name)
-                if six.PY3:
+                if not six.PY2:
                     contents = contents.decode()
                 for pth in yield_lines(contents):
                     pth = pth.strip().replace('\\', '/')

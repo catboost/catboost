@@ -3,7 +3,7 @@
 #include "enums.h"
 #include "option.h"
 
-#include <library/grid_creator/binarization.h>
+#include <library/cpp/grid_creator/binarization.h>
 
 // TODO(yazevnul): make fwd header for library/json
 namespace NJson {
@@ -15,8 +15,7 @@ namespace NCatboostOptions {
         explicit TBinarizationOptions(
             EBorderSelectionType borderSelectionType = EBorderSelectionType::GreedyLogSum,
             ui32 discretization = 32,
-            ENanMode nanMode = ENanMode::Forbidden,
-            ETaskType taskType = ETaskType::CPU
+            ENanMode nanMode = ENanMode::Forbidden
         );
 
         void DisableNanModeOption();
@@ -35,8 +34,6 @@ namespace NCatboostOptions {
         TOption<EBorderSelectionType> BorderSelectionType;
         TOption<ui32> BorderCount;
         TOption<ENanMode> NanMode;
-    private:
-        ETaskType TaskType;
     };
     std::pair<TStringBuf, NJson::TJsonValue> ParsePerFeatureBinarization(TStringBuf description);
 }

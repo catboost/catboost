@@ -17,6 +17,7 @@ SRCS(
     GLOBAL pointwise_non_symmetric.cpp
     GLOBAL querywise_non_symmetric.cpp
     GLOBAL multiclass_non_symmetric.cpp
+    GLOBAL combination.cpp
 )
 
 PEERDIR(

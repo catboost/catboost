@@ -18,7 +18,7 @@
 #include <catboost/private/libs/options/catboost_options.h>
 
 #include <library/threading/local_executor/local_executor.h>
-#include <library/dot_product/dot_product.h>
+#include <library/cpp/dot_product/dot_product.h>
 
 #include <util/generic/array_ref.h>
 
@@ -103,37 +103,71 @@ inline static void SetSingleIndex(
 }
 
 
-template <class T, EFeatureValuesType FeatureValuesType, typename TFullIndexType>
+static void GetIndexingParams(
+    const TCalcScoreFold& fold,
+    bool isEstimatedData,
+    bool isOnlineData,
+    const ui32** objectIndexing,
+    int* beginOffset,
+    int* permutationBlockSize
+) {
+    if (isOnlineData) {
+        const bool simpleIndexing = fold.OnlineDataPermutationBlockSize == fold.GetDocCount();
+        *objectIndexing = simpleIndexing ? nullptr : GetDataPtr(fold.IndexInFold);
+        *beginOffset = 0;
+        *permutationBlockSize = fold.OnlineDataPermutationBlockSize;
+    } else if (isEstimatedData) {
+        *objectIndexing = fold.GetLearnPermutationOfflineEstimatedFeaturesSubset().data();
+        *beginOffset = 0;
+        *permutationBlockSize = FoldPermutationBlockSizeNotSet;
+    } else {
+        const bool simpleIndexing = fold.MainDataPermutationBlockSize == fold.GetDocCount();
+        *objectIndexing = simpleIndexing
+            ? nullptr
+            : fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
+        *beginOffset = simpleIndexing ? fold.FeaturesSubsetBegin : 0;
+        *permutationBlockSize = fold.MainDataPermutationBlockSize;
+    }
+}
+
+
+template <class TColumn, typename TFullIndexType>
 inline static void BuildSingleIndex(
     const TCalcScoreFold& fold,
-    const TTypedFeatureValuesHolder<T, FeatureValuesType>& column,
+    const TColumn& column,
+    bool isEstimatedData,
+    bool isOnlineData,
     const TStatsIndexer& indexer,
     NCB::TIndexRange<int> docIndexRange,
     TVector<TFullIndexType>* singleIdx // already of proper size
 ) {
     if (const auto* denseColumnData
-            = dynamic_cast<const TCompressedValuesHolderImpl<T, FeatureValuesType>*>(&column))
+            = dynamic_cast<const TCompressedValuesHolderImpl<TColumn>*>(&column))
     {
-        const bool simpleIndexing = fold.NonCtrDataPermutationBlockSize == fold.GetDocCount();
-        const ui32* docInDataProviderIndexing =
-            simpleIndexing ?
-            nullptr
-            : fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
-        const int docInDataProviderBeginOffset = simpleIndexing ? fold.FeaturesSubsetBegin : 0;
+        const ui32* objectIndexing;
+        int beginOffset;
+        int permutationBlockSize;
+        GetIndexingParams(
+            fold,
+            isEstimatedData,
+            isOnlineData,
+            &objectIndexing,
+            &beginOffset,
+            &permutationBlockSize
+        );
 
         const TCompressedArray& compressedArray = *denseColumnData->GetCompressedData().GetSrc();
 
-        DispatchBitsPerKeyToDataType(
-            compressedArray,
+        compressedArray.DispatchBitsPerKeyToDataType(
             "BuildSingleIndex",
             [&] (const auto* histogram) {
                 SetSingleIndex(
                     fold,
                     indexer,
                     histogram,
-                    docInDataProviderIndexing,
-                    docInDataProviderBeginOffset,
-                    fold.NonCtrDataPermutationBlockSize,
+                    objectIndexing,
+                    beginOffset,
+                    permutationBlockSize,
                     docIndexRange,
                     singleIdx
                 );
@@ -158,15 +192,25 @@ inline static void BuildSingleIndex(
 ) {
     if (splitEnsemble.IsSplitOfType(ESplitType::OnlineCtr)) {
         const TCtr& ctr = splitEnsemble.SplitCandidate.Ctr;
-        const bool simpleIndexing = fold.CtrDataPermutationBlockSize == fold.GetDocCount();
-        const ui32* docInFoldIndexing = simpleIndexing ? nullptr : GetDataPtr(fold.IndexInFold);
+        const ui32* objectIndexing;
+        int beginOffset;
+        int permutationBlockSize;
+        GetIndexingParams(
+            fold,
+            /*isEstimatedData*/ false,
+            /*isOnlineData*/true,
+            &objectIndexing,
+            &beginOffset,
+            &permutationBlockSize
+        );
+
         SetSingleIndex(
             fold,
             indexer,
             GetCtr(allCtrs, ctr.Projection).Feature[ctr.CtrIdx][ctr.TargetBorderIdx][ctr.PriorIdx].data(),
-            docInFoldIndexing,
-            0,
-            fold.CtrDataPermutationBlockSize,
+            objectIndexing,
+            beginOffset,
+            permutationBlockSize,
             docIndexRange,
             singleIdx
         );
@@ -175,6 +219,8 @@ inline static void BuildSingleIndex(
             BuildSingleIndex(
                 fold,
                 column,
+                splitEnsemble.IsEstimated,
+                splitEnsemble.IsOnlineEstimated,
                 indexer,
                 docIndexRange,
                 singleIdx
@@ -185,7 +231,9 @@ inline static void BuildSingleIndex(
             case ESplitEnsembleType::OneFeature:
                 {
                     const auto& splitCandidate = splitEnsemble.SplitCandidate;
-                    if (splitCandidate.Type == ESplitType::FloatFeature) {
+                    if ((splitCandidate.Type == ESplitType::FloatFeature) ||
+                        (splitCandidate.Type == ESplitType::EstimatedFeature))
+                    {
                         buildSingleIndexFunc(
                             **objectsDataProvider.GetNonPackedFloatFeature((ui32)splitCandidate.FeatureIdx)
                         );
@@ -407,6 +455,8 @@ static void CalcStatsImpl(
                     exclusiveFeaturesBundle,
                     featuresGroup,
                     column,
+                    splitEnsemble.IsEstimated,
+                    splitEnsemble.IsOnlineEstimated,
                     docIndexRange,
                     pairIndexRange,
                     output);
@@ -443,6 +493,7 @@ static void CalcStatsImpl(
                                 }
                                 break;
                             case ESplitType::FloatFeature:
+                            case ESplitType::EstimatedFeature:
                                 computePairwiseStats(
                                     **objectsDataProvider.GetNonPackedFloatFeature(
                                         (ui32)splitCandidate.FeatureIdx
@@ -453,9 +504,6 @@ static void CalcStatsImpl(
                                     **objectsDataProvider.GetNonPackedCatFeature(
                                         (ui32)splitCandidate.FeatureIdx
                                     ));
-                                break;
-                            case ESplitType::EstimatedFeature:
-                                CB_ENSURE(false, "Estimated features cannot be used in CPU train now");
                                 break;
                         }
                     }

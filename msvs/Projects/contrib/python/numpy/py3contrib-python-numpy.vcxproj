@@ -79,7 +79,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\5ff068b7fb18510bcc0763b0ac.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\join_d1d6daf25af2fe033e08196ffe.cpp"/>
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\common\array_assign.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -131,6 +130,7 @@
     <ClCompile Include="$(SolutionDir)..\contrib\python\numpy\numpy\core\src\npysort\selection.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\join_d1d6daf25af2fe033e08196ffe.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\numpy\_5ff068b7fb18510bcc0763b0ac.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\numpy

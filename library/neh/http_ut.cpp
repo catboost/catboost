@@ -74,6 +74,22 @@ Y_UNIT_TEST_SUITE(NehHttp) {
         return serv;
     }
 
+    TString Request(SOCKET s, const TString& request) {
+        const ssize_t nSend = send(s, request.Data(), request.Size(), 0);
+        UNIT_ASSERT_C(nSend == ssize_t(request.Size()), "can't write request to socket.");
+
+        TVector<char> responseChars(1024, '\0');
+        const ssize_t nRecv = recv(s, &responseChars[0], responseChars.size(), 0);
+        UNIT_ASSERT_C(nRecv > 0, "can't read from socket.");
+
+        TString response = "";
+        for (ssize_t i = 0; i < nRecv; ++i) {
+            response += responseChars[i];
+        }
+
+        return response;
+    }
+
     Y_UNIT_TEST(TPipelineRequests) {
         TServ serv = CreateServices();
 
@@ -135,6 +151,7 @@ Y_UNIT_TEST_SUITE(NehHttp) {
         TStringStream expectedResponse;
         expectedResponse << "HTTP/1.0 200 Ok\r\n"
                          << "Content-Length: 1\r\n"
+                         << "Connection: close\r\n"
                          << "Content-Type: text/plain\r\n"
                          << "\r\n"
                          << "0";
@@ -220,7 +237,7 @@ Y_UNIT_TEST_SUITE(NehHttp) {
                 const int yes = 1;
                 ::setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (const char*)&yes, sizeof(yes));
             }
-            UNIT_ASSERT_C(bind(serverSocket, serverEp.SockAddr(), serverEp.SockAddrLen()) != SOCKET_ERROR, "can't bind server socket")
+            UNIT_ASSERT_C(bind(serverSocket, serverEp.SockAddr(), serverEp.SockAddrLen()) != SOCKET_ERROR, "can't bind server socket");
             UNIT_ASSERT_C(listen(serverSocket, 2) != SOCKET_ERROR, "can't listen on server socket");
 
             // Test system for max send buf size
@@ -258,6 +275,58 @@ Y_UNIT_TEST_SUITE(NehHttp) {
             }
 
             THttp2Options::OutputDeadline = TDuration::Max();
+        }
+    }
+
+    Y_UNIT_TEST(TTestLimitRequestsPerConnection) {
+        const i32 LimitRequestsPerConnection = 4;
+        NNeh::THttp2Options::Set("LimitRequestsPerConnection", ToString(LimitRequestsPerConnection));
+
+        TServ serv = CreateServices();
+
+        const TString testRequest = TStringBuilder()
+            << "GET /pipeline?0 HTTP/1.0\r\n"
+            << "Connection: Keep-Alive\r\n"
+            << "\r\n";
+
+        const TString keepAliveResponse = TStringBuilder()
+            << "HTTP/1.0 200 Ok\r\n"
+            << "Content-Length: 1\r\n"
+            << "Content-Type: text/plain\r\n"
+            << "\r\n"
+            << "0";
+
+        const TString closeResponse = TStringBuilder()
+            << "HTTP/1.0 200 Ok\r\n"
+            << "Content-Length: 1\r\n"
+            << "Connection: close\r\n"
+            << "Content-Type: text/plain\r\n"
+            << "\r\n"
+            << "0";
+
+        const TNetworkAddress addr("localhost", serv.ServerPort);
+        const TEndpoint ep(new NAddr::TAddrInfo(&*addr.Begin()));
+
+        for (size_t cycle = 0; cycle < 3; ++cycle) {
+            TSocketHolder s(socket(ep.SockAddr()->sa_family, SOCK_STREAM, 0));
+            UNIT_ASSERT_C(s != INVALID_SOCKET, "can't create socket");
+
+            const int errConnect = connect(s, ep.SockAddr(), (int)ep.SockAddrLen());
+            UNIT_ASSERT_C(!errConnect, "can't connect socket");
+
+            for (size_t reqId = 1; reqId <= LimitRequestsPerConnection; ++reqId) {
+                const TString response = Request(s, testRequest);
+
+                if (reqId % LimitRequestsPerConnection == 0) {
+                    UNIT_ASSERT_C(response == closeResponse, TStringBuilder() << "Response" << reqId << ": " << response);
+                } else {
+                    UNIT_ASSERT_C(response == keepAliveResponse, TStringBuilder() << "Response" << reqId << ": " << response);
+                }
+            }
+
+            TVector<char> buffer(1024, '\0');
+            const ssize_t nRecv = recv(s, &buffer[0], buffer.size(), 0);
+            UNIT_ASSERT_C(nRecv == 0, "socket is still readable.");
         }
     }
 }

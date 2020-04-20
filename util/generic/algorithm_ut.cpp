@@ -625,6 +625,11 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
         }),
                                  1);
 
+        int arrayMutable[] = {1, 2, 5, 3, 4, 5};
+        auto maxPtr = MaxElementBy(arrayMutable, [](int x) { return x; });
+        *maxPtr += 100;
+        UNIT_ASSERT_VALUES_EQUAL(*maxPtr, 105);
+
         auto identity = [](char x) {
             return x;
         };
@@ -647,6 +652,11 @@ Y_UNIT_TEST_SUITE(TAlgorithm) {
             return -x;
         }),
                                  5);
+
+        int arrayMutable[] = {1, 2, 5, 3, 4, 5};
+        auto minPtr = MinElementBy(arrayMutable, [](int x) { return x; });
+        *minPtr += 100;
+        UNIT_ASSERT_VALUES_EQUAL(*minPtr, 101);
 
         auto identity = [](char x) {
             return x;

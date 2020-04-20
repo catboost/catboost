@@ -4,9 +4,9 @@
 
 struct TMetricHolder;
 
-TMetricHolder ComputeHingeLossMetric(TConstArrayRef<TVector<double>> approx,
+TMetricHolder ComputeHingeLossMetric(TConstArrayRef<TConstArrayRef<double>> approx,
                                      TConstArrayRef<float> target,
                                      TConstArrayRef<float> weight,
                                      int begin,
                                      int end,
-                                     double border);
+                                     double targetBorder);

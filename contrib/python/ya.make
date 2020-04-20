@@ -23,6 +23,7 @@ RECURSE(
     setuptools
     six
     subprocess32
+    testpath
 )
 
 IF (OS_WINDOWS)

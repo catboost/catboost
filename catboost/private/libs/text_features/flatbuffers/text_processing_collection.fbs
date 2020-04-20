@@ -7,15 +7,17 @@ table AdjacencyList {
 }
 
 table TCollectionHeader {
+    TokenizerId: [TGuid];
     DictionaryId: [TGuid];
     CalcerId: [TGuid];
-    PerFeatureDictionaries: [AdjacencyList];
+    PerFeatureDigitizers: [AdjacencyList];
     PerTokenizedFeatureCalcers: [AdjacencyList];
 }
 
 enum EPartType : ubyte {
-    FeatureCalcer,
-    Dictionary
+    Tokenizer,
+    Dictionary,
+    FeatureCalcer
 }
 
 table TCollectionPart {

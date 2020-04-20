@@ -33,6 +33,7 @@ namespace NCatboostOptions {
         static ui32 GetUnusedNodePort() { return 0; }
         bool IsMaster() const;
         bool IsSingleHost() const;
+        bool IsWorker() const;
     };
 }
 

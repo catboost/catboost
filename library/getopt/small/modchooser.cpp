@@ -4,7 +4,7 @@
 #include "last_getopt.h"
 #include "modchooser.h"
 
-#include <library/colorizer/colors.h>
+#include <library/cpp/colorizer/colors.h>
 
 #include <util/stream/output.h>
 #include <util/stream/format.h>
@@ -60,11 +60,12 @@ private:
     TMainClassV* Main;
 };
 
-TModChooser::TMode::TMode(const TString& name, TMainClass* main, const TString& descr, bool hidden)
+TModChooser::TMode::TMode(const TString& name, TMainClass* main, const TString& descr, bool hidden, bool noCompletion)
     : Name(name)
     , Main(main)
     , Description(descr)
     , Hidden(hidden)
+    , NoCompletion(noCompletion)
 {
 }
 
@@ -79,39 +80,39 @@ TModChooser::TModChooser()
 
 TModChooser::~TModChooser() = default;
 
-void TModChooser::AddMode(const TString& mode, const TMainFunctionRawPtr func, const TString& description, bool hidden) {
-    AddMode(mode, TMainFunctionPtr(func), description, hidden);
+void TModChooser::AddMode(const TString& mode, const TMainFunctionRawPtr func, const TString& description, bool hidden, bool noCompletion) {
+    AddMode(mode, TMainFunctionPtr(func), description, hidden, noCompletion);
 }
 
-void TModChooser::AddMode(const TString& mode, const TMainFunctionRawPtrV func, const TString& description, bool hidden) {
-    AddMode(mode, TMainFunctionPtrV(func), description, hidden);
+void TModChooser::AddMode(const TString& mode, const TMainFunctionRawPtrV func, const TString& description, bool hidden, bool noCompletion) {
+    AddMode(mode, TMainFunctionPtrV(func), description, hidden, noCompletion);
 }
 
-void TModChooser::AddMode(const TString& mode, const TMainFunctionPtr func, const TString& description, bool hidden) {
+void TModChooser::AddMode(const TString& mode, const TMainFunctionPtr func, const TString& description, bool hidden, bool noCompletion) {
     Wrappers.push_back(new PtrWrapper(func));
-    AddMode(mode, Wrappers.back().Get(), description, hidden);
+    AddMode(mode, Wrappers.back().Get(), description, hidden, noCompletion);
 }
 
-void TModChooser::AddMode(const TString& mode, const TMainFunctionPtrV func, const TString& description, bool hidden) {
+void TModChooser::AddMode(const TString& mode, const TMainFunctionPtrV func, const TString& description, bool hidden, bool noCompletion) {
     Wrappers.push_back(new PtrvWrapper(func));
-    AddMode(mode, Wrappers.back().Get(), description, hidden);
+    AddMode(mode, Wrappers.back().Get(), description, hidden, noCompletion);
 }
 
-void TModChooser::AddMode(const TString& mode, TMainClass* func, const TString& description, bool hidden) {
+void TModChooser::AddMode(const TString& mode, TMainClass* func, const TString& description, bool hidden, bool noCompletion) {
     if (Modes.FindPtr(mode)) {
         ythrow yexception() << "TMode '" << mode << "' already exists in TModChooser.";
     }
 
-    Modes[mode] = UnsortedModes.emplace_back(new TMode(mode, func, description, hidden)).Get();
+    Modes[mode] = UnsortedModes.emplace_back(new TMode(mode, func, description, hidden, noCompletion)).Get();
 }
 
-void TModChooser::AddMode(const TString& mode, TMainClassV* func, const TString& description, bool hidden) {
+void TModChooser::AddMode(const TString& mode, TMainClassV* func, const TString& description, bool hidden, bool noCompletion) {
     Wrappers.push_back(new ClassWrapper(func));
-    AddMode(mode, Wrappers.back().Get(), description, hidden);
+    AddMode(mode, Wrappers.back().Get(), description, hidden, noCompletion);
 }
 
-void TModChooser::AddGroupModeDescription(const TString& description, bool hidden) {
-    UnsortedModes.push_back(new TMode(nullptr, nullptr, description.data(), hidden));
+void TModChooser::AddGroupModeDescription(const TString& description, bool hidden, bool noCompletion) {
+    UnsortedModes.push_back(new TMode(nullptr, nullptr, description.data(), hidden, noCompletion));
 }
 
 void TModChooser::SetDefaultMode(const TString& mode) {
@@ -155,10 +156,10 @@ void TModChooser::DisableSvnRevisionOption() {
     SvnRevisionOptionDisabled = true;
 }
 
-void TModChooser::AddCompletions(TString progName, const TString& name) {
+void TModChooser::AddCompletions(TString progName, const TString& name, bool hidden, bool noCompletion) {
     if (CompletionsGenerator == nullptr) {
         CompletionsGenerator = NLastGetopt::MakeCompletionMod(this, std::move(progName), name);
-        AddMode(name, CompletionsGenerator.Get(), "generate autocompletion files");
+        AddMode(name, CompletionsGenerator.Get(), "generate autocompletion files", hidden, noCompletion);
     }
 }
 

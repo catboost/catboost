@@ -3,6 +3,7 @@
 PYTEST()
 
 TEST_SRCS(
+    conftest.py
     large_dist_test.py
     test.py
     test_modes.py
@@ -37,6 +38,10 @@ DEPENDS(
 DATA(
     arcadia/catboost/pytest/data
 )
+
+IF (CATBOOST_OPENSOURCE AND AUTOCHECK)
+    INCLUDE(${ARCADIA_ROOT}/catboost//oss/checks/check_deps.inc)
+ENDIF()
 
 END()
 

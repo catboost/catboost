@@ -58,6 +58,19 @@ LEAF_ESTIMATION_METHOD = ['Gradient', 'Newton']
 SCORE_CALC_OBJ_BLOCK_SIZES = ['60', '5000000']
 SCORE_CALC_OBJ_BLOCK_SIZES_IDS = ['calc_block=60', 'calc_block=5000000']
 
+SEPARATOR_TYPES = [
+    'ByDelimiter',
+    'BySense',
+]
+
+TEXT_FEATURE_ESTIMATORS = [
+    'BoW',
+    'NaiveBayes',
+    'BM25',
+    'BoW,NaiveBayes',
+    'BoW,NaiveBayes,BM25'
+]
+
 
 def diff_tool(threshold=None):
     return get_limited_precision_dsv_diff_tool(threshold, True)
@@ -610,6 +623,34 @@ def test_stochastic_filter(sigma, num_estimations):
             local_canonical_file(test_error_path)]
 
 
+@pytest.mark.parametrize('metric', ['DCG', 'NDCG'])
+@pytest.mark.parametrize('top', [-1, 1, 10])
+@pytest.mark.parametrize('dcg_type', ['Base', 'Exp'])
+@pytest.mark.parametrize('denominator', ['Position', 'LogPosition'])
+def test_stochastic_rank(metric, top, dcg_type, denominator):
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    loss = 'StochasticRank:metric={};top={};type={};denominator={};hints=skip_train~false'.format(
+        metric, top, dcg_type, denominator)
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss,
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--cd', data_file('querywise', 'train.cd.query_id'),
+        '-i', '10',
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(learn_error_path),
+            local_canonical_file(test_error_path)]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('top', [2, 100])
 def test_averagegain_with_query_weights(boosting_type, top):
@@ -675,7 +716,7 @@ def test_recall_at_k():
         '--boosting-type', 'Ordered',
         '-i', '10',
         '-T', '4',
-        '--custom-metric', 'RecallAt:top=3;border=0',
+        '--custom-metric', 'RecallAt:top=3',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
         '--use-best-model', 'false',
@@ -698,7 +739,7 @@ def test_precision_at_k():
         '--boosting-type', 'Ordered',
         '-i', '10',
         '-T', '4',
-        '--custom-metric', 'PrecisionAt:top=3;border=0',
+        '--custom-metric', 'PrecisionAt:top=3',
         '--learn-err-log', learn_error_path,
         '--test-err-log', test_error_path,
         '--use-best-model', 'false',
@@ -2447,7 +2488,7 @@ def test_fold_len_multiplier(boosting_type, dev_score_calc_obj_block_size):
 
 
 FSTR_TYPES = ['PredictionValuesChange', 'InternalFeatureImportance', 'InternalInteraction', 'Interaction', 'ShapValues', 'PredictionDiff']
-DATASET_DEPENDENT_FSTR_TYPES = ['PredictionValuesChange', 'LossFunctionChange', 'ShapValues', 'PredictionDiff']
+DATASET_DEPENDENT_FSTR_TYPES = ['PredictionValuesChange', 'InternalFeatureImportance', 'LossFunctionChange', 'ShapValues', 'PredictionDiff']
 
 
 @pytest.mark.parametrize('fstr_type', FSTR_TYPES)
@@ -2610,15 +2651,13 @@ def do_test_fstr(
 
     if normalize:
         make_model_normalized(model_path)
-        if fstr_type != 'PredictionValuesChange':
+        if not(
+            fstr_type == 'PredictionValuesChange' or
+            fstr_type == 'InternalFeatureImportance' and loss_function not in RANKING_LOSSES
+        ):
             with pytest.raises(yatest.common.ExecutionError):
                 yatest.common.execute(fstr_cmd)
             return
-
-    if grow_policy in ['Lossguide', 'Depthwise'] and fstr_type == 'PredictionDiff':
-        with pytest.raises(yatest.common.ExecutionError):
-            yatest.common.execute(fstr_cmd)
-        return
 
     yatest.common.execute(fstr_cmd)
 
@@ -2712,51 +2751,63 @@ def test_fstr_feature_importance_default_value(boosting_type, ranking_parameters
     model_path = yatest.common.test_output_path('model.bin')
     fstr_path_0 = yatest.common.test_output_path('fstr_0.tsv')
     fstr_path_1 = yatest.common.test_output_path('fstr_1.tsv')
+    internal_fstr_path_0 = yatest.common.test_output_path('internal_fstr_0.tsv')
+    internal_fstr_path_1 = yatest.common.test_output_path('internal_fstr_1.tsv')
+
+    pool = 'adult' if ranking_parameters['loss-function'] == 'Logloss' else 'black_friday'
+    pool_path = data_file(pool, 'train_small' if pool == 'adult' else 'train')
+    cd_path = data_file(pool, 'train.cd' if pool == 'adult' else 'cd')
+    has_header_suffix = ('--has-header',) if pool == 'black_friday' else ()
 
     cmd = (
         CATBOOST_PATH,
         'fit',
         '--use-best-model', 'false',
-        '--learn-set', data_file('querywise', 'train'),
-        '--column-description', data_file('querywise', 'train.cd'),
-        '--learn-pairs', data_file('querywise', 'train.pairs'),
+        '--learn-set', pool_path,
+        '--column-description', cd_path,
         '-i', '10',
         '-T', '4',
         '--one-hot-max-size', '10',
         '--model-file', model_path,
         '--loss-function', ranking_parameters['loss-function']
-    )
+    ) + has_header_suffix
 
     if ranking_parameters['loss-function'] == 'Logloss':
         cmd += ('--target-border', '0.5')
 
     yatest.common.execute(
         cmd + ('--fstr-file', fstr_path_0,
+               '--fstr-internal-file', internal_fstr_path_0,
                '--fstr-type', 'FeatureImportance')
     )
     yatest.common.execute(
         cmd + ('--fstr-file', fstr_path_1,
+               '--fstr-internal-file', internal_fstr_path_1,
                '--fstr-type', ranking_parameters['fstr-type'])
     )
 
-    fstr_output_0 = np.loadtxt(fstr_path_0, dtype='float', delimiter='\t')
-    fstr_output_1 = np.loadtxt(fstr_path_1, dtype='float', delimiter='\t')
-    assert(np.allclose(fstr_output_0, fstr_output_1, rtol=1e-6))
+    assert filecmp.cmp(fstr_path_0, fstr_path_1)
+    assert filecmp.cmp(internal_fstr_path_0, internal_fstr_path_1)
 
     fstr_cmd = (
         CATBOOST_PATH,
         'fstr',
-        '--input-path', data_file('querywise', 'train'),
-        '--column-description', data_file('querywise', 'train.cd'),
-        '--input-pairs', data_file('querywise', 'train.pairs'),
+        '--input-path', pool_path,
+        '--column-description', cd_path,
         '--model-file', model_path,
-        '--output-path', fstr_path_1,
-        '--fstr-type', 'FeatureImportance',
-    )
-    yatest.common.execute(fstr_cmd)
+    ) + has_header_suffix
 
-    fstr_output_1 = np.loadtxt(fstr_path_1, dtype='float', delimiter='\t')
-    assert(np.allclose(fstr_output_0, fstr_output_1, rtol=1e-6))
+    yatest.common.execute(
+        fstr_cmd + ('--output-path', fstr_path_1,
+                    '--fstr-type', 'FeatureImportance')
+    )
+    yatest.common.execute(
+        fstr_cmd + ('--output-path', internal_fstr_path_1,
+                    '--fstr-type', 'InternalFeatureImportance')
+    )
+
+    assert filecmp.cmp(fstr_path_0, fstr_path_1)
+    assert filecmp.cmp(internal_fstr_path_0, internal_fstr_path_1)
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -3324,7 +3375,7 @@ def test_loglikelihood_of_prediction(boosting_type):
         '--test-err-log', test_error_path,
     )
     yatest.common.execute(cmd)
-    return [local_canonical_file(learn_error_path, diff_tool(1e-8)), local_canonical_file(test_error_path, diff_tool(1e-8))]
+    return [local_canonical_file(learn_error_path, diff_tool(1e-7)), local_canonical_file(test_error_path, diff_tool(1e-7))]
 
 
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
@@ -4854,7 +4905,7 @@ def run_dist_train(cmd, output_file_switch='--eval-file'):
 
     eval_0 = np.loadtxt(eval_0_path, dtype='float', delimiter='\t', skiprows=1)
     eval_1 = np.loadtxt(eval_1_path, dtype='float', delimiter='\t', skiprows=1)
-    assert(np.allclose(eval_0, eval_1, atol=1e-6, rtol=1e-3))
+    assert(np.allclose(eval_0, eval_1, atol=1e-5))
     return eval_1_path
 
 
@@ -6778,6 +6829,38 @@ def test_shap_verbose():
         assert line_count == 5
 
 
+def test_shap_approximate():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_values_path = yatest.common.test_output_path('shapval')
+    cmd_fit = [
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '--learning-rate', '0.5',
+        '-f', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '250',
+        '-T', '4',
+        '-m', output_model_path,
+    ]
+    yatest.common.execute(cmd_fit)
+    cmd_shap = [
+        CATBOOST_PATH,
+        'fstr',
+        '-o', output_values_path,
+        '--input-path', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--verbose', '0',
+        '--fstr-type', 'ShapValues',
+        '--shap-calc-type', 'Approximate',
+        '-T', '4',
+        '-m', output_model_path,
+    ]
+    yatest.common.execute(cmd_shap)
+
+    return [local_canonical_file(output_values_path)]
+
+
 @pytest.mark.parametrize('bagging_temperature', ['0', '1'])
 @pytest.mark.parametrize('sampling_unit', SAMPLING_UNIT_TYPES)
 @pytest.mark.parametrize(
@@ -7156,6 +7239,36 @@ def test_quantized_pool_with_large_grid():
     assert filecmp.cmp(tsv_eval_path, quantized_eval_path)
 
 
+def test_learn_without_header_eval_with_header():
+    train_path = yatest.common.test_output_path('airlines_without_header')
+    with open(data_file('airlines_5K', 'train'), 'r') as with_header_file:
+        with open(train_path, 'w') as without_header_file:
+            without_header_file.writelines(with_header_file.readlines()[1:])
+
+    model_path = yatest.common.test_output_path('model.bin')
+
+    cmd_fit = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '-f', train_path,
+        '--cd', data_file('airlines_5K', 'cd'),
+        '-i', '10',
+        '-m', model_path
+    )
+    yatest.common.execute(cmd_fit)
+
+    cmd_calc = (
+        CATBOOST_PATH,
+        'calc',
+        '--input-path', data_file('airlines_5K', 'test'),
+        '--cd', data_file('airlines_5K', 'cd'),
+        '-m', model_path,
+        '--has-header'
+    )
+    yatest.common.execute(cmd_calc)
+
+
 def test_group_weights_file():
     first_eval_path = yatest.common.test_output_path('first.eval')
     second_eval_path = yatest.common.test_output_path('second.eval')
@@ -7520,6 +7633,7 @@ def test_broken_dsv_format(dataset_name, loss_function, has_pairs, has_group_wei
         yatest.common.execute(cmd)
 
 
+@pytest.mark.use_fixtures('compressed_data')
 @pytest.mark.parametrize(
     'loss_function,eval_metric,boosting_type',
     [
@@ -7527,41 +7641,40 @@ def test_broken_dsv_format(dataset_name, loss_function, has_pairs, has_group_wei
         ('QueryRMSE', 'NDCG', 'Ordered'),
         # Boosting type 'Ordered' is not supported for YetiRankPairwise and PairLogitPairwise
         ('YetiRankPairwise', 'NDCG', 'Plain'),
-        ('PairLogit', 'PairAccuracy', 'Plain'),
-        ('PairLogitPairwise', 'NDCG', 'Plain'),
-        ('PairLogitPairwise', 'PairAccuracy', 'Plain'),
+        ('PairLogit:max_pairs=30', 'PairLogit:max_pairs=30', 'Plain'),
+        ('PairLogitPairwise:max_pairs=30', 'NDCG', 'Plain'),
+        ('PairLogitPairwise:max_pairs=30', 'PairLogit:max_pairs=30', 'Plain'),
     ],
     ids=[
         'loss_function=QueryRMSE,eval_metric=NDCG,boosting_type=Plain',
         'loss_function=QueryRMSE,eval_metric=NDCG,boosting_type=Ordered',
         'loss_function=YetiRankPairwise,eval_metric=NDCG,boosting_type=Plain',
-        'loss_function=PairLogit,eval_metric=PairAccuracy,boosting_type=Plain',
-        'loss_function=PairLogitPairwise,eval_metric=NDCG,boosting_type=Plain',
-        'loss_function=PairLogitPairwise,eval_metric=PairAccuracy,boosting_type=Plain'
+        'loss_function=PairLogit:max_pairs=30,eval_metric=PairLogit:max_pairs=30,boosting_type=Plain',
+        'loss_function=PairLogitPairwise:max_pairs=30,eval_metric=NDCG,boosting_type=Plain',
+        'loss_function=PairLogitPairwise:max_pairs=30,eval_metric=PairLogit:max_pairs=30,boosting_type=Plain'
     ]
 )
-def test_groupwise_with_cat_features(loss_function, eval_metric, boosting_type):
-    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+def test_groupwise_with_cat_features(compressed_data, loss_function, eval_metric, boosting_type):
     test_error_path = yatest.common.test_output_path('test_error.tsv')
 
     cmd = (
         CATBOOST_PATH,
         'fit',
         '--loss-function', loss_function,
-        '--has-header',
-        '-f', data_file('black_friday', 'train'),
-        '-t', data_file('black_friday', 'test'),
-        '--column-description', data_file('black_friday', 'cd'),
+        '-f', os.path.join(compressed_data.name, 'mslr_web1k', 'train'),
+        '-t', os.path.join(compressed_data.name, 'mslr_web1k', 'test'),
+        '--column-description', os.path.join(compressed_data.name, 'mslr_web1k', 'cd.with_cat_features'),
         '--boosting-type', boosting_type,
-        '-i', '10',
-        '-T', '4',
+        '-i', '100',
+        '-T', '8',
         '--eval-metric', eval_metric,
-        '--learn-err-log', learn_error_path,
+        '--metric-period', '100',
+        '--use-best-model', 'false',
         '--test-err-log', test_error_path,
     )
     yatest.common.execute(cmd)
 
-    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+    return [local_canonical_file(test_error_path, diff_tool=diff_tool(1e-5))]
 
 
 def test_gradient_walker():
@@ -8501,3 +8614,309 @@ def test_model_shrink_incorrect(config):
     ]
     with pytest.raises(yatest.common.ExecutionError):
         yatest.common.execute(cmd)
+
+
+@pytest.mark.parametrize('average', ['Macro', 'Micro', 'Weighted'])
+def test_total_f1_params(average):
+    return do_test_eval_metrics(
+        metric='TotalF1:average=' + average,
+        metric_period='1',
+        train=data_file('cloudness_small', 'train_small'),
+        test=data_file('cloudness_small', 'test_small'),
+        cd=data_file('cloudness_small', 'train.cd'),
+        loss_function='MultiClass'
+    )
+
+
+def test_tweedie():
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Tweedie:variance_power=1.5',
+        '-f', data_file('adult_crossentropy', 'train_proba'),
+        '--column-description', data_file('adult_crossentropy', 'train.cd'),
+        '-i', '100',
+        '--learning-rate', '0.5',
+        '--learn-err-log', learn_error_path
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(learn_error_path)]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+@pytest.mark.parametrize('separator_type', SEPARATOR_TYPES)
+@pytest.mark.parametrize('feature_estimators', TEXT_FEATURE_ESTIMATORS)
+def test_fit_binclass_with_text_features(boosting_type, separator_type, feature_estimators):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn.tsv')
+    test_error_path = yatest.common.test_output_path('test.tsv')
+
+    test_eval_path = yatest.common.test_output_path('test.eval')
+    calc_eval_path = yatest.common.test_output_path('calc.eval')
+
+    tokenizers = [{'tokenizer_id': separator_type, 'separator_type': separator_type, 'token_types': ['Word']}]
+    dictionaries = [{'dictionary_id': 'Word'}, {'dictionary_id': 'Bigram', 'gram_order': '2'}]
+    dicts = {'BoW': ['Bigram', 'Word'], 'NaiveBayes': ['Word'], 'BM25': ['Word']}
+    feature_processing = [{'feature_calcers': [calcer], 'dictionaries_names': dicts[calcer], 'tokenizers_names': [separator_type]} for calcer in feature_estimators.split(',')]
+
+    text_processing = {'feature_processing': {'default': feature_processing}, 'dictionaries': dictionaries, 'tokenizers': tokenizers}
+
+    pool_name = 'rotten_tomatoes'
+    test_file = data_file(pool_name, 'test')
+    cd_file = data_file(pool_name, 'cd_binclass')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '--eval-metric', 'AUC',
+        '-f', data_file(pool_name, 'train'),
+        '-t', test_file,
+        '--text-processing', json.dumps(text_processing),
+        '--column-description', cd_file,
+        '--boosting-type', boosting_type,
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--eval-file', test_eval_path,
+        '--output-columns', 'RawFormulaVal',
+        '--use-best-model', 'false',
+    )
+    yatest.common.execute(cmd)
+
+    apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
+    assert filecmp.cmp(test_eval_path, calc_eval_path)
+
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+@pytest.mark.parametrize('separator_type', SEPARATOR_TYPES)
+@pytest.mark.parametrize('feature_estimators', TEXT_FEATURE_ESTIMATORS)
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
+def test_fit_multiclass_with_text_features(separator_type, feature_estimators, loss_function):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn.tsv')
+    test_error_path = yatest.common.test_output_path('test.tsv')
+
+    test_eval_path = yatest.common.test_output_path('test.eval')
+    calc_eval_path = yatest.common.test_output_path('calc.eval')
+
+    tokenizers = [{'tokenizer_id': separator_type, 'separator_type': separator_type, 'token_types': ['Word']}]
+    dictionaries = [{'dictionary_id': 'Word'}, {'dictionary_id': 'Bigram', 'gram_order': '2'}]
+    dicts = {'BoW': ['Bigram', 'Word'], 'NaiveBayes': ['Word'], 'BM25': ['Word']}
+    feature_processing = [{'feature_calcers': [calcer], 'dictionaries_names': dicts[calcer], 'tokenizers_names': [separator_type]} for calcer in feature_estimators.split(',')]
+
+    text_processing = {'feature_processing': {'default': feature_processing}, 'dictionaries': dictionaries, 'tokenizers': tokenizers}
+
+    pool_name = 'rotten_tomatoes'
+    test_file = data_file(pool_name, 'test')
+    cd_file = data_file(pool_name, 'cd')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '--eval-metric', 'Accuracy',
+        '-f', data_file(pool_name, 'train'),
+        '-t', test_file,
+        '--text-processing', json.dumps(text_processing),
+        '--column-description', cd_file,
+        '--boosting-type', 'Plain',
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--eval-file', test_eval_path,
+        '--output-columns', 'RawFormulaVal',
+        '--use-best-model', 'false',
+    )
+    yatest.common.execute(cmd)
+
+    apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
+    assert filecmp.cmp(test_eval_path, calc_eval_path)
+
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+@pytest.mark.parametrize('grow_policy', GROW_POLICIES)
+def test_shrink_model_with_text_features(grow_policy):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn.tsv')
+    test_error_path = yatest.common.test_output_path('test.tsv')
+
+    test_eval_path = yatest.common.test_output_path('test.eval')
+    calc_eval_path = yatest.common.test_output_path('calc.eval')
+
+    loss_function = 'MultiClass'
+    feature_estimators = 'BoW,NaiveBayes,BM25'
+
+    dictionaries = [{'dictionary_id': 'Word'}, {'dictionary_id': 'Bigram', 'gram_order': '2'}]
+    dicts = {'BoW': ['Bigram', 'Word'], 'NaiveBayes': ['Word'], 'BM25': ['Word']}
+    feature_processing = [{'feature_calcers': [calcer], 'dictionaries_names': dicts[calcer]} for calcer in feature_estimators.split(',')]
+
+    text_processing = {'feature_processing': {'default': feature_processing}, 'dictionaries': dictionaries}
+
+    pool_name = 'rotten_tomatoes'
+    test_file = data_file(pool_name, 'test')
+    cd_file = data_file(pool_name, 'cd')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '--eval-metric', 'Accuracy',
+        '-f', data_file(pool_name, 'train'),
+        '-t', test_file,
+        '--column-description', cd_file,
+        '--text-processing', json.dumps(text_processing),
+        '--grow-policy', grow_policy,
+        '--boosting-type', 'Plain',
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--eval-file', test_eval_path,
+        '--output-columns', 'RawFormulaVal',
+        '--use-best-model', 'true',
+    )
+    yatest.common.execute(cmd)
+
+    apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
+    assert filecmp.cmp(test_eval_path, calc_eval_path)
+
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+DICTIONARIES_OPTIONS = [
+    {
+        "Simple": "token_level_type=Word:occurrence_lower_bound=50"
+    },
+    {
+        "UniGramOccur5": "occurrence_lower_bound=5:token_level_type=Letter",
+        "BiGramOccur2": "occurrence_lower_bound=2:gram_order=2:token_level_type=Letter",
+        "WordDictOccur1": "occurrence_lower_bound=1:token_level_type=Word",
+        "WordDictOccur2": "occurrence_lower_bound=2:token_level_type=Word",
+        "WordDictOccur3": "occurrence_lower_bound=3:token_level_type=Word"
+    },
+    {
+        "Unigram": "gram_order=1:token_level_type=Letter:occurrence_lower_bound=50",
+        "Bigram": "gram_order=2:token_level_type=Letter:occurrence_lower_bound=50",
+        "Trigram": "gram_order=3:token_level_type=Letter:occurrence_lower_bound=50"
+    },
+    {
+        "Letter": "token_level_type=Letter:occurrence_lower_bound=50",
+        "Word": "token_level_type=Word:occurrence_lower_bound=50"
+    }
+]
+
+
+@pytest.mark.parametrize('dictionaries', DICTIONARIES_OPTIONS)
+@pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)
+def test_text_processing_options(dictionaries, loss_function):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn.tsv')
+    test_error_path = yatest.common.test_output_path('test.tsv')
+
+    test_eval_path = yatest.common.test_output_path('test.eval')
+    calc_eval_path = yatest.common.test_output_path('calc.eval')
+
+    dictionaries = ','.join([key + ':' + value for key, value in dictionaries.items()])
+    feature_estimators = 'BM25,BoW,NaiveBayes'
+
+    pool_name = 'rotten_tomatoes'
+    test_file = data_file(pool_name, 'test')
+    cd_file = data_file(pool_name, 'cd')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '--eval-metric', 'Accuracy',
+        '-f', data_file(pool_name, 'train'),
+        '-t', test_file,
+        '--column-description', cd_file,
+        '--dictionaries', dictionaries,
+        '--feature-calcers', feature_estimators,
+        '--boosting-type', 'Plain',
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--eval-file', test_eval_path,
+        '--output-columns', 'RawFormulaVal',
+        '--use-best-model', 'false',
+    )
+    yatest.common.execute(cmd)
+
+    apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
+    assert filecmp.cmp(test_eval_path, calc_eval_path)
+
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+@pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
+def test_fit_with_per_feature_text_options(boosting_type):
+    output_model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn.tsv')
+    test_error_path = yatest.common.test_output_path('test.tsv')
+
+    test_eval_path = yatest.common.test_output_path('test.eval')
+    calc_eval_path = yatest.common.test_output_path('calc.eval')
+
+    text_processing = {
+        'tokenizers': [
+            {'tokenizer_id': 'Space', 'delimiter': ' '},
+            {'tokenizer_id': 'Comma', 'delimiter': ','},
+        ],
+        'dictionaries': [
+            {'dictionary_id': 'Word', 'token_level_type': 'Word', 'occurrence_lower_bound': '50'},
+            {'dictionary_id': 'Bigram', 'token_level_type': 'Word', 'gram_order': '2', 'occurrence_lower_bound': '50'},
+            {'dictionary_id': 'Trigram', 'token_level_type': 'Letter', 'gram_order': '3', 'occurrence_lower_bound': '50'},
+        ],
+        'feature_processing': {
+            '0': [
+                {'tokenizers_names': ['Space'], 'dictionaries_names': ['Word'], 'feature_calcers': ['BoW', 'NaiveBayes']},
+                {'tokenizers_names': ['Space'], 'dictionaries_names': ['Bigram', 'Trigram'], 'feature_calcers': ['BoW']},
+            ],
+            '1': [
+                {'tokenizers_names': ['Space'], 'dictionaries_names': ['Word'], 'feature_calcers': ['BoW', 'NaiveBayes', 'BM25']},
+                {'tokenizers_names': ['Space'], 'dictionaries_names': ['Trigram'], 'feature_calcers': ['BoW', 'BM25']},
+            ],
+            '2': [
+                {'tokenizers_names': ['Space'], 'dictionaries_names': ['Word', 'Bigram', 'Trigram'], 'feature_calcers': ['BoW']},
+            ],
+        }
+    }
+
+    pool_name = 'rotten_tomatoes'
+    test_file = data_file(pool_name, 'test')
+    cd_file = data_file(pool_name, 'cd_binclass')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '--eval-metric', 'AUC',
+        '-f', data_file(pool_name, 'train'),
+        '-t', test_file,
+        '--text-processing', json.dumps(text_processing),
+        '--column-description', cd_file,
+        '--boosting-type', boosting_type,
+        '-i', '20',
+        '-T', '4',
+        '-m', output_model_path,
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path,
+        '--eval-file', test_eval_path,
+        '--output-columns', 'RawFormulaVal',
+        '--use-best-model', 'false',
+    )
+    yatest.common.execute(cmd)
+
+    apply_catboost(output_model_path, test_file, cd_file, calc_eval_path, output_columns=['RawFormulaVal'])
+    assert filecmp.cmp(test_eval_path, calc_eval_path)
+
+    return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]

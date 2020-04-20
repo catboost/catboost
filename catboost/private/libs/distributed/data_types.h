@@ -43,19 +43,16 @@ namespace NCatboostDistributed {
     using TWorkerPairwiseStats = TVector<TVector<TPairwiseStats>>; // [cand][subCand]
 
     struct TTrainData : public IObjectBase {
-        NCB::TTrainingForCPUDataProviderPtr TrainData;
+        NCB::TTrainingDataProviders TrainData;
 
     public:
         TTrainData() = default;
-        TTrainData(NCB::TTrainingForCPUDataProviderPtr trainData)
-        : TrainData(trainData)
+        TTrainData(NCB::TTrainingDataProviders trainData)
+        : TrainData(std::move(trainData))
         {
         }
 
-        int operator&(IBinSaver& binSaver) {
-            NCB::AddWithShared(&binSaver, &TrainData);
-            return 0;
-        }
+        SAVELOAD(TrainData);
 
         OBJECT_NOCOPY_METHODS(TTrainData);
     };
@@ -122,6 +119,9 @@ namespace NCatboostDistributed {
         TArray2D<double> PairwiseBuckets;
         int GradientIteration;
 
+        // Starting point for gradient walker
+        TVector<TVector<double>> BacktrackingStart;
+
         // data used by Exact approx calcer
         TVector<TVector<TVector<std::pair<double, double>>>> ExactDiff; // [dim][leaf][]
         TVector<TVector<TMinMax<int>>> SplitBounds; // [dim][leaf]
@@ -136,7 +136,7 @@ namespace NCatboostDistributed {
 
         NCatboostOptions::TCatBoostOptions Params;
 
-        NCB::TTrainingForCPUDataProviderPtr TrainData;
+        NCB::TTrainingDataProviders TrainData;
         TVector<NJson::TJsonValue> ClassLabelsFromDataset;
 
         TFlatPairsInfo FlatPairs;

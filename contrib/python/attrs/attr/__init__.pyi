@@ -20,7 +20,7 @@ from . import filters as filters
 from . import converters as converters
 from . import validators as validators
 
-from ._version import VersionInfo
+from ._version_info import VersionInfo
 
 __version__: str
 __version_info__: VersionInfo

@@ -234,9 +234,11 @@ struct THash<TFlags<Enum>> {
  * @param FLAGS                         Flags type to declare operator for.
  */
 #define Y_DECLARE_OPERATORS_FOR_FLAGS(FLAGS)                           \
+    Y_DECLARE_UNUSED                                                   \
     constexpr inline FLAGS operator|(FLAGS::TEnum l, FLAGS::TEnum r) { \
         return FLAGS(l) | r;                                           \
     }                                                                  \
+    Y_DECLARE_UNUSED                                                   \
     constexpr inline FLAGS operator~(FLAGS::TEnum value) {             \
         return ~FLAGS(value);                                          \
     }

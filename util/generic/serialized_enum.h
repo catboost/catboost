@@ -9,11 +9,12 @@
 
 /*
 
-A helper include file.
-
-One should not include it directly. It will be included implicitly when you add
+A file with declarations of enumeration-related functions.
+It doesn't contains definitions. To generate them you have to add
 
     GENERATE_ENUM_SERIALIZATION_WITH_HEADER(your_header_with_your_enum.h)
+or
+    GENERATE_ENUM_SERIALIZATION(your_header_with_your_enum.h)
 
 in your ya.make
 

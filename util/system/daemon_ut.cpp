@@ -38,7 +38,7 @@ Y_UNIT_TEST_SUITE(TDaemonTest) {
     Y_UNIT_TEST(WaitForMessageSocket) {
         using namespace NDaemonMaker;
         SOCKET sockets[2];
-        SocketPair(sockets);
+        SocketPair(sockets, false, true);
         TSocket sender(sockets[0]);
         TSocket receiver(sockets[1]);
 

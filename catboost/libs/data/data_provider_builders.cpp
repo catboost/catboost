@@ -2,7 +2,10 @@
 
 #include "data_provider.h"
 #include "feature_index.h"
+#include "lazy_columns.h"
+#include "sparse_columns.h"
 #include "objects.h"
+#include "sparse_columns.h"
 #include "target.h"
 #include "util.h"
 #include "visitor.h"
@@ -822,12 +825,12 @@ namespace NCB {
                 PerFeatureData[*perTypeFeatureIdx].DefaultValue = value;
             }
 
-            template <EFeatureValuesType ColumnType>
+            template <class TColumn>
             void GetResult(
                 const TFeaturesArraySubsetIndexing* subsetIndexing,
                 ESparseArrayIndexingType sparseArrayIndexingType,
                 TFeaturesLayout* featuresLayout,
-                TVector<THolder<TTypedFeatureValuesHolder<T, ColumnType>>>* result
+                TVector<THolder<TColumn>>* result
             ) {
                 size_t featureCount = (size_t)featuresLayout->GetFeatureCount(FeatureType);
 
@@ -861,14 +864,14 @@ namespace NCB {
                     if (metaInfo.IsAvailable) {
                         if (metaInfo.IsSparse) {
                             result->push_back(
-                                MakeHolder<TSparsePolymorphicArrayValuesHolder<T, ColumnType>>(
+                                MakeHolder<TSparsePolymorphicArrayValuesHolder<TColumn>>(
                                     /* featureId */ flatFeatureIdx,
                                     std::move(*(sparseData[perTypeFeatureIdx]))
                                 )
                             );
                         } else {
                             result->push_back(
-                                MakeHolder<TPolymorphicArrayValuesHolder<T, ColumnType>>(
+                                MakeHolder<TPolymorphicArrayValuesHolder<TColumn>>(
                                     /* featureId */ flatFeatureIdx,
                                     TMaybeOwningConstArrayHolder<T>::CreateOwning(
                                         PerFeatureData[perTypeFeatureIdx].DenseDstView,
@@ -1274,11 +1277,7 @@ namespace NCB {
 
             TConstArrayRef<NJson::TJsonValue> schemaClassLabels = poolQuantizationSchema.ClassLabels;
 
-            if (metaInfo.TargetType == ERawTargetType::String) {
-                CB_ENSURE(
-                    !schemaClassLabels.empty(),
-                    "poolQuantizationSchema must have class labels when target data type is String"
-                );
+            if (metaInfo.TargetType == ERawTargetType::String && !schemaClassLabels.empty()) {
                 CB_ENSURE(
                     schemaClassLabels[0].GetType() == NJson::JSON_STRING,
                     "poolQuantizationSchema must have string class labels when target data type is String"
@@ -1370,7 +1369,7 @@ namespace NCB {
                 Data.ObjectsData.ExclusiveFeatureBundlesData,
 
                 // packed binary features are present only in TQuantizedForCPUObjectsDataProvider
-                /*dontPack*/ !Options.CpuCompatibleFormat
+                /*dontPack*/ !Options.CpuCompatibleFormat || Options.GpuDistributedFormat
             );
 
             Data.ObjectsData.FeaturesGroupsData = TFeatureGroupsData(
@@ -1585,6 +1584,39 @@ namespace NCB {
         }
 
         TDataProviderPtr GetResult() override {
+            GetTargetAndBinaryFeaturesData();
+
+            if (DatasetSubset.HasFeatures) {
+                FloatFeaturesStorage.GetResult(
+                    ObjectCount,
+                    *Data.MetaInfo.FeaturesLayout,
+                    Data.CommonObjectsData.SubsetIndexing.Get(),
+                    Data.ObjectsData.PackedBinaryFeaturesData.SrcData,
+                    &Data.ObjectsData.Data.FloatFeatures
+                );
+
+                CategoricalFeaturesStorage.GetResult(
+                    ObjectCount,
+                    *Data.MetaInfo.FeaturesLayout,
+                    Data.CommonObjectsData.SubsetIndexing.Get(),
+                    Data.ObjectsData.PackedBinaryFeaturesData.SrcData,
+                    &Data.ObjectsData.Data.CatFeatures
+                );
+            }
+
+            SetResultsTaken();
+
+            return MakeDataProvider<TQuantizedForCPUObjectsDataProvider>(
+                /*objectsGrouping*/ Nothing(), // will init from data
+                std::move(Data),
+                // without HasFeatures dataprovider self-test fails on distributed train
+                // on quantized pool
+                Options.SkipCheck || !DatasetSubset.HasFeatures,
+                LocalExecutor
+            )->CastMoveTo<TObjectsDataProvider>();
+        }
+
+        void GetTargetAndBinaryFeaturesData() {
             CB_ENSURE_INTERNAL(!InProcess, "Attempt to GetResult before finishing processing");
             CB_ENSURE_INTERNAL(!ResultTaken, "Attempt to GetResult several times");
 
@@ -1612,42 +1644,33 @@ namespace NCB {
             );
 
             GetBinaryFeaturesDataResult();
+        }
 
-            if (DatasetSubset.HasFeatures) {
-                FloatFeaturesStorage.GetResult(
-                    ObjectCount,
-                    *Data.MetaInfo.FeaturesLayout,
-                    Data.CommonObjectsData.SubsetIndexing.Get(),
-                    Data.ObjectsData.PackedBinaryFeaturesData.SrcData,
-                    &Data.ObjectsData.Data.FloatFeatures
-                );
+        TQuantizedForCPUBuilderData& GetDataRef() {
+            return Data;
+        }
 
-                CategoricalFeaturesStorage.GetResult(
-                    ObjectCount,
-                    *Data.MetaInfo.FeaturesLayout,
-                    Data.CommonObjectsData.SubsetIndexing.Get(),
-                    Data.ObjectsData.PackedBinaryFeaturesData.SrcData,
-                    &Data.ObjectsData.Data.CatFeatures
-                );
-            }
+        ui32 GetObjectCount() const {
+            return ObjectCount;
+        }
 
+        void SetResultsTaken() {
             ResultTaken = true;
+        }
 
-            if (Options.CpuCompatibleFormat) {
-                return MakeDataProvider<TQuantizedForCPUObjectsDataProvider>(
-                    /*objectsGrouping*/ Nothing(), // will init from data
-                    std::move(Data),
-                    Options.SkipCheck || !DatasetSubset.HasFeatures,
-                    LocalExecutor
-                )->CastMoveTo<TObjectsDataProvider>();
-            } else {
-                return MakeDataProvider<TQuantizedObjectsDataProvider>(
-                    /*objectsGrouping*/ Nothing(), // will init from data
-                    CastToBase(std::move(Data)),
-                    Options.SkipCheck,
-                    LocalExecutor
-                )->CastMoveTo<TObjectsDataProvider>();
+        template <EFeatureType FeatureType>
+        static TVector<bool> MakeIsAvailable(const TFeaturesLayout& featuresLayout) {
+            const size_t perTypeFeatureCount = (size_t)featuresLayout.GetFeatureCount(FeatureType);
+            TVector<bool> isAvailable(perTypeFeatureCount, false);
+            const auto& metaInfos = featuresLayout.GetExternalFeaturesMetaInfo();
+            for (auto perTypeFeatureIdx : xrange(perTypeFeatureCount)) {
+                const auto flatFeatureIdx = featuresLayout.GetExternalFeatureIdx(perTypeFeatureIdx, FeatureType);
+                if (!metaInfos[flatFeatureIdx].IsAvailable) {
+                    continue;
+                }
+                isAvailable[perTypeFeatureIdx] = true;
             }
+            return isAvailable;
         }
 
     private:
@@ -1835,9 +1858,10 @@ namespace NCB {
                 const size_t perTypeFeatureCount = (size_t)featuresLayout.GetFeatureCount(FeatureType);
                 DenseDataStorage.resize(perTypeFeatureCount);
                 DenseDstView.resize(perTypeFeatureCount);
-                IsAvailable.resize(perTypeFeatureCount, false); // filled from quantization Schema, then checked
                 IndexHelpers.resize(perTypeFeatureCount, TIndexHelper<ui64>(8));
                 FeatureIdxToPackedBinaryIndex.resize(perTypeFeatureCount);
+
+                IsAvailable = MakeIsAvailable<FeatureType>(featuresLayout);
 
                 const auto metaInfos = featuresLayout.GetExternalFeaturesMetaInfo();
 
@@ -1864,7 +1888,6 @@ namespace NCB {
                         }
                     }
 
-                    IsAvailable[perTypeFeatureIdx] = true;
                     IndexHelpers[perTypeFeatureIdx] = TIndexHelper<ui64>(bitsPerFeature);
                     FeatureIdxToPackedBinaryIndex[perTypeFeatureIdx]
                         = flatFeatureIndexToPackedBinaryIndex[flatFeatureIdx];
@@ -1960,13 +1983,13 @@ namespace NCB {
                 }
             }
 
-            template <class T, EFeatureValuesType FeatureValuesType>
+            template <class TColumn>
             void GetResult(
                 ui32 objectCount,
                 const TFeaturesLayout& featuresLayout,
                 const TFeaturesArraySubsetIndexing* subsetIndexing,
-                const TVector<THolder<TBinaryPacksHolder>>& binaryFeaturesData,
-                TVector<THolder<TTypedFeatureValuesHolder<T, FeatureValuesType>>>* result
+                const TVector<THolder<IBinaryPacksArray>>& binaryFeaturesData,
+                TVector<THolder<TColumn>>* result
             ) {
                 CB_ENSURE_INTERNAL(
                     DenseDataStorage.size() == DenseDstView.size(),
@@ -1990,7 +2013,7 @@ namespace NCB {
                             auto packedBinaryIndex = *FeatureIdxToPackedBinaryIndex[perTypeFeatureIdx];
 
                             result->push_back(
-                                MakeHolder<TPackedBinaryValuesHolderImpl<T, FeatureValuesType>>(
+                                MakeHolder<TPackedBinaryValuesHolderImpl<TColumn>>(
                                     featureId,
                                     binaryFeaturesData[packedBinaryIndex.PackIdx].Get(),
                                     packedBinaryIndex.BitIdx
@@ -1998,7 +2021,7 @@ namespace NCB {
                             );
                         } else {
                             result->push_back(
-                                MakeHolder<TCompressedValuesHolderImpl<T, FeatureValuesType>>(
+                                MakeHolder<TCompressedValuesHolderImpl<TColumn>>(
                                     featureId,
                                     TCompressedArray(
                                         objectCount,
@@ -2052,6 +2075,75 @@ namespace NCB {
     };
 
 
+    class TLazyQuantizedFeaturesDataProviderBuilder : public TQuantizedFeaturesDataProviderBuilder
+    {
+    public:
+        TLazyQuantizedFeaturesDataProviderBuilder(
+            const TDataProviderBuilderOptions& options,
+            NPar::TLocalExecutor* localExecutor
+        )
+            : TQuantizedFeaturesDataProviderBuilder(options, TDatasetSubset::MakeColumns(/*hasFeatures*/false), localExecutor)
+            , Options(options)
+            , PoolLoader(GetProcessor<IQuantizedPoolLoader, const TPathWithScheme&>(options.PoolPath, options.PoolPath))
+            , LocalExecutor(localExecutor)
+        {
+            CB_ENSURE(PoolLoader, "Cannot load dataset because scheme " << options.PoolPath.Scheme << " is unsupported");
+            CB_ENSURE(Options.GpuDistributedFormat, "Lazy columns are supported only in distributed GPU mode");
+        }
+
+        TDataProviderPtr GetResult() override {
+            GetTargetAndBinaryFeaturesData();
+
+            auto& dataRef = GetDataRef();
+            const auto& subsetIndexing = *dataRef.CommonObjectsData.SubsetIndexing;
+            const auto& featuresLayout = *dataRef.MetaInfo.FeaturesLayout;
+
+            CB_ENSURE(featuresLayout.GetFeatureCount(EFeatureType::Categorical) == 0, "Categorical Lazy columns are not supported");
+            dataRef.ObjectsData.Data.CatFeatures.clear();
+
+            const size_t featureCount = (size_t)featuresLayout.GetFeatureCount(EFeatureType::Float);
+
+            const auto& flatFeatureIdxToPackedBinaryIdx =
+                dataRef.ObjectsData.PackedBinaryFeaturesData.FlatFeatureIndexToPackedBinaryIndex;
+
+            const auto& isAvailable = MakeIsAvailable<EFeatureType::Float>(featuresLayout);
+
+            TVector<THolder<IQuantizedFloatValuesHolder>>& lazyQuantizedColumns =
+                dataRef.ObjectsData.Data.FloatFeatures;
+            lazyQuantizedColumns.clear();
+            lazyQuantizedColumns.reserve(featureCount);
+            for (auto perTypeFeatureIdx : xrange(featureCount)) {
+                if (isAvailable[perTypeFeatureIdx]) {
+                    auto flatFeatureIdx = featuresLayout.GetExternalFeatureIdx(perTypeFeatureIdx, EFeatureType::Float);
+                    CB_ENSURE(!flatFeatureIdxToPackedBinaryIdx[flatFeatureIdx], "Packed lazy columns are not supported");
+                    lazyQuantizedColumns.push_back(
+                        MakeHolder<TLazyCompressedValuesHolderImpl<IQuantizedFloatValuesHolder>>(
+                            flatFeatureIdx,
+                            &subsetIndexing,
+                            PoolLoader)
+                    );
+                } else {
+                    lazyQuantizedColumns.push_back(nullptr);
+                }
+            }
+
+            SetResultsTaken();
+
+            return MakeDataProvider<TQuantizedForCPUObjectsDataProvider>(
+                /*objectsGrouping*/ Nothing(), // will init from data
+                std::move(dataRef),
+                Options.SkipCheck,
+                LocalExecutor
+            )->CastMoveTo<TObjectsDataProvider>();
+        }
+
+    private:
+        TDataProviderBuilderOptions Options;
+        TAtomicSharedPtr<IQuantizedPoolLoader> PoolLoader;
+        NPar::TLocalExecutor* const LocalExecutor;
+    };
+
+
     THolder<IDataProviderBuilder> CreateDataProviderBuilder(
         EDatasetVisitorType visitorType,
         const TDataProviderBuilderOptions& options,
@@ -2064,7 +2156,11 @@ namespace NCB {
             case EDatasetVisitorType::RawFeaturesOrder:
                 return MakeHolder<TRawFeaturesOrderDataProviderBuilder>(options, localExecutor);
             case EDatasetVisitorType::QuantizedFeatures:
-                return MakeHolder<TQuantizedFeaturesDataProviderBuilder>(options, loadSubset, localExecutor);
+                if (options.GpuDistributedFormat) {
+                    return MakeHolder<TLazyQuantizedFeaturesDataProviderBuilder>(options, localExecutor);
+                } else {
+                    return MakeHolder<TQuantizedFeaturesDataProviderBuilder>(options, loadSubset, localExecutor);
+                }
             default:
                 return nullptr;
         }

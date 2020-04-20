@@ -108,6 +108,9 @@ bool TOperationRead::Execute(int errorCode) {
             return true;
         }
         Buff_ += n;
+    } else if (!ec) {  // EOF while read not all
+        H_(ec, Read_, *this);
+        return true;
     }
 
     return false;

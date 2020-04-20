@@ -1,7 +1,7 @@
 #include "registar.h"
 
-#include <library/diff/diff.h>
-#include <library/colorizer/colors.h>
+#include <library/cpp/diff/diff.h>
+#include <library/cpp/colorizer/colors.h>
 
 #include <util/generic/bt_exception.h>
 #include <util/random/fast.h>
@@ -10,6 +10,7 @@
 #include <util/system/guard.h>
 #include <util/system/tls.h>
 #include <util/system/error.h>
+#include <util/string/cast.h>
 
 bool NUnitTest::ShouldColorizeDiff = true;
 bool NUnitTest::ContinueOnFail = false;

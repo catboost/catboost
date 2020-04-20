@@ -1,4 +1,5 @@
 #include <catboost/libs/data/columns.h>
+#include <catboost/libs/data/composite_columns.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
 #include <util/generic/is_in.h>
@@ -40,14 +41,14 @@ Y_UNIT_TEST_SUITE(Columns) {
     }
 
     Y_UNIT_TEST(TQuantizedFloatValuesHolder) {
-        TVector<ui8> src = {
+        const TVector<ui8> src = {
             0xDE, 0xAD, 0xBE, 0xEF, 0xAB, 0xCD, 0xEF, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07
         };
 
         TVector<ui64> rawData = CompressVector<ui64>(src, 8);
         auto storage = NCB::TMaybeOwningArrayHolder<ui64>::CreateOwning(std::move(rawData));
 
-        TCompressedArray data(10, 8, storage);
+        TCompressedArray data(src.size(), 8, storage);
 
         TFeaturesArraySubsetIndexing subsetIndexing( TIndexedSubset<ui32>{6, 5, 2, 0, 12} );
 
@@ -61,11 +62,13 @@ Y_UNIT_TEST_SUITE(Columns) {
         TVector<ui8> expectedSubset{0xEF, 0xCD, 0xBE, 0xDE, 0x06};
         TVector<bool> visitedIndices(subsetIndexing.Size(), false);
 
-        quantizedFloatValuesHolder.ForEach(
-            [&](ui32 idx, ui8 value) {
-                UNIT_ASSERT_EQUAL(expectedSubset[idx], value);
-                UNIT_ASSERT(!visitedIndices[idx]);
-                visitedIndices[idx] = true;
+        quantizedFloatValuesHolder.ForEachBlock(
+            [&](ui32 blockStartIdx, auto valuesBlock) {
+                for (auto i : xrange(valuesBlock.size())) {
+                    UNIT_ASSERT_EQUAL(expectedSubset[blockStartIdx + i], valuesBlock[i]);
+                    UNIT_ASSERT(!visitedIndices[blockStartIdx + i]);
+                    visitedIndices[blockStartIdx + i] = true;
+                }
             }
         );
 
@@ -117,8 +120,8 @@ Y_UNIT_TEST_SUITE(Columns) {
         for (auto bitIdx : xrange(ui8(8))) {
             TQuantizedFloatPackedBinaryValuesHolder valuesHolder(bitIdx, binaryPackColumn.Get(), bitIdx);
 
-            auto values = valuesHolder.ExtractValues(&localExecutor);
-            UNIT_ASSERT(Equal<ui8>(*values, expectedFeatureValues[bitIdx]));
+            auto values = valuesHolder.ExtractValues<ui8>(&localExecutor);
+            UNIT_ASSERT(Equal<ui8>(values, expectedFeatureValues[bitIdx]));
         }
     }
 }

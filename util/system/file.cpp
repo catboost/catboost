@@ -236,7 +236,9 @@ TFileHandle::TFileHandle(const TString& fName, EOpenMode oMode) noexcept {
         permMode |= S_IRUSR;
     }
 
-    Fd_ = ::open(fName.data(), fcMode, permMode);
+    do {
+        Fd_ = ::open(fName.data(), fcMode, permMode);
+    } while (Fd_ == -1 && errno == EINTR);
 
 #if HAVE_POSIX_FADVISE
     if (Fd_ >= 0) {

@@ -189,7 +189,8 @@ TSingleBuffer<ui64> NCatboostCuda::TBatchedBinarizedCtrsCalcer::BuildCompressedB
     auto binsGpu = TSingleBuffer<ui32>::Create(NCudaLib::TSingleMapping(devId, catFeature.GetSize()));
     const ui32 uniqueValues = FeaturesManager.GetBinCount(featureManagerFeatureId);
     auto compressedBinsGpu = TSingleBuffer<ui64>::Create(CompressedSize<ui64>(binsGpu, uniqueValues));
-    binsGpu.Write(*catFeature.ExtractValues(LocalExecutor));
+
+    binsGpu.Write(catFeature.ExtractValues<ui32>(LocalExecutor));
     Compress(binsGpu, compressedBinsGpu, uniqueValues);
     return compressedBinsGpu;
 }

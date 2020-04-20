@@ -1,5 +1,5 @@
 This is a simple library for block data compression (this means data is compressed/uncompressed
-by whole blocks in memory). It's a lite-version of the `library/codecs`. Lite here means that it
+by whole blocks in memory). It's a lite-version of the `library/cpp/codecs`. Lite here means that it
 provide only well-known compression algorithms, without the possibility of learning.
 
 There are two possible ways to work with it.

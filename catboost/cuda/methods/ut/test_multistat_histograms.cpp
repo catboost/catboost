@@ -150,7 +150,7 @@ Y_UNIT_TEST_SUITE(TPointwiseMultiStatHistogramTest) {
 
         const auto& cindexCpu = GetCompressedIndexCpu(dataSet);
 
-        for (auto policy : NCatboostCuda::GetAllGroupingPolicies()) {
+        for (auto policy : GetEnumAllValues<NCatboostCuda::EFeaturesGroupingPolicy>()) {
             if (dataSet.HasFeatures()) {
                 CalcRefSums(policy,
                             cindexCpu,

@@ -56,6 +56,7 @@ int mode_eval_feature(int argc, const char* argv[]) {
     TVector<NJson::TJsonValue> classLabels = catBoostOptions.DataProcessingOptions->ClassLabels;
     const auto objectsOrder = EObjectsOrder::Undefined;
     auto pools = NCB::ReadTrainDatasets(
+        Nothing(), // taskType,
         poolLoadParams,
         objectsOrder,
         /*readTestData*/false,

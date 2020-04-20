@@ -1,5 +1,6 @@
 #include <library/unittest/registar.h>
 
+#include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/metrics/hinge_loss.h>
 #include <catboost/libs/metrics/metric_holder.h>
 
@@ -13,7 +14,7 @@ Y_UNIT_TEST(HingeLossTest) {
         TVector<float> target{0, 1, 1, 0};
         TVector<float> weight{1, 1, 1, 1};
 
-        TMetricHolder score = ComputeHingeLossMetric(TConstArrayRef<TVector<double>>(approx.begin(), approx.end()),
+        TMetricHolder score = ComputeHingeLossMetric(To2DConstArrayRef<double>(approx),
                                                      TConstArrayRef<float>(target.begin(), target.end()),
                                                      TConstArrayRef<float>(weight.begin(), weight.end()),
                                                      0, 4, 0.5);
@@ -25,7 +26,7 @@ Y_UNIT_TEST(HingeLossTest) {
         TVector<float> target{0, 1, 1, 0};
         TVector<float> weight{1, 1, 1, 1};
 
-        TMetricHolder score = ComputeHingeLossMetric({approx.begin(), approx.end()},
+        TMetricHolder score = ComputeHingeLossMetric(To2DConstArrayRef<double>(approx),
                                                      {target.begin(), target.end()},
                                                      {weight.begin(), weight.end()},
                                                      0, 4, 0.5);
@@ -37,7 +38,7 @@ Y_UNIT_TEST(HingeLossTest) {
         TVector<float> target{1, 0, 1, 2};
         TVector<float> weight{1, 1, 1, 1};
 
-        TMetricHolder score = ComputeHingeLossMetric({approx.begin(), approx.end()},
+        TMetricHolder score = ComputeHingeLossMetric(To2DConstArrayRef<double>(approx),
                                                      {target.begin(), target.end()},
                                                      {weight.begin(), weight.end()},
                                                      0, 4, 0.5);

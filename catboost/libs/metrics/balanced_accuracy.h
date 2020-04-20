@@ -2,12 +2,13 @@
 
 #include <util/generic/fwd.h>
 
-TMetricHolder CalcBalancedAccuracyMetric(TConstArrayRef<TVector<double>> approx,
+TMetricHolder CalcBalancedAccuracyMetric(TConstArrayRef<TConstArrayRef<double>> approx,
                                          TConstArrayRef<float> target,
                                          TConstArrayRef<float> weight,
                                          int begin,
                                          int end,
                                          int positiveClass,
-                                         double border);
+                                         double targetBorder,
+                                         double predictionBorder);
 
 double CalcBalancedAccuracyMetric(const TMetricHolder& error);

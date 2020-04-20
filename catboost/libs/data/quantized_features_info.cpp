@@ -1,6 +1,7 @@
 #include "quantized_features_info.h"
 
 #include "feature_index.h"
+#include "sparse_columns.h"
 
 #include <catboost/libs/helpers/checksum.h>
 #include <catboost/libs/helpers/dbg_output.h>
@@ -129,53 +130,6 @@ namespace NCB {
         return 0;
     }
 
-    bool TQuantizedFeaturesInfo::IsSupersetOf(const TQuantizedFeaturesInfo& rhs) const {
-        if (this == &rhs) { // shortcut
-            return true;
-        }
-        if (!FeaturesLayout->IsSupersetOf(*rhs.FeaturesLayout)) {
-            return false;
-        }
-        if (CommonFloatFeaturesBinarization != rhs.CommonFloatFeaturesBinarization) {
-            return false;
-        }
-
-        for (const auto& [floatFeatureIdx, binarization] : rhs.PerFloatFeatureQuantization) {
-            const auto it = PerFloatFeatureQuantization.find(floatFeatureIdx);
-            if (it == PerFloatFeatureQuantization.end()) {
-                if (binarization != CommonFloatFeaturesBinarization) {
-                    return false;
-                }
-            } else if (binarization != it->second) {
-                return false;
-            }
-        }
-
-        constexpr auto EPS = 1.e-6f;
-
-        for (const auto& [floatFeatureIdx, quantization] : rhs.Quantization) {
-            const auto it = Quantization.find(floatFeatureIdx);
-            if (it == Quantization.end()) {
-                return false;
-            }
-            if (!ApproximatelyEqual<float>(quantization.Borders, it->second.Borders, EPS)) {
-                return false;
-            }
-        }
-
-        for (const auto& [floatFeatureIdx, nanMode] : rhs.NanModes) {
-            const auto it = NanModes.find(floatFeatureIdx);
-            if (it == NanModes.end()) {
-                return false;
-            }
-            if (nanMode != it->second) {
-                return false;
-            }
-        }
-
-        return CatFeaturesPerfectHash.IsSupersetOf(rhs.CatFeaturesPerfectHash);
-    }
-
     ENanMode TQuantizedFeaturesInfo::ComputeNanMode(const TFloatValuesHolder& feature) const {
         auto& floatFeaturesBinarization = GetFloatFeatureBinarization(feature.GetId());
         if (floatFeaturesBinarization.NanMode == ENanMode::Forbidden) {
@@ -186,17 +140,17 @@ namespace NCB {
 
         if (const auto* denseData = dynamic_cast<const TFloatArrayValuesHolder*>(&feature)) {
             hasNans
-                = denseData->GetData()->Find([] (size_t /*idx*/, float value) { return IsNan(value); });
+                = denseData->GetData()->Find([] (size_t /*idx*/, float value) { return std::isnan(value); });
         } else if (const auto* sparseData = dynamic_cast<const TFloatSparseValuesHolder*>(&feature)) {
             const TConstPolymorphicValuesSparseArray<float, ui32>& sparseArray = sparseData->GetData();
-            if (IsNan(sparseArray.GetDefaultValue())) {
+            if (std::isnan(sparseArray.GetDefaultValue())) {
                 hasNans = true;
             } else {
                 hasNans = false;
                 auto blockIterator = sparseArray.GetNonDefaultValues().GetImpl().GetBlockIterator();
                 while (auto block = blockIterator->Next()) {
                     for (auto element : block) {
-                        if (IsNan(element)) {
+                        if (std::isnan(element)) {
                             hasNans = true;
                             break;
                         }

@@ -170,7 +170,7 @@ void TMvsSampler::GenSampleWeights(
         double lambda = GetLambda(derivatives, leafValues, localExecutor);
 
         NPar::TLocalExecutor::TExecRangeParams blockParams(0, SampleCount);
-        blockParams.SetBlockCount(CB_THREAD_LIMIT);
+        blockParams.SetBlockSize(BlockSize);
         const ui64 randSeed = rand->GenRand();
         localExecutor->ExecRange(
             [&](ui32 blockId) {

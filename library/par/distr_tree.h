@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/containers/2d_array/2d_array.h>
+#include <library/cpp/containers/2d_array/2d_array.h>
 
 #include <util/generic/is_in.h>
 #include <util/generic/vector.h>

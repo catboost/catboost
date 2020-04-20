@@ -15,7 +15,7 @@ struct TNonSymmetricTreeStructure;
 void TrimOnlineCTRcache(const TVector<TFold*>& folds);
 
 void GreedyTensorSearch(
-    const NCB::TTrainingForCPUDataProviders& data,
+    const NCB::TTrainingDataProviders& data,
     double modelLength,
     TProfileInfo& profile,
     TFold* fold,

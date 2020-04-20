@@ -11,107 +11,102 @@
 
 namespace NCB {
 
-    THolder<ICloneableQuantizedFloatValuesHolder> TExternalFloatValuesHolder::CloneWithNewSubsetIndexing(
-        const TFeaturesArraySubsetIndexing* subsetIndexing
+    THolder<IFeatureValuesHolder> TExternalFloatValuesHolder::CloneWithNewSubsetIndexing(
+        const TCloningParams& cloningParams,
+        NPar::TLocalExecutor* localExecutor
     ) const {
+        Y_UNUSED(localExecutor);
         return MakeHolder<TExternalFloatValuesHolder>(
             GetId(),
-            SrcData->CloneWithNewSubsetIndexing(subsetIndexing),
+            SrcData->CloneWithNewSubsetIndexing(cloningParams.SubsetIndexing),
             QuantizedFeaturesInfo
         );
     }
 
-    NCB::TMaybeOwningArrayHolder<ui8> TExternalFloatValuesHolder::ExtractValues(
-        NPar::TLocalExecutor* localExecutor
-    ) const {
-        TVector<ui8> result;
-        result.yresize(GetSize());
-
+    IDynamicBlockIteratorBasePtr TExternalFloatValuesHolder::GetBlockIterator(ui32 offset) const {
         const auto floatFeatureIdx = QuantizedFeaturesInfo->GetPerTypeFeatureIdx<EFeatureType::Float>(*this);
         const auto nanMode = QuantizedFeaturesInfo->GetNanMode(floatFeatureIdx);
 
         // it's ok even if it is learn data, for learn nans are checked at CalcBordersAndNanMode stage
         bool allowNans = (nanMode != ENanMode::Forbidden) ||
             QuantizedFeaturesInfo->GetFloatFeaturesAllowNansInTestOnly();
+        auto featureIdx = GetId();
 
-        Quantize(
-            *SrcData,
-            allowNans,
-            nanMode,
-            GetId(),
-            QuantizedFeaturesInfo->GetBorders(floatFeatureIdx),
-            MakeArrayRef(result),
-            localExecutor
-        );
-
-        return NCB::TMaybeOwningArrayHolder<ui8>::CreateOwning(std::move(result));
+         auto transformer = [
+            allowNans, nanMode, featureIdx,
+            bordersArrRef = MakeArrayRef(QuantizedFeaturesInfo->GetBorders(floatFeatureIdx))
+        ] (TConstArrayRef<float> src, auto& dst) {
+            QuantizeBlock(
+                src,
+                allowNans,
+                nanMode,
+                featureIdx,
+                bordersArrRef,
+                MakeArrayRef(dst)
+            );
+        };
+        if (QuantizedFeaturesInfo->GetBorders(floatFeatureIdx).size() < 256) {
+            return MakeBlockTransformerIterator<ui8>(
+                SrcData->GetBlockIterator(offset),
+                std::move(transformer)
+            );
+        } else {
+            return MakeBlockTransformerIterator<ui16>(
+                SrcData->GetBlockIterator(offset),
+                std::move(transformer)
+            );
+        }
     }
 
 
-    THolder<ICloneableQuantizedCatValuesHolder> TExternalCatValuesHolder::CloneWithNewSubsetIndexing(
-        const TFeaturesArraySubsetIndexing* subsetIndexing
+    THolder<IFeatureValuesHolder> TExternalCatValuesHolder::CloneWithNewSubsetIndexing(
+        const TCloningParams& cloningParams,
+        NPar::TLocalExecutor* localExecutor
     ) const {
+        Y_UNUSED(localExecutor);
         return MakeHolder<TExternalCatValuesHolder>(
             GetId(),
-            SrcData->CloneWithNewSubsetIndexing(subsetIndexing),
+            SrcData->CloneWithNewSubsetIndexing(cloningParams.SubsetIndexing),
             QuantizedFeaturesInfo
         );
     }
 
-    NCB::TMaybeOwningArrayHolder<ui32> TExternalCatValuesHolder::ExtractValues(
-        NPar::TLocalExecutor* localExecutor
-    ) const {
-        TVector<ui32> result;
-        result.yresize(GetSize());
-
-        TArrayRef<ui32> resultRef = result;
-
+    IDynamicBlockIteratorBasePtr TExternalCatValuesHolder::GetBlockIterator(ui32 offset) const {
         const auto catFeatureIdx = QuantizedFeaturesInfo->GetPerTypeFeatureIdx<EFeatureType::Categorical>(
             *this
         );
-        const auto& perfectHash = QuantizedFeaturesInfo->GetCategoricalFeaturesPerfectHash(catFeatureIdx);
 
-        SrcData->ParallelForEach(
-            [resultRef, &perfectHash] (ui32 idx, ui32 srcValue) {
-                resultRef[idx] = perfectHash.Find(srcValue)->Value;
-            },
-            localExecutor,
-            BINARIZATION_BLOCK_SIZE
+        auto transformer = [catFeatureIdx, quantizedFeaturesInfo = QuantizedFeaturesInfo] (TConstArrayRef<ui32> src, TArrayRef<ui32> dst) {
+            const auto& perfectHash = quantizedFeaturesInfo->GetCategoricalFeaturesPerfectHash(catFeatureIdx);
+            for (size_t i : xrange(src.size())) {
+                dst[i] = perfectHash.Find(src[i])->Value;
+            }
+        };
+        return MakeBlockTransformerIterator<ui32>(
+            SrcData->GetBlockIterator(offset),
+            std::move(transformer)
         );
-
-        return NCB::TMaybeOwningArrayHolder<ui32>::CreateOwning(std::move(result));
     }
 
-    NCB::TMaybeOwningArrayHolder<ui8> TExternalFloatSparseValuesHolder::ExtractValues(
-        NPar::TLocalExecutor* localExecutor
-    ) const {
-        Y_UNUSED(localExecutor);
-
+    IDynamicBlockIteratorBasePtr TExternalFloatSparseValuesHolder::GetBlockIterator(ui32 offset) const {
         const auto flatFeatureIdx = GetId();
         const auto floatFeatureIdx = QuantizedFeaturesInfo->GetPerTypeFeatureIdx<EFeatureType::Float>(*this);
         const auto nanMode = QuantizedFeaturesInfo->GetNanMode(floatFeatureIdx);
-
-        // it's ok even if it is learn data, for learn nans are checked at CalcBordersAndNanMode stage
         bool allowNans = (nanMode != ENanMode::Forbidden) ||
             QuantizedFeaturesInfo->GetFloatFeaturesAllowNansInTestOnly();
 
         TConstArrayRef<float> borders = QuantizedFeaturesInfo->GetBorders(floatFeatureIdx);
-
-        const ui8 quantizedDefaultValue
-            = Quantize<ui8>(flatFeatureIdx, allowNans, nanMode, borders, SrcData.GetDefaultValue());
-
-        TVector<ui8> result(GetSize(), quantizedDefaultValue);
-
-        TArrayRef<ui8> resultRef = result;
-
-        SrcData.ForEachNonDefault(
-            [=] (ui32 nonDefaultIdx, float srcValue) {
-                resultRef[nonDefaultIdx]
-                    = Quantize<ui8>(flatFeatureIdx, allowNans, nanMode, borders, srcValue);
-            }
-        );
-
-        return NCB::TMaybeOwningArrayHolder<ui8>::CreateOwning(std::move(result));
+        if (borders.size() < 256) {
+            auto transformer = [=, quantizedFeaturesInfoHolder = QuantizedFeaturesInfo] (float srcValue) -> ui8 {
+                return Quantize<ui8>(flatFeatureIdx, allowNans, nanMode, borders, srcValue);
+            };
+            return SrcData.GetTransformingBlockIterator<ui8>(std::move(transformer), offset);
+        } else {
+            auto transformer = [=, quantizedFeaturesInfoHolder = QuantizedFeaturesInfo] (float srcValue) -> ui16 {
+                return Quantize<ui16>(flatFeatureIdx, allowNans, nanMode, borders, srcValue);
+            };
+            return SrcData.GetTransformingBlockIterator<ui16>(std::move(transformer), offset);
+        }
     }
 
     template <class TDst>
@@ -157,11 +152,10 @@ namespace NCB {
         return Max(ramUsedDuringBuilding, ramUsedDuringSparseCompressedValuesHolderImplCreation);
     }
 
-
-    template <class TDst, EFeatureValuesType DstFeatureValuesType, class TSrc, class TQuantizeValueFunction>
-    static THolder<TTypedFeatureValuesHolder<TDst, DstFeatureValuesType>> CreateQuantizedSparseSubset(
+    template <class TDstColumn, typename TDstColumnValueType, class TValue, class TSize, class TQuantizeValueFunction>
+    static THolder<IFeatureValuesHolder> CreateQuantizedSparseSubset(
         ui32 featureId,
-        const TConstPolymorphicValuesSparseArray<TSrc, ui32>& srcData,
+        const TConstPolymorphicValuesSparseArray<TValue, TSize>& srcData,
         const TInvertedIndexedSubset<ui32>& invertedIndexedSubset,
         TQuantizeValueFunction&& quantizeValueFunction,
         ui32 bitsPerKey
@@ -169,10 +163,10 @@ namespace NCB {
         TConstArrayRef<ui32> invertedIndicesArray = invertedIndexedSubset.GetMapping();
 
         TVector<ui32> dstVectorIndexing;
-        TVector<TDst> dstValues;
+        TVector<TDstColumnValueType> dstValues;
 
         srcData.ForEachNonDefault(
-            [&](ui32 srcIdx, TSrc value) {
+            [&](ui32 srcIdx, TValue value) {
                 auto dstIdx = invertedIndicesArray[srcIdx];
                 if (dstIdx != TInvertedIndexedSubset<ui32>::NOT_PRESENT) {
                     dstVectorIndexing.push_back(dstIdx);
@@ -181,8 +175,8 @@ namespace NCB {
             }
         );
 
-        std::function<TCompressedArray(TVector<TDst>&&)> createNonDefaultValuesContainer
-            = [&] (TVector<TDst>&& dstValues) {
+        std::function<TCompressedArray(TVector<TDstColumnValueType>&&)> createNonDefaultValuesContainer
+            = [&] (TVector<TDstColumnValueType>&& dstValues) {
                 return TCompressedArray(
                     dstValues.size(),
                     bitsPerKey,
@@ -190,9 +184,9 @@ namespace NCB {
                 );
             };
 
-        return MakeHolder<TSparseCompressedValuesHolderImpl<TDst, DstFeatureValuesType>>(
+        return MakeHolder<TSparseCompressedValuesHolderImpl<TDstColumn>>(
             featureId,
-            MakeSparseArrayBase<TDst, TCompressedArray, ui32>(
+            MakeSparseArrayBase<TDstColumnValueType, TCompressedArray, ui32>(
                 invertedIndexedSubset.GetSize(),
                 std::move(dstVectorIndexing),
                 std::move(dstValues),
@@ -203,132 +197,125 @@ namespace NCB {
             )
         );
     }
-
-    void TExternalFloatSparseValuesHolder::ScheduleGetSubset(
-        const TFeaturesArraySubsetInvertedIndexing* subsetInvertedIndexing,
-        TResourceConstrainedExecutor* resourceConstrainedExecutor,
-        THolder<IQuantizedFloatValuesHolder>* subsetDst
+    ui64 TExternalFloatSparseValuesHolder::EstimateMemoryForCloning(
+        const TCloningParams& cloningParams
     ) const {
         const auto floatFeatureIdx = QuantizedFeaturesInfo->GetPerTypeFeatureIdx<EFeatureType::Float>(
             *this
         );
-
-        resourceConstrainedExecutor->Add(
-            {
-                EstimateCpuRamLimitForCreateQuantizedSparseSubset<ui8>(
-                    *subsetInvertedIndexing,
-                    SrcData.GetNonDefaultSize(),
-                    SrcData.GetIndexing()->GetType(),
-                    CalcHistogramWidthForBorders(QuantizedFeaturesInfo->GetBorders(floatFeatureIdx).size())
-                ),
-                [=] () {
-                    if (HoldsAlternative<TFullSubset<ui32>>(*subsetInvertedIndexing)) {
-                        // just clone
-                        *subsetDst = MakeHolder<TExternalFloatSparseValuesHolder>(
-                            this->GetId(),
-                            SrcData,
-                            QuantizedFeaturesInfo
-                        );
-                    } else {
-                        const ui32 flatFeatureIdx = this->GetId();
-
-                        const auto nanMode = QuantizedFeaturesInfo->GetNanMode(floatFeatureIdx);
-
-                        /* it's ok even if it is learn data, for learn nans are checked at
-                         * CalcBordersAndNanMode stage
-                         */
-                        const bool allowNans = (nanMode != ENanMode::Forbidden) ||
-                            QuantizedFeaturesInfo->GetFloatFeaturesAllowNansInTestOnly();
-
-                        TConstArrayRef<float> borders = QuantizedFeaturesInfo->GetBorders(floatFeatureIdx);
-
-                        *subsetDst = CreateQuantizedSparseSubset<ui8, EFeatureValuesType::QuantizedFloat>(
-                            this->GetId(),
-                            this->SrcData,
-                            Get<TInvertedIndexedSubset<ui32>>(*subsetInvertedIndexing),
-                            [=] (float srcValue) -> ui8 {
-                                return Quantize<ui8>(flatFeatureIdx, allowNans, nanMode, borders, srcValue);
-                            },
-
-                            // TODO(akhropov): fix wide histograms support - MLTOOLS-3758
-                            sizeof(ui8) * CHAR_BIT
-                        );
-                    }
-                }
-            }
+        CB_ENSURE_INTERNAL(cloningParams.InvertedSubsetIndexing.Defined(), "InvertedSubsetIndexing should be defined");
+        return EstimateCpuRamLimitForCreateQuantizedSparseSubset<ui8>(
+            **cloningParams.InvertedSubsetIndexing,
+            SrcData.GetNonDefaultSize(),
+            SrcData.GetIndexing()->GetType(),
+            CalcHistogramWidthForBorders(QuantizedFeaturesInfo->GetBorders(floatFeatureIdx).size())
         );
     }
 
-    NCB::TMaybeOwningArrayHolder<ui32> TExternalCatSparseValuesHolder::ExtractValues(
+    THolder<IFeatureValuesHolder> TExternalFloatSparseValuesHolder::CloneWithNewSubsetIndexing(
+        const TCloningParams& cloningParams,
         NPar::TLocalExecutor* localExecutor
     ) const {
         Y_UNUSED(localExecutor);
 
+        CB_ENSURE_INTERNAL(cloningParams.InvertedSubsetIndexing.Defined(), "InvertedSubsetIndexing should be defined");
+        const auto& subsetInvertedIndexing = cloningParams.InvertedSubsetIndexing.GetRef();
+
+        const auto floatFeatureIdx = QuantizedFeaturesInfo->GetPerTypeFeatureIdx<EFeatureType::Float>(
+            *this
+        );
+
+        if (HoldsAlternative<TFullSubset<ui32>>(*subsetInvertedIndexing)) {
+            // just clone
+            return MakeHolder<TExternalFloatSparseValuesHolder>(
+                this->GetId(),
+                SrcData,
+                QuantizedFeaturesInfo
+            );
+        } else {
+            const ui32 flatFeatureIdx = this->GetId();
+
+            const auto nanMode = QuantizedFeaturesInfo->GetNanMode(floatFeatureIdx);
+
+            /* it's ok even if it is learn data, for learn nans are checked at
+                * CalcBordersAndNanMode stage
+                */
+            const bool allowNans = (nanMode != ENanMode::Forbidden) ||
+                QuantizedFeaturesInfo->GetFloatFeaturesAllowNansInTestOnly();
+
+            TConstArrayRef<float> borders = QuantizedFeaturesInfo->GetBorders(floatFeatureIdx);
+
+            return CreateQuantizedSparseSubset<IQuantizedFloatValuesHolder, ui8>(
+                this->GetId(),
+                this->SrcData,
+                Get<TInvertedIndexedSubset<ui32>>(*subsetInvertedIndexing),
+                [=] (float srcValue) -> ui8 {
+                    return Quantize<ui8>(flatFeatureIdx, allowNans, nanMode, borders, srcValue);
+                },
+
+                // TODO(akhropov): fix wide histograms support - MLTOOLS-3758
+                sizeof(ui8) * CHAR_BIT
+            );
+        }
+    }
+
+    IDynamicBlockIteratorBasePtr TExternalCatSparseValuesHolder::GetBlockIterator(ui32 offset) const {
         const auto catFeatureIdx = QuantizedFeaturesInfo->GetPerTypeFeatureIdx<EFeatureType::Categorical>(
             *this
         );
         const auto& perfectHash = QuantizedFeaturesInfo->GetCategoricalFeaturesPerfectHash(catFeatureIdx);
 
-        const ui32 defaultPerfectHashValue = perfectHash.Find(SrcData.GetDefaultValue())->Value;
-
-        TVector<ui32> result(GetSize(), defaultPerfectHashValue);
-
-        TArrayRef<ui32> resultRef = result;
-
-        SrcData.ForEachNonDefault(
-            [=, &perfectHash] (ui32 nonDefaultIdx, ui32 srcValue) {
-                resultRef[nonDefaultIdx] = perfectHash.Find(srcValue)->Value;
-            }
-        );
-
-        return NCB::TMaybeOwningArrayHolder<ui32>::CreateOwning(std::move(result));
+        auto transformer = [quantizedFeaturesInfoHolder = QuantizedFeaturesInfo, &perfectHash] (ui32 srcValue) -> ui32 {
+            return perfectHash.Find(srcValue)->Value;
+        };
+        return SrcData.GetTransformingBlockIterator<ui32>(std::move(transformer), offset);
     }
 
-    void TExternalCatSparseValuesHolder::ScheduleGetSubset(
-        const TFeaturesArraySubsetInvertedIndexing* subsetInvertedIndexing,
-        TResourceConstrainedExecutor* resourceConstrainedExecutor,
-        THolder<IQuantizedCatValuesHolder>* subsetDst
+    ui64 TExternalCatSparseValuesHolder::EstimateMemoryForCloning(
+        const TCloningParams& cloningParams
     ) const {
+        return EstimateCpuRamLimitForCreateQuantizedSparseSubset<ui32>(
+            **cloningParams.InvertedSubsetIndexing,
+            SrcData.GetNonDefaultSize(),
+            SrcData.GetIndexing()->GetType(),
+            sizeof(ui32) * CHAR_BIT
+        );
+    }
+
+    THolder<IFeatureValuesHolder> TExternalCatSparseValuesHolder::CloneWithNewSubsetIndexing(
+        const TCloningParams& cloningParams,
+        NPar::TLocalExecutor* localExecutor
+    ) const {
+        Y_UNUSED(localExecutor);
+
+        CB_ENSURE_INTERNAL(cloningParams.InvertedSubsetIndexing.Defined(), "InvertedSubsetIndexing should be defined");
+        const auto& subsetInvertedIndexing = cloningParams.InvertedSubsetIndexing.GetRef();
+
         const auto catFeatureIdx = QuantizedFeaturesInfo->GetPerTypeFeatureIdx<EFeatureType::Categorical>(
             *this
         );
+        if (HoldsAlternative<TFullSubset<ui32>>(*subsetInvertedIndexing)) {
+            // just clone
+            return MakeHolder<TExternalCatSparseValuesHolder>(
+                this->GetId(),
+                SrcData,
+                QuantizedFeaturesInfo
+            );
+        } else {
+            const auto& perfectHash
+                = this->QuantizedFeaturesInfo->GetCategoricalFeaturesPerfectHash(catFeatureIdx);
 
-        resourceConstrainedExecutor->Add(
-            {
-                EstimateCpuRamLimitForCreateQuantizedSparseSubset<ui32>(
-                    *subsetInvertedIndexing,
-                    SrcData.GetNonDefaultSize(),
-                    SrcData.GetIndexing()->GetType(),
-                    sizeof(ui32) * CHAR_BIT
-                ),
-                [=] () {
-                    if (HoldsAlternative<TFullSubset<ui32>>(*subsetInvertedIndexing)) {
-                        // just clone
-                        *subsetDst = MakeHolder<TExternalCatSparseValuesHolder>(
-                            this->GetId(),
-                            SrcData,
-                            QuantizedFeaturesInfo
-                        );
-                    } else {
-                        const auto& perfectHash
-                            = this->QuantizedFeaturesInfo->GetCategoricalFeaturesPerfectHash(catFeatureIdx);
+            auto getPerfectHashValue = [&] (ui32 srcValue) -> ui32 {
+                return perfectHash.Find(srcValue)->Value;
+            };
 
-                        auto getPerfectHashValue = [&] (ui32 srcValue) -> ui32 {
-                            return perfectHash.Find(srcValue)->Value;
-                        };
-
-                        *subsetDst
-                            = CreateQuantizedSparseSubset<ui32, EFeatureValuesType::PerfectHashedCategorical>(
-                                this->GetId(),
-                                this->SrcData,
-                                Get<TInvertedIndexedSubset<ui32>>(*subsetInvertedIndexing),
-                                getPerfectHashValue,
-                                sizeof(ui32) * CHAR_BIT
-                            );
-                    }
-                }
-            }
-        );
+            return CreateQuantizedSparseSubset<IQuantizedCatValuesHolder, ui32>(
+                this->GetId(),
+                this->SrcData,
+                Get<TInvertedIndexedSubset<ui32>>(*subsetInvertedIndexing),
+                getPerfectHashValue,
+                sizeof(ui32) * CHAR_BIT
+            );
+        }
     }
-
 }

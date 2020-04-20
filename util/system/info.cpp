@@ -28,6 +28,9 @@ static int getloadavg(double* loadavg, int nelem) {
 }
 #elif defined(_unix_) || defined(_darwin_)
 #include <sys/types.h>
+#endif
+
+#if defined(_freebsd_) || defined(_darwin_)
 #include <sys/sysctl.h>
 #endif
 

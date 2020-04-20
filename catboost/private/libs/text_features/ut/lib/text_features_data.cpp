@@ -48,25 +48,25 @@ TIntrusivePtr<TBagOfWordsCalcer> NCBTest::CreateBoW(const TDictionaryPtr& dictio
 
 static void CreateCalcersAndDependencies(
     TConstArrayRef<TTokenizedTextFeature> tokenizedFeatures,
-    TConstArrayRef<TDictionaryPtr> dictionaries,
+    TConstArrayRef<TDigitizer> digitizers,
     TConstArrayRef<ui32> target,
     ui32 textFeatureCount,
     const TRuntimeTextOptions& runtimeTextOptions,
     TVector<TTextFeatureCalcerPtr>* calcers,
-    TVector<TVector<ui32>>* perFeatureDictionaries,
+    TVector<TVector<ui32>>* perFeatureDigitizers,
     TVector<TVector<ui32>>* perTokenizedFeatureCalcers
 ) {
     const ui32 classesCount = 2;
 
-    perFeatureDictionaries->resize(textFeatureCount);
+    perFeatureDigitizers->resize(textFeatureCount);
     perTokenizedFeatureCalcers->resize(tokenizedFeatures.size());
 
     for (ui32 tokenizedFeatureIdx : xrange(tokenizedFeatures.size())) {
         const auto& featureDescription = runtimeTextOptions.GetTokenizedFeatureDescription(tokenizedFeatureIdx);
 
-        const auto& dictionary = dictionaries[tokenizedFeatureIdx];
+        const auto& dictionary = digitizers[tokenizedFeatureIdx].Dictionary;
         const ui32 textFeatureIdx = featureDescription.TextFeatureId;
-        perFeatureDictionaries->at(textFeatureIdx).push_back(tokenizedFeatureIdx);
+        perFeatureDigitizers->at(textFeatureIdx).push_back(tokenizedFeatureIdx);
 
         auto& featureCalcers = (*perTokenizedFeatureCalcers)[tokenizedFeatureIdx];
         const auto& tokenizedFeature = tokenizedFeatures[tokenizedFeatureIdx];
@@ -95,10 +95,9 @@ static void CreateCalcersAndDependencies(
 void NCBTest::CreateTextDataForTest(
     TVector<TTextFeature>* features,
     TVector<TTokenizedTextFeature>* tokenizedFeatures,
+    TVector<TDigitizer>* digitizers,
     TVector<TTextFeatureCalcerPtr>* calcers,
-    TVector<TDictionaryPtr>* dictionaries,
-    TTokenizerPtr* tokenizer,
-    TVector<TVector<ui32>>* perFeatureDictionaries,
+    TVector<TVector<ui32>>* perFeatureDigitizers,
     TVector<TVector<ui32>>* perTokenizedFeatureCalcers
 ) {
     TVector<ui32> target;
@@ -106,18 +105,17 @@ void NCBTest::CreateTextDataForTest(
     TTextDigitizers textDigitizers;
     CreateTextDataForTest(features, tokenizedFeatures, &target, &textDigitizers, &options);
 
-    *tokenizer = textDigitizers.GetTokenizer();
-    *dictionaries = textDigitizers.GetDictionaries();
+    *digitizers = textDigitizers.GetDigitizers();
 
     TRuntimeTextOptions runtimeTextOptions(xrange(features->size()), options);
     CreateCalcersAndDependencies(
         MakeConstArrayRef(*tokenizedFeatures),
-        MakeConstArrayRef(*dictionaries),
+        MakeConstArrayRef(*digitizers),
         MakeConstArrayRef(target),
         features->size(),
         runtimeTextOptions,
         calcers,
-        perFeatureDictionaries,
+        perFeatureDigitizers,
         perTokenizedFeatureCalcers
     );
 }
@@ -125,25 +123,24 @@ void NCBTest::CreateTextDataForTest(
 TIntrusivePtr<NCB::TTextProcessingCollection> NCBTest::CreateTextProcessingCollectionForTest() {
     TVector<TTextFeature> features;
     TVector<TTokenizedTextFeature> tokenizedFeatures;
+    TVector<TDigitizer> digitizers;
     TVector<TTextFeatureCalcerPtr> calcers;
-    TVector<TDictionaryPtr> dictionaries;
-    TTokenizerPtr tokenizer;
-    TVector<TVector<ui32>> perFeatureDictionaries;
+    TVector<TVector<ui32>> perFeatureDigitizers;
     TVector<TVector<ui32>> perTokenizedFeatureCalcers;
+
     CreateTextDataForTest(
         &features,
         &tokenizedFeatures,
+        &digitizers,
         &calcers,
-        &dictionaries,
-        &tokenizer,
-        &perFeatureDictionaries,
+        &perFeatureDigitizers,
         &perTokenizedFeatureCalcers
     );
+
     return MakeIntrusive<TTextProcessingCollection>(
+        digitizers,
         calcers,
-        dictionaries,
-        perFeatureDictionaries,
-        perTokenizedFeatureCalcers,
-        tokenizer
+        perFeatureDigitizers,
+        perTokenizedFeatureCalcers
     );
 }

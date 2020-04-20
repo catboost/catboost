@@ -15,7 +15,7 @@ namespace {
     struct TTextProcessingIdx {
     public:
         ui32 featureIdx;
-        ui32 dictionaryIdx;
+        ui32 digitizerId;
         ui32 calcerIdx;
     };
 }
@@ -73,20 +73,20 @@ static void AssertApplyEqual(
 static void AssertAllApplyEqual(
     const TVector<TTextFeature>& features,
     const TVector<TTokenizedTextFeature>& tokenizedTextFeatures,
-    const TVector<TVector<ui32>>& perFeatureDictionaries,
+    const TVector<TVector<ui32>>& perFeatureDigitizers,
     const TVector<TVector<ui32>>& perTokenizedFeatureCalcers,
     const TVector<TTextFeatureCalcerPtr>& calcers,
     const TTextProcessingCollection& collection
 ) {
     ui32 tokenizedFeatureId = 0;
     for (ui32 featureId : xrange(features.size())) {
-        for (ui32 dictionaryId : perFeatureDictionaries[featureId]) {
+        for (ui32 digitizerId : perFeatureDigitizers[featureId]) {
 
             for (ui32 calcerId : perTokenizedFeatureCalcers[tokenizedFeatureId]) {
                 AssertApplyEqual(
                     features[featureId],
                     tokenizedTextFeatures[tokenizedFeatureId],
-                    TTextProcessingIdx{ featureId, dictionaryId, calcerId },
+                    TTextProcessingIdx{ featureId, digitizerId, calcerId },
                     calcers[calcerId],
                     collection
                 );
@@ -139,34 +139,31 @@ Y_UNIT_TEST_SUITE(TestTextProcessingCollection) {
     Y_UNIT_TEST(TestApply) {
         TVector<TTextFeature> features;
         TVector<TTokenizedTextFeature> tokenizedFeatures;
+        TVector<TDigitizer> digitizers;
         TVector<TTextFeatureCalcerPtr> calcers;
-        TVector<TDictionaryPtr> dictionaries;
-        TTokenizerPtr tokenizer;
-        TVector<TVector<ui32>> perFeatureDictionaries;
+        TVector<TVector<ui32>> perFeatureDigitizers;
         TVector<TVector<ui32>> perTokenizedFeatureCalcers;
 
         CreateTextDataForTest(
             &features,
             &tokenizedFeatures,
+            &digitizers,
             &calcers,
-            &dictionaries,
-            &tokenizer,
-            &perFeatureDictionaries,
+            &perFeatureDigitizers,
             &perTokenizedFeatureCalcers
         );
 
         TTextProcessingCollection textProcessingCollection = TTextProcessingCollection(
+            digitizers,
             calcers,
-            dictionaries,
-            perFeatureDictionaries,
-            perTokenizedFeatureCalcers,
-            tokenizer
+            perFeatureDigitizers,
+            perTokenizedFeatureCalcers
         );
 
         AssertAllApplyEqual(
             features,
             tokenizedFeatures,
-            perFeatureDictionaries,
+            perFeatureDigitizers,
             perTokenizedFeatureCalcers,
             calcers,
             textProcessingCollection
@@ -176,28 +173,25 @@ Y_UNIT_TEST_SUITE(TestTextProcessingCollection) {
     Y_UNIT_TEST(TestSerialization) {
         TVector<TTextFeature> features;
         TVector<TTokenizedTextFeature> tokenizedFeatures;
+        TVector<TDigitizer> digitizers;
         TVector<TTextFeatureCalcerPtr> calcers;
-        TVector<TDictionaryPtr> dictionaries;
-        TTokenizerPtr tokenizer;
-        TVector<TVector<ui32>> perFeatureDictionaries;
+        TVector<TVector<ui32>> perFeatureDigitizers;
         TVector<TVector<ui32>> perTokenizedFeatureCalcers;
 
         CreateTextDataForTest(
             &features,
             &tokenizedFeatures,
+            &digitizers,
             &calcers,
-            &dictionaries,
-            &tokenizer,
-            &perFeatureDictionaries,
+            &perFeatureDigitizers,
             &perTokenizedFeatureCalcers
         );
 
         TTextProcessingCollection textProcessingCollection = TTextProcessingCollection(
+            digitizers,
             calcers,
-            dictionaries,
-            perFeatureDictionaries,
-            perTokenizedFeatureCalcers,
-            tokenizer
+            perFeatureDigitizers,
+            perTokenizedFeatureCalcers
         );
 
         TStringStream stream;

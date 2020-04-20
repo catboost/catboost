@@ -149,7 +149,7 @@ TVector<double> CalcEffect(
                     leafValues.begin() + leafValueIndex + approxDimension);
                 nodeIdxToInfo[nodeIdx] = TNodeInfo{
                     values,
-                    weightedDocCountInLeaf[leafValueIndex]
+                    weightedDocCountInLeaf[leafValueIndex / approxDimension]
                 };
             } else {
                 const int split = model.ModelTrees->GetTreeSplits()[nodeIdx];

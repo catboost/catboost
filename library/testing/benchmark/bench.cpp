@@ -2,7 +2,7 @@
 
 #include <contrib/libs/re2/re2/re2.h>
 
-#include <library/colorizer/output.h>
+#include <library/cpp/colorizer/output.h>
 #include <library/getopt/small/last_getopt.h>
 #include <library/json/json_value.h>
 #include <library/linear_regression/linear_regression.h>

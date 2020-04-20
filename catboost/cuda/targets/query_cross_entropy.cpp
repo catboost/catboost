@@ -35,7 +35,7 @@ namespace NCatboostCuda {
         for (auto deviceVal : resultCpu) {
             value += deviceVal;
         }
-        return MakeSimpleAdditiveStatistic(value, TParent::GetTotalWeight());
+        return MakeSimpleAdditiveStatistic(-value, TParent::GetTotalWeight());
     }
 
     const TQueryCrossEntropy<NCudaLib::TStripeMapping>::TQueryLogitApproxHelpData&

@@ -3,7 +3,7 @@ LIBRARY()
 
 
 PEERDIR(
-    library/pybind
+    library/cpp/pybind
     library/yson/node
 )
 
