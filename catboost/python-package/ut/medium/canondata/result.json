@@ -830,11 +830,11 @@
         "uri": "file://test.test_pairs_without_groupid/catboost_training.json"
     },
     "test.test_pmml_export[binclass]": {
-        "checksum": "6995c179406261f8338a6a2a77039aed",
+        "checksum": "2a590d246b59e98e9d00f7c074782faa",
         "uri": "file://test.test_pmml_export_binclass_/model.pmml"
     },
     "test.test_pmml_export[regression]": {
-        "checksum": "b16251d97d13fe53f81cc7f081314697",
+        "checksum": "f13348362194d38566de3a007c456c85",
         "uri": "file://test.test_pmml_export_regression_/model.pmml"
     },
     "test.test_predict_class[CPU]": {
