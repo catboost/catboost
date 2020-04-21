@@ -41,10 +41,3 @@
 - source_filter: "^yandex_io/external_libs/breakpad/include/third_party/lss"
   includes:
   - asm/sgidefs.h
-- source_filter: "^yandex_io/external_libs/libsrtp/"
-  includes:
-  - alloc.h: yandex_io/external_libs/libsrtp/crypto/include/alloc.h
-  - err.h: yandex_io/external_libs/libsrtp/crypto/include/err.h
-- source_filter: "^yandex_io/external_libs/usrsctp/"
-  includes:
-  - netinet/sctp_uio.h: "yandex_io/external_libs/usrsctp/usrsctplib/netinet/sctp_uio.h"
