@@ -248,7 +248,7 @@ public:
 public:
     inline bool AfterPrefix(const TdSelf& prefix, TdSelf& result) const noexcept {
         if (this->StartsWith(prefix)) {
-            result = Tail(prefix.Length);
+            result = Tail(prefix.size());
             return true;
         }
         return false;
@@ -256,7 +256,7 @@ public:
 
     inline bool BeforeSuffix(const TdSelf& suffix, TdSelf& result) const noexcept {
         if (this->EndsWith(suffix)) {
-            result = Head(Length - suffix.Length);
+            result = Head(Length - suffix.size());
             return true;
         }
         return false;
