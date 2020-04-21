@@ -223,7 +223,7 @@ struct ci_hash {
         return TCiString::hashVal(s, strlen(s));
     }
     inline size_t operator()(const TStringBuf& s) const {
-        return TCiString::hashVal(s.Start, s.Length);
+        return TCiString::hashVal(s.data(), s.size());
     }
 };
 
@@ -246,7 +246,7 @@ struct TCIHash {
 template <>
 struct TCIHash<const char*> {
     inline size_t operator()(const TStringBuf& s) const {
-        return TCiString::hashVal(s.Start, s.Length);
+        return TCiString::hashVal(s.data(), s.size());
     }
 };
 
@@ -276,7 +276,7 @@ struct ci_equal_to {
     }
     // this implementation is not suitable for strings with zero characters inside, sorry
     bool operator()(const TStringBuf& x, const TStringBuf& y) const {
-        return x.Length == y.Length && csYandex.strnicmp(x.Start, y.Start, y.Length) == 0;
+        return x.size() == y.size() && csYandex.strnicmp(x.data(), y.data(), y.size()) == 0;
     }
 };
 
