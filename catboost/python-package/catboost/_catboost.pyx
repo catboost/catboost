@@ -856,6 +856,25 @@ cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
         bool_t verbose
     ) nogil except +ProcessException
 
+cdef extern from "catboost/libs/data/load_and_quantize_data.h" namespace "NCB":
+    cdef TDataProviderPtr ReadAndQuantizeDataset(
+        const TPathWithScheme& poolPath,
+        const TPathWithScheme& pairsFilePath,
+        const TPathWithScheme& groupWeightsFilePath,
+        const TPathWithScheme& timestampsFilePath,
+        const TPathWithScheme& baselineFilePath,
+        const TPathWithScheme& featureNamesPath,
+        const TPathWithScheme& inputBordersPath,
+        const TColumnarPoolFormatParams& columnarPoolFormatParams,
+        const TVector[ui32]& ignoredFeatures,
+        EObjectsOrder objectsOrder,
+        TJsonValue plainJsonParams,
+        TMaybe[ui32] blockSize,
+        TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+        int threadCount,
+        bool_t verbose
+    ) nogil except +ProcessException
+
 cdef extern from "catboost/private/libs/algo_helpers/hessian.h":
     cdef cppclass THessianInfo:
         TVector[double] Data
@@ -3425,7 +3444,7 @@ cdef class _PoolBase:
                 builder_visitor[0].AddTarget(target_idx, <TConstArrayRef[TString]>string_target_data)
 
 
-    cpdef _read_pool(self, pool_file, cd_file, pairs_file, feature_names_file, delimiter, bool_t has_header, int thread_count):
+    cpdef _read_pool(self, pool_file, cd_file, pairs_file, feature_names_file, delimiter, bool_t has_header, int thread_count, dict quantization_params):
         cdef TPathWithScheme pool_file_path
         pool_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(pool_file), TStringBuf(<char*>'dsv'))
 
@@ -3446,21 +3465,48 @@ cdef class _PoolBase:
         thread_count = UpdateThreadCount(thread_count)
 
         cdef TVector[ui32] emptyIntVec
+        cdef TPathWithScheme input_borders_file_path
 
-        self.__pool = ReadDataset(
-            TMaybe[ETaskType](),
-            pool_file_path,
-            pairs_file_path,
-            TPathWithScheme(),
-            TPathWithScheme(),
-            TPathWithScheme(),
-            feature_names_file_path,
-            columnarPoolFormatParams,
-            emptyIntVec,
-            EObjectsOrder_Undefined,
-            thread_count,
-            False
-        )
+        if quantization_params is not None:
+            input_borders = quantization_params.pop("input_borders", None)
+            block_size = quantization_params.pop("dev_block_size", None)
+            prep_params = _PreprocessParams(quantization_params)
+
+            if input_borders:
+                input_borders_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(input_borders), TStringBuf(<char*>'dsv'))
+
+            self.__pool = ReadAndQuantizeDataset(
+                pool_file_path,
+                pairs_file_path,
+                TPathWithScheme(),
+                TPathWithScheme(),
+                TPathWithScheme(),
+                feature_names_file_path,
+                input_borders_file_path,
+                columnarPoolFormatParams,
+                emptyIntVec,
+                EObjectsOrder_Undefined,
+                prep_params.tree,
+                block_size,
+                TQuantizedFeaturesInfoPtr(),
+                thread_count,
+                False
+            )
+        else:
+            self.__pool = ReadDataset(
+                TMaybe[ETaskType](),
+                pool_file_path,
+                pairs_file_path,
+                TPathWithScheme(),
+                TPathWithScheme(),
+                TPathWithScheme(),
+                feature_names_file_path,
+                columnarPoolFormatParams,
+                emptyIntVec,
+                EObjectsOrder_Undefined,
+                thread_count,
+                False
+            )
         self.__data_holders = None # free previously used resources
         self.target_type = str
 

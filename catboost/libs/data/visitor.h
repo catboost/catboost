@@ -103,6 +103,10 @@ namespace NCB {
         // for sparse float features default value is always assumed to be 0.0f
 
         virtual ui32 GetCatFeatureValue(ui32 flatFeatureIdx, TStringBuf feature) = 0;
+        // localObjectIdx may be used as hint for sampling
+        virtual ui32 GetCatFeatureValue(ui32 /* localObjectIdx */, ui32 flatFeatureIdx, TStringBuf feature) {
+            return GetCatFeatureValue(flatFeatureIdx, feature);
+        }
         virtual void AddCatFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, TStringBuf feature) = 0;
         virtual void AddAllCatFeatures(ui32 localObjectIdx, TConstArrayRef<ui32> features) = 0;
         virtual void AddAllCatFeatures(

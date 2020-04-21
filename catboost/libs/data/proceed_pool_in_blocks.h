@@ -1,25 +1,27 @@
 #pragma once
 
+#include "data_provider_builders.h"
+#include "loader.h"
+
 #include <catboost/libs/column_description/cd_parser.h>
-#include <catboost/libs/data/loader.h>
-#include <catboost/libs/data/data_provider_builders.h>
 #include <catboost/libs/helpers/exception.h>
-#include <catboost/private/libs/options/analytical_mode_params.h>
+#include <catboost/private/libs/options/dataset_reading_params.h>
+
 
 #include <library/threading/local_executor/local_executor.h>
 
 template <class TConsumer>
-inline void ReadAndProceedPoolInBlocks(const NCB::TAnalyticalModeCommonParams& params,
+inline void ReadAndProceedPoolInBlocks(const NCatboostOptions::TDatasetReadingParams& params,
                                        ui32 blockSize,
                                        TConsumer&& poolConsumer,
                                        NPar::TLocalExecutor* localExecutor) {
 
     auto datasetLoader = NCB::GetProcessor<NCB::IDatasetLoader>(
-        params.InputPath, // for choosing processor
+        params.PoolPath, // for choosing processor
 
         // processor args
         NCB::TDatasetLoaderPullArgs {
-            params.InputPath,
+            params.PoolPath,
 
             NCB::TDatasetLoaderCommonArgs {
                 params.PairsFilePath,
@@ -30,7 +32,7 @@ inline void ReadAndProceedPoolInBlocks(const NCB::TAnalyticalModeCommonParams& p
                 params.ClassLabels,
                 params.ColumnarPoolFormatParams.DsvFormat,
                 MakeCdProviderFromFile(params.ColumnarPoolFormatParams.CdFilePath),
-                /*ignoredFeatures*/ {},
+                params.IgnoredFeatures,
                 NCB::EObjectsOrder::Undefined,
                 blockSize,
                 NCB::TDatasetSubset::MakeColumns(),

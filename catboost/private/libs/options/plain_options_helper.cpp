@@ -441,6 +441,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "border_count", &floatFeaturesBinarization, &seenKeys);
     CopyOptionWithNewKey(plainOptions, "feature_border_type", "border_type", &floatFeaturesBinarization, &seenKeys);
     CopyOption(plainOptions, "nan_mode", &floatFeaturesBinarization, &seenKeys);
+    CopyOption(plainOptions, "dev_max_subset_size_for_build_borders", &floatFeaturesBinarization, &seenKeys);
     CopyPerFloatFeatureQuantization(plainOptions, "per_float_feature_quantization", &dataProcessingOptions, &seenKeys);
 
     auto& textProcessingOptions = dataProcessingOptions["text_processing_options"];
@@ -872,6 +873,9 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
             CopyOption(floatFeaturesBinarization, "nan_mode", &plainOptionsJson, &seenKeys);
             DeleteSeenOption(&optionsCopyDataProcessingFloatFeaturesBinarization, "nan_mode");
+
+            CopyOption(floatFeaturesBinarization, "dev_max_subset_size_for_build_borders", &plainOptionsJson, &seenKeys);
+            DeleteSeenOption(&optionsCopyDataProcessingFloatFeaturesBinarization, "dev_max_subset_size_for_build_borders");
 
             CB_ENSURE(optionsCopyDataProcessingFloatFeaturesBinarization.GetMapSafe().empty(),
                       "float_features_binarization: key " + optionsCopyDataProcessingFloatFeaturesBinarization.GetMapSafe().begin()->first + " wasn't added to plain options.");

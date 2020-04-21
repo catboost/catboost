@@ -215,6 +215,73 @@ def _get_features_indices(features, feature_names):
     return features
 
 
+def _update_params_quantize_part(params, ignored_features, per_float_feature_quantization, border_count,
+                                 feature_border_type, sparse_features_conflict_fraction, dev_efb_max_buckets,
+                                 nan_mode, input_borders, task_type, used_ram_limit, random_seed,
+                                 dev_max_subset_size_for_build_borders):
+    if ignored_features is not None:
+        params.update({
+            'ignored_features': ignored_features
+        })
+
+    if per_float_feature_quantization is not None:
+        params.update({
+            'per_float_feature_quantization': per_float_feature_quantization
+        })
+
+    if border_count is not None:
+        params.update({
+            'border_count': border_count
+        })
+
+    if feature_border_type is not None:
+        params.update({
+            'feature_border_type': feature_border_type
+        })
+
+    if sparse_features_conflict_fraction is not None:
+        params.update({
+            'sparse_features_conflict_fraction': sparse_features_conflict_fraction
+        })
+
+    if dev_efb_max_buckets is not None:
+        params.update({
+            'dev_efb_max_buckets': dev_efb_max_buckets
+        })
+
+    if nan_mode is not None:
+        params.update({
+            'nan_mode': nan_mode
+        })
+
+    if input_borders is not None:
+        params.update({
+            'input_borders': input_borders
+        })
+
+    if task_type is not None:
+        params.update({
+            'task_type': task_type
+        })
+
+    if used_ram_limit is not None:
+        params.update({
+            'used_ram_limit': used_ram_limit
+        })
+
+    if random_seed is not None:
+        params.update({
+            'random_seed': random_seed
+        })
+
+    if dev_max_subset_size_for_build_borders is not None:
+        params.update({
+            'dev_max_subset_size_for_build_borders': dev_max_subset_size_for_build_borders
+        })
+
+    return params
+
+
 class Pool(_PoolBase):
     """
     Pool used in CatBoost as a data structure to train model from.
@@ -672,8 +739,8 @@ class Pool(_PoolBase):
         self._save(fname)
 
     def quantize(self, ignored_features=None, per_float_feature_quantization=None, border_count=None,
-                 max_bin=None, feature_border_type=None, sparse_features_conflict_fraction=None, dev_efb_max_buckets=None,
-                 nan_mode=None, input_borders=None, task_type=None, used_ram_limit=None):
+                 max_bin=None, feature_border_type=None, sparse_features_conflict_fraction=None,
+                 nan_mode=None, input_borders=None, task_type=None, used_ram_limit=None, random_seed=None, **kwargs):
         """
         Quantize this pool
 
@@ -713,10 +780,6 @@ class Pool(_PoolBase):
             CPU only. Maximum allowed fraction of conflicting non-default values for features in exclusive features bundle.
             Should be a real value in [0, 1) interval.
 
-        dev_efb_max_buckets : int, [default=1024]
-            CPU only. Maximum bucket count in exclusive features bundle. Should be in an integer between 0 and 65536.
-            Used only for learning speed tuning.
-
         nan_mode : string, [default=None]
             Way to process missing values for numeric features.
             Possible values:
@@ -735,6 +798,10 @@ class Pool(_PoolBase):
                 - 'GPU'
 
         used_ram_limit=None
+
+        random_seed : int, [default=None]
+            The random seed used for data sampling.
+            If None, 0 is used.
         """
         if self.is_quantized():
             raise CatBoostError('Pool is already quantized')
@@ -745,67 +812,18 @@ class Pool(_PoolBase):
         if border_count is None:
             border_count = max_bin
 
-        self._update_params_quantize_part(params, ignored_features, per_float_feature_quantization, border_count,
-                                          feature_border_type, sparse_features_conflict_fraction, dev_efb_max_buckets,
-                                          nan_mode, input_borders, task_type, used_ram_limit)
+        dev_efb_max_buckets = kwargs.pop('dev_efb_max_buckets', None)
+        dev_max_subset_size_for_build_borders = kwargs.pop('dev_max_subset_size_for_build_borders', None)
+
+        if kwargs:
+            raise CatBoostError("got an unexpected keyword arguments: {}".format(kwargs.keys()))
+
+        _update_params_quantize_part(params, ignored_features, per_float_feature_quantization, border_count,
+                                     feature_border_type, sparse_features_conflict_fraction, dev_efb_max_buckets,
+                                     nan_mode, input_borders, task_type, used_ram_limit, random_seed,
+                                     dev_max_subset_size_for_build_borders)
 
         self._quantize(params)
-
-
-
-    def _update_params_quantize_part(self, params, ignored_features, per_float_feature_quantization, border_count,
-                                     feature_border_type, sparse_features_conflict_fraction, dev_efb_max_buckets,
-                                     nan_mode, input_borders, task_type, used_ram_limit):
-        if ignored_features is not None:
-            params.update({
-                'ignored_features': ignored_features
-            })
-
-        if per_float_feature_quantization is not None:
-            params.update({
-                'per_float_feature_quantization': per_float_feature_quantization
-            })
-
-        if border_count is not None:
-            params.update({
-                'border_count': border_count
-            })
-
-        if feature_border_type is not None:
-            params.update({
-                'feature_border_type': feature_border_type
-            })
-
-        if sparse_features_conflict_fraction is not None:
-            params.update({
-                'sparse_features_conflict_fraction': sparse_features_conflict_fraction
-            })
-
-        if dev_efb_max_buckets is not None:
-            params.update({
-                'dev_efb_max_buckets': dev_efb_max_buckets
-            })
-
-        if nan_mode is not None:
-            params.update({
-                'nan_mode': nan_mode
-            })
-
-        if input_borders is not None:
-            params.update({
-                'input_borders': input_borders
-            })
-
-        if task_type is not None:
-            params.update({
-                'task_type': task_type
-            })
-
-        if used_ram_limit is not None:
-            params.update({
-                'used_ram_limit': used_ram_limit
-            })
-
 
     def _if_pandas_to_numpy(self, array):
         if isinstance(array, Series):
@@ -829,7 +847,8 @@ class Pool(_PoolBase):
         feature_names_path,
         delimiter,
         has_header,
-        thread_count
+        thread_count,
+        quantization_params=None
     ):
         """
         Read Pool from file.
@@ -853,7 +872,8 @@ class Pool(_PoolBase):
                 feature_names_path,
                 delimiter[0],
                 has_header,
-                thread_count
+                thread_count,
+                quantization_params
             )
 
     def _init(

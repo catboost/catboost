@@ -1,5 +1,6 @@
 #include "data_provider_builders.h"
 
+#include "cat_feature_perfect_hash.h"
 #include "data_provider.h"
 #include "feature_index.h"
 #include "lazy_columns.h"
@@ -1881,15 +1882,8 @@ namespace NCB {
                         bitsPerFeature = CalcHistogramWidthForBorders(
                             quantizedFeaturesInfoPtr->GetBorders(TFloatFeatureIdx(perTypeFeatureIdx)).size());
                     } else {
-                        const ui32 countUnique =
-                            quantizedFeaturesInfoPtr->GetUniqueValuesCounts(TCatFeatureIdx(perTypeFeatureIdx)).OnAll;
-                        if (countUnique <= 1ULL << 8) {
-                            bitsPerFeature = 8;
-                        } else if (countUnique <= 1ULL << 16) {
-                            bitsPerFeature = 16;
-                        } else { //TODO
-                            bitsPerFeature = 32;
-                        }
+                        bitsPerFeature = CalcHistogramWidthForUniqueValuesCount(
+                            quantizedFeaturesInfoPtr->GetUniqueValuesCounts(TCatFeatureIdx(perTypeFeatureIdx)).OnAll);
                     }
 
                     IndexHelpers[perTypeFeatureIdx] = TIndexHelper<ui64>(bitsPerFeature);
@@ -1981,7 +1975,7 @@ namespace NCB {
 
 
                     memcpy(
-                        ((ui8*)DenseDstView[*perTypeFeatureIdx].data()) + objectOffset,
+                        ((ui8*)DenseDstView[*perTypeFeatureIdx].data()) + objectOffsetInBytes,
                         featuresPart.data(),
                         featuresPart.size());
                 }

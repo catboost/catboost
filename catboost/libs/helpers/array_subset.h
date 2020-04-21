@@ -862,6 +862,32 @@ namespace NCB {
     }
 
 
+    template <class TSize = size_t>
+    TArraySubsetIndexing<TSize> MakeIncrementalIndexing(
+        const TArraySubsetIndexing<TSize>& indexing,
+        NPar::TLocalExecutor* localExecutor
+    ) {
+        if (HoldsAlternative<TFullSubset<TSize>>(indexing)) {
+            return indexing;
+        } else {
+            TVector<TSize> indices;
+            indices.yresize(indexing.Size());
+            TArrayRef<TSize> indicesRef = indices;
+
+            indexing.ParallelForEach(
+                [=] (TSize objectIdx, TSize srcObjectIdx) {
+                  indicesRef[objectIdx] = srcObjectIdx;
+                },
+                localExecutor
+            );
+
+            Sort(indices);
+
+            return TArraySubsetIndexing<TSize>(std::move(indices));
+        }
+    }
+
+
     // TArrayLike must have O(1) random-access operator[].
     template <class TArrayLike, class TSize = size_t>
     class TArraySubset {

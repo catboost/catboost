@@ -179,5 +179,4 @@ namespace NCB {
         }
         return 16;
     }
-
 }
