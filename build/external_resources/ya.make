@@ -14,13 +14,6 @@ IF (OS_ANDROID)
 )
 ENDIF()
 
-IF (OS_DARWIN)
-    RECURSE(
-    flatc
-    protoc
-)
-ENDIF()
-
 IF (OS_IOS)
     RECURSE(
     mapsmobi_ios_pods
@@ -30,9 +23,7 @@ ENDIF()
 IF (OS_LINUX)
     RECURSE(
     codenavigation
-    flatc
     llvm_cov9
-    protoc
 )
 ENDIF()
 
@@ -41,7 +32,6 @@ IF (OS_DARWIN OR OS_LINUX OR OS_WINDOWS)
     arcadia_cpp_styleguide
     arcadia_grpc_cpp
     arcadia_protoc
-    delve
     flake8_py2
     flake8_py3
     flakes_py2
