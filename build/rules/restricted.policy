@@ -25,6 +25,7 @@ ALLOW yandex_io -> contrib/restricted/alsa-lib
 ALLOW yandex_io -> contrib/restricted/avahi
 
 # GLib is LGPL
+ALLOW contrib/libs/harfbuzz/glib -> contrib/restricted/glib
 ALLOW yandex_io -> contrib/restricted/glib
 
 # GStreamer is LGPL
