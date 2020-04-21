@@ -628,7 +628,11 @@ namespace NCB {
                 T value,
                 TFeaturesStorage* storage
             ) {
-                auto& sparseDataPart = storage->SparseDataParts[storage->LocalExecutor->GetWorkerThreadId()];
+                Y_POD_STATIC_THREAD(int) threadId(-1);
+                if (Y_UNLIKELY(threadId == -1)) {
+                    threadId = storage->LocalExecutor->GetWorkerThreadId();
+                }
+                auto& sparseDataPart = storage->SparseDataParts[threadId];
                 sparseDataPart.Indices.emplace_back(TSparseIndex2d{*perTypeFeatureIdx, objectIdx});
                 sparseDataPart.Values.emplace_back(value);
             }

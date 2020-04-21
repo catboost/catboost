@@ -2824,17 +2824,20 @@ cdef _set_data_from_scipy_bsr_sparse(
     cdef int feature_block_idx
     cdef int feature_in_block_idx
     cdef int feature_block_start_idx
-
+    cdef int indptr_begin
+    cdef int indptr_end
     cdef bool_t is_float_value = (data.dtype == np.float32) or (data.dtype == np.float64)
 
-    for doc_block_idx in range(doc_block_count):
+    for doc_block_idx in xrange(doc_block_count):
         doc_block_start_idx = doc_block_idx * doc_block_size
-        for indptr in range(data.indptr[doc_block_idx], data.indptr[doc_block_idx + 1]):
+        indptr_begin = data.indptr[doc_block_idx]
+        indptr_end = data.indptr[doc_block_idx + 1]
+        for indptr in range(indptr_begin, indptr_end, 1):
             feature_block_idx = data.indices[indptr]
             feature_block_start_idx = feature_block_idx * feature_block_size
             values_block = data.data[indptr]
-            for doc_in_block_idx in range(doc_block_size):
-                for feature_in_block_idx in range(feature_block_size):
+            for doc_in_block_idx in xrange(doc_block_size):
+                for feature_in_block_idx in xrange(feature_block_size):
                     _add_single_feature_value_from_scipy_sparse(
                         doc_block_start_idx + doc_in_block_idx,
                         feature_block_start_idx + feature_in_block_idx,
@@ -2861,7 +2864,7 @@ cdef _set_data_from_scipy_coo_sparse(
 
     cdef bool_t is_float_value = (data.dtype == np.float32) or (data.dtype == np.float64)
 
-    for nonzero_idx in range(nonzero_count):
+    for nonzero_idx in xrange(nonzero_count):
         doc_idx = row[nonzero_idx]
         feature_idx = col[nonzero_idx]
         value = data[nonzero_idx]
@@ -2893,9 +2896,12 @@ cdef _set_data_from_scipy_csr_sparse(
     cdef int feature_idx
 
     cdef bool_t is_float_value = (data.dtype == np.float32) or (data.dtype == np.float64)
-
-    for doc_idx in range(doc_count):
-        for nonzero_elements_idx in range(indptr[doc_idx], indptr[doc_idx + 1]):
+    cdef int nonzero_begin = 0
+    cdef int nonzero_end = 0
+    for doc_idx in xrange(doc_count):
+        nonzero_begin = indptr[doc_idx]
+        nonzero_end = indptr[doc_idx + 1]
+        for nonzero_elements_idx in xrange(nonzero_begin, nonzero_end, 1):
             feature_idx = indices[nonzero_elements_idx]
             value = data[nonzero_elements_idx]
             _add_single_feature_value_from_scipy_sparse(
@@ -2923,13 +2929,15 @@ cdef _set_data_from_scipy_lil_sparse(
     cdef int doc_idx
     cdef int feature_idx
     cdef int nonzero_column_idx
+    cdef int row_indices_count
 
     cdef bool_t is_float_value = (data.dtype == np.float32) or (data.dtype == np.float64)
 
-    for doc_idx in range(doc_count):
+    for doc_idx in xrange(doc_count):
         row_indices = data.rows[doc_idx]
         row_data = data.data[doc_idx]
-        for nonzero_column_idx in range(len(row_indices)):
+        row_indices_count = len(row_indices)
+        for nonzero_column_idx in xrange(row_indices_count):
             feature_idx = row_indices[nonzero_column_idx]
             value = row_data[nonzero_column_idx]
             _add_single_feature_value_from_scipy_sparse(
@@ -3027,12 +3035,15 @@ def _set_features_order_data_scipy_sparse_csc_matrix(
 
     cdef bool_t is_float_value = False
 
+    cdef int indptr_begin
+    cdef int indptr_end
+
     if (numpy_num_dtype is np.float32_t) or (numpy_num_dtype is np.float64_t):
         is_float_value = True
 
     new_data_holders = []
 
-    for feature_idx in range(feature_count):
+    for feature_idx in xrange(feature_count):
         feature_nonzero_count = indptr[feature_idx + 1] - indptr[feature_idx]
         new_data_holders += get_canonical_type_indexing_array(
             np.asarray(indices[indptr[feature_idx]:indptr[feature_idx + 1]]),
@@ -3041,7 +3052,9 @@ def _set_features_order_data_scipy_sparse_csc_matrix(
 
         if is_cat_feature_mask[feature_idx]:
             cat_feature_values.clear()
-            for data_idx in range(indptr[feature_idx], indptr[feature_idx + 1]):
+            indptr_begin = indptr[feature_idx]
+            indptr_end = indptr[feature_idx + 1]
+            for data_idx in range(indptr_begin, indptr_end, 1):
                 value = data[data_idx]
                 _get_categorical_feature_value_from_scipy_sparse(
                     indices[data_idx],
@@ -3125,9 +3138,9 @@ cdef _set_data_from_generic_matrix(
     cdef TVector[bool_t] is_cat_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Categorical)
     cdef TVector[bool_t] is_text_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Text)
 
-    for doc_idx in range(doc_count):
+    for doc_idx in xrange(doc_count):
         doc_data = data[doc_idx]
-        for feature_idx in range(feature_count):
+        for feature_idx in xrange(feature_count):
             factor = doc_data[feature_idx]
             if is_cat_feature_mask[feature_idx]:
                 get_cat_factor_bytes_representation(
@@ -3207,13 +3220,16 @@ cdef _set_pairs(pairs, pairs_weight, IBuilderVisitor* builder_visitor):
     builder_visitor[0].SetPairs(TConstArrayRef[TPair](pairs_vector.data(), pairs_vector.size()))
 
 cdef _set_weight(weight, IRawObjectsOrderDataVisitor* builder_visitor):
-    for i in range(len(weight)):
+    cdef int i
+    cdef int weights_len = len(weight)
+    for i in xrange(weights_len):
         builder_visitor[0].AddWeight(i, float(weight[i]))
 
 cdef _set_weight_features_order(weight, IRawFeaturesOrderDataVisitor* builder_visitor):
     cdef TVector[float] weightVector
-    weightVector.reserve(len(weight))
-    for i in range(len(weight)):
+    cdef int weights_len = len(weight)
+    weightVector.reserve(weights_len)
+    for i in xrange(weights_len):
         weightVector.push_back(float(weight[i]))
     builder_visitor[0].AddWeights(<TConstArrayRef[float]>weightVector)
 
@@ -3231,17 +3247,23 @@ cdef TGroupId _calc_group_id_for(i, py_group_ids) except *:
     return CalcGroupIdFor(<TStringBuf>id_as_strbuf)
 
 cdef _set_group_id(group_id, IBuilderVisitor* builder_visitor):
-    for i in range(len(group_id)):
+    cdef int group_id_len = len(group_id)
+    cdef int i
+    for i in xrange(group_id_len):
         builder_visitor[0].AddGroupId(i, _calc_group_id_for(i, group_id))
 
 cdef _set_group_weight(group_weight, IRawObjectsOrderDataVisitor* builder_visitor):
-    for i in range(len(group_weight)):
+    cdef int group_weight_len = len(group_weight)
+    cdef int i
+    for i in xrange(group_weight_len):
         builder_visitor[0].AddGroupWeight(i, float(group_weight[i]))
 
 cdef _set_group_weight_features_order(group_weight, IRawFeaturesOrderDataVisitor* builder_visitor):
     cdef TVector[float] groupWeightVector
-    groupWeightVector.reserve(len(group_weight))
-    for i in range(len(group_weight)):
+    cdef int group_weight_len = len(group_weight)
+    cdef int i
+    groupWeightVector.reserve(group_weight_len)
+    for i in xrange(group_weight_len):
         groupWeightVector.push_back(float(group_weight[i]))
     builder_visitor[0].AddGroupWeights(<TConstArrayRef[float]>groupWeightVector)
 
@@ -3259,19 +3281,23 @@ cdef TSubgroupId _calc_subgroup_id_for(i, py_subgroup_ids) except *:
     return CalcSubgroupIdFor(<TStringBuf>id_as_strbuf)
 
 cdef _set_subgroup_id(subgroup_id, IBuilderVisitor* builder_visitor):
-    for i in range(len(subgroup_id)):
+    cdef ui32 subgroup_id_len = len(subgroup_id)
+    cdef int i
+    for i in xrange(subgroup_id_len):
         builder_visitor[0].AddSubgroupId(i, _calc_subgroup_id_for(i, subgroup_id))
 
 cdef _set_baseline(baseline, IRawObjectsOrderDataVisitor* builder_visitor):
-    for i in range(len(baseline)):
+    cdef ui32 baseline_len = len(baseline)
+    cdef int i
+    for i in range(baseline_len):
         for j, value in enumerate(baseline[i]):
             builder_visitor[0].AddBaseline(i, j, float(value))
 
 cdef _set_baseline_features_order(baseline, IRawFeaturesOrderDataVisitor* builder_visitor):
     cdef ui32 baseline_count = len(baseline[0])
     cdef TVector[float] one_dim_baseline
-
-    for baseline_idx in range(baseline_count):
+    cdef ui32 baseline_idx
+    for baseline_idx in xrange(baseline_count):
         one_dim_baseline.clear()
         one_dim_baseline.reserve(len(baseline))
         for i in range(len(baseline)):
