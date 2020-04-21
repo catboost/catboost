@@ -5368,6 +5368,51 @@ def test_eval_metrics_with_target_border_and_class_weights():
     )
 
 
+@pytest.mark.parametrize('metrics', ['AUC', 'AUC,Precision'])
+def test_eval_metrics_with_binarized_target(metrics):
+    train = data_file('adult', 'train_small')
+    test = data_file('adult', 'test_small')
+    cd = data_file('adult', 'train.cd')
+    loss_function = 'Logloss'
+
+    output_model_path = yatest.common.test_output_path('model.bin')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss_function,
+        '-f', train,
+        '-t', test,
+        '--column-description', cd,
+        '-i', '10',
+        '-w', '0.03',
+        '-T', '4',
+        '-m', output_model_path,
+        '--test-err-log', test_error_path,
+        '--use-best-model', 'false',
+        '--target-border', '0.25',
+        '--custom-metric', metrics,
+    )
+    yatest.common.execute(cmd)
+
+    eval_path = yatest.common.test_output_path('output.tsv')
+    cmd = (
+        CATBOOST_PATH,
+        'eval-metrics',
+        '--metrics', metrics,
+        '--input-path', test,
+        '--column-description', cd,
+        '-m', output_model_path,
+        '-o', eval_path,
+        '--block-size', '100',
+        '--save-stats',
+    )
+    yatest.common.execute(cmd)
+    first_metrics = np.round(np.loadtxt(test_error_path, skiprows=1)[:, 2:], 8)
+    second_metrics = np.round(np.loadtxt(eval_path, skiprows=1)[:, 1:], 8)
+    assert np.all(first_metrics == second_metrics)
+
+
 @pytest.mark.parametrize('metric_period', ['1', '2'])
 @pytest.mark.parametrize('metric', ['MultiClass', 'MultiClassOneVsAll', 'F1', 'Accuracy', 'TotalF1', 'MCC', 'Precision', 'Recall'])
 @pytest.mark.parametrize('loss_function', MULTICLASS_LOSSES)

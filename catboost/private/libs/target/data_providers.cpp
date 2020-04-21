@@ -355,7 +355,8 @@ namespace NCB {
             hasClassificationOnlyMetrics ||
             knownClassCount ||
             (inputClassificationInfo.ClassWeights.size() > 0) ||
-            (inputClassificationInfo.ClassLabels.size() > 0)
+            (inputClassificationInfo.ClassLabels.size() > 0) ||
+            inputClassificationInfo.TargetBorder
         );
         bool multiClassTargetData = false;
 
@@ -518,7 +519,7 @@ namespace NCB {
 
         TMaybe<ui32> knownClassCount = inputClassificationInfo.KnownClassCount;
 
-        bool isRealTarget = true;
+        bool isRealTarget = !inputClassificationInfo.TargetBorder;
         if (targetCreationOptions.IsClass) {
             isRealTarget
                 = mainLossFunction
