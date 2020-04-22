@@ -140,23 +140,25 @@ namespace NCB {
         }
 
 
-        inline TMaybe<TSize> Next() override {
+        inline bool Next(TSize* size) override {
             if (CurrentBlock == EndBlock) {
-                return IDynamicIterator<TSize>::END_VALUE;
+                return false;
             }
             if (CurrentIdx == EndIdx) {
                 ++CurrentBlock;
                 if (CurrentBlock == EndBlock) {
-                    return IDynamicIterator<TSize>::END_VALUE;
+                    return false;
                 } else if (CurrentBlock + 1 == EndBlock) {
                     EndIdx = CurrentBlock->SrcBegin + LastBlockInBlockEndIdx;
                 } else {
                     EndIdx = CurrentBlock->SrcEnd;
                 }
                 CurrentIdx = CurrentBlock->SrcBegin + 1;
-                return CurrentBlock->SrcBegin;
+                *size = CurrentBlock->SrcBegin;
+                return true;
             }
-            return CurrentIdx++;
+            *size = CurrentIdx++;
+            return true;
         }
 
     private:
@@ -873,16 +875,13 @@ namespace NCB {
             TVector<TSize> indices;
             indices.yresize(indexing.Size());
             TArrayRef<TSize> indicesRef = indices;
-
             indexing.ParallelForEach(
                 [=] (TSize objectIdx, TSize srcObjectIdx) {
                   indicesRef[objectIdx] = srcObjectIdx;
                 },
                 localExecutor
             );
-
             Sort(indices);
-
             return TArraySubsetIndexing<TSize>(std::move(indices));
         }
     }
@@ -1088,8 +1087,10 @@ namespace NCB {
         TConstArrayRef<TDstValue> Next(size_t maxBlockSize = Max<size_t>()) override {
             const size_t dstBlockSize = Min(maxBlockSize, RemainingSize);
             Buffer.yresize(dstBlockSize);
+            typename TSubsetIndexingIterator::value_type index;
             for (auto& dstElement : Buffer) {
-                dstElement = Transformer(Src[*SubsetIndexingIterator.Next()]);
+                SubsetIndexingIterator.Next(&index);
+                dstElement = Transformer(Src[index]);
             }
             RemainingSize -= dstBlockSize;
             return Buffer;
