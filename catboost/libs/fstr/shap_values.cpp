@@ -1117,7 +1117,7 @@ static inline void CollectNonObliviousTreeFeaturesRecursive(
     const TModelTrees& forest,
     const TVector<int>& binFeatureCombinationClass,
     THashSet<int>& featureSet,
-    size_t nodeIdx,
+    size_t nodeIdx
 ) {
     const int feature = binFeatureCombinationClass[
         forest.GetTreeSplits()[nodeIdx]
@@ -1133,7 +1133,7 @@ static inline void CollectNonObliviousTreeFeaturesRecursive(
             forest,
             binFeatureCombinationClass,
             featureSet,
-            rightNodeidx;
+            rightNodeIdx
         );
     }
 
@@ -1142,7 +1142,7 @@ static inline void CollectNonObliviousTreeFeaturesRecursive(
             forest,
             binFeatureCombinationClass,
             featureSet,
-            leftNodeidx;
+            leftNodeIdx
         );
     }
 }
@@ -1233,7 +1233,7 @@ static inline void CalcNonObliviousExactShapValuesForLeaf(
             binFeatureCombinationClass,
             mapNodeIdToIsGoRight,
             treeIdx,
-            subtreeValues,
+            subtreeWeights,
             shapValues
         );
     } else {
@@ -1663,6 +1663,22 @@ void CalcShapValuesForDocumentMulti(
                             &shapValuesByLeaf
                         );
                     } else {
+                        TVector<bool> mapNodeIdToIsGoRight = GetDocumentIsGoRightMapperForNodesInNonObliviousTree(
+                            *model.ModelTrees.Get(),
+                            treeIdx,
+                            binarizedFeaturesForBlock,
+                            documentIdxInBlock
+                        );
+                        CalcNonObliviousExactShapValuesForLeaf(
+                            *model.ModelTrees.Get(),
+                            preparedTrees.BinFeatureCombinationClass,
+                            preparedTrees.CombinationClassFeatures,
+                            mapNodeIdToIsGoRight,
+                            treeIdx,
+                            preparedTrees.SubtreeWeightsForAllTrees[treeIdx],
+                            preparedTrees.CalcInternalValues,
+                            &shapValuesByLeaf
+                        );
                     }
                     break;
             }
@@ -2211,6 +2227,22 @@ void CalcShapValuesInternalForFeature(
                                     &shapValuesByLeaf
                                 );
                             } else {
+                                const TVector<bool> docPathIndexes = GetDocumentIsGoRightMapperForNodesInNonObliviousTree(
+                                    *model.ModelTrees.Get(),
+                                    treeIdx,
+                                    binarizedFeaturesForBlock.Get(),
+                                    documentIdx - startIdx
+                                );
+                                CalcNonObliviousExactShapValuesForLeaf(
+                                    forest,
+                                    preparedTrees.BinFeatureCombinationClass,
+                                    preparedTrees.CombinationClassFeatures,
+                                    docPathIndexes,
+                                    treeIdx,
+                                    preparedTrees.SubtreeWeightsForAllTrees[treeIdx],
+                                    preparedTrees.CalcInternalValues,
+                                    &shapValuesByLeaf
+                                );
                             }
                             break;
                     }

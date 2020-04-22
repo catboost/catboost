@@ -447,6 +447,10 @@
         "checksum": "b1fdc56dd311dfaf8b6a5bd748a56e5c",
         "uri": "file://test.test_eval_set_with_no_target_CPU_/evals.txt"
     },
+    "test.test_exact_shap_feature_importance[CPU]": {
+        "checksum": "4146050b6b01c0b22c782f24b5dac354",
+        "uri": "file://test.test_exact_shap_feature_importance_CPU_/feature_importance.npy"
+    },
     "test.test_exact_shap_feature_importance_multiclass[CPU]": {
         "checksum": "1ee92874d0195a62240d5ab72267a8c2",
         "uri": "file://test.test_exact_shap_feature_importance_multiclass_CPU_/feature_importance.npy"
