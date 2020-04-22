@@ -447,6 +447,18 @@
         "checksum": "b1fdc56dd311dfaf8b6a5bd748a56e5c",
         "uri": "file://test.test_eval_set_with_no_target_CPU_/evals.txt"
     },
+    "test.test_exact_shap_feature_importance_multiclass[CPU]": {
+        "checksum": "1ee92874d0195a62240d5ab72267a8c2",
+        "uri": "file://test.test_exact_shap_feature_importance_multiclass_CPU_/feature_importance.npy"
+    },
+    "test.test_exact_shap_feature_importance_ranking[CPU]": {
+        "checksum": "83bd8b1fb11190c3dacee3b990028eed",
+        "uri": "file://test.test_exact_shap_feature_importance_ranking_CPU_/feature_importance.npy"
+    },
+    "test.test_exact_shap_feature_importance_with_langevin": {
+        "checksum": "1723d4e30e311134558f4527e81b160d",
+        "uri": "file://test.test_exact_shap_feature_importance_with_langevin/feature_importance.npy"
+    },
     "test.test_export_to_python_no_cat_features[CPU-2]": {
         "checksum": "d847eb814cd796c6467990b3818bdd63",
         "uri": "file://test.test_export_to_python_no_cat_features_CPU-2_/model.py"

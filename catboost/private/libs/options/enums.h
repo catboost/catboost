@@ -251,7 +251,8 @@ enum class EPreCalcShapValues {
 
 enum class ECalcTypeShapValues {
     Approximate,
-    Normal
+    Normal,
+    Exact
 };
 
 enum class EObservationsToBootstrap {
