@@ -14,7 +14,7 @@
 #include <util/generic/set.h>
 
 constexpr int BinaryClassesCount = 2;
-static TString ConfusionMatrixCacheKey = "Confusion Matrix";
+static const TString ConfusionMatrixCacheKey = "Confusion Matrix";
 
 /* Caching metric */
 
@@ -139,7 +139,7 @@ static TMetricHolder BuildConfusionMatrix(
 /* MCC caching metric */
 
 namespace {
-    struct TMCCCachingMetric : public TCachingMetric {
+    struct TMCCCachingMetric final: public TCachingMetric {
         explicit TMCCCachingMetric(int classesCount)
             : ClassesCount(classesCount)
             , IsMultiClass(true) {
@@ -250,7 +250,7 @@ void TMCCCachingMetric::GetBestValue(EMetricBestValue *valueType, float *) const
 /* Zero one loss caching metric */
 
 namespace {
-    struct TZeroOneLossCachingMetric: public TCachingMetric {
+    struct TZeroOneLossCachingMetric final: public TCachingMetric {
         explicit TZeroOneLossCachingMetric(int classesCount)
             : ClassesCount(classesCount)
             , IsMultiClass(true) {
@@ -346,7 +346,7 @@ THolder<IMetric> MakeZeroOneLossMetric(int classCount) {
 /* Accuracy caching metric */
 
 namespace {
-    struct TAccuracyCachingMetric : public TCachingMetric {
+    struct TAccuracyCachingMetric final: public TCachingMetric {
         explicit TAccuracyCachingMetric(double predictionBorder)
             : TargetBorder(GetDefaultTargetBorder())
             , PredictionBorder(predictionBorder)
@@ -431,7 +431,7 @@ void TAccuracyCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) c
 /* Recall caching metric */
 
 namespace {
-    struct TRecallCachingMetric: public TCachingMetric {
+    struct TRecallCachingMetric final: public TCachingMetric {
         explicit TRecallCachingMetric(double predictionBorder)
             : ClassesCount(BinaryClassesCount)
             , TargetBorder(GetDefaultTargetBorder())
@@ -531,7 +531,7 @@ void TRecallCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) con
 /* Precision caching metric */
 
 namespace {
-    struct TPrecisionCachingMetric: public TCachingMetric {
+    struct TPrecisionCachingMetric final: public TCachingMetric {
         explicit TPrecisionCachingMetric(double predictionBorder)
             : ClassesCount(BinaryClassesCount)
             , TargetBorder(GetDefaultTargetBorder())
@@ -632,7 +632,7 @@ void TPrecisionCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) 
 /* F1 caching metric */
 
 namespace {
-    struct TF1CachingMetric: public TCachingMetric {
+    struct TF1CachingMetric final: public TCachingMetric {
         explicit TF1CachingMetric(double predictionBorder)
             : ClassesCount(BinaryClassesCount)
             , TargetBorder(GetDefaultTargetBorder())
@@ -740,7 +740,7 @@ void TF1CachingMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 /* TotalF1 caching metric */
 
 namespace {
-    struct TTotalF1CachingMetric: public TCachingMetric {
+    struct TTotalF1CachingMetric final: public TCachingMetric {
         static constexpr int StatsCardinality = 3;
 
         explicit TTotalF1CachingMetric(double predictionBorder, EF1AverageType averageType)
@@ -885,7 +885,7 @@ void TTotalF1CachingMetric::GetBestValue(EMetricBestValue* valueType, float*) co
 /* Kappa */
 
 namespace {
-    struct TKappaMetric: public TCachingMetric {
+    struct TKappaMetric final: public TCachingMetric {
         explicit TKappaMetric(int classCount = 2, double predictionBorder = GetDefaultPredictionBorder())
             : TargetBorder(GetDefaultTargetBorder())
             , PredictionBorder(predictionBorder)
@@ -961,7 +961,7 @@ double TKappaMetric::GetFinalError(const TMetricHolder& error) const {
 /* WKappa */
 
 namespace {
-    struct TWKappaMetric: public TCachingMetric {
+    struct TWKappaMetric final: public TCachingMetric {
         explicit TWKappaMetric(int classCount = 2, double predictionBorder = GetDefaultPredictionBorder())
             : TargetBorder(GetDefaultTargetBorder())
             , PredictionBorder(predictionBorder)

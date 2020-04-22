@@ -179,7 +179,7 @@ struct TMultiRegressionMetric: public TMetric {
         int /*begin*/,
         int /*end*/,
         NPar::TLocalExecutor& /*executor*/
-    ) const override {
+    ) const final {
         CB_ENSURE(false, "Multiregression metrics should not be used like regular metric");
     }
     TMetricHolder Eval(
@@ -192,10 +192,10 @@ struct TMultiRegressionMetric: public TMetric {
         int /*begin*/,
         int /*end*/,
         NPar::TLocalExecutor& /*executor*/
-    ) const override {
+    ) const final {
         CB_ENSURE(false, "Multiregression metrics should not be used like regular metric");
     }
-    EErrorType GetErrorType() const override final {
+    EErrorType GetErrorType() const final {
         return EErrorType::PerObjectError;
     }
 };
@@ -230,76 +230,6 @@ static inline TMetricHolder ParallelEvalMetric(TEvalFunction eval, int minBlockS
     return result;
 
 }
-
-template <typename TImpl>
-struct TAdditiveMultiRegressionMetric: public TMultiRegressionMetric {
-    TMetricHolder Eval(
-        TConstArrayRef<TVector<double>> approx,
-        TConstArrayRef<TVector<double>> approxDelta,
-        TConstArrayRef<TConstArrayRef<float>> target,
-        TConstArrayRef<float> weight,
-        int begin,
-        int end,
-        NPar::TLocalExecutor& executor
-    ) const override {
-        const auto evalMetric = [&](int from, int to) {
-            return static_cast<const TImpl*>(this)->EvalSingleThread(
-                approx, approxDelta, target, UseWeights.IsIgnored() || UseWeights ? weight : TVector<float>{}, from, to
-            );
-        };
-
-        return ParallelEvalMetric(evalMetric, GetMinBlockSize(end - begin), begin, end, executor);
-    }
-
-    bool IsAdditiveMetric() const override final {
-        return true;
-    }
-};
-
-template <class TImpl>
-struct TAdditiveMetric: public TMetric {
-    TMetricHolder Eval(
-        const TVector<TVector<double>>& approx,
-        TConstArrayRef<float> target,
-        TConstArrayRef<float> weight,
-        TConstArrayRef<TQueryInfo> queriesInfo,
-        int begin,
-        int end,
-        NPar::TLocalExecutor& executor
-    ) const final {
-        return Eval(To2DConstArrayRef<double>(approx), /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
-    }
-
-    TMetricHolder Eval(
-        const TConstArrayRef<TConstArrayRef<double>> approx,
-        const TConstArrayRef<TConstArrayRef<double>> approxDelta,
-        bool isExpApprox,
-        TConstArrayRef<float> target,
-        TConstArrayRef<float> weight,
-        TConstArrayRef<TQueryInfo> queriesInfo,
-        int begin,
-        int end,
-        NPar::TLocalExecutor& executor
-    ) const final {
-        const auto evalMetric = [&](int from, int to) {
-            return static_cast<const TImpl*>(this)->EvalSingleThread(
-                approx, approxDelta, isExpApprox, target, UseWeights.IsIgnored() || UseWeights ? weight : TVector<float>{}, queriesInfo, from, to
-            );
-        };
-
-        return ParallelEvalMetric(evalMetric, GetMinBlockSize(end - begin), begin, end, executor);
-    }
-
-    bool IsAdditiveMetric() const final {
-        return true;
-    }
-};
-
-struct TNonAdditiveMetric: public TMetric {
-    bool IsAdditiveMetric() const final {
-        return false;
-    }
-};
 
 THolder<IMetric> MakeCrossEntropyMetric(ELossFunction lossFunction);
 
