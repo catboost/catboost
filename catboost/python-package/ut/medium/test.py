@@ -3228,7 +3228,7 @@ def test_exact_shap_feature_importance_asymmetric_and_symmetric(task_type):
     model._convert_to_asymmetric_representation()
     shap_asymm = np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool,
                                                        shap_calc_type="Exact"))
-    # assert np.all(shap_symm - shap_asymm < 1e-8)
+    assert np.all(shap_symm - shap_asymm < 1e-8)
 
 
 def test_shap_feature_importance_with_langevin():
