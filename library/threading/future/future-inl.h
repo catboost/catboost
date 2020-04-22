@@ -594,6 +594,32 @@ namespace NThreading {
 
     ////////////////////////////////////////////////////////////////////////////////
 
+    class TFutureStateId {
+    private:
+        const void* Id;
+
+    public:
+        template <typename T>
+        explicit TFutureStateId(const NImpl::TFutureState<T>& state)
+            : Id(&state)
+        {
+        }
+
+        const void* Value() const noexcept {
+            return Id;
+        }
+    };
+
+    inline bool operator==(const TFutureStateId& l, const TFutureStateId& r) {
+        return l.Value() == r.Value();
+    }
+
+    inline bool operator!=(const TFutureStateId& l, const TFutureStateId& r) {
+        return !(l == r);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+
     template <typename T>
     inline TFuture<T>::TFuture(const TIntrusivePtr<TFutureState>& state) noexcept
         : State(state)
@@ -713,6 +739,11 @@ namespace NThreading {
     }
 
     template <typename T>
+    inline TMaybe<TFutureStateId> TFuture<T>::StateId() const noexcept {
+        return State != nullptr ? MakeMaybe<TFutureStateId>(*State) : Nothing();
+    }
+
+    template <typename T>
     inline void TFuture<T>::EnsureInitialized() const {
         if (!State) {
             ythrow TFutureException() << "state not initialized";
@@ -802,6 +833,10 @@ namespace NThreading {
 
     inline bool TFuture<void>::Initialized() const {
         return bool(State);
+    }
+
+    inline TMaybe<TFutureStateId> TFuture<void>::StateId() const noexcept {
+        return State != nullptr ? MakeMaybe<TFutureStateId>(*State) : Nothing();
     }
 
     inline void TFuture<void>::EnsureInitialized() const {

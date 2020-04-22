@@ -3,8 +3,39 @@
 #include <library/unittest/registar.h>
 
 #include <list>
+#include <type_traits>
 
 namespace NThreading {
+
+namespace {
+
+    template <typename T>
+    auto MakePromise() {
+        if constexpr (std::is_same_v<T, void>) {
+            return NewPromise();
+        }
+        return NewPromise<T>();
+    }
+
+
+    template <typename T>
+    void TestFutureStateId() {
+        TFuture<T> empty;
+        UNIT_ASSERT(!empty.StateId().Defined());
+        auto promise1 = MakePromise<T>();
+        auto future11 = promise1.GetFuture();
+        UNIT_ASSERT(future11.StateId().Defined());
+        auto future12 = promise1.GetFuture();
+        UNIT_ASSERT_EQUAL(future11.StateId(), future11.StateId()); // same result for subsequent invocations
+        UNIT_ASSERT_EQUAL(future11.StateId(), future12.StateId()); // same result for different futures with the same state
+        auto promise2 = MakePromise<T>();
+        auto future2 = promise2.GetFuture();
+        UNIT_ASSERT(future2.StateId().Defined());
+        UNIT_ASSERT_UNEQUAL(future11.StateId(), future2.StateId()); // different results for futures with different states
+    }
+
+}
+
     ////////////////////////////////////////////////////////////////////////////////
 
     Y_UNIT_TEST_SUITE(TFutureTest) {
@@ -483,6 +514,11 @@ namespace NThreading {
             UNIT_ASSERT(!wait.HasValue() && !wait.HasException());
             promise1.SetValue();
             UNIT_ASSERT_EXCEPTION_CONTAINS(wait.GetValueSync(), yexception, "foo-exception");
+        }
+
+        Y_UNIT_TEST(FutureStateId) {
+            TestFutureStateId<void>();
+            TestFutureStateId<int>();
         }
     }
 
