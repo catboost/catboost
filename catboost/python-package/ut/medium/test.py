@@ -3562,6 +3562,37 @@ def test_shap_feature_probability(task_type):
         assert abs(sum(shap_values[doc_idx]) - predictions[doc_idx][1]) < 1e-6
 
 
+def test_shap_feature_log_loss(task_type):
+    def log_loss(yt, yp):
+        return (-(yt * np.log(yp) + (1 - yt) * np.log(1 - yp)))
+
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    reference_data = make_reference_data(pool, "IndependentTreeSHAP")
+    model = CatBoostClassifier(iterations=50, loss_function='Logloss', task_type=task_type)
+    model.fit(pool)
+    label = pool.get_label()
+    shap_values = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, reference_data=reference_data, model_output="LossFunction")
+    predictions = model.predict(pool, "Probability")
+    for doc_idx in range(len(shap_values)):
+        assert abs(sum(shap_values[doc_idx]) - log_loss(float(label[doc_idx]), float(predictions[doc_idx][1]))) < 1e-6
+
+
+def test_shap_feature_rmse(task_type):
+    def rmse(yt, yp):
+        return np.absolute(yt - yp)
+
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    test_pool = Pool(TEST_FILE, column_description=CD_FILE)
+    reference_data = make_reference_data(train_pool, "IndependentTreeSHAP")
+    model = CatBoostRegressor(iterations=10, loss_function='RMSE')
+    model.fit(train_pool)
+    label = test_pool.get_label()
+    shap_values = model.get_feature_importance(type=EFstrType.ShapValues, data=test_pool, reference_data=reference_data, model_output="LossFunction")
+    predictions = model.predict(test_pool)
+    for doc_idx in range(len(shap_values)):
+        assert abs(sum(shap_values[doc_idx]) - rmse(float(label[doc_idx]), float(predictions[doc_idx]))) < 1e-6
+
+
 def test_prediction_diff_feature_importance():
     pool_file = 'higgs'
     pool = Pool(data_file(pool_file, 'train_small'), column_description=data_file(pool_file, 'train.cd'))

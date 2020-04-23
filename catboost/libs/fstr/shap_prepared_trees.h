@@ -1,6 +1,7 @@
 #pragma once
 
 #include <catboost/libs/data/data_provider.h>
+#include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/options/loss_description.h>
@@ -36,7 +37,8 @@ struct TIndependentTreeShapParams {
     TVector<TVector<double>> ApproxOfDataset; // [dim][documentIdx]
     TVector<TVector<double>> ApproxOfReferenceDataset; // [dim][documentIdx]
     EModelOutputType ModelOutputType;
-    TTransformFunc TransformFunction; 
+    TTransformFunc TransformFunction;
+    THolder<IMetric> Metric;
 
     TVector<TVector<double>> Weights;
     TVector<TVector<TVector<TVector<TVector<double>>>>> ShapValueByDepthBetweenLeavesForAllTrees; // [treeIdx][leafIdx(foregroundLeafIdx)][leafIdx(referenceLeafIdx)][depth][dimension]

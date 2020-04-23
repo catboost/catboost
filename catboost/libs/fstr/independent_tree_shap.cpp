@@ -392,8 +392,19 @@ static void CalcObliviousShapValuesByDepthForLeaf(
     }
 }
 
+static inline double TransformDocument(
+    const THolder<IMetric>& metric,
+    double target,
+    double approx
+) {
+    TVector<TVector<double>> approxVector(1, TVector<double>(1, approx));
+    TVector<float> targetVector(1, target);
+    auto score = metric->Eval(approxVector, targetVector, {}, {}, 0, 1, NPar::LocalExecutor());
+    return metric->GetFinalError(score);
+}
+
 static inline double GetTransformData(
-    const TTransformFunc& transformFunction,
+    const THolder<IMetric>& metric,
     EModelOutputType modelOutputType,
     double target,
     double approx
@@ -402,7 +413,7 @@ static inline double GetTransformData(
         case EModelOutputType::Probability:
             return 1.0 / (1 + exp(-approx));
         case EModelOutputType::LossFunction:
-            return transformFunction(target, approx);
+            return TransformDocument(metric, target, approx);
         default:
             CB_ENSURE_INTERNAL(false, "Not recognized type of model output");
     }
@@ -468,12 +479,12 @@ void IndependentTreeShap(
     shapValues->assign(approxDimension, TVector<double>(featureCount + 1, 0.0));
     EModelOutputType modelOutputType = independentTreeShapParams.ModelOutputType;
     const bool isNotRawOutputType = (EModelOutputType::Raw != modelOutputType);
-    const auto& transformFunc = independentTreeShapParams.TransformFunction;
+    const auto& metric = independentTreeShapParams.Metric;
     const auto& approxOfDataset = independentTreeShapParams.ApproxOfDataset;
     const auto& approxOfReferenceDataset = independentTreeShapParams.ApproxOfReferenceDataset;
     const auto& targetOfDataset = independentTreeShapParams.TargetOfDataset;
     const auto& transformedTargetOfDataset = independentTreeShapParams.TransformedTargetOfDataset;
-
+    const double bias = model.GetScaleAndBias().Bias;
     for (int dimension = 0; dimension < approxDimension; ++dimension) {
         TConstArrayRef<double> approxOfReferenceDatasetRef = MakeConstArrayRef(approxOfReferenceDataset[dimension]); 
         TArrayRef<double> shapValuesRef = MakeArrayRef((*shapValues)[dimension]);
@@ -486,7 +497,7 @@ void IndependentTreeShap(
             double transformedCoeffient = 1.0;
             if (isNotRawOutputType && approxOfDocument != approxOfReferenceDatasetRef[referenceIdx]) {
                 double transformReferenceTarget = GetTransformData(
-                    transformFunc,
+                    metric,
                     modelOutputType,
                     targetOfDocument,
                     approxOfReferenceDatasetRef[referenceIdx]
@@ -500,18 +511,15 @@ void IndependentTreeShap(
             }
             if (isNotRawOutputType) {
                 shapValuesRef[featureCount] += GetTransformData(
-                    transformFunc,
+                    metric,
                     modelOutputType,
-                    0,
-                    shapValueOneDimension[featureCount]
+                    targetOfDocument,
+                    shapValueOneDimension[featureCount] + bias
                 ) / rescaleCoefficient;
             } else {
                 shapValuesRef[featureCount] += (shapValueOneDimension[featureCount] / rescaleCoefficient);
             }
         }
-    }
-    if (approxDimension == 1) {
-        (*shapValues)[0][featureCount] += model.GetScaleAndBias().Bias;
     }
 }
 
@@ -531,31 +539,10 @@ static TVector<TVector<double>> CalcWeightsForIndependentTreeShap(const TFullMod
     return weights;
 }
 
-static double MSETransform(double target, double approx) {
-    return (target - approx) * (target - approx); 
-}
-
-static double LoglossTransform(double target, double approx) {
-    return log(1 + exp(approx)) - target * approx;
-}
-
-static inline TTransformFunc GetTransformFunction(const NCatboostOptions::TLossDescription& metricDescription) {
-    ELossFunction lossFunction = metricDescription.GetLossFunction();
-    switch (lossFunction) {
-        case ELossFunction::RMSE: 
-            return MSETransform;
-        case ELossFunction::Logloss:
-            return LoglossTransform;
-        default:
-            CB_ENSURE(false, "Only RMSE and Logloss metric are explainable by shap Values at the moment");
-    }
-    Y_UNREACHABLE();
-}
-
 static TVector<TVector<double>> GetTransformedTarget(
     const TVector<TVector<double>>& approx,
     const TVector<TVector<double>>& targetData,
-    const TTransformFunc& transformFunction
+    const THolder<IMetric>& metric
 ) {
     CB_ENSURE_INTERNAL(
         approx.size() == targetData.size() && approx[0].size() == targetData[0].size(),
@@ -568,7 +555,8 @@ static TVector<TVector<double>> GetTransformedTarget(
         TArrayRef<double> transformedTargetRef = MakeArrayRef(transformedTarget[dimension]);
 
         for (auto documentIdx : xrange(approxRef.size())) {        
-            transformedTargetRef[documentIdx] = transformFunction(
+            transformedTargetRef[documentIdx] = TransformDocument(
+                metric,
                 targetDataRef[documentIdx],
                 approxRef[documentIdx]
             );
@@ -590,11 +578,12 @@ void TIndependentTreeShapParams::InitTransformedData(
             break;
         }
         case EModelOutputType::LossFunction : {
-            TransformFunction = GetTransformFunction(metricDescription);
+            Metric = std::move(CreateMetricFromDescription(metricDescription, model.GetDimensionsCount())[0]);
+            CB_ENSURE(model.GetDimensionsCount() <= 1, "Multi-dimensional target fstr is unimplemented yet");
             TransformedTargetOfDataset = GetTransformedTarget(
                 ApproxOfDataset,
                 TargetOfDataset,
-                TransformFunction
+                Metric
             );
             break;
         }
