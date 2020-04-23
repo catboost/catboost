@@ -4238,7 +4238,7 @@ static inline double BestQueryShift(const double* cursor,
 }
 
 namespace {
-    struct TQueryCrossEntropyMetric : public TAdditiveMetric<TQueryCrossEntropyMetric> {
+    struct TQueryCrossEntropyMetric final: public TAdditiveMetric<TQueryCrossEntropyMetric> {
         explicit TQueryCrossEntropyMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
                                           double alpha);
         static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
@@ -4251,7 +4251,7 @@ namespace {
                 TConstArrayRef<TQueryInfo> queriesInfo,
                 int queryStartIndex,
                 int queryEndIndex
-        ) const;
+        ) const override;
         EErrorType GetErrorType() const override;
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
