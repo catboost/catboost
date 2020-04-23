@@ -1391,11 +1391,11 @@
     ],
     "test.test_custom_loss[Ordered-MSLE,MedianAbsoluteError,SMAPE]": [
         {
-            "checksum": "bdf50f880b70f13bf0e957423212857e",
+            "checksum": "713578ea93055354b4d2dca85680326e",
             "uri": "file://test.test_custom_loss_Ordered-MSLE_MedianAbsoluteError_SMAPE_/learn_error.tsv"
         },
         {
-            "checksum": "20eef66f43b615cc920e9c2752714c3f",
+            "checksum": "7eea9d485fb1898d13d00eacf4d7f4f3",
             "uri": "file://test.test_custom_loss_Ordered-MSLE_MedianAbsoluteError_SMAPE_/test_error.tsv"
         }
     ],
@@ -1411,11 +1411,11 @@
     ],
     "test.test_custom_loss[Ordered-Quantile:alpha=0.9]": [
         {
-            "checksum": "16e86b23acc84eb3779d1c309e72734b",
+            "checksum": "904a857c4eaa6d02c59b864d243f347b",
             "uri": "file://test.test_custom_loss_Ordered-Quantile_alpha=0.9_/learn_error.tsv"
         },
         {
-            "checksum": "d406e0ab8a529ad54e9d31aa9d8c12a8",
+            "checksum": "58f7be53ed370c483cb3d6a8b65b1a36",
             "uri": "file://test.test_custom_loss_Ordered-Quantile_alpha=0.9_/test_error.tsv"
         }
     ],
@@ -1441,11 +1441,11 @@
     ],
     "test.test_custom_loss[Plain-MSLE,MedianAbsoluteError,SMAPE]": [
         {
-            "checksum": "f78d42ec058ad1075bdb66487faf42fd",
+            "checksum": "8726962b88369e766681a9828d7dc59d",
             "uri": "file://test.test_custom_loss_Plain-MSLE_MedianAbsoluteError_SMAPE_/learn_error.tsv"
         },
         {
-            "checksum": "7dfc83584ceed756b2798e4d1ca1517a",
+            "checksum": "85c4f1008dc973eb9fa0a076a55a02dd",
             "uri": "file://test.test_custom_loss_Plain-MSLE_MedianAbsoluteError_SMAPE_/test_error.tsv"
         }
     ],
@@ -1461,11 +1461,11 @@
     ],
     "test.test_custom_loss[Plain-Quantile:alpha=0.9]": [
         {
-            "checksum": "e2f1415322d96c7c2963ce9463d315c2",
+            "checksum": "f36e46f47b8142c3931a9485270a7ed3",
             "uri": "file://test.test_custom_loss_Plain-Quantile_alpha=0.9_/learn_error.tsv"
         },
         {
-            "checksum": "83ebd3112782cc8a05cda531bf2ebe61",
+            "checksum": "27490baebc072e6609110d37cf627b5e",
             "uri": "file://test.test_custom_loss_Plain-Quantile_alpha=0.9_/test_error.tsv"
         }
     ],
