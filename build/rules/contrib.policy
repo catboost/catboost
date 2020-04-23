@@ -138,6 +138,11 @@ ALLOW weather/workers/nowcasting/preprocess_meteosat -> contrib/python/mipp
 ALLOW yql/udfs/common/python/python_arc -> contrib/python/mipp
 DENY .* -> contrib/python/mipp
 
+DENY .* -> contrib/python/pdbpp
+
+ALLOW contrib/python/pdbpp -> contrib/python/fancycompleter
+DENY .* -> contrib/python/fancycompleter
+
 ALLOW infra/procman -> contrib/python/skynet_pyro4
 ALLOW skynet -> contrib/python/skynet_pyro4
 DENY .* -> contrib/python/skynet_pyro4
