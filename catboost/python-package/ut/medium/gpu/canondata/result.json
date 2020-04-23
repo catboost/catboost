@@ -449,6 +449,18 @@
         "checksum": "fabfdd27e8f0493b0a84f19af348994b",
         "uri": "file://test.test_predict_sklearn_regress_GPU_/model.bin"
     },
+    "test.test_prediction_diff_feature_importance[GPU]": {
+        "checksum": "2e04b73ddc6fc839f16114613d5325c4",
+        "uri": "file://test.test_prediction_diff_feature_importance_GPU_/feature_importance.npy"
+    },
+    "test.test_prediction_diff_nonsym_feature_importance[GPU-Depthwise]": {
+        "checksum": "6e339a834c55cd6095d48886762285d9",
+        "uri": "file://test.test_prediction_diff_nonsym_feature_importance_GPU-Depthwise_/feature_importance.txt"
+    },
+    "test.test_prediction_diff_nonsym_feature_importance[GPU-Lossguide]": {
+        "checksum": "bf4dccf32b31f620fd388f957834aadc",
+        "uri": "file://test.test_prediction_diff_nonsym_feature_importance_GPU-Lossguide_/feature_importance.txt"
+    },
     "test.test_priors[GPU]": {
         "checksum": "c5c87a1ef3e729d0d9da8c64e93a9b30",
         "uri": "file://test.test_priors_GPU_/model.bin"

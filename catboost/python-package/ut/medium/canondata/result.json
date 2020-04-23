@@ -862,15 +862,15 @@
         "uri": "file://test.test_predict_sklearn_regress_CPU_/model.bin"
     },
     "test.test_prediction_diff_feature_importance[CPU]": {
-        "checksum": "9842358f4b8a9a7427b8be7bc46c9956",
+        "checksum": "88f14d1a5bff8a845d9317a1ff375e1e",
         "uri": "file://test.test_prediction_diff_feature_importance_CPU_/feature_importance.npy"
     },
     "test.test_prediction_diff_nonsym_feature_importance[CPU-Depthwise]": {
-        "checksum": "9287b46613e4de35e19e169bd38a4d6b",
+        "checksum": "e0b83289740888c8451883a7ba3e069b",
         "uri": "file://test.test_prediction_diff_nonsym_feature_importance_CPU-Depthwise_/feature_importance.txt"
     },
     "test.test_prediction_diff_nonsym_feature_importance[CPU-Lossguide]": {
-        "checksum": "140c0e29e0539f15e561e4c900257da7",
+        "checksum": "ddbd9be6c8067bd20745a22181c06b8c",
         "uri": "file://test.test_prediction_diff_nonsym_feature_importance_CPU-Lossguide_/feature_importance.txt"
     },
     "test.test_prediction_plot": {
