@@ -2289,7 +2289,7 @@ class CatBoost(_CatBoostBase):
             used only for ShapValues type
             Possible values:
                 - "Regular"
-                    Calculate normal SHAP values
+                    Calculate regular SHAP values
                 - "Approximate"
                     Calculate approximate SHAP values
                 - "Exact"
