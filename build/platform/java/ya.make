@@ -3,4 +3,6 @@ RECURSE(
     jni
     uberjar
     error_prone
+    jacoco-agent
+    kotlin
 )

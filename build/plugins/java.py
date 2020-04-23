@@ -121,6 +121,9 @@ def onjava_module(unit, *args):
     if unit.get('ERROR_PRONE_VALUE') == 'yes':
         data['ERROR_PRONE'] = extract_macro_calls(unit, 'ERROR_PRONE_VALUE', args_delim)
 
+    if unit.get('WITH_KOTLIN_VALUE') == 'yes':
+        data['WITH_KOTLIN'] = extract_macro_calls(unit, 'WITH_KOTLIN_VALUE', args_delim)
+
     if unit.get('MAKE_UBERJAR_VALUE') == 'yes':
         if unit.get('MODULE_TYPE') != 'JAVA_PROGRAM':
             ymake.report_configure_error('{}: UBERJAR supported only for JAVA_PROGRAM module type'.format(unit.path()))

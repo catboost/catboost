@@ -12,7 +12,7 @@ if __name__ == '__main__':
     srcs = sys.argv[4:]
 
     for src in srcs:
-        if src.endswith('.java'):
+        if src.endswith('.java') or src.endswith('.kt'):
             src_rel_path = os.path.relpath(src, root)
 
             if os.path.join(root, src_rel_path) == src:
