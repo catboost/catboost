@@ -120,11 +120,6 @@ namespace NThreading {
                 return Value;
             }
 
-            T& GetValueMutable(TDuration timeout = TDuration::Zero()) {
-                AccessValue(timeout, ValueRead);
-                return Value;
-            }
-
             T ExtractValue(TDuration timeout = TDuration::Zero()) {
                 AccessValue(timeout, ValueMoved);
                 return std::move(Value);
@@ -643,12 +638,6 @@ namespace NThreading {
     }
 
     template <typename T>
-    inline T& TFuture<T>::GetValueMutable(TDuration timeout) {
-        EnsureInitialized();
-        return State->GetValueMutable(timeout);
-    }
-
-    template <typename T>
     inline T TFuture<T>::ExtractValue(TDuration timeout) {
         EnsureInitialized();
         return State->ExtractValue(timeout);
@@ -657,11 +646,6 @@ namespace NThreading {
     template <typename T>
     inline const T& TFuture<T>::GetValueSync() const {
         return GetValue(TDuration::Max());
-    }
-
-    template <typename T>
-    inline T& TFuture<T>::GetValueMutableSync() {
-        return GetValueMutable(TDuration::Max());
     }
 
     template <typename T>

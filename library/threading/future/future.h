@@ -105,9 +105,7 @@ namespace NThreading {
 
         bool HasValue() const;
         const T& GetValue(TDuration timeout = TDuration::Zero()) const;
-        T& GetValueMutable(TDuration timeout = TDuration::Zero());
         const T& GetValueSync() const;
-        T& GetValueMutableSync();
         T ExtractValue(TDuration timeout = TDuration::Zero());
         T ExtractValueSync();
 
