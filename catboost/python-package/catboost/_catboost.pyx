@@ -856,6 +856,7 @@ cdef extern from "catboost/libs/data/load_data.h" namespace "NCB":
         bool_t verbose
     ) nogil except +ProcessException
 
+
 cdef extern from "catboost/libs/data/load_and_quantize_data.h" namespace "NCB":
     cdef TDataProviderPtr ReadAndQuantizeDataset(
         const TPathWithScheme& poolPath,
@@ -874,6 +875,7 @@ cdef extern from "catboost/libs/data/load_and_quantize_data.h" namespace "NCB":
         int threadCount,
         bool_t verbose
     ) nogil except +ProcessException
+
 
 cdef extern from "catboost/private/libs/algo_helpers/hessian.h":
     cdef cppclass THessianInfo:
@@ -2897,14 +2899,16 @@ cdef _set_data_from_scipy_coo_sparse(
             builder_visitor
         )
 
-cdef _set_data_from_scipy_csr_sparse(
-    data,
-    indices,
-    indptr,
-    TConstArrayRef[bool_t] is_cat_feature_mask,
-    IRawObjectsOrderDataVisitor * builder_visitor
+
+@cython.boundscheck(False)
+def _set_data_from_scipy_csr_sparse(
+    numpy_num_dtype[:] data,
+    numpy_indices_dtype[:] indices,
+    numpy_indices_dtype[:] indptr,
+    Py_ObjectsOrderBuilderVisitor py_builder_visitor
 ):
     cdef int doc_count = indptr.shape[0] - 1
+    cdef IRawObjectsOrderDataVisitor * builder_visitor = py_builder_visitor.builder_visitor
 
     if doc_count == 0:
         return
@@ -2913,8 +2917,13 @@ cdef _set_data_from_scipy_csr_sparse(
     cdef int nonzero_elements_idx
     cdef int doc_idx
     cdef int feature_idx
+    cdef TVector[bool_t] is_cat_feature_mask = _get_is_feature_type_mask(py_builder_visitor.features_layout, EFeatureType_Categorical)
 
-    cdef bool_t is_float_value = (data.dtype == np.float32) or (data.dtype == np.float64)
+    cdef bool_t is_float_value = False
+
+    if (numpy_num_dtype is np.float32_t) or (numpy_num_dtype is np.float64_t):
+        is_float_value = True
+
     cdef int nonzero_begin = 0
     cdef int nonzero_end = 0
     for doc_idx in xrange(doc_count):
@@ -2928,7 +2937,7 @@ cdef _set_data_from_scipy_csr_sparse(
                 feature_idx,
                 value,
                 is_float_value,
-                is_cat_feature_mask,
+                <TConstArrayRef[bool_t]>is_cat_feature_mask,
                 & factor_string_buf,
                 builder_visitor
             )
@@ -2972,8 +2981,9 @@ cdef _set_data_from_scipy_lil_sparse(
 cdef _set_objects_order_data_scipy_sparse_matrix(
     data,
     const TFeaturesLayout * features_layout,
-    IRawObjectsOrderDataVisitor * builder_visitor
+    Py_ObjectsOrderBuilderVisitor py_builder_visitor
 ):
+    cdef IRawObjectsOrderDataVisitor * builder_visitor = py_builder_visitor.builder_visitor
     _set_cat_features_default_values_for_scipy_sparse(features_layout, builder_visitor)
 
     cdef TVector[bool_t] is_cat_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Categorical)
@@ -3000,8 +3010,7 @@ cdef _set_objects_order_data_scipy_sparse_matrix(
             data.data,
             data.indices,
             data.indptr,
-            <TConstArrayRef[bool_t]>is_cat_feature_mask,
-            builder_visitor
+            py_builder_visitor
         )
     elif isinstance(data, scipy.sparse.dok_matrix):
         coo_matrix = data.tocoo()
@@ -3184,15 +3193,15 @@ cdef _set_data_from_generic_matrix(
                     get_float_feature(doc_idx, feature_idx, factor)
                 )
 
-cdef _set_data(data, const TFeaturesLayout* features_layout, IRawObjectsOrderDataVisitor* builder_visitor):
+cdef _set_data(data, const TFeaturesLayout* features_layout, Py_ObjectsOrderBuilderVisitor py_builder_visitor):
     if isinstance(data, FeaturesData):
-        _set_data_np(data.num_feature_data, data.cat_feature_data, builder_visitor)
+        _set_data_np(data.num_feature_data, data.cat_feature_data, py_builder_visitor.builder_visitor)
     elif isinstance(data, np.ndarray) and data.dtype == np.float32:
-        _set_data_np(data, None, builder_visitor)
+        _set_data_np(data, None, py_builder_visitor.builder_visitor)
     elif isinstance(data, SPARSE_MATRIX_TYPES):
-        _set_objects_order_data_scipy_sparse_matrix(data, features_layout, builder_visitor)
+        _set_objects_order_data_scipy_sparse_matrix(data, features_layout, py_builder_visitor)
     else:
-        _set_data_from_generic_matrix(data, features_layout, builder_visitor)
+        _set_data_from_generic_matrix(data, features_layout, py_builder_visitor.builder_visitor)
 
 
 cdef TString obj_to_arcadia_string(obj) except *:
@@ -3466,15 +3475,12 @@ cdef class _PoolBase:
 
         cdef TVector[ui32] emptyIntVec
         cdef TPathWithScheme input_borders_file_path
-
         if quantization_params is not None:
             input_borders = quantization_params.pop("input_borders", None)
             block_size = quantization_params.pop("dev_block_size", None)
             prep_params = _PreprocessParams(quantization_params)
-
             if input_borders:
                 input_borders_file_path = TPathWithScheme(<TStringBuf>to_arcadia_string(input_borders), TStringBuf(<char*>'dsv'))
-
             self.__pool = ReadAndQuantizeDataset(
                 pool_file_path,
                 pairs_file_path,
@@ -3641,7 +3647,7 @@ cdef class _PoolBase:
         )
         builder_visitor[0].StartNextBlock(_get_object_count(data))
 
-        _set_data(data, data_meta_info.FeaturesLayout.Get(), builder_visitor)
+        _set_data(data, data_meta_info.FeaturesLayout.Get(), py_builder_visitor)
 
         if label is not None:
             self._set_label_objects_order(label, py_builder_visitor)
@@ -4498,8 +4504,8 @@ cdef class _CatBoost:
                 )
             return _3d_vector_of_double_to_np_array(fstr_multi), native_feature_ids
         elif type_name == 'ShapInteractionValues':
-            # TODO: Ensure sensible results of non-'Normal' calculation types for ShapInteractionValues
-            assert shap_calc_type == "Normal", "Only 'Normal' calculation type is supported for ShapInteractionValues"
+            # TODO: Ensure sensible results of non-'Regular' calculation types for ShapInteractionValues
+            assert shap_calc_type == "Regular", "Only 'Regular' calculation type is supported for ShapInteractionValues"
             if interaction_indices is not None:
                 pair_of_features = _check_and_get_interaction_indices(pool, interaction_indices)
             with nogil:

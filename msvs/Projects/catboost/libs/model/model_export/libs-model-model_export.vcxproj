@@ -394,9 +394,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\resource\library-resource.vcxproj">
       <Project>{0182C1FA-B7CF-C21E-561C-06B91159C53A}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\base64\library-string_utils-base64.vcxproj">
-      <Project>{137212F6-D2FE-719F-EBE2-99060434BC72}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\relaxed_escaper\library-string_utils-relaxed_escaper.vcxproj">
       <Project>{91423FEC-8B3D-547B-2674-3740D83114B5}</Project>
     </ProjectReference>

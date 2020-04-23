@@ -2227,7 +2227,7 @@ class CatBoost(_CatBoostBase):
         else:
             return np.array(getattr(self, "_prediction_values_change", None))
 
-    def get_feature_importance(self, data=None, type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False, fstr_type=None, shap_mode="Auto", interaction_indices=None, shap_calc_type="Normal"):
+    def get_feature_importance(self, data=None, type=EFstrType.FeatureImportance, prettified=False, thread_count=-1, verbose=False, fstr_type=None, shap_mode="Auto", interaction_indices=None, shap_calc_type="Regular"):
         """
         Parameters
         ----------
@@ -2285,10 +2285,10 @@ class CatBoost(_CatBoostBase):
                     Use direct SHAP Values calculation calculation with complexity O(NTLD^2). Direct algorithm
                     is faster when N < L (algorithm from https://arxiv.org/abs/1802.03888)
 
-        shap_calc_type : string, optional (default="Normal")
+        shap_calc_type : string, optional (default="Regular")
             used only for ShapValues type
             Possible values:
-                - "Normal"
+                - "Regular"
                     Calculate normal SHAP values
                 - "Approximate"
                     Calculate approximate SHAP values
@@ -3107,7 +3107,7 @@ class CatBoost(_CatBoostBase):
                 fold_count, partition_random_seed, shuffle, stratified, train_size,
                 search_by_train_test_split, calc_cv_statistics, custom_folds, verbose
             )
-        
+
         if refit:
             if self.is_fitted():
                 raise CatBoostError("Model was fitted before hyperparameters tuning. You can't change hyperparameters of fitted model.")
@@ -3569,13 +3569,13 @@ class CatBoostClassifier(CatBoost):
 
     monotone_constraints : list or numpy.ndarray or string or dict, [default=None]
         Monotone constraints for features.
-        
+
     feature_weights : list or numpy.ndarray or string or dict, [default=None]
         Coefficient to multiply split gain with specific feature use. Should be non-negative.
-    
+
     penalties_coefficient : float, [default=1]
         Common coefficient for all penalties. Should be non-negative.
-        
+
     first_feature_use_penalties : list or numpy.ndarray or string or dict, [default=None]
         Penalties to first use of specific feature in model. Should be non-negative.
 

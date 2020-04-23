@@ -40,7 +40,7 @@
         "uri": "file://test.test_coreml_import_export_GPU_/model.mlmodel"
     },
     "test.test_coreml_import_export_one_hot_features[GPU]": {
-        "checksum": "7ed9d1141e07b90efe57efa93bfcd59a",
+        "checksum": "8834760c08c519607fe54ae990533090",
         "uri": "file://test.test_coreml_import_export_one_hot_features_GPU_/model.mlmodel"
     },
     "test.test_cpp_export_no_cat_features[GPU]": {
@@ -282,7 +282,7 @@
         "uri": "file://test.test_export_to_python_with_cat_features_GPU-40_/model.py"
     },
     "test.test_export_to_python_with_cat_features_from_pandas[GPU]": {
-        "checksum": "8eeb07c4dc67edbbea9d16e524ea4f6a",
+        "checksum": "32fb80b927a0a544810d58ad94a0b3d4",
         "uri": "file://test.test_export_to_python_with_cat_features_from_pandas_GPU_/model.py"
     },
     "test.test_feature_importance[GPU]": {
@@ -450,7 +450,7 @@
         "uri": "file://test.test_predict_sklearn_regress_GPU_/model.bin"
     },
     "test.test_priors[GPU]": {
-        "checksum": "041d97743097acefab211bcf0bd7eae3",
+        "checksum": "c5c87a1ef3e729d0d9da8c64e93a9b30",
         "uri": "file://test.test_priors_GPU_/model.bin"
     },
     "test.test_regress_with_per_float_feature_binarization_param[GPU]": {

@@ -107,7 +107,7 @@ void CalcShapValuesForDocumentMulti(
     TConstArrayRef<NCB::NModelEvaluation::TCalcerIndexType> docIndices,
     size_t documentIdx,
     TVector<TVector<double>>* shapValues,
-    ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
 );
 
 void CalcShapValuesForDocumentMulti(
@@ -118,13 +118,13 @@ void CalcShapValuesForDocumentMulti(
     TConstArrayRef<NCB::NModelEvaluation::TCalcerIndexType> docIndices,
     size_t documentIdx,
     TVector<TVector<double>>* shapValues,
-    ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
 );
 
 TShapPreparedTrees PrepareTrees(
     const TFullModel& model,
     NPar::TLocalExecutor* localExecutor,
-    ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
 );
 
 TShapPreparedTrees PrepareTrees(
@@ -133,7 +133,7 @@ TShapPreparedTrees PrepareTrees(
     EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor,
     bool calcInternalValues = false,
-    ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
 );
 
 void CalcShapValuesByLeaf(
@@ -143,7 +143,7 @@ void CalcShapValuesByLeaf(
     bool calcInternalValues,
     NPar::TLocalExecutor* localExecutor,
     TShapPreparedTrees* preparedTrees,
-    ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
 );
 
 // returned: ShapValues[documentIdx][dimension][feature]
@@ -154,7 +154,7 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     int logPeriod,
     EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor,
-    ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
 );
 
 // returned: ShapValues[documentIdx][feature]
@@ -165,12 +165,12 @@ TVector<TVector<double>> CalcShapValues(
     int logPeriod,
     EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor,
-    ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
 );
 
 // returned: ShapValues[featureIdx][dim][documentIdx]
 TVector<TVector<TVector<double>>> CalcShapValueWithQuantizedData(
-    const TFullModel& model, 
+    const TFullModel& model,
     const TVector<TIntrusivePtr<NCB::NModelEvaluation::IQuantizedData>>& quantizedFeatures,
     const TVector<TVector<NCB::NModelEvaluation::TCalcerIndexType>>& indexes,
     const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
@@ -178,7 +178,7 @@ TVector<TVector<TVector<double>>> CalcShapValueWithQuantizedData(
     int logPeriod,
     TShapPreparedTrees* preparedTrees,
     NPar::TLocalExecutor* localExecutor,
-    ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
 );
 
 // outputs for each document in order for each dimension in order an array of feature contributions
@@ -189,7 +189,7 @@ void CalcAndOutputShapValues(
     int logPeriod,
     EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor,
-    ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
 );
 
 void CalcShapValuesInternalForFeature(
@@ -202,5 +202,5 @@ void CalcShapValuesInternalForFeature(
     const NCB::TObjectsDataProvider& objectsData,
     TVector<TVector<TVector<double>>>* shapValues, // [docIdx][featureIdx][dim]
     NPar::TLocalExecutor* localExecutor,
-    ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
 );

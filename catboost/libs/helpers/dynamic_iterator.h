@@ -18,25 +18,6 @@
 
 namespace NCB {
 
-    // helper class for specifyng End VALUE constant
-    template <class TReturnValue>
-    struct IDynamicIteratorEnd;
-
-    template <class TValue>
-    struct IDynamicIteratorEnd<TMaybe<TValue>> {
-        constexpr static TNothing VALUE = Nothing();
-    };
-
-    template <class TValue>
-    struct IDynamicIteratorEnd<TValue*> {
-        constexpr static TValue* VALUE = nullptr;
-    };
-
-    template <class TValue>
-    struct IDynamicIteratorEnd<TConstArrayRef<TValue>> {
-        constexpr static TConstArrayRef<TValue> VALUE = TConstArrayRef<TValue>();
-    };
-
 
     /*
      * Use TReturnValue = 'TMaybe<TValue>' for const iteration over light or dynamically generated objects
@@ -54,42 +35,40 @@ namespace NCB {
      *   but STL LegacyIterator requires CopyConstructible and CopyAssignable - use with TIntrusivePtr
      *   in this case.
      */
-    template <class TValue, class TReturnValue = TMaybe<TValue>>
+    template <class TValue>
     struct IDynamicIterator : public TThrRefBase {
     public:
         using value_type = TValue;
-        using return_value_type = TReturnValue;
 
-    public:
-        constexpr static auto END_VALUE = IDynamicIteratorEnd<TReturnValue>::VALUE;
 
     public:
         virtual ~IDynamicIterator() = default;
 
-        // returns END_VALUE if exhausted
-        virtual TReturnValue Next() = 0;
+        // returns false if exhausted
+        virtual bool Next(TValue*) = 0;
     };
 
-    template <class TValue, class TReturnValue = TMaybe<TValue>>
-    using IDynamicIteratorPtr = THolder<IDynamicIterator<TValue, TReturnValue>>;
+    template <class TValue>
+    using IDynamicIteratorPtr = THolder<IDynamicIterator<TValue>>;
 
 
-    template <class TValue, class TReturnValue = TMaybe<TValue>>
+    template <class TValue>
     bool AreSequencesEqual(
-        IDynamicIteratorPtr<TValue, TReturnValue> lhs,
-        IDynamicIteratorPtr<TValue, TReturnValue> rhs) {
+        IDynamicIteratorPtr<TValue> lhs,
+        IDynamicIteratorPtr<TValue> rhs) {
 
         while (true) {
-            auto lNext = lhs->Next();
-            auto rNext = rhs->Next();
+            TValue lNext, rNext;
+            bool haveLeft = lhs->Next(&lNext);
+            bool haveRight = rhs->Next(&rNext);
 
-            if (!lNext) {
-                return !rNext;
-            }
-            if (!rNext) {
+            if (haveLeft != haveRight) {
                 return false;
             }
-            if (*lNext != *rNext) {
+            if (!haveLeft) {
+                return true;
+            }
+            if (lNext != rNext) {
                 return false;
             }
         }
@@ -97,13 +76,12 @@ namespace NCB {
     }
 
     template <
-        class TBaseIterator,
-        class TReturnValue = TMaybe<typename std::iterator_traits<TBaseIterator>::value_type>>
+        class TBaseIterator>
     class TStaticIteratorRangeAsDynamic final
-        : public IDynamicIterator<typename std::iterator_traits<TBaseIterator>::value_type, TReturnValue>
+        : public IDynamicIterator<typename std::iterator_traits<TBaseIterator>::value_type>
     {
-        using IBase = IDynamicIterator<typename std::iterator_traits<TBaseIterator>::value_type, TReturnValue>;
-
+        using IBase = IDynamicIterator<typename std::iterator_traits<TBaseIterator>::value_type>;
+        using TValue = typename std::iterator_traits<TBaseIterator>::value_type;
     public:
         TStaticIteratorRangeAsDynamic(TBaseIterator begin, TBaseIterator end)
             : Current(std::move(begin))
@@ -115,15 +93,12 @@ namespace NCB {
             : TStaticIteratorRangeAsDynamic(container.begin(), container.end())
         {}
 
-        TReturnValue Next() override {
+        bool Next(TValue* value) override {
             if (Current == End) {
-                return IBase::END_VALUE;
+                return false;
             }
-            if constexpr(std::is_same<TReturnValue, TMaybe<typename IBase::value_type>>()) {
-                return *Current++;
-            } else {
-                return &*(Current++);
-            }
+            *value = *Current++;
+            return true;
         }
 
     private:
@@ -140,11 +115,12 @@ namespace NCB {
             , End(range.End)
         {}
 
-        TMaybe<TSize> Next() override {
+        bool Next(TSize* value) override {
             if (Current == End) {
-                return IDynamicIterator<TSize>::END_VALUE;
+                return false;
             }
-            return Current++;
+            *value = Current++;
+            return true;
         }
 
     private:
@@ -175,13 +151,13 @@ namespace NCB {
             , Index(offset)
         {}
 
-        TMaybe<std::pair<TIndex, TValue>> Next() override {
-            const TMaybe<TValue> nextValue = ValueIterator->Next();
-            if (nextValue) {
-                return MakeMaybe(std::pair<TIndex, TValue>(Index++, *nextValue));
-            } else {
-                return IBase::END_VALUE;
+        bool Next(std::pair<TIndex, TValue>* value) override {
+            TValue nextValue;
+            if (ValueIterator->Next(&nextValue)) {
+                *value = std::pair<TIndex, TValue>(Index++, *nextValue);
+                return true;
             }
+            return false;
         }
 
     private:

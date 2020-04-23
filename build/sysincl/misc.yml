@@ -533,3 +533,7 @@
   - alloc.h: contrib/libs/libsrtp/crypto/include/alloc.h
   - err.h: contrib/libs/libsrtp/crypto/include/err.h
   - stat.h: contrib/libs/libsrtp/crypto/include/stat.h
+
+- source_filter: "^infra/contrib/unbound/unbound"
+  includes:
+    - validator/validator.h: infra/contrib/unbound/unbound/validator/validator.h

@@ -27,7 +27,7 @@ namespace NCB {
         EFstrType FstrType = EFstrType::FeatureImportance;
         int ThreadCount = NSystemInfo::CachedNumberOfCpus();
 
-        ECalcTypeShapValues ShapCalcType = ECalcTypeShapValues::Normal;
+        ECalcTypeShapValues ShapCalcType = ECalcTypeShapValues::Regular;
 
         void BindParserOpts(NLastGetopt::TOpts& parser);
     };

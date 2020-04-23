@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\tools\enum_parser\enum_parser\main.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\tools\enum_parser\enum_parser\stdlib_deps.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

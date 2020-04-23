@@ -358,9 +358,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\sse\library-sse.vcxproj">
       <Project>{D4A23E39-75EE-97F4-A50A-283C64388B74}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\base64\library-string_utils-base64.vcxproj">
-      <Project>{137212F6-D2FE-719F-EBE2-99060434BC72}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\csv\library-string_utils-csv.vcxproj">
       <Project>{31268EC0-4867-4A36-6D41-58F80A28A7F3}</Project>
     </ProjectReference>

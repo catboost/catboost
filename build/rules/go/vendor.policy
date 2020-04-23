@@ -404,6 +404,9 @@ ALLOW .* -> vendor/github.com/siddontang/go-mysql/replication
 ALLOW .* -> vendor/github.com/siddontang/go-mysql/canal
 ALLOW .* -> vendor/github.com/siddontang/go-mysql/mysql
 
+# CONTRIB-1849 binding to internal log for binlog replication
+ALLOW library/go/core/log/compat/golog -> vendor/github.com/siddontang/go-log/log
+
 # CONTRIB-1656 golang sftp server library
 ALLOW .* -> vendor/github.com/pkg/sftp
 
