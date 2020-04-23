@@ -20,6 +20,7 @@
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/metrics/optimal_const_for_loss.h>
 #include <catboost/private/libs/algo/approx_calcer/approx_calcer_multi.h>
+#include <catboost/private/libs/algo/approx_calcer/eval_additive_metric_with_leaves.h>
 #include <catboost/private/libs/algo/approx_calcer/gradient_walker.h>
 #include <catboost/private/libs/algo_helpers/approx_calcer_helpers.h>
 #include <catboost/private/libs/algo_helpers/langevin_utils.h>
@@ -710,26 +711,49 @@ static void CalcApproxDeltaSimple(
     TVector<THolder<IMetric>> lossFunction;
     CreateBacktrackingObjective(*ctx, &haveBacktrackingObjective, &minimizationSign, &lossFunction);
 
-    const auto lossCalcerFunc = [&](const TVector<TVector<double>>& approxDeltas) {
+    TVector<TVector<double>> localSumLeafDeltas;
+    if (sumLeafDeltas == nullptr) {
+        ResizeRank2(/*approxDimension*/1, leafCount, localSumLeafDeltas);
+        sumLeafDeltas = &localSumLeafDeltas;
+    }
+
+    const auto lossCalcerFunc = [&](const TVector<TVector<double>>& approxDeltas, const TVector<TVector<double>>& leafDeltas) {
         TConstArrayRef<TQueryInfo> bodyTailQueryInfo(fold.LearnQueriesInfo.begin(), bt.BodyQueryFinish);
         TConstArrayRef<float> bodyTailTarget(fold.LearnTarget[0].begin(), bt.BodyFinish);
-        const auto& additiveStats = EvalErrors(
-            To2DConstArrayRef<double>(bt.Approx),
-            To2DConstArrayRef<double>(approxDeltas),
-            error.GetIsExpApprox(),
-            bodyTailTarget,
-            fold.GetLearnWeights(),
-            bodyTailQueryInfo,
-            *lossFunction[0],
-            ctx->LocalExecutor);
+        TMetricHolder additiveStats;
+        if (!ctx->Params.BoostingOptions->ApproxOnFullHistory) {
+            TVector<TVector<double>> localLeafDeltas(*sumLeafDeltas);
+            AddElementwise(leafDeltas, &localLeafDeltas);
+            additiveStats = EvalErrorsWithLeaves(
+                To2DConstArrayRef<double>(bt.Approx),
+                To2DConstArrayRef<double>(localLeafDeltas),
+                indices,
+                error.GetIsExpApprox(),
+                bodyTailTarget,
+                fold.GetLearnWeights(),
+                bodyTailQueryInfo,
+                *lossFunction[0],
+                ctx->LocalExecutor);
+            return minimizationSign * lossFunction[0]->GetFinalError(additiveStats);
+        } else {
+            Y_ASSERT(!IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction()));
+            TVector<TVector<double>> localApproxDeltas;
+            CopyApprox(approxDeltas, &localApproxDeltas, ctx->LocalExecutor);
+            approxUpdaterFunc(leafDeltas, &localApproxDeltas);
+            additiveStats = EvalErrors(
+                To2DConstArrayRef<double>(bt.Approx),
+                To2DConstArrayRef<double>(localApproxDeltas),
+                error.GetIsExpApprox(),
+                bodyTailTarget,
+                fold.GetLearnWeights(),
+                bodyTailQueryInfo,
+                *lossFunction[0],
+                ctx->LocalExecutor);
+        }
         return minimizationSign * lossFunction[0]->GetFinalError(additiveStats);
     };
 
-    const auto approxCopyFunc = [ctx](const TVector<TVector<double>>& src, TVector<TVector<double>>* dst) {
-        CopyApprox(src, dst, ctx->LocalExecutor);
-    };
-
-    GradientWalker</*IsLeafwise*/false>(
+    FastGradientWalker</*IsLeafwise*/false>(
         /*isTrivialWalker*/ !haveBacktrackingObjective,
         gradientIterations,
         leafCount,
@@ -737,7 +761,6 @@ static void CalcApproxDeltaSimple(
         leafUpdaterFunc,
         approxUpdaterFunc,
         lossCalcerFunc,
-        approxCopyFunc,
         approxDeltas,
         sumLeafDeltas
     );
@@ -861,10 +884,11 @@ static void CalcLeafValuesSimple(
     TVector<THolder<IMetric>> lossFunction;
     CreateBacktrackingObjective(*ctx, &haveBacktrackingObjective, &minimizationSign, &lossFunction);
 
-    const auto lossCalcerFunc = [&](const TVector<TVector<double>>& approx) {
-        const auto& additiveStats = EvalErrors(
+    const auto lossCalcerFunc = [&](const TVector<TVector<double>>& approx, const TVector<TVector<double>>& leafDeltas) {
+        const auto& additiveStats = EvalErrorsWithLeaves(
             To2DConstArrayRef<double>(approx),
-            /*approxDelta*/ {},
+            To2DConstArrayRef<double>(leafDeltas),
+            indices,
             error.GetIsExpApprox(),
             fold.LearnTarget[0],
             fold.GetLearnWeights(),
@@ -874,11 +898,7 @@ static void CalcLeafValuesSimple(
         return minimizationSign * lossFunction[0]->GetFinalError(additiveStats);
     };
 
-    const auto approxCopyFunc = [ctx](const TVector<TVector<double>>& src, TVector<TVector<double>>* dst) {
-        CopyApprox(src, dst, ctx->LocalExecutor);
-    };
-
-    GradientWalker</*IsLeafwise*/ false>(
+    FastGradientWalker</*IsLeafwise*/ false>(
         /*isTrivialWalker*/ !haveBacktrackingObjective,
         gradientIterations,
         leafCount,
@@ -886,7 +906,6 @@ static void CalcLeafValuesSimple(
         leafUpdaterFunc,
         approxUpdaterFunc,
         lossCalcerFunc,
-        approxCopyFunc,
         &approxes,
         sumLeafDeltas
     );

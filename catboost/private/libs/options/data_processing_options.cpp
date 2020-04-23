@@ -14,7 +14,8 @@ NCatboostOptions::TDataProcessingOptions::TDataProcessingOptions(ETaskType type)
       , FloatFeaturesBinarization("float_features_binarization", TBinarizationOptions(
           EBorderSelectionType::GreedyLogSum,
           type == ETaskType::GPU ? 128 : 254,
-          ENanMode::Min
+          ENanMode::Min,
+          200000
       ))
       , PerFloatFeatureQuantization("per_float_feature_quantization", TMap<ui32, TBinarizationOptions>())
       , TextProcessingOptions("text_processing_options", TTextProcessingOptions())

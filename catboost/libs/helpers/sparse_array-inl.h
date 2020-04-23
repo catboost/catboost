@@ -114,18 +114,19 @@ namespace NCB {
     {}
 
     template <class TSize>
-    inline TMaybe<TSize> TSparseSubsetBlocksIterator<TSize>::Next() {
+    inline bool TSparseSubsetBlocksIterator<TSize>::Next(TSize* value) {
         if (Data.BlockStartsCurrent == Data.BlockStartsEnd) {
-            return Nothing();
+            return false;
         }
         while (Data.InBlockIdx == *Data.BlockLengthsCurrent) {
             if (++Data.BlockStartsCurrent == Data.BlockStartsEnd) {
-                return Nothing();
+                return false;
             }
             ++Data.BlockLengthsCurrent;
             Data.InBlockIdx = 0;
         }
-        return (*Data.BlockStartsCurrent) + Data.InBlockIdx++;
+        *value = (*Data.BlockStartsCurrent) + Data.InBlockIdx++;
+        return true;
     }
 
     template <class TSize>
@@ -241,15 +242,15 @@ namespace NCB {
     {}
 
     template <class TSize>
-    inline TMaybe<TSize> TSparseSubsetHybridIndexIterator<TSize>::Next() {
+    inline bool TSparseSubsetHybridIndexIterator<TSize>::Next(TSize* value) {
         if (Data.BlockIndicesCurrent == Data.BlockIndicesEnd) {
-            return Nothing();
+            return false;
         }
         while (! (((*Data.BlockBitmapsCurrent) >> Data.InBlockIdx) & 1)) {
             ++Data.InBlockIdx;
         }
 
-        TMaybe<TSize> result
+        *value
             = TSparseSubsetHybridIndex<TSize>::BLOCK_SIZE * (*Data.BlockIndicesCurrent) + Data.InBlockIdx;
 
         if (! ((*Data.BlockBitmapsCurrent) >> (Data.InBlockIdx + 1))) {
@@ -260,7 +261,7 @@ namespace NCB {
             ++Data.InBlockIdx;
         }
 
-        return result;
+        return true;
     }
 
 
@@ -393,7 +394,7 @@ namespace NCB {
             if (std::tie(NonDefaultSize, Size) != std::tie(rhs.NonDefaultSize, rhs.Size)) {
                 return false;
             }
-            return AreSequencesEqual<TSize, TMaybe<TSize>>(GetIterator(), rhs.GetIterator());
+            return AreSequencesEqual<TSize>(GetIterator(), rhs.GetIterator());
         }
     }
 

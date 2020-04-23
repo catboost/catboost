@@ -23,9 +23,7 @@ RECURSE(
     comptrie/ut
     comptrie/benchmark
     containers
-    coroutine
     cpp
-    cpuid_check
     dbg_output
     dbg_output/ut
     deprecated
@@ -76,7 +74,6 @@ RECURSE(
     netliba
     object_factory
     object_factory/ut
-    on_disk
     openssl
     overloaded
     overloaded/ut

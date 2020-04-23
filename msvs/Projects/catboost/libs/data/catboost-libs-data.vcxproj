@@ -99,6 +99,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\features_layout.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\lazy_columns.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\libsvm_loader.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\load_and_quantize_data.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\load_data.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\loader.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\meta_info.cpp"/>
@@ -108,6 +109,7 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\order.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\data\order.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\packed_binary_features.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\libs\data\proceed_pool_in_blocks.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\quantization.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\quantized_features_info.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\data\sparse_columns.cpp"/>
@@ -270,6 +272,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\features_layout.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\lazy_columns.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\libsvm_loader.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\load_and_quantize_data.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\load_data.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\loader.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\meta_info.h"/>
@@ -277,6 +280,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\objects.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\objects_grouping.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\packed_binary_features.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\libs\data\proceed_pool_in_blocks.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\quantization.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\quantized_features_info.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\data\sparse_columns.h"/>
@@ -487,9 +491,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
       <Project>{2CE71367-048B-26B0-2DAC-CA9BB7D00E76}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\base64\library-string_utils-base64.vcxproj">
-      <Project>{137212F6-D2FE-719F-EBE2-99060434BC72}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\csv\library-string_utils-csv.vcxproj">
       <Project>{31268EC0-4867-4A36-6D41-58F80A28A7F3}</Project>

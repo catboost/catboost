@@ -9,6 +9,8 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/model.h>
 
+#include <library/getopt/small/last_getopt.h>
+
 #include <util/folder/path.h>
 #include <util/generic/ptr.h>
 #include <util/generic/serialized_enum.h>
@@ -33,20 +35,21 @@ namespace {
                     so these checks might become wrong and cat features spec in pool should be checked instead
                 */
                 if (Model.HasCategoricalFeatures()) {
-                    CB_ENSURE(Params.ColumnarPoolFormatParams.CdFilePath.Inited(),
-                              "Model has categorical features. Specify column_description file with correct categorical features.");
+                    CB_ENSURE(
+                        Params.DatasetReadingParams.ColumnarPoolFormatParams.CdFilePath.Inited(),
+                        "Model has categorical features. Specify column_description file with correct categorical features.");
                 }
 
                 TSetLoggingVerboseOrSilent inThisScope(false);
 
                 Dataset = NCB::ReadDataset(/*taskType*/Nothing(),
-                                           Params.InputPath,
-                                           Params.PairsFilePath,
+                                           Params.DatasetReadingParams.PoolPath,
+                                           Params.DatasetReadingParams.PairsFilePath,
                                            /*groupWeightsFilePath=*/NCB::TPathWithScheme(),
                                            /*baselineFilePath=*/ NCB::TPathWithScheme(),
                                            /*timestampsFilePath=*/ NCB::TPathWithScheme(),
                                            /*featureNamesPath=*/ NCB::TPathWithScheme(),
-                                           Params.ColumnarPoolFormatParams,
+                                           Params.DatasetReadingParams.ColumnarPoolFormatParams,
                                            /*ignoredFeatures*/ {},
                                            NCB::EObjectsOrder::Undefined,
                                            NCB::TDatasetSubset::MakeColumns(),
@@ -86,7 +89,7 @@ void NCB::PrepareFstrModeParamsParser(
     const auto customShapCalculationTypeDescription =
             TString::Join("Should be one of: ", GetEnumAllNames<ECalcTypeShapValues>());
     parser.AddLongOption("shap-calc-type")
-        .DefaultValue("Normal")
+        .DefaultValue("Regular")
         .Handler1T<TString>([&params](const TString& calcType) {
             CB_ENSURE(TryFromString<ECalcTypeShapValues>(calcType, params.ShapCalcType),
                     calcType + " shap calculation type is not supported");
@@ -102,8 +105,7 @@ void NCB::PrepareFstrModeParamsParser(
 }
 
 void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
-
-    NCatboostOptions::ValidatePoolParams(params.InputPath, params.ColumnarPoolFormatParams);
+    params.DatasetReadingParams.ValidatePoolParams();
 
     TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
     if (model.HasCategoricalFeatures()) {
@@ -116,7 +118,7 @@ void NCB::ModeFstrSingleHost(const NCB::TAnalyticalModeCommonParams& params) {
     localExecutor->RunAdditionalThreads(params.ThreadCount - 1);
 
     TLazyPoolLoader poolLoader(params, model, localExecutor);
-    TFsPath inputPath(params.InputPath.Path);
+    TFsPath inputPath(params.DatasetReadingParams.PoolPath.Path);
     auto fstrType = AdjustFeatureImportanceType(params.FstrType, model.GetLossFunctionName());
     if (fstrType != EFstrType::PredictionValuesChange) {
         CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "model fstr");

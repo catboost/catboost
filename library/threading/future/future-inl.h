@@ -120,11 +120,6 @@ namespace NThreading {
                 return Value;
             }
 
-            T& GetValueMutable(TDuration timeout = TDuration::Zero()) {
-                AccessValue(timeout, ValueRead);
-                return Value;
-            }
-
             T ExtractValue(TDuration timeout = TDuration::Zero()) {
                 AccessValue(timeout, ValueMoved);
                 return std::move(Value);
@@ -594,6 +589,32 @@ namespace NThreading {
 
     ////////////////////////////////////////////////////////////////////////////////
 
+    class TFutureStateId {
+    private:
+        const void* Id;
+
+    public:
+        template <typename T>
+        explicit TFutureStateId(const NImpl::TFutureState<T>& state)
+            : Id(&state)
+        {
+        }
+
+        const void* Value() const noexcept {
+            return Id;
+        }
+    };
+
+    inline bool operator==(const TFutureStateId& l, const TFutureStateId& r) {
+        return l.Value() == r.Value();
+    }
+
+    inline bool operator!=(const TFutureStateId& l, const TFutureStateId& r) {
+        return !(l == r);
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////
+
     template <typename T>
     inline TFuture<T>::TFuture(const TIntrusivePtr<TFutureState>& state) noexcept
         : State(state)
@@ -617,12 +638,6 @@ namespace NThreading {
     }
 
     template <typename T>
-    inline T& TFuture<T>::GetValueMutable(TDuration timeout) {
-        EnsureInitialized();
-        return State->GetValueMutable(timeout);
-    }
-
-    template <typename T>
     inline T TFuture<T>::ExtractValue(TDuration timeout) {
         EnsureInitialized();
         return State->ExtractValue(timeout);
@@ -631,11 +646,6 @@ namespace NThreading {
     template <typename T>
     inline const T& TFuture<T>::GetValueSync() const {
         return GetValue(TDuration::Max());
-    }
-
-    template <typename T>
-    inline T& TFuture<T>::GetValueMutableSync() {
-        return GetValueMutable(TDuration::Max());
     }
 
     template <typename T>
@@ -710,6 +720,11 @@ namespace NThreading {
     template <typename T>
     inline bool TFuture<T>::Initialized() const {
         return bool(State);
+    }
+
+    template <typename T>
+    inline TMaybe<TFutureStateId> TFuture<T>::StateId() const noexcept {
+        return State != nullptr ? MakeMaybe<TFutureStateId>(*State) : Nothing();
     }
 
     template <typename T>
@@ -802,6 +817,10 @@ namespace NThreading {
 
     inline bool TFuture<void>::Initialized() const {
         return bool(State);
+    }
+
+    inline TMaybe<TFutureStateId> TFuture<void>::StateId() const noexcept {
+        return State != nullptr ? MakeMaybe<TFutureStateId>(*State) : Nothing();
     }
 
     inline void TFuture<void>::EnsureInitialized() const {

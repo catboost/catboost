@@ -1035,12 +1035,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\stack_array\library-containers-stack_array.vcxproj">
       <Project>8FDE35EC-9B80-AF55-62B5-130D5EF3D68A</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\coroutine\engine\library-coroutine-engine.vcxproj">
-      <Project>810DAE0F-1259-BCE1-AB1B-BB8F715CA0BD</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\coroutine\listener\library-coroutine-listener.vcxproj">
-      <Project>B4028C7F-B714-C057-20FD-5CC1C3A20526</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\accurate_accumulate\library-cpp-accurate_accumulate.vcxproj">
       <Project>7F8E70FD-CC97-C5C2-A4A3-48036C893265</Project>
     </ProjectReference>
@@ -1056,8 +1050,17 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\stack_vector\cpp-containers-stack_vector.vcxproj">
       <Project>F5DBE463-173C-4593-95C1-EC1430946913</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\coroutine\engine\cpp-coroutine-engine.vcxproj">
+      <Project>D4715C6C-9CC0-8DC2-580D-1131AC501867</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\coroutine\listener\cpp-coroutine-listener.vcxproj">
+      <Project>C43D7284-E485-A23F-D1EB-E5104D32806A</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cppparser\library-cpp-cppparser.vcxproj">
       <Project>561DA281-60D6-43CF-765F-96A120F7EFFC</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cpuid_check\library-cpp-cpuid_check.vcxproj">
+      <Project>A945C0FD-E868-BBA0-1189-19BBB2296292</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\diff\library-cpp-diff.vcxproj">
       <Project>0E7915BD-803C-8F29-4ECB-42637EED30E3</Project>
@@ -1089,6 +1092,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\system\cpp-malloc-system.vcxproj">
       <Project>54C3F326-D733-B490-93B9-EEA3BE28C3A9</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\on_disk\chunks\cpp-on_disk-chunks.vcxproj">
+      <Project>43AA153B-11A0-706A-C7A7-DD9001E90936</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\pop_count\library-cpp-pop_count.vcxproj">
       <Project>6B557DF5-6D6B-ECE1-B5B5-9CD1B8625387</Project>
     </ProjectReference>
@@ -1112,9 +1118,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\tokenizer\library-cpp-tokenizer.vcxproj">
       <Project>033EAD89-E9BA-0341-D614-91C40D7F543A</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cpuid_check\library-cpuid_check.vcxproj">
-      <Project>B2E67D35-D818-4BB5-60B7-B6EEC460B8F8</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cuda\wrappers\library-cuda-wrappers.vcxproj">
       <Project>B83E09E6-36E4-BF0E-BBC4-CCC2D4B42CCC</Project>
@@ -1205,9 +1208,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
       <Project>F7622D70-2702-4C7E-04DA-52DC56DF911E</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\on_disk\chunks\library-on_disk-chunks.vcxproj">
-      <Project>14A549F3-D184-A637-D0F2-A931DAEB16EF</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\openssl\holders\library-openssl-holders.vcxproj">
       <Project>8BD519C9-FE74-64B1-416B-3052CA898BD0</Project>
@@ -1310,9 +1310,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\statistics\library-statistics.vcxproj">
       <Project>898C3811-AD77-869C-24DC-EF6A89FA8399</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\base64\library-string_utils-base64.vcxproj">
-      <Project>137212F6-D2FE-719F-EBE2-99060434BC72</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\csv\library-string_utils-csv.vcxproj">
       <Project>31268EC0-4867-4A36-6D41-58F80A28A7F3</Project>

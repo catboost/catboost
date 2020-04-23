@@ -11,16 +11,16 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{14A549F3-D184-A637-D0F2-A931DAEB16EF}</ProjectGUID>
+    <ProjectGUID>{A945C0FD-E868-BBA0-1189-19BBB2296292}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-on_disk-chunks</ProjectName>
+    <ProjectName>library-cpp-cpuid_check</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.default.props"/>
   <PropertyGroup Label="Configuration">
-    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <ConfigurationType>EmptyStaticLibrary</ConfigurationType>
     <UseOfMfc>false</UseOfMfc>
     <CharacterSet>Multibyte</CharacterSet>
     <PlatformToolset>v141</PlatformToolset>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-on_disk-chunks</TargetName>
+    <TargetName>library-cpp-cpuid_check</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\on_disk\chunks\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\14A549F3-D184-A637-D0F2-A931DAEB16EF\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\cpuid_check\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\A945C0FD-E868-BBA0-1189-19BBB2296292\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,12 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\on_disk\chunks\chunked_helpers.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\on_disk\chunks\reader.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\on_disk\chunks\writer.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\on_disk\chunks\chunked_helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\on_disk\chunks\reader.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\on_disk\chunks\writer.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\cpuid_check\cpu_id_check.cpp"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

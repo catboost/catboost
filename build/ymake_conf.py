@@ -50,10 +50,15 @@ class Platform(object):
         self.is_x86_64 = self.arch in ('x86_64', 'amd64')
         self.is_intel = self.is_x86 or self.is_x86_64
 
-        self.is_armv7 = self.arch in ('armv7', 'armv7a', 'armv7a_neon', 'arm')
-        self.is_armv8 = self.arch in ('armv8', 'armv8a', 'arm64', 'aarch64')
+        self.is_armv7 = self.arch in ('armv7', 'armv7a', 'armv7a_neon', 'arm', 'armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
+        self.is_armv8 = self.arch in ('armv8', 'armv8a', 'arm64', 'aarch64', 'armv8a_cortex_a35', 'armv8a_cortex_a53')
         self.is_arm = self.is_armv7 or self.is_armv8
-        self.is_armv7_neon = self.arch == 'armv7a_neon'
+        self.is_armv7_neon = self.arch in ('armv7a_neon', 'armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
+
+        self.is_cortex_a35 = self.arch in ('armv7ahf_cortex_a35', 'armv8a_cortex_a35')
+        self.is_cortex_a53 = self.arch in ('armv7ahf_cortex_a53', 'armv8a_cortex_a53')
+
+        self.is_armv7hf = self.arch in ('armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
 
         self.is_ppc64le = self.arch == 'ppc64le'
 
@@ -1044,13 +1049,15 @@ class GnuToolchain(Toolchain):
                 target_triple = select(default=None, selectors=[
                     (target.is_linux and target.is_x86_64, 'x86_64-linux-gnu'),
                     (target.is_linux and target.is_armv8, 'aarch64-linux-gnu'),
+                    (target.is_linux and target.is_armv7hf, 'arm-linux-gnueabihf'),
+                    (target.is_linux and target.is_armv7, 'arm-linux-gnueabi'),
                     (target.is_linux and target.is_ppc64le, 'powerpc64le-linux-gnu'),
                     (target.is_apple and target.is_x86, 'i386-apple-darwin14'),
                     (target.is_apple and target.is_x86_64, 'x86_64-apple-darwin14'),
                     (target.is_apple and target.is_armv7, 'armv7-apple-darwin14'),
-                (target.is_apple and target.is_armv8, 'arm64-apple-darwin14'),
-                (target.is_yocto and target.is_armv7, 'arm-poky-linux-gnueabi')
-            ])
+                    (target.is_apple and target.is_armv8, 'arm64-apple-darwin14'),
+                    (target.is_yocto and target.is_armv7, 'arm-poky-linux-gnueabi')
+                ])
 
             if target_triple:
                 self.c_flags_platform.append('--target={}'.format(target_triple))
@@ -1059,7 +1066,13 @@ class GnuToolchain(Toolchain):
             for root in list(self.tc.isystem):
                 self.c_flags_platform.extend(['-isystem', root])
 
-        if target.is_armv7_neon:
+        if target.is_cortex_a35:
+            self.c_flags_platform.append('-mcpu=cortex-a35')
+
+        elif target.is_cortex_a53:
+            self.c_flags_platform.append('-mcpu=cortex-a53')
+
+        elif target.is_armv7_neon:
             self.c_flags_platform.append('-mfpu=neon')
 
         if target.is_armv7 and build.is_size_optimized:

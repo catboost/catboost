@@ -6,7 +6,6 @@ SRCS(
     mode_calc_helpers.cpp
     mode_fstr_helpers.cpp
     mode_normalize_model_helpers.cpp
-    proceed_pool_in_blocks.cpp
 )
 
 PEERDIR(

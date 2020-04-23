@@ -4,6 +4,7 @@
 
 #include <util/datetime/base.h>
 #include <util/generic/function.h>
+#include <util/generic/maybe.h>
 #include <util/generic/ptr.h>
 #include <util/generic/vector.h>
 #include <util/generic/yexception.h>
@@ -78,6 +79,9 @@ namespace NThreading {
     template <typename F, typename T>
     using TFutureCallResult = typename NImpl::TFutureCallResult<F, T>::TType;
 
+    //! Type of the future/promise state identifier
+    class TFutureStateId;
+
     ////////////////////////////////////////////////////////////////////////////////
 
     template <typename T>
@@ -101,9 +105,7 @@ namespace NThreading {
 
         bool HasValue() const;
         const T& GetValue(TDuration timeout = TDuration::Zero()) const;
-        T& GetValueMutable(TDuration timeout = TDuration::Zero());
         const T& GetValueSync() const;
-        T& GetValueMutableSync();
         T ExtractValue(TDuration timeout = TDuration::Zero());
         T ExtractValueSync();
 
@@ -121,6 +123,11 @@ namespace NThreading {
         TFuture<TFutureType<TFutureCallResult<F, T>>> Apply(F&& func) const;
 
         TFuture<void> IgnoreResult() const;
+
+        //! If the future is initialized returns the future state identifier. Otherwise returns an empty optional
+        /** The state identifier is guaranteed to be unique during the future state lifetime and could be reused after its death
+        **/
+        TMaybe<TFutureStateId> StateId() const noexcept;
 
     private:
         void EnsureInitialized() const;
@@ -170,6 +177,12 @@ namespace NThreading {
         TFuture<void> IgnoreResult() const {
             return *this;
         }
+
+        //! If the future is initialized returns the future state identifier. Otherwise returns an empty optional
+        /** The state identifier is guaranteed to be unique during the future state lifetime and could be reused after its death
+        **/
+        TMaybe<TFutureStateId> StateId() const noexcept;
+
     private:
         void EnsureInitialized() const;
     };

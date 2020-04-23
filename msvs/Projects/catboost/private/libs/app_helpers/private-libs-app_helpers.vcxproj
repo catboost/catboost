@@ -82,7 +82,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\app_helpers\mode_calc_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\app_helpers\mode_fstr_helpers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\app_helpers\mode_normalize_model_helpers.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\app_helpers\proceed_pool_in_blocks.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\catboost\private\libs\app_helpers\implementation_type_enum.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\private\libs\app_helpers
@@ -113,7 +112,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\app_helpers\mode_calc_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\app_helpers\mode_fstr_helpers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\app_helpers\mode_normalize_model_helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\app_helpers\proceed_pool_in_blocks.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -387,9 +385,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\statistics\library-statistics.vcxproj">
       <Project>{898C3811-AD77-869C-24DC-EF6A89FA8399}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\base64\library-string_utils-base64.vcxproj">
-      <Project>{137212F6-D2FE-719F-EBE2-99060434BC72}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\csv\library-string_utils-csv.vcxproj">
       <Project>{31268EC0-4867-4A36-6D41-58F80A28A7F3}</Project>

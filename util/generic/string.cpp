@@ -84,11 +84,11 @@ bool TBasicString<char, TCharTraits<char>>::to_title(size_t pos, size_t n) {
 template<>
 TUtf16String&
 TBasicString<wchar16, TCharTraits<wchar16>>::AppendAscii(const ::TStringBuf& s) {
-    ReserveAndResize(size() + s.Length);
+    ReserveAndResize(size() + s.size());
 
-    auto dst = begin() + size() - s.Length;
+    auto dst = begin() + size() - s.size();
 
-    for (const char* src = s.Start; dst != end(); ++dst, ++src) {
+    for (const char* src = s.data(); dst != end(); ++dst, ++src) {
         *dst = static_cast<wchar16>(*src);
     }
 
@@ -99,11 +99,11 @@ template<>
 TUtf16String&
 TBasicString<wchar16, TCharTraits<wchar16>>::AppendUtf8(const ::TStringBuf& s) {
     size_t oldSize = size();
-    ReserveAndResize(size() + s.Length * 4);
+    ReserveAndResize(size() + s.size() * 4);
     size_t written = 0;
-    size_t pos = UTF8ToWideImpl(s.Start, s.Length, begin() + oldSize, written);
-    if (pos != s.Length)
-        ythrow yexception() << "failed to decode UTF-8 string at pos " << pos << ::NDetail::InStringMsg(s.Start, s.Length);
+    size_t pos = UTF8ToWideImpl(s.data(), s.size(), begin() + oldSize, written);
+    if (pos != s.size())
+        ythrow yexception() << "failed to decode UTF-8 string at pos " << pos << ::NDetail::InStringMsg(s.data(), s.size());
     remove(oldSize + written);
 
     return *this;
@@ -127,11 +127,11 @@ bool TBasicString<wchar16, TCharTraits<wchar16>>::to_title(size_t pos, size_t n)
 template<>
 TUtf32String&
 TBasicString<wchar32, TCharTraits<wchar32>>::AppendAscii(const ::TStringBuf& s) {
-    ReserveAndResize(size() + s.Length);
+    ReserveAndResize(size() + s.size());
 
-    auto dst = begin() + size() - s.Length;
+    auto dst = begin() + size() - s.size();
 
-    for (const char* src = s.Start; dst != end(); ++dst, ++src) {
+    for (const char* src = s.data(); dst != end(); ++dst, ++src) {
         *dst = static_cast<wchar32>(*src);
     }
 
@@ -142,11 +142,11 @@ template<>
 TUtf32String&
 TBasicString<wchar32, TCharTraits<wchar32>>::AppendUtf8(const ::TStringBuf& s) {
     size_t oldSize = size();
-    ReserveAndResize(size() + s.Length * 4);
+    ReserveAndResize(size() + s.size() * 4);
     size_t written = 0;
-    size_t pos = UTF8ToWideImpl(s.Start, s.Length, begin() + oldSize, written);
-    if (pos != s.Length)
-        ythrow yexception() << "failed to decode UTF-8 string at pos " << pos << ::NDetail::InStringMsg(s.Start, s.Length);
+    size_t pos = UTF8ToWideImpl(s.data(), s.size(), begin() + oldSize, written);
+    if (pos != s.size())
+        ythrow yexception() << "failed to decode UTF-8 string at pos " << pos << ::NDetail::InStringMsg(s.data(), s.size());
     remove(oldSize + written);
 
     return *this;
@@ -156,11 +156,11 @@ template<>
 TUtf32String&
 TBasicString<wchar32, TCharTraits<wchar32>>::AppendUtf16(const ::TWtringBuf& s) {
     size_t oldSize = size();
-    ReserveAndResize(size() + s.Length * 2);
+    ReserveAndResize(size() + s.size() * 2);
 
     wchar32* oldEnd = begin() + oldSize;
     wchar32* end = oldEnd;
-    NDetail::UTF16ToUTF32ImplScalar(s.Start, s.Start + s.Length, end);
+    NDetail::UTF16ToUTF32ImplScalar(s.data(), s.data() + s.size(), end);
     size_t written = end - oldEnd;
 
     remove(oldSize + written);

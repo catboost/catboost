@@ -194,4 +194,5 @@ ALLOW trust/tests/tests_trust_bindings -> contrib/python/pycrypto
 ALLOW yabs/server/tools/banner_user_choice -> contrib/python/pycrypto
 ALLOW ydo/database/models -> contrib/python/pycrypto
 ALLOW yweb/antispam/cid -> contrib/python/pycrypto
+ALLOW mail/payments/payments -> contrib/python/pycrypto
 DENY .* -> contrib/python/pycrypto

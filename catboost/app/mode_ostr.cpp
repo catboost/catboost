@@ -5,6 +5,7 @@
 #include <catboost/private/libs/documents_importance/enums.h>
 #include <catboost/libs/model/model.h>
 #include <catboost/private/libs/options/analytical_mode_params.h>
+#include <catboost/private/libs/options/dataset_reading_params.h>
 
 #include <library/getopt/small/last_getopt.h>
 

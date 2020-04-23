@@ -708,7 +708,7 @@ static void CalcBestScore(
                 &candidate.Candidates);
 
             AddFeaturePenaltiesToBestSplits(
-                ctx,
+                *ctx,
                 data,
                 *fold,
                 candidatesContext.OneHotMaxSize,
@@ -810,7 +810,7 @@ static void CalcBestScoreLeafwise(
                 &candidate.Candidates);
 
             AddFeaturePenaltiesToBestSplits(
-                ctx,
+                *ctx,
                 data,
                 *fold,
                 candidatesContext.OneHotMaxSize,

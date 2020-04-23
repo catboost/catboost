@@ -109,28 +109,7 @@ namespace NCB {
             const TFeaturesArraySubsetIndexing& subsetIndexing,
             NPar::TLocalExecutor* localExecutor
         ) {
-            // non-incremental
-            TFeaturesArraySubsetIndexing composedIndexing = Compose(srcIndexing, subsetIndexing);
-
-            // convert to incremental
-            if (HoldsAlternative<TFullSubset<ui32>>(composedIndexing)) {
-                ComposedSubset = std::move(composedIndexing);
-            } else {
-                TVector<ui32> composedIndices;
-                composedIndices.yresize(composedIndexing.Size());
-                TArrayRef<ui32> composedIndicesRef = composedIndices;
-
-                composedIndexing.ParallelForEach(
-                    [=] (ui32 objectIdx, ui32 srcObjectIdx) {
-                        composedIndicesRef[objectIdx] = srcObjectIdx;
-                    },
-                    localExecutor
-                );
-
-                Sort(composedIndices);
-
-                ComposedSubset = TFeaturesArraySubsetIndexing(std::move(composedIndices));
-            }
+            ComposedSubset = MakeIncrementalIndexing(Compose(srcIndexing, subsetIndexing), localExecutor);
             InvertedSubset = GetInvertedIndexing(subsetIndexing, srcIndexing.Size(), localExecutor);
         }
     };
@@ -2618,57 +2597,12 @@ namespace NCB {
         const TInitialBorders& initialBorders) {
 
         TQuantizationOptions quantizationOptions;
-        quantizationOptions.GroupFeaturesForCpu = params.DataProcessingOptions->DevGroupFeatures.GetUnchecked();
-        if (params.GetTaskType() == ETaskType::CPU) {
-
-            quantizationOptions.ExclusiveFeaturesBundlingOptions.MaxBuckets
-                = params.ObliviousTreeOptions->DevExclusiveFeaturesBundleMaxBuckets.Get();
-            quantizationOptions.ExclusiveFeaturesBundlingOptions.MaxConflictFraction
-                = params.ObliviousTreeOptions->SparseFeaturesConflictFraction.Get();
-
-            /* TODO(akhropov): Enable when sparse column scoring is supported
-
-            float defaultValueFractionToEnableSparseStorage
-                = params.DataProcessingOptions->DevDefaultValueFractionToEnableSparseStorage.Get();
-            if (defaultValueFractionToEnableSparseStorage > 0.0f) {
-                quantizationOptions.DefaultValueFractionToEnableSparseStorage
-                    = defaultValueFractionToEnableSparseStorage;
-                quantizationOptions.SparseArrayIndexingType
-                    = params.DataProcessingOptions->DevSparseArrayIndexingType.Get();
-            }
-            */
-        } else {
-            Y_ASSERT(params.GetTaskType() == ETaskType::GPU);
-
-            quantizationOptions.CpuCompatibleFormat = true;
-
-            quantizationOptions.BundleExclusiveFeatures = true;
-            quantizationOptions.ExclusiveFeaturesBundlingOptions.MaxBuckets = Min<ui32>(
-                254, params.ObliviousTreeOptions->DevExclusiveFeaturesBundleMaxBuckets.Get());
-            quantizationOptions.ExclusiveFeaturesBundlingOptions.OnlyOneHotsAndBinaryFloats = true;
-
-            quantizationOptions.PackBinaryFeaturesForCpu = false;
-            quantizationOptions.GroupFeaturesForCpu = false;
-        }
-        quantizationOptions.CpuRamLimit
-            = ParseMemorySizeDescription(params.SystemOptions->CpuUsedRamLimit.Get());
-
-        if (!quantizedFeaturesInfo) {
-            quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
-                *srcData->MetaInfo.FeaturesLayout,
-                params.DataProcessingOptions->IgnoredFeatures.Get(),
-                params.DataProcessingOptions->FloatFeaturesBinarization.Get(),
-                params.DataProcessingOptions->PerFloatFeatureQuantization.Get(),
-                params.DataProcessingOptions->TextProcessingOptions.Get(),
-                /*allowNansInTestOnly*/true
-            );
-
-            if (bordersFile) {
-                LoadBordersAndNanModesFromFromFileInMatrixnetFormat(
-                    *bordersFile,
-                    quantizedFeaturesInfo.Get());
-            }
-        }
+        PrepareQuantizationParameters(
+            params,
+            srcData->MetaInfo,
+            bordersFile,
+            &quantizationOptions,
+            &quantizedFeaturesInfo);
 
         TRawObjectsDataProviderPtr rawObjectsDataProvider(
             dynamic_cast<TRawObjectsDataProvider*>(srcData->ObjectsData.Get()));
@@ -2688,6 +2622,91 @@ namespace NCB {
             localExecutor,
             initialBorders
         );
+    }
+
+
+    void PrepareQuantizationParameters(
+        const NCatboostOptions::TCatBoostOptions& params,
+        const TDataMetaInfo& metaInfo,
+        const TMaybe<TString>& bordersFile,
+        TQuantizationOptions* quantizationOptions,
+        TQuantizedFeaturesInfoPtr* quantizedFeaturesInfo
+    ) {
+        quantizationOptions->GroupFeaturesForCpu = params.DataProcessingOptions->DevGroupFeatures.GetUnchecked();
+        if (params.GetTaskType() == ETaskType::CPU) {
+
+            quantizationOptions->ExclusiveFeaturesBundlingOptions.MaxBuckets
+                = params.ObliviousTreeOptions->DevExclusiveFeaturesBundleMaxBuckets.Get();
+            quantizationOptions->ExclusiveFeaturesBundlingOptions.MaxConflictFraction
+                = params.ObliviousTreeOptions->SparseFeaturesConflictFraction.Get();
+
+            /* TODO(akhropov): Enable when sparse column scoring is supported
+
+            float defaultValueFractionToEnableSparseStorage
+                = params.DataProcessingOptions->DevDefaultValueFractionToEnableSparseStorage.Get();
+            if (defaultValueFractionToEnableSparseStorage > 0.0f) {
+                quantizationOptions.DefaultValueFractionToEnableSparseStorage
+                    = defaultValueFractionToEnableSparseStorage;
+                quantizationOptions.SparseArrayIndexingType
+                    = params.DataProcessingOptions->DevSparseArrayIndexingType.Get();
+            }
+            */
+        } else {
+            Y_ASSERT(params.GetTaskType() == ETaskType::GPU);
+
+            quantizationOptions->CpuCompatibleFormat = true;
+
+            quantizationOptions->BundleExclusiveFeatures = true;
+            quantizationOptions->ExclusiveFeaturesBundlingOptions.MaxBuckets = Min<ui32>(
+                254, params.ObliviousTreeOptions->DevExclusiveFeaturesBundleMaxBuckets.Get());
+            quantizationOptions->ExclusiveFeaturesBundlingOptions.OnlyOneHotsAndBinaryFloats = true;
+
+            quantizationOptions->PackBinaryFeaturesForCpu = false;
+            quantizationOptions->GroupFeaturesForCpu = false;
+        }
+        quantizationOptions->CpuRamLimit
+            = ParseMemorySizeDescription(params.SystemOptions->CpuUsedRamLimit.Get());
+        quantizationOptions->MaxSubsetSizeForBuildBordersAlgorithms =
+            params.DataProcessingOptions->FloatFeaturesBinarization->MaxSubsetSizeForBuildBorders.Get();
+
+        if (quantizedFeaturesInfo && !(*quantizedFeaturesInfo)) {
+            *quantizedFeaturesInfo = MakeIntrusive<TQuantizedFeaturesInfo>(
+                *metaInfo.FeaturesLayout,
+                params.DataProcessingOptions->IgnoredFeatures.Get(),
+                params.DataProcessingOptions->FloatFeaturesBinarization.Get(),
+                params.DataProcessingOptions->PerFloatFeatureQuantization.Get(),
+                params.DataProcessingOptions->TextProcessingOptions.Get(),
+                /*allowNansInTestOnly*/true
+            );
+
+            if (bordersFile) {
+                LoadBordersAndNanModesFromFromFileInMatrixnetFormat(
+                    *bordersFile,
+                    quantizedFeaturesInfo->Get());
+            }
+        }
+    }
+
+
+    void PrepareQuantizationParameters(
+        NJson::TJsonValue plainJsonParams,
+        const TDataMetaInfo& metaInfo,
+        const TMaybe<TString>& bordersFile,
+        TQuantizationOptions* quantizationOptions,
+        TQuantizedFeaturesInfoPtr* quantizedFeaturesInfo
+    ) {
+        NJson::TJsonValue jsonParams;
+        NJson::TJsonValue outputJsonParams;
+        ConvertIgnoredFeaturesFromStringToIndices(metaInfo, &plainJsonParams);
+        NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
+        NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
+
+        return PrepareQuantizationParameters(
+            catBoostOptions,
+            metaInfo,
+            bordersFile,
+            quantizationOptions,
+            quantizedFeaturesInfo);
     }
 
 

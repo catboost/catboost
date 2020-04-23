@@ -3,7 +3,7 @@
 LIBRARY()
 
 PEERDIR(
-    library/coroutine/engine
+    library/cpp/coroutine/engine
     library/dns
 )
 

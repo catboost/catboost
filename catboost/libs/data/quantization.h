@@ -46,6 +46,22 @@ namespace NCB {
         ESparseArrayIndexingType SparseArrayIndexingType = ESparseArrayIndexingType::Indices;
     };
 
+    void PrepareQuantizationParameters(
+        const NCatboostOptions::TCatBoostOptions& params,
+        const TDataMetaInfo& metaInfo,
+        const TMaybe<TString>& bordersFile,
+        TQuantizationOptions* quantizationOptions,
+        TQuantizedFeaturesInfoPtr* quantizedFeaturesInfo
+    );
+
+    void PrepareQuantizationParameters(
+        NJson::TJsonValue plainJsonParams,
+        const TDataMetaInfo& metaInfo,
+        const TMaybe<TString>& bordersFile,
+        TQuantizationOptions* quantizationOptions,
+        TQuantizedFeaturesInfoPtr* quantizedFeaturesInfo
+    );
+
     /*
      * Used for optimization.
      * It is number of times more effective to iterate over dense data in incremental order instead of random

@@ -1768,6 +1768,46 @@
                         "arch": "arm64"
                     },
                     "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv7ahf_cortex_a35"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv7ahf_cortex_a53"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv8a_cortex_a35"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "armv8a_cortex_a53"
+                    },
+                    "default": true
                 }
             ],
             "params": {
@@ -5530,7 +5570,7 @@
         "ymake": {
             "formula": {
                 "sandbox_id": [
-                    651904396
+                    656464835
                 ],
                 "match": "ymake"
             },
@@ -5554,7 +5594,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    652632783
+                    657943201
                 ],
                 "match": "arc"
             },
@@ -5660,7 +5700,7 @@
         "sandboxctl": {
             "formula": {
                 "sandbox_id": [
-                    506215708
+                    657687165
                 ],
                 "match": "tools/sandboxctl/bin/sandboxctl"
             },
@@ -6676,7 +6716,7 @@
         },
         "perf": {
             "formula": {
-                "sandbox_id": 592122048,
+                "sandbox_id": 657978986,
                 "match": "infra/kernel/tools/perf/build/perf-static.tar.gz"
             },
             "executable": {
@@ -7242,7 +7282,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 655679865,
+                "sandbox_id": 659134264,
                 "match": "horadric"
             },
             "executable": {
@@ -7319,7 +7359,7 @@
         },
         "contexts_difference": {
             "formula": {
-                "sandbox_id": 501958476,
+                "sandbox_id": 656514194,
                 "match": "contexts_difference"
             },
             "executable": {
@@ -7330,7 +7370,7 @@
         },
         "ycmerge": {
             "formula": {
-                "sandbox_id": 645865104,
+                "sandbox_id": 656863542,
                 "match": "ycmerge"
             },
             "executable": {
@@ -7352,7 +7392,7 @@
         },
         "ya-tc": {
             "formula": {
-                "sandbox_id": 652995319,
+                "sandbox_id": 656731493,
                 "match": "ya-tc"
             },
             "executable": {
@@ -7374,7 +7414,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 650218036,
+                "sandbox_id": 658091479,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -7635,7 +7675,7 @@
         },
         "yfm": {
             "formula": {
-                "sandbox_id": 652174899,
+                "sandbox_id": 657826477,
                 "match": "yfm"
             },
             "executable": {

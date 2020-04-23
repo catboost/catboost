@@ -30,6 +30,10 @@ namespace NCB {
             : TUnalignedArrayBuf(memoryRegion.data(), memoryRegion.size())
         {}
 
+        explicit TUnalignedArrayBuf(TConstArrayRef<T> alignedData)
+            : TUnalignedArrayBuf(alignedData.data(), alignedData.size() * sizeof(T))
+        {}
+
         size_t GetSize() const {
             return SizeInBytes / sizeof(T);
         }

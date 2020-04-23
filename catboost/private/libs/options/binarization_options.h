@@ -15,10 +15,12 @@ namespace NCatboostOptions {
         explicit TBinarizationOptions(
             EBorderSelectionType borderSelectionType = EBorderSelectionType::GreedyLogSum,
             ui32 discretization = 32,
-            ENanMode nanMode = ENanMode::Forbidden
+            ENanMode nanMode = ENanMode::Forbidden,
+            ui32 maxSubsetSize = 200000
         );
 
         void DisableNanModeOption();
+        void DisableMaxSubsetSizeForBuildBordersOption();
 
         bool operator==(const TBinarizationOptions& rhs) const;
         bool operator!=(const TBinarizationOptions& rhs) const;
@@ -34,6 +36,7 @@ namespace NCatboostOptions {
         TOption<EBorderSelectionType> BorderSelectionType;
         TOption<ui32> BorderCount;
         TOption<ENanMode> NanMode;
+        TOption<ui32> MaxSubsetSizeForBuildBorders;
     };
     std::pair<TStringBuf, NJson::TJsonValue> ParsePerFeatureBinarization(TStringBuf description);
 }

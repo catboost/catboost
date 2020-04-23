@@ -6,7 +6,7 @@
 
 template <class TConsumer, class TDelim, typename TChr>
 static inline void DoSplit2(TConsumer& c, TDelim& d, const TFixedString<TChr> str, int) {
-    SplitString(str.Start, str.Start + str.Length, d, c);
+    SplitString(str.data(), str.data() + str.size(), d, c);
 }
 
 template <class TConsumer, class TDelim, typename TChr>
@@ -25,7 +25,7 @@ static inline void DoSplit0(C* res, const TFixedString<TChr> str, TDelim& d, siz
     using TStringType = std::conditional_t<std::is_same<TChr, wchar16>::value, TUtf16String, TString>;
     res->clear();
 
-    if (!str.Start) {
+    if (!str.data()) {
         return;
     }
 
@@ -38,7 +38,7 @@ static inline void DoSplit0(C* res, const TFixedString<TChr> str, TDelim& d, siz
         DoSplit1(lc, d, str, options);
 
         if (lc.Last) {
-            res->push_back(TStringType(lc.Last, str.Start + str.Length - lc.Last));
+            res->push_back(TStringType(lc.Last, str.data() + str.size() - lc.Last));
         }
     } else {
         DoSplit1(cc, d, str, options);

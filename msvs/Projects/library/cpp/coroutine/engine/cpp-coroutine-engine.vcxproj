@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{810DAE0F-1259-BCE1-AB1B-BB8F715CA0BD}</ProjectGUID>
+    <ProjectGUID>{D4715C6C-9CC0-8DC2-580D-1131AC501867}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-coroutine-engine</ProjectName>
+    <ProjectName>cpp-coroutine-engine</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-coroutine-engine</TargetName>
+    <TargetName>cpp-coroutine-engine</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\coroutine\engine\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\810DAE0F-1259-BCE1-AB1B-BB8F715CA0BD\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\coroutine\engine\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\D4715C6C-9CC0-8DC2-580D-1131AC501867\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,20 +78,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\coroutine\engine\cont_poller.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\coroutine\engine\impl.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\coroutine\engine\iostatus.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\coroutine\engine\network.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\coroutine\engine\poller.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\coroutine\engine\poller.h_serialized.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\coroutine\engine\sockpool.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\coroutine\engine\trampoline.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\coroutine\engine\trampoline.h_serialized.cpp"/>
-    <CustomBuild Include="$(SolutionDir)..\library\coroutine\engine\poller.h">
+    <ClCompile Include="$(SolutionDir)..\library\cpp\coroutine\engine\cont_poller.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\coroutine\engine\impl.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\coroutine\engine\iostatus.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\coroutine\engine\network.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\coroutine\engine\poller.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\cpp\coroutine\engine\poller.h_serialized.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\coroutine\engine\sockpool.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\coroutine\engine\trampoline.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\cpp\coroutine\engine\trampoline.h_serialized.cpp"/>
+    <CustomBuild Include="$(SolutionDir)..\library\cpp\coroutine\engine\poller.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\coroutine\engine
+cd /d $(SolutionDir)$(Configuration)\library\cpp\coroutine\engine
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/coroutine/engine/poller.h" "--include-path" "library/coroutine/engine/poller.h" "--output" "$(SolutionDir)$(Configuration)/library/coroutine/engine/poller.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/coroutine/engine/poller.h" "--include-path" "library/cpp/coroutine/engine/poller.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/coroutine/engine/poller.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -100,9 +100,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\coroutine\engine
+cd /d $(SolutionDir)$(Configuration)\library\cpp\coroutine\engine
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/coroutine/engine/poller.h" "--include-path" "library/coroutine/engine/poller.h" "--output" "$(SolutionDir)$(Configuration)/library/coroutine/engine/poller.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/coroutine/engine/poller.h" "--include-path" "library/cpp/coroutine/engine/poller.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/coroutine/engine/poller.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -110,15 +110,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/coroutine/engine/poller.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\coroutine\engine\poller.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\coroutine\engine\poller.h_serialized.cpp;</Outputs>
+      <Message>$B/library/cpp/coroutine/engine/poller.h_serialized.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\library\cpp\coroutine\engine\poller.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\cpp\coroutine\engine\poller.h_serialized.cpp;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\library\coroutine\engine\trampoline.h">
+    <CustomBuild Include="$(SolutionDir)..\library\cpp\coroutine\engine\trampoline.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\coroutine\engine
+cd /d $(SolutionDir)$(Configuration)\library\cpp\coroutine\engine
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/coroutine/engine/trampoline.h" "--include-path" "library/coroutine/engine/trampoline.h" "--output" "$(SolutionDir)$(Configuration)/library/coroutine/engine/trampoline.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/coroutine/engine/trampoline.h" "--include-path" "library/cpp/coroutine/engine/trampoline.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/coroutine/engine/trampoline.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -127,9 +127,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\coroutine\engine
+cd /d $(SolutionDir)$(Configuration)\library\cpp\coroutine\engine
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/coroutine/engine/trampoline.h" "--include-path" "library/coroutine/engine/trampoline.h" "--output" "$(SolutionDir)$(Configuration)/library/coroutine/engine/trampoline.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/coroutine/engine/trampoline.h" "--include-path" "library/cpp/coroutine/engine/trampoline.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/coroutine/engine/trampoline.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -137,18 +137,18 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/coroutine/engine/trampoline.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\coroutine\engine\trampoline.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\coroutine\engine\trampoline.h_serialized.cpp;</Outputs>
+      <Message>$B/library/cpp/coroutine/engine/trampoline.h_serialized.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\library\cpp\coroutine\engine\trampoline.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\cpp\coroutine\engine\trampoline.h_serialized.cpp;</Outputs>
     </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\cont_poller.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\events.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\impl.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\iostatus.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\network.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\schedule_callback.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\sockmap.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\coroutine\engine\sockpool.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\cont_poller.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\events.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\impl.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\iostatus.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\network.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\schedule_callback.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\sockmap.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\coroutine\engine\sockpool.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

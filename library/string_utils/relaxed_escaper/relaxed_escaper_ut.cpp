@@ -29,8 +29,8 @@ Y_UNIT_TEST_SUITE(TRelaxedEscaperTest) {
     Y_UNIT_TEST(TestEscaper) {
         using namespace NEscJ;
         for (size_t i = 0; i < Y_ARRAY_SIZE(CommonTestData); i += 2) {
-            TString expected(CommonTestData[i].Start, CommonTestData[i].Length);
-            TString source(CommonTestData[i + 1].Start, CommonTestData[i + 1].Length);
+            TString expected(CommonTestData[i].data(), CommonTestData[i].size());
+            TString source(CommonTestData[i + 1].data(), CommonTestData[i + 1].size());
             TString actual(EscapeJ<false>(source));
             TString actual2(UnescapeC(expected));
 

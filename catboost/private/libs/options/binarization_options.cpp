@@ -14,10 +14,12 @@
 NCatboostOptions::TBinarizationOptions::TBinarizationOptions(
     const EBorderSelectionType borderSelectionType,
     const ui32 discretization,
-    const ENanMode nanMode)
+    const ENanMode nanMode,
+    const ui32 maxSubsetSizeForBuildBorders)
     : BorderSelectionType("border_type", borderSelectionType)
     , BorderCount("border_count", discretization)
     , NanMode("nan_mode", nanMode)
+    , MaxSubsetSizeForBuildBorders("dev_max_subset_size_for_build_borders", maxSubsetSizeForBuildBorders)
 {
 }
 
@@ -25,9 +27,13 @@ void NCatboostOptions::TBinarizationOptions::DisableNanModeOption() {
     NanMode.SetDisabledFlag(true);
 }
 
+void NCatboostOptions::TBinarizationOptions::DisableMaxSubsetSizeForBuildBordersOption() {
+    MaxSubsetSizeForBuildBorders.SetDisabledFlag(true);
+}
+
 bool NCatboostOptions::TBinarizationOptions::operator==(const TBinarizationOptions& rhs) const {
-    return std::tie(BorderSelectionType, BorderCount, NanMode) ==
-        std::tie(rhs.BorderSelectionType, rhs.BorderCount, rhs.NanMode);
+    return std::tie(BorderSelectionType, BorderCount, NanMode, MaxSubsetSizeForBuildBorders) ==
+        std::tie(rhs.BorderSelectionType, rhs.BorderCount, rhs.NanMode, rhs.MaxSubsetSizeForBuildBorders);
 }
 
 bool NCatboostOptions::TBinarizationOptions::operator!=(const TBinarizationOptions& rhs) const {
@@ -35,20 +41,26 @@ bool NCatboostOptions::TBinarizationOptions::operator!=(const TBinarizationOptio
 }
 
 void NCatboostOptions::TBinarizationOptions::Load(const NJson::TJsonValue& options) {
-    CheckedLoad(options, &BorderSelectionType, &BorderCount, &NanMode);
+    CheckedLoad(options, &BorderSelectionType, &BorderCount, &NanMode, &MaxSubsetSizeForBuildBorders);
     Validate();
 }
 
 void NCatboostOptions::TBinarizationOptions::Save(NJson::TJsonValue* options) const {
-    SaveFields(options, BorderSelectionType, BorderCount, NanMode);
+    SaveFields(options, BorderSelectionType, BorderCount, NanMode, MaxSubsetSizeForBuildBorders);
 }
 
 void NCatboostOptions::TBinarizationOptions::Validate() const {
-    CB_ENSURE(BorderCount.Get() <= GetMaxBinCount(), "Invalid border count: " << BorderCount.Get() << " (max border count: " << GetMaxBinCount() << ")");
+    CB_ENSURE(
+        BorderCount.Get() <= GetMaxBinCount(),
+        "Invalid border count: " << BorderCount.Get() << " (max border count: " << GetMaxBinCount() << ")");
+    CB_ENSURE(
+        0 < MaxSubsetSizeForBuildBorders.Get(),
+        "Invalid max subset size for build borders: " << MaxSubsetSizeForBuildBorders.Get()
+        << " (should be greater than zero)");
 }
 
 ui64 NCatboostOptions::TBinarizationOptions::GetHash() const {
-    return MultiHash(BorderSelectionType, BorderCount, NanMode);
+    return MultiHash(BorderSelectionType, BorderCount, NanMode, MaxSubsetSizeForBuildBorders);
 }
 
 std::pair<TStringBuf, NJson::TJsonValue> NCatboostOptions::ParsePerFeatureBinarization(TStringBuf description) {

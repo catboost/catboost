@@ -523,3 +523,13 @@
 - source_filter: "^contrib/libs/dpdk"
   includes:
     - process.h: contrib/libs/dpdk/drivers/bus/dpaa/include/process.h
+
+- source_filter: "^contrib/libs/usrsctp/"
+  includes:
+    - netinet/sctp_uio.h: contrib/libs/usrsctp/usrsctplib/netinet/sctp_uio.h
+
+- source_filter: "^contrib/libs/libsrtp/"
+  includes:
+  - alloc.h: contrib/libs/libsrtp/crypto/include/alloc.h
+  - err.h: contrib/libs/libsrtp/crypto/include/err.h
+  - stat.h: contrib/libs/libsrtp/crypto/include/stat.h
