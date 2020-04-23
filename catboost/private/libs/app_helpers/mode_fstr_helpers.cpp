@@ -89,7 +89,7 @@ void NCB::PrepareFstrModeParamsParser(
     const auto customShapCalculationTypeDescription =
             TString::Join("Should be one of: ", GetEnumAllNames<ECalcTypeShapValues>());
     parser.AddLongOption("shap-calc-type")
-        .DefaultValue("Normal")
+        .DefaultValue("Regular")
         .Handler1T<TString>([&params](const TString& calcType) {
             CB_ENSURE(TryFromString<ECalcTypeShapValues>(calcType, params.ShapCalcType),
                     calcType + " shap calculation type is not supported");

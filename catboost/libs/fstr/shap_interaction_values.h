@@ -22,5 +22,5 @@ TVector<TVector<TVector<TVector<double>>>> CalcShapInteractionValuesMulti(
     int logPeriod,
     EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor,
-    ECalcTypeShapValues calcType = ECalcTypeShapValues::Normal
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
 );

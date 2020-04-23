@@ -178,7 +178,7 @@ static void ExtendFeaturePathIfFeatureNotFixed(
     int feature,
     TVector<TFeaturePathElement>* featurePath
 ) {
-    if (!fixedFeatureParams.Defined() || 
+    if (!fixedFeatureParams.Defined() ||
         (fixedFeatureParams->FixedFeatureMode == TFixedFeatureParams::EMode::NotFixed || fixedFeatureParams->Feature != feature)) {
         *featurePath = ExtendFeaturePath(
             oldFeaturePath,
@@ -396,19 +396,19 @@ static void CalcNonObliviousInternalShapValuesForLeafRecursive(
         newOnePathsFraction = featurePath[sameFeatureIndex].OnePathsFraction;
         featurePath = UnwindFeaturePath(featurePath, sameFeatureIndex);
     }
-    
-    const double hotCoefficient = goNodeIdx != nodeIdx ? 
+
+    const double hotCoefficient = goNodeIdx != nodeIdx ?
         subtreeWeights[0][goNodeIdx - startOffset] / subtreeWeights[0][nodeIdx - startOffset] : -1.0;
-    const double coldCoefficient = skipNodeIdx != nodeIdx ? 
+    const double coldCoefficient = skipNodeIdx != nodeIdx ?
         subtreeWeights[0][skipNodeIdx - startOffset] / subtreeWeights[0][nodeIdx - startOffset] : -1.0;
-    TConditionsFeatureFraction conditionsFeatureFraction{
+    TConditionsFeatureFraction conditionsFeatureFraction {
         fixedFeatureParams,
         combinationClass,
         conditionFeatureFraction,
         hotCoefficient,
         coldCoefficient
     };
-    
+
     if (goNodeIdx != nodeIdx && !FuzzyEquals(1 + subtreeWeights[0][goNodeIdx - startOffset], 1 + 0.0)) {
         double newZeroPathsFractionGoNode = newZeroPathsFraction * hotCoefficient;
         CalcNonObliviousInternalShapValuesForLeafRecursive(
@@ -1124,7 +1124,7 @@ void CalcShapValuesForDocumentMulti(
                         );
                     }
                     break;
-                case ECalcTypeShapValues::Normal:
+                case ECalcTypeShapValues::Regular:
                     if (model.IsOblivious()) {
                         CalcObliviousShapValuesForLeaf(
                             *model.ModelTrees.Get(),
@@ -1286,7 +1286,7 @@ static void CalcShapValuesByLeafForTreeBlock(
                             &shapValuesByLeaf[leafIdx]
                         );
                         break;
-                    case ECalcTypeShapValues::Normal:
+                    case ECalcTypeShapValues::Regular:
                         CalcObliviousShapValuesForLeaf(
                             forest,
                             binFeatureCombinationClass,
@@ -1644,7 +1644,7 @@ void CalcShapValuesInternalForFeature(
                                 );
                             }
                             break;
-                        case ECalcTypeShapValues::Normal:
+                        case ECalcTypeShapValues::Regular:
                             if (model.IsOblivious()) {
                                 CalcObliviousShapValuesForLeaf(
                                     forest,
@@ -1830,7 +1830,7 @@ static TVector<TVector<TVector<double>>> SwapFeatureAndDocumentAxes(const TVecto
 
 // returned: ShapValues[featureIdx][dim][documentIdx]
 TVector<TVector<TVector<double>>> CalcShapValueWithQuantizedData(
-    const TFullModel& model, 
+    const TFullModel& model,
     const TVector<TIntrusivePtr<NModelEvaluation::IQuantizedData>>& quantizedFeatures,
     const TVector<TVector<NModelEvaluation::TCalcerIndexType>>& indices,
     const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
