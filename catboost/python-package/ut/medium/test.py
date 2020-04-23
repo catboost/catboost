@@ -3225,23 +3225,6 @@ def test_approximate_shap_feature_importance_asymmetric_and_symmetric(task_type)
     assert np.all(shap_symm - shap_asymm < 1e-8)
 
 
-def test_exact_shap_feature_importance_asymmetric_and_symmetric(task_type):
-    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
-    model = CatBoostClassifier(
-        iterations=5,
-        learning_rate=0.03,
-        max_ctr_complexity=1,
-        task_type=task_type,
-        devices='0')
-    model.fit(pool)
-    shap_symm = np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool,
-                                                      shap_calc_type="Exact"))
-    model._convert_to_asymmetric_representation()
-    shap_asymm = np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool,
-                                                       shap_calc_type="Exact"))
-    assert np.all(shap_symm - shap_asymm < 1e-8)
-
-
 def test_shap_feature_importance_with_langevin():
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, depth=10, langevin=True, diffusion_temperature=1000)
