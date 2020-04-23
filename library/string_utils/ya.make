@@ -1,5 +1,4 @@
 RECURSE(
-    base64
     csv
     csv/bench
     csv/ut

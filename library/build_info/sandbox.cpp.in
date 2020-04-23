@@ -1,5 +1,5 @@
 #include <library/build_info/sandbox.h>
-#include <library/string_utils/base64/base64.h>
+#include <library/cpp/string_utils/base64/base64.h>
 #include <util/generic/string.h>
 #include <util/string/subst.h>
 
