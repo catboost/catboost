@@ -1596,6 +1596,10 @@
                 "strip": {
                     "bottle": "clang7",
                     "executable": "llvm-strip"
+                },
+                "objcopy": {
+                    "bottle": "clang7",
+                    "executable": "llvm-objcopy"
                 }
             },
             "platforms": [
