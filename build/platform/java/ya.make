@@ -5,4 +5,5 @@ RECURSE(
     error_prone
     jacoco-agent
     kotlin
+    jstyle_lib
 )
