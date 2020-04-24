@@ -5,12 +5,12 @@
 #include <util/system/defaults.h>
 
 template <class TConsumer, class TDelim, typename TChr>
-static inline void DoSplit2(TConsumer& c, TDelim& d, const TFixedString<TChr> str, int) {
+static inline void DoSplit2(TConsumer& c, TDelim& d, const TBasicStringBuf<TChr> str, int) {
     SplitString(str.data(), str.data() + str.size(), d, c);
 }
 
 template <class TConsumer, class TDelim, typename TChr>
-static inline void DoSplit1(TConsumer& cc, TDelim& d, const TFixedString<TChr> str, int opts) {
+static inline void DoSplit1(TConsumer& cc, TDelim& d, const TBasicStringBuf<TChr> str, int opts) {
     if (opts & KEEP_EMPTY_TOKENS) {
         DoSplit2(cc, d, str, opts);
     } else {
@@ -21,7 +21,7 @@ static inline void DoSplit1(TConsumer& cc, TDelim& d, const TFixedString<TChr> s
 }
 
 template <class C, class TDelim, typename TChr>
-static inline void DoSplit0(C* res, const TFixedString<TChr> str, TDelim& d, size_t maxFields, int options) {
+static inline void DoSplit0(C* res, const TBasicStringBuf<TChr> str, TDelim& d, size_t maxFields, int options) {
     using TStringType = std::conditional_t<std::is_same<TChr, wchar16>::value, TUtf16String, TString>;
     res->clear();
 
@@ -47,7 +47,7 @@ static inline void DoSplit0(C* res, const TFixedString<TChr> str, TDelim& d, siz
 
 template <typename TChr>
 static void SplitStringImplT(TVector<std::conditional_t<std::is_same<TChr, wchar16>::value, TUtf16String, TString>>* res,
-                        const TFixedString<TChr> str, const TChr* delim, size_t maxFields, int options) {
+                        const TBasicStringBuf<TChr> str, const TChr* delim, size_t maxFields, int options) {
     if (!*delim) {
         return;
     }
