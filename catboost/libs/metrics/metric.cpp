@@ -75,6 +75,7 @@ const TMap<TString, TString>& TMetric::GetHints() const {
 
 TString TMetric::GetDescription() const {
     auto descriptionParamsCopy = DescriptionParams;
+    descriptionParamsCopy.erase("hints");
     if (UseWeights.IsUserDefined()) {
         descriptionParamsCopy[UseWeights.GetName()] = UseWeights.Get() ? "true" : "false";
     }
