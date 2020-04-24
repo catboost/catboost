@@ -4403,17 +4403,9 @@
         "checksum": "1614ad6e6631f0f001d78830228065c6",
         "uri": "file://test.test_fstr_Ordered-SymmetricTree-ShapValues_/fstr.tsv"
     },
-    "test.test_fstr[Plain-Depthwise-Interaction]": {
-        "checksum": "c9bc3bb20434f980e9b094becfa21108",
-        "uri": "file://test.test_fstr_Plain-Depthwise-Interaction_/fstr.tsv"
-    },
     "test.test_fstr[Plain-Depthwise-InternalFeatureImportance]": {
         "checksum": "fb44271ef545ceb81b684e9debae59d7",
         "uri": "file://test.test_fstr_Plain-Depthwise-InternalFeatureImportance_/fstr.tsv"
-    },
-    "test.test_fstr[Plain-Depthwise-InternalInteraction]": {
-        "checksum": "3215f30bd2113043f5c1fd152b37f37d",
-        "uri": "file://test.test_fstr_Plain-Depthwise-InternalInteraction_/fstr.tsv"
     },
     "test.test_fstr[Plain-Depthwise-PredictionDiff]": {
         "checksum": "6e1b342b17083c68511f64695fd09e21",
@@ -4427,17 +4419,9 @@
         "checksum": "f8aed9843cc19989eff38044f687bb7c",
         "uri": "file://test.test_fstr_Plain-Depthwise-ShapValues_/fstr.tsv"
     },
-    "test.test_fstr[Plain-Lossguide-Interaction]": {
-        "checksum": "b050a5f4473cf9bad5fb7c6c0f5b76a3",
-        "uri": "file://test.test_fstr_Plain-Lossguide-Interaction_/fstr.tsv"
-    },
     "test.test_fstr[Plain-Lossguide-InternalFeatureImportance]": {
         "checksum": "61a74590ddc093ddd58663909146d89d",
         "uri": "file://test.test_fstr_Plain-Lossguide-InternalFeatureImportance_/fstr.tsv"
-    },
-    "test.test_fstr[Plain-Lossguide-InternalInteraction]": {
-        "checksum": "7de82d1054e66685db6f893d993addac",
-        "uri": "file://test.test_fstr_Plain-Lossguide-InternalInteraction_/fstr.tsv"
     },
     "test.test_fstr[Plain-Lossguide-PredictionDiff]": {
         "checksum": "ec55019bb0e2fe3f02e1820fffb8b28e",
@@ -4560,7 +4544,7 @@
         "uri": "file://test.test_fstr_with_class_weights_SymmetricTree-ShapValues_/fstr.tsv"
     },
     "test.test_fstr_with_target_border[Depthwise-InternalFeatureImportance]": {
-        "checksum": "5f2952f53ec669e2f424f06c52ac808c",
+        "checksum": "fb44271ef545ceb81b684e9debae59d7",
         "uri": "file://test.test_fstr_with_target_border_Depthwise-InternalFeatureImportance_/fstr.tsv"
     },
     "test.test_fstr_with_target_border[Depthwise-LossFunctionChange]": {
@@ -4568,7 +4552,7 @@
         "uri": "file://test.test_fstr_with_target_border_Depthwise-LossFunctionChange_/fstr.tsv"
     },
     "test.test_fstr_with_target_border[Depthwise-PredictionDiff]": {
-        "checksum": "2d9b5be0bf90c9741c351263213dba53",
+        "checksum": "742ab9a8820ac2217cceb043fd92d340",
         "uri": "file://test.test_fstr_with_target_border_Depthwise-PredictionDiff_/fstr.tsv"
     },
     "test.test_fstr_with_target_border[Depthwise-PredictionValuesChange]": {
