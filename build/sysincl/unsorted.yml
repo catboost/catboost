@@ -1025,15 +1025,3 @@
   includes:
   # tensorflow 1.14 header, doesn't exist in current arcadia tensorflow 1.10
     - tensorflow/core/util/gpu_kernel_helper.h
-
-- source_filter: "^yandex_io/external_libs/speechkit"
-  includes:
-    - threads.h: yandex_io/external_libs/speechkit/c11-threads/threads.h
-
-- source_filter: "^contrib/restricted/openal-soft"
-  includes:
-    - threads.h: contrib/restricted/openal-soft/common/threads.h
-
-- source_filter: "^devtools/experimental/umbrella/embedded"
-  includes:
-    - threads.h: devtools/experimental/umbrella/include/c11/threads.h
