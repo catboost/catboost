@@ -104,7 +104,7 @@ namespace NCatboostCuda {
         }
 
         static void WriteToCompressedIndex(const NCudaLib::TDistributedObject<TCFeature>& feature,
-                                           const TVector<ui8>& bins,
+                                           TConstArrayRef<ui8> bins,
                                            const NCudaLib::TMirrorMapping&,
                                            TStripeBuffer<ui32>* compressedIndex) {
             ui32 writeDev = -1;

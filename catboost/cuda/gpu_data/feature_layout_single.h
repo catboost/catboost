@@ -90,7 +90,7 @@ namespace NCatboostCuda {
         }
 
         static void WriteToCompressedIndex(const NCudaLib::TDistributedObject<TCFeature>& feature,
-                                           const TVector<ui8>& bins,
+                                           TConstArrayRef<ui8> bins,
                                            const NCudaLib::TSingleMapping& docsMapping,
                                            TStripeBuffer<ui32>* compressedIndex) {
             TSingleBuffer<ui8> tmp = TSingleBuffer<ui8>::Create(docsMapping);
