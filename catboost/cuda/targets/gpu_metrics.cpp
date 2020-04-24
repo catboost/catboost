@@ -550,6 +550,7 @@ namespace NCatboostCuda {
                         result.emplace_back(new TCpuFallbackMetric(MakeMultiClassAucMetric(metricType, params, i), metricDescription));
                     }
                 }
+                break;
             }
             case ELossFunction::Kappa: {
                 if (approxDim == 1) {
