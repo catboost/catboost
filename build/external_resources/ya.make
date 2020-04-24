@@ -41,6 +41,7 @@ IF (OS_DARWIN OR OS_LINUX OR OS_WINDOWS)
     pep8_py2
     pep8_py3
     protoc-gen-javalite
+    ymake
     yolint
 )
 ENDIF()
