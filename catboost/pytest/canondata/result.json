@@ -8503,7 +8503,7 @@
     ],
     "test.test_shap_exact": [
         {
-            "checksum": "f60865e52084d54a437b6b374eec61de",
+            "checksum": "0b6f8591bd0a539e7754bfc913966c24",
             "uri": "file://test.test_shap_exact/shapval"
         }
     ],

@@ -201,49 +201,6 @@ static inline THashMap<int, size_t> ReverseFeatureVector(
     return featureMap;
 }
 
-
-static inline void UpdateFeatureValues(
-        size_t mask,
-        size_t approxDimension,
-        const TVector<double>& maskValue,
-        TVector<TShapValue>* shapValues
-) {
-    size_t numUsedFeatures = 0;
-    for (size_t i = 0; i < shapValues->size(); ++i) {
-        numUsedFeatures += ((mask >> i) & 1);
-    }
-
-    double coefficientUsed = 0;
-    double coefficientUnused = 0;
-
-    if (numUsedFeatures == 0) {
-        coefficientUnused = double(1) / shapValues->size();
-    }
-    if (numUsedFeatures == shapValues->size()) {
-        coefficientUsed = double(1) / shapValues->size();
-    }
-    if ((numUsedFeatures > 0) && (numUsedFeatures < shapValues->size())) {
-        coefficientUsed = 1;
-        for (size_t i = 0; i + 1 < numUsedFeatures; ++i) {
-            coefficientUsed *= (i + 1) / (shapValues->size() - numUsedFeatures + 1 + i);
-        }
-        coefficientUsed /= shapValues->size();
-        coefficientUnused = coefficientUsed * numUsedFeatures / (shapValues->size() - numUsedFeatures);
-    }
-
-    for (size_t i = 0; i < shapValues->size(); ++i) {
-        if ((mask >> i) & 1) {
-            for (size_t dimension = 0; dimension < approxDimension; ++dimension) {
-                (*shapValues)[i].Value[dimension] += coefficientUsed * maskValue[dimension];
-            }
-        } else {
-            for (size_t dimension = 0; dimension < approxDimension; ++dimension) {
-                (*shapValues)[i].Value[dimension] -= coefficientUnused * maskValue[dimension];
-            }
-        }
-    }
-}
-
 static void CalcObliviousInternalShapValuesForLeafRecursive(
     const TModelTrees& forest,
     const TVector<int>& binFeatureCombinationClass,
@@ -806,6 +763,11 @@ static inline void CalcObliviousExactShapValuesForLeafImplementation(
 
     THashMap<int, size_t> featureMap = ReverseFeatureVector(featureVector);
 
+    TVector<double> coefficients(featureVector.size(), double(1) / featureVector.size());
+    for (size_t i = 1; i < featureVector.size(); ++i) {
+        coefficients[i] = coefficients[i - 1] * double(i) / double(featureVector.size() - i);
+    }
+
     for (size_t mask = 0; (mask >> featureVector.size()) == 0; ++mask) {
         TVector<TVector<double>> subtreeWeightsCopy(subtreeWeights);
         TVector<double> maskValue(approxDimension, 0);
@@ -822,12 +784,22 @@ static inline void CalcObliviousExactShapValuesForLeafImplementation(
             /*nodeIdx*/ 0
         );
 
-        UpdateFeatureValues(
-            mask,
-            approxDimension,
-            maskValue,
-            shapValues
-        );
+        size_t numUsedFeatures = 0;
+        for (size_t i = 0; i < featureVector.size(); ++i) {
+            numUsedFeatures += ((mask >> i) & 1);
+        }
+
+        for (size_t i = 0; i < featureVector.size(); ++i) {
+            if ((mask >> i) & 1) {
+                for (size_t dimension = 0; dimension < approxDimension; ++dimension) {
+                    (*shapValues)[i].Value[dimension] += coefficients[numUsedFeatures - 1] * maskValue[dimension];
+                }
+            } else {
+                for (size_t dimension = 0; dimension < approxDimension; ++dimension) {
+                    (*shapValues)[i].Value[dimension] -= coefficients[numUsedFeatures] * maskValue[dimension];
+                }
+            }
+        }
     }
 }
 

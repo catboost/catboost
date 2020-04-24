@@ -448,7 +448,7 @@
         "uri": "file://test.test_eval_set_with_no_target_CPU_/evals.txt"
     },
     "test.test_exact_shap_feature_importance[CPU]": {
-        "checksum": "4146050b6b01c0b22c782f24b5dac354",
+        "checksum": "815a17b3f84e8fb608308b96b4f0c3d3",
         "uri": "file://test.test_exact_shap_feature_importance_CPU_/feature_importance.npy"
     },
     "test.test_exact_shap_feature_importance_multiclass[CPU]": {
@@ -456,11 +456,11 @@
         "uri": "file://test.test_exact_shap_feature_importance_multiclass_CPU_/feature_importance.npy"
     },
     "test.test_exact_shap_feature_importance_ranking[CPU]": {
-        "checksum": "83bd8b1fb11190c3dacee3b990028eed",
+        "checksum": "a34683c8b1a806acc8849331e4cec9ba",
         "uri": "file://test.test_exact_shap_feature_importance_ranking_CPU_/feature_importance.npy"
     },
     "test.test_exact_shap_feature_importance_with_langevin": {
-        "checksum": "1723d4e30e311134558f4527e81b160d",
+        "checksum": "487a9dab11496dc9d69a8a5c7b87acbf",
         "uri": "file://test.test_exact_shap_feature_importance_with_langevin/feature_importance.npy"
     },
     "test.test_export_to_python_no_cat_features[CPU-2]": {
