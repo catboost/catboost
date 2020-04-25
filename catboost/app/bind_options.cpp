@@ -896,8 +896,8 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         .AddLongOption("penalties-coefficient")
         .RequiredArgument("Float")
         .Help("Common coefficient for feature penalties. 1 by default. Should be nonnegative.")
-        .Handler1T<float>([plainJsonPtr](const float penalties_coefficient) {
-            (*plainJsonPtr)["penalties_coefficient"] = penalties_coefficient;
+        .Handler1T<float>([plainJsonPtr](const float penaltiesCoefficient) {
+            (*plainJsonPtr)["penalties_coefficient"] = penaltiesCoefficient;
         });
 
     parser
