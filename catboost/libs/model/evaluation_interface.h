@@ -74,6 +74,7 @@ namespace NCB {  // split due to CUDA-compiler inability to parse nested namespa
                 switch (GetPredictionType())
                 {
                 case EPredictionType::RawFormulaVal:
+                case EPredictionType::Exponent:
                 case EPredictionType::Probability:
                     return TVector<double>(docCount * GetApproxDimension());
                 case EPredictionType::Class:

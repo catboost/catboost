@@ -26,8 +26,6 @@ namespace NPar {
 
 namespace NCB {
 
-    static_assert(CHAR_BIT == 8, "CatBoost requires CHAR_BIT == 8");
-
     struct TRawObjectsData;
     class TFeaturesLayout;
     class TQuantizedFeaturesInfo;
@@ -135,6 +133,7 @@ namespace NCB {
         ui32 MaxBuckets = 1 << 10;
         float MaxConflictFraction = 0.0f;
         size_t MaxBundleCandidates = 100;
+        bool OnlyOneHotsAndBinaryFloats = false;
     };
 
 

@@ -89,6 +89,7 @@ PEERDIR(
     catboost/cuda/models
     catboost/cuda/targets
     catboost/private/libs/ctr_description
+    catboost/libs/data
     catboost/libs/helpers
     catboost/private/libs/lapack
     catboost/libs/loggers

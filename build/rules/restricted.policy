@@ -1,23 +1,101 @@
+# == Rules for contrib/restricted section ==
+#
+# NOTE: rules should be ordered from specific to generic (first matching rule is used)
+# See rule syntax docs: https://wiki.yandex-team.ru/devrules/overall/peerdirprohibition/
+
+# CityHash-1.0.2 is a specific version hardwired into ClickHouse public interface
+ALLOW clickhouse -> contrib/restricted/cityhash-1.0.2
+
+# Ryu is a fast enough alternative to double-conversion, but not the fastest.
+ALLOW clickhouse -> contrib/restricted/ryu
+
 ALLOW contrib/libs/clickhouse -> contrib/restricted/apache-orc
-ALLOW contrib/restricted/apache-orc -> contrib/restricted/apache-orc
-ALLOW contrib/restricted/abseil-cpp -> contrib/restricted/abseil-cpp
+
 ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp
+
 ALLOW contrib/libs/libbpf -> contrib/restricted/libelf
-ALLOW contrib/restricted/libelf -> contrib/restricted/libelf
 
-ALLOW contrib/restricted/gstreamer -> contrib/restricted/gstreamer
-ALLOW contrib/restricted/gst-plugins-base -> contrib/restricted/gst-plugins-base
-ALLOW contrib/restricted/gst-plugins-good -> contrib/restricted/gst-plugins-good
-ALLOW contrib/restricted/gst-plugins-bad -> contrib/restricted/gst-plugins-bad
-ALLOW contrib/restricted/gst-libav -> contrib/restricted/gst-libav
+# For HBase client: CONTRIB-1790
+ALLOW passport/cpp -> contrib/restricted/thrift
 
-ALLOW quasar/yandex_io -> contrib/restricted/glib
-ALLOW quasar/yandex_io -> contrib/restricted/gstreamer
-ALLOW quasar/yandex_io -> contrib/restricted/gst-plugins-base
-ALLOW quasar/yandex_io -> contrib/restricted/gst-plugins-good
-ALLOW quasar/yandex_io -> contrib/restricted/gst-plugins-bad
-ALLOW quasar/yandex_io -> contrib/restricted/gst-libav
+# ALSA library is LGPL
+ALLOW yandex_io -> contrib/restricted/alsa-lib
 
+# Avahi is LGPL
+ALLOW yandex_io -> contrib/restricted/avahi
+
+# GLib is LGPL
+ALLOW contrib/libs/harfbuzz/glib -> contrib/restricted/glib
+ALLOW yandex_io -> contrib/restricted/glib
+
+# GStreamer is LGPL
+ALLOW yandex_io -> contrib/restricted/gstreamer
+ALLOW yandex_io -> contrib/restricted/gst-plugins-base
+ALLOW yandex_io -> contrib/restricted/gst-plugins-good
+ALLOW yandex_io -> contrib/restricted/gst-plugins-bad
+ALLOW yandex_io -> contrib/restricted/gst-libav
+
+# mpg123 is LGPL
 ALLOW extsearch/audio/kernel/recoglib -> contrib/restricted/mpg123
 
+# OpenAL Soft is LGPL
+ALLOW yandex_io -> contrib/restricted/openal
+
+# Allowed subset of abseil is exported via library/
+ALLOW library/containers/absl_flat_hash -> contrib/restricted/abseil-cpp/absl/container
+
+# Prefer using skynet for data distribution
+ALLOW maps/infra/ecstatic/ymtorrent -> contrib/restricted/libtorrent
+
+# Only allow boost in yandex projects listed below
+ALLOW adfox -> contrib/restricted/boost
+ALLOW ads -> contrib/restricted/boost
+ALLOW advq -> contrib/restricted/boost
+ALLOW alice/nlu -> contrib/restricted/boost
+ALLOW alice/vins_contrib/crfsuitex -> contrib/restricted/boost
+ALLOW clickhouse -> contrib/restricted/boost
+ALLOW devtools -> contrib/restricted/boost
+ALLOW extsearch/geo/poi_service/tools/storage_reader -> contrib/restricted/boost
+ALLOW infra/contrib/pdns -> contrib/restricted/boost
+ALLOW juggler/pongerd -> contrib/restricted/boost
+ALLOW lbs/locator -> contrib/restricted/boost
+ALLOW library/testing/ya_boost_test -> contrib/restricted/boost
+ALLOW logbroker/pipe-parser -> contrib/restricted/boost
+ALLOW mail -> contrib/restricted/boost
+ALLOW maps -> contrib/restricted/boost
+ALLOW market/idx/feeds/feedparser -> contrib/restricted/boost
+ALLOW market/idx/stats/src -> contrib/restricted/boost
+ALLOW mds -> contrib/restricted/boost
+ALLOW metrika -> contrib/restricted/boost
+ALLOW netsys/tiles-vcdiff/gen-tiles -> contrib/restricted/boost
+ALLOW orgvisits/dwellplaces -> contrib/restricted/boost
+ALLOW orgvisits/heuristics -> contrib/restricted/boost
+ALLOW orgvisits/library/soc -> contrib/restricted/boost
+ALLOW quasar/backend -> contrib/restricted/boost
+ALLOW regulargeo/research -> contrib/restricted/boost
+ALLOW rem/python/geobase30 -> contrib/restricted/boost
+ALLOW rtline/services/drive/contrib/libs/telemetry -> contrib/restricted/boost
+ALLOW statbox/libstatbox -> contrib/restricted/boost
+ALLOW tools/idl -> contrib/restricted/boost
+ALLOW voicetech/tools -> contrib/restricted/boost
+ALLOW weather/grid_api/lib -> contrib/restricted/boost
+ALLOW yabs/telephony -> contrib/restricted/boost
+ALLOW yandex_io -> contrib/restricted/boost
+ALLOW yweb/robot/js -> contrib/restricted/boost
+
+# Allow boost in all contrib projects
+ALLOW contrib/deprecated -> contrib/restricted/boost
+ALLOW contrib/libs -> contrib/restricted/boost
+ALLOW contrib/python/horovod -> contrib/restricted/boost
+ALLOW contrib/tools -> contrib/restricted/boost
+
+# Default policies:
+
+# 1. All peerdirs within contrib/restricted are permitted
+ALLOW contrib/restricted -> contrib/restricted
+
+# 2. Allow junk for debug purposes
+ALLOW junk -> contrib/restricted
+
+# 3. All peerdirs to contrib/restricted from outside are prohibited
 DENY .* -> contrib/restricted

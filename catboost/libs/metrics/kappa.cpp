@@ -8,6 +8,7 @@
 #include <util/generic/array_ref.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
+#include <catboost/libs/helpers/math_utils.h>
 
 static TVector<TVector<int>> GetWeights(EKappaMetricType type, int classCount) {
     TVector<TVector<int>> weights(classCount, TVector<int>(classCount));
@@ -51,7 +52,7 @@ static TVector<TVector<double>> GetExpectedMatrix(TConstArrayRef<TVector<int>> m
     return expected;
 }
 
-static TVector<TVector<int>> UnzipKappaMatrix(TMetricHolder metric, int classCount) {
+static TVector<TVector<int>> UnzipConfusionMatrix(TMetricHolder metric, int classCount) {
     TVector<TVector<int>> matrix(classCount, TVector<int>(classCount));
     for (int i = 0; i < classCount; ++i) {
         for (int j = 0; j < classCount; ++j) {
@@ -61,24 +62,9 @@ static TVector<TVector<int>> UnzipKappaMatrix(TMetricHolder metric, int classCou
     return matrix;
 }
 
-TMetricHolder CalcKappaMatrix(TConstArrayRef<TVector<double>> approx,
-                              TConstArrayRef<float> target,
-                              int begin,
-                              int end,
-                              double border) {
-    int classCount = approx.size() == 1 ? 2 : static_cast<int>(approx.size());
-    TMetricHolder metric(classCount * classCount);
+double CalcKappa(TMetricHolder confusionMatrix, int classCount, EKappaMetricType type) {
 
-    for (int i = begin; i < end; ++i) {
-        const float targetVal = classCount > 1 ? target[i] : target[i] > border;
-        metric.Stats[GetApproxClass(approx, i) * classCount + static_cast<int>(targetVal)] += 1;
-    }
-    return metric;
-}
-
-double CalcKappa(TMetricHolder metric, int classCount, EKappaMetricType type) {
-
-    TVector<TVector<int>> matrix = UnzipKappaMatrix(metric, classCount);
+    TVector<TVector<int>> matrix = UnzipConfusionMatrix(confusionMatrix, classCount);
     TVector<TVector<int>> weights = GetWeights(type, classCount);
     TVector<TVector<double>> expected = GetExpectedMatrix(matrix, classCount);
 

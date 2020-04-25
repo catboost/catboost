@@ -4,6 +4,7 @@
 
 #include <catboost/private/libs/ctr_description/ctr_config.h>
 #include <catboost/libs/data/cat_feature_perfect_hash.h>
+#include <catboost/libs/data/exclusive_feature_bundling.h>
 #include <catboost/libs/data/features_layout.h>
 #include <catboost/libs/data/feature_estimators.h>
 #include <catboost/libs/data/quantized_features_info.h>
@@ -32,6 +33,7 @@ namespace NCatboostCuda {
         TBinarizedFeaturesManager(const NCatboostOptions::TCatFeatureParams& catFeatureOptions,
                                   NCB::TFeatureEstimatorsPtr estimators,
                                   const NCB::TFeaturesLayout& featuresLayout,
+                                  const TVector<NCB::TExclusiveFeaturesBundle>& learnExclusiveFeatureBundles,
                                   NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo);
 
         TBinarizedFeaturesManager(const TBinarizedFeaturesManager& featureManager, const TVector<ui32>& ignoredFeatureIds);
@@ -76,6 +78,47 @@ namespace NCatboostCuda {
             return IsCtr(featureId) && !GetCtr(featureId).IsSimple();
         }
 
+        bool IsFeatureBundle(ui32 featureId) const {
+            CB_ENSURE(featureId < Cursor);
+            return FeatureManagerIdToExclusiveBundleId.contains(featureId);
+        }
+
+        const NCB::TExclusiveFeaturesBundle& GetFeatureBundleForFeatureId(ui32 featureId) const {
+            const auto exclusiveBundleId = FeatureManagerIdToExclusiveBundleId.at(featureId);
+            return LearnExclusiveFeatureBundles.at(exclusiveBundleId);
+        }
+
+        TBinarySplit TranslateFeatureBundleSplitToBinarySplit(ui32 featureId, ui32 split) const {
+            const auto exclusiveBundleId = FeatureManagerIdToExclusiveBundleId.at(featureId);
+            const auto& bundleParts = LearnExclusiveFeatureBundles.at(exclusiveBundleId).Parts;
+            ui32 partId = 0;
+            if (split > 0) {
+                for (auto i : xrange(bundleParts.size())) {
+                    if (split < bundleParts[i].Bounds.End) {
+                        partId = i;
+                        break;
+                    }
+                }
+            } else {
+                for (auto i : xrange(bundleParts.size())) {
+                    if (bundleParts[i].FeatureType == EFeatureType::Categorical) {
+                        partId = i;
+                        break;
+                    }
+                }
+            }
+            const auto& part = bundleParts[partId];
+            auto featuresLayout = QuantizedFeaturesInfo->GetFeaturesLayout();
+            auto dataProviderIdxForPart = featuresLayout->GetExternalFeatureIdx(part.FeatureIdx, part.FeatureType);
+            if (part.FeatureType == EFeatureType::Float) {
+                const auto floatIdx = DataProviderFloatFeatureIdToFeatureManagerId.at(dataProviderIdxForPart).at(0);
+                return TBinarySplit{floatIdx, split - part.Bounds.Begin, EBinSplitType::TakeGreater};
+            } else {
+                auto catIdx = DataProviderCatFeatureIdToFeatureManagerId.at(dataProviderIdxForPart);
+                return TBinarySplit{catIdx, split ? split - part.Bounds.Begin + 1 : 0, EBinSplitType::TakeBin};
+            }
+        }
+
         bool IsEstimatedFeature(ui32 featureId) const {
             CB_ENSURE(featureId < Cursor);
             return FeatureManagerIdToEstimatedFeatureId.contains(featureId);
@@ -96,13 +139,13 @@ namespace NCatboostCuda {
 
         ui32 GetFeatureManagerIdForCatFeature(ui32 dataProviderId) const;
 
-        ui32 GetFeatureManagerIdForFloatFeature(ui32 dataProviderId) const;
+        const TVector<ui32>& GetFeatureManagerIdForFloatFeature(ui32 dataProviderId) const;
 
         ui32 GetDataProviderId(ui32 featureId) const {
             return FeatureManagerIdToDataProviderId.at(featureId);
         }
 
-        TEstimatedFeature GetEstimatedFeature(ui32 featureId) const {
+        NCB::TEstimatedFeatureId GetEstimatedFeature(ui32 featureId) const {
             return FeatureManagerIdToEstimatedFeatureId.at(featureId);
         }
 
@@ -129,6 +172,23 @@ namespace NCatboostCuda {
 
         TVector<ui32> GetEstimatedFeatureIds() const;
 
+        TVector<ui32> GetExclusiveFeatureBundleIds() const {
+            TVector<ui32> result;
+            result.reserve(FeatureManagerIdToExclusiveBundleId.size());
+            for (auto it : FeatureManagerIdToExclusiveBundleId) {
+                result.push_back(it.first);
+            }
+            return result;
+        }
+
+        ui32 GetExclusiveFeatureBundleIdxForFeatureManagerIdx(ui32 localIdx) const {
+            return FeatureManagerIdToExclusiveBundleId.at(localIdx);
+        }
+
+        bool PresentInExclusiveFeatureBundle(ui32 featureId) const {
+            return FeatureManagerFeaturesToBundleId.contains(featureId);
+        }
+
         const TVector<float>& GetBorders(ui32 featureId) const;
 
         ui32 CtrsPerTreeCtrFeatureTensor() const;
@@ -148,12 +208,12 @@ namespace NCatboostCuda {
             return KnownCtrs[ctr];
         }
 
-        ui32 GetId(const TEstimatedFeature& feature) const {
+        ui32 GetId(const NCB::TEstimatedFeatureId& feature) const {
             CB_ENSURE(EstimatedFeatureToFeatureManagerId.contains(feature), "Unknown estimated features, this is probably a bug");
             return EstimatedFeatureToFeatureManagerId[feature];
         }
 
-        const NCatboostOptions::TBinarizationOptions& GetBinarizationDescription(const TEstimatedFeature&) const {
+        const NCatboostOptions::TBinarizationOptions& GetBinarizationDescription(const NCB::TEstimatedFeatureId&) const {
             return QuantizedFeaturesInfo->GetFloatFeatureBinarization(Max<ui32>());
         }
 
@@ -226,20 +286,31 @@ namespace NCatboostCuda {
 
 
     private:
-        ui32 RegisterDataProviderCatFeature(ui32 featureId) {
+        void RegisterDataProviderCatFeature(ui32 featureId) {
             CB_ENSURE(!DataProviderCatFeatureIdToFeatureManagerId.contains(featureId));
             const ui32 id = RequestNewId();
             DataProviderCatFeatureIdToFeatureManagerId[featureId] = id;
             FeatureManagerIdToDataProviderId[id] = featureId;
-            return id;
         }
 
-        ui32 RegisterDataProviderFloatFeature(ui32 featureId) {
+        void RegisterDataProviderFloatFeature(ui32 featureId) {
             CB_ENSURE(!DataProviderFloatFeatureIdToFeatureManagerId.contains(featureId));
-            const ui32 id = RequestNewId();
-            DataProviderFloatFeatureIdToFeatureManagerId[featureId] = id;
-            FeatureManagerIdToDataProviderId[id] = featureId;
-            return id;
+            auto internalFeatureId = QuantizedFeaturesInfo->GetFeaturesLayout()->GetInternalFeatureIdx<EFeatureType::Float>(
+                featureId
+            );
+            if (!QuantizedFeaturesInfo->HasBorders(internalFeatureId) || QuantizedFeaturesInfo->GetBorders(internalFeatureId).empty()) {
+                const ui32 id = RequestNewId();
+                DataProviderFloatFeatureIdToFeatureManagerId[featureId].push_back(id);
+                FeatureManagerIdToDataProviderId[id] = featureId;
+                return;
+            }
+            auto& borders = QuantizedFeaturesInfo->GetBorders(internalFeatureId);
+            for (ui32 bordersSliceStart = 0; bordersSliceStart < borders.size(); bordersSliceStart += 255) {
+                const ui32 id = RequestNewId();
+                DataProviderFloatFeatureIdToFeatureManagerId[featureId].push_back(id);
+                FeatureManagerIdToDataProviderId[id] = featureId;
+                Borders[id].assign(borders.begin() + bordersSliceStart, borders.begin() + Min<ui32>(bordersSliceStart + 255, borders.size()));
+            }
         }
 
 
@@ -258,16 +329,38 @@ namespace NCatboostCuda {
             );
         }
 
+        void RegisterFeatureBundles() {
+            if (!LearnExclusiveFeatureBundles) {
+                return;
+            }
+            auto featuresLayout = QuantizedFeaturesInfo->GetFeaturesLayout();
+            for (auto i : xrange(LearnExclusiveFeatureBundles.size())) {
+                auto managerId = RequestNewId();
+                FeatureManagerIdToExclusiveBundleId[managerId] = i;
+                for (auto& part : LearnExclusiveFeatureBundles[i].Parts) {
+                    auto dataProviderIdxForPart = featuresLayout->GetExternalFeatureIdx(part.FeatureIdx, part.FeatureType);
+                    if (part.FeatureType == EFeatureType::Float) {
+                        auto& floatIdxs = DataProviderFloatFeatureIdToFeatureManagerId.at(dataProviderIdxForPart);
+                        CB_ENSURE_INTERNAL(floatIdxs.size() == 1, "We don't expect wide float features in bundles on GPU");
+                        FeatureManagerFeaturesToBundleId[floatIdxs[0]] = i;
+                    } else {
+                        Y_ASSERT(part.FeatureType == EFeatureType::Categorical);
+                        FeatureManagerFeaturesToBundleId[DataProviderCatFeatureIdToFeatureManagerId.at(dataProviderIdxForPart)] = i;
+                    }
+                }
+            }
+        }
+
         void RegisterFeatureEstimator(const NCB::TEstimatorId& estimatorId, const NCB::TEstimatedFeaturesMeta& meta) {
             for (ui32 f = 0; f < meta.FeaturesCount; ++f) {
-                TEstimatedFeature feature{estimatorId, f};
+                NCB::TEstimatedFeatureId feature{estimatorId, f};
                 const ui32 maxBins = QuantizedFeaturesInfo->GetFloatFeatureBinarization(Max<ui32>()).BorderCount + 1;
                 ui32 maxBinsUpperBoundHint = meta.UniqueValuesUpperBoundHint ? (*meta.UniqueValuesUpperBoundHint)[f] : maxBins;
                 AddEstimatedFeature(feature, maxBinsUpperBoundHint);
             }
         }
 
-        ui32 AddEstimatedFeature(const TEstimatedFeature& feature, ui32 maxBins) {
+        ui32 AddEstimatedFeature(const NCB::TEstimatedFeatureId& feature, ui32 maxBins) {
             CB_ENSURE(!EstimatedFeatureToFeatureManagerId.contains(feature));
             const ui32 id = RequestNewId();
             EstimatedFeatureToFeatureManagerId[feature] = id;
@@ -297,13 +390,13 @@ namespace NCatboostCuda {
         mutable TMap<TCtr, ui32> KnownCtrs;
         mutable TMap<ui32, TCtr> InverseCtrs;
 
-        mutable TMap<ui32, ui32> DataProviderFloatFeatureIdToFeatureManagerId;
+        mutable TMap<ui32, TVector<ui32>> DataProviderFloatFeatureIdToFeatureManagerId;
         mutable TMap<ui32, ui32> DataProviderCatFeatureIdToFeatureManagerId;
         mutable TMap<ui32, ui32> FeatureManagerIdToDataProviderId;
 
-        mutable TMap<TEstimatedFeature, ui32> EstimatedFeatureToFeatureManagerId;
+        mutable TMap<NCB::TEstimatedFeatureId, ui32> EstimatedFeatureToFeatureManagerId;
         mutable TMap<ui32, ui32> EstimatedFeatureUpperBoundHints;
-        mutable TMap<ui32, TEstimatedFeature> FeatureManagerIdToEstimatedFeatureId;
+        mutable TMap<ui32, NCB::TEstimatedFeatureId> FeatureManagerIdToEstimatedFeatureId;
 
         mutable ui32 Cursor = 0;
 
@@ -313,7 +406,7 @@ namespace NCatboostCuda {
         const NCatboostOptions::TCatFeatureParams& CatFeatureOptions;
 
 
-        // for ctr features, for float - get from QuantizedFeaturesInfo
+        // for ctr features and float features
         THashMap<ui32, TVector<float>> Borders;
 
         NCB::TQuantizedFeaturesInfoPtr QuantizedFeaturesInfo;
@@ -334,5 +427,8 @@ namespace NCatboostCuda {
         TVector<TUserDefinedCombination> UserCombinations;
         TSet<ui32> IgnoredFeatures;
 
+        TVector<NCB::TExclusiveFeaturesBundle> LearnExclusiveFeatureBundles;
+        TMap<ui32, ui32> FeatureManagerIdToExclusiveBundleId;
+        THashMap<ui32, ui32> FeatureManagerFeaturesToBundleId;
     };
 }

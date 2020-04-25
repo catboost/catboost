@@ -74,18 +74,6 @@ IF (ARCH_X86_64 OR ARCH_I386)
     ENDIF()
 ENDIF()
 
-IF (FREEBSD OR LINUX)
-    IF (NOT MUSL)
-        SRCS(Modules/nismodule.c)
-
-        IF (LINUX)
-            EXTRALIBS(nsl)
-        ENDIF ()
-
-        CFLAGS(-D_HAVE_NIS=1)
-    ENDIF ()
-ENDIF ()
-
 IF(FREEBSD)
     IF(FREEBSD_VER GREATER 7)
         SRCS(Modules/_multiprocessing/multiprocessing.c

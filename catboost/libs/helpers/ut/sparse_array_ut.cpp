@@ -118,7 +118,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
             TSparseSubsetBlocks<ui32> sparseSubsetBlocks(std::move(blockStarts), std::move(blockLengths));
 
             UNIT_ASSERT(
-                (AreSequencesEqual<ui32, TMaybe<ui32>>(
+                (AreSequencesEqual<ui32>(
                     MakeHolder<TStaticIteratorRangeAsDynamic<const ui32*>>(expectedIndices),
                     MakeHolder<TSparseSubsetBlocksIterator<ui32>>(sparseSubsetBlocks))));
         };
@@ -191,7 +191,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
            };
 
            UNIT_ASSERT(
-               (AreSequencesEqual<ui32, TMaybe<ui32>>(
+               (AreSequencesEqual<ui32>(
                    MakeHolder<TStaticIteratorRangeAsDynamic<const ui32*>>(expectedIndices),
                    MakeHolder<TSparseSubsetHybridIndexIterator<ui32>>(sparseSubsetHybridIndex))));
        };
@@ -588,7 +588,7 @@ Y_UNIT_TEST_SUITE(SparseArray) {
                 for (auto offset : xrange(expectedArray.size())) {
                     size_t i = offset;
                     auto blockIterator = sparseArray.GetBlockIterator(offset);
-                    while (auto block = blockIterator.Next(maxBlockSize)) {
+                    while (auto block = blockIterator->Next(maxBlockSize)) {
                         UNIT_ASSERT(block.size() <= maxBlockSize);
                         for (auto v : block) {
                             UNIT_ASSERT(areValuesEqual(v, expectedArray[i]));

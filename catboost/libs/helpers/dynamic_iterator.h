@@ -18,25 +18,6 @@
 
 namespace NCB {
 
-    // helper class for specifyng End VALUE constant
-    template <class TReturnValue>
-    struct IDynamicIteratorEnd;
-
-    template <class TValue>
-    struct IDynamicIteratorEnd<TMaybe<TValue>> {
-        constexpr static TNothing VALUE = Nothing();
-    };
-
-    template <class TValue>
-    struct IDynamicIteratorEnd<TValue*> {
-        constexpr static TValue* VALUE = nullptr;
-    };
-
-    template <class TValue>
-    struct IDynamicIteratorEnd<TConstArrayRef<TValue>> {
-        constexpr static TConstArrayRef<TValue> VALUE = TConstArrayRef<TValue>();
-    };
-
 
     /*
      * Use TReturnValue = 'TMaybe<TValue>' for const iteration over light or dynamically generated objects
@@ -54,112 +35,53 @@ namespace NCB {
      *   but STL LegacyIterator requires CopyConstructible and CopyAssignable - use with TIntrusivePtr
      *   in this case.
      */
-    template <class TValue, class TReturnValue = TMaybe<TValue>>
+    template <class TValue>
     struct IDynamicIterator : public TThrRefBase {
     public:
         using value_type = TValue;
-        using return_value_type = TReturnValue;
 
-    public:
-        constexpr static auto END_VALUE = IDynamicIteratorEnd<TReturnValue>::VALUE;
 
     public:
         virtual ~IDynamicIterator() = default;
 
-        // returns END_VALUE if exhausted
-        virtual TReturnValue Next() = 0;
+        // returns false if exhausted
+        virtual bool Next(TValue*) = 0;
     };
 
-    template <class TValue, class TReturnValue = TMaybe<TValue>>
-    using IDynamicIteratorPtr = THolder<IDynamicIterator<TValue, TReturnValue>>;
+    template <class TValue>
+    using IDynamicIteratorPtr = THolder<IDynamicIterator<TValue>>;
 
 
-    template <class TValue, class TReturnValue = TMaybe<TValue>>
+    template <class TValue>
     bool AreSequencesEqual(
-        IDynamicIteratorPtr<TValue, TReturnValue> lhs,
-        IDynamicIteratorPtr<TValue, TReturnValue> rhs) {
+        IDynamicIteratorPtr<TValue> lhs,
+        IDynamicIteratorPtr<TValue> rhs) {
 
         while (true) {
-            auto lNext = lhs->Next();
-            auto rNext = rhs->Next();
+            TValue lNext, rNext;
+            bool haveLeft = lhs->Next(&lNext);
+            bool haveRight = rhs->Next(&rNext);
 
-            if (!lNext) {
-                return !rNext;
-            }
-            if (!rNext) {
+            if (haveLeft != haveRight) {
                 return false;
             }
-            if (*lNext != *rNext) {
+            if (!haveLeft) {
+                return true;
+            }
+            if (lNext != rNext) {
                 return false;
             }
         }
         Y_UNREACHABLE();
     }
 
-
-    template <class TValue, class TReturnValue = TMaybe<TValue>>
-    class TDynamicIteratorAsStatic {
-    public:
-        using iterator_category = std::input_iterator_tag;
-        using value_type = TValue;
-        using difference_type = size_t;
-        using pointer = TReturnValue;
-        using reference = TValue&;
-
-        using IBaseIterator = IDynamicIterator<TValue, TReturnValue>;
-
-    public:
-        // use as end() sentinel
-        TDynamicIteratorAsStatic() = default;
-
-        // baseIteratorPtr must be non-nullptr
-        explicit TDynamicIteratorAsStatic(THolder<IBaseIterator> baseIteratorPtr)
-            : Current(baseIteratorPtr->Next())
-            , BaseIteratorPtr(baseIteratorPtr.Release())
-        {}
-
-        reference operator*() {
-            return *Current;
-        }
-
-        TDynamicIteratorAsStatic& operator++() {
-            Current = BaseIteratorPtr->Next();
-            return *this;
-        }
-
-        // this iterator is non-copyable so return TReturnValue to make '*it++' idiom work
-        TReturnValue operator++(int) {
-            TReturnValue result = std::move(Current);
-            Current = BaseIteratorPtr->Next();
-            return result;
-        }
-
-        // the only valid comparison is comparison with end() sentinel
-        bool operator==(const TDynamicIteratorAsStatic& rhs) const {
-            Y_ASSERT(!rhs.BaseIteratorPtr);
-            return Current == IBaseIterator::END_VALUE;
-        }
-
-        // the only valid comparison is comparison with end() sentinel
-        bool operator!=(const TDynamicIteratorAsStatic& rhs) const {
-            Y_ASSERT(!rhs.BaseIteratorPtr);
-            return Current != IBaseIterator::END_VALUE;
-        }
-
-    private:
-        TReturnValue Current;
-        TIntrusivePtr<IBaseIterator> BaseIteratorPtr; // TIntrusivePtr for copyability
-    };
-
-
     template <
-        class TBaseIterator,
-        class TReturnValue = TMaybe<typename std::iterator_traits<TBaseIterator>::value_type>>
+        class TBaseIterator>
     class TStaticIteratorRangeAsDynamic final
-        : public IDynamicIterator<typename std::iterator_traits<TBaseIterator>::value_type, TReturnValue>
+        : public IDynamicIterator<typename std::iterator_traits<TBaseIterator>::value_type>
     {
-        using IBase = IDynamicIterator<typename std::iterator_traits<TBaseIterator>::value_type, TReturnValue>;
-
+        using IBase = IDynamicIterator<typename std::iterator_traits<TBaseIterator>::value_type>;
+        using TValue = typename std::iterator_traits<TBaseIterator>::value_type;
     public:
         TStaticIteratorRangeAsDynamic(TBaseIterator begin, TBaseIterator end)
             : Current(std::move(begin))
@@ -171,15 +93,12 @@ namespace NCB {
             : TStaticIteratorRangeAsDynamic(container.begin(), container.end())
         {}
 
-        TReturnValue Next() override {
+        bool Next(TValue* value) override {
             if (Current == End) {
-                return IBase::END_VALUE;
+                return false;
             }
-            if constexpr(std::is_same<TReturnValue, TMaybe<typename IBase::value_type>>()) {
-                return *Current++;
-            } else {
-                return &*(Current++);
-            }
+            *value = *Current++;
+            return true;
         }
 
     private:
@@ -196,11 +115,12 @@ namespace NCB {
             , End(range.End)
         {}
 
-        TMaybe<TSize> Next() override {
+        bool Next(TSize* value) override {
             if (Current == End) {
-                return IDynamicIterator<TSize>::END_VALUE;
+                return false;
             }
-            return Current++;
+            *value = Current++;
+            return true;
         }
 
     private:
@@ -231,13 +151,13 @@ namespace NCB {
             , Index(offset)
         {}
 
-        TMaybe<std::pair<TIndex, TValue>> Next() override {
-            const TMaybe<TValue> nextValue = ValueIterator->Next();
-            if (nextValue) {
-                return MakeMaybe(std::pair<TIndex, TValue>(Index++, *nextValue));
-            } else {
-                return IBase::END_VALUE;
+        bool Next(std::pair<TIndex, TValue>* value) override {
+            TValue nextValue;
+            if (ValueIterator->Next(&nextValue)) {
+                *value = std::pair<TIndex, TValue>(Index++, *nextValue);
+                return true;
             }
+            return false;
         }
 
     private:
@@ -245,48 +165,19 @@ namespace NCB {
         TIndex Index;
     };
 
-
-    template <class TBaseIterator, class TIndex = size_t>
-    class TStaticIteratorRangeAsSparseDynamic final
-        : public IDynamicSparseIterator<typename std::iterator_traits<TBaseIterator>::value_type, TIndex> {
-    public:
-        using TValue = typename std::iterator_traits<TBaseIterator>::value_type;
-        using IBase = IDynamicSparseIterator<TValue, TIndex>;
-
-    public:
-        TStaticIteratorRangeAsSparseDynamic(TBaseIterator begin, TBaseIterator end)
-            : Begin(std::move(begin))
-            , End(std::move(end))
-            , Index(0)
-        {}
-
-        template <class TContainer>
-        explicit TStaticIteratorRangeAsSparseDynamic(const TContainer& container)
-            : TStaticIteratorRangeAsSparseDynamic(container.begin(), container.end())
-        {}
-
-        TMaybe<std::pair<TIndex, TValue>> Next() override {
-            if (Begin == End) {
-                return IBase::END_VALUE;
-            }
-            return MakeMaybe(std::pair<TIndex, TValue>(Index++, *Begin++));
-        }
-
-    private:
-        TBaseIterator Begin;
-        TBaseIterator End;
-        TIndex Index;
+    // allow dynamic casts for quantized columns
+    struct IDynamicBlockIteratorBase {
+        virtual ~IDynamicBlockIteratorBase() = default;
     };
 
+    using IDynamicBlockIteratorBasePtr = THolder<IDynamicBlockIteratorBase>;
 
     template <class T>
-    struct IDynamicBlockIterator {
+    struct IDynamicBlockIterator : public IDynamicBlockIteratorBase {
     public:
         using value_type = T;
 
     public:
-        virtual ~IDynamicBlockIterator() = default;
-
         /*
          * returns array with size <= maxBlockSize
          * returns empty array if exhausted
@@ -412,6 +303,39 @@ namespace NCB {
 
         TVector<TDst> DstBuffer;
     };
+
+    template<class TDst, class TSrc, class TTransformer>
+    class TBlockTransformerIterator : public IDynamicBlockIterator<TDst> {
+    public:
+        TBlockTransformerIterator(
+            IDynamicBlockIteratorPtr<TSrc> src,
+            TTransformer transformer
+        )
+            : SrcIterator(std::move(src))
+            , Transformer(std::move(transformer))
+        {}
+        TConstArrayRef<TDst> Next(size_t maxBlockSize = Max<size_t>()) override {
+            auto srcBlock = SrcIterator->Next(maxBlockSize);
+            DstBuffer.yresize(srcBlock.size());
+            Transformer(srcBlock, DstBuffer);
+            return DstBuffer;
+        }
+    private:
+        IDynamicBlockIteratorPtr<TSrc> SrcIterator;
+        TTransformer Transformer;
+        TVector<TDst> DstBuffer;
+    };
+
+    template<class TDst, class TSrc, class TTransformer>
+    IDynamicBlockIteratorPtr<TDst> MakeBlockTransformerIterator(
+        IDynamicBlockIteratorPtr<TSrc> src,
+        TTransformer&& transformer
+    ) {
+        return MakeHolder<TBlockTransformerIterator<TDst, TSrc, TTransformer>>(
+            std::move(src),
+            std::move(transformer)
+        );
+    }
 
     template <class TDst, class TSrc, class TTransformer>
     class TTransformArrayBlockIterator final : public IDynamicBlockWithExactIterator<TDst> {

@@ -393,7 +393,7 @@ def onpy_srcs(unit, *args):
                     res += ['DEST', dest + '.yapyc3', path + '.yapyc3']
 
             unit.onresource_files(res)
-            add_python_lint_checks(unit, 3, [path for path, mod in pys])
+            add_python_lint_checks(unit, 3, [path for path, mod in pys] + unit.get(['_PY_EXTRA_LINT_FILES_VALUE']).split())
         else:
             for path, mod in pys:
                 root_rel_path = rootrel_arc_src(path, unit)
@@ -410,7 +410,7 @@ def onpy_srcs(unit, *args):
                     res += [dst, '/py_code/' + mod]
 
             unit.onresource(res)
-            add_python_lint_checks(unit, 2, [path for path, mod in pys])
+            add_python_lint_checks(unit, 2, [path for path, mod in pys] + unit.get(['_PY_EXTRA_LINT_FILES_VALUE']).split())
 
     if protos:
         if not upath.startswith('contrib/libs/protobuf/python/google_lib'):

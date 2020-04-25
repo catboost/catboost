@@ -13,9 +13,11 @@ SRCS(
     class_label_options.cpp
     cross_validation_params.cpp
     data_processing_options.cpp
+    dataset_reading_params.cpp
     defaults_helper.cpp
     enum_helpers.cpp
     feature_eval_options.cpp
+    feature_penalties_options.cpp
     json_helper.cpp
     load_options.cpp
     loss_description.cpp
@@ -26,6 +28,7 @@ SRCS(
     option.cpp
     output_file_options.cpp
     overfitting_detector_options.cpp
+    parse_per_feature_options.cpp
     plain_options_helper.cpp
     runtime_text_options.cpp
     split_params.cpp
@@ -40,7 +43,7 @@ PEERDIR(
     catboost/private/libs/ctr_description
     catboost/private/libs/data_util
     library/getopt/small
-    library/grid_creator
+    library/cpp/grid_creator
     library/json
     library/text_processing/dictionary
     library/text_processing/tokenizer

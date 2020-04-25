@@ -87,6 +87,8 @@ namespace NCatboostOptions {
 
         EFstrType GetFstrType() const;
 
+        bool IsFstrTypeSet() const;
+
         TString CreateTrainingOptionsFullPath() const;
 
         TString CreateEvalFullPath() const;

@@ -1,6 +1,6 @@
 #include "dbg_info.h"
 
-#include <library/malloc/api/malloc.h>
+#include <library/cpp/malloc/api/malloc.h>
 
 namespace NAllocDbg {
     ////////////////////////////////////////////////////////////////////////////////

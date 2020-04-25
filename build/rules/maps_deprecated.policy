@@ -1,0 +1,3 @@
+ALLOW maps/libs/deprecated -> maps/libs/deprecated
+
+DENY .* -> maps/libs/deprecated

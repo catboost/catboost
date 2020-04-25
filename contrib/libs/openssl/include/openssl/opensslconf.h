@@ -18,6 +18,8 @@
 #   include "opensslconf-android_arm.h"
 #elif defined(__linux__) && defined(__aarch64__)
 #   include "opensslconf-linux_aarch64.h"
+#elif defined(__linux__) && defined(__arm__)
+#   include "opensslconf-linux_arm.h"
 #elif defined(_MSC_VER) && defined(_M_X64)
 #   include "opensslconf-win.h"
 #else

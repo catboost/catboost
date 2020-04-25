@@ -110,6 +110,34 @@ CATBOOST_API bool CalcModelPrediction(
     return true;
 }
 
+CATBOOST_API bool CalcModelPredictionText(
+        ModelCalcerHandle* modelHandle,
+        size_t docCount,
+        const float** floatFeatures, size_t floatFeaturesSize,
+        const char*** catFeatures, size_t catFeaturesSize,
+        const char*** textFeatures, size_t textFeaturesSize,
+        double* result, size_t resultSize) {
+    try {
+        TVector<TConstArrayRef<float>> floatFeaturesVec(docCount);
+        TVector<TVector<TStringBuf>> catFeaturesVec(docCount, TVector<TStringBuf>(catFeaturesSize));
+        TVector<TVector<TStringBuf>> textFeaturesVec(docCount, TVector<TStringBuf>(textFeaturesSize));
+        for (size_t i = 0; i < docCount; ++i) {
+            floatFeaturesVec[i] = TConstArrayRef<float>(floatFeatures[i], floatFeaturesSize);
+            for (size_t catFeatureIdx = 0; catFeatureIdx < catFeaturesSize; ++catFeatureIdx) {
+                catFeaturesVec[i][catFeatureIdx] = catFeatures[i][catFeatureIdx];
+            }
+            for (size_t textFeatureIdx = 0; textFeatureIdx < textFeaturesSize; ++textFeatureIdx) {
+                textFeaturesVec[i][textFeatureIdx] = textFeatures[i][textFeatureIdx];
+            }
+        }
+        FULL_MODEL_PTR(modelHandle)->Calc(floatFeaturesVec, catFeaturesVec, textFeaturesVec, TArrayRef<double>(result, resultSize));
+    } catch (...) {
+        Singleton<TErrorMessageHolder>()->Message = CurrentExceptionMessage();
+        return false;
+    }
+    return true;
+}
+
 CATBOOST_API bool CalcModelPredictionSingle(
         ModelCalcerHandle* modelHandle,
         const float* floatFeatures, size_t floatFeaturesSize,

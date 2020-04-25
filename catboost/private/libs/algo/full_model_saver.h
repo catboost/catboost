@@ -65,7 +65,7 @@ namespace NCB {
         );
 
         TCoreModelToFullModelConverter& WithBinarizedDataComputedFrom(
-            TTrainingForCPUDataProviders&& trainingData,
+            TTrainingDataProviders&& trainingData,
             THashMap<TFeatureCombination, TProjection>&& featureCombinationToProjection,
             const TVector<TTargetClassifier>& targetClassifiers
         );

@@ -78,154 +78,154 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dcosqb.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dcosqf.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dcosqi.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dcost.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dcosti.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dfftb.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dfftb1.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dfftf.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dfftf1.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dffti.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dffti1.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dsinqb.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dsinqf.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dsinqi.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dsint.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dsint1.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dsinti.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\zfftb.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\zfftb1.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\zfftf.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\zfftf1.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\zffti.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\zffti1.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\cfftb.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\cfftb1.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\cfftf.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\cfftf1.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\cffti.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\cffti1.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\cosqb.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\cosqf.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\cosqi.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\cost.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\costi.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\rfftb.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\rfftb1.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\rfftf.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\rfftf1.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\rffti.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\rffti1.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\sinqb.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\sinqf.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\sinqi.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\sint.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\sint1.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\sinti.f.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\convolve.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dct.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dcosqb.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dcosqf.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dcosqi.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dcost.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dcosti.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dfftb.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dfftb1.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dfftf.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dfftf1.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dffti.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dffti1.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dsinqb.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dsinqf.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dsinqi.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dsint.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dsint1.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dsinti.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\zfftb.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\zfftb1.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\zfftf.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\zfftf1.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\zffti.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\zffti1.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\drfft.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dst.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\cfftb.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\cfftb1.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\cfftf.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\cfftf1.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\cffti.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\cffti1.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\cosqb.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\cosqf.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\cosqi.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\cost.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\costi.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\rfftb.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\rfftb1.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\rfftf.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\rfftf1.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\rffti.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\rffti1.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\sinqb.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\sinqf.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\sinqi.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\sint.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\sint1.f.c">
-      <CompileAs>CompileAsC</CompileAs>
-    </ClCompile>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\sinti.f.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\zfft.c">
@@ -241,187 +241,187 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosqb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosqb.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosqb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dcosqb.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosqf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosqf.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosqf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dcosqf.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosqi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosqi.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosqi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dcosqi.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dcost.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dcost.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dcost.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dcost.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosti.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dcosti.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftb.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dfftb.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftb1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftb1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftb1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dfftb1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftf.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dfftf.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftf1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftf1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftf1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dfftf1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dffti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dffti.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dffti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dffti.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dffti1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dffti1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dffti1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dffti1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinqb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinqb.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinqb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dsinqb.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinqf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinqf.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinqf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dsinqf.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinqi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinqi.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinqi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dsinqi.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsint.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dsint.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsint.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dsint.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsint1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dsint1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsint1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dsint1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinti.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dsinti.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftb.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/zfftb.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftb1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftb1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftb1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/zfftb1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftf.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/zfftf.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftf1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftf1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftf1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/zfftf1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zffti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/zffti.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zffti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/zffti.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zffti1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/zffti1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zffti1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/zffti1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cfftb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/cfftb.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cfftb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cfftb.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cfftb1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/cfftb1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cfftb1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cfftb1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cfftf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/cfftf.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cfftf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cfftf.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cfftf1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/cfftf1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cfftf1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cfftf1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cffti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/cffti.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cffti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cffti.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cffti1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/cffti1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cffti1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cffti1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cosqb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/cosqb.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cosqb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cosqb.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cosqf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/cosqf.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cosqf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cosqf.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cosqi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/cosqi.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cosqi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cosqi.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cost.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/cost.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cost.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cost.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/costi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/costi.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/costi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/costi.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rfftb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/rfftb.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rfftb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/rfftb.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rfftb1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/rfftb1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rfftb1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/rfftb1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rfftf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/rfftf.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rfftf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/rfftf.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rfftf1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/rfftf1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rfftf1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/rfftf1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rffti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/rffti.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rffti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/rffti.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rffti1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/rffti1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rffti1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/rffti1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sinqb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/sinqb.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sinqb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/sinqb.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sinqf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/sinqf.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sinqf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/sinqf.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sinqi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/sinqi.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sinqi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/sinqi.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sint.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/sint.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sint.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/sint.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sint1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/sint1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sint1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/sint1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sinti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/sinti.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sinti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/sinti.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -432,187 +432,187 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosqb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosqb.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosqb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dcosqb.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosqf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosqf.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosqf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dcosqf.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosqi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosqi.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosqi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dcosqi.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dcost.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dcost.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dcost.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dcost.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosti.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dcosti.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftb.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dfftb.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftb1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftb1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftb1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dfftb1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftf.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dfftf.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftf1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftf1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftf1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dfftf1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dffti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dffti.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dffti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dffti.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dffti1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dffti1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dffti1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dffti1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinqb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinqb.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinqb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dsinqb.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinqf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinqf.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinqf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dsinqf.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinqi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinqi.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinqi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dsinqi.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsint.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dsint.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsint.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dsint.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsint1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dsint1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsint1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dsint1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinti.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dsinti.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftb.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/zfftb.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftb1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftb1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftb1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/zfftb1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftf.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/zfftf.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftf1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftf1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftf1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/zfftf1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zffti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/zffti.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zffti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/zffti.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zffti1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/dfftpack/zffti1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/dfftpack/zffti1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/zffti1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cfftb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/cfftb.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cfftb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cfftb.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cfftb1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/cfftb1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cfftb1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cfftb1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cfftf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/cfftf.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cfftf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cfftf.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cfftf1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/cfftf1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cfftf1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cfftf1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cffti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/cffti.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cffti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cffti.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cffti1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/cffti1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cffti1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cffti1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cosqb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/cosqb.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cosqb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cosqb.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cosqf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/cosqf.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cosqf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cosqf.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cosqi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/cosqi.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cosqi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cosqi.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cost.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/cost.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/cost.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cost.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/costi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/costi.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/costi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/costi.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rfftb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/rfftb.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rfftb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/rfftb.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rfftb1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/rfftb1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rfftb1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/rfftb1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rfftf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/rfftf.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rfftf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/rfftf.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rfftf1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/rfftf1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rfftf1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/rfftf1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rffti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/rffti.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rffti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/rffti.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rffti1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/rffti1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/rffti1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/rffti1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sinqb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/sinqb.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sinqb.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/sinqb.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sinqf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/sinqf.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sinqf.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/sinqf.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sinqi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/sinqi.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sinqi.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/sinqi.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sint.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/sint.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sint.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/sint.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sint1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/sint1.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sint1.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/sint1.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sinti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/fftpack/sinti.f.c"
+"python" "$(SolutionDir)../build/scripts/f2c.py" "-t" "$(SolutionDir)$(Configuration)/contrib/tools/f2c/f2c.exe" "-c" "$(SolutionDir)../contrib/python/scipy/scipy/fftpack/src/fftpack/sinti.f" "-o" "$(SolutionDir)$(Configuration)/contrib/python/scipy/scipy/fftpack/src/_/fftpack/sinti.f.c"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -620,9 +620,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosqb.f.c	$B/contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosqf.f.c	$B/contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosqi.f.c	$B/contrib/python/scipy/scipy/fftpack/src/dfftpack/dcost.f.c	$B/contrib/python/scipy/scipy/fftpack/src/dfftpack/dcosti.f.c	$B/contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftb.f.c	$B/contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftb1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftf.f.c	$B/contrib/python/scipy/scipy/fftpack/src/dfftpack/dfftf1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/dfftpack/dffti.f.c	$B/contrib/python/scipy/scipy/fftpack/src/dfftpack/dffti1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinqb.f.c	$B/contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinqf.f.c	$B/contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinqi.f.c	$B/contrib/python/scipy/scipy/fftpack/src/dfftpack/dsint.f.c	$B/contrib/python/scipy/scipy/fftpack/src/dfftpack/dsint1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/dfftpack/dsinti.f.c	$B/contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftb.f.c	$B/contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftb1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftf.f.c	$B/contrib/python/scipy/scipy/fftpack/src/dfftpack/zfftf1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/dfftpack/zffti.f.c	$B/contrib/python/scipy/scipy/fftpack/src/dfftpack/zffti1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/fftpack/cfftb.f.c	$B/contrib/python/scipy/scipy/fftpack/src/fftpack/cfftb1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/fftpack/cfftf.f.c	$B/contrib/python/scipy/scipy/fftpack/src/fftpack/cfftf1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/fftpack/cffti.f.c	$B/contrib/python/scipy/scipy/fftpack/src/fftpack/cffti1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/fftpack/cosqb.f.c	$B/contrib/python/scipy/scipy/fftpack/src/fftpack/cosqf.f.c	$B/contrib/python/scipy/scipy/fftpack/src/fftpack/cosqi.f.c	$B/contrib/python/scipy/scipy/fftpack/src/fftpack/cost.f.c	$B/contrib/python/scipy/scipy/fftpack/src/fftpack/costi.f.c	$B/contrib/python/scipy/scipy/fftpack/src/fftpack/rfftb.f.c	$B/contrib/python/scipy/scipy/fftpack/src/fftpack/rfftb1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/fftpack/rfftf.f.c	$B/contrib/python/scipy/scipy/fftpack/src/fftpack/rfftf1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/fftpack/rffti.f.c	$B/contrib/python/scipy/scipy/fftpack/src/fftpack/rffti1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/fftpack/sinqb.f.c	$B/contrib/python/scipy/scipy/fftpack/src/fftpack/sinqf.f.c	$B/contrib/python/scipy/scipy/fftpack/src/fftpack/sinqi.f.c	$B/contrib/python/scipy/scipy/fftpack/src/fftpack/sint.f.c	$B/contrib/python/scipy/scipy/fftpack/src/fftpack/sint1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/fftpack/sinti.f.c	</Message>
+      <Message>$B/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dcosqb.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dcosqf.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dcosqi.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dcost.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dcosti.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dfftb.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dfftb1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dfftf.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dfftf1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dffti.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dffti1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dsinqb.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dsinqf.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dsinqi.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dsint.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dsint1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/dsinti.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/zfftb.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/zfftb1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/zfftf.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/zfftf1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/zffti.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/dfftpack/zffti1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cfftb.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cfftb1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cfftf.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cfftf1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cffti.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cffti1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cosqb.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cosqf.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cosqi.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/fftpack/cost.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/fftpack/costi.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/fftpack/rfftb.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/fftpack/rfftb1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/fftpack/rfftf.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/fftpack/rfftf1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/fftpack/rffti.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/fftpack/rffti1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/fftpack/sinqb.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/fftpack/sinqf.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/fftpack/sinqi.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/fftpack/sint.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/fftpack/sint1.f.c	$B/contrib/python/scipy/scipy/fftpack/src/_/fftpack/sinti.f.c	</Message>
       <AdditionalInputs>$(SolutionDir)..\build\scripts\f2c.py;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dfftpack\dcosqb.f;$(SolutionDir)$(Configuration)\contrib\tools\f2c\f2c.exe;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dfftpack\dcosqf.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dfftpack\dcosqi.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dfftpack\dcost.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dfftpack\dcosti.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dfftpack\dfftb.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dfftpack\dfftb1.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dfftpack\dfftf.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dfftpack\dfftf1.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dfftpack\dffti.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dfftpack\dffti1.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dfftpack\dsinqb.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dfftpack\dsinqf.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dfftpack\dsinqi.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dfftpack\dsint.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dfftpack\dsint1.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dfftpack\dsinti.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dfftpack\zfftb.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dfftpack\zfftb1.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dfftpack\zfftf.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dfftpack\zfftf1.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dfftpack\zffti.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\dfftpack\zffti1.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack\cfftb.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack\cfftb1.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack\cfftf.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack\cfftf1.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack\cffti.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack\cffti1.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack\cosqb.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack\cosqf.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack\cosqi.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack\cost.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack\costi.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack\rfftb.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack\rfftb1.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack\rfftf.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack\rfftf1.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack\rffti.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack\rffti1.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack\sinqb.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack\sinqf.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack\sinqi.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack\sint.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack\sint1.f;$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack\sinti.f;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dcosqb.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dcosqf.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dcosqi.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dcost.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dcosti.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dfftb.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dfftb1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dfftf.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dfftf1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dffti.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dffti1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dsinqb.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dsinqf.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dsinqi.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dsint.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dsint1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\dsinti.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\zfftb.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\zfftb1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\zfftf.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\zfftf1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\zffti.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\dfftpack\zffti1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\cfftb.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\cfftb1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\cfftf.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\cfftf1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\cffti.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\cffti1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\cosqb.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\cosqf.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\cosqi.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\cost.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\costi.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\rfftb.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\rfftb1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\rfftf.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\rfftf1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\rffti.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\rffti1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\sinqb.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\sinqf.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\sinqi.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\sint.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\sint1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\fftpack\sinti.f.c;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dcosqb.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dcosqf.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dcosqi.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dcost.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dcosti.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dfftb.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dfftb1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dfftf.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dfftf1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dffti.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dffti1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dsinqb.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dsinqf.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dsinqi.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dsint.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dsint1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\dsinti.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\zfftb.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\zfftb1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\zfftf.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\zfftf1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\zffti.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\dfftpack\zffti1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\cfftb.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\cfftb1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\cfftf.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\cfftf1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\cffti.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\cffti1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\cosqb.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\cosqf.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\cosqi.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\cost.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\costi.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\rfftb.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\rfftb1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\rfftf.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\rfftf1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\rffti.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\rffti1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\sinqb.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\sinqf.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\sinqi.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\sint.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\sint1.f.c;$(SolutionDir)$(Configuration)\contrib\python\scipy\scipy\fftpack\src\_\fftpack\sinti.f.c;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\contrib\python\scipy\scipy\fftpack\src\fftpack.h"/>
   </ItemGroup>

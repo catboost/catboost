@@ -2,7 +2,7 @@
 
 #include "map_merge.h"
 
-#include <library/dot_product/dot_product.h>
+#include <library/cpp/dot_product/dot_product.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/array_ref.h>

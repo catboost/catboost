@@ -2,8 +2,6 @@
 
 RECURSE(
     blackhole
-    boost
-    boost/libs/test
     folly
     glib
     glib/gio
@@ -16,9 +14,6 @@ RECURSE(
     libffi
     libintl
     libjsonxx
-    libtorrent
-    libtorrent/bindings/python
-    libtorrent/test
     libxml++
     mimepp
     mongo-cxx-driver
@@ -28,10 +23,3 @@ RECURSE(
     uriparser
     wangle
 )
-
-
-IF(OS_LINUX OR OS_DARWIN)
-    RECURSE(
-    
-)
-ENDIF()

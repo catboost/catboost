@@ -56,31 +56,3 @@ def on_ytest(unit, *args):
 
 def on_py_test(unit, *args):
     pytest_base(unit, args)
-
-
-def on_test(unit, *args):
-    flat_args, spec_args = _common.sort_by_keywords({"DEPENDS": -1, "TIMEOUT": 1, "DATA": -1}, args)
-    custom_deps = ' '.join(spec_args["DEPENDS"]) if "DEPENDS" in spec_args else ''
-    test_data = '\"' + ';'.join(sorted(spec_args["DATA"])) + '\"' if "DATA" in spec_args else ''
-    timeout = spec_args.get("TIMEOUT", ['0'])[0]
-    test_type = flat_args[0]
-    script_rel_path = None
-
-    if test_type == "PY_TEST":
-        script_rel_path = "py.test"
-    elif test_type == "FLEUR":
-        script_rel_path = "ytest.py"
-    elif test_type == "PEP8":
-        script_rel_path = "py.test.pep8"
-    elif test_type == "PY_FLAKES":
-        script_rel_path = "py.test.flakes"
-
-    test_dir = unit.resolve(os.path.join(args[0]))
-    test_file = flat_args[2]
-    unit.set(['TEST-NAME', os.path.splitext(test_file)[0]])
-    unit.set(['TEST-TIMEOUT', timeout])
-    unit.set(['SCRIPT-REL-PATH', script_rel_path])
-    unit.set(['TESTED-PROJECT-NAME', test_file])
-    unit.set(['SOURCE-FOLDER-PATH', test_dir])
-    unit.set(['CUSTOM-DEPENDENCIES', custom_deps])
-    unit.set(['TEST-DATA', test_data])

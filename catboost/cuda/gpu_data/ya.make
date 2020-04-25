@@ -31,7 +31,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/grid_creator
+    library/cpp/grid_creator
     library/threading/local_executor
     catboost/cuda/cuda_lib
     catboost/cuda/cuda_util

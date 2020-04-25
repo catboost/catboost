@@ -1,12 +1,12 @@
 #include "compression.h"
 
 #if defined(ENABLE_GPL)
-#include <library/streams/lz/lz.h>
+#include <library/cpp/streams/lz/lz.h>
 #endif
 
-#include <library/streams/brotli/brotli.h>
-#include <library/streams/lzma/lzma.h>
-#include <library/streams/bzip2/bzip2.h>
+#include <library/cpp/streams/brotli/brotli.h>
+#include <library/cpp/streams/lzma/lzma.h>
+#include <library/cpp/streams/bzip2/bzip2.h>
 
 #include <library/blockcodecs/stream.h>
 #include <library/blockcodecs/codecs.h>

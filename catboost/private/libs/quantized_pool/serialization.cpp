@@ -661,6 +661,8 @@ NCB::TQuantizedPoolDigest NCB::GetQuantizedPoolDigest(
                     ++digest.NumericFeature4BitCount;
                 } else if (borders.size() < 1 << 8) {
                     ++digest.NumericFeature8BitCount;
+                } else if (borders.size() < 1 << 16) {
+                    ++digest.NumericFeature16BitCount;
                 } else {
                     ythrow TCatBoostException() << "unsupported quantized feature bitness";
                 }
@@ -705,7 +707,8 @@ NCB::TQuantizedPoolDigest NCB::GetQuantizedPoolDigest(
     digest.NumericFeatureCount =
         digest.NumericFeature1BitCount +
         digest.NumericFeature4BitCount +
-        digest.NumericFeature8BitCount;
+        digest.NumericFeature8BitCount +
+        digest.NumericFeature16BitCount;
 
     digest.ClassesCount = quantizationSchema.classnames_size();
 
@@ -935,8 +938,14 @@ namespace NCB {
                     featuresLayout->GetInternalFeatureIdx<EFeatureType::Float>(externalFeatureIdx);
 
                 //for quantizationSchema
-                borders.push_back(quantizedFeaturesInfo->GetBorders(floatFeatureIdx));
-                nanModes.push_back(quantizedFeaturesInfo->GetNanMode(floatFeatureIdx));
+                const auto featureBorders = quantizedFeaturesInfo->HasBorders(floatFeatureIdx)
+                    ? quantizedFeaturesInfo->GetBorders(floatFeatureIdx)
+                    : TVector<float>();
+                const auto featureNanMode = quantizedFeaturesInfo->HasNanMode(floatFeatureIdx)
+                    ? quantizedFeaturesInfo->GetNanMode(floatFeatureIdx)
+                    : ENanMode::Forbidden;
+                borders.push_back(featureBorders);
+                nanModes.push_back(featureNanMode);
                 featureIndices.push_back(featureIndices.size());
 
                 //for floatFeatures
@@ -953,8 +962,9 @@ namespace NCB {
                         "GetFloatFeature returned nullptr for feature " << externalFeatureIdx << " which is not ignored");
 
                     //init feature
+                    auto bins = feature.GetRef()->ExtractValues<ui8>(localExecutor);
                     maybeFeatureColumn = GenerateSrcColumn<ui8>(
-                        static_cast<TConstArrayRef<ui8>>(*feature.GetRef()->ExtractValues(localExecutor)),
+                        MakeArrayRef(bins),
                         EColumn::Num
                     );
                 } else {

@@ -23,6 +23,7 @@ SRCS(
     lazy_columns.cpp
     GLOBAL libsvm_loader.cpp
     load_data.cpp
+    load_and_quantize_data.cpp
     loader.cpp
     meta_info.cpp
     model_dataset_compatibility.cpp
@@ -30,6 +31,7 @@ SRCS(
     objects_grouping.cpp
     order.cpp
     packed_binary_features.cpp
+    proceed_pool_in_blocks.cpp
     quantization.cpp
     quantized_features_info.cpp
     sparse_columns.cpp
@@ -41,10 +43,10 @@ SRCS(
 )
 
 PEERDIR(
+    library/cpp/pop_count
     library/dbg_output
     library/json
     library/object_factory
-    library/pop_count
     library/string_utils/csv
     library/threading/future
     library/threading/local_executor
@@ -66,6 +68,7 @@ PEERDIR(
 )
 
 GENERATE_ENUM_SERIALIZATION(baseline.h)
+GENERATE_ENUM_SERIALIZATION(columns.h)
 GENERATE_ENUM_SERIALIZATION(order.h)
 GENERATE_ENUM_SERIALIZATION(target.h)
 GENERATE_ENUM_SERIALIZATION(visitor.h)

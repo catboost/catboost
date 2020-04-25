@@ -537,6 +537,7 @@ void CrossValidate(
     }
 
     UpdateYetiRankEvalMetric(trainingData->MetaInfo.TargetStats, Nothing(), &catBoostOptions);
+    UpdateSampleRateOption(allDataObjectCount, &catBoostOptions);
 
     InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric,
                                  &catBoostOptions.MetricOptions->EvalMetric);

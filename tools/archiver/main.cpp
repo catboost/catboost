@@ -1,6 +1,6 @@
-#include <library/archive/yarchive.h>
+#include <library/cpp/archive/yarchive.h>
 #include <library/deprecated/mapped_file/mapped_file.h>
-#include <library/digest/md5/md5.h>
+#include <library/cpp/digest/md5/md5.h>
 #include <library/getopt/small/last_getopt.h>
 
 #include <util/folder/dirut.h>
@@ -597,7 +597,7 @@ int main(int argc, char** argv) {
         StringSplitter(forceKeys).Split(':').SkipEmpty().Collect(&keys);
 
     if (keys.size() && keys.size() != files.size()) {
-        Cerr << "Invalid number of keys (!= number of files)" << Endl;
+        Cerr << "Invalid number of keys=" << keys.size() << " (!= number of files=" << files.size() << ")" << Endl;
         return 1;
     }
 

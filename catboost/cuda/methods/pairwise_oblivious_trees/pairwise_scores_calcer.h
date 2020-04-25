@@ -46,7 +46,7 @@ namespace NCatboostCuda {
             , TreeConfig(treeConfig)
             , StoreTempResults(storeSolverTempResults)
         {
-            for (auto policy : GetAllGroupingPolicies()) {
+            for (auto policy : GetEnumAllValues<NCatboostCuda::EFeaturesGroupingPolicy>()) {
                 if (Features.GetGridSize(policy)) {
                     Helpers[policy] = CreateScoreHelper(policy,
                                                         Features,

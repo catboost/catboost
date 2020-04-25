@@ -5,7 +5,7 @@ tmpl = """
 
 #include <kernel/matrixnet/mn_sse.h>
 
-#include <library/archive/yarchive.h>
+#include <library/cpp/archive/yarchive.h>
 
 #include <util/memory/blob.h>
 #include <util/generic/hash.h>

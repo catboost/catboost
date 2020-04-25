@@ -220,7 +220,7 @@
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/engines/e_padlock-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/engines/e_padlock-x86_64.asm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/_/asm/windows/engines/e_padlock-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/engines/e_padlock-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -231,7 +231,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\libs\openssl
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/asm/windows/engines/e_padlock-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/engines/e_padlock-x86_64.asm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/openssl" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/ec/curve448/arch_32" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/include" "-I" "$(SolutionDir)../contrib/libs/openssl/crypto/modes" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-o" "$(SolutionDir)$(Configuration)/contrib/libs/openssl/_/asm/windows/engines/e_padlock-x86_64.obj" "$(SolutionDir)../contrib/libs/openssl/asm/windows/engines/e_padlock-x86_64.asm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -239,9 +239,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/libs/openssl/asm/windows/engines/e_padlock-x86_64.obj	</Message>
+      <Message>$B/contrib/libs/openssl/_/asm/windows/engines/e_padlock-x86_64.obj	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\libs\openssl\asm\windows\engines\e_padlock-x86_64.asm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\asm\windows\engines\e_padlock-x86_64.obj;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\libs\openssl\_\asm\windows\engines\e_padlock-x86_64.obj;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\e_os.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\engines\e_capi_err.h"/>
@@ -330,6 +330,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-ios-x86_64.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-linux.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-linux_aarch64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-linux_arm.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-osx.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf-win.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\openssl\include\openssl\opensslconf.h"/>

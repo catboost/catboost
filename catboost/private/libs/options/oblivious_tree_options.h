@@ -2,6 +2,7 @@
 
 #include "option.h"
 #include "bootstrap_options.h"
+#include "feature_penalties_options.h"
 
 #include <util/system/types.h>
 
@@ -35,6 +36,7 @@ namespace NCatboostOptions {
         TOption<EGrowPolicy> GrowPolicy;
         TOption<ui32> MaxLeaves;
         TOption<double> MinDataInLeaf;
+        TOption<ui32> DevExclusiveFeaturesBundleMaxBuckets;
 
         TCpuOnlyOption<ESamplingFrequency> SamplingFrequency;
         TCpuOnlyOption<float> ModelSizeReg;
@@ -42,7 +44,6 @@ namespace NCatboostOptions {
         // changing this parameter can affect results due to numerical accuracy differences
         TCpuOnlyOption<ui32> DevScoreCalcObjBlockSize;
 
-        TCpuOnlyOption<ui32> DevExclusiveFeaturesBundleMaxBuckets;
         TCpuOnlyOption<float> SparseFeaturesConflictFraction;
 
         TGpuOnlyOption<EObservationsToBootstrap> ObservationsToBootstrap;
@@ -52,5 +53,6 @@ namespace NCatboostOptions {
 
         TCpuOnlyOption<TMap<ui32, int>> MonotoneConstraints;
         TCpuOnlyOption <bool> DevLeafwiseApproxes;
+        TCpuOnlyOption<TFeaturePenaltiesOptions> FeaturePenalties;
     };
 }

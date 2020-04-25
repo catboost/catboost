@@ -43,6 +43,16 @@ namespace NCB {
         return UpdateCheckSum(checkSum, data.OnAll);
     }
 
+    inline ui8 CalcHistogramWidthForUniqueValuesCount(ui32 count) {
+        if (count <= 1ULL << 8) {
+            return 8;
+        } else if (count <= 1ULL << 16) {
+            return 16;
+        } else { //TODO
+            return 32;
+        }
+    }
+
     struct TValueWithCount {
         ui32 Value = 0;
         ui32 Count = 0;
@@ -168,9 +178,6 @@ namespace NCB {
         ~TCatFeaturesPerfectHash() = default;
 
         bool operator==(const TCatFeaturesPerfectHash& rhs) const;
-
-        // *this contains a superset of mapping in rhs
-        bool IsSupersetOf(const TCatFeaturesPerfectHash& rhs) const;
 
         const TCatFeaturePerfectHash& GetFeaturePerfectHash(const TCatFeatureIdx catFeatureIdx) const {
             CheckHasFeature(catFeatureIdx);

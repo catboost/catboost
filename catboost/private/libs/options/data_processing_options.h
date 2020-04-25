@@ -8,7 +8,7 @@
 
 #include <catboost/libs/helpers/sparse_array.h>
 
-#include <library/grid_creator/binarization.h>
+#include <library/cpp/grid_creator/binarization.h>
 #include <library/json/json_value.h>
 
 #include <util/generic/map.h>
@@ -53,4 +53,13 @@ namespace NCatboostOptions {
     constexpr float GetDefaultTargetBorder() {
         return 0.5;
     }
+
+    constexpr float GetDefaultPredictionBorder() {
+        return 0.5;
+    }
+
+    // Tries to find the target probability border for the binary metrics among params (see |PREDICTION_BORDER_PARAM|
+    // key). Returns nothing if the key isn't present in the map and throws an exception if the border target is not
+    // a valid floating point number.
+    TMaybe<float> GetPredictionBorderFromLossParams(const TMap<TString, TString>& params);
 }

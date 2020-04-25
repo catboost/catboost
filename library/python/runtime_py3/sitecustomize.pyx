@@ -1,5 +1,5 @@
-import traceback
+import __res
 
-# Use pure-python implementation of traceback printer.
-# Built-in printer (PyTraceBack_Print) does not support custom module loaders
-sys.excepthook = traceback.print_exception
+from importlib.abc import ResourceReader
+
+ResourceReader.register(__res._ResfsResourceReader)

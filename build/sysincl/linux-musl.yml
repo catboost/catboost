@@ -5,6 +5,6 @@
   - sys/sysctl.h:  contrib/libs/musl/extra/sys/sysctl.h
   - xlocale.h:     contrib/libs/musl/extra/xlocale.h
 
-- source_filter: "^contrib/deprecated/boost"
+- source_filter: "^contrib/restricted/boost"
   includes:
     - ../include/fenv.h: contrib/libs/musl/include/fenv.h

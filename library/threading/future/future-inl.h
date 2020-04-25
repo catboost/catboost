@@ -167,13 +167,20 @@ namespace NThreading {
             }
 
             void SetException(std::exception_ptr e) {
+                bool success = TrySetException(std::move(e));
+                if (Y_UNLIKELY(!success)) {
+                    ythrow TFutureException() << "value already set";
+                }
+            }
+
+            bool TrySetException(std::exception_ptr e) {
                 TSystemEvent* readyEvent;
                 TCallbackList<T> callbacks;
 
                 with_lock (StateLock) {
                     int state = AtomicGet(State);
                     if (Y_UNLIKELY(state != NotReady)) {
-                        ythrow TFutureException() << "value already set";
+                        return false;
                     }
 
                     Exception = std::move(e);
@@ -194,6 +201,8 @@ namespace NThreading {
                         callback(temp);
                     }
                 }
+
+                return true;
             }
 
             template <typename F>
@@ -344,13 +353,20 @@ namespace NThreading {
             }
 
             void SetException(std::exception_ptr e) {
+                bool success = TrySetException(std::move(e));
+                if (Y_UNLIKELY(!success)) {
+                    ythrow TFutureException() << "value already set";
+                }
+            }
+
+            bool TrySetException(std::exception_ptr e) {
                 TSystemEvent* readyEvent = nullptr;
                 TCallbackList<void> callbacks;
 
                 with_lock (StateLock) {
                     int state = AtomicGet(State);
                     if (Y_UNLIKELY(state != NotReady)) {
-                        ythrow TFutureException() << "value already set";
+                        return false;
                     }
 
                     Exception = std::move(e);
@@ -371,6 +387,8 @@ namespace NThreading {
                         callback(temp);
                     }
                 }
+
+                return true;
             }
 
             template <typename F>
@@ -571,26 +589,36 @@ namespace NThreading {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-    template <typename T>
-    inline TFuture<T>::TFuture() {
+    class TFutureStateId {
+    private:
+        const void* Id;
+
+    public:
+        template <typename T>
+        explicit TFutureStateId(const NImpl::TFutureState<T>& state)
+            : Id(&state)
+        {
+        }
+
+        const void* Value() const noexcept {
+            return Id;
+        }
+    };
+
+    inline bool operator==(const TFutureStateId& l, const TFutureStateId& r) {
+        return l.Value() == r.Value();
     }
 
-    template <typename T>
-    inline TFuture<T>::TFuture(const TFuture<T>& other)
-        : State(other.State)
-    {
+    inline bool operator!=(const TFutureStateId& l, const TFutureStateId& r) {
+        return !(l == r);
     }
 
+    ////////////////////////////////////////////////////////////////////////////////
+
     template <typename T>
-    inline TFuture<T>::TFuture(const TIntrusivePtr<TFutureState>& state)
+    inline TFuture<T>::TFuture(const TIntrusivePtr<TFutureState>& state) noexcept
         : State(state)
     {
-    }
-
-    template <typename T>
-    inline TFuture<T>& TFuture<T>::operator=(const TFuture<T>& other) {
-        State = other.State;
-        return *this;
     }
 
     template <typename T>
@@ -695,6 +723,11 @@ namespace NThreading {
     }
 
     template <typename T>
+    inline TMaybe<TFutureStateId> TFuture<T>::StateId() const noexcept {
+        return State != nullptr ? MakeMaybe<TFutureStateId>(*State) : Nothing();
+    }
+
+    template <typename T>
     inline void TFuture<T>::EnsureInitialized() const {
         if (!State) {
             ythrow TFutureException() << "state not initialized";
@@ -703,22 +736,9 @@ namespace NThreading {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-    inline TFuture<void>::TFuture() {
-    }
-
-    inline TFuture<void>::TFuture(const TFuture<void>& other)
-        : State(other.State)
-    {
-    }
-
-    inline TFuture<void>::TFuture(const TIntrusivePtr<TFutureState>& state)
+    inline TFuture<void>::TFuture(const TIntrusivePtr<TFutureState>& state) noexcept
         : State(state)
     {
-    }
-
-    inline TFuture<void>& TFuture<void>::operator=(const TFuture<void>& other) {
-        State = other.State;
-        return *this;
     }
 
     inline void TFuture<void>::Swap(TFuture<void>& other) {
@@ -799,6 +819,10 @@ namespace NThreading {
         return bool(State);
     }
 
+    inline TMaybe<TFutureStateId> TFuture<void>::StateId() const noexcept {
+        return State != nullptr ? MakeMaybe<TFutureStateId>(*State) : Nothing();
+    }
+
     inline void TFuture<void>::EnsureInitialized() const {
         if (!State) {
             ythrow TFutureException() << "state not initialized";
@@ -808,25 +832,9 @@ namespace NThreading {
     ////////////////////////////////////////////////////////////////////////////////
 
     template <typename T>
-    inline TPromise<T>::TPromise() {
-    }
-
-    template <typename T>
-    inline TPromise<T>::TPromise(const TPromise<T>& other)
-        : State(other.State)
-    {
-    }
-
-    template <typename T>
-    inline TPromise<T>::TPromise(const TIntrusivePtr<TFutureState>& state)
+    inline TPromise<T>::TPromise(const TIntrusivePtr<TFutureState>& state) noexcept
         : State(state)
     {
-    }
-
-    template <typename T>
-    inline TPromise<T>& TPromise<T>::operator=(const TPromise<T>& other) {
-        State = other.State;
-        return *this;
     }
 
     template <typename T>
@@ -900,6 +908,12 @@ namespace NThreading {
     }
 
     template <typename T>
+    inline bool TPromise<T>::TrySetException(std::exception_ptr e) {
+        EnsureInitialized();
+        return State->TrySetException(std::move(e));
+    }
+
+    template <typename T>
     inline TFuture<T> TPromise<T>::GetFuture() const {
         EnsureInitialized();
         return TFuture<T>(State);
@@ -924,22 +938,9 @@ namespace NThreading {
 
     ////////////////////////////////////////////////////////////////////////////////
 
-    inline TPromise<void>::TPromise() {
-    }
-
-    inline TPromise<void>::TPromise(const TPromise<void>& other)
-        : State(other.State)
-    {
-    }
-
-    inline TPromise<void>::TPromise(const TIntrusivePtr<TFutureState>& state)
+    inline TPromise<void>::TPromise(const TIntrusivePtr<TFutureState>& state) noexcept
         : State(state)
     {
-    }
-
-    inline TPromise<void>& TPromise<void>::operator=(const TPromise<void>& other) {
-        State = other.State;
-        return *this;
     }
 
     inline void TPromise<void>::Swap(TPromise<void>& other) {
@@ -983,6 +984,11 @@ namespace NThreading {
     inline void TPromise<void>::SetException(std::exception_ptr e) {
         EnsureInitialized();
         State->SetException(std::move(e));
+    }
+
+    inline bool TPromise<void>::TrySetException(std::exception_ptr e) {
+        EnsureInitialized();
+        return State->TrySetException(std::move(e));
     }
 
     inline TFuture<void> TPromise<void>::GetFuture() const {

@@ -243,6 +243,10 @@ EFstrType NCatboostOptions::TOutputFilesOptions::GetFstrType() const {
     return FstrType.Get();
 }
 
+bool NCatboostOptions::TOutputFilesOptions::IsFstrTypeSet() const {
+    return FstrType.IsSet();
+}
+
 TString NCatboostOptions::TOutputFilesOptions::CreateTrainingOptionsFullPath() const {
     return GetFullPath(TrainingOptionsFileName.Get());
 }

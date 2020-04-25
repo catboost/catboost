@@ -275,7 +275,7 @@ static void CalcLeafValuesSimple(
 
     const auto lossCalcerFunc = [&](const TVector<TVector<double>>& approx) {
         const auto& additiveStats = EvalErrors(
-            approx,
+            To2DConstArrayRef<double>(approx),
             /*approxDelta*/ {},
             error.GetIsExpApprox(),
             labels,

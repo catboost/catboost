@@ -104,12 +104,13 @@ namespace {
             : TProductIteratorBase<TEnumeratedSet, TValue>(sets)
         {}
 
-        virtual TMaybe<TConstArrayRef<TValue>> Next() override {
+        virtual bool Next(TConstArrayRef<TValue>* value) override {
             if (this->IsIteratorReachedEnd()) {
-                 return this->END_VALUE;
+                 return false;
             }
             this->PassedElementsCount++;
-            return this->NextWithOffset(1);
+            *value = this->NextWithOffset(1);
+            return true;
         }
     };
 
@@ -159,15 +160,16 @@ namespace {
             this->TotalElementsCount = count;
         }
 
-        virtual TMaybe<TConstArrayRef<TValue>> Next() override {
+        virtual bool Next(TConstArrayRef<TValue>* values) override {
             if (this->IsIteratorReachedEnd()) {
-                 return this->END_VALUE;
+                 return false;
             }
             ui64 offset = 1;
             offset = FlatOffsets[OffsetIndex];
             ++OffsetIndex;
             this->PassedElementsCount++;
-            return this->NextWithOffset(offset);
+            *values = this->NextWithOffset(offset);
+            return true;
         }
     };
 
@@ -687,6 +689,23 @@ namespace {
         oneIterLogger.OutputParameters(parametersToken, jsonParams);
     }
 
+    bool ParseJsonParams(
+        const NJson::TJsonValue& modelParamsToBeTried,
+        NCatboostOptions::TCatBoostOptions *catBoostOptions,
+        NCatboostOptions::TOutputFilesOptions *outputFileOptions) {
+        try {
+            NJson::TJsonValue jsonParams;
+            NJson::TJsonValue outputJsonParams;
+            NCatboostOptions::PlainJsonToOptions(modelParamsToBeTried, &jsonParams, &outputJsonParams);
+            *catBoostOptions = NCatboostOptions::LoadOptions(jsonParams);
+            outputFileOptions->Load(outputJsonParams);
+
+            return true;
+        } catch (const TCatBoostException&) {
+            return false;
+        }
+    }
+
     double TuneHyperparamsCV(
         const TVector<TString>& paramNames,
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
@@ -728,37 +747,38 @@ namespace {
         TLabelConverter labelConverter;
         int iterationIdx = 0;
         int bestIterationIdx = 0;
+        
         TProfileInfo profile(gridIterator->GetTotalElementsCount());
-        while (auto paramsSet = gridIterator->Next()) {
+        TConstArrayRef<NJson::TJsonValue> paramsSet;
+        while (gridIterator->Next(&paramsSet)) {
             profile.StartIterationBlock();
             // paramsSet: {border_count, feature_border_type, nan_mode, [others]}
             TQuantizationParamsInfo quantizationParamsSet;
-            quantizationParamsSet.BinsCount = GetRandomValueIfNeeded((*paramsSet)[0], randDistGenerators).GetInteger();
-            quantizationParamsSet.BorderType = FromString<EBorderSelectionType>((*paramsSet)[1].GetString());
-            quantizationParamsSet.NanMode = FromString<ENanMode>((*paramsSet)[2].GetString());
+            quantizationParamsSet.BinsCount = GetRandomValueIfNeeded(paramsSet[0], randDistGenerators).GetInteger();
+            quantizationParamsSet.BorderType = FromString<EBorderSelectionType>(paramsSet[1].GetString());
+            quantizationParamsSet.NanMode = FromString<ENanMode>(paramsSet[2].GetString());
 
             AssignOptionsToJson(
                 TConstArrayRef<TString>(paramNames),
                 TConstArrayRef<NJson::TJsonValue>(
-                    paramsSet->begin() + IndexOfFirstTrainingParameter,
-                    paramsSet->end()
+                    paramsSet.begin() + IndexOfFirstTrainingParameter,
+                    paramsSet.end()
                 ), // Ignoring quantization params
                 randDistGenerators,
                 modelParamsToBeTried
             );
 
-            NJson::TJsonValue jsonParams;
-            NJson::TJsonValue outputJsonParams;
-            NCatboostOptions::PlainJsonToOptions(*modelParamsToBeTried, &jsonParams, &outputJsonParams);
-            NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
+            NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::CPU);
             NCatboostOptions::TOutputFilesOptions outputFileOptions;
-            outputFileOptions.Load(outputJsonParams);
+            bool areParamsValid = ParseJsonParams(*modelParamsToBeTried, &catBoostOptions, &outputFileOptions);
+            if (!areParamsValid) {
+                continue;
+            }
 
             TString tmpDir;
             if (outputFileOptions.AllowWriteFiles()) {
                 NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputFileOptions.GetTrainDir(), &tmpDir);
             }
-
             InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
             NCB::TFeaturesLayoutPtr featuresLayout = data->MetaInfo.FeaturesLayout;
             NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo;
@@ -864,7 +884,7 @@ namespace {
                 //log parameters
                 LogParameters(
                     paramNames,
-                    *paramsSet,
+                    paramsSet,
                     parametersToken,
                     generalQuantizeParamsInfo,
                     oneIterLogger
@@ -888,6 +908,7 @@ namespace {
         TProductIteratorBase<TDeque<NJson::TJsonValue>, NJson::TJsonValue>* gridIterator,
         NJson::TJsonValue* modelParamsToBeTried,
         TGridParamsInfo * bestGridParams,
+        TMetricsAndTimeLeftHistory* trainTestResult,
         NPar::TLocalExecutor* localExecutor,
         int verbose,
         const THashMap<TString, NCB::TCustomRandomDistributionGenerator>& randDistGenerators = {}) {
@@ -918,38 +939,40 @@ namespace {
         int iterationIdx = 0;
         int bestIterationIdx = 0;
         TProfileInfo profile(gridIterator->GetTotalElementsCount());
-        while (auto paramsSet = gridIterator->Next()) {
+        TConstArrayRef<NJson::TJsonValue> paramsSet;
+        while (gridIterator->Next(&paramsSet)) {
             profile.StartIterationBlock();
             // paramsSet: {border_count, feature_border_type, nan_mode, [others]}
             TQuantizationParamsInfo quantizationParamsSet;
-            quantizationParamsSet.BinsCount = GetRandomValueIfNeeded((*paramsSet)[0], randDistGenerators).GetInteger();
-            quantizationParamsSet.BorderType = FromString<EBorderSelectionType>((*paramsSet)[1].GetString());
-            quantizationParamsSet.NanMode = FromString<ENanMode>((*paramsSet)[2].GetString());
+            quantizationParamsSet.BinsCount = GetRandomValueIfNeeded(paramsSet[0], randDistGenerators).GetInteger();
+            quantizationParamsSet.BorderType = FromString<EBorderSelectionType>(paramsSet[1].GetString());
+            quantizationParamsSet.NanMode = FromString<ENanMode>(paramsSet[2].GetString());
 
             AssignOptionsToJson(
                 TConstArrayRef<TString>(paramNames),
                 TConstArrayRef<NJson::TJsonValue>(
-                    paramsSet->begin() + IndexOfFirstTrainingParameter,
-                    paramsSet->end()
+                    paramsSet.begin() + IndexOfFirstTrainingParameter,
+                    paramsSet.end()
                 ), // Ignoring quantization params
                 randDistGenerators,
                 modelParamsToBeTried
             );
 
-            NJson::TJsonValue jsonParams;
-            NJson::TJsonValue outputJsonParams;
-            NCatboostOptions::PlainJsonToOptions(*modelParamsToBeTried, &jsonParams, &outputJsonParams);
-            NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
+            NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::CPU);
             NCatboostOptions::TOutputFilesOptions outputFileOptions;
-            outputFileOptions.Load(outputJsonParams);
-            static const bool allowWriteFiles = outputFileOptions.AllowWriteFiles();
+            bool areParamsValid = ParseJsonParams(*modelParamsToBeTried, &catBoostOptions, &outputFileOptions);
+            if (!areParamsValid) {
+                continue;
+            }
 
+            static const bool allowWriteFiles = outputFileOptions.AllowWriteFiles();
             TString tmpDir;
-            if (outputFileOptions.AllowWriteFiles()) {
+            if (allowWriteFiles) {
                 NCB::NPrivate::CreateTrainDirWithTmpDirIfNotExist(outputFileOptions.GetTrainDir(), &tmpDir);
             }
 
             InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric, &catBoostOptions.MetricOptions->EvalMetric);
+            UpdateSampleRateOption(data->GetObjectCount(), &catBoostOptions);
             NCB::TFeaturesLayoutPtr featuresLayout = data->MetaInfo.FeaturesLayout;
             NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo;
 
@@ -1032,6 +1055,7 @@ namespace {
                         &logger
                     );
                 }
+                (*trainTestResult) = metricsAndTimeHistory;
             }
             bool isUpdateBest = SetBestParamsAndUpdateMetricValueIfNeeded(
                 bestMetricValue,
@@ -1044,6 +1068,7 @@ namespace {
                 &bestParamsSetMetricValue);
             if (isUpdateBest) {
                 bestIterationIdx = iterationIdx;
+                (*trainTestResult) = metricsAndTimeHistory;
             }
             TOneInterationLogger oneIterLogger(logger);
             oneIterLogger.OutputMetric(
@@ -1077,7 +1102,7 @@ namespace {
                 //log parameters
                 LogParameters(
                     paramNames,
-                    *paramsSet,
+                    paramsSet,
                     parametersToken,
                     generalQuantizeParamsInfo,
                     oneIterLogger
@@ -1100,6 +1125,7 @@ namespace NCB {
         UIntOptions.clear();
         DoubleOptions.clear();
         StringOptions.clear();
+        ListOfDoublesOptions.clear();
         for (const auto& optionName : optionsNames) {
             const auto& option = options.at(optionName);
             NJson::EJsonValueType type = option.GetType();
@@ -1124,8 +1150,14 @@ namespace NCB {
                     StringOptions[optionName] = option.GetString();
                     break;
                 }
+                case NJson::EJsonValueType::JSON_ARRAY: {
+                    for (const auto& listElement : option.GetArray()) {
+                        ListOfDoublesOptions[optionName].push_back(listElement.GetDouble());
+                    }
+                    break;
+                }
                 default: {
-                    CB_ENSURE(false, "Error: option value should be bool, int, ui32, double or string");
+                    CB_ENSURE(false, "Error: option value should be bool, int, ui32, double, string or list of doubles");
                 }
             }
         }
@@ -1140,6 +1172,7 @@ namespace NCB {
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         TDataProviderPtr data,
         TBestOptionValuesWithCvResult* bestOptionValuesWithCvResult,
+        TMetricsAndTimeLeftHistory* trainTestResult,
         bool isSearchUsingTrainTestSplit,
         bool returnCvStat,
         int verbose) {
@@ -1168,6 +1201,7 @@ namespace NCB {
 
         double bestParamsSetMetricValue = Max<double>();
         TVector<TCVResult> bestCvResult;
+
         for (auto gridEnumerator : xrange(paramGrids.size())) {
             auto grid = paramGrids[gridEnumerator];
             // Preparing parameters for cartesian product
@@ -1209,6 +1243,7 @@ namespace NCB {
                     &gridIterator,
                     &modelParamsToBeTried,
                     &gridParams,
+                    trainTestResult,
                     &localExecutor,
                     verbose
                 );
@@ -1268,6 +1303,7 @@ namespace NCB {
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         TDataProviderPtr data,
         TBestOptionValuesWithCvResult* bestOptionValuesWithCvResult,
+        TMetricsAndTimeLeftHistory* trainTestResult,
         bool isSearchUsingTrainTestSplit,
         bool returnCvStat,
         int verbose) {
@@ -1332,6 +1368,7 @@ namespace NCB {
                 &gridIterator,
                 &modelParamsToBeTried,
                 &bestGridParams,
+                trainTestResult,
                 &localExecutor,
                 verbose,
                 randDistGenerators

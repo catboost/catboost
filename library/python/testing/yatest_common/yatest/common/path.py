@@ -18,6 +18,7 @@ def replace_in_file(path, old, new):
     with open(path) as fp:
         content = fp.read()
 
+    lpf.ensure_removed(path)
     with open(path, 'w') as fp:
         fp.write(content.replace(old, new))
 

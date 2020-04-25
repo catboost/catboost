@@ -1,13 +1,11 @@
-- source_filter: "^(contrib/libs/(ImageMagick|ffmpeg-3|libraw|pthreads_win32|zookeeper))|^contrib/deprecated/boost|^logbroker|^market|^rtline|^strm"
+- source_filter: "^(contrib/libs/(ImageMagick|ffmpeg-3|libraw|pthreads_win32|zookeeper))|^contrib/restricted/boost|^logbroker|^market|^rtline|^strm"
   includes:
   - pthread.h:     contrib/libs/pthreads_win32/include/pthread.h
   - sched.h:       contrib/libs/pthreads_win32/include/sched.h
 
 - source_filter: "^contrib/libs/jemalloc"
   includes:
-  - inttypes.h:    contrib/libs/jemalloc/include/msvc_compat/inttypes.h
   - stdbool.h:     contrib/libs/jemalloc/include/msvc_compat/stdbool.h
-  - stdint.h:      contrib/libs/jemalloc/include/msvc_compat/stdint.h
   - strings.h:     contrib/libs/jemalloc/include/msvc_compat/strings.h
 
 - source_filter: "^contrib/libs/libgit2"

@@ -165,8 +165,8 @@ namespace NNeh {
         const TStringBuf DefaultContentType = "application/x-www-form-urlencoded";
 
         template <typename T>
-        bool MakeFullRequestImpl(TMessage& msg, const T& urlParams, const TStringBuf headers, const TStringBuf content, const TStringBuf contentType, ERequestType reqType, ERequestFlags reqFlags) {
-            const NNeh::TParsedLocation loc(msg.Addr);
+        bool MakeFullRequestImpl(TMessage& msg, const TStringBuf proxy, const T& urlParams, const TStringBuf headers, const TStringBuf content, const TStringBuf contentType, ERequestType reqType, ERequestFlags reqFlags) {
+            NNeh::TParsedLocation loc(msg.Addr);
 
             if (content.size()) {
                 //content MUST be placed inside POST requests
@@ -196,6 +196,11 @@ namespace NNeh {
                 }
             }
 
+            if (proxy.IsInited()) {
+                loc = NNeh::TParsedLocation(proxy);
+                msg.Addr = proxy;
+            }
+
             TString schemePostfix = "";
             if (loc.Scheme.EndsWith("+unix")) {
                 schemePostfix = "+unix";
@@ -212,11 +217,15 @@ namespace NNeh {
         }
 
         bool MakeFullRequest(TMessage& msg, const TStringBuf headers, const TStringBuf content, const TStringBuf contentType, ERequestType reqType, ERequestFlags reqFlags) {
-            return MakeFullRequestImpl(msg, msg.Data, headers, content, contentType, reqType, reqFlags);
+            return MakeFullRequestImpl(msg, {}, msg.Data, headers, content, contentType, reqType, reqFlags);
         }
 
         bool MakeFullRequest(TMessage& msg, const TConstArrayRef<TString> urlParts, const TStringBuf headers, const TStringBuf content, const TStringBuf contentType, ERequestType reqType, ERequestFlags reqFlags) {
-            return MakeFullRequestImpl(msg, urlParts, headers, content, contentType, reqType, reqFlags);
+            return MakeFullRequestImpl(msg, {}, urlParts, headers, content, contentType, reqType, reqFlags);
+        }
+
+        bool MakeFullProxyRequest(TMessage& msg, TStringBuf proxyAddr, TStringBuf headers, TStringBuf content, TStringBuf contentType, ERequestType reqType, ERequestFlags flags) {
+            return MakeFullRequestImpl(msg, proxyAddr, msg.Data, headers, content, contentType, reqType, flags | ERequestFlag::AbsoluteUri);
         }
 
         bool IsHttpScheme(TStringBuf scheme) {

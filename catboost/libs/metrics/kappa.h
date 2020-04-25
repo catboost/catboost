@@ -5,10 +5,4 @@
 enum class EKappaMetricType;
 struct TMetricHolder;
 
-double CalcKappa(TMetricHolder metric, int classCount, EKappaMetricType type);
-
-TMetricHolder CalcKappaMatrix(TConstArrayRef<TVector<double>> approx,
-                              TConstArrayRef<float> target,
-                              int begin,
-                              int end,
-                              double border);
+double CalcKappa(TMetricHolder confusionMatrix, int classCount, EKappaMetricType type);

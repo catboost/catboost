@@ -27,6 +27,8 @@ namespace NCatboostOptions {
         TOption<TLossDescription> EvalMetric;
         TOption<TLossDescription> ObjectiveMetric;
         TOption<TVector<TLossDescription>> CustomMetrics;
+
+        static constexpr char PREDICTION_BORDER_PARAM[] = "proba_border";
     };
 }
 
@@ -52,3 +54,4 @@ bool IsAnyOfObjectiveOrMetrics(
     const NCatboostOptions::TMetricOptions& metricOptions,
     std::function<bool(ELossFunction)> predicate);
 
+void CheckMetrics(const NCatboostOptions::TMetricOptions& metrics);

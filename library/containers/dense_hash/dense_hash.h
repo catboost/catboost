@@ -1,5 +1,7 @@
 #pragma once
 
+#include "fwd.h"
+
 #include <util/generic/utility.h>
 #include <util/generic/vector.h>
 #include <util/generic/mapfindptr.h>
@@ -23,9 +25,9 @@
 
 template <class TKey,
           class TValue,
-          class TKeyHash = THash<TKey>,
-          size_t MaxLoadFactor = 50, // in percents
-          size_t LogInitSize = 8>
+          class TKeyHash,
+          size_t MaxLoadFactor,
+          size_t LogInitSize>
 class TDenseHash : public TMapOps<TDenseHash<TKey, TValue, TKeyHash, MaxLoadFactor, LogInitSize>> {
 private:
     template <class THash, class TVal>
@@ -442,9 +444,9 @@ private:
 };
 
 template <class TKey,
-          class TKeyHash = THash<TKey>,
-          size_t MaxLoadFactor = 50,
-          size_t LogInitSize = 8>
+          class TKeyHash,
+          size_t MaxLoadFactor,
+          size_t LogInitSize>
 class TDenseHashSet {
 public:
     TDenseHashSet(const TKey& emptyMarker = TKey(), size_t initSize = 0)

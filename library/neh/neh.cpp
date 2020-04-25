@@ -6,6 +6,7 @@
 #include <util/generic/list.h>
 #include <util/generic/hash_set.h>
 #include <util/digest/numeric.h>
+#include <util/string/cast.h>
 
 using namespace NNeh;
 

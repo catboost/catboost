@@ -50,10 +50,12 @@ namespace NCatboostCuda {
                                       TSharedCompressedIndexBuilder<TLayoutPolicy>& indexBuilder,
                                       const NCB::TTrainingDataProvider& dataProvider,
                                       const ui32 dataSetId,
+                                      bool skipExclusiveFeatureBundles,
                                       NPar::TLocalExecutor* localExecutor)
             : FeaturesManager(featuresManager)
             , DataProvider(dataProvider)
             , DataSetId(dataSetId)
+            , SkipExclusiveFeatureBundles(skipExclusiveFeatureBundles)
             , IndexBuilder(indexBuilder)
             , LocalExecutor(localExecutor)
         {
@@ -66,6 +68,11 @@ namespace NCatboostCuda {
                     continue;
                 } else if (FeaturesManager.IsFloat(feature)) {
                     floatFeatureIds.push_back(feature);
+                } else if (FeaturesManager.IsFeatureBundle(feature)) {
+                    if (!SkipExclusiveFeatureBundles) {
+                        WriteExclusiveFeatureBundle(feature, DataProvider);
+                        CheckInterrupted(); // check after long-lasting operation
+                    }
                 } else if (FeaturesManager.IsCat(feature)) {
                     CB_ENSURE(FeaturesManager.UseForOneHotEncoding(feature));
                     WriteOneHotFeature(feature, DataProvider);
@@ -95,21 +102,35 @@ namespace NCatboostCuda {
             }
             const auto& objectsData = *dataProvider.ObjectsData;
             const auto featureCount = features.size();
-            TVector<NCB::TMaybeOwningArrayHolder<ui8>> featureValues(featureCount);
             TVector<ui32> featureBinCounts(featureCount);
-            LocalExecutor->ExecRangeWithThrow(
-                [&] (int taskIdx) {
-                    const auto feature = features[taskIdx];
-                    const auto featureId = FeaturesManager.GetDataProviderId(feature);
-                    const auto floatFeatureIdx = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(featureId);
-                    featureBinCounts[taskIdx] = objectsData.GetQuantizedFeaturesInfo()->GetBinCount(floatFeatureIdx);
-                    const auto& featuresHolder = **(objectsData.GetFloatFeature(*floatFeatureIdx));
-                    featureValues[taskIdx] = featuresHolder.ExtractValues(LocalExecutor);
-                },
-                0, featureCount, NPar::TLocalExecutor::WAIT_COMPLETE
-            );
             for (auto taskIdx : xrange(featureCount)) {
-                IndexBuilder.template Write<ui8>(DataSetId, features[taskIdx], featureBinCounts[taskIdx], *featureValues[taskIdx]);
+                const auto feature = features[taskIdx];
+                const auto dataProviderFeatureId = FeaturesManager.GetDataProviderId(feature);
+                const auto floatFeatureIdx = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(dataProviderFeatureId);
+                auto& subFeatures = FeaturesManager.GetFeatureManagerIdForFloatFeature(dataProviderFeatureId);
+
+                if (subFeatures.size() == 1) {
+                    IndexBuilder.Write(
+                        DataSetId,
+                        features[taskIdx],
+                        FeaturesManager.GetBinCount(feature),
+                        *objectsData.GetFloatFeature(*floatFeatureIdx)
+                    );
+                } else {
+                    auto subFeaturePosition = std::find(subFeatures.begin(), subFeatures.end(), feature);
+                    CB_ENSURE_INTERNAL(subFeaturePosition != subFeatures.end(), "Sub feature not found");
+                    auto subFeatureId = subFeaturePosition - subFeatures.begin();
+                    ui16 baseValue = subFeatureId * 255;
+                    IndexBuilder.Write(
+                        DataSetId,
+                        features[taskIdx],
+                        FeaturesManager.GetBinCount(feature),
+                        *objectsData.GetFloatFeature(*floatFeatureIdx),
+                        [baseValue] (ui16 value) -> ui8 {
+                            return (ui8)Min(Max(value - baseValue, 0), 255);
+                        }
+                    );
+                }
             }
         }
 
@@ -125,16 +146,31 @@ namespace NCatboostCuda {
             auto catFeatureIdx = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(featureId);
 
             const auto& featuresHolder = **(dataProvider.ObjectsData->GetCatFeature(*catFeatureIdx));
-            IndexBuilder.template Write<ui32>(DataSetId,
-                                              feature,
-                                              dataProvider.ObjectsData->GetQuantizedFeaturesInfo()->GetUniqueValuesCounts(catFeatureIdx).OnAll,
-                                              *featuresHolder.ExtractValues(LocalExecutor));
+            IndexBuilder.Write(
+                DataSetId,
+                feature,
+                dataProvider.ObjectsData->GetQuantizedFeaturesInfo()->GetUniqueValuesCounts(catFeatureIdx).OnAll,
+                &featuresHolder
+            );
+        }
+
+        void WriteExclusiveFeatureBundle(const ui32 feature,
+                                         const NCB::TTrainingDataProvider& dataProvider) {
+            auto exclusiveFeatureBundleIdx = FeaturesManager.GetExclusiveFeatureBundleIdxForFeatureManagerIdx(feature);
+            const auto& valuesHolder = dataProvider.ObjectsData->GetExclusiveFeaturesBundle(exclusiveFeatureBundleIdx);
+            IndexBuilder.Write(
+                DataSetId,
+                feature,
+                FeaturesManager.GetBinCount(feature),
+                &valuesHolder
+            );
         }
 
     private:
         TBinarizedFeaturesManager& FeaturesManager;
         const NCB::TTrainingDataProvider& DataProvider;
         ui32 DataSetId = -1;
+        bool SkipExclusiveFeatureBundles = false;
         TSharedCompressedIndexBuilder<TLayoutPolicy>& IndexBuilder;
         NPar::TLocalExecutor* LocalExecutor;
     };
@@ -167,19 +203,22 @@ namespace NCatboostCuda {
                     CtrCalcer.ComputeBinarizedCtrs(group, &learnCtrs, &testCtrs);
                     for (ui32 i = 0; i < group.size(); ++i) {
                         const ui32 featureId = group[i];
-                        IndexBuilder.template Write<ui8>(DataSetId,
-                                                         featureId,
-                                                         learnCtrs[i].BinCount,
-                                                         learnCtrs[i].BinarizedCtr);
+                        IndexBuilder.WriteBinsVector(
+                            DataSetId,
+                            featureId,
+                            learnCtrs[i].BinCount,
+                            /*permute=*/true,
+                            learnCtrs[i].BinarizedCtr);
 
                         if (testCtrs.size()) {
                             CB_ENSURE(TestDataSetId != (ui32)-1, "Error: set test dataset");
                             CB_ENSURE(testCtrs[i].BinCount == learnCtrs[i].BinCount);
-
-                            IndexBuilder.template Write<ui8>(TestDataSetId,
-                                                             featureId,
-                                                             testCtrs[i].BinCount,
-                                                             testCtrs[i].BinarizedCtr);
+                            IndexBuilder.WriteBinsVector(
+                                TestDataSetId,
+                                featureId,
+                                testCtrs[i].BinCount,
+                                /*permute=*/true,
+                                testCtrs[i].BinarizedCtr);
                         }
                     }
                     CheckInterrupted(); // check after long-lasting operation
@@ -281,17 +320,21 @@ namespace NCatboostCuda {
             auto binarizedWriter = [&](
                 ui32 dataSetId,
                 TConstArrayRef<ui8> binarizedFeature,
-                TEstimatedFeature feature,
+                NCB::TEstimatedFeatureId feature,
                 ui8 binCount
             ) {
                 const auto featureId = FeaturesManager.GetId(feature);
                 if (featureIds.contains(featureId)) {
-                    IndexBuilder.template Write<ui8>(dataSetId,
-                                                     featureId,
-                                                     binCount,
-                                                     binarizedFeature);
+
+                    IndexBuilder.WriteBinsVector(
+                        dataSetId,
+                        featureId,
+                        binCount,
+                        /*permute=*/true,
+                        binarizedFeature
+                    );
                 }
-                CheckInterrupted(); // check after long-lasting operation
+                CheckInterrupted(); // check after long-lasting operation*/
             };
 
             TEstimatorsExecutor::TBinarizedFeatureVisitor learnWriter = std::bind(binarizedWriter,

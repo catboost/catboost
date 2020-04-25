@@ -72,7 +72,9 @@ TVector<std::pair<double, TFeature>> CalcFeatureEffect(
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset, // can be nullptr
     EFstrType type,
-    NPar::TLocalExecutor* localExecutor);
+    NPar::TLocalExecutor* localExecutor,
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
+);
 
 TVector<TFeatureEffect> CalcRegularFeatureEffect(
     const TVector<std::pair<double, TFeature>>& effect,
@@ -83,7 +85,9 @@ TVector<double> CalcRegularFeatureEffect(
     const TFullModel& model,
     const NCB::TDataProviderPtr dataset, // can be nullptr
     EFstrType type,
-    NPar::TLocalExecutor* localExecutor);
+    NPar::TLocalExecutor* localExecutor,
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
+);
 
 TVector<TInternalFeatureInteraction> CalcInternalFeatureInteraction(const TFullModel& model);
 TVector<TFeatureInteraction> CalcFeatureInteraction(
@@ -97,7 +101,9 @@ TVector<TVector<double>> GetFeatureImportances(
     const NCB::TDataProviderPtr dataset, // can be nullptr
     int threadCount,
     EPreCalcShapValues mode,
-    int logPeriod = 0);
+    int logPeriod = 0,
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
+);
 
 TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
     const EFstrType type,
@@ -105,8 +111,20 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
     const NCB::TDataProviderPtr dataset,
     int threadCount,
     EPreCalcShapValues mode,
-    int logPeriod = 0);
+    int logPeriod = 0,
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
+);
 
+TVector<TVector<TVector<TVector<double>>>> CalcShapFeatureInteractionMulti(
+    const EFstrType fstrType,
+    const TFullModel& model,
+    const NCB::TDataProviderPtr dataset,
+    const TMaybe<std::pair<int, int>>& pairOfFeatures,
+    int threadCount,
+    EPreCalcShapValues mode,
+    int logPeriod = 0,
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
+);
 
 /*
  * model is the primary source of featureIds,

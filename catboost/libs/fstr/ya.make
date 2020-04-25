@@ -8,6 +8,7 @@ SRCS(
     feature_str.cpp
     output_fstr.cpp
     shap_values.cpp
+    shap_interaction_values.cpp
     util.cpp
 )
 

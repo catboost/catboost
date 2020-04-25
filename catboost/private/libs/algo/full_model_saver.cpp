@@ -272,7 +272,7 @@ namespace NCB {
         class TIncompleteData {
         public:
             TIncompleteData(
-                TTrainingForCPUDataProviders&& trainingData,
+                TTrainingDataProviders&& trainingData,
                 THashMap<TFeatureCombination, TProjection>&& featureCombinationToProjection,
                 const TVector<TTargetClassifier>& targetClassifiers,
                 ECounterCalc counterCalcMethod,
@@ -323,7 +323,7 @@ namespace NCB {
             }
 
         private:
-            TTrainingForCPUDataProviders TrainingData;
+            TTrainingDataProviders TrainingData;
 
             const TVector<TTargetClassifier>& TargetClassifiers;
             ui32 NumThreads;
@@ -390,7 +390,7 @@ namespace NCB {
     }
 
     TCoreModelToFullModelConverter& TCoreModelToFullModelConverter::WithBinarizedDataComputedFrom(
-        TTrainingForCPUDataProviders&& trainingData,
+        TTrainingDataProviders&& trainingData,
         THashMap<TFeatureCombination, TProjection>&& featureCombinationToProjection,
         const TVector<TTargetClassifier>& targetClassifiers
     ) {

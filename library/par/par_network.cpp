@@ -5,7 +5,7 @@
 #include "par_settings.h"
 #include "par_locked_hash.h"
 
-#include <library/digest/crc32c/crc32c.h>
+#include <library/cpp/digest/crc32c/crc32c.h>
 #include <library/neh/multiclient.h>
 #include <library/neh/neh.h>
 #include <library/neh/rpc.h>
@@ -17,6 +17,7 @@
 #include <util/generic/strbuf.h>
 #include <util/network/sock.h>
 #include <util/string/builder.h>
+#include <util/string/cast.h>
 #include <util/string/split.h>
 #include <util/system/atomic.h>
 #include <util/system/atomic_ops.h>

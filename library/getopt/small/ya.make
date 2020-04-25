@@ -3,7 +3,7 @@ LIBRARY()
 
 
 PEERDIR(
-    library/colorizer
+    library/cpp/colorizer
     library/overloaded
 )
 

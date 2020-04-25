@@ -20,42 +20,45 @@ namespace {
         }
 
         static double EstimateCPUClock() {
-            ui64 startCycle = 0;
-            ui64 startMS = 0;
-
             for (;;) {
-                startMS = MicroSeconds();
-                startCycle = GetCycleCount();
+                ui64 startCycle = 0;
+                ui64 startMS = 0;
 
-                ui64 n = MicroSeconds();
+                for (;;) {
+                    startMS = MicroSeconds();
+                    startCycle = GetCycleCount();
 
-                if (n - startMS < 100) {
-                    break;
+                    ui64 n = MicroSeconds();
+
+                    if (n - startMS < 100) {
+                        break;
+                    }
+                }
+
+                Sleep(TDuration::MicroSeconds(5000));
+
+                ui64 finishCycle = 0;
+                ui64 finishMS = 0;
+
+                for (;;) {
+                    finishMS = MicroSeconds();
+
+                    if (finishMS - startMS < 100) {
+                        continue;
+                    }
+
+                    finishCycle = GetCycleCount();
+
+                    ui64 n = MicroSeconds();
+
+                    if (n - finishMS < 100) {
+                        break;
+                    }
+                }
+                if (startMS < finishMS && startCycle < finishCycle) {
+                    return (finishCycle - startCycle) * 1000000.0 / (finishMS - startMS);
                 }
             }
-
-            Sleep(TDuration::MicroSeconds(5000));
-
-            ui64 finishCycle = 0;
-            ui64 finishMS = 0;
-
-            for (;;) {
-                finishMS = MicroSeconds();
-
-                if (finishMS - startMS < 100) {
-                    continue;
-                }
-
-                finishCycle = GetCycleCount();
-
-                ui64 n = MicroSeconds();
-
-                if (n - finishMS < 100) {
-                    break;
-                }
-            }
-
-            return (finishCycle - startCycle) * 1000000.0 / (finishMS - startMS);
         }
 
         static double InitHPTimer() {

@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include <library/malloc/api/malloc.h>
+#include <library/cpp/malloc/api/malloc.h>
 
 #include <util/system/compiler.h>
 #include <util/system/types.h>
@@ -1003,6 +1003,7 @@ static Y_FORCE_INLINE void PutBlocksToGlobalFreeList(ptrdiff_t nSizeIdx, char** 
 //////////////////////////////////////////////////////////////////////////
 static TAtomic GlobalCounters[CT_MAX];
 const int MAX_LOCAL_UPDATES = 100;
+const intptr_t MAX_LOCAL_DELTA = 1*1024*1024;
 
 struct TLocalCounter {
     intptr_t Value;
@@ -1017,7 +1018,7 @@ struct TLocalCounter {
 
     Y_FORCE_INLINE void Increment(size_t value) {
         Value += value;
-        if (++Updates > MAX_LOCAL_UPDATES) {
+        if (++Updates > MAX_LOCAL_UPDATES || Value > MAX_LOCAL_DELTA) {
             Flush();
         }
     }

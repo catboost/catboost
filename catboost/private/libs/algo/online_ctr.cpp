@@ -507,48 +507,33 @@ static inline void CountOnlineCTRTotal(
     }
 }
 
-template <typename TColumn>
+template <typename TValueType>
 static void CopyCatColumnToHash(
-    const TColumn& catColumn,
+    const IQuantizedCatValuesHolder& catColumn,
     const TFeaturesArraySubsetIndexing& featuresSubsetIndexing,
     NPar::TLocalExecutor* localExecutor,
-    ui64* hashArrView
+    TValueType* hashArrView
 ) {
-    const void* rawColumnPtr;
-    ui32 bitsPerKey;
-    GetRawColumn<ui32, EFeatureValuesType::PerfectHashedCategorical>(
-        catColumn,
-        &rawColumnPtr,
-        &bitsPerKey
+    TCloningParams cloningParams;
+    cloningParams.SubsetIndexing = &featuresSubsetIndexing;
+    auto cloned = catColumn.CloneWithNewSubsetIndexing(
+        cloningParams,
+        localExecutor
     );
-    if (bitsPerKey == 8) {
-        featuresSubsetIndexing.ParallelForEach(
-            [=] (ui32 dstIdx, ui32 srcIdx) {
-                hashArrView[dstIdx] = (ui64)((const ui8*)rawColumnPtr)[srcIdx] + 1;
-            },
-            localExecutor
-        );
-    } else if (bitsPerKey == 16) {
-        featuresSubsetIndexing.ParallelForEach(
-            [=] (ui32 dstIdx, ui32 srcIdx) {
-                hashArrView[dstIdx] = (ui64)((const ui16*)rawColumnPtr)[srcIdx] + 1;
-            },
-            localExecutor
-        );
-    } else {
-        Y_ASSERT(bitsPerKey == 32);
-        featuresSubsetIndexing.ParallelForEach(
-            [=] (ui32 dstIdx, ui32 srcIdx) {
-                hashArrView[dstIdx] = (ui64)((const ui32*)rawColumnPtr)[srcIdx] + 1;
-            },
-            localExecutor
-        );
-    }
+    dynamic_cast<const IQuantizedCatValuesHolder*>(cloned.Get())->ParallelForEachBlock(
+        localExecutor,
+        [hashArrView] (size_t blockStartIdx, auto blockView) {
+            auto hashArrViewPtr = hashArrView + blockStartIdx;
+            for (auto i : xrange(blockView.size())) {
+                hashArrViewPtr[i] = blockView[i] + 1;
+            }
+        },
+        512);
 }
 
 
 void ComputeOnlineCTRs(
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     const TFold& fold,
     const TProjection& proj,
     const TLearnContext* ctx,
@@ -569,102 +554,43 @@ void ComputeOnlineCTRs(
     Y_STATIC_THREAD(TRehashHash) rehashHashTlsVal;
     TVector<ui64>& hashArr = tlsHashArr.Get();
     hashArr.yresize(totalSampleCount);
-    ParallelFill<ui64>(/*fillValue*/0, /*blockSize*/Nothing(), ctx->LocalExecutor, MakeArrayRef(hashArr));
+
     if (proj.IsSingleCatFeature()) {
         // Shortcut for simple ctrs
-
         auto catFeatureIdx = TCatFeatureIdx((ui32)proj.CatFeatures[0]);
-        const auto canUpdateHashOnce = data.Learn->ObjectsData->GetExclusiveFeatureBundlesSize() + data.Learn->ObjectsData->GetBinaryFeaturesPacksSize() == 0;
 
         TArrayRef<ui64> hashArrView(hashArr);
         if (learnSampleCount > 0) {
-            if (!canUpdateHashOnce) {
-                ProcessFeatureForCalcHashes<ui32, EFeatureValuesType::PerfectHashedCategorical>(
-                    data.Learn->ObjectsData->GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
-                    data.Learn->ObjectsData->GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
-                    data.Learn->ObjectsData->GetCatFeatureToFeaturesGroupIndex(catFeatureIdx),
-                    fold.LearnPermutationFeaturesSubset,
-                    /*processBundledAndBinaryFeaturesInPacks*/ false,
-                    /*isBinaryFeatureEquals1*/ false, // unused
-                    TArrayRef<TVector<TCalcHashInBundleContext>>(), // unused
-                    TArrayRef<TBinaryFeaturesPack>(), // unused
-                    TArrayRef<TBinaryFeaturesPack>(), // unused
-                    TArrayRef<TVector<TCalcHashInGroupContext>>(), // unused
-                    [&]() { return *data.Learn->ObjectsData->GetCatFeature(*catFeatureIdx); },
-                    [&](ui32 bundleIdx) {
-                        return data.Learn->ObjectsData->GetExclusiveFeatureBundlesMetaData()[bundleIdx];
-                    },
-                    [&](ui32 bundleIdx) { return &data.Learn->ObjectsData->GetExclusiveFeaturesBundle(bundleIdx); },
-                    [&](ui32 packIdx) { return &data.Learn->ObjectsData->GetBinaryFeaturesPack(packIdx); },
-                    [&](ui32 groupIdx) { return &data.Learn->ObjectsData->GetFeaturesGroup(groupIdx); },
-                    [hashArrView] (ui32 i, ui32 featureValue) {
-                        hashArrView[i] = (ui64)featureValue + 1;
-                    },
-                    ctx->LocalExecutor
-                );
-            } else {
-                CopyCatColumnToHash(
-                    **data.Learn->ObjectsData->GetCatFeature(*catFeatureIdx),
-                    fold.LearnPermutationFeaturesSubset,
-                    ctx->LocalExecutor,
-                    hashArrView.data()
-                );
-            }
+            CopyCatColumnToHash(
+                **data.Learn->ObjectsData->GetCatFeature(*catFeatureIdx),
+                fold.LearnPermutationFeaturesSubset,
+                ctx->LocalExecutor,
+                hashArrView.data()
+            );
         }
         for (size_t docOffset = learnSampleCount, testIdx = 0;
              docOffset < totalSampleCount && testIdx < data.Test.size();
              ++testIdx)
         {
             const size_t testSampleCount = data.Test[testIdx]->GetObjectCount();
-            const auto canUpdateHashOnce = data.Test[testIdx]->ObjectsData->GetExclusiveFeatureBundlesSize() + data.Test[testIdx]->ObjectsData->GetBinaryFeaturesPacksSize() == 0;
-
-            if (!canUpdateHashOnce) {
-                ProcessFeatureForCalcHashes<ui32, EFeatureValuesType::PerfectHashedCategorical>(
-                    data.Test[testIdx]->ObjectsData->GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
-                    data.Test[testIdx]->ObjectsData->GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
-                    data.Test[testIdx]->ObjectsData->GetCatFeatureToFeaturesGroupIndex(catFeatureIdx),
-                    data.Test[testIdx]->ObjectsData->GetFeaturesArraySubsetIndexing(),
-                    /*processBundledAndBinaryFeaturesInPacks*/ false,
-                    /*isBinaryFeatureEquals1*/ false, // unused
-                    TArrayRef<TVector<TCalcHashInBundleContext>>(), // unused
-                    TArrayRef<TBinaryFeaturesPack>(), // unused
-                    TArrayRef<TBinaryFeaturesPack>(), // unused
-                    TArrayRef<TVector<TCalcHashInGroupContext>>(), // unused
-                    [&]() { return *data.Test[testIdx]->ObjectsData->GetCatFeature(*catFeatureIdx); },
-                    [&](ui32 bundleIdx) {
-                        return data.Test[testIdx]->ObjectsData->GetExclusiveFeatureBundlesMetaData()[bundleIdx];
-                    },
-                    [&](ui32 bundleIdx) {
-                        return &data.Test[testIdx]->ObjectsData->GetExclusiveFeaturesBundle(bundleIdx);
-                    },
-                    [&](ui32 packIdx) { return &data.Test[testIdx]->ObjectsData->GetBinaryFeaturesPack(packIdx); },
-                    [&](ui32 groupIdx) { return &data.Learn->ObjectsData->GetFeaturesGroup(groupIdx); },
-                    [hashArrView, docOffset] (ui32 i, ui32 featureValue) {
-                        hashArrView[docOffset + i] = (ui64)featureValue + 1;
-                    },
-                    ctx->LocalExecutor
-                );
-            } else {
-                CopyCatColumnToHash(
-                    **data.Test[testIdx]->ObjectsData->GetCatFeature(*catFeatureIdx),
-                    data.Test[testIdx]->ObjectsData->GetFeaturesArraySubsetIndexing(),
-                    ctx->LocalExecutor,
-                    hashArrView.data() + docOffset
-                );
-            }
-
+            CopyCatColumnToHash(
+                **data.Test[testIdx]->ObjectsData->GetCatFeature(*catFeatureIdx),
+                data.Test[testIdx]->ObjectsData->GetFeaturesArraySubsetIndexing(),
+                ctx->LocalExecutor,
+                hashArrView.data() + docOffset
+            );
             docOffset += testSampleCount;
         }
         rehashHashTlsVal.Get().MakeEmpty(
             quantizedFeaturesInfo.GetUniqueValuesCounts(TCatFeatureIdx(proj.CatFeatures[0])).OnLearnOnly
         );
     } else {
+        ParallelFill<ui64>(/*fillValue*/0, /*blockSize*/Nothing(), ctx->LocalExecutor, MakeArrayRef(hashArr));
         CalcHashes(
             proj,
             *data.Learn->ObjectsData,
             fold.LearnPermutationFeaturesSubset,
             nullptr,
-            /*processBundledAndBinaryFeaturesInPacks*/ ctx->LearnAndTestDataPackingAreCompatible,
             hashArr.begin(),
             hashArr.begin() + learnSampleCount,
             ctx->LocalExecutor);
@@ -678,7 +604,6 @@ void ComputeOnlineCTRs(
                 *data.Test[testIdx]->ObjectsData,
                 data.Test[testIdx]->ObjectsData->GetFeaturesArraySubsetIndexing(),
                 nullptr,
-                /*processBundledAndBinaryFeaturesInPacks*/ ctx->LearnAndTestDataPackingAreCompatible,
                 hashArr.begin() + docOffset,
                 hashArr.begin() + docOffset + testSampleCount,
                 ctx->LocalExecutor);
@@ -894,7 +819,6 @@ static void CalcFinalCtrs(
         *datasetDataForFinalCtrs.Data.Learn->ObjectsData,
         learnFeaturesSubsetIndexing,
         &perfectHashedToHashedCatValuesMap,
-        /*processBundledAndBinaryFeaturesInPacks*/ false,
         hashArr.begin(),
         hashArr.begin() + learnSampleCount,
         localExecutor
@@ -908,7 +832,6 @@ static void CalcFinalCtrs(
                 *testDataPtr->ObjectsData,
                 testDataPtr->ObjectsData->GetFeaturesArraySubsetIndexing(),
                 &perfectHashedToHashedCatValuesMap,
-                /*processBundledAndBinaryFeaturesInPacks*/ false,
                 testHashBegin,
                 testHashEnd,
                 localExecutor);
@@ -935,7 +858,7 @@ static void CalcFinalCtrs(
 
 static ui64 EstimateCalcFinalCtrsCpuRamUsage(
     const ECtrType ctrType,
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     int targetClassesCount,
     ui64 ctrLeafCountLimit,
     ECounterCalc counterCalcMethod) {

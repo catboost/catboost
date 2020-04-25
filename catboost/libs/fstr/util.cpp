@@ -91,3 +91,15 @@ bool TryGetLossDescription(const TFullModel& model, NCatboostOptions::TLossDescr
     return true;
 }
 
+void CheckNonZeroApproxForZeroWeightLeaf(const TFullModel& model) {
+    for (size_t leafIdx = 0; leafIdx < model.ModelTrees->GetLeafWeights().size(); ++leafIdx) {
+        size_t approxDimension = model.GetDimensionsCount();
+        if (model.ModelTrees->GetLeafWeights()[leafIdx] == 0) {
+            double leafSumApprox = 0;
+            for (size_t approxIdx = 0; approxIdx < approxDimension; ++approxIdx) {
+                leafSumApprox += abs(model.ModelTrees->GetLeafValues()[leafIdx * approxDimension + approxIdx]);
+            }
+            CB_ENSURE(leafSumApprox < 1e-9, "Cannot calc shap values, model contains non zero approx for zero-weight leaf");
+        }
+    }
+}

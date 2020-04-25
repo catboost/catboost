@@ -4,6 +4,7 @@
 
 #include <util/datetime/base.h>
 #include <util/generic/function.h>
+#include <util/generic/maybe.h>
 #include <util/generic/ptr.h>
 #include <util/generic/vector.h>
 #include <util/generic/yexception.h>
@@ -78,6 +79,9 @@ namespace NThreading {
     template <typename F, typename T>
     using TFutureCallResult = typename NImpl::TFutureCallResult<F, T>::TType;
 
+    //! Type of the future/promise state identifier
+    class TFutureStateId;
+
     ////////////////////////////////////////////////////////////////////////////////
 
     template <typename T>
@@ -90,11 +94,11 @@ namespace NThreading {
     public:
         using value_type = T;
 
-        TFuture();
-        TFuture(const TFuture<T>& other);
-        TFuture(const TIntrusivePtr<TFutureState>& state);
+        TFuture() noexcept = default;
+        TFuture(const TFuture<T>& other) noexcept = default;
+        TFuture(const TIntrusivePtr<TFutureState>& state) noexcept;
 
-        TFuture<T>& operator=(const TFuture<T>& other);
+        TFuture<T>& operator=(const TFuture<T>& other) noexcept = default;
         void Swap(TFuture<T>& other);
 
         bool Initialized() const;
@@ -120,6 +124,11 @@ namespace NThreading {
 
         TFuture<void> IgnoreResult() const;
 
+        //! If the future is initialized returns the future state identifier. Otherwise returns an empty optional
+        /** The state identifier is guaranteed to be unique during the future state lifetime and could be reused after its death
+        **/
+        TMaybe<TFutureStateId> StateId() const noexcept;
+
     private:
         void EnsureInitialized() const;
     };
@@ -131,16 +140,16 @@ namespace NThreading {
         using TFutureState = NImpl::TFutureState<void>;
 
     private:
-        TIntrusivePtr<TFutureState> State;
+        TIntrusivePtr<TFutureState> State = nullptr;
 
     public:
         using value_type = void;
 
-        TFuture();
-        TFuture(const TFuture<void>& other);
-        TFuture(const TIntrusivePtr<TFutureState>& state);
+        TFuture() noexcept = default;
+        TFuture(const TFuture<void>& other) noexcept = default;
+        TFuture(const TIntrusivePtr<TFutureState>& state) noexcept;
 
-        TFuture<void>& operator=(const TFuture<void>& other);
+        TFuture<void>& operator=(const TFuture<void>& other) noexcept = default;
         void Swap(TFuture<void>& other);
 
         bool Initialized() const;
@@ -168,6 +177,12 @@ namespace NThreading {
         TFuture<void> IgnoreResult() const {
             return *this;
         }
+
+        //! If the future is initialized returns the future state identifier. Otherwise returns an empty optional
+        /** The state identifier is guaranteed to be unique during the future state lifetime and could be reused after its death
+        **/
+        TMaybe<TFutureStateId> StateId() const noexcept;
+
     private:
         void EnsureInitialized() const;
     };
@@ -179,14 +194,14 @@ namespace NThreading {
         using TFutureState = NImpl::TFutureState<T>;
 
     private:
-        TIntrusivePtr<TFutureState> State;
+        TIntrusivePtr<TFutureState> State = nullptr;
 
     public:
-        TPromise();
-        TPromise(const TPromise<T>& other);
-        TPromise(const TIntrusivePtr<TFutureState>& state);
+        TPromise() noexcept = default;
+        TPromise(const TPromise<T>& other) noexcept = default;
+        TPromise(const TIntrusivePtr<TFutureState>& state) noexcept;
 
-        TPromise<T>& operator=(const TPromise<T>& other);
+        TPromise<T>& operator=(const TPromise<T>& other) noexcept = default;
         void Swap(TPromise<T>& other);
 
         bool Initialized() const;
@@ -205,6 +220,7 @@ namespace NThreading {
         bool HasException() const;
         void SetException(const TString& e);
         void SetException(std::exception_ptr e);
+        bool TrySetException(std::exception_ptr e);
 
         TFuture<T> GetFuture() const;
         operator TFuture<T>() const;
@@ -223,11 +239,11 @@ namespace NThreading {
         TIntrusivePtr<TFutureState> State;
 
     public:
-        TPromise();
-        TPromise(const TPromise<void>& other);
-        TPromise(const TIntrusivePtr<TFutureState>& state);
+        TPromise() noexcept = default;
+        TPromise(const TPromise<void>& other) noexcept = default;
+        TPromise(const TIntrusivePtr<TFutureState>& state) noexcept;
 
-        TPromise<void>& operator=(const TPromise<void>& other);
+        TPromise<void>& operator=(const TPromise<void>& other) noexcept = default;
         void Swap(TPromise<void>& other);
 
         bool Initialized() const;
@@ -242,6 +258,7 @@ namespace NThreading {
         bool HasException() const;
         void SetException(const TString& e);
         void SetException(std::exception_ptr e);
+        bool TrySetException(std::exception_ptr e);
 
         TFuture<void> GetFuture() const;
         operator TFuture<void>() const;

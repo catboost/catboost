@@ -14,10 +14,6 @@
 # Btw: seems that this ADDINCL should be made global and removed from projects
 # that use this header
 - includes:
-    - iconv.h:       contrib/libs/libiconv/iconv.h
-
-- source_filter: "^contrib/restricted/glib/glib/gconvert.c"
-  includes:
     - iconv.h:       contrib/libs/libiconv/include/iconv.h
 
 - includes:
@@ -51,7 +47,6 @@
 - source_filter: "^contrib/libs/libunistring"
   includes:
     - alloca.h:      contrib/libs/libunistring/alloca.h
-    - iconv.h:       contrib/libs/libiconv/include/iconv.h
     - langinfo.h:    contrib/libs/libunistring/langinfo.h
     - limits.h:      contrib/libs/libunistring/limits.h
     - math.h:        contrib/libs/libunistring/math.h
@@ -147,10 +142,6 @@
     - inet_ntop.h:   contrib/libs/curl/lib/inet_ntop.h
     - share.h:       contrib/libs/curl/lib/share.h
 
-- source_filter: "^contrib/libs/gdal"
-  includes:
-    - iconv.h:       contrib/libs/libiconv/include/iconv.h
-
 - source_filter: "^contrib/libs/zeromq"
   includes:
     - atomic.h:      contrib/libs/zeromq/missing_includes/atomic.h
@@ -243,17 +234,17 @@
     - cuda.h:        contrib/libs/tf/tensorflow/core/platform/cuda.h
 
 # unused legacy include in boost
-- source_filter: "^contrib/deprecated/boost"
+- source_filter: "^contrib/restricted/boost"
   includes:
     - atomic.h
     - fstream.h
     - ../include/fenv.h
 
 # libc++ internal implementation details
-- source_filter: "^contrib/deprecated/boost/boost/asio/detail"
+- source_filter: "^contrib/restricted/boost/boost/asio/detail"
   includes:
   - __config
-- source_filter: "quasar/yandex_io/daemons/external_libs/(boost/include/boost|websocketpp/include)/asio/detail"
+- source_filter: "yandex_io/external_libs/(boost/include/boost|websocketpp/include)/asio/detail"
   includes:
   - __config
 
@@ -276,10 +267,6 @@
 - source_filter: "^contrib/libs/apr"
   includes:
     - atomic.h
-
-- source_filter: "^contrib/libs/apr-util"
-  includes:
-    - iconv.h: contrib/libs/libiconv/include/iconv.h
 
 - source_filter: "^contrib/libs/(apr|httpd|llvm)"
   includes:
@@ -411,7 +398,7 @@
   includes:
     - png.h
 
-- source_filter: "^(contrib/deprecated/boost/boost/mpi|catboost/cuda/cuda_lib/mpi|cv/imgclassifiers/danet/distributed/network)"
+- source_filter: "^(contrib/restricted/boost/boost/mpi|catboost/cuda/cuda_lib/mpi|cv/imgclassifiers/danet/distributed/network)"
   includes:
     - mpi.h
 
@@ -511,6 +498,7 @@
 - source_filter: "^contrib/tools/fluent-bit"
   includes:
     - backtrace.h: contrib/tools/fluent-bit/lib/libbacktrace-5a99ff7f/backtrace.h
+    - glob.h: contrib/tools/fluent-bit/lib/glob/glob.h
 
 - source_filter: "^contrib/restricted/glib"
   includes:
@@ -535,3 +523,29 @@
 - source_filter: "^contrib/libs/dpdk"
   includes:
     - process.h: contrib/libs/dpdk/drivers/bus/dpaa/include/process.h
+
+- source_filter: "^contrib/libs/usrsctp/"
+  includes:
+    - netinet/sctp_uio.h: contrib/libs/usrsctp/usrsctplib/netinet/sctp_uio.h
+
+- source_filter: "^contrib/libs/libsrtp/"
+  includes:
+  - alloc.h: contrib/libs/libsrtp/crypto/include/alloc.h
+  - err.h: contrib/libs/libsrtp/crypto/include/err.h
+  - stat.h: contrib/libs/libsrtp/crypto/include/stat.h
+
+- source_filter: "^infra/contrib/unbound/unbound"
+  includes:
+    - validator/validator.h: infra/contrib/unbound/unbound/validator/validator.h
+
+- source_filter: "^yandex_io/external_libs/speechkit"
+  includes:
+    - threads.h: yandex_io/external_libs/speechkit/c11-threads/threads.h
+
+- source_filter: "^contrib/restricted/openal-soft"
+  includes:
+    - threads.h: contrib/restricted/openal-soft/common/threads.h
+
+- source_filter: "^devtools/experimental/umbrella/embedded"
+  includes:
+    - threads.h: devtools/experimental/umbrella/include/c11/threads.h

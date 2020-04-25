@@ -79,49 +79,6 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\6c913bfc6e9384b1f963adc3ea.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\b5f8bf2ad1e1fbf118c6a4880d.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\join_8a44640101f71f201e1eb3a5a5.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.algos.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.groupby.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.hashing.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.hashtable.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.index.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.indexing.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.internals.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.interval.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.join.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.json.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.lib.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.missing.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.ops.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.parsers.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.properties.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.reduction.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.reshape.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.skiplist.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.sparse.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.testing.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslib.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.ccalendar.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.conversion.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.fields.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.frequencies.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.nattype.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.np_datetime.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.offsets.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.parsing.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.period.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.resolution.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.strptime.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.timedeltas.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.timestamps.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.timezones.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.window.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.writers.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas.io.msgpack._packer.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas.io.msgpack._unpacker.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas.io.sas.sas.reg.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas.util._move.reg.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas\_libs\algos.pyx.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
@@ -263,6 +220,49 @@
     <ClCompile Include="$(SolutionDir)..\contrib\python\pandas\pandas\util\move.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\b5f8bf2ad1e1fbf118c6a4880d.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\join_8a44640101f71f201e1eb3a5a5.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.algos.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.groupby.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.hashing.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.hashtable.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.index.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.indexing.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.internals.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.interval.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.join.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.json.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.lib.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.missing.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.ops.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.parsers.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.properties.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.reduction.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.reshape.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.skiplist.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.sparse.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.testing.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslib.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.ccalendar.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.conversion.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.fields.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.frequencies.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.nattype.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.np_datetime.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.offsets.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.parsing.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.period.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.resolution.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.strptime.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.timedeltas.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.timestamps.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.tslibs.timezones.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.window.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas._libs.writers.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas.io.msgpack._packer.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas.io.msgpack._unpacker.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas.io.sas.sas.reg.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\pandas.util._move.reg.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\pandas\_6c913bfc6e9384b1f963adc3ea.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\pandas

@@ -8,13 +8,70 @@
 
 using namespace NCB;
 
+struct TCtrCalcerParams {
+    const int IteratorBlockSize = 4096;
+
+    TCtrCalcerParams(size_t sampleCount, ui64* hashArrayPtr, NPar::TLocalExecutor* localExecutor)
+        : BlockExecutionParams(0, sampleCount)
+        , HashArrayPtr(hashArrayPtr)
+        , LocalExecutor(localExecutor)
+    {
+        BlockExecutionParams.SetBlockCount(LocalExecutor->GetThreadCount() + 1);
+        // round per-thread block size to iteration block size
+        BlockExecutionParams.SetBlockSize(
+            Min<int>(
+                sampleCount,
+                CeilDiv<int>(BlockExecutionParams.GetBlockSize(), IteratorBlockSize) * IteratorBlockSize
+            )
+        );
+    }
+
+    TVector<THolder<IFeatureValuesHolder>> PermutedFeatureColumns;
+    TVector<std::function<void(TArrayRef<ui64>, IDynamicBlockIteratorBase*)>> PerIteratorCallbacks;
+    NPar::TLocalExecutor::TExecRangeParams BlockExecutionParams;
+    ui64* HashArrayPtr;
+    NPar::TLocalExecutor* LocalExecutor;
+
+    void ThreadFunc(int threadId) {
+        const int blockFirstId = BlockExecutionParams.FirstId + threadId * BlockExecutionParams.GetBlockSize();
+        const int blockLastId = Min(BlockExecutionParams.LastId, blockFirstId + BlockExecutionParams.GetBlockSize());
+        TVector<IDynamicBlockIteratorBasePtr> iterators;
+        for (auto& column : PermutedFeatureColumns) {
+            // TODO(kirillovs): this is redundant and only needed for current type-system
+            if (auto catColumn = dynamic_cast<const IQuantizedCatValuesHolder*>(column.Get())) {
+                iterators.emplace_back(catColumn->GetBlockIterator(blockFirstId));
+            } else if (auto floatColumn = dynamic_cast<const IQuantizedFloatValuesHolder*>(column.Get())) {
+                iterators.emplace_back(floatColumn->GetBlockIterator(blockFirstId));
+            } else {
+                CB_ENSURE_INTERNAL(false, "We only support quantized float and categorical columns here");
+            }
+        }
+        Y_ASSERT(iterators.size() == PerIteratorCallbacks.size());
+        for (int currentIdx = blockFirstId; currentIdx < blockLastId; currentIdx += IteratorBlockSize) {
+            auto currentSubBlockSize = Min(IteratorBlockSize, blockLastId - currentIdx);
+            TArrayRef currentHashView(HashArrayPtr + currentIdx, currentSubBlockSize);
+            for (auto i : xrange(PermutedFeatureColumns.size())) {
+                PerIteratorCallbacks[i](currentHashView, iterators[i].Get());
+            }
+        }
+    }
+
+    void Run() {
+        LocalExecutor->ExecRange(
+            [this] (int threadId) {
+                this->ThreadFunc(threadId);
+            },
+            0, BlockExecutionParams.GetBlockCount(),
+            NPar::TLocalExecutor::WAIT_COMPLETE
+        );
+    }
+};
 
 void CalcHashes(
     const TProjection& proj,
     const TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
     const TFeaturesArraySubsetIndexing& featuresSubsetIndexing,
     const TPerfectHashedToHashedCatValuesMap* perfectHashedToHashedCatValuesMap,
-    bool processAggregatedFeatures,
     ui64* begin,
     ui64* end,
     NPar::TLocalExecutor* localExecutor) {
@@ -25,278 +82,88 @@ void CalcHashes(
         return;
     }
 
-    ui64* hashArr = begin;
-
-
-    // [bundleIdx]
-    TVector<TVector<TCalcHashInBundleContext>> featuresInBundles(
-        objectsDataProvider.GetExclusiveFeatureBundlesSize()
-    );
-
-    // [groupIdx]
-    TVector<TVector<TCalcHashInGroupContext>> featuresInGroups(
-        objectsDataProvider.GetFeaturesGroupsSize()
-    );
-
-    // TBinaryFeaturesPack here is actually bit mask to what binary feature in pack are used in projection
-    TVector<TBinaryFeaturesPack> binaryFeaturesBitMasks(
-        objectsDataProvider.GetBinaryFeaturesPacksSize(),
-        TBinaryFeaturesPack(0));
-
-    TVector<TBinaryFeaturesPack> projBinaryFeatureValues(
-        objectsDataProvider.GetBinaryFeaturesPacksSize(),
-        TBinaryFeaturesPack(0));
-
-    TVector<TCalcHashParams> calcHashParams;
-
+    TCloningParams cloningParams;
+    cloningParams.SubsetIndexing = &featuresSubsetIndexing;
+    TCtrCalcerParams ctrCalcerParams(sampleCount, begin, localExecutor);
+    // TODO(kirillovs): this should be replaced with split-trueness iterator
     for (const int featureIdx : proj.CatFeatures) {
-        auto catFeatureIdx = TCatFeatureIdx((ui32)featureIdx);
-        const auto bundleIdx = objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx);
-        const auto packIdx = objectsDataProvider.GetCatFeatureToPackedBinaryIndex(catFeatureIdx);
-        const auto groupIdx = objectsDataProvider.GetCatFeatureToFeaturesGroupIndex(catFeatureIdx);
-        if ((!bundleIdx && !packIdx && !groupIdx) || !processAggregatedFeatures || perfectHashedToHashedCatValuesMap) {
-            auto featureCalcHashParams = ExtractColumnLocation<ui32, EFeatureValuesType::PerfectHashedCategorical>(
-                bundleIdx,
-                packIdx,
-                groupIdx,
-                [&]() { return *objectsDataProvider.GetCatFeature(*catFeatureIdx); },
-                [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeatureBundlesMetaData()[bundleIdx]; },
-                [&](ui32 bundleIdx) { return &objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
-                [&](ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
-                [&](ui32 groupIdx) { return &objectsDataProvider.GetFeaturesGroup(groupIdx); }
+        ctrCalcerParams.PermutedFeatureColumns.emplace_back(
+            (*objectsDataProvider.GetCatFeature(featureIdx))->CloneWithNewSubsetIndexing(
+                cloningParams,
+                localExecutor
+            )
+        );
+
+        if (!perfectHashedToHashedCatValuesMap) {
+            ctrCalcerParams.PerIteratorCallbacks.emplace_back(
+                [] (TArrayRef<ui64> hashArr, IDynamicBlockIteratorBase* baseIterator) {
+                    DispatchIteratorType(baseIterator, [hashArr] (auto iterator) {
+                        auto block = iterator->Next(hashArr.size());
+                        Y_ASSERT(block.size() == hashArr.size());
+                        for (auto i : xrange(block.size())) {
+                            hashArr[i] = CalcHash(hashArr[i], (ui64)block[i] + 1);
+                        }
+                    });
+                }
             );
-            if (perfectHashedToHashedCatValuesMap) {
-                const auto ohv = MakeArrayRef((*perfectHashedToHashedCatValuesMap)[featureIdx]);
-                featureCalcHashParams.CatValuesDecoder = ohv;
-            }
-            calcHashParams.push_back(featureCalcHashParams);
         } else {
-            ExtractIndicesAndMasks(
-                bundleIdx,
-                packIdx,
-                groupIdx,
-                /*isBinaryFeatureEquals1*/ true,
-                featuresInBundles,
-                binaryFeaturesBitMasks,
-                projBinaryFeatureValues,
-                featuresInGroups,
-                [hashArr] (ui32 i, ui32 featureValue) {
-                    hashArr[i] = CalcHash(hashArr[i], (ui64)featureValue + 1);
+            auto origValsView = MakeArrayRef(perfectHashedToHashedCatValuesMap->at(featureIdx));
+            ctrCalcerParams.PerIteratorCallbacks.emplace_back(
+                [origValsView] (TArrayRef<ui64> hashArr, IDynamicBlockIteratorBase* baseIterator) {
+                    DispatchIteratorType(baseIterator, [hashArr, origValsView] (auto iterator) {
+                        auto block = iterator->Next(hashArr.size());
+                        Y_ASSERT(block.size() == hashArr.size());
+                        for (auto i : xrange(block.size())) {
+                            hashArr[i] = CalcHash(hashArr[i], (int)origValsView[block[i]]);
+                        }
+                    });
                 }
             );
         }
     }
 
     for (const TBinFeature& feature : proj.BinFeatures) {
-        auto floatFeatureIdx = TFloatFeatureIdx((ui32)feature.FloatFeature);
-        const auto bundleIdx = objectsDataProvider.GetFloatFeatureToExclusiveBundleIndex(floatFeatureIdx);
-        const auto packIdx = objectsDataProvider.GetFloatFeatureToPackedBinaryIndex(floatFeatureIdx);
-        const auto groupIdx = objectsDataProvider.GetFloatFeatureToFeaturesGroupIndex(floatFeatureIdx);
-        if ((!bundleIdx && !packIdx && !groupIdx) || !processAggregatedFeatures) {
-            auto featureCalcHashParams = ExtractColumnLocation<ui8, EFeatureValuesType::QuantizedFloat>(
-                bundleIdx,
-                packIdx,
-                groupIdx,
-                [&]() { return *objectsDataProvider.GetFloatFeature(*floatFeatureIdx); },
-                [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeatureBundlesMetaData()[bundleIdx]; },
-                [&](ui32 bundleIdx) { return &objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
-                [&](ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
-                [&](ui32 groupIdx) { return &objectsDataProvider.GetFeaturesGroup(groupIdx); }
-            );
-            featureCalcHashParams.SplitIdx = feature.SplitIdx;
-            calcHashParams.push_back(featureCalcHashParams);
-        } else {
-            ExtractIndicesAndMasks(
-                bundleIdx,
-                packIdx,
-                groupIdx,
-                /*isBinaryFeatureEquals1*/ true,
-                featuresInBundles,
-                binaryFeaturesBitMasks,
-                projBinaryFeatureValues,
-                featuresInGroups,
-                [feature, hashArr] (ui32 i, ui32 featureValue) {
-                    const bool isTrueFeature = IsTrueHistogram((ui16)featureValue, (ui16)feature.SplitIdx);
-                    hashArr[i] = CalcHash(hashArr[i], (ui64)isTrueFeature);
-                }
-            );
-        }
-    }
-
-    const auto& quantizedFeaturesInfo = *objectsDataProvider.GetQuantizedFeaturesInfo();
-
-    for (const TOneHotSplit& feature : proj.OneHotFeatures) {
-        auto catFeatureIdx = TCatFeatureIdx((ui32)feature.CatFeatureIdx);
-
-        auto maybeBinaryIndex = objectsDataProvider.GetCatFeatureToPackedBinaryIndex(catFeatureIdx);
-        ui32 maxBin = 2;
-        if (!maybeBinaryIndex) {
-            const auto uniqueValuesCounts = quantizedFeaturesInfo.GetUniqueValuesCounts(
-                catFeatureIdx
-            );
-            maxBin = uniqueValuesCounts.OnLearnOnly;
-        }
-        const auto bundleIdx = objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx);
-        const auto groupIdx = objectsDataProvider.GetCatFeatureToFeaturesGroupIndex(catFeatureIdx);
-        if ((!bundleIdx && !maybeBinaryIndex) || !processAggregatedFeatures) {
-            auto featureCalcHashParams = ExtractColumnLocation<ui32, EFeatureValuesType::PerfectHashedCategorical>(
-                bundleIdx,
-                maybeBinaryIndex,
-                groupIdx,
-                [&]() { return *objectsDataProvider.GetCatFeature(*catFeatureIdx); },
-                [&](ui32 bundleIdx) { return objectsDataProvider.GetExclusiveFeatureBundlesMetaData()[bundleIdx]; },
-                [&](ui32 bundleIdx) { return &objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx); },
-                [&](ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
-                [&](ui32 groupIdx) { return &objectsDataProvider.GetFeaturesGroup(groupIdx); }
-            );
-            featureCalcHashParams.MaxBinAndValue = std::array<ui32, 2>{maxBin, (ui32)feature.Value};
-            calcHashParams.push_back(featureCalcHashParams);
-        } else {
-            ExtractIndicesAndMasks(
-                bundleIdx,
-                maybeBinaryIndex,
-                groupIdx,
-                /*isBinaryFeatureEquals1*/ feature.Value == 1,
-                featuresInBundles,
-                binaryFeaturesBitMasks,
-                projBinaryFeatureValues,
-                featuresInGroups,
-                [feature, hashArr, maxBin] (ui32 i, ui32 featureValue) {
-                    const bool isTrueFeature = IsTrueOneHotFeature(Min(featureValue, maxBin), (ui32)feature.Value);
-                    hashArr[i] = CalcHash(hashArr[i], (ui64)isTrueFeature);
-                }
-            );
-        }
-    }
-
-    if (!calcHashParams.empty()) {
-        featuresSubsetIndexing.ParallelForEachBlockwise(
-            [&] (ui32 srcBegin, ui32 srcEnd, ui32 dstBegin, const auto* srcIndices) {
-                constexpr ui32 MaxUnrollCount = 16;
-                std::array<ui64, MaxUnrollCount> hashes;
-                std::array<ui64, MaxUnrollCount> values;
-                for (ui32 srcIdx = srcBegin, dstIdx = dstBegin; srcIdx < srcEnd; srcIdx += MaxUnrollCount, dstIdx += MaxUnrollCount) {
-                    const ui32 unrollCount = Min(MaxUnrollCount, srcEnd - srcIdx);
-                    hashes.fill(0);
-                    for (const auto& featureCalcHashParams : calcHashParams) {
-                        if (srcIndices) {
-                            featureCalcHashParams.GatherValues(srcIdx, unrollCount, srcIndices, values);
-                        } else {
-                            featureCalcHashParams.GatherValues(srcIdx, unrollCount, values);
-                        }
-
-                        if (featureCalcHashParams.CatValuesDecoder) {
-                            const auto valuesDecoder = featureCalcHashParams.CatValuesDecoder.GetRef();
-                            for (ui32 unrollIdx : xrange(unrollCount)) {
-                                hashes[unrollIdx] = CalcHash(hashes[unrollIdx], (int)valuesDecoder[values[unrollIdx]]);
-                            }
-                        } else if (featureCalcHashParams.SplitIdx) {
-                            const auto splitIdx = featureCalcHashParams.SplitIdx.GetRef();
-                            for (ui32 unrollIdx : xrange(unrollCount)) {
-                                const auto isTrueFeature = IsTrueHistogram<ui16>(values[unrollIdx], splitIdx);
-                                hashes[unrollIdx] = CalcHash(hashes[unrollIdx], isTrueFeature);
-                            }
-                        } else if (featureCalcHashParams.MaxBinAndValue) {
-                            const auto maxBinAndValue = featureCalcHashParams.MaxBinAndValue.GetRef();
-                            for (ui32 unrollIdx : xrange(unrollCount)) {
-                                const auto isTrueFeature = IsTrueOneHotFeature(Min<ui32>(values[unrollIdx], maxBinAndValue[0]), (ui32)maxBinAndValue[1]);
-                                hashes[unrollIdx] = CalcHash(hashes[unrollIdx], isTrueFeature);
-                            }
-                        } else {
-                            for (ui32 unrollIdx : xrange(unrollCount)) {
-                                hashes[unrollIdx] = CalcHash(hashes[unrollIdx], values[unrollIdx] + 1);
-                            }
-                        }
+        ctrCalcerParams.PermutedFeatureColumns.emplace_back(
+            (*objectsDataProvider.GetFloatFeature(feature.FloatFeature))->CloneWithNewSubsetIndexing(
+                cloningParams,
+                localExecutor
+            )
+        );
+        ctrCalcerParams.PerIteratorCallbacks.emplace_back(
+            [feature] (TArrayRef<ui64> hashArr, IDynamicBlockIteratorBase* baseIterator) {
+                DispatchIteratorType(baseIterator, [hashArr, feature] (auto iterator) {
+                    auto block = iterator->Next(hashArr.size());
+                    Y_ASSERT(block.size() == hashArr.size());
+                    for (auto i : xrange(block.size())) {
+                        const bool isTrueFeature = IsTrueHistogram((ui16)block[i], (ui16)feature.SplitIdx);
+                        hashArr[i] = CalcHash(hashArr[i], isTrueFeature);
                     }
-                    Copy(hashes.begin(), hashes.begin() + unrollCount, hashArr + dstIdx);
-                }
-            },
-            localExecutor
+                });
+            }
         );
     }
 
-    if (processAggregatedFeatures) {
-        for (size_t bundleIdx : xrange(featuresInBundles.size())) {
-            TConstArrayRef<TCalcHashInBundleContext> featuresInBundle = featuresInBundles[bundleIdx];
-            if (featuresInBundle.empty()) {
-                continue;
-            }
-
-            const auto& metaData = objectsDataProvider.GetExclusiveFeatureBundlesMetaData()[bundleIdx];
-
-            TVector<TBoundsInBundle> selectedBounds;
-
-            for (const auto& featureInBundle : featuresInBundle) {
-                selectedBounds.push_back(metaData.Parts[featureInBundle.InBundleIdx].Bounds);
-            }
-
-            auto processBundleValue = [&] (ui32 i, ui16 bundleValue) {
-                for (auto selectedFeatureIdx : xrange(featuresInBundle.size())) {
-                    featuresInBundle[selectedFeatureIdx].CalcHashCallback(
-                        i,
-                        GetBinFromBundle<decltype(bundleValue)>(
-                            bundleValue,
-                            selectedBounds[selectedFeatureIdx]
-                        )
-                    );
-                }
-            };
-
-            ProcessColumnForCalcHashes(
-                objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx),
-                featuresSubsetIndexing,
-                std::move(processBundleValue),
+    for (const TOneHotSplit& feature : proj.OneHotFeatures) {
+        ctrCalcerParams.PermutedFeatureColumns.emplace_back(
+            (*objectsDataProvider.GetCatFeature(feature.CatFeatureIdx))->CloneWithNewSubsetIndexing(
+                cloningParams,
                 localExecutor
-            );
-        }
-
-        for (size_t packIdx : xrange(binaryFeaturesBitMasks.size())) {
-            TBinaryFeaturesPack bitMask = binaryFeaturesBitMasks[packIdx];
-            if (!bitMask) {
-                continue;
+            )
+        );
+        ctrCalcerParams.PerIteratorCallbacks.emplace_back(
+            [feature] (TArrayRef<ui64> hashArr, IDynamicBlockIteratorBase* baseIterator) {
+                DispatchIteratorType(baseIterator, [hashArr, feature] (auto iterator) {
+                    auto block = iterator->Next(hashArr.size());
+                    Y_ASSERT(block.size() == hashArr.size());
+                    for (auto i : xrange(block.size())) {
+                        const bool isTrueFeature = IsTrueOneHotFeature(block[i], (ui32)feature.Value);
+                        hashArr[i] = CalcHash(hashArr[i], isTrueFeature);
+                    }
+                });
             }
-
-            TBinaryFeaturesPack packProjBinaryFeatureValues = projBinaryFeatureValues[packIdx];
-
-            auto getBinFromHistogramValue = [=] (TBinaryFeaturesPack defaultPackValue) -> ui64 {
-                // returns default 'b' for CalcHash
-                return (ui64)((~(defaultPackValue ^ packProjBinaryFeatureValues)) & bitMask) + (ui64)bitMask;
-            };
-
-            ProcessColumnForCalcHashes(
-                objectsDataProvider.GetBinaryFeaturesPack(packIdx),
-                featuresSubsetIndexing,
-                std::move(getBinFromHistogramValue),
-                [=] (ui32 i, ui64 b) {
-                    hashArr[i] = CalcHash(hashArr[i], b);
-                },
-                localExecutor
-            );
-        }
-
-        for (size_t groupIdx : xrange(featuresInGroups.size())) {
-            TConstArrayRef<TCalcHashInGroupContext> featuresInGroup = featuresInGroups[groupIdx];
-            if (featuresInGroup.empty()) {
-                continue;
-            }
-
-            auto processGroupValue = [&] (ui32 i, auto groupValue) {
-                for (const auto& selectedFeature : featuresInGroup) {
-                    selectedFeature.CalcHashCallback(
-                        i,
-                        GetPartValueFromGroup(groupValue, selectedFeature.InGroupIdx)
-                    );
-                }
-            };
-
-            ProcessColumnForCalcHashes(
-                objectsDataProvider.GetFeaturesGroup(groupIdx),
-                featuresSubsetIndexing,
-                std::move(processGroupValue),
-                localExecutor
-            );
-        }
+        );
     }
+    ctrCalcerParams.Run();
 }
 
 

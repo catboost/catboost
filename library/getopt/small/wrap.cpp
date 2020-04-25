@@ -1,6 +1,6 @@
 #include "wrap.h"
 
-#include <library/colorizer/colors.h>
+#include <library/cpp/colorizer/colors.h>
 
 #include <util/generic/string.h>
 #include <util/stream/str.h>

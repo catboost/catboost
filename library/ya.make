@@ -1,10 +1,6 @@
 
 
 RECURSE(
-    accurate_accumulate
-    accurate_accumulate/benchmark
-    accurate_accumulate/benchmark/metrics
-    archive/ut
     binsaver
     binsaver/ut_util
     binsaver/ut
@@ -21,43 +17,28 @@ RECURSE(
     chromium_trace/benchmark
     chromium_trace/examples
     chromium_trace/ut
-    colorizer
-    colorizer/ut
     comptrie
     comptrie/loader
     comptrie/loader/ut
     comptrie/ut
     comptrie/benchmark
     containers
-    coroutine
-    cppparser
-    cpuid_check
+    cpp
     dbg_output
     dbg_output/ut
     deprecated
-    diff
-    diff/ut
-    digest
     dns
     dns/ut
-    dot_product
-    dot_product/bench
-    dot_product/ut
     enumbitset
     enumbitset/ut
     fast_exp
     fast_exp/benchmark
     fast_exp/ut
     fast_log
-    float16
-    float16/ut
     getopt
     getopt/last_getopt_demo
     getopt/small
     getopt/ut
-    grid_creator
-    grid_creator/fuzz
-    grid_creator/ut
     http
     json
     json/flex_buffers
@@ -87,35 +68,27 @@ RECURSE(
     logger/global
     logger/global/ut
     logger/ut
-    malloc
     neh
     neh/asio/ut
     neh/ut
     netliba
     object_factory
     object_factory/ut
-    on_disk
     openssl
     overloaded
     overloaded/ut
     packers
     packers/ut
     par
-    pop_count
-    pop_count/benchmark
-    pop_count/ut
     python
     resource
     resource/ut
     sse
     statistics
     statistics/ut
-    streams
     string_utils
     svnversion
     svnversion/java
-    terminate_handler
-    terminate_handler/sample
     testing
     text_processing
     threading
@@ -123,8 +96,6 @@ RECURSE(
     token/serialization
     token/serialization/ut
     token/ut
-    tokenizer
-    tokenizer/ut
     unicode
     unittest
     unittest/fat
@@ -139,12 +110,6 @@ RECURSE(
 IF (HAVE_CUDA)
     RECURSE(
     cuda
-)
-ENDIF()
-
-IF (OS_LINUX)
-    RECURSE(
-    
 )
 ENDIF()
 

@@ -96,13 +96,19 @@ namespace NCB {
                 const ui32 internalFeatureIdx = featuresLayout->GetInternalFeatureIdx(dataFlatFeatureIdx);
 
                 if (featureMetaInfo.Type == EFeatureType::Float) {
-                    FloatBlockIterators[modelFlatFeatureIdx]
-                        = (*ObjectsData.GetFloatFeature(internalFeatureIdx))
-                            ->GetBlockIterator(objectOffset);
+                    auto maybeFloatIterator = (*ObjectsData.GetFloatFeature(internalFeatureIdx))
+                        ->GetBlockIterator(objectOffset);
+                    auto* floatIteratorPtr = dynamic_cast<IDynamicBlockIterator<TFloatValue>*>(maybeFloatIterator.Get());
+                    CB_ENSURE_INTERNAL(floatIteratorPtr, "Should be IDynamicBlockIteratorPtr<TFloatValue>");
+                    Y_UNUSED(maybeFloatIterator.Release());
+                    FloatBlockIterators[modelFlatFeatureIdx] = floatIteratorPtr;
                 } else if (featureMetaInfo.Type == EFeatureType::Categorical) {
-                    CatBlockIterators[modelFlatFeatureIdx]
-                        = (*ObjectsData.GetCatFeature(internalFeatureIdx))
-                            ->GetBlockIterator(objectOffset);
+                    auto maybeCatIterator = (*ObjectsData.GetCatFeature(internalFeatureIdx))
+                        ->GetBlockIterator(objectOffset);
+                    auto* catIteratorPtr = dynamic_cast<IDynamicBlockIterator<TCatValue>*>(maybeCatIterator.Get());
+                    CB_ENSURE_INTERNAL(catIteratorPtr, "Should be IDynamicBlockIteratorPtr<TCatValue>");
+                    Y_UNUSED(maybeCatIterator.Release());
+                    CatBlockIterators[modelFlatFeatureIdx] = catIteratorPtr;
                 } else if (featureMetaInfo.Type == EFeatureType::Text) {
                     TextBlockIterators[modelFlatFeatureIdx]
                         = (*ObjectsData.GetTextFeature(internalFeatureIdx))

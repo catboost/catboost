@@ -42,11 +42,12 @@ namespace NCatboostCuda {
             auto layout = CreateLayout(featureIds.size());
             ui32 dev = docsMapping.GetDeviceId();
 
-            result.CudaFeaturesHost.resize(result.Grid.FeatureIds.size(),
+            result.CudaFeaturesHost.resize(featureIds.size(),
                                            NCudaLib::GetCudaManager().CreateDistributedObject<TCFeature>());
 
             result.Samples = docsMapping;
 
+            TVector<TCFeature> allFeatures;
             TVector<TCFeature> features;
 
             TCudaFeaturesHelper helper(result.Grid);
@@ -59,13 +60,17 @@ namespace NCatboostCuda {
             const ui64 devSize = helper.AddDeviceFeatures<Policy>(devSlice,
                                                                   cindexDeviceOffset,
                                                                   docCount,
+                                                                  &allFeatures,
                                                                   &features);
-
+            CB_ENSURE_INTERNAL(
+                features.size() == allFeatures.size(),
+                "Catboost don't support skipped features in TSingleDevLayout"
+            );
             result.CIndexSizes.Set(dev, devSize);
             result.CIndexOffsets.Set(dev, cindexDeviceOffset);
 
             for (ui32 i = devSlice.Left; i < devSlice.Right; ++i) {
-                result.CudaFeaturesHost[i].Set(dev, features[i]);
+                result.CudaFeaturesHost[i].Set(dev, allFeatures[i]);
             }
             result.FoldsHistogram.Set(dev, result.Grid.ComputeFoldsHistogram(devSlice));
 
@@ -73,7 +78,7 @@ namespace NCatboostCuda {
             result.CudaFeaturesDevice.Write(features);
 
             //bin features
-            result.BinFeatures = helper.BuildBinaryFeatures(TSlice(0, features.size()));
+            result.BinFeatures = helper.BuildBinaryFeatures(TSlice(0, allFeatures.size()));
             result.BinFeatureCount.Set(dev, result.BinFeatures.size());
             Y_ASSERT(result.BinFeatureCount.At(dev) == result.BinFeatures.size());
             result.HistogramsMapping = NCudaLib::TSingleMapping(dev, result.BinFeatureCount.At(dev));
@@ -85,7 +90,7 @@ namespace NCatboostCuda {
         }
 
         static void WriteToCompressedIndex(const NCudaLib::TDistributedObject<TCFeature>& feature,
-                                           const TVector<ui8>& bins,
+                                           TConstArrayRef<ui8> bins,
                                            const NCudaLib::TSingleMapping& docsMapping,
                                            TStripeBuffer<ui32>* compressedIndex) {
             TSingleBuffer<ui8> tmp = TSingleBuffer<ui8>::Create(docsMapping);
