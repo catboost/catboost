@@ -22,9 +22,6 @@ using TStringBuf = TBasicStringBuf<char>;
 using TWtringBuf = TBasicStringBuf<wchar16>;
 using TUtf32StringBuf = TBasicStringBuf<wchar32>;
 
-template <typename TCharType, typename TTraits = TCharTraits<TCharType>>
-using TFixedString = TBasicStringBuf<TCharType, TTraits>;
-
 //misc
 class TBuffer;
 
