@@ -56,6 +56,12 @@
   includes:
   - dirent.h:      logbroker/push-client/src/win32/dirent.h
 
+- source_filter: "^contrib/libs/libpq"
+  includes:
+  - dirent.h:      contrib/libs/libpq/src/include/port/win32_msvc/dirent.h
+  - sys/wait.h:    contrib/libs/libpq/src/include/port/win32/sys/wait.h
+  - win32.h:       contrib/libs/libpq/src/include/port/win32.h
+
 - source_fiter: "^contrib/libs/curl"
   includes:
   - nghttp2/nghttp2.h
