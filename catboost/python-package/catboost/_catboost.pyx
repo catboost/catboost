@@ -5598,10 +5598,10 @@ cpdef compute_training_options(dict options, DataMetaInfo train_meta_info, DataM
 
 cpdef _get_onnx_model(model, export_parameters):
     cpdef TString result = ConvertTreeToOnnxProto(
-        dereference(model.__model),
+        dereference((<_CatBoost>model).__model),
         to_arcadia_string(export_parameters),
     )
-    return result
+    return str(result)
 
 include "_monoforest.pxi"
 include "_text_processing.pxi"

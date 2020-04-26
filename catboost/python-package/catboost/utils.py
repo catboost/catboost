@@ -672,4 +672,4 @@ def convert_to_onnx_object(model, export_parameters=None):
     if export_parameters:
         params_string = json.dumps(export_parameters, cls=_NumpyAwareEncoder)
 
-    return _get_onnx_model(dereference((<_CatBoost>model._object).__model), params_string)
+    return _get_onnx_model(model._object, params_string)
