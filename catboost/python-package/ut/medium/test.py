@@ -3083,6 +3083,7 @@ def test_approximate_shap_feature_importance(task_type):
     np.save(fimp_npy_path, np.around(np.array(shaps), 9))
     return local_canonical_file(fimp_npy_path)
 
+
 def test_exact_shap_feature_importance(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, max_ctr_complexity=1, task_type=task_type, devices='0')
