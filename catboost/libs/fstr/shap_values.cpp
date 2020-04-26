@@ -1,6 +1,7 @@
 #include "shap_values.h"
 
 #include "util.h"
+#include "shap_exact.h"
 
 #include <catboost/private/libs/algo/features_data_helpers.h>
 #include <catboost/private/libs/algo/index_calcer.h>
@@ -596,6 +597,8 @@ static inline void CalcObliviousApproximateShapValuesForLeaf(
     bool calcInternalValues,
     TVector<TShapValue>* shapValues
 ) {
+   shapValues->clear();
+
    if (calcInternalValues) {
         CalcObliviousApproximateShapValuesForLeafImplementation(
             forest,
@@ -617,6 +620,41 @@ static inline void CalcObliviousApproximateShapValuesForLeaf(
        );
        UnpackInternalShaps(shapValuesInternal, combinationClassFeatures, shapValues);
    }
+}
+
+static inline void CalcObliviousExactShapValuesForLeaf(
+    const TModelTrees& forest,
+    const TVector<int>& binFeatureCombinationClass,
+    const TVector<TVector<int>>& combinationClassFeatures,
+    size_t documentLeafIdx,
+    size_t treeIdx,
+    const TVector<TVector<double>>& subtreeWeights,
+    bool calcInternalValues,
+    TVector<TShapValue>* shapValues
+) {
+    shapValues->clear();
+
+    if (calcInternalValues) {
+        CalcObliviousExactShapValuesForLeafImplementation(
+            forest,
+            binFeatureCombinationClass,
+            documentLeafIdx,
+            treeIdx,
+            subtreeWeights,
+            shapValues
+        );
+    } else {
+        TVector<TShapValue> shapValuesInternal;
+        CalcObliviousExactShapValuesForLeafImplementation(
+            forest,
+            binFeatureCombinationClass,
+            documentLeafIdx,
+            treeIdx,
+            subtreeWeights,
+            &shapValuesInternal
+        );
+        UnpackInternalShaps(shapValuesInternal, combinationClassFeatures, shapValues);
+    }
 }
 
 static inline void CalcNonObliviousShapValuesForLeaf(
@@ -737,6 +775,8 @@ static inline void CalcNonObliviousApproximateShapValuesForLeaf(
     bool calcInternalValues,
     TVector<TShapValue>* shapValues
 ) {
+    shapValues->clear();
+
     if (calcInternalValues) {
         CalcNonObliviousApproximateShapValuesForLeafImplementation(
             forest,
@@ -1159,6 +1199,19 @@ void CalcShapValuesForDocumentMulti(
                         );
                     }
                     break;
+                case ECalcTypeShapValues::Exact:
+                    CB_ENSURE(model.IsOblivious(), "'Exact' calculation type is supported only for oblivious trees.");
+                    CalcObliviousExactShapValuesForLeaf(
+                        *model.ModelTrees.Get(),
+                        preparedTrees.BinFeatureCombinationClass,
+                        preparedTrees.CombinationClassFeatures,
+                        docIndices[treeIdx],
+                        treeIdx,
+                        preparedTrees.SubtreeWeightsForAllTrees[treeIdx],
+                        preparedTrees.CalcInternalValues,
+                        &shapValuesByLeaf
+                    );
+                    break;
             }
 
             for (const TShapValue& shapValue : shapValuesByLeaf) {
@@ -1298,6 +1351,18 @@ static void CalcShapValuesByLeafForTreeBlock(
                             fixedFeatureParams,
                             &shapValuesByLeaf[leafIdx],
                             preparedTrees->AverageApproxByTree[treeIdx]
+                        );
+                        break;
+                    case ECalcTypeShapValues::Exact:
+                        CalcObliviousExactShapValuesForLeaf(
+                            forest,
+                            binFeatureCombinationClass,
+                            combinationClassFeatures,
+                            leafIdx,
+                            treeIdx,
+                            preparedTrees->SubtreeWeightsForAllTrees[treeIdx],
+                            calcInternalValues,
+                            &shapValuesByLeaf[leafIdx]
                         );
                         break;
                 }
@@ -1678,6 +1743,19 @@ void CalcShapValuesInternalForFeature(
                                     preparedTrees.AverageApproxByTree[treeIdx]
                                 );
                             }
+                            break;
+                        case ECalcTypeShapValues::Exact:
+                            CB_ENSURE(model.IsOblivious(), "'Exact' calculation type is supported only for oblivious trees.");
+                            CalcObliviousExactShapValuesForLeaf(
+                                forest,
+                                preparedTrees.BinFeatureCombinationClass,
+                                preparedTrees.CombinationClassFeatures,
+                                docIndices[treeIdx],
+                                treeIdx,
+                                preparedTrees.SubtreeWeightsForAllTrees[treeIdx],
+                                preparedTrees.CalcInternalValues,
+                                &shapValuesByLeaf
+                            );
                             break;
                     }
 

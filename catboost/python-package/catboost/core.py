@@ -2289,9 +2289,11 @@ class CatBoost(_CatBoostBase):
             used only for ShapValues type
             Possible values:
                 - "Regular"
-                    Calculate normal SHAP values
+                    Calculate regular SHAP values
                 - "Approximate"
                     Calculate approximate SHAP values
+                - "Exact"
+                    Calculate exact SHAP values
 
         interaction_indices : list of int or string (feature_idx_1, feature_idx_2), optional (default=None)
             used only for ShapInteractionValues type

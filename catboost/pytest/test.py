@@ -6911,6 +6911,38 @@ def test_shap_approximate():
     return [local_canonical_file(output_values_path)]
 
 
+def test_shap_exact():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_values_path = yatest.common.test_output_path('shapval')
+    cmd_fit = [
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '--learning-rate', '0.5',
+        '-f', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '250',
+        '-T', '4',
+        '-m', output_model_path,
+    ]
+    yatest.common.execute(cmd_fit)
+    cmd_shap = [
+        CATBOOST_PATH,
+        'fstr',
+        '-o', output_values_path,
+        '--input-path', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--verbose', '0',
+        '--fstr-type', 'ShapValues',
+        '--shap-calc-type', 'Exact',
+        '-T', '4',
+        '-m', output_model_path,
+    ]
+    yatest.common.execute(cmd_shap)
+
+    return [local_canonical_file(output_values_path)]
+
+
 @pytest.mark.parametrize('bagging_temperature', ['0', '1'])
 @pytest.mark.parametrize('sampling_unit', SAMPLING_UNIT_TYPES)
 @pytest.mark.parametrize(
