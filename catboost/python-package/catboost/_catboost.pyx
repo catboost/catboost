@@ -5597,10 +5597,10 @@ cpdef compute_training_options(dict options, DataMetaInfo train_meta_info, DataM
     return loads(to_native_str(WriteTJsonValue(trainingOptions)))
 
 cpdef _get_onnx_model(model, export_parameters):
-        ExportOnnxModel(
-            dereference(model.__model),
-            to_arcadia_string(export_parameters),
-        )
+    ConvertTreeToOnnxProto(
+        dereference(model.__model),
+        to_arcadia_string(export_parameters),
+    )
 
 include "_monoforest.pxi"
 include "_text_processing.pxi"
