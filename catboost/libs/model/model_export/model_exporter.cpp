@@ -80,6 +80,39 @@ namespace NCB {
         out.Write(data);
     }
 
+    TString ConvertTreeToOnnxProto(
+        const TFullModel& model,
+        const TString& userParametersJson) {
+        //        code duplications from ExportModel, OutputModelOnnx
+
+        onnx::ModelProto outModel;
+
+        TStringInput is(userParametersJson);
+                    NJson::TJsonValue userParameters;
+                    NJson::ReadJsonTree(&is, &userParameters);
+
+        CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "exporting ONNX model");
+
+        CB_ENSURE(
+            !model.HasCategoricalFeatures(),
+            "ONNX-ML format export does yet not support categorical features"
+        );
+
+        NCB::NOnnx::InitMetadata(model, userParameters, &outModel);
+
+        TMaybe<TString> graphName;
+        if (userParameters.Has("onnx_graph_name")) {
+            graphName = userParameters["onnx_graph_name"].GetStringSafe();
+        }
+
+        NCB::NOnnx::ConvertTreeToOnnxGraph(model, graphName, outModel.mutable_graph());
+
+        TString data;
+        outModel.SerializeToString(&data);
+
+        return data;
+        }
+
     void OutputModelOnnx(
         const TFullModel& model,
         const TString& modelFile,
