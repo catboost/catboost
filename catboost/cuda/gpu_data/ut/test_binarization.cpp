@@ -243,7 +243,8 @@ Y_UNIT_TEST_SUITE(BinarizationsTests) {
                 desc,
                 docsMapping,
                 features,
-                MakeAtomicShared<NCB::TFeaturesArraySubsetIndexing>(
+                TDatasetPermutationOrderAndSubsetIndexing::ConstructShared(
+                    dataProvider->ObjectsData->GetFeaturesArraySubsetIndexing(),
                     std::move(order)
                 )
             );

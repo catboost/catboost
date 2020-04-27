@@ -4488,8 +4488,11 @@ cdef class _CatBoost:
 
         cdef EFstrType fstr_type = string_to_fstr_type(type_name)
         cdef EPreCalcShapValues shap_mode = string_to_shap_mode(shap_mode_name)
-        cdef ECalcTypeShapValues calc_type = string_to_calc_type(shap_calc_type)
         cdef TMaybe[pair[int, int]] pair_of_features
+
+        if shap_calc_type == 'Exact':
+            assert dereference(self.__model).IsOblivious(), "'Exact' calculation type is supported only for symmetric trees."
+        cdef ECalcTypeShapValues calc_type = string_to_calc_type(shap_calc_type)
 
         if type_name == 'ShapValues' and dereference(self.__model).GetDimensionsCount() > 1:
             with nogil:

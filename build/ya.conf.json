@@ -1596,6 +1596,10 @@
                 "strip": {
                     "bottle": "clang7",
                     "executable": "llvm-strip"
+                },
+                "objcopy": {
+                    "bottle": "clang7",
+                    "executable": "llvm-objcopy"
                 }
             },
             "platforms": [
@@ -5569,9 +5573,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [
-                    656464835
-                ],
+                "sandbox_id": [661939451],
                 "match": "ymake"
             },
             "executable": {
@@ -7282,7 +7284,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 659134264,
+                "sandbox_id": 661922675,
                 "match": "horadric"
             },
             "executable": {
@@ -7370,7 +7372,7 @@
         },
         "ycmerge": {
             "formula": {
-                "sandbox_id": 656863542,
+                "sandbox_id": 658763292,
                 "match": "ycmerge"
             },
             "executable": {
@@ -7392,7 +7394,7 @@
         },
         "ya-tc": {
             "formula": {
-                "sandbox_id": 656731493,
+                "sandbox_id": 661776613,
                 "match": "ya-tc"
             },
             "executable": {

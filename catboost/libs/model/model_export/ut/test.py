@@ -7,8 +7,8 @@ import yatest
 from catboost import Pool, CatBoost, CatBoostClassifier
 from catboost_pytest_lib import data_file, load_pool_features_as_df
 
-CATBOOST_APP_PATH = yatest.common.binary_path('catboost')
-APPROXIMATE_DIFF_PATH = yatest.common.binary_path('limited_precision_dsv_diff')
+CATBOOST_APP_PATH = yatest.common.binary_path('catboost/app/catboost')
+APPROXIMATE_DIFF_PATH = yatest.common.binary_path('catboost/tools/limited_precision_dsv_diff/limited_precision_dsv_diff')
 
 
 def _get_train_test_cd_path(dataset):

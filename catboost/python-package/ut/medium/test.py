@@ -3084,6 +3084,18 @@ def test_approximate_shap_feature_importance(task_type):
     return local_canonical_file(fimp_npy_path)
 
 
+def test_exact_shap_feature_importance(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, max_ctr_complexity=1, task_type=task_type, devices='0')
+    model.fit(pool)
+    shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Exact")
+    assert np.allclose(model.predict(pool, prediction_type='RawFormulaVal'), np.sum(shaps, axis=1))
+
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.around(np.array(shaps), 9))
+    return local_canonical_file(fimp_npy_path)
+
+
 def test_shap_feature_importance_multiclass(task_type):
     pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass')
@@ -3100,6 +3112,16 @@ def test_approximate_shap_feature_importance_multiclass(task_type):
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool,
                                                                            shap_calc_type="Approximate")), 9))
+    return local_canonical_file(fimp_npy_path)
+
+
+def test_exact_shap_feature_importance_multiclass(task_type):
+    pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass')
+    model.fit(pool)
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool,
+                                                                           shap_calc_type="Exact")), 9))
     return local_canonical_file(fimp_npy_path)
 
 
@@ -3139,6 +3161,29 @@ def test_approximate_shap_feature_importance_ranking(task_type):
     )
     model.fit(pool)
     shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Approximate")
+    assert np.allclose(model.predict(pool), np.sum(shaps, axis=1))
+
+    if task_type == 'GPU':
+        return pytest.xfail(reason="On GPU models with loss Pairlogit are too unstable. MLTOOLS-4722")
+    else:
+        fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+        np.save(fimp_npy_path, np.around(np.array(shaps), 9))
+        return local_canonical_file(fimp_npy_path)
+
+
+def test_exact_shap_feature_importance_ranking(task_type):
+    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
+    model = CatBoost(
+        {
+            "iterations": 20,
+            "learning_rate": 0.03,
+            "task_type": task_type,
+            "devices": "0",
+            "loss_function": "PairLogit"
+        }
+    )
+    model.fit(pool)
+    shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Exact")
     assert np.allclose(model.predict(pool), np.sum(shaps, axis=1))
 
     if task_type == 'GPU':
@@ -3198,6 +3243,18 @@ def test_approximate_shap_feature_importance_with_langevin():
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, depth=10, langevin=True, diffusion_temperature=1000)
     model.fit(pool)
     shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Approximate")
+    assert np.allclose(model.predict(pool, prediction_type='RawFormulaVal'), np.sum(shaps, axis=1))
+
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.around(np.array(shaps), 9))
+    return local_canonical_file(fimp_npy_path)
+
+
+def test_exact_shap_feature_importance_with_langevin():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, depth=10, langevin=True, diffusion_temperature=1000)
+    model.fit(pool)
+    shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Exact")
     assert np.allclose(model.predict(pool, prediction_type='RawFormulaVal'), np.sum(shaps, axis=1))
 
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
@@ -3270,10 +3327,10 @@ def test_prediction_diff_feature_importance(task_type):
     model = CatBoostClassifier(iterations=110, task_type=task_type, learning_rate=0.03, max_ctr_complexity=1, devices='0')
     model.fit(pool)
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
-    np.save(fimp_npy_path, np.array(model.get_feature_importance(
+    np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(
         type=EFstrType.PredictionDiff,
         data=pool.get_features()[:2]
-    )))
+    )), 9))
     return local_canonical_file(fimp_npy_path)
 
 
@@ -3284,10 +3341,10 @@ def test_prediction_diff_nonsym_feature_importance(task_type, grow_policy):
     model = CatBoostClassifier(iterations=110, task_type=task_type, grow_policy=grow_policy, learning_rate=0.03, max_ctr_complexity=1, devices='0')
     model.fit(pool)
     fimp_txt_path = test_output_path(FIMP_TXT_PATH)
-    np.savetxt(fimp_txt_path, np.array(model.get_feature_importance(
+    np.savetxt(fimp_txt_path, np.around(np.array(model.get_feature_importance(
         type=EFstrType.PredictionDiff,
         data=pool.get_features()[:2]
-    )))
+    )), 9))
     return local_canonical_file(fimp_txt_path)
 
 

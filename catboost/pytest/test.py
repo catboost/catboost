@@ -2649,6 +2649,11 @@ def do_test_fstr(
         '--fstr-type', fstr_type
     )
 
+    if fstr_type in ['Interaction', 'InternalInteraction'] and grow_policy != 'SymmetricTree':
+        with pytest.raises(yatest.common.ExecutionError):
+            yatest.common.execute(fstr_cmd)
+        return
+
     if normalize:
         make_model_normalized(model_path)
         if not(
@@ -6898,6 +6903,38 @@ def test_shap_approximate():
         '--verbose', '0',
         '--fstr-type', 'ShapValues',
         '--shap-calc-type', 'Approximate',
+        '-T', '4',
+        '-m', output_model_path,
+    ]
+    yatest.common.execute(cmd_shap)
+
+    return [local_canonical_file(output_values_path)]
+
+
+def test_shap_exact():
+    output_model_path = yatest.common.test_output_path('model.bin')
+    output_values_path = yatest.common.test_output_path('shapval')
+    cmd_fit = [
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', 'Logloss',
+        '--learning-rate', '0.5',
+        '-f', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '-i', '250',
+        '-T', '4',
+        '-m', output_model_path,
+    ]
+    yatest.common.execute(cmd_fit)
+    cmd_shap = [
+        CATBOOST_PATH,
+        'fstr',
+        '-o', output_values_path,
+        '--input-path', data_file('adult', 'train_small'),
+        '--column-description', data_file('adult', 'train.cd'),
+        '--verbose', '0',
+        '--fstr-type', 'ShapValues',
+        '--shap-calc-type', 'Exact',
         '-T', '4',
         '-m', output_model_path,
     ]

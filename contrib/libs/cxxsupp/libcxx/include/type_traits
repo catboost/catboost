@@ -499,8 +499,15 @@ template<class... _Pack>
 struct _Sizeof {
     static constexpr size_t value = sizeof...(_Pack);
 };
+// Workaround for MSVC. Sometimes MSVC can't match definition and declaration
+// when they use _EnableIf. So simplify _EnableIf metaprogramming to avoid the issue.
+template<bool, class> struct _MetaBase2;
+template<class _Tp>
+struct _MetaBase2<true, _Tp> {
+    using _EnableIfImpl _LIBCPP_NODEBUG_TYPE = _Tp;
+};
 template <bool _Cond, class _Ret = void>
-using _EnableIf _LIBCPP_NODEBUG_TYPE = typename _MetaBase<_Cond>::template _EnableIfImpl<_Ret>;
+using _EnableIf _LIBCPP_NODEBUG_TYPE = typename _MetaBase2<_Cond, _Ret>::_EnableIfImpl;
 // CUDA headers use libc++ internals.
 #ifdef __CUDACC__
 template <bool _Cond, class _Ret = void>

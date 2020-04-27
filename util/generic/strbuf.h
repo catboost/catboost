@@ -473,7 +473,7 @@ private:
         }
     }
 
-public:
+private:
     const TCharType* Start;
     size_t Length;
 };

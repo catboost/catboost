@@ -165,7 +165,7 @@ public:
         );
 #endif
         static_assert(
-            (sizeof(T) == sizeof(ui64)) || (alignof(ui64) == sizeof(ui64)),
+            !(alignof(ui64) % alignof(T)),
             "Can't interpret TCompressedArray's data as raw array because of alignment"
         );
         CB_ENSURE(

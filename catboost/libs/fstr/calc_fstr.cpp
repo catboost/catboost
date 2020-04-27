@@ -100,6 +100,8 @@ static TVector<TMxTree> BuildTrees(
     const THashMap<TFeature, int, TFeatureHash>& featureToIdx,
     const TFullModel& model)
 {
+    CB_ENSURE_INTERNAL(model.IsOblivious(), "BuildTrees are supported only for symmetric trees");
+
     TVector<TMxTree> trees(model.GetTreeCount());
     auto& binFeatures = model.ModelTrees->GetBinFeatures();
     for (int treeIdx = 0; treeIdx < trees.ysize(); ++treeIdx) {
@@ -547,6 +549,8 @@ TVector<double> CalcRegularFeatureEffect(
 }
 
 TVector<TInternalFeatureInteraction> CalcInternalFeatureInteraction(const TFullModel& model) {
+    // TODO(eermsihkina): Support interaction feature importance for non symmetric trees. MLTOOLS-4864
+    CB_ENSURE(model.IsOblivious(), "Interaction feature importance are not supported for non symmetric trees");
     if (model.GetTreeCount() == 0) {
         return TVector<TInternalFeatureInteraction>();
     }

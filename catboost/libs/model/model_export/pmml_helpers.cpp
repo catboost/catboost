@@ -542,7 +542,7 @@ namespace NCB {
             model.GetDimensionsCount() == 1,
             "PMML export currently supports only single-dimensional models");
 
-        CB_ENSURE(model.IsOblivious(), "PMML export currently supports only oblivious trees models");
+        CB_ENSURE(model.IsOblivious(), "PMML export currently supports only symmetric trees models");
 
         CB_ENSURE_INTERNAL(
             !model.ModelTrees->GetOneHotFeatures().size() || catFeaturesHashToString,

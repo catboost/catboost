@@ -148,18 +148,21 @@ public:
     }
 
     bool AlmostEqual(const TString& name, const TModelTrees& a, const TModelTrees& b) {
-        return IsIgnored(name)
-            || AlmostEqual(name + ".FloatFeatures", a.GetFloatFeatures(), b.GetFloatFeatures())
-            && AlmostEqual(name + ".CatFeatures", a.GetCatFeatures(), b.GetCatFeatures())
-            && AlmostEqual(name + ".OneHotFeatures", a.GetOneHotFeatures(), b.GetOneHotFeatures())
-            && AlmostEqual(name + ".CtrFeatures", a.GetCtrFeatures(), b.GetCtrFeatures())
-            && AlmostEqual(name + ".ApproxDimension", a.GetDimensionsCount(), b.GetDimensionsCount())
-            && AlmostEqual(name + ".TreeSplits", a.GetTreeSplits(), b.GetTreeSplits())
-            && AlmostEqual(name + ".TreeSizes", a.GetTreeSizes(), b.GetTreeSizes())
-            && AlmostEqual(name + ".TreeStartOffsets", a.GetTreeStartOffsets(), b.GetTreeStartOffsets())
-            && AlmostEqualLeafValues(name + ".LeafValues", a, b)
-            && AlmostEqual(name + ".LeafWeights", a.GetLeafWeights(), b.GetLeafWeights())
-            ;
+        if (IsIgnored(name)) {
+            return true;
+        }
+        bool result = true;
+        result &= AlmostEqual(name + ".FloatFeatures", a.GetFloatFeatures(), b.GetFloatFeatures());
+        result &= AlmostEqual(name + ".CatFeatures", a.GetCatFeatures(), b.GetCatFeatures());
+        result &= AlmostEqual(name + ".OneHotFeatures", a.GetOneHotFeatures(), b.GetOneHotFeatures());
+        result &= AlmostEqual(name + ".CtrFeatures", a.GetCtrFeatures(), b.GetCtrFeatures());
+        result &= AlmostEqual(name + ".ApproxDimension", a.GetDimensionsCount(), b.GetDimensionsCount());
+        result &= AlmostEqual(name + ".TreeSplits", a.GetTreeSplits(), b.GetTreeSplits());
+        result &= AlmostEqual(name + ".TreeSizes", a.GetTreeSizes(), b.GetTreeSizes());
+        result &= AlmostEqual(name + ".TreeStartOffsets", a.GetTreeStartOffsets(), b.GetTreeStartOffsets());
+        result &= AlmostEqualLeafValues(name + ".LeafValues", a, b);
+        result &= AlmostEqual(name + ".LeafWeights", a.GetLeafWeights(), b.GetLeafWeights());
+        return result;
     }
 
     template <typename T>

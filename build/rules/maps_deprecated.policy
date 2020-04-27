@@ -1,0 +1,6 @@
+ALLOW maps/masstransit/info -> maps/libs/deprecated/mongo
+ALLOW taxi/tools/dorblu -> maps/libs/deprecated/mongo
+
+ALLOW maps/libs/deprecated -> maps/libs/deprecated
+
+DENY .* -> maps/libs/deprecated
