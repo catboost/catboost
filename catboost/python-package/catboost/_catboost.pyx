@@ -5597,6 +5597,8 @@ cpdef compute_training_options(dict options, DataMetaInfo train_meta_info, DataM
     return loads(to_native_str(WriteTJsonValue(trainingOptions)))
 
 cpdef _get_onnx_model(model, export_parameters):
+    print(model.__dict__)
+    print(model._is_oblivious())
     if not model._is_oblivious():
         raise CatBoostError(
             "ONNX-ML export is available only for models on oblivious trees ")
