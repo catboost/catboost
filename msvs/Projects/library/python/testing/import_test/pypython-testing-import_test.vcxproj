@@ -78,12 +78,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\testing\import_test\e58bd44e5b1a4c8dadeeb8553c.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\testing\import_test\_e58bd44e5b1a4c8dadeeb8553c.yasm">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\testing\import_test\4411067e890eadae6362e92475.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\testing\import_test\_4411067e890eadae6362e92475.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\import_test
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/_e58bd44e5b1a4c8dadeeb8553c.py2.obj" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/_e58bd44e5b1a4c8dadeeb8553c.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/_4411067e890eadae6362e92475.py2.obj" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/_4411067e890eadae6362e92475.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -94,7 +94,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\import_test
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/_e58bd44e5b1a4c8dadeeb8553c.py2.obj" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/_e58bd44e5b1a4c8dadeeb8553c.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/_4411067e890eadae6362e92475.py2.obj" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/_4411067e890eadae6362e92475.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -102,15 +102,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/testing/import_test/_e58bd44e5b1a4c8dadeeb8553c.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\testing\import_test\_e58bd44e5b1a4c8dadeeb8553c.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\import_test\_e58bd44e5b1a4c8dadeeb8553c.py2.obj;</Outputs>
+      <Message>$B/library/python/testing/import_test/_4411067e890eadae6362e92475.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\testing\import_test\_4411067e890eadae6362e92475.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\import_test\_4411067e890eadae6362e92475.py2.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\import_test
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/e58bd44e5b1a4c8dadeeb8553c.cpp" "_921a8a971f4c9b808aaa2b524e=/py_modules/library.python.testing.import_test.import_test" "_5e30f7c2e5c69ae32cd8b12760=resfs/src//py_modules/library.python.testing.import_test.import_test" "_23c2731842439bd96e246989e0=/py_code/library.python.testing.import_test.import_test"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/4411067e890eadae6362e92475.cpp" "_921a8a971f4c9b808aaa2b524e=/py_modules/library.python.testing.import_test.import_test" "_5e30f7c2e5c69ae32cd8b12760=resfs/src//py_modules/library.python.testing.import_test.import_test" "_905eac0bc21caa9951a5d30cb5=/py_code/library.python.testing.import_test.import_test"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -121,7 +121,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\import_test
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/e58bd44e5b1a4c8dadeeb8553c.cpp" "_921a8a971f4c9b808aaa2b524e=/py_modules/library.python.testing.import_test.import_test" "_5e30f7c2e5c69ae32cd8b12760=resfs/src//py_modules/library.python.testing.import_test.import_test" "_23c2731842439bd96e246989e0=/py_code/library.python.testing.import_test.import_test"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/4411067e890eadae6362e92475.cpp" "_921a8a971f4c9b808aaa2b524e=/py_modules/library.python.testing.import_test.import_test" "_5e30f7c2e5c69ae32cd8b12760=resfs/src//py_modules/library.python.testing.import_test.import_test" "_905eac0bc21caa9951a5d30cb5=/py_code/library.python.testing.import_test.import_test"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -129,9 +129,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/testing/import_test/e58bd44e5b1a4c8dadeeb8553c.cpp	</Message>
+      <Message>$B/library/python/testing/import_test/4411067e890eadae6362e92475.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\import_test\e58bd44e5b1a4c8dadeeb8553c.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\import_test\4411067e890eadae6362e92475.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -164,7 +164,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\import_test
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/_e58bd44e5b1a4c8dadeeb8553c.yasm" "$(SolutionDir)../library/python/testing/import_test/import_test.py" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/_921a8a971f4c9b808aaa2b524e.rodata" "-" "library/python/testing/import_test/import_test.py" "_5e30f7c2e5c69ae32cd8b12760.rodata" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/import_test.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/_23c2731842439bd96e246989e0.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/_4411067e890eadae6362e92475.yasm" "$(SolutionDir)../library/python/testing/import_test/import_test.py" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/_921a8a971f4c9b808aaa2b524e.rodata" "-" "library/python/testing/import_test/import_test.py" "_5e30f7c2e5c69ae32cd8b12760.rodata" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/import_test.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/_905eac0bc21caa9951a5d30cb5.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -175,7 +175,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\testing\import_test
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/_e58bd44e5b1a4c8dadeeb8553c.yasm" "$(SolutionDir)../library/python/testing/import_test/import_test.py" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/_921a8a971f4c9b808aaa2b524e.rodata" "-" "library/python/testing/import_test/import_test.py" "_5e30f7c2e5c69ae32cd8b12760.rodata" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/import_test.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/_23c2731842439bd96e246989e0.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/_4411067e890eadae6362e92475.yasm" "$(SolutionDir)../library/python/testing/import_test/import_test.py" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/_921a8a971f4c9b808aaa2b524e.rodata" "-" "library/python/testing/import_test/import_test.py" "_5e30f7c2e5c69ae32cd8b12760.rodata" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/import_test.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/testing/import_test/_905eac0bc21caa9951a5d30cb5.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -183,9 +183,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/testing/import_test/_e58bd44e5b1a4c8dadeeb8553c.yasm	</Message>
+      <Message>$B/library/python/testing/import_test/_4411067e890eadae6362e92475.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)..\library\python\testing\import_test\import_test.py;$(SolutionDir)$(Configuration)\library\python\testing\import_test\import_test.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\import_test\_e58bd44e5b1a4c8dadeeb8553c.yasm;$(SolutionDir)$(Configuration)\library\python\testing\import_test\_921a8a971f4c9b808aaa2b524e.rodata;$(SolutionDir)$(Configuration)\library\python\testing\import_test\_23c2731842439bd96e246989e0.rodata;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\testing\import_test\_4411067e890eadae6362e92475.yasm;$(SolutionDir)$(Configuration)\library\python\testing\import_test\_921a8a971f4c9b808aaa2b524e.rodata;$(SolutionDir)$(Configuration)\library\python\testing\import_test\_905eac0bc21caa9951a5d30cb5.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

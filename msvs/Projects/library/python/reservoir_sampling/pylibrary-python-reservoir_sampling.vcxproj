@@ -78,12 +78,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\cf258bc892378783186253df3f.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\_cf258bc892378783186253df3f.yasm">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\b3931b92a961cb1dfdcf3cdb58.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\_b3931b92a961cb1dfdcf3cdb58.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\reservoir_sampling
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/_cf258bc892378783186253df3f.py2.obj" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/_cf258bc892378783186253df3f.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/_b3931b92a961cb1dfdcf3cdb58.py2.obj" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/_b3931b92a961cb1dfdcf3cdb58.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -94,7 +94,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\reservoir_sampling
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/_cf258bc892378783186253df3f.py2.obj" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/_cf258bc892378783186253df3f.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/_b3931b92a961cb1dfdcf3cdb58.py2.obj" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/_b3931b92a961cb1dfdcf3cdb58.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -102,15 +102,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/reservoir_sampling/_cf258bc892378783186253df3f.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\_cf258bc892378783186253df3f.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\_cf258bc892378783186253df3f.py2.obj;</Outputs>
+      <Message>$B/library/python/reservoir_sampling/_b3931b92a961cb1dfdcf3cdb58.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\_b3931b92a961cb1dfdcf3cdb58.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\_b3931b92a961cb1dfdcf3cdb58.py2.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\reservoir_sampling
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/cf258bc892378783186253df3f.cpp" "_d74b5aa867786eff64ecc01dbb=/py_modules/library.python.reservoir_sampling.__init__" "_2d7bf007f4ea8b5d5e53ae874c=resfs/src//py_modules/library.python.reservoir_sampling.__init__" "_1417ff39598759dab92e6b1eac=/py_code/library.python.reservoir_sampling.__init__"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/b3931b92a961cb1dfdcf3cdb58.cpp" "_d74b5aa867786eff64ecc01dbb=/py_modules/library.python.reservoir_sampling.__init__" "_2d7bf007f4ea8b5d5e53ae874c=resfs/src//py_modules/library.python.reservoir_sampling.__init__" "_fd6c784ffb2db5acfbf64c2646=/py_code/library.python.reservoir_sampling.__init__"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -121,7 +121,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\reservoir_sampling
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/cf258bc892378783186253df3f.cpp" "_d74b5aa867786eff64ecc01dbb=/py_modules/library.python.reservoir_sampling.__init__" "_2d7bf007f4ea8b5d5e53ae874c=resfs/src//py_modules/library.python.reservoir_sampling.__init__" "_1417ff39598759dab92e6b1eac=/py_code/library.python.reservoir_sampling.__init__"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/b3931b92a961cb1dfdcf3cdb58.cpp" "_d74b5aa867786eff64ecc01dbb=/py_modules/library.python.reservoir_sampling.__init__" "_2d7bf007f4ea8b5d5e53ae874c=resfs/src//py_modules/library.python.reservoir_sampling.__init__" "_fd6c784ffb2db5acfbf64c2646=/py_code/library.python.reservoir_sampling.__init__"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -129,9 +129,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/reservoir_sampling/cf258bc892378783186253df3f.cpp	</Message>
+      <Message>$B/library/python/reservoir_sampling/b3931b92a961cb1dfdcf3cdb58.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\cf258bc892378783186253df3f.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\b3931b92a961cb1dfdcf3cdb58.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -164,7 +164,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\reservoir_sampling
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/_cf258bc892378783186253df3f.yasm" "$(SolutionDir)../library/python/reservoir_sampling/__init__.py" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/_d74b5aa867786eff64ecc01dbb.rodata" "-" "library/python/reservoir_sampling/__init__.py" "_2d7bf007f4ea8b5d5e53ae874c.rodata" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/_1417ff39598759dab92e6b1eac.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/_b3931b92a961cb1dfdcf3cdb58.yasm" "$(SolutionDir)../library/python/reservoir_sampling/__init__.py" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/_d74b5aa867786eff64ecc01dbb.rodata" "-" "library/python/reservoir_sampling/__init__.py" "_2d7bf007f4ea8b5d5e53ae874c.rodata" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/_fd6c784ffb2db5acfbf64c2646.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -175,7 +175,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\reservoir_sampling
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/_cf258bc892378783186253df3f.yasm" "$(SolutionDir)../library/python/reservoir_sampling/__init__.py" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/_d74b5aa867786eff64ecc01dbb.rodata" "-" "library/python/reservoir_sampling/__init__.py" "_2d7bf007f4ea8b5d5e53ae874c.rodata" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/_1417ff39598759dab92e6b1eac.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/_b3931b92a961cb1dfdcf3cdb58.yasm" "$(SolutionDir)../library/python/reservoir_sampling/__init__.py" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/_d74b5aa867786eff64ecc01dbb.rodata" "-" "library/python/reservoir_sampling/__init__.py" "_2d7bf007f4ea8b5d5e53ae874c.rodata" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/reservoir_sampling/_fd6c784ffb2db5acfbf64c2646.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -183,9 +183,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/reservoir_sampling/_cf258bc892378783186253df3f.yasm	</Message>
+      <Message>$B/library/python/reservoir_sampling/_b3931b92a961cb1dfdcf3cdb58.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)..\library\python\reservoir_sampling\__init__.py;$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\__init__.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\_cf258bc892378783186253df3f.yasm;$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\_d74b5aa867786eff64ecc01dbb.rodata;$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\_1417ff39598759dab92e6b1eac.rodata;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\_b3931b92a961cb1dfdcf3cdb58.yasm;$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\_d74b5aa867786eff64ecc01dbb.rodata;$(SolutionDir)$(Configuration)\library\python\reservoir_sampling\_fd6c784ffb2db5acfbf64c2646.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

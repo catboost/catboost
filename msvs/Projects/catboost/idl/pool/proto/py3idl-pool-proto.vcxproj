@@ -78,13 +78,13 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\ec0af756f11d0d9da8a0367315.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\6dc957ba92db1a56009fb679cc.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\join_dqib5om4arijogqf2wqnltc7re.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\_ec0af756f11d0d9da8a0367315.yasm">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\_6dc957ba92db1a56009fb679cc.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-o" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_ec0af756f11d0d9da8a0367315.py3.obj" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_ec0af756f11d0d9da8a0367315.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-o" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_6dc957ba92db1a56009fb679cc.py3.obj" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_6dc957ba92db1a56009fb679cc.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -95,7 +95,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-o" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_ec0af756f11d0d9da8a0367315.py3.obj" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_ec0af756f11d0d9da8a0367315.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-I" "$(SolutionDir)../contrib/libs/protobuf" "-I" "$(SolutionDir)../contrib/libs/protobuf/google/protobuf" "-o" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_6dc957ba92db1a56009fb679cc.py3.obj" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_6dc957ba92db1a56009fb679cc.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -103,19 +103,19 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/idl/pool/proto/_ec0af756f11d0d9da8a0367315.py3.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\_ec0af756f11d0d9da8a0367315.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\_ec0af756f11d0d9da8a0367315.py3.obj;</Outputs>
+      <Message>$B/catboost/idl/pool/proto/_6dc957ba92db1a56009fb679cc.py3.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\_6dc957ba92db1a56009fb679cc.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\_6dc957ba92db1a56009fb679cc.py3.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo__int___pb2.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_ec0af756f11d0d9da8a0367315.yasm" "-" "catboost/idl/pool/proto/metainfo__int___pb2.py" "_7d0f2fc0b6708fb58cc25f6594.rodata" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/metainfo__int___pb2.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_e00f9bdf4c9e6f1a0131ae7d26.rodata" "-" "catboost/idl/pool/proto/metainfo__int___pb2.py.yapyc3" "_fe093c02488eb259bb75ae59f3.rodata" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/metainfo__int___pb2.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_1255c17abcbdf94d2cdba5fd57.rodata" "-" "catboost/idl/pool/proto/quantization_schema__int___pb2.py" "_5120f4a50f3c62c6f5e4c8b7f2.rodata" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/quantization_schema__int___pb2.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_b74700a3232823105322ac7963.rodata" "-" "catboost/idl/pool/proto/quantization_schema__int___pb2.py.yapyc3" "_6951a9db8827e6652f7782cef9.rodata" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/quantization_schema__int___pb2.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_53a60c2ca92ff1e69927cda79f.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_6dc957ba92db1a56009fb679cc.yasm" "-" "catboost/idl/pool/proto/metainfo__int___pb2.py" "_7d0f2fc0b6708fb58cc25f6594.rodata" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/metainfo__int___pb2.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_e00f9bdf4c9e6f1a0131ae7d26.rodata" "-" "catboost/idl/pool/proto/metainfo__int___pb2.py.xvot.yapyc3" "_cff5f035c1154d10f3b53f522d.rodata" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/metainfo__int___pb2.py.xvot.yapyc3" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_6f3e4fff6d50b9988226e6a8d7.rodata" "-" "catboost/idl/pool/proto/quantization_schema__int___pb2.py" "_5120f4a50f3c62c6f5e4c8b7f2.rodata" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/quantization_schema__int___pb2.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_b74700a3232823105322ac7963.rodata" "-" "catboost/idl/pool/proto/quantization_schema__int___pb2.py.gvv3.yapyc3" "_ec7ab183087ddb8a478e9f005f.rodata" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/quantization_schema__int___pb2.py.gvv3.yapyc3" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_c64a2285add2dddc64e6177d85.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/idl/pool/proto/metainfo__int___pb2.py-" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/metainfo__int___pb2.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/metainfo__int___pb2.py.yapyc3"
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/idl/pool/proto/metainfo__int___pb2.py-" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/metainfo__int___pb2.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/metainfo__int___pb2.py.xvot.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -126,11 +126,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_ec0af756f11d0d9da8a0367315.yasm" "-" "catboost/idl/pool/proto/metainfo__int___pb2.py" "_7d0f2fc0b6708fb58cc25f6594.rodata" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/metainfo__int___pb2.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_e00f9bdf4c9e6f1a0131ae7d26.rodata" "-" "catboost/idl/pool/proto/metainfo__int___pb2.py.yapyc3" "_fe093c02488eb259bb75ae59f3.rodata" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/metainfo__int___pb2.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_1255c17abcbdf94d2cdba5fd57.rodata" "-" "catboost/idl/pool/proto/quantization_schema__int___pb2.py" "_5120f4a50f3c62c6f5e4c8b7f2.rodata" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/quantization_schema__int___pb2.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_b74700a3232823105322ac7963.rodata" "-" "catboost/idl/pool/proto/quantization_schema__int___pb2.py.yapyc3" "_6951a9db8827e6652f7782cef9.rodata" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/quantization_schema__int___pb2.py.yapyc3" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_53a60c2ca92ff1e69927cda79f.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_6dc957ba92db1a56009fb679cc.yasm" "-" "catboost/idl/pool/proto/metainfo__int___pb2.py" "_7d0f2fc0b6708fb58cc25f6594.rodata" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/metainfo__int___pb2.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_e00f9bdf4c9e6f1a0131ae7d26.rodata" "-" "catboost/idl/pool/proto/metainfo__int___pb2.py.xvot.yapyc3" "_cff5f035c1154d10f3b53f522d.rodata" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/metainfo__int___pb2.py.xvot.yapyc3" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_6f3e4fff6d50b9988226e6a8d7.rodata" "-" "catboost/idl/pool/proto/quantization_schema__int___pb2.py" "_5120f4a50f3c62c6f5e4c8b7f2.rodata" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/quantization_schema__int___pb2.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_b74700a3232823105322ac7963.rodata" "-" "catboost/idl/pool/proto/quantization_schema__int___pb2.py.gvv3.yapyc3" "_ec7ab183087ddb8a478e9f005f.rodata" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/quantization_schema__int___pb2.py.gvv3.yapyc3" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/_c64a2285add2dddc64e6177d85.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/idl/pool/proto/metainfo__int___pb2.py-" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/metainfo__int___pb2.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/metainfo__int___pb2.py.yapyc3"
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/idl/pool/proto/metainfo__int___pb2.py-" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/metainfo__int___pb2.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/metainfo__int___pb2.py.xvot.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -138,15 +138,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/idl/pool/proto/_ec0af756f11d0d9da8a0367315.yasm	$B/catboost/idl/pool/proto/metainfo__int___pb2.py.yapyc3	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo__int___pb2.py;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo__int___pb2.py.yapyc3;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema__int___pb2.py;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema__int___pb2.py.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\_ec0af756f11d0d9da8a0367315.yasm;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\_e00f9bdf4c9e6f1a0131ae7d26.rodata;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\_1255c17abcbdf94d2cdba5fd57.rodata;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\_b74700a3232823105322ac7963.rodata;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\_53a60c2ca92ff1e69927cda79f.rodata;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo__int___pb2.py.yapyc3;</Outputs>
+      <Message>$B/catboost/idl/pool/proto/_6dc957ba92db1a56009fb679cc.yasm	$B/catboost/idl/pool/proto/metainfo__int___pb2.py.xvot.yapyc3	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo__int___pb2.py;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo__int___pb2.py.xvot.yapyc3;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema__int___pb2.py;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema__int___pb2.py.gvv3.yapyc3;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\_6dc957ba92db1a56009fb679cc.yasm;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\_e00f9bdf4c9e6f1a0131ae7d26.rodata;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\_6f3e4fff6d50b9988226e6a8d7.rodata;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\_b74700a3232823105322ac7963.rodata;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\_c64a2285add2dddc64e6177d85.rodata;$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\metainfo__int___pb2.py.xvot.yapyc3;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema__int___pb2.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/idl/pool/proto/quantization_schema__int___pb2.py-" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/quantization_schema__int___pb2.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/quantization_schema__int___pb2.py.yapyc3"
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/idl/pool/proto/quantization_schema__int___pb2.py-" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/quantization_schema__int___pb2.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/quantization_schema__int___pb2.py.gvv3.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -157,7 +157,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
-PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/idl/pool/proto/quantization_schema__int___pb2.py-" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/quantization_schema__int___pb2.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/quantization_schema__int___pb2.py.yapyc3"
+PYTHONHASHSEED=0 "$(SolutionDir)$(Configuration)/contrib/tools/python3/pycc/pycc.exe" "catboost/idl/pool/proto/quantization_schema__int___pb2.py-" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/quantization_schema__int___pb2.py" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/quantization_schema__int___pb2.py.gvv3.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -165,15 +165,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/idl/pool/proto/quantization_schema__int___pb2.py.yapyc3	</Message>
+      <Message>$B/catboost/idl/pool/proto/quantization_schema__int___pb2.py.gvv3.yapyc3	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema__int___pb2.py;$(SolutionDir)$(Configuration)\contrib\tools\python3\pycc\pycc.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema__int___pb2.py.yapyc3;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\quantization_schema__int___pb2.py.gvv3.yapyc3;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/ec0af756f11d0d9da8a0367315.cpp" "_7d0f2fc0b6708fb58cc25f6594=resfs/src/resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py" "_e00f9bdf4c9e6f1a0131ae7d26=resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py" "_fe093c02488eb259bb75ae59f3=resfs/src/resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py.yapyc3" "_1255c17abcbdf94d2cdba5fd57=resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py.yapyc3" "_5120f4a50f3c62c6f5e4c8b7f2=resfs/src/resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py" "_b74700a3232823105322ac7963=resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py" "_6951a9db8827e6652f7782cef9=resfs/src/resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py.yapyc3" "_53a60c2ca92ff1e69927cda79f=resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py.yapyc3"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/6dc957ba92db1a56009fb679cc.cpp" "_7d0f2fc0b6708fb58cc25f6594=resfs/src/resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py" "_e00f9bdf4c9e6f1a0131ae7d26=resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py" "_cff5f035c1154d10f3b53f522d=resfs/src/resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py.yapyc3" "_6f3e4fff6d50b9988226e6a8d7=resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py.yapyc3" "_5120f4a50f3c62c6f5e4c8b7f2=resfs/src/resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py" "_b74700a3232823105322ac7963=resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py" "_ec7ab183087ddb8a478e9f005f=resfs/src/resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py.yapyc3" "_c64a2285add2dddc64e6177d85=resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -184,7 +184,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\catboost\idl\pool\proto
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/ec0af756f11d0d9da8a0367315.cpp" "_7d0f2fc0b6708fb58cc25f6594=resfs/src/resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py" "_e00f9bdf4c9e6f1a0131ae7d26=resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py" "_fe093c02488eb259bb75ae59f3=resfs/src/resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py.yapyc3" "_1255c17abcbdf94d2cdba5fd57=resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py.yapyc3" "_5120f4a50f3c62c6f5e4c8b7f2=resfs/src/resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py" "_b74700a3232823105322ac7963=resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py" "_6951a9db8827e6652f7782cef9=resfs/src/resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py.yapyc3" "_53a60c2ca92ff1e69927cda79f=resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py.yapyc3"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/catboost/idl/pool/proto/6dc957ba92db1a56009fb679cc.cpp" "_7d0f2fc0b6708fb58cc25f6594=resfs/src/resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py" "_e00f9bdf4c9e6f1a0131ae7d26=resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py" "_cff5f035c1154d10f3b53f522d=resfs/src/resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py.yapyc3" "_6f3e4fff6d50b9988226e6a8d7=resfs/file/py/catboost/idl/pool/proto/metainfo_pb2.py.yapyc3" "_5120f4a50f3c62c6f5e4c8b7f2=resfs/src/resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py" "_b74700a3232823105322ac7963=resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py" "_ec7ab183087ddb8a478e9f005f=resfs/src/resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py.yapyc3" "_c64a2285add2dddc64e6177d85=resfs/file/py/catboost/idl/pool/proto/quantization_schema_pb2.py.yapyc3"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -192,9 +192,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/idl/pool/proto/ec0af756f11d0d9da8a0367315.cpp	</Message>
+      <Message>$B/catboost/idl/pool/proto/6dc957ba92db1a56009fb679cc.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\ec0af756f11d0d9da8a0367315.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\catboost\idl\pool\proto\6dc957ba92db1a56009fb679cc.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\gen_join_srcs.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
