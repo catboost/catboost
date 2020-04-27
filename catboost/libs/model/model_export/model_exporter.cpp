@@ -132,6 +132,11 @@ namespace NCB {
             "ONNX-ML format export does yet not support categorical features"
         );
 
+        CB_ENSURE(
+            model.IsOblivious(),
+            "Can save non symmetric trees only in cbm or Json format"
+        );
+
         onnx::ModelProto outModel;
 
         NCB::NOnnx::InitMetadata(model, userParameters, &outModel);

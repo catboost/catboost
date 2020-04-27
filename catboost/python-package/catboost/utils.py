@@ -659,6 +659,12 @@ def convert_to_onnx_object(model, export_parameters=None):
     onnx_object : ModelProto
         The model in ONNX format
     """
+    try:
+        import onnx
+    except ImportError as e:
+        warnings.warn("To get working onnx model you should install onnx.")
+        raise ImportError(str(e))
+
     import json
     if not model.is_fitted():
         raise CatBoostError(
@@ -669,6 +675,11 @@ def convert_to_onnx_object(model, export_parameters=None):
         params_string = json.dumps(export_parameters, cls=_NumpyAwareEncoder)
 
     print('go to cython')
+
     model_str = _get_onnx_model(model._object, params_string)
+
     print('went from cython')
-    return model_str
+
+    onnx_model = onnx.load_model_from_string(model_str)
+
+    return onnx_model
