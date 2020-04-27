@@ -78,12 +78,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\fs\3a51e9e98156e943ef41e34fea.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\fs\_3a51e9e98156e943ef41e34fea.yasm">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\fs\8884eebeb2d693ec139281c4d9.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\fs\_8884eebeb2d693ec139281c4d9.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\fs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/fs/_3a51e9e98156e943ef41e34fea.py2.obj" "$(SolutionDir)$(Configuration)/library/python/fs/_3a51e9e98156e943ef41e34fea.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/fs/_8884eebeb2d693ec139281c4d9.py2.obj" "$(SolutionDir)$(Configuration)/library/python/fs/_8884eebeb2d693ec139281c4d9.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -94,7 +94,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\fs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/fs/_3a51e9e98156e943ef41e34fea.py2.obj" "$(SolutionDir)$(Configuration)/library/python/fs/_3a51e9e98156e943ef41e34fea.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/fs/_8884eebeb2d693ec139281c4d9.py2.obj" "$(SolutionDir)$(Configuration)/library/python/fs/_8884eebeb2d693ec139281c4d9.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -102,15 +102,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/fs/_3a51e9e98156e943ef41e34fea.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\fs\_3a51e9e98156e943ef41e34fea.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\fs\_3a51e9e98156e943ef41e34fea.py2.obj;</Outputs>
+      <Message>$B/library/python/fs/_8884eebeb2d693ec139281c4d9.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\fs\_8884eebeb2d693ec139281c4d9.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\fs\_8884eebeb2d693ec139281c4d9.py2.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\fs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/fs/3a51e9e98156e943ef41e34fea.cpp" "_869c61c3b507d227817e9b3015=/py_modules/library.python.fs.__init__" "_80f975b076c81c4d83b01f3c44=resfs/src//py_modules/library.python.fs.__init__" "_965fee90adbf22cf95ea5e6c35=/py_code/library.python.fs.__init__"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/fs/8884eebeb2d693ec139281c4d9.cpp" "_869c61c3b507d227817e9b3015=/py_modules/library.python.fs.__init__" "_80f975b076c81c4d83b01f3c44=resfs/src//py_modules/library.python.fs.__init__" "_bd2ffc9e685208d6bd48ad3fa7=/py_code/library.python.fs.__init__"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -121,7 +121,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\fs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/fs/3a51e9e98156e943ef41e34fea.cpp" "_869c61c3b507d227817e9b3015=/py_modules/library.python.fs.__init__" "_80f975b076c81c4d83b01f3c44=resfs/src//py_modules/library.python.fs.__init__" "_965fee90adbf22cf95ea5e6c35=/py_code/library.python.fs.__init__"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/fs/8884eebeb2d693ec139281c4d9.cpp" "_869c61c3b507d227817e9b3015=/py_modules/library.python.fs.__init__" "_80f975b076c81c4d83b01f3c44=resfs/src//py_modules/library.python.fs.__init__" "_bd2ffc9e685208d6bd48ad3fa7=/py_code/library.python.fs.__init__"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -129,9 +129,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/fs/3a51e9e98156e943ef41e34fea.cpp	</Message>
+      <Message>$B/library/python/fs/8884eebeb2d693ec139281c4d9.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\fs\3a51e9e98156e943ef41e34fea.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\fs\8884eebeb2d693ec139281c4d9.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -164,7 +164,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\fs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/fs/_3a51e9e98156e943ef41e34fea.yasm" "$(SolutionDir)../library/python/fs/__init__.py" "$(SolutionDir)$(Configuration)/library/python/fs/_869c61c3b507d227817e9b3015.rodata" "-" "library/python/fs/__init__.py" "_80f975b076c81c4d83b01f3c44.rodata" "$(SolutionDir)$(Configuration)/library/python/fs/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/fs/_965fee90adbf22cf95ea5e6c35.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/fs/_8884eebeb2d693ec139281c4d9.yasm" "$(SolutionDir)../library/python/fs/__init__.py" "$(SolutionDir)$(Configuration)/library/python/fs/_869c61c3b507d227817e9b3015.rodata" "-" "library/python/fs/__init__.py" "_80f975b076c81c4d83b01f3c44.rodata" "$(SolutionDir)$(Configuration)/library/python/fs/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/fs/_bd2ffc9e685208d6bd48ad3fa7.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -175,7 +175,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\fs
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/fs/_3a51e9e98156e943ef41e34fea.yasm" "$(SolutionDir)../library/python/fs/__init__.py" "$(SolutionDir)$(Configuration)/library/python/fs/_869c61c3b507d227817e9b3015.rodata" "-" "library/python/fs/__init__.py" "_80f975b076c81c4d83b01f3c44.rodata" "$(SolutionDir)$(Configuration)/library/python/fs/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/fs/_965fee90adbf22cf95ea5e6c35.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/fs/_8884eebeb2d693ec139281c4d9.yasm" "$(SolutionDir)../library/python/fs/__init__.py" "$(SolutionDir)$(Configuration)/library/python/fs/_869c61c3b507d227817e9b3015.rodata" "-" "library/python/fs/__init__.py" "_80f975b076c81c4d83b01f3c44.rodata" "$(SolutionDir)$(Configuration)/library/python/fs/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/fs/_bd2ffc9e685208d6bd48ad3fa7.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -183,9 +183,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/fs/_3a51e9e98156e943ef41e34fea.yasm	</Message>
+      <Message>$B/library/python/fs/_8884eebeb2d693ec139281c4d9.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)..\library\python\fs\__init__.py;$(SolutionDir)$(Configuration)\library\python\fs\__init__.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\fs\_3a51e9e98156e943ef41e34fea.yasm;$(SolutionDir)$(Configuration)\library\python\fs\_869c61c3b507d227817e9b3015.rodata;$(SolutionDir)$(Configuration)\library\python\fs\_965fee90adbf22cf95ea5e6c35.rodata;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\fs\_8884eebeb2d693ec139281c4d9.yasm;$(SolutionDir)$(Configuration)\library\python\fs\_869c61c3b507d227817e9b3015.rodata;$(SolutionDir)$(Configuration)\library\python\fs\_bd2ffc9e685208d6bd48ad3fa7.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

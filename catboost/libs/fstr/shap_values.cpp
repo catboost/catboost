@@ -1200,7 +1200,7 @@ void CalcShapValuesForDocumentMulti(
                     }
                     break;
                 case ECalcTypeShapValues::Exact:
-                    CB_ENSURE(model.IsOblivious(), "'Exact' calculation type is supported only for oblivious trees.");
+                    CB_ENSURE(model.IsOblivious(), "'Exact' calculation type is supported only for symmetric trees.");
                     CalcObliviousExactShapValuesForLeaf(
                         *model.ModelTrees.Get(),
                         preparedTrees.BinFeatureCombinationClass,
@@ -1745,7 +1745,7 @@ void CalcShapValuesInternalForFeature(
                             }
                             break;
                         case ECalcTypeShapValues::Exact:
-                            CB_ENSURE(model.IsOblivious(), "'Exact' calculation type is supported only for oblivious trees.");
+                            CB_ENSURE(model.IsOblivious(), "'Exact' calculation type is supported only for symmetric trees.");
                             CalcObliviousExactShapValuesForLeaf(
                                 forest,
                                 preparedTrees.BinFeatureCombinationClass,

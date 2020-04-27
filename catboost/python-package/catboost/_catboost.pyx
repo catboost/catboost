@@ -4495,7 +4495,7 @@ cdef class _CatBoost:
         cdef TMaybe[pair[int, int]] pair_of_features
 
         if shap_calc_type == 'Exact':
-            assert dereference(self.__model).IsOblivious(), "'Exact' calculation type is supported only for oblivious trees."
+            assert dereference(self.__model).IsOblivious(), "'Exact' calculation type is supported only for symmetric trees."
         cdef ECalcTypeShapValues calc_type = string_to_calc_type(shap_calc_type)
 
         if type_name == 'ShapValues' and dereference(self.__model).GetDimensionsCount() > 1:
