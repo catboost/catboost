@@ -295,6 +295,8 @@
   - unlocked-io.h
   - cygwin/version.h
   - zircon/syscalls.h
+  - zircon/types.h
+  - zircon/process.h
   - sys/linux-syscalls.h
   - tr1/memory
   - android/log.h

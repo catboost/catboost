@@ -11,6 +11,8 @@ ALLOW clickhouse -> contrib/restricted/ryu
 
 ALLOW contrib/libs/clickhouse -> contrib/restricted/apache-orc
 
+# Patched webrtc dependency: CONTRIB-1851
+ALLOW contrib/libs/webrtc -> contrib/restricted/rnnoise
 
 ALLOW contrib/libs/libbpf -> contrib/restricted/libelf
 
@@ -18,6 +20,7 @@ ALLOW contrib/libs/libbpf -> contrib/restricted/libelf
 ALLOW passport/cpp -> contrib/restricted/thrift
 
 # ALSA library is LGPL
+ALLOW contrib/libs/webrtc -> contrib/restricted/alsa-lib
 ALLOW yandex_io -> contrib/restricted/alsa-lib
 
 # Avahi is LGPL
@@ -43,6 +46,7 @@ ALLOW yandex_io -> contrib/restricted/openal
 # Allowed subset of abseil is exported via library/
 ALLOW library/containers/absl_flat_hash -> contrib/restricted/abseil-cpp/absl/container
 
+ALLOW contrib/libs/webrtc -> contrib/restricted/abseil-cpp
 ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp
 ALLOW contrib/libs/tf_1_14 -> contrib/restricted/abseil-cpp
 
