@@ -483,20 +483,23 @@ def pytest_runtest_makereport(item, call):
 
     def logreport(report, result):
         test_item = TestItem(report, result, pytest.config.option.test_suffix)
+        pytest.config.ya_trace_reporter.on_log_report(test_item)
         if report.when == "call":
             _collect_test_rusage(item)
-            pytest.config.ya_trace_reporter.on_finish_test_case(test_item)
+            pytest.config.ya_trace_reporter.on_finish_test_case(test_item, last=False)
         elif report.when == "setup":
             pytest.config.ya_trace_reporter.on_start_test_class(test_item)
             if report.outcome != "passed":
                 pytest.config.ya_trace_reporter.on_start_test_case(test_item)
-                pytest.config.ya_trace_reporter.on_finish_test_case(test_item)
+                pytest.config.ya_trace_reporter.on_finish_test_case(test_item, last=False)
             else:
                 pytest.config.ya_trace_reporter.on_start_test_case(test_item)
         elif report.when == "teardown":
             if report.outcome == "failed":
                 pytest.config.ya_trace_reporter.on_start_test_case(test_item)
                 pytest.config.ya_trace_reporter.on_finish_test_case(test_item)
+            else:
+                pytest.config.ya_trace_reporter.on_finish_test_case(test_item, duration_only=True)
             pytest.config.ya_trace_reporter.on_finish_test_class(test_item)
 
     rep = makereport(item, call)
@@ -709,6 +712,8 @@ class TraceReportGenerator(object):
 
     def __init__(self, out_file_path):
         self.File = open(out_file_path, 'w')
+        self._test_messages = {}
+        self._test_duration = {}
 
     def on_start_test_class(self, test_item):
         pytest.config.ya.set_test_item_node_id(test_item.nodeid)
@@ -728,7 +733,7 @@ class TraceReportGenerator(object):
         pytest.config.ya.set_test_item_node_id(test_item.nodeid)
         self.trace('subtest-started', message)
 
-    def on_finish_test_case(self, test_item):
+    def on_finish_test_case(self, test_item, duration_only=False, last=True):
         if test_item.result is not None:
             try:
                 result = canon.serialize(test_item.result)
@@ -739,23 +744,48 @@ class TraceReportGenerator(object):
                 result = None
         else:
             result = None
-        message = {
-            'class': yatest_lib.tools.to_utf8(test_item.class_name),
-            'subtest': yatest_lib.tools.to_utf8(test_item.test_name),
-            'status': test_item.status,
-            'comment': self._get_comment(test_item),
-            'time': test_item.duration,
-            'result': result,
-            'metrics': pytest.config.test_metrics.get(test_item.nodeid),
-            'is_diff_test': 'diff_test' in test_item.keywords,
-            'tags': _get_item_tags(test_item),
-        }
-        if test_item.nodeid in pytest.config.test_logs:
-            message['logs'] = pytest.config.test_logs[test_item.nodeid]
-        self.trace('subtest-finished', message)
+
+        duration = self._test_duration.get(test_item.nodeid, test_item.duration)
+        if duration_only and test_item.nodeid in self._test_messages:  # add teardown time
+            message = self._test_messages[test_item.nodeid]
+        elif test_item.nodeid in self._test_messages:  # failed teardown
+            message = self._test_messages[test_item.nodeid]
+            message['status'] = test_item.status
+            message['comment'] += self._get_comment(test_item)
+            message['result'] = result
+        else:
+            message = {
+                'class': yatest_lib.tools.to_utf8(test_item.class_name),
+                'subtest': yatest_lib.tools.to_utf8(test_item.test_name),
+                'status': test_item.status,
+                'comment': self._get_comment(test_item),
+                'result': result,
+                'metrics': pytest.config.test_metrics.get(test_item.nodeid),
+                'is_diff_test': 'diff_test' in test_item.keywords,
+                'tags': _get_item_tags(test_item),
+            }
+            if test_item.nodeid in pytest.config.test_logs:
+                message['logs'] = pytest.config.test_logs[test_item.nodeid]
+
+        message['time'] = duration
+
+        if last:  # last test part
+            self.trace('subtest-finished', message)
+            if test_item.nodeid in self._test_messages:
+                del self._test_messages[test_item.nodeid]
+            if test_item.nodeid in self._test_duration:
+                del self._test_duration[test_item.nodeid]
+        else:
+            self._test_messages[test_item.nodeid] = message
 
     def on_error(self, test_item):
         self.trace('suite_event', {"errors": [(test_item.status, self._get_comment(test_item))]})
+
+    def on_log_report(self, test_item):
+        if test_item.nodeid in self._test_duration:
+            self._test_duration[test_item.nodeid] += test_item._duration
+        else:
+            self._test_duration[test_item.nodeid] = test_item._duration
 
     @staticmethod
     def _get_comment(test_item):
@@ -781,7 +811,8 @@ class DryTraceReportGenerator(TraceReportGenerator):
     """
 
     def __init__(self, *args, **kwargs):
-        pass
+        self._test_messages = {}
+        self._test_duration = {}
 
     def trace(self, name, value):
         pass
