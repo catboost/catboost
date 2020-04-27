@@ -1,4 +1,5 @@
 #include "model_exporter.h"
+
 #include "coreml_helpers.h"
 #include "cpp_exporter.h"
 #include "json_model_helpers.h"
@@ -119,11 +120,6 @@ namespace NCB {
         CB_ENSURE(
             !model.HasCategoricalFeatures(),
             "ONNX-ML format export does yet not support categorical features"
-        );
-
-        CB_ENSURE(
-            model.IsOblivious(),
-            "Can save non symmetric trees only in cbm or Json format"
         );
 
         onnx::ModelProto outModel;

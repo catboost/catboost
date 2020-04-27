@@ -4,7 +4,6 @@ from contextlib import contextmanager
 import numpy as np
 import warnings
 
-
 _catboost = get_catboost_bin_module()
 _eval_metric_util = _catboost._eval_metric_util
 _get_roc_curve = _catboost._get_roc_curve
