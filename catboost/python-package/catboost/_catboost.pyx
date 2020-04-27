@@ -5597,17 +5597,18 @@ cpdef compute_training_options(dict options, DataMetaInfo train_meta_info, DataM
     return loads(to_native_str(WriteTJsonValue(trainingOptions)))
 
 cpdef _get_onnx_model(model, export_parameters):
-    print(model.__dict__)
     print(model._is_oblivious())
-    if not model._is_oblivious():
-        raise CatBoostError(
-            "ONNX-ML export is available only for models on oblivious trees ")
+#    if not model._is_oblivious():
+#        raise CatBoostError(
+#            "ONNX-ML export is available only for models on oblivious trees ")
 
+    print('go to c++')
     cpdef TString result = ConvertTreeToOnnxProto(
         dereference((<_CatBoost>model).__model),
         to_arcadia_string(export_parameters),
     )
-    return str(result)
+    print('back co cython')
+    return bytes(result)
 
 include "_monoforest.pxi"
 include "_text_processing.pxi"

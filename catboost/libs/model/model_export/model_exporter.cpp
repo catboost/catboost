@@ -1,3 +1,4 @@
+#include <iostream>
 #include "model_exporter.h"
 
 #include "coreml_helpers.h"
@@ -86,11 +87,12 @@ namespace NCB {
         //        code duplications from ExportModel, OutputModelOnnx
 
         onnx::ModelProto outModel;
-
+        std::cout << "empty model created\n";
         TStringInput is(userParametersJson);
-                    NJson::TJsonValue userParameters;
-                    NJson::ReadJsonTree(&is, &userParameters);
+        NJson::TJsonValue userParameters;
+        NJson::ReadJsonTree(&is, &userParameters);
 
+        std::cout << "params \n";
         CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "exporting ONNX model");
 
         CB_ENSURE(
@@ -98,14 +100,18 @@ namespace NCB {
             "ONNX-ML format export does yet not support categorical features"
         );
 
+        std::cout << "checks passed \n";
         NCB::NOnnx::InitMetadata(model, userParameters, &outModel);
 
+        std::cout << "init metadeta \n";
         TMaybe<TString> graphName;
         if (userParameters.Has("onnx_graph_name")) {
             graphName = userParameters["onnx_graph_name"].GetStringSafe();
         }
 
+        std::cout << "convert to onnx_tree started \n";
         NCB::NOnnx::ConvertTreeToOnnxGraph(model, graphName, outModel.mutable_graph());
+        std::cout << "convert to onnx_tree ended \n";
 
         TString data;
         outModel.SerializeToString(&data);

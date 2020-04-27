@@ -668,4 +668,7 @@ def convert_to_onnx_object(model, export_parameters=None):
     if export_parameters:
         params_string = json.dumps(export_parameters, cls=_NumpyAwareEncoder)
 
-    return _get_onnx_model(model._object, params_string)
+    print('go to cython')
+    model_str = _get_onnx_model(model._object, params_string)
+    print('went from cython')
+    return model_str
