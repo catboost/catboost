@@ -8865,6 +8865,150 @@
             "uri": "file://test.test_stochastic_rank_Position-Exp-10-NDCG_/test_error.tsv"
         }
     ],
+    "test.test_stochastic_rank_pfound[0.0--1]": [
+        {
+            "checksum": "942e84b4419a92d341672469be684bc6",
+            "uri": "file://test.test_stochastic_rank_pfound_0.0--1_/learn_error.tsv"
+        },
+        {
+            "checksum": "fc96a2fab26d6976026a47c41ef3ed90",
+            "uri": "file://test.test_stochastic_rank_pfound_0.0--1_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound[0.0-10]": [
+        {
+            "checksum": "942e84b4419a92d341672469be684bc6",
+            "uri": "file://test.test_stochastic_rank_pfound_0.0-10_/learn_error.tsv"
+        },
+        {
+            "checksum": "fc96a2fab26d6976026a47c41ef3ed90",
+            "uri": "file://test.test_stochastic_rank_pfound_0.0-10_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound[0.0-1]": [
+        {
+            "checksum": "942e84b4419a92d341672469be684bc6",
+            "uri": "file://test.test_stochastic_rank_pfound_0.0-1_/learn_error.tsv"
+        },
+        {
+            "checksum": "fc96a2fab26d6976026a47c41ef3ed90",
+            "uri": "file://test.test_stochastic_rank_pfound_0.0-1_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound[0.6--1]": [
+        {
+            "checksum": "d94546df7a5c582f88a27715e3ad0e4c",
+            "uri": "file://test.test_stochastic_rank_pfound_0.6--1_/learn_error.tsv"
+        },
+        {
+            "checksum": "35fce2417514814e21f21c66cb971c25",
+            "uri": "file://test.test_stochastic_rank_pfound_0.6--1_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound[0.6-10]": [
+        {
+            "checksum": "0a112ce69d71f997c5515a3e4b3f0235",
+            "uri": "file://test.test_stochastic_rank_pfound_0.6-10_/learn_error.tsv"
+        },
+        {
+            "checksum": "ef8b7d7477cdf301efe69455bb1eba5f",
+            "uri": "file://test.test_stochastic_rank_pfound_0.6-10_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound[0.6-1]": [
+        {
+            "checksum": "5b6cacd55308e210f644cf23c8210668",
+            "uri": "file://test.test_stochastic_rank_pfound_0.6-1_/learn_error.tsv"
+        },
+        {
+            "checksum": "662abde0f14e56bc63f77d4902af8a68",
+            "uri": "file://test.test_stochastic_rank_pfound_0.6-1_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound[1.0--1]": [
+        {
+            "checksum": "6f0e82672685a29ed59667ebf31b0631",
+            "uri": "file://test.test_stochastic_rank_pfound_1.0--1_/learn_error.tsv"
+        },
+        {
+            "checksum": "df244b82893a882e33db2c2bb3919b99",
+            "uri": "file://test.test_stochastic_rank_pfound_1.0--1_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound[1.0-10]": [
+        {
+            "checksum": "6f0e82672685a29ed59667ebf31b0631",
+            "uri": "file://test.test_stochastic_rank_pfound_1.0-10_/learn_error.tsv"
+        },
+        {
+            "checksum": "df244b82893a882e33db2c2bb3919b99",
+            "uri": "file://test.test_stochastic_rank_pfound_1.0-10_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound[1.0-1]": [
+        {
+            "checksum": "6f0e82672685a29ed59667ebf31b0631",
+            "uri": "file://test.test_stochastic_rank_pfound_1.0-1_/learn_error.tsv"
+        },
+        {
+            "checksum": "df244b82893a882e33db2c2bb3919b99",
+            "uri": "file://test.test_stochastic_rank_pfound_1.0-1_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound_with_many_ones[0.0--1]": [
+        {
+            "checksum": "15454538b1e5b470c44b9b32377bc854",
+            "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.0--1_/learn_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound_with_many_ones[0.0-10]": [
+        {
+            "checksum": "15454538b1e5b470c44b9b32377bc854",
+            "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.0-10_/learn_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound_with_many_ones[0.0-1]": [
+        {
+            "checksum": "15454538b1e5b470c44b9b32377bc854",
+            "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.0-1_/learn_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound_with_many_ones[0.6--1]": [
+        {
+            "checksum": "0a157ca17c283f3d055f72131636b9ef",
+            "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.6--1_/learn_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound_with_many_ones[0.6-10]": [
+        {
+            "checksum": "6feb44746792073db4bd65c3168a9ad2",
+            "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.6-10_/learn_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound_with_many_ones[0.6-1]": [
+        {
+            "checksum": "16d61aa3c39397de621d567494a215ba",
+            "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.6-1_/learn_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound_with_many_ones[1.0--1]": [
+        {
+            "checksum": "af4b03808ce4ea765025b7e27468a557",
+            "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_1.0--1_/learn_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound_with_many_ones[1.0-10]": [
+        {
+            "checksum": "af4b03808ce4ea765025b7e27468a557",
+            "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_1.0-10_/learn_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound_with_many_ones[1.0-1]": [
+        {
+            "checksum": "af4b03808ce4ea765025b7e27468a557",
+            "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_1.0-1_/learn_error.tsv"
+        }
+    ],
     "test.test_subgroup_output": [
         {
             "checksum": "9e75196c95e4bb057a80edf331e3b3e3",
