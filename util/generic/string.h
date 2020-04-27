@@ -88,6 +88,14 @@ public:
         return S_.at(Pos_);
     }
 
+    TChar* operator& () {
+        return S_.begin() + Pos_;
+    }
+
+    const TChar* operator& () const {
+        return S_.cbegin() + Pos_;
+    }
+
     TBasicCharRef& operator=(TChar c) {
         Y_ASSERT(Pos_ < S_.size());
 
