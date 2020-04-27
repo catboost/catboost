@@ -273,11 +273,11 @@
     },
     "test.test_early_stopping_rounds[CPU]": [
         {
-            "checksum": "1fd01aff48ac2d398138fa21eb8e8096",
+            "checksum": "e923ecf57ff8af0a9aafae42f67bd6f8",
             "uri": "file://test.test_early_stopping_rounds_CPU_/catboost_training.json"
         },
         {
-            "checksum": "a7b5688611bc9bb365a4edc6d69873f4",
+            "checksum": "f690a3c24d25bfe23c6908d91168d344",
             "uri": "file://test.test_early_stopping_rounds_CPU_/json_log_train.json"
         }
     ],
