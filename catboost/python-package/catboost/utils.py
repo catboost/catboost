@@ -664,10 +664,6 @@ def convert_to_onnx_object(model, export_parameters=None):
         raise CatBoostError(
             "There is no trained model to use save_model(). Use fit() to train model. Then use this method.")
 
-    if not model.is_oblivious():
-        raise CatBoostError(
-            "ONNX-ML export is available only for models on oblivious trees ")
-
     params_string = ""
     if export_parameters:
         params_string = json.dumps(export_parameters, cls=_NumpyAwareEncoder)
