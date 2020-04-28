@@ -651,6 +651,64 @@ def test_stochastic_rank(metric, top, dcg_type, denominator):
             local_canonical_file(test_error_path)]
 
 
+@pytest.mark.parametrize('top', [-1, 1, 10])
+@pytest.mark.parametrize('decay', [1.0, 0.6, 0.0])
+def test_stochastic_rank_pfound(top, decay):
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+
+    loss = 'StochasticRank:metric=PFound;top={};decay={};hints=skip_train~false'.format(top, decay)
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss,
+        '-f', data_file('querywise', 'train'),
+        '-t', data_file('querywise', 'test'),
+        '--cd', data_file('querywise', 'train.cd.query_id'),
+        '-i', '10',
+        '--learn-err-log', learn_error_path,
+        '--test-err-log', test_error_path
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(learn_error_path),
+            local_canonical_file(test_error_path)]
+
+
+@pytest.mark.parametrize('top', [-1, 1, 10])
+@pytest.mark.parametrize('decay', [1.0, 0.6, 0.0])
+def test_stochastic_rank_pfound_with_many_ones(top, decay):
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+
+    loss = 'StochasticRank:metric=PFound;top={};decay={};hints=skip_train~false'.format(top, decay)
+
+    np.random.seed(0)
+    train_with_ones = yatest.common.test_output_path('train_with_ones')
+    TARGET_COLUMN = 2
+    with open(data_file('querywise', 'train')) as fin:
+        with open(train_with_ones, 'w') as fout:
+            for line in fin.readlines():
+                if np.random.random() < 0.25:
+                    parts = line.split('\t')
+                    parts[TARGET_COLUMN] = '1.0'
+                    line = '\t'.join(parts)
+                fout.write(line)
+
+    cmd = (
+        CATBOOST_PATH,
+        'fit',
+        '--loss-function', loss,
+        '-f', train_with_ones,
+        '--cd', data_file('querywise', 'train.cd.query_id'),
+        '-i', '10',
+        '--learn-err-log', learn_error_path
+    )
+    yatest.common.execute(cmd)
+
+    return [local_canonical_file(learn_error_path)]
+
+
 @pytest.mark.parametrize('boosting_type', BOOSTING_TYPE)
 @pytest.mark.parametrize('top', [2, 100])
 def test_averagegain_with_query_weights(boosting_type, top):

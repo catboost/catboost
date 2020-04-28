@@ -294,6 +294,7 @@
   - wrl/wrappers/corewrappers.h
   - ws2def.h
   - ws2ipdef.h
+  - ws2spi.h
   - ws2tcpip.h
   - wscapi.h
   - wspiapi.h

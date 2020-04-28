@@ -948,8 +948,10 @@ private:
 class TStochasticRankError final : public IDerCalcer {
     ELossFunction TargetMetric;
     int TopSize;
-    ENdcgMetricType NumeratorType;
-    ENdcgDenominatorType DenominatorType;
+    ENdcgMetricType NumeratorType;          // for (N)DCG
+    ENdcgDenominatorType DenominatorType;   // for (N)DCG
+    double Decay;                           // for PFound
+
     double Sigma;           // scale
     size_t NumEstimations;  // Monte Carlo method samples
     double Mu;              // ties resolving coefficient
@@ -998,12 +1000,34 @@ private:
         TArrayRef<TDers> ders
     ) const;
 
+    double CalcDCGMetricDiff(
+        size_t oldPos,
+        size_t newPos,
+        const TConstArrayRef<float> targets,
+        const TVector<size_t>& order,
+        const TVector<double>& posWeights,
+        const TVector<double>& cumSum,
+        const TVector<double>& cumSumUp,
+        const TVector<double>& cumSumLow
+    ) const;
+
+    double CalcPFoundMetricDiff(
+        size_t oldPos,
+        size_t newPos,
+        size_t queryTopSize,
+        const TConstArrayRef<float> targets,
+        const TVector<size_t>& order,
+        const TVector<double>& posWeights,
+        const TVector<double>& cumSum
+    ) const;
+
     double CalcMetricDiff(
         size_t oldPos,
         size_t newPos,
         size_t queryTopSize,
+        const TConstArrayRef<float> targets,
+        const TVector<size_t>& order,
         const TVector<double>& posWeights,
-        double gain,
         const TVector<double>& cumSum,
         const TVector<double>& cumSumUp,
         const TVector<double>& cumSumLow
@@ -1018,7 +1042,21 @@ private:
         TArrayRef<double> cumSumLowRef
     ) const;
 
-    TVector<double> ComputePosWeights(TConstArrayRef<float> targets, size_t queryTopSize) const;
+    void CalcPFoundCumulativeStatistics(
+        TConstArrayRef<float> targets,
+        const TVector<size_t>& order,
+        const TVector<double>& posWeights,
+        TArrayRef<double> cumSum
+    ) const;
+
+    TVector<double> ComputeDCGPosWeights(
+        TConstArrayRef<float> targets
+    ) const;
+
+    TVector<double> ComputePFoundPosWeights(
+        TConstArrayRef<float> targets,
+        const TVector<size_t>& order
+    ) const;
 
     double CalcDCG(const TVector<float>& sortedTargets, const TVector<double>& posWeights) const;
 

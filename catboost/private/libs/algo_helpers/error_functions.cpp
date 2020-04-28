@@ -576,14 +576,16 @@ TStochasticRankError::TStochasticRankError(
     , TopSize(NCatboostOptions::GetParamOrDefault(metricParams, "top", -1))
     , NumeratorType(NCatboostOptions::GetParamOrDefault(metricParams, "type", ENdcgMetricType::Base))
     , DenominatorType(NCatboostOptions::GetParamOrDefault(metricParams, "denominator", ENdcgDenominatorType::LogPosition))
+    , Decay(NCatboostOptions::GetParamOrDefault(metricParams, "decay", 0.85))
     , Sigma(sigma)
     , NumEstimations(numEstimations)
     , Mu(mu)
     , Nu(nu)
     , Lambda(lambda)
 {
-    CB_ENSURE(EqualToOneOf(TargetMetric, ELossFunction::DCG, ELossFunction::NDCG),
-        "Only DCG and NDCG target metric supported for StochasticRank now");
+    CB_ENSURE(EqualToOneOf(TargetMetric, ELossFunction::DCG, ELossFunction::NDCG, ELossFunction::PFound),
+        "Only DCG, NDCG and PFound target metric supported for StochasticRank now");
+    CB_ENSURE(0.0 <= Decay && Decay <= 1.0, "Decay should be in [0, 1]");
     CB_ENSURE(NumEstimations > 0, "Number of estimations should be positive");
     CB_ENSURE(Sigma > 0, "Sigma should be positive");
     CB_ENSURE(Mu >= 0, "Mu should be non-negative");
@@ -640,7 +642,7 @@ void TStochasticRankError::CalcDersForSingleQuery(
     }
 
     // Stage 2 - estimate gradients via noise and Monte Carlo method
-    TVector<double> posWeights = ComputePosWeights(targets, count + 1);
+    TVector<double> posWeights;
     TVector<double> noise(count);
     TVector<double> scores(count);
     TVector<size_t> order(count);
@@ -655,6 +657,11 @@ void TStochasticRankError::CalcDersForSingleQuery(
         Sort(order.begin(), order.end(), [&](int a, int b) {
             return scores[a] > scores[b];
         });
+        if (EqualToOneOf(TargetMetric, ELossFunction::DCG, ELossFunction::NDCG) && sample == 0) {
+            posWeights = ComputeDCGPosWeights(targets);
+        } else if (TargetMetric == ELossFunction::PFound) {
+            posWeights = ComputePFoundPosWeights(targets, order);
+        }
         CalcMonteCarloEstimateForSingleQueryPermutation(
             targets,
             shiftedApproxes,
@@ -714,6 +721,8 @@ void TStochasticRankError::CalcMonteCarloEstimateForSingleQueryPermutation(
     TVector<double> cumSumLow(count + 1);
     if (EqualToOneOf(TargetMetric, ELossFunction::DCG, ELossFunction::NDCG)) {
         CalcDCGCumulativeStatistics(targets, order, posWeights, cumSum, cumSumUp, cumSumLow);
+    } else if (TargetMetric == ELossFunction::PFound) {
+        CalcPFoundCumulativeStatistics(targets, order, posWeights, cumSum);
     } else {
         CB_ENSURE(false, "StochasticRank is unimplemented for " << TargetMetric);
     }
@@ -722,7 +731,6 @@ void TStochasticRankError::CalcMonteCarloEstimateForSingleQueryPermutation(
         const size_t docId = order[pos];
         const double score = scores[docId];
         const double approx = approxes[docId];
-        const float target = targets[docId];
         const double mean = approx + (noiseSum - (score - approx)) / (count - 1);
         const double sigma = std::sqrtl(count / (count - 1.0)) * Sigma;
         double derSum = 0.0;
@@ -730,7 +738,8 @@ void TStochasticRankError::CalcMonteCarloEstimateForSingleQueryPermutation(
             if (newPos == pos) {
                 continue;
             }
-            const double metricDiff = CalcMetricDiff(pos, newPos, queryTopSize, posWeights, CalcNumerator(target), cumSum, cumSumUp, cumSumLow);
+            const double metricDiff = CalcMetricDiff(pos, newPos, queryTopSize, targets, order,
+                                                     posWeights, cumSum, cumSumUp, cumSumLow);
             double densityDiff = 0.0;
             if (newPos == 0) {
                 densityDiff = NormalDensity(scores[order[0]], mean, sigma);
@@ -749,23 +758,20 @@ void TStochasticRankError::CalcMonteCarloEstimateForSingleQueryPermutation(
     }
 }
 
-double TStochasticRankError::CalcMetricDiff(
+double TStochasticRankError::CalcDCGMetricDiff(
     size_t oldPos,
     size_t newPos,
-    size_t queryTopSize,
+    const TConstArrayRef<float> targets,
+    const TVector<size_t>& order,
     const TVector<double>& posWeights,
-    double gain,
     const TVector<double>& cumSum,
     const TVector<double>& cumSumUp,
     const TVector<double>& cumSumLow
 ) const {
-    if (newPos == oldPos || Min(oldPos, newPos) >= queryTopSize) {
-        return 0.0;
-    }
-
     const double oldWeight = posWeights[oldPos];
     const double newWeight = posWeights[newPos];
-    const double docDiff = gain * (newWeight - oldWeight);
+    const double docGain = CalcNumerator(targets[order[oldPos]]);
+    const double docDiff = docGain * (newWeight - oldWeight);
     double midDiff = 0.0;
     if (newPos < oldPos) {
         const double oldMidValue = cumSum[oldPos] - cumSum[newPos];
@@ -779,6 +785,81 @@ double TStochasticRankError::CalcMetricDiff(
     return docDiff + midDiff;
 }
 
+double TStochasticRankError::CalcPFoundMetricDiff(
+    size_t oldPos,
+    size_t newPos,
+    size_t queryTopSize,
+    const TConstArrayRef<float> targets,
+    const TVector<size_t>& order,
+    const TVector<double>& posWeights,
+    const TVector<double>& cumSum
+) const {
+    const double docGain = targets[order[oldPos]];
+    double docDiff = 0.0;
+    double midDiff = 0.0;
+    if (newPos < oldPos) {
+        const double oldWeight = posWeights[oldPos];
+        const double newWeight = posWeights[newPos];
+        docDiff = docGain * (newWeight - oldWeight);
+        const double oldMidValue = cumSum[oldPos] - cumSum[newPos];
+        double newMidValue = (cumSum[oldPos] - cumSum[newPos]) * Decay * (1 - docGain);
+        if (oldPos >= queryTopSize) {
+            const double lastValue = posWeights[queryTopSize - 1] * targets[order[queryTopSize - 1]];
+            newMidValue -= lastValue * Decay * (1 - docGain);
+        }
+        midDiff = newMidValue - oldMidValue;
+    } else {
+        const double oldWeight = posWeights[oldPos];
+        const double oldMidValue = cumSum[newPos + 1] - cumSum[oldPos + 1];
+        double newWeight = 0.0;
+        double newMidValue = 0.0;
+        if (Decay == 0.0) { // only first item has non-zero contribution
+            newWeight = 0.0;
+            newMidValue = oldPos == 0 ? targets[order[1]] : oldMidValue;
+        } else if (docGain == 1.0) { // we can't use cumsum because of zero multipliers
+            double plook = posWeights[oldPos];
+            for (size_t pos = oldPos + 1; pos <= Min(newPos, queryTopSize - 1); ++pos) {
+                newMidValue += targets[order[pos]] * plook;
+                plook *= (1 - targets[order[pos]]) * Decay;
+            }
+            newWeight = newPos < queryTopSize ? plook : 0.0;
+        } else {
+            newWeight = posWeights[newPos] * (1 - targets[order[newPos]]) / (1 - docGain);
+            newMidValue = (cumSum[newPos + 1] - cumSum[oldPos + 1]) / Decay / (1 - docGain);
+            if (newPos >= queryTopSize) {
+                const double lastValue = posWeights[queryTopSize - 1] * targets[order[queryTopSize]];
+                newMidValue += lastValue / (1 - docGain) * (1 - targets[order[queryTopSize - 1]]);
+            }
+        }
+        docDiff = docGain * (newWeight - oldWeight);
+        midDiff = newMidValue - oldMidValue;
+    }
+    return docDiff + midDiff;
+}
+
+double TStochasticRankError::CalcMetricDiff(
+    size_t oldPos,
+    size_t newPos,
+    size_t queryTopSize,
+    const TConstArrayRef<float> targets,
+    const TVector<size_t>& order,
+    const TVector<double>& posWeights,
+    const TVector<double>& cumSum,
+    const TVector<double>& cumSumUp,
+    const TVector<double>& cumSumLow
+) const {
+    if (newPos == oldPos || Min(oldPos, newPos) >= queryTopSize) {
+        return 0.0;
+    }
+
+    if (EqualToOneOf(TargetMetric, ELossFunction::DCG, ELossFunction::NDCG)) {
+        return CalcDCGMetricDiff(oldPos, newPos, targets, order, posWeights, cumSum, cumSumUp, cumSumLow);
+    } else if (TargetMetric == ELossFunction::PFound) {
+        return CalcPFoundMetricDiff(oldPos, newPos, queryTopSize, targets, order, posWeights, cumSum);
+    }
+    Y_UNREACHABLE();
+}
+
 void TStochasticRankError::CalcDCGCumulativeStatistics(
     TConstArrayRef<float> targets,
     const TVector<size_t>& order,
@@ -788,37 +869,73 @@ void TStochasticRankError::CalcDCGCumulativeStatistics(
     TArrayRef<double> cumSumLow
 ) const {
     const size_t count = targets.size();
+    cumSum[0] = cumSumUp[0] = cumSumLow[0] = cumSumUp[1] = 0;
     for (size_t pos = 0; pos < count; ++pos) {
         const size_t docId = order[pos];
         const double gain = CalcNumerator(targets[docId]);
         cumSum[pos + 1] = cumSum[pos] + gain * posWeights[pos];
-        cumSumLow[pos + 1] = cumSumLow[pos] + gain * posWeights[pos + 1];
+        if (pos + 1 < count) {
+            cumSumLow[pos + 1] = cumSumLow[pos] + gain * posWeights[pos + 1];
+        }
         if (pos > 0) {
             cumSumUp[pos + 1] = cumSumUp[pos] + gain * posWeights[pos - 1];
         }
     }
+    cumSumLow[count] = cumSumLow[count - 1];
 }
 
-TVector<double> TStochasticRankError::ComputePosWeights(TConstArrayRef<float> targets, size_t count) const {
-    TVector<double> posWeights(count);
-    if (EqualToOneOf(TargetMetric, ELossFunction::DCG, ELossFunction::NDCG)) {
-        size_t queryTopSize = GetQueryTopSize(count);
-        for (size_t pos = 0; pos < queryTopSize; ++pos) {
-            posWeights[pos] = 1.0 / CalcDenominator(pos);
-        }
+void TStochasticRankError::CalcPFoundCumulativeStatistics(
+    TConstArrayRef<float> targets,
+    const TVector<size_t>& order,
+    const TVector<double>& posWeights,
+    TArrayRef<double> cumSum
+) const {
+    const size_t count = targets.size();
+    cumSum[0] = 0;
+    for (size_t pos = 0; pos < count; ++pos) {
+        const size_t docId = order[pos];
+        const double gain = targets[docId];
+        cumSum[pos + 1] = cumSum[pos] + gain * posWeights[pos];
+    }
+}
 
-        if (TargetMetric == ELossFunction::NDCG) {
-            TVector<float> sortedTargets(targets.begin(), targets.end());
-            Sort(sortedTargets, [](float a, float b) {
-                return a > b;
-            });
-            const double idealDCG = CalcDCG(sortedTargets, posWeights);
-            if (idealDCG > std::numeric_limits<double>::epsilon()) {
-                for (size_t pos = 0; pos < queryTopSize; ++pos) {
-                    posWeights[pos] /= idealDCG;
-                }
+TVector<double> TStochasticRankError::ComputeDCGPosWeights(
+    TConstArrayRef<float> targets
+) const {
+    size_t count = targets.size();
+    TVector<double> posWeights(count);
+    size_t queryTopSize = GetQueryTopSize(count);
+    Y_ASSERT(EqualToOneOf(TargetMetric, ELossFunction::DCG, ELossFunction::NDCG));
+    for (size_t pos = 0; pos < queryTopSize; ++pos) {
+        posWeights[pos] = 1.0 / CalcDenominator(pos);
+    }
+
+    if (TargetMetric == ELossFunction::NDCG) {
+        TVector<float> sortedTargets(targets.begin(), targets.end());
+        Sort(sortedTargets, [](float a, float b) {
+            return a > b;
+        });
+        const double idealDCG = CalcDCG(sortedTargets, posWeights);
+        if (idealDCG > std::numeric_limits<double>::epsilon()) {
+            for (size_t pos = 0; pos < queryTopSize; ++pos) {
+                posWeights[pos] /= idealDCG;
             }
         }
+    }
+    return posWeights;
+}
+
+TVector<double> TStochasticRankError::ComputePFoundPosWeights(
+    TConstArrayRef<float> targets,
+    const TVector<size_t>& order
+) const {
+    size_t count = targets.size();
+    TVector<double> posWeights(count);
+    size_t queryTopSize = GetQueryTopSize(count);
+    Y_ASSERT(TargetMetric == ELossFunction::PFound);
+    posWeights[0] = 1.0;
+    for (size_t pos = 1; pos < queryTopSize; ++pos) {
+        posWeights[pos] = posWeights[pos - 1] * Decay * (1 - targets[order[pos - 1]]);
     }
     return posWeights;
 }
