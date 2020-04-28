@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/yson/node/node.h>
+#include <library/cpp/yson/node/node.h>
 
 #include <Python.h>
 

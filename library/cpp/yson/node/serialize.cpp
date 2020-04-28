@@ -2,7 +2,7 @@
 
 #include "node_visitor.h"
 
-#include <library/yson/consumer.h>
+#include <library/cpp/yson/consumer.h>
 
 namespace NYT {
 

@@ -101,10 +101,6 @@ RECURSE(
     unittest/fat
     unittest/main
     unittest/ut
-    yson
-    yson/node
-    yson/node/pybind
-    yson/node/ut
 )
 
 IF (HAVE_CUDA)

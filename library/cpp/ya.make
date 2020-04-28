@@ -33,6 +33,9 @@ RECURSE(
     terminate_handler/sample
     tokenizer
     tokenizer/ut
+    yson
+    yson/node
+    yson/node/pybind
 )
 
 IF (OS_LINUX)

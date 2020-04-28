@@ -1,6 +1,6 @@
 #include "node.h"
 
-#include <library/yson/node/node.h>
+#include <library/cpp/yson/node/node.h>
 
 #include <library/cpp/pybind/cast.h>
 

@@ -4,7 +4,7 @@ LIBRARY()
 
 PEERDIR(
     library/cpp/pybind
-    library/yson/node
+    library/cpp/yson/node
 )
 
 PYTHON_ADDINCL()

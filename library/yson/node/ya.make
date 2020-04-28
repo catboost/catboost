@@ -1,19 +1,16 @@
 LIBRARY()
 
-GENERATE_ENUM_SERIALIZATION(node.h)
-
-PEERDIR(
-    library/yson
-)
+# Temporary proxy library until we moved all consumers
+# to library/cpp/yson/node
 
 
 
 SRCS(
-    node.cpp
-    node_io.cpp
-    node_builder.cpp
-    node_visitor.cpp
-    serialize.cpp
+    all.cpp
+)
+
+PEERDIR(
+    library/cpp/yson/node
 )
 
 END()
