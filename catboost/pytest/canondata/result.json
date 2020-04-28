@@ -6760,7 +6760,7 @@
         "uri": "file://test.test_output_columns_format/test.eval"
     },
     "test.test_output_options": {
-        "checksum": "011232341aa1e14165eab65827e1cef9",
+        "checksum": "4af56f06da3eef6afebde00a0334b42c",
         "uri": "file://test.test_output_options/training_options.json"
     },
     "test.test_overfit_detector_inc_to_dec[Ordered-SymmetricTree]": [
