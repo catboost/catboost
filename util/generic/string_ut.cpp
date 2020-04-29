@@ -684,7 +684,7 @@ public:
         TString copy = s;
         copy.replace(copy.size() - 1, 1, "z");
         UNIT_ASSERT(s != copy);
-        copy.replace(copy.size() - 1, 1, "\0", 0, 1, 1);
+        copy.replace(copy.size() - 1, 1, "\0", 0, 1);
         UNIT_ASSERT(s == copy);
 
         TString prefix(data, 5);
