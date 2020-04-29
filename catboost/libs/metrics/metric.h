@@ -260,132 +260,35 @@ static inline TMetricHolder ParallelEvalMetric(TEvalFunction eval, int minBlockS
 
 }
 
-THolder<IMetric> MakeCrossEntropyMetric(ELossFunction lossFunction);
-
 THolder<IMetric> MakeCtrFactorMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
 
-THolder<IMetric> MakeRMSEMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
+THolder<IMetric> MakeBinClassAucMetric(const TMap<TString, TString>& params);
+THolder<IMetric> MakeMultiClassAucMetric(const TMap<TString, TString>& params, int positiveClass);
 
-THolder<IMetric> MakeLqMetric(ELossFunction lossFunction, const TMap<TString, TString>& params, double q);
-
-THolder<IMetric> MakeR2Metric(ELossFunction lossFunction, const TMap<TString, TString>& params);
-
-THolder<IMetric> MakeNumErrorsMetric(ELossFunction lossFunction, const TMap<TString, TString>& params, double k);
-
-THolder<IMetric> MakeQuantileMetric(ELossFunction lossFunction, const TMap<TString, TString>& params, double alpha = 0.5, double delta = 1e-6);
-
-THolder<IMetric> MakeExpectileMetric(ELossFunction lossFunction, const TMap<TString, TString>& params, double alpha = 0.5);
-
-THolder<IMetric> MakeLogLinQuantileMetric(ELossFunction lossFunction, const TMap<TString, TString>& params, double alpha = 0.5);
-
-THolder<IMetric> MakeMAPEMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
-
-THolder<IMetric> MakePoissonMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
-
-THolder<IMetric> MakeMultiClassMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
-
-THolder<IMetric> MakeMultiClassOneVsAllMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
-
-THolder<IMetric> MakePairLogitMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
-
-THolder<IMetric> MakeQueryRMSEMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
-
-THolder<IMetric> MakeQueryCrossEntropyMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                             double alpha = 0.95);
-
-THolder<IMetric> MakePFoundMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                  int topSize = -1, double decay = 0.85);
-
-THolder<IMetric> MakeDcgMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                               int topSize = -1, ENdcgMetricType type = ENdcgMetricType::Base, bool normalized = true,
-                               ENdcgDenominatorType denominator = ENdcgDenominatorType::LogPosition);
-
-THolder<IMetric> MakeQuerySoftMaxMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
-
-THolder<IMetric> MakeFilteredDcgMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                       ENdcgMetricType type, ENdcgDenominatorType denominator);
-
-THolder<IMetric> MakeBinClassAucMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
-THolder<IMetric> MakeRankingAucMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
-THolder<IMetric> MakeMultiClassAucMetric(ELossFunction lossFunction, const TMap<TString, TString>& params, int positiveClass);
-THolder<IMetric> MakeMuAucMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                 const TMaybe<TVector<TVector<double>>>& misclassCostMatrix = Nothing());
-
-THolder<IMetric> MakeBinClassPrecisionMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
+THolder<IMetric> MakeBinClassPrecisionMetric(const TMap<TString, TString>& params,
                                              double predictionBorder = GetDefaultPredictionBorder());
-THolder<IMetric> MakeMultiClassPrecisionMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
+THolder<IMetric> MakeMultiClassPrecisionMetric(const TMap<TString, TString>& params,
                                                int classesCount, int positiveClass);
 
-THolder<IMetric> MakeBinClassRecallMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
+THolder<IMetric> MakeBinClassRecallMetric(const TMap<TString, TString>& params,
                                           double predictionBorder = GetDefaultPredictionBorder());
-THolder<IMetric> MakeMultiClassRecallMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
+THolder<IMetric> MakeMultiClassRecallMetric(const TMap<TString, TString>& params,
                                             int classesCount, int positiveClass);
 
-THolder<IMetric> MakeBinClassBalancedErrorRate(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                               double predictionBorder = GetDefaultPredictionBorder());
-
-THolder<IMetric> MakeBinClassKappaMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                         double predictionBorder = GetDefaultPredictionBorder());
-THolder<IMetric> MakeMultiClassKappaMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                           int classCount = 2);
-
-THolder<IMetric> MakeBinClassWKappaMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                          double predictionBorder = GetDefaultPredictionBorder());
-THolder<IMetric> MakeMultiClassWKappaMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                            int classCount = 2);
-
-THolder<IMetric> MakeBinClassF1Metric(ELossFunction lossFunction, const TMap<TString, TString>& params,
+THolder<IMetric> MakeBinClassF1Metric(const TMap<TString, TString>& params,
                                       double predictionBorder = GetDefaultPredictionBorder());
-THolder<IMetric> MakeMultiClassF1Metric(ELossFunction lossFunction, const TMap<TString, TString>& params,
+THolder<IMetric> MakeMultiClassF1Metric(const TMap<TString, TString>& params,
                                         int classesCount, int positiveClass);
 
-THolder<IMetric> MakeTotalF1Metric(ELossFunction lossFunction, const TMap<TString, TString>& params,
+THolder<IMetric> MakeTotalF1Metric(const TMap<TString, TString>& params,
                                    int classesCount = 2, EF1AverageType averageType = EF1AverageType::Weighted);
 
-THolder<IMetric> MakeMCCMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
+THolder<IMetric> MakeMCCMetric(const TMap<TString, TString>& params,
                                int classesCount = 2);
 
-THolder<IMetric> MakeBrierScoreMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
-
-THolder<IMetric> MakeHingeLossMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
-
-THolder<IMetric> MakeHammingLossMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                       double predictionBorder = GetDefaultPredictionBorder());
-
-THolder<IMetric> MakeZeroOneLossMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                       double predictionBorder = GetDefaultPredictionBorder());
-THolder<IMetric> MakeZeroOneLossMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                       int classCount);
-
-THolder<IMetric> MakePairAccuracyMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
-
-THolder<IMetric> MakeMAPKMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                int topSize = -1);
-
-THolder<IMetric> MakeRecallAtKMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                     int topSize = -1);
-
-THolder<IMetric> MakePrecisionAtKMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                        int topSize = -1);
+THolder<IMetric> MakeBrierScoreMetric(const TMap<TString, TString>& params);
 
 THolder<IMetric> MakeCustomMetric(const TCustomMetricDescriptor& descriptor);
-
-THolder<IMetric> MakeUserDefinedPerObjectMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
-
-THolder<IMetric> MakeUserDefinedQuerywiseMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
-
-THolder<IMetric> MakeAverageGainMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                       float topSize);
-
-THolder<IMetric> MakeHuberLossMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                     double delta);
-
-THolder<IMetric> MakeBinClassNormalizedGiniMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
-THolder<IMetric> MakeMultiClassNormalizedGiniMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                                    int positiveClass);
-
-THolder<IMetric> MakeFairLossMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                    double smoothness);
 
 TVector<THolder<IMetric>> CreateMetricsFromDescription(const TVector<TString>& description, int approxDim);
 

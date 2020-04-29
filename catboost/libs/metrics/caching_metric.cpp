@@ -181,8 +181,8 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeMCCMetric(ELossFunction lossFunction, const TMap<TString, TString>& params, int classesCount) {
-    return MakeHolder<TMCCCachingMetric>(lossFunction, params, classesCount);
+THolder<IMetric> MakeMCCMetric(const TMap<TString, TString>& params, int classesCount) {
+    return MakeHolder<TMCCCachingMetric>(ELossFunction::MCC, params, classesCount);
 }
 
 TMetricHolder TMCCCachingMetric::Eval(
@@ -321,16 +321,6 @@ void TZeroOneLossCachingMetric::GetBestValue(EMetricBestValue *valueType, float 
     *valueType = EMetricBestValue::Min;
 }
 
-THolder<IMetric> MakeZeroOneLossMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                       double predictionBorder) {
-    return MakeHolder<TZeroOneLossCachingMetric>(lossFunction, params, predictionBorder);
-}
-
-THolder<IMetric> MakeZeroOneLossMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                       int classCount) {
-    return MakeHolder<TZeroOneLossCachingMetric>(lossFunction, params, classCount);
-}
-
 /* Accuracy caching metric */
 
 namespace {
@@ -454,14 +444,14 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeBinClassRecallMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
+THolder<IMetric> MakeBinClassRecallMetric(const TMap<TString, TString>& params,
                                           double predictionBorder) {
-    return MakeHolder<TRecallCachingMetric>(lossFunction, params, predictionBorder);
+    return MakeHolder<TRecallCachingMetric>(ELossFunction::Recall, params, predictionBorder);
 }
 
-THolder<IMetric> MakeMultiClassRecallMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
+THolder<IMetric> MakeMultiClassRecallMetric(const TMap<TString, TString>& params,
                                             int classesCount, int positiveClass) {
-    return MakeHolder<TRecallCachingMetric>(lossFunction, params, classesCount, positiveClass);
+    return MakeHolder<TRecallCachingMetric>(ELossFunction::Recall, params, classesCount, positiveClass);
 }
 
 TMetricHolder TRecallCachingMetric::Eval(
@@ -559,14 +549,14 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeBinClassPrecisionMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
+THolder<IMetric> MakeBinClassPrecisionMetric(const TMap<TString, TString>& params,
                                              double predictionBorder) {
-    return MakeHolder<TPrecisionCachingMetric>(lossFunction, params, predictionBorder);
+    return MakeHolder<TPrecisionCachingMetric>(ELossFunction::Precision, params, predictionBorder);
 }
 
-THolder<IMetric> MakeMultiClassPrecisionMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
+THolder<IMetric> MakeMultiClassPrecisionMetric(const TMap<TString, TString>& params,
                                                int classesCount, int positiveClass) {
-    return MakeHolder<TPrecisionCachingMetric>(lossFunction, params, classesCount, positiveClass);
+    return MakeHolder<TPrecisionCachingMetric>(ELossFunction::Precision, params, classesCount, positiveClass);
 }
 
 TMetricHolder TPrecisionCachingMetric::Eval(
@@ -666,14 +656,14 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeBinClassF1Metric(ELossFunction lossFunction, const TMap<TString, TString>& params,
+THolder<IMetric> MakeBinClassF1Metric(const TMap<TString, TString>& params,
                                       double predictionBorder) {
-    return MakeHolder<TF1CachingMetric>(lossFunction, params, predictionBorder);
+    return MakeHolder<TF1CachingMetric>(ELossFunction::F1, params, predictionBorder);
 }
 
-THolder<IMetric> MakeMultiClassF1Metric(ELossFunction lossFunction, const TMap<TString, TString>& params,
+THolder<IMetric> MakeMultiClassF1Metric(const TMap<TString, TString>& params,
                                         int classesCount, int positiveClass) {
-    return MakeHolder<TF1CachingMetric>(lossFunction, params, classesCount, positiveClass);
+    return MakeHolder<TF1CachingMetric>(ELossFunction::F1, params, classesCount, positiveClass);
 }
 
 TMetricHolder TF1CachingMetric::Eval(
@@ -778,9 +768,9 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeTotalF1Metric(ELossFunction lossFunction, const TMap<TString, TString>& params,
+THolder<IMetric> MakeTotalF1Metric(const TMap<TString, TString>& params,
                                    int classesCount, EF1AverageType averageType) {
-    return MakeHolder<TTotalF1CachingMetric>(lossFunction, params, classesCount, averageType);
+    return MakeHolder<TTotalF1CachingMetric>(ELossFunction::TotalF1, params, classesCount, averageType);
 }
 
 TMetricHolder TTotalF1CachingMetric::Eval(
@@ -1185,7 +1175,7 @@ TVector<THolder<IMetric>> CreateCachingMetrics(const TMetricConfig& config) {
         }
         case ELossFunction::BrierScore: {
             CB_ENSURE(config.approxDimension == 1, "Brier Score is used only for binary classification problems.");
-            result.emplace_back(MakeBrierScoreMetric(config.metric, config.params));
+            result.emplace_back(MakeBrierScoreMetric(config.params));
             return result;
         }
         case ELossFunction::ZeroOneLoss: {

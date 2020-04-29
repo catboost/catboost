@@ -2083,11 +2083,6 @@ TString TDcgMetric::GetDescription() const {
     return BuildDescription(Normalized ? ELossFunction::NDCG : ELossFunction::DCG, UseWeights, topSize, type);
 }
 
-THolder<IMetric> MakeDcgMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                               int topSize, ENdcgMetricType type, bool normalized, ENdcgDenominatorType denominator) {
-    return MakeHolder<TDcgMetric>(lossFunction, params, topSize, type, normalized, denominator);
-}
-
 TDcgMetric::TDcgMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
                        int topSize, ENdcgMetricType type, bool normalized, ENdcgDenominatorType denominator)
     : TAdditiveMetric(lossFunction, params)
@@ -2601,25 +2596,13 @@ TVector<THolder<IMetric>> TAUCMetric::Create(const TMetricConfig& config) {
     }
 }
 
-THolder<IMetric> MakeBinClassAucMetric(ELossFunction lossFunction, const TMap<TString, TString>& params) {
-    return MakeHolder<TAUCMetric>(lossFunction, params, EAucType::Classic);
+THolder<IMetric> MakeBinClassAucMetric(const TMap<TString, TString>& params) {
+    return MakeHolder<TAUCMetric>(ELossFunction::AUC, params, EAucType::Classic);
 }
 
-THolder<IMetric> MakeRankingAucMetric(ELossFunction lossFunction, const TMap<TString, TString>& params) {
-    return MakeHolder<TAUCMetric>(lossFunction, params, EAucType::Ranking);
-}
 
-THolder<IMetric> MakeMultiClassAucMetric(ELossFunction lossFunction, const TMap<TString, TString>& params, int positiveClass) {
-    return MakeHolder<TAUCMetric>(lossFunction, params, positiveClass);
-}
-
-THolder<IMetric> MakeMuAucMetric(ELossFunction lossFunction, const TMap<TString, TString>& params, const TMaybe<TVector<TVector<double>>>& misclassCostMatrix) {
-    if (misclassCostMatrix) {
-        for (ui32 i = 0; i < misclassCostMatrix->size(); ++i) {
-            CB_ENSURE((*misclassCostMatrix)[i][i] == 0, "Diagonal elements of the misclass cost matrix should be equal to 0.");
-        }
-    }
-    return MakeHolder<TAUCMetric>(lossFunction, params, misclassCostMatrix);
+THolder<IMetric> MakeMultiClassAucMetric(const TMap<TString, TString>& params, int positiveClass) {
+    return MakeHolder<TAUCMetric>(ELossFunction::AUC, params, positiveClass);
 }
 
 TMetricHolder TAUCMetric::Eval(
@@ -3061,8 +3044,8 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeBrierScoreMetric(ELossFunction lossFunction, const TMap<TString, TString>& params) {
-    return MakeHolder<TBrierScoreMetric>(lossFunction, params);
+THolder<IMetric> MakeBrierScoreMetric(const TMap<TString, TString>& params) {
+    return MakeHolder<TBrierScoreMetric>(ELossFunction::BrierScore, params);
 }
 
 TMetricHolder TBrierScoreMetric::EvalSingleThread(
@@ -4076,11 +4059,6 @@ TVector<THolder<IMetric>> TAverageGain::Create(const TMetricConfig& config) {
     CB_ENSURE(it != config.params.end(), "AverageGain metric should have top parameter");
     config.validParams->insert("top");
     return AsVector(MakeHolder<TAverageGain>(config.metric, config.params, FromString<float>(it->second)));
-}
-
-THolder<IMetric> MakeAverageGainMetric(ELossFunction lossFunction, const TMap<TString, TString>& params,
-                                       float topSize) {
-    return MakeHolder<TAverageGain>(lossFunction, params, topSize);
 }
 
 TMetricHolder TAverageGain::EvalSingleThread(

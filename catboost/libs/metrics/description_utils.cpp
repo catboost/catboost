@@ -7,7 +7,14 @@
 
 TString BuildDescriptionFromParamsMap(ELossFunction lossFunction, const TMap<TString, TString>& params) {
     TStringBuilder buffer;
-    buffer << ToString(lossFunction);
+
+    // This is kept for backwards compatibility.
+    if (lossFunction == ELossFunction::QueryAverage) {
+        buffer << "AverageGain";
+    } else {
+        buffer << ToString(lossFunction);
+    }
+
     if (params.empty()) {
         return buffer;
     }
