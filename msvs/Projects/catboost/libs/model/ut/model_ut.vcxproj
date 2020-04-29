@@ -459,8 +459,14 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\terminate_handler\library-cpp-terminate_handler.vcxproj">
       <Project>{8776CDC6-8FD3-11B1-5A42-EAE93F81174A}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\future\cpp-threading-future.vcxproj">
+      <Project>{3606F768-0467-35B5-0130-059536BE13C1}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\tokenizer\library-cpp-tokenizer.vcxproj">
       <Project>{033EAD89-E9BA-0341-D614-91C40D7F543A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yson\library-cpp-yson.vcxproj">
+      <Project>{D05A14C5-BA93-7AA3-1AB8-E62B001110D1}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\dbg_output\library-dbg_output.vcxproj">
       <Project>{806C141C-ADC5-203A-DF01-02F7E1563621}</Project>
@@ -590,9 +596,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\chunk_queue\library-threading-chunk_queue.vcxproj">
       <Project>{51BCA57C-7E5E-48F9-7D56-FD5809F99DCC}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\future\library-threading-future.vcxproj">
-      <Project>{CF2582C4-C4A1-875F-6897-27B28FB8018A}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\hot_swap\library-threading-hot_swap.vcxproj">
       <Project>{03DFB2A4-4366-AD11-DF9C-49D8A6E93B89}</Project>

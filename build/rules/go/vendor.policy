@@ -472,7 +472,6 @@ ALLOW yt/jaeger/plugin/cmd/collector -> vendor/github.com/pkg/errors
 ALLOW bunker/api/cmd/api -> vendor/github.com/jackc/pgx
 ALLOW bunker/api/internal/db -> vendor/github.com/jackc/pgx
 ALLOW cloud/blockstore/tests/hwlab/pg_test/pgshooter -> vendor/github.com/jackc/pgx
-ALLOW distribution/browser/conversions/internal/clients/db-client -> vendor/github.com/jackc/pgx
 ALLOW district/feed_reader/app/lib -> vendor/github.com/jackc/pgx
 ALLOW edadeal/backend/go/charm/cmd/charm -> vendor/github.com/jackc/pgx
 ALLOW edadeal/backend/go/gluon/internal/app/bootstrap -> vendor/github.com/jackc/pgx

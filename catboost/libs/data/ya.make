@@ -48,7 +48,7 @@ PEERDIR(
     library/json
     library/object_factory
     library/string_utils/csv
-    library/threading/future
+    library/cpp/threading/future
     library/threading/local_executor
 
     catboost/libs/cat_feature

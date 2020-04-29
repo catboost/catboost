@@ -4,8 +4,6 @@ RECURSE(
     chunk_queue
     chunk_queue/ut
     future
-    future/perf
-    future/ut
     hot_swap
     hot_swap/ut
     local_executor

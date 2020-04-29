@@ -115,7 +115,9 @@ ALLOW passport/python/social -> contrib/python/MySQL-python
 ALLOW passport/python/yasms/db -> contrib/python/MySQL-python
 ALLOW testenv/core -> contrib/python/MySQL-python
 ALLOW testenv/recipes/ut -> contrib/python/MySQL-python
+# avia task to migrate from MySQL-python https://st.yandex-team.ru/RASPTICKETS-18201
 ALLOW travel/avia/dump_data/lib/model_classes -> contrib/python/MySQL-python
+ALLOW travel/avia/library/common -> contrib/python/MySQL-python
 ALLOW travel/rasp/admin -> contrib/python/MySQL-python
 ALLOW travel/rasp/library/common -> contrib/python/MySQL-python
 ALLOW travel/rasp/library/python/common -> contrib/python/MySQL-python

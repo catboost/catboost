@@ -323,6 +323,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\base64\cpp-string_utils-base64.vcxproj">
       <Project>{A4764222-1478-DE04-CC5B-2369096E96BC}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\future\cpp-threading-future.vcxproj">
+      <Project>{3606F768-0467-35B5-0130-059536BE13C1}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\tokenizer\library-cpp-tokenizer.vcxproj">
       <Project>{033EAD89-E9BA-0341-D614-91C40D7F543A}</Project>
     </ProjectReference>
@@ -388,9 +391,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\text_processing\tokenizer\library-text_processing-tokenizer.vcxproj">
       <Project>{A245D45B-FF5F-420A-C3B0-FC67CC066227}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\future\library-threading-future.vcxproj">
-      <Project>{CF2582C4-C4A1-875F-6897-27B28FB8018A}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
       <Project>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</Project>
