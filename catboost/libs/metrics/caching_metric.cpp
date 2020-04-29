@@ -13,8 +13,8 @@
 #include <util/generic/string.h>
 #include <util/generic/set.h>
 
-using internal::AppendTemporaryMetricsVector;
-using internal::AsVector;
+using NCB::AppendTemporaryMetricsVector;
+using NCB::AsVector;
 
 constexpr int BinaryClassesCount = 2;
 static const TString ConfusionMatrixCacheKey = "Confusion Matrix";

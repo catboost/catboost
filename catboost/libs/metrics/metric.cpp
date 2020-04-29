@@ -41,8 +41,8 @@
 #include <limits>
 #include <tuple>
 
-using internal::AppendTemporaryMetricsVector;
-using internal::AsVector;
+using NCB::AppendTemporaryMetricsVector;
+using NCB::AsVector;
 
 /* TMetric */
 
@@ -659,10 +659,8 @@ TVector<THolder<IMetric>> TQuantileMetric::Create(const TMetricConfig& config) {
             return AsVector(MakeHolder<TQuantileMetric>(config.metric, config.params, MaeAlpha, MaeDelta));
             break;
         case ELossFunction::Quantile: {
-            auto it = config.params.find("alpha");
-            const double alpha = it != config.params.end() ? FromString<float>(it->second) : 0.5;
-            it = config.params.find("delta");
-            const double delta = it != config.params.end() ? FromString<float>(it->second) : 1e-6;
+            double alpha = NCatboostOptions::GetParamOrDefault(config.params, "alpha", 0.5);
+            double delta = NCatboostOptions::GetParamOrDefault(config.params, "delta", 1e-6);
 
             config.validParams->insert("alpha");
             config.validParams->insert("delta");
@@ -4895,7 +4893,7 @@ bool IsQuantileLoss(const ELossFunction& loss) {
     return loss == ELossFunction::Quantile || loss == ELossFunction::MAE;
 }
 
-namespace internal {
+namespace NCB {
 
 void AppendTemporaryMetricsVector(TVector<THolder<IMetric>>&& src, TVector<THolder<IMetric>>* dst) {
     std::move(src.begin(), src.end(), std::back_inserter(*dst));

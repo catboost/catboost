@@ -394,7 +394,7 @@ void CheckMetrics(const TVector<THolder<IMetric>>& metrics, const ELossFunction 
 bool IsQuantileLoss(const ELossFunction& loss);
 
 
-namespace internal {
+namespace NCB {
 
 void AppendTemporaryMetricsVector(TVector<THolder<IMetric>>&& src, TVector<THolder<IMetric>>* dst);
 
