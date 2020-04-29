@@ -176,7 +176,7 @@ def decode_vet_report(json_report):
 
 def dump_vet_report(args, report):
     if report:
-        report = report.replace(args.build_root, '$B')
+        report = report.replace(args.build_root[:-1], '$B')
         report = report.replace(args.arc_source_root, '$S')
     with open(args.vet_report_output, 'w') as f:
         f.write(report)
@@ -203,6 +203,7 @@ def do_vet(args):
     if args.vet_flags:
         cmd.extend(args.vet_flags)
     cmd.append(vet_config)
+    # print >>sys.stderr, '>>>> [{}]'.format(' '.join(cmd))
     p_vet = subprocess.Popen(cmd, stdin=None, stderr=subprocess.PIPE, stdout=subprocess.PIPE, cwd=args.build_root)
     vet_out, vet_err = p_vet.communicate()
     report = decode_vet_report(vet_out) if vet_out else ''
@@ -554,9 +555,13 @@ def do_link_test(args):
                         return (i, elem)
                 assert False, 'Unreachable code'
 
-            idx, ydx_file_name = find_ydx_file_name(args.ydx_file, args.vet_flags)
-            xtest_ydx_file_name = '{}_xtest'.format(ydx_file_name)
-            args.vet_flags[idx] = xtest_ydx_file_name
+            idx, ydx_file_name = find_ydx_file_name(xtest_lib_args.ydx_file, xtest_lib_args.vet_flags)
+            if os.path.exists(ydx_file_name):
+                xtest_ydx_file_name = '{}_xtest'.format(ydx_file_name)
+                xtest_lib_args.vet_flags = copy.copy(xtest_lib_args.vet_flags)
+                xtest_lib_args.vet_flags[idx] = xtest_ydx_file_name
+            else:
+                need_append_ydx = False
         do_link_lib(xtest_lib_args)
         if need_append_ydx:
             with open(ydx_file_name, 'ab') as dst_file, open(xtest_ydx_file_name, 'rb') as src_file:
