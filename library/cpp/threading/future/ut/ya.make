@@ -1,4 +1,4 @@
-UNITTEST_FOR(library/threading/future)
+UNITTEST_FOR(library/cpp/threading/future)
 
 
 

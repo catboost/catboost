@@ -31,6 +31,7 @@ RECURSE(
     string_utils
     terminate_handler
     terminate_handler/sample
+    threading
     tokenizer
     tokenizer/ut
     yson
