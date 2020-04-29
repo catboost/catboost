@@ -139,6 +139,7 @@ public:
 
         ui8* outBuffer = static_cast<ui8*>(buffer);
         size_t availableOut = size;
+        size_t decompressedSize = 0;
 
         BrotliDecoderResult result;
         do {
@@ -162,6 +163,7 @@ public:
                 &outBuffer,
                 nullptr);
 
+            decompressedSize = size - availableOut;
             SubstreamFinished_ = (result == BROTLI_DECODER_RESULT_SUCCESS);
 
             if (result == BROTLI_DECODER_RESULT_ERROR) {
@@ -173,9 +175,7 @@ public:
                          "Buffer passed to read in Brotli decoder is too small");
                 break;
             }
-        } while (result == BROTLI_DECODER_RESULT_NEEDS_MORE_INPUT && !InputExhausted_);
-
-        size_t decompressedSize = size - availableOut;
+        } while (decompressedSize == 0 && result == BROTLI_DECODER_RESULT_NEEDS_MORE_INPUT && !InputExhausted_);
 
         if (!SubstreamFinished_ && decompressedSize == 0) {
             ythrow yexception() << "Input stream is incomplete";

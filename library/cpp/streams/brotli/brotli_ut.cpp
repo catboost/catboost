@@ -41,6 +41,23 @@ Y_UNIT_TEST_SUITE(TBrotliTestSuite) {
         TestCase("hello world");
     }
 
+    Y_UNIT_TEST(TestFlush) {
+        TStringStream ss;
+        TBrotliCompress compressStream(&ss);
+        TBrotliDecompress decompressStream(&ss);
+
+        for (size_t i = 0; i < 3; ++i) {
+            TString s = GenerateRandomString(1 << 15);
+            compressStream.Write(s.data(), s.size());
+            compressStream.Flush();
+
+            TString r(s.size(), '*');
+            decompressStream.Load((char*)r.data(), r.size());
+
+            UNIT_ASSERT_VALUES_EQUAL(s, r);
+        }
+    }
+
     Y_UNIT_TEST(TestSeveralStreams) {
         auto s1 = GenerateRandomString(1 << 15);
         auto s2 = GenerateRandomString(1 << 15);
