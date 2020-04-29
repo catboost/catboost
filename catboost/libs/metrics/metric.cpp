@@ -362,8 +362,8 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeCtrFactorMetric(ELossFunction lossFunction, const TMap<TString, TString>& params) {
-    return MakeHolder<TCtrFactorMetric>(lossFunction, params);
+THolder<IMetric> MakeCtrFactorMetric(const TMap<TString, TString>& params) {
+    return MakeHolder<TCtrFactorMetric>(ELossFunction::CtrFactor, params);
 }
 
 TMetricHolder TCtrFactorMetric::EvalSingleThread(

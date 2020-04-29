@@ -1185,7 +1185,7 @@ TVector<THolder<IMetric>> CreateCachingMetrics(const TMetricConfig& config) {
             return CreateMetric<TAccuracyCachingMetric>(config.approxDimension, config.params, config.metric);
         }
         case ELossFunction::CtrFactor: {
-            result.emplace_back(MakeCtrFactorMetric(config.metric, config.params));
+            result.emplace_back(MakeCtrFactorMetric(config.params));
             return result;
         }
         case ELossFunction::Precision: {

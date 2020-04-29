@@ -260,7 +260,7 @@ static inline TMetricHolder ParallelEvalMetric(TEvalFunction eval, int minBlockS
 
 }
 
-THolder<IMetric> MakeCtrFactorMetric(ELossFunction lossFunction, const TMap<TString, TString>& params);
+THolder<IMetric> MakeCtrFactorMetric(const TMap<TString, TString>& params);
 
 THolder<IMetric> MakeBinClassAucMetric(const TMap<TString, TString>& params);
 THolder<IMetric> MakeMultiClassAucMetric(const TMap<TString, TString>& params, int positiveClass);
