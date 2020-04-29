@@ -3,7 +3,7 @@
 #include "future.h"
 #include <catboost/cuda/cuda_lib/cuda_events_provider.h>
 #include <catboost/cuda/utils/spin_wait.h>
-#include <library/threading/future/future.h>
+#include <library/cpp/threading/future/future.h>
 
 namespace NCudaLib {
     template <class T>
