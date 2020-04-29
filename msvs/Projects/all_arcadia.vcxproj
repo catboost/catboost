@@ -1296,6 +1296,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\registry\python-symbols-registry.vcxproj">
       <Project>BD115620-103F-AECF-8093-05A7D89F72D6</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\testing\filter\pypython-testing-filter.vcxproj">
+      <Project>742B4BC9-2804-CD28-E985-1186B54E41E1</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\testing\import_test\pypython-testing-import_test.vcxproj">
       <Project>8B8BC972-CC2F-567D-7196-F4B2070D8544</Project>
     </ProjectReference>
