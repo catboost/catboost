@@ -116,10 +116,8 @@ namespace NCB {
         const TString& userParametersJson) {
 
         TString data;
-        TStringOutput res(data);
-
-        SerializeFullModelToOnnxStream(model, userParametersJson, &res);
-
+        TStringOutput out(data);
+        SerializeFullModelToOnnxStream(model, userParametersJson, &out);
         return data;
         }
 
@@ -127,6 +125,7 @@ namespace NCB {
         const TFullModel& model,
         const TString& modelFile,
         const TString& userParametersJson) {
+
         /* TODO(akhropov): the problem with OneHotFeatures is that raw 'float' values
         * could be interpreted as nans so that equality comparison won't work for such splits
         */
