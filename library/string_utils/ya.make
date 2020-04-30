@@ -8,5 +8,4 @@ RECURSE(
     relaxed_escaper/ut
     scan
     url
-    url/ut
 )
