@@ -432,6 +432,17 @@ ALLOW .* -> vendor/github.com/mennanov/fieldmask-utils
 # Temporary exceptions.
 #
 
+# CONTRIB-1863. resposible: tserakhau@
+
+ALLOW transfer_manager/go/pkg/source/mysql/canal -> vendor/github.com/pingcap/errors
+ALLOW transfer_manager/go/pkg/source/mysql/canal -> vendor/github.com/pingcap/parser/ast
+ALLOW transfer_manager/go/pkg/source/mysql/canal -> vendor/github.com/pingcap/parser/format
+ALLOW transfer_manager/go/pkg/source/mysql/canal -> vendor/github.com/pingcap/parser
+ALLOW transfer_manager/go/pkg/source/mysql/canal -> vendor/github.com/satori/go.uuid
+ALLOW transfer_manager/go/pkg/source/mysql/canal -> vendor/github.com/siddontang/go-log/log
+ALLOW transfer_manager/go/pkg/source/mysql/canal -> vendor/github.com/siddontang/go-mysql/client
+ALLOW transfer_manager/go/pkg/source/mysql/canal -> vendor/github.com/siddontang/go-mysql/schema
+
 # CONTRIB-1244. resposible: gzuykov@
 ALLOW cloud -> vendor/github.com/rcrowley/go-metrics
 
