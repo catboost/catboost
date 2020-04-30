@@ -5596,6 +5596,7 @@ cpdef compute_training_options(dict options, DataMetaInfo train_meta_info, DataM
     )
     return loads(to_native_str(WriteTJsonValue(trainingOptions)))
 
+
 cpdef _get_onnx_model(model, export_parameters):
     if not model._is_oblivious():
         raise CatBoostError(
