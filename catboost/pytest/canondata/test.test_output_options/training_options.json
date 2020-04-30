@@ -262,6 +262,7 @@
         "training_options_file" : "training_options.json",
         "train_dir" : "catboost_info",
         "thread_count" : 4,
+        "task_type" : "CPU",
         "iterations" : 10,
         "loss_function" : "Logloss"
     },

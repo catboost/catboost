@@ -6,7 +6,7 @@
 
 #include <util/system/defaults.h>
 #include <util/string/cast.h>
-#include <library/cgiparam/cgiparam.h>
+#include <library/cpp/cgiparam/cgiparam.h>
 #include <util/network/address.h>
 #include <util/network/socket.h>
 #include <util/generic/hash.h>

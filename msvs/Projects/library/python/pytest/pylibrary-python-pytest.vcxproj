@@ -422,6 +422,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\symbols\registry\python-symbols-registry.vcxproj">
       <Project>{BD115620-103F-AECF-8093-05A7D89F72D6}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\python\testing\filter\pypython-testing-filter.vcxproj">
+      <Project>{742B4BC9-2804-CD28-E985-1186B54E41E1}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\testing\yatest_common\pypython-testing-yatest_common.vcxproj">
       <Project>{1E8708B1-BCBA-6127-8C89-4F03EC0CEDB5}</Project>
     </ProjectReference>

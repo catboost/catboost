@@ -2,7 +2,7 @@
 
 #include <catboost/libs/helpers/exception.h>
 
-#include <library/threading/future/future.h>
+#include <library/cpp/threading/future/future.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>

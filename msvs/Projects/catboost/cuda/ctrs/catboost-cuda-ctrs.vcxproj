@@ -318,6 +318,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\base64\cpp-string_utils-base64.vcxproj">
       <Project>{A4764222-1478-DE04-CC5B-2369096E96BC}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\future\cpp-threading-future.vcxproj">
+      <Project>{3606F768-0467-35B5-0130-059536BE13C1}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cuda\wrappers\library-cuda-wrappers.vcxproj">
       <Project>{B83E09E6-36E4-BF0E-BBC4-CCC2D4B42CCC}</Project>
     </ProjectReference>
@@ -347,9 +350,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\relaxed_escaper\library-string_utils-relaxed_escaper.vcxproj">
       <Project>{91423FEC-8B3D-547B-2674-3740D83114B5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\future\library-threading-future.vcxproj">
-      <Project>{CF2582C4-C4A1-875F-6897-27B28FB8018A}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
       <Project>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</Project>

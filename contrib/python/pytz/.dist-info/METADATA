@@ -1,6 +1,6 @@
 Metadata-Version: 2.0
 Name: pytz
-Version: 2019.3
+Version: 2020.1
 Summary: World timezone definitions, modern and historical
 Home-page: http://pythonhosted.org/pytz
 Author: Stuart Bishop
@@ -77,6 +77,14 @@ If you are installing from a tarball, run the following command as an
 administrative user::
 
     python setup.py install
+
+
+pytz for Enterprise
+~~~~~~~~~~~~~~~~~~~
+
+Available as part of the Tidelift Subscription.
+
+The maintainers of pytz and thousands of other packages are working with Tidelift to deliver commercial support and maintenance for the open source dependencies you use to build your applications. Save time, reduce risk, and improve code health, while paying the maintainers of the exact dependencies you use. `Learn more. <https://tidelift.com/subscription/pkg/pypi-pytz?utm_source=pypi-pytz&utm_medium=referral&utm_campaign=enterprise&utm_term=repo>`_.
 
 
 Example & Usage
@@ -584,7 +592,13 @@ hosted there.
 Bugs, Feature Requests & Patches
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Bugs can be reported using `Launchpad <https://bugs.launchpad.net/pytz>`__.
+Bugs can be reported using `Launchpad Bugs <https://bugs.launchpad.net/pytz>`_.
+
+
+Security Issues
+~~~~~~~~~~~~~~~
+
+Reports about security issues can be made via `Tidelift <https://tidelift.com/security>`_.
 
 
 Issues & Limitations

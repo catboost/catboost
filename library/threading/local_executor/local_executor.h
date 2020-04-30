@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/threading/future/future.h>
+#include <library/cpp/threading/future/future.h>
 
 #include <util/generic/fwd.h>
 #include <util/generic/noncopyable.h>

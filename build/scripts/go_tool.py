@@ -176,7 +176,7 @@ def decode_vet_report(json_report):
 
 def dump_vet_report(args, report):
     if report:
-        report = report.replace(args.build_root, '$B')
+        report = report.replace(args.build_root[:-1], '$B')
         report = report.replace(args.arc_source_root, '$S')
     with open(args.vet_report_output, 'w') as f:
         f.write(report)
@@ -203,6 +203,7 @@ def do_vet(args):
     if args.vet_flags:
         cmd.extend(args.vet_flags)
     cmd.append(vet_config)
+    # print >>sys.stderr, '>>>> [{}]'.format(' '.join(cmd))
     p_vet = subprocess.Popen(cmd, stdin=None, stderr=subprocess.PIPE, stdout=subprocess.PIPE, cwd=args.build_root)
     vet_out, vet_err = p_vet.communicate()
     report = decode_vet_report(vet_out) if vet_out else ''
@@ -326,7 +327,15 @@ def do_link_exe(args):
         cmd += ['-importcfg', import_config_name]
     if args.link_flags:
         cmd += args.link_flags
-    cmd += ['-buildmode=exe', '-extld={}'.format(args.extld)]
+
+    if args.mode in ('exe', 'test'):
+        cmd.append('-buildmode=exe')
+    elif args.mode == 'dll':
+        cmd.append('-buildmode=c-shared')
+    else:
+        assert False, 'Unexpected mode: {}'.format(args.mode)
+    cmd.append('-extld={}'.format(args.extld))
+
     extldflags = []
     if args.extldflags is not None:
         filter_musl = None
@@ -546,9 +555,13 @@ def do_link_test(args):
                         return (i, elem)
                 assert False, 'Unreachable code'
 
-            idx, ydx_file_name = find_ydx_file_name(args.ydx_file, args.vet_flags)
-            xtest_ydx_file_name = '{}_xtest'.format(ydx_file_name)
-            args.vet_flags[idx] = xtest_ydx_file_name
+            idx, ydx_file_name = find_ydx_file_name(xtest_lib_args.ydx_file, xtest_lib_args.vet_flags)
+            if os.path.exists(ydx_file_name):
+                xtest_ydx_file_name = '{}_xtest'.format(ydx_file_name)
+                xtest_lib_args.vet_flags = copy.copy(xtest_lib_args.vet_flags)
+                xtest_lib_args.vet_flags[idx] = xtest_ydx_file_name
+            else:
+                need_append_ydx = False
         do_link_lib(xtest_lib_args)
         if need_append_ydx:
             with open(ydx_file_name, 'ab') as dst_file, open(xtest_ydx_file_name, 'rb') as src_file:
@@ -581,7 +594,7 @@ def do_link_test(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prefix_chars='+')
-    parser.add_argument('++mode', choices=['lib', 'exe', 'test'], required=True)
+    parser.add_argument('++mode', choices=['dll', 'exe', 'lib', 'test'], required=True)
     parser.add_argument('++srcs', nargs='*', required=True)
     parser.add_argument('++cgo-srcs', nargs='*')
     parser.add_argument('++test_srcs', nargs='*')
@@ -676,8 +689,9 @@ if __name__ == '__main__':
     # and as a result we are going to generate only one build node per module
     # (or program)
     dispatch = {
-        'lib': do_link_lib,
         'exe': do_link_exe,
+        'dll': do_link_exe,
+        'lib': do_link_lib,
         'test': do_link_test
     }
 

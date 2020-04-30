@@ -1,3 +1,7 @@
+ALLOW maps/infra/ratelimiter2/server -> maps/libs/deprecated/bson
+ALLOW maps/tools/grinder -> maps/libs/deprecated/bson
+ALLOW taxi/tools/dorblu -> maps/libs/deprecated/bson
+
 ALLOW maps/masstransit/info -> maps/libs/deprecated/mongo
 ALLOW taxi/tools/dorblu -> maps/libs/deprecated/mongo
 

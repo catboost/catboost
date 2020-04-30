@@ -9,7 +9,7 @@
 #include <util/system/hp_timer.h>
 #include <util/thread/lfqueue.h>
 #include <util/system/thread.h>
-#include <library/threading/future/future.h>
+#include <library/cpp/threading/future/future.h>
 #include <util/system/spinlock.h>
 #if !defined(_win_)
 #include <signal.h>

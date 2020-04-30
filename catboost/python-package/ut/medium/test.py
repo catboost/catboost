@@ -7837,3 +7837,18 @@ def test_quantize_unknown_param():
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     with pytest.raises(CatBoostError):
         pool.quantize(this_param_is_unknown=123)
+
+
+def test_iterate_leaf_indexes():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=2, learning_rate=.05, objective='Logloss')
+    model.fit(train_pool)
+    for _ in model.iterate_leaf_indexes(train_pool):
+        pass
+
+
+def test_plot_tree():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=2, learning_rate=.05, objective='Logloss')
+    model.fit(train_pool)
+    model.plot_tree(0)

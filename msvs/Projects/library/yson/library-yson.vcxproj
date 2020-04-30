@@ -78,15 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\yson\consumer.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\yson\json_writer.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\yson\lexer.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\yson\parser.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\yson\token.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\yson\tokenizer.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\yson\varint.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\yson\writer.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\yson\yson2json_adapter.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\yson\all.cpp"/>
     <ClInclude Include="$(SolutionDir)..\library\yson\consumer.h"/>
     <ClInclude Include="$(SolutionDir)..\library\yson\detail.h"/>
     <ClInclude Include="$(SolutionDir)..\library\yson\format.h"/>
@@ -120,6 +112,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yson\library-cpp-yson.vcxproj">
+      <Project>{D05A14C5-BA93-7AA3-1AB8-E62B001110D1}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\json\common\library-json-common.vcxproj">
       <Project>{3B322F11-1D2A-AEFE-BC14-4F74683E14DB}</Project>

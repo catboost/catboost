@@ -236,9 +236,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
       <Project>{E62EED19-EC2A-B4C3-0650-0923E4030E8B}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cgiparam\library-cgiparam.vcxproj">
-      <Project>{AF572C0E-2445-0F56-2E4F-8E4C656C4786}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\chromium_trace\library-chromium_trace.vcxproj">
       <Project>{9541389A-C448-428A-BEEE-604F1A02F5EA}</Project>
     </ProjectReference>
@@ -247,6 +244,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\ring_buffer\library-containers-ring_buffer.vcxproj">
       <Project>{A2C28480-F7EF-BB91-851E-44FEBBF8B8ED}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cgiparam\library-cpp-cgiparam.vcxproj">
+      <Project>{7D7BC687-C41D-BE31-16E6-D1EFDED414F9}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\2d_array\cpp-containers-2d_array.vcxproj">
       <Project>{245105A8-ED48-C3D9-83C3-D6894AA984B0}</Project>
@@ -274,6 +274,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\streams\lzma\cpp-streams-lzma.vcxproj">
       <Project>{A75DC6C1-858D-5097-8CB6-68A4A62E2D73}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yson\library-cpp-yson.vcxproj">
+      <Project>{D05A14C5-BA93-7AA3-1AB8-E62B001110D1}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\dns\library-dns.vcxproj">
       <Project>{8C356353-67D3-3399-7DA3-792F6D7BF6D5}</Project>

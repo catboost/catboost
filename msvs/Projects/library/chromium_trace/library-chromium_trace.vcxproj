@@ -134,6 +134,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\stack_vector\cpp-containers-stack_vector.vcxproj">
       <Project>{F5DBE463-173C-4593-95C1-EC1430946913}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yson\library-cpp-yson.vcxproj">
+      <Project>{D05A14C5-BA93-7AA3-1AB8-E62B001110D1}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\json\common\library-json-common.vcxproj">
       <Project>{3B322F11-1D2A-AEFE-BC14-4F74683E14DB}</Project>
     </ProjectReference>

@@ -5,6 +5,9 @@ RECURSE(
     accurate_accumulate/benchmark
     accurate_accumulate/benchmark/metrics
     archive/ut
+    cgiparam
+    cgiparam/fuzz
+    cgiparam/ut
     colorizer
     colorizer/ut
     containers
@@ -31,8 +34,12 @@ RECURSE(
     string_utils
     terminate_handler
     terminate_handler/sample
+    threading
     tokenizer
     tokenizer/ut
+    yson
+    yson/node
+    yson/node/pybind
 )
 
 IF (OS_LINUX)

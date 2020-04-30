@@ -8,7 +8,7 @@
 #include <library/json/json_value.h>
 #include <library/getopt/small/last_getopt.h>
 #include <library/threading/local_executor/local_executor.h>
-#include <library/threading/future/async.h>
+#include <library/cpp/threading/future/async.h>
 
 #include <util/system/info.h>
 #include <util/generic/algorithm.h>
