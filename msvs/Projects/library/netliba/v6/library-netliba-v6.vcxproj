@@ -140,6 +140,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\2d_array\cpp-containers-2d_array.vcxproj">
       <Project>{245105A8-ED48-C3D9-83C3-D6894AA984B0}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\url\cpp-string_utils-url.vcxproj">
+      <Project>{F67E22D5-1471-725B-CCA8-05EF8A940282}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\netliba\socket\library-netliba-socket.vcxproj">
       <Project>{F9056049-5115-AB7C-F09D-A4BCA92367DD}</Project>
     </ProjectReference>

@@ -1110,6 +1110,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\base64\cpp-string_utils-base64.vcxproj">
       <Project>A4764222-1478-DE04-CC5B-2369096E96BC</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\url\cpp-string_utils-url.vcxproj">
+      <Project>F67E22D5-1471-725B-CCA8-05EF8A940282</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\ztstrbuf\cpp-string_utils-ztstrbuf.vcxproj">
       <Project>688172E5-10D8-86DE-424B-EACBFC9BE1DA</Project>
     </ProjectReference>

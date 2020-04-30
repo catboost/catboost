@@ -158,6 +158,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\crc32c\cpp-digest-crc32c.vcxproj">
       <Project>{BAEF14A6-3BF3-DC3E-9335-9B6BF43917BC}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\url\cpp-string_utils-url.vcxproj">
+      <Project>{F67E22D5-1471-725B-CCA8-05EF8A940282}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\netliba\socket\library-netliba-socket.vcxproj">
       <Project>{F9056049-5115-AB7C-F09D-A4BCA92367DD}</Project>
     </ProjectReference>
