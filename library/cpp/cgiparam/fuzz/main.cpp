@@ -1,4 +1,4 @@
-#include <library/cgiparam/cgiparam.h>
+#include <library/cpp/cgiparam/cgiparam.h>
 
 extern "C" int LLVMFuzzerTestOneInput(const ui8* data, size_t size) {
     try {
