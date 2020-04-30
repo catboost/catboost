@@ -129,9 +129,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cgiparam\library-cgiparam.vcxproj">
-      <Project>{AF572C0E-2445-0F56-2E4F-8E4C656C4786}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cgiparam\library-cpp-cgiparam.vcxproj">
       <Project>{7D7BC687-C41D-BE31-16E6-D1EFDED414F9}</Project>
     </ProjectReference>
