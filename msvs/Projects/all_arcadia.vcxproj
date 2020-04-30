@@ -1041,6 +1041,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\archive\library-cpp-archive.vcxproj">
       <Project>784F4D3A-0D73-0E90-2CCD-EF41C31F84C8</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cgiparam\library-cpp-cgiparam.vcxproj">
+      <Project>7D7BC687-C41D-BE31-16E6-D1EFDED414F9</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\colorizer\library-cpp-colorizer.vcxproj">
       <Project>78881F22-8136-23DF-843E-58AA6DB6D337</Project>
     </ProjectReference>
