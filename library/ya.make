@@ -9,8 +9,6 @@ RECURSE(
     blockcodecs/ut
     build_info
     cgiparam
-    cgiparam/fuzz
-    cgiparam/ut
     charset
     charset/ut
     chromium_trace

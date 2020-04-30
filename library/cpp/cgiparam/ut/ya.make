@@ -1,4 +1,4 @@
-UNITTEST_FOR(library/cgiparam)
+UNITTEST_FOR(library/cpp/cgiparam)
 
 
 

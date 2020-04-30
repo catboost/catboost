@@ -5,6 +5,9 @@ RECURSE(
     accurate_accumulate/benchmark
     accurate_accumulate/benchmark/metrics
     archive/ut
+    cgiparam
+    cgiparam/fuzz
+    cgiparam/ut
     colorizer
     colorizer/ut
     containers
