@@ -5602,11 +5602,13 @@ cpdef _get_onnx_model(model, export_parameters):
         raise CatBoostError(
             "ONNX-ML export is available only for models on oblivious trees ")
 
-    cpdef TString result = ConvertTreeToOnnxProto(
+    cdef TString result = ConvertTreeToOnnxProto(
         dereference((<_CatBoost>model).__model),
         to_arcadia_string(export_parameters),
     )
-    return bytes(result)
+    cdef const char* result_ptr = result.c_str()
+    cdef size_t result_len = result.size()
+    return bytes(result_ptr[:result_len])
 
 include "_monoforest.pxi"
 include "_text_processing.pxi"

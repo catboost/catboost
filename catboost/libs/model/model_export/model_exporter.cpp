@@ -80,20 +80,22 @@ namespace NCB {
         out.Write(data);
     }
 
-    TString ConvertTreeToOnnxProto(
+    void SerializeFullModelToOnnxStream(
         const TFullModel& model,
-        const TString& userParametersJson) {
+        const TString& userParametersJson,
+        IOutputStream* oStream) {
 
-        onnx::ModelProto outModel;
         TStringInput is(userParametersJson);
         NJson::TJsonValue userParameters;
         NJson::ReadJsonTree(&is, &userParameters);
-
         CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "exporting ONNX model");
+
         CB_ENSURE(
             !model.HasCategoricalFeatures(),
             "ONNX-ML format export does yet not support categorical features"
         );
+
+        onnx::ModelProto outModel;
 
         NCB::NOnnx::InitMetadata(model, userParameters, &outModel);
 
@@ -106,38 +108,30 @@ namespace NCB {
 
         TString data;
         outModel.SerializeToString(&data);
+        oStream->Write(data);
+    }
+
+    TString ConvertTreeToOnnxProto(
+        const TFullModel& model,
+        const TString& userParametersJson) {
+
+        TString data;
+        TStringOutput res(data);
+
+        SerializeFullModelToOnnxStream(model, userParametersJson, &res);
+
         return data;
         }
 
     void OutputModelOnnx(
         const TFullModel& model,
         const TString& modelFile,
-        const NJson::TJsonValue& userParameters) {
-
+        const TString& userParametersJson) {
         /* TODO(akhropov): the problem with OneHotFeatures is that raw 'float' values
         * could be interpreted as nans so that equality comparison won't work for such splits
         */
-        CB_ENSURE(
-            !model.HasCategoricalFeatures(),
-            "ONNX-ML format export does yet not support categorical features"
-        );
-
-        onnx::ModelProto outModel;
-
-        NCB::NOnnx::InitMetadata(model, userParameters, &outModel);
-
-        TMaybe<TString> graphName;
-        if (userParameters.Has("onnx_graph_name")) {
-            graphName = userParameters["onnx_graph_name"].GetStringSafe();
-        }
-
-        NCB::NOnnx::ConvertTreeToOnnxGraph(model, graphName, outModel.mutable_graph());
-
-        TString data;
-        outModel.SerializeToString(&data);
-
         TOFStream out(modelFile);
-        out.Write(data);
+        SerializeFullModelToOnnxStream(model, userParametersJson, &out);
     }
 
     void ExportModel(
@@ -187,12 +181,7 @@ namespace NCB {
                 break;
             case EModelType::Onnx:
                 {
-                    TStringInput is(userParametersJson);
-                    NJson::TJsonValue params;
-                    NJson::ReadJsonTree(&is, &params);
-
-                    CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "exporting ONNX model");
-                    OutputModelOnnx(model, modelFileName, params);
+                    OutputModelOnnx(model, modelFileName, userParametersJson);
                 }
                 break;
             case EModelType::Pmml:
