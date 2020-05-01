@@ -38,7 +38,7 @@ ENDIF()
 PEERDIR(
     library/binsaver
     library/netliba/socket
-    library/string_utils/url
+    library/cpp/string_utils/url
     library/threading/atomic
     library/threading/mux_event
 )

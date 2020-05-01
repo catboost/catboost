@@ -7,5 +7,4 @@ RECURSE(
     relaxed_escaper
     relaxed_escaper/ut
     scan
-    url
 )

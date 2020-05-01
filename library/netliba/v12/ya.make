@@ -50,7 +50,7 @@ PEERDIR(
     library/cpp/digest/crc32c
     library/binsaver
     library/netliba/socket
-    library/string_utils/url
+    library/cpp/string_utils/url
 )
 
 END()
