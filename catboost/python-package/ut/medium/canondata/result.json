@@ -993,6 +993,10 @@
         "checksum": "0b7e2597de60f628bb79d1569a20dee6",
         "uri": "file://test.test_util_eval_metric_multiclass_MultiClass_/predictions.npy"
     },
+    "test.test_util_eval_metric_multiclass[PRAUC]": {
+        "checksum": "511f2ee527a207f3487739874d5e9b14",
+        "uri": "file://test.test_util_eval_metric_multiclass_PRAUC_/predictions.npy"
+    },
     "test.test_util_eval_metric_pairwise[PairAccuracy]": {
         "checksum": "9bdd42193bbc9b01a0f02a574e99db7c",
         "uri": "file://test.test_util_eval_metric_pairwise_PairAccuracy_/predictions.npy"

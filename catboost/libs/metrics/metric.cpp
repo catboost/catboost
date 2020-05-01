@@ -41,6 +41,7 @@
 #include <limits>
 #include <tuple>
 
+
 /* TMetric */
 
 static inline double OverflowSafeLogitProb(double approx) {
@@ -3381,14 +3382,14 @@ void TMAPKMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 /* Precision-Recall AUC */
 
 namespace {
-    struct TPrecisionRecallAUCMetric : public TNonAdditiveMetric {
-        explicit TPrecisionRecallAUCMetric(int positiveClass)
+    struct TPRAUCMetric : public TNonAdditiveMetric {
+        explicit TPRAUCMetric(int positiveClass)
             : PositiveClass(positiveClass), IsMultiClass(true) {
-            UseWeights.MakeIgnored();
+            UseWeights.SetDefaultValue(false);
         }
 
-        explicit TPrecisionRecallAUCMetric() {
-            UseWeights.MakeIgnored();
+        explicit TPRAUCMetric() {
+            UseWeights.SetDefaultValue(false);
         }
 
         TMetricHolder Eval(
@@ -3420,20 +3421,20 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeMultiClassPrecisionRecallAUCMetric(int positiveClass) {
-    return MakeHolder<TPrecisionRecallAUCMetric>(positiveClass);
+THolder<IMetric> MakeMultiClassPRAUCMetric(int positiveClass) {
+    return MakeHolder<TPRAUCMetric>(positiveClass);
 }
 
-THolder<IMetric> MakeBinClassPrecisionRecallAUCMetric() {
-    return MakeHolder<TPrecisionRecallAUCMetric>();
+THolder<IMetric> MakeBinClassPRAUCMetric() {
+    return MakeHolder<TPRAUCMetric>();
 }
 
-TMetricHolder TPrecisionRecallAUCMetric::Eval(
+TMetricHolder TPRAUCMetric::Eval(
     const TVector<TVector<double>>& approx,
     const TVector<TVector<double>>& approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
-    TConstArrayRef<float> /*weight*/,
+    TConstArrayRef<float> weight,
     TConstArrayRef<TQueryInfo> /*queriesInfo*/,
     int begin,
     int end,
@@ -3448,24 +3449,41 @@ TMetricHolder TPrecisionRecallAUCMetric::Eval(
 
     int elemCount = end - begin;
     
-    TVector<std::pair<double, float>> approxWithTarget;
-    approxWithTarget.reserve(elemCount);
+    struct Sample {
+        double approx;
+        float target;
+        float weight;
+    };
+
+    TVector<Sample> sortedSamples;
+    sortedSamples.reserve(elemCount);
 
     const auto realApprox = [&](int idx) {
         return approx[IsMultiClass ? PositiveClass : 0][idx]
         + (approxDelta.empty() ? 0.0 : approxDelta[IsMultiClass ? PositiveClass : 0][idx]);
     };
+    const auto realWeight = [&](int idx) {
+        return UseWeights && !weight.empty() ? weight[idx] : 1.0f;
+    };
 
     for (int i = begin; i < end; ++i) {
-        approxWithTarget.emplace_back(realApprox(i), target[i]);
+        sortedSamples.push_back({realApprox(i), target[i], realWeight(i)});
     }
     
-    std::sort(approxWithTarget.begin(), approxWithTarget.end());
+    std::sort(sortedSamples.begin(), sortedSamples.end(), [](const Sample& l, const Sample& r) {return l.approx < r.approx;});
 
     int curNegCount = 0;
-    int curTp = std::count(target.begin(), target.end(), PositiveClass);
-    int curFp = elemCount - curTp;
-    int curFn = 0;
+    double curTp = 0;
+    double curFp = 0;
+    double curFn = 0;
+
+    for (size_t i = 0; i < target.size(); ++i) {
+        if (sortedSamples[i].target == PositiveClass) {
+            curTp += sortedSamples[i].weight;
+        } else {
+            curFp += sortedSamples[i].weight;
+        }
+    }
 
     CB_ENSURE(curTp > 0, "No element of a positive class");
 
@@ -3478,7 +3496,7 @@ TMetricHolder TPrecisionRecallAUCMetric::Eval(
     };
 
     while (curNegCount <= elemCount) {
-        double precision = (curTp == 0 && curFp == 0) ? 1 : curTp / (curTp + curFp + 0.0); 
+        double precision = (curTp == 0 && curFp == 0) ? 1 : curTp / (curTp + curFp + 0.0);
         double recall = curTp / (curTp + curFn + 0.0);
 
         auc += (prevRecall - recall) * (prevPrecision + precision) / 2;
@@ -3488,18 +3506,19 @@ TMetricHolder TPrecisionRecallAUCMetric::Eval(
 
         auto moveOneBorder = [&]() {
             if (curNegCount < elemCount) {
-                if (approxWithTarget[curNegCount].second == PositiveClass) {
-                    --curTp;
-                    ++curFn;  
+                auto curWeight = sortedSamples[curNegCount].weight;
+                if (sortedSamples[curNegCount].target == PositiveClass) {
+                    curTp -= curWeight;
+                    curFn += curWeight;  
                 } else {
-                    --curFp;
+                    curFp -= curWeight;
                 }
             }
             ++curNegCount;
         };
         
         moveOneBorder();
-        while (curNegCount < elemCount && isApproxesEqual(approxWithTarget[curNegCount - 1].first, approxWithTarget[curNegCount].first)) {
+        while (curNegCount < elemCount && isApproxesEqual(sortedSamples[curNegCount - 1].approx, sortedSamples[curNegCount].approx)) {
             moveOneBorder();
         }
     }
@@ -3507,11 +3526,11 @@ TMetricHolder TPrecisionRecallAUCMetric::Eval(
     return error;
 }
 
-TString TPrecisionRecallAUCMetric::GetDescription() const {
-    return ToString(ELossFunction::PrecisionRecallAUC);
+TString TPRAUCMetric::GetDescription() const {
+    return ToString(ELossFunction::PRAUC);
 }
 
-void TPrecisionRecallAUCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TPRAUCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
 
@@ -4341,12 +4360,12 @@ static TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<T
         case ELossFunction::MSLE:
             result.push_back(MakeMSLEMetric());
             break;
-        case ELossFunction::PrecisionRecallAUC:
+        case ELossFunction::PRAUC:
             if (approxDimension == 1) {
-                result.push_back(MakeBinClassPrecisionRecallAUCMetric());
+                result.push_back(MakeBinClassPRAUCMetric());
             } else {
                 for (int i : xrange(approxDimension)) {
-                    result.push_back(MakeMultiClassPrecisionRecallAUCMetric(i));
+                    result.push_back(MakeMultiClassPRAUCMetric(i));
                 }
             }
             break;
