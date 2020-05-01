@@ -8,7 +8,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/string_utils/quote
+    library/cpp/string_utils/quote
     library/string_utils/scan
 )
 

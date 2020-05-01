@@ -1,7 +1,7 @@
 #include "cgiparam.h"
 
 #include <library/string_utils/scan/scan.h>
-#include <library/string_utils/quote/quote.h>
+#include <library/cpp/string_utils/quote/quote.h>
 
 #include <util/generic/singleton.h>
 
