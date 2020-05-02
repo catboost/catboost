@@ -161,13 +161,6 @@ bool UncaughtException() noexcept;
         }                                        \
     } while (false)
 
-#define Y_ENSURE_EX_T(CONDITION, THROW_EXPRESSION) \
-    do {                                           \
-        if (Y_UNLIKELY(!(CONDITION))) {            \
-            throw THROW_EXPRESSION;                \
-        }                                          \
-    } while (false)
-
 /// @def Y_ENSURE_SIMPLE
 /// This macro works like the Y_ENSURE, but requires the second argument to be a constant string view.
 /// Should not be used directly.
