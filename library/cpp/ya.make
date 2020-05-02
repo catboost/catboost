@@ -30,6 +30,10 @@ RECURSE(
     grid_creator/fuzz
     grid_creator/ut
     malloc
+    lfalloc
+    lfalloc/dbg
+    lfalloc/dbg_info
+    lfalloc/yt
     on_disk
     pop_count
     pop_count/benchmark

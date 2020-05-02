@@ -2,7 +2,7 @@
 
 #include "stackcollect.h"
 
-#include <library/lfalloc/dbg_info/dbg_info.h>
+#include <library/cpp/lfalloc/dbg_info/dbg_info.h>
 
 #include <util/generic/noncopyable.h>
 #include <util/stream/output.h>

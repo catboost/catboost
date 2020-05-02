@@ -52,10 +52,6 @@ RECURSE(
     langs/ut
     lcs
     lcs/ut
-    lfalloc
-    lfalloc/dbg
-    lfalloc/dbg_info
-    lfalloc/yt
     linear_regression
     linear_regression/benchmark
     linear_regression/ut

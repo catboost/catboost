@@ -1,4 +1,4 @@
-UNITTEST_FOR(library/lfalloc/alloc_profiler)
+UNITTEST_FOR(library/cpp/lfalloc/alloc_profiler)
 
 
 
