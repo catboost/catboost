@@ -1,3 +1,3 @@
 #pragma once
 
-#include <library/getopt/small/opt2.h>
+#include <library/cpp/getopt/opt2.h>

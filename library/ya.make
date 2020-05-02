@@ -33,9 +33,7 @@ RECURSE(
     fast_exp/ut
     fast_log
     getopt
-    getopt/last_getopt_demo
     getopt/small
-    getopt/ut
     http
     json
     json/flex_buffers

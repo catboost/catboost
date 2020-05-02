@@ -1,4 +1,4 @@
-UNITTEST_FOR(library/getopt)
+UNITTEST_FOR(library/cpp/getopt)
 
 
 

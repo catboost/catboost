@@ -3,7 +3,7 @@ PROGRAM(last_getopt_demo)
 
 
 PEERDIR(
-    library/getopt
+    library/cpp/getopt
 )
 
 SRCS(

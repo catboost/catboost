@@ -25,12 +25,12 @@ namespace NLastGetopt {
     static const TStringBuf SPad = AsStringBuf("  ");
 
     void PrintVersionAndExit(const TOptsParser*) {
-        Cout << (NLastGetoptPrivate::VersionString() ? NLastGetoptPrivate::VersionString() : "program version: not linked with library/getopt") << Endl;
+        Cout << (NLastGetoptPrivate::VersionString() ? NLastGetoptPrivate::VersionString() : "program version: not linked with library/cpp/getopt") << Endl;
         exit(NLastGetoptPrivate::VersionString().empty());
     }
 
     void PrintShortVersionAndExit(const TString& appName) {
-        Cout << appName << " version " << (NLastGetoptPrivate::ShortVersionString() ? NLastGetoptPrivate::ShortVersionString() : "not linked with library/getopt") << Endl;
+        Cout << appName << " version " << (NLastGetoptPrivate::ShortVersionString() ? NLastGetoptPrivate::ShortVersionString() : "not linked with library/cpp/getopt") << Endl;
         exit(NLastGetoptPrivate::ShortVersionString().empty());
     }
 

@@ -1,4 +1,4 @@
-#include <library/getopt/posix_getopt.h>
+#include <library/cpp/getopt/posix_getopt.h>
 
 #include <library/unittest/registar.h>
 

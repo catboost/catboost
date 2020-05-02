@@ -1,4 +1,4 @@
-#include <library/getopt/opt.h>
+#include <library/cpp/getopt/opt.h>
 
 #include <library/unittest/registar.h>
 #include <util/string/vector.h>

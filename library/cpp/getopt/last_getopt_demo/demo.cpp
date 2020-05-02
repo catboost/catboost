@@ -1,5 +1,5 @@
-#include <library/getopt/last_getopt.h>
-#include <library/getopt/modchooser.h>
+#include <library/cpp/getopt/last_getopt.h>
+#include <library/cpp/getopt/modchooser.h>
 #include <library/cpp/colorizer/colors.h>
 
 // For the sake of this example, let's implement Wget
@@ -158,7 +158,7 @@ protected:
         opts.AddSection(
             "Description",
 
-            "LastGetoptDemo is a showcase of library/getopt capabilities. It mimics interface of Wget "
+            "LastGetoptDemo is a showcase of library/cpp/getopt capabilities. It mimics interface of Wget "
             "but doesn't actually do anything."
             "\n\n"
             "GNU Wget, on the other hand, is a free utility for non-interactive download of files from the Web."

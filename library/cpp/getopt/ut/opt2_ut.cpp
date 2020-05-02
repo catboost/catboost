@@ -1,4 +1,4 @@
-#include <library/getopt/opt2.h>
+#include <library/cpp/getopt/opt2.h>
 
 #include <library/unittest/registar.h>
 

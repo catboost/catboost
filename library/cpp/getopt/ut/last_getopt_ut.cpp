@@ -1,4 +1,4 @@
-#include <library/getopt/last_getopt.h>
+#include <library/cpp/getopt/last_getopt.h>
 
 #include <library/cpp/colorizer/colors.h>
 #include <library/unittest/registar.h>
