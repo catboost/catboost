@@ -78,7 +78,6 @@ RECURSE(
     python
     resource
     resource/ut
-    sse
     statistics
     statistics/ut
     string_utils
@@ -110,7 +109,7 @@ IF (OS_WINDOWS)
 )
 ELSE()
     RECURSE(
-    sse/ut
+    
 )
 ENDIF()
 

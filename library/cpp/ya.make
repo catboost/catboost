@@ -34,6 +34,7 @@ RECURSE(
     pop_count
     pop_count/benchmark
     pop_count/ut
+    sse
     streams
     string_utils
     terminate_handler
@@ -58,6 +59,6 @@ IF (OS_WINDOWS)
 )
 ELSE()
     RECURSE(
-    
+    sse/ut
 )
 ENDIF()

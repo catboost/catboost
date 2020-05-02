@@ -1,4 +1,4 @@
-UNITTEST_FOR(library/sse)
+UNITTEST_FOR(library/cpp/sse)
 
 
 

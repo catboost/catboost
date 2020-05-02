@@ -15,7 +15,7 @@
 #include <limits>
 #include <type_traits>
 
-#include <library/sse/sse.h>
+#include <library/cpp/sse/sse.h>
 
 namespace NCB::NModelEvaluation {
 
