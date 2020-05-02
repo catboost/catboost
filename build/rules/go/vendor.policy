@@ -428,6 +428,9 @@ ALLOW .* -> vendor/gopkg.in/tucnak/telebot.v2
 # CONTRIB-1726 helpers for working with protobuf field masks
 ALLOW .* -> vendor/github.com/mennanov/fieldmask-utils
 
+# CONTRIB-1810 Fast directory traversal for Golang
+ALLOW .* -> vendor/github.com/karrick/godirwalk
+
 #
 # Temporary exceptions.
 #
