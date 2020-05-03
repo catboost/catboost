@@ -275,12 +275,11 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     TRestorableFastRng64 rand(0);
     auto targetData = CreateModelCompatibleProcessedDataProvider(dataset, {metricDescription}, model, GetMonopolisticFreeCpuRam(), &rand, localExecutor).TargetData;
     CB_ENSURE(targetData->GetTargetDimension() <= 1, "Multi-dimensional target fstr is unimplemented yet");
-    TShapPreparedTrees preparedTrees = PrepareTrees(model, &dataset, EPreCalcShapValues::Auto, localExecutor, true,
-            calcType);
+    TShapPreparedTrees preparedTrees = PrepareTrees(model, &dataset, /*referenceDataset*/ nullptr, EPreCalcShapValues::Auto, calcType,
+        EModelOutputType::Raw, localExecutor, true);
     CalcShapValuesByLeaf(
         model,
         /*fixedFeatureParams*/ Nothing(),
-        /*calcType*/ ECalcTypeShapValues::TreeSHAP,
         /*logPeriod*/ 0,
         preparedTrees.CalcInternalValues,
         localExecutor,
@@ -704,7 +703,6 @@ TVector<TVector<double>> GetFeatureImportances(
     const TFullModel& model,
     const TDataProviderPtr dataset, // can be nullptr
     const TDataProviderPtr referenceDataset, // can be nullptr
-    ECalcTypeShapValues calcType,
     int threadCount,
     EPreCalcShapValues mode,
     int logPeriod,
@@ -759,7 +757,6 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
     const TFullModel& model,
     const TDataProviderPtr dataset,
     const TDataProviderPtr referenceDataset, // can be nullptr
-    ECalcTypeShapValues calcType,
     int threadCount,
     EPreCalcShapValues mode,
     int logPeriod,

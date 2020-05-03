@@ -561,11 +561,10 @@ TInteractionValuesFull CalcShapInteractionValuesMulti(
         &dataset,
         /*referenceDataset*/ nullptr,
         mode,
-        /*calcType*/ ECalcTypeShapValues::TreeSHAP,
+        /*calcType*/ ECalcTypeShapValues::Regular,
         /*modelOutputType*/ EModelOutputType::Raw,
         localExecutor,
-        /*calcInternalValues*/ true,
-        calcType
+        /*calcInternalValues*/ true
     );
     TInteractionValuesFull shapInteractionValues;
     if (pairOfFeatures.Defined()) {

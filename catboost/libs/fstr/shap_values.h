@@ -41,7 +41,6 @@ void CalcShapValuesForDocumentMulti(
     const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     int flatFeatureCount,
     TConstArrayRef<NCB::NModelEvaluation::TCalcerIndexType> docIndices,
-    ECalcTypeShapValues calcType,
     size_t documentIdxInBlock,
     TVector<TVector<double>>* shapValues,
     ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular,
@@ -62,7 +61,6 @@ void CalcShapValuesForDocumentMulti(
 void CalcShapValuesByLeaf(
     const TFullModel& model,
     const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
-    ECalcTypeShapValues calcType,
     int logPeriod,
     bool calcInternalValues,
     NPar::TLocalExecutor* localExecutor,

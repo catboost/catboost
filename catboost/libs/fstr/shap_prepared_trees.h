@@ -75,6 +75,7 @@ struct TShapPreparedTrees {
     bool CalcInternalValues;
     TVector<double> LeafWeightsForAllTrees;
     TVector<TVector<TVector<double>>> SubtreeWeightsForAllTrees;
+    TVector<TVector<TVector<TVector<double>>>> SubtreeValuesForAllTrees;
     TMaybe<TIndependentTreeShapParams> IndependentTreeShapParams;
 
 public:

@@ -1365,7 +1365,6 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         const TFullModel& model,
         const TDataProviderPtr dataset,
         const TDataProviderPtr referenceDataset,
-        ECalcTypeShapValues calcType,
         int threadCount,
         EPreCalcShapValues mode,
         int logPeriod,
@@ -1378,7 +1377,6 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         const TFullModel& model,
         const TDataProviderPtr dataset,
         const TDataProviderPtr referenceDataset,
-        ECalcTypeShapValues calcType,
         int threadCount,
         EPreCalcShapValues mode,
         int logPeriod,
@@ -4604,13 +4602,7 @@ cdef class _CatBoost:
         if pool:
             dataProviderPtr = pool.__pool
 
-        cdef ECalcTypeShapValues calc_type_shap_values
-        TryFromString[ECalcTypeShapValues](to_arcadia_string("TreeSHAP"), calc_type_shap_values)
         cdef TDataProviderPtr referenceDataProviderPtr
-        if reference_data:
-            referenceDataProviderPtr = reference_data.__pool
-            TryFromString[ECalcTypeShapValues](to_arcadia_string("IndependentTreeSHAP"), calc_type_shap_values)
-
         cdef EFstrType fstr_type = string_to_fstr_type(type_name)
         cdef EPreCalcShapValues shap_mode = string_to_shap_mode(shap_mode_name)
         cdef EModelOutputType model_output = string_to_model_output(model_output_name)
@@ -4619,6 +4611,9 @@ cdef class _CatBoost:
         if shap_calc_type == 'Exact':
             assert dereference(self.__model).IsOblivious(), "'Exact' calculation type is supported only for symmetric trees."
         cdef ECalcTypeShapValues calc_type = string_to_calc_type(shap_calc_type)
+        if reference_data:
+            referenceDataProviderPtr = reference_data.__pool
+            TryFromString[ECalcTypeShapValues](to_arcadia_string("Independent"), calc_type)
 
         if type_name == 'ShapValues' and dereference(self.__model).GetDimensionsCount() > 1:
             with nogil:
@@ -4627,7 +4622,6 @@ cdef class _CatBoost:
                     dereference(self.__model),
                     dataProviderPtr,
                     referenceDataProviderPtr,
-                    calc_type_shap_values,
                     thread_count,
                     shap_mode,
                     verbose,
@@ -4662,7 +4656,6 @@ cdef class _CatBoost:
                     dereference(self.__model),
                     dataProviderPtr,
                     referenceDataProviderPtr,
-                    calc_type_shap_values,
                     thread_count,
                     shap_mode,
                     verbose,
