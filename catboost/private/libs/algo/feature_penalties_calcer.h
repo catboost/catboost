@@ -12,6 +12,7 @@ class TFold;
 
 namespace NCB {
     void AddFeaturePenaltiesToBestSplits(
+        const TVector<TIndexType>& leaves,
         const TLearnContext& ctx,
         const TTrainingDataProviders& trainingData,
         const TFold& fold,

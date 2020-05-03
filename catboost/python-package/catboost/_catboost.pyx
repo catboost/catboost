@@ -5535,6 +5535,9 @@ cpdef _check_train_params(dict params):
         del params_to_check['feature_weights']
     if 'first_feature_use_penalties' in params_to_check:
         del params_to_check['first_feature_use_penalties']
+    if 'per_object_feature_penalties' in params_to_check:
+        del params_to_check['per_object_feature_penalties']
+
 
     prep_params = _PreprocessParams(params_to_check)
     CheckFitParams(
