@@ -8,36 +8,26 @@ void CalcIndependentTreeShapValuesByLeafForTreeBlock(
     const TIndependentTreeShapParams& independentTreeShapParams,
     const TVector<int>& binFeatureCombinationClass,
     const TVector<TVector<int>>& combinationClassFeatures,
-    bool calcInternalValues,
     size_t treeIdx,
     TVector<TVector<TVector<TVector<double>>>>* shapValueByDepthForLeaf
 );
-/*
-void IndependentTreeShap(
-    const TFullModel& model,
-    const TShapPreparedTrees& preparedTrees,
-    TConstArrayRef<NCB::NModelEvaluation::TCalcerIndexType> docIndexes,
-    size_t documentIdx,
-    TVector<TVector<double>>* shapValues
-);
-*/
 
 void PostProcessingIndependent(
     const TIndependentTreeShapParams& independentTreeShapParams,
     const TVector<TVector<TVector<double>>>& shapValuesForAllReferences,
+    const TVector<TVector<int>>& combinationClassFeatures,
     size_t approxDimension,
-    size_t featureCount,
+    size_t flatFeatureCount,
     size_t documentIdx,
+    bool calcInternalValues,
     double bias,
     TVector<TVector<double>>* shapValues  
 );
 
-void SetValuesToShapValuesByAllReferences(
+void AddValuesToShapValuesByAllReferences(
     const TVector<TVector<TVector<double>>>& shapValueByDepthForLeaf,
-    const TVector<TVector<ui32>>& referenceIndices,
     const TVector<NCB::NModelEvaluation::TCalcerIndexType>& referenceLeafIndices,
-    size_t leafCount,
-    bool isCalcForAllLeaves,
+    const TVector<int>& binFeatureCombinationClassByDepth,
     TVector<TVector<TVector<double>>>* shapValuesForAllReferences
 );
 
@@ -47,10 +37,8 @@ void CalcObliviousShapValuesByDepthForLeaf(
     const TVector<int>& binFeatureCombinationClass,
     const TVector<TVector<int>>& combinationClassFeatures,
     const TVector<TVector<double>>& weights,
-    size_t flatFeatureCount,
     size_t documentLeafIdx,
     size_t treeIdx,
     bool isCalcForAllLeafes,
-    bool calcInternalValues,
     TVector<TVector<TVector<double>>>* shapValueByDepthBetweenLeaves
 );

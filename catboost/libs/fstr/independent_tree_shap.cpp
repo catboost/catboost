@@ -188,43 +188,33 @@ TContribution TInternalIndependentTreeShapCalcer::Calc(
 
 static void AddValuesToShapValuesByReference(
     const TVector<TVector<double>>& shapValueByDepthForLeaf,
+    const TVector<int>& binFeatureCombinationClassByDepth,
     TVector<TVector<double>>* shapValuesByReference
 ) {
     for (size_t dimension = 0; dimension < shapValueByDepthForLeaf.size(); ++dimension) {
         TConstArrayRef<double> shapValueByDepthForLeafRef = MakeConstArrayRef(shapValueByDepthForLeaf[dimension]);
         TArrayRef<double> shapValuesByReferenceRef = MakeArrayRef((*shapValuesByReference)[dimension]);
-        for (size_t featureIdx = 0; featureIdx < shapValueByDepthForLeafRef.size(); ++featureIdx) {
-            shapValuesByReferenceRef[featureIdx] += shapValueByDepthForLeafRef[featureIdx];
+        for (int depth = 0; depth < (int)shapValueByDepthForLeafRef.size() - 1; ++depth) {
+            const auto featureIdx = binFeatureCombinationClassByDepth[depth];
+            shapValuesByReferenceRef[featureIdx] += shapValueByDepthForLeafRef[depth];
         }
+        // add mean values
+        shapValuesByReferenceRef.back() += shapValueByDepthForLeafRef.back();
     }
 }
 
-void SetValuesToShapValuesByAllReferences(
+void AddValuesToShapValuesByAllReferences(
     const TVector<TVector<TVector<double>>>& shapValueByDepthForLeaf,
-    const TVector<TVector<ui32>>& referenceIndices,
     const TVector<NCB::NModelEvaluation::TCalcerIndexType>& referenceLeafIndices,
-    size_t leafCount,
-    bool isCalcForAllLeaves,
+    const TVector<int>& binFeatureCombinationClassByDepth,
     TVector<TVector<TVector<double>>>* shapValuesForAllReferences
 ) {
-    if (isCalcForAllLeaves) {
-        for (size_t leafIdx = 0; leafIdx < leafCount; ++leafIdx) {
-            const auto& references = referenceIndices[leafIdx];
-            for (size_t idx = 0; idx < references.size(); ++idx) {
-                const size_t referenceIdx = references[idx];
-                AddValuesToShapValuesByReference(
-                    shapValueByDepthForLeaf[leafIdx],
-                    &shapValuesForAllReferences->at(referenceIdx)
-                );
-            }
-        }
-    } else {
-        for (size_t referenceIdx = 0; referenceIdx < referenceLeafIndices.size(); ++referenceIdx) {
-            AddValuesToShapValuesByReference(
-                shapValueByDepthForLeaf[referenceLeafIndices[referenceIdx]],
-                &shapValuesForAllReferences->at(referenceIdx)
-            );
-        }
+    for (size_t referenceIdx = 0; referenceIdx < referenceLeafIndices.size(); ++referenceIdx) {
+        AddValuesToShapValuesByReference(
+            shapValueByDepthForLeaf[referenceLeafIndices[referenceIdx]],
+            binFeatureCombinationClassByDepth,
+            &shapValuesForAllReferences->at(referenceIdx)
+        );
     }
 }
 
@@ -240,6 +230,7 @@ static inline ui64 GetBinomialCoeffient(ui64 n, ui64 k) {
     return binomialCoefficient; 
 }
 
+/*
 static void UnpackInternalShapsByDepth(
     const TVector<TVector<double>>& shapValuesInternal, // [depth][dim]
     const TVector<TVector<int>>& combinationClassFeatures,
@@ -281,6 +272,7 @@ static void UnpackShapsByDepth(
     }
 }
 
+
 static TVector<TVector<double>> GetShapValuesByFeatures(
     const TVector<TVector<double>>& shapValuesInternalByDepth, // [depth][dim]
     const TVector<TVector<int>>& combinationClassFeatures,
@@ -314,6 +306,7 @@ static TVector<TVector<double>> GetShapValuesByFeatures(
     shapValues.back() = shapValuesInternalByDepth.back();
     return shapValues;
 }
+*/
 
 static TVector<TVector<double>> SwapFeatureAndDimensionAxes(const TVector<TVector<double>>& shapValues) {
     const size_t featureCount = shapValues.size();
@@ -328,34 +321,15 @@ static TVector<TVector<double>> SwapFeatureAndDimensionAxes(const TVector<TVecto
     return swapedShapValues;
 }
 
-static inline TVector<int> GetBinFeatureCombinationClassByDepth(
-    const TModelTrees& forest,
-    const TVector<int>& binFeatureCombinationClass,
-    size_t treeIdx
-) {
-    const size_t depthOfTree = forest.GetTreeSizes()[treeIdx];
-    TVector<int> binFeatureCombinationClassByDepth(depthOfTree);
-    for (size_t depth = 0; depth < depthOfTree; ++depth) {
-		const size_t remainingDepth = depthOfTree - depth - 1;
-        const int combinationClass = binFeatureCombinationClass[
-            forest.GetTreeSplits()[forest.GetTreeStartOffsets()[treeIdx] + remainingDepth]
-        ];
-        binFeatureCombinationClassByDepth[depth] = combinationClass;
-    }
-    return binFeatureCombinationClassByDepth;
-}
-
 void CalcObliviousShapValuesByDepthForLeaf(
     const TModelTrees& forest,
     const TVector<NCB::NModelEvaluation::TCalcerIndexType>& referenceLeafIndices,
     const TVector<int>& binFeatureCombinationClass,
     const TVector<TVector<int>>& combinationClassFeatures,
     const TVector<TVector<double>>& weights,
-    size_t flatFeatureCount,
     size_t documentLeafIdx,
     size_t treeIdx,
     bool isCalcForAllLeafes,
-    bool calcInternalValues,
     TVector<TVector<TVector<double>>>* shapValueByDepthBetweenLeaves
 ) {
     const auto& binFeatureCombinationClassByDepth =
@@ -380,15 +354,7 @@ void CalcObliviousShapValuesByDepthForLeaf(
         };
         calcerIntenalShaps.Calc();
 
-        shapValueByDepthBetweenLeaves->at(leafIdx) = SwapFeatureAndDimensionAxes(
-            GetShapValuesByFeatures(
-                shapValueInternalBetweenLeaves,
-                combinationClassFeatures,
-                binFeatureCombinationClassByDepth,
-                flatFeatureCount,
-                calcInternalValues
-            )
-        );
+        shapValueByDepthBetweenLeaves->at(leafIdx) = SwapFeatureAndDimensionAxes(shapValueInternalBetweenLeaves);
     }
 }
 
@@ -419,15 +385,36 @@ static inline double GetTransformData(
     }
 }
 
+static void UnpackInternalShapsForDocumentOneDimension(
+    const TVector<double>& shapValuesInternal,
+    const TVector<TVector<int>>& combinationClassFeatures,
+    TVector<double>* shapValues
+) {
+    if (shapValuesInternal.empty()) {
+        return;
+    }
+    for (int classIdx : xrange(combinationClassFeatures.ysize())) {
+        const TVector<int> &flatFeatures = combinationClassFeatures[classIdx];
+        double coefficient = flatFeatures.size();
+        double addValue = shapValuesInternal[classIdx] / coefficient;
+        for (int flatFeatureIdx : flatFeatures) {
+            (*shapValues)[flatFeatureIdx] += addValue;
+        }
+    }
+}
+
 void PostProcessingIndependent(
     const TIndependentTreeShapParams& independentTreeShapParams,
     const TVector<TVector<TVector<double>>>& shapValuesForAllReferences,
+    const TVector<TVector<int>>& combinationClassFeatures,
     size_t approxDimension,
-    size_t featureCount,
+    size_t flatFeatureCount,
     size_t documentIdx,
+    bool calcInternalValues,
     double bias,
     TVector<TVector<double>>* shapValues  
 ) {
+    const size_t featureCount = calcInternalValues ? combinationClassFeatures.size() : flatFeatureCount;
     const size_t referenceCount = independentTreeShapParams.ReferenceLeafIndicesForAllTrees[0].size();
     EModelOutputType modelOutputType = independentTreeShapParams.ModelOutputType;
     const bool isNotRawOutputType = (EModelOutputType::Raw != modelOutputType);
@@ -443,7 +430,19 @@ void PostProcessingIndependent(
         const double targetOfDocument = targetOfDataset[dimension][documentIdx];
         const double transformedTargetOfDocument = transformedTargetOfDataset[dimension][documentIdx];
         for (size_t referenceIdx = 0; referenceIdx < referenceCount; ++referenceIdx) {
-            TConstArrayRef<double> shapValueOneDimension = MakeConstArrayRef(shapValuesForAllReferences[referenceIdx][dimension]);
+            TVector<double> shapValueOneDimension;
+            if (calcInternalValues) {
+                shapValueOneDimension = std::move(shapValuesForAllReferences[referenceIdx][dimension]);
+            } else {
+                shapValueOneDimension.resize(flatFeatureCount + 1);
+                UnpackInternalShapsForDocumentOneDimension(
+                    shapValuesForAllReferences[referenceIdx][dimension],
+                    combinationClassFeatures,
+                    &shapValueOneDimension
+                );
+                // set mean value
+                shapValueOneDimension.back() = shapValuesForAllReferences[referenceIdx][dimension].back();
+            }
             double rescaleCoefficient = referenceCount;
             double transformedCoeffient = 1.0;
             if (isNotRawOutputType && approxOfDocument != approxOfReferenceDatasetRef[referenceIdx]) {
@@ -605,7 +604,6 @@ void CalcIndependentTreeShapValuesByLeafForTreeBlock(
     const TIndependentTreeShapParams& independentTreeShapParams,
     const TVector<int>& binFeatureCombinationClass,
     const TVector<TVector<int>>& combinationClassFeatures,
-    bool calcInternalValues,
     size_t treeIdx,
     TVector<TVector<TVector<TVector<double>>>>* shapValueByDepthForLeaf
 ) {
@@ -619,11 +617,9 @@ void CalcIndependentTreeShapValuesByLeafForTreeBlock(
             binFeatureCombinationClass,
             combinationClassFeatures,
             independentTreeShapParams.Weights,
-            independentTreeShapParams.FlatFeatureCount,
             leafIdx,
             treeIdx,
             independentTreeShapParams.IsCalcForAllLeafesForAllTrees[treeIdx],
-            calcInternalValues,
             &shapValueByDepthBetweenLeaves
         );
     }

@@ -114,3 +114,20 @@ void CheckNonZeroApproxForZeroWeightLeaf(const TFullModel& model) {
         }
     }
 }
+
+TVector<int> GetBinFeatureCombinationClassByDepth(
+    const TModelTrees& forest,
+    const TVector<int>& binFeatureCombinationClass,
+    size_t treeIdx
+) {
+    const size_t depthOfTree = forest.GetTreeSizes()[treeIdx];
+    TVector<int> binFeatureCombinationClassByDepth(depthOfTree);
+    for (size_t depth = 0; depth < depthOfTree; ++depth) {
+		const size_t remainingDepth = depthOfTree - depth - 1;
+        const int combinationClass = binFeatureCombinationClass[
+            forest.GetTreeSplits()[forest.GetTreeStartOffsets()[treeIdx] + remainingDepth]
+        ];
+        binFeatureCombinationClassByDepth[depth] = combinationClass;
+    }
+    return binFeatureCombinationClassByDepth;
+}
