@@ -45,7 +45,7 @@ class TMain: public TMainClassArgs {
 
 protected:
     void RegisterOptions(NLastGetopt::TOpts& opts) override {
-        // Brief description fot the whole program, will appear in beginning og help message.
+        // Brief description for the whole program, will appear in the beginning of a help message.
         opts.SetTitle("last_getopt_demo -- like wget, but doesn't actually do anything");
 
         // Built-in options.
@@ -153,7 +153,7 @@ protected:
             .CompletionArgHelp("URL for download")
             .Completer(NLastGetopt::NComp::Url());
 
-        // Lets add more text to our help. A nice description and examples.
+        // Let's add more text to our help. A nice description and examples.
 
         opts.AddSection(
             "Description",
