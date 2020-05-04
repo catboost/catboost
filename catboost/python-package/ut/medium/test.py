@@ -2159,9 +2159,10 @@ def test_custom_objective(task_type):
     for p1, p2 in zip(pred1, pred2):
         assert abs(p1 - p2) < EPS
 
+
 @fails_on_gpu(how='cuda/train_lib/train.cpp:283: Error: loss function is not supported for GPU learning Custom')
 def test_multilabel_custom_objective(task_type, n=10):
-    class MultiRMSEObjective(MultiRegressionCustomObjective):        
+    class MultiRMSEObjective(MultiRegressionCustomObjective):
         def calc_ders_multi(self, approxes, targets, weight):
             assert len(approxes) == len(targets)
 
@@ -2194,7 +2195,7 @@ def test_multilabel_custom_objective(task_type, n=10):
                                # Leaf estimation method and gradient iteration are set to match
                                # defaults for Logloss.
                                leaf_estimation_method="Newton", leaf_estimation_iterations=1, task_type=task_type, devices='0')
-    
+
     model.fit(train_pool, eval_set=test_pool)
     pred1 = model.predict(test_pool, prediction_type='RawFormulaVal')
 

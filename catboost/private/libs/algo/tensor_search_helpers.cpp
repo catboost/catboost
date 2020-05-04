@@ -192,7 +192,7 @@ THolder<IDerCalcer> BuildError(
         }
         case ELossFunction::PythonUserDefinedPerObject:
             return MakeHolder<TCustomError>(params, descriptor);
-        case ELossFunction::PythonUserDefinedPerObjectMultiTarget:
+        case ELossFunction::PythonUserDefinedMultiRegression:
             return MakeHolder<TMultiRegressionCustomError>(params, descriptor);
         case ELossFunction::UserPerObjMetric:
             return MakeHolder<TUserDefinedPerObjectError>(

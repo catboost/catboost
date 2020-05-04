@@ -1991,12 +1991,12 @@ cdef class _PreprocessParams:
         if params_to_json.get("loss_function") == "PythonUserDefinedPerObject":
             self.customObjectiveDescriptor = _BuildCustomObjectiveDescriptor(params["loss_function"])
             if (issubclass(params["loss_function"].__class__, MultiRegressionCustomObjective)):
-                params_to_json["loss_function"] = "PythonUserDefinedPerObjectMultiTarget"
+                params_to_json["loss_function"] = "PythonUserDefinedMultiRegression"
         
         if params_to_json.get("eval_metric") == "PythonUserDefinedPerObject":
             self.customMetricDescriptor = _BuildCustomMetricDescriptor(params["eval_metric"])
             if (issubclass(params["eval_metric"].__class__, MultiRegressionCustomMetric)):
-                params_to_json["eval_metric"] = "PythonUserDefinedPerObjectMultiTarget"
+                params_to_json["eval_metric"] = "PythonUserDefinedMultiRegression"
 
         dumps_params = dumps(params_to_json, cls=_NumpyAwareEncoder)
 
