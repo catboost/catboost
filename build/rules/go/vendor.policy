@@ -432,7 +432,7 @@ ALLOW .* -> vendor/github.com/mennanov/fieldmask-utils
 ALLOW .* -> vendor/github.com/karrick/godirwalk
 
 # CONTRIB-1864 Zstandard (zstd) data compression algorithm
-ALLOW .* -> vendor/github.com/compression/zstd
+ALLOW .* -> vendor/github.com/klauspost/compress/zstd
 
 #
 # Temporary exceptions.
