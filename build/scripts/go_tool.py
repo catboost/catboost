@@ -11,6 +11,8 @@ import threading
 arc_project_prefix = 'a.yandex-team.ru/'
 std_lib_prefix = 'contrib/go/_std/src/'
 vendor_prefix = 'vendor/'
+vet_info_ext = '.vet.out'
+vet_report_ext = '.vet.txt'
 
 
 def compare_versions(version1, version2):
@@ -104,12 +106,12 @@ def create_import_config(peers, gen_importmap, import_map={}, module_map={}):
     return None
 
 
-def vet_info_output_name(path):
-    return path + '.vet.out'
+def vet_info_output_name(path, ext=None):
+    return '{}{}'.format(path, ext or vet_info_ext)
 
 
-def vet_report_output_name(path):
-    return path + '.vet.txt'
+def vet_report_output_name(path, ext=None):
+    return '{}{}'.format(path, ext or vet_report_ext)
 
 
 def get_source_path(args):
@@ -174,7 +176,7 @@ def decode_vet_report(json_report):
 
 def dump_vet_report(args, report):
     if report:
-        report = report.replace(args.build_root, '$B')
+        report = report.replace(args.build_root[:-1], '$B')
         report = report.replace(args.arc_source_root, '$S')
     with open(args.vet_report_output, 'w') as f:
         f.write(report)
@@ -201,6 +203,7 @@ def do_vet(args):
     if args.vet_flags:
         cmd.extend(args.vet_flags)
     cmd.append(vet_config)
+    # print >>sys.stderr, '>>>> [{}]'.format(' '.join(cmd))
     p_vet = subprocess.Popen(cmd, stdin=None, stderr=subprocess.PIPE, stdout=subprocess.PIPE, cwd=args.build_root)
     vet_out, vet_err = p_vet.communicate()
     report = decode_vet_report(vet_out) if vet_out else ''
@@ -324,7 +327,15 @@ def do_link_exe(args):
         cmd += ['-importcfg', import_config_name]
     if args.link_flags:
         cmd += args.link_flags
-    cmd += ['-buildmode=exe', '-extld={}'.format(args.extld)]
+
+    if args.mode in ('exe', 'test'):
+        cmd.append('-buildmode=exe')
+    elif args.mode == 'dll':
+        cmd.append('-buildmode=c-shared')
+    else:
+        assert False, 'Unexpected mode: {}'.format(args.mode)
+    cmd.append('-extld={}'.format(args.extld))
+
     extldflags = []
     if args.extldflags is not None:
         filter_musl = None
@@ -515,19 +526,32 @@ def do_link_test(args):
     test_module_path = get_source_path(args)
     test_import_path, _ = get_import_path(test_module_path)
 
-    test_lib_args = None
-    xtest_lib_args = None
+    test_lib_args = copy_args(args) if args.srcs else None
+    xtest_lib_args = copy_args(args) if args.xtest_srcs else None
 
-    if args.srcs:
-        test_lib_args = copy_args(args)
+    ydx_file_name = None
+    xtest_ydx_file_name = None
+    need_append_ydx = test_lib_args and xtest_lib_args and args.ydx_file and args.vet_flags
+    if need_append_ydx:
+        def find_ydx_file_name(name, flags):
+            for i, elem in enumerate(flags):
+                if elem.endswith(name):
+                    return (i, elem)
+            assert False, 'Unreachable code'
+
+        idx, ydx_file_name = find_ydx_file_name(xtest_lib_args.ydx_file, xtest_lib_args.vet_flags)
+        xtest_ydx_file_name = '{}_xtest'.format(ydx_file_name)
+        xtest_lib_args.vet_flags = copy.copy(xtest_lib_args.vet_flags)
+        xtest_lib_args.vet_flags[idx] = xtest_ydx_file_name
+
+    if test_lib_args:
         test_lib_args.output = os.path.join(args.output_root, 'test.a')
         test_lib_args.vet_report_output = vet_report_output_name(test_lib_args.output)
         test_lib_args.module_path = test_module_path
         test_lib_args.import_path = test_import_path
         do_link_lib(test_lib_args)
 
-    if args.xtest_srcs:
-        xtest_lib_args = copy_args(args)
+    if xtest_lib_args:
         xtest_lib_args.srcs = xtest_lib_args.xtest_srcs
         classify_srcs(xtest_lib_args.srcs, xtest_lib_args)
         xtest_lib_args.output = os.path.join(args.output_root, 'xtest.a')
@@ -536,7 +560,13 @@ def do_link_test(args):
         xtest_lib_args.import_path = test_import_path + '_test'
         if test_lib_args:
             xtest_lib_args.module_map[test_import_path] = test_lib_args.output
+        need_append_ydx = args.ydx_file and args.srcs and args.vet_flags
         do_link_lib(xtest_lib_args)
+
+    if need_append_ydx:
+        with open(os.path.join(args.build_root, ydx_file_name), 'ab') as dst_file:
+            with open(os.path.join(args.build_root, xtest_ydx_file_name), 'rb') as src_file:
+                dst_file.write(src_file.read())
 
     test_main_content = gen_test_main(args, test_lib_args, xtest_lib_args)
     test_main_name = os.path.join(args.output_root, '_test_main.go')
@@ -565,7 +595,7 @@ def do_link_test(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prefix_chars='+')
-    parser.add_argument('++mode', choices=['lib', 'exe', 'test'], required=True)
+    parser.add_argument('++mode', choices=['dll', 'exe', 'lib', 'test'], required=True)
     parser.add_argument('++srcs', nargs='*', required=True)
     parser.add_argument('++cgo-srcs', nargs='*')
     parser.add_argument('++test_srcs', nargs='*')
@@ -596,9 +626,12 @@ if __name__ == '__main__':
     parser.add_argument('++vcs', nargs='?', default=None)
     parser.add_argument('++vet', nargs='?', const=True, default=False)
     parser.add_argument('++vet-flags', nargs='*', default=None)
+    parser.add_argument('++vet-info-ext', default=vet_info_ext)
+    parser.add_argument('++vet-report-ext', default=vet_report_ext)
     parser.add_argument('++arc-source-root')
     parser.add_argument('++musl', action='store_true')
     parser.add_argument('++skip-tests', nargs='*', default=None)
+    parser.add_argument('++ydx-file', default='')
     args = parser.parse_args()
 
     # Temporary work around for noauto
@@ -615,7 +648,7 @@ if __name__ == '__main__':
     args.go_pack = os.path.join(args.tool_root, 'pack')
     args.go_vet = os.path.join(args.tool_root, 'vet') if args.vet is True else args.vet
     args.output = os.path.normpath(args.output)
-    args.vet_report_output = vet_report_output_name(args.output)
+    args.vet_report_output = vet_report_output_name(args.output, args.vet_report_ext)
     args.build_root = os.path.normpath(args.build_root) + os.path.sep
     args.output_root = os.path.normpath(args.output_root)
     args.import_map = {}
@@ -634,6 +667,8 @@ if __name__ == '__main__':
 
     arc_project_prefix = args.arc_project_prefix
     std_lib_prefix = args.std_lib_prefix
+    vet_info_ext = args.vet_info_ext
+    vet_report_ext = args.vet_report_ext
 
     # compute root relative module dir path
     assert args.output is None or args.output_root == os.path.dirname(args.output)
@@ -655,8 +690,9 @@ if __name__ == '__main__':
     # and as a result we are going to generate only one build node per module
     # (or program)
     dispatch = {
-        'lib': do_link_lib,
         'exe': do_link_exe,
+        'dll': do_link_exe,
+        'lib': do_link_lib,
         'test': do_link_test
     }
 

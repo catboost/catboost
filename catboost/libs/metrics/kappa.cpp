@@ -29,12 +29,12 @@ static TVector<TVector<int>> GetWeights(EKappaMetricType type, int classCount) {
     }
 }
 
-static TVector<TVector<double>> GetExpectedMatrix(TConstArrayRef<TVector<int>> matrix, int classCount) {
+static TVector<TVector<double>> GetExpectedMatrix(TConstArrayRef<TVector<double>> matrix, int classCount) {
     TVector<TVector<double>> expected(classCount, TVector<double>(classCount));
 
-    TVector<int> rows(classCount, 0);
-    TVector<int> columns(classCount, 0);
-    int all = 0;
+    TVector<double> rows(classCount, 0);
+    TVector<double> columns(classCount, 0);
+    double all = 0;
 
     for (int i = 0; i < classCount; ++i) {
         for (int j = 0; j < classCount; ++j) {
@@ -46,42 +46,25 @@ static TVector<TVector<double>> GetExpectedMatrix(TConstArrayRef<TVector<int>> m
 
     for (int i = 0; i < classCount; ++i) {
         for (int j = 0; j < classCount; ++j) {
-            expected[i][j] = rows[i] * columns[j] / static_cast<double>(all);
+            expected[i][j] = rows[i] * columns[j] / all;
         }
     }
     return expected;
 }
 
-static TVector<TVector<int>> UnzipKappaMatrix(TMetricHolder metric, int classCount) {
-    TVector<TVector<int>> matrix(classCount, TVector<int>(classCount));
+static TVector<TVector<double>> UnzipConfusionMatrix(TMetricHolder metric, int classCount) {
+    TVector<TVector<double>> matrix(classCount, TVector<double>(classCount));
     for (int i = 0; i < classCount; ++i) {
         for (int j = 0; j < classCount; ++j) {
-            matrix[i][j] = static_cast<int>(metric.Stats[i * classCount + j]);
+            matrix[i][j] = metric.Stats[i * classCount + j];
         }
     }
     return matrix;
 }
 
-TMetricHolder CalcKappaMatrix(TConstArrayRef<TVector<double>> approx,
-                              TConstArrayRef<float> target,
-                              int begin,
-                              int end,
-                              double targetBorder,
-                              double predictionBorder) {
-    int classCount = approx.size() == 1 ? 2 : static_cast<int>(approx.size());
-    TMetricHolder metric(classCount * classCount);
-    const double predictionLogitBorder = NCB::Logit(predictionBorder);
+double CalcKappa(TMetricHolder confusionMatrix, int classCount, EKappaMetricType type) {
 
-    for (int i = begin; i < end; ++i) {
-        const float targetVal = classCount > 1 ? target[i] : target[i] > targetBorder;
-        metric.Stats[GetApproxClass(approx, i, predictionLogitBorder) * classCount + static_cast<int>(targetVal)] += 1;
-    }
-    return metric;
-}
-
-double CalcKappa(TMetricHolder metric, int classCount, EKappaMetricType type) {
-
-    TVector<TVector<int>> matrix = UnzipKappaMatrix(metric, classCount);
+    TVector<TVector<double>> matrix = UnzipConfusionMatrix(confusionMatrix, classCount);
     TVector<TVector<int>> weights = GetWeights(type, classCount);
     TVector<TVector<double>> expected = GetExpectedMatrix(matrix, classCount);
 

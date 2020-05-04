@@ -50,10 +50,12 @@ namespace NCatboostCuda {
                                       TSharedCompressedIndexBuilder<TLayoutPolicy>& indexBuilder,
                                       const NCB::TTrainingDataProvider& dataProvider,
                                       const ui32 dataSetId,
+                                      bool skipExclusiveFeatureBundles,
                                       NPar::TLocalExecutor* localExecutor)
             : FeaturesManager(featuresManager)
             , DataProvider(dataProvider)
             , DataSetId(dataSetId)
+            , SkipExclusiveFeatureBundles(skipExclusiveFeatureBundles)
             , IndexBuilder(indexBuilder)
             , LocalExecutor(localExecutor)
         {
@@ -66,6 +68,11 @@ namespace NCatboostCuda {
                     continue;
                 } else if (FeaturesManager.IsFloat(feature)) {
                     floatFeatureIds.push_back(feature);
+                } else if (FeaturesManager.IsFeatureBundle(feature)) {
+                    if (!SkipExclusiveFeatureBundles) {
+                        WriteExclusiveFeatureBundle(feature, DataProvider);
+                        CheckInterrupted(); // check after long-lasting operation
+                    }
                 } else if (FeaturesManager.IsCat(feature)) {
                     CB_ENSURE(FeaturesManager.UseForOneHotEncoding(feature));
                     WriteOneHotFeature(feature, DataProvider);
@@ -98,17 +105,32 @@ namespace NCatboostCuda {
             TVector<ui32> featureBinCounts(featureCount);
             for (auto taskIdx : xrange(featureCount)) {
                 const auto feature = features[taskIdx];
-                const auto featureId = FeaturesManager.GetDataProviderId(feature);
-                const auto floatFeatureIdx = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(featureId);
-                auto featureBinCounts = objectsData.GetQuantizedFeaturesInfo()->GetBinCount(floatFeatureIdx);
-                const auto& featuresHolder = **(objectsData.GetFloatFeature(*floatFeatureIdx));
+                const auto dataProviderFeatureId = FeaturesManager.GetDataProviderId(feature);
+                const auto floatFeatureIdx = dataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(dataProviderFeatureId);
+                auto& subFeatures = FeaturesManager.GetFeatureManagerIdForFloatFeature(dataProviderFeatureId);
 
-                IndexBuilder.Write(
-                    DataSetId,
-                    features[taskIdx],
-                    featureBinCounts,
-                    &featuresHolder
-                );
+                if (subFeatures.size() == 1) {
+                    IndexBuilder.Write(
+                        DataSetId,
+                        features[taskIdx],
+                        FeaturesManager.GetBinCount(feature),
+                        *objectsData.GetFloatFeature(*floatFeatureIdx)
+                    );
+                } else {
+                    auto subFeaturePosition = std::find(subFeatures.begin(), subFeatures.end(), feature);
+                    CB_ENSURE_INTERNAL(subFeaturePosition != subFeatures.end(), "Sub feature not found");
+                    auto subFeatureId = subFeaturePosition - subFeatures.begin();
+                    ui16 baseValue = subFeatureId * 255;
+                    IndexBuilder.Write(
+                        DataSetId,
+                        features[taskIdx],
+                        FeaturesManager.GetBinCount(feature),
+                        *objectsData.GetFloatFeature(*floatFeatureIdx),
+                        [baseValue] (ui16 value) -> ui8 {
+                            return (ui8)Min(Max(value - baseValue, 0), 255);
+                        }
+                    );
+                }
             }
         }
 
@@ -132,36 +154,25 @@ namespace NCatboostCuda {
             );
         }
 
+        void WriteExclusiveFeatureBundle(const ui32 feature,
+                                         const NCB::TTrainingDataProvider& dataProvider) {
+            auto exclusiveFeatureBundleIdx = FeaturesManager.GetExclusiveFeatureBundleIdxForFeatureManagerIdx(feature);
+            const auto& valuesHolder = dataProvider.ObjectsData->GetExclusiveFeaturesBundle(exclusiveFeatureBundleIdx);
+            IndexBuilder.Write(
+                DataSetId,
+                feature,
+                FeaturesManager.GetBinCount(feature),
+                &valuesHolder
+            );
+        }
+
     private:
         TBinarizedFeaturesManager& FeaturesManager;
         const NCB::TTrainingDataProvider& DataProvider;
         ui32 DataSetId = -1;
+        bool SkipExclusiveFeatureBundles = false;
         TSharedCompressedIndexBuilder<TLayoutPolicy>& IndexBuilder;
         NPar::TLocalExecutor* LocalExecutor;
-    };
-
-    struct TPreQuantizedColumn {
-    public:
-        TPreQuantizedColumn(ui32 featureId, TConstArrayRef<ui8> prequantizedVals)
-            : FullSubsetIndexing(NCB::TFullSubset<ui32>(prequantizedVals.size()))
-            , ValuesHolder(
-                featureId,
-                TCompressedArray(
-                    prequantizedVals.size(),
-                    /*bitsPerKey*/ 8,
-                    NCB::TMaybeOwningArrayHolder<ui64>::CreateNonOwning(
-                        TArrayRef<ui64>(
-                            (ui64*)prequantizedVals.begin(),
-                            (ui64*)prequantizedVals.end()
-                        )
-                    )
-                ),
-                &FullSubsetIndexing
-            )
-        {}
-    public:
-        NCB::TFeaturesArraySubsetIndexing FullSubsetIndexing;
-        NCB::TQuantizedFloatValuesHolder ValuesHolder;
     };
 
     template <class TLayoutPolicy = TFeatureParallelLayout>
@@ -192,22 +203,22 @@ namespace NCatboostCuda {
                     CtrCalcer.ComputeBinarizedCtrs(group, &learnCtrs, &testCtrs);
                     for (ui32 i = 0; i < group.size(); ++i) {
                         const ui32 featureId = group[i];
-                        TPreQuantizedColumn prequantizedLearnColumn(featureId, learnCtrs[i].BinarizedCtr);
-                        IndexBuilder.Write(
+                        IndexBuilder.WriteBinsVector(
                             DataSetId,
                             featureId,
                             learnCtrs[i].BinCount,
-                            &prequantizedLearnColumn.ValuesHolder);
+                            /*permute=*/true,
+                            learnCtrs[i].BinarizedCtr);
 
                         if (testCtrs.size()) {
                             CB_ENSURE(TestDataSetId != (ui32)-1, "Error: set test dataset");
                             CB_ENSURE(testCtrs[i].BinCount == learnCtrs[i].BinCount);
-                            TPreQuantizedColumn prequantizedTestColumn(featureId, testCtrs[i].BinarizedCtr);
-                            IndexBuilder.Write(
+                            IndexBuilder.WriteBinsVector(
                                 TestDataSetId,
                                 featureId,
                                 testCtrs[i].BinCount,
-                                &prequantizedTestColumn.ValuesHolder);
+                                /*permute=*/true,
+                                testCtrs[i].BinarizedCtr);
                         }
                     }
                     CheckInterrupted(); // check after long-lasting operation
@@ -309,18 +320,18 @@ namespace NCatboostCuda {
             auto binarizedWriter = [&](
                 ui32 dataSetId,
                 TConstArrayRef<ui8> binarizedFeature,
-                TEstimatedFeature feature,
+                NCB::TEstimatedFeatureId feature,
                 ui8 binCount
             ) {
                 const auto featureId = FeaturesManager.GetId(feature);
                 if (featureIds.contains(featureId)) {
 
-                    TPreQuantizedColumn prequantizedColumn(featureId, binarizedFeature);
-                    IndexBuilder.Write(
+                    IndexBuilder.WriteBinsVector(
                         dataSetId,
                         featureId,
                         binCount,
-                        &prequantizedColumn.ValuesHolder
+                        /*permute=*/true,
+                        binarizedFeature
                     );
                 }
                 CheckInterrupted(); // check after long-lasting operation*/

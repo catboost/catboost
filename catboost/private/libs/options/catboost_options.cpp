@@ -165,6 +165,12 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
             // doesn't have Newton
             break;
         }
+        case ELossFunction::StochasticRank: {
+            defaultEstimationMethod = ELeavesEstimation::Gradient;
+            defaultGradientIterations = 1;
+            // doesn't have Newton
+            break;
+        }
         case ELossFunction::UserPerObjMetric:
         case ELossFunction::UserQuerywiseMetric:
         case ELossFunction::PythonUserDefinedMultiRegression:
@@ -778,6 +784,35 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             MetricOptions->ObjectiveMetric.Set(lossDescription);
             break;
         }
+        case ELossFunction::StochasticRank: {
+            NCatboostOptions::TLossDescription lossDescription;
+            const auto& lossParams = LossFunctionDescription->GetLossParams();
+            CB_ENSURE(lossParams.contains("metric"), "StochasticRank requires metric param");
+            ELossFunction targetMetric = FromString<ELossFunction>(lossParams.at("metric"));
+            TMap<TString, TString> metricParams;
+            TSet<TString> validParams;
+            switch (targetMetric) {
+                case ELossFunction::DCG:
+                case ELossFunction::NDCG:
+                    validParams = {"top", "type", "denominator", "hints"};
+                    break;
+                case ELossFunction::PFound:
+                    validParams = {"decay", "hints"};
+                    break;
+                default:
+                    CB_ENSURE(false, "StochasticRank does not support target_metric " << targetMetric);
+            }
+            for (const auto& paramName : validParams) {
+                if (lossParams.contains(paramName)) {
+                    metricParams[paramName] = lossParams.at(paramName);
+                }
+            }
+            lossDescription.LossParams.Set(metricParams);
+            lossDescription.LossFunction.Set(targetMetric);
+            MetricOptions->ObjectiveMetric.Set(lossDescription);
+            ObliviousTreeOptions->LeavesEstimationBacktrackingType.SetDefault(ELeavesEstimationStepBacktracking::No);
+            break;
+        }
         default: {
             MetricOptions->ObjectiveMetric.Set(LossFunctionDescription.Get());
             break;
@@ -848,6 +883,9 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
                 } else {
                     shrinkRate = 0.01;
                 }
+            }
+            if (ObliviousTreeOptions->LeavesEstimationBacktrackingType.NotSet()) {
+                ObliviousTreeOptions->LeavesEstimationBacktrackingType.SetDefault(ELeavesEstimationStepBacktracking::No);
             }
         }
 

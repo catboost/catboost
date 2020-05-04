@@ -21,8 +21,8 @@ namespace std {
         bool operator()(const char* x, const char* y) const {
             return strcmp(x, y) == 0;
         }
-        bool operator()(const char* x, const TFixedString<char> y) const {
-            return strlen(x) == y.Length && memcmp(x, y.Start, y.Length) == 0;
+        bool operator()(const char* x, const TStringBuf y) const {
+            return strlen(x) == y.size() && memcmp(x, y.data(), y.size()) == 0;
         }
         using is_transparent = void;
     };
@@ -44,6 +44,15 @@ namespace NHashPrivate {
             return NumericHash(t);
         }
     };
+
+    template <typename C>
+    struct TStringHash {
+        using is_transparent = void;
+
+        inline size_t operator()(const TBasicStringBuf<C> s) const noexcept {
+            return s.hash();
+        }
+    };
 }
 
 template <class T>
@@ -62,40 +71,35 @@ struct hash<T*>: public ::hash<const T*> {
 };
 
 template <>
-struct hash<const char*> {
-    // note that const char* is implicitly converted to TFixedString
-    inline size_t operator()(const TFixedString<char> s) const noexcept {
-        return TString::hashVal(s.Start, s.Length);
-    }
+struct hash<const char*> : ::NHashPrivate::TStringHash<char> {
 };
 
 template <>
-struct hash<TString> {
-    inline size_t operator()(const TStringBuf s) const {
-        return s.hash();
-    }
+struct THash<TStringBuf> : ::NHashPrivate::TStringHash<char> {
 };
 
 template <>
-struct hash<TUtf16String> {
-    inline size_t operator()(const TWtringBuf s) const {
-        return s.hash();
-    }
+struct hash<TString> : ::NHashPrivate::TStringHash<char> {
 };
 
 template <>
-struct hash<TUtf32String> {
-    inline size_t operator()(const TUtf32StringBuf s) const {
-        return s.hash();
-    }
+struct hash<TUtf16String> : ::NHashPrivate::TStringHash<wchar16> {
 };
 
+template <>
+struct THash<TWtringBuf> : ::NHashPrivate::TStringHash<wchar16> {
+};
+
+template <>
+struct hash<TUtf32String> : ::NHashPrivate::TStringHash<wchar32> {
+};
+
+template <>
+struct THash<TUtf32StringBuf> : ::NHashPrivate::TStringHash<wchar32> {
+};
 
 template <class C, class T, class A>
-struct hash<std::basic_string<C, T, A>> {
-    inline size_t operator()(const TBasicStringBuf<C>& s) const {
-        return s.hash();
-    }
+struct hash<std::basic_string<C, T, A>> : ::NHashPrivate::TStringHash<C> {
 };
 
 namespace NHashPrivate {
@@ -167,26 +171,6 @@ template <class TFirst, class TSecond>
 struct hash<std::pair<TFirst, TSecond>>: public NHashPrivate::TPairHash<TFirst, TSecond> {
 };
 
-template <>
-struct THash<TStringBuf> {
-    inline size_t operator()(const TStringBuf s) const {
-        return s.hash();
-    }
-};
-
-template <>
-struct THash<TWtringBuf> {
-    inline size_t operator()(const TWtringBuf s) const {
-        return s.hash();
-    }
-};
-
-template <>
-struct THash<TUtf32StringBuf> {
-    inline size_t operator()(const TUtf32StringBuf s) const {
-        return s.hash();
-    }
-};
 
 
 template <class T>

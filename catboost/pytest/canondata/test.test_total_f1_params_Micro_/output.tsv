@@ -1,4 +1,4 @@
-iter	TotalF1
+iter	TotalF1:average=Micro
 0	0.6336633663
 1	0.6930693069
 2	0.6534653465

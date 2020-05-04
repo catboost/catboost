@@ -1,3 +1,3 @@
 #pragma once
 
-#include <library/getopt/small/posix_getopt.h>
+#include <library/cpp/getopt/posix_getopt.h>

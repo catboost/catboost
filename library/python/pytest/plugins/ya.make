@@ -11,6 +11,7 @@ PY_SRCS(
 
 PEERDIR(
     library/python/find_root
+    library/python/testing/filter
 )
 
 END()

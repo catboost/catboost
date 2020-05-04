@@ -7,7 +7,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/cppparser
+    library/cpp/cppparser
 )
 
 END()

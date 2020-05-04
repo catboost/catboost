@@ -51,7 +51,7 @@ PEERDIR(
     catboost/libs/logging
     library/blockcodecs
     library/cuda/wrappers
-    library/threading/future
+    library/cpp/threading/future
     library/threading/local_executor
     library/threading/name_guard
 )

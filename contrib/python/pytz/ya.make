@@ -2,7 +2,7 @@
 
 PY23_LIBRARY()
 
-VERSION(2019.3)
+VERSION(2020.1)
 
 LICENSE(MIT)
 
@@ -199,6 +199,7 @@ RESOURCE_FILES(
     pytz/zoneinfo/America/North_Dakota/Beulah
     pytz/zoneinfo/America/North_Dakota/Center
     pytz/zoneinfo/America/North_Dakota/New_Salem
+    pytz/zoneinfo/America/Nuuk
     pytz/zoneinfo/America/Ojinaga
     pytz/zoneinfo/America/Panama
     pytz/zoneinfo/America/Pangnirtung

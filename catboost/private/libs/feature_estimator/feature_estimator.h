@@ -49,7 +49,7 @@ namespace NCB {
         TMaybe<TPackedFeatureWriter> PackedFeatureWriter;
     };
 
-    //We need this so we could prepare GPU layout before computation of features
+    //We need this so we could prepare layout before computation of features
     struct TEstimatedFeaturesMeta {
         ui32 FeaturesCount = 0;
         TMaybe<TVector<ui32>> UniqueValuesUpperBoundHint;

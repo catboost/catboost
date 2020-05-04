@@ -2,7 +2,7 @@
 #include <util/system/atomic.h>
 #include <util/system/event.h>
 #include <util/generic/deque.h>
-#include <library/threading/future/legacy_future.h>
+#include <library/cpp/threading/future/legacy_future.h>
 
 #include <library/unittest/registar.h>
 

@@ -60,13 +60,13 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
         NPar::TLocalExecutor localExecutor;
         localExecutor.RunAdditionalThreads(2);
 
-        TMaybeOwningArrayHolder<ui8> quantizedValues = externalFloatValuesHolder.ExtractValues(
+        TVector<ui8> quantizedValues = externalFloatValuesHolder.ExtractValues<ui8>(
             &localExecutor
         );
 
         TVector<ui8> expectedQuantizedValues = {0, 0, 1, 1, 1, 2, 2, 3, 3, 3};
 
-        UNIT_ASSERT_EQUAL(*quantizedValues, TArrayRef<ui8>(expectedQuantizedValues));
+        UNIT_ASSERT_EQUAL(quantizedValues, expectedQuantizedValues);
     }
 
     Y_UNIT_TEST(TestExternalCatValuesHolder) {
@@ -121,13 +121,13 @@ Y_UNIT_TEST_SUITE(ExternalColumns) {
             NPar::TLocalExecutor localExecutor;
             localExecutor.RunAdditionalThreads(2);
 
-            TMaybeOwningArrayHolder<ui32> bins = externalCatValuesHolder.ExtractValues(&localExecutor);
+            TVector<ui32> bins = externalCatValuesHolder.ExtractValues<ui32>(&localExecutor);
 
             auto expectedBins = mapMostFrequentValueTo0 ?
                 TVector<ui32>{1, 0, 2, 3, 0, 2, 4} :
                 TVector<ui32>{0, 1, 2, 3, 1, 2, 4};
 
-            UNIT_ASSERT_EQUAL(*bins, TConstArrayRef<ui32>(expectedBins));
+            UNIT_ASSERT_EQUAL(bins, expectedBins);
         }
     }
 }

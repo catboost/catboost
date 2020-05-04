@@ -247,6 +247,7 @@ static int GetMaxTailFinish(const TVector<TFold>& folds, int bodyTailIdx) {
 void TCalcScoreFold::Create(
     const TVector<TFold>& folds,
     bool isPairwiseScoring,
+    bool hasOfflineEstimatedFeatures,
     int defaultCalcStatsObjBlockSize,
     float sampleRate
 ) {
@@ -264,6 +265,7 @@ void TCalcScoreFold::Create(
     BodyTailCount = GetMaxBodyTailCount(folds);
     HasPairwiseWeights = !folds[0].BodyTailArr[0].PairwiseWeights.empty();
     IsPairwiseScoring = isPairwiseScoring;
+    HasOfflineEstimatedFeatures = hasOfflineEstimatedFeatures;
     Y_ASSERT(BodyTailCount > 0);
     BodyTailArr.yresize(BodyTailCount);
     ApproxDimension = folds[0].GetApproxDimension();
@@ -353,6 +355,15 @@ void TCalcScoreFold::SelectBlockFromFold(const TFoldType& fold, TSlice srcBlock,
         dstBlock.GetRef(LearnPermutationFeaturesSubset.template Get<TIndexedSubset<ui32>>()),
         &ignored
     );
+    if (HasOfflineEstimatedFeatures) {
+        SetElements(
+            srcControlRef,
+            srcBlock.GetConstRef(fold.GetLearnPermutationOfflineEstimatedFeaturesSubset()),
+            GetElement<ui32>,
+            dstBlock.GetRef(LearnPermutationOfflineEstimatedFeaturesSubset.template Get<TIndexedSubset<ui32>>()),
+            &ignored
+        );
+    }
 
     const auto& srcLearnWeights = fold.GetLearnWeights();
     TArrayRef<float> dstLearnWeights = dstBlock.GetRef(LearnWeights);
@@ -440,7 +451,12 @@ void TCalcScoreFold::SelectSmallestSplitSide(
     );
 
     DocCount = dstBlocks.Total;
+    HasOfflineEstimatedFeatures = fold.HasOfflineEstimatedFeatures;
     LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().yresize(DocCount);
+    if (HasOfflineEstimatedFeatures) {
+        LearnPermutationOfflineEstimatedFeaturesSubset.Get<TIndexedSubset<ui32>>().yresize(DocCount);
+    }
+
     ClearBodyTail();
     BodyTailCount = fold.GetBodyTailCount();
     localExecutor->ExecRange(
@@ -495,9 +511,12 @@ void TCalcScoreFold::SortFoldByLeafIndex(ui32 leafCount, NPar::TLocalExecutor* l
     Y_ASSERT(GetBodyTailCount() == 1);
     TBodyTail& bt = BodyTailArr[0];
     TIndexedSubset<ui32>& indexedSubset = LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>();
+    TIndexedSubset<ui32>& indexedSubsetForOfflineEstimatedFeatures
+        = LearnPermutationOfflineEstimatedFeaturesSubset.Get<TIndexedSubset<ui32>>();
 
     TUnsizedVector<float> newSampleWeights;
     TUnsizedVector<ui32> newIndexedSubset;
+    TUnsizedVector<ui32> newIndexedSubsetForOfflineEstimatedFeatures;
     TUnsizedVector<ui32> newIndexInFold;
     TUnsizedVector<TUnsizedVector<double>> newSampleWeightedDerivatives;
     TUnsizedVector<TIndexType> newIndices;
@@ -506,6 +525,9 @@ void TCalcScoreFold::SortFoldByLeafIndex(ui32 leafCount, NPar::TLocalExecutor* l
     size_t capacity = Indices.capacity();
     newSampleWeights.yresize(capacity);
     newIndexedSubset.yresize(capacity);
+    if (HasOfflineEstimatedFeatures) {
+        newIndexedSubsetForOfflineEstimatedFeatures.yresize(capacity);
+    }
     newIndexInFold.yresize(capacity);
     newSampleWeightedDerivatives.resize(ApproxDimension);
     for (auto dim : xrange(ApproxDimension)) {
@@ -555,6 +577,9 @@ void TCalcScoreFold::SortFoldByLeafIndex(ui32 leafCount, NPar::TLocalExecutor* l
             TConstArrayRef<TIndexType> curIndicesRef(Indices.data(), DocCount);
             TConstArrayRef<float> curSampleWeightsRef(SampleWeights.data(), DocCount);
             TConstArrayRef<ui32> curIndexedSubsetRef(indexedSubset.data(), DocCount);
+            TConstArrayRef<ui32> curIndexedSubsetForOfflineEstimatedFeaturesRef(
+                indexedSubsetForOfflineEstimatedFeatures.data(),
+                DocCount);
             TConstArrayRef<ui32> curIndexInFoldRef(IndexInFold.data(), DocCount);
             TVector<TConstArrayRef<double>> curSampleWeightedDerivativesRef;
             for (auto dim : xrange(ApproxDimension)) {
@@ -564,6 +589,9 @@ void TCalcScoreFold::SortFoldByLeafIndex(ui32 leafCount, NPar::TLocalExecutor* l
             TArrayRef<TIndexType> newIndicesRef(newIndices.data(), DocCount);
             TArrayRef<float> newSampleWeightsRef(newSampleWeights.data(), DocCount);
             TArrayRef<ui32> newIndexedSubsetRef(newIndexedSubset.data(), DocCount);
+            TArrayRef<ui32> newIndexedSubsetForOfflineEstimatedFeaturesRef(
+                newIndexedSubsetForOfflineEstimatedFeatures.data(),
+                DocCount);
             TArrayRef<ui32> newIndexInFoldRef(newIndexInFold.data(), DocCount);
             TVector<TArrayRef<double>> newSampleWeightedDerivativesRef;
             for (auto dim : xrange(ApproxDimension)) {
@@ -580,6 +608,10 @@ void TCalcScoreFold::SortFoldByLeafIndex(ui32 leafCount, NPar::TLocalExecutor* l
                 for (auto dim : xrange(ApproxDimension)) {
                     newSampleWeightedDerivativesRef[dim][newIdx] = curSampleWeightedDerivativesRef[dim][doc];
                 }
+                if (HasOfflineEstimatedFeatures) {
+                    newIndexedSubsetForOfflineEstimatedFeaturesRef[newIdx]
+                        = curIndexedSubsetForOfflineEstimatedFeaturesRef[doc];
+                }
             }
         },
         NPar::TLocalExecutor::TExecRangeParams(0, blockCount),
@@ -587,6 +619,9 @@ void TCalcScoreFold::SortFoldByLeafIndex(ui32 leafCount, NPar::TLocalExecutor* l
 
     SampleWeights = std::move(newSampleWeights);
     indexedSubset = std::move(newIndexedSubset);
+    if (HasOfflineEstimatedFeatures) {
+        indexedSubsetForOfflineEstimatedFeatures = std::move(newIndexedSubsetForOfflineEstimatedFeatures);
+    }
     IndexInFold = std::move(newIndexInFold);
     bt.SampleWeightedDerivatives = std::move(newSampleWeightedDerivatives);
     Indices = std::move(newIndices);
@@ -601,6 +636,7 @@ void TCalcScoreFold::SortFoldByLeafIndex(ui32 leafCount, NPar::TLocalExecutor* l
 void TCalcScoreFold::Sample(
     const TFold& fold,
     ESamplingUnit samplingUnit,
+    bool hasOfflineEstimatedFeatures,
     const TVector<TIndexType>& indices,
     TRestorableFastRng64* rand,
     NPar::TLocalExecutor* localExecutor,
@@ -631,7 +667,11 @@ void TCalcScoreFold::Sample(
     );
 
     DocCount = dstBlocks.Total;
+    HasOfflineEstimatedFeatures = hasOfflineEstimatedFeatures;
     LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().yresize(DocCount);
+    if (HasOfflineEstimatedFeatures) {
+        LearnPermutationOfflineEstimatedFeaturesSubset.Get<TIndexedSubset<ui32>>().yresize(DocCount);
+    }
     ClearBodyTail();
     BodyTailCount = fold.BodyTailArr.ysize();
     localExecutor->ExecRange(
@@ -706,12 +746,16 @@ void TCalcScoreFold::UpdateIndices(const TVector<TIndexType>& indices, NPar::TLo
     );
 }
 
-void TCalcScoreFold::TFoldPartitionOutput::Create(int size, int dimension) {
+void TCalcScoreFold::TFoldPartitionOutput::Create(int size, int dimension, bool hasOfflineEstimatedFeatures) {
     Size = size;
     Dimension = dimension;
+    HasOfflineEstimatedFeatures = hasOfflineEstimatedFeatures;
     SampleWeights.yresize(size);
     IndexInFold.yresize(size);
     LearnPermutationFeaturesSubset.yresize(size);
+    if (HasOfflineEstimatedFeatures) {
+        LearnPermutationOfflineEstimatedFeaturesSubset.yresize(size);
+    }
     SampleWeightedDerivatives.resize(dimension);
     for (auto dim : xrange(dimension)) {
         SampleWeightedDerivatives[dim].yresize(size);
@@ -732,6 +776,12 @@ TCalcScoreFold::TFoldPartitionOutput::TSlice TCalcScoreFold::TFoldPartitionOutpu
         LearnPermutationFeaturesSubset.begin() + range.Begin,
         LearnPermutationFeaturesSubset.begin() + range.End
     };
+    if (HasOfflineEstimatedFeatures) {
+        slice.LearnPermutationOfflineEstimatedFeaturesSubset = {
+            LearnPermutationOfflineEstimatedFeaturesSubset.begin() + range.Begin,
+            LearnPermutationOfflineEstimatedFeaturesSubset.begin() + range.End
+        };
+    }
     slice.SampleWeightedDerivatives.resize(Dimension);
     for (auto dim : xrange(Dimension)) {
         slice.SampleWeightedDerivatives[dim] = {
@@ -796,7 +846,7 @@ void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFoldForSingleLeafImpl(
         TFoldPartitionOutput tempOutput;
         TFoldPartitionOutput::TSlice tempOutputSlice;
         if (inPlace) {
-            tempOutput.Create(leafBounds.GetSize(), ApproxDimension);
+            tempOutput.Create(leafBounds.GetSize(), ApproxDimension, HasOfflineEstimatedFeatures);
             tempOutputSlice = tempOutput.GetSlice({0, leafBounds.GetSize()});
             out = &tempOutputSlice;
         }
@@ -831,6 +881,14 @@ void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFoldForSingleLeafImpl(
         tasks.push_back([&]() { partitionByIndices(SampleWeights, out->SampleWeights); });
         tasks.push_back([&]() { partitionByIndices(IndexInFold, out->IndexInFold); });
         tasks.push_back([&]() { partitionByIndices(LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>(), out->LearnPermutationFeaturesSubset); });
+        if (HasOfflineEstimatedFeatures) {
+            tasks.push_back(
+                [&]() {
+                    partitionByIndices(
+                        LearnPermutationOfflineEstimatedFeaturesSubset.Get<TIndexedSubset<ui32>>(),
+                        out->LearnPermutationOfflineEstimatedFeaturesSubset);
+                });
+        }
         for (auto dim : xrange(ApproxDimension)) {
             tasks.push_back([&, dim]() { partitionByIndices(BodyTailArr[0].SampleWeightedDerivatives[dim], out->SampleWeightedDerivatives[dim]); });
         }
@@ -890,7 +948,7 @@ void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFold(
 
     // take capacity because of unsized vectors
     TFoldPartitionOutput out;
-    out.Create(Indices.capacity(), ApproxDimension);
+    out.Create(Indices.capacity(), ApproxDimension, HasOfflineEstimatedFeatures);
 
     LeavesCount += leafs.size();
     LeavesBounds.resize(LeavesCount);
@@ -915,6 +973,10 @@ void TCalcScoreFold::UpdateIndicesInLeafwiseSortedFold(
     SampleWeights = std::move(out.SampleWeights);
     IndexInFold = std::move(out.IndexInFold);
     LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>() = std::move(out.LearnPermutationFeaturesSubset);
+    if (HasOfflineEstimatedFeatures) {
+        LearnPermutationOfflineEstimatedFeaturesSubset.Get<TIndexedSubset<ui32>>()
+            = std::move(out.LearnPermutationOfflineEstimatedFeaturesSubset);
+    }
     BodyTailArr[0].SampleWeightedDerivatives = std::move(out.SampleWeightedDerivatives);
 }
 
@@ -1101,20 +1163,20 @@ static bool HasPairs(const TVector<TQueryInfo>& learnQueriesInfo) {
 }
 
 void TCalcScoreFold::SetPermutationBlockSizeAndCalcStatsRanges(
-    int nonCtrDataPermutationBlockSize,
-    int ctrDataPermutationBlockSize
+    int mainDataPermutationBlockSize,
+    int onlineDataPermutationBlockSize
 ) {
-    CB_ENSURE(nonCtrDataPermutationBlockSize >= 0, "Negative nonCtrDataPermutationBlockSize");
-    CB_ENSURE(ctrDataPermutationBlockSize >= 0, "Negative ctrDataPermutationBlockSize");
+    CB_ENSURE(mainDataPermutationBlockSize >= 0, "Negative mainDataPermutationBlockSize");
+    CB_ENSURE(onlineDataPermutationBlockSize >= 0, "Negative onlinePermutationBlockSize");
 
-    NonCtrDataPermutationBlockSize = nonCtrDataPermutationBlockSize;
-    CtrDataPermutationBlockSize = ctrDataPermutationBlockSize;
+    MainDataPermutationBlockSize = mainDataPermutationBlockSize;
+    OnlineDataPermutationBlockSize = onlineDataPermutationBlockSize;
 
     const auto docCount = GetDocCount();
 
-    if ((NonCtrDataPermutationBlockSize == FoldPermutationBlockSizeNotSet)
-        || (NonCtrDataPermutationBlockSize == 1)
-        || (NonCtrDataPermutationBlockSize == docCount))
+    if ((MainDataPermutationBlockSize == FoldPermutationBlockSizeNotSet)
+        || (MainDataPermutationBlockSize == 1)
+        || (MainDataPermutationBlockSize == docCount))
     {
         int rangeEnd = 0;
         int blockSize = DefaultCalcStatsObjBlockSize;
@@ -1146,9 +1208,9 @@ void TCalcScoreFold::SetPermutationBlockSizeAndCalcStatsRanges(
         CB_ENSURE(!HasQueryInfo(), "Queries not supported if permutation block size is non-trivial");
         TVector<NCB::TIndexRange<int>> indexRanges;
 
-        const int permutedBlockCount = CeilDiv(docCount, NonCtrDataPermutationBlockSize);
+        const int permutedBlockCount = CeilDiv(docCount, MainDataPermutationBlockSize);
         const int permutedBlocksPerCalcScoreBlock =
-            CeilDiv(DefaultCalcStatsObjBlockSize, NonCtrDataPermutationBlockSize);
+            CeilDiv(DefaultCalcStatsObjBlockSize, MainDataPermutationBlockSize);
 
         int calcStatsBlockStart = 0;
         int blockStart = 0;
@@ -1156,12 +1218,12 @@ void TCalcScoreFold::SetPermutationBlockSizeAndCalcStatsRanges(
             const int permutedBlockIdx = (
                 int(LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>()[blockStart]
                     - FeaturesSubsetBegin)
-                / NonCtrDataPermutationBlockSize
+                / MainDataPermutationBlockSize
             );
             const int nextBlockStart = blockStart +
                (permutedBlockIdx + 1 == permutedBlockCount ?
-                  docCount - permutedBlockIdx * NonCtrDataPermutationBlockSize
-                : NonCtrDataPermutationBlockSize);
+                  docCount - permutedBlockIdx * MainDataPermutationBlockSize
+                : MainDataPermutationBlockSize);
             if ((blockIdx + 1) % permutedBlocksPerCalcScoreBlock == 0) {
                 indexRanges.push_back(NCB::TIndexRange<int>(calcStatsBlockStart, nextBlockStart));
                 calcStatsBlockStart = nextBlockStart;

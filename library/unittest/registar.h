@@ -381,20 +381,24 @@ public:                       \
 #define UNIT_FAIL_NONFATAL(M) UNIT_FAIL_NONFATAL_IMPL("forced failure", M)
 
 //types
-#define UNIT_ASSERT_TYPES_EQUAL(A, B)                                                                                                                        \
-    if (!std::is_same<A, B>::value) {                                                                                                                        \
-        UNIT_FAIL_IMPL("types equal assertion failed", (TStringBuilder() << #A << " (" << TypeName<A>() << ") != " << #B << " (" << TypeName<B>() << ")").data()); \
-    }
+#define UNIT_ASSERT_TYPES_EQUAL(A, B)                                                                                                                                  \
+    do {                                                                                                                                                               \
+        if (!std::is_same<A, B>::value) {                                                                                                                              \
+            UNIT_FAIL_IMPL("types equal assertion failed", (TStringBuilder() << #A << " (" << TypeName<A>() << ") != " << #B << " (" << TypeName<B>() << ")").data()); \
+        }                                                                                                                                                              \
+    } while (false)
 
 //doubles
-#define UNIT_ASSERT_DOUBLES_EQUAL_C(E, A, D, C)                                                            \
-    if (std::abs((E) - (A)) > (D)) {                                                                       \
-        const auto _es = ToString((long double)(E));                                                       \
-        const auto _as = ToString((long double)(A));                                                       \
-        const auto _ds = ToString((long double)(D));                                                       \
-        auto&& failMsg = Sprintf("std::abs(%s - %s) > %s %s", _es.data(), _as.data(), _ds.data(), (TStringBuilder() << C).data()); \
-        UNIT_FAIL_IMPL("assertion failure", failMsg);                                                      \
-    }
+#define UNIT_ASSERT_DOUBLES_EQUAL_C(E, A, D, C)                                                                \
+    do {                                                                                                       \
+        if (std::abs((E) - (A)) > (D)) {                                                                       \
+            const auto _es = ToString((long double)(E));                                                       \
+            const auto _as = ToString((long double)(A));                                                       \
+            const auto _ds = ToString((long double)(D));                                                       \
+            auto&& failMsg = Sprintf("std::abs(%s - %s) > %s %s", _es.data(), _as.data(), _ds.data(), (TStringBuilder() << C).data()); \
+            UNIT_FAIL_IMPL("assertion failure", failMsg);                                                      \
+        }                                                                                                      \
+    } while (false)
 
 #define UNIT_ASSERT_DOUBLES_EQUAL(E, A, D) UNIT_ASSERT_DOUBLES_EQUAL_C(E, A, D, "")
 
@@ -446,58 +450,72 @@ public:                       \
 #define UNIT_ASSERT_STRINGS_UNEQUAL(A, B) UNIT_ASSERT_STRINGS_UNEQUAL_C(A, B, "")
 
 //bool
-#define UNIT_ASSERT_C(A, C)                                                                   \
-    if (!(A)) {                                                                               \
-        UNIT_FAIL_IMPL("assertion failed", Sprintf("(%s) %s", #A, (TStringBuilder() << C).data())); \
-    }
+#define UNIT_ASSERT_C(A, C)                                                                             \
+    do {                                                                                                \
+        if (!(A)) {                                                                                     \
+            UNIT_FAIL_IMPL("assertion failed", Sprintf("(%s) %s", #A, (TStringBuilder() << C).data())); \
+        }                                                                                               \
+    } while (false)
 
 #define UNIT_ASSERT(A) UNIT_ASSERT_C(A, "")
 
 //general
-#define UNIT_ASSERT_EQUAL_C(A, B, C)                                                                        \
-    if (!((A) == (B))) {                                                                                    \
-        UNIT_FAIL_IMPL("equal assertion failed", Sprintf("%s == %s %s", #A, #B, (TStringBuilder() << C).data())); \
-    }
+#define UNIT_ASSERT_EQUAL_C(A, B, C)                                                                                  \
+    do {                                                                                                              \
+        if (!((A) == (B))) {                                                                                          \
+            UNIT_FAIL_IMPL("equal assertion failed", Sprintf("%s == %s %s", #A, #B, (TStringBuilder() << C).data())); \
+        }                                                                                                             \
+    } while (false)
 
 #define UNIT_ASSERT_EQUAL(A, B) UNIT_ASSERT_EQUAL_C(A, B, "")
 
-#define UNIT_ASSERT_UNEQUAL_C(A, B, C)                                                                        \
-    if ((A) == (B)) {                                                                                         \
-        UNIT_FAIL_IMPL("unequal assertion failed", Sprintf("%s != %s %s", #A, #B, (TStringBuilder() << C).data())); \
-    }
+#define UNIT_ASSERT_UNEQUAL_C(A, B, C)                                                                                 \
+    do {                                                                                                               \
+        if ((A) == (B)) {                                                                                              \
+            UNIT_FAIL_IMPL("unequal assertion failed", Sprintf("%s != %s %s", #A, #B, (TStringBuilder() << C).data()));\
+        }                                                                                                              \
+    } while (false)
 
 #define UNIT_ASSERT_UNEQUAL(A, B) UNIT_ASSERT_UNEQUAL_C(A, B, "")
 
-#define UNIT_ASSERT_LT_C(A, B, C)                                                                          \
-    if (!((A) < (B))) {                                                                                    \
-        UNIT_FAIL_IMPL("less-than assertion failed", Sprintf("%s < %s %s", #A, #B, (TStringBuilder() << C).data())); \
-    }
+#define UNIT_ASSERT_LT_C(A, B, C)                                                                                        \
+    do {                                                                                                                 \
+        if (!((A) < (B))) {                                                                                              \
+            UNIT_FAIL_IMPL("less-than assertion failed", Sprintf("%s < %s %s", #A, #B, (TStringBuilder() << C).data())); \
+        }                                                                                                                \
+    } while (false)
 
 #define UNIT_ASSERT_LT(A, B) UNIT_ASSERT_LT_C(A, B, "")
 
-#define UNIT_ASSERT_LE_C(A, B, C)                                                                           \
-    if (!((A) <= (B))) {                                                                                    \
-        UNIT_FAIL_IMPL("less-or-equal assertion failed", Sprintf("%s <= %s %s", #A, #B, (TStringBuilder() << C).data())); \
-    }
+#define UNIT_ASSERT_LE_C(A, B, C)                                                                                             \
+    do {                                                                                                                      \
+        if (!((A) <= (B))) {                                                                                                  \
+            UNIT_FAIL_IMPL("less-or-equal assertion failed", Sprintf("%s <= %s %s", #A, #B, (TStringBuilder() << C).data())); \
+        }                                                                                                                     \
+    } while (false)
 
 #define UNIT_ASSERT_LE(A, B) UNIT_ASSERT_LE_C(A, B, "")
 
-#define UNIT_ASSERT_GT_C(A, B, C)                                                                          \
-    if (!((A) > (B))) {                                                                                    \
-        UNIT_FAIL_IMPL("greater-than assertion failed", Sprintf("%s > %s %s", #A, #B, (TStringBuilder() << C).data())); \
-    }
+#define UNIT_ASSERT_GT_C(A, B, C)                                                                                           \
+    do {                                                                                                                    \
+        if (!((A) > (B))) {                                                                                                 \
+            UNIT_FAIL_IMPL("greater-than assertion failed", Sprintf("%s > %s %s", #A, #B, (TStringBuilder() << C).data())); \
+        }                                                                                                                   \
+    } while (false)
 
 #define UNIT_ASSERT_GT(A, B) UNIT_ASSERT_GT_C(A, B, "")
 
 #define UNIT_ASSERT_GE_C(A, B, C)                                                                        \
-    if (!((A) >= (B))) {                                                                                    \
-        UNIT_FAIL_IMPL("greater-or-equal assertion failed", Sprintf("%s >= %s %s", #A, #B, (TStringBuilder() << C).data())); \
-    }
+    do { \
+        if (!((A) >= (B))) {                                                                                    \
+            UNIT_FAIL_IMPL("greater-or-equal assertion failed", Sprintf("%s >= %s %s", #A, #B, (TStringBuilder() << C).data())); \
+        } \
+    } while (false)
 
 #define UNIT_ASSERT_GE(A, B) UNIT_ASSERT_GE_C(A, B, "")
 
 #define UNIT_CHECK_GENERATED_EXCEPTION_C(A, E, C)                                            \
-    while (true) {                                                                           \
+    do {                                                                                     \
         try {                                                                                \
             (void)(A);                                                                       \
         } catch (const ::NUnitTest::TAssertException&) {                                     \
@@ -506,18 +524,20 @@ public:                       \
             break;                                                                           \
         }                                                                                    \
         UNIT_ASSERT_C(0, "Exception hasn't been thrown, but it should have happened " << C); \
-    }
+    } while (false)
 
 #define UNIT_CHECK_GENERATED_EXCEPTION(A, E) UNIT_CHECK_GENERATED_EXCEPTION_C(A, E, "")
 
-#define UNIT_CHECK_GENERATED_NO_EXCEPTION_C(A, E, C)                                         \
-    try {                                                                                    \
-        (void)(A);                                                                           \
-    } catch (const ::NUnitTest::TAssertException&) {                                         \
-        throw;                                                                               \
-    } catch (const E&) {                                                                     \
-        UNIT_ASSERT_C(0, "Exception has been thrown, but it shouldn't have happened " << C); \
-    }
+#define UNIT_CHECK_GENERATED_NO_EXCEPTION_C(A, E, C)                                             \
+    do {                                                                                         \
+        try {                                                                                    \
+            (void)(A);                                                                           \
+        } catch (const ::NUnitTest::TAssertException&) {                                         \
+            throw;                                                                               \
+        } catch (const E&) {                                                                     \
+            UNIT_ASSERT_C(0, "Exception has been thrown, but it shouldn't have happened " << C); \
+        }                                                                                        \
+    } while (false)
 
 #define UNIT_CHECK_GENERATED_NO_EXCEPTION(A, E) UNIT_CHECK_GENERATED_NO_EXCEPTION_C(A, E, "")
 

@@ -518,12 +518,11 @@ enum class ETrainingKind {
 };
 
 
-template <typename TObjectsDataProvider> // TQuantizedForCPUObjectsDataProvider or TQuantizedObjectsDataProvider
 TIntrusivePtr<TTrainingDataProvider> MakeFeatureSubsetDataProvider(
     const TVector<ui32>& ignoredFeatures,
     NCB::TTrainingDataProviderPtr trainingDataProvider
 ) {
-    TIntrusivePtr<TObjectsDataProvider> newObjects = dynamic_cast<TObjectsDataProvider*>(
+    TQuantizedObjectsDataProviderPtr newObjects = dynamic_cast<TQuantizedForCPUObjectsDataProvider*>(
         trainingDataProvider->ObjectsData->GetFeaturesSubset(ignoredFeatures, &NPar::LocalExecutor()).Get());
     CB_ENSURE(
         newObjects,
@@ -531,15 +530,31 @@ TIntrusivePtr<TTrainingDataProvider> MakeFeatureSubsetDataProvider(
     TDataMetaInfo newMetaInfo = trainingDataProvider->MetaInfo;
     newMetaInfo.FeaturesLayout = newObjects->GetFeaturesLayout();
     return MakeIntrusive<TTrainingDataProvider>(
+        trainingDataProvider->OriginalFeaturesLayout,
         TDataMetaInfo(newMetaInfo),
         trainingDataProvider->ObjectsGrouping,
         newObjects,
         trainingDataProvider->TargetData);
 }
 
+TTrainingDataProviders MakeFeatureSubsetTrainingData(
+    const TVector<ui32>& ignoredFeatures,
+    const NCB::TTrainingDataProviders& trainingData
+) {
+    TTrainingDataProviders newTrainingData;
+    newTrainingData.Learn = MakeFeatureSubsetDataProvider(ignoredFeatures, trainingData.Learn);
+    newTrainingData.Test.push_back(MakeFeatureSubsetDataProvider(ignoredFeatures, trainingData.Test[0]));
+
+    newTrainingData.FeatureEstimators = trainingData.FeatureEstimators;
+
+    // TODO(akhropov): correctly support ignoring indices based on source data
+    newTrainingData.EstimatedObjectsData = trainingData.EstimatedObjectsData;
+
+    return newTrainingData;
+}
+
 
 static TVector<TTrainingDataProviders> UpdateIgnoredFeaturesInLearn(
-    ETaskType taskType,
     const NCatboostOptions::TFeatureEvalOptions& options,
     ETrainingKind trainingKind,
     ui32 testedFeatureSetIdx,
@@ -595,32 +610,9 @@ static TVector<TTrainingDataProviders> UpdateIgnoredFeaturesInLearn(
 
     TVector<TTrainingDataProviders> result;
     result.reserve(foldsData.size());
-    if (taskType == ETaskType::CPU) {
-        for (const auto& foldData : foldsData) {
-            TTrainingDataProviders newTrainingData;
-            newTrainingData.Learn = MakeFeatureSubsetDataProvider<TQuantizedForCPUObjectsDataProvider>(
-                ignoredFeatures,
-                foldData.Learn);
-            newTrainingData.Test.push_back(
-                MakeFeatureSubsetDataProvider<TQuantizedForCPUObjectsDataProvider>(
-                    ignoredFeatures,
-                    foldData.Test[0])
-            );
-            result.push_back(newTrainingData);
-        }
-    } else {
-        for (const auto& foldData : foldsData) {
-            TTrainingDataProviders newTrainingData;
-            newTrainingData.Learn = MakeFeatureSubsetDataProvider<TQuantizedObjectsDataProvider>(
-                ignoredFeatures,
-                foldData.Learn);
-            newTrainingData.Test.push_back(
-                MakeFeatureSubsetDataProvider<TQuantizedObjectsDataProvider>(
-                    ignoredFeatures,
-                    foldData.Test[0])
-            );
-            result.push_back(newTrainingData);
-        }
+
+    for (const auto& foldData : foldsData) {
+        result.push_back(MakeFeatureSubsetTrainingData(ignoredFeatures, foldData));
     }
     return result;
 }
@@ -1040,7 +1032,6 @@ static void EvaluateFeaturesImpl(
         const auto haveBaseline = featureSetIdx > 0 && useCommonBaseline;
         if (!haveBaseline) {
             auto newFoldsData = UpdateIgnoredFeaturesInLearn(
-                taskType,
                 featureEvalOptions,
                 ETrainingKind::Baseline,
                 featureSetIdx,
@@ -1052,7 +1043,6 @@ static void EvaluateFeaturesImpl(
         }
 
         auto newFoldsData = UpdateIgnoredFeaturesInLearn(
-            taskType,
             featureEvalOptions,
             ETrainingKind::Testing,
             featureSetIdx,

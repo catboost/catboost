@@ -169,8 +169,8 @@ static inline bool AsciiEqualsIgnoreCase(const char* s1, const char* s2) noexcep
  *
  * @return                              true iff @c s1 ans @c s2 are case-insensitively equal.
  */
-static inline bool AsciiEqualsIgnoreCase(const TFixedString<char> s1, const TFixedString<char> s2) noexcept {
-    return (s1.Length == s2.Length) && strnicmp(s1.Start, s2.Start, s1.Length) == 0;
+static inline bool AsciiEqualsIgnoreCase(const TStringBuf s1, const TStringBuf s2) noexcept {
+    return (s1.size() == s2.size()) && strnicmp(s1.data(), s2.data(), s1.size()) == 0;
 }
 
 /**
@@ -199,7 +199,7 @@ static inline int AsciiCompareIgnoreCase(const char* s1, const char* s2) noexcep
  * 0-terminator character inside.
  */
 Y_PURE_FUNCTION
-int AsciiCompareIgnoreCase(const TFixedString<char> s1, const TFixedString<char> s2) noexcept;
+int AsciiCompareIgnoreCase(const TStringBuf s1, const TStringBuf s2) noexcept;
 
 /**
   * ASCII case-sensitive string comparison (for proper UTF8 strings
@@ -207,8 +207,8 @@ int AsciiCompareIgnoreCase(const TFixedString<char> s1, const TFixedString<char>
   *
   * @return                              true iff @c s2 are case-sensitively prefix of @c s1.
   */
-static inline bool AsciiHasPrefix(const TFixedString<char> s1, const TFixedString<char> s2) noexcept {
-    return (s1.Length >= s2.Length) && memcmp(s1.Start, s2.Start, s2.Length) == 0;
+static inline bool AsciiHasPrefix(const TStringBuf s1, const TStringBuf s2) noexcept {
+    return (s1.size() >= s2.size()) && memcmp(s1.data(), s2.data(), s2.size()) == 0;
 }
 
 /**
@@ -217,8 +217,8 @@ static inline bool AsciiHasPrefix(const TFixedString<char> s1, const TFixedStrin
   *
   * @return                              true iff @c s2 are case-insensitively prefix of @c s1.
   */
-static inline bool AsciiHasPrefixIgnoreCase(const TFixedString<char> s1, const TFixedString<char> s2) noexcept {
-    return (s1.Length >= s2.Length) && strnicmp(s1.Start, s2.Start, s2.Length) == 0;
+static inline bool AsciiHasPrefixIgnoreCase(const TStringBuf s1, const TStringBuf s2) noexcept {
+    return (s1.size() >= s2.size()) && strnicmp(s1.data(), s2.data(), s2.size()) == 0;
 }
 
 /**
@@ -227,6 +227,6 @@ static inline bool AsciiHasPrefixIgnoreCase(const TFixedString<char> s1, const T
   *
   * @return                              true iff @c s2 are case-insensitively suffix of @c s1.
   */
-static inline bool AsciiHasSuffixIgnoreCase(const TFixedString<char> s1, const TFixedString<char> s2) noexcept {
-    return (s1.Length >= s2.Length) && strnicmp((s1.Start + (s1.Length - s2.Length)), s2.Start, s2.Length) == 0;
+static inline bool AsciiHasSuffixIgnoreCase(const TStringBuf s1, const TStringBuf s2) noexcept {
+    return (s1.size() >= s2.size()) && strnicmp((s1.data() + (s1.size() - s2.size())), s2.data(), s2.size()) == 0;
 }

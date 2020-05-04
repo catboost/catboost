@@ -27,7 +27,6 @@ static TDataProviderPtr MakeDataProvider(
     ) {
 
     TDataProviderBuilderOptions builderOptions{!isGpu,
-                                               isGpu,
                                                false};
 
     THolder<IDataProviderBuilder> dataProviderBuilder;

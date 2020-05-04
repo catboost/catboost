@@ -1335,8 +1335,7 @@ def test_pairlogit_no_target(compressed_data, boosting_type):
     ]
 
 
-@pytest.mark.parametrize('task_type', ['CPU', 'GPU'])
-def test_learn_without_header_eval_with_header(task_type):
+def test_learn_without_header_eval_with_header():
     train_path = yatest.common.test_output_path('airlines_without_header')
     with open(data_file('airlines_5K', 'train'), 'r') as with_header_file:
         with open(train_path, 'w') as without_header_file:
@@ -1351,11 +1350,7 @@ def test_learn_without_header_eval_with_header(task_type):
         '-i', '10',
         '-m', model_path
     ]
-    execute_catboost_fit(
-        task_type=task_type,
-        params=fit_params,
-        devices='0'
-    )
+    fit_catboost_gpu(fit_params)
 
     cmd_calc = (
         CATBOOST_PATH,

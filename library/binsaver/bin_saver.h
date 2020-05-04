@@ -3,7 +3,7 @@
 #include "buffered_io.h"
 #include "class_factory.h"
 
-#include <library/containers/2d_array/2d_array.h>
+#include <library/cpp/containers/2d_array/2d_array.h>
 
 #include <util/generic/hash_set.h>
 #include <util/generic/buffer.h>

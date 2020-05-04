@@ -145,6 +145,7 @@ enum class ELossFunction {
     QuerySoftMax,
     QueryCrossEntropy,
     StochasticFilter,
+    StochasticRank,
 
     /* user defined errors */
 
@@ -247,6 +248,12 @@ enum class EPreCalcShapValues {
     Auto,
     UsePreCalc,
     NoPreCalc
+};
+
+enum class ECalcTypeShapValues {
+    Approximate,
+    Regular,
+    Exact
 };
 
 enum class EObservationsToBootstrap {

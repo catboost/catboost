@@ -1,8 +1,10 @@
 #pragma once
 
+#include "estimated_features.h"
 #include "projection.h"
 
 #include <catboost/libs/data/exclusive_feature_bundling.h>
+#include <catboost/libs/data/feature_estimators.h>
 #include <catboost/libs/data/feature_grouping.h>
 #include <catboost/libs/data/packed_binary_features.h>
 #include <catboost/libs/data/quantized_features_info.h>
@@ -13,6 +15,7 @@
 #include <util/digest/multi.h>
 #include <util/digest/numeric.h>
 #include <util/generic/array_ref.h>
+#include <util/generic/cast.h>
 #include <util/generic/vector.h>
 #include <util/system/types.h>
 #include <util/str_stl.h>
@@ -23,6 +26,11 @@
 
 
 class TLearnContext;
+
+
+namespace NCB {
+    struct TQuantizedEstimatedFeaturesInfo;
+}
 
 
 struct TCtr {
@@ -70,38 +78,54 @@ struct THash<TCtr> {
 
 struct TSplitCandidate {
     TCtr Ctr;
-    int FeatureIdx = -1;
+    int FeatureIdx = -1;  // not valid if Type == ESplitType::OnlineCtr
+    bool IsOnlineEstimatedFeature = false; // valid only if Type == ESplitType::EstimatedFeature
     ESplitType Type = ESplitType::FloatFeature;
 
     static const size_t FloatFeatureBaseHash;
     static const size_t CtrBaseHash;
     static const size_t OneHotFeatureBaseHash;
+    static const size_t EstimatedFeatureBaseHash;
 
 public:
     bool operator==(const TSplitCandidate& other) const {
-        return Type == other.Type &&
-           (((Type == ESplitType::FloatFeature || Type == ESplitType::OneHotFeature) &&
-               FeatureIdx == other.FeatureIdx)
-            || (Type == ESplitType::OnlineCtr && Ctr == other.Ctr));
+        if (Type != other.Type) {
+            return false;
+        }
+        switch (Type) {
+            case ESplitType::FloatFeature:
+            case ESplitType::OneHotFeature:
+                return FeatureIdx == other.FeatureIdx;
+            case ESplitType::EstimatedFeature:
+                return (IsOnlineEstimatedFeature == other.IsOnlineEstimatedFeature) &&
+                    (FeatureIdx == other.FeatureIdx);
+            case ESplitType::OnlineCtr:
+                return Ctr == other.Ctr;
+        }
     }
 
-    SAVELOAD(Ctr, FeatureIdx, Type);
-    Y_SAVELOAD_DEFINE(Ctr, FeatureIdx, Type);
+    SAVELOAD(Ctr, FeatureIdx, IsOnlineEstimatedFeature, Type);
+    Y_SAVELOAD_DEFINE(Ctr, FeatureIdx, IsOnlineEstimatedFeature, Type);
 
     size_t GetHash() const {
         if (Type == ESplitType::FloatFeature) {
             return MultiHash(FloatFeatureBaseHash, FeatureIdx);
         } else if (Type == ESplitType::OnlineCtr) {
             return MultiHash(CtrBaseHash, Ctr.GetHash());
-        } else {
-            Y_ASSERT(Type == ESplitType::OneHotFeature);
+        } else if (Type == ESplitType::OneHotFeature) {
             return MultiHash(OneHotFeatureBaseHash, FeatureIdx);
+        } else {
+            Y_ASSERT(Type == ESplitType::EstimatedFeature);
+            return MultiHash(EstimatedFeatureBaseHash, IsOnlineEstimatedFeature, FeatureIdx);
         }
     }
 
     template <class Function>
     // Function must get two params - internal feature idx (int) and EFeatureType
-    void IterateOverUsedFeatures(Function&& f) const {
+    void IterateOverUsedFeatures(
+        const NCB::TCombinedEstimatedFeaturesContext& estimatedFeaturesContext,
+        Function&& f
+    ) const {
         if (Type == ESplitType::FloatFeature) {
             Y_ASSERT(FeatureIdx != -1);
             f(FeatureIdx, EFeatureType::Float);
@@ -110,7 +134,21 @@ public:
             f(FeatureIdx, EFeatureType::Categorical);
         } else if (Type == ESplitType::EstimatedFeature) {
             Y_ASSERT(FeatureIdx != -1);
-            f(FeatureIdx, EFeatureType::Text);
+
+            const NCB::TEstimatorId estimatorId = (
+                IsOnlineEstimatedFeature ?
+                    estimatedFeaturesContext.OnlineEstimatedFeaturesLayout
+                    : estimatedFeaturesContext.OfflineEstimatedFeaturesLayout
+            )[FeatureIdx].EstimatorId;
+
+            f(
+                SafeIntegerCast<int>(
+                    estimatedFeaturesContext.FeatureEstimators->GetEstimatorSourceFeatureIdx(
+                        estimatorId
+                    ).TextFeatureId
+                ),
+                EFeatureType::Text
+            );
         } else if (Type == ESplitType::OnlineCtr) {
             for (const int catFeatureIdx : Ctr.Projection.CatFeatures) {
                 f(catFeatureIdx, EFeatureType::Categorical);
@@ -124,6 +162,10 @@ public:
         } else {
             ythrow TCatBoostException() << "Unknown feature type" << Type;
         }
+    }
+
+    bool IsOnline() const {
+        return (Type == ESplitType::OnlineCtr) || IsOnlineEstimatedFeature;
     }
 };
 
@@ -175,6 +217,9 @@ enum class ESplitEnsembleType {
 
 // could have been a TVariant but SAVELOAD is easier this way
 struct TSplitEnsemble {
+    bool IsEstimated;  // either online or offline
+    bool IsOnlineEstimated;
+
     // variant switch
     ESplitEnsembleType Type;
 
@@ -190,19 +235,33 @@ struct TSplitEnsemble {
 
 public:
     TSplitEnsemble()
-        : Type(ESplitEnsembleType::OneFeature)
+        : IsEstimated(false)
+        , IsOnlineEstimated(false)
+        , Type(ESplitEnsembleType::OneFeature)
     {}
 
-    explicit TSplitEnsemble(TSplitCandidate&& splitCandidate)
-        : Type(ESplitEnsembleType::OneFeature)
+    explicit TSplitEnsemble(
+        TSplitCandidate&& splitCandidate,
+        bool isEstimated = false,
+        bool isOnlineEstimated = false
+    )
+        : IsEstimated(isEstimated)
+        , IsOnlineEstimated(isOnlineEstimated)
+        , Type(ESplitEnsembleType::OneFeature)
         , SplitCandidate(std::move(splitCandidate))
     {}
 
     /* move is not really needed for such a simple structure but do it in the same way as splitCandidate for
      * consistency
      */
-    explicit TSplitEnsemble(TBinarySplitsPackRef&& binarySplitsPackRef)
-        : Type(ESplitEnsembleType::BinarySplits)
+    explicit TSplitEnsemble(
+        TBinarySplitsPackRef&& binarySplitsPackRef,
+        bool isEstimated = false,
+        bool isOnlineEstimated = false
+    )
+        : IsEstimated(isEstimated)
+        , IsOnlineEstimated(isOnlineEstimated)
+        , Type(ESplitEnsembleType::BinarySplits)
         , BinarySplitsPackRef(std::move(binarySplitsPackRef))
     {}
 
@@ -210,7 +269,9 @@ public:
      * consistency
      */
     explicit TSplitEnsemble(TExclusiveFeaturesBundleRef&& exclusiveFeaturesBundleRef)
-        : Type(ESplitEnsembleType::ExclusiveBundle)
+        : IsEstimated(false)
+        , IsOnlineEstimated(false)
+        , Type(ESplitEnsembleType::ExclusiveBundle)
         , ExclusiveFeaturesBundleRef(std::move(exclusiveFeaturesBundleRef))
     {}
 
@@ -218,11 +279,20 @@ public:
      * consistency
      */
     explicit TSplitEnsemble(TFeaturesGroupRef&& featuresGroupRef)
-        : Type(ESplitEnsembleType::FeaturesGroup)
+        : IsEstimated(false)
+        , IsOnlineEstimated(false)
+        , Type(ESplitEnsembleType::FeaturesGroup)
         , FeaturesGroupRef(std::move(featuresGroupRef))
     {}
 
     bool operator==(const TSplitEnsemble& other) const {
+        if (IsEstimated != other.IsEstimated) {
+            return false;
+        }
+        if (IsEstimated && (IsOnlineEstimated != other.IsOnlineEstimated)) {
+            return false;
+        }
+
         switch (Type) {
             case ESplitEnsembleType::OneFeature:
                 return (other.Type == ESplitEnsembleType::OneFeature)
@@ -239,18 +309,33 @@ public:
         }
     }
 
-    SAVELOAD(Type, SplitCandidate, BinarySplitsPackRef, ExclusiveFeaturesBundleRef, FeaturesGroupRef);
+    SAVELOAD(
+        IsEstimated,
+        IsOnlineEstimated,
+        Type,
+        SplitCandidate,
+        BinarySplitsPackRef,
+        ExclusiveFeaturesBundleRef,
+        FeaturesGroupRef);
 
     size_t GetHash() const {
         switch (Type) {
             case ESplitEnsembleType::OneFeature:
-                return SplitCandidate.GetHash();;
+                return MultiHash(IsEstimated, IsOnlineEstimated, SplitCandidate.GetHash());
             case ESplitEnsembleType::BinarySplits:
-                return MultiHash(BinarySplitsPackHash, BinarySplitsPackRef.PackIdx);
+                return MultiHash(
+                    IsEstimated,
+                    IsOnlineEstimated,
+                    BinarySplitsPackHash,
+                    BinarySplitsPackRef.PackIdx);
             case ESplitEnsembleType::ExclusiveBundle:
-                return MultiHash(ExclusiveBundleHash, ExclusiveFeaturesBundleRef.BundleIdx);
+                return MultiHash(
+                    IsEstimated,
+                    IsOnlineEstimated,
+                    ExclusiveBundleHash,
+                    ExclusiveFeaturesBundleRef.BundleIdx);
             case ESplitEnsembleType::FeaturesGroup:
-                return MultiHash(FeaturesGroupHash, FeaturesGroupRef.GroupIdx);
+                return MultiHash(IsEstimated, IsOnlineEstimated, FeaturesGroupHash, FeaturesGroupRef.GroupIdx);
         }
     }
 
@@ -268,6 +353,9 @@ struct THash<TSplitEnsemble> {
 
 
 struct TSplitEnsembleSpec {
+    bool IsEstimated; // either online or offline
+    bool IsOnlineEstimated;
+
     ESplitEnsembleType Type;
 
     ESplitType OneSplitType; // used only if Type == OneFeature
@@ -279,9 +367,13 @@ public:
         ESplitEnsembleType type = ESplitEnsembleType::OneFeature,
         ESplitType oneSplitType = ESplitType::FloatFeature,
         NCB::TExclusiveFeaturesBundle exclusiveFeaturesBundle = NCB::TExclusiveFeaturesBundle(),
-        NCB::TFeaturesGroup featuresGroup = NCB::TFeaturesGroup()
+        NCB::TFeaturesGroup featuresGroup = NCB::TFeaturesGroup(),
+        bool isEstimated = false,
+        bool isOnlineEstimated = false
     )
-        : Type(type)
+        : IsEstimated(isEstimated)
+        , IsOnlineEstimated(isOnlineEstimated)
+        , Type(type)
         , OneSplitType(oneSplitType)
         , ExclusiveFeaturesBundle(std::move(exclusiveFeaturesBundle))
         , FeaturesGroup(std::move(featuresGroup))
@@ -292,7 +384,9 @@ public:
         TConstArrayRef<NCB::TExclusiveFeaturesBundle> exclusiveFeaturesBundles,
         TConstArrayRef<NCB::TFeaturesGroup> featuresGroups
     )
-        : Type(splitEnsemble.Type)
+        : IsEstimated(splitEnsemble.IsEstimated)
+        , IsOnlineEstimated(splitEnsemble.IsOnlineEstimated)
+        , Type(splitEnsemble.Type)
         , OneSplitType(splitEnsemble.SplitCandidate.Type)
     {
         if (Type == ESplitEnsembleType::ExclusiveBundle) {
@@ -304,9 +398,16 @@ public:
         }
     }
 
-    SAVELOAD(Type, OneSplitType, ExclusiveFeaturesBundle, FeaturesGroup);
+    SAVELOAD(IsEstimated, IsOnlineEstimated, Type, OneSplitType, ExclusiveFeaturesBundle, FeaturesGroup);
 
     bool operator==(const TSplitEnsembleSpec& other) const {
+        if (IsEstimated != other.IsEstimated) {
+            return false;
+        }
+        if (IsEstimated && (IsOnlineEstimated != other.IsOnlineEstimated)) {
+            return false;
+        }
+
         switch (Type) {
             case ESplitEnsembleType::OneFeature:
                 return (other.Type == ESplitEnsembleType::OneFeature) && (OneSplitType == other.OneSplitType);
@@ -397,7 +498,11 @@ public:
 
     TModelSplit GetModelSplit(
         const TLearnContext& ctx,
-        const NCB::TPerfectHashedToHashedCatValuesMap& perfectHashedToHashedCatValuesMap) const;
+        const NCB::TPerfectHashedToHashedCatValuesMap& perfectHashedToHashedCatValuesMap,
+        const NCB::TFeatureEstimators& featureEstimators,
+        const NCB::TQuantizedEstimatedFeaturesInfo& offlineEstimatedFeaturesInfo,
+        const NCB::TQuantizedEstimatedFeaturesInfo& onlineEstimatedFeaturesInfo
+    ) const;
 
     static inline float EmulateUi8Rounding(int value) {
         return value + 0.999999f;

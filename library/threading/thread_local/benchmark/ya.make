@@ -5,7 +5,7 @@ PROGRAM()
 SRCS(main.cpp)
 
 PEERDIR(
-    library/colorizer
+    library/cpp/colorizer
     library/object_factory
     library/statistics
     library/threading/thread_local

@@ -15,7 +15,7 @@ NCatboostOptions::TDataProcessingOptions::TDataProcessingOptions(ETaskType type)
           EBorderSelectionType::GreedyLogSum,
           type == ETaskType::GPU ? 128 : 254,
           ENanMode::Min,
-          type
+          200000
       ))
       , PerFloatFeatureQuantization("per_float_feature_quantization", TMap<ui32, TBinarizationOptions>())
       , TextProcessingOptions("text_processing_options", TTextProcessingOptions())

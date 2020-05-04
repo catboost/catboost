@@ -78,35 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\six\0db04d0e3997d762089e7da06e.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\six\8f6a9caea50ad98156b1915643.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\six\_0db04d0e3997d762089e7da06e.yasm">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\six
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/six/_0db04d0e3997d762089e7da06e.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/six/_0db04d0e3997d762089e7da06e.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\python\six
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/six/_0db04d0e3997d762089e7da06e.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/six/_0db04d0e3997d762089e7da06e.yasm"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/six/_0db04d0e3997d762089e7da06e.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\six\_0db04d0e3997d762089e7da06e.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\six\_0db04d0e3997d762089e7da06e.py2.obj;</Outputs>
-    </CustomBuild>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\contrib\python\six\9e1422c55f2c47814c9376cb15.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\six\_8f6a9caea50ad98156b1915643.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\six
@@ -134,15 +107,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\six\_8f6a9caea50ad98156b1915643.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\contrib\python\six\_8f6a9caea50ad98156b1915643.py2.obj;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\contrib\python\six\_9e1422c55f2c47814c9376cb15.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\six
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/six/0db04d0e3997d762089e7da06e.cpp" "_b2d719da6296a2399d9df2f31e=/py_modules/six" "_c99ba112dcc0169b16c77e8818=resfs/src//py_modules/six" "_917252ff8f37661db7635c4262=/py_code/six"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\six
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/six/8f6a9caea50ad98156b1915643.cpp" "_bf0c8614c23048837dbd2a95fe=resfs/src/resfs/file/contrib/python/six/.dist-info/METADATA" "_c950ee930fd3c5dab732ed6539=resfs/file/contrib/python/six/.dist-info/METADATA" "_231b341bed21f589f9f53d9da4=resfs/src/resfs/file/contrib/python/six/.dist-info/top_level.txt" "_602f7ada90a6c1735c1565a627=resfs/file/contrib/python/six/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/six/_9e1422c55f2c47814c9376cb15.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/six/_9e1422c55f2c47814c9376cb15.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -153,11 +122,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\six
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/six/0db04d0e3997d762089e7da06e.cpp" "_b2d719da6296a2399d9df2f31e=/py_modules/six" "_c99ba112dcc0169b16c77e8818=resfs/src//py_modules/six" "_917252ff8f37661db7635c4262=/py_code/six"
-if %errorlevel% neq 0 goto :cmEnd
-cd /d $(SolutionDir)$(Configuration)\contrib\python\six
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/six/8f6a9caea50ad98156b1915643.cpp" "_bf0c8614c23048837dbd2a95fe=resfs/src/resfs/file/contrib/python/six/.dist-info/METADATA" "_c950ee930fd3c5dab732ed6539=resfs/file/contrib/python/six/.dist-info/METADATA" "_231b341bed21f589f9f53d9da4=resfs/src/resfs/file/contrib/python/six/.dist-info/top_level.txt" "_602f7ada90a6c1735c1565a627=resfs/file/contrib/python/six/.dist-info/top_level.txt"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/contrib/python/six/_9e1422c55f2c47814c9376cb15.py2.obj" "$(SolutionDir)$(Configuration)/contrib/python/six/_9e1422c55f2c47814c9376cb15.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -165,9 +130,44 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/six/0db04d0e3997d762089e7da06e.cpp	$B/contrib/python/six/8f6a9caea50ad98156b1915643.cpp	</Message>
+      <Message>$B/contrib/python/six/_9e1422c55f2c47814c9376cb15.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\contrib\python\six\_9e1422c55f2c47814c9376cb15.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\six\_9e1422c55f2c47814c9376cb15.py2.obj;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\six
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/six/8f6a9caea50ad98156b1915643.cpp" "_bf0c8614c23048837dbd2a95fe=resfs/src/resfs/file/contrib/python/six/.dist-info/METADATA" "_c950ee930fd3c5dab732ed6539=resfs/file/contrib/python/six/.dist-info/METADATA" "_231b341bed21f589f9f53d9da4=resfs/src/resfs/file/contrib/python/six/.dist-info/top_level.txt" "_602f7ada90a6c1735c1565a627=resfs/file/contrib/python/six/.dist-info/top_level.txt"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\six
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/six/9e1422c55f2c47814c9376cb15.cpp" "_b2d719da6296a2399d9df2f31e=/py_modules/six" "_c99ba112dcc0169b16c77e8818=resfs/src//py_modules/six" "_eed61fab1e8c7a1b2ccfe8ec5d=/py_code/six"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\contrib\python\six
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/six/8f6a9caea50ad98156b1915643.cpp" "_bf0c8614c23048837dbd2a95fe=resfs/src/resfs/file/contrib/python/six/.dist-info/METADATA" "_c950ee930fd3c5dab732ed6539=resfs/file/contrib/python/six/.dist-info/METADATA" "_231b341bed21f589f9f53d9da4=resfs/src/resfs/file/contrib/python/six/.dist-info/top_level.txt" "_602f7ada90a6c1735c1565a627=resfs/file/contrib/python/six/.dist-info/top_level.txt"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\contrib\python\six
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/contrib/python/six/9e1422c55f2c47814c9376cb15.cpp" "_b2d719da6296a2399d9df2f31e=/py_modules/six" "_c99ba112dcc0169b16c77e8818=resfs/src//py_modules/six" "_eed61fab1e8c7a1b2ccfe8ec5d=/py_code/six"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/contrib/python/six/8f6a9caea50ad98156b1915643.cpp	$B/contrib/python/six/9e1422c55f2c47814c9376cb15.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\six\0db04d0e3997d762089e7da06e.cpp;$(SolutionDir)$(Configuration)\contrib\python\six\8f6a9caea50ad98156b1915643.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\six\8f6a9caea50ad98156b1915643.cpp;$(SolutionDir)$(Configuration)\contrib\python\six\9e1422c55f2c47814c9376cb15.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -227,7 +227,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\six
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/six/_0db04d0e3997d762089e7da06e.yasm" "$(SolutionDir)../contrib/python/six/six.py" "$(SolutionDir)$(Configuration)/contrib/python/six/_b2d719da6296a2399d9df2f31e.rodata" "-" "contrib/python/six/six.py" "_c99ba112dcc0169b16c77e8818.rodata" "$(SolutionDir)$(Configuration)/contrib/python/six/six.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/six/_917252ff8f37661db7635c4262.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/six/_9e1422c55f2c47814c9376cb15.yasm" "$(SolutionDir)../contrib/python/six/six.py" "$(SolutionDir)$(Configuration)/contrib/python/six/_b2d719da6296a2399d9df2f31e.rodata" "-" "contrib/python/six/six.py" "_c99ba112dcc0169b16c77e8818.rodata" "$(SolutionDir)$(Configuration)/contrib/python/six/six.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/six/_eed61fab1e8c7a1b2ccfe8ec5d.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -238,7 +238,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\contrib\python\six
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/six/_0db04d0e3997d762089e7da06e.yasm" "$(SolutionDir)../contrib/python/six/six.py" "$(SolutionDir)$(Configuration)/contrib/python/six/_b2d719da6296a2399d9df2f31e.rodata" "-" "contrib/python/six/six.py" "_c99ba112dcc0169b16c77e8818.rodata" "$(SolutionDir)$(Configuration)/contrib/python/six/six.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/six/_917252ff8f37661db7635c4262.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/contrib/python/six/_9e1422c55f2c47814c9376cb15.yasm" "$(SolutionDir)../contrib/python/six/six.py" "$(SolutionDir)$(Configuration)/contrib/python/six/_b2d719da6296a2399d9df2f31e.rodata" "-" "contrib/python/six/six.py" "_c99ba112dcc0169b16c77e8818.rodata" "$(SolutionDir)$(Configuration)/contrib/python/six/six.py.yapyc" "$(SolutionDir)$(Configuration)/contrib/python/six/_eed61fab1e8c7a1b2ccfe8ec5d.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -246,9 +246,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/python/six/_0db04d0e3997d762089e7da06e.yasm	</Message>
+      <Message>$B/contrib/python/six/_9e1422c55f2c47814c9376cb15.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)..\contrib\python\six\six.py;$(SolutionDir)$(Configuration)\contrib\python\six\six.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\six\_0db04d0e3997d762089e7da06e.yasm;$(SolutionDir)$(Configuration)\contrib\python\six\_b2d719da6296a2399d9df2f31e.rodata;$(SolutionDir)$(Configuration)\contrib\python\six\_917252ff8f37661db7635c4262.rodata;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\python\six\_9e1422c55f2c47814c9376cb15.yasm;$(SolutionDir)$(Configuration)\contrib\python\six\_b2d719da6296a2399d9df2f31e.rodata;$(SolutionDir)$(Configuration)\contrib\python\six\_eed61fab1e8c7a1b2ccfe8ec5d.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

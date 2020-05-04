@@ -1,3 +1,3 @@
 #pragma once
 
-#include <library/getopt/small/last_getopt_support.h>
+#include <library/cpp/getopt/last_getopt_support.h>

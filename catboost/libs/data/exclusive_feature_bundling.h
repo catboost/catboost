@@ -133,6 +133,7 @@ namespace NCB {
         ui32 MaxBuckets = 1 << 10;
         float MaxConflictFraction = 0.0f;
         size_t MaxBundleCandidates = 100;
+        bool OnlyOneHotsAndBinaryFloats = false;
     };
 
 

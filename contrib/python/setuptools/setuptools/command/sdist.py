@@ -207,7 +207,7 @@ class sdist(sdist_add_defaults, orig.sdist):
         manifest = open(self.manifest, 'rb')
         for line in manifest:
             # The manifest must contain UTF-8. See #303.
-            if six.PY3:
+            if not six.PY2:
                 try:
                     line = line.decode('UTF-8')
                 except UnicodeDecodeError:

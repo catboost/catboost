@@ -31,7 +31,7 @@
     ],
     "test.test_all_targets[calc_block=5000000-Ordered-SymmetricTree-MAE]": [
         {
-            "checksum": "13f9d5f0c04d6fb3cfe41c36cdb8f534",
+            "checksum": "757401f01c41d7d4412da9d12028d84b",
             "uri": "file://test.test_all_targets_calc_block=5000000-Ordered-SymmetricTree-MAE_/test.eval"
         }
     ],
@@ -65,7 +65,7 @@
     ],
     "test.test_all_targets[calc_block=5000000-Ordered-SymmetricTree-Quantile]": [
         {
-            "checksum": "13f9d5f0c04d6fb3cfe41c36cdb8f534",
+            "checksum": "757401f01c41d7d4412da9d12028d84b",
             "uri": "file://test.test_all_targets_calc_block=5000000-Ordered-SymmetricTree-Quantile_/test.eval"
         }
     ],
@@ -95,7 +95,7 @@
     ],
     "test.test_all_targets[calc_block=5000000-Plain-Depthwise-MAE]": [
         {
-            "checksum": "7eb64c60efd082cca80ec6f77569c1a1",
+            "checksum": "b942f3da22611f8ecc899737e9b3084f",
             "uri": "file://test.test_all_targets_calc_block=5000000-Plain-Depthwise-MAE_/test.eval"
         }
     ],
@@ -129,7 +129,7 @@
     ],
     "test.test_all_targets[calc_block=5000000-Plain-Depthwise-Quantile]": [
         {
-            "checksum": "7eb64c60efd082cca80ec6f77569c1a1",
+            "checksum": "b942f3da22611f8ecc899737e9b3084f",
             "uri": "file://test.test_all_targets_calc_block=5000000-Plain-Depthwise-Quantile_/test.eval"
         }
     ],
@@ -159,7 +159,7 @@
     ],
     "test.test_all_targets[calc_block=5000000-Plain-Lossguide-MAE]": [
         {
-            "checksum": "a4c481aea9d1dbd83e6529a836b8f172",
+            "checksum": "9e9784767a5f82164c6f80917c2b177d",
             "uri": "file://test.test_all_targets_calc_block=5000000-Plain-Lossguide-MAE_/test.eval"
         }
     ],
@@ -193,7 +193,7 @@
     ],
     "test.test_all_targets[calc_block=5000000-Plain-Lossguide-Quantile]": [
         {
-            "checksum": "a4c481aea9d1dbd83e6529a836b8f172",
+            "checksum": "9e9784767a5f82164c6f80917c2b177d",
             "uri": "file://test.test_all_targets_calc_block=5000000-Plain-Lossguide-Quantile_/test.eval"
         }
     ],
@@ -223,7 +223,7 @@
     ],
     "test.test_all_targets[calc_block=5000000-Plain-SymmetricTree-MAE]": [
         {
-            "checksum": "7ee73aad9b571c03f1443bc255b679bc",
+            "checksum": "308cd6ce82fccca40f9827d998807fc3",
             "uri": "file://test.test_all_targets_calc_block=5000000-Plain-SymmetricTree-MAE_/test.eval"
         }
     ],
@@ -257,7 +257,7 @@
     ],
     "test.test_all_targets[calc_block=5000000-Plain-SymmetricTree-Quantile]": [
         {
-            "checksum": "7ee73aad9b571c03f1443bc255b679bc",
+            "checksum": "308cd6ce82fccca40f9827d998807fc3",
             "uri": "file://test.test_all_targets_calc_block=5000000-Plain-SymmetricTree-Quantile_/test.eval"
         }
     ],
@@ -287,7 +287,7 @@
     ],
     "test.test_all_targets[calc_block=60-Ordered-SymmetricTree-MAE]": [
         {
-            "checksum": "13f9d5f0c04d6fb3cfe41c36cdb8f534",
+            "checksum": "757401f01c41d7d4412da9d12028d84b",
             "uri": "file://test.test_all_targets_calc_block=60-Ordered-SymmetricTree-MAE_/test.eval"
         }
     ],
@@ -321,7 +321,7 @@
     ],
     "test.test_all_targets[calc_block=60-Ordered-SymmetricTree-Quantile]": [
         {
-            "checksum": "13f9d5f0c04d6fb3cfe41c36cdb8f534",
+            "checksum": "757401f01c41d7d4412da9d12028d84b",
             "uri": "file://test.test_all_targets_calc_block=60-Ordered-SymmetricTree-Quantile_/test.eval"
         }
     ],
@@ -351,7 +351,7 @@
     ],
     "test.test_all_targets[calc_block=60-Plain-Depthwise-MAE]": [
         {
-            "checksum": "7eb64c60efd082cca80ec6f77569c1a1",
+            "checksum": "b942f3da22611f8ecc899737e9b3084f",
             "uri": "file://test.test_all_targets_calc_block=60-Plain-Depthwise-MAE_/test.eval"
         }
     ],
@@ -385,7 +385,7 @@
     ],
     "test.test_all_targets[calc_block=60-Plain-Depthwise-Quantile]": [
         {
-            "checksum": "7eb64c60efd082cca80ec6f77569c1a1",
+            "checksum": "b942f3da22611f8ecc899737e9b3084f",
             "uri": "file://test.test_all_targets_calc_block=60-Plain-Depthwise-Quantile_/test.eval"
         }
     ],
@@ -415,7 +415,7 @@
     ],
     "test.test_all_targets[calc_block=60-Plain-Lossguide-MAE]": [
         {
-            "checksum": "a4c481aea9d1dbd83e6529a836b8f172",
+            "checksum": "9e9784767a5f82164c6f80917c2b177d",
             "uri": "file://test.test_all_targets_calc_block=60-Plain-Lossguide-MAE_/test.eval"
         }
     ],
@@ -449,7 +449,7 @@
     ],
     "test.test_all_targets[calc_block=60-Plain-Lossguide-Quantile]": [
         {
-            "checksum": "a4c481aea9d1dbd83e6529a836b8f172",
+            "checksum": "9e9784767a5f82164c6f80917c2b177d",
             "uri": "file://test.test_all_targets_calc_block=60-Plain-Lossguide-Quantile_/test.eval"
         }
     ],
@@ -479,7 +479,7 @@
     ],
     "test.test_all_targets[calc_block=60-Plain-SymmetricTree-MAE]": [
         {
-            "checksum": "7ee73aad9b571c03f1443bc255b679bc",
+            "checksum": "308cd6ce82fccca40f9827d998807fc3",
             "uri": "file://test.test_all_targets_calc_block=60-Plain-SymmetricTree-MAE_/test.eval"
         }
     ],
@@ -513,7 +513,7 @@
     ],
     "test.test_all_targets[calc_block=60-Plain-SymmetricTree-Quantile]": [
         {
-            "checksum": "7ee73aad9b571c03f1443bc255b679bc",
+            "checksum": "308cd6ce82fccca40f9827d998807fc3",
             "uri": "file://test.test_all_targets_calc_block=60-Plain-SymmetricTree-Quantile_/test.eval"
         }
     ],
@@ -1391,11 +1391,11 @@
     ],
     "test.test_custom_loss[Ordered-MSLE,MedianAbsoluteError,SMAPE]": [
         {
-            "checksum": "bdf50f880b70f13bf0e957423212857e",
+            "checksum": "250a9e7fa273aedd95129a7f16934cb8",
             "uri": "file://test.test_custom_loss_Ordered-MSLE_MedianAbsoluteError_SMAPE_/learn_error.tsv"
         },
         {
-            "checksum": "20eef66f43b615cc920e9c2752714c3f",
+            "checksum": "7eea9d485fb1898d13d00eacf4d7f4f3",
             "uri": "file://test.test_custom_loss_Ordered-MSLE_MedianAbsoluteError_SMAPE_/test_error.tsv"
         }
     ],
@@ -1411,11 +1411,11 @@
     ],
     "test.test_custom_loss[Ordered-Quantile:alpha=0.9]": [
         {
-            "checksum": "904a857c4eaa6d02c59b864d243f347b",
+            "checksum": "16e86b23acc84eb3779d1c309e72734b",
             "uri": "file://test.test_custom_loss_Ordered-Quantile_alpha=0.9_/learn_error.tsv"
         },
         {
-            "checksum": "58f7be53ed370c483cb3d6a8b65b1a36",
+            "checksum": "d406e0ab8a529ad54e9d31aa9d8c12a8",
             "uri": "file://test.test_custom_loss_Ordered-Quantile_alpha=0.9_/test_error.tsv"
         }
     ],
@@ -1441,11 +1441,11 @@
     ],
     "test.test_custom_loss[Plain-MSLE,MedianAbsoluteError,SMAPE]": [
         {
-            "checksum": "f78d42ec058ad1075bdb66487faf42fd",
+            "checksum": "b0b3d9777857c9cadc5865bab05a58c8",
             "uri": "file://test.test_custom_loss_Plain-MSLE_MedianAbsoluteError_SMAPE_/learn_error.tsv"
         },
         {
-            "checksum": "7dfc83584ceed756b2798e4d1ca1517a",
+            "checksum": "85c4f1008dc973eb9fa0a076a55a02dd",
             "uri": "file://test.test_custom_loss_Plain-MSLE_MedianAbsoluteError_SMAPE_/test_error.tsv"
         }
     ],
@@ -1461,11 +1461,11 @@
     ],
     "test.test_custom_loss[Plain-Quantile:alpha=0.9]": [
         {
-            "checksum": "f36e46f47b8142c3931a9485270a7ed3",
+            "checksum": "e2f1415322d96c7c2963ce9463d315c2",
             "uri": "file://test.test_custom_loss_Plain-Quantile_alpha=0.9_/learn_error.tsv"
         },
         {
-            "checksum": "27490baebc072e6609110d37cf627b5e",
+            "checksum": "83ebd3112782cc8a05cda531bf2ebe61",
             "uri": "file://test.test_custom_loss_Plain-Quantile_alpha=0.9_/test_error.tsv"
         }
     ],
@@ -1481,11 +1481,11 @@
     ],
     "test.test_custom_loss_for_classification[Ordered-CrossEntropy]": [
         {
-            "checksum": "94b7af5850c2ef5e78a78575e2b54a6d",
+            "checksum": "af6aadc1a598530f735d71c3850942c1",
             "uri": "file://test.test_custom_loss_for_classification_Ordered-CrossEntropy_/learn_error.tsv"
         },
         {
-            "checksum": "3e3b8243f08be6756dcde0386f8422f7",
+            "checksum": "0f98bce0613630d82f57bb4c2853f3ce",
             "uri": "file://test.test_custom_loss_for_classification_Ordered-CrossEntropy_/test_error.tsv"
         }
     ],
@@ -1501,11 +1501,11 @@
     ],
     "test.test_custom_loss_for_classification[Plain-CrossEntropy]": [
         {
-            "checksum": "7fa7894b58c29f6bff8df1fab920162e",
+            "checksum": "4dac80841a139f1a72ee699c433cb6d3",
             "uri": "file://test.test_custom_loss_for_classification_Plain-CrossEntropy_/learn_error.tsv"
         },
         {
-            "checksum": "8606252fcd99d4c0660f18f8edc1821a",
+            "checksum": "01385b8d75f34eed0b551b352445ac4c",
             "uri": "file://test.test_custom_loss_for_classification_Plain-CrossEntropy_/test_error.tsv"
         }
     ],
@@ -1849,13 +1849,13 @@
     ],
     "test.test_dist_train_pairlogitpairwise[train.pairs.weighted]": [
         {
-            "checksum": "1c47abdd997bc1d429fcb9e93f078cdb",
+            "checksum": "0e28616076eef39bd1e14f721ae3d958",
             "uri": "file://test.test_dist_train_pairlogitpairwise_train.pairs.weighted_/test_1.eval"
         }
     ],
     "test.test_dist_train_pairlogitpairwise[train.pairs]": [
         {
-            "checksum": "2ad8dacae032c5640e5dfc25ac363284",
+            "checksum": "21f1ca7d40de19f871fd7b5dd0cbe1bc",
             "uri": "file://test.test_dist_train_pairlogitpairwise_train.pairs_/test_1.eval"
         }
     ],
@@ -1897,25 +1897,25 @@
     ],
     "test.test_dist_train_quantized_groupid[PairLogitPairwise-train.pairs-calc_block=5000000]": [
         {
-            "checksum": "836c1018bed2d9c484285b76d7b6d490",
+            "checksum": "48c413e28c5f4430672991fbe11fd9c3",
             "uri": "file://test.test_dist_train_quantized_groupid_PairLogitPairwise-train.pairs-calc_block=5000000_/test_1.eval"
         }
     ],
     "test.test_dist_train_quantized_groupid[PairLogitPairwise-train.pairs-calc_block=60]": [
         {
-            "checksum": "836c1018bed2d9c484285b76d7b6d490",
+            "checksum": "48c413e28c5f4430672991fbe11fd9c3",
             "uri": "file://test.test_dist_train_quantized_groupid_PairLogitPairwise-train.pairs-calc_block=60_/test_1.eval"
         }
     ],
     "test.test_dist_train_quantized_groupid[PairLogitPairwise-train.pairs.weighted-calc_block=5000000]": [
         {
-            "checksum": "5344c1063f26916fdd8c71741773399f",
+            "checksum": "80165b99e24ce7722afd7670e4f65882",
             "uri": "file://test.test_dist_train_quantized_groupid_PairLogitPairwise-train.pairs.weighted-calc_block=5000000_/test_1.eval"
         }
     ],
     "test.test_dist_train_quantized_groupid[PairLogitPairwise-train.pairs.weighted-calc_block=60]": [
         {
-            "checksum": "5344c1063f26916fdd8c71741773399f",
+            "checksum": "80165b99e24ce7722afd7670e4f65882",
             "uri": "file://test.test_dist_train_quantized_groupid_PairLogitPairwise-train.pairs.weighted-calc_block=60_/test_1.eval"
         }
     ],
@@ -3403,13 +3403,13 @@
     ],
     "test.test_eval_metrics[PairAccuracy-1]": [
         {
-            "checksum": "1c1a3f11e003cda01894564e9f5fac07",
+            "checksum": "e281b7d9a8028ebdfc015582a668594f",
             "uri": "file://test.test_eval_metrics_PairAccuracy-1_/output.tsv"
         }
     ],
     "test.test_eval_metrics[PairAccuracy-2]": [
         {
-            "checksum": "0ba8077067a2eef0a349d9b9da7aa18f",
+            "checksum": "92399e7f780f82fc07faed004d0e491e",
             "uri": "file://test.test_eval_metrics_PairAccuracy-2_/output.tsv"
         }
     ],
@@ -3929,10 +3929,430 @@
         "checksum": "3dd905b6e943198c7f12b9a0d35660bf",
         "uri": "file://test.test_feature_id_fstr_Plain_/fstr.tsv"
     },
+    "test.test_fit_binclass_with_text_features[BM25-ByDelimiter-Ordered]": [
+        {
+            "checksum": "158aaba5acb556c970dfa18fdaed55c5",
+            "uri": "file://test.test_fit_binclass_with_text_features_BM25-ByDelimiter-Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "8c2429ae9454f19c72bf8e70fdf98c48",
+            "uri": "file://test.test_fit_binclass_with_text_features_BM25-ByDelimiter-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BM25-ByDelimiter-Plain]": [
+        {
+            "checksum": "9d037421cfcebbf98200a55d771e5de3",
+            "uri": "file://test.test_fit_binclass_with_text_features_BM25-ByDelimiter-Plain_/learn.tsv"
+        },
+        {
+            "checksum": "aa65f9d444fd0ae06307dc523be304de",
+            "uri": "file://test.test_fit_binclass_with_text_features_BM25-ByDelimiter-Plain_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BM25-BySense-Ordered]": [
+        {
+            "checksum": "5dc0e39412d019c3b30e5e7e8ea19604",
+            "uri": "file://test.test_fit_binclass_with_text_features_BM25-BySense-Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "f5bc77edaea17449eacf00a1da0669ca",
+            "uri": "file://test.test_fit_binclass_with_text_features_BM25-BySense-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BM25-BySense-Plain]": [
+        {
+            "checksum": "7d8a77f7228250c4e11b2b98534f8b4b",
+            "uri": "file://test.test_fit_binclass_with_text_features_BM25-BySense-Plain_/learn.tsv"
+        },
+        {
+            "checksum": "981b06afec3f65e6a6ebc66f66c105a6",
+            "uri": "file://test.test_fit_binclass_with_text_features_BM25-BySense-Plain_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW,NaiveBayes,BM25-ByDelimiter-Ordered]": [
+        {
+            "checksum": "e00f0a24f19a960722caf02e5a43ac2f",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-ByDelimiter-Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "831054383a7b1ead1b66e8cb348ba459",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-ByDelimiter-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW,NaiveBayes,BM25-ByDelimiter-Plain]": [
+        {
+            "checksum": "3e2cd9c15f758b8da88e1f09a36496e6",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-ByDelimiter-Plain_/learn.tsv"
+        },
+        {
+            "checksum": "f73dfc5d01d7e574916f86c0245a4a6e",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-ByDelimiter-Plain_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW,NaiveBayes,BM25-BySense-Ordered]": [
+        {
+            "checksum": "e243a42f4284b35a5e381cd1129c3336",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-BySense-Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "6ff8c4596ebec7a591be800c4753d011",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-BySense-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW,NaiveBayes,BM25-BySense-Plain]": [
+        {
+            "checksum": "e07f5da888f26fd75b93033501b4b0fb",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-BySense-Plain_/learn.tsv"
+        },
+        {
+            "checksum": "5510e4b2bcfa18f320dc461254b0c0d0",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes_BM25-BySense-Plain_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW,NaiveBayes-ByDelimiter-Ordered]": [
+        {
+            "checksum": "2b7ce13a62166bbfc3f1fea88cfa432f",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes-ByDelimiter-Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "0c3435c7c1c9c3dc8d3e0ca5a40a32be",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes-ByDelimiter-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW,NaiveBayes-ByDelimiter-Plain]": [
+        {
+            "checksum": "bee2c71a3cd75c69ff2c607d1b8662c4",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes-ByDelimiter-Plain_/learn.tsv"
+        },
+        {
+            "checksum": "87f19207d1c31c4740927cf22a5e9810",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes-ByDelimiter-Plain_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW,NaiveBayes-BySense-Ordered]": [
+        {
+            "checksum": "8faa9a88dd8dab835d0ac22ded282835",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes-BySense-Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "dd163469166f64486c36d762392eed67",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes-BySense-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW,NaiveBayes-BySense-Plain]": [
+        {
+            "checksum": "a10f962ac418d638fd87d20b2d0ad617",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes-BySense-Plain_/learn.tsv"
+        },
+        {
+            "checksum": "fe9c9e6b4e6cac70d7f54e4e64fa45c4",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW_NaiveBayes-BySense-Plain_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW-ByDelimiter-Ordered]": [
+        {
+            "checksum": "1a6f28263e5b8848215c3eddab50b757",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW-ByDelimiter-Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "62308830de586f2da9b9f8ec820cab92",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW-ByDelimiter-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW-ByDelimiter-Plain]": [
+        {
+            "checksum": "edc8e93d9c2b0c5daa819815fb411df9",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW-ByDelimiter-Plain_/learn.tsv"
+        },
+        {
+            "checksum": "505999d1a81d749fc5272d0ac94c0333",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW-ByDelimiter-Plain_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW-BySense-Ordered]": [
+        {
+            "checksum": "c99cb9af195906bcab184c42c638f6f3",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW-BySense-Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "248ed17549e2f2fac90458cddb269ae6",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW-BySense-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[BoW-BySense-Plain]": [
+        {
+            "checksum": "370c6bd4abb306443b2a5b65611de719",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW-BySense-Plain_/learn.tsv"
+        },
+        {
+            "checksum": "3aa8f9bb1df0dc14b07c5d2b09828403",
+            "uri": "file://test.test_fit_binclass_with_text_features_BoW-BySense-Plain_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[NaiveBayes-ByDelimiter-Ordered]": [
+        {
+            "checksum": "6f79bdcf3c355d4d1dde68cc5b1cc092",
+            "uri": "file://test.test_fit_binclass_with_text_features_NaiveBayes-ByDelimiter-Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "d229ae0095d616504d1c2b642a6fa1cf",
+            "uri": "file://test.test_fit_binclass_with_text_features_NaiveBayes-ByDelimiter-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[NaiveBayes-ByDelimiter-Plain]": [
+        {
+            "checksum": "8f354e62ef5ff1929c5741befe343c25",
+            "uri": "file://test.test_fit_binclass_with_text_features_NaiveBayes-ByDelimiter-Plain_/learn.tsv"
+        },
+        {
+            "checksum": "a7fd8ff2e18c4a7d03ce3726c1588ae2",
+            "uri": "file://test.test_fit_binclass_with_text_features_NaiveBayes-ByDelimiter-Plain_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[NaiveBayes-BySense-Ordered]": [
+        {
+            "checksum": "29ae78e88a3c61a2b8dedc1eec8f9608",
+            "uri": "file://test.test_fit_binclass_with_text_features_NaiveBayes-BySense-Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "61e05fd484fb4eb0577b4452d4b14bf0",
+            "uri": "file://test.test_fit_binclass_with_text_features_NaiveBayes-BySense-Ordered_/test.tsv"
+        }
+    ],
+    "test.test_fit_binclass_with_text_features[NaiveBayes-BySense-Plain]": [
+        {
+            "checksum": "e7820707bfc730f23a8cd37af5a3f26a",
+            "uri": "file://test.test_fit_binclass_with_text_features_NaiveBayes-BySense-Plain_/learn.tsv"
+        },
+        {
+            "checksum": "a24e4fbd4dc5827e7295cd986a262dc2",
+            "uri": "file://test.test_fit_binclass_with_text_features_NaiveBayes-BySense-Plain_/test.tsv"
+        }
+    ],
     "test.test_fit_multiclass_with_class_names": [
         {
             "checksum": "e7da5ba492b90f5e42e1cfc182d00625",
             "uri": "file://test.test_fit_multiclass_with_class_names/eval.txt"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClass-BM25-ByDelimiter]": [
+        {
+            "checksum": "88f8731a8557ca091f991abb91edaff5",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BM25-ByDelimiter_/learn.tsv"
+        },
+        {
+            "checksum": "ee0889a4484f042869ddbc49ce7aa41f",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BM25-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClass-BM25-BySense]": [
+        {
+            "checksum": "b3d848ff4a3bee3684251bda554af64b",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BM25-BySense_/learn.tsv"
+        },
+        {
+            "checksum": "2ba67c1d9f74bde8bfb50ff0768119b2",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BM25-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClass-BoW,NaiveBayes,BM25-ByDelimiter]": [
+        {
+            "checksum": "4a9a89a7ef54393346d51b387ae3014d",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_BM25-ByDelimiter_/learn.tsv"
+        },
+        {
+            "checksum": "25f9272dfc0e2913ac6d2e541ffbefa6",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_BM25-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClass-BoW,NaiveBayes,BM25-BySense]": [
+        {
+            "checksum": "27e235fee54251a9410a6a863330312e",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_BM25-BySense_/learn.tsv"
+        },
+        {
+            "checksum": "a3aad42cc4d8b9fecd02dfa9b7c0ba5e",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes_BM25-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClass-BoW,NaiveBayes-ByDelimiter]": [
+        {
+            "checksum": "b109b2da3227cde51e8bd416de868422",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes-ByDelimiter_/learn.tsv"
+        },
+        {
+            "checksum": "fa19457cdac6c7510929befa41d43132",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClass-BoW,NaiveBayes-BySense]": [
+        {
+            "checksum": "f9601ec2d07c232ca2c8e5830e4cca9d",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes-BySense_/learn.tsv"
+        },
+        {
+            "checksum": "744d95473b5df61f2b1c791e5a2720cb",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW_NaiveBayes-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClass-BoW-ByDelimiter]": [
+        {
+            "checksum": "788b976476c849671d24b2eaee6adc84",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW-ByDelimiter_/learn.tsv"
+        },
+        {
+            "checksum": "d3a00a8150797c5babfc6c9b4247dbba",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClass-BoW-BySense]": [
+        {
+            "checksum": "0314b314baa69fb9454a6b1b08df7fc5",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW-BySense_/learn.tsv"
+        },
+        {
+            "checksum": "24bc9e8a139c8267f644263b658c9a59",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-BoW-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClass-NaiveBayes-ByDelimiter]": [
+        {
+            "checksum": "07584b4d9aa0cbfa22bd22d543026e46",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-NaiveBayes-ByDelimiter_/learn.tsv"
+        },
+        {
+            "checksum": "15211f773f23f7fcfeed8e322cbe21e8",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-NaiveBayes-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClass-NaiveBayes-BySense]": [
+        {
+            "checksum": "92342c035ec5df315c0ec19ca4af11f2",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-NaiveBayes-BySense_/learn.tsv"
+        },
+        {
+            "checksum": "cb9ba9d33794b6ff79ab365e5b6173ac",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClass-NaiveBayes-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BM25-ByDelimiter]": [
+        {
+            "checksum": "41a525ad8c043387e1449381f2df6136",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BM25-ByDelimiter_/learn.tsv"
+        },
+        {
+            "checksum": "15d15aeb31ac1a61995bbb756004c378",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BM25-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BM25-BySense]": [
+        {
+            "checksum": "2f02122b9a4fd859e555977df8eb8ec8",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BM25-BySense_/learn.tsv"
+        },
+        {
+            "checksum": "58d8a994450229de4eee7a806d2594a5",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BM25-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW,NaiveBayes,BM25-ByDelimiter]": [
+        {
+            "checksum": "1eb4713357188dc2b04c84b9744087aa",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes_BM25-ByDelimiter_/learn.tsv"
+        },
+        {
+            "checksum": "1defa653ade520172b2d0724834713a5",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes_BM25-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW,NaiveBayes,BM25-BySense]": [
+        {
+            "checksum": "708b5d1ef8bb787a31ad5a9afd7cfcde",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes_BM25-BySense_/learn.tsv"
+        },
+        {
+            "checksum": "33ccd1fac7ef632eb5270cc46183c214",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes_BM25-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW,NaiveBayes-ByDelimiter]": [
+        {
+            "checksum": "30c21c638ca37583e82c1d04be46605f",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes-ByDelimiter_/learn.tsv"
+        },
+        {
+            "checksum": "7b3d1d32ffc9695658d2681ef52eb7f4",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW,NaiveBayes-BySense]": [
+        {
+            "checksum": "a423f0a6abc4fb37fab528f76dfca6c1",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes-BySense_/learn.tsv"
+        },
+        {
+            "checksum": "ff2e9a122e56cbb623ac301c9620849c",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW_NaiveBayes-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW-ByDelimiter]": [
+        {
+            "checksum": "b61a523fe20ea40cdaea4e23be25420a",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW-ByDelimiter_/learn.tsv"
+        },
+        {
+            "checksum": "2bd23c66084e8b9d35c76e036088a27a",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClassOneVsAll-BoW-BySense]": [
+        {
+            "checksum": "bf7f737244ea61a826192439573451ad",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW-BySense_/learn.tsv"
+        },
+        {
+            "checksum": "c4a18e03af93127ee463b0548334c48b",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-BoW-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClassOneVsAll-NaiveBayes-ByDelimiter]": [
+        {
+            "checksum": "b285931ebb4f151fdc72253d15a3575a",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-NaiveBayes-ByDelimiter_/learn.tsv"
+        },
+        {
+            "checksum": "6075721135b09bacb1fd96b6175c8316",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-NaiveBayes-ByDelimiter_/test.tsv"
+        }
+    ],
+    "test.test_fit_multiclass_with_text_features[MultiClassOneVsAll-NaiveBayes-BySense]": [
+        {
+            "checksum": "4f349f9ea6f38ed8f46ed6cc064c0973",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-NaiveBayes-BySense_/learn.tsv"
+        },
+        {
+            "checksum": "de1a6cc8adc224bbac3773dcf2c79ca0",
+            "uri": "file://test.test_fit_multiclass_with_text_features_MultiClassOneVsAll-NaiveBayes-BySense_/test.tsv"
+        }
+    ],
+    "test.test_fit_with_per_feature_text_options[Ordered]": [
+        {
+            "checksum": "cc6e9a554b6ebe89442037ce1e5c9d0b",
+            "uri": "file://test.test_fit_with_per_feature_text_options_Ordered_/learn.tsv"
+        },
+        {
+            "checksum": "be81655e2bc777d6db76b8a16fca68db",
+            "uri": "file://test.test_fit_with_per_feature_text_options_Ordered_/test.tsv"
+        }
+    ],
+    "test.test_fit_with_per_feature_text_options[Plain]": [
+        {
+            "checksum": "85d3f3ec14dc4c7d9b8693c35a4cbd9e",
+            "uri": "file://test.test_fit_with_per_feature_text_options_Plain_/learn.tsv"
+        },
+        {
+            "checksum": "ad1d9a16eaf83e24a67bb4d3b71dd3e6",
+            "uri": "file://test.test_fit_with_per_feature_text_options_Plain_/test.tsv"
         }
     ],
     "test.test_fold_len_multiplier[calc_block=5000000-Ordered]": [
@@ -3984,19 +4404,23 @@
         "uri": "file://test.test_fstr_Ordered-SymmetricTree-ShapValues_/fstr.tsv"
     },
     "test.test_fstr[Plain-Depthwise-Interaction]": {
-        "checksum": "c9bc3bb20434f980e9b094becfa21108",
+        "checksum": "60da38523b65b1240835aa1fe273a1bf",
         "uri": "file://test.test_fstr_Plain-Depthwise-Interaction_/fstr.tsv"
     },
     "test.test_fstr[Plain-Depthwise-InternalFeatureImportance]": {
-        "checksum": "fb44271ef545ceb81b684e9debae59d7",
+        "checksum": "aba485384fc269eed500e145bb2187b7",
         "uri": "file://test.test_fstr_Plain-Depthwise-InternalFeatureImportance_/fstr.tsv"
     },
     "test.test_fstr[Plain-Depthwise-InternalInteraction]": {
-        "checksum": "3215f30bd2113043f5c1fd152b37f37d",
+        "checksum": "91d1f637ba9254db383abda4518d55b5",
         "uri": "file://test.test_fstr_Plain-Depthwise-InternalInteraction_/fstr.tsv"
     },
+    "test.test_fstr[Plain-Depthwise-PredictionDiff]": {
+        "checksum": "6e1b342b17083c68511f64695fd09e21",
+        "uri": "file://test.test_fstr_Plain-Depthwise-PredictionDiff_/fstr.tsv"
+    },
     "test.test_fstr[Plain-Depthwise-PredictionValuesChange]": {
-        "checksum": "22cef36b34b39e7082fae39792bdce81",
+        "checksum": "6e223cfaa8598e71c9610dabe224f606",
         "uri": "file://test.test_fstr_Plain-Depthwise-PredictionValuesChange_/fstr.tsv"
     },
     "test.test_fstr[Plain-Depthwise-ShapValues]": {
@@ -4004,19 +4428,23 @@
         "uri": "file://test.test_fstr_Plain-Depthwise-ShapValues_/fstr.tsv"
     },
     "test.test_fstr[Plain-Lossguide-Interaction]": {
-        "checksum": "b050a5f4473cf9bad5fb7c6c0f5b76a3",
+        "checksum": "93d9f7a6f5e0b4e667938a8c58d39bf5",
         "uri": "file://test.test_fstr_Plain-Lossguide-Interaction_/fstr.tsv"
     },
     "test.test_fstr[Plain-Lossguide-InternalFeatureImportance]": {
-        "checksum": "61a74590ddc093ddd58663909146d89d",
+        "checksum": "820e96a05147ae14622d8efcef5ff0ff",
         "uri": "file://test.test_fstr_Plain-Lossguide-InternalFeatureImportance_/fstr.tsv"
     },
     "test.test_fstr[Plain-Lossguide-InternalInteraction]": {
-        "checksum": "7de82d1054e66685db6f893d993addac",
+        "checksum": "867fab4677934ce0bb823dba36002ac7",
         "uri": "file://test.test_fstr_Plain-Lossguide-InternalInteraction_/fstr.tsv"
     },
+    "test.test_fstr[Plain-Lossguide-PredictionDiff]": {
+        "checksum": "ec55019bb0e2fe3f02e1820fffb8b28e",
+        "uri": "file://test.test_fstr_Plain-Lossguide-PredictionDiff_/fstr.tsv"
+    },
     "test.test_fstr[Plain-Lossguide-PredictionValuesChange]": {
-        "checksum": "1485145440129b1eb6067540aee72a9d",
+        "checksum": "0ce814735e323e4809da416bb7396a18",
         "uri": "file://test.test_fstr_Plain-Lossguide-PredictionValuesChange_/fstr.tsv"
     },
     "test.test_fstr[Plain-Lossguide-ShapValues]": {
@@ -4048,19 +4476,19 @@
         "uri": "file://test.test_fstr_Plain-SymmetricTree-ShapValues_/fstr.tsv"
     },
     "test.test_fstr_normalized_model[Depthwise-InternalFeatureImportance]": {
-        "checksum": "fb44271ef545ceb81b684e9debae59d7",
+        "checksum": "aba485384fc269eed500e145bb2187b7",
         "uri": "file://test.test_fstr_normalized_model_Depthwise-InternalFeatureImportance_/fstr.tsv"
     },
     "test.test_fstr_normalized_model[Depthwise-PredictionValuesChange]": {
-        "checksum": "22cef36b34b39e7082fae39792bdce81",
+        "checksum": "6e223cfaa8598e71c9610dabe224f606",
         "uri": "file://test.test_fstr_normalized_model_Depthwise-PredictionValuesChange_/fstr.tsv"
     },
     "test.test_fstr_normalized_model[Lossguide-InternalFeatureImportance]": {
-        "checksum": "61a74590ddc093ddd58663909146d89d",
+        "checksum": "820e96a05147ae14622d8efcef5ff0ff",
         "uri": "file://test.test_fstr_normalized_model_Lossguide-InternalFeatureImportance_/fstr.tsv"
     },
     "test.test_fstr_normalized_model[Lossguide-PredictionValuesChange]": {
-        "checksum": "1485145440129b1eb6067540aee72a9d",
+        "checksum": "0ce814735e323e4809da416bb7396a18",
         "uri": "file://test.test_fstr_normalized_model_Lossguide-PredictionValuesChange_/fstr.tsv"
     },
     "test.test_fstr_normalized_model[SymmetricTree-InternalFeatureImportance]": {
@@ -4072,15 +4500,19 @@
         "uri": "file://test.test_fstr_normalized_model_SymmetricTree-PredictionValuesChange_/fstr.tsv"
     },
     "test.test_fstr_with_class_weights[Depthwise-InternalFeatureImportance]": {
-        "checksum": "c5c7d19bb54ebf0444511795023d60c3",
+        "checksum": "92beb6b21717a1cfb690b5fce8a3dc8e",
         "uri": "file://test.test_fstr_with_class_weights_Depthwise-InternalFeatureImportance_/fstr.tsv"
     },
     "test.test_fstr_with_class_weights[Depthwise-LossFunctionChange]": {
         "checksum": "f785f6a50913d2df3777203ba5d1eed9",
         "uri": "file://test.test_fstr_with_class_weights_Depthwise-LossFunctionChange_/fstr.tsv"
     },
+    "test.test_fstr_with_class_weights[Depthwise-PredictionDiff]": {
+        "checksum": "5f2952f53ec669e2f424f06c52ac808c",
+        "uri": "file://test.test_fstr_with_class_weights_Depthwise-PredictionDiff_/fstr.tsv"
+    },
     "test.test_fstr_with_class_weights[Depthwise-PredictionValuesChange]": {
-        "checksum": "710ffa1bef21ae333efe597085d7fa74",
+        "checksum": "4016e9352ed5fc000a8477ab8422541a",
         "uri": "file://test.test_fstr_with_class_weights_Depthwise-PredictionValuesChange_/fstr.tsv"
     },
     "test.test_fstr_with_class_weights[Depthwise-ShapValues]": {
@@ -4088,15 +4520,19 @@
         "uri": "file://test.test_fstr_with_class_weights_Depthwise-ShapValues_/fstr.tsv"
     },
     "test.test_fstr_with_class_weights[Lossguide-InternalFeatureImportance]": {
-        "checksum": "6df6862056c421aa93f33ca99645e43b",
+        "checksum": "8fce57549e896d717318418dfb4efa54",
         "uri": "file://test.test_fstr_with_class_weights_Lossguide-InternalFeatureImportance_/fstr.tsv"
     },
     "test.test_fstr_with_class_weights[Lossguide-LossFunctionChange]": {
         "checksum": "97ebb2bbfcea6497d50222d6a66cbc9b",
         "uri": "file://test.test_fstr_with_class_weights_Lossguide-LossFunctionChange_/fstr.tsv"
     },
+    "test.test_fstr_with_class_weights[Lossguide-PredictionDiff]": {
+        "checksum": "cd2736ab9e56014d313147f70d44b513",
+        "uri": "file://test.test_fstr_with_class_weights_Lossguide-PredictionDiff_/fstr.tsv"
+    },
     "test.test_fstr_with_class_weights[Lossguide-PredictionValuesChange]": {
-        "checksum": "64338653ab202a7ce2a960f6b4d399b3",
+        "checksum": "6eb4d441e916c87e187162fa5148c31b",
         "uri": "file://test.test_fstr_with_class_weights_Lossguide-PredictionValuesChange_/fstr.tsv"
     },
     "test.test_fstr_with_class_weights[Lossguide-ShapValues]": {
@@ -4124,15 +4560,19 @@
         "uri": "file://test.test_fstr_with_class_weights_SymmetricTree-ShapValues_/fstr.tsv"
     },
     "test.test_fstr_with_target_border[Depthwise-InternalFeatureImportance]": {
-        "checksum": "fb44271ef545ceb81b684e9debae59d7",
+        "checksum": "aba485384fc269eed500e145bb2187b7",
         "uri": "file://test.test_fstr_with_target_border_Depthwise-InternalFeatureImportance_/fstr.tsv"
     },
     "test.test_fstr_with_target_border[Depthwise-LossFunctionChange]": {
         "checksum": "01375589717b056bd01aa36564b1045b",
         "uri": "file://test.test_fstr_with_target_border_Depthwise-LossFunctionChange_/fstr.tsv"
     },
+    "test.test_fstr_with_target_border[Depthwise-PredictionDiff]": {
+        "checksum": "742ab9a8820ac2217cceb043fd92d340",
+        "uri": "file://test.test_fstr_with_target_border_Depthwise-PredictionDiff_/fstr.tsv"
+    },
     "test.test_fstr_with_target_border[Depthwise-PredictionValuesChange]": {
-        "checksum": "22cef36b34b39e7082fae39792bdce81",
+        "checksum": "6e223cfaa8598e71c9610dabe224f606",
         "uri": "file://test.test_fstr_with_target_border_Depthwise-PredictionValuesChange_/fstr.tsv"
     },
     "test.test_fstr_with_target_border[Depthwise-ShapValues]": {
@@ -4140,15 +4580,19 @@
         "uri": "file://test.test_fstr_with_target_border_Depthwise-ShapValues_/fstr.tsv"
     },
     "test.test_fstr_with_target_border[Lossguide-InternalFeatureImportance]": {
-        "checksum": "61a74590ddc093ddd58663909146d89d",
+        "checksum": "820e96a05147ae14622d8efcef5ff0ff",
         "uri": "file://test.test_fstr_with_target_border_Lossguide-InternalFeatureImportance_/fstr.tsv"
     },
     "test.test_fstr_with_target_border[Lossguide-LossFunctionChange]": {
         "checksum": "5b20b7beaa764611ce812b5e8487cdc4",
         "uri": "file://test.test_fstr_with_target_border_Lossguide-LossFunctionChange_/fstr.tsv"
     },
+    "test.test_fstr_with_target_border[Lossguide-PredictionDiff]": {
+        "checksum": "289f599f75d514f6894b2abadc754a3f",
+        "uri": "file://test.test_fstr_with_target_border_Lossguide-PredictionDiff_/fstr.tsv"
+    },
     "test.test_fstr_with_target_border[Lossguide-PredictionValuesChange]": {
-        "checksum": "1485145440129b1eb6067540aee72a9d",
+        "checksum": "0ce814735e323e4809da416bb7396a18",
         "uri": "file://test.test_fstr_with_target_border_Lossguide-PredictionValuesChange_/fstr.tsv"
     },
     "test.test_fstr_with_target_border[Lossguide-ShapValues]": {
@@ -4196,15 +4640,19 @@
         "uri": "file://test.test_fstr_with_target_border_and_class_weights_ShapValues_/fstr.tsv"
     },
     "test.test_fstr_with_weights[Depthwise-InternalFeatureImportance]": {
-        "checksum": "1f4ad81a0be94a7c80da73bee6226878",
+        "checksum": "48a8a27a4235accb0c625b55683b0c8e",
         "uri": "file://test.test_fstr_with_weights_Depthwise-InternalFeatureImportance_/fstr.tsv"
     },
     "test.test_fstr_with_weights[Depthwise-LossFunctionChange]": {
         "checksum": "95928717e7df90a38b862b3abadc6bbb",
         "uri": "file://test.test_fstr_with_weights_Depthwise-LossFunctionChange_/fstr.tsv"
     },
+    "test.test_fstr_with_weights[Depthwise-PredictionDiff]": {
+        "checksum": "b6e3c724d5ed0ff9930a86081ce728ca",
+        "uri": "file://test.test_fstr_with_weights_Depthwise-PredictionDiff_/fstr.tsv"
+    },
     "test.test_fstr_with_weights[Depthwise-PredictionValuesChange]": {
-        "checksum": "98a0f4ce817cac8ca01bbe3a979e04b1",
+        "checksum": "738f7472c5850da890d4b17b292678c6",
         "uri": "file://test.test_fstr_with_weights_Depthwise-PredictionValuesChange_/fstr.tsv"
     },
     "test.test_fstr_with_weights[Depthwise-ShapValues]": {
@@ -4212,15 +4660,19 @@
         "uri": "file://test.test_fstr_with_weights_Depthwise-ShapValues_/fstr.tsv"
     },
     "test.test_fstr_with_weights[Lossguide-InternalFeatureImportance]": {
-        "checksum": "4ac7e39de7c00d140e85db47b18d03d1",
+        "checksum": "010ed33e9707eee522c2677aeb7e67c9",
         "uri": "file://test.test_fstr_with_weights_Lossguide-InternalFeatureImportance_/fstr.tsv"
     },
     "test.test_fstr_with_weights[Lossguide-LossFunctionChange]": {
         "checksum": "ed11bba33b3fbac4fa89f369d2e6e8c7",
         "uri": "file://test.test_fstr_with_weights_Lossguide-LossFunctionChange_/fstr.tsv"
     },
+    "test.test_fstr_with_weights[Lossguide-PredictionDiff]": {
+        "checksum": "e9246ce9193311a7c8141a8189862581",
+        "uri": "file://test.test_fstr_with_weights_Lossguide-PredictionDiff_/fstr.tsv"
+    },
     "test.test_fstr_with_weights[Lossguide-PredictionValuesChange]": {
-        "checksum": "1798d8561d63dfff41576caf3a844447",
+        "checksum": "9c78ef67c5942586304c832863515388",
         "uri": "file://test.test_fstr_with_weights_Lossguide-PredictionValuesChange_/fstr.tsv"
     },
     "test.test_fstr_with_weights[Lossguide-ShapValues]": {
@@ -4325,19 +4777,19 @@
     ],
     "test.test_groupwise_with_cat_features[loss_function=PairLogit:max_pairs=30,eval_metric=PairLogit:max_pairs=30,boosting_type=Plain]": [
         {
-            "checksum": "df6e1ca33c988ae940426cedbdcb75a1",
+            "checksum": "cf2587ac04127e194954ddf85fa518ef",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=PairLogit_max_pairs=30_eval_metric=PairLogit_max_pairs=30_boosting_type=Plain_/test_error.tsv"
         }
     ],
     "test.test_groupwise_with_cat_features[loss_function=PairLogitPairwise:max_pairs=30,eval_metric=NDCG,boosting_type=Plain]": [
         {
-            "checksum": "d4989e0ccff78bd206df6f7a10def356",
+            "checksum": "b1924f25dcf170f65a690b2487942512",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=PairLogitPairwise_max_pairs=30_eval_metric=NDCG_boosting_type=Plain_/test_error.tsv"
         }
     ],
     "test.test_groupwise_with_cat_features[loss_function=PairLogitPairwise:max_pairs=30,eval_metric=PairLogit:max_pairs=30,boosting_type=Plain]": [
         {
-            "checksum": "e99cb6142d77765f1e3e782b6209a986",
+            "checksum": "946b763ee382751e5e8f2eb2750f815b",
             "uri": "file://test.test_groupwise_with_cat_features_loss_function=PairLogitPairwise_max_pairs=30_eval_metric=PairLogit_max_pairs=30_boosting_type=Plain_/test_error.tsv"
         }
     ],
@@ -4391,25 +4843,25 @@
     ],
     "test.test_learning_rate_auto_set[false-Ordered]": [
         {
-            "checksum": "71c6dfbc69cb2e842add61fecb6ce04e",
+            "checksum": "3326aeb9ceaec7a0b469ae4fc300e1e5",
             "uri": "file://test.test_learning_rate_auto_set_false-Ordered_/test.eval"
         }
     ],
     "test.test_learning_rate_auto_set[false-Plain]": [
         {
-            "checksum": "3b11c9c9b509b9964b2eab81ea2cf8d4",
+            "checksum": "7800d424beea5dcaf645b5676ef5a135",
             "uri": "file://test.test_learning_rate_auto_set_false-Plain_/test.eval"
         }
     ],
     "test.test_learning_rate_auto_set[true-Ordered]": [
         {
-            "checksum": "7b1edb36e992d347d18ae4d6cf63dfdb",
+            "checksum": "f262609a6c20d9ae5f7d99216573ecda",
             "uri": "file://test.test_learning_rate_auto_set_true-Ordered_/test.eval"
         }
     ],
     "test.test_learning_rate_auto_set[true-Plain]": [
         {
-            "checksum": "8ce9217287f27b1345676334aae8c57b",
+            "checksum": "3c16c470fc338aa808e0d005aa448ca4",
             "uri": "file://test.test_learning_rate_auto_set_true-Plain_/test.eval"
         }
     ],
@@ -5883,13 +6335,13 @@
     ],
     "test.test_mvs_bootstrap[Ordered]": [
         {
-            "checksum": "283b28deaea7e1cbfa089694c7849192",
+            "checksum": "9d22f3d362d167b085641d7c307adf15",
             "uri": "file://test.test_mvs_bootstrap_Ordered_/test.eval"
         }
     ],
     "test.test_mvs_bootstrap[Plain]": [
         {
-            "checksum": "89b3fb3eaafc9d982d9e3e19ecb5b478",
+            "checksum": "c8e322f83d4460a3b2af78bf6855514c",
             "uri": "file://test.test_mvs_bootstrap_Plain_/test.eval"
         }
     ],
@@ -6324,7 +6776,7 @@
         "uri": "file://test.test_output_columns_format/test.eval"
     },
     "test.test_output_options": {
-        "checksum": "2d0ae24d8a98e16fff6cc7665f3a202a",
+        "checksum": "4af56f06da3eef6afebde00a0334b42c",
         "uri": "file://test.test_output_options/training_options.json"
     },
     "test.test_overfit_detector_inc_to_dec[Ordered-SymmetricTree]": [
@@ -6335,7 +6787,7 @@
     ],
     "test.test_overfit_detector_inc_to_dec[Plain-Depthwise]": [
         {
-            "checksum": "f3a8f1f9397ebc14ce1aae1fb9da4000",
+            "checksum": "b7812c3666bda36324cb42ad3065ac8f",
             "uri": "file://test.test_overfit_detector_inc_to_dec_Plain-Depthwise_/test.eval"
         }
     ],
@@ -6359,7 +6811,7 @@
     ],
     "test.test_overfit_detector_iter[Plain-Depthwise]": [
         {
-            "checksum": "539ea4fda1eb4347ae5cc7ba1be76200",
+            "checksum": "9d2f7130dd4027f6faf6e6cd9e3c0ff0",
             "uri": "file://test.test_overfit_detector_iter_Plain-Depthwise_/test.eval"
         }
     ],
@@ -6383,7 +6835,7 @@
     ],
     "test.test_overfit_detector_with_resume_from_snapshot[IncToDec-Plain-Depthwise]": [
         {
-            "checksum": "f3a8f1f9397ebc14ce1aae1fb9da4000",
+            "checksum": "b7812c3666bda36324cb42ad3065ac8f",
             "uri": "file://test.test_overfit_detector_with_resume_from_snapshot_IncToDec-Plain-Depthwise_/test.eval"
         }
     ],
@@ -6407,7 +6859,7 @@
     ],
     "test.test_overfit_detector_with_resume_from_snapshot[Iter-Plain-Depthwise]": [
         {
-            "checksum": "539ea4fda1eb4347ae5cc7ba1be76200",
+            "checksum": "9d2f7130dd4027f6faf6e6cd9e3c0ff0",
             "uri": "file://test.test_overfit_detector_with_resume_from_snapshot_Iter-Plain-Depthwise_/test.eval"
         }
     ],
@@ -6499,25 +6951,25 @@
     ],
     "test.test_pairlogit_pairwise[train.pairs-calc_block=5000000]": [
         {
-            "checksum": "69e51d0f0f42c91a58569515bbf1ce39",
+            "checksum": "8da938c1f57922e8bc8169f46ae313ee",
             "uri": "file://test.test_pairlogit_pairwise_train.pairs-calc_block=5000000_/test.eval"
         }
     ],
     "test.test_pairlogit_pairwise[train.pairs-calc_block=60]": [
         {
-            "checksum": "69e51d0f0f42c91a58569515bbf1ce39",
+            "checksum": "8da938c1f57922e8bc8169f46ae313ee",
             "uri": "file://test.test_pairlogit_pairwise_train.pairs-calc_block=60_/test.eval"
         }
     ],
     "test.test_pairlogit_pairwise[train.pairs.weighted-calc_block=5000000]": [
         {
-            "checksum": "69e51d0f0f42c91a58569515bbf1ce39",
+            "checksum": "8da938c1f57922e8bc8169f46ae313ee",
             "uri": "file://test.test_pairlogit_pairwise_train.pairs.weighted-calc_block=5000000_/test.eval"
         }
     ],
     "test.test_pairlogit_pairwise[train.pairs.weighted-calc_block=60]": [
         {
-            "checksum": "69e51d0f0f42c91a58569515bbf1ce39",
+            "checksum": "8da938c1f57922e8bc8169f46ae313ee",
             "uri": "file://test.test_pairlogit_pairwise_train.pairs.weighted-calc_block=60_/test.eval"
         }
     ],
@@ -6537,11 +6989,11 @@
     ],
     "test.test_pairs_generation_with_max_pairs": [
         {
-            "checksum": "4a0d92d6338a24b90a651b8e4b9adb26",
+            "checksum": "f6165a1aad94dfb85232886e0d20532b",
             "uri": "file://test.test_pairs_generation_with_max_pairs/learn_error.tsv"
         },
         {
-            "checksum": "c86ac666bcf7c56b2f14c6ef64b917c6",
+            "checksum": "6395e5dba80fbf81945d61eafe03864c",
             "uri": "file://test.test_pairs_generation_with_max_pairs/test_error.tsv"
         },
         {
@@ -6555,25 +7007,25 @@
     ],
     "test.test_pairwise_bayesian_bootstrap[calc_block=5000000-PairLogitPairwise-Group-0]": [
         {
-            "checksum": "0505a3dec68d051f27bbaf9ad4445f57",
+            "checksum": "1e8c6c3df6a1838eae7fbf3526f39148",
             "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=5000000-PairLogitPairwise-Group-0_/test.eval"
         }
     ],
     "test.test_pairwise_bayesian_bootstrap[calc_block=5000000-PairLogitPairwise-Group-1]": [
         {
-            "checksum": "ba3f8fdf6d8376324c296a2de597dc12",
+            "checksum": "43b0eb1a6eef8906e10017fbff43a9b0",
             "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=5000000-PairLogitPairwise-Group-1_/test.eval"
         }
     ],
     "test.test_pairwise_bayesian_bootstrap[calc_block=5000000-PairLogitPairwise-Object-0]": [
         {
-            "checksum": "0505a3dec68d051f27bbaf9ad4445f57",
+            "checksum": "1e8c6c3df6a1838eae7fbf3526f39148",
             "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=5000000-PairLogitPairwise-Object-0_/test.eval"
         }
     ],
     "test.test_pairwise_bayesian_bootstrap[calc_block=5000000-PairLogitPairwise-Object-1]": [
         {
-            "checksum": "1762c27c730adece46ab1c116ee68168",
+            "checksum": "28fb0c9af7fa8eb2eddc1b9db912a2d8",
             "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=5000000-PairLogitPairwise-Object-1_/test.eval"
         }
     ],
@@ -6603,25 +7055,25 @@
     ],
     "test.test_pairwise_bayesian_bootstrap[calc_block=60-PairLogitPairwise-Group-0]": [
         {
-            "checksum": "0505a3dec68d051f27bbaf9ad4445f57",
+            "checksum": "1e8c6c3df6a1838eae7fbf3526f39148",
             "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=60-PairLogitPairwise-Group-0_/test.eval"
         }
     ],
     "test.test_pairwise_bayesian_bootstrap[calc_block=60-PairLogitPairwise-Group-1]": [
         {
-            "checksum": "ba3f8fdf6d8376324c296a2de597dc12",
+            "checksum": "43b0eb1a6eef8906e10017fbff43a9b0",
             "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=60-PairLogitPairwise-Group-1_/test.eval"
         }
     ],
     "test.test_pairwise_bayesian_bootstrap[calc_block=60-PairLogitPairwise-Object-0]": [
         {
-            "checksum": "0505a3dec68d051f27bbaf9ad4445f57",
+            "checksum": "1e8c6c3df6a1838eae7fbf3526f39148",
             "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=60-PairLogitPairwise-Object-0_/test.eval"
         }
     ],
     "test.test_pairwise_bayesian_bootstrap[calc_block=60-PairLogitPairwise-Object-1]": [
         {
-            "checksum": "1762c27c730adece46ab1c116ee68168",
+            "checksum": "28fb0c9af7fa8eb2eddc1b9db912a2d8",
             "uri": "file://test.test_pairwise_bayesian_bootstrap_calc_block=60-PairLogitPairwise-Object-1_/test.eval"
         }
     ],
@@ -6651,25 +7103,25 @@
     ],
     "test.test_pairwise_bernoulli_bootstrap[calc_block=5000000-PairLogitPairwise-Group-0.5]": [
         {
-            "checksum": "1bca80c50a77af0c365ba1a34ce002e9",
+            "checksum": "c37575bac54ae534209bd66390372a94",
             "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=5000000-PairLogitPairwise-Group-0.5_/test.eval"
         }
     ],
     "test.test_pairwise_bernoulli_bootstrap[calc_block=5000000-PairLogitPairwise-Group-1]": [
         {
-            "checksum": "0505a3dec68d051f27bbaf9ad4445f57",
+            "checksum": "1e8c6c3df6a1838eae7fbf3526f39148",
             "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=5000000-PairLogitPairwise-Group-1_/test.eval"
         }
     ],
     "test.test_pairwise_bernoulli_bootstrap[calc_block=5000000-PairLogitPairwise-Object-0.5]": [
         {
-            "checksum": "69e51d0f0f42c91a58569515bbf1ce39",
+            "checksum": "8da938c1f57922e8bc8169f46ae313ee",
             "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=5000000-PairLogitPairwise-Object-0.5_/test.eval"
         }
     ],
     "test.test_pairwise_bernoulli_bootstrap[calc_block=5000000-PairLogitPairwise-Object-1]": [
         {
-            "checksum": "0505a3dec68d051f27bbaf9ad4445f57",
+            "checksum": "1e8c6c3df6a1838eae7fbf3526f39148",
             "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=5000000-PairLogitPairwise-Object-1_/test.eval"
         }
     ],
@@ -6699,25 +7151,25 @@
     ],
     "test.test_pairwise_bernoulli_bootstrap[calc_block=60-PairLogitPairwise-Group-0.5]": [
         {
-            "checksum": "4c742291fcc5bf265a93388b8adec299",
+            "checksum": "1d5ef2224effa94952fe9bd480e8b014",
             "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=60-PairLogitPairwise-Group-0.5_/test.eval"
         }
     ],
     "test.test_pairwise_bernoulli_bootstrap[calc_block=60-PairLogitPairwise-Group-1]": [
         {
-            "checksum": "0505a3dec68d051f27bbaf9ad4445f57",
+            "checksum": "1e8c6c3df6a1838eae7fbf3526f39148",
             "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=60-PairLogitPairwise-Group-1_/test.eval"
         }
     ],
     "test.test_pairwise_bernoulli_bootstrap[calc_block=60-PairLogitPairwise-Object-0.5]": [
         {
-            "checksum": "69e51d0f0f42c91a58569515bbf1ce39",
+            "checksum": "8da938c1f57922e8bc8169f46ae313ee",
             "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=60-PairLogitPairwise-Object-0.5_/test.eval"
         }
     ],
     "test.test_pairwise_bernoulli_bootstrap[calc_block=60-PairLogitPairwise-Object-1]": [
         {
-            "checksum": "0505a3dec68d051f27bbaf9ad4445f57",
+            "checksum": "1e8c6c3df6a1838eae7fbf3526f39148",
             "uri": "file://test.test_pairwise_bernoulli_bootstrap_calc_block=60-PairLogitPairwise-Object-1_/test.eval"
         }
     ],
@@ -6771,7 +7223,7 @@
     ],
     "test.test_per_object_approx_on_full_history[Newton]": [
         {
-            "checksum": "8918ff7818d0bdbdc8fdf2ae0d32c210",
+            "checksum": "9a92c26c05135eb972759454b2d3091b",
             "uri": "file://test.test_per_object_approx_on_full_history_Newton_/test.eval"
         }
     ],
@@ -6801,11 +7253,11 @@
     ],
     "test.test_pfound[train.cd-Ordered--1]": [
         {
-            "checksum": "8dd75b5dbab439775c8cb77feb921aba",
+            "checksum": "2bda653c9ae3519d5211a0aeeef7e379",
             "uri": "file://test.test_pfound_train.cd-Ordered--1_/learn_error.tsv"
         },
         {
-            "checksum": "2b5c595084c5e1d0d0a16ca1f52476f7",
+            "checksum": "2209beb72ac1d6aa7496bc49cc93dffb",
             "uri": "file://test.test_pfound_train.cd-Ordered--1_/test_error.tsv"
         }
     ],
@@ -6841,11 +7293,11 @@
     ],
     "test.test_pfound[train.cd-Plain--1]": [
         {
-            "checksum": "04a07d95e1b21c84f50e7f1f81dc1644",
+            "checksum": "87e3e45ac43f95906f0745ec6646ec16",
             "uri": "file://test.test_pfound_train.cd-Plain--1_/learn_error.tsv"
         },
         {
-            "checksum": "962d8e3ff42565dd45995bac40aa7a96",
+            "checksum": "dc46c5de21fa2d51446949ef711b9644",
             "uri": "file://test.test_pfound_train.cd-Plain--1_/test_error.tsv"
         }
     ],
@@ -6881,11 +7333,11 @@
     ],
     "test.test_pfound[train.cd.subgroup_id-Ordered--1]": [
         {
-            "checksum": "867c6c9d7caf7379074445d5ac934619",
+            "checksum": "3fe5e76547b15fc7f73df7db92180b88",
             "uri": "file://test.test_pfound_train.cd.subgroup_id-Ordered--1_/learn_error.tsv"
         },
         {
-            "checksum": "3789bb8098e5013b5c9da5b2ff0e48ec",
+            "checksum": "9617eff019cf21191f1be9042b89ba7f",
             "uri": "file://test.test_pfound_train.cd.subgroup_id-Ordered--1_/test_error.tsv"
         }
     ],
@@ -6921,11 +7373,11 @@
     ],
     "test.test_pfound[train.cd.subgroup_id-Plain--1]": [
         {
-            "checksum": "a3995451bc0ca2114bf19f66830f56ab",
+            "checksum": "cf4f01ed367606e41709876e94784d0b",
             "uri": "file://test.test_pfound_train.cd.subgroup_id-Plain--1_/learn_error.tsv"
         },
         {
-            "checksum": "8c6fc7f535408f8c6ceddaad73d480b2",
+            "checksum": "ca0094b6653cd9f6f6ecc9297d892d4d",
             "uri": "file://test.test_pfound_train.cd.subgroup_id-Plain--1_/test_error.tsv"
         }
     ],
@@ -7163,13 +7615,13 @@
     ],
     "test.test_quantile_categorical[Ordered]": [
         {
-            "checksum": "3fb7acd08f4bf53ecc75da8ed2fbc0bd",
+            "checksum": "a25daaf8284b177ab825a89411fa3c94",
             "uri": "file://test.test_quantile_categorical_Ordered_/test.eval"
         }
     ],
     "test.test_quantile_categorical[Plain]": [
         {
-            "checksum": "bb0d3c16aeb6af4de4f734b22852c185",
+            "checksum": "aab7ba4c593642b4f000e6e7754815d1",
             "uri": "file://test.test_quantile_categorical_Plain_/test.eval"
         }
     ],
@@ -7187,7 +7639,7 @@
     ],
     "test.test_quantile_targets[Ordered-SymmetricTree-Quantile]": [
         {
-            "checksum": "9f1df55610b43bb8f8e071bf9fb7fe5e",
+            "checksum": "c427b517c4b7f2eb40ec274851d44a51",
             "uri": "file://test.test_quantile_targets_Ordered-SymmetricTree-Quantile_/test.eval"
         }
     ],
@@ -7199,7 +7651,7 @@
     ],
     "test.test_quantile_targets[Plain-Depthwise-Quantile]": [
         {
-            "checksum": "1b395f70ac4f3e6f8d316d72f4d7cd9e",
+            "checksum": "753f2d3c154f729c7b22f61ca20ba07c",
             "uri": "file://test.test_quantile_targets_Plain-Depthwise-Quantile_/test.eval"
         }
     ],
@@ -7211,7 +7663,7 @@
     ],
     "test.test_quantile_targets[Plain-Lossguide-Quantile]": [
         {
-            "checksum": "2911783b7b03c009b7be9530d79101a0",
+            "checksum": "bbdba0ad70baf68a4dae0616f316d8b9",
             "uri": "file://test.test_quantile_targets_Plain-Lossguide-Quantile_/test.eval"
         }
     ],
@@ -7223,31 +7675,31 @@
     ],
     "test.test_quantile_targets[Plain-SymmetricTree-Quantile]": [
         {
-            "checksum": "36009dba235578e8826370d5ce3632bd",
+            "checksum": "607e9dabed9039393338f9c79ede0047",
             "uri": "file://test.test_quantile_targets_Plain-SymmetricTree-Quantile_/test.eval"
         }
     ],
     "test.test_quantile_targets_exact[Ordered]": [
         {
-            "checksum": "9f1df55610b43bb8f8e071bf9fb7fe5e",
+            "checksum": "c427b517c4b7f2eb40ec274851d44a51",
             "uri": "file://test.test_quantile_targets_exact_Ordered_/test.eval"
         }
     ],
     "test.test_quantile_targets_exact[Plain]": [
         {
-            "checksum": "36009dba235578e8826370d5ce3632bd",
+            "checksum": "607e9dabed9039393338f9c79ede0047",
             "uri": "file://test.test_quantile_targets_exact_Plain_/test.eval"
         }
     ],
     "test.test_quantile_weights[Ordered]": [
         {
-            "checksum": "4e92e6743e25d6c82e293751277c0219",
+            "checksum": "d7a409f432e975e13137b7ef6422a4cd",
             "uri": "file://test.test_quantile_weights_Ordered_/test.eval"
         }
     ],
     "test.test_quantile_weights[Plain]": [
         {
-            "checksum": "f23912306f8b154e9dcd4b4452084256",
+            "checksum": "53b92048b839d13224ce6317bb2c19ad",
             "uri": "file://test.test_quantile_weights_Plain_/test.eval"
         }
     ],
@@ -7673,7 +8125,7 @@
     ],
     "test.test_reg_targets[calc_block=5000000-Ordered-MAE]": [
         {
-            "checksum": "a7b8733402d0891ac57ca808a4680d30",
+            "checksum": "37ff31e038bc2bfc856a5eddb89d0b27",
             "uri": "file://test.test_reg_targets_calc_block=5000000-Ordered-MAE_/test.eval"
         }
     ],
@@ -7691,7 +8143,7 @@
     ],
     "test.test_reg_targets[calc_block=5000000-Ordered-Quantile]": [
         {
-            "checksum": "a7b8733402d0891ac57ca808a4680d30",
+            "checksum": "37ff31e038bc2bfc856a5eddb89d0b27",
             "uri": "file://test.test_reg_targets_calc_block=5000000-Ordered-Quantile_/test.eval"
         }
     ],
@@ -7733,7 +8185,7 @@
     ],
     "test.test_reg_targets[calc_block=5000000-Plain-MAE]": [
         {
-            "checksum": "a54b2ff0799fcff2c734f1a357e034b0",
+            "checksum": "a8b5112fe5e536ad3914570b5a94c303",
             "uri": "file://test.test_reg_targets_calc_block=5000000-Plain-MAE_/test.eval"
         }
     ],
@@ -7751,7 +8203,7 @@
     ],
     "test.test_reg_targets[calc_block=5000000-Plain-Quantile]": [
         {
-            "checksum": "a54b2ff0799fcff2c734f1a357e034b0",
+            "checksum": "a8b5112fe5e536ad3914570b5a94c303",
             "uri": "file://test.test_reg_targets_calc_block=5000000-Plain-Quantile_/test.eval"
         }
     ],
@@ -7793,7 +8245,7 @@
     ],
     "test.test_reg_targets[calc_block=60-Ordered-MAE]": [
         {
-            "checksum": "a7b8733402d0891ac57ca808a4680d30",
+            "checksum": "37ff31e038bc2bfc856a5eddb89d0b27",
             "uri": "file://test.test_reg_targets_calc_block=60-Ordered-MAE_/test.eval"
         }
     ],
@@ -7811,7 +8263,7 @@
     ],
     "test.test_reg_targets[calc_block=60-Ordered-Quantile]": [
         {
-            "checksum": "a7b8733402d0891ac57ca808a4680d30",
+            "checksum": "37ff31e038bc2bfc856a5eddb89d0b27",
             "uri": "file://test.test_reg_targets_calc_block=60-Ordered-Quantile_/test.eval"
         }
     ],
@@ -7853,7 +8305,7 @@
     ],
     "test.test_reg_targets[calc_block=60-Plain-MAE]": [
         {
-            "checksum": "a54b2ff0799fcff2c734f1a357e034b0",
+            "checksum": "a8b5112fe5e536ad3914570b5a94c303",
             "uri": "file://test.test_reg_targets_calc_block=60-Plain-MAE_/test.eval"
         }
     ],
@@ -7871,7 +8323,7 @@
     ],
     "test.test_reg_targets[calc_block=60-Plain-Quantile]": [
         {
-            "checksum": "a54b2ff0799fcff2c734f1a357e034b0",
+            "checksum": "a8b5112fe5e536ad3914570b5a94c303",
             "uri": "file://test.test_reg_targets_calc_block=60-Plain-Quantile_/test.eval"
         }
     ],
@@ -8043,6 +8495,18 @@
             "uri": "file://test.test_set_class_names_implicitly/eval.txt"
         }
     ],
+    "test.test_shap_approximate": [
+        {
+            "checksum": "65f95869dbbd37cc635d0f3203c1b7d7",
+            "uri": "file://test.test_shap_approximate/shapval"
+        }
+    ],
+    "test.test_shap_exact": [
+        {
+            "checksum": "0b6f8591bd0a539e7754bfc913966c24",
+            "uri": "file://test.test_shap_exact/shapval"
+        }
+    ],
     "test.test_shrink_model[Ordered-SymmetricTree]": [
         {
             "checksum": "086c6063ade9c34af13a6f195847a924",
@@ -8065,6 +8529,36 @@
         {
             "checksum": "5e968b7eec8489488b172d653d1d36a2",
             "uri": "file://test.test_shrink_model_Plain-SymmetricTree_/test.eval"
+        }
+    ],
+    "test.test_shrink_model_with_text_features[Depthwise]": [
+        {
+            "checksum": "a58a79bad342b255b1dab4d1d39eb8bd",
+            "uri": "file://test.test_shrink_model_with_text_features_Depthwise_/learn.tsv"
+        },
+        {
+            "checksum": "512b3f6fa38fde7970a6907160cf0405",
+            "uri": "file://test.test_shrink_model_with_text_features_Depthwise_/test.tsv"
+        }
+    ],
+    "test.test_shrink_model_with_text_features[Lossguide]": [
+        {
+            "checksum": "6f51d643e4a4150074f6392f869fff4b",
+            "uri": "file://test.test_shrink_model_with_text_features_Lossguide_/learn.tsv"
+        },
+        {
+            "checksum": "325c87848c2f10e74c98f4d5d0fbb127",
+            "uri": "file://test.test_shrink_model_with_text_features_Lossguide_/test.tsv"
+        }
+    ],
+    "test.test_shrink_model_with_text_features[SymmetricTree]": [
+        {
+            "checksum": "1f42697f45c50f7ef106b9938f40f7a9",
+            "uri": "file://test.test_shrink_model_with_text_features_SymmetricTree_/learn.tsv"
+        },
+        {
+            "checksum": "af05eca49444cf628d30c44170c8f285",
+            "uri": "file://test.test_shrink_model_with_text_features_SymmetricTree_/test.tsv"
         }
     ],
     "test.test_simple_ctr": [
@@ -8093,7 +8587,7 @@
             "uri": "file://test.test_stochastic_filter_num_estimations=1-sigma=0.01_/learn_error.tsv"
         },
         {
-            "checksum": "a053b6afd7732850436342fb57784601",
+            "checksum": "96d425a8ed189f814291f2aaabacd121",
             "uri": "file://test.test_stochastic_filter_num_estimations=1-sigma=0.01_/test_error.tsv"
         }
     ],
@@ -8103,7 +8597,7 @@
             "uri": "file://test.test_stochastic_filter_num_estimations=1-sigma=10_/learn_error.tsv"
         },
         {
-            "checksum": "33b7c50456b22fedea857c8b5d1d6113",
+            "checksum": "d611f7f40194e73256b8c63776054c17",
             "uri": "file://test.test_stochastic_filter_num_estimations=1-sigma=10_/test_error.tsv"
         }
     ],
@@ -8113,7 +8607,7 @@
             "uri": "file://test.test_stochastic_filter_num_estimations=1-sigma=1_/learn_error.tsv"
         },
         {
-            "checksum": "a7b4df778c43d7d36311fcdabe133726",
+            "checksum": "bf5da779d2e3fabafa868abe5318fa81",
             "uri": "file://test.test_stochastic_filter_num_estimations=1-sigma=1_/test_error.tsv"
         }
     ],
@@ -8123,7 +8617,7 @@
             "uri": "file://test.test_stochastic_filter_num_estimations=100-sigma=0.01_/learn_error.tsv"
         },
         {
-            "checksum": "36a27d954f37a1267a1e5b7e3892315d",
+            "checksum": "b2c5ce4a90e9ce51579ba72f127be920",
             "uri": "file://test.test_stochastic_filter_num_estimations=100-sigma=0.01_/test_error.tsv"
         }
     ],
@@ -8133,7 +8627,7 @@
             "uri": "file://test.test_stochastic_filter_num_estimations=100-sigma=10_/learn_error.tsv"
         },
         {
-            "checksum": "2978104087d4de723c32de52d3692bf0",
+            "checksum": "d2f080614d2448ae8cf14f95951e36a1",
             "uri": "file://test.test_stochastic_filter_num_estimations=100-sigma=10_/test_error.tsv"
         }
     ],
@@ -8143,8 +8637,392 @@
             "uri": "file://test.test_stochastic_filter_num_estimations=100-sigma=1_/learn_error.tsv"
         },
         {
-            "checksum": "3e9f3c2bf2842b351d3386afaa25be09",
+            "checksum": "3a7952811d8e0ff0f5c2a33d2a650cb3",
             "uri": "file://test.test_stochastic_filter_num_estimations=100-sigma=1_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[LogPosition-Base--1-DCG]": [
+        {
+            "checksum": "a9709919106b5475e74bf4f8782f01fa",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Base--1-DCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "7be74de864db6d68780564272c4193c1",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Base--1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[LogPosition-Base--1-NDCG]": [
+        {
+            "checksum": "5d709c45ba531291581718c7a95a7adf",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Base--1-NDCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "6c2e2f95cbd21ce098f2e7a8259b5a60",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Base--1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[LogPosition-Base-1-DCG]": [
+        {
+            "checksum": "0eb709f0d8f037711c3a01eb3dd9f424",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Base-1-DCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "7337e1933eb76112bf70249ebdeeaa73",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Base-1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[LogPosition-Base-1-NDCG]": [
+        {
+            "checksum": "6661e2b2cf2ba9159f339fa7a9a0f150",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Base-1-NDCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "8d03556d72afa333411dbb60217befde",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Base-1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[LogPosition-Base-10-DCG]": [
+        {
+            "checksum": "05475093a1527825b20af811b44169f9",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Base-10-DCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "450b8cc52c81d0b0efbb25240ebedc7c",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Base-10-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[LogPosition-Base-10-NDCG]": [
+        {
+            "checksum": "873072eed7e9f0b61cb9a31e91d4f279",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Base-10-NDCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "6e6cc15895f094b940a03bf8865eaa6a",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Base-10-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[LogPosition-Exp--1-DCG]": [
+        {
+            "checksum": "2fd9d9ad3abb30e4d28fe0d13f966b91",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Exp--1-DCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "baea16e2a88490227fd7cfee749836f6",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Exp--1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[LogPosition-Exp--1-NDCG]": [
+        {
+            "checksum": "47bc8a0e831be518d77d97e588bac766",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Exp--1-NDCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "f3540d71489ce4ea872d6f9bedeb21c0",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Exp--1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[LogPosition-Exp-1-DCG]": [
+        {
+            "checksum": "65de766dddf8e44e9b4e63dd8ea2b6d0",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Exp-1-DCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "655c033f3b099c03a35c836a0e3c1fd5",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Exp-1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[LogPosition-Exp-1-NDCG]": [
+        {
+            "checksum": "8b227affe7a099ac68c4d864b6a54b0a",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Exp-1-NDCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "6e56a307039bbd6f6770d2118a2f5bbc",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Exp-1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[LogPosition-Exp-10-DCG]": [
+        {
+            "checksum": "81511128e9309ac491c19564a4e2d7dd",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Exp-10-DCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "d870add2e5b98bb9eefd8cd5e0f5abba",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Exp-10-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[LogPosition-Exp-10-NDCG]": [
+        {
+            "checksum": "8a385923796bbc2a2edd3f334d30d6e9",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Exp-10-NDCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "693ca7a85561a519bca965220b87b455",
+            "uri": "file://test.test_stochastic_rank_LogPosition-Exp-10-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[Position-Base--1-DCG]": [
+        {
+            "checksum": "b0bd742f7222f3338958396924c455f7",
+            "uri": "file://test.test_stochastic_rank_Position-Base--1-DCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "91a095394668cd98ef27546484dab73a",
+            "uri": "file://test.test_stochastic_rank_Position-Base--1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[Position-Base--1-NDCG]": [
+        {
+            "checksum": "e4cf761595a794016c29c515295658d3",
+            "uri": "file://test.test_stochastic_rank_Position-Base--1-NDCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "b19b295ddee6b91b8f28d91e8c290368",
+            "uri": "file://test.test_stochastic_rank_Position-Base--1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[Position-Base-1-DCG]": [
+        {
+            "checksum": "0eb709f0d8f037711c3a01eb3dd9f424",
+            "uri": "file://test.test_stochastic_rank_Position-Base-1-DCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "7337e1933eb76112bf70249ebdeeaa73",
+            "uri": "file://test.test_stochastic_rank_Position-Base-1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[Position-Base-1-NDCG]": [
+        {
+            "checksum": "6661e2b2cf2ba9159f339fa7a9a0f150",
+            "uri": "file://test.test_stochastic_rank_Position-Base-1-NDCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "8d03556d72afa333411dbb60217befde",
+            "uri": "file://test.test_stochastic_rank_Position-Base-1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[Position-Base-10-DCG]": [
+        {
+            "checksum": "99aee266e48a3f0fb9da6c574c7a690d",
+            "uri": "file://test.test_stochastic_rank_Position-Base-10-DCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "e97b234845a8dadc6a6f00e6a76c0e3e",
+            "uri": "file://test.test_stochastic_rank_Position-Base-10-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[Position-Base-10-NDCG]": [
+        {
+            "checksum": "f31bfc1a0258e7e65f8c6679ef36e0f6",
+            "uri": "file://test.test_stochastic_rank_Position-Base-10-NDCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "44e1408127881d65df5848e299063abc",
+            "uri": "file://test.test_stochastic_rank_Position-Base-10-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[Position-Exp--1-DCG]": [
+        {
+            "checksum": "85899ff063cf321f9ec22b7f439793c6",
+            "uri": "file://test.test_stochastic_rank_Position-Exp--1-DCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "3502d92b373412198251a0b873f2c814",
+            "uri": "file://test.test_stochastic_rank_Position-Exp--1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[Position-Exp--1-NDCG]": [
+        {
+            "checksum": "ab76a694ac3e18fd1a55325979e79df3",
+            "uri": "file://test.test_stochastic_rank_Position-Exp--1-NDCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "e844a3599873c1d3c548711a7f41a6bd",
+            "uri": "file://test.test_stochastic_rank_Position-Exp--1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[Position-Exp-1-DCG]": [
+        {
+            "checksum": "65de766dddf8e44e9b4e63dd8ea2b6d0",
+            "uri": "file://test.test_stochastic_rank_Position-Exp-1-DCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "655c033f3b099c03a35c836a0e3c1fd5",
+            "uri": "file://test.test_stochastic_rank_Position-Exp-1-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[Position-Exp-1-NDCG]": [
+        {
+            "checksum": "8b227affe7a099ac68c4d864b6a54b0a",
+            "uri": "file://test.test_stochastic_rank_Position-Exp-1-NDCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "6e56a307039bbd6f6770d2118a2f5bbc",
+            "uri": "file://test.test_stochastic_rank_Position-Exp-1-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[Position-Exp-10-DCG]": [
+        {
+            "checksum": "4ac360e0bafd819b97f6b6ec55e28eef",
+            "uri": "file://test.test_stochastic_rank_Position-Exp-10-DCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "10c2cf1bcbe9d18d1fe552d595891f53",
+            "uri": "file://test.test_stochastic_rank_Position-Exp-10-DCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank[Position-Exp-10-NDCG]": [
+        {
+            "checksum": "5fe2c740b957064db33d16652ecf1f1f",
+            "uri": "file://test.test_stochastic_rank_Position-Exp-10-NDCG_/learn_error.tsv"
+        },
+        {
+            "checksum": "b373ddbbfcf1a3ace5688232361b08f3",
+            "uri": "file://test.test_stochastic_rank_Position-Exp-10-NDCG_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound[0.0--1]": [
+        {
+            "checksum": "e645cf892320c4583a39a3aafc30aaf8",
+            "uri": "file://test.test_stochastic_rank_pfound_0.0--1_/learn_error.tsv"
+        },
+        {
+            "checksum": "566ca8e2bd3b8124343426000f0b2c7e",
+            "uri": "file://test.test_stochastic_rank_pfound_0.0--1_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound[0.0-10]": [
+        {
+            "checksum": "e645cf892320c4583a39a3aafc30aaf8",
+            "uri": "file://test.test_stochastic_rank_pfound_0.0-10_/learn_error.tsv"
+        },
+        {
+            "checksum": "566ca8e2bd3b8124343426000f0b2c7e",
+            "uri": "file://test.test_stochastic_rank_pfound_0.0-10_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound[0.0-1]": [
+        {
+            "checksum": "e645cf892320c4583a39a3aafc30aaf8",
+            "uri": "file://test.test_stochastic_rank_pfound_0.0-1_/learn_error.tsv"
+        },
+        {
+            "checksum": "566ca8e2bd3b8124343426000f0b2c7e",
+            "uri": "file://test.test_stochastic_rank_pfound_0.0-1_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound[0.6--1]": [
+        {
+            "checksum": "d94546df7a5c582f88a27715e3ad0e4c",
+            "uri": "file://test.test_stochastic_rank_pfound_0.6--1_/learn_error.tsv"
+        },
+        {
+            "checksum": "35fce2417514814e21f21c66cb971c25",
+            "uri": "file://test.test_stochastic_rank_pfound_0.6--1_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound[0.6-10]": [
+        {
+            "checksum": "0a112ce69d71f997c5515a3e4b3f0235",
+            "uri": "file://test.test_stochastic_rank_pfound_0.6-10_/learn_error.tsv"
+        },
+        {
+            "checksum": "ef8b7d7477cdf301efe69455bb1eba5f",
+            "uri": "file://test.test_stochastic_rank_pfound_0.6-10_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound[0.6-1]": [
+        {
+            "checksum": "5b6cacd55308e210f644cf23c8210668",
+            "uri": "file://test.test_stochastic_rank_pfound_0.6-1_/learn_error.tsv"
+        },
+        {
+            "checksum": "662abde0f14e56bc63f77d4902af8a68",
+            "uri": "file://test.test_stochastic_rank_pfound_0.6-1_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound[1.0--1]": [
+        {
+            "checksum": "ecacfe6dc0992775c98b55219d8dc67b",
+            "uri": "file://test.test_stochastic_rank_pfound_1.0--1_/learn_error.tsv"
+        },
+        {
+            "checksum": "20118f929fee3eeb3158c595168d31ae",
+            "uri": "file://test.test_stochastic_rank_pfound_1.0--1_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound[1.0-10]": [
+        {
+            "checksum": "ecacfe6dc0992775c98b55219d8dc67b",
+            "uri": "file://test.test_stochastic_rank_pfound_1.0-10_/learn_error.tsv"
+        },
+        {
+            "checksum": "20118f929fee3eeb3158c595168d31ae",
+            "uri": "file://test.test_stochastic_rank_pfound_1.0-10_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound[1.0-1]": [
+        {
+            "checksum": "ecacfe6dc0992775c98b55219d8dc67b",
+            "uri": "file://test.test_stochastic_rank_pfound_1.0-1_/learn_error.tsv"
+        },
+        {
+            "checksum": "20118f929fee3eeb3158c595168d31ae",
+            "uri": "file://test.test_stochastic_rank_pfound_1.0-1_/test_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound_with_many_ones[0.0--1]": [
+        {
+            "checksum": "ef29af567bcf69e71d41141b5cb28d48",
+            "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.0--1_/learn_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound_with_many_ones[0.0-10]": [
+        {
+            "checksum": "ef29af567bcf69e71d41141b5cb28d48",
+            "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.0-10_/learn_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound_with_many_ones[0.0-1]": [
+        {
+            "checksum": "ef29af567bcf69e71d41141b5cb28d48",
+            "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.0-1_/learn_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound_with_many_ones[0.6--1]": [
+        {
+            "checksum": "0a157ca17c283f3d055f72131636b9ef",
+            "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.6--1_/learn_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound_with_many_ones[0.6-10]": [
+        {
+            "checksum": "6feb44746792073db4bd65c3168a9ad2",
+            "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.6-10_/learn_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound_with_many_ones[0.6-1]": [
+        {
+            "checksum": "16d61aa3c39397de621d567494a215ba",
+            "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.6-1_/learn_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound_with_many_ones[1.0--1]": [
+        {
+            "checksum": "e67e748c38d180f709957d5216bf3294",
+            "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_1.0--1_/learn_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound_with_many_ones[1.0-10]": [
+        {
+            "checksum": "e67e748c38d180f709957d5216bf3294",
+            "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_1.0-10_/learn_error.tsv"
+        }
+    ],
+    "test.test_stochastic_rank_pfound_with_many_ones[1.0-1]": [
+        {
+            "checksum": "e67e748c38d180f709957d5216bf3294",
+            "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_1.0-1_/learn_error.tsv"
         }
     ],
     "test.test_subgroup_output": [
@@ -8215,6 +9093,86 @@
             "uri": "file://test.test_target_border/test.eval"
         }
     ],
+    "test.test_text_processing_options[MultiClass-dictionaries0]": [
+        {
+            "checksum": "b523a1153235901f2b9468832d348424",
+            "uri": "file://test.test_text_processing_options_MultiClass-dictionaries0_/learn.tsv"
+        },
+        {
+            "checksum": "cc6e2a91938927ca88c3f933ef7d3859",
+            "uri": "file://test.test_text_processing_options_MultiClass-dictionaries0_/test.tsv"
+        }
+    ],
+    "test.test_text_processing_options[MultiClass-dictionaries1]": [
+        {
+            "checksum": "f39ac50e11f66df89e658d0701c2f370",
+            "uri": "file://test.test_text_processing_options_MultiClass-dictionaries1_/learn.tsv"
+        },
+        {
+            "checksum": "ed07d411a8de155dc1b1eff3c3604884",
+            "uri": "file://test.test_text_processing_options_MultiClass-dictionaries1_/test.tsv"
+        }
+    ],
+    "test.test_text_processing_options[MultiClass-dictionaries2]": [
+        {
+            "checksum": "3ef47c1fb7238ebd5fbf02e63e6acf0d",
+            "uri": "file://test.test_text_processing_options_MultiClass-dictionaries2_/learn.tsv"
+        },
+        {
+            "checksum": "50974df51a6dde059383a6e9e24c4ec0",
+            "uri": "file://test.test_text_processing_options_MultiClass-dictionaries2_/test.tsv"
+        }
+    ],
+    "test.test_text_processing_options[MultiClass-dictionaries3]": [
+        {
+            "checksum": "eb1d7298f1b5aa58f8223e51c9a1c920",
+            "uri": "file://test.test_text_processing_options_MultiClass-dictionaries3_/learn.tsv"
+        },
+        {
+            "checksum": "a31cc5fc67e9451e53b165bcdf9eee00",
+            "uri": "file://test.test_text_processing_options_MultiClass-dictionaries3_/test.tsv"
+        }
+    ],
+    "test.test_text_processing_options[MultiClassOneVsAll-dictionaries0]": [
+        {
+            "checksum": "00cacdce141296fabae353dfc3602246",
+            "uri": "file://test.test_text_processing_options_MultiClassOneVsAll-dictionaries0_/learn.tsv"
+        },
+        {
+            "checksum": "cf852253b27caae2595bc99b7e453043",
+            "uri": "file://test.test_text_processing_options_MultiClassOneVsAll-dictionaries0_/test.tsv"
+        }
+    ],
+    "test.test_text_processing_options[MultiClassOneVsAll-dictionaries1]": [
+        {
+            "checksum": "529527d272aae1992916592893e2c8d2",
+            "uri": "file://test.test_text_processing_options_MultiClassOneVsAll-dictionaries1_/learn.tsv"
+        },
+        {
+            "checksum": "6f70018ffebd90b46b70591e5e6da469",
+            "uri": "file://test.test_text_processing_options_MultiClassOneVsAll-dictionaries1_/test.tsv"
+        }
+    ],
+    "test.test_text_processing_options[MultiClassOneVsAll-dictionaries2]": [
+        {
+            "checksum": "3de3124533d4b36f1354f1ac487800b4",
+            "uri": "file://test.test_text_processing_options_MultiClassOneVsAll-dictionaries2_/learn.tsv"
+        },
+        {
+            "checksum": "b344b8a490c22eddc1e5d37a8dd2a287",
+            "uri": "file://test.test_text_processing_options_MultiClassOneVsAll-dictionaries2_/test.tsv"
+        }
+    ],
+    "test.test_text_processing_options[MultiClassOneVsAll-dictionaries3]": [
+        {
+            "checksum": "910c6625bd827efde252b729fd32902a",
+            "uri": "file://test.test_text_processing_options_MultiClassOneVsAll-dictionaries3_/learn.tsv"
+        },
+        {
+            "checksum": "218a6d3e21e767716fc606730d669231",
+            "uri": "file://test.test_text_processing_options_MultiClassOneVsAll-dictionaries3_/test.tsv"
+        }
+    ],
     "test.test_time[Ordered]": [
         {
             "checksum": "1f08beb28ea6e9a8d8253a48ce79ea61",
@@ -8229,19 +9187,19 @@
     ],
     "test.test_total_f1_params[Macro]": [
         {
-            "checksum": "45a9b213724dc657f87b870a7a8cbc2f",
+            "checksum": "4604f00ed267ee8187e0cde4a3e0424c",
             "uri": "file://test.test_total_f1_params_Macro_/output.tsv"
         }
     ],
     "test.test_total_f1_params[Micro]": [
         {
-            "checksum": "28a6a10121980e4265dead082bfb8aaa",
+            "checksum": "b62ad87098e083b93246db9486515498",
             "uri": "file://test.test_total_f1_params_Micro_/output.tsv"
         }
     ],
     "test.test_total_f1_params[Weighted]": [
         {
-            "checksum": "83d2ee81fbf69f10ac2de97a34626e99",
+            "checksum": "8141c884c45239768d42e7f8bb25893d",
             "uri": "file://test.test_total_f1_params_Weighted_/output.tsv"
         }
     ],

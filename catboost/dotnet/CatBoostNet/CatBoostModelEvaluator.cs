@@ -9,7 +9,7 @@ namespace CatBoostNet {
     /// if you just want to run common classification/regression task,
     /// use <see cref="CatBoostModel"/> instead.
     /// </summary>
-    public class CatBoostModelEvaluator {
+    public class CatBoostModelEvaluator : IDisposable {
         /// <summary>
         /// Structure for storing minimal model info — path to the model file
         /// and pointer to the model handler
@@ -34,8 +34,7 @@ namespace CatBoostNet {
                 ModelPath = path;
                 ModelHandler = CatboostNativeInterface.ModelCalcerCreate();
                 if (!CatboostNativeInterface.LoadFullModelFromFile(ModelHandler, ModelPath)) {
-                    string msg = "";
-                    // TODO Call `GetErrorString` without crashing everything
+                    var msg = CatboostNativeInterface.GetErrorStringConst(ModelHandler);
                     throw new CatBoostException(
                         "An error has occurred in the LoadFullModelFromFile() method in catboostmodel library.\n" +
                         $"Returned error message: {msg}"
@@ -55,7 +54,9 @@ namespace CatBoostNet {
         /// <summary>
         /// Low-level model evaluator destructor.
         /// </summary>
-        ~CatBoostModelEvaluator() => CatboostNativeInterface.ModelCalcerDelete(ModelContainer.ModelHandler);
+        ~CatBoostModelEvaluator() {
+            Dispose(false);
+        }
 
         /// <summary>
         /// Number of trees in the model
@@ -71,6 +72,20 @@ namespace CatBoostNet {
         /// Number of categorical features used in the model input
         /// </summary>
         public uint CatFeaturesCount => CatboostNativeInterface.GetCatFeaturesCount(ModelContainer.ModelHandler);
+
+        /// <summary>
+        /// Use CUDA gpu device for model evaluation
+        /// </summary>
+        public bool EnableGpuEvaluation(int deviceId) {
+            return CatboostNativeInterface.EnableGPUEvaluation(ModelContainer.ModelHandler, deviceId);
+        }
+
+        /// <summary>
+        /// Get model metainfo for some key
+        /// </summary>
+        public string GetModelInfoValue(string key) {
+            return CatboostNativeInterface.GetModelInfoValueConst(ModelContainer.ModelHandler, key, (uint) key.Length);
+        }
 
         /// <summary>
         /// Indices of the categorical features in the model input
@@ -134,7 +149,7 @@ namespace CatBoostNet {
                 }
                 return resultMatrix;
             } else {
-                string msg = "";
+                var msg = CatboostNativeInterface.GetErrorStringConst(ModelContainer.ModelHandler);
                 throw new CatBoostException(
                     "An error has occurred in the CalcModelPredictionSingle() method in catboostmodel library.\n" +
                     $"Returned error message: {msg}"
@@ -167,7 +182,7 @@ namespace CatBoostNet {
             if (res) {
                 return results;
             } else {
-                string msg = "";
+                var msg = CatboostNativeInterface.GetErrorStringConst(ModelContainer.ModelHandler);
                 throw new CatBoostException(
                     "An error has occurred in the CalcModelPredictionSingle() method in catboostmodel library.\n" +
                     $"Returned error message: {msg}"
@@ -185,5 +200,28 @@ namespace CatBoostNet {
         /// </summary>
         private CatBoostModelContainer ModelContainer { get; }
 
+        /// <summary>
+        /// Do not dispose resources twice
+        /// </summary>
+        private bool isDisposed = false;
+
+        /// <summary>
+        /// Dispose of resources
+        /// Suppress finalization
+        /// </summary>
+        public void Dispose() {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        /// <summary>
+        /// Dispose of unmanaged resources
+        /// </summary>
+        protected virtual void Dispose(bool fromDisposeMethod) {
+            if (!isDisposed) {
+                CatboostNativeInterface.ModelCalcerDelete(ModelContainer.ModelHandler);
+                isDisposed = true;
+            }
+        }
     }
 }

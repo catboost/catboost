@@ -369,7 +369,7 @@
     ],
     "test_gpu.test_cv[Ordered-inverted]": [
         {
-            "checksum": "0bd8e1f369d8fceb1c3baa054c2558c1",
+            "checksum": "02c06125fc94b3c3d55076bcab68393a",
             "uri": "file://test_gpu.test_cv_Ordered-inverted_/test.eval"
         }
     ],
@@ -381,7 +381,7 @@
     ],
     "test_gpu.test_cv[Plain-inverted]": [
         {
-            "checksum": "cf9a307b5f679e44a89ffb2672e074cd",
+            "checksum": "9f99eecc03b7f52142a8cb1893d015ba",
             "uri": "file://test_gpu.test_cv_Plain-inverted_/test.eval"
         }
     ],
@@ -399,43 +399,43 @@
     ],
     "test_gpu.test_cv_for_pairs[Ordered]": [
         {
-            "checksum": "90da13225bc9ce6adae1571ba2fa0735",
+            "checksum": "254172e62e30fc8ba64d96a92cd0fbe9",
             "uri": "file://test_gpu.test_cv_for_pairs_Ordered_/test.eval"
         }
     ],
     "test_gpu.test_cv_for_pairs[Plain-inverted]": [
         {
-            "checksum": "39442a4b3e38710c38e1624b731e2226",
+            "checksum": "7498f0049723418aa9067eda85ddee43",
             "uri": "file://test_gpu.test_cv_for_pairs_Plain-inverted_/test.eval"
         }
     ],
     "test_gpu.test_cv_for_pairs[Plain]": [
         {
-            "checksum": "dbc63ca7a38bce206c1e4a34f574192d",
+            "checksum": "42e5f76b8eb3f45547f1ae19e81fd471",
             "uri": "file://test_gpu.test_cv_for_pairs_Plain_/test.eval"
         }
     ],
     "test_gpu.test_cv_for_query[Ordered-inverted]": [
         {
-            "checksum": "cf1eda636a461d73c5d6c4598bfe238d",
+            "checksum": "012c45e593585c195c0cef4479d9eaea",
             "uri": "file://test_gpu.test_cv_for_query_Ordered-inverted_/test.eval"
         }
     ],
     "test_gpu.test_cv_for_query[Ordered]": [
         {
-            "checksum": "a8a4c83566be3db5630862fdbc3a1fb9",
+            "checksum": "8bc39bd6d29ebca1b263ae0d5cae48cc",
             "uri": "file://test_gpu.test_cv_for_query_Ordered_/test.eval"
         }
     ],
     "test_gpu.test_cv_for_query[Plain-inverted]": [
         {
-            "checksum": "0779025c1d7049c078512e1e54953b72",
+            "checksum": "d3b4a6ec0cf058cbb0b054dbe74ec6f9",
             "uri": "file://test_gpu.test_cv_for_query_Plain-inverted_/test.eval"
         }
     ],
     "test_gpu.test_cv_for_query[Plain]": [
         {
-            "checksum": "61652de1fee9684c3d571aee9dcc8e7a",
+            "checksum": "3974825f3c5c82f09cb7b513b2f9d514",
             "uri": "file://test_gpu.test_cv_for_query_Plain_/test.eval"
         }
     ],
@@ -1939,7 +1939,7 @@
             "uri": "file://test_gpu.test_grow_policies_MultiClass-Cosine-Depthwise-Default_/learn_error.tsv"
         },
         {
-            "checksum": "6500a634553d52248b604349fc5b96c0",
+            "checksum": "0a70b1f515e698036326b465a8e2e5ff",
             "uri": "file://test_gpu.test_grow_policies_MultiClass-Cosine-Depthwise-Default_/test_error.tsv"
         }
     ],
@@ -1949,7 +1949,7 @@
             "uri": "file://test_gpu.test_grow_policies_MultiClass-Cosine-Depthwise-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "6500a634553d52248b604349fc5b96c0",
+            "checksum": "0a70b1f515e698036326b465a8e2e5ff",
             "uri": "file://test_gpu.test_grow_policies_MultiClass-Cosine-Depthwise-Plain_/test_error.tsv"
         }
     ],
@@ -1999,7 +1999,7 @@
             "uri": "file://test_gpu.test_grow_policies_MultiClass-L2-Depthwise-Default_/learn_error.tsv"
         },
         {
-            "checksum": "ccbcb04f3f62e1ef7f84abb682fc82c4",
+            "checksum": "b2b5cbcb192ff0d7e6b7fa8d66bb2bf3",
             "uri": "file://test_gpu.test_grow_policies_MultiClass-L2-Depthwise-Default_/test_error.tsv"
         }
     ],
@@ -2009,7 +2009,7 @@
             "uri": "file://test_gpu.test_grow_policies_MultiClass-L2-Depthwise-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "ccbcb04f3f62e1ef7f84abb682fc82c4",
+            "checksum": "b2b5cbcb192ff0d7e6b7fa8d66bb2bf3",
             "uri": "file://test_gpu.test_grow_policies_MultiClass-L2-Depthwise-Plain_/test_error.tsv"
         }
     ],
@@ -2019,7 +2019,7 @@
             "uri": "file://test_gpu.test_grow_policies_MultiClass-L2-Lossguide-Default_/learn_error.tsv"
         },
         {
-            "checksum": "118ed5677c9683eeb055f8a0938cc5c7",
+            "checksum": "f987c790970dc8700fcfbc18bc4563f2",
             "uri": "file://test_gpu.test_grow_policies_MultiClass-L2-Lossguide-Default_/test_error.tsv"
         }
     ],
@@ -2029,7 +2029,7 @@
             "uri": "file://test_gpu.test_grow_policies_MultiClass-L2-Lossguide-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "118ed5677c9683eeb055f8a0938cc5c7",
+            "checksum": "f987c790970dc8700fcfbc18bc4563f2",
             "uri": "file://test_gpu.test_grow_policies_MultiClass-L2-Lossguide-Plain_/test_error.tsv"
         }
     ],
@@ -2115,21 +2115,21 @@
     ],
     "test_gpu.test_grow_policies[MultiClass-SolarL2-Depthwise-Default]": [
         {
-            "checksum": "b6fa8d6f6ce4ed4aa836cc6ad5801f1e",
+            "checksum": "8527d64366d510266b1571bae18ba91d",
             "uri": "file://test_gpu.test_grow_policies_MultiClass-SolarL2-Depthwise-Default_/learn_error.tsv"
         },
         {
-            "checksum": "82d294cf7b0a99d9ae20c6b630b4197b",
+            "checksum": "c63dabd22060cfeb1b7ccf89b2f318f0",
             "uri": "file://test_gpu.test_grow_policies_MultiClass-SolarL2-Depthwise-Default_/test_error.tsv"
         }
     ],
     "test_gpu.test_grow_policies[MultiClass-SolarL2-Depthwise-Plain]": [
         {
-            "checksum": "b6fa8d6f6ce4ed4aa836cc6ad5801f1e",
+            "checksum": "8527d64366d510266b1571bae18ba91d",
             "uri": "file://test_gpu.test_grow_policies_MultiClass-SolarL2-Depthwise-Plain_/learn_error.tsv"
         },
         {
-            "checksum": "82d294cf7b0a99d9ae20c6b630b4197b",
+            "checksum": "c63dabd22060cfeb1b7ccf89b2f318f0",
             "uri": "file://test_gpu.test_grow_policies_MultiClass-SolarL2-Depthwise-Plain_/test_error.tsv"
         }
     ],
@@ -3256,7 +3256,7 @@
         }
     ],
     "test_gpu.test_output_options": {
-        "checksum": "e385e8fc6deabc8373dcbb623a8891ac",
+        "checksum": "9ef8363eb54102e779153f3b6b1c50ef",
         "uri": "file://test_gpu.test_output_options/training_options.json"
     },
     "test_gpu.test_overfit_detector_inc_to_dec[Ordered]": [

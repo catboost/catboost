@@ -1,5 +1,6 @@
 #pragma once
 
+#include <catboost/libs/helpers/array_subset.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/polymorphic_type_containers.h>
 
@@ -15,6 +16,9 @@
 #include <util/generic/vector.h>
 
 #include <type_traits>
+
+
+struct TRestorableFastRng64;
 
 
 namespace NCB {
@@ -131,7 +135,13 @@ namespace NCB {
         return Min<ui32>(vecSize, slowSubsetSize);
     };
 
-    TVector<float> BuildBorders(const TVector<float>& floatFeature,
+    TArraySubsetIndexing<ui32> GetArraySubsetForBuildBorders(ui32 objectCount,
+                                                             EBorderSelectionType borderSelectionType,
+                                                             bool isRandomShuffled,
+                                                             ui32 slowSubsetSize,
+                                                             TRestorableFastRng64* rand);
+
+    TVector<float> BuildBorders(TConstArrayRef<float> floatFeature,
                                 const ui32 seed,
                                 const NCatboostOptions::TBinarizationOptions& config);
 
@@ -169,5 +179,4 @@ namespace NCB {
         }
         return 16;
     }
-
 }

@@ -125,7 +125,7 @@ namespace NCB {
         const IQuantizedFeatureValuesHolder<T, ValuesType>& rhs
     ) {
         if (const auto* lhsDenseData = GetIf<TVector<T>>(&lhs)) {
-            return Equal<T>(*rhs.ExtractValues(&NPar::LocalExecutor()), *lhsDenseData);
+            return Equal<T>(rhs.template ExtractValues<T>(&NPar::LocalExecutor()), *lhsDenseData);
         } else {
             using TColumn = IQuantizedFeatureValuesHolder<T, ValuesType>;
             const auto& lhsSparseArray = Get<TConstPolymorphicValuesSparseArray<T, ui32>>(lhs);
@@ -440,8 +440,8 @@ namespace NCB {
 
         for (auto packIdx : xrange(objectsData.GetBinaryFeaturesPacksSize())) {
             UNIT_ASSERT_EQUAL(
-                expectedData.Objects.PackedBinaryFeaturesData.SrcData[packIdx]->ExtractValues(&localExecutor),
-                objectsData.GetBinaryFeaturesPack(packIdx).ExtractValues(&localExecutor)
+                expectedData.Objects.PackedBinaryFeaturesData.SrcData[packIdx]->ExtractValues<ui8>(&localExecutor),
+                objectsData.GetBinaryFeaturesPack(packIdx).ExtractValues<ui8>(&localExecutor)
             );
         }
 

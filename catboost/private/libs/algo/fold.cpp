@@ -1,6 +1,7 @@
 #include "fold.h"
 
 #include "approx_updater_helpers.h"
+#include "estimated_features.h"
 #include "helpers.h"
 
 #include <catboost/private/libs/data_types/groupid.h>
@@ -38,7 +39,7 @@ static double SelectTailSize(ui32 oldSize, double multiplier) {
 }
 
 static void InitPermutationData(
-    const NCB::TTrainingForCPUDataProvider& learnData,
+    const NCB::TTrainingDataProvider& learnData,
     bool shuffle,
     ui32 permuteBlockSize,
     TRestorableFastRng64* rand,
@@ -94,7 +95,7 @@ static void InitPermutationData(
 
 
 TFold TFold::BuildDynamicFold(
-    const NCB::TTrainingForCPUDataProvider& learnData,
+    const NCB::TTrainingDataProviders& data,
     const TVector<TTargetClassifier>& targetClassifiers,
     bool shuffle,
     ui32 permuteBlockSize,
@@ -103,9 +104,13 @@ TFold TFold::BuildDynamicFold(
     bool storeExpApproxes,
     bool hasPairwiseWeights,
     TMaybe<double> startingApprox,
+    const NCatboostOptions::TBinarizationOptions& onlineEstimatedFeaturesQuantizationOptions,
+    TQuantizedFeaturesInfoPtr onlineEstimatedFeaturesQuantizedInfo,
     TRestorableFastRng64* rand,
     NPar::TLocalExecutor* localExecutor
 ) {
+    const NCB::TTrainingDataProvider& learnData = *data.Learn;
+
     const ui32 learnSampleCount = learnData.GetObjectCount();
 
     TFold ff;
@@ -194,6 +199,15 @@ TFold TFold::BuildDynamicFold(
         ff.BodyTailArr.emplace_back(std::move(bt));
         leftPartLen = (ui32)bt.TailFinish;
     }
+
+    ff.InitOnlineEstimatedFeatures(
+        onlineEstimatedFeaturesQuantizationOptions,
+        std::move(onlineEstimatedFeaturesQuantizedInfo),
+        data,
+        localExecutor,
+        rand
+    );
+
     return ff;
 }
 
@@ -207,7 +221,7 @@ void TFold::SetWeights(TConstArrayRef<float> weights, ui32 learnSampleCount) {
 }
 
 TFold TFold::BuildPlainFold(
-    const NCB::TTrainingForCPUDataProvider& learnData,
+    const NCB::TTrainingDataProviders& data,
     const TVector<TTargetClassifier>& targetClassifiers,
     bool shuffle,
     ui32 permuteBlockSize,
@@ -215,9 +229,13 @@ TFold TFold::BuildPlainFold(
     bool storeExpApproxes,
     bool hasPairwiseWeights,
     TMaybe<double> startingApprox,
+    const NCatboostOptions::TBinarizationOptions& onlineEstimatedFeaturesQuantizationOptions,
+    TQuantizedFeaturesInfoPtr onlineEstimatedFeaturesQuantizedInfo,
     TRestorableFastRng64* rand,
     NPar::TLocalExecutor* localExecutor
 ) {
+    const NCB::TTrainingDataProvider& learnData = *data.Learn;
+
     const ui32 learnSampleCount = learnData.GetObjectCount();
 
     TFold ff;
@@ -276,6 +294,15 @@ TFold TFold::BuildPlainFold(
         );
     }
     ff.BodyTailArr.emplace_back(std::move(bt));
+
+    ff.InitOnlineEstimatedFeatures(
+        onlineEstimatedFeaturesQuantizationOptions,
+        std::move(onlineEstimatedFeaturesQuantizedInfo),
+        data,
+        localExecutor,
+        rand
+    );
+
     return ff;
 }
 
@@ -349,4 +376,23 @@ void TFold::LoadApproxes(IInputStream* s) {
     for (ui64 i = 0; i < bodyTailCount; ++i) {
         ::Load(s, BodyTailArr[i].Approx);
     }
+}
+
+void TFold::InitOnlineEstimatedFeatures(
+    const NCatboostOptions::TBinarizationOptions& quantizationOptions,
+    TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
+    const NCB::TTrainingDataProviders& data,
+    NPar::TLocalExecutor* localExecutor,
+    TRestorableFastRng64* rand
+) {
+    OnlineEstimatedFeatures = CreateEstimatedFeaturesData(
+        quantizationOptions,
+        /*maxSubsetSizeForBuildBordersAlgorithms*/ 100000,
+        std::move(quantizedFeaturesInfo),
+        data,
+        data.FeatureEstimators,
+        GetLearnPermutationArray(),
+        localExecutor,
+        rand
+    );
 }

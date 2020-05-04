@@ -70,6 +70,7 @@ TTargetClassifier BuildTargetClassifier(
         case ELossFunction::YetiRank:
         case ELossFunction::YetiRankPairwise:
         case ELossFunction::StochasticFilter:
+        case ELossFunction::StochasticRank:
         case ELossFunction::Logloss:
         case ELossFunction::CrossEntropy:
         case ELossFunction::Huber:

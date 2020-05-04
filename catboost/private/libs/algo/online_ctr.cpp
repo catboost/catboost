@@ -533,7 +533,7 @@ static void CopyCatColumnToHash(
 
 
 void ComputeOnlineCTRs(
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     const TFold& fold,
     const TProjection& proj,
     const TLearnContext* ctx,
@@ -858,7 +858,7 @@ static void CalcFinalCtrs(
 
 static ui64 EstimateCalcFinalCtrsCpuRamUsage(
     const ECtrType ctrType,
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     int targetClassesCount,
     ui64 ctrLeafCountLimit,
     ECounterCalc counterCalcMethod) {

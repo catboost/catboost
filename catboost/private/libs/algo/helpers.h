@@ -35,7 +35,7 @@ double CalcMetric(
 );
 
 void CalcErrors(
-    const NCB::TTrainingForCPUDataProviders& trainingDataProviders,
+    const NCB::TTrainingDataProviders& trainingDataProviders,
     const TVector<THolder<IMetric>>& errors,
     bool calcAllMetrics, // bool value for each error
     bool calcErrorTrackerMetric,

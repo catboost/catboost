@@ -218,7 +218,9 @@ void NCatboostOptions::TCtrDescription::DisableRedundantFields() {
     } else {
         TargetBinarization->DisableNanModeOption();
     }
+    TargetBinarization->DisableMaxSubsetSizeForBuildBordersOption();
     CtrBinarization->DisableNanModeOption();
+    CtrBinarization->DisableMaxSubsetSizeForBuildBordersOption();
 }
 
 NCatboostOptions::TCatFeatureParams::TCatFeatureParams(ETaskType taskType)
@@ -228,12 +230,13 @@ NCatboostOptions::TCatFeatureParams::TCatFeatureParams(ETaskType taskType)
     , TargetBinarization("target_binarization", TBinarizationOptions(EBorderSelectionType::MinEntropy, 1))
     , MaxTensorComplexity("max_ctr_complexity", 4)
     , OneHotMaxSize("one_hot_max_size", 2)
-    , OneHotMaxSizeLimit(GetMaxBinCount(taskType))
+    , OneHotMaxSizeLimit(taskType == ETaskType::CPU ? GetMaxBinCount() : 256) // there is still limit for OneHot on GPU
     , CounterCalcMethod("counter_calc_method", ECounterCalc::SkipTest)
     , StoreAllSimpleCtrs("store_all_simple_ctr", false, taskType)
     , CtrLeafCountLimit("ctr_leaf_count_limit", Max<ui64>(), taskType)
     , CtrHistoryUnit("ctr_history_unit", ECtrHistoryUnit::Sample, taskType) {
     TargetBinarization.Get().DisableNanModeOption();
+    TargetBinarization.Get().DisableMaxSubsetSizeForBuildBordersOption();
 }
 
 void NCatboostOptions::TCatFeatureParams::Load(const NJson::TJsonValue& options) {
