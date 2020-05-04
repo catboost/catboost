@@ -80,16 +80,14 @@ namespace NCB {
         out.Write(data);
     }
 
-    void SerializeFullModelToOnnxStream(
+    void OutputModelOnnx(
         const TFullModel& model,
-        const TString& userParametersJson,
-        IOutputStream* oStream) {
+        const TString& modelFile,
+        const NJson::TJsonValue& userParameters) {
 
-        TStringInput is(userParametersJson);
-        NJson::TJsonValue userParameters;
-        NJson::ReadJsonTree(&is, &userParameters);
-        CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "exporting ONNX model");
-
+        /* TODO(akhropov): the problem with OneHotFeatures is that raw 'float' values
+        * could be interpreted as nans so that equality comparison won't work for such splits
+        */
         CB_ENSURE(
             !model.HasCategoricalFeatures(),
             "ONNX-ML format export does yet not support categorical features"
@@ -108,29 +106,9 @@ namespace NCB {
 
         TString data;
         outModel.SerializeToString(&data);
-        oStream->Write(data);
-    }
 
-    TString ConvertTreeToOnnxProto(
-        const TFullModel& model,
-        const TString& userParametersJson) {
-
-        TString data;
-        TStringOutput out(data);
-        SerializeFullModelToOnnxStream(model, userParametersJson, &out);
-        return data;
-        }
-
-    void OutputModelOnnx(
-        const TFullModel& model,
-        const TString& modelFile,
-        const TString& userParametersJson) {
-
-        /* TODO(akhropov): the problem with OneHotFeatures is that raw 'float' values
-        * could be interpreted as nans so that equality comparison won't work for such splits
-        */
         TOFStream out(modelFile);
-        SerializeFullModelToOnnxStream(model, userParametersJson, &out);
+        out.Write(data);
     }
 
     void ExportModel(
@@ -180,7 +158,12 @@ namespace NCB {
                 break;
             case EModelType::Onnx:
                 {
-                    OutputModelOnnx(model, modelFileName, userParametersJson);
+                    TStringInput is(userParametersJson);
+                    NJson::TJsonValue params;
+                    NJson::ReadJsonTree(&is, &params);
+
+                    CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "exporting ONNX model");
+                    OutputModelOnnx(model, modelFileName, params);
                 }
                 break;
             case EModelType::Pmml:
