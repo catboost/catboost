@@ -5704,7 +5704,7 @@
         "sandboxctl": {
             "formula": {
                 "sandbox_id": [
-                    667697280
+                    667856972
                 ],
                 "match": "tools/sandboxctl/bin/sandboxctl"
             },
@@ -7667,7 +7667,7 @@
         "vmexec": {
             "formula": {
                 "sandbox_id": [
-                    667779708
+                    667857814
                 ],
                 "match": "infra/qemu/vmexec/vmexec"
             },
