@@ -3003,6 +3003,21 @@ def test_feature_importance(task_type):
     return local_canonical_file(fimp_npy_path)
 
 
+def test_feature_importance_interaction_asymmetric_grow_policy():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(
+        iterations=5,
+        learning_rate=0.03,
+        max_ctr_complexity=3)
+    model.fit(pool)
+
+    fstr_symm = np.array(model.get_feature_importance(type='Interaction', data=pool))
+    model._convert_to_asymmetric_representation()
+    fstr_asymm = np.array(model.get_feature_importance(type='Interaction', data=pool))
+
+    assert np.all(fstr_symm - fstr_asymm < 1e-8)
+
+
 @pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
 def test_feature_importance_asymmetric_prediction_value_change(task_type, grow_policy):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)

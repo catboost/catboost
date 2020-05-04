@@ -488,11 +488,11 @@
         "uri": "file://test.test_feature_importance_CPU_/feature_importance.npy"
     },
     "test.test_feature_importance_asymmetric_prediction_value_change[CPU-Depthwise]": {
-        "checksum": "6eed4bfb1ba8752e7d9c25c373e3ade1",
+        "checksum": "29968372f4ac434eafb8f0836a88fbdf",
         "uri": "file://test.test_feature_importance_asymmetric_prediction_value_change_CPU-Depthwise_/feature_importance.npy"
     },
     "test.test_feature_importance_asymmetric_prediction_value_change[CPU-Lossguide]": {
-        "checksum": "c6c233367549a9751c50d1cf3901c865",
+        "checksum": "397ad7e9a1b689c677003ddef0cc196e",
         "uri": "file://test.test_feature_importance_asymmetric_prediction_value_change_CPU-Lossguide_/feature_importance.npy"
     },
     "test.test_feature_importance_explicit[CPU]": {
