@@ -435,6 +435,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\md5\cpp-digest-md5.vcxproj">
       <Project>{4FF825A6-758B-94D9-9960-004CE22E96DF}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\getopt\small\cpp-getopt-small.vcxproj">
+      <Project>{58379026-CFDC-70D1-4FC0-7A73F77E31B5}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\grid_creator\library-cpp-grid_creator.vcxproj">
       <Project>{E6C33C80-F1BD-2340-891E-B453369FDC5C}</Project>
     </ProjectReference>

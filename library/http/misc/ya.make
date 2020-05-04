@@ -12,7 +12,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/cgiparam
+    library/cpp/cgiparam
     library/cpp/digest/lower_case
 )
 

@@ -85,7 +85,6 @@
     <ClInclude Include="$(SolutionDir)..\library\cpp\threading\future\future-inl.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\threading\future\future.h"/>
     <ClInclude Include="$(SolutionDir)..\library\cpp\threading\future\fwd.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\cpp\threading\future\legacy_future.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

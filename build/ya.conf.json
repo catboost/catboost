@@ -5573,7 +5573,9 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [664161901],
+                "sandbox_id": [
+                    664161901
+                ],
                 "match": "ymake"
             },
             "executable": {
@@ -5702,7 +5704,7 @@
         "sandboxctl": {
             "formula": {
                 "sandbox_id": [
-                    657687165
+                    667697280
                 ],
                 "match": "tools/sandboxctl/bin/sandboxctl"
             },
@@ -6914,7 +6916,7 @@
         "dctl": {
             "formula": {
                 "sandbox_id": [
-                    643184984
+                    664405083
                 ],
                 "match": "dctl"
             },
@@ -7284,7 +7286,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 663592896,
+                "sandbox_id": 667318783,
                 "match": "horadric"
             },
             "executable": {
@@ -7665,7 +7667,7 @@
         "vmexec": {
             "formula": {
                 "sandbox_id": [
-                    566964606
+                    667779708
                 ],
                 "match": "infra/qemu/vmexec/vmexec"
             },
@@ -7699,7 +7701,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 663614768,
+                "sandbox_id": 665271239,
                 "match": "SEDEM archive"
             },
             "executable": {

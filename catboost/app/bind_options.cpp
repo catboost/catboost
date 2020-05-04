@@ -907,6 +907,14 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         .Handler1T<TString>([plainJsonPtr](const TString& firstFeatureUsePenalty) {
             (*plainJsonPtr)["first_feature_use_penalties"] = firstFeatureUsePenalty;
         });
+
+    parser
+        .AddLongOption("per-object-feature-penalties")
+        .RequiredArgument("String")
+        .Help("Penalties for first use of feature for each object in model. Possible formats: \"(0,0.5,10,0)\" or \"1:0.5,2:10\" or \"FeatureName1:0.5,FeatureName2:10\" Should be nonnegative.")
+        .Handler1T<TString>([plainJsonPtr](const TString& perObjectFeaturePenalty) {
+            (*plainJsonPtr)["per_object_feature_penalties"] = perObjectFeaturePenalty;
+        });
 }
 
 static void BindCatFeatureParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {

@@ -8,9 +8,6 @@ RECURSE(
     blockcodecs/fuzz
     blockcodecs/ut
     build_info
-    cgiparam
-    cgiparam/fuzz
-    cgiparam/ut
     charset
     charset/ut
     chromium_trace
@@ -36,9 +33,7 @@ RECURSE(
     fast_exp/ut
     fast_log
     getopt
-    getopt/last_getopt_demo
     getopt/small
-    getopt/ut
     http
     json
     json/flex_buffers
@@ -57,10 +52,6 @@ RECURSE(
     langs/ut
     lcs
     lcs/ut
-    lfalloc
-    lfalloc/dbg
-    lfalloc/dbg_info
-    lfalloc/yt
     linear_regression
     linear_regression/benchmark
     linear_regression/ut
@@ -83,7 +74,6 @@ RECURSE(
     python
     resource
     resource/ut
-    sse
     statistics
     statistics/ut
     string_utils
@@ -115,7 +105,7 @@ IF (OS_WINDOWS)
 )
 ELSE()
     RECURSE(
-    sse/ut
+    
 )
 ENDIF()
 

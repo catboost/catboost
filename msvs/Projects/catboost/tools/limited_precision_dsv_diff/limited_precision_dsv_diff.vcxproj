@@ -104,6 +104,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cpuid_check\library-cpp-cpuid_check.vcxproj">
       <Project>{A945C0FD-E868-BBA0-1189-19BBB2296292}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\getopt\small\cpp-getopt-small.vcxproj">
+      <Project>{58379026-CFDC-70D1-4FC0-7A73F77E31B5}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\api\cpp-malloc-api.vcxproj">
       <Project>{98AF9344-15D9-0539-93F4-0E901C36E301}</Project>
     </ProjectReference>

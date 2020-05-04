@@ -218,6 +218,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\md5\cpp-digest-md5.vcxproj">
       <Project>{4FF825A6-758B-94D9-9960-004CE22E96DF}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\getopt\small\cpp-getopt-small.vcxproj">
+      <Project>{58379026-CFDC-70D1-4FC0-7A73F77E31B5}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\grid_creator\library-cpp-grid_creator.vcxproj">
       <Project>{E6C33C80-F1BD-2340-891E-B453369FDC5C}</Project>
     </ProjectReference>
@@ -295,9 +298,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\text_processing\tokenizer\library-text_processing-tokenizer.vcxproj">
       <Project>{A245D45B-FF5F-420A-C3B0-FC67CC066227}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\future\library-threading-future.vcxproj">
-      <Project>{CF2582C4-C4A1-875F-6897-27B28FB8018A}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
       <Project>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</Project>

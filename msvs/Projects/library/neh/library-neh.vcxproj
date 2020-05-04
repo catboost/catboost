@@ -248,11 +248,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
       <Project>{E62EED19-EC2A-B4C3-0650-0923E4030E8B}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cgiparam\library-cgiparam.vcxproj">
-      <Project>{AF572C0E-2445-0F56-2E4F-8E4C656C4786}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\intrusive_rb_tree\library-containers-intrusive_rb_tree.vcxproj">
       <Project>{53AA6AAE-E388-987D-9719-F611E55F76E8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cgiparam\library-cpp-cgiparam.vcxproj">
+      <Project>{7D7BC687-C41D-BE31-16E6-D1EFDED414F9}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\2d_array\cpp-containers-2d_array.vcxproj">
       <Project>{245105A8-ED48-C3D9-83C3-D6894AA984B0}</Project>
@@ -274,6 +274,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\streams\lzma\cpp-streams-lzma.vcxproj">
       <Project>{A75DC6C1-858D-5097-8CB6-68A4A62E2D73}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\quote\cpp-string_utils-quote.vcxproj">
+      <Project>{722B6806-67C9-1169-6ED9-AF9509BBCB17}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\url\cpp-string_utils-url.vcxproj">
+      <Project>{F67E22D5-1471-725B-CCA8-05EF8A940282}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\dns\library-dns.vcxproj">
       <Project>{8C356353-67D3-3399-7DA3-792F6D7BF6D5}</Project>
@@ -305,14 +311,8 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\openssl\method\library-openssl-method.vcxproj">
       <Project>{EBC3626B-F273-EB61-E7BE-9BBC217D8FB4}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\quote\library-string_utils-quote.vcxproj">
-      <Project>{075BADF5-1D74-1D82-2261-20891F7B1B30}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\scan\library-string_utils-scan.vcxproj">
       <Project>{3EBC1D40-BAA8-5D8A-8385-635FD3E56F31}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\url\library-string_utils-url.vcxproj">
-      <Project>{F79D59BA-A429-102B-7C71-A1F895119240}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\atomic\library-threading-atomic.vcxproj">
       <Project>{DE3D7773-D32D-01F5-FAE1-0EBED7524579}</Project>

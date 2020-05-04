@@ -164,6 +164,7 @@ def pytest_addoption(parser):
     parser.addoption("--report-deselected", action="store_true", dest="report_deselected", default=False, help="report deselected tests to the trace file")
     parser.addoption("--pdb-on-sigusr1", action="store_true", default=False, help="setup pdb.set_trace on SIGUSR1")
     parser.addoption("--test-tool-bin", help="Path to test_tool")
+    parser.addoption("--test-list-path", dest="test_list_path", action="store", help="path to test list", default="")
 
 
 def pytest_configure(config):
@@ -372,35 +373,53 @@ def pytest_collection_modifyitems(items, config):
         config.hook.pytest_deselected(items=deselected_items)
         items[:] = filtered_items
 
+    def filter_by_full_name(filters):
+        filter_set = {flt for flt in filters}
+        filtered_items = []
+        deselected_items = []
+        for item in items:
+            if item.nodeid in filter_set:
+                filtered_items.append(item)
+            else:
+                deselected_items.append(item)
+
+        config.hook.pytest_deselected(items=deselected_items)
+        items[:] = filtered_items
+
     # XXX - check to be removed when tests for peerdirs don't run
     for item in items:
         if not item.nodeid:
             item._nodeid = os.path.basename(item.location[0])
-
-    if config.option.test_filter:
-        filter_items(config.option.test_filter)
-    partition_mode = config.option.partition_mode
-    modulo = config.option.modulo
-    if modulo > 1:
-        items[:] = sorted(items, key=lambda item: item.nodeid)
-        modulo_index = config.option.modulo_index
-        split_by_tests = config.option.split_by_tests
-        items_by_classes = {}
-        res = []
-        for item in items:
-            if item.nodeid.count("::") == 2 and not split_by_tests:
-                class_name = item.nodeid.rsplit("::", 1)[0]
-                if class_name not in items_by_classes:
-                    items_by_classes[class_name] = []
-                    res.append(items_by_classes[class_name])
-                items_by_classes[class_name].append(item)
-            else:
-                res.append([item])
-        chunk_items = test_splitter.get_splitted_tests(res, modulo, modulo_index, partition_mode, is_sorted=True)
-        items[:] = []
-        for item in chunk_items:
-            items.extend(item)
-        yatest_logger.info("Modulo %s tests are: %s", modulo_index, chunk_items)
+    if os.path.exists(config.option.test_list_path):
+        with open(config.option.test_list_path, 'r') as afile:
+            chunks = json.load(afile)
+            filters = chunks[config.option.modulo_index]
+            filter_by_full_name(filters)
+    else:
+        if config.option.test_filter:
+            filter_items(config.option.test_filter)
+        partition_mode = config.option.partition_mode
+        modulo = config.option.modulo
+        if modulo > 1:
+            items[:] = sorted(items, key=lambda item: item.nodeid)
+            modulo_index = config.option.modulo_index
+            split_by_tests = config.option.split_by_tests
+            items_by_classes = {}
+            res = []
+            for item in items:
+                if item.nodeid.count("::") == 2 and not split_by_tests:
+                    class_name = item.nodeid.rsplit("::", 1)[0]
+                    if class_name not in items_by_classes:
+                        items_by_classes[class_name] = []
+                        res.append(items_by_classes[class_name])
+                    items_by_classes[class_name].append(item)
+                else:
+                    res.append([item])
+            chunk_items = test_splitter.get_splitted_tests(res, modulo, modulo_index, partition_mode, is_sorted=True)
+            items[:] = []
+            for item in chunk_items:
+                items.extend(item)
+            yatest_logger.info("Modulo %s tests are: %s", modulo_index, chunk_items)
 
     if config.option.mode == RunMode.Run:
         for item in items:

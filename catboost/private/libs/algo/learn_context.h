@@ -110,6 +110,7 @@ struct TLearnProgress {
     TRestorableFastRng64 Rand;
 
     TVector<bool> UsedFeatures;
+    TMap<ui32, TVector<bool>> UsedFeaturesPerObject;
 
     NCB::TCombinedEstimatedFeaturesContext EstimatedFeaturesContext;
 public:
@@ -128,6 +129,7 @@ public:
         ui32 featuresCheckSum,
         ui32 foldCreationParamsCheckSum,
         const NCatboostOptions::TBinarizationOptions& estimatedFeaturesQuantizationOptions,
+        const NCatboostOptions::TObliviousTreeLearnerOptions& trainOptions,
         TMaybe<TFullModel*> initModel,
         NCB::TDataProviders initModelApplyCompatiblePools,
         NPar::TLocalExecutor* localExecutor);

@@ -4,5 +4,9 @@ RECURSE(
     base64/bench/metrics
     base64/ut
     base64/fuzz
+    quote
+    quote/ut
+    url
+    url/ut
     ztstrbuf
 )

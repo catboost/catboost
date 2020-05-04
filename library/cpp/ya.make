@@ -5,6 +5,9 @@ RECURSE(
     accurate_accumulate/benchmark
     accurate_accumulate/benchmark/metrics
     archive/ut
+    cgiparam
+    cgiparam/fuzz
+    cgiparam/ut
     colorizer
     colorizer/ut
     containers
@@ -19,14 +22,23 @@ RECURSE(
     dot_product/ut
     float16
     float16/ut
+    getopt
+    getopt/last_getopt_demo
+    getopt/small
+    getopt/ut
     grid_creator
     grid_creator/fuzz
     grid_creator/ut
     malloc
+    lfalloc
+    lfalloc/dbg
+    lfalloc/dbg_info
+    lfalloc/yt
     on_disk
     pop_count
     pop_count/benchmark
     pop_count/ut
+    sse
     streams
     string_utils
     terminate_handler
@@ -51,6 +63,6 @@ IF (OS_WINDOWS)
 )
 ELSE()
     RECURSE(
-    
+    sse/ut
 )
 ENDIF()

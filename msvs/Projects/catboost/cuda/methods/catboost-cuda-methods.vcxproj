@@ -740,6 +740,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\dot_product\library-cpp-dot_product.vcxproj">
       <Project>{BAB48646-C601-88C8-A272-6E1619FA017C}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\getopt\small\cpp-getopt-small.vcxproj">
+      <Project>{58379026-CFDC-70D1-4FC0-7A73F77E31B5}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\grid_creator\library-cpp-grid_creator.vcxproj">
       <Project>{E6C33C80-F1BD-2340-891E-B453369FDC5C}</Project>
     </ProjectReference>
@@ -748,6 +751,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\pop_count\library-cpp-pop_count.vcxproj">
       <Project>{6B557DF5-6D6B-ECE1-B5B5-9CD1B8625387}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\sse\library-cpp-sse.vcxproj">
+      <Project>{418E96CF-B75E-3C4F-2B82-0636CFE2782C}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\base64\cpp-string_utils-base64.vcxproj">
       <Project>{A4764222-1478-DE04-CC5B-2369096E96BC}</Project>
@@ -803,9 +809,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
       <Project>{2CE71367-048B-26B0-2DAC-CA9BB7D00E76}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\sse\library-sse.vcxproj">
-      <Project>{D4A23E39-75EE-97F4-A50A-283C64388B74}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\statistics\library-statistics.vcxproj">
       <Project>{898C3811-AD77-869C-24DC-EF6A89FA8399}</Project>
     </ProjectReference>
@@ -826,9 +829,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\text_processing\tokenizer\library-text_processing-tokenizer.vcxproj">
       <Project>{A245D45B-FF5F-420A-C3B0-FC67CC066227}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\future\library-threading-future.vcxproj">
-      <Project>{CF2582C4-C4A1-875F-6897-27B28FB8018A}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
       <Project>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</Project>

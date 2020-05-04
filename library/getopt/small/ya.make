@@ -3,27 +3,28 @@ LIBRARY()
 
 
 PEERDIR(
-    library/cpp/colorizer
-    library/overloaded
+    library/cpp/getopt/small
 )
 
 SRCS(
-    completer.cpp
-    completer_command.cpp
-    completion_generator.cpp
-    formatted_output.cpp
-    last_getopt.cpp
-    last_getopt_easy_setup.cpp
-    last_getopt_opt.cpp
-    last_getopt_opts.cpp
-    last_getopt_parser.cpp
-    last_getopt_parse_result.cpp
-    modchooser.cpp
-    opt.cpp
-    opt2.cpp
-    posix_getopt.cpp
-    wrap.cpp
-    ygetopt.cpp
+    completer_command.h
+    completer.h
+    completion_generator.h
+    formatted_output.h
+    last_getopt_easy_setup.h
+    last_getopt.h
+    last_getopt_handlers.h
+    last_getopt_opt.h
+    last_getopt_opts.h
+    last_getopt_parse_result.h
+    last_getopt_parser.h
+    last_getopt_support.h
+    modchooser.h
+    opt2.h
+    opt.h
+    posix_getopt.h
+    wrap.h
+    ygetopt.h
 )
 
 END()

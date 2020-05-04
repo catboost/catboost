@@ -1,3 +1,3 @@
 #pragma once
 
-#include <library/getopt/small/ygetopt.h>
+#include <library/cpp/getopt/ygetopt.h>

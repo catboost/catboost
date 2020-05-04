@@ -779,9 +779,12 @@ public:
         __invalidate_all_iterators();
     }
 
+#if _YNDX_LIBCXX_ENABLE_VECTOR_POD_RESIZE_UNINITIALIZED
     void yresize(size_type __new_size);
 
     void resize_uninitialized(size_type __sz);
+#endif
+
     void resize(size_type __sz);
     void resize(size_type __sz, const_reference __x);
 
@@ -2047,6 +2050,8 @@ vector<_Tp, _Allocator>::insert(const_iterator __position, _ForwardIterator __fi
     return __make_iter(__p);
 }
 
+#if _YNDX_LIBCXX_ENABLE_VECTOR_POD_RESIZE_UNINITIALIZED
+
 template <class _Tp, class _Allocator>
 void
 vector<_Tp, _Allocator>::yresize(size_type __new_size)
@@ -2070,6 +2075,8 @@ vector<_Tp, _Allocator>::resize_uninitialized(size_type __sz)
         __annotate_shrink(__cs);
     }
 }
+
+#endif
 
 template <class _Tp, class _Allocator>
 void

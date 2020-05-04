@@ -7,7 +7,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/threading/future
+    library/cpp/threading/future
 )
 
 END()

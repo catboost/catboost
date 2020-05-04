@@ -7717,6 +7717,68 @@ def test_penalties_coefficient_work():
     assert any(model_without_feature_penalties.predict_proba(pool)[0] != model_with_feature_penalties.predict_proba(pool)[0])
 
 
+@pytest.mark.parametrize('grow_policy', ['SymmetricTree', 'Depthwise', 'Lossguide'])
+def test_per_object_feature_penalties_work(grow_policy):
+    pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    most_important_feature_index = 3
+    classifier_params = {
+        'iterations': 5,
+        'learning_rate': 0.03,
+        'task_type': 'CPU',
+        'loss_function': 'MultiClass',
+        'grow_policy': grow_policy,
+    }
+
+    model_without_feature_penalties = CatBoostClassifier(**classifier_params)
+    model_without_feature_penalties.fit(pool)
+    importance_without_feature_penalties = model_without_feature_penalties.get_feature_importance(
+        type=EFstrType.PredictionValuesChange,
+        data=pool
+    )[most_important_feature_index]
+
+    model_with_feature_penalties = CatBoostClassifier(
+        per_object_feature_penalties={most_important_feature_index: 100},
+        **classifier_params
+    )
+    model_with_feature_penalties.fit(pool)
+    importance_with_feature_penalties = model_with_feature_penalties.get_feature_importance(
+        type=EFstrType.PredictionValuesChange,
+        data=pool
+    )[most_important_feature_index]
+
+    assert importance_with_feature_penalties < importance_without_feature_penalties
+
+
+def test_different_formats_of_per_object_feature_penalties():
+    train_pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    test_pool = Pool(AIRLINES_5K_TEST_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+
+    per_row_feature_penalties_array = np.array([0, 0, 0, 10, 0, 0, 0, 2])
+    per_row_feature_penalties_list = [0, 0, 0, 10, 0, 0, 0, 2]
+    per_row_feature_penalties_dict_1 = {3: 10, 7: 2}
+    per_row_feature_penalties_dict_2 = {'DepTime': 10, 'Distance': 2}
+    per_row_feature_penalties_string_1 = "(0,0,0,10,0,0,0,2)"
+    per_row_feature_penalties_string_2 = "3:10,7:2"
+    per_row_feature_penalties_string_3 = "DepTime:10,Distance:2"
+
+    common_options = dict(iterations=10)
+    model1 = CatBoostClassifier(per_object_feature_penalties=per_row_feature_penalties_array, **common_options)
+    model1.fit(train_pool)
+    predictions1 = model1.predict(test_pool)
+    for per_row_feature_penalties in [
+        per_row_feature_penalties_list,
+        per_row_feature_penalties_dict_1,
+        per_row_feature_penalties_dict_2,
+        per_row_feature_penalties_string_1,
+        per_row_feature_penalties_string_2,
+        per_row_feature_penalties_string_3
+    ]:
+        model2 = CatBoostClassifier(per_object_feature_penalties=per_row_feature_penalties, **common_options)
+        model2.fit(train_pool)
+        predictions2 = model2.predict(test_pool)
+        assert all(predictions1 == predictions2)
+
+
 LOAD_AND_QUANTIZE_TEST_PARAMS = {
     'querywise_without_params': (
         QUERYWISE_TRAIN_FILE,

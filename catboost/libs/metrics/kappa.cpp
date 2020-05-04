@@ -29,12 +29,12 @@ static TVector<TVector<int>> GetWeights(EKappaMetricType type, int classCount) {
     }
 }
 
-static TVector<TVector<double>> GetExpectedMatrix(TConstArrayRef<TVector<int>> matrix, int classCount) {
+static TVector<TVector<double>> GetExpectedMatrix(TConstArrayRef<TVector<double>> matrix, int classCount) {
     TVector<TVector<double>> expected(classCount, TVector<double>(classCount));
 
-    TVector<int> rows(classCount, 0);
-    TVector<int> columns(classCount, 0);
-    int all = 0;
+    TVector<double> rows(classCount, 0);
+    TVector<double> columns(classCount, 0);
+    double all = 0;
 
     for (int i = 0; i < classCount; ++i) {
         for (int j = 0; j < classCount; ++j) {
@@ -46,17 +46,17 @@ static TVector<TVector<double>> GetExpectedMatrix(TConstArrayRef<TVector<int>> m
 
     for (int i = 0; i < classCount; ++i) {
         for (int j = 0; j < classCount; ++j) {
-            expected[i][j] = rows[i] * columns[j] / static_cast<double>(all);
+            expected[i][j] = rows[i] * columns[j] / all;
         }
     }
     return expected;
 }
 
-static TVector<TVector<int>> UnzipConfusionMatrix(TMetricHolder metric, int classCount) {
-    TVector<TVector<int>> matrix(classCount, TVector<int>(classCount));
+static TVector<TVector<double>> UnzipConfusionMatrix(TMetricHolder metric, int classCount) {
+    TVector<TVector<double>> matrix(classCount, TVector<double>(classCount));
     for (int i = 0; i < classCount; ++i) {
         for (int j = 0; j < classCount; ++j) {
-            matrix[i][j] = static_cast<int>(metric.Stats[i * classCount + j]);
+            matrix[i][j] = metric.Stats[i * classCount + j];
         }
     }
     return matrix;
@@ -64,7 +64,7 @@ static TVector<TVector<int>> UnzipConfusionMatrix(TMetricHolder metric, int clas
 
 double CalcKappa(TMetricHolder confusionMatrix, int classCount, EKappaMetricType type) {
 
-    TVector<TVector<int>> matrix = UnzipConfusionMatrix(confusionMatrix, classCount);
+    TVector<TVector<double>> matrix = UnzipConfusionMatrix(confusionMatrix, classCount);
     TVector<TVector<int>> weights = GetWeights(type, classCount);
     TVector<TVector<double>> expected = GetExpectedMatrix(matrix, classCount);
 

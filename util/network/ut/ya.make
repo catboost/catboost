@@ -5,7 +5,7 @@ REQUIREMENTS(network:full)
 
 
 PEERDIR(
-    library/threading/future
+    library/cpp/threading/future
 )
 
 SRCS(

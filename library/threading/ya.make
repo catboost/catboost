@@ -3,7 +3,6 @@ RECURSE(
     atomic/ut
     chunk_queue
     chunk_queue/ut
-    future
     hot_swap
     hot_swap/ut
     local_executor
