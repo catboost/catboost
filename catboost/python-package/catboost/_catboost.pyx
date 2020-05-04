@@ -979,6 +979,10 @@ cdef extern from "catboost/libs/model/model_export/model_exporter.h" namespace "
         const THashMap[ui32, TString]* catFeaturesHashToString
     ) nogil except +ProcessException
 
+    cdef TString ConvertTreeToOnnxProto(
+        const TFullModel& model,
+        const TString& userParametersJson)
+
 cdef extern from "library/json/writer/json_value.h" namespace "NJson":
     cdef enum EJsonValueType:
         JSON_UNDEFINED,
@@ -5595,6 +5599,19 @@ cpdef compute_training_options(dict options, DataMetaInfo train_meta_info, DataM
     )
     return loads(to_native_str(WriteTJsonValue(trainingOptions)))
 
+
+cpdef _get_onnx_model(model, export_parameters):
+    if not model._is_oblivious():
+        raise CatBoostError(
+            "ONNX-ML export is available only for models on oblivious trees ")
+
+    cdef TString result = ConvertTreeToOnnxProto(
+        dereference((<_CatBoost>model).__model),
+        to_arcadia_string(export_parameters),
+    )
+    cdef const char* result_ptr = result.c_str()
+    cdef size_t result_len = result.size()
+    return bytes(result_ptr[:result_len])
 
 include "_monoforest.pxi"
 include "_text_processing.pxi"

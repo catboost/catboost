@@ -9,6 +9,8 @@ _eval_metric_util = _catboost._eval_metric_util
 _get_roc_curve = _catboost._get_roc_curve
 _get_confusion_matrix = _catboost._get_confusion_matrix
 _select_threshold = _catboost._select_threshold
+_NumpyAwareEncoder = _catboost._NumpyAwareEncoder
+_get_onnx_model = _catboost._get_onnx_model
 
 compute_wx_test = _catboost.compute_wx_test
 TargetStats = _catboost.TargetStats
@@ -631,3 +633,46 @@ def quantize(
     result._read(data_path, column_description, pairs, feature_names, delimiter, has_header, thread_count, params)
 
     return result
+
+
+def convert_to_onnx_object(model, export_parameters=None):
+    """
+    Convert given CatBoost model to ONNX-ML model.
+    Categorical Features are not supported.
+
+    Parameters
+    ----------
+    model : CatBoost trained model
+    export_parameters : dict [default=None]
+        Parameters for ONNX-ML export:
+            * onnx_graph_name : string
+                The name property of onnx Graph
+            * onnx_domain : string
+                The domain component of onnx Model
+            * onnx_model_version : int
+                The model_version component of onnx Model
+            * onnx_doc_string : string
+                The doc_string component of onnx Model
+    Returns
+    -------
+    onnx_object : ModelProto
+        The model in ONNX format
+    """
+    try:
+        import onnx
+    except ImportError as e:
+        warnings.warn("To get working onnx model you should install onnx.")
+        raise ImportError(str(e))
+
+    import json
+    if not model.is_fitted():
+        raise CatBoostError(
+            "There is no trained model to use save_model(). Use fit() to train model. Then use this method.")
+
+    params_string = ""
+    if export_parameters:
+        params_string = json.dumps(export_parameters, cls=_NumpyAwareEncoder)
+
+    model_str = _get_onnx_model(model._object, params_string)
+    onnx_model = onnx.load_model_from_string(model_str)
+    return onnx_model
