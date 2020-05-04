@@ -838,7 +838,7 @@
         "uri": "file://test.test_pairs_generation_CPU_/catboost_training.json"
     },
     "test.test_pairs_generation_with_max_pairs[CPU]": {
-        "checksum": "9aa61e2afdb8dea65192dde19a3fbbb9",
+        "checksum": "693f352371c57534b9eedd4eb8167502",
         "uri": "file://test.test_pairs_generation_with_max_pairs_CPU_/catboost_training.json"
     },
     "test.test_pairs_without_groupid": {
