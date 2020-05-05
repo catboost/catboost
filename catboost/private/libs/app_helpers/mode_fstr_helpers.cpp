@@ -9,7 +9,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/model/model.h>
 
-#include <library/getopt/small/last_getopt.h>
+#include <library/cpp/getopt/small/last_getopt.h>
 
 #include <util/folder/path.h>
 #include <util/generic/ptr.h>

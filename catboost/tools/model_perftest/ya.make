@@ -4,7 +4,7 @@ PROGRAM()
 
 PEERDIR(
     catboost/tools/model_perftest/lib
-    library/getopt
+    library/cpp/getopt
 )
 
 END()

@@ -5,7 +5,7 @@
 #include <catboost/libs/model/model.h>
 #include <catboost/private/libs/options/analytical_mode_params.h>
 
-#include <library/getopt/small/last_getopt_opts.h>
+#include <library/cpp/getopt/small/last_getopt_opts.h>
 #include <library/object_factory/object_factory.h>
 
 
