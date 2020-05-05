@@ -30,7 +30,6 @@ RECURSE(
     fast_exp
     fast_exp/benchmark
     fast_exp/ut
-    fast_log
     getopt
     getopt/small
     http

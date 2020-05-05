@@ -7,7 +7,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/fast_log
+    library/cpp/fast_log
 )
 
 END()

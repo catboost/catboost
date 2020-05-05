@@ -77,7 +77,7 @@ PEERDIR(
     library/cpp/digest/md5
     library/cpp/dot_product
     library/fast_exp
-    library/fast_log
+    library/cpp/fast_log
     library/cpp/grid_creator
     library/json
     library/cpp/malloc/api
