@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{0535A087-E0A5-E4C1-3C87-219D8CBAE4B1}</ProjectGUID>
+    <ProjectGUID>{BBE5F5BB-65A8-85D2-82AE-C4525D92BEC1}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-binsaver-ut_util</ProjectName>
+    <ProjectName>cpp-binsaver-ut_util</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-binsaver-ut_util</TargetName>
+    <TargetName>cpp-binsaver-ut_util</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\binsaver\ut_util\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\0535A087-E0A5-E4C1-3C87-219D8CBAE4B1\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\binsaver\ut_util\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\BBE5F5BB-65A8-85D2-82AE-C4525D92BEC1\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\binsaver\ut_util\ut_util.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\binsaver\ut_util\ut_util.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\binsaver\ut_util\ut_util.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\binsaver\ut_util\ut_util.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -96,8 +96,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\binsaver\library-binsaver.vcxproj">
-      <Project>{9C4284EC-342F-438F-B12F-EF54AD02C9C0}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\binsaver\library-cpp-binsaver.vcxproj">
+      <Project>{8DDA0983-F11F-A0FE-622D-D04B3B6E3C27}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\colorizer\library-cpp-colorizer.vcxproj">
       <Project>{78881F22-8136-23DF-843E-58AA6DB6D337}</Project>

@@ -214,14 +214,14 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd\contrib-libs-zstd.vcxproj">
       <Project>{0F7ECE1F-EE4E-A88C-12F5-7D1C49F1BC75}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\binsaver\library-binsaver.vcxproj">
-      <Project>{9C4284EC-342F-438F-B12F-EF54AD02C9C0}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\zstd\blockcodecs-codecs-zstd.vcxproj">
       <Project>{AC7594FF-6F1D-C755-11B7-918627CFBD0B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\core\library-blockcodecs-core.vcxproj">
       <Project>{BC4F6560-AAA9-63AA-0B89-2627FA172162}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\binsaver\library-cpp-binsaver.vcxproj">
+      <Project>{8DDA0983-F11F-A0FE-622D-D04B3B6E3C27}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\colorizer\library-cpp-colorizer.vcxproj">
       <Project>{78881F22-8136-23DF-843E-58AA6DB6D337}</Project>

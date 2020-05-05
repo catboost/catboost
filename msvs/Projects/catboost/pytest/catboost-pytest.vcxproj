@@ -824,9 +824,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\yasm\yasm.vcxproj">
       <Project>{1959E211-4FF5-553B-2DD1-9BDC1CFDC107}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\binsaver\library-binsaver.vcxproj">
-      <Project>{9C4284EC-342F-438F-B12F-EF54AD02C9C0}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\brotli\blockcodecs-codecs-brotli.vcxproj">
       <Project>{2674849B-0330-C348-578B-DB562AA37E65}</Project>
     </ProjectReference>
@@ -862,6 +859,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\chromium_trace\library-chromium_trace.vcxproj">
       <Project>{9541389A-C448-428A-BEEE-604F1A02F5EA}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\binsaver\library-cpp-binsaver.vcxproj">
+      <Project>{8DDA0983-F11F-A0FE-622D-D04B3B6E3C27}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cgiparam\library-cpp-cgiparam.vcxproj">
       <Project>{7D7BC687-C41D-BE31-16E6-D1EFDED414F9}</Project>
