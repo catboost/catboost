@@ -19,19 +19,18 @@ TString BuildDescriptionFromParams(ELossFunction lossFunction, const TLossParams
         return buffer;
     }
     buffer << ":";
-    size_t currentParamIdx = 0;
+
+    TVector<std::pair<TString, TString>> keyAndValues;
     for (const auto& key: params.userSpecifiedKeyOrder) {
         auto it = params.paramsMap.find(key);
         if (it == params.paramsMap.end()) {
             continue;
         }
-        buffer << it->first << "=" << it->second;
-
-        currentParamIdx++;
-        // Put key=value pair separator, if the parameter is not last
-        if (currentParamIdx != params.userSpecifiedKeyOrder.size()) {
-            buffer << ";";
-        }
+        keyAndValues.emplace_back(it->first, it->second);
+    }
+    for (size_t i = 0; i < keyAndValues.size(); ++i) {
+        buffer << keyAndValues[i].first << "=" << keyAndValues[i].second
+               << (/*If not the last to render, then put a separator.*/i + 1 != keyAndValues.size() ? ";" : "");
     }
     return buffer;
 }
