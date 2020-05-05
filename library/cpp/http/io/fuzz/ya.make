@@ -3,7 +3,7 @@ FUZZ()
 
 
 PEERDIR(
-    library/http/io
+    library/cpp/http/io
 )
 
 SIZE(MEDIUM)

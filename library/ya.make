@@ -29,7 +29,6 @@ RECURSE(
     fast_exp/ut
     getopt
     getopt/small
-    http
     json
     json/flex_buffers
     json/flex_buffers/ut

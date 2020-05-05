@@ -21,7 +21,7 @@ ALLOW library/minhash/tools/mr_hash -> mapreduce
 ALLOW library/token/ut -> kernel
 ALLOW library/infected_masks -> kernel
 ALLOW library/deprecated/dater_old/scanner -> kernel
-ALLOW library/http/client/fetch -> kernel
+ALLOW library/cpp/http/client/fetch -> kernel
 ALLOW library/text_processing/yandex_specific_lemmer -> kernel/lemmer
 ALLOW library/cpp/digest/benchmark -> yabs/server/util
 ALLOW library/eventlog/rt/tool -> search/idl

@@ -1,7 +1,7 @@
 #include "stream.h"
 #include "chunk.h"
 
-#include <library/http/server/http_ex.h>
+#include <library/cpp/http/server/http_ex.h>
 
 #include <library/unittest/registar.h>
 #include <library/unittest/tests_data.h>

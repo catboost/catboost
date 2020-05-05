@@ -11,7 +11,7 @@
 #include "tcp.h"
 #include "tcp2.h"
 
-#include <library/http/io/headers.h>
+#include <library/cpp/http/io/headers.h>
 
 #include <library/unittest/registar.h>
 #include <library/unittest/env.h>

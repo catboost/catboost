@@ -3,7 +3,7 @@ PROGRAM()
 
 
 PEERDIR(
-    library/http/io
+    library/cpp/http/io
 )
 
 SRCS(

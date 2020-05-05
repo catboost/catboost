@@ -8,9 +8,9 @@ PEERDIR(
     library/cpp/coroutine/engine
     library/cpp/coroutine/listener
     library/dns
-    library/http/io
-    library/http/misc
-    library/http/push_parser
+    library/cpp/http/io
+    library/cpp/http/misc
+    library/cpp/http/push_parser
     library/neh/asio
     library/netliba/v6
     library/cpp/openssl/init

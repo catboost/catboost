@@ -1,4 +1,4 @@
-#include <library/http/io/stream.h>
+#include <library/cpp/http/io/stream.h>
 #include <util/stream/output.h>
 
 int main() {

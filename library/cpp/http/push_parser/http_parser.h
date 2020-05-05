@@ -5,7 +5,7 @@
 #include <util/generic/yexception.h>
 #include <util/generic/hash_set.h>
 #include <util/string/cast.h>
-#include <library/http/io/stream.h>
+#include <library/cpp/http/io/stream.h>
 
 struct THttpVersion {
     unsigned Major = 1;

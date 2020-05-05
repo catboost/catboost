@@ -33,6 +33,7 @@ RECURSE(
     grid_creator
     grid_creator/fuzz
     grid_creator/ut
+    http
     malloc
     lfalloc
     lfalloc/dbg

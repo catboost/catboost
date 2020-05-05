@@ -1,4 +1,4 @@
-#include <library/http/io/stream.h>
+#include <library/cpp/http/io/stream.h>
 
 #include <util/generic/vector.h>
 #include <util/stream/mem.h>

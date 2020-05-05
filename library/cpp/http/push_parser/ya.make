@@ -7,7 +7,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/http/io
+    library/cpp/http/io
     library/blockcodecs
 )
 

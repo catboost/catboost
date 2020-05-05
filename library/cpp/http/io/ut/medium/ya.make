@@ -1,4 +1,4 @@
-UNITTEST_FOR(library/http/io)
+UNITTEST_FOR(library/cpp/http/io)
 
 SIZE(MEDIUM)
 

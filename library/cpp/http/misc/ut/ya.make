@@ -1,4 +1,4 @@
-UNITTEST_FOR(library/http/misc)
+UNITTEST_FOR(library/cpp/http/misc)
 
 
 

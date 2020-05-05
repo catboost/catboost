@@ -3,7 +3,7 @@
 #include <util/generic/strbuf.h>
 #include <utility>
 
-#include <library/http/io/headers.h>
+#include <library/cpp/http/io/headers.h>
 #include <library/unittest/registar.h>
 
 namespace {

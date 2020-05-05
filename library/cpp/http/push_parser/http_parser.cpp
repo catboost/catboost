@@ -292,7 +292,7 @@ bool THttpParser::DecodeContent() {
             DecodedContent_ = TZLibDecompress(&retryInput, ZLib::Raw).ReadAll();
         }
     } else if (ContentEncoding_.StartsWith("z-")) {
-        // opposite for library/http/io/stream.h
+        // opposite for library/cpp/http/io/stream.h
         const NBlockCodecs::ICodec* codec = nullptr;
         try {
             const TStringBuf codecName = TStringBuf(ContentEncoding_).SubStr(2);
