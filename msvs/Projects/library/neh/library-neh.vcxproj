@@ -266,6 +266,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\lower_case\cpp-digest-lower_case.vcxproj">
       <Project>{93A05BE8-043A-10FC-0497-840803A20BA0}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\http\io\cpp-http-io.vcxproj">
+      <Project>{A9F9E508-BAB4-557E-18B4-37EA4B295012}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\http\misc\cpp-http-misc.vcxproj">
+      <Project>{19A72958-3B98-AB8E-6B75-1B4E1D6D1040}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\http\push_parser\cpp-http-push_parser.vcxproj">
+      <Project>{7E318157-ACEB-A54B-85C9-3F458B867B6D}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\openssl\holders\cpp-openssl-holders.vcxproj">
       <Project>{3318B551-DF57-9A14-A9FD-139582C56800}</Project>
     </ProjectReference>
@@ -295,15 +304,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\dns\library-dns.vcxproj">
       <Project>{8C356353-67D3-3399-7DA3-792F6D7BF6D5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\http\io\library-http-io.vcxproj">
-      <Project>{7AAD42F7-318F-829E-0019-82746753CD46}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\http\misc\library-http-misc.vcxproj">
-      <Project>{673846BF-CACD-8F51-393A-34F2381DAE0C}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\http\push_parser\library-http-push_parser.vcxproj">
-      <Project>{B05B7FF9-4CE5-696B-D8BB-5C8C4EEDBD2C}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\neh\asio\library-neh-asio.vcxproj">
       <Project>{ACDED067-8B74-5223-7E1A-7937B35A78E1}</Project>

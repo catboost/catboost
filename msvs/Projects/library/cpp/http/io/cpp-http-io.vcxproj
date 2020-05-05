@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{7AAD42F7-318F-829E-0019-82746753CD46}</ProjectGUID>
+    <ProjectGUID>{A9F9E508-BAB4-557E-18B4-37EA4B295012}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-http-io</ProjectName>
+    <ProjectName>cpp-http-io</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-http-io</TargetName>
+    <TargetName>cpp-http-io</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\http\io\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\7AAD42F7-318F-829E-0019-82746753CD46\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\http\io\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\A9F9E508-BAB4-557E-18B4-37EA4B295012\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,14 +78,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\http\io\chunk.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\http\io\compression.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\http\io\headers.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\http\io\stream.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\http\io\chunk.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\http\io\compression.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\http\io\headers.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\http\io\stream.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\http\io\chunk.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\http\io\compression.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\http\io\headers.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\http\io\stream.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\http\io\chunk.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\http\io\compression.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\http\io\headers.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\http\io\stream.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{B05B7FF9-4CE5-696B-D8BB-5C8C4EEDBD2C}</ProjectGUID>
+    <ProjectGUID>{7E318157-ACEB-A54B-85C9-3F458B867B6D}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-http-push_parser</ProjectName>
+    <ProjectName>cpp-http-push_parser</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-http-push_parser</TargetName>
+    <TargetName>cpp-http-push_parser</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\http\push_parser\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\B05B7FF9-4CE5-696B-D8BB-5C8C4EEDBD2C\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\http\push_parser\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\7E318157-ACEB-A54B-85C9-3F458B867B6D\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\http\push_parser\http_parser.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\http\push_parser\http_parser.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\http\push_parser\http_parser.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\http\push_parser\http_parser.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -165,6 +165,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
       <Project>{E62EED19-EC2A-B4C3-0650-0923E4030E8B}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\http\io\cpp-http-io.vcxproj">
+      <Project>{A9F9E508-BAB4-557E-18B4-37EA4B295012}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\streams\brotli\cpp-streams-brotli.vcxproj">
       <Project>{88BDDF2B-3A41-DF09-EA33-A8354BC1FD2B}</Project>
     </ProjectReference>
@@ -173,9 +176,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\streams\lzma\cpp-streams-lzma.vcxproj">
       <Project>{A75DC6C1-858D-5097-8CB6-68A4A62E2D73}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\http\io\library-http-io.vcxproj">
-      <Project>{7AAD42F7-318F-829E-0019-82746753CD46}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>

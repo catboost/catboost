@@ -392,6 +392,15 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\grid_creator\library-cpp-grid_creator.vcxproj">
       <Project>{E6C33C80-F1BD-2340-891E-B453369FDC5C}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\http\io\cpp-http-io.vcxproj">
+      <Project>{A9F9E508-BAB4-557E-18B4-37EA4B295012}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\http\misc\cpp-http-misc.vcxproj">
+      <Project>{19A72958-3B98-AB8E-6B75-1B4E1D6D1040}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\http\push_parser\cpp-http-push_parser.vcxproj">
+      <Project>{7E318157-ACEB-A54B-85C9-3F458B867B6D}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\api\cpp-malloc-api.vcxproj">
       <Project>{98AF9344-15D9-0539-93F4-0E901C36E301}</Project>
     </ProjectReference>
@@ -460,15 +469,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\fast_exp\library-fast_exp.vcxproj">
       <Project>{E0EC7772-5C0F-6407-290B-3900C3FF324B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\http\io\library-http-io.vcxproj">
-      <Project>{7AAD42F7-318F-829E-0019-82746753CD46}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\http\misc\library-http-misc.vcxproj">
-      <Project>{673846BF-CACD-8F51-393A-34F2381DAE0C}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\http\push_parser\library-http-push_parser.vcxproj">
-      <Project>{B05B7FF9-4CE5-696B-D8BB-5C8C4EEDBD2C}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\json\common\library-json-common.vcxproj">
       <Project>{3B322F11-1D2A-AEFE-BC14-4F74683E14DB}</Project>
