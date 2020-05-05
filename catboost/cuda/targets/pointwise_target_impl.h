@@ -251,7 +251,7 @@ namespace NCatboostCuda {
                     break;
                 }
                 case ELossFunction::Lq: {
-                    Alpha = FromString<double>(targetOptions.GetLossParams().at("q"));
+                    Alpha = FromString<double>(targetOptions.GetLossParamsMap().at("q"));
                     break;
                 }
                 case ELossFunction::MAE: {

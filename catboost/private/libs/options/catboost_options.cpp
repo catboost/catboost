@@ -50,7 +50,7 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
             break;
         }
         case ELossFunction::Lq: {
-            CB_ENSURE(lossFunctionConfig.GetLossParams().contains("q"), "Param q is mandatory for Lq loss");
+            CB_ENSURE(lossFunctionConfig.GetLossParamsMap().contains("q"), "Param q is mandatory for Lq loss");
             defaultEstimationMethod = ELeavesEstimation::Newton;
             const auto q = GetLqParam(lossFunctionConfig);
             if (q < 2) {
@@ -94,7 +94,7 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
             break;
         }
         case ELossFunction::Expectile: {
-            CB_ENSURE(lossFunctionConfig.GetLossParams().contains("alpha"), "Param alpha is mandatory for expectile loss");
+            CB_ENSURE(lossFunctionConfig.GetLossParamsMap().contains("alpha"), "Param alpha is mandatory for expectile loss");
             defaultNewtonIterations = 5;
             defaultGradientIterations = 10;
             defaultEstimationMethod = ELeavesEstimation::Newton;
@@ -181,7 +181,7 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
             break;
         }
         case ELossFunction::Tweedie: {
-            CB_ENSURE(lossFunctionConfig.GetLossParams().contains("variance_power"), "Param variance_power is mandatory for Tweedie loss");
+            CB_ENSURE(lossFunctionConfig.GetLossParamsMap().contains("variance_power"), "Param variance_power is mandatory for Tweedie loss");
             defaultEstimationMethod = ELeavesEstimation::Newton;
             defaultNewtonIterations = 1;
             defaultGradientIterations = 1;
@@ -190,7 +190,7 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
         case ELossFunction::Combination: {
             bool haveDefaults = false;
             IterateOverCombination(
-                lossFunctionConfig.GetLossParams(),
+                    lossFunctionConfig.GetLossParamsMap(),
                 [&] (const auto& loss, float weight) {
                     if (!haveDefaults) {
                         std::tie(defaultNewtonIterations, defaultGradientIterations, defaultEstimationMethod, defaultL2Reg) =
@@ -776,21 +776,21 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         case ELossFunction::PairLogit:
         case ELossFunction::PairLogitPairwise: {
             NCatboostOptions::TLossDescription lossDescription;
-            lossDescription.LossParams.Set(LossFunctionDescription->GetLossParams());
+            lossDescription.LossParams.Set(LossFunctionDescription->GetLossParamsMap());
             lossDescription.LossFunction.Set(ELossFunction::PairLogit);
             MetricOptions->ObjectiveMetric.Set(lossDescription);
             break;
         }
         case ELossFunction::StochasticFilter: {
             NCatboostOptions::TLossDescription lossDescription;
-            lossDescription.LossParams.Set(LossFunctionDescription->GetLossParams());
+            lossDescription.LossParams.Set(LossFunctionDescription->GetLossParamsMap());
             lossDescription.LossFunction.Set(ELossFunction::FilteredDCG);
             MetricOptions->ObjectiveMetric.Set(lossDescription);
             break;
         }
         case ELossFunction::StochasticRank: {
             NCatboostOptions::TLossDescription lossDescription;
-            const auto& lossParams = LossFunctionDescription->GetLossParams();
+            const auto& lossParams = LossFunctionDescription->GetLossParamsMap();
             CB_ENSURE(lossParams.contains("metric"), "StochasticRank requires metric param");
             ELossFunction targetMetric = FromString<ELossFunction>(lossParams.at("metric"));
             TMap<TString, TString> metricParams;

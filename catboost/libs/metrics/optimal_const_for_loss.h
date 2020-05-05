@@ -97,7 +97,7 @@ namespace NCB {
             }
             case ELossFunction::Quantile:
             case ELossFunction::MAE: {
-                const auto& params = lossDescription.GetLossParams();
+                const auto& params = lossDescription.GetLossParamsMap();
                 auto it = params.find("alpha");
                 double alpha = it == params.end() ? 0.5 : FromString<double>(it->second);
                 it = params.find("delta");

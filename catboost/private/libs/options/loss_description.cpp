@@ -17,7 +17,7 @@ ELossFunction ParseLossType(const TStringBuf lossDescription) {
     return customLoss;
 }
 
-TMap<TString, TString> ParseLossParams(const TStringBuf lossDescription) {
+TLossParams ParseLossParams(const TStringBuf lossDescription) {
     const char* errorMessage = "Invalid metric description, it should be in the form "
                                "\"metric_name:param1=value1;...;paramN=valueN\"";
 
@@ -26,15 +26,17 @@ TMap<TString, TString> ParseLossParams(const TStringBuf lossDescription) {
     CB_ENSURE(tokens.size() <= 2, errorMessage);
 
     TMap<TString, TString> params;
+    TVector<TString> paramKeysOrdered;
     if (tokens.size() == 2) {
         for (const auto& token : StringSplitter(tokens[1]).Split(';')) {
             const TVector<TString> keyValue = StringSplitter(token.Token()).Split('=').Limit(2);
             CB_ENSURE(keyValue.size() == 2, errorMessage);
             params[keyValue[0]] = keyValue[1];
+            paramKeysOrdered.push_back(keyValue[0]);
         }
     }
 
-    return params;
+    return {std::move(params), std::move(paramKeysOrdered)};
 }
 
 NCatboostOptions::TLossDescription::TLossDescription()
@@ -60,9 +62,20 @@ bool NCatboostOptions::TLossDescription::operator==(const TLossDescription& rhs)
             std::tie(rhs.LossFunction, rhs.LossParams);
 }
 
-const TMap<TString, TString>& NCatboostOptions::TLossDescription::GetLossParams() const {
+const TMap<TString, TString>& NCatboostOptions::TLossDescription::GetLossParamsMap() const {
     return LossParams.Get();
 };
+
+TLossParams NCatboostOptions::TLossDescription::GetLossParams() const {
+    // We cannot infer the order of the keys since they are loaded from JSON.
+    const TMap<TString, TString>& paramsMap = LossParams.Get();
+    TVector<TString> keys;
+    keys.reserve(paramsMap.size());
+    for (const auto& keyValue: paramsMap) {
+        keys.push_back(keyValue.first);
+    }
+    return {paramsMap, keys};
+}
 
 bool NCatboostOptions::TLossDescription::operator!=(const TLossDescription& rhs) const {
     return !(rhs == *this);
@@ -78,7 +91,7 @@ double NCatboostOptions::GetAlpha(const TMap<TString, TString>& lossParams) {
 }
 
 double NCatboostOptions::GetAlpha(const TLossDescription& lossFunctionConfig) {
-    const auto& lossParams = lossFunctionConfig.GetLossParams();
+    const auto& lossParams = lossFunctionConfig.GetLossParamsMap();
     return GetAlpha(lossParams);
 }
 
@@ -87,7 +100,7 @@ double NCatboostOptions::GetAlphaQueryCrossEntropy(const TMap<TString, TString>&
 }
 
 double NCatboostOptions::GetAlphaQueryCrossEntropy(const TLossDescription& lossFunctionConfig) {
-    const auto& lossParams = lossFunctionConfig.GetLossParams();
+    const auto& lossParams = lossFunctionConfig.GetLossParamsMap();
     return GetAlphaQueryCrossEntropy(lossParams);
 }
 
@@ -108,14 +121,14 @@ double NCatboostOptions::GetYetiRankDecay(const TLossDescription& lossFunctionCo
 
 double NCatboostOptions::GetLqParam(const TLossDescription& lossFunctionConfig) {
     Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::Lq);
-    const auto& lossParams = lossFunctionConfig.GetLossParams();
+    const auto& lossParams = lossFunctionConfig.GetLossParamsMap();
     CB_ENSURE(lossParams.contains("q"), "For " << ELossFunction::Lq << " q parameter is mandatory");
     return FromString<double>(lossParams.at("q"));
 }
 
 double NCatboostOptions::GetHuberParam(const TLossDescription& lossFunctionConfig) {
     Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::Huber);
-    const auto& lossParams = lossFunctionConfig.GetLossParams();
+    const auto& lossParams = lossFunctionConfig.GetLossParamsMap();
     CB_ENSURE(lossParams.contains("delta"), "For " << ELossFunction::Huber << " delta parameter is mandatory");
     return FromString<double>(lossParams.at("delta"));
 }
@@ -147,7 +160,7 @@ int NCatboostOptions::GetStochasticFilterNumEstimations(const TLossDescription& 
 
 double NCatboostOptions::GetTweedieParam(const TLossDescription& lossFunctionConfig) {
     Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::Tweedie);
-    const auto& lossParams = lossFunctionConfig.GetLossParams();
+    const auto& lossParams = lossFunctionConfig.GetLossParamsMap();
     CB_ENSURE(
         lossParams.contains("variance_power"),
         "For " << ELossFunction::Tweedie << " variance_power parameter is mandatory");
@@ -157,7 +170,7 @@ double NCatboostOptions::GetTweedieParam(const TLossDescription& lossFunctionCon
 NCatboostOptions::TLossDescription NCatboostOptions::ParseLossDescription(TStringBuf stringLossDescription) {
     TLossDescription description;
     description.LossFunction.Set(ParseLossType(stringLossDescription));
-    description.LossParams.Set(ParseLossParams(stringLossDescription));
+    description.LossParams.Set(ParseLossParams(stringLossDescription).paramsMap);
     return description;
 }
 
@@ -165,7 +178,7 @@ template <>
 void Out<NCatboostOptions::TLossDescription>(IOutputStream& out, const NCatboostOptions::TLossDescription& description) {
     TVector<TString> entries;
     entries.push_back(ToString(description.GetLossFunction()));
-    for (const auto& param : description.GetLossParams()) {
+    for (const auto& param : description.GetLossParamsMap()) {
         entries.push_back(TString::Join(param.first, "=", ToString(param.second)));
     }
     out << JoinStrings(entries, ",");
@@ -236,10 +249,10 @@ NJson::TJsonValue LossDescriptionToJson(const TStringBuf lossDescription) {
     NJson::TJsonValue descriptionJson(NJson::JSON_MAP);
 
     ELossFunction lossFunction = ParseLossType(lossDescription);
-    TMap<TString, TString> lossParams = ParseLossParams(lossDescription);
+    TLossParams lossParams = ParseLossParams(lossDescription);
     descriptionJson["type"] = ToString(lossFunction);
-    for (const auto& lossParam : lossParams) {
-        descriptionJson["params"][lossParam.first] = lossParam.second;
+    for (const auto& lossParam : lossParams.userSpecifiedKeyOrder) {
+        descriptionJson["params"][lossParam] = lossParams.paramsMap[lossParam];
     }
     return descriptionJson;
 }

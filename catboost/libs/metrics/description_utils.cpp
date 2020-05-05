@@ -5,7 +5,7 @@
 #include <util/string/builder.h>
 
 
-TString BuildDescriptionFromParamsMap(ELossFunction lossFunction, const TMap<TString, TString>& params) {
+TString BuildDescriptionFromParams(ELossFunction lossFunction, const TLossParams& params) {
     TStringBuilder buffer;
 
     // This is kept for backwards compatibility.
@@ -15,17 +15,21 @@ TString BuildDescriptionFromParamsMap(ELossFunction lossFunction, const TMap<TSt
         buffer << ToString(lossFunction);
     }
 
-    if (params.empty()) {
+    if (params.paramsMap.empty()) {
         return buffer;
     }
     buffer << ":";
     size_t currentParamIdx = 0;
-    for (const auto& keyValue: params) {
-        buffer << keyValue.first << "=" << keyValue.second;
+    for (const auto& key: params.userSpecifiedKeyOrder) {
+        auto it = params.paramsMap.find(key);
+        if (it == params.paramsMap.end()) {
+            continue;
+        }
+        buffer << it->first << "=" << it->second;
 
         currentParamIdx++;
         // Put key=value pair separator, if the parameter is not last
-        if (currentParamIdx != params.size()) {
+        if (currentParamIdx != params.userSpecifiedKeyOrder.size()) {
             buffer << ";";
         }
     }
