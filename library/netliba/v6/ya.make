@@ -36,7 +36,7 @@ IF (CATBOOST_OPENSOURCE)
 ENDIF()
 
 PEERDIR(
-    library/binsaver
+    library/cpp/binsaver
     library/netliba/socket
     library/cpp/string_utils/url
     library/threading/atomic

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/binsaver/bin_saver.h>
+#include <library/cpp/binsaver/bin_saver.h>
 #include <library/netliba/v12/udp_address.h>
 
 #include <util/generic/guid.h>

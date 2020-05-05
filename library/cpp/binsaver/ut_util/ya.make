@@ -7,7 +7,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/binsaver
+    library/cpp/binsaver
     library/unittest
 )
 

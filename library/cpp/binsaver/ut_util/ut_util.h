@@ -1,8 +1,8 @@
 #pragma once
 
-#include <library/binsaver/bin_saver.h>
-#include <library/binsaver/mem_io.h>
-#include <library/binsaver/util_stream_io.h>
+#include <library/cpp/binsaver/bin_saver.h>
+#include <library/cpp/binsaver/mem_io.h>
+#include <library/cpp/binsaver/util_stream_io.h>
 
 #include <library/unittest/registar.h>
 

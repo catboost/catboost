@@ -46,7 +46,7 @@ ENDIF()
 PEERDIR(
     library/threading/mux_event
     library/cpp/digest/crc32c
-    library/binsaver
+    library/cpp/binsaver
     library/netliba/socket/with_nalf
 )
 

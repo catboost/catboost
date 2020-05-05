@@ -28,7 +28,7 @@ PEERDIR(
     catboost/libs/logging
     catboost/private/libs/options
     catboost/libs/helpers/parallel_sort
-    library/binsaver
+    library/cpp/binsaver
     library/cpp/containers/2d_array
     library/cpp/containers/stack_vector
     library/cpp/dot_product

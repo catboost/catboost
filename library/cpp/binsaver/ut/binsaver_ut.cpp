@@ -1,7 +1,7 @@
-#include <library/binsaver/util_stream_io.h>
-#include <library/binsaver/mem_io.h>
-#include <library/binsaver/bin_saver.h>
-#include <library/binsaver/ut_util/ut_util.h>
+#include <library/cpp/binsaver/util_stream_io.h>
+#include <library/cpp/binsaver/mem_io.h>
+#include <library/cpp/binsaver/bin_saver.h>
+#include <library/cpp/binsaver/ut_util/ut_util.h>
 #include <library/unittest/registar.h>
 
 #include <util/stream/buffer.h>

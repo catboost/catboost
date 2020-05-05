@@ -1,9 +1,6 @@
 
 
 RECURSE(
-    binsaver
-    binsaver/ut_util
-    binsaver/ut
     blockcodecs
     blockcodecs/fuzz
     blockcodecs/ut

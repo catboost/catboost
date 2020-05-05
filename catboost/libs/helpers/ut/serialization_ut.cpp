@@ -1,6 +1,6 @@
 #include <catboost/libs/helpers/serialization.h>
 
-#include <library/binsaver/util_stream_io.h>
+#include <library/cpp/binsaver/util_stream_io.h>
 
 #include <util/generic/string.h>
 #include <util/stream/buffer.h>

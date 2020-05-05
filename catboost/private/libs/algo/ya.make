@@ -69,7 +69,7 @@ PEERDIR(
     catboost/private/libs/text_features
     catboost/private/libs/options
     catboost/libs/overfitting_detector
-    library/binsaver
+    library/cpp/binsaver
     library/cpp/containers/2d_array
     library/cpp/containers/dense_hash
     library/cpp/containers/stack_vector

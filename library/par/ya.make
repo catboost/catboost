@@ -22,7 +22,7 @@ SRCS(
 GENERATE_ENUM_SERIALIZATION(par_host_stats.h)
 
 PEERDIR(
-    library/binsaver
+    library/cpp/binsaver
     library/blockcodecs
     library/chromium_trace
     library/cpp/containers/ring_buffer
