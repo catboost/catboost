@@ -119,10 +119,11 @@ struct TTestGuard: public TTestBase {
         {
             TTryGuard<TGuardChecker> guard(checker);
             UNIT_ASSERT(checker.guarded);
-            UNIT_ASSERT(guard.WasAcquired()) {
+            UNIT_ASSERT(guard.WasAcquired());
+            {
                 TTryGuard<TGuardChecker> guard2(checker);
                 UNIT_ASSERT(checker.guarded);
-                UNIT_ASSERT(!guard2.WasAcquired())
+                UNIT_ASSERT(!guard2.WasAcquired());
             }
             UNIT_ASSERT(checker.guarded);
         }

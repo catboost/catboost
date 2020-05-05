@@ -15,7 +15,7 @@
 #include <catboost/libs/helpers/maybe_data.h>
 
 #include <library/threading/local_executor/local_executor.h>
-#include <library/containers/2d_array/2d_array.h>
+#include <library/cpp/containers/2d_array/2d_array.h>
 
 #include <util/generic/fwd.h>
 #include <util/generic/array_ref.h>
@@ -24,6 +24,25 @@
 
 using NCatboostOptions::GetDefaultTargetBorder;
 using NCatboostOptions::GetDefaultPredictionBorder;
+
+struct TMetricConfig {
+    explicit TMetricConfig(ELossFunction metric, const TMap<TString, TString>& params,
+                           int approxDimension, double binaryClassPredictionBorder,
+                           TSet<TString>* validParams)
+        : metric(metric)
+        , params(params)
+        , approxDimension(approxDimension)
+        , binaryClassPredictionBorder(binaryClassPredictionBorder)
+        , validParams(validParams) {}
+
+    ELossFunction metric;
+    const TMap<TString, TString>& params;
+    const int approxDimension;
+    const double binaryClassPredictionBorder;
+    TSet<TString>* validParams;
+};
+
+using MetricsFactory = std::function<TVector<THolder<IMetric>>(const TMetricConfig&)>;
 
 template <typename T>
 struct TMetricParam {
@@ -125,8 +144,8 @@ struct IMetric {
         NPar::TLocalExecutor& executor
     ) const = 0;
     virtual TMetricHolder Eval(
-        const TVector<TVector<double>>& approx,
-        const TVector<TVector<double>>& approxDelta,
+        const TConstArrayRef<TConstArrayRef<double>> approx,
+        const TConstArrayRef<TConstArrayRef<double>> approxDelta,
         bool isExpApprox,
         TConstArrayRef<float> target,
         TConstArrayRef<float> weight,
@@ -151,17 +170,27 @@ public:
 };
 
 struct TMetric: public IMetric {
+    explicit TMetric(ELossFunction lossFunction, TMap<TString, TString> descriptionParams);
     virtual EErrorType GetErrorType() const override;
     virtual double GetFinalError(const TMetricHolder& error) const override;
     virtual TVector<TString> GetStatDescriptions() const override;
     virtual const TMap<TString, TString>& GetHints() const override;
     virtual void AddHint(const TString& key, const TString& value) override;
     virtual bool NeedTarget() const override;
+    // The default implementation of metric description formatting.
+    // It uses LossFunction and DescriptionParams, which is user-specified metric options,
+    // and constructs a Metric:key1=value1;key2=value2 string from them.
+    // UseWeights is included in the description if the weights have been specified.
+    virtual TString GetDescription() const override;
 private:
     TMap<TString, TString> Hints;
+    const ELossFunction LossFunction;
+    const TMap<TString, TString> DescriptionParams;
 };
 
 struct TMultiRegressionMetric: public TMetric {
+    explicit TMultiRegressionMetric(ELossFunction lossFunction, const TMap<TString, TString>& descriptionParams)
+        : TMetric(lossFunction, descriptionParams) {}
     virtual TMetricHolder Eval(
         TConstArrayRef<TVector<double>> approx,
         TConstArrayRef<TVector<double>> approxDelta,
@@ -179,12 +208,12 @@ struct TMultiRegressionMetric: public TMetric {
         int /*begin*/,
         int /*end*/,
         NPar::TLocalExecutor& /*executor*/
-    ) const override {
+    ) const final {
         CB_ENSURE(false, "Multiregression metrics should not be used like regular metric");
     }
     TMetricHolder Eval(
-        const TVector<TVector<double>>& /*approx*/,
-        const TVector<TVector<double>>& /*approxDelta*/,
+        const TConstArrayRef<TConstArrayRef<double>> /*approx*/,
+        const TConstArrayRef<TConstArrayRef<double>> /*approxDelta*/,
         bool /*isExpApprox*/,
         TConstArrayRef<float> /*target*/,
         TConstArrayRef<float> /*weight*/,
@@ -192,10 +221,10 @@ struct TMultiRegressionMetric: public TMetric {
         int /*begin*/,
         int /*end*/,
         NPar::TLocalExecutor& /*executor*/
-    ) const override {
+    ) const final {
         CB_ENSURE(false, "Multiregression metrics should not be used like regular metric");
     }
-    EErrorType GetErrorType() const override final {
+    EErrorType GetErrorType() const final {
         return EErrorType::PerObjectError;
     }
 };
@@ -231,198 +260,46 @@ static inline TMetricHolder ParallelEvalMetric(TEvalFunction eval, int minBlockS
 
 }
 
-template <typename TImpl>
-struct TAdditiveMultiRegressionMetric: public TMultiRegressionMetric {
-    TMetricHolder Eval(
-        TConstArrayRef<TVector<double>> approx,
-        TConstArrayRef<TVector<double>> approxDelta,
-        TConstArrayRef<TConstArrayRef<float>> target,
-        TConstArrayRef<float> weight,
-        int begin,
-        int end,
-        NPar::TLocalExecutor& executor
-    ) const override {
-        const auto evalMetric = [&](int from, int to) {
-            return static_cast<const TImpl*>(this)->EvalSingleThread(
-                approx, approxDelta, target, UseWeights.IsIgnored() || UseWeights ? weight : TVector<float>{}, from, to
-            );
-        };
+THolder<IMetric> MakeCtrFactorMetric(const TMap<TString, TString>& params);
 
-        return ParallelEvalMetric(evalMetric, GetMinBlockSize(end - begin), begin, end, executor);
-    }
+THolder<IMetric> MakeBinClassAucMetric(const TMap<TString, TString>& params);
+THolder<IMetric> MakeMultiClassAucMetric(const TMap<TString, TString>& params, int positiveClass);
 
-    bool IsAdditiveMetric() const override final {
-        return true;
-    }
-};
+THolder<IMetric> MakeBinClassPrecisionMetric(const TMap<TString, TString>& params,
+                                             double predictionBorder = GetDefaultPredictionBorder());
+THolder<IMetric> MakeMultiClassPrecisionMetric(const TMap<TString, TString>& params,
+                                               int classesCount, int positiveClass);
 
-template <class TImpl>
-struct TAdditiveMetric: public TMetric {
-    TMetricHolder Eval(
-        const TVector<TVector<double>>& approx,
-        TConstArrayRef<float> target,
-        TConstArrayRef<float> weight,
-        TConstArrayRef<TQueryInfo> queriesInfo,
-        int begin,
-        int end,
-        NPar::TLocalExecutor& executor
-    ) const final {
-        return Eval(approx, /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
-    }
+THolder<IMetric> MakeBinClassRecallMetric(const TMap<TString, TString>& params,
+                                          double predictionBorder = GetDefaultPredictionBorder());
+THolder<IMetric> MakeMultiClassRecallMetric(const TMap<TString, TString>& params,
+                                            int classesCount, int positiveClass);
 
-    TMetricHolder Eval(
-        const TVector<TVector<double>>& approx,
-        const TVector<TVector<double>>& approxDelta,
-        bool isExpApprox,
-        TConstArrayRef<float> target,
-        TConstArrayRef<float> weight,
-        TConstArrayRef<TQueryInfo> queriesInfo,
-        int begin,
-        int end,
-        NPar::TLocalExecutor& executor
-    ) const final {
-        const auto evalMetric = [&](int from, int to) {
-            return static_cast<const TImpl*>(this)->EvalSingleThread(
-                approx, approxDelta, isExpApprox, target, UseWeights.IsIgnored() || UseWeights ? weight : TVector<float>{}, queriesInfo, from, to
-            );
-        };
+THolder<IMetric> MakeBinClassF1Metric(const TMap<TString, TString>& params,
+                                      double predictionBorder = GetDefaultPredictionBorder());
+THolder<IMetric> MakeMultiClassF1Metric(const TMap<TString, TString>& params,
+                                        int classesCount, int positiveClass);
 
-        return ParallelEvalMetric(evalMetric, GetMinBlockSize(end - begin), begin, end, executor);
-    }
+THolder<IMetric> MakeTotalF1Metric(const TMap<TString, TString>& params,
+                                   int classesCount = 2, EF1AverageType averageType = EF1AverageType::Weighted);
 
-    bool IsAdditiveMetric() const final {
-        return true;
-    }
-};
+THolder<IMetric> MakeMCCMetric(const TMap<TString, TString>& params,
+                               int classesCount = 2);
 
-struct TNonAdditiveMetric: public TMetric {
-    bool IsAdditiveMetric() const final {
-        return false;
-    }
-};
-
-THolder<IMetric> MakeCrossEntropyMetric(ELossFunction lossFunction);
-
-THolder<IMetric> MakeCtrFactorMetric();
-
-THolder<IMetric> MakeRMSEMetric();
-
-THolder<IMetric> MakeLqMetric(double q);
-
-THolder<IMetric> MakeR2Metric();
-
-THolder<IMetric> MakeNumErrorsMetric(double k);
-
-THolder<IMetric> MakeQuantileMetric(ELossFunction lossFunction, double alpha = 0.5, double delta = 1e-6);
-
-THolder<IMetric> MakeExpectileMetric(ELossFunction lossFunction, double alpha = 0.5);
-
-THolder<IMetric> MakeLogLinQuantileMetric(double alpha = 0.5);
-
-THolder<IMetric> MakeMAPEMetric();
-
-THolder<IMetric> MakePoissonMetric();
-
-THolder<IMetric> MakeTweedieMetric(double variance_power);
-
-//Mean squared logarithmic error regression loss
-THolder<IMetric> MakeMSLEMetric();
-
-//Median absolute error regression loss
-THolder<IMetric> MakeMedianAbsoluteErrorMetric();
-
-//Symmetric mean absolute percentage error
-THolder<IMetric> MakeSMAPEMetric();
-
-//loglikelihood of prediction
-THolder<IMetric> MakeLLPMetric();
-
-THolder<IMetric> MakeMultiClassMetric();
-
-THolder<IMetric> MakeMultiClassOneVsAllMetric();
-
-THolder<IMetric> MakePairLogitMetric();
-
-THolder<IMetric> MakeQueryRMSEMetric();
-
-THolder<IMetric> MakeQueryCrossEntropyMetric(double alpha = 0.95);
-
-THolder<IMetric> MakePFoundMetric(int topSize = -1, double decay = 0.85);
-
-THolder<IMetric> MakeDcgMetric(int topSize = -1, ENdcgMetricType type = ENdcgMetricType::Base, bool normalized = true, ENdcgDenominatorType denominator = ENdcgDenominatorType::LogPosition);
-
-THolder<IMetric> MakeQuerySoftMaxMetric();
-
-THolder<IMetric> MakeFilteredDcgMetric(ENdcgMetricType type, ENdcgDenominatorType denominator);
-
-THolder<IMetric> MakeBinClassAucMetric();
-THolder<IMetric> MakeRankingAucMetric();
-THolder<IMetric> MakeMultiClassAucMetric(int positiveClass);
-THolder<IMetric> MakeMuAucMetric(const TMaybe<TVector<TVector<double>>>& misclassCostMatrix = Nothing());
-
-THolder<IMetric> MakeBinClassPrecisionMetric(double predictionBorder = GetDefaultPredictionBorder());
-THolder<IMetric> MakeMultiClassPrecisionMetric(int classesCount, int positiveClass);
-
-THolder<IMetric> MakeBinClassRecallMetric(double predictionBorder = GetDefaultPredictionBorder());
-THolder<IMetric> MakeMultiClassRecallMetric(int classesCount, int positiveClass);
-
-THolder<IMetric> MakeBinClassBalancedAccuracyMetric(double predictionBorder = GetDefaultPredictionBorder());
-
-THolder<IMetric> MakeBinClassBalancedErrorRate(double predictionBorder = GetDefaultPredictionBorder());
-
-THolder<IMetric> MakeBinClassKappaMetric(double predictionBorder = GetDefaultPredictionBorder());
-THolder<IMetric> MakeMultiClassKappaMetric(int classCount = 2);
-
-THolder<IMetric> MakeBinClassWKappaMetric(double predictionBorder = GetDefaultPredictionBorder());
-THolder<IMetric> MakeMultiClassWKappaMetric(int classCount = 2);
-
-THolder<IMetric> MakeBinClassF1Metric(double predictionBorder = GetDefaultPredictionBorder());
-THolder<IMetric> MakeMultiClassF1Metric(int classesCount, int positiveClass);
-
-THolder<IMetric> MakeTotalF1Metric(int classesCount = 2, EF1AverageType averageType = EF1AverageType::Weighted);
-
-THolder<IMetric> MakeMCCMetric(int classesCount = 2);
-
-THolder<IMetric> MakeBrierScoreMetric();
-
-THolder<IMetric> MakeHingeLossMetric();
-
-THolder<IMetric> MakeHammingLossMetric(
-    double predictionBorder = GetDefaultPredictionBorder(),
-    bool isMulticlass = false);
-
-THolder<IMetric> MakeZeroOneLossMetric(double predictionBorder = GetDefaultPredictionBorder());
-THolder<IMetric> MakeZeroOneLossMetric(int classCount);
-
-THolder<IMetric> MakePairAccuracyMetric();
-
-THolder<IMetric> MakeMAPKMetric(int topSize = -1);
-
-THolder<IMetric> MakeRecallAtKMetric(int topSize = -1);
-
-THolder<IMetric> MakePrecisionAtKMetric(int topSize = -1);
+THolder<IMetric> MakeBrierScoreMetric(const TMap<TString, TString>& params);
 
 THolder<IMetric> MakeCustomMetric(const TCustomMetricDescriptor& descriptor);
 
-THolder<IMetric> MakeUserDefinedPerObjectMetric(const TMap<TString, TString>& params);
-
-THolder<IMetric> MakeUserDefinedQuerywiseMetric(const TMap<TString, TString>& params);
-
-THolder<IMetric> MakeAverageGainMetric(float topSize);
-
-THolder<IMetric> MakeMultiClassPRAUCMetric(int positiveClass);
-THolder<IMetric> MakeBinClassPRAUCMetric();
-
-THolder<IMetric> MakeHuberLossMetric(double delta);
-
-THolder<IMetric> MakeBinClassNormalizedGiniMetric();
-THolder<IMetric> MakeMultiClassNormalizedGiniMetric(int positiveClass);
-
-THolder<IMetric> MakeFairLossMetric(double smoothness);
+THolder<IMetric> MakeMultiClassPRAUCMetric(const TMap<TString, TString>& params, int positiveClass);
+THolder<IMetric> MakeBinClassPRAUCMetric(const TMap<TString, TString>& params);
 
 TVector<THolder<IMetric>> CreateMetricsFromDescription(const TVector<TString>& description, int approxDim);
 
-TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TLossDescription& description, int approxDimension);
+TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TLossDescription& description,
+                                                      int approxDimension);
+
+// For tests.
+TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<TString, TString>& params, int approxDimension);
 
 TVector<THolder<IMetric>> CreateMetrics(
     TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
@@ -456,8 +333,8 @@ TMetricHolder EvalErrors(
 );
 
 TMetricHolder EvalErrors(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -518,3 +395,17 @@ void CheckPreprocessedTarget(
 void CheckMetrics(const TVector<THolder<IMetric>>& metrics, const ELossFunction modelLoss);
 
 bool IsQuantileLoss(const ELossFunction& loss);
+
+
+namespace NCB {
+
+void AppendTemporaryMetricsVector(TVector<THolder<IMetric>>&& src, TVector<THolder<IMetric>>* dst);
+
+template <class MetricType>
+TVector<THolder<IMetric>> AsVector(THolder<MetricType>&& metric) {
+    TVector<THolder<IMetric>> result;
+    result.emplace_back(std::move(metric));
+    return result;
+}
+
+} // namespace internal

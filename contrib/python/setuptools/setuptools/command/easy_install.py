@@ -1567,7 +1567,7 @@ def get_exe_prefixes(exe_filename):
                 continue
             if parts[0].upper() in ('PURELIB', 'PLATLIB'):
                 contents = z.read(name)
-                if six.PY3:
+                if not six.PY2:
                     contents = contents.decode()
                 for pth in yield_lines(contents):
                     pth = pth.strip().replace('\\', '/')

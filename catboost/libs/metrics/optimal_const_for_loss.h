@@ -35,6 +35,9 @@ namespace NCB {
         double alpha,
         double delta
     ) {
+        if (target.empty()) {
+            return 0;
+        }
         const TVector<float> defaultWeights(target.size(), 1);
         const auto weightsRef = weights.empty() ? MakeConstArrayRef(defaultWeights) : weights;
         double q = CalcSampleQuantile(target, weightsRef, alpha);

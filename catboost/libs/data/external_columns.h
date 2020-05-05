@@ -38,8 +38,6 @@ namespace NCB {
             NPar::TLocalExecutor* localExecutor
         ) const override;
 
-        NCB::TMaybeOwningArrayHolder<ui8> ExtractValues(NPar::TLocalExecutor* localExecutor) const override;
-
         IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const override;
 
     private:
@@ -72,8 +70,6 @@ namespace NCB {
             const TCloningParams& cloningParams,
             NPar::TLocalExecutor* localExecutor
         ) const override;
-
-        NCB::TMaybeOwningArrayHolder<ui32> ExtractValues(NPar::TLocalExecutor* localExecutor) const override;
 
         IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const override;
 
@@ -108,8 +104,6 @@ namespace NCB {
             NPar::TLocalExecutor* localExecutor
         ) const override;
 
-        NCB::TMaybeOwningArrayHolder<ui8> ExtractValues(NPar::TLocalExecutor* localExecutor) const override;
-
         IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const override;
 
     private:
@@ -140,8 +134,6 @@ namespace NCB {
             const TCloningParams& cloningParams,
             NPar::TLocalExecutor* localExecutor
         ) const override;
-
-        NCB::TMaybeOwningArrayHolder<ui32> ExtractValues(NPar::TLocalExecutor* localExecutor) const override;
 
         IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const override;
 

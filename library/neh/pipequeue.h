@@ -2,8 +2,8 @@
 
 #include "lfqueue.h"
 
-#include <library/coroutine/engine/impl.h>
-#include <library/coroutine/engine/network.h>
+#include <library/cpp/coroutine/engine/impl.h>
+#include <library/cpp/coroutine/engine/network.h>
 #include <util/system/pipe.h>
 
 #ifdef _linux_

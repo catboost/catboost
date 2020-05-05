@@ -3,20 +3,34 @@
 # NOTE: rules should be ordered from specific to generic (first matching rule is used)
 # See rule syntax docs: https://wiki.yandex-team.ru/devrules/overall/peerdirprohibition/
 
+# CityHash-1.0.2 is a specific version hardwired into ClickHouse public interface
+ALLOW clickhouse -> contrib/restricted/cityhash-1.0.2
+
+# Ryu is a fast enough alternative to double-conversion, but not the fastest.
+ALLOW clickhouse -> contrib/restricted/ryu
+
 ALLOW contrib/libs/clickhouse -> contrib/restricted/apache-orc
 
-ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp
+# Patched webrtc dependency: CONTRIB-1851
+ALLOW contrib/libs/webrtc -> contrib/restricted/rnnoise
 
 ALLOW contrib/libs/libbpf -> contrib/restricted/libelf
 
+# For HBase client: CONTRIB-1790
+ALLOW passport/cpp -> contrib/restricted/thrift
+
 # ALSA library is LGPL
+ALLOW contrib/libs/webrtc -> contrib/restricted/alsa-lib
 ALLOW yandex_io -> contrib/restricted/alsa-lib
 
 # Avahi is LGPL
 ALLOW yandex_io -> contrib/restricted/avahi
 
 # GLib is LGPL
+ALLOW contrib/libs/harfbuzz/glib -> contrib/restricted/glib
 ALLOW yandex_io -> contrib/restricted/glib
+ALLOW metrika/core/libs/statdaemons -> contrib/restricted/glib
+ALLOW metrika/core/libs/strconvert -> contrib/restricted/glib
 
 # GStreamer is LGPL
 ALLOW yandex_io -> contrib/restricted/gstreamer
@@ -34,12 +48,20 @@ ALLOW yandex_io -> contrib/restricted/openal
 # Allowed subset of abseil is exported via library/
 ALLOW library/containers/absl_flat_hash -> contrib/restricted/abseil-cpp/absl/container
 
+ALLOW contrib/libs/webrtc -> contrib/restricted/abseil-cpp
+ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp
+ALLOW contrib/libs/tf_1_14 -> contrib/restricted/abseil-cpp
+
+# Prefer using skynet for data distribution
+ALLOW maps/infra/ecstatic/ymtorrent -> contrib/restricted/libtorrent
+
 # Only allow boost in yandex projects listed below
 ALLOW adfox -> contrib/restricted/boost
 ALLOW ads -> contrib/restricted/boost
 ALLOW advq -> contrib/restricted/boost
 ALLOW alice/nlu -> contrib/restricted/boost
 ALLOW alice/vins_contrib/crfsuitex -> contrib/restricted/boost
+ALLOW clickhouse -> contrib/restricted/boost
 ALLOW devtools -> contrib/restricted/boost
 ALLOW extsearch/geo/poi_service/tools/storage_reader -> contrib/restricted/boost
 ALLOW infra/contrib/pdns -> contrib/restricted/boost
@@ -80,5 +102,8 @@ ALLOW contrib/tools -> contrib/restricted/boost
 # 1. All peerdirs within contrib/restricted are permitted
 ALLOW contrib/restricted -> contrib/restricted
 
-# 2. All peerdirs to contrib/restricted from outside are prohibited
+# 2. Allow junk for debug purposes
+ALLOW junk -> contrib/restricted
+
+# 3. All peerdirs to contrib/restricted from outside are prohibited
 DENY .* -> contrib/restricted

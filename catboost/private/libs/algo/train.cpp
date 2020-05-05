@@ -34,7 +34,7 @@ TErrorTracker BuildErrorTracker(
 }
 
 static void UpdateLearningFold(
-    const NCB::TTrainingForCPUDataProviders& data,
+    const NCB::TTrainingDataProviders& data,
     const IDerCalcer& error,
     const TVariant<TSplitTree, TNonSymmetricTreeStructure>& bestTree,
     ui64 randomSeed,
@@ -135,7 +135,7 @@ static void ScaleAllApproxes(
 }
 
 void CalcApproxesLeafwise(
-    const NCB::TTrainingForCPUDataProviders& data,
+    const NCB::TTrainingDataProviders& data,
     const IDerCalcer& error,
     const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,
     TLearnContext* ctx,
@@ -145,8 +145,8 @@ void CalcApproxesLeafwise(
     *indices = BuildIndices(
         ctx->LearnProgress->AveragingFold,
         tree,
-        data.Learn,
-        data.Test,
+        data,
+        EBuildIndicesDataParts::All,
         ctx->LocalExecutor
     );
     auto statistics = BuildSubset(
@@ -185,7 +185,7 @@ void CalcApproxesLeafwise(
 
 }
 
-void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnContext* ctx) {
+void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* ctx) {
     const auto error = BuildError(ctx->Params, ctx->ObjectiveDescriptor);
     ctx->LearnProgress->HessianType = error->GetHessianType();
     TProfileInfo& profile = ctx->Profile;
@@ -268,7 +268,7 @@ void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnCont
             allFolds.push_back(&ctx->LearnProgress->AveragingFold);
 
             struct TLocalJobData {
-                const NCB::TTrainingForCPUDataProviders* data;
+                const NCB::TTrainingDataProviders* data;
                 TProjection Projection;
                 TFold* Fold;
                 TOnlineCTR* Ctr;
@@ -393,11 +393,11 @@ void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnCont
             const bool isMultiRegression = dynamic_cast<const TMultiDerCalcer*>(error.Get()) != nullptr;
 
             if (isMultiRegression) {
-                MapSetApproxesMulti(*error, bestTree, data.Test, &treeValues, &sumLeafWeights, ctx);
+                MapSetApproxesMulti(*error, bestTree, data, &treeValues, &sumLeafWeights, ctx);
             } else if (ctx->LearnProgress->ApproxDimension == 1) {
-                MapSetApproxesSimple(*error, bestTree, data.Test, &treeValues, &sumLeafWeights, ctx);
+                MapSetApproxesSimple(*error, bestTree, data, &treeValues, &sumLeafWeights, ctx);
             } else {
-                MapSetApproxesMulti(*error, bestTree, data.Test, &treeValues, &sumLeafWeights, ctx);
+                MapSetApproxesMulti(*error, bestTree, data, &treeValues, &sumLeafWeights, ctx);
             }
         }
 

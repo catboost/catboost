@@ -5,7 +5,7 @@
 #include <util/generic/array_ref.h>
 #include <util/generic/ymath.h>
 
-TMetricHolder CalcBalancedAccuracyMetric(TConstArrayRef<TVector<double>> approx,
+TMetricHolder CalcBalancedAccuracyMetric(TConstArrayRef<TConstArrayRef<double>> approx,
                                          TConstArrayRef<float> target,
                                          TConstArrayRef<float> weight,
                                          int begin,

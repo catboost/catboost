@@ -9,7 +9,7 @@ SRCS(
 
 PEERDIR(
     contrib/libs/re2
-    library/colorizer
+    library/cpp/colorizer
     library/getopt/small
     library/json
     library/linear_regression

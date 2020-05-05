@@ -3,13 +3,17 @@ LIBRARY()
 
 
 PEERDIR(
-    library/getopt/small
-    library/svnversion
-    library/build_info
+    library/cpp/getopt
 )
 
 SRCS(
-    GLOBAL print.cpp
+    last_getopt.h
+    last_getopt_support.h
+    modchooser.h
+    opt2.h
+    opt.h
+    posix_getopt.h
+    ygetopt.h
 )
 
 END()

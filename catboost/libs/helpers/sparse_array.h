@@ -146,7 +146,7 @@ namespace NCB {
 
         TSparseSubsetBlocksIterator(TSparseSubsetBlocksIteratorData<TSize>&& data);
 
-        inline TMaybe<TSize> Next() override;
+        inline bool Next(TSize* ) override;
 
     private:
         TSparseSubsetBlocksIteratorData<TSize> Data;
@@ -213,7 +213,7 @@ namespace NCB {
 
         TSparseSubsetHybridIndexIterator(TSparseSubsetHybridIndexIteratorData<TSize>&& data);
 
-        inline TMaybe<TSize> Next() override;
+        inline bool Next(TSize* value) override;
 
     private:
         TSparseSubsetHybridIndexIteratorData<TSize> Data;

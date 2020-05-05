@@ -9,6 +9,7 @@ SRCS(
     brier_score.cpp
     classification_utils.cpp
     dcg.cpp
+    description_utils.cpp
     hinge_loss.cpp
     kappa.cpp
     llp.cpp
@@ -28,9 +29,9 @@ PEERDIR(
     catboost/private/libs/options
     catboost/libs/helpers/parallel_sort
     library/binsaver
-    library/containers/2d_array
-    library/containers/stack_vector
-    library/dot_product
+    library/cpp/containers/2d_array
+    library/cpp/containers/stack_vector
+    library/cpp/dot_product
     library/threading/local_executor
 )
 

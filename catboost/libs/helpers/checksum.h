@@ -2,7 +2,7 @@
 
 #include <catboost/private/libs/data_types/text.h>
 
-#include <library/digest/crc32c/crc32c.h>
+#include <library/cpp/digest/crc32c/crc32c.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/hash.h>

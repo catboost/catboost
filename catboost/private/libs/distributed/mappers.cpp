@@ -29,13 +29,21 @@
 
 namespace NCatboostDistributed {
 
-    static NCB::TTrainingForCPUDataProviderPtr GetTrainData(NPar::TCtxPtr<TTrainData> trainData) {
+    static const NCB::TTrainingDataProviders& GetTrainData(NPar::TCtxPtr<TTrainData> trainData) {
         if (trainData != nullptr) {
             return trainData->TrainData;
         } else {
             return TLocalTensorSearchData::GetRef().TrainData;
         }
     }
+
+    static const NCB::TQuantizedForCPUObjectsDataProvider& GetLearnObjectsData(
+        const NCB::TTrainingDataProviders& trainingData,
+        bool estimated
+    ) {
+        return *(estimated ? trainingData.EstimatedObjectsData.Learn : trainingData.Learn->ObjectsData);
+    }
+
 
     static NJson::TJsonValue GetJson(const TString& string) {
         NJson::TJsonValue json;
@@ -117,6 +125,7 @@ namespace NCatboostDistributed {
 
         NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::CPU);
         catBoostOptions.Load(GetJson(params->TrainOptions));
+        catBoostOptions.SystemOptions->FileWithHosts->clear();
         TLabelConverter labelConverter;
         auto quantizedFeaturesInfo = MakeIntrusive<NCB::TQuantizedFeaturesInfo>(
             params->FeaturesLayout,
@@ -126,19 +135,17 @@ namespace NCatboostDistributed {
         );
 
         CATBOOST_DEBUG_LOG << "Create train data for worker " << hostId << "..." << Endl;
-        localData.TrainData = MakeIntrusive<NCB::TTrainingForCPUDataProvider>(
-            GetTrainingData(
-                std::move(pools),
-                /*borders*/ Nothing(), // borders are already loaded to quantizedFeaturesInfo
-                /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/ true,
-                /*allowWriteFiles*/ false,
-                /*tmpDir*/ TString(), // does not matter, because allowWritingFiles == false
-                quantizedFeaturesInfo,
-                &catBoostOptions,
-                &labelConverter,
-                &NPar::LocalExecutor(),
-                localData.Rand.Get()
-            ).Learn->Cast<NCB::TQuantizedForCPUObjectsDataProvider>()
+        localData.TrainData = GetTrainingData(
+            std::move(pools),
+            /*borders*/ Nothing(), // borders are already loaded to quantizedFeaturesInfo
+            /*ensureConsecutiveIfDenseLearnFeaturesDataForCpu*/ true,
+            /*allowWriteFiles*/ false,
+            /*tmpDir*/ TString(), // does not matter, because allowWritingFiles == false
+            quantizedFeaturesInfo,
+            &catBoostOptions,
+            &labelConverter,
+            &NPar::LocalExecutor(),
+            localData.Rand.Get()
         );
 
         CATBOOST_DEBUG_LOG << "Done for worker " << hostId << Endl;
@@ -162,8 +169,7 @@ namespace NCatboostDistributed {
 
         const auto& trainParams = localData.Params;
 
-        NCB::TTrainingForCPUDataProviders trainingDataProviders;
-        trainingDataProviders.Learn = GetTrainData(trainData);
+        const NCB::TTrainingDataProviders& trainingDataProviders = GetTrainData(trainData);
 
         const TFoldsCreationParams foldsCreationParams(
             trainParams,
@@ -184,6 +190,9 @@ namespace NCatboostDistributed {
             params->TargetClassifiers,
             /*featuresCheckSum*/ 0, // unused in case of localData
             /*foldCreationParamsCheckSum*/ 0,
+            /*estimatedFeaturesQuantizationOptions*/
+                trainParams.DataProcessingOptions->FloatFeaturesBinarization.Get(),
+            trainParams.ObliviousTreeOptions.Get(),
             /*initModel*/ Nothing(),
             /*initModelApplyCompatiblePools*/ NCB::TDataProviders(),
             &NPar::LocalExecutor());
@@ -202,22 +211,26 @@ namespace NCatboostDistributed {
             trainParams.LossFunctionDescription->GetLossFunction());
         const int defaultCalcStatsObjBlockSize =
             static_cast<int>(trainParams.ObliviousTreeOptions->DevScoreCalcObjBlockSize);
+        const bool hasOfflineEstimatedFeatures =
+            !GetTrainData(trainData).EstimatedObjectsData.QuantizedEstimatedFeaturesInfo.Layout.empty();
         auto& plainFold = localData.Progress->AveragingFold;
         localData.SampledDocs.Create(
             { plainFold },
             isPairwiseScoring,
+            hasOfflineEstimatedFeatures,
             defaultCalcStatsObjBlockSize,
             GetBernoulliSampleRate(trainParams.ObliviousTreeOptions->BootstrapConfig));
         if (localData.UseTreeLevelCaching) {
             localData.SmallestSplitSideDocs.Create(
                 { plainFold },
                 isPairwiseScoring,
+                hasOfflineEstimatedFeatures,
                 defaultCalcStatsObjBlockSize);
             localData.PrevTreeLevelStats.Create(
                 { plainFold },
                 CountNonCtrBuckets(
-                    *(GetTrainData(trainData)->ObjectsData->GetFeaturesLayout()),
-                    *(GetTrainData(trainData)->ObjectsData->GetQuantizedFeaturesInfo()),
+                    *(GetTrainData(trainData).Learn->ObjectsData->GetFeaturesLayout()),
+                    *(GetTrainData(trainData).Learn->ObjectsData->GetQuantizedFeaturesInfo()),
                     trainParams.CatFeatureParams->OneHotMaxSize.Get()),
                 trainParams.ObliviousTreeOptions->MaxDepth);
         }
@@ -233,7 +246,8 @@ namespace NCatboostDistributed {
         TOutput* /*unused*/
     ) const {
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
-        Y_ASSERT(!GetTrainData(trainData)->MetaInfo.FeaturesLayout->GetCatFeatureCount());
+
+        Y_ASSERT(!GetTrainData(trainData).Learn->MetaInfo.FeaturesLayout->GetCatFeatureCount());
 
         auto& localData = TLocalTensorSearchData::GetRef();
         Y_ASSERT(IsPlainMode(localData.Params.BoostingOptions->BoostingType));
@@ -242,12 +256,12 @@ namespace NCatboostDistributed {
         const auto& leafValues = valuedForest->second;
         Y_ASSERT(forest.size() == leafValues.size());
 
-        auto maybeBaseline = GetTrainData(trainData)->TargetData->GetBaseline();
+        auto maybeBaseline = GetTrainData(trainData).Learn->TargetData->GetBaseline();
         if (maybeBaseline) {
             AssignRank2<float>(*maybeBaseline, &localData.Progress->AvrgApprox);
         }
 
-        const ui32 learnSampleCount = GetTrainData(trainData)->GetObjectCount();
+        const ui32 learnSampleCount = GetTrainData(trainData).Learn->GetObjectCount();
         const bool storeExpApprox = IsStoreExpApprox(
             localData.Params.LossFunctionDescription->GetLossFunction());
         const auto& avrgFold = localData.Progress->AveragingFold;
@@ -255,8 +269,8 @@ namespace NCatboostDistributed {
             const auto leafIndices = BuildIndices(
                 avrgFold,
                 forest[treeIdx],
-                GetTrainData(trainData), /*testData*/
-                { },
+                GetTrainData(trainData),
+                EBuildIndicesDataParts::LearnOnly,
                 &NPar::LocalExecutor());
             UpdateAvrgApprox(
                 storeExpApprox,
@@ -292,6 +306,7 @@ namespace NCatboostDistributed {
         auto& localData = TLocalTensorSearchData::GetRef();
         Bootstrap(
             localData.Params,
+            !localData.Progress->EstimatedFeaturesContext.OfflineEstimatedFeaturesLayout.empty(),
             localData.Indices,
             localData.Progress->LeafValues,
             &localData.Progress->AveragingFold,
@@ -359,8 +374,9 @@ namespace NCatboostDistributed {
         TStats3D* stats3D
     ) {
         auto& localData = TLocalTensorSearchData::GetRef();
+        const NCB::TTrainingDataProviders& trainingData = GetTrainData(trainData);
         CalcStatsAndScores(
-            *GetTrainData(trainData)->ObjectsData,
+            GetLearnObjectsData(trainingData, candidate.SplitEnsemble.IsEstimated),
             localData.Progress->AveragingFold.GetAllCtrs(),
             localData.SampledDocs,
             localData.SmallestSplitSideDocs,
@@ -385,8 +401,9 @@ namespace NCatboostDistributed {
         TPairwiseStats* pairwiseStats
     ) {
         auto& localData = TLocalTensorSearchData::GetRef();
+        const NCB::TTrainingDataProviders& trainingData = GetTrainData(trainData);
         CalcStatsAndScores(
-            *GetTrainData(trainData)->ObjectsData,
+            GetLearnObjectsData(trainingData, candidate.SplitEnsemble.IsEstimated),
             localData.Progress->AveragingFold.GetAllCtrs(),
             localData.SampledDocs,
             localData.SmallestSplitSideDocs,
@@ -547,7 +564,7 @@ namespace NCatboostDistributed {
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
         SetPermutedIndices(
             *bestSplit,
-            *GetTrainData(trainData)->ObjectsData,
+            GetTrainData(trainData),
             localData.Depth + 1,
             localData.Progress->AveragingFold,
             &localData.Indices,
@@ -626,7 +643,7 @@ namespace NCatboostDistributed {
             localData.Progress->AveragingFold,
             *splitTree,
             GetTrainData(trainData),
-            /*testDataPtrs*/{ },
+            EBuildIndicesDataParts::LearnOnly,
             &NPar::LocalExecutor());
         const int approxDimension = localData.Progress->ApproxDimension;
         if (localData.ApproxDeltas.empty()) {
@@ -767,11 +784,13 @@ namespace NCatboostDistributed {
     ) const {
         const auto& localData = TLocalTensorSearchData::GetRef();
         NPar::TCtxPtr<TTrainData> trainData(ctx, SHARED_ID_TRAIN_DATA, hostId);
+        const NCB::TTrainingDataProvider& learnData = *(GetTrainData(trainData).Learn);
+
         const auto errors = CreateMetrics(
             localData.Params.MetricOptions,
             /*evalMetricDescriptor*/Nothing(),
             localData.Progress->ApproxDimension,
-            GetTrainData(trainData)->MetaInfo.HasWeights);
+            learnData.MetaInfo.HasWeights);
         const auto skipMetricOnTrain = GetSkipMetricOnTrain(errors);
         TVector<IMetric*> selectedMetrics;
         for (auto i : xrange(errors.size())) {
@@ -784,9 +803,9 @@ namespace NCatboostDistributed {
             *useAveragingFold ? localData.Progress->AveragingFold.BodyTailArr[0].Approx : localData.Progress->AvrgApprox,
             *useAveragingFold ? localData.ApproxDeltas : /*approxDelta*/TVector<TVector<double>>{},
             *useAveragingFold ? localData.StoreExpApprox : /*isExpApprox*/false,
-            GetTrainData(trainData)->TargetData->GetTarget().GetOrElse(TConstArrayRef<TConstArrayRef<float>>()),
-            GetWeights(*GetTrainData(trainData)->TargetData),
-            GetTrainData(trainData)->TargetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>()),
+            learnData.TargetData->GetTarget().GetOrElse(TConstArrayRef<TConstArrayRef<float>>()),
+            GetWeights(*learnData.TargetData),
+            learnData.TargetData->GetGroupInfo().GetOrElse(TConstArrayRef<TQueryInfo>()),
             selectedMetrics,
             &NPar::LocalExecutor()
         );
@@ -810,7 +829,7 @@ namespace NCatboostDistributed {
             leafCount,
             localData.Indices,
             localData.Progress->AveragingFold.GetLearnPermutationArray(),
-            GetWeights(*GetTrainData(trainData)->TargetData));
+            GetWeights(*GetTrainData(trainData).Learn->TargetData));
     }
 
     void TLeafWeightsGetter::DoReduce(TVector<TOutput>* inLeafWeightsFromWorkers, TOutput* outTotalLeafWeights) const {

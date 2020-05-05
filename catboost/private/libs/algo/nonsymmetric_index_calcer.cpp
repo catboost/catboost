@@ -1,5 +1,7 @@
 #include "nonsymmetric_index_calcer.h"
 
+#include "index_calcer.h"
+
 #include "fold.h"
 #include "online_ctr.h"
 #include "split.h"
@@ -128,7 +130,7 @@ std::function<bool(ui32)> BuildNodeSplitFunction(
         };
 
 
-        if (split.Type == ESplitType::FloatFeature) {
+        if ((split.Type == ESplitType::FloatFeature) || (split.Type == ESplitType::EstimatedFeature)){
             auto floatFeatureIdx = TFloatFeatureIdx((ui32)split.FeatureIdx);
 
             return buildNodeSplitFunction(
@@ -158,28 +160,39 @@ std::function<bool(ui32)> BuildNodeSplitFunction(
 
 void UpdateIndices(
     const TSplitNode& node,
-    const NCB::TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
-    const NCB::TIndexedSubset<ui32>& docsSubset,
+    const TTrainingDataProviders& trainingData,
+    const TIndexedSubset<ui32>& docsSubset,
     const TFold& fold,
     NPar::TLocalExecutor* localExecutor,
     TArrayRef<TIndexType> indicesRef
 ) {
-    const auto* columnsIndexing
-        = GetIf<TIndexedSubset<ui32>>(&fold.LearnPermutationFeaturesSubset);
-    Y_ASSERT(columnsIndexing != nullptr);
+    TQuantizedForCPUObjectsDataProviderPtr objectsDataProvider;
+    const ui32* columnsIndexing;
+    TIndexedSubsetCache indexedSubsetCache; // not really updated because it is used for test only
+    GetObjectsDataAndIndexing(
+        trainingData,
+        fold,
+        node.Split.Type == ESplitType::EstimatedFeature,
+        node.Split.IsOnline(),
+        /*objectSubsetIdx*/ 0, // 0 - learn
+        &indexedSubsetCache,
+        localExecutor,
+        &objectsDataProvider,
+        &columnsIndexing // can return nullptr
+    );
 
     auto func = BuildNodeSplitFunction(
         node,
-        objectsDataProvider,
+        *objectsDataProvider,
         node.Split.Type == ESplitType::OnlineCtr ? &fold.GetCtr(node.Split.Ctr.Projection) : nullptr,
         /* docOffset */ 0);
 
     // TODO(ilyzhin) std::function is very slow for calling many times (maybe replace it with lambda)
     std::function<bool(ui32)> splitFunction;
-    if (node.Split.Type == ESplitType::OnlineCtr) {
+    if (!columnsIndexing) {
         splitFunction = std::move(func);
     } else {
-        splitFunction = [realObjIdx = columnsIndexing->data(), func=std::move(func)](ui32 idx) {
+        splitFunction = [realObjIdx = columnsIndexing, func=std::move(func)](ui32 idx) {
             return func(realObjIdx[idx]);
         };
     }
@@ -203,43 +216,44 @@ void UpdateIndices(
 
 void BuildIndicesForDataset(
     const TNonSymmetricTreeStructure& tree,
-    const TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
-    const NCB::TFeaturesArraySubsetIndexing& featuresArraySubsetIndexing,
+    const TTrainingDataProviders& trainingData,
+    const TFold& fold,
     ui32 sampleCount,
     const TVector<const TOnlineCTR*>& onlineCtrs,
     ui32 docOffset,
+    ui32 objectSubsetIdx, // 0 - learn, 1+ - test (subtract 1 for testIndex)
     NPar::TLocalExecutor* localExecutor,
     TIndexType* indices) {
 
-    TIndexedSubset<ui32> columnsIndexingStorage;
-
-    const auto* columnsIndexing
-        = GetIf<TIndexedSubset<ui32>>(&featuresArraySubsetIndexing);
-
-    if (!columnsIndexing) {
-        columnsIndexingStorage.yresize(featuresArraySubsetIndexing.Size());
-        featuresArraySubsetIndexing.ParallelForEach(
-            [columnsIndexingData = columnsIndexingStorage.data()](ui32 idx, ui32 srcIdx) {
-                columnsIndexingData[idx] = srcIdx;
-            },
-            localExecutor);
-        columnsIndexing = &columnsIndexingStorage;
-    }
+    TIndexedSubsetCache indexedSubsetCache;
 
     TConstArrayRef<TSplitNode> nodesRef = tree.GetNodes();
 
     TVector<std::function<bool(ui32 objIdx)>> nodesSplitFunctions;
     nodesSplitFunctions.yresize(tree.GetNodesCount());
     for (auto nodeIdx : xrange(tree.GetNodesCount())) {
+        TQuantizedForCPUObjectsDataProviderPtr objectsDataProvider;
+        const ui32* columnIndexing;
+        GetObjectsDataAndIndexing(
+            trainingData,
+            fold,
+            nodesRef[nodeIdx].Split.Type == ESplitType::EstimatedFeature,
+            nodesRef[nodeIdx].Split.IsOnline(),
+            objectSubsetIdx,
+            &indexedSubsetCache,
+            localExecutor,
+            &objectsDataProvider,
+            &columnIndexing);
+
         auto func = BuildNodeSplitFunction(
             nodesRef[nodeIdx],
-            objectsDataProvider,
+            *objectsDataProvider,
             onlineCtrs[nodeIdx],
             docOffset);
-        if (nodesRef[nodeIdx].Split.Type == ESplitType::OnlineCtr) {
+        if ((nodesRef[nodeIdx].Split.Type == ESplitType::OnlineCtr) || !columnIndexing) {
             nodesSplitFunctions[nodeIdx] = std::move(func);
         } else {
-            nodesSplitFunctions[nodeIdx] = [realObjIdx = columnsIndexing->data(), func](ui32 idx) {
+            nodesSplitFunctions[nodeIdx] = [realObjIdx = columnIndexing, func](ui32 idx) {
                 return func(realObjIdx[idx]);
             };
         }

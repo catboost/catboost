@@ -193,6 +193,7 @@ void LoadTrainingData(NCB::TPathWithScheme poolPath,
         catFeatureParams,
         MakeIntrusiveConst<NCB::TFeatureEstimators>(estimators),
         *((*trainingData)->MetaInfo.FeaturesLayout),
+        TVector<NCB::TExclusiveFeaturesBundle>(),
         (*trainingData)->ObjectsData->GetQuantizedFeaturesInfo());
 
     NCB::TOnCpuGridBuilderFactory gridBuilderFactory;

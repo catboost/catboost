@@ -85,9 +85,9 @@ Y_UNIT_TEST_SUITE(WxTest) {
     }
 
     void Compare(TWxTestResult& result1, TWxTestResult& result2) {
-        UNIT_ASSERT_DOUBLES_EQUAL(result1.PValue, result2.PValue, PRECISION)
-        UNIT_ASSERT_DOUBLES_EQUAL(result1.WMinus, result2.WMinus, PRECISION)
-        UNIT_ASSERT_DOUBLES_EQUAL(result1.WPlus, result2.WPlus, PRECISION)
+        UNIT_ASSERT_DOUBLES_EQUAL(result1.PValue, result2.PValue, PRECISION);
+        UNIT_ASSERT_DOUBLES_EQUAL(result1.WMinus, result2.WMinus, PRECISION);
+        UNIT_ASSERT_DOUBLES_EQUAL(result1.WPlus, result2.WPlus, PRECISION);
     }
 
     Y_UNIT_TEST(SameOnContinuous) {

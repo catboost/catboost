@@ -47,10 +47,10 @@ ENDIF()
 
 PEERDIR(
     library/threading/mux_event
-    library/digest/crc32c
+    library/cpp/digest/crc32c
     library/binsaver
     library/netliba/socket
-    library/string_utils/url
+    library/cpp/string_utils/url
 )
 
 END()

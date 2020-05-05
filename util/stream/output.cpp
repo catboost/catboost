@@ -115,18 +115,18 @@ void Out<std::u32string_view>(IOutputStream& o, const std::u32string_view& p) {
 }
 
 template <>
-void Out<TFixedString<char>>(IOutputStream& o, const TFixedString<char>& p) {
-    o.Write(p.Start, p.Length);
+void Out<TStringBuf>(IOutputStream& o, const TStringBuf& p) {
+    o.Write(p.data(), p.length());
 }
 
 template <>
-void Out<TFixedString<wchar16>>(IOutputStream& o, const TFixedString<wchar16>& p) {
-    WriteString(o, p.Start, p.Length);
+void Out<TWtringBuf>(IOutputStream& o, const TWtringBuf& p) {
+    WriteString(o, p.data(), p.length());
 }
 
 template <>
-void Out<TFixedString<wchar32>>(IOutputStream& o, const TFixedString<wchar32>& p) {
-    WriteString(o, p.Start, p.Length);
+void Out<TUtf32StringBuf>(IOutputStream& o, const TUtf32StringBuf& p) {
+    WriteString(o, p.data(), p.length());
 }
 
 template <>

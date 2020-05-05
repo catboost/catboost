@@ -15,6 +15,7 @@ SRCS(
     calc_score_cache.cpp
     ctr_helper.cpp
     data.cpp
+    estimated_features.cpp
     feature_penalties_calcer.cpp
     features_data_helpers.cpp
     fold.cpp
@@ -69,19 +70,19 @@ PEERDIR(
     catboost/private/libs/options
     catboost/libs/overfitting_detector
     library/binsaver
-    library/containers/2d_array
+    library/cpp/containers/2d_array
     library/containers/dense_hash
-    library/containers/stack_vector
-    library/digest/crc32c
-    library/digest/md5
-    library/dot_product
+    library/cpp/containers/stack_vector
+    library/cpp/digest/crc32c
+    library/cpp/digest/md5
+    library/cpp/dot_product
     library/fast_exp
     library/fast_log
     library/cpp/grid_creator
     library/json
-    library/malloc/api
+    library/cpp/malloc/api
     library/object_factory
-    library/sse
+    library/cpp/sse
     library/svnversion
     library/threading/local_executor
 )

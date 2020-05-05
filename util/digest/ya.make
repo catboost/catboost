@@ -1,1 +1,3 @@
 
+
+PROVIDES(cityhash)

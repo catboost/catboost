@@ -111,12 +111,21 @@ def onjava_module(unit, *args):
         'TEST_DATA': extract_macro_calls(unit, 'TEST_DATA_VALUE', args_delim),
         'JAVA_FORBIDDEN_LIBRARIES': extract_macro_calls(unit, 'JAVA_FORBIDDEN_LIBRARIES_VALUE', args_delim),
     }
+    if unit.get('SAVE_JAVAC_GENERATED_SRCS_DIR') and unit.get('SAVE_JAVAC_GENERATED_SRCS_TAR'):
+        data['SAVE_JAVAC_GENERATED_SRCS_DIR'] = extract_macro_calls(unit, 'SAVE_JAVAC_GENERATED_SRCS_DIR', args_delim)
+        data['SAVE_JAVAC_GENERATED_SRCS_TAR'] = extract_macro_calls(unit, 'SAVE_JAVAC_GENERATED_SRCS_TAR', args_delim)
 
     if unit.get('JAVA_ADD_DLLS_VALUE') == 'yes':
         data['ADD_DLLS_FROM_DEPENDS'] = extract_macro_calls(unit, 'JAVA_ADD_DLLS_VALUE', args_delim)
 
     if unit.get('ERROR_PRONE_VALUE') == 'yes':
         data['ERROR_PRONE'] = extract_macro_calls(unit, 'ERROR_PRONE_VALUE', args_delim)
+
+    if unit.get('WITH_KOTLIN_VALUE') == 'yes':
+        data['WITH_KOTLIN'] = extract_macro_calls(unit, 'WITH_KOTLIN_VALUE', args_delim)
+
+    if unit.get('DIRECT_DEPS_ONLY_VALUE') == 'yes':
+        data['DIRECT_DEPS_ONLY'] = extract_macro_calls(unit, 'DIRECT_DEPS_ONLY_VALUE', args_delim)
 
     if unit.get('MAKE_UBERJAR_VALUE') == 'yes':
         if unit.get('MODULE_TYPE') != 'JAVA_PROGRAM':

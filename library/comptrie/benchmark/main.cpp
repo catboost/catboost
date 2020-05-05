@@ -5,9 +5,9 @@
 #include <library/comptrie/search_iterator.h>
 #include <library/comptrie/pattern_searcher.h>
 
-#include <library/on_disk/aho_corasick/writer.h>
-#include <library/on_disk/aho_corasick/reader.h>
-#include <library/on_disk/aho_corasick/helpers.h>
+#include <library/cpp/on_disk/aho_corasick/writer.h>
+#include <library/cpp/on_disk/aho_corasick/reader.h>
+#include <library/cpp/on_disk/aho_corasick/helpers.h>
 
 #include <library/containers/dense_hash/dense_hash.h>
 

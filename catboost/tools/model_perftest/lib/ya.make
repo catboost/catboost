@@ -6,7 +6,7 @@ PEERDIR(
     catboost/private/libs/algo
     catboost/libs/data
     library/getopt/small
-    library/threading/future
+    library/cpp/threading/future
 )
 
 IF (HAVE_CUDA)

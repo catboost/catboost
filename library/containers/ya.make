@@ -1,5 +1,4 @@
 RECURSE(
-    2d_array
     compact_vector
     compact_vector/ut
     dense_hash
@@ -23,6 +22,4 @@ RECURSE(
     ring_buffer
     stack_array
     stack_array/ut
-    stack_vector
-    stack_vector/ut
 )

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/on_disk/chunks/chunked_helpers.h>
+#include <library/cpp/on_disk/chunks/chunked_helpers.h>
 
 #include "comptrie.h"
 

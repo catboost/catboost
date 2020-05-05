@@ -5,7 +5,7 @@
 
 class TLearnContext;
 
-void TrainOneIteration(const NCB::TTrainingForCPUDataProviders& data, TLearnContext* ctx);
+void TrainOneIteration(const NCB::TTrainingDataProviders& data, TLearnContext* ctx);
 
 TErrorTracker BuildErrorTracker(
     EMetricBestValue bestValueType,

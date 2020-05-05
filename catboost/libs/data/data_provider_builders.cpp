@@ -1,5 +1,6 @@
 #include "data_provider_builders.h"
 
+#include "cat_feature_perfect_hash.h"
 #include "data_provider.h"
 #include "feature_index.h"
 #include "lazy_columns.h"
@@ -628,7 +629,11 @@ namespace NCB {
                 T value,
                 TFeaturesStorage* storage
             ) {
-                auto& sparseDataPart = storage->SparseDataParts[storage->LocalExecutor->GetWorkerThreadId()];
+                Y_POD_STATIC_THREAD(int) threadId(-1);
+                if (Y_UNLIKELY(threadId == -1)) {
+                    threadId = storage->LocalExecutor->GetWorkerThreadId();
+                }
+                auto& sparseDataPart = storage->SparseDataParts[threadId];
                 sparseDataPart.Indices.emplace_back(TSparseIndex2d{*perTypeFeatureIdx, objectIdx});
                 sparseDataPart.Values.emplace_back(value);
             }
@@ -1277,11 +1282,7 @@ namespace NCB {
 
             TConstArrayRef<NJson::TJsonValue> schemaClassLabels = poolQuantizationSchema.ClassLabels;
 
-            if (metaInfo.TargetType == ERawTargetType::String) {
-                CB_ENSURE(
-                    !schemaClassLabels.empty(),
-                    "poolQuantizationSchema must have class labels when target data type is String"
-                );
+            if (metaInfo.TargetType == ERawTargetType::String && !schemaClassLabels.empty()) {
                 CB_ENSURE(
                     schemaClassLabels[0].GetType() == NJson::JSON_STRING,
                     "poolQuantizationSchema must have string class labels when target data type is String"
@@ -1610,21 +1611,14 @@ namespace NCB {
 
             SetResultsTaken();
 
-            if (Options.CpuCompatibleFormat && !Options.GpuDistributedFormat) {
-                return MakeDataProvider<TQuantizedForCPUObjectsDataProvider>(
-                    /*objectsGrouping*/ Nothing(), // will init from data
-                    std::move(Data),
-                    Options.SkipCheck || !DatasetSubset.HasFeatures,
-                    LocalExecutor
-                )->CastMoveTo<TObjectsDataProvider>();
-            } else {
-                return MakeDataProvider<TQuantizedObjectsDataProvider>(
-                    /*objectsGrouping*/ Nothing(), // will init from data
-                    CastToBase(std::move(Data)),
-                    Options.SkipCheck,
-                    LocalExecutor
-                )->CastMoveTo<TObjectsDataProvider>();
-            }
+            return MakeDataProvider<TQuantizedForCPUObjectsDataProvider>(
+                /*objectsGrouping*/ Nothing(), // will init from data
+                std::move(Data),
+                // without HasFeatures dataprovider self-test fails on distributed train
+                // on quantized pool
+                Options.SkipCheck || !DatasetSubset.HasFeatures,
+                LocalExecutor
+            )->CastMoveTo<TObjectsDataProvider>();
         }
 
         void GetTargetAndBinaryFeaturesData() {
@@ -1888,15 +1882,8 @@ namespace NCB {
                         bitsPerFeature = CalcHistogramWidthForBorders(
                             quantizedFeaturesInfoPtr->GetBorders(TFloatFeatureIdx(perTypeFeatureIdx)).size());
                     } else {
-                        const ui32 countUnique =
-                            quantizedFeaturesInfoPtr->GetUniqueValuesCounts(TCatFeatureIdx(perTypeFeatureIdx)).OnAll;
-                        if (countUnique <= 1ULL << 8) {
-                            bitsPerFeature = 8;
-                        } else if (countUnique <= 1ULL << 16) {
-                            bitsPerFeature = 16;
-                        } else { //TODO
-                            bitsPerFeature = 32;
-                        }
+                        bitsPerFeature = CalcHistogramWidthForUniqueValuesCount(
+                            quantizedFeaturesInfoPtr->GetUniqueValuesCounts(TCatFeatureIdx(perTypeFeatureIdx)).OnAll);
                     }
 
                     IndexHelpers[perTypeFeatureIdx] = TIndexHelper<ui64>(bitsPerFeature);
@@ -1988,7 +1975,7 @@ namespace NCB {
 
 
                     memcpy(
-                        ((ui8*)DenseDstView[*perTypeFeatureIdx].data()) + objectOffset,
+                        ((ui8*)DenseDstView[*perTypeFeatureIdx].data()) + objectOffsetInBytes,
                         featuresPart.data(),
                         featuresPart.size());
                 }
@@ -2140,9 +2127,9 @@ namespace NCB {
 
             SetResultsTaken();
 
-            return MakeDataProvider<TQuantizedObjectsDataProvider>(
+            return MakeDataProvider<TQuantizedForCPUObjectsDataProvider>(
                 /*objectsGrouping*/ Nothing(), // will init from data
-                CastToBase(std::move(dataRef)),
+                std::move(dataRef),
                 Options.SkipCheck,
                 LocalExecutor
             )->CastMoveTo<TObjectsDataProvider>();

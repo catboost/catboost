@@ -283,7 +283,8 @@ static void CalcInternalShapInteractionValuesMulti(
     int logPeriod,
     NPar::TLocalExecutor* localExecutor,
     TShapPreparedTrees* preparedTrees,
-    TStorageType* shapInteractionValuesInternal
+    TStorageType* shapInteractionValuesInternal,
+    ECalcTypeShapValues calcType
 ) {
     if (classIndicesFirst.empty() || classIndicesSecond.empty()) {
         return;
@@ -305,7 +306,8 @@ static void CalcInternalShapInteractionValuesMulti(
         documentCount,
         logPeriod,
         preparedTrees,
-        localExecutor
+        localExecutor,
+        calcType
     );
     const int approxDimension = model.GetDimensionsCount();
     TVector<TVector<double>> emptyVector(approxDimension);
@@ -333,7 +335,8 @@ static void CalcInternalShapInteractionValuesMulti(
             documentCount,
             logPeriod,
             preparedTrees,
-            localExecutor
+            localExecutor,
+            calcType
         );
         const auto& contribsOff = CalcShapValueWithQuantizedData(
             model,
@@ -343,7 +346,8 @@ static void CalcInternalShapInteractionValuesMulti(
             documentCount,
             logPeriod,
             preparedTrees,
-            localExecutor
+            localExecutor,
+            calcType
         );
         // if needed calculate Ф(i, i) then to calculate all Ф(i, j) where i != j
         // Φ(i,i) = ϕ(i) − sum(Φ(i,j)) i.e reducing path of sum
@@ -453,7 +457,8 @@ static void CalcShapInteraction(
     int logPeriod,
     NPar::TLocalExecutor* localExecutor,
     TShapPreparedTrees* preparedTrees,
-    TInteractionValuesFull* shapInteractionValues
+    TInteractionValuesFull* shapInteractionValues,
+    ECalcTypeShapValues calcType
 ) {
     CheckNonZeroApproxForZeroWeightLeaf(model);
     TVector<TIntrusivePtr<NModelEvaluation::IQuantizedData>> binarizedFeatures;
@@ -493,7 +498,8 @@ static void CalcShapInteraction(
         logPeriod,
         localExecutor,
         preparedTrees,
-        &shapInteractionValuesInternal
+        &shapInteractionValuesInternal,
+        calcType
     );
     int flatFeatureCount = SafeIntegerCast<int>(dataset.MetaInfo.GetFeatureCount());
     int featuresCount = pairOfFeatures ? (pairOfFeatures->first == pairOfFeatures->second ? 1 : 2) : flatFeatureCount;
@@ -547,14 +553,16 @@ TInteractionValuesFull CalcShapInteractionValuesMulti(
     const TMaybe<std::pair<int, int>>& pairOfFeatures,
     int logPeriod,
     EPreCalcShapValues mode,
-    NPar::TLocalExecutor* localExecutor
+    NPar::TLocalExecutor* localExecutor,
+    ECalcTypeShapValues calcType
 ) {
     TShapPreparedTrees preparedTrees = PrepareTrees(
         model,
         &dataset,
         mode,
         localExecutor,
-        /*calcInternalValues*/ true
+        /*calcInternalValues*/ true,
+        calcType
     );
     TInteractionValuesFull shapInteractionValues;
     if (pairOfFeatures.Defined()) {
@@ -565,7 +573,8 @@ TInteractionValuesFull CalcShapInteractionValuesMulti(
             logPeriod,
             localExecutor,
             &preparedTrees,
-            &shapInteractionValues
+            &shapInteractionValues,
+            calcType
         );
         if (pairOfFeatures->first != pairOfFeatures->second) {
             SetSymmetricValues(&shapInteractionValues);
@@ -578,7 +587,8 @@ TInteractionValuesFull CalcShapInteractionValuesMulti(
             logPeriod,
             localExecutor,
             &preparedTrees,
-            &shapInteractionValues
+            &shapInteractionValues,
+            calcType
         );
     }
     return shapInteractionValues;

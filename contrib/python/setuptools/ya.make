@@ -1,12 +1,10 @@
 PY23_LIBRARY()
 
-LICENSE(
-    MIT
-)
+LICENSE(MIT)
 
 
 
-VERSION(44.0.0)
+VERSION(44.1.0)
 
 PEERDIR(
     library/python/resource

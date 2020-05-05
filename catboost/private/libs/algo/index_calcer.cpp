@@ -15,7 +15,7 @@
 #include <catboost/libs/model/cpu/evaluator.h>
 #include <catboost/libs/model/model.h>
 
-#include <library/containers/stack_vector/stack_vec.h>
+#include <library/cpp/containers/stack_vector/stack_vec.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <functional>
@@ -83,9 +83,56 @@ inline void UpdateIndicesForSplit(
     }
 }
 
+
+template <typename TCount, typename TCmpOp, int VectorWidth>
+inline void UpdateIndicesKernel(
+    const TCount* histogram,
+    TCmpOp cmpOp,
+    int level,
+    TIndexType* indices) {
+
+    Y_ASSERT(VectorWidth == 4);
+    const TCount hist0 = histogram[0];
+    const TCount hist1 = histogram[1];
+    const TCount hist2 = histogram[2];
+    const TCount hist3 = histogram[3];
+    const TIndexType idx0 = indices[0];
+    const TIndexType idx1 = indices[1];
+    const TIndexType idx2 = indices[2];
+    const TIndexType idx3 = indices[3];
+    indices[0] = idx0 + cmpOp(hist0) * level;
+    indices[1] = idx1 + cmpOp(hist1) * level;
+    indices[2] = idx2 + cmpOp(hist2) * level;
+    indices[3] = idx3 + cmpOp(hist3) * level;
+}
+
+
+template <typename TCount, typename TCmpOp>
+inline void UpdateIndicesForSplit(
+    const TCount* histogram,
+    TIndexRange<ui32> indexRange,
+    TCmpOp cmpOp,
+    int level,
+    TIndexType* indices) {
+
+    constexpr int vectorWidth = 4;
+
+    ui32 doc;
+    for (doc = indexRange.Begin; doc + vectorWidth <= indexRange.End; doc += vectorWidth) {
+        UpdateIndicesKernel<TCount, TCmpOp, vectorWidth>(
+            histogram + doc,
+            cmpOp,
+            level,
+            indices + doc);
+    }
+    for (; doc < indexRange.End; ++doc) {
+        indices[doc] += cmpOp(histogram[doc]) * level;
+    }
+}
+
 template <typename TColumn, class TCmpOp>
 inline void ScheduleUpdateIndicesForSplit(
-    const TIndexedSubset<ui32>& columnsIndexing,
+    const ui32* columnIndexingPtr, // can be nullptr
     const TColumn& column,
     TCmpOp cmpOp,
     int level,
@@ -94,11 +141,10 @@ inline void ScheduleUpdateIndicesForSplit(
     if (const auto* columnData
             = dynamic_cast<const TCompressedValuesHolderImpl<TColumn>*>(&column))
     {
-        const auto* columnsIndexingPtr = &columnsIndexing;
         const TCompressedArray* compressedArray = columnData->GetCompressedData().GetSrc();
 
         updateBlockCallbacks->push_back(
-            [columnsIndexingPtr,
+            [columnIndexingPtr,
              cmpOp,
              level,
              indices,
@@ -108,13 +154,22 @@ inline void ScheduleUpdateIndicesForSplit(
                 compressedArray->DispatchBitsPerKeyToDataType(
                     "UpdateIndicesForSplit",
                     [=] (const auto* histogram) {
-                        UpdateIndicesForSplit(
-                            columnsIndexingPtr->data(),
-                            histogram,
-                            indexRange,
-                            cmpOp,
-                            level,
-                            indices);
+                        if (columnIndexingPtr) {
+                            UpdateIndicesForSplit(
+                                columnIndexingPtr,
+                                histogram,
+                                indexRange,
+                                cmpOp,
+                                level,
+                                indices);
+                        } else {
+                            UpdateIndicesForSplit(
+                                histogram,
+                                indexRange,
+                                cmpOp,
+                                level,
+                                indices);
+                        }
                     });
             });
     } else {
@@ -129,7 +184,7 @@ void ScheduleUpdateIndicesForSplit(
     TMaybe<TPackedBinaryIndex> maybeBinaryIndex,
     TMaybe<TFeaturesGroupIndex> maybeFeaturesGroupIndex,
     TConstArrayRef<TExclusiveFeaturesBundle> exclusiveFeaturesBundlesMetaData,
-    const TIndexedSubset<ui32>& columnsIndexing,
+    const ui32* columnIndexing,  // can be nullptr
     const TColumn& column,
     std::function<const IExclusiveFeatureBundleArray*(ui32)>&& getExclusiveFeaturesBundle,
     std::function<const IBinaryPacksArray*(ui32)>&& getBinaryFeaturesPack,
@@ -141,7 +196,7 @@ void ScheduleUpdateIndicesForSplit(
 
     auto scheduleUpdateIndicesForSplit = [&] (const auto& column, auto&& cmpOp) {
         ScheduleUpdateIndicesForSplit(
-            columnsIndexing,
+            columnIndexing,
             column,
             std::move(cmpOp),
             level,
@@ -191,18 +246,82 @@ static TConstArrayRef<ui8> GetCtrValues(const TSplit& split, const TOnlineCTR& c
 }
 
 
+void GetObjectsDataAndIndexing(
+    const TTrainingDataProviders& trainingData,
+    const TFold& fold,
+    bool isEstimated,
+    bool isOnline,
+    ui32 objectSubsetIdx, // 0 - learn, 1+ - test (subtract 1 for testIndex)
+    TIndexedSubsetCache* indexedSubsetCache,
+    NPar::TLocalExecutor* localExecutor,
+    TQuantizedForCPUObjectsDataProviderPtr* objectsData,
+    const ui32** columnIndexing // can return nullptr
+) {
+    if (isEstimated) {
+        const auto& estimatedFeatures
+            = isOnline ? fold.GetOnlineEstimatedFeatures() : trainingData.EstimatedObjectsData;
+        *objectsData = objectSubsetIdx ? estimatedFeatures.Test[objectSubsetIdx - 1] : estimatedFeatures.Learn;
+    } else {
+        *objectsData = objectSubsetIdx ?
+            trainingData.Test[objectSubsetIdx - 1]->ObjectsData
+            : trainingData.Learn->ObjectsData;
+    }
+    if (isOnline) {
+        *columnIndexing = nullptr;
+    } else if (!objectSubsetIdx) {
+        // learn
+        if (isEstimated) {
+            *columnIndexing = fold.GetLearnPermutationOfflineEstimatedFeaturesSubset().data();
+        } else {
+            *columnIndexing = fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>().data();
+        }
+    } else {
+        // test
+
+        const TFeaturesArraySubsetIndexing& subsetIndexing = (*objectsData)->GetFeaturesArraySubsetIndexing();
+        if (GetIf<TFullSubset<ui32>>(&subsetIndexing)) {
+            *columnIndexing = nullptr;
+        } else if (const TIndexedSubset<ui32>* indexedSubset = GetIf<TIndexedSubset<ui32>>(&subsetIndexing)) {
+            *columnIndexing = indexedSubset->data();
+        } else {
+            // blocks
+
+            TIndexedSubsetCache::insert_ctx insertCtx;
+            auto it = indexedSubsetCache->find(&subsetIndexing, insertCtx);
+            if (it != indexedSubsetCache->end()) {
+                *columnIndexing = it->second.data();
+            } else {
+                TIndexedSubset<ui32> columnsIndexingStorage;
+                columnsIndexingStorage.yresize(subsetIndexing.Size());
+                subsetIndexing.ParallelForEach(
+                    [&](ui32 idx, ui32 srcIdx) { columnsIndexingStorage[idx] = srcIdx; },
+                    localExecutor);
+                *columnIndexing = columnsIndexingStorage.data();
+                indexedSubsetCache->emplace_direct(
+                    insertCtx,
+                    &subsetIndexing,
+                    std::move(columnsIndexingStorage));
+            }
+        }
+
+    }
+}
+
+
 static void UpdateIndices(
     bool initIndices,
     TConstArrayRef<TUpdateIndicesForSplitParams> params,
     ui32 onlineCtrObjectOffset,
-    const TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
-    const TIndexedSubset<ui32>& columnsIndexing,
+    const TTrainingDataProviders& trainingData,
+    const TFold& fold,
+    ui32 objectSubsetIdx, // 0 - learn, 1+ - test (subtract 1 for testIndex)
     NPar::TLocalExecutor* localExecutor,
     TArrayRef<TIndexType> indices) {
 
     TIndexType defaultIndexValue = 0;
 
     TVector<std::function<void(TIndexRange<ui32>)>> updateBlockCallbacks;
+    TIndexedSubsetCache indexedSubsetCache;
 
     TIndexType* indicesData = indices.data();
 
@@ -212,17 +331,36 @@ static void UpdateIndices(
 
         if (split.Type == ESplitType::OnlineCtr) {
             const auto ctr = splitParams.OnlineCtr;
-            const auto ctrValuesData = GetCtrValues(split, *ctr).data() + onlineCtrObjectOffset;
             const auto binBorder = split.BinBorder;
+
+            const ui8* histogram = GetCtrValues(split, *ctr).data() + onlineCtrObjectOffset;
+
             updateBlockCallbacks.push_back(
                 [=] (TIndexRange<ui32> indexRange) {
-                    const ui32 begin = *indexRange.Iter().begin();
-                    const ui32 end = *indexRange.Iter().end();
-                    for (ui32 i = begin; i < end; ++i) {
-                        indicesData[i] += (ctrValuesData[i] > binBorder) * splitWeight;
-                    }
-                });
+                    UpdateIndicesForSplit(
+                        histogram,
+                        indexRange,
+                        [=] (ui8 bucket) {
+                            return IsTrueHistogram<ui8>(bucket, binBorder);
+                        },
+                        splitWeight,
+                        indicesData);
+                 }
+            );
         } else {
+            TQuantizedForCPUObjectsDataProviderPtr objectsDataProvider;
+            const ui32* columnIndexing;
+            GetObjectsDataAndIndexing(
+                trainingData,
+                fold,
+                split.Type == ESplitType::EstimatedFeature,
+                split.IsOnline(),
+                objectSubsetIdx,
+                &indexedSubsetCache,
+                localExecutor,
+                &objectsDataProvider,
+                &columnIndexing);
+
             auto scheduleUpdateIndicesForSplit = [&] (
                 auto maybeExclusiveBundleIndex,
                 auto maybeBinaryIndex,
@@ -234,15 +372,15 @@ static void UpdateIndices(
                     maybeExclusiveBundleIndex,
                     maybeBinaryIndex,
                     maybeFeaturesGroupIndex,
-                    objectsDataProvider.GetExclusiveFeatureBundlesMetaData(),
-                    columnsIndexing,
+                    objectsDataProvider->GetExclusiveFeatureBundlesMetaData(),
+                    columnIndexing,
                     column,
                     [&] (ui32 bundleIdx) {
-                        return &objectsDataProvider.GetExclusiveFeaturesBundle(bundleIdx);
+                        return &objectsDataProvider->GetExclusiveFeaturesBundle(bundleIdx);
                     },
-                    [&] (ui32 packIdx) { return &objectsDataProvider.GetBinaryFeaturesPack(packIdx); },
+                    [&] (ui32 packIdx) { return &objectsDataProvider->GetBinaryFeaturesPack(packIdx); },
                     [&] (ui32 groupIdx) {
-                        return &objectsDataProvider.GetFeaturesGroup(groupIdx);
+                        return &objectsDataProvider->GetFeaturesGroup(groupIdx);
                     },
                     std::move(cmpOp),
                     splitWeight,
@@ -251,14 +389,16 @@ static void UpdateIndices(
             };
 
 
-            if (split.Type == ESplitType::FloatFeature) {
+            if ((split.Type == ESplitType::FloatFeature) ||
+                (split.Type == ESplitType::EstimatedFeature))
+            {
                 auto floatFeatureIdx = TFloatFeatureIdx((ui32)split.FeatureIdx);
 
                 scheduleUpdateIndicesForSplit(
-                    objectsDataProvider.GetFloatFeatureToExclusiveBundleIndex(floatFeatureIdx),
-                    objectsDataProvider.GetFloatFeatureToPackedBinaryIndex(floatFeatureIdx),
-                    objectsDataProvider.GetFloatFeatureToFeaturesGroupIndex(floatFeatureIdx),
-                    **objectsDataProvider.GetFloatFeature((ui32)split.FeatureIdx),
+                    objectsDataProvider->GetFloatFeatureToExclusiveBundleIndex(floatFeatureIdx),
+                    objectsDataProvider->GetFloatFeatureToPackedBinaryIndex(floatFeatureIdx),
+                    objectsDataProvider->GetFloatFeatureToFeaturesGroupIndex(floatFeatureIdx),
+                    **objectsDataProvider->GetFloatFeature((ui32)split.FeatureIdx),
                     [splitIdx = GetFeatureSplitIdx(split)] (ui16 bucket) {
                         return IsTrueHistogram<ui16>(bucket, splitIdx);
                     });
@@ -268,10 +408,10 @@ static void UpdateIndices(
                 auto catFeatureIdx = TCatFeatureIdx((ui32)split.FeatureIdx);
 
                 scheduleUpdateIndicesForSplit(
-                    objectsDataProvider.GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
-                    objectsDataProvider.GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
-                    objectsDataProvider.GetCatFeatureToFeaturesGroupIndex(catFeatureIdx),
-                    **objectsDataProvider.GetCatFeature((ui32)split.FeatureIdx),
+                    objectsDataProvider->GetCatFeatureToExclusiveBundleIndex(catFeatureIdx),
+                    objectsDataProvider->GetCatFeatureToPackedBinaryIndex(catFeatureIdx),
+                    objectsDataProvider->GetCatFeatureToFeaturesGroupIndex(catFeatureIdx),
+                    **objectsDataProvider->GetCatFeature((ui32)split.FeatureIdx),
                     [bucketIdx = (ui32)split.BinBorder] (ui32 bucket) {
                         return IsTrueOneHotFeature(bucket, bucketIdx);
                     });
@@ -310,7 +450,7 @@ static void UpdateIndices(
 
 void SetPermutedIndices(
     const TSplit& split,
-    const TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
+    const TTrainingDataProviders& trainingData,
     int curDepth,
     const TFold& fold,
     TVector<TIndexType>* indices,
@@ -329,8 +469,9 @@ void SetPermutedIndices(
         /*initIndices*/ false,
         TConstArrayRef<TUpdateIndicesForSplitParams>(&params, 1),
         /*onlineCtrObjectOffset*/ 0,
-        objectsDataProvider,
-        fold.LearnPermutationFeaturesSubset.Get<TIndexedSubset<ui32>>(),
+        trainingData,
+        fold,
+        0, // learn
         localExecutor,
         *indices);
 }
@@ -403,27 +544,14 @@ static TVector<const TOnlineCTR*> GetOnlineCtrs(const TFold& fold, const TVarian
 
 static void BuildIndicesForDataset(
     const TSplitTree& tree,
-    const TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
-    const NCB::TFeaturesArraySubsetIndexing& featuresArraySubsetIndexing,
+    const TTrainingDataProviders& trainingData,
+    const TFold& fold,
     ui32 sampleCount,
     const TVector<const TOnlineCTR*>& onlineCtrs,
     ui32 docOffset,
+    ui32 objectSubsetIdx, // 0 - learn, 1+ - test (subtract 1 for testIndex)
     NPar::TLocalExecutor* localExecutor,
     TIndexType* indices) {
-
-    TIndexedSubset<ui32> columnsIndexingStorage;
-
-    const TIndexedSubset<ui32>* columnsIndexing
-        = GetIf<TIndexedSubset<ui32>>(&featuresArraySubsetIndexing);
-
-    if (!columnsIndexing) {
-        columnsIndexingStorage.yresize(featuresArraySubsetIndexing.Size());
-        featuresArraySubsetIndexing.ParallelForEach(
-            [&](ui32 idx, ui32 srcIdx) { columnsIndexingStorage[idx] = srcIdx; },
-            localExecutor);
-        columnsIndexing = &columnsIndexingStorage;
-    }
-
 
     TVector<TUpdateIndicesForSplitParams> params;
     params.reserve(tree.GetDepth());
@@ -436,30 +564,33 @@ static void BuildIndicesForDataset(
         /*initIndices*/ true,
         params,
         docOffset,
-        objectsDataProvider,
-        *columnsIndexing,
+        trainingData,
+        fold,
+        objectSubsetIdx,
         localExecutor,
         MakeArrayRef(indices, sampleCount));
 }
 
 static void BuildIndicesForDataset(
     const TVariant<TSplitTree, TNonSymmetricTreeStructure>& treeVariant,
-    const TQuantizedForCPUObjectsDataProvider& objectsDataProvider,
-    const NCB::TFeaturesArraySubsetIndexing& featuresArraySubsetIndexing,
+    const TTrainingDataProviders& trainingData,
+    const TFold& fold,
     ui32 sampleCount,
     const TVector<const TOnlineCTR*>& onlineCtrs,
     ui32 docOffset,
+    ui32 objectSubsetIdx, // 0 - learn, 1+ - test (subtract 1 for testIndex)
     NPar::TLocalExecutor* localExecutor,
     TIndexType* indices) {
 
     const auto buildIndices = [&](auto tree) {
         BuildIndicesForDataset(
             tree,
-            objectsDataProvider,
-            featuresArraySubsetIndexing,
+            trainingData,
+            fold,
             sampleCount,
             onlineCtrs,
             docOffset,
+            objectSubsetIdx,
             localExecutor,
             indices);
     };
@@ -475,45 +606,48 @@ static void BuildIndicesForDataset(
 TVector<TIndexType> BuildIndices(
     const TFold& fold,
     const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,
-    NCB::TTrainingForCPUDataProviderPtr learnData, // can be nullptr
-    TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData, // can be empty
+    const TTrainingDataProviders& trainingData,
+    EBuildIndicesDataParts dataParts,
     NPar::TLocalExecutor* localExecutor) {
 
-    ui32 learnSampleCount = learnData ? learnData->GetObjectCount() : 0;
-    ui32 tailSampleCount = 0;
-    for (const auto& testSet : testData) {
-        tailSampleCount += testSet->GetObjectCount();
-    }
+    ui32 learnSampleCount
+        = (dataParts == EBuildIndicesDataParts::TestOnly) ? 0 : trainingData.Learn->GetObjectCount();
+    ui32 tailSampleCount
+        = (dataParts == EBuildIndicesDataParts::LearnOnly) ? 0 : trainingData.GetTestSampleCount();
 
     const TVector<const TOnlineCTR*>& onlineCtrs = GetOnlineCtrs(fold, tree);
 
     TVector<TIndexType> indices;
     indices.yresize(learnSampleCount + tailSampleCount);
 
-    if (learnData) {
+    if (dataParts != EBuildIndicesDataParts::TestOnly) {
         BuildIndicesForDataset(
             tree,
-            *learnData->ObjectsData,
-            fold.LearnPermutationFeaturesSubset,
+            trainingData,
+            fold,
             learnSampleCount,
             onlineCtrs,
             0,
+            /*objectSubsetIdx*/ 0, // learn
             localExecutor,
             indices.begin());
     }
-    ui32 docOffset = learnSampleCount;
-    for (size_t testIdx = 0; testIdx < testData.size(); ++testIdx) {
-        const auto& testSet = *testData[testIdx];
-        BuildIndicesForDataset(
-            tree,
-            *testSet.ObjectsData,
-            testSet.ObjectsData->GetFeaturesArraySubsetIndexing(),
-            testSet.GetObjectCount(),
-            onlineCtrs,
-            docOffset,
-            localExecutor,
-            indices.begin() + docOffset);
-        docOffset += testSet.GetObjectCount();
+    if (dataParts != EBuildIndicesDataParts::LearnOnly) {
+        ui32 docOffset = learnSampleCount;
+        for (size_t testIdx = 0; testIdx < trainingData.Test.size(); ++testIdx) {
+            const auto& testSet = *trainingData.Test[testIdx];
+            BuildIndicesForDataset(
+                tree,
+                trainingData,
+                fold,
+                testSet.GetObjectCount(),
+                onlineCtrs,
+                docOffset,
+                testIdx + 1,
+                localExecutor,
+                indices.begin() + docOffset);
+            docOffset += testSet.GetObjectCount();
+        }
     }
     return indices;
 }

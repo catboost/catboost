@@ -141,6 +141,7 @@
         "dev_sparse_array_indexing" : "Indices",
         "float_features_binarization" : {
             "border_count" : 254,
+            "dev_max_subset_size_for_build_borders" : 200000,
             "nan_mode" : "Min",
             "border_type" : "GreedyLogSum"
         },
@@ -249,6 +250,7 @@
         "rsm" : 1,
         "dev_leafwise_approxes" : false,
         "penalties" : {
+            "per_object_feature_penalties" : { },
             "first_feature_use_penalties" : { },
             "feature_weights" : { },
             "penalties_coefficient" : 1
@@ -261,6 +263,7 @@
         "training_options_file" : "training_options.json",
         "train_dir" : "catboost_info",
         "thread_count" : 4,
+        "task_type" : "CPU",
         "iterations" : 10,
         "loss_function" : "Logloss"
     },

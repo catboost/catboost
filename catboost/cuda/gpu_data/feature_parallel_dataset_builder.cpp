@@ -136,11 +136,9 @@ namespace NCatboostCuda {
                 const auto& permutation = dataSet.GetCtrsEstimationPermutation();
                 TVector<ui32> gatherIndices;
                 permutation.FillOrder(gatherIndices);
-                auto composedSubsetIndexing = MakeAtomicShared<NCB::TFeaturesArraySubsetIndexing>(
-                    NCB::Compose(
-                        DataProvider.ObjectsData->GetFeaturesArraySubsetIndexing(),
-                        NCB::TFeaturesArraySubsetIndexing(std::move(gatherIndices))
-                    )
+                auto composedSubsetIndexing = TDatasetPermutationOrderAndSubsetIndexing::ConstructShared(
+                    DataProvider.ObjectsData->GetFeaturesArraySubsetIndexing(),
+                    std::move(gatherIndices)
                 );
                 TDataSetDescription description;
                 description.Name = TStringBuilder() << "Learn permutation dependent features #" << permutationId;
@@ -178,6 +176,7 @@ namespace NCatboostCuda {
                                                                                       compressedIndexBuilder,
                                                                                       DataProvider,
                                                                                       permutationIndependentCompressedDataSetId,
+                                                                                      /*skipExclusiveBundles=*/ false,
                                                                                       localExecutor);
             floatFeaturesWriter.Write(permutationIndependent);
         }
@@ -187,6 +186,7 @@ namespace NCatboostCuda {
                                                                                       compressedIndexBuilder,
                                                                                       *LinkedTest,
                                                                                       testDataSetId,
+                                                                                      /*skipExclusiveBundles=*/ true,
                                                                                       localExecutor);
             floatFeaturesWriter.Write(permutationIndependent);
         }

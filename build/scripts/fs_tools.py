@@ -4,6 +4,11 @@ import sys
 import shutil
 
 if __name__ == '__main__':
+    # Support @response-file notation for windows to reduce cmd length
+    if sys.argv[1].startswith('@'):
+        with open(sys.argv[1][1:]) as afile:
+            sys.argv[1:] = afile.read().splitlines()
+
     mode = sys.argv[1]
     args = sys.argv[2:]
 
@@ -26,6 +31,21 @@ if __name__ == '__main__':
             except OSError:
                 pass
             shutil.copy(s, d)
+    elif mode == 'copy_all_files':
+        src = args[0]
+        dst = args[1]
+        for root, _, files in os.walk(src):
+            for f in files:
+                if os.path.islink(os.path.join(root, f)):
+                    continue
+                file_dst = os.path.join(dst, os.path.relpath(root, src), f)
+                if os.path.exists(file_dst):
+                    continue
+                try:
+                    os.makedirs(os.path.dirname(file_dst))
+                except OSError:
+                    pass
+                shutil.copy(os.path.join(root, f), file_dst)
     elif mode == 'rename_if_exists':
         if os.path.exists(args[0]):
             shutil.move(args[0], args[1])

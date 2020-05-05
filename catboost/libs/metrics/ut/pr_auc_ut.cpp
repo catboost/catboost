@@ -11,7 +11,7 @@ Y_UNIT_TEST_SUITE(PRAUCMetricTest) {
         TVector<float> weight;
         NPar::TLocalExecutor executor;
             
-        const auto metric = MakeBinClassPRAUCMetric();
+        const auto metric = MakeBinClassPRAUCMetric(/*params*/{});
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.8354167, 1e-5);
@@ -23,7 +23,7 @@ Y_UNIT_TEST_SUITE(PRAUCMetricTest) {
         TVector<float> weight;
         NPar::TLocalExecutor executor;
             
-        const auto metric = MakeBinClassPRAUCMetric();
+        const auto metric = MakeBinClassPRAUCMetric(/*params*/{});
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.665476, 1e-5);
@@ -39,7 +39,7 @@ Y_UNIT_TEST_SUITE(PRAUCMetricTest) {
         TVector<float> weight;
         NPar::TLocalExecutor executor;
             
-        const auto metric = MakeMultiClassPRAUCMetric(2);
+        const auto metric = MakeMultiClassPRAUCMetric(/*params*/{}, 2);
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.138889, 1e-5);
@@ -55,7 +55,7 @@ Y_UNIT_TEST_SUITE(PRAUCMetricTest) {
         TVector<float> weight{0.5, 0.3, 1, 0.9, 1, 2, 0, 0.1, 1};
         NPar::TLocalExecutor executor;
             
-        const auto metric = MakeMultiClassPRAUCMetric(2);
+        const auto metric = MakeMultiClassPRAUCMetric(/*params*/{}, 2);
         metric->UseWeights = true;
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 

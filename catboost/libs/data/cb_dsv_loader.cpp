@@ -161,7 +161,7 @@ namespace NCB {
                             case EColumn::Categ: {
                                 if (!FeatureIgnored[featureId]) {
                                     const ui32 catFeatureIdx = featuresLayout.GetInternalFeatureIdx(featureId);
-                                    catFeatures[catFeatureIdx] = visitor->GetCatFeatureValue(featureId, token);
+                                    catFeatures[catFeatureIdx] = visitor->GetCatFeatureValue(lineIdx, featureId, token);
                                 }
                                 ++featureId;
                                 break;

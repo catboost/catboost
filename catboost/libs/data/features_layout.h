@@ -111,10 +111,6 @@ namespace NCB {
             CatFeatureInternalIdxToExternalIdx,
             FloatFeatureInternalIdxToExternalIdx)
 
-        /* *this contains a superset of features in rhs
-         * for now comparison is strict - w/o reordering by name
-         */
-        bool IsSupersetOf(const TFeaturesLayout& rhs) const;
 
         const TFeatureMetaInfo& GetInternalFeatureMetaInfo(
             ui32 internalFeatureIdx,

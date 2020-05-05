@@ -1,4 +1,4 @@
-iter	FilteredDCG
+iter	FilteredDCG:num_estimations=1;sigma=10
 0	8.907950539
 1	9.161228657
 2	8.927377974

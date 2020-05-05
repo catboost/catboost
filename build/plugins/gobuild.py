@@ -119,21 +119,22 @@ def on_go_process_srcs(unit):
             ymake.report_configure_error('file {} should not be listed in GO_TEST_SRCS() or GO_XTEST_SRCS() macros'.format(f))
 
     # Add gofmt style checks
-    resolved_go_files = []
-    for path in itertools.chain(go_files, go_test_files, go_xtest_files):
-        if path.endswith('.go'):
-            resolved = unit.resolve_arc_path([path])
-            if resolved != path and need_lint(resolved):
-                resolved_go_files.append(resolved)
-    if resolved_go_files:
-        basedirs = {}
-        for f in resolved_go_files:
-            basedir = os.path.dirname(f)
-            if basedir not in basedirs:
-                basedirs[basedir] = []
-            basedirs[basedir].append(f)
-        for basedir in basedirs:
-            unit.onadd_check(['gofmt'] + basedirs[basedir])
+    if unit.enabled('_GO_FMT_ADD_CHECK'):
+        resolved_go_files = []
+        for path in itertools.chain(go_files, go_test_files, go_xtest_files):
+            if path.endswith('.go'):
+                resolved = unit.resolve_arc_path([path])
+                if resolved != path and need_lint(resolved):
+                    resolved_go_files.append(resolved)
+        if resolved_go_files:
+            basedirs = {}
+            for f in resolved_go_files:
+                basedir = os.path.dirname(f)
+                if basedir not in basedirs:
+                    basedirs[basedir] = []
+                basedirs[basedir].append(f)
+            for basedir in basedirs:
+                unit.onadd_check(['gofmt'] + basedirs[basedir])
 
     is_test_module = unit.enabled('GO_TEST_MODULE')
 
@@ -164,8 +165,9 @@ def on_go_process_srcs(unit):
     unit_path = unit.path()
 
     # Add go vet check
-    if unit.enabled('_GO_VET') and not unit.enabled('NO_GO_VET') and need_lint(unit_path):
-        unit.onadd_check(["govet", '$(BUILD_ROOT)/' + tobuilddir(os.path.join(unit_path, unit.filename() + '.vet.txt'))[3:]])
+    if unit.enabled('_GO_VET_ADD_CHECK') and need_lint(unit_path):
+        vet_report_file_name = os.path.join(unit_path, '{}{}'.format(unit.filename(), unit.get('GO_VET_REPORT_EXT')))
+        unit.onadd_check(["govet", '$(BUILD_ROOT)/' + tobuilddir(vet_report_file_name)[3:]])
 
     # Process .proto files
     for f in proto_files:

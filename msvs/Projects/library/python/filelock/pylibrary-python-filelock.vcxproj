@@ -78,12 +78,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\filelock\54d1e12041b7b50064980f3654.cpp"/>
-    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\filelock\_54d1e12041b7b50064980f3654.yasm">
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\filelock\ae8f67d1c21b6d9b3a993d3b63.cpp"/>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\filelock\_ae8f67d1c21b6d9b3a993d3b63.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\filelock
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/filelock/_54d1e12041b7b50064980f3654.py2.obj" "$(SolutionDir)$(Configuration)/library/python/filelock/_54d1e12041b7b50064980f3654.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/filelock/_ae8f67d1c21b6d9b3a993d3b63.py2.obj" "$(SolutionDir)$(Configuration)/library/python/filelock/_ae8f67d1c21b6d9b3a993d3b63.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -94,7 +94,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\filelock
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/filelock/_54d1e12041b7b50064980f3654.py2.obj" "$(SolutionDir)$(Configuration)/library/python/filelock/_54d1e12041b7b50064980f3654.yasm"
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/filelock/_ae8f67d1c21b6d9b3a993d3b63.py2.obj" "$(SolutionDir)$(Configuration)/library/python/filelock/_ae8f67d1c21b6d9b3a993d3b63.yasm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -102,15 +102,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/filelock/_54d1e12041b7b50064980f3654.py2.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\filelock\_54d1e12041b7b50064980f3654.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\filelock\_54d1e12041b7b50064980f3654.py2.obj;</Outputs>
+      <Message>$B/library/python/filelock/_ae8f67d1c21b6d9b3a993d3b63.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\filelock\_ae8f67d1c21b6d9b3a993d3b63.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\filelock\_ae8f67d1c21b6d9b3a993d3b63.py2.obj;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\filelock
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/filelock/54d1e12041b7b50064980f3654.cpp" "_e74755499cfccf5f760a465aad=/py_modules/library.python.filelock.__init__" "_e82d3f9c18662ea5cde0c4d977=resfs/src//py_modules/library.python.filelock.__init__" "_48ecff63ca46c57746887f0b65=/py_code/library.python.filelock.__init__"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/filelock/ae8f67d1c21b6d9b3a993d3b63.cpp" "_e74755499cfccf5f760a465aad=/py_modules/library.python.filelock.__init__" "_e82d3f9c18662ea5cde0c4d977=resfs/src//py_modules/library.python.filelock.__init__" "_a41ef8ef71951c0aa754d39bc0=/py_code/library.python.filelock.__init__"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -121,7 +121,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\filelock
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/filelock/54d1e12041b7b50064980f3654.cpp" "_e74755499cfccf5f760a465aad=/py_modules/library.python.filelock.__init__" "_e82d3f9c18662ea5cde0c4d977=resfs/src//py_modules/library.python.filelock.__init__" "_48ecff63ca46c57746887f0b65=/py_code/library.python.filelock.__init__"
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/filelock/ae8f67d1c21b6d9b3a993d3b63.cpp" "_e74755499cfccf5f760a465aad=/py_modules/library.python.filelock.__init__" "_e82d3f9c18662ea5cde0c4d977=resfs/src//py_modules/library.python.filelock.__init__" "_a41ef8ef71951c0aa754d39bc0=/py_code/library.python.filelock.__init__"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -129,9 +129,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/filelock/54d1e12041b7b50064980f3654.cpp	</Message>
+      <Message>$B/library/python/filelock/ae8f67d1c21b6d9b3a993d3b63.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\filelock\54d1e12041b7b50064980f3654.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\filelock\ae8f67d1c21b6d9b3a993d3b63.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -164,7 +164,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\filelock
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/filelock/_54d1e12041b7b50064980f3654.yasm" "$(SolutionDir)../library/python/filelock/__init__.py" "$(SolutionDir)$(Configuration)/library/python/filelock/_e74755499cfccf5f760a465aad.rodata" "-" "library/python/filelock/__init__.py" "_e82d3f9c18662ea5cde0c4d977.rodata" "$(SolutionDir)$(Configuration)/library/python/filelock/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/filelock/_48ecff63ca46c57746887f0b65.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/filelock/_ae8f67d1c21b6d9b3a993d3b63.yasm" "$(SolutionDir)../library/python/filelock/__init__.py" "$(SolutionDir)$(Configuration)/library/python/filelock/_e74755499cfccf5f760a465aad.rodata" "-" "library/python/filelock/__init__.py" "_e82d3f9c18662ea5cde0c4d977.rodata" "$(SolutionDir)$(Configuration)/library/python/filelock/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/filelock/_a41ef8ef71951c0aa754d39bc0.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -175,7 +175,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\filelock
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/filelock/_54d1e12041b7b50064980f3654.yasm" "$(SolutionDir)../library/python/filelock/__init__.py" "$(SolutionDir)$(Configuration)/library/python/filelock/_e74755499cfccf5f760a465aad.rodata" "-" "library/python/filelock/__init__.py" "_e82d3f9c18662ea5cde0c4d977.rodata" "$(SolutionDir)$(Configuration)/library/python/filelock/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/filelock/_48ecff63ca46c57746887f0b65.rodata"
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/filelock/_ae8f67d1c21b6d9b3a993d3b63.yasm" "$(SolutionDir)../library/python/filelock/__init__.py" "$(SolutionDir)$(Configuration)/library/python/filelock/_e74755499cfccf5f760a465aad.rodata" "-" "library/python/filelock/__init__.py" "_e82d3f9c18662ea5cde0c4d977.rodata" "$(SolutionDir)$(Configuration)/library/python/filelock/__init__.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/filelock/_a41ef8ef71951c0aa754d39bc0.rodata"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -183,9 +183,9 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/filelock/_54d1e12041b7b50064980f3654.yasm	</Message>
+      <Message>$B/library/python/filelock/_ae8f67d1c21b6d9b3a993d3b63.yasm	</Message>
       <AdditionalInputs>$(SolutionDir)..\library\python\filelock\__init__.py;$(SolutionDir)$(Configuration)\library\python\filelock\__init__.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\filelock\_54d1e12041b7b50064980f3654.yasm;$(SolutionDir)$(Configuration)\library\python\filelock\_e74755499cfccf5f760a465aad.rodata;$(SolutionDir)$(Configuration)\library\python\filelock\_48ecff63ca46c57746887f0b65.rodata;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\filelock\_ae8f67d1c21b6d9b3a993d3b63.yasm;$(SolutionDir)$(Configuration)\library\python\filelock\_e74755499cfccf5f760a465aad.rodata;$(SolutionDir)$(Configuration)\library\python\filelock\_a41ef8ef71951c0aa754d39bc0.rodata;</Outputs>
     </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>

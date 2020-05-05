@@ -32,14 +32,14 @@ namespace NCatboostCuda {
                                                            const TFeaturesBinarizationDescription& info,
                                                            const NCudaLib::TMirrorMapping& docsMapping,
                                                            const NCudaLib::TDistributedObject<ui64>& cindexOffsets) {
-            auto layout = CreateLayout(featureIds.size());
+            auto allFeaturesLayout = CreateLayout(featureIds.size());
 
             if (Policy == EFeaturesGroupingPolicy::OneByteFeatures) {
                 TRandom rand(0);
                 Shuffle(featureIds.begin(), featureIds.end(), rand);
 
-                for (ui32 dev : layout.NonEmptyDevices()) {
-                    TSlice devSlice = layout.DeviceSlice(dev);
+                for (ui32 dev : allFeaturesLayout.NonEmptyDevices()) {
+                    TSlice devSlice = allFeaturesLayout.DeviceSlice(dev);
                     std::sort(featureIds.begin() + devSlice.Left, featureIds.begin() + devSlice.Right,
                               [&](ui32 left, ui32 right) -> bool {
                                   return info.GetGroupingLevel(left) < info.GetGroupingLevel(right);
@@ -56,44 +56,55 @@ namespace NCatboostCuda {
 
             result.Samples = docsMapping;
 
+            TVector<TCFeature> allFeatures;
             TVector<TCFeature> features;
 
             const ui64 docCount = docsMapping.GetObjectsSlice().Size();
 
             result.BinFeatureCount = NCudaLib::GetCudaManager().CreateDistributedObject<ui32>(0);
-
-            for (auto dev : layout.NonEmptyDevices()) {
-                auto devSlice = layout.DeviceSlice(dev);
+            TVector<size_t> trainFeatureSlicesSizes(NCudaLib::GetCudaManager().GetDeviceCount(), 0);
+            size_t prevFeaturesSize = 0;
+            for (auto dev : allFeaturesLayout.NonEmptyDevices()) {
+                auto devSlice = allFeaturesLayout.DeviceSlice(dev);
                 const ui64 cindexDeviceOffset = cindexOffsets.At(dev);
                 const ui64 devSize = helper.AddDeviceFeatures<Policy>(devSlice,
                                                                       cindexDeviceOffset,
                                                                       docCount,
+                                                                      &allFeatures,
                                                                       &features);
-                result.FoldsHistogram.Set(dev, result.Grid.ComputeFoldsHistogram(devSlice));
                 result.CIndexSizes.Set(dev, devSize);
                 result.CIndexOffsets.Set(dev, cindexDeviceOffset);
+                trainFeatureSlicesSizes[dev] = features.size() - prevFeaturesSize;
+                prevFeaturesSize = features.size();
 
                 for (ui32 i = devSlice.Left; i < devSlice.Right; ++i) {
-                    result.CudaFeaturesHost[i].Set(dev, features[i]);
+                    result.CudaFeaturesHost[i].Set(dev, allFeatures[i]);
                 }
                 result.BinFeatureCount.Set(dev, helper.BuildBinaryFeatures(devSlice).size());
             };
-
-            result.CudaFeaturesDevice.Reset(layout);
-            result.CudaFeaturesDevice.Write(features);
+            if (features.size()) {
+                auto featuresLayout = NCudaLib::TStripeMapping::CreateFromSizes(trainFeatureSlicesSizes);
+                for (auto dev : featuresLayout.NonEmptyDevices()) {
+                    auto devSlice = featuresLayout.DeviceSlice(dev);
+                    result.FoldsHistogram.Set(dev, result.Grid.ComputeFoldsHistogram(devSlice));
+                }
+                result.CudaFeaturesDevice.Reset(featuresLayout);
+                result.CudaFeaturesDevice.Write(features);
+            }
 
             //bin features
-            result.BinFeatures = helper.BuildBinaryFeatures(TSlice(0, features.size()));
+            result.BinFeatures = helper.BuildBinaryFeatures(TSlice(0, allFeatures.size()));
             result.HistogramsMapping = CreateMapping<NCudaLib::TStripeMapping>(result.BinFeatureCount);
-
-            result.BinFeaturesForBestSplits.Reset(result.HistogramsMapping);
-            result.BinFeaturesForBestSplits.Write(result.BinFeatures);
+            if (result.BinFeatures.size()) {
+                result.BinFeaturesForBestSplits.Reset(result.HistogramsMapping);
+                result.BinFeaturesForBestSplits.Write(result.BinFeatures);
+            }
 
             return resultHolder;
         }
 
         static void WriteToCompressedIndex(const NCudaLib::TDistributedObject<TCFeature>& feature,
-                                           const TVector<ui8>& bins,
+                                           TConstArrayRef<ui8> bins,
                                            const NCudaLib::TMirrorMapping&,
                                            TStripeBuffer<ui32>* compressedIndex) {
             ui32 writeDev = -1;
