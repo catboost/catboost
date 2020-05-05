@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{A245D45B-FF5F-420A-C3B0-FC67CC066227}</ProjectGUID>
+    <ProjectGUID>{800E8F90-0E45-1435-7ACC-B0DA06C3FAC7}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-text_processing-tokenizer</ProjectName>
+    <ProjectName>cpp-text_processing-tokenizer</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-text_processing-tokenizer</TargetName>
+    <TargetName>cpp-text_processing-tokenizer</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\text_processing\tokenizer\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\A245D45B-FF5F-420A-C3B0-FC67CC066227\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\text_processing\tokenizer\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\800E8F90-0E45-1435-7ACC-B0DA06C3FAC7\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,16 +78,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\text_processing\tokenizer\lemmer_impl.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\text_processing\tokenizer\lemmer_impl.h_serialized.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\text_processing\tokenizer\options.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\text_processing\tokenizer\options.h_serialized.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\text_processing\tokenizer\tokenizer.cpp"/>
-    <CustomBuild Include="$(SolutionDir)..\library\text_processing\tokenizer\lemmer_impl.h">
+    <ClCompile Include="$(SolutionDir)..\library\cpp\text_processing\tokenizer\lemmer_impl.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\cpp\text_processing\tokenizer\lemmer_impl.h_serialized.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\text_processing\tokenizer\options.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\cpp\text_processing\tokenizer\options.h_serialized.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\text_processing\tokenizer\tokenizer.cpp"/>
+    <CustomBuild Include="$(SolutionDir)..\library\cpp\text_processing\tokenizer\lemmer_impl.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\text_processing\tokenizer
+cd /d $(SolutionDir)$(Configuration)\library\cpp\text_processing\tokenizer
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/text_processing/tokenizer/lemmer_impl.h" "--include-path" "library/text_processing/tokenizer/lemmer_impl.h" "--output" "$(SolutionDir)$(Configuration)/library/text_processing/tokenizer/lemmer_impl.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/text_processing/tokenizer/lemmer_impl.h" "--include-path" "library/cpp/text_processing/tokenizer/lemmer_impl.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/text_processing/tokenizer/lemmer_impl.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -96,9 +96,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\text_processing\tokenizer
+cd /d $(SolutionDir)$(Configuration)\library\cpp\text_processing\tokenizer
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/text_processing/tokenizer/lemmer_impl.h" "--include-path" "library/text_processing/tokenizer/lemmer_impl.h" "--output" "$(SolutionDir)$(Configuration)/library/text_processing/tokenizer/lemmer_impl.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/text_processing/tokenizer/lemmer_impl.h" "--include-path" "library/cpp/text_processing/tokenizer/lemmer_impl.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/text_processing/tokenizer/lemmer_impl.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -106,15 +106,15 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/text_processing/tokenizer/lemmer_impl.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\text_processing\tokenizer\lemmer_impl.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\text_processing\tokenizer\lemmer_impl.h_serialized.cpp;</Outputs>
+      <Message>$B/library/cpp/text_processing/tokenizer/lemmer_impl.h_serialized.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\library\cpp\text_processing\tokenizer\lemmer_impl.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\cpp\text_processing\tokenizer\lemmer_impl.h_serialized.cpp;</Outputs>
     </CustomBuild>
-    <CustomBuild Include="$(SolutionDir)..\library\text_processing\tokenizer\options.h">
+    <CustomBuild Include="$(SolutionDir)..\library\cpp\text_processing\tokenizer\options.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\text_processing\tokenizer
+cd /d $(SolutionDir)$(Configuration)\library\cpp\text_processing\tokenizer
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/text_processing/tokenizer/options.h" "--include-path" "library/text_processing/tokenizer/options.h" "--output" "$(SolutionDir)$(Configuration)/library/text_processing/tokenizer/options.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/text_processing/tokenizer/options.h" "--include-path" "library/cpp/text_processing/tokenizer/options.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/text_processing/tokenizer/options.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -123,9 +123,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\text_processing\tokenizer
+cd /d $(SolutionDir)$(Configuration)\library\cpp\text_processing\tokenizer
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/text_processing/tokenizer/options.h" "--include-path" "library/text_processing/tokenizer/options.h" "--output" "$(SolutionDir)$(Configuration)/library/text_processing/tokenizer/options.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/text_processing/tokenizer/options.h" "--include-path" "library/cpp/text_processing/tokenizer/options.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/text_processing/tokenizer/options.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -133,11 +133,11 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/text_processing/tokenizer/options.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\text_processing\tokenizer\options.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\text_processing\tokenizer\options.h_serialized.cpp;</Outputs>
+      <Message>$B/library/cpp/text_processing/tokenizer/options.h_serialized.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\library\cpp\text_processing\tokenizer\options.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\cpp\text_processing\tokenizer\options.h_serialized.cpp;</Outputs>
     </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\library\text_processing\tokenizer\tokenizer.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\text_processing\tokenizer\tokenizer.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{20E66110-58A2-0F4C-801A-002FF362F425}</ProjectGUID>
+    <ProjectGUID>{73E0C414-7306-5CAF-23A6-CCF99172A94D}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-text_processing-dictionary</ProjectName>
+    <ProjectName>cpp-text_processing-dictionary</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-text_processing-dictionary</TargetName>
+    <TargetName>cpp-text_processing-dictionary</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\text_processing\dictionary\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\20E66110-58A2-0F4C-801A-002FF362F425\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\text_processing\dictionary\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\73E0C414-7306-5CAF-23A6-CCF99172A94D\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,27 +78,27 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\bpe_builder.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\bpe_dictionary.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\bpe_helpers.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\dictionary.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\dictionary_builder.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\fbs_helpers.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\frequency_based_dictionary.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\frequency_based_dictionary_impl.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\mmap_frequency_based_dictionary.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\mmap_frequency_based_dictionary_impl.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\mmap_hash_table.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\multigram_dictionary_helpers.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\options.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\serialization_helpers.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\library\text_processing\dictionary\types.h_serialized.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\text_processing\dictionary\util.cpp"/>
-    <CustomBuild Include="$(SolutionDir)..\library\text_processing\dictionary\types.h">
+    <ClCompile Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\bpe_builder.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\bpe_dictionary.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\bpe_helpers.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\dictionary.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\dictionary_builder.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\fbs_helpers.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\frequency_based_dictionary.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\frequency_based_dictionary_impl.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\mmap_frequency_based_dictionary.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\mmap_frequency_based_dictionary_impl.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\mmap_hash_table.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\multigram_dictionary_helpers.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\options.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\serialization_helpers.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\cpp\text_processing\dictionary\types.h_serialized.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\util.cpp"/>
+    <CustomBuild Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\types.h">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\text_processing\dictionary
+cd /d $(SolutionDir)$(Configuration)\library\cpp\text_processing\dictionary
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/text_processing/dictionary/types.h" "--include-path" "library/text_processing/dictionary/types.h" "--output" "$(SolutionDir)$(Configuration)/library/text_processing/dictionary/types.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/text_processing/dictionary/types.h" "--include-path" "library/cpp/text_processing/dictionary/types.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/text_processing/dictionary/types.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -107,9 +107,9 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\library\text_processing\dictionary
+cd /d $(SolutionDir)$(Configuration)\library\cpp\text_processing\dictionary
 if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/text_processing/dictionary/types.h" "--include-path" "library/text_processing/dictionary/types.h" "--output" "$(SolutionDir)$(Configuration)/library/text_processing/dictionary/types.h_serialized.cpp"
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/text_processing/dictionary/types.h" "--include-path" "library/cpp/text_processing/dictionary/types.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/text_processing/dictionary/types.h_serialized.cpp"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -117,25 +117,25 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/text_processing/dictionary/types.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\library\text_processing\dictionary\types.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\text_processing\dictionary\types.h_serialized.cpp;</Outputs>
+      <Message>$B/library/cpp/text_processing/dictionary/types.h_serialized.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\library\cpp\text_processing\dictionary\types.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\cpp\text_processing\dictionary\types.h_serialized.cpp;</Outputs>
     </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\bpe_builder.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\bpe_dictionary.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\bpe_helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\dictionary.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\dictionary_builder.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\fbs_helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\frequency_based_dictionary.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\frequency_based_dictionary_impl.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\mmap_frequency_based_dictionary.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\mmap_frequency_based_dictionary_impl.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\mmap_hash_table.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\multigram_dictionary_helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\options.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\serialization_helpers.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\text_processing\dictionary\util.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\bpe_builder.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\bpe_dictionary.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\bpe_helpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\dictionary.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\dictionary_builder.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\fbs_helpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\frequency_based_dictionary.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\frequency_based_dictionary_impl.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\mmap_frequency_based_dictionary.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\mmap_frequency_based_dictionary_impl.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\mmap_hash_table.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\multigram_dictionary_helpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\options.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\serialization_helpers.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\text_processing\dictionary\util.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -167,6 +167,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\relaxed_escaper\cpp-string_utils-relaxed_escaper.vcxproj">
       <Project>{81697B25-44BA-8BC7-5E66-2708E5669C60}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\text_processing\dictionary\idl\text_processing-dictionary-idl.vcxproj">
+      <Project>{7B00433B-7B5A-D6AC-6349-8D1B4ADF1F22}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\json\common\library-json-common.vcxproj">
       <Project>{3B322F11-1D2A-AEFE-BC14-4F74683E14DB}</Project>
     </ProjectReference>
@@ -178,9 +181,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\json\writer\library-json-writer.vcxproj">
       <Project>{C27A0E65-4FDF-D0F0-5127-62A23E33B196}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\text_processing\dictionary\idl\text_processing-dictionary-idl.vcxproj">
-      <Project>{939B289A-1787-7277-2983-EC29354F300F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
       <Project>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</Project>

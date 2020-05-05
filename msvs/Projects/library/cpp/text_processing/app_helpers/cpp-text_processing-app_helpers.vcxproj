@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{FF14E7A5-1CC9-9D01-3998-5EF437196723}</ProjectGUID>
+    <ProjectGUID>{09B40915-9FA4-8249-87CD-4535A90064D1}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-text_processing-app_helpers</ProjectName>
+    <ProjectName>cpp-text_processing-app_helpers</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-text_processing-app_helpers</TargetName>
+    <TargetName>cpp-text_processing-app_helpers</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\text_processing\app_helpers\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\FF14E7A5-1CC9-9D01-3998-5EF437196723\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\text_processing\app_helpers\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\09B40915-9FA4-8249-87CD-4535A90064D1\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\text_processing\app_helpers\app_helpers.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\text_processing\app_helpers\app_helpers.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\text_processing\app_helpers\app_helpers.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\text_processing\app_helpers\app_helpers.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -114,6 +114,15 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\relaxed_escaper\cpp-string_utils-relaxed_escaper.vcxproj">
       <Project>{81697B25-44BA-8BC7-5E66-2708E5669C60}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\text_processing\dictionary\cpp-text_processing-dictionary.vcxproj">
+      <Project>{73E0C414-7306-5CAF-23A6-CCF99172A94D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\text_processing\dictionary\idl\text_processing-dictionary-idl.vcxproj">
+      <Project>{7B00433B-7B5A-D6AC-6349-8D1B4ADF1F22}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\text_processing\tokenizer\cpp-text_processing-tokenizer.vcxproj">
+      <Project>{800E8F90-0E45-1435-7ACC-B0DA06C3FAC7}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\tokenizer\library-cpp-tokenizer.vcxproj">
       <Project>{033EAD89-E9BA-0341-D614-91C40D7F543A}</Project>
     </ProjectReference>
@@ -143,15 +152,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
       <Project>{F7622D70-2702-4C7E-04DA-52DC56DF911E}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\text_processing\dictionary\idl\text_processing-dictionary-idl.vcxproj">
-      <Project>{939B289A-1787-7277-2983-EC29354F300F}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\text_processing\dictionary\library-text_processing-dictionary.vcxproj">
-      <Project>{20E66110-58A2-0F4C-801A-002FF362F425}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\text_processing\tokenizer\library-text_processing-tokenizer.vcxproj">
-      <Project>{A245D45B-FF5F-420A-C3B0-FC67CC066227}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
       <Project>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</Project>
