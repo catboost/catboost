@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{3EBC1D40-BAA8-5D8A-8385-635FD3E56F31}</ProjectGUID>
+    <ProjectGUID>{A1F1A734-F59D-4E33-5DA7-50F82F00A422}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-string_utils-scan</ProjectName>
+    <ProjectName>cpp-string_utils-csv</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-string_utils-scan</TargetName>
+    <TargetName>cpp-string_utils-csv</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\string_utils\scan\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\3EBC1D40-BAA8-5D8A-8385-635FD3E56F31\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\string_utils\csv\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\A1F1A734-F59D-4E33-5DA7-50F82F00A422\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\string_utils\scan\scan.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\string_utils\scan\scan.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\string_utils\csv\csv.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\string_utils\csv\csv.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

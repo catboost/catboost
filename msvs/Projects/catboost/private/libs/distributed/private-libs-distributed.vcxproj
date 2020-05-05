@@ -410,8 +410,17 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\base64\cpp-string_utils-base64.vcxproj">
       <Project>{A4764222-1478-DE04-CC5B-2369096E96BC}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\csv\cpp-string_utils-csv.vcxproj">
+      <Project>{A1F1A734-F59D-4E33-5DA7-50F82F00A422}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\quote\cpp-string_utils-quote.vcxproj">
       <Project>{722B6806-67C9-1169-6ED9-AF9509BBCB17}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\relaxed_escaper\cpp-string_utils-relaxed_escaper.vcxproj">
+      <Project>{81697B25-44BA-8BC7-5E66-2708E5669C60}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\scan\cpp-string_utils-scan.vcxproj">
+      <Project>{BCBC0614-8494-9BA1-E424-1B58DC96EBF6}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\url\cpp-string_utils-url.vcxproj">
       <Project>{F67E22D5-1471-725B-CCA8-05EF8A940282}</Project>
@@ -511,15 +520,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\statistics\library-statistics.vcxproj">
       <Project>{898C3811-AD77-869C-24DC-EF6A89FA8399}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\csv\library-string_utils-csv.vcxproj">
-      <Project>{31268EC0-4867-4A36-6D41-58F80A28A7F3}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\relaxed_escaper\library-string_utils-relaxed_escaper.vcxproj">
-      <Project>{91423FEC-8B3D-547B-2674-3740D83114B5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\scan\library-string_utils-scan.vcxproj">
-      <Project>{3EBC1D40-BAA8-5D8A-8385-635FD3E56F31}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\svnversion\library-svnversion.vcxproj">
       <Project>{EB1297E8-310F-2F45-45A8-54D412024564}</Project>
