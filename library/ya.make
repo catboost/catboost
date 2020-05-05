@@ -76,7 +76,6 @@ RECURSE(
     resource/ut
     statistics
     statistics/ut
-    string_utils
     svnversion
     svnversion/java
     testing

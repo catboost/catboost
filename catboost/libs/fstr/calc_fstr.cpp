@@ -223,7 +223,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
             mxTreeWeightsPresentation
         );
     } else {
-        effect = CalcEffect(
+        effect = CalcEffectForNonObliviousModel(
             model,
             featureToIdx,
             weights
@@ -549,8 +549,6 @@ TVector<double> CalcRegularFeatureEffect(
 }
 
 TVector<TInternalFeatureInteraction> CalcInternalFeatureInteraction(const TFullModel& model) {
-    // TODO(eermsihkina): Support interaction feature importance for non symmetric trees. MLTOOLS-4864
-    CB_ENSURE(model.IsOblivious(), "Interaction feature importance are not supported for non symmetric trees");
     if (model.GetTreeCount() == 0) {
         return TVector<TInternalFeatureInteraction>();
     }
@@ -558,9 +556,19 @@ TVector<TInternalFeatureInteraction> CalcInternalFeatureInteraction(const TFullM
 
     TVector<TFeature> features;
     THashMap<TFeature, int, TFeatureHash> featureToIdx = GetFeatureToIdxMap(model, &features);
-    TVector<TMxTree> trees = BuildTrees(featureToIdx, model);
 
-    TVector<TFeaturePairInteractionInfo> pairwiseEffect = CalcMostInteractingFeatures(trees);
+    TVector<TFeaturePairInteractionInfo> pairwiseEffect;
+
+    if(model.IsOblivious()) {
+        TVector<TMxTree> trees = BuildTrees(featureToIdx, model);
+        pairwiseEffect = CalcMostInteractingFeatures(trees);
+    } else {
+        pairwiseEffect = CalcMostInteractingFeatures(
+            model,
+            featureToIdx
+        );
+    }
+
     TVector<TInternalFeatureInteraction> result;
     result.reserve(pairwiseEffect.size());
     for (const auto& efffect : pairwiseEffect) {

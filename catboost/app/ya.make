@@ -40,7 +40,7 @@ PEERDIR(
     catboost/private/libs/options
     catboost/private/libs/target
     catboost/libs/train_lib
-    library/getopt/small
+    library/cpp/getopt/small
     library/cpp/grid_creator
     library/json
     library/logger

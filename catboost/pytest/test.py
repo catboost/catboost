@@ -2561,11 +2561,6 @@ def do_test_fstr(
         '--fstr-type', fstr_type
     )
 
-    if fstr_type in ['Interaction', 'InternalInteraction'] and grow_policy != 'SymmetricTree':
-        with pytest.raises(yatest.common.ExecutionError):
-            yatest.common.execute(fstr_cmd)
-        return
-
     if normalize:
         make_model_normalized(model_path)
         if not(

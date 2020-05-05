@@ -12,7 +12,7 @@
 #include <catboost/private/libs/options/output_file_options.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 
-#include <library/getopt/small/last_getopt.h>
+#include <library/cpp/getopt/small/last_getopt.h>
 #include <library/cpp/grid_creator/binarization.h>
 #include <library/json/json_reader.h>
 #include <library/logger/log.h>

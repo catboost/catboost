@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{91423FEC-8B3D-547B-2674-3740D83114B5}</ProjectGUID>
+    <ProjectGUID>{81697B25-44BA-8BC7-5E66-2708E5669C60}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-string_utils-relaxed_escaper</ProjectName>
+    <ProjectName>cpp-string_utils-relaxed_escaper</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-string_utils-relaxed_escaper</TargetName>
+    <TargetName>cpp-string_utils-relaxed_escaper</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\string_utils\relaxed_escaper\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\91423FEC-8B3D-547B-2674-3740D83114B5\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\string_utils\relaxed_escaper\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\81697B25-44BA-8BC7-5E66-2708E5669C60\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\string_utils\relaxed_escaper\relaxed_escaper.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\string_utils\relaxed_escaper\relaxed_escaper.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\string_utils\relaxed_escaper\relaxed_escaper.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\string_utils\relaxed_escaper\relaxed_escaper.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

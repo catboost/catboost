@@ -5,7 +5,7 @@
 #include <util/memory/pool.h>
 #include <util/string/util.h>
 
-#include <library/string_utils/relaxed_escaper/relaxed_escaper.h>
+#include <library/cpp/string_utils/relaxed_escaper/relaxed_escaper.h>
 
 namespace NJson {
     struct TRewritableOut {

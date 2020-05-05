@@ -7,7 +7,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/string_utils/csv
+    library/cpp/string_utils/csv
 )
 
 END()

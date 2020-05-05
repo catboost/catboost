@@ -14,7 +14,7 @@ PEERDIR(
     library/json/common
     library/json/fast_sax
     library/json/writer
-    library/string_utils/relaxed_escaper
+    library/cpp/string_utils/relaxed_escaper
 )
 
 END()

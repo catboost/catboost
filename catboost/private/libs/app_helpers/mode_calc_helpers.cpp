@@ -8,7 +8,7 @@
 #include <catboost/private/libs/labels/external_label_helper.h>
 #include <catboost/libs/logging/logging.h>
 
-#include <library/getopt/small/last_getopt.h>
+#include <library/cpp/getopt/small/last_getopt.h>
 
 #include <util/string/cast.h>
 #include <util/string/split.h>
