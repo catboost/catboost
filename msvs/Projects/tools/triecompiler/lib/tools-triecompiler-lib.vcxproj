@@ -99,11 +99,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\comptrie\library-comptrie.vcxproj">
       <Project>{76943172-A17F-362F-8E2E-D4DEC653984D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\containers\compact_vector\library-containers-compact_vector.vcxproj">
-      <Project>{047C7A50-2D9A-391C-C42D-8B39A296D2D2}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\colorizer\library-cpp-colorizer.vcxproj">
       <Project>{78881F22-8136-23DF-843E-58AA6DB6D337}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\compact_vector\cpp-containers-compact_vector.vcxproj">
+      <Project>{4394134A-0B20-E6EA-3626-1FBF34227AFB}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\getopt\small\cpp-getopt-small.vcxproj">
       <Project>{58379026-CFDC-70D1-4FC0-7A73F77E31B5}</Project>

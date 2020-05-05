@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{F197135F-A8DC-82F1-30DC-370483845AFC}</ProjectGUID>
+    <ProjectGUID>{0B2B4553-9DB0-C282-EDA5-C6116BB409E0}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>containers-flat_hash-lib</ProjectName>
+    <ProjectName>cpp-containers-ring_buffer</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>containers-flat_hash-lib</TargetName>
+    <TargetName>cpp-containers-ring_buffer</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\containers\flat_hash\lib\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\F197135F-A8DC-82F1-30DC-370483845AFC\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\containers\ring_buffer\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\0B2B4553-9DB0-C282-EDA5-C6116BB409E0\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,28 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\containers\flat_hash\lib\containers.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\containers\flat_hash\lib\expanders.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\containers\flat_hash\lib\iterator.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\containers\flat_hash\lib\map.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\containers\flat_hash\lib\probings.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\containers\flat_hash\lib\set.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\containers\flat_hash\lib\size_fitters.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\containers\flat_hash\lib\table.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\containers\flat_hash\lib\value_markers.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\containers\flat_hash\lib\concepts\container.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\containers\flat_hash\lib\concepts\iterator.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\containers\flat_hash\lib\concepts\size_fitter.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\containers\flat_hash\lib\concepts\value_marker.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\containers\flat_hash\lib\containers.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\containers\flat_hash\lib\expanders.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\containers\flat_hash\lib\iterator.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\containers\flat_hash\lib\map.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\containers\flat_hash\lib\probings.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\containers\flat_hash\lib\set.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\containers\flat_hash\lib\size_fitters.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\containers\flat_hash\lib\table.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\containers\flat_hash\lib\value_markers.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\containers\ring_buffer\ring_buffer.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\containers\ring_buffer\ring_buffer.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

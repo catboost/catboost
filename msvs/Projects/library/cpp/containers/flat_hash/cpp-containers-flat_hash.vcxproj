@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{45F2062A-3F31-B7B8-9501-F0C86DB74515}</ProjectGUID>
+    <ProjectGUID>{04DA2786-9E81-9095-5FF3-4808684F4945}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-containers-dense_hash</ProjectName>
+    <ProjectName>cpp-containers-flat_hash</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-containers-dense_hash</TargetName>
+    <TargetName>cpp-containers-flat_hash</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\containers\dense_hash\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\45F2062A-3F31-B7B8-9501-F0C86DB74515\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\containers\flat_hash\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\04DA2786-9E81-9095-5FF3-4808684F4945\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,9 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\containers\dense_hash\dense_hash.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\containers\dense_hash\dense_hash.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\containers\dense_hash\fwd.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\containers\flat_hash\flat_hash.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\containers\flat_hash\flat_hash.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -96,6 +95,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\flat_hash\lib\containers-flat_hash-lib.vcxproj">
+      <Project>{03219428-83B6-7413-0454-07C8A8ABA708}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>

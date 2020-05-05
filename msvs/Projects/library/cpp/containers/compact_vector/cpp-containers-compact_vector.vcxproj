@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{F2373D22-DBF0-B7E4-B028-8BF674973AED}</ProjectGUID>
+    <ProjectGUID>{4394134A-0B20-E6EA-3626-1FBF34227AFB}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-containers-paged_vector</ProjectName>
+    <ProjectName>cpp-containers-compact_vector</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-containers-paged_vector</TargetName>
+    <TargetName>cpp-containers-compact_vector</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\containers\paged_vector\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\F2373D22-DBF0-B7E4-B028-8BF674973AED\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\containers\compact_vector\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\4394134A-0B20-E6EA-3626-1FBF34227AFB\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\containers\paged_vector\paged_vector.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\containers\paged_vector\paged_vector.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\containers\compact_vector\compact_vector.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\containers\compact_vector\compact_vector.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

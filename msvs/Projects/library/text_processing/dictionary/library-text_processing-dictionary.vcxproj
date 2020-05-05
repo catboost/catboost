@@ -158,11 +158,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\containers\flat_hash\lib\containers-flat_hash-lib.vcxproj">
-      <Project>{F197135F-A8DC-82F1-30DC-370483845AFC}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\flat_hash\cpp-containers-flat_hash.vcxproj">
+      <Project>{04DA2786-9E81-9095-5FF3-4808684F4945}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\containers\flat_hash\library-containers-flat_hash.vcxproj">
-      <Project>{5FD588BE-C0D3-668F-80A4-E122B11CEE84}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\flat_hash\lib\containers-flat_hash-lib.vcxproj">
+      <Project>{03219428-83B6-7413-0454-07C8A8ABA708}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\relaxed_escaper\cpp-string_utils-relaxed_escaper.vcxproj">
       <Project>{81697B25-44BA-8BC7-5E66-2708E5669C60}</Project>

@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{53AA6AAE-E388-987D-9719-F611E55F76E8}</ProjectGUID>
+    <ProjectGUID>{DFCB4CF2-CF97-86C5-B608-DF9B9A23EFE1}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-containers-intrusive_rb_tree</ProjectName>
+    <ProjectName>cpp-containers-dense_hash</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-containers-intrusive_rb_tree</TargetName>
+    <TargetName>cpp-containers-dense_hash</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\containers\intrusive_rb_tree\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\53AA6AAE-E388-987D-9719-F611E55F76E8\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\containers\dense_hash\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\DFCB4CF2-CF97-86C5-B608-DF9B9A23EFE1\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\containers\intrusive_rb_tree\rb_tree.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\containers\intrusive_rb_tree\rb_tree.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\containers\dense_hash\dense_hash.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\containers\dense_hash\dense_hash.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\containers\dense_hash\fwd.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

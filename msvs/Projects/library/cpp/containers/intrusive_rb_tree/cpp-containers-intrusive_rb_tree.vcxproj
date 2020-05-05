@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{047C7A50-2D9A-391C-C42D-8B39A296D2D2}</ProjectGUID>
+    <ProjectGUID>{B43F59AA-F4C6-C980-DC64-0ED89BEB2617}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-containers-compact_vector</ProjectName>
+    <ProjectName>cpp-containers-intrusive_rb_tree</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-containers-compact_vector</TargetName>
+    <TargetName>cpp-containers-intrusive_rb_tree</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\containers\compact_vector\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\047C7A50-2D9A-391C-C42D-8B39A296D2D2\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\containers\intrusive_rb_tree\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\B43F59AA-F4C6-C980-DC64-0ED89BEB2617\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\containers\compact_vector\compact_vector.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\containers\compact_vector\compact_vector.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\containers\intrusive_rb_tree\rb_tree.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\containers\intrusive_rb_tree\rb_tree.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
