@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{EBC3626B-F273-EB61-E7BE-9BBC217D8FB4}</ProjectGUID>
+    <ProjectGUID>{3318B551-DF57-9A14-A9FD-139582C56800}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-openssl-method</ProjectName>
+    <ProjectName>cpp-openssl-holders</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-openssl-method</TargetName>
+    <TargetName>cpp-openssl-holders</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\openssl\method\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\EBC3626B-F273-EB61-E7BE-9BBC217D8FB4\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\openssl\holders\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\3318B551-DF57-9A14-A9FD-139582C56800\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\openssl\method\io.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\openssl\method\io.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\openssl\holders\bio.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\openssl\holders\x509_vfy.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\openssl\holders\bio.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\openssl\holders\holder.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\openssl\holders\x509_vfy.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -101,9 +104,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\holders\library-openssl-holders.vcxproj">
-      <Project>{8BD519C9-FE74-64B1-416B-3052CA898BD0}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>

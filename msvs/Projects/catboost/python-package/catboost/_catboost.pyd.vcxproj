@@ -522,6 +522,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\system\cpp-malloc-system.vcxproj">
       <Project>{54C3F326-D733-B490-93B9-EEA3BE28C3A9}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\openssl\holders\cpp-openssl-holders.vcxproj">
+      <Project>{3318B551-DF57-9A14-A9FD-139582C56800}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\openssl\init\cpp-openssl-init.vcxproj">
+      <Project>{73FF335C-FC30-580B-5FC3-48A023DE9936}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\openssl\method\cpp-openssl-method.vcxproj">
+      <Project>{6D02E5A5-8E5A-2F70-0A15-A0EAFD5875F2}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\pop_count\library-cpp-pop_count.vcxproj">
       <Project>{6B557DF5-6D6B-ECE1-B5B5-9CD1B8625387}</Project>
     </ProjectReference>
@@ -632,15 +641,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
       <Project>{F7622D70-2702-4C7E-04DA-52DC56DF911E}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\holders\library-openssl-holders.vcxproj">
-      <Project>{8BD519C9-FE74-64B1-416B-3052CA898BD0}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\init\library-openssl-init.vcxproj">
-      <Project>{0A9ED00A-8390-D6BA-3A2A-7A98AAFFB3E5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\method\library-openssl-method.vcxproj">
-      <Project>{EBC3626B-F273-EB61-E7BE-9BBC217D8FB4}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
       <Project>{2CE71367-048B-26B0-2DAC-CA9BB7D00E76}</Project>

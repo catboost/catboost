@@ -266,6 +266,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\lower_case\cpp-digest-lower_case.vcxproj">
       <Project>{93A05BE8-043A-10FC-0497-840803A20BA0}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\openssl\holders\cpp-openssl-holders.vcxproj">
+      <Project>{3318B551-DF57-9A14-A9FD-139582C56800}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\openssl\init\cpp-openssl-init.vcxproj">
+      <Project>{73FF335C-FC30-580B-5FC3-48A023DE9936}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\openssl\method\cpp-openssl-method.vcxproj">
+      <Project>{6D02E5A5-8E5A-2F70-0A15-A0EAFD5875F2}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\streams\brotli\cpp-streams-brotli.vcxproj">
       <Project>{88BDDF2B-3A41-DF09-EA33-A8354BC1FD2B}</Project>
     </ProjectReference>
@@ -304,15 +313,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\netliba\v6\library-netliba-v6.vcxproj">
       <Project>{CF99E3A7-16F9-8EA9-027D-B9629FC7C3CD}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\holders\library-openssl-holders.vcxproj">
-      <Project>{8BD519C9-FE74-64B1-416B-3052CA898BD0}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\init\library-openssl-init.vcxproj">
-      <Project>{0A9ED00A-8390-D6BA-3A2A-7A98AAFFB3E5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\method\library-openssl-method.vcxproj">
-      <Project>{EBC3626B-F273-EB61-E7BE-9BBC217D8FB4}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\atomic\library-threading-atomic.vcxproj">
       <Project>{DE3D7773-D32D-01F5-FAE1-0EBED7524579}</Project>
