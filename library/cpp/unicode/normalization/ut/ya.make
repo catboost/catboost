@@ -3,7 +3,7 @@ UNITTEST()
 
 
 PEERDIR(
-    library/unicode/normalization
+    library/cpp/unicode/normalization
 )
 
 SRCS(

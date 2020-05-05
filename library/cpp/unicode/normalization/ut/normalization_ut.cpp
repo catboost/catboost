@@ -2,7 +2,7 @@
 
 #include <util/charset/wide.h>
 
-#include <library/unicode/normalization/normalization.h>
+#include <library/cpp/unicode/normalization/normalization.h>
 
 Y_UNIT_TEST_SUITE(TUnicodeNormalizationTest) {
     template <NUnicode::ENormalization NormType>

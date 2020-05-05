@@ -1,4 +1,4 @@
-#include <library/unicode/normalization/decomposition_table.h>
+#include <library/cpp/unicode/normalization/decomposition_table.h>
 
 namespace { namespace NCannonDecompositionTableGenerated {
     using TV = const NUnicode::NPrivate::TDecompositionTable::TStored;

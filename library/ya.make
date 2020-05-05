@@ -83,7 +83,6 @@ RECURSE(
     token/serialization
     token/serialization/ut
     token/ut
-    unicode
     unittest
     unittest/fat
     unittest/main

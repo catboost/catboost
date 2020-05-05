@@ -47,6 +47,7 @@ RECURSE(
     threading
     tokenizer
     tokenizer/ut
+    unicode
     yson
     yson/node
     yson/node/pybind

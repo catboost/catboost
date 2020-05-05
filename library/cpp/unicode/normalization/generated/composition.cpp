@@ -1,4 +1,4 @@
-#include <library/unicode/normalization/normalization.h>
+#include <library/cpp/unicode/normalization/normalization.h>
 
 const NUnicode::NPrivate::TComposition::TRawData NUnicode::NPrivate::TComposition::RawData[] = {
     { 0x41, 0x300, 0xC0 },
