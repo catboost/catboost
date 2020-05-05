@@ -7,7 +7,7 @@
 #include <catboost/libs/helpers/mem_usage.h>
 
 #include <library/object_factory/object_factory.h>
-#include <library/string_utils/csv/csv.h>
+#include <library/cpp/string_utils/csv/csv.h>
 
 #include <util/generic/strbuf.h>
 #include <util/generic/vector.h>

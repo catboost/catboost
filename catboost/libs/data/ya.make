@@ -47,7 +47,7 @@ PEERDIR(
     library/dbg_output
     library/json
     library/object_factory
-    library/string_utils/csv
+    library/cpp/string_utils/csv
     library/cpp/threading/future
     library/threading/local_executor
 
