@@ -49,6 +49,7 @@ RECURSE(
     string_utils
     terminate_handler
     terminate_handler/sample
+    text_processing
     threading
     tokenizer
     tokenizer/ut

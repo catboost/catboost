@@ -17,7 +17,7 @@ PEERDIR(
 
 IF (NOT CATBOOST_OPENSOURCE AND NOT NO_YANDEX_LEMMER)
     PEERDIR(
-        library/text_processing/yandex_specific_lemmer
+        library/cpp/text_processing/yandex_specific_lemmer
     )
 ENDIF()
 

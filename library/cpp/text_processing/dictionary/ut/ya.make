@@ -7,7 +7,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/text_processing/dictionary
+    library/cpp/text_processing/dictionary
     library/threading/local_executor
     library/unittest
 )

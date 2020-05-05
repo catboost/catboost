@@ -9,7 +9,7 @@
 #include <contrib/libs/flatbuffers/include/flatbuffers/flatbuffers.h>
 
 #include <library/cpp/containers/flat_hash/flat_hash.h>
-#include <library/text_processing/dictionary/idl/dictionary_meta_info.fbs.h>
+#include <library/cpp/text_processing/dictionary/idl/dictionary_meta_info.fbs.h>
 
 #include <util/digest/multi.h>
 #include <util/digest/murmur.h>

@@ -15,7 +15,7 @@ cdef extern from "library/langs/langs.h" nogil:
         pass
 
 
-cdef extern from "library/text_processing/tokenizer/options.h" namespace "NTextProcessing::NTokenizer" nogil:
+cdef extern from "library/cpp/text_processing/tokenizer/options.h" namespace "NTextProcessing::NTokenizer" nogil:
     cdef cppclass ETokenType:
         pass
     cdef cppclass ESeparatorType:
@@ -39,7 +39,7 @@ cdef extern from "library/text_processing/tokenizer/options.h" namespace "NTextP
         TVector[ELanguage] Languages
 
 
-cdef extern from "library/text_processing/tokenizer/tokenizer.h"  namespace "NTextProcessing::NTokenizer" nogil:
+cdef extern from "library/cpp/text_processing/tokenizer/tokenizer.h"  namespace "NTextProcessing::NTokenizer" nogil:
     cdef cppclass TTokenizer:
         TTokenizer() except +
         TTokenizer(TTokenizerOptions options) except +

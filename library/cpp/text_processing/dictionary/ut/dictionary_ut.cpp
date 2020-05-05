@@ -1,7 +1,7 @@
-#include <library/text_processing/dictionary/bpe_builder.h>
-#include <library/text_processing/dictionary/dictionary_builder.h>
-#include <library/text_processing/dictionary/frequency_based_dictionary.h>
-#include <library/text_processing/dictionary/mmap_frequency_based_dictionary.h>
+#include <library/cpp/text_processing/dictionary/bpe_builder.h>
+#include <library/cpp/text_processing/dictionary/dictionary_builder.h>
+#include <library/cpp/text_processing/dictionary/frequency_based_dictionary.h>
+#include <library/cpp/text_processing/dictionary/mmap_frequency_based_dictionary.h>
 
 #include <library/threading/local_executor/local_executor.h>
 #include <library/unittest/registar.h>

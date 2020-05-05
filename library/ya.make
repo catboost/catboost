@@ -72,7 +72,6 @@ RECURSE(
     svnversion
     svnversion/java
     testing
-    text_processing
     threading
     token
     token/serialization

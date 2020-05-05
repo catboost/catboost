@@ -4,7 +4,7 @@
 
 #include <contrib/libs/flatbuffers/include/flatbuffers/flatbuffers.h>
 
-#include <library/text_processing/dictionary/idl/dictionary_meta_info.fbs.h>
+#include <library/cpp/text_processing/dictionary/idl/dictionary_meta_info.fbs.h>
 
 #include <util/generic/string.h>
 

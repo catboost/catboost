@@ -45,7 +45,7 @@ PEERDIR(
     library/json
     library/logger
     library/svnversion
-    library/text_processing/dictionary
+    library/cpp/text_processing/dictionary
     library/threading/local_executor
 )
 

@@ -16,7 +16,7 @@
 #include <library/cpp/grid_creator/binarization.h>
 #include <library/json/json_reader.h>
 #include <library/logger/log.h>
-#include <library/text_processing/dictionary/options.h>
+#include <library/cpp/text_processing/dictionary/options.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/serialized_enum.h>

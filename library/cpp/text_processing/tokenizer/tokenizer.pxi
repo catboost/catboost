@@ -14,7 +14,7 @@ from util.generic.ptr cimport THolder, MakeHolder
 from util.generic.vector cimport TVector
 from util.string.cast cimport FromString, ToString
 
-from library.text_processing.tokenizer.tokenizer cimport (
+from library.cpp.text_processing.tokenizer.tokenizer cimport (
     ETokenType, ESeparatorType, ESubTokensPolicy, ETokenProcessPolicy, ELanguage, TTokenizer, TTokenizerOptions)
 
 

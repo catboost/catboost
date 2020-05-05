@@ -23,7 +23,7 @@ cdef extern from "util/stream/file.h" nogil:
         TFileOutput(...) except +
 
 
-cdef extern from "library/text_processing/dictionary/types.h" namespace "NTextProcessing::NDictionary" nogil:
+cdef extern from "library/cpp/text_processing/dictionary/types.h" namespace "NTextProcessing::NDictionary" nogil:
     cdef cppclass EDictionaryType:
         bool_t operator==(EDictionaryType)
     cdef EDictionaryType EDictionaryType_FrequencyBased "NTextProcessing::NDictionary::EDictionaryType::FrequencyBased"
@@ -44,7 +44,7 @@ cdef extern from "library/text_processing/dictionary/types.h" namespace "NTextPr
     ctypedef ui32 TTokenId
 
 
-cdef extern from "library/text_processing/dictionary/dictionary.h" namespace "NTextProcessing::NDictionary" nogil:
+cdef extern from "library/cpp/text_processing/dictionary/dictionary.h" namespace "NTextProcessing::NDictionary" nogil:
     cdef cppclass IDictionary:
         TTokenId Apply(TStringBuf token) except +
 
@@ -88,19 +88,19 @@ cdef extern from "library/text_processing/dictionary/dictionary.h" namespace "NT
         void Save(IOutputStream* stream) except +
 
 
-cdef extern from "library/text_processing/dictionary/frequency_based_dictionary.h" namespace "NTextProcessing::NDictionary" nogil:
+cdef extern from "library/cpp/text_processing/dictionary/frequency_based_dictionary.h" namespace "NTextProcessing::NDictionary" nogil:
     cdef cppclass TDictionary(IDictionary):
         TDictionary(...) except +
 
 
-cdef extern from "library/text_processing/dictionary/bpe_dictionary.h" namespace "NTextProcessing::NDictionary" nogil:
+cdef extern from "library/cpp/text_processing/dictionary/bpe_dictionary.h" namespace "NTextProcessing::NDictionary" nogil:
     cdef cppclass TBpeDictionary(IDictionary):
         TBpeDictionary(...) except +
         void Load(const TString& dictionaryPath, const TString& bpePath) except +
         void Save(const TString& dictionaryPath, const TString& bpePath) except +
 
 
-cdef extern from "library/text_processing/dictionary/options.h" namespace "NTextProcessing::NDictionary" nogil:
+cdef extern from "library/cpp/text_processing/dictionary/options.h" namespace "NTextProcessing::NDictionary" nogil:
     cdef cppclass TDictionaryOptions:
         ETokenLevelType TokenLevelType
         ui32 GramOrder
@@ -118,7 +118,7 @@ cdef extern from "library/text_processing/dictionary/options.h" namespace "NText
         bool_t SkipUnknown
 
 
-cdef extern from "library/text_processing/dictionary/dictionary_builder.h" namespace "NTextProcessing::NDictionary" nogil:
+cdef extern from "library/cpp/text_processing/dictionary/dictionary_builder.h" namespace "NTextProcessing::NDictionary" nogil:
     cdef cppclass TDictionaryBuilder:
         TDictionaryBuilder(
             const TDictionaryBuilderOptions& dictionaryBuilderOptions,

@@ -1,9 +1,9 @@
 #include "app_helpers.h"
 
-#include <library/text_processing/dictionary/bpe_builder.h>
-#include <library/text_processing/dictionary/dictionary_builder.h>
-#include <library/text_processing/dictionary/options.h>
-#include <library/text_processing/tokenizer/tokenizer.h>
+#include <library/cpp/text_processing/dictionary/bpe_builder.h>
+#include <library/cpp/text_processing/dictionary/dictionary_builder.h>
+#include <library/cpp/text_processing/dictionary/options.h>
+#include <library/cpp/text_processing/tokenizer/tokenizer.h>
 #include <library/cpp/containers/flat_hash/flat_hash.h>
 
 #include <util/generic/xrange.h>
