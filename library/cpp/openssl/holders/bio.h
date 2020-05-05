@@ -2,7 +2,7 @@
 
 #include <contrib/libs/openssl/include/openssl/bio.h>
 
-#include <library/openssl/holders/holder.h>
+#include <library/cpp/openssl/holders/holder.h>
 
 namespace NOpenSSL {
 

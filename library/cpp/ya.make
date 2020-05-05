@@ -35,6 +35,7 @@ RECURSE(
     lfalloc/dbg_info
     lfalloc/yt
     on_disk
+    openssl
     pop_count
     pop_count/benchmark
     pop_count/ut

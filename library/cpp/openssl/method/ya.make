@@ -4,7 +4,7 @@ LIBRARY()
 
 PEERDIR(
     contrib/libs/openssl
-    library/openssl/holders
+    library/cpp/openssl/holders
 )
 
 SRCS(

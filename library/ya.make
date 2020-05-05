@@ -65,7 +65,6 @@ RECURSE(
     netliba
     object_factory
     object_factory/ut
-    openssl
     overloaded
     overloaded/ut
     packers

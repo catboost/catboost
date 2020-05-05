@@ -1,4 +1,4 @@
-UNITTEST_FOR(library/openssl/holders)
+UNITTEST_FOR(library/cpp/openssl/holders)
 
 
 

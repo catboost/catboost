@@ -13,8 +13,8 @@ PEERDIR(
     library/http/push_parser
     library/neh/asio
     library/netliba/v6
-    library/openssl/init
-    library/openssl/method
+    library/cpp/openssl/init
+    library/cpp/openssl/method
     library/threading/atomic
     library/threading/thread_local
 )
