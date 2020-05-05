@@ -499,6 +499,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\dot_product\library-cpp-dot_product.vcxproj">
       <Project>{BAB48646-C601-88C8-A272-6E1619FA017C}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\fast_log\library-cpp-fast_log.vcxproj">
+      <Project>{84BB2BD6-98FF-448B-165A-0B95E63F4208}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\getopt\small\cpp-getopt-small.vcxproj">
       <Project>{58379026-CFDC-70D1-4FC0-7A73F77E31B5}</Project>
     </ProjectReference>
@@ -579,9 +582,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\fast_exp\library-fast_exp.vcxproj">
       <Project>{E0EC7772-5C0F-6407-290B-3900C3FF324B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\fast_log\library-fast_log.vcxproj">
-      <Project>{B07A4621-4CF7-3047-5301-F164A4A90693}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\http\io\library-http-io.vcxproj">
       <Project>{7AAD42F7-318F-829E-0019-82746753CD46}</Project>

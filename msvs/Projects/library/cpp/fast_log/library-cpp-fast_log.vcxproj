@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{B07A4621-4CF7-3047-5301-F164A4A90693}</ProjectGUID>
+    <ProjectGUID>{84BB2BD6-98FF-448B-165A-0B95E63F4208}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-fast_log</ProjectName>
+    <ProjectName>library-cpp-fast_log</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-fast_log</TargetName>
+    <TargetName>library-cpp-fast_log</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\fast_log\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\B07A4621-4CF7-3047-5301-F164A4A90693\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\fast_log\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\84BB2BD6-98FF-448B-165A-0B95E63F4208\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\fast_log\fast_log.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\fast_log\fast_log.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\fast_log\fast_log.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\fast_log\fast_log.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
