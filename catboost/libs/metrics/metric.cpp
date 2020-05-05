@@ -78,7 +78,11 @@ TString TMetric::GetDescription() const {
     auto descriptionParamsCopy = DescriptionParams;
     descriptionParamsCopy.paramsMap.erase("hints");
     if (UseWeights.IsUserDefined()) {
+        bool hasKey = descriptionParamsCopy.paramsMap.contains(UseWeights.GetName());
         descriptionParamsCopy.paramsMap[UseWeights.GetName()] = UseWeights.Get() ? "true" : "false";
+        if (!hasKey) {
+            descriptionParamsCopy.userSpecifiedKeyOrder.push_back(UseWeights.GetName());
+        }
     }
     return BuildDescriptionFromParams(LossFunction, descriptionParamsCopy);
 }
