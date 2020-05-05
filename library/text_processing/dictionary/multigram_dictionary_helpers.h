@@ -2,7 +2,7 @@
 
 #include "types.h"
 
-#include <library/containers/flat_hash/flat_hash.h>
+#include <library/cpp/containers/flat_hash/flat_hash.h>
 
 #include <util/generic/string.h>
 

@@ -1,7 +1,7 @@
 #include "multiclient.h"
 #include "utils.h"
 
-#include <library/containers/intrusive_rb_tree/rb_tree.h>
+#include <library/cpp/containers/intrusive_rb_tree/rb_tree.h>
 
 #include <atomic>
 

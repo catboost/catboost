@@ -71,7 +71,7 @@ PEERDIR(
     catboost/libs/overfitting_detector
     library/binsaver
     library/cpp/containers/2d_array
-    library/containers/dense_hash
+    library/cpp/containers/dense_hash
     library/cpp/containers/stack_vector
     library/cpp/digest/crc32c
     library/cpp/digest/md5

@@ -4,7 +4,7 @@ LIBRARY()
 
 PEERDIR(
     contrib/libs/openssl
-    library/containers/intrusive_rb_tree
+    library/cpp/containers/intrusive_rb_tree
     library/cpp/coroutine/engine
     library/cpp/coroutine/listener
     library/dns

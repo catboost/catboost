@@ -31,7 +31,7 @@ PEERDIR(
     catboost/private/libs/options
     contrib/libs/flatbuffers
     library/binsaver
-    library/containers/dense_hash
+    library/cpp/containers/dense_hash
     library/dbg_output
     library/fast_exp
     library/json

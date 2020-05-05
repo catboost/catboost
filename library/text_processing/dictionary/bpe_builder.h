@@ -4,7 +4,7 @@
 #include "bpe_helpers.h"
 #include "frequency_based_dictionary.h"
 
-#include <library/containers/heap_dict/heap_dict.h>
+#include <library/cpp/containers/heap_dict/heap_dict.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/fwd.h>

@@ -2,7 +2,7 @@
 #include "bpe_helpers.h"
 #include "serialization_helpers.h"
 
-#include <library/containers/dense_hash/dense_hash.h>
+#include <library/cpp/containers/dense_hash/dense_hash.h>
 
 #include <util/digest/murmur.h>
 #include <util/generic/array_ref.h>

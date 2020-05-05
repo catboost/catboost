@@ -2,7 +2,7 @@
 
 #include "feature_calcer.h"
 
-#include <library/containers/dense_hash/dense_hash.h>
+#include <library/cpp/containers/dense_hash/dense_hash.h>
 #include <util/system/types.h>
 #include <util/generic/fwd.h>
 

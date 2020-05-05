@@ -4,7 +4,7 @@
 #include <library/text_processing/dictionary/dictionary_builder.h>
 #include <library/text_processing/dictionary/options.h>
 #include <library/text_processing/tokenizer/tokenizer.h>
-#include <library/containers/flat_hash/flat_hash.h>
+#include <library/cpp/containers/flat_hash/flat_hash.h>
 
 #include <util/generic/xrange.h>
 #include <util/string/join.h>

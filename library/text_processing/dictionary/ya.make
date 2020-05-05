@@ -21,7 +21,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/containers/flat_hash
+    library/cpp/containers/flat_hash
     library/json
     library/text_processing/dictionary/idl
     library/threading/local_executor

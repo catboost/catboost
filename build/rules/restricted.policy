@@ -46,7 +46,7 @@ ALLOW extsearch/audio/kernel/recoglib -> contrib/restricted/mpg123
 ALLOW yandex_io -> contrib/restricted/openal
 
 # Allowed subset of abseil is exported via library/
-ALLOW library/containers/absl_flat_hash -> contrib/restricted/abseil-cpp/absl/container
+ALLOW library/cpp/containers/absl_flat_hash -> contrib/restricted/abseil-cpp/absl/container
 
 ALLOW contrib/libs/webrtc -> contrib/restricted/abseil-cpp
 ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp

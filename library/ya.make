@@ -19,7 +19,6 @@ RECURSE(
     comptrie/loader/ut
     comptrie/ut
     comptrie/benchmark
-    containers
     cpp
     dbg_output
     dbg_output/ut
