@@ -218,6 +218,9 @@ MakeRegister(LossInfos,
     Registree(PythonUserDefinedPerObject,
         EMetricAttribute::IsUserDefined
     ),
+    Registree(PythonUserDefinedMultiRegression,
+        EMetricAttribute::IsUserDefined
+    ),
     Registree(UserPerObjMetric,
         EMetricAttribute::IsUserDefined
     ),
@@ -440,7 +443,8 @@ static const TVector<ELossFunction> RegressionObjectives = {
 };
 
 static const TVector<ELossFunction> MultiRegressionObjectives = {
-    ELossFunction::MultiRMSE
+    ELossFunction::MultiRMSE,
+    ELossFunction::PythonUserDefinedMultiRegression
 };
 
 static const TVector<ELossFunction> ClassificationObjectives = {

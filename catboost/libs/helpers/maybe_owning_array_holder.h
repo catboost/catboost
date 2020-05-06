@@ -3,7 +3,7 @@
 #include "resource_holder.h"
 #include "serialization.h"
 
-#include <library/binsaver/bin_saver.h>
+#include <library/cpp/binsaver/bin_saver.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/cast.h>

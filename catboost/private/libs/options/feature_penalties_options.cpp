@@ -68,4 +68,21 @@ namespace NCatboostOptions {
             );
         }
     }
+
+    static void ValidateFeatureSinglePenaltiesOption(const TPerFeaturePenalty& options, const TString& featureName) {
+        for (auto [featureIdx, value] : options) {
+            CB_ENSURE(value >= 0, "Values in " << featureName << " should be nonnegative. Got: " << featureIdx << ":" << value);
+        }
+    }
+
+    void ValidateFeaturePenaltiesOptions(const TFeaturePenaltiesOptions& options) {
+        const TPerFeaturePenalty& featureWeights = options.FeatureWeights.Get();
+        if (!featureWeights.empty()) {
+            ValidateFeatureSinglePenaltiesOption(featureWeights, "feature_weights");
+        }
+        const TPerFeaturePenalty& firstFeatureUsePenalties = options.FirstFeatureUsePenalty.Get();
+        if (!firstFeatureUsePenalties.empty()) {
+            ValidateFeatureSinglePenaltiesOption(firstFeatureUsePenalties, "first_feature_use_penalties");
+        }
+    }
 }

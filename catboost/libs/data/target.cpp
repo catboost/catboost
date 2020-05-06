@@ -4,7 +4,7 @@
 
 #include <catboost/libs/helpers/parallel_tasks.h>
 
-#include <library/binsaver/util_stream_io.h>
+#include <library/cpp/binsaver/util_stream_io.h>
 
 #include <util/generic/buffer.h>
 #include <util/generic/cast.h>

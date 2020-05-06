@@ -3,7 +3,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/private/libs/data_util/exists_checker.h>
 
-#include <library/getopt/small/last_getopt.h>
+#include <library/cpp/getopt/small/last_getopt.h>
 
 #include <util/generic/strbuf.h>
 

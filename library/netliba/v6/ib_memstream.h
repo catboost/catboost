@@ -1,8 +1,8 @@
 #pragma once
 
 #include "ib_mem.h"
-#include <library/binsaver/bin_saver.h>
-#include <library/binsaver/buffered_io.h>
+#include <library/cpp/binsaver/bin_saver.h>
+#include <library/cpp/binsaver/buffered_io.h>
 
 namespace NNetliba {
     class TIBMemStream: public IBinaryStream {

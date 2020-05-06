@@ -5,7 +5,7 @@
 #include "maybe_owning_array_holder.h"
 #include "polymorphic_type_containers.h"
 
-#include <library/binsaver/bin_saver.h>
+#include <library/cpp/binsaver/bin_saver.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>

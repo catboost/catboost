@@ -3,8 +3,8 @@
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/model/model_export/model_exporter.h>
 
-#include <library/getopt/small/last_getopt.h>
-#include <library/getopt/small/last_getopt_support.h>
+#include <library/cpp/getopt/small/last_getopt.h>
+#include <library/cpp/getopt/small/last_getopt_support.h>
 
 #include <util/generic/serialized_enum.h>
 

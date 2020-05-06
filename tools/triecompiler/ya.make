@@ -7,7 +7,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/getopt
+    library/cpp/getopt
     tools/triecompiler/lib
 )
 

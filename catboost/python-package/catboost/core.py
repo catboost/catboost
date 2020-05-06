@@ -83,7 +83,8 @@ _NumpyAwareEncoder = _catboost._NumpyAwareEncoder
 FeaturesData = _catboost.FeaturesData
 _have_equal_features = _catboost._have_equal_features
 SPARSE_MATRIX_TYPES = _catboost.SPARSE_MATRIX_TYPES
-MultiLabelCustomMetric = _catboost.MultiLabelCustomMetric
+MultiRegressionCustomMetric = _catboost.MultiRegressionCustomMetric
+MultiRegressionCustomObjective = _catboost.MultiRegressionCustomObjective
 
 
 from contextlib import contextmanager  # noqa E402

@@ -14,7 +14,7 @@
 #include <catboost/private/libs/options/dataset_reading_params.h>
 #include <catboost/private/libs/data_util/path_with_scheme.h>
 
-#include <library/getopt/small/last_getopt.h>
+#include <library/cpp/getopt/small/last_getopt.h>
 #include <library/json/json_value.h>
 #include <library/threading/local_executor/local_executor.h>
 

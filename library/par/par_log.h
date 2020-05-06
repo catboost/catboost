@@ -1,7 +1,7 @@
 #pragma once
 
 #include <library/logger/global/global.h>
-#include <library/containers/ring_buffer/ring_buffer.h>
+#include <library/cpp/containers/ring_buffer/ring_buffer.h>
 #include <util/string/builder.h>
 #include <util/system/mutex.h>
 #include <util/generic/singleton.h>

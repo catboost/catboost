@@ -30,7 +30,7 @@ SRCS(
 
 PEERDIR(
     catboost/libs/helpers
-    library/binsaver/ut_util
+    library/cpp/binsaver/ut_util
 )
 
 END()

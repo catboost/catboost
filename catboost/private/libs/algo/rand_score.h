@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/binsaver/bin_saver.h>
+#include <library/cpp/binsaver/bin_saver.h>
 
 #include <util/random/fast.h>
 #include <util/random/normal.h>

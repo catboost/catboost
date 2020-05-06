@@ -5,7 +5,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/private/libs/target/binarize_target.h>
 
-#include <library/getopt/small/last_getopt.h>
+#include <library/cpp/getopt/small/last_getopt.h>
 
 #include <util/generic/hash.h>
 #include <util/generic/utility.h>

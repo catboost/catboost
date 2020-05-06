@@ -200,9 +200,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
       <Project>{149CAE2F-67B1-E007-9F05-67247453CE03}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\binsaver\library-binsaver.vcxproj">
-      <Project>{9C4284EC-342F-438F-B12F-EF54AD02C9C0}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\brotli\blockcodecs-codecs-brotli.vcxproj">
       <Project>{2674849B-0330-C348-578B-DB562AA37E65}</Project>
     </ProjectReference>
@@ -239,17 +236,20 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\chromium_trace\library-chromium_trace.vcxproj">
       <Project>{9541389A-C448-428A-BEEE-604F1A02F5EA}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\containers\intrusive_rb_tree\library-containers-intrusive_rb_tree.vcxproj">
-      <Project>{53AA6AAE-E388-987D-9719-F611E55F76E8}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\containers\ring_buffer\library-containers-ring_buffer.vcxproj">
-      <Project>{A2C28480-F7EF-BB91-851E-44FEBBF8B8ED}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\binsaver\library-cpp-binsaver.vcxproj">
+      <Project>{8DDA0983-F11F-A0FE-622D-D04B3B6E3C27}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cgiparam\library-cpp-cgiparam.vcxproj">
       <Project>{7D7BC687-C41D-BE31-16E6-D1EFDED414F9}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\2d_array\cpp-containers-2d_array.vcxproj">
       <Project>{245105A8-ED48-C3D9-83C3-D6894AA984B0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\intrusive_rb_tree\cpp-containers-intrusive_rb_tree.vcxproj">
+      <Project>{B43F59AA-F4C6-C980-DC64-0ED89BEB2617}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\ring_buffer\cpp-containers-ring_buffer.vcxproj">
+      <Project>{0B2B4553-9DB0-C282-EDA5-C6116BB409E0}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\stack_vector\cpp-containers-stack_vector.vcxproj">
       <Project>{F5DBE463-173C-4593-95C1-EC1430946913}</Project>
@@ -266,6 +266,24 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\lower_case\cpp-digest-lower_case.vcxproj">
       <Project>{93A05BE8-043A-10FC-0497-840803A20BA0}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\http\io\cpp-http-io.vcxproj">
+      <Project>{A9F9E508-BAB4-557E-18B4-37EA4B295012}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\http\misc\cpp-http-misc.vcxproj">
+      <Project>{19A72958-3B98-AB8E-6B75-1B4E1D6D1040}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\http\push_parser\cpp-http-push_parser.vcxproj">
+      <Project>{7E318157-ACEB-A54B-85C9-3F458B867B6D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\openssl\holders\cpp-openssl-holders.vcxproj">
+      <Project>{3318B551-DF57-9A14-A9FD-139582C56800}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\openssl\init\cpp-openssl-init.vcxproj">
+      <Project>{73FF335C-FC30-580B-5FC3-48A023DE9936}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\openssl\method\cpp-openssl-method.vcxproj">
+      <Project>{6D02E5A5-8E5A-2F70-0A15-A0EAFD5875F2}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\streams\brotli\cpp-streams-brotli.vcxproj">
       <Project>{88BDDF2B-3A41-DF09-EA33-A8354BC1FD2B}</Project>
     </ProjectReference>
@@ -278,6 +296,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\quote\cpp-string_utils-quote.vcxproj">
       <Project>{722B6806-67C9-1169-6ED9-AF9509BBCB17}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\relaxed_escaper\cpp-string_utils-relaxed_escaper.vcxproj">
+      <Project>{81697B25-44BA-8BC7-5E66-2708E5669C60}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\scan\cpp-string_utils-scan.vcxproj">
+      <Project>{BCBC0614-8494-9BA1-E424-1B58DC96EBF6}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\url\cpp-string_utils-url.vcxproj">
       <Project>{F67E22D5-1471-725B-CCA8-05EF8A940282}</Project>
     </ProjectReference>
@@ -286,15 +310,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\dns\library-dns.vcxproj">
       <Project>{8C356353-67D3-3399-7DA3-792F6D7BF6D5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\http\io\library-http-io.vcxproj">
-      <Project>{7AAD42F7-318F-829E-0019-82746753CD46}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\http\misc\library-http-misc.vcxproj">
-      <Project>{673846BF-CACD-8F51-393A-34F2381DAE0C}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\http\push_parser\library-http-push_parser.vcxproj">
-      <Project>{B05B7FF9-4CE5-696B-D8BB-5C8C4EEDBD2C}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\json\common\library-json-common.vcxproj">
       <Project>{3B322F11-1D2A-AEFE-BC14-4F74683E14DB}</Project>
@@ -328,21 +343,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\netliba\v6\library-netliba-v6.vcxproj">
       <Project>{CF99E3A7-16F9-8EA9-027D-B9629FC7C3CD}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\holders\library-openssl-holders.vcxproj">
-      <Project>{8BD519C9-FE74-64B1-416B-3052CA898BD0}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\init\library-openssl-init.vcxproj">
-      <Project>{0A9ED00A-8390-D6BA-3A2A-7A98AAFFB3E5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\method\library-openssl-method.vcxproj">
-      <Project>{EBC3626B-F273-EB61-E7BE-9BBC217D8FB4}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\relaxed_escaper\library-string_utils-relaxed_escaper.vcxproj">
-      <Project>{91423FEC-8B3D-547B-2674-3740D83114B5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\scan\library-string_utils-scan.vcxproj">
-      <Project>{3EBC1D40-BAA8-5D8A-8385-635FD3E56F31}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\atomic\library-threading-atomic.vcxproj">
       <Project>{DE3D7773-D32D-01F5-FAE1-0EBED7524579}</Project>

@@ -108,8 +108,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\containers\intrusive_rb_tree\library-containers-intrusive_rb_tree.vcxproj">
-      <Project>{53AA6AAE-E388-987D-9719-F611E55F76E8}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\intrusive_rb_tree\cpp-containers-intrusive_rb_tree.vcxproj">
+      <Project>{B43F59AA-F4C6-C980-DC64-0ED89BEB2617}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\coroutine\engine\cpp-coroutine-engine.vcxproj">
       <Project>{D4715C6C-9CC0-8DC2-580D-1131AC501867}</Project>

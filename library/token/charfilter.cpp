@@ -1,5 +1,5 @@
 #include "charfilter.h"
-#include <library/unicode/normalization/normalization.h>
+#include <library/cpp/unicode/normalization/normalization.h>
 #include <util/charset/unidata.h>
 
 namespace {

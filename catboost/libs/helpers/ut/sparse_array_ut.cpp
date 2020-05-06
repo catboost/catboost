@@ -2,7 +2,7 @@
 
 #include <catboost/libs/helpers/vector_helpers.h>
 
-#include <library/binsaver/ut_util/ut_util.h>
+#include <library/cpp/binsaver/ut_util/ut_util.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/random/shuffle.h>

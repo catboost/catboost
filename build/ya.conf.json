@@ -7286,7 +7286,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 667318783,
+                "sandbox_id": 668822272,
                 "match": "horadric"
             },
             "executable": {
@@ -7385,7 +7385,7 @@
         },
         "ygdiff": {
             "formula": {
-                "sandbox_id": 612924628,
+                "sandbox_id": 668511811,
                 "match": "ygdiff"
             },
             "executable": {
@@ -7418,7 +7418,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 658091479,
+                "sandbox_id": 660385494,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -7730,7 +7730,7 @@
         "ya_sed": {
             "formula": {
                 "sandbox_id": [
-                    645365301
+                    668361467
                 ],
                 "match": "ya_sed"
             },

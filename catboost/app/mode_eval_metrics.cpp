@@ -12,8 +12,8 @@
 #include <catboost/private/libs/options/loss_description.h>
 #include <catboost/private/libs/target/data_providers.h>
 
-#include <library/getopt/small/last_getopt_opts.h>
-#include <library/getopt/small/last_getopt_parse_result.h>
+#include <library/cpp/getopt/small/last_getopt_opts.h>
+#include <library/cpp/getopt/small/last_getopt_parse_result.h>
 
 #include <util/folder/tempdir.h>
 #include <util/string/split.h>

@@ -9,7 +9,7 @@ SRCS(
 
 PEERDIR(
     library/cpp/string_utils/quote
-    library/string_utils/scan
+    library/cpp/string_utils/scan
 )
 
 END()

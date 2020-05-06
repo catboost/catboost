@@ -4,7 +4,7 @@ LIBRARY()
 
 PEERDIR(
     library/lcs
-    library/containers/stack_array
+    library/cpp/containers/stack_array
 )
 
 SRCS(

@@ -62,7 +62,7 @@ IF (NOT OS_IOS AND NOT ARCH_PPC64LE)
     # Abseil fails to build (with linkage error) on ios and with compilation error on PowerPC
     # (somewhere in unscaledcycleclock.cc).
     PEERDIR(
-        library/containers/absl_flat_hash
+        library/cpp/containers/absl_flat_hash
     )
 
     SRCS(

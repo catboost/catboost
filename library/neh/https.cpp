@@ -14,13 +14,13 @@
 #include <contrib/libs/openssl/include/openssl/bio.h>
 #include <contrib/libs/openssl/include/openssl/x509v3.h>
 
-#include <library/openssl/init/init.h>
-#include <library/openssl/method/io.h>
+#include <library/cpp/openssl/init/init.h>
+#include <library/cpp/openssl/method/io.h>
 #include <library/cpp/coroutine/listener/listen.h>
 #include <library/dns/cache.h>
-#include <library/http/misc/parsed_request.h>
-#include <library/http/misc/httpcodes.h>
-#include <library/http/io/stream.h>
+#include <library/cpp/http/misc/parsed_request.h>
+#include <library/cpp/http/misc/httpcodes.h>
+#include <library/cpp/http/io/stream.h>
 
 #include <util/generic/cast.h>
 #include <util/generic/list.h>
