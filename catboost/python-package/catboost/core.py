@@ -2726,6 +2726,101 @@ class CatBoost(_CatBoostBase):
 
         return all_predictions, figs
 
+    def plot_partial_dependence(self, data, features, plot=True, plot_file=None):
+        try:
+            import plotly.graph_objs as go
+        except ImportError as e:
+            warnings.warn("To draw plots you should install plotly.")
+            raise ImportError(str(e))
+
+        def getFeatureIdx(feature):
+            if not isinstance(feature, int):
+                if self.feature_names_ is None or feature not in self.feature_names_:
+                    raise CatBoostError('No feature named "{}" in model'.format(feature))
+                feature_idx = self.feature_names_.index(feature)
+            else:
+                feature_idx = feature
+            assert feature_idx in self._get_borders(), "only float features indexes are supported"
+            return feature_idx
+
+        def getFeatureIndices(features):
+            if isinstance(features, list) or isinstance(features, tuple):
+                features_idxs = [getFeatureIdx(feature) for feature in features]
+            elif isinstance(features, int) or isinstance(features, str):
+                features_idxs = [getFeatureIdx(features)]
+            else:
+                raise CatBoostError('Unsupported type for argument \'features\'. Must be one of: int, string, list<string>, list<int>, tuple<int>, tuple<string>')
+            return features_idxs
+
+        def getAxisParams(borders, feature_name=None):
+            return {
+                'title': 'Bins' if feature_name is None else 'Bins of feature \'{}\''.format(feature_name),
+                'tickmode': 'array',
+                'tickvals': list(range(len(borders) + 1)),
+                'ticktext': ['(-inf, {:.4f}]'.format(borders[0])] +
+                            ['({:.4f}, {:.4f}]'.format(val_1, val_2)
+                            for val_1, val_2 in zip(borders[:-1], borders[1:])] +
+                            ['({:.4f}, +inf)'.format(borders[-1])],
+                'showticklabels': False}
+
+        def plot2d(feature_names, borders, predictions):
+            xaxis = go.layout.XAxis(**getAxisParams(borders[1], feature_name=feature_names[1]))
+            yaxis = go.layout.YAxis(**getAxisParams(borders[0], feature_name=feature_names[0]))
+            layout = go.Layout(
+                title='Partial dependence plot for features {}'.format('\'{}\''.format('\', \''.join(map(str, feature_names)))),
+                yaxis=yaxis,
+                xaxis=xaxis
+            )
+            fig = go.Figure(data=go.Heatmap(z=predictions), layout=layout)
+            return fig
+
+        def plot1d(feature, borders, predictions):
+            xaxis = go.layout.XAxis(**getAxisParams(borders))
+            yaxis = {
+                'title': 'Mean Prediction',
+                'side': 'left'
+            }
+            layout = go.Layout(
+                title="Partial dependence plot for feature '{}'".format(feature),
+                yaxis=yaxis,
+                xaxis=xaxis
+            )
+            fig = go.Figure(data=go.Scatter(y=predictions, mode='lines+markers'), layout=layout)
+            return fig
+
+        features_idx = getFeatureIndices(features)
+        borders = [self._get_borders()[idx] for idx in features_idx]
+        if len(features_idx) not in [1, 2]:
+            raise CatBoostError('Number of \'features\' should be 1 or 2, got {}'.format(len(features_idx)))
+        is_2d_plot = len(features_idx) == 2
+
+        data, _ = self._process_predict_input_data(data, "plot_partial_dependence", thread_count=-1)
+        all_predictions = np.array(self._object._calc_partial_dependence(data, features_idx))
+
+        if is_2d_plot:
+            all_predictions = all_predictions.reshape(map(lambda x: len(x) + 1, borders))
+            fig = plot2d(features, borders,  all_predictions)
+        else:
+            fig = plot1d(features[0], borders[0], all_predictions)
+
+        if plot:
+            try:
+                from plotly.offline import iplot
+                from plotly.offline import init_notebook_mode
+                init_notebook_mode(connected=True)
+            except ImportError as e:
+                warn_msg = "To draw plots you should install plotly."
+                warnings.warn(warn_msg)
+                raise ImportError(str(e))
+            iplot(fig)
+
+        if plot_file:
+            _save_plot_file(plot_file, "Partial dependence plot for features '{}'".format(features), fig)
+
+
+        return all_predictions, fig
+        # return all_predictions
+
     def calc_feature_statistics(self, data, target=None, feature=None, prediction_type=None,
                                 cat_feature_values=None, plot=True, max_cat_features_on_plot=10,
                                 thread_count=-1, plot_file=None):
@@ -3074,7 +3169,7 @@ class CatBoost(_CatBoostBase):
                 fold_count, partition_random_seed, shuffle, stratified, train_size,
                 search_by_train_test_split, calc_cv_statistics, custom_folds, verbose
             )
-        
+
         if refit:
             if self.is_fitted():
                 raise CatBoostError("Model was fitted before hyperparameters tuning. You can't change hyperparameters of fitted model.")

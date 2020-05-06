@@ -1282,6 +1282,13 @@ cdef extern from "catboost/libs/eval_result/eval_result.h" namespace "NCB":
 cdef extern from "catboost/private/libs/init/init_reg.h" namespace "NCB":
     cdef void LibraryInit() nogil except *
 
+cdef extern from "catboost/libs/fstr/partial_dependence.h":
+    cdef TVector[double] GetPartialDependence(
+        const TFullModel& model,
+        TVector[int] features,
+        const TDataProviderPtr dataset
+    ) nogil except +ProcessException
+
 cdef extern from "catboost/libs/fstr/calc_fstr.h":
     cdef TVector[TVector[double]] GetFeatureImportances(
         const EFstrType type,
@@ -4379,6 +4386,20 @@ cdef class _CatBoost:
 
     cpdef _get_loss_function_name(self):
         return self.__model.GetLossFunctionName()
+
+    cpdef _calc_partial_dependence(self, _PoolBase pool, features):
+        cdef TVector[double] fstr
+        cdef TDataProviderPtr dataProviderPtr
+        if pool:
+            dataProviderPtr = pool.__pool
+
+        fstr = GetPartialDependence(
+            dereference(self.__model),
+            features,
+            dataProviderPtr
+        )
+        return _vector_of_double_to_np_array(fstr)
+
 
     cpdef _calc_fstr(self, type_name, _PoolBase pool, int thread_count, int verbose, shap_mode_name, interaction_indices):
         thread_count = UpdateThreadCount(thread_count);

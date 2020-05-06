@@ -5,6 +5,7 @@ LIBRARY()
 SRCS(
     calc_fstr.cpp
     compare_documents.cpp
+    partial_dependence.cpp
     feature_str.cpp
     output_fstr.cpp
     shap_values.cpp

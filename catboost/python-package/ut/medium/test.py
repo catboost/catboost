@@ -7582,3 +7582,58 @@ def test_penalties_coefficient_work():
 
     assert any(model_without_feature_penalties.predict_proba(pool)[0] == model_with_zero_feature_penalties.predict_proba(pool)[0])
     assert any(model_without_feature_penalties.predict_proba(pool)[0] != model_with_feature_penalties.predict_proba(pool)[0])
+
+def test_partial_dependence():
+    pool_file = 'higgs'
+    pool = Pool(data_file(pool_file, 'train_small'), column_description=data_file(pool_file, 'train.cd'))
+    model = CatBoostClassifier(iterations=43, learning_rate=0.03, max_ctr_complexity=1, devices='0')
+    model.fit(pool)
+    ppp = pool.get_features()[:1]
+    fimp_txt_path = test_output_path(FIMP_TXT_PATH)
+    f_n = 7
+    mine = np.array(model.plot_partial_dependence(
+        data=ppp,
+        features = f_n,
+        plot=False
+    ))
+    # model.save_model("/home/denis/palaana/py_notebooks/wrong_model", format="cbm", export_parameters=None, pool=None)
+    # np.savetxt("/home/denis/palaana/py_notebooks/wrong_data", np.array(ppp))
+    # np.savetxt(fimp_txt_path, np.array(model.plot_partial_dependence(
+    #     pool=pool,
+    #     features = [0, 1],
+    #     plot=False
+    # )))
+
+    def predict(data, feature_idx, borders):
+        _data = data.copy().astype(np.float)
+        extended_borders = [borders[0] - 1.] + borders + [borders[-1] + 1.]
+        pd = []
+        for i in range(len(extended_borders) - 1):
+            point = (extended_borders[i] + extended_borders[i + 1]) / 2.
+            buf = _data[:, feature_idx].copy()
+            _data[:, feature_idx] = point
+            predictions = model.predict(_data.copy(), prediction_type = "RawFormulaVal")
+            _data[:, feature_idx] = buf
+            pd.append(np.mean(predictions))
+        return pd
+
+    def predict2d(data, features, borders_list):
+        _data = data.copy().astype(np.float)
+        extended_borders = [[borders[0] - 1.] + borders + [borders[-1] + 1.] for borders in borders_list]
+        pd = []
+        for i in range(len(extended_borders[0]) - 1):
+            point_i = (extended_borders[0][i] + extended_borders[0][i + 1]) / 2.
+            for j in range(len(extended_borders[1]) - 1):
+                point_j = (extended_borders[1][j] + extended_borders[1][j + 1]) / 2.
+                buf_0 = _data[:, features[0]].copy()
+                buf_1 = _data[:, features[1]].copy()
+                _data[:, features[0]] = point_i
+                _data[:, features[1]] = point_j
+                predictions = model.predict(_data.copy(), prediction_type = "RawFormulaVal")
+                _data[:, features[0]] = buf_0
+                _data[:, features[1]] = buf_1
+                pd.append(np.mean(predictions))
+        return pd
+    # raise RuntimeError(model.get_borders())
+    true = predict(ppp, f_n, model.get_borders()[f_n])
+    assert (np.sum(np.abs(np.array(true).round(8)[: 10] - mine[:10])) < 1e-7)
