@@ -7159,6 +7159,97 @@ def test_different_formats_of_monotone_constraints(model_shrink_rate):
         assert all(predictions1 == predictions2)
 
 
+def test_different_formats_of_monotone_constraints_in_different_modes():
+    from catboost.datasets import monotonic2, set_cache_path
+    set_cache_path(test_output_path())  # specify cache dir to fix potential data race while downloading dataset
+    monotonic2_train, monotonic2_test = monotonic2()
+    X_train, y_train = monotonic2_train.drop(columns=['Target']), monotonic2_train['Target']
+    feature_names = list(X_train.columns)
+    train_pool = Pool(data=X_train, label=y_train, feature_names=feature_names)
+
+    monotone_constraints_array = np.array([-1, 1, 1, -1])
+    monotone_constraints_list = [-1, 1, 1, -1]
+    monotone_constraints_dict_1 = {0: -1, 1: 1, 2: 1, 3: -1}
+    monotone_constraints_dict_2 = {'MonotonicNeg0': -1, 'MonotonicPos0': 1, 'MonotonicPos1': 1, 'MonotonicNeg1': -1}
+    monotone_constraints_string_1 = "(-1,1,1,-1)"
+    monotone_constraints_string_2 = "0:-1,1:1,2:1,3:-1"
+    monotone_constraints_string_3 = "MonotonicNeg0:-1,MonotonicPos0:1,MonotonicPos1:1,MonotonicNeg1:-1"
+
+    common_options = dict(iterations=5)
+
+    for monotone_constraints in [
+        monotone_constraints_array,
+        monotone_constraints_list,
+        monotone_constraints_dict_1,
+        monotone_constraints_dict_2,
+        monotone_constraints_string_1,
+        monotone_constraints_string_2,
+        monotone_constraints_string_3
+    ]:
+        # grid search
+        model = CatBoost(dict(common_options, **{'monotone_constraints': monotone_constraints}))
+        max_depth_list = [4, 5]
+        model.grid_search(
+            {
+                'max_depth': max_depth_list,
+            },
+            train_pool,
+        )
+        # random search
+        model = CatBoost(dict(common_options, **{'monotone_constraints': monotone_constraints}))
+        model.randomized_search(
+            {
+                'max_depth': max_depth_list,
+            },
+            train_pool,
+            n_iter=1,
+        )
+        # cv
+        cv(train_pool, params=dict(common_options, **{'monotone_constraints': monotone_constraints}))
+
+    wrong_monotone_constraints_array = np.array([-1, 2, 1, -1])
+    wrong_monotone_constraints_list = [-1, 2, 1, -1]
+    wrong_monotone_constraints_dict_1 = {0: -1, 1: 2, 2: 1, 3: -1}
+    wrong_monotone_constraints_dict_2 = {'MonotonicNeg0': -1, 'MonotonicPos0': 2, 'MonotonicPos1': 1, 'MonotonicNeg1': -1}
+    wrong_monotone_constraints_string_1 = "(-1,2,1,-1)"
+    wrong_monotone_constraints_string_2 = "0:-1,1:2,2:1,3:-1"
+    wrong_monotone_constraints_string_3 = "MonotonicNeg0:-1,MonotonicPos0:2,MonotonicPos1:1,MonotonicNeg1:-1"
+
+    for monotone_constraints in [
+        wrong_monotone_constraints_array,
+        wrong_monotone_constraints_list,
+        wrong_monotone_constraints_dict_1,
+        wrong_monotone_constraints_dict_2,
+        wrong_monotone_constraints_string_1,
+        wrong_monotone_constraints_string_2,
+        wrong_monotone_constraints_string_3
+    ]:
+        with pytest.raises(CatBoostError):
+            model = CatBoostRegressor(monotone_constraints=monotone_constraints, **common_options)
+            model.fit(train_pool)
+        with pytest.raises(CatBoostError):
+            model = CatBoost({"monotone_constraints": monotone_constraints})
+            iterations_list = [5, 10]
+            model.grid_search(
+                {
+                    'iterations': iterations_list,
+                },
+                train_pool,
+            )
+        with pytest.raises(CatBoostError):
+            model = CatBoost({"monotone_constraints": monotone_constraints})
+            iterations_list = [5, 10]
+            model.randomized_search(
+                {
+                    'iterations': iterations_list,
+                },
+                train_pool,
+                n_iter=1,
+            )
+        with pytest.raises(CatBoostError):
+            cv(train_pool, params=dict(common_options, **{'monotone_constraints': monotone_constraints}))
+
+
 def test_same_values_with_different_types(task_type):
     # take integers from [0, 127] because they can be represented by any of this types
 
@@ -7687,6 +7778,81 @@ def test_different_formats_of_feature_weights():
         predictions2 = model2.predict(test_pool)
         assert all(predictions1 == predictions2)
 
+    # check that it works not only in fit mode
+    for first_feature_use_penalties in [
+        feature_weights_array,
+        feature_weights_list,
+        feature_weights_dict_1,
+        feature_weights_dict_2,
+        feature_weights_string_1,
+        feature_weights_string_2,
+        feature_weights_string_3
+    ]:
+        # grid search
+        model = CatBoost({"feature_weights": feature_weights})
+        iterations_list = [5, 10]
+        model.grid_search(
+            {
+                'iterations': iterations_list,
+            },
+            train_pool,
+        )
+        # random search
+        model = CatBoost({"feature_weights": feature_weights})
+        iterations_list = [5, 10]
+        model.randomized_search(
+            {
+                'iterations': iterations_list,
+            },
+            train_pool,
+            n_iter=1,
+        )
+        # cv
+        cv(train_pool, params=dict(common_options, **{'feature_weights': feature_weights}))
+
+    # check that negative values are not accepted
+    wrong_feature_weights_array = np.array([1, 1, 1, 0.1, 1, 1, 1, -2])
+    wrong_feature_weights_list = [1, 1, 1, 0.1, 1, 1, 1, -2]
+    wrong_feature_weights_dict_1 = {3: 0.1, 7: -2}
+    wrong_feature_weights_dict_2 = {'DepTime': 0.1, 'Distance': -2}
+    wrong_feature_weights_string_1 = "(1,1,1,0.1,1,1,1,-2)"
+    wrong_feature_weights_string_2 = "3:0.1,7:-2"
+    wrong_feature_weights_string_3 = "DepTime:0.1,Distance:-2"
+
+    for feature_weights in [
+        wrong_feature_weights_array,
+        wrong_feature_weights_list,
+        wrong_feature_weights_dict_1,
+        wrong_feature_weights_dict_2,
+        wrong_feature_weights_string_1,
+        wrong_feature_weights_string_2,
+        wrong_feature_weights_string_3
+    ]:
+        with pytest.raises(CatBoostError):
+            model = CatBoostClassifier(feature_weights=feature_weights, **common_options)
+            model.fit(train_pool)
+        with pytest.raises(CatBoostError):
+            model = CatBoost({"feature_weights": feature_weights})
+            iterations_list = [5, 10]
+            model.grid_search(
+                {
+                    'iterations': iterations_list,
+                },
+                train_pool,
+            )
+        with pytest.raises(CatBoostError):
+            model = CatBoost({"feature_weights": feature_weights})
+            iterations_list = [5, 10]
+            model.randomized_search(
+                {
+                    'iterations': iterations_list,
+                },
+                train_pool,
+                n_iter=1,
+            )
+        with pytest.raises(CatBoostError):
+            cv(train_pool, params=dict(common_options, **{'feature_weights': feature_weights}))
+
 
 def test_first_feature_use_penalties_work():
     pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
@@ -7747,6 +7913,80 @@ def test_different_formats_of_first_feature_use_penalties():
         model2.fit(train_pool)
         predictions2 = model2.predict(test_pool)
         assert all(predictions1 == predictions2)
+
+    # check that it works not only in fit mode
+    for first_feature_use_penalties in [
+        first_feature_use_penalties_array,
+        first_feature_use_penalties_list,
+        first_feature_use_penalties_dict_1,
+        first_feature_use_penalties_dict_2,
+        first_feature_use_penalties_string_1,
+        first_feature_use_penalties_string_2,
+        first_feature_use_penalties_string_3
+    ]:
+        # grid search
+        model = CatBoost({"first_feature_use_penalties": first_feature_use_penalties})
+        iterations_list = [5, 10]
+        model.grid_search(
+            {
+                'iterations': iterations_list,
+            },
+            train_pool,
+        )
+        # random search
+        model = CatBoost({"first_feature_use_penalties": first_feature_use_penalties})
+        iterations_list = [5, 10]
+        model.randomized_search(
+            {
+                'iterations': iterations_list,
+            },
+            train_pool,
+            n_iter=1,
+        )
+        # cv
+        cv(train_pool, params=dict(common_options, **{'first_feature_use_penalties': first_feature_use_penalties}))
+
+    # check that negative values are not accepted
+    wrong_first_feature_use_penalties_array = np.array([0, 0, 0, 10, 0, 0, 0, -2])
+    wrong_first_feature_use_penalties_list = [0, 0, 0, 10, 0, 0, 0, -2]
+    wrong_first_feature_use_penalties_dict_1 = {3: 10, 7: -2}
+    wrong_first_feature_use_penalties_dict_2 = {'DepTime': 10, 'Distance': -2}
+    wrong_first_feature_use_penalties_string_1 = "(0,0,0,10,0,0,0,-2)"
+    wrong_first_feature_use_penalties_string_2 = "3:10,7:-2"
+    wrong_first_feature_use_penalties_string_3 = "DepTime:10,Distance:-2"
+    for first_feature_use_penalties in [
+        wrong_first_feature_use_penalties_array,
+        wrong_first_feature_use_penalties_list,
+        wrong_first_feature_use_penalties_dict_1,
+        wrong_first_feature_use_penalties_dict_2,
+        wrong_first_feature_use_penalties_string_1,
+        wrong_first_feature_use_penalties_string_2,
+        wrong_first_feature_use_penalties_string_3
+    ]:
+        with pytest.raises(CatBoostError):
+            model = CatBoostClassifier(first_feature_use_penalties=first_feature_use_penalties, **common_options)
+            model.fit(train_pool)
+        with pytest.raises(CatBoostError):
+            model = CatBoost({"first_feature_use_penalties": first_feature_use_penalties})
+            iterations_list = [5, 10]
+            model.grid_search(
+                {
+                    'iterations': iterations_list,
+                },
+                train_pool,
+            )
+        with pytest.raises(CatBoostError):
+            model = CatBoost({"first_feature_use_penalties": first_feature_use_penalties})
+            iterations_list = [5, 10]
+            model.randomized_search(
+                {
+                    'iterations': iterations_list,
+                },
+                train_pool,
+                n_iter=1,
+            )
+        with pytest.raises(CatBoostError):
+            cv(train_pool, params=dict(common_options, **{'first_feature_use_penalties': first_feature_use_penalties}))
 
 
 def test_penalties_coefficient_work():

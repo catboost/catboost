@@ -27,6 +27,8 @@ void CheckFitParams(
     }
 
     const auto& penaltiesOptions = options.ObliviousTreeOptions->FeaturePenalties;
+    // Feature penalties params should be correctly converted to canonical format before loading.
+    // Because of absent information about feature layout here, we can only check common coefficient param.
     if (penaltiesOptions.IsSet() && penaltiesOptions->PenaltiesCoefficient.IsSet()) {
         CB_ENSURE(penaltiesOptions->PenaltiesCoefficient >= 0, "Error: penalties coefficient should be nonnegative");
     }

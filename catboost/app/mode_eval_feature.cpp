@@ -42,7 +42,7 @@ int mode_eval_feature(int argc, const char* argv[]) {
 
     ConvertIgnoredFeaturesFromStringToIndices(poolLoadParams, &catBoostFlatJsonOptions);
     NCatboostOptions::PlainJsonToOptions(catBoostFlatJsonOptions, &catBoostJsonOptions, &outputOptionsJson);
-
+    ConvertParamsToCanonicalFormat(poolLoadParams, &catBoostJsonOptions);
     CopyIgnoredFeaturesToPoolParams(catBoostJsonOptions, &poolLoadParams);
 
     const auto taskType = NCatboostOptions::GetTaskType(catBoostJsonOptions);

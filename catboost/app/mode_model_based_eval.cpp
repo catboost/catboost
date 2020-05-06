@@ -29,6 +29,7 @@ int mode_model_based_eval(int argc, const char* argv[]) {
     ConvertIgnoredFeaturesFromStringToIndices(poolLoadParams, &catBoostFlatJsonOptions);
     ConvertFeaturesToEvaluateFromStringToIndices(poolLoadParams, &catBoostFlatJsonOptions);
     NCatboostOptions::PlainJsonToOptions(catBoostFlatJsonOptions, &catBoostJsonOptions, &outputOptionsJson);
+    ConvertParamsToCanonicalFormat(poolLoadParams, &catBoostJsonOptions);
     CopyIgnoredFeaturesToPoolParams(catBoostJsonOptions, &poolLoadParams);
     NCatboostOptions::TOutputFilesOptions outputOptions;
     outputOptions.Load(outputOptionsJson);
