@@ -3571,10 +3571,10 @@ TVector<THolder<IMetric>> TPRAUCMetric::Create(const TMetricConfig& config) {
         aucType = FromString<EAucType>(name);
         if (config.approxDimension == 1) {
             CB_ENSURE(aucType == EAucType::Classic,
-                      "AUC type \"" << aucType << "\" isn't a singleclass AUC type");
+                      "PRAUC type \"" << aucType << "\" isn't a singleclass PRAUC type");
         } else {
             CB_ENSURE(aucType == EAucType::OneVsAll,
-                      "AUC type \"" << aucType << "\" isn't a multiclass AUC type");
+                      "PRAUC type \"" << aucType << "\" isn't a multiclass PRAUC type");
         }
     }
     switch (aucType) {

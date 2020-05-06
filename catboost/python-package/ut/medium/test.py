@@ -3887,9 +3887,9 @@ def test_metadata():
     return compare_canonical_models(output_model_path)
 
 
-@pytest.mark.parametrize('metric', ['Logloss', 'RMSE'])
+@pytest.mark.parametrize('metric', ['Logloss', 'RMSE', 'PRAUC'])
 def test_util_eval_metric(metric):
-    metric_results = eval_metric([1, 0], [0.88, 0.22], metric)
+    metric_results = eval_metric([1, 0, 1, 1, 0, 1, 0, 0, 1, 1], [0.88, 0.22, 1.0, 0.6, 0.12, 0.1, 0.0, 0.5, 0.95, 0.8], metric)
     preds_path = test_output_path(PREDS_PATH)
     np.savetxt(preds_path, np.array(metric_results))
     return local_canonical_file(preds_path)
