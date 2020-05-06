@@ -12,7 +12,6 @@ import sys
 import tempfile
 import json
 from catboost import (
-    MultiLabelCustomMetric,
     CatBoost,
     CatBoostClassifier,
     CatBoostRegressor,
@@ -25,7 +24,9 @@ from catboost import (
     train,
     _have_equal_features,
     to_regressor,
-    to_classifier,)
+    to_classifier,
+    MultiRegressionCustomMetric,
+    MultiRegressionCustomObjective,)
 from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
 from catboost.utils import eval_metric, create_cd, read_cd, get_roc_curve, select_threshold, quantize
 from catboost.utils import DataMetaInfo, TargetStats, compute_training_options
@@ -271,7 +272,7 @@ def load_simple_dataset_as_lists(is_test):
 
 @pytest.mark.parametrize('niter', [100, 500])
 def test_multiregression_custom_eval(niter, n=10):
-    class MultiRMSE(MultiLabelCustomMetric):
+    class MultiRMSE(MultiRegressionCustomMetric):
         def get_final_error(self, error, weight):
             if (weight == 0):
                 return 0
@@ -2182,6 +2183,53 @@ def test_custom_objective(task_type):
 
     for p1, p2 in zip(pred1, pred2):
         assert abs(p1 - p2) < EPS
+
+
+@fails_on_gpu(how='cuda/train_lib/train.cpp:283: Error: loss function is not supported for GPU learning Custom')
+def test_multilabel_custom_objective(task_type, n=10):
+    class MultiRMSEObjective(MultiRegressionCustomObjective):
+        def calc_ders_multi(self, approxes, targets, weight):
+            assert len(approxes) == len(targets)
+
+            grad = []
+            hess = [[0 for j in range(len(targets))] for i in range(len(targets))]
+
+            for index in xrange(len(targets)):
+                der1 = (targets[index] - approxes[index]) * weight
+                der2 = -weight
+
+                grad.append(der1)
+                hess[index][index] = der2
+
+            return (grad, hess)
+
+    xs = np.arange(n).reshape((-1, 1)).astype(np.float32)
+    ys = np.hstack([
+        (xs > 0.5 * n),
+        (xs < 0.5 * n)
+    ]).astype(np.float32)
+
+    train_pool = Pool(data=xs,
+                      label=ys)
+
+    test_pool = Pool(data=xs,
+                     label=ys)
+
+    model = CatBoostRegressor(iterations=5, learning_rate=0.03, use_best_model=True,
+                               loss_function=MultiRMSEObjective(), eval_metric="MultiRMSE",
+                               # Leaf estimation method and gradient iteration are set to match
+                               # defaults for Logloss.
+                               leaf_estimation_method="Newton", leaf_estimation_iterations=1, task_type=task_type, devices='0')
+
+    model.fit(train_pool, eval_set=test_pool)
+    pred1 = model.predict(test_pool, prediction_type='RawFormulaVal')
+
+    model2 = CatBoostRegressor(iterations=5, learning_rate=0.03, use_best_model=True, loss_function="MultiRMSE", leaf_estimation_method="Newton", leaf_estimation_iterations=1)
+    model2.fit(train_pool, eval_set=test_pool)
+    pred2 = model2.predict(test_pool, prediction_type='RawFormulaVal')
+
+    for p1, p2 in zip(pred1, pred2):
+        assert (abs(p1 - p2) < EPS).all()
 
 
 def test_pool_after_fit(task_type):

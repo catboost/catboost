@@ -18,11 +18,11 @@ void CheckFitParams(
     }
     auto options = NCatboostOptions::LoadOptions(catBoostJsonOptions);
 
-    if (options.LossFunctionDescription->GetLossFunction() == ELossFunction::PythonUserDefinedPerObject) {
+    if (IsUserDefined(options.LossFunctionDescription->GetLossFunction())) {
         CB_ENSURE(objectiveDescriptor != nullptr, "Error: provide objective descriptor for custom loss");
     }
 
-    if (options.MetricOptions->EvalMetric.IsSet() && options.MetricOptions->EvalMetric->GetLossFunction() == ELossFunction::PythonUserDefinedPerObject) {
+    if (options.MetricOptions->EvalMetric.IsSet() && IsUserDefined(options.MetricOptions->EvalMetric->GetLossFunction())) {
         CB_ENSURE(evalMetricDescriptor != nullptr, "Error: provide eval metric descriptor for custom eval metric");
     }
 

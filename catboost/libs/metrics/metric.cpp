@@ -3620,9 +3620,9 @@ void TCustomMetric::AddHint(const TString& key, const TString& value) {
 /* CustomMultiRegression */
 
 namespace {
-    class TMultiLabelCustomMetric: public TMultiRegressionMetric {
+    class TMultiRegressionCustomMetric: public TMultiRegressionMetric {
     public:
-        explicit TMultiLabelCustomMetric(const TCustomMetricDescriptor& descriptor);
+        explicit TMultiRegressionCustomMetric(const TCustomMetricDescriptor& descriptor);
 
         TMetricHolder Eval(
             TConstArrayRef<TVector<double>> approx,
@@ -3670,14 +3670,15 @@ namespace {
     };
 }
 
-TMultiLabelCustomMetric::TMultiLabelCustomMetric(const TCustomMetricDescriptor& descriptor)
+
+TMultiRegressionCustomMetric::TMultiRegressionCustomMetric(const TCustomMetricDescriptor& descriptor)
         : TMultiRegressionMetric(ELossFunction::PythonUserDefinedPerObject, /*params=*/{})
         , Descriptor(descriptor)
 {
     UseWeights.SetDefaultValue(true);
 }
 
-TMetricHolder TMultiLabelCustomMetric::Eval_(
+TMetricHolder TMultiRegressionCustomMetric::Eval_(
     TConstArrayRef<TVector<double>> approx,
     TConstArrayRef<TConstArrayRef<float>> target,
     TConstArrayRef<float> weightIn,
@@ -3695,24 +3696,24 @@ TMetricHolder TMultiLabelCustomMetric::Eval_(
     return result;
 }
 
-TString TMultiLabelCustomMetric::GetDescription() const {
+TString TMultiRegressionCustomMetric::GetDescription() const {
     TString description = Descriptor.GetDescriptionFunc(Descriptor.CustomData);
     return BuildDescription(description, UseWeights);
 }
 
-void TMultiLabelCustomMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TMultiRegressionCustomMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     bool isMaxOptimal = Descriptor.IsMaxOptimalFunc(Descriptor.CustomData);
     *valueType = isMaxOptimal ? EMetricBestValue::Max : EMetricBestValue::Min;
 }
 
-double TMultiLabelCustomMetric::GetFinalError(const TMetricHolder& error) const {
+double TMultiRegressionCustomMetric::GetFinalError(const TMetricHolder& error) const {
     return Descriptor.GetFinalErrorFunc(error, Descriptor.CustomData);
 }
 
 
 THolder<IMetric> MakeCustomMetric(const TCustomMetricDescriptor& descriptor) {
     if (descriptor.IsMultiregressionMetric()) {
-        return MakeHolder<TMultiLabelCustomMetric>(descriptor);
+        return MakeHolder<TMultiRegressionCustomMetric>(descriptor);
     } else {
         return MakeHolder<TCustomMetric>(descriptor);
     }
@@ -4517,7 +4518,7 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<TString,
         case ELossFunction::NormalizedGini:
             AppendTemporaryMetricsVector(TNormalizedGini::Create(config), &result);
             break;
-        case ELossFunction::Combination: 
+        case ELossFunction::Combination:
             AppendTemporaryMetricsVector(TCombinationLoss::Create(config), &result);
             break;
         default: {
@@ -4629,7 +4630,7 @@ void InitializeEvalMetricIfNotSet(
     CB_ENSURE(objectiveMetric.IsSet(), "Objective metric must be set.");
     const NCatboostOptions::TLossDescription& objectiveMetricDescription = objectiveMetric.Get();
     if (evalMetric->NotSet()) {
-        CB_ENSURE(objectiveMetricDescription.GetLossFunction() != ELossFunction::PythonUserDefinedPerObject,
+        CB_ENSURE(!IsUserDefined(objectiveMetricDescription.GetLossFunction()),
                   "If loss function is a user defined object, then the eval metric must be specified.");
         evalMetric->Set(objectiveMetricDescription);
     }
@@ -4647,7 +4648,7 @@ TVector<THolder<IMetric>> CreateMetrics(
     const NCatboostOptions::TLossDescription& evalMetricDescription = evalMetricOptions->EvalMetric.Get();
 
     TVector<THolder<IMetric>> createdObjectiveMetrics;
-    if (objectiveMetricDescription.GetLossFunction() != ELossFunction::PythonUserDefinedPerObject) {
+    if (!IsUserDefined(objectiveMetricDescription.GetLossFunction())) {
         createdObjectiveMetrics = CreateMetricFromDescription(
             objectiveMetricDescription,
             approxDimension);
@@ -4664,7 +4665,7 @@ TVector<THolder<IMetric>> CreateMetrics(
     THashSet<TString> usedDescriptions;
     THashSet<TString> metricsToCalcOnTrain;
 
-    if (evalMetricDescription.GetLossFunction() == ELossFunction::PythonUserDefinedPerObject) {
+    if (IsUserDefined(evalMetricDescription.GetLossFunction())) {
         metrics.emplace_back(MakeCustomMetric(*evalMetricDescriptor));
     } else {
         metrics = CreateMetricFromDescription(evalMetricDescription, approxDimension);

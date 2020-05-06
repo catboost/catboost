@@ -173,6 +173,7 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
         }
         case ELossFunction::UserPerObjMetric:
         case ELossFunction::UserQuerywiseMetric:
+        case ELossFunction::PythonUserDefinedMultiRegression:
         case ELossFunction::PythonUserDefinedPerObject: {
             //skip
             defaultNewtonIterations = 1;
@@ -590,7 +591,7 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
             ObliviousTreeOptions->LeavesEstimationBacktrackingType != ELeavesEstimationStepBacktracking::Armijo,
             "Backtracking type Armijo is supported only on GPU");
         CB_ENSURE(
-            lossFunction != ELossFunction::PythonUserDefinedPerObject
+            !IsUserDefined(lossFunction)
             || ObliviousTreeOptions->LeavesEstimationBacktrackingType == ELeavesEstimationStepBacktracking::No,
             "Backtracking is not supported for custom loss functions on CPU");
     }
@@ -748,6 +749,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             }
             break;
         }
+        case ELossFunction::PythonUserDefinedMultiRegression:
         case ELossFunction::PythonUserDefinedPerObject: {
             ObliviousTreeOptions->LeavesEstimationBacktrackingType.SetDefault(ELeavesEstimationStepBacktracking::No);
             break;
