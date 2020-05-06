@@ -9,7 +9,7 @@ SRCS(
 PEERDIR(
     library/comptrie
     library/deprecated/mapped_file
-    library/getopt/small
+    library/cpp/getopt/small
 )
 
 IF(NOT CATBOOST_OPENSOURCE)
