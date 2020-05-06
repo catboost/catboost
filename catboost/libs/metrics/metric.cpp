@@ -24,7 +24,7 @@
 #include <catboost/private/libs/options/loss_description.h>
 
 #include <library/fast_exp/fast_exp.h>
-#include <library/fast_log/fast_log.h>
+#include <library/cpp/fast_log/fast_log.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/hash.h>
