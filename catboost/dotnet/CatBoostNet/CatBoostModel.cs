@@ -27,11 +27,11 @@ namespace CatBoostNet
     }
 
     /// <summary>
-    /// High-level, ML.NET-compliant class for making predictions using CatBoost models.
+    /// High-level class for making predictions using CatBoost models.
     /// If you need to implement a custom model code, use <see cref="CatBoostModelEvaluator"/>
     /// as the basic building block.
     /// </summary>
-    public class CatBoostModel : ITransformer, IDisposable
+    public class CatBoostModel : IDisposable
     {
         private CatBoostModelEvaluator Evaluator { get; }
 
@@ -49,27 +49,6 @@ namespace CatBoostNet
         {
             Evaluator = new CatBoostModelEvaluator(modelFilePath);
             TargetFeature = targetFeature;
-        }
-
-        /// <inheritdoc />
-        public bool IsRowToRowMapper => true;
-
-        /// <inheritdoc />
-        public DataViewSchema GetOutputSchema(DataViewSchema inputSchema)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc />
-        public IRowToRowMapper GetRowToRowMapper(DataViewSchema inputSchema)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <inheritdoc />
-        public void Save(ModelSaveContext ctx)
-        {
-            // Nothing to do here, we are loading model from the file anyway ;)
         }
 
         /// <inheritdoc />
