@@ -19,6 +19,16 @@ namespace NJson {
 struct TLossParams {
     TMap<TString, TString> paramsMap;
     TVector<TString> userSpecifiedKeyOrder;
+
+    static TLossParams FromVector(const TVector<std::pair<TString, TString>> params) {
+        TMap<TString, TString> paramsMap;
+        TVector<TString> userSpecifiedKeyOrder;
+        for (const auto& keyValue : params) {
+            paramsMap[keyValue.first] = keyValue.second;
+            userSpecifiedKeyOrder.push_back(keyValue.first);
+        }
+        return {std::move(paramsMap), std::move(userSpecifiedKeyOrder)};
+    }
 };
 
 ELossFunction ParseLossType(TStringBuf lossDescription);
