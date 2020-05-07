@@ -139,7 +139,6 @@ def _process_verbose(metric_period=None, verbose=None, logging_level=None, verbo
         elif verbose_eval is not None:
             verbose = verbose_eval
     if verbose is not None:
-        logging_level = 'Verbose' if verbose else 'Silent'
         verbose = int(verbose)
 
     return (metric_period, verbose, logging_level)

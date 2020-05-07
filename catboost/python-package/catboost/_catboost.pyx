@@ -2006,8 +2006,8 @@ cdef class _PreprocessParams:
         if devices is not None and isinstance(devices, list):
             params['devices'] = ':'.join(map(str, devices))
 
-        params['verbose'] = int(params['verbose']) if 'verbose' in params else (
-            params['metric_period'] if 'metric_period' in params else 1)
+        if 'verbose' in params:
+            params['verbose'] = int(params['verbose'])
 
         params_to_json = params
 
@@ -2034,7 +2034,7 @@ cdef class _PreprocessParams:
             self.customObjectiveDescriptor = _BuildCustomObjectiveDescriptor(params["loss_function"])
             if (issubclass(params["loss_function"].__class__, MultiRegressionCustomObjective)):
                 params_to_json["loss_function"] = "PythonUserDefinedMultiRegression"
-        
+
         if params_to_json.get("eval_metric") == "PythonUserDefinedPerObject":
             self.customMetricDescriptor = _BuildCustomMetricDescriptor(params["eval_metric"])
             if (issubclass(params["eval_metric"].__class__, MultiRegressionCustomMetric)):

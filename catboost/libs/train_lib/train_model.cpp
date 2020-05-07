@@ -734,7 +734,7 @@ namespace {
                     );
                 }
             }
-            
+
             trainingData.Learn->ObjectsData->CheckCPUTrainCompatibility();
             for (auto& test : trainingData.Test) {
                 test->ObjectsData->CheckCPUTrainCompatibility();
@@ -951,6 +951,10 @@ static void TrainModel(
             *learnFeaturesLayout,
             *testPool.MetaInfo.FeaturesLayout,
             TStringBuilder() << "test dataset #" << testPoolIdx);
+    }
+
+    if (updatedOutputOptions.GetVerbosePeriod() == 0 && catBoostOptions.LoggingLevel.NotSet()) {
+        catBoostOptions.LoggingLevel.SetDefault(ELoggingLevel::Silent);
     }
 
     TSetLogging inThisScope(catBoostOptions.LoggingLevel);

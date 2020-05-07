@@ -8217,3 +8217,18 @@ def test_plot_tree():
     model = CatBoostClassifier(iterations=2, learning_rate=.05, objective='Logloss')
     model.fit(train_pool)
     model.plot_tree(0)
+
+
+@pytest.mark.parametrize('params', [{},
+                                    {'verbose': True},
+                                    {'verbose': False},
+                                    {'logging_level': 'Silent'},
+                                    {'logging_level': 'Verbose'},
+                                    {'metric_period': 5}])
+def test_same_params(params):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model_path = test_output_path('model.bin')
+    params['iterations'] = 10
+    params['loss_function'] = 'Logloss'
+    CatBoost(params).fit(train_pool).save_model(model_path)
+    assert CatBoost().load_model(model_path).get_params() == params
