@@ -23,7 +23,7 @@ INDUCED_DEPS(h
 )
 
 PEERDIR(
-    library/getopt/small
+    library/cpp/getopt/small
     tools/enum_parser/parse_enum
 )
 

@@ -38,30 +38,11 @@ except ImportError:
 import scipy.sparse
 
 
-def get_so_paths(dir_name):
-    dir_name = os.path.join(os.path.dirname(__file__), dir_name)
-    list_dir = os.listdir(dir_name) if os.path.isdir(dir_name) else []
-    return [os.path.join(dir_name, so_name) for so_name in list_dir if so_name.split('.')[-1] in ['so', 'pyd']]
-
-
-def get_catboost_bin_module():
-    if '_catboost' in sys.modules:
-        return sys.modules['_catboost']
-    so_paths = get_so_paths('./')
-    for so_path in so_paths:
-        try:
-            loaded_catboost = imp.load_dynamic('_catboost', so_path)
-            sys.modules['catboost._catboost'] = loaded_catboost
-            return loaded_catboost
-        except ImportError:
-            pass
-    from . import _catboost
-    return _catboost
-
-
 _typeof = type
 
-_catboost = get_catboost_bin_module()
+from . import _catboost
+
+
 _PoolBase = _catboost._PoolBase
 _CatBoost = _catboost._CatBoost
 _MetricCalcerBase = _catboost._MetricCalcerBase

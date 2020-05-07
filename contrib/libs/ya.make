@@ -6,7 +6,7 @@ RECURSE(
     brotli
     clapack
     coreml
-    cppdemangle/all
+    cppdemangle
     crcutil
     cxxsupp/libcxx
     cxxsupp/libcxx-filesystem

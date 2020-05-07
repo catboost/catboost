@@ -1,10 +1,10 @@
-from .core import Pool, CatBoostError, get_catboost_bin_module, ARRAY_TYPES, STRING_TYPES, _update_params_quantize_part, _process_synonyms
+from . import _catboost
+from .core import Pool, CatBoostError, ARRAY_TYPES, STRING_TYPES, _update_params_quantize_part, _process_synonyms
 from collections import defaultdict
 from contextlib import contextmanager
 import numpy as np
 import warnings
 
-_catboost = get_catboost_bin_module()
 _eval_metric_util = _catboost._eval_metric_util
 _get_roc_curve = _catboost._get_roc_curve
 _get_confusion_matrix = _catboost._get_confusion_matrix
@@ -268,11 +268,11 @@ def eval_metric(label, approx, metric, weight=None, group_id=None, subgroup_id=N
 
 
 def get_gpu_device_count():
-    return get_catboost_bin_module()._get_gpu_device_count()
+    return _catboost._get_gpu_device_count()
 
 
 def reset_trace_backend(filename):
-    get_catboost_bin_module()._reset_trace_backend(filename)
+    _catboost._reset_trace_backend(filename)
 
 
 def get_confusion_matrix(model, data, thread_count=-1):

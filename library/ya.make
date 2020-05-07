@@ -27,8 +27,6 @@ RECURSE(
     fast_exp
     fast_exp/benchmark
     fast_exp/ut
-    getopt
-    getopt/small
     json
     json/flex_buffers
     json/flex_buffers/ut
