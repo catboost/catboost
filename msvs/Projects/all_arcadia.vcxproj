@@ -1212,9 +1212,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\fast_exp\library-fast_exp.vcxproj">
       <Project>E0EC7772-5C0F-6407-290B-3900C3FF324B</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\getopt\small\library-getopt-small.vcxproj">
-      <Project>DB9C26F0-E241-89AB-6F12-8CE533A7E012</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\json\common\library-json-common.vcxproj">
       <Project>3B322F11-1D2A-AEFE-BC14-4F74683E14DB</Project>
     </ProjectReference>
