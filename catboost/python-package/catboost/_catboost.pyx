@@ -1286,7 +1286,8 @@ cdef extern from "catboost/libs/fstr/partial_dependence.h":
     cdef TVector[double] GetPartialDependence(
         const TFullModel& model,
         TVector[int] features,
-        const TDataProviderPtr dataset
+        const TDataProviderPtr dataset,
+        int threadCount
     ) nogil except +ProcessException
 
 cdef extern from "catboost/libs/fstr/calc_fstr.h":
@@ -4387,7 +4388,8 @@ cdef class _CatBoost:
     cpdef _get_loss_function_name(self):
         return self.__model.GetLossFunctionName()
 
-    cpdef _calc_partial_dependence(self, _PoolBase pool, features):
+    cpdef _calc_partial_dependence(self, _PoolBase pool, features, int thread_count):
+        thread_count = UpdateThreadCount(thread_count);
         cdef TVector[double] fstr
         cdef TDataProviderPtr dataProviderPtr
         if pool:
@@ -4396,7 +4398,8 @@ cdef class _CatBoost:
         fstr = GetPartialDependence(
             dereference(self.__model),
             features,
-            dataProviderPtr
+            dataProviderPtr,
+            thread_count
         )
         return _vector_of_double_to_np_array(fstr)
 

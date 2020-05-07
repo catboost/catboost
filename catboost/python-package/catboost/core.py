@@ -2726,7 +2726,22 @@ class CatBoost(_CatBoostBase):
 
         return all_predictions, figs
 
-    def plot_partial_dependence(self, data, features, plot=True, plot_file=None):
+    def plot_partial_dependence(self, data, features, plot=True, plot_file=None, thread_count=-1):
+        """
+        To use this function, you should install plotly.
+        data: numpy.ndarray or pandas.DataFrame or catboost.Pool
+        features: int, str, list<int>, tuple<int>, list<string>, tuple<string>
+            Float features to calculate partial dependence for. Number of features should be 1 or 2.
+        plot: bool
+            Plot predictions.
+        plot_file: str
+            Output file for plot predictions.
+        Returns
+        -------
+            If number of features is one - 1d numpy array and figure with line plot.
+            If number of features is two - 2d numpy array and figure with 2d heatmap.
+        """
+
         try:
             import plotly.graph_objs as go
         except ImportError as e:
@@ -2794,14 +2809,14 @@ class CatBoost(_CatBoostBase):
             raise CatBoostError('Number of \'features\' should be 1 or 2, got {}'.format(len(features_idx)))
         is_2d_plot = len(features_idx) == 2
 
-        data, _ = self._process_predict_input_data(data, "plot_partial_dependence", thread_count=-1)
-        all_predictions = np.array(self._object._calc_partial_dependence(data, features_idx))
+        data, _ = self._process_predict_input_data(data, "plot_partial_dependence", thread_count=thread_count)
+        all_predictions = np.array(self._object._calc_partial_dependence(data, features_idx, thread_count))
 
         if is_2d_plot:
             all_predictions = all_predictions.reshape(map(lambda x: len(x) + 1, borders))
-            fig = plot2d(features, borders,  all_predictions)
+            fig = plot2d(features_idx, borders,  all_predictions)
         else:
-            fig = plot1d(features[0], borders[0], all_predictions)
+            fig = plot1d(features_idx[0], borders[0], all_predictions)
 
         if plot:
             try:
@@ -2819,7 +2834,6 @@ class CatBoost(_CatBoostBase):
 
 
         return all_predictions, fig
-        # return all_predictions
 
     def calc_feature_statistics(self, data, target=None, feature=None, prediction_type=None,
                                 cat_feature_values=None, plot=True, max_cat_features_on_plot=10,

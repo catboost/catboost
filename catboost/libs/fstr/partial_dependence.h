@@ -4,7 +4,7 @@
 #include <catboost/libs/model/model.h>
 #include <catboost/private/libs/options/enums.h>
 #include <library/threading/local_executor/local_executor.h>
-
+#include "util.h"
 #include <util/generic/vector.h>
 #include <util/stream/input.h>
 #include <util/stream/output.h>
@@ -14,5 +14,6 @@
 TVector<double> GetPartialDependence(
         const TFullModel& model,
         const TVector<int>& features,
-        const NCB::TDataProviderPtr dataProvider
+        const NCB::TDataProviderPtr dataProvider,
+        int thread_count
 );

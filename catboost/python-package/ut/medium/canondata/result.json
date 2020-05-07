@@ -1036,5 +1036,13 @@
     "test.test_zero_baseline[CPU]": {
         "checksum": "89e321deed722601e7a06c2aa6a7a867",
         "uri": "file://test.test_zero_baseline_CPU_/model.bin"
+    },
+    "test.test_partial_dependence_2d": {
+        "checksum": "ace1b9c45d71a822ce47c162709e41da",
+        "uri": "file://test.test_partial_dependence_2d/feature_importance.txt"
+    },
+    "test.test_partial_dependence_1d": {
+        "checksum": "75479ad6d14e706aa40b972e2a50a52a",
+        "uri": "file://test.test_partial_dependence_1d/feature_importance.txt"
     }
 }

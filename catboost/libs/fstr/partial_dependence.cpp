@@ -13,8 +13,8 @@ namespace {
     struct TFloatFeatureBucketRange {
         int featureIdx = -1;
         int start = 0;
-        int end = 1;
-        int numOfBuckets = 1;
+        int end = -1;
+        int numOfBuckets = 0;
 
         TFloatFeatureBucketRange() = default;
 
@@ -42,13 +42,11 @@ TVector<TFloatFeatureBucketRange> prepareFeatureRanges(
 ) {
     TVector<TFloatFeatureBucketRange> featureRanges(0);
     if (featuresIdx.size() < 2) {
-        featureRanges.push_back(TFloatFeatureBucketRange());
+        featureRanges.push_back(TFloatFeatureBucketRange(-1, 0));
     }
-    for (const auto& idx: featuresIdx) {
-        const auto feature = model.ModelTrees->GetFloatFeatures()[idx];
-        const auto featurePosition = feature.Position.Index;
-        const auto borders = feature.Borders.size();
-        const auto range = TFloatFeatureBucketRange(featurePosition, borders);
+    for (int idx: featuresIdx) {
+        const auto& feature = model.ModelTrees->GetFloatFeatures()[idx];
+        const auto& range = TFloatFeatureBucketRange(feature.Position.Index, feature.Borders.size());
         featureRanges.push_back(range);
     }
     return featureRanges;
@@ -65,7 +63,7 @@ void UpdateFeatureRanges(
 
     for (size_t splitIdx = 0; splitIdx < splits.size(); ++splitIdx) {
         bool decision = (mask >> splitIdx) & 1;
-        const auto split = binSplits[splits[splitIdx]];
+        const auto& split = binSplits[splits[splitIdx]];
         for (auto& range: *featureRanges) {
             if (range.featureIdx == split.FloatFeature.FloatFeature) {
                 int borderIdx = borderIdxForSplit[splits[splitIdx]];
@@ -76,50 +74,43 @@ void UpdateFeatureRanges(
 
 }
 
-void UpdatePartialDependence(
-        TVector<double>* predictionsByBuckets,
-        const TVector<TFloatFeatureBucketRange>& featureRanges,
-        double prediction
-) {
-    CB_ENSURE(featureRanges.size() == 2,  "Wrong number of features");
-    int columnNum = featureRanges[1].numOfBuckets;
-    for (int rowIdx = featureRanges[0].start; rowIdx < featureRanges[0].end; ++rowIdx) {
-        for (int columnIdx = featureRanges[1].start; columnIdx < featureRanges[1].end; ++columnIdx) {
-            (*predictionsByBuckets)[rowIdx * columnNum + columnIdx] += prediction;
-        }
-    }
-}
-
-void CalculatePartialDependenceOblivious(
+std::pair<TVector<TVector<TFloatFeatureBucketRange>>, TVector<double>>  CalculateBucketRangesAndWeightsOblivious(
         const TFullModel& model,
         const TVector<int>& features,
-        const TDataProvider& dataProvider,
         const TVector<ui32>& borderIdxForSplit,
-        const TVector<ui32> treeLeafIdxes,
-        TVector<double>* predictionsByBuckets
+        const TVector<double>& leafWeights,
+        NPar::TLocalExecutor* localExecutor
 ) {
     const auto& binSplits = model.ModelTrees->GetBinFeatures();
     const auto& treeSplitOffsets = model.ModelTrees->GetTreeStartOffsets();
+    const auto& leafOffsets = model.ModelTrees->GetFirstLeafOffsets();
+    const auto& treeSizes = model.ModelTrees->GetTreeSizes();
+    const auto& treeSplits = model.ModelTrees->GetTreeSplits();
+    size_t leafNum = model.ModelTrees->GetLeafValues().size();
 
-    for (ui32 docIdx = 0; docIdx < dataProvider.GetObjectCount(); ++docIdx) {
-        size_t offset = 0;
-        for (size_t treeId = 0; treeId < model.ModelTrees->GetTreeCount(); ++treeId) {
-            size_t treeDepth = model.ModelTrees->GetTreeSizes().at(treeId);
-            int leafIdx = offset + treeLeafIdxes[treeId + docIdx * model.GetTreeCount()];
-            TVector<int> depthsToExplore;
-            TVector<int> splitsToExplore;
-            for (size_t depthIdx = 0; depthIdx < treeDepth; ++depthIdx) {
-                int splitIdx = model.ModelTrees->GetTreeSplits()[treeSplitOffsets[treeId] + depthIdx];
-                const auto split = binSplits[splitIdx];
-                if (std::find(features.begin(), features.end(), split.FloatFeature.FloatFeature) != features.end()) {
-                    depthsToExplore.push_back(depthIdx);
-                    splitsToExplore.push_back(splitIdx);
-                }
+    const TVector<TFloatFeatureBucketRange> defaultRanges = prepareFeatureRanges(model, features);
+    TVector<TVector<TFloatFeatureBucketRange>> leafBucketRanges(leafNum, defaultRanges);
+    TVector<double> leafWeightsNew(leafWeights.size(), 0.0);
+
+    int treeCount = model.ModelTrees->GetTreeCount();
+    NPar::TLocalExecutor::TExecRangeParams blockParams(0, treeCount);
+    localExecutor->ExecRange([&] (size_t treeId) {
+        size_t offset = leafOffsets[treeId];
+        size_t treeDepth = treeSizes[treeId];
+        TVector<int> depthsToExplore;
+        TVector<int> splitsToExplore;
+        for (size_t depthIdx = 0; depthIdx < treeDepth; ++depthIdx) {
+            int splitIdx = treeSplits[treeSplitOffsets[treeId] + depthIdx];
+            const auto& split = binSplits[splitIdx];
+            if (std::find(features.begin(), features.end(), split.FloatFeature.FloatFeature) != features.end()) {
+                depthsToExplore.push_back(depthIdx);
+                splitsToExplore.push_back(splitIdx);
             }
+        }
 
-            int numberOfMasks = 1 << depthsToExplore.size();
-            for (int mask = 0; mask < numberOfMasks; ++mask) {
-                TVector<TFloatFeatureBucketRange> featureRanges = prepareFeatureRanges(model, features);
+        for (size_t leafIdx = 0; leafIdx < 1 << treeDepth; ++leafIdx) {
+            for (int mask = 0; mask < 1 << depthsToExplore.size(); ++mask) {
+                TVector<TFloatFeatureBucketRange> featureRanges = defaultRanges;
 
                 int newLeafIdx = leafIdx;
                 for (size_t splitIdx = 0; splitIdx < splitsToExplore.size(); ++splitIdx) {
@@ -128,41 +119,78 @@ void CalculatePartialDependenceOblivious(
                     newLeafIdx = (newLeafIdx & ~(1UL << depth)) | (decision << depth);
                 }
                 UpdateFeatureRanges(model, &featureRanges, splitsToExplore, borderIdxForSplit, mask);
-                double newLeafValue = model.ModelTrees->GetLeafValues()[newLeafIdx];
-                UpdatePartialDependence(predictionsByBuckets, featureRanges, newLeafValue);
+                leafBucketRanges[offset + newLeafIdx] = featureRanges;
+                leafWeightsNew[offset + leafIdx] += leafWeights[offset + newLeafIdx];
             }
-            offset += (1ull << treeDepth);
         }
-    }
-    size_t numOfDocuments = dataProvider.GetObjectCount();
-    for (size_t idx = 0; idx < predictionsByBuckets->size(); ++idx) {
-        (*predictionsByBuckets)[idx] /= numOfDocuments;
-    }
+    }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
+
+
+    return std::pair(leafBucketRanges, leafWeightsNew);
 }
 
+TVector<double> MergeBucketRanges(
+        const TFullModel& model,
+        const TVector<int>& features,
+        const TDataProvider& dataProvider,
+        const TVector<TVector<TFloatFeatureBucketRange>>& leafBucketRanges,
+        const TVector<double> leafWeights
+) {
+    const auto& leafValues = model.ModelTrees->GetLeafValues();
+    TVector<TFloatFeatureBucketRange> defaultRanges = prepareFeatureRanges(model, features);
+    CB_ENSURE(defaultRanges.size() == 2, "Number of features must be 2");
+
+    int columnNum = defaultRanges[1].numOfBuckets;
+    int rowNum = defaultRanges[0].numOfBuckets;
+    int numOfBucketsTotal = rowNum * columnNum;
+    TVector<double> edges(numOfBucketsTotal);
+
+    for (size_t leafIdx = 0; leafIdx < leafValues.size(); ++leafIdx) {
+        const auto& ranges = leafBucketRanges[leafIdx];
+        double leafValue = leafValues[leafIdx];
+        for (int rowIdx = ranges[0].start; rowIdx < ranges[0].end; ++rowIdx) {
+            if (ranges[1].start < ranges[1].end) {
+                edges[rowIdx * columnNum + ranges[1].start] += leafValue * leafWeights[leafIdx];
+                if (ranges[1].end != columnNum) {
+                    edges[rowIdx * columnNum + ranges[1].end] -= leafValue * leafWeights[leafIdx];
+                } else if (rowIdx < rowNum - 1) {
+                    edges[(rowIdx + 1) * columnNum] -= leafValue * leafWeights[leafIdx];
+                }
+            }
+        }
+    }
+
+    TVector<double> predictionsByBuckets(numOfBucketsTotal);
+    double acc = 0;
+    for (int idx = 0; idx < numOfBucketsTotal; ++idx) {
+        acc += edges[idx];
+        predictionsByBuckets[idx] = acc;
+    }
+
+    size_t numOfDocuments = dataProvider.GetObjectCount();
+    for (size_t idx = 0; idx < predictionsByBuckets.size(); ++idx) {
+        predictionsByBuckets[idx] /= numOfDocuments;
+    }
+    return predictionsByBuckets;
+}
 
 TVector<double> CalculatePartialDependence(
         const TFullModel& model,
         const TVector<int>& features,
         const TDataProvider& dataProvider,
         const TVector<ui32>& borderIdxForSplit,
-        const TVector<ui32> treeLeafIdxes
+        const TVector<double> leafWeights,
+        NPar::TLocalExecutor* localExecutor
 ) {
-    size_t numOfBuckets = 1;
-    for (const auto& featureIdx: features) {
-        const auto feature = model.ModelTrees->GetFloatFeatures()[featureIdx];
-        numOfBuckets *= feature.Borders.size() + 1;
-    }
-    TVector<double> predictionsByBuckets(numOfBuckets);
-
-    CalculatePartialDependenceOblivious(
+    const auto& [leafBucketRanges, leafWeightsNew] = CalculateBucketRangesAndWeightsOblivious(
             model,
             features,
-            dataProvider,
             borderIdxForSplit,
-            treeLeafIdxes,
-            &predictionsByBuckets
+            leafWeights,
+            localExecutor
     );
+
+    TVector<double> predictionsByBuckets = MergeBucketRanges(model, features, dataProvider, leafBucketRanges, leafWeightsNew);
 
     return predictionsByBuckets;
 }
@@ -170,13 +198,17 @@ TVector<double> CalculatePartialDependence(
 TVector<double> GetPartialDependence(
         const TFullModel& model,
         const TVector<int>& features,
-        const NCB::TDataProviderPtr dataProvider
+        const NCB::TDataProviderPtr dataProvider,
+        int threadCount
 ) {
     CB_ENSURE(model.ModelTrees->GetDimensionsCount() == 1,  "Is not supported for multiclass");
     CB_ENSURE(model.GetNumCatFeatures() == 0, "Model with categorical features are not supported");
     CB_ENSURE(features.size() > 0 && features.size() <= 2, "Number of features should be equal to one or two");
 
-    TVector<ui32> leafIdxes = CalcLeafIndexesMulti(model, (*dataProvider).ObjectsData, 0, 0);
+    NPar::TLocalExecutor localExecutor;
+    localExecutor.RunAdditionalThreads(threadCount - 1);
+
+    TVector<double> leafWeights = CollectLeavesStatistics(*dataProvider, model, &localExecutor);
 
     const auto& binSplits = model.ModelTrees->GetBinFeatures();
 
@@ -203,8 +235,10 @@ TVector<double> GetPartialDependence(
             features,
             *dataProvider,
             borderIdxForSplit,
-            leafIdxes
+            leafWeights,
+            &localExecutor
     );
     return predictionsByBuckets;
 }
+
 
