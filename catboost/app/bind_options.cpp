@@ -12,11 +12,11 @@
 #include <catboost/private/libs/options/output_file_options.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 
-#include <library/getopt/small/last_getopt.h>
+#include <library/cpp/getopt/small/last_getopt.h>
 #include <library/cpp/grid_creator/binarization.h>
 #include <library/json/json_reader.h>
 #include <library/logger/log.h>
-#include <library/text_processing/dictionary/options.h>
+#include <library/cpp/text_processing/dictionary/options.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/serialized_enum.h>
@@ -906,6 +906,14 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         .Help("Penalties for first use of feature in model. Possible formats: \"(0,0.5,10,0)\" or \"1:0.5,2:10\" or \"FeatureName1:0.5,FeatureName2:10\" Should be nonnegative.")
         .Handler1T<TString>([plainJsonPtr](const TString& firstFeatureUsePenalty) {
             (*plainJsonPtr)["first_feature_use_penalties"] = firstFeatureUsePenalty;
+        });
+
+    parser
+        .AddLongOption("per-object-feature-penalties")
+        .RequiredArgument("String")
+        .Help("Penalties for first use of feature for each object in model. Possible formats: \"(0,0.5,10,0)\" or \"1:0.5,2:10\" or \"FeatureName1:0.5,FeatureName2:10\" Should be nonnegative.")
+        .Handler1T<TString>([plainJsonPtr](const TString& perObjectFeaturePenalty) {
+            (*plainJsonPtr)["per_object_feature_penalties"] = perObjectFeaturePenalty;
         });
 }
 

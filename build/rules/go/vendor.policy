@@ -428,9 +428,29 @@ ALLOW .* -> vendor/gopkg.in/tucnak/telebot.v2
 # CONTRIB-1726 helpers for working with protobuf field masks
 ALLOW .* -> vendor/github.com/mennanov/fieldmask-utils
 
+# CONTRIB-1810 Fast directory traversal for Golang
+ALLOW .* -> vendor/github.com/karrick/godirwalk
+
+# CONTRIB-1864 Zstandard (zstd) data compression algorithm
+ALLOW .* -> vendor/github.com/klauspost/compress/zstd
+
+# CONTRIB-1865 Decorated Syntax Tree for Go AST
+ALLOW .* -> vendor/github.com/dave/dst
+
 #
 # Temporary exceptions.
 #
+
+# CONTRIB-1863. resposible: tserakhau@
+
+ALLOW transfer_manager/go/pkg/source/mysql/canal -> vendor/github.com/pingcap/errors
+ALLOW transfer_manager/go/pkg/source/mysql/canal -> vendor/github.com/pingcap/parser/ast
+ALLOW transfer_manager/go/pkg/source/mysql/canal -> vendor/github.com/pingcap/parser/format
+ALLOW transfer_manager/go/pkg/source/mysql/canal -> vendor/github.com/pingcap/parser
+ALLOW transfer_manager/go/pkg/source/mysql/canal -> vendor/github.com/satori/go.uuid
+ALLOW transfer_manager/go/pkg/source/mysql/canal -> vendor/github.com/siddontang/go-log/log
+ALLOW transfer_manager/go/pkg/source/mysql/canal -> vendor/github.com/siddontang/go-mysql/client
+ALLOW transfer_manager/go/pkg/source/mysql/canal -> vendor/github.com/siddontang/go-mysql/schema
 
 # CONTRIB-1244. resposible: gzuykov@
 ALLOW cloud -> vendor/github.com/rcrowley/go-metrics

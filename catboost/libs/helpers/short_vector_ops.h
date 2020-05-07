@@ -4,7 +4,7 @@
 #include <catboost/private/libs/algo_helpers/online_predictor.h>
 #include <catboost/libs/metrics/metric_holder.h>
 
-#include <library/sse/sse.h>
+#include <library/cpp/sse/sse.h>
 
 #include <util/generic/xrange.h>
 

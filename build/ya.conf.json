@@ -5573,7 +5573,9 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [664161901],
+                "sandbox_id": [
+                    664161901
+                ],
                 "match": "ymake"
             },
             "executable": {
@@ -5596,7 +5598,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    662739973
+                    669103112
                 ],
                 "match": "arc"
             },
@@ -5702,7 +5704,7 @@
         "sandboxctl": {
             "formula": {
                 "sandbox_id": [
-                    657687165
+                    667910329
                 ],
                 "match": "tools/sandboxctl/bin/sandboxctl"
             },
@@ -7284,7 +7286,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 664235554,
+                "sandbox_id": 669129194,
                 "match": "horadric"
             },
             "executable": {
@@ -7372,7 +7374,7 @@
         },
         "ycmerge": {
             "formula": {
-                "sandbox_id": 658763292,
+                "sandbox_id": 668570008,
                 "match": "ycmerge"
             },
             "executable": {
@@ -7383,7 +7385,7 @@
         },
         "ygdiff": {
             "formula": {
-                "sandbox_id": 612924628,
+                "sandbox_id": 668511811,
                 "match": "ygdiff"
             },
             "executable": {
@@ -7416,7 +7418,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 658091479,
+                "sandbox_id": 660385494,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -7665,7 +7667,7 @@
         "vmexec": {
             "formula": {
                 "sandbox_id": [
-                    566964606
+                    667857814
                 ],
                 "match": "infra/qemu/vmexec/vmexec"
             },
@@ -7699,7 +7701,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 664580852,
+                "sandbox_id": 670087919,
                 "match": "SEDEM archive"
             },
             "executable": {
@@ -7728,7 +7730,7 @@
         "ya_sed": {
             "formula": {
                 "sandbox_id": [
-                    645365301
+                    668361467
                 ],
                 "match": "ya_sed"
             },

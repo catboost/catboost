@@ -8,7 +8,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/sse
+    library/cpp/sse
 )
 
 END()

@@ -747,7 +747,7 @@ public:
         TVector<double>* der,
         THessianInfo* der2
     ) const override {
-        Descriptor.CalcDersMulti(approx, target, weight, der, der2, Descriptor.CustomData);
+        Descriptor.CalcDersMultiClass(approx, target, weight, der, der2, Descriptor.CustomData);
     }
 
     void CalcDersRange(
@@ -810,6 +810,34 @@ public:
 private:
     TCustomObjectiveDescriptor Descriptor;
 };
+
+class TMultiRegressionCustomError final : public TMultiDerCalcer {
+public:
+
+    TMultiRegressionCustomError(
+        const NCatboostOptions::TCatBoostOptions& params,
+        const TMaybe<TCustomObjectiveDescriptor>& descriptor
+    )
+        : Descriptor(*descriptor) {
+        CB_ENSURE(
+            IsStoreExpApprox(params.LossFunctionDescription->GetLossFunction()) == false,
+            "Approx format does not match");
+    }
+
+    void CalcDers(
+        TConstArrayRef<double> approx,
+        TConstArrayRef<float> target,
+        float weight,
+        TVector<double>* der,
+        THessianInfo* der2
+    ) const override {
+        Descriptor.CalcDersMultiRegression(approx, target, weight, der, der2, Descriptor.CustomData);
+    }
+
+private:
+    TCustomObjectiveDescriptor Descriptor;
+};
+
 
 inline double GetNumericParameter(const TMap<TString, TString>& params, const TString& key) {
     if (params.contains(key)) {

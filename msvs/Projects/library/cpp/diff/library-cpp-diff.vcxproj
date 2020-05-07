@@ -96,11 +96,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\containers\paged_vector\library-containers-paged_vector.vcxproj">
-      <Project>{F2373D22-DBF0-B7E4-B028-8BF674973AED}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\paged_vector\cpp-containers-paged_vector.vcxproj">
+      <Project>{5B0D41B4-E09B-5679-7188-95162A85D1F0}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\containers\stack_array\library-containers-stack_array.vcxproj">
-      <Project>{8FDE35EC-9B80-AF55-62B5-130D5EF3D68A}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\stack_array\cpp-containers-stack_array.vcxproj">
+      <Project>{BF161D83-E5D3-2E1E-3860-78744018CF2C}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\lcs\library-lcs.vcxproj">
       <Project>{E815EB4E-987D-1ECC-5BB6-03920E993386}</Project>

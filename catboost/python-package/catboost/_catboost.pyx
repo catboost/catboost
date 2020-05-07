@@ -116,7 +116,7 @@ class CatBoostError(Exception):
 
 
 @cython.embedsignature(True)
-class MultiLabelCustomMetric:
+class MultiRegressionCustomMetric:
     def evaluate(self, approxes, targets, weights):
         """
         Evaluates metric value.
@@ -161,6 +161,32 @@ class MultiLabelCustomMetric:
 
         """
         raise CatBoostError("get_final_error method is not implemented")
+
+
+@cython.embedsignature(True)
+class MultiRegressionCustomObjective:
+    def calc_ders_multi(self, approxes, targets, weights):
+        """
+        Computes first derivative and Hessian matrix of the loss function with respect to the predicted value for each dimension.
+
+        Parameters
+        ----------
+        approxes : list of float
+            Vector of approx labels.
+
+        targets : list of float
+            Vector of true labels.
+
+        weight : float, optional (default=None)
+            Instance weight.
+
+        Returns
+        -------
+            der1 : list of float
+            der2 : list of lists of float
+
+        """
+        raise CatBoostError("calc_ders_multi method is not implemented")
 
 
 cdef public object PyCatboostExceptionType = <object>CatBoostError
@@ -979,6 +1005,10 @@ cdef extern from "catboost/libs/model/model_export/model_exporter.h" namespace "
         const THashMap[ui32, TString]* catFeaturesHashToString
     ) nogil except +ProcessException
 
+    cdef TString ConvertTreeToOnnxProto(
+        const TFullModel& model,
+        const TString& userParametersJson)
+
 cdef extern from "library/json/writer/json_value.h" namespace "NJson":
     cdef enum EJsonValueType:
         JSON_UNDEFINED,
@@ -1102,9 +1132,18 @@ cdef extern from "catboost/private/libs/algo_helpers/custom_objective_descriptor
             void* customData
         ) with gil
 
-        void (*CalcDersMulti)(
+        void (*CalcDersMultiClass)(
             const TVector[double]& approx,
             float target,
+            float weight,
+            TVector[double]* ders,
+            THessianInfo* der2,
+            void* customData
+        ) with gil
+
+        void (*CalcDersMultiRegression)(
+            TConstArrayRef[double] approx,
+            TConstArrayRef[float] target,
             float weight,
             TVector[double]* ders,
             THessianInfo* der2,
@@ -1820,7 +1859,7 @@ cdef void _ObjectiveCalcDersRange(
         ders[index].Der2 = der2
         index += 1
 
-cdef void _ObjectiveCalcDersMulti(
+cdef void _ObjectiveCalcDersMultiClass(
     const TVector[double]& approx,
     float target,
     float weight,
@@ -1850,6 +1889,38 @@ cdef void _ObjectiveCalcDersMulti(
                 dereference(der2).Data[index] = num
                 index += 1
 
+cdef void _ObjectiveCalcDersMultiRegression(
+    TConstArrayRef[double] approx,
+    TConstArrayRef[float] target,
+    float weight,
+    TVector[double]* ders,
+    THessianInfo* der2,
+    void* customData
+) with gil:
+    cdef objectiveObject = <object>(customData)
+    cdef TString errorMessage
+
+    approxes = _DoubleArrayWrapper.create(approx.data(), approx.size())
+    targetes = _FloatArrayWrapper.create(target.data(), target.size())
+
+    try:
+        ders_vector, second_ders_matrix = objectiveObject.calc_ders_multi(approxes, targetes, weight)
+    except:
+        errorMessage = to_arcadia_string(traceback.format_exc())
+        with nogil:
+            ThrowCppExceptionWithMessage(errorMessage)
+
+    for index, der in enumerate(ders_vector):
+        dereference(ders)[index] = der
+
+    if der2:
+        index = 0
+        for indY, line in enumerate(second_ders_matrix):
+            for num in line[indY:]:
+                dereference(der2).Data[index] = num
+                index += 1
+
+
 # customGenerator should have method rvs()
 cdef TCustomRandomDistributionGenerator _BuildCustomRandomDistributionGenerator(object customGenerator):
     cdef TCustomRandomDistributionGenerator descriptor
@@ -1860,7 +1931,7 @@ cdef TCustomRandomDistributionGenerator _BuildCustomRandomDistributionGenerator(
 cdef TCustomMetricDescriptor _BuildCustomMetricDescriptor(object metricObject):
     cdef TCustomMetricDescriptor descriptor
     descriptor.CustomData = <void*>metricObject
-    if (issubclass(metricObject.__class__, MultiLabelCustomMetric)):
+    if (issubclass(metricObject.__class__, MultiRegressionCustomMetric)):
         descriptor.EvalMultiregressionFunc = &_MultiregressionMetricEval
     else:
         descriptor.EvalFunc = &_MetricEval
@@ -1873,7 +1944,8 @@ cdef TCustomObjectiveDescriptor _BuildCustomObjectiveDescriptor(object objective
     cdef TCustomObjectiveDescriptor descriptor
     descriptor.CustomData = <void*>objectiveObject
     descriptor.CalcDersRange = &_ObjectiveCalcDersRange
-    descriptor.CalcDersMulti = &_ObjectiveCalcDersMulti
+    descriptor.CalcDersMultiRegression = &_ObjectiveCalcDersMultiRegression
+    descriptor.CalcDersMultiClass = &_ObjectiveCalcDersMultiClass
     return descriptor
 
 
@@ -1942,8 +2014,8 @@ cdef class _PreprocessParams:
         if devices is not None and isinstance(devices, list):
             params['devices'] = ':'.join(map(str, devices))
 
-        params['verbose'] = int(params['verbose']) if 'verbose' in params else (
-            params['metric_period'] if 'metric_period' in params else 1)
+        if 'verbose' in params:
+            params['verbose'] = int(params['verbose'])
 
         params_to_json = params
 
@@ -1966,12 +2038,17 @@ cdef class _PreprocessParams:
             for k in keys_to_replace:
                 params_to_json[k] = "PythonUserDefinedPerObject"
 
-        dumps_params = dumps(params_to_json, cls=_NumpyAwareEncoder)
-
         if params_to_json.get("loss_function") == "PythonUserDefinedPerObject":
             self.customObjectiveDescriptor = _BuildCustomObjectiveDescriptor(params["loss_function"])
+            if (issubclass(params["loss_function"].__class__, MultiRegressionCustomObjective)):
+                params_to_json["loss_function"] = "PythonUserDefinedMultiRegression"
+
         if params_to_json.get("eval_metric") == "PythonUserDefinedPerObject":
             self.customMetricDescriptor = _BuildCustomMetricDescriptor(params["eval_metric"])
+            if (issubclass(params["eval_metric"].__class__, MultiRegressionCustomMetric)):
+                params_to_json["eval_metric"] = "PythonUserDefinedMultiRegression"
+
+        dumps_params = dumps(params_to_json, cls=_NumpyAwareEncoder)
 
         self.tree = ReadTJsonValue(to_arcadia_string(dumps_params))
 
@@ -5558,6 +5635,9 @@ cpdef _check_train_params(dict params):
         del params_to_check['feature_weights']
     if 'first_feature_use_penalties' in params_to_check:
         del params_to_check['first_feature_use_penalties']
+    if 'per_object_feature_penalties' in params_to_check:
+        del params_to_check['per_object_feature_penalties']
+
 
     prep_params = _PreprocessParams(params_to_check)
     CheckFitParams(
@@ -5615,6 +5695,19 @@ cpdef compute_training_options(dict options, DataMetaInfo train_meta_info, DataM
     )
     return loads(to_native_str(WriteTJsonValue(trainingOptions)))
 
+
+cpdef _get_onnx_model(model, export_parameters):
+    if not model._is_oblivious():
+        raise CatBoostError(
+            "ONNX-ML export is available only for models on oblivious trees ")
+
+    cdef TString result = ConvertTreeToOnnxProto(
+        dereference((<_CatBoost>model).__model),
+        to_arcadia_string(export_parameters),
+    )
+    cdef const char* result_ptr = result.c_str()
+    cdef size_t result_len = result.size()
+    return bytes(result_ptr[:result_len])
 
 include "_monoforest.pxi"
 include "_text_processing.pxi"

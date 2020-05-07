@@ -7,7 +7,7 @@
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/private/libs/options/enums.h>
 
-#include <library/getopt/last_getopt.h>
+#include <library/cpp/getopt/last_getopt.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>

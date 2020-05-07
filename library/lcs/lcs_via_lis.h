@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/containers/paged_vector/paged_vector.h>
+#include <library/cpp/containers/paged_vector/paged_vector.h>
 
 #include <util/generic/ptr.h>
 #include <util/generic/hash.h>

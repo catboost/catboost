@@ -101,11 +101,11 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cpuid_check\library-cpp-cpuid_check.vcxproj">
       <Project>{A945C0FD-E868-BBA0-1189-19BBB2296292}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\lfalloc\library-cpp-lfalloc.vcxproj">
+      <Project>{AB5AFC2D-002B-AF50-A906-75D4604E3D34}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\api\cpp-malloc-api.vcxproj">
       <Project>{98AF9344-15D9-0539-93F4-0E901C36E301}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\lfalloc\library-lfalloc.vcxproj">
-      <Project>{E22C8A39-34B3-848D-FFAB-D6FD254429F6}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>

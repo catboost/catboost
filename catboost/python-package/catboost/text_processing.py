@@ -1,5 +1,4 @@
-from .core import get_catboost_bin_module
+from . import _catboost
 
-_catboost = get_catboost_bin_module()
 Tokenizer = _catboost.Tokenizer
 Dictionary = _catboost.Dictionary

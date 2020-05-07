@@ -14,7 +14,7 @@
 #include <catboost/private/libs/text_processing/text_digitizers.h>
 #include <catboost/private/libs/quantization/utils.h>
 
-#include <library/binsaver/bin_saver.h>
+#include <library/cpp/binsaver/bin_saver.h>
 #include <library/cpp/grid_creator/binarization.h>
 #include <library/dbg_output/dump.h>
 #include <library/threading/local_executor/local_executor.h>

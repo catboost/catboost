@@ -4,7 +4,7 @@
 #include <catboost/libs/data/objects.h>
 #include <catboost/libs/helpers/clear_array.h>
 
-#include <library/containers/dense_hash/dense_hash.h>
+#include <library/cpp/containers/dense_hash/dense_hash.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/vector.h>

@@ -3,8 +3,8 @@
 #include "par_log.h"
 #include "par_host_stats.h"
 
-#include <library/binsaver/mem_io.h>
-#include <library/binsaver/util_stream_io.h>
+#include <library/cpp/binsaver/mem_io.h>
+#include <library/cpp/binsaver/util_stream_io.h>
 #include <library/chromium_trace/interface.h>
 
 #include <util/random/random.h>

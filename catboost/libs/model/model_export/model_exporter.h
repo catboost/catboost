@@ -28,4 +28,8 @@ namespace NCB {
         bool addFileFormatExtension = false,
         const TVector<TString>* featureId=nullptr,
         const THashMap<ui32, TString>* catFeaturesHashToString=nullptr);
+
+    TString ConvertTreeToOnnxProto(
+        const TFullModel& model,
+        const TString& userParametersJson = "");
 }

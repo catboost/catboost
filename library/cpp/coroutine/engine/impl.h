@@ -6,7 +6,7 @@
 #include "schedule_callback.h"
 #include "trampoline.h"
 
-#include <library/containers/intrusive_rb_tree/rb_tree.h>
+#include <library/cpp/containers/intrusive_rb_tree/rb_tree.h>
 
 #include <util/system/error.h>
 #include <util/generic/ptr.h>

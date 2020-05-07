@@ -207,8 +207,7 @@
     }, 
     "detailed_profile": false, 
     "flat_params": {
-        "thread_count": 1, 
-        "verbose": 1
+        "thread_count": 1
     }, 
     "logging_level": "Verbose", 
     "loss_function": {
@@ -259,7 +258,8 @@
         "penalties": {
             "feature_weights": {}, 
             "first_feature_use_penalties": {}, 
-            "penalties_coefficient": 1
+            "penalties_coefficient": 1, 
+            "per_object_feature_penalties": {}
         }, 
         "random_strength": 1, 
         "rsm": 1, 

@@ -1,14 +1,10 @@
 
 
 RECURSE(
-    binsaver
-    binsaver/ut_util
-    binsaver/ut
     blockcodecs
     blockcodecs/fuzz
     blockcodecs/ut
     build_info
-    cgiparam
     charset
     charset/ut
     chromium_trace
@@ -20,7 +16,6 @@ RECURSE(
     comptrie/loader/ut
     comptrie/ut
     comptrie/benchmark
-    containers
     cpp
     dbg_output
     dbg_output/ut
@@ -32,12 +27,6 @@ RECURSE(
     fast_exp
     fast_exp/benchmark
     fast_exp/ut
-    fast_log
-    getopt
-    getopt/last_getopt_demo
-    getopt/small
-    getopt/ut
-    http
     json
     json/flex_buffers
     json/flex_buffers/ut
@@ -55,10 +44,6 @@ RECURSE(
     langs/ut
     lcs
     lcs/ut
-    lfalloc
-    lfalloc/dbg
-    lfalloc/dbg_info
-    lfalloc/yt
     linear_regression
     linear_regression/benchmark
     linear_regression/ut
@@ -72,7 +57,6 @@ RECURSE(
     netliba
     object_factory
     object_factory/ut
-    openssl
     overloaded
     overloaded/ut
     packers
@@ -81,20 +65,16 @@ RECURSE(
     python
     resource
     resource/ut
-    sse
     statistics
     statistics/ut
-    string_utils
     svnversion
     svnversion/java
     testing
-    text_processing
     threading
     token
     token/serialization
     token/serialization/ut
     token/ut
-    unicode
     unittest
     unittest/fat
     unittest/main
@@ -113,7 +93,7 @@ IF (OS_WINDOWS)
 )
 ELSE()
     RECURSE(
-    sse/ut
+    
 )
 ENDIF()
 

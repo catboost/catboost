@@ -3,7 +3,7 @@
 UNITTEST_FOR(library/json)
 
 PEERDIR(
-    library/string_utils/relaxed_escaper
+    library/cpp/string_utils/relaxed_escaper
 )
 
 SRCS(

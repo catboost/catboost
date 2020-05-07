@@ -64,6 +64,8 @@ static inline TString BuildDescription(const TString& description, const TParams
     return TStringBuilder() << description << sep << tail;
 }
 
+TString BuildDescriptionFromParamsMap(ELossFunction lossFunction, const TMap<TString, TString>& params);
+
 static inline TMetricParam<double> MakeTargetBorderParam(double targetBorder) {
     return {"border", targetBorder, targetBorder != GetDefaultTargetBorder()};
 }

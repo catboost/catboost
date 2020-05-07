@@ -2,7 +2,7 @@
 
 #include <catboost/private/libs/feature_estimator/feature_estimator.h>
 
-#include <library/binsaver/bin_saver.h>
+#include <library/cpp/binsaver/bin_saver.h>
 
 #include <util/digest/multi.h>
 #include <util/generic/hash.h>

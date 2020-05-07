@@ -7,7 +7,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/getopt/small
+    library/cpp/getopt/small
 )
 
 END()

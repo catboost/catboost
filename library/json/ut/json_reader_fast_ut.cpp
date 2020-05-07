@@ -2,7 +2,7 @@
 #include <library/json/json_prettifier.h>
 #include <library/unittest/registar.h>
 
-#include <library/string_utils/relaxed_escaper/relaxed_escaper.h>
+#include <library/cpp/string_utils/relaxed_escaper/relaxed_escaper.h>
 #include <util/string/cast.h>
 #include <util/string/printf.h>
 

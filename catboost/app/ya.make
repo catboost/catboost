@@ -40,12 +40,12 @@ PEERDIR(
     catboost/private/libs/options
     catboost/private/libs/target
     catboost/libs/train_lib
-    library/getopt/small
+    library/cpp/getopt/small
     library/cpp/grid_creator
     library/json
     library/logger
     library/svnversion
-    library/text_processing/dictionary
+    library/cpp/text_processing/dictionary
     library/threading/local_executor
 )
 

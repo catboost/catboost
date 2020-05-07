@@ -958,6 +958,14 @@ public:
         {return (__is_long() ? __get_long_cap()
                              : static_cast<size_type>(__min_cap)) - 1;}
 
+
+#if _YNDX_LIBCXX_ENABLE_STRING_RESIZE_UNINITIALIZED == 1
+    inline void resize_uninitialized(size_type __n)
+    {
+        __resize_default_init(__n);
+    }
+#endif
+
     void resize(size_type __n, value_type __c);
     _LIBCPP_INLINE_VISIBILITY void resize(size_type __n) {resize(__n, value_type());}
 

@@ -265,7 +265,7 @@ static bool IsFromAucFamily(ELossFunction loss) {
 }
 
 void CheckMetric(const ELossFunction metric, const ELossFunction modelLoss) {
-    if (metric == ELossFunction::PythonUserDefinedPerObject || modelLoss == ELossFunction::PythonUserDefinedPerObject) {
+    if (IsUserDefined(metric) || IsUserDefined(modelLoss)) {
         return;
     }
 

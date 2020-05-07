@@ -23,7 +23,7 @@
 
 #include <catboost/private/libs/options/binarization_options.h>
 
-#include <library/binsaver/bin_saver.h>
+#include <library/cpp/binsaver/bin_saver.h>
 #include <library/dbg_output/dump.h>
 #include <library/threading/local_executor/local_executor.h>
 

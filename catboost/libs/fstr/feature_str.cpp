@@ -146,38 +146,10 @@ TVector<double> CalculateEffectToInfoRate(const TVector<double>& effect,
     return featuresEfficiency;
 }
 
-TVector<TFeaturePairInteractionInfo> CalcMostInteractingFeatures(const TVector<TMxTree>& trees,
-                                                                 int topPairsCount) {
-    int featureCount = GetMaxSrcFeature(trees) + 1;
-    THashMap<std::pair<int, int>, double> sumInteractions;
-
-    for (int i = 0; i < trees.ysize(); ++i) {
-        const TMxTree& tree = trees[i];
-        for (int f1 = 0; f1 < tree.SrcFeatures.ysize() - 1; ++f1) {
-            for (int f2 = f1 + 1; f2 < tree.SrcFeatures.ysize(); ++f2) {
-                int n1 = 1 << f1;
-                int n2 = 1 << f2;
-                double delta = 0;
-                for (int leafIdx = 0; leafIdx < tree.Leaves.ysize(); ++leafIdx) {
-                    int var1 = (leafIdx & n1) != 0;
-                    int var2 = (leafIdx & n2) != 0;
-                    int sign = (var1 ^ var2) ? 1 : -1;
-                    for (int valInLeafIdx = 0; valInLeafIdx < tree.Leaves[leafIdx].Vals.ysize(); ++valInLeafIdx) {
-                        delta += sign * tree.Leaves[leafIdx].Vals[valInLeafIdx];
-                    }
-                }
-                int srcFeature1 = tree.SrcFeatures[f1];
-                int srcFeature2 = tree.SrcFeatures[f2];
-                if (srcFeature2 < srcFeature1) {
-                    DoSwap(srcFeature1, srcFeature2);
-                }
-                if (srcFeature1 == srcFeature2) {
-                    continue;
-                }
-                sumInteractions[std::make_pair(srcFeature1, srcFeature2)] += fabs(delta);
-            }
-        }
-    }
+static TVector<TFeaturePairInteractionInfo> PostProcessSumInteractions(
+    THashMap<std::pair<int, int>, double>& sumInteractions,
+    int featureCount,
+    int topPairsCount) {
 
     TVector<TFeaturePairInteractionInfo> pairsInfo;
 
@@ -187,9 +159,10 @@ TVector<TFeaturePairInteractionInfo> CalcMostInteractingFeatures(const TVector<T
                                                             pairInteraction.first.first, pairInteraction.first.second));
         }
     } else {
-        for (int f1 = 0; f1 < featureCount; ++f1) {
-            for (int f2 = f1 + 1; f2 < featureCount; ++f2) {
-                pairsInfo.push_back(TFeaturePairInteractionInfo(sumInteractions[std::make_pair(f1,f2)], f1, f2));
+        for (int firstIdx = 0; firstIdx < featureCount; ++firstIdx) {
+            for (int secondIdx = firstIdx + 1; secondIdx < featureCount; ++secondIdx) {
+                pairsInfo.push_back(TFeaturePairInteractionInfo(sumInteractions[std::make_pair(firstIdx, secondIdx)],
+                                                                                   firstIdx, secondIdx));
             }
         }
     }
@@ -200,6 +173,114 @@ TVector<TFeaturePairInteractionInfo> CalcMostInteractingFeatures(const TVector<T
     }
 
     return pairsInfo;
+}
+
+TVector<TFeaturePairInteractionInfo> CalcMostInteractingFeatures(const TVector<TMxTree>& trees,
+                                                                 int topPairsCount) {
+    int featureCount = GetMaxSrcFeature(trees) + 1;
+    THashMap<std::pair<int, int>, double> sumInteractions;
+
+    for (int i = 0; i < trees.ysize(); ++i) {
+        const TMxTree& tree = trees[i];
+        for (int firstIdx = 0; firstIdx < tree.SrcFeatures.ysize() - 1; ++firstIdx) {
+            for (int secondIdx = firstIdx + 1; secondIdx < tree.SrcFeatures.ysize(); ++secondIdx) {
+                int n1 = 1 << firstIdx;
+                int n2 = 1 << secondIdx;
+                double delta = 0;
+                for (int leafIdx = 0; leafIdx < tree.Leaves.ysize(); ++leafIdx) {
+                    int var1 = (leafIdx & n1) != 0;
+                    int var2 = (leafIdx & n2) != 0;
+                    int sign = (var1 ^ var2) ? 1 : -1;
+                    for (int valInLeafIdx = 0; valInLeafIdx < tree.Leaves[leafIdx].Vals.ysize(); ++valInLeafIdx) {
+                        delta += sign * tree.Leaves[leafIdx].Vals[valInLeafIdx];
+                    }
+                }
+                int srcFeature1 = tree.SrcFeatures[firstIdx];
+                int srcFeature2 = tree.SrcFeatures[secondIdx];
+                if (srcFeature2 < srcFeature1) {
+                    DoSwap(srcFeature1, srcFeature2);
+                }
+                if (srcFeature1 == srcFeature2) {
+                    continue;
+                }
+                sumInteractions[std::make_pair(srcFeature1, srcFeature2)] += fabs(delta);
+            }
+        }
+    }
+    return PostProcessSumInteractions(sumInteractions, featureCount, topPairsCount);
+}
+
+static void DFS(const TFullModel& model, const THashMap<TFeature, int, TFeatureHash>& featureToIdx, ui32 nodeIdx, TVector<std::pair<int, int>>* pathPtr, THashMap<std::pair<int, int>, double>* sumInteractionsPtr) {
+    const int split = model.ModelTrees->GetTreeSplits()[nodeIdx];
+    const auto& binFeatures = model.ModelTrees->GetBinFeatures();
+    const auto& node = model.ModelTrees->GetNonSymmetricStepNodes()[nodeIdx];
+
+    const auto& feature = GetFeature(binFeatures[split]);
+    const int featureIdx = featureToIdx.at(feature);
+
+    const ui32 leftNodeIdx = nodeIdx + node.LeftSubtreeDiff;
+    const ui32 rightNodeIdx = nodeIdx + node.RightSubtreeDiff;
+
+    int sign = -1;
+
+    if (leftNodeIdx == nodeIdx || rightNodeIdx == nodeIdx) { // terminal
+
+        const auto leafValues = model.ModelTrees->GetLeafValues();
+        const int approxDimension = model.ModelTrees->GetDimensionsCount();
+        const int leafValueIndex = model.ModelTrees->GetNonSymmetricNodeIdToLeafId()[nodeIdx];
+        double delta = std::accumulate(leafValues.begin() + leafValueIndex,
+                                      leafValues.begin() + leafValueIndex + approxDimension, 0.);
+
+        for (ui32 firstIdx = 0; firstIdx < pathPtr->size(); ++firstIdx) {
+            for (ui32 secondIdx = firstIdx + 1; secondIdx < pathPtr->size(); ++secondIdx) {
+                int srcFeature1 = pathPtr->at(firstIdx).first;
+                int srcFeature2 = pathPtr->at(secondIdx).first;
+                if (srcFeature2 < srcFeature1) {
+                    DoSwap(srcFeature1, srcFeature2);
+                }
+                if (srcFeature1 == srcFeature2) {
+                    continue;
+                }
+                int sign = pathPtr->at(firstIdx).second * pathPtr->at(secondIdx).second;
+                (*sumInteractionsPtr)[std::make_pair(srcFeature1, srcFeature2)] += sign * delta;
+            }
+        }
+    }
+
+    for (const ui32& childIdx: {leftNodeIdx, rightNodeIdx}) {
+        if (childIdx != nodeIdx) {
+            pathPtr->push_back({featureIdx, sign});
+            DFS(model, featureToIdx, childIdx, pathPtr, sumInteractionsPtr);
+            sign *= -1;
+            pathPtr->pop_back();
+        }
+    }
+
+}
+
+TVector<TFeaturePairInteractionInfo> CalcMostInteractingFeatures(const TFullModel& model,
+                                                                 const THashMap<TFeature, int, TFeatureHash>& featureToIdx,
+                                                                 int topPairsCount) {
+
+    CB_ENSURE_INTERNAL(!model.IsOblivious(),
+        "CalcEffectForNonObliviousModel function got oblivious model, convert model to non oblivious");
+
+    THashMap<std::pair<int, int>, double> sumInteractions;
+    const int featureCount = featureToIdx.size();
+
+    for (size_t treeIdx = 0; treeIdx < model.GetTreeCount(); ++treeIdx) {
+
+        const int treeIdxsStart = model.ModelTrees->GetTreeStartOffsets()[treeIdx];
+
+        TVector<std::pair<int, int>> path;
+        THashMap<std::pair<int, int>, double> treeSumInteractions;
+        DFS(model, featureToIdx, treeIdxsStart, &path, &treeSumInteractions);
+        for (const auto& pairInteraction : treeSumInteractions) {
+            sumInteractions[pairInteraction.first] += fabs(pairInteraction.second);
+        }
+    }
+
+    return PostProcessSumInteractions(sumInteractions, featureCount, topPairsCount);
 }
 
 TFeature GetFeature(const TModelSplit& split) {
