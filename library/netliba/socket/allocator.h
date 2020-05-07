@@ -1,7 +1,7 @@
 #pragma once
 
 #ifdef NETLIBA_WITH_NALF
-#include <library/malloc/nalf/alloc_helpers.h>
+#include <library/cpp/malloc/nalf/alloc_helpers.h>
 using TWithCustomAllocator = TWithNalfIncrementalAlloc;
 template <typename T>
 using TCustomAllocator = TNalfIncrementalAllocator<T>;

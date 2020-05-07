@@ -113,7 +113,7 @@ class build_ext(_build_ext):
         if fullname in self.ext_map:
             ext = self.ext_map[fullname]
             use_abi3 = (
-                six.PY3
+                not six.PY2
                 and getattr(ext, 'py_limited_api')
                 and get_abi3_suffix()
             )

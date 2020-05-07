@@ -97,10 +97,10 @@ namespace NPrivate {
 
 template <class T, class TColorScheme = DBG_OUTPUT_DEFAULT_COLOR_SCHEME>
 static inline ::NPrivate::TDbgDump<T, ::NPrivate::TTraitsShallow<TColorScheme>> DbgDump(const T& t) {
-    return {&t};
+    return {std::addressof(t)};
 }
 
 template <class T, class TColorScheme = DBG_OUTPUT_DEFAULT_COLOR_SCHEME>
 static inline ::NPrivate::TDbgDump<T, ::NPrivate::TTraitsDeep<TColorScheme>> DbgDumpDeep(const T& t) {
-    return {&t};
+    return {std::addressof(t)};
 }

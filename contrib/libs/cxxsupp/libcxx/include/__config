@@ -56,7 +56,7 @@
 #  define _GNUC_VER_NEW 0
 #endif
 
-#define _LIBCPP_VERSION 10000
+#define _LIBCPP_VERSION 11000
 
 #ifndef _LIBCPP_ABI_VERSION
 #  define _LIBCPP_ABI_VERSION 1
@@ -353,6 +353,10 @@
 #    define _LIBCPP_HAS_ALIGNED_ALLOC
 #    define _LIBCPP_HAS_QUICK_EXIT
 #    define _LIBCPP_HAS_C11_FEATURES
+#    if __FreeBSD_version >= 1300064 || \
+       (__FreeBSD_version >= 1201504 && __FreeBSD_version < 1300000)
+#      define _LIBCPP_HAS_TIMESPEC_GET
+#    endif
 #  elif defined(__BIONIC__)
 #    define _LIBCPP_HAS_C11_FEATURES
 #    if __ANDROID_API__ >= 21
@@ -472,6 +476,10 @@ typedef __char32_t char32_t;
 
 #if __has_feature(objc_arc_weak)
 #define _LIBCPP_HAS_OBJC_ARC_WEAK
+#endif
+
+#if __has_extension(blocks)
+#  define _LIBCPP_HAS_EXTENSION_BLOCKS
 #endif
 
 #if !(__has_feature(cxx_relaxed_constexpr))
@@ -944,6 +952,10 @@ typedef unsigned int   char32_t;
 #define _LIBCPP_EXTERN_TEMPLATE2(...) extern template __VA_ARGS__;
 #endif
 
+#ifndef _LIBCPP_EXTERN_TEMPLATE_DEFINE
+#define _LIBCPP_EXTERN_TEMPLATE_DEFINE(...) template __VA_ARGS__;
+#endif
+
 #if defined(__APPLE__) || defined(__FreeBSD__) || defined(_LIBCPP_MSVCRT_LIKE) || \
     defined(__sun__) || defined(__NetBSD__) || defined(__CloudABI__)
 #define _LIBCPP_LOCALE__L_EXTENSIONS 1
@@ -1158,7 +1170,6 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
     !defined(_LIBCPP_HAS_THREAD_API_WIN32) && \
     !defined(_LIBCPP_HAS_THREAD_API_EXTERNAL)
 #  if defined(__FreeBSD__) || \
-      defined(__Fuchsia__) || \
       defined(__wasi__) || \
       defined(__NetBSD__) || \
       defined(__linux__) || \
@@ -1168,6 +1179,9 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
       defined(__sun__) || \
       (defined(__MINGW32__) && __has_include(<pthread.h>)) || \
       defined(__CYGWIN__)
+#    define _LIBCPP_HAS_THREAD_API_PTHREAD
+#  elif defined(__Fuchsia__)
+     // TODO(44575): Switch to C11 thread API when possible.
 #    define _LIBCPP_HAS_THREAD_API_PTHREAD
 #  elif defined(_LIBCPP_WIN32API)
 #    define _LIBCPP_HAS_THREAD_API_WIN32
@@ -1220,6 +1234,7 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
 // TODO(EricWF): Enable this optimization on Bionic after speaking to their
 //               respective stakeholders.
 #if (defined(_LIBCPP_HAS_THREAD_API_PTHREAD) && defined(__GLIBC__)) \
+  || (defined(_LIBCPP_HAS_THREAD_API_C11) && defined(__Fuchsia__)) \
   || defined(_LIBCPP_HAS_THREAD_API_WIN32)
 # define _LIBCPP_HAS_TRIVIAL_MUTEX_DESTRUCTION
 #endif
@@ -1232,7 +1247,8 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
 //
 // TODO(EricWF): This is potentially true for some pthread implementations
 // as well.
-#if defined(_LIBCPP_HAS_THREAD_API_WIN32)
+#if (defined(_LIBCPP_HAS_THREAD_API_C11) && defined(__Fuchsia__)) || \
+     defined(_LIBCPP_HAS_THREAD_API_WIN32)
 # define _LIBCPP_HAS_TRIVIAL_CONDVAR_DESTRUCTION
 #endif
 
@@ -1397,10 +1413,9 @@ _LIBCPP_FUNC_VIS extern "C" void __sanitizer_annotate_contiguous_container(
 #define _LIBCPP_HAS_NO_COROUTINES
 #endif
 
-// FIXME: Correct this macro when either (A) a feature test macro for the
-// spaceship operator is provided, or (B) a compiler provides a complete
-// implementation.
+#if !defined(__cpp_impl_three_way_comparison) || __cpp_impl_three_way_comparison < 201907L
 #define _LIBCPP_HAS_NO_SPACESHIP_OPERATOR
+#endif
 
 // Yandex-specific: We build our own libc++, so it has everything available
 #define _LIBCPP_DISABLE_AVAILABILITY

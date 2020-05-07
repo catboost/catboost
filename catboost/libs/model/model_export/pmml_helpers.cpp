@@ -81,18 +81,11 @@ static void OutputDataDictionary(
     }
 
     for (const auto& catFeature : model.ModelTrees->GetCatFeatures()) {
-        const auto featureName = CreateFeatureName(catFeature);
         {
             TXmlElementOutputContext dataField(xmlOut, "DataField");
-            xmlOut->AddAttr("name", featureName)
+            xmlOut->AddAttr("name", CreateFeatureName(catFeature))
                 .AddAttr("optype", "categorical")
                 .AddAttr("dataType", "string");
-        }
-        {
-            TXmlElementOutputContext dataField(xmlOut, "DataField");
-            xmlOut->AddAttr("name", featureName + "_mapped")
-                .AddAttr("optype", "categorical")
-                .AddAttr("dataType", "integer");
         }
     }
 
@@ -125,7 +118,8 @@ static void OutputTargetsFields(
     {
         TXmlElementOutputContext target(xmlOut, "Target");
         xmlOut->AddAttr("rescaleConstant", model.GetScaleAndBias().Bias)
-            .AddAttr("rescaleFactor", model.GetScaleAndBias().Scale);
+            .AddAttr("rescaleFactor", model.GetScaleAndBias().Scale)
+            .AddAttr("field", "prediction");
     }
 
 
@@ -144,10 +138,20 @@ static void OutputMiningSchemaWithModelFeatures(
         xmlOut->AddAttr("name", CreateFeatureName(floatFeature)).AddAttr("usageType", "active");
     }
 
-    for (const auto& catFeature : model.ModelTrees->GetCatFeatures()) {
-        TXmlElementOutputContext miningField(xmlOut, "MiningField");
-        xmlOut->AddAttr("name", CreateFeatureName(catFeature) + (mappedCategoricalFeatures ? "_mapped" : ""))
-            .AddAttr("usageType", "active");
+    const auto& modelTrees = model.ModelTrees;
+
+    if (mappedCategoricalFeatures) {
+        for (const auto& oneHotFeature : modelTrees->GetOneHotFeatures()) {
+            TXmlElementOutputContext miningField(xmlOut, "MiningField");
+            xmlOut->AddAttr("name", CreateFeatureName(modelTrees->GetCatFeatures()[oneHotFeature.CatFeatureIndex]) + "_mapped")
+                .AddAttr("usageType", "active");
+        }
+    } else {
+        for (const auto& catFeature : modelTrees->GetCatFeatures()) {
+            TXmlElementOutputContext miningField(xmlOut, "MiningField");
+            xmlOut->AddAttr("name", CreateFeatureName(catFeature))
+                .AddAttr("usageType", "active");
+        }
     }
 
     if (targetName) {
@@ -370,6 +374,7 @@ static void OutputTreeEnsemble(
     TStringBuf targetName,
     bool isChainPart,
     const THashMap<ui32, TString>* catFeaturesHashToString,
+    TOneHotValuesToIdx* oneHotValuesToIdx,  //  mapping is empty - and must be filled - if it's top-level model
     TXmlOutputContext* xmlOut) {
 
     TXmlElementOutputContext miningModel(xmlOut, "MiningModel");
@@ -391,27 +396,31 @@ static void OutputTreeEnsemble(
 
     const auto& modelTrees = *model.ModelTrees;
 
-    TOneHotValuesToIdx oneHotValuesToIdx;
-    if (modelTrees.GetOneHotFeatures().size()) {
-        OutputCategoricalMapping(model, *catFeaturesHashToString, &oneHotValuesToIdx, xmlOut);
+    if (!isChainPart && modelTrees.GetOneHotFeatures().size()) {
+        OutputCategoricalMapping(model, *catFeaturesHashToString, oneHotValuesToIdx, xmlOut);
     }
 
-    TXmlElementOutputContext segmentation(xmlOut, "Segmentation");
-    xmlOut->AddAttr("multipleModelMethod", "sum");
+    {
+        TXmlElementOutputContext segmentation(xmlOut, "Segmentation");
+        xmlOut->AddAttr("multipleModelMethod", "sum");
 
-    size_t treeFirstGlobalLeafIdx = 0;
-    for (auto treeIdx : xrange(modelTrees.GetTreeSizes().size())) {
-        TXmlElementOutputContext segment(xmlOut, "Segment");
-        xmlOut->AddAttr("id", treeIdx);
+        size_t treeFirstGlobalLeafIdx = 0;
+        for (auto treeIdx : xrange(modelTrees.GetTreeSizes().size())) {
+            TXmlElementOutputContext segment(xmlOut, "Segment");
+            xmlOut->AddAttr("id", treeIdx);
 
-        // predicate
-        {
-            TXmlElementOutputContext predicate(xmlOut, "True");
+            // predicate
+            {
+                TXmlElementOutputContext predicate(xmlOut, "True");
+            }
+
+            OutputTree(model, treeIdx, treeFirstGlobalLeafIdx, targetName, *oneHotValuesToIdx, xmlOut);
+
+            treeFirstGlobalLeafIdx += (size_t(1) << modelTrees.GetTreeSizes()[treeIdx]);
         }
-
-        OutputTree(model, treeIdx, treeFirstGlobalLeafIdx, targetName, oneHotValuesToIdx, xmlOut);
-
-        treeFirstGlobalLeafIdx += (size_t(1) << modelTrees.GetTreeSizes()[treeIdx]);
+    }
+    if (!isChainPart) {
+        OutputTargetsFields(model, xmlOut);
     }
 }
 
@@ -446,7 +455,7 @@ static void OutputClassFromApprox(TXmlOutputContext* xmlOut) {
     }
     {
         TXmlElementOutputContext node(xmlOut, "Node");
-        xmlOut->AddAttr("id", "1").AddAttr("score", "1");
+        xmlOut->AddAttr("id", "1").AddAttr("score", "true");
 
         TXmlElementOutputContext simplePredicate(xmlOut, "SimplePredicate");
         xmlOut->AddAttr("field", "approx")
@@ -455,7 +464,7 @@ static void OutputClassFromApprox(TXmlOutputContext* xmlOut) {
     }
     {
         TXmlElementOutputContext node(xmlOut, "Node");
-        xmlOut->AddAttr("id", "0").AddAttr("score", "0");
+        xmlOut->AddAttr("id", "0").AddAttr("score", "false");
 
         TXmlElementOutputContext predicate(xmlOut, "True");
     }
@@ -468,11 +477,16 @@ static void OutputMiningModel(
     const THashMap<ui32, TString>* catFeaturesHashToString,
     TXmlOutputContext* xmlOut) {
 
+    TOneHotValuesToIdx oneHotValuesToIdx;
     if (isClassification) {
         TXmlElementOutputContext miningModel(xmlOut, "MiningModel");
         xmlOut->AddAttr("functionName", "classification");
 
         OutputMiningSchemaWithModelFeatures(model, /*mappedCategoricalFeatures*/ false, "prediction", xmlOut);
+
+        if (model.ModelTrees->GetOneHotFeatures().size()) {
+            OutputCategoricalMapping(model, *catFeaturesHashToString, &oneHotValuesToIdx, xmlOut);
+        }
 
         {
             TXmlElementOutputContext segmentation(xmlOut, "Segmentation");
@@ -487,7 +501,7 @@ static void OutputMiningModel(
                     TXmlElementOutputContext predicate(xmlOut, "True");
                 }
 
-                OutputTreeEnsemble(model, "approx", /*isChainPart*/ true, catFeaturesHashToString, xmlOut);
+                OutputTreeEnsemble(model, "approx", /*isChainPart*/ true, catFeaturesHashToString, &oneHotValuesToIdx, xmlOut);
             }
             {
                 TXmlElementOutputContext segment(xmlOut, "Segment");
@@ -501,10 +515,10 @@ static void OutputMiningModel(
                 OutputClassFromApprox(xmlOut);
             }
         }
+        OutputTargetsFields(model, xmlOut);
     } else {
-        OutputTreeEnsemble(model, "prediction", /*isChainPart*/ false, catFeaturesHashToString, xmlOut);
+        OutputTreeEnsemble(model, "prediction", /*isChainPart*/ false, catFeaturesHashToString, &oneHotValuesToIdx, xmlOut);
     }
-
 }
 
 namespace NCB {
@@ -528,7 +542,7 @@ namespace NCB {
             model.GetDimensionsCount() == 1,
             "PMML export currently supports only single-dimensional models");
 
-        CB_ENSURE(model.IsOblivious(), "PMML export currently supports only oblivious trees models");
+        CB_ENSURE(model.IsOblivious(), "PMML export currently supports only symmetric trees models");
 
         CB_ENSURE_INTERNAL(
             !model.ModelTrees->GetOneHotFeatures().size() || catFeaturesHashToString,
@@ -553,8 +567,6 @@ namespace NCB {
         OutputDataDictionary(model, isClassification, &xmlOut);
 
         OutputMiningModel(model, isClassification, catFeaturesHashToString, &xmlOut);
-
-        OutputTargetsFields(model, &xmlOut);
     }
 
     }

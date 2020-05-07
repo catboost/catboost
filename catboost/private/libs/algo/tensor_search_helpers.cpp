@@ -19,7 +19,7 @@ using namespace NCB;
 
 const TQuantizedForCPUObjectsDataProvider& GetLearnObjectsData(
     const TSplitCandidate& splitCandidate,
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     const TFold& fold
 ) {
     if (splitCandidate.Type == ESplitType::EstimatedFeature) {
@@ -33,7 +33,7 @@ const TQuantizedForCPUObjectsDataProvider& GetLearnObjectsData(
 
 
 TSplit TCandidateInfo::GetBestSplit(
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     const TFold& fold,
     ui32 oneHotMaxSize
 ) const {
@@ -223,6 +223,17 @@ THolder<IDerCalcer> BuildError(
             int numEstimations = NCatboostOptions::GetStochasticFilterNumEstimations(
                 params.LossFunctionDescription);
             return MakeHolder<TStochasticFilterError>(sigma, numEstimations, isStoreExpApprox);
+        }
+        case ELossFunction::StochasticRank: {
+            const auto& lossParams = params.LossFunctionDescription->GetLossParams();
+            CB_ENSURE(lossParams.contains("metric"), "StochasticRank requires metric param");
+            const ELossFunction targetMetric = FromString<ELossFunction>(lossParams.at("metric"));
+            const double sigma = NCatboostOptions::GetParamOrDefault(lossParams, "sigma", 1.0);
+            const size_t numEstimations = NCatboostOptions::GetParamOrDefault(lossParams, "num_estimations", size_t(1));
+            const double mu = NCatboostOptions::GetParamOrDefault(lossParams, "mu", 0.0);
+            const double nu = NCatboostOptions::GetParamOrDefault(lossParams, "nu", 0.01);
+            const double lambda = NCatboostOptions::GetParamOrDefault(lossParams, "lambda", 1.0);
+            return MakeHolder<TStochasticRankError>(targetMetric, lossParams, sigma, numEstimations, mu, nu, lambda);
         }
         case ELossFunction::PythonUserDefinedPerObject:
             return MakeHolder<TCustomError>(params, descriptor);

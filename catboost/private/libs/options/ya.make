@@ -13,6 +13,7 @@ SRCS(
     class_label_options.cpp
     cross_validation_params.cpp
     data_processing_options.cpp
+    dataset_reading_params.cpp
     defaults_helper.cpp
     enum_helpers.cpp
     feature_eval_options.cpp

@@ -40,6 +40,27 @@ namespace NAsio {
         TTcpSocket::TConnectHandler H_;
     };
 
+    class TOperationConnectFailed: public TSocketOperation {
+    public:
+        TOperationConnectFailed(TTcpSocket::TImpl& s, TTcpSocket::TConnectHandler h, int errorCode, TInstant deadline)
+            : TSocketOperation(s, PollWrite, deadline)
+            , H_(h)
+            , ErrorCode_(errorCode)
+        {
+            Speculative_ = true;
+        }
+
+        bool Execute(int errorCode) override {
+            Y_UNUSED(errorCode);
+            H_(ErrorCode_, *this);
+
+            return true;
+        }
+
+        TTcpSocket::TConnectHandler H_;
+        int ErrorCode_;
+    };
+
     class TOperationWrite: public TSocketOperation {
     public:
         TOperationWrite(TTcpSocket::TImpl& s, NAsio::TTcpSocket::TSendedData& buffs, TTcpSocket::TWriteHandler h, TInstant deadline)
@@ -201,16 +222,14 @@ namespace NAsio {
 #endif
 
             RemoteEndpoint_ = ep;
+            S_.Swap(s);
 
+            DBGOUT("AsyncConnect(): " << err);
             if (Y_LIKELY(err == EINPROGRESS || err == EWOULDBLOCK || err == 0)) {
-                DBGOUT("AsyncConnect(): " << err);
-                S_.Swap(s);
                 Srv_.ScheduleOp(new TOperationConnect(*this, h, deadline)); //set callback
-
-                return;
+            } else {
+                Srv_.ScheduleOp(new TOperationConnectFailed(*this, h, err, deadline)); //set callback
             }
-
-            ythrow yexception() << "can't connect: " << LastSystemErrorText();
         }
 
         inline void AsyncWrite(TSendedData& d, TTcpSocket::TWriteHandler h, TInstant deadline) {

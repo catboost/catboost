@@ -69,6 +69,9 @@ namespace NKernel {
             if (binFeatureId >= binFeatureCount) {
                 break;
             }
+            if (bf[binFeatureId].SkipInScoreCount) {
+                continue;
+            }
             calcer.NextFeature(bf[binFeatureId]);
 
             for (int i = 0; i < pCount; i++) {
@@ -301,7 +304,9 @@ namespace NKernel {
             if (binFeatureId >= binFeatureCount) {
                 break;
             }
-
+            if (bf[binFeatureId].SkipInScoreCount) {
+                continue;
+            }
             calcer.NextFeature(bf[binFeatureId]);
             TScoreCalcer beforeSplitCalcer = calcer;
 
@@ -381,7 +386,9 @@ namespace NKernel {
             if (binFeatureId >= binFeatureCount) {
                 break;
             }
-
+            if (bf[binFeatureId].SkipInScoreCount) {
+                continue;
+            }
             calcer.NextFeature(bf[binFeatureId]);
             TScoreCalcer beforeSplitCalcer = calcer;
 

@@ -19,7 +19,7 @@ namespace NPar {
 
 void UpdateIndices(
     const TSplitNode& node,
-    const NCB::TTrainingForCPUDataProviders& trainingData,
+    const NCB::TTrainingDataProviders& trainingData,
     const NCB::TIndexedSubset<ui32>& docsSubset,
     const TFold& fold,
     NPar::TLocalExecutor* localExecutor,
@@ -28,7 +28,7 @@ void UpdateIndices(
 
 void BuildIndicesForDataset(
     const TNonSymmetricTreeStructure& tree,
-    const NCB::TTrainingForCPUDataProviders& trainingData,
+    const NCB::TTrainingDataProviders& trainingData,
     const TFold& fold,
     ui32 sampleCount,
     const TVector<const TOnlineCTR*>& onlineCtrs,

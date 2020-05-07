@@ -3,20 +3,20 @@
 <Header copyright="(c) catboost team" description="CatBoostModel_for_binclass" modelVersion="1">
 <Application name="CatBoost" version="Svn info:
     URL: svn+ssh://arcadia.yandex.ru/arc/trunk/arcadia
-    Last Changed Rev: 6552171
-    Last Changed Author: dolotov-e
-    Last Changed Date: 2020-04-01T07:30:36.732542Z
+    Last Changed Rev: 6748893
+    Last Changed Author: osidorkin
+    Last Changed Date: 2020-04-28T16:51:29.183514Z
 
 Other info:
     Build by: eermishkina
-    Top src dir: /place/home/eermishkina/trunc/arcadia
+    Top src dir: /place/home/eermishkina/trunc2/arcadia
     Top build dir: /place/home/eermishkina/.ya/build
     Hostname: su57.search.yandex.net
     Host information: 
         Linux su57.search.yandex.net 4.4.88-42 #1 SMP Mon Sep 18 14:33:37 UTC 2017 x86_64
 
     "/>
-<Timestamp>2020-04-01T13:41:19Z</Timestamp>
+<Timestamp>2020-04-28T17:35:52Z</Timestamp>
 </Header>
 <DataDictionary>
 <DataField name="feature_3" optype="continuous" dataType="float"/>
@@ -26,27 +26,16 @@ Other info:
 <DataField name="feature_14" optype="continuous" dataType="float"/>
 <DataField name="feature_15" optype="continuous" dataType="float"/>
 <DataField name="feature_0" optype="categorical" dataType="string"/>
-<DataField name="feature_0_mapped" optype="categorical" dataType="integer"/>
 <DataField name="feature_1" optype="categorical" dataType="string"/>
-<DataField name="feature_1_mapped" optype="categorical" dataType="integer"/>
 <DataField name="feature_2" optype="categorical" dataType="string"/>
-<DataField name="feature_2_mapped" optype="categorical" dataType="integer"/>
 <DataField name="feature_4" optype="categorical" dataType="string"/>
-<DataField name="feature_4_mapped" optype="categorical" dataType="integer"/>
 <DataField name="feature_6" optype="categorical" dataType="string"/>
-<DataField name="feature_6_mapped" optype="categorical" dataType="integer"/>
 <DataField name="feature_8" optype="categorical" dataType="string"/>
-<DataField name="feature_8_mapped" optype="categorical" dataType="integer"/>
 <DataField name="feature_9" optype="categorical" dataType="string"/>
-<DataField name="feature_9_mapped" optype="categorical" dataType="integer"/>
 <DataField name="feature_10" optype="categorical" dataType="string"/>
-<DataField name="feature_10_mapped" optype="categorical" dataType="integer"/>
 <DataField name="feature_11" optype="categorical" dataType="string"/>
-<DataField name="feature_11_mapped" optype="categorical" dataType="integer"/>
 <DataField name="feature_12" optype="categorical" dataType="string"/>
-<DataField name="feature_12_mapped" optype="categorical" dataType="integer"/>
 <DataField name="feature_16" optype="categorical" dataType="string"/>
-<DataField name="feature_16_mapped" optype="categorical" dataType="integer"/>
 <DataField name="prediction" optype="categorical" dataType="boolean"/>
 <DataField name="approx" optype="continuous" dataType="double"/>
 </DataDictionary>
@@ -71,32 +60,6 @@ Other info:
 <MiningField name="feature_16" usageType="active"/>
 <MiningField name="prediction" usageType="target"/>
 </MiningSchema>
-<Segmentation multipleModelMethod="modelChain">
-<Segment id="treeEnsemble">
-<True/>
-<MiningModel functionName="regression">
-<MiningSchema>
-<MiningField name="feature_3" usageType="active"/>
-<MiningField name="feature_5" usageType="active"/>
-<MiningField name="feature_7" usageType="active"/>
-<MiningField name="feature_13" usageType="active"/>
-<MiningField name="feature_14" usageType="active"/>
-<MiningField name="feature_15" usageType="active"/>
-<MiningField name="feature_0" usageType="active"/>
-<MiningField name="feature_1" usageType="active"/>
-<MiningField name="feature_2" usageType="active"/>
-<MiningField name="feature_4" usageType="active"/>
-<MiningField name="feature_6" usageType="active"/>
-<MiningField name="feature_8" usageType="active"/>
-<MiningField name="feature_9" usageType="active"/>
-<MiningField name="feature_10" usageType="active"/>
-<MiningField name="feature_11" usageType="active"/>
-<MiningField name="feature_12" usageType="active"/>
-<MiningField name="feature_16" usageType="active"/>
-</MiningSchema>
-<Output>
-<OutputField name="approx" optype="continuous" dataType="double"/>
-</Output>
 <LocalTransformations>
 <DerivedField name="feature_4_mapped" optype="categorical" dataType="integer">
 <MapValues mapMissingTo="2" defaultValue="2" outputColumn="value" dataType="integer">
@@ -188,6 +151,32 @@ Other info:
 </MapValues>
 </DerivedField>
 </LocalTransformations>
+<Segmentation multipleModelMethod="modelChain">
+<Segment id="treeEnsemble">
+<True/>
+<MiningModel functionName="regression">
+<MiningSchema>
+<MiningField name="feature_3" usageType="active"/>
+<MiningField name="feature_5" usageType="active"/>
+<MiningField name="feature_7" usageType="active"/>
+<MiningField name="feature_13" usageType="active"/>
+<MiningField name="feature_14" usageType="active"/>
+<MiningField name="feature_15" usageType="active"/>
+<MiningField name="feature_0" usageType="active"/>
+<MiningField name="feature_1" usageType="active"/>
+<MiningField name="feature_2" usageType="active"/>
+<MiningField name="feature_4" usageType="active"/>
+<MiningField name="feature_6" usageType="active"/>
+<MiningField name="feature_8" usageType="active"/>
+<MiningField name="feature_9" usageType="active"/>
+<MiningField name="feature_10" usageType="active"/>
+<MiningField name="feature_11" usageType="active"/>
+<MiningField name="feature_12" usageType="active"/>
+<MiningField name="feature_16" usageType="active"/>
+</MiningSchema>
+<Output>
+<OutputField name="approx" optype="continuous" dataType="double"/>
+</Output>
 <Segmentation multipleModelMethod="sum">
 <Segment id="0">
 <True/>
@@ -199,16 +188,12 @@ Other info:
 <MiningField name="feature_13" usageType="active"/>
 <MiningField name="feature_14" usageType="active"/>
 <MiningField name="feature_15" usageType="active"/>
-<MiningField name="feature_0_mapped" usageType="active"/>
-<MiningField name="feature_1_mapped" usageType="active"/>
-<MiningField name="feature_2_mapped" usageType="active"/>
 <MiningField name="feature_4_mapped" usageType="active"/>
 <MiningField name="feature_6_mapped" usageType="active"/>
 <MiningField name="feature_8_mapped" usageType="active"/>
 <MiningField name="feature_9_mapped" usageType="active"/>
 <MiningField name="feature_10_mapped" usageType="active"/>
 <MiningField name="feature_11_mapped" usageType="active"/>
-<MiningField name="feature_12_mapped" usageType="active"/>
 <MiningField name="feature_16_mapped" usageType="active"/>
 <MiningField name="approx" usageType="target"/>
 </MiningSchema>
@@ -320,16 +305,12 @@ Other info:
 <MiningField name="feature_13" usageType="active"/>
 <MiningField name="feature_14" usageType="active"/>
 <MiningField name="feature_15" usageType="active"/>
-<MiningField name="feature_0_mapped" usageType="active"/>
-<MiningField name="feature_1_mapped" usageType="active"/>
-<MiningField name="feature_2_mapped" usageType="active"/>
 <MiningField name="feature_4_mapped" usageType="active"/>
 <MiningField name="feature_6_mapped" usageType="active"/>
 <MiningField name="feature_8_mapped" usageType="active"/>
 <MiningField name="feature_9_mapped" usageType="active"/>
 <MiningField name="feature_10_mapped" usageType="active"/>
 <MiningField name="feature_11_mapped" usageType="active"/>
-<MiningField name="feature_12_mapped" usageType="active"/>
 <MiningField name="feature_16_mapped" usageType="active"/>
 <MiningField name="approx" usageType="target"/>
 </MiningSchema>
@@ -441,16 +422,12 @@ Other info:
 <MiningField name="feature_13" usageType="active"/>
 <MiningField name="feature_14" usageType="active"/>
 <MiningField name="feature_15" usageType="active"/>
-<MiningField name="feature_0_mapped" usageType="active"/>
-<MiningField name="feature_1_mapped" usageType="active"/>
-<MiningField name="feature_2_mapped" usageType="active"/>
 <MiningField name="feature_4_mapped" usageType="active"/>
 <MiningField name="feature_6_mapped" usageType="active"/>
 <MiningField name="feature_8_mapped" usageType="active"/>
 <MiningField name="feature_9_mapped" usageType="active"/>
 <MiningField name="feature_10_mapped" usageType="active"/>
 <MiningField name="feature_11_mapped" usageType="active"/>
-<MiningField name="feature_12_mapped" usageType="active"/>
 <MiningField name="feature_16_mapped" usageType="active"/>
 <MiningField name="approx" usageType="target"/>
 </MiningSchema>
@@ -562,16 +539,12 @@ Other info:
 <MiningField name="feature_13" usageType="active"/>
 <MiningField name="feature_14" usageType="active"/>
 <MiningField name="feature_15" usageType="active"/>
-<MiningField name="feature_0_mapped" usageType="active"/>
-<MiningField name="feature_1_mapped" usageType="active"/>
-<MiningField name="feature_2_mapped" usageType="active"/>
 <MiningField name="feature_4_mapped" usageType="active"/>
 <MiningField name="feature_6_mapped" usageType="active"/>
 <MiningField name="feature_8_mapped" usageType="active"/>
 <MiningField name="feature_9_mapped" usageType="active"/>
 <MiningField name="feature_10_mapped" usageType="active"/>
 <MiningField name="feature_11_mapped" usageType="active"/>
-<MiningField name="feature_12_mapped" usageType="active"/>
 <MiningField name="feature_16_mapped" usageType="active"/>
 <MiningField name="approx" usageType="target"/>
 </MiningSchema>
@@ -683,16 +656,12 @@ Other info:
 <MiningField name="feature_13" usageType="active"/>
 <MiningField name="feature_14" usageType="active"/>
 <MiningField name="feature_15" usageType="active"/>
-<MiningField name="feature_0_mapped" usageType="active"/>
-<MiningField name="feature_1_mapped" usageType="active"/>
-<MiningField name="feature_2_mapped" usageType="active"/>
 <MiningField name="feature_4_mapped" usageType="active"/>
 <MiningField name="feature_6_mapped" usageType="active"/>
 <MiningField name="feature_8_mapped" usageType="active"/>
 <MiningField name="feature_9_mapped" usageType="active"/>
 <MiningField name="feature_10_mapped" usageType="active"/>
 <MiningField name="feature_11_mapped" usageType="active"/>
-<MiningField name="feature_12_mapped" usageType="active"/>
 <MiningField name="feature_16_mapped" usageType="active"/>
 <MiningField name="approx" usageType="target"/>
 </MiningSchema>
@@ -808,18 +777,18 @@ Other info:
 </Output>
 <Node id="root">
 <True/>
-<Node id="1" score="1">
+<Node id="1" score="true">
 <SimplePredicate field="approx" operator="greaterThan" value="0.0"/>
 </Node>
-<Node id="0" score="0">
+<Node id="0" score="false">
 <True/>
 </Node>
 </Node>
 </TreeModel>
 </Segment>
 </Segmentation>
-</MiningModel>
 <Targets>
-<Target rescaleConstant="0" rescaleFactor="1"/>
+<Target rescaleConstant="0" rescaleFactor="1" field="prediction"/>
 </Targets>
+</MiningModel>
 </PMML>

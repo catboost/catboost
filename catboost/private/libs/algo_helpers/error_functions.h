@@ -945,6 +945,146 @@ private:
     }
 };
 
+class TStochasticRankError final : public IDerCalcer {
+    ELossFunction TargetMetric;
+    int TopSize;
+    ENdcgMetricType NumeratorType;          // for (N)DCG
+    ENdcgDenominatorType DenominatorType;   // for (N)DCG
+    double Decay;                           // for PFound
+
+    double Sigma;           // scale
+    size_t NumEstimations;  // Monte Carlo method samples
+    double Mu;              // ties resolving coefficient
+    double Nu;              // approx norm addition
+    double Lambda;          // SFA coefficient
+
+    static constexpr double INV_SQRT_2PI = 0.398942280401432677939946;
+
+public:
+    TStochasticRankError(
+        ELossFunction targetMetric,
+        const TMap<TString, TString>& metricParams,
+        double sigma,
+        size_t numEstimations,
+        double mu,
+        double nu,
+        double lambda);
+
+    void CalcDersForQueries(
+        int queryStartIndex,
+        int queryEndIndex,
+        const TVector<double>& approxes,
+        const TVector<float>& target,
+        const TVector<float>& /*weights*/,
+        const TVector<TQueryInfo>& queriesInfo,
+        TArrayRef<TDers> ders,
+        ui64 randomSeed,
+        NPar::TLocalExecutor* localExecutor
+    ) const override;
+
+private:
+    void CalcDersForSingleQuery(
+        TConstArrayRef<double> approxes,
+        TConstArrayRef<float> targets,
+        ui64 randomSeed,
+        TArrayRef<TDers> ders
+    ) const;
+
+    void CalcMonteCarloEstimateForSingleQueryPermutation(
+        TConstArrayRef<float> targets,
+        const TVector<double>& approxes,
+        const TVector<double>& scores,
+        const TVector<size_t>& order,
+        const TVector<double>& posWeights,
+        const double noiseSum,
+        TArrayRef<TDers> ders
+    ) const;
+
+    double CalcDCGMetricDiff(
+        size_t oldPos,
+        size_t newPos,
+        const TConstArrayRef<float> targets,
+        const TVector<size_t>& order,
+        const TVector<double>& posWeights,
+        const TVector<double>& cumSum,
+        const TVector<double>& cumSumUp,
+        const TVector<double>& cumSumLow
+    ) const;
+
+    double CalcPFoundMetricDiff(
+        size_t oldPos,
+        size_t newPos,
+        size_t queryTopSize,
+        const TConstArrayRef<float> targets,
+        const TVector<size_t>& order,
+        const TVector<double>& posWeights,
+        const TVector<double>& cumSum
+    ) const;
+
+    double CalcMetricDiff(
+        size_t oldPos,
+        size_t newPos,
+        size_t queryTopSize,
+        const TConstArrayRef<float> targets,
+        const TVector<size_t>& order,
+        const TVector<double>& posWeights,
+        const TVector<double>& cumSum,
+        const TVector<double>& cumSumUp,
+        const TVector<double>& cumSumLow
+    ) const;
+
+    void CalcDCGCumulativeStatistics(
+        TConstArrayRef<float> targets,
+        const TVector<size_t>& order,
+        const TVector<double>& posWeights,
+        TArrayRef<double> cumSumRef,
+        TArrayRef<double> cumSumUpRef,
+        TArrayRef<double> cumSumLowRef
+    ) const;
+
+    void CalcPFoundCumulativeStatistics(
+        TConstArrayRef<float> targets,
+        const TVector<size_t>& order,
+        const TVector<double>& posWeights,
+        TArrayRef<double> cumSum
+    ) const;
+
+    TVector<double> ComputeDCGPosWeights(
+        TConstArrayRef<float> targets
+    ) const;
+
+    TVector<double> ComputePFoundPosWeights(
+        TConstArrayRef<float> targets,
+        const TVector<size_t>& order
+    ) const;
+
+    double CalcDCG(const TVector<float>& sortedTargets, const TVector<double>& posWeights) const;
+
+    inline double CalcNumerator(float target) const {
+        return NumeratorType == ENdcgMetricType::Exp ? (Exp2(target) - 1) : target;
+    }
+
+    inline double CalcDenominator(size_t pos) const {
+        return DenominatorType == ENdcgDenominatorType::LogPosition ? Log2(2.0 + pos) : (1.0 + pos);
+    }
+
+    inline size_t GetQueryTopSize(size_t docCount) const {
+        if (TopSize == -1 || TopSize > (int)docCount) {
+            return docCount;
+        }
+        return TopSize;
+    }
+
+    inline double NormalDensity(double x, double mean, double sigma) const {
+        const long double z = Sqr((x - mean) / sigma);
+        return std::expl(-z / 2.0) * INV_SQRT_2PI / sigma;
+    }
+
+    inline double NormalDensityDiff(double x1, double x2, double mean, double sigma) const {
+        return NormalDensity(x1, mean, sigma) - NormalDensity(x2, mean, sigma);
+    }
+};
+
 class THuberError final : public IDerCalcer {
     static constexpr double HUBER_DER2 = -1.0;
     static constexpr double HUBER_DER3 = 0.0;

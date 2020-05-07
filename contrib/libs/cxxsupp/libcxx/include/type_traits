@@ -499,8 +499,15 @@ template<class... _Pack>
 struct _Sizeof {
     static constexpr size_t value = sizeof...(_Pack);
 };
+// Workaround for MSVC. Sometimes MSVC can't match definition and declaration
+// when they use _EnableIf. So simplify _EnableIf metaprogramming to avoid the issue.
+template<bool, class> struct _MetaBase2;
+template<class _Tp>
+struct _MetaBase2<true, _Tp> {
+    using _EnableIfImpl _LIBCPP_NODEBUG_TYPE = _Tp;
+};
 template <bool _Cond, class _Ret = void>
-using _EnableIf _LIBCPP_NODEBUG_TYPE = typename _MetaBase<_Cond>::template _EnableIfImpl<_Ret>;
+using _EnableIf _LIBCPP_NODEBUG_TYPE = typename _MetaBase2<_Cond, _Ret>::_EnableIfImpl;
 // CUDA headers use libc++ internals.
 #ifdef __CUDACC__
 template <bool _Cond, class _Ret = void>
@@ -1056,11 +1063,17 @@ _LIBCPP_INLINE_VAR _LIBCPP_CONSTEXPR bool is_fundamental_v
 
 // is_scalar
 
+template <class _Tp> struct __is_block : false_type {};
+#if defined(_LIBCPP_HAS_EXTENSION_BLOCKS)
+template <class _Rp, class ..._Args> struct __is_block<_Rp (^)(_Args...)> : true_type {};
+#endif
+
 template <class _Tp> struct _LIBCPP_TEMPLATE_VIS is_scalar
     : public integral_constant<bool, is_arithmetic<_Tp>::value     ||
                                      is_member_pointer<_Tp>::value ||
                                      is_pointer<_Tp>::value        ||
                                      __is_nullptr_t<_Tp>::value    ||
+                                     __is_block<_Tp>::value        ||
                                      is_enum<_Tp>::value           > {};
 
 template <> struct _LIBCPP_TEMPLATE_VIS is_scalar<nullptr_t> : public true_type {};

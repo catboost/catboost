@@ -61,7 +61,7 @@ PEERDIR(
     library/cpp/digest/crc32c
     library/cpp/digest/md5
     library/json
-    library/malloc/api
+    library/cpp/malloc/api
     library/threading/local_executor
 )
 

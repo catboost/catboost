@@ -5,8 +5,8 @@ LIBRARY()
 PEERDIR(
     contrib/libs/openssl
     library/containers/intrusive_rb_tree
-    library/coroutine/engine
-    library/coroutine/listener
+    library/cpp/coroutine/engine
+    library/cpp/coroutine/listener
     library/dns
     library/http/io
     library/http/misc

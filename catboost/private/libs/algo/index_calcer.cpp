@@ -15,7 +15,7 @@
 #include <catboost/libs/model/cpu/evaluator.h>
 #include <catboost/libs/model/model.h>
 
-#include <library/containers/stack_vector/stack_vec.h>
+#include <library/cpp/containers/stack_vector/stack_vec.h>
 #include <library/threading/local_executor/local_executor.h>
 
 #include <functional>
@@ -247,7 +247,7 @@ static TConstArrayRef<ui8> GetCtrValues(const TSplit& split, const TOnlineCTR& c
 
 
 void GetObjectsDataAndIndexing(
-    const TTrainingForCPUDataProviders& trainingData,
+    const TTrainingDataProviders& trainingData,
     const TFold& fold,
     bool isEstimated,
     bool isOnline,
@@ -312,7 +312,7 @@ static void UpdateIndices(
     bool initIndices,
     TConstArrayRef<TUpdateIndicesForSplitParams> params,
     ui32 onlineCtrObjectOffset,
-    const TTrainingForCPUDataProviders& trainingData,
+    const TTrainingDataProviders& trainingData,
     const TFold& fold,
     ui32 objectSubsetIdx, // 0 - learn, 1+ - test (subtract 1 for testIndex)
     NPar::TLocalExecutor* localExecutor,
@@ -450,7 +450,7 @@ static void UpdateIndices(
 
 void SetPermutedIndices(
     const TSplit& split,
-    const TTrainingForCPUDataProviders& trainingData,
+    const TTrainingDataProviders& trainingData,
     int curDepth,
     const TFold& fold,
     TVector<TIndexType>* indices,
@@ -544,7 +544,7 @@ static TVector<const TOnlineCTR*> GetOnlineCtrs(const TFold& fold, const TVarian
 
 static void BuildIndicesForDataset(
     const TSplitTree& tree,
-    const TTrainingForCPUDataProviders& trainingData,
+    const TTrainingDataProviders& trainingData,
     const TFold& fold,
     ui32 sampleCount,
     const TVector<const TOnlineCTR*>& onlineCtrs,
@@ -573,7 +573,7 @@ static void BuildIndicesForDataset(
 
 static void BuildIndicesForDataset(
     const TVariant<TSplitTree, TNonSymmetricTreeStructure>& treeVariant,
-    const TTrainingForCPUDataProviders& trainingData,
+    const TTrainingDataProviders& trainingData,
     const TFold& fold,
     ui32 sampleCount,
     const TVector<const TOnlineCTR*>& onlineCtrs,
@@ -606,7 +606,7 @@ static void BuildIndicesForDataset(
 TVector<TIndexType> BuildIndices(
     const TFold& fold,
     const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,
-    const TTrainingForCPUDataProviders& trainingData,
+    const TTrainingDataProviders& trainingData,
     EBuildIndicesDataParts dataParts,
     NPar::TLocalExecutor* localExecutor) {
 

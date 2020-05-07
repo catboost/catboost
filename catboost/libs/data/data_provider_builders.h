@@ -46,7 +46,6 @@ namespace NCB {
 
     struct TDataProviderBuilderOptions {
         bool CpuCompatibleFormat = true;
-        bool GpuCompatibleFormat = true;
         bool GpuDistributedFormat = false;
         TPathWithScheme PoolPath = TPathWithScheme();
         ui64 MaxCpuRamUsage = Max<ui64>();

@@ -1,6 +1,6 @@
 #include "parse_enum.h"
 
-#include <library/cppparser/parser.h>
+#include <library/cpp/cppparser/parser.h>
 
 #include <util/stream/file.h>
 #include <util/stream/output.h>

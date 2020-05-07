@@ -66,7 +66,7 @@
       <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../catboost/cuda/train_lib;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)$(Configuration)/library/unittest;$(SolutionDir)../contrib/libs/brotli/include;$(SolutionDir)../contrib/libs/libf2c;$(SolutionDir)../contrib/libs/protobuf;$(SolutionDir)../contrib/libs/protobuf/google/protobuf;$(SolutionDir)../contrib/libs/openssl/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;$(SolutionDir)$(Configuration)\MSVS\07ECC93E-2BA3-7E0C-C328-28501ED2E5A3\ctr_kernels.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\reduce_scatter.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\enable_peers.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\host_tasks.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\kernel_task.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\memory_allocation.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\memory_copy_tasks.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\memory_state_func.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\request_stream_task.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\task.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\bootstrap.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\compression_helpers_gpu.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\dot_product.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\fill.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\filter.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\gpu_random.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\helpers.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\partitions.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\partitions_reduce.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\reduce.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\reorder_bins.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\scan.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\segmented_scan.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\segmented_sort.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\sort.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\transform.obj;$(SolutionDir)$(Configuration)\MSVS\4FE35BB1-F43A-39F4-9770-E9463DC3D595\kernels.obj;$(SolutionDir)$(Configuration)\MSVS\4FE35BB1-F43A-39F4-9770-E9463DC3D595\splitter.obj;$(SolutionDir)$(Configuration)\MSVS\B414E7D1-BF71-311C-0E2C-D6B4527D7528\pairwise_kernels.obj;$(SolutionDir)$(Configuration)\MSVS\B414E7D1-BF71-311C-0E2C-D6B4527D7528\pointwise_kernels.obj;$(SolutionDir)$(Configuration)\MSVS\6E76AE3A-B08F-C725-81DB-2ECE3CE545A2\add_bin_values.obj;$(SolutionDir)$(Configuration)\MSVS\6E76AE3A-B08F-C725-81DB-2ECE3CE545A2\add_non_symmetric_tree_doc_parallel.obj;$(SolutionDir)$(Configuration)\MSVS\6E76AE3A-B08F-C725-81DB-2ECE3CE545A2\add_region_doc_parallel.obj;$(SolutionDir)$(Configuration)\MSVS\1D3CF7E0-080E-0EC6-D27D-211F8567FEC0\dcg.obj;$(SolutionDir)$(Configuration)\MSVS\1D3CF7E0-080E-0EC6-D27D-211F8567FEC0\kernel.obj;$(SolutionDir)$(Configuration)\MSVS\1D3CF7E0-080E-0EC6-D27D-211F8567FEC0\multiclass_kernels.obj;$(SolutionDir)$(Configuration)\MSVS\1D3CF7E0-080E-0EC6-D27D-211F8567FEC0\query_cross_entropy_kernels.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\combination.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\multiclass.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\multiclass_non_symmetric.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\multiclass_region.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\pair_logit_pairwise.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\pfound_f.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\pointwise.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\pointwise_non_symmetric.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\pointwise_region.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\query_cross_entropy.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\querywise.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\querywise_non_symmetric.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\querywise_region.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\train.obj;$(SolutionDir)$(Configuration)\MSVS\262F6CF9-EB50-BD91-AC9B-1967CC6B84F7\cb_dsv_loader.obj;$(SolutionDir)$(Configuration)\MSVS\262F6CF9-EB50-BD91-AC9B-1967CC6B84F7\libsvm_loader.obj;$(SolutionDir)$(Configuration)\MSVS\A51525C5-634E-FC35-5327-3CD4A8F2B67F\formula_evaluator.obj;$(SolutionDir)$(Configuration)\MSVS\A51525C5-634E-FC35-5327-3CD4A8F2B67F\model_import_interface.obj;$(SolutionDir)$(Configuration)\MSVS\FAFB4883-665E-74FC-687B-B3E92B73012E\1cc3e14d43bed0c73ca4b4b233.obj;$(SolutionDir)$(Configuration)\MSVS\FAFB4883-665E-74FC-687B-B3E92B73012E\model_import.obj;$(SolutionDir)$(Configuration)\MSVS\B6361F28-19AC-62AF-82F3-98822E01D227\model_import_snapshot.obj;$(SolutionDir)$(Configuration)\MSVS\B6361F28-19AC-62AF-82F3-98822E01D227\train_model.obj;$(SolutionDir)$(Configuration)\MSVS\62440384-FCD2-5217-9DB5-BBEF00D51E9B\exists_checker.obj;$(SolutionDir)$(Configuration)\MSVS\62440384-FCD2-5217-9DB5-BBEF00D51E9B\line_data_reader.obj;$(SolutionDir)$(Configuration)\MSVS\99DC1DEE-5972-B246-E371-76454FEDA000\loader.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\bm25.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\bow.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\naive_bayesian.obj;$(SolutionDir)$(Configuration)\MSVS\2674849B-0330-C348-578B-DB562AA37E65\brotli.obj;$(SolutionDir)$(Configuration)\MSVS\AC376A6B-93D4-59AC-5493-C2308B528517\bzip.obj;$(SolutionDir)$(Configuration)\MSVS\A880DD8B-7948-E7DF-FDDB-6F6C1A23012A\fastlz.obj;$(SolutionDir)$(Configuration)\MSVS\39206ED1-8CD9-0701-178E-0631ABD19D17\legacy_zstd06.obj;$(SolutionDir)$(Configuration)\MSVS\F13B7D24-08DF-93EE-EF06-0A42A67F1F2A\lz4.obj;$(SolutionDir)$(Configuration)\MSVS\005F2BD3-F54E-2F5E-204D-10BBF3ABD244\lzma.obj;$(SolutionDir)$(Configuration)\MSVS\96581D45-46BF-09E3-6477-BFA2BF8C22E1\snappy.obj;$(SolutionDir)$(Configuration)\MSVS\DD085378-CB32-3420-0F56-EB3498FD2743\zlib.obj;$(SolutionDir)$(Configuration)\MSVS\AC7594FF-6F1D-C755-11B7-918627CFBD0B\zstd.obj;$(SolutionDir)$(Configuration)\MSVS\B2E67D35-D818-4BB5-60B7-B6EEC460B8F8\cpu_id_check.obj;$(SolutionDir)$(Configuration)\MSVS\A245D45B-FF5F-420A-C3B0-FC67CC066227\lemmer_impl.obj;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;$(SolutionDir)$(Configuration)\MSVS\07ECC93E-2BA3-7E0C-C328-28501ED2E5A3\ctr_kernels.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\reduce_scatter.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\enable_peers.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\host_tasks.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\kernel_task.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\memory_allocation.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\memory_copy_tasks.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\memory_state_func.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\request_stream_task.obj;$(SolutionDir)$(Configuration)\MSVS\8F0089E7-CD22-2D41-938B-A9A7A3319AE7\task.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\bootstrap.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\compression_helpers_gpu.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\dot_product.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\fill.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\filter.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\gpu_random.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\helpers.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\partitions.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\partitions_reduce.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\reduce.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\reorder_bins.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\scan.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\segmented_scan.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\segmented_sort.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\sort.obj;$(SolutionDir)$(Configuration)\MSVS\46C6451F-4D82-1C63-28D4-7F5FD766784A\transform.obj;$(SolutionDir)$(Configuration)\MSVS\4FE35BB1-F43A-39F4-9770-E9463DC3D595\kernels.obj;$(SolutionDir)$(Configuration)\MSVS\4FE35BB1-F43A-39F4-9770-E9463DC3D595\splitter.obj;$(SolutionDir)$(Configuration)\MSVS\B414E7D1-BF71-311C-0E2C-D6B4527D7528\pairwise_kernels.obj;$(SolutionDir)$(Configuration)\MSVS\B414E7D1-BF71-311C-0E2C-D6B4527D7528\pointwise_kernels.obj;$(SolutionDir)$(Configuration)\MSVS\6E76AE3A-B08F-C725-81DB-2ECE3CE545A2\add_bin_values.obj;$(SolutionDir)$(Configuration)\MSVS\6E76AE3A-B08F-C725-81DB-2ECE3CE545A2\add_non_symmetric_tree_doc_parallel.obj;$(SolutionDir)$(Configuration)\MSVS\6E76AE3A-B08F-C725-81DB-2ECE3CE545A2\add_region_doc_parallel.obj;$(SolutionDir)$(Configuration)\MSVS\1D3CF7E0-080E-0EC6-D27D-211F8567FEC0\dcg.obj;$(SolutionDir)$(Configuration)\MSVS\1D3CF7E0-080E-0EC6-D27D-211F8567FEC0\kernel.obj;$(SolutionDir)$(Configuration)\MSVS\1D3CF7E0-080E-0EC6-D27D-211F8567FEC0\multiclass_kernels.obj;$(SolutionDir)$(Configuration)\MSVS\1D3CF7E0-080E-0EC6-D27D-211F8567FEC0\query_cross_entropy_kernels.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\combination.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\multiclass.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\multiclass_non_symmetric.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\multiclass_region.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\pair_logit_pairwise.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\pfound_f.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\pointwise.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\pointwise_non_symmetric.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\pointwise_region.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\query_cross_entropy.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\querywise.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\querywise_non_symmetric.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\querywise_region.obj;$(SolutionDir)$(Configuration)\MSVS\D8550C12-2887-902A-28EC-36996021F9BC\train.obj;$(SolutionDir)$(Configuration)\MSVS\262F6CF9-EB50-BD91-AC9B-1967CC6B84F7\cb_dsv_loader.obj;$(SolutionDir)$(Configuration)\MSVS\262F6CF9-EB50-BD91-AC9B-1967CC6B84F7\libsvm_loader.obj;$(SolutionDir)$(Configuration)\MSVS\A51525C5-634E-FC35-5327-3CD4A8F2B67F\formula_evaluator.obj;$(SolutionDir)$(Configuration)\MSVS\A51525C5-634E-FC35-5327-3CD4A8F2B67F\model_import_interface.obj;$(SolutionDir)$(Configuration)\MSVS\FAFB4883-665E-74FC-687B-B3E92B73012E\1cc3e14d43bed0c73ca4b4b233.obj;$(SolutionDir)$(Configuration)\MSVS\FAFB4883-665E-74FC-687B-B3E92B73012E\model_import.obj;$(SolutionDir)$(Configuration)\MSVS\B6361F28-19AC-62AF-82F3-98822E01D227\model_import_snapshot.obj;$(SolutionDir)$(Configuration)\MSVS\B6361F28-19AC-62AF-82F3-98822E01D227\train_model.obj;$(SolutionDir)$(Configuration)\MSVS\62440384-FCD2-5217-9DB5-BBEF00D51E9B\exists_checker.obj;$(SolutionDir)$(Configuration)\MSVS\62440384-FCD2-5217-9DB5-BBEF00D51E9B\line_data_reader.obj;$(SolutionDir)$(Configuration)\MSVS\99DC1DEE-5972-B246-E371-76454FEDA000\loader.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\bm25.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\bow.obj;$(SolutionDir)$(Configuration)\MSVS\FB7B0D88-A00A-6D89-CEDA-F16BC181EC85\naive_bayesian.obj;$(SolutionDir)$(Configuration)\MSVS\2674849B-0330-C348-578B-DB562AA37E65\brotli.obj;$(SolutionDir)$(Configuration)\MSVS\AC376A6B-93D4-59AC-5493-C2308B528517\bzip.obj;$(SolutionDir)$(Configuration)\MSVS\A880DD8B-7948-E7DF-FDDB-6F6C1A23012A\fastlz.obj;$(SolutionDir)$(Configuration)\MSVS\39206ED1-8CD9-0701-178E-0631ABD19D17\legacy_zstd06.obj;$(SolutionDir)$(Configuration)\MSVS\F13B7D24-08DF-93EE-EF06-0A42A67F1F2A\lz4.obj;$(SolutionDir)$(Configuration)\MSVS\005F2BD3-F54E-2F5E-204D-10BBF3ABD244\lzma.obj;$(SolutionDir)$(Configuration)\MSVS\96581D45-46BF-09E3-6477-BFA2BF8C22E1\snappy.obj;$(SolutionDir)$(Configuration)\MSVS\DD085378-CB32-3420-0F56-EB3498FD2743\zlib.obj;$(SolutionDir)$(Configuration)\MSVS\AC7594FF-6F1D-C755-11B7-918627CFBD0B\zstd.obj;$(SolutionDir)$(Configuration)\MSVS\A945C0FD-E868-BBA0-1189-19BBB2296292\cpu_id_check.obj;$(SolutionDir)$(Configuration)\MSVS\A245D45B-FF5F-420A-C3B0-FC67CC066227\lemmer_impl.obj;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  "/LIBPATH:$(CUDA_PATH)/lib/x64" cudart_static.lib ws2_32.lib</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/NOLOGO /ERRORREPORT:PROMPT /SUBSYSTEM:CONSOLE /TLBID:1 /NXCOMPAT /IGNORE:4221 /MACHINE:X64 /INCREMENTAL  "/LIBPATH:$(CUDA_PATH)/lib/x64" cudart_static.lib ws2_32.lib</AdditionalOptions>
       <SubSystem Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Console</SubSystem>
@@ -420,20 +420,29 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\containers\stack_array\library-containers-stack_array.vcxproj">
       <Project>{8FDE35EC-9B80-AF55-62B5-130D5EF3D68A}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\containers\stack_vector\library-containers-stack_vector.vcxproj">
-      <Project>{16887906-E366-16EA-B53A-A081633E4AB5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\coroutine\engine\library-coroutine-engine.vcxproj">
-      <Project>{810DAE0F-1259-BCE1-AB1B-BB8F715CA0BD}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\coroutine\listener\library-coroutine-listener.vcxproj">
-      <Project>{B4028C7F-B714-C057-20FD-5CC1C3A20526}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cgiparam\library-cpp-cgiparam.vcxproj">
+      <Project>{7D7BC687-C41D-BE31-16E6-D1EFDED414F9}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\colorizer\library-cpp-colorizer.vcxproj">
       <Project>{78881F22-8136-23DF-843E-58AA6DB6D337}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\2d_array\cpp-containers-2d_array.vcxproj">
       <Project>{245105A8-ED48-C3D9-83C3-D6894AA984B0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\stack_vector\cpp-containers-stack_vector.vcxproj">
+      <Project>{F5DBE463-173C-4593-95C1-EC1430946913}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\coroutine\engine\cpp-coroutine-engine.vcxproj">
+      <Project>{D4715C6C-9CC0-8DC2-580D-1131AC501867}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\coroutine\listener\cpp-coroutine-listener.vcxproj">
+      <Project>{C43D7284-E485-A23F-D1EB-E5104D32806A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cpuid_check\library-cpp-cpuid_check.vcxproj">
+      <Project>{A945C0FD-E868-BBA0-1189-19BBB2296292}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\diff\library-cpp-diff.vcxproj">
+      <Project>{0E7915BD-803C-8F29-4ECB-42637EED30E3}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\crc32c\cpp-digest-crc32c.vcxproj">
       <Project>{BAEF14A6-3BF3-DC3E-9335-9B6BF43917BC}</Project>
@@ -450,6 +459,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\grid_creator\library-cpp-grid_creator.vcxproj">
       <Project>{E6C33C80-F1BD-2340-891E-B453369FDC5C}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\api\cpp-malloc-api.vcxproj">
+      <Project>{98AF9344-15D9-0539-93F4-0E901C36E301}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\system\cpp-malloc-system.vcxproj">
+      <Project>{54C3F326-D733-B490-93B9-EEA3BE28C3A9}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\pop_count\library-cpp-pop_count.vcxproj">
       <Project>{6B557DF5-6D6B-ECE1-B5B5-9CD1B8625387}</Project>
     </ProjectReference>
@@ -462,23 +477,26 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\streams\lzma\cpp-streams-lzma.vcxproj">
       <Project>{A75DC6C1-858D-5097-8CB6-68A4A62E2D73}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\base64\cpp-string_utils-base64.vcxproj">
+      <Project>{A4764222-1478-DE04-CC5B-2369096E96BC}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\terminate_handler\library-cpp-terminate_handler.vcxproj">
       <Project>{8776CDC6-8FD3-11B1-5A42-EAE93F81174A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\future\cpp-threading-future.vcxproj">
+      <Project>{3606F768-0467-35B5-0130-059536BE13C1}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\tokenizer\library-cpp-tokenizer.vcxproj">
       <Project>{033EAD89-E9BA-0341-D614-91C40D7F543A}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cpuid_check\library-cpuid_check.vcxproj">
-      <Project>{B2E67D35-D818-4BB5-60B7-B6EEC460B8F8}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yson\library-cpp-yson.vcxproj">
+      <Project>{D05A14C5-BA93-7AA3-1AB8-E62B001110D1}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cuda\wrappers\library-cuda-wrappers.vcxproj">
       <Project>{B83E09E6-36E4-BF0E-BBC4-CCC2D4B42CCC}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\dbg_output\library-dbg_output.vcxproj">
       <Project>{806C141C-ADC5-203A-DF01-02F7E1563621}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\diff\library-diff.vcxproj">
-      <Project>{CDAC90AB-9242-5B30-D7E1-EED4B6E4FEAC}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\dns\library-dns.vcxproj">
       <Project>{8C356353-67D3-3399-7DA3-792F6D7BF6D5}</Project>
@@ -531,12 +549,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\logger\library-logger.vcxproj">
       <Project>{83A191D5-D636-DE22-2633-0CBA3DEA99BB}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\malloc\api\library-malloc-api.vcxproj">
-      <Project>{32459880-AE0E-8CCD-4A48-44F805C4FC9B}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\malloc\system\library-malloc-system.vcxproj">
-      <Project>{B5163097-6C21-9F9C-985E-1E21018EDE5E}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\neh\asio\library-neh-asio.vcxproj">
       <Project>{ACDED067-8B74-5223-7E1A-7937B35A78E1}</Project>
     </ProjectReference>
@@ -579,9 +591,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\statistics\library-statistics.vcxproj">
       <Project>{898C3811-AD77-869C-24DC-EF6A89FA8399}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\base64\library-string_utils-base64.vcxproj">
-      <Project>{137212F6-D2FE-719F-EBE2-99060434BC72}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\csv\library-string_utils-csv.vcxproj">
       <Project>{31268EC0-4867-4A36-6D41-58F80A28A7F3}</Project>
     </ProjectReference>
@@ -614,9 +623,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\chunk_queue\library-threading-chunk_queue.vcxproj">
       <Project>{51BCA57C-7E5E-48F9-7D56-FD5809F99DCC}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\future\library-threading-future.vcxproj">
-      <Project>{CF2582C4-C4A1-875F-6897-27B28FB8018A}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\threading\hot_swap\library-threading-hot_swap.vcxproj">
       <Project>{03DFB2A4-4366-AD11-DF9C-49D8A6E93B89}</Project>

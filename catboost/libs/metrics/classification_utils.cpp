@@ -5,7 +5,8 @@
 
 /* Classification helpers */
 
-int GetApproxClass(TConstArrayRef<TVector<double>> approx, int docIdx, double predictionLogitBorder) {
+template <typename TArrayLike>
+int GetApproxClassImpl(TConstArrayRef<TArrayLike> approx, int docIdx, double predictionLogitBorder) {
     if (approx.size() == 1) {
         return approx[0][docIdx] > predictionLogitBorder;
     }
@@ -21,8 +22,16 @@ int GetApproxClass(TConstArrayRef<TVector<double>> approx, int docIdx, double pr
     return maxApproxIndex;
 }
 
+int GetApproxClass(TConstArrayRef<TVector<double>> approx, int docIdx, double predictionLogitBorder) {
+    return GetApproxClassImpl<TVector<double>>(approx, docIdx, predictionLogitBorder);
+}
+
+int GetApproxClass(TConstArrayRef<TConstArrayRef<double>> approx, int docIdx, double predictionLogitBorder) {
+    return GetApproxClassImpl<TConstArrayRef<double>>(approx, docIdx, predictionLogitBorder);
+}
+
 void GetPositiveStats(
-        TConstArrayRef<TVector<double>> approx,
+        TConstArrayRef<TConstArrayRef<double>> approx,
         TConstArrayRef<float> target,
         TConstArrayRef<float> weight,
         int begin,
@@ -64,7 +73,7 @@ void GetPositiveStats(
 }
 
 void GetSpecificity(
-        TConstArrayRef<TVector<double>> approx,
+        TConstArrayRef<TConstArrayRef<double>> approx,
         TConstArrayRef<float> target,
         TConstArrayRef<float> weight,
         int begin,

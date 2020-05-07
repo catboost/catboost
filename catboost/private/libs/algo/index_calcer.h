@@ -29,7 +29,7 @@ using TIndexedSubsetCache = THashMap<const NCB::TFeaturesArraySubsetIndexing*, N
 
 
 void GetObjectsDataAndIndexing(
-    const NCB::TTrainingForCPUDataProviders& trainingData,
+    const NCB::TTrainingDataProviders& trainingData,
     const TFold& fold,
     bool isEstimated,
     bool isOnline,
@@ -42,7 +42,7 @@ void GetObjectsDataAndIndexing(
 
 void SetPermutedIndices(
     const TSplit& split,
-    const NCB::TTrainingForCPUDataProviders& trainingData,
+    const NCB::TTrainingDataProviders& trainingData,
     int curDepth,
     const TFold& fold,
     TVector<TIndexType>* indices,
@@ -63,7 +63,7 @@ enum class EBuildIndicesDataParts {
 TVector<TIndexType> BuildIndices(
     const TFold& fold, // can be empty
     const TVariant<TSplitTree, TNonSymmetricTreeStructure>& tree,
-    const NCB::TTrainingForCPUDataProviders& trainingData,
+    const NCB::TTrainingDataProviders& trainingData,
     EBuildIndicesDataParts dataParts,
     NPar::TLocalExecutor* localExecutor);
 

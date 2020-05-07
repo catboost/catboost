@@ -7,6 +7,7 @@
 #include <util/generic/yexception.h>
 #include <util/stream/mem.h>
 #include <util/stream/zlib.h>
+#include <util/string/ascii.h>
 #include <util/string/split.h>
 #include <util/string/strip.h>
 
@@ -235,7 +236,7 @@ void THttpParser::ParseHeaderLine() {
 
             Headers_.AddHeader(hdr);
 
-            ApplyHeaderLine(to_lower(hdr.Name()), to_lower(hdr.Value()));
+            ApplyHeaderLine(hdr.Name(), hdr.Value());
         } else {
             //some dirty optimization (avoid reallocation new strings)
             size_t pos = HeaderLine_.find(':');
@@ -244,7 +245,6 @@ void THttpParser::ParseHeaderLine() {
                 ythrow THttpParseException() << "can not parse http header(" << HeaderLine_.Quote() << ")";
             }
 
-            HeaderLine_.to_lower();
             TStringBuf name(StripString(TStringBuf(HeaderLine_.begin(), HeaderLine_.begin() + pos)));
             TStringBuf val(StripString(TStringBuf(HeaderLine_.begin() + pos + 1, HeaderLine_.end())));
             ApplyHeaderLine(name, val);
@@ -312,17 +312,17 @@ bool THttpParser::DecodeContent() {
 }
 
 void THttpParser::ApplyHeaderLine(const TStringBuf& name, const TStringBuf& val) {
-    if (name == AsStringBuf("connection")) {
-        KeepAlive_ = val == AsStringBuf("keep-alive");
-    } else if (name == AsStringBuf("content-length")) {
+    if (AsciiEqualsIgnoreCase(name, AsStringBuf("connection"))) {
+        KeepAlive_ = AsciiEqualsIgnoreCase(val, AsStringBuf("keep-alive"));
+    } else if (AsciiEqualsIgnoreCase(name, AsStringBuf("content-length"))) {
         Y_ENSURE(val.size(), "NEH: Content-Length cannot be empty string. ");
         ContentLength_ = FromString<ui64>(val);
         HasContentLength_ = true;
-    } else if (name == AsStringBuf("transfer-encoding")) {
-        if (val == AsStringBuf("chunked")) {
+    } else if (AsciiEqualsIgnoreCase(name, AsStringBuf("transfer-encoding"))) {
+        if (AsciiEqualsIgnoreCase(val, AsStringBuf("chunked"))) {
             ChunkInputState_ = new TChunkInputState();
         }
-    } else if (name == AsStringBuf("accept-encoding")) {
+    } else if (AsciiEqualsIgnoreCase(name, AsStringBuf("accept-encoding"))) {
         TStringBuf encodings(val);
         while (encodings.size()) {
             TStringBuf enc = encodings.NextTok(',').After(' ').Before(' ');
@@ -333,7 +333,7 @@ void THttpParser::ApplyHeaderLine(const TStringBuf& name, const TStringBuf& val)
             s.to_lower();
             AcceptEncodings_.insert(s);
         }
-    } else if (name == AsStringBuf("content-encoding")) {
+    } else if (AsciiEqualsIgnoreCase(name, AsStringBuf("content-encoding"))) {
         TString s(val);
         s.to_lower();
         ContentEncoding_ = s;

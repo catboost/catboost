@@ -72,7 +72,7 @@ PEERDIR(
     library/binsaver
     library/cpp/containers/2d_array
     library/containers/dense_hash
-    library/containers/stack_vector
+    library/cpp/containers/stack_vector
     library/cpp/digest/crc32c
     library/cpp/digest/md5
     library/cpp/dot_product
@@ -80,7 +80,7 @@ PEERDIR(
     library/fast_log
     library/cpp/grid_creator
     library/json
-    library/malloc/api
+    library/cpp/malloc/api
     library/object_factory
     library/sse
     library/svnversion

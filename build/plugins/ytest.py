@@ -123,7 +123,7 @@ def validate_test(unit, kw):
             errors.append("FLEUR test is not allowed here")
     elif valid_kw.get('SCRIPT-REL-PATH') == 'gtest':
         project_path = valid_kw.get('BUILD-FOLDER-PATH', "")
-        if not project_path.startswith(("adfox", "contrib", "devtools", "mail", "mds")):
+        if not project_path.startswith(("adfox", "contrib", "devtools", "mail", "mds", "yp", "yt")):
             errors.append("GTEST is not allowed here")
 
     size_timeout = collections.OrderedDict(sorted(consts.TestSize.DefaultTimeouts.items(), key=lambda t: t[1]))
@@ -278,6 +278,13 @@ def validate_test(unit, kw):
     return valid_kw, warnings, errors
 
 
+def get_norm_unit_path(unit, extra=None):
+    path = _common.strip_roots(unit.path())
+    if extra:
+        return '{}/{}'.format(path, extra)
+    return path
+
+
 def dump_test(unit, kw):
     valid_kw, warnings, errors = validate_test(unit, kw)
     for w in warnings:
@@ -309,6 +316,11 @@ def get_values_list(unit, key):
     return [r for r in res if r and r not in ['""', "''"]]
 
 
+def get_norm_paths(unit, key):
+    # return paths without trailing (back)slash
+    return [x.rstrip('\\/') for x in get_values_list(unit, key)]
+
+
 def get_unit_list_variable(unit, name):
     items = unit.get(name)
     if items:
@@ -330,7 +342,7 @@ def match_coverage_extractor_requirements(unit):
         # build doesn't imply clang coverage, which supports segment extraction from the binaries
         unit.get("CLANG_COVERAGE") == "yes",
         # contrib wasn't requested
-        implies(_common.strip_roots(unit.path()).startswith("contrib/"), unit.get("ENABLE_CONTRIB_COVERAGE") == "yes"),
+        implies(get_norm_unit_path(unit).startswith("contrib/"), unit.get("ENABLE_CONTRIB_COVERAGE") == "yes"),
     ])
 
 
@@ -340,7 +352,7 @@ def onadd_ytest(unit, *args):
     flat_args, spec_args = _common.sort_by_keywords(keywords, args)
 
     if flat_args[1] == "fuzz.test":
-        unit.ondata("arcadia/fuzzing/{}/corpus.json".format(_common.strip_roots(unit.path())))
+        unit.ondata("arcadia/fuzzing/{}/corpus.json".format(get_norm_unit_path(unit)))
     elif flat_args[1] == "coverage.extractor" and not match_coverage_extractor_requirements(unit):
         # XXX
         # Current ymake implementation doesn't allow to call macro inside the 'when' body
@@ -357,19 +369,22 @@ def onadd_ytest(unit, *args):
     fork_mode = fork_mode or spec_args.get('FORK_MODE', []) or unit.get('TEST_FORK_MODE').split()
     fork_mode = ' '.join(fork_mode) if fork_mode else ''
 
+    unit_path = get_norm_unit_path(unit)
+
     test_record = {
         'TEST-NAME': flat_args[0],
         'SCRIPT-REL-PATH': flat_args[1],
         'TESTED-PROJECT-NAME': unit.name(),
         'TESTED-PROJECT-FILENAME': unit.filename(),
-        'SOURCE-FOLDER-PATH': unit.resolve(unit.path()),
-        'BUILD-FOLDER-PATH': _common.strip_roots(unit.path()),
-        'BINARY-PATH': _common.strip_roots(os.path.join(unit.path(), unit.filename())),
+        'SOURCE-FOLDER-PATH': unit_path,
+        # TODO get rid of BUILD-FOLDER-PATH
+        'BUILD-FOLDER-PATH': unit_path,
+        'BINARY-PATH': "{}/{}".format(unit_path, unit.filename()),
         'CUSTOM-DEPENDENCIES': ' '.join(spec_args.get('DEPENDS', []) + get_values_list(unit, 'TEST_DEPENDS_VALUE')),
         'TEST-RECIPES': prepare_recipes(unit.get("TEST_RECIPES_VALUE")),
         'TEST-ENV': prepare_env(unit.get("TEST_ENV_VALUE")),
         #  'TEST-PRESERVE-ENV': 'da',
-        'TEST-DATA': serialize_list(sorted(_common.filter_out_by_keyword(spec_args.get('DATA', []) + get_values_list(unit, 'TEST_DATA_VALUE'), 'AUTOUPDATED'))),
+        'TEST-DATA': serialize_list(sorted(_common.filter_out_by_keyword(spec_args.get('DATA', []) + get_norm_paths(unit, 'TEST_DATA_VALUE'), 'AUTOUPDATED'))),
         'TEST-TIMEOUT': ''.join(spec_args.get('TIMEOUT', [])) or unit.get('TEST_TIMEOUT') or '',
         'FORK-MODE': fork_mode,
         'SPLIT-FACTOR': ''.join(spec_args.get('SPLIT_FACTOR', [])) or unit.get('TEST_SPLIT_FACTOR') or '',
@@ -430,10 +445,10 @@ def onadd_test(unit, *args):
     fork_mode = fork_mode or spec_args.get('FORK_MODE', [])
     split_factor = ''.join(spec_args.get('SPLIT_FACTOR', [])) or ''
     test_size = ''.join(spec_args.get('SIZE', [])) or 'SMALL'
-    test_dir = unit.resolve(os.path.join(unit.path()))
+    test_dir = unit.path()
     tags = spec_args.get('TAG', []) + get_values_list(unit, 'TEST_TAGS_VALUE')
     requirements = spec_args.get('REQUIREMENTS', []) + get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')
-    test_data = spec_args.get("DATA", []) + get_values_list(unit, 'TEST_DATA_VALUE')
+    test_data = spec_args.get("DATA", []) + get_norm_paths(unit, 'TEST_DATA_VALUE')
     python_paths = get_values_list(unit, 'TEST_PYTHON_PATH_VALUE')
     if test_type == "PY_TEST":
         old_pytest = True
@@ -447,7 +462,7 @@ def onadd_check(unit, *args):
     flat_args, spec_args = _common.sort_by_keywords({"DEPENDS": -1, "TIMEOUT": 1, "DATA": -1, "TAG": -1, "REQUIREMENTS": -1, "FORK_MODE": 1,
                                                      "SPLIT_FACTOR": 1, "FORK_SUBTESTS": 0, "FORK_TESTS": 0, "SIZE": 1}, args)
     check_type = flat_args[0]
-    test_dir = unit.resolve(os.path.join(unit.path()))
+    test_dir = get_norm_unit_path(unit)
 
     test_timeout = ''
     fork_mode = ''
@@ -524,7 +539,7 @@ def onadd_check_py_imports(unit, *args):
         return
     unit.onpeerdir(['library/python/testing/import_test'])
     check_type = "py.imports"
-    test_dir = unit.resolve(os.path.join(unit.path()))
+    test_dir = get_norm_unit_path(unit)
 
     use_arcadia_python = unit.get('USE_ARCADIA_PYTHON')
     test_record = {
@@ -545,7 +560,7 @@ def onadd_check_py_imports(unit, *args):
         'USE_ARCADIA_PYTHON': use_arcadia_python or '',
         'OLD_PYTEST': 'no',
         'PYTHON-PATHS': '',
-        'FILES': serialize_list(["{}/{}".format(_common.strip_roots(unit.path()), unit.filename())])
+        'FILES': serialize_list([get_norm_unit_path(unit, unit.filename())])
     }
     if unit.get('NO_CHECK_IMPORTS_FOR_VALUE') != "None":
         test_record["NO-CHECK"] = serialize_list(get_values_list(unit, 'NO_CHECK_IMPORTS_FOR_VALUE') or ["*"])
@@ -570,18 +585,16 @@ def onadd_pytest_script(unit, *args):
     split_factor = unit.get('TEST_SPLIT_FACTOR') or ''
     test_size = unit.get('TEST_SIZE_NAME') or ''
 
-    unit_path = unit.path()
-    test_dir = unit.resolve(unit_path)
     test_files = get_values_list(unit, 'TEST_SRCS_VALUE')
     tags = get_values_list(unit, 'TEST_TAGS_VALUE')
     requirements = get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')
-    test_data = get_values_list(unit, 'TEST_DATA_VALUE')
-    data, data_files = get_canonical_test_resources(test_dir, unit_path)
+    test_data = get_norm_paths(unit, 'TEST_DATA_VALUE')
+    data, data_files = get_canonical_test_resources(unit)
     test_data += data
     python_paths = get_values_list(unit, 'TEST_PYTHON_PATH_VALUE')
     binary_path = None
     test_cwd = unit.get('TEST_CWD_VALUE') or ''
-    _dump_test(unit, test_type, test_files, timeout, test_dir, custom_deps, test_data, python_paths, split_factor, fork_mode, test_size, tags, requirements, binary_path, test_cwd=test_cwd, data_files=data_files)
+    _dump_test(unit, test_type, test_files, timeout, get_norm_unit_path(unit), custom_deps, test_data, python_paths, split_factor, fork_mode, test_size, tags, requirements, binary_path, test_cwd=test_cwd, data_files=data_files)
 
 
 def onadd_pytest_bin(unit, *args):
@@ -609,18 +622,17 @@ def add_test_to_dart(unit, test_type, binary_path=None, runner_bin=None):
     test_cwd = unit.get('TEST_CWD_VALUE') or ''
 
     unit_path = unit.path()
-    test_dir = unit.resolve(unit_path)
     test_files = get_values_list(unit, 'TEST_SRCS_VALUE')
     tags = get_values_list(unit, 'TEST_TAGS_VALUE')
     requirements = get_values_list(unit, 'TEST_REQUIREMENTS_VALUE')
-    test_data = get_values_list(unit, 'TEST_DATA_VALUE')
-    data, data_files = get_canonical_test_resources(test_dir, unit_path)
+    test_data = get_norm_paths(unit, 'TEST_DATA_VALUE')
+    data, data_files = get_canonical_test_resources(unit)
     test_data += data
     python_paths = get_values_list(unit, 'TEST_PYTHON_PATH_VALUE')
     yt_spec = get_values_list(unit, 'TEST_YT_SPEC_VALUE')
     if not binary_path:
         binary_path = os.path.join(unit_path, unit.filename())
-    _dump_test(unit, test_type, test_files, timeout, test_dir, custom_deps, test_data, python_paths, split_factor, fork_mode, test_size, tags, requirements, binary_path, test_cwd=test_cwd, runner_bin=runner_bin, yt_spec=yt_spec, data_files=data_files)
+    _dump_test(unit, test_type, test_files, timeout, get_norm_unit_path(unit), custom_deps, test_data, python_paths, split_factor, fork_mode, test_size, tags, requirements, binary_path, test_cwd=test_cwd, runner_bin=runner_bin, yt_spec=yt_spec, data_files=data_files)
 
 
 def extract_java_system_properties(unit, args):
@@ -660,13 +672,12 @@ def onjava_test(unit, *args):
 
     unit_path = unit.path()
     path = _common.strip_roots(unit_path)
-    test_dir = unit.resolve(unit_path)
 
-    test_data = get_values_list(unit, 'TEST_DATA_VALUE')
+    test_data = get_norm_paths(unit, 'TEST_DATA_VALUE')
     test_data.append('arcadia/build/scripts/unpacking_jtest_runner.py')
     test_data.append('arcadia/build/scripts/run_testng.py')
 
-    data, data_files = get_canonical_test_resources(test_dir, unit_path)
+    data, data_files = get_canonical_test_resources(unit)
     test_data += data
 
     props, error_mgs = extract_java_system_properties(unit, get_values_list(unit, 'SYSTEM_PROPERTIES_VALUE'))
@@ -725,7 +736,7 @@ def onjava_test_deps(unit, *args):
     assert len(args) == 1
     mode = args[0]
 
-    path = _common.strip_roots(unit.path())
+    path = get_norm_unit_path(unit)
 
     test_record = {
         'SOURCE-FOLDER-PATH': path,
@@ -874,18 +885,19 @@ def onsetup_run_python(unit):
         unit.ondepends('contrib/tools/python')
 
 
-def get_canonical_test_resources(test_dir, unit_path):
-    canon_data_dir = os.path.join(test_dir, CANON_DATA_DIR_NAME)
+def get_canonical_test_resources(unit):
+    unit_path = unit.path()
+    canon_data_dir = os.path.join(unit.resolve(unit_path), CANON_DATA_DIR_NAME)
 
     try:
         _, dirs, files = next(os.walk(canon_data_dir))
     except StopIteration:
         # path doesn't exist
-        return ([], [])
+        return [], []
 
     if CANON_RESULT_FILE_NAME in files:
         return _get_canonical_data_resources_v2(os.path.join(canon_data_dir, CANON_RESULT_FILE_NAME), unit_path)
-    return ([], [])
+    return [], []
 
 
 def _load_canonical_file(filename, unit_path):

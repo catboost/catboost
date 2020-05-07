@@ -22,8 +22,6 @@ def test_dist_train_many_trees(dev_score_calc_obj_block_size):
     test_path = data_file('higgs', 'test_small')
     cd_path = data_file('higgs', 'train.cd')
     cmd = (
-        CATBOOST_PATH,
-        'fit',
         '--loss-function', 'Logloss',
         '-f', pool_path,
         '-t', test_path,

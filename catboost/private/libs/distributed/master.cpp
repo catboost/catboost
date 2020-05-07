@@ -87,7 +87,7 @@ void SetTrainDataFromQuantizedPool(
 }
 
 void SetTrainDataFromMaster(
-    const TTrainingForCPUDataProviders& trainData,
+    const TTrainingDataProviders& trainData,
     ui64 cpuUsedRamLimit,
     NPar::TLocalExecutor* localExecutor
 ) {
@@ -99,7 +99,7 @@ void SetTrainDataFromMaster(
             std::move(workerParts[workerIdx]),
             EObjectsOrder::Ordered);
 
-        NCB::TTrainingForCPUDataProviders workerTrainData;
+        NCB::TTrainingDataProviders workerTrainData;
         workerTrainData.Learn = trainData.Learn->GetSubset(
             objectsGroupingSubset,
             cpuUsedRamLimit,
@@ -478,7 +478,7 @@ template <typename TApproxDefs>
 void MapSetApproxes(
     const IDerCalcer& error,
     const TVariant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
-    const NCB::TTrainingForCPUDataProviders data, // only test part is used
+    const NCB::TTrainingDataProviders data, // only test part is used
     TVector<TVector<double>>* averageLeafValues,
     TVector<double>* sumLeafWeights,
     TLearnContext* ctx) {
@@ -671,7 +671,7 @@ public:
 void MapSetApproxesSimple(
     const IDerCalcer& error,
     const TVariant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
-    const NCB::TTrainingForCPUDataProviders data, // only test part is used
+    const NCB::TTrainingDataProviders data, // only test part is used
     TVector<TVector<double>>* averageLeafValues,
     TVector<double>* sumLeafWeights,
     TLearnContext* ctx) {
@@ -682,7 +682,7 @@ void MapSetApproxesSimple(
 void MapSetApproxesMulti(
     const IDerCalcer& error,
     const TVariant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
-    const NCB::TTrainingForCPUDataProviders data, // only test part is used
+    const NCB::TTrainingDataProviders data, // only test part is used
     TVector<TVector<double>>* averageLeafValues,
     TVector<double>* sumLeafWeights,
     TLearnContext* ctx) {

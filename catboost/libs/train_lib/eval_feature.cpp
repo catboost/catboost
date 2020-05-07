@@ -522,7 +522,7 @@ TIntrusivePtr<TTrainingDataProvider> MakeFeatureSubsetDataProvider(
     const TVector<ui32>& ignoredFeatures,
     NCB::TTrainingDataProviderPtr trainingDataProvider
 ) {
-    TQuantizedObjectsDataProviderPtr newObjects = dynamic_cast<TQuantizedObjectsDataProvider*>(
+    TQuantizedObjectsDataProviderPtr newObjects = dynamic_cast<TQuantizedForCPUObjectsDataProvider*>(
         trainingDataProvider->ObjectsData->GetFeaturesSubset(ignoredFeatures, &NPar::LocalExecutor()).Get());
     CB_ENSURE(
         newObjects,

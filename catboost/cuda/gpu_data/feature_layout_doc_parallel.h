@@ -49,13 +49,13 @@ namespace NCatboostCuda {
             }
             THolder<TFeaturesBlock> resultHolder = new TFeaturesBlock(TCpuGrid(info, featureIds));
             TFeaturesBlock& result = *resultHolder;
-            ui32 featureCount = result.Grid.FeatureIds.size();
-            auto layout = CreateLayout(featureCount);
+            ui32 featureCount = featureIds.size();
 
             result.Samples = docsMapping;
             result.CudaFeaturesHost.resize(featureIds.size(),
                                            NCudaLib::GetCudaManager().CreateDistributedObject<TCFeature>());
 
+            TVector<TCFeature> allFeatures;
             TVector<TCFeature> features;
             TCudaFeaturesHelper helper(result.Grid);
 
@@ -68,21 +68,24 @@ namespace NCatboostCuda {
                 const ui64 devSize = helper.AddDeviceFeatures<Policy>(featuresSlice,
                                                                       devCIndexOffset,
                                                                       docCount,
+                                                                      &allFeatures,
                                                                       &features);
                 result.CIndexSizes.Set(dev, devSize);
                 result.CIndexOffsets.Set(dev, devCIndexOffset);
 
                 auto foldsHistogram = result.Grid.ComputeFoldsHistogram();
                 for (ui32 i = 0; i < featureCount; ++i) {
-                    result.CudaFeaturesHost[i].Set(dev, features[dev * featureCount + i]);
+                    result.CudaFeaturesHost[i].Set(dev, allFeatures[dev * featureCount + i]);
                     result.FoldsHistogram.Set(dev, foldsHistogram);
                 }
             };
 
-            CB_ENSURE(features.size() == GetDeviceCount() * featureCount);
-            result.CudaFeaturesDevice.Reset(layout);
-            result.CudaFeaturesDevice.Write(features);
-
+            CB_ENSURE(allFeatures.size() == GetDeviceCount() * featureCount);
+            if (features.size()) {
+                auto layout = CreateLayout(features.size() / GetDeviceCount());
+                result.CudaFeaturesDevice.Reset(layout);
+                result.CudaFeaturesDevice.Write(features);
+            }
             //bin features.
             result.BinFeatures = helper.BuildBinaryFeatures(TSlice(0, featureCount));
             result.BinFeatureCount = NCudaLib::GetCudaManager().CreateDistributedObject<ui32>(result.BinFeatures.size());
@@ -92,14 +95,16 @@ namespace NCatboostCuda {
                 //to make seed based on device and featuresId work
                 return helper.BuildBinaryFeatures(featureSlice).size();
             });
-            result.BinFeaturesForBestSplits.Reset(mapping);
-            result.BinFeaturesForBestSplits.Write(result.BinFeatures);
+            if (result.BinFeatures.size()) {
+                result.BinFeaturesForBestSplits.Reset(mapping);
+                result.BinFeaturesForBestSplits.Write(result.BinFeatures);
+            }
 
             return resultHolder;
         }
 
         static void WriteToCompressedIndex(const NCudaLib::TDistributedObject<TCFeature>& feature,
-                                           const TVector<ui8>& bins,
+                                           TConstArrayRef<ui8> bins,
                                            const NCudaLib::TStripeMapping& docsMapping,
                                            TStripeBuffer<ui32>* compressedIndex) {
             TStripeBuffer<ui8> tmp = TStripeBuffer<ui8>::Create(docsMapping);

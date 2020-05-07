@@ -105,14 +105,14 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\colorizer\library-cpp-colorizer.vcxproj">
       <Project>{78881F22-8136-23DF-843E-58AA6DB6D337}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\on_disk\chunks\cpp-on_disk-chunks.vcxproj">
+      <Project>{43AA153B-11A0-706A-C7A7-DD9001E90936}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\deprecated\mapped_file\library-deprecated-mapped_file.vcxproj">
       <Project>{C8D7BEC2-3BB7-029A-969A-FF92ADCB2087}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\getopt\small\library-getopt-small.vcxproj">
       <Project>{DB9C26F0-E241-89AB-6F12-8CE533A7E012}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\on_disk\chunks\library-on_disk-chunks.vcxproj">
-      <Project>{14A549F3-D184-A637-D0F2-A931DAEB16EF}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
       <Project>{2CE71367-048B-26B0-2DAC-CA9BB7D00E76}</Project>

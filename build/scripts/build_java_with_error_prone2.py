@@ -2,6 +2,7 @@ import sys
 import os
 import re
 import subprocess
+import platform
 
 
 ERROR_PRONE_FLAGS = [
@@ -63,9 +64,14 @@ def just_do_it(argv):
             classpath = get_classpath(javac_cmd)
             if classpath:
                 error_prone_tool = error_prone_tool + os.pathsep + classpath
-        os.execv(javac, [javac] + JAVA10_EXPORTS + ['-processorpath', error_prone_tool, '-XDcompilePolicy=byfile'] + [(' '.join(['-Xplugin:ErrorProne'] + ERROR_PRONE_FLAGS))] + javac_cmd)
+        cmd = [javac] + JAVA10_EXPORTS + ['-processorpath', error_prone_tool, '-XDcompilePolicy=byfile'] + [(' '.join(['-Xplugin:ErrorProne'] + ERROR_PRONE_FLAGS))] + javac_cmd
     else:
-        os.execv(java, [java, '-Xbootclasspath/p:' + error_prone_tool, 'com.google.errorprone.ErrorProneCompiler'] + ERROR_PRONE_FLAGS + javac_cmd)
+        cmd = [java, '-Xbootclasspath/p:' + error_prone_tool, 'com.google.errorprone.ErrorProneCompiler'] + ERROR_PRONE_FLAGS + javac_cmd
+    if platform.system() == 'Windows':
+        sys.exit(subprocess.Popen(cmd).wait())
+    else:
+        os.execv(cmd[0], cmd)
+
 
 
 if __name__ == '__main__':

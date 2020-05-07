@@ -83,11 +83,6 @@ namespace NCB {
             );
         }
 
-        TMaybeOwningArrayHolder<typename TBase::TValueType> ExtractValues(NPar::TLocalExecutor* localExecutor) const override {
-            Y_UNUSED(localExecutor);
-            return TMaybeOwningArrayHolder<typename TBase::TValueType>::CreateOwning(Data.ExtractValues());
-        }
-
         IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const override {
             return Data.GetBlockIterator(offset);
         }

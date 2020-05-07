@@ -104,12 +104,13 @@ namespace {
             : TProductIteratorBase<TEnumeratedSet, TValue>(sets)
         {}
 
-        virtual TMaybe<TConstArrayRef<TValue>> Next() override {
+        virtual bool Next(TConstArrayRef<TValue>* value) override {
             if (this->IsIteratorReachedEnd()) {
-                 return this->END_VALUE;
+                 return false;
             }
             this->PassedElementsCount++;
-            return this->NextWithOffset(1);
+            *value = this->NextWithOffset(1);
+            return true;
         }
     };
 
@@ -159,15 +160,16 @@ namespace {
             this->TotalElementsCount = count;
         }
 
-        virtual TMaybe<TConstArrayRef<TValue>> Next() override {
+        virtual bool Next(TConstArrayRef<TValue>* values) override {
             if (this->IsIteratorReachedEnd()) {
-                 return this->END_VALUE;
+                 return false;
             }
             ui64 offset = 1;
             offset = FlatOffsets[OffsetIndex];
             ++OffsetIndex;
             this->PassedElementsCount++;
-            return this->NextWithOffset(offset);
+            *values = this->NextWithOffset(offset);
+            return true;
         }
     };
 
@@ -745,20 +747,22 @@ namespace {
         TLabelConverter labelConverter;
         int iterationIdx = 0;
         int bestIterationIdx = 0;
+        
         TProfileInfo profile(gridIterator->GetTotalElementsCount());
-        while (auto paramsSet = gridIterator->Next()) {
+        TConstArrayRef<NJson::TJsonValue> paramsSet;
+        while (gridIterator->Next(&paramsSet)) {
             profile.StartIterationBlock();
             // paramsSet: {border_count, feature_border_type, nan_mode, [others]}
             TQuantizationParamsInfo quantizationParamsSet;
-            quantizationParamsSet.BinsCount = GetRandomValueIfNeeded((*paramsSet)[0], randDistGenerators).GetInteger();
-            quantizationParamsSet.BorderType = FromString<EBorderSelectionType>((*paramsSet)[1].GetString());
-            quantizationParamsSet.NanMode = FromString<ENanMode>((*paramsSet)[2].GetString());
+            quantizationParamsSet.BinsCount = GetRandomValueIfNeeded(paramsSet[0], randDistGenerators).GetInteger();
+            quantizationParamsSet.BorderType = FromString<EBorderSelectionType>(paramsSet[1].GetString());
+            quantizationParamsSet.NanMode = FromString<ENanMode>(paramsSet[2].GetString());
 
             AssignOptionsToJson(
                 TConstArrayRef<TString>(paramNames),
                 TConstArrayRef<NJson::TJsonValue>(
-                    paramsSet->begin() + IndexOfFirstTrainingParameter,
-                    paramsSet->end()
+                    paramsSet.begin() + IndexOfFirstTrainingParameter,
+                    paramsSet.end()
                 ), // Ignoring quantization params
                 randDistGenerators,
                 modelParamsToBeTried
@@ -880,7 +884,7 @@ namespace {
                 //log parameters
                 LogParameters(
                     paramNames,
-                    *paramsSet,
+                    paramsSet,
                     parametersToken,
                     generalQuantizeParamsInfo,
                     oneIterLogger
@@ -935,19 +939,20 @@ namespace {
         int iterationIdx = 0;
         int bestIterationIdx = 0;
         TProfileInfo profile(gridIterator->GetTotalElementsCount());
-        while (auto paramsSet = gridIterator->Next()) {
+        TConstArrayRef<NJson::TJsonValue> paramsSet;
+        while (gridIterator->Next(&paramsSet)) {
             profile.StartIterationBlock();
             // paramsSet: {border_count, feature_border_type, nan_mode, [others]}
             TQuantizationParamsInfo quantizationParamsSet;
-            quantizationParamsSet.BinsCount = GetRandomValueIfNeeded((*paramsSet)[0], randDistGenerators).GetInteger();
-            quantizationParamsSet.BorderType = FromString<EBorderSelectionType>((*paramsSet)[1].GetString());
-            quantizationParamsSet.NanMode = FromString<ENanMode>((*paramsSet)[2].GetString());
+            quantizationParamsSet.BinsCount = GetRandomValueIfNeeded(paramsSet[0], randDistGenerators).GetInteger();
+            quantizationParamsSet.BorderType = FromString<EBorderSelectionType>(paramsSet[1].GetString());
+            quantizationParamsSet.NanMode = FromString<ENanMode>(paramsSet[2].GetString());
 
             AssignOptionsToJson(
                 TConstArrayRef<TString>(paramNames),
                 TConstArrayRef<NJson::TJsonValue>(
-                    paramsSet->begin() + IndexOfFirstTrainingParameter,
-                    paramsSet->end()
+                    paramsSet.begin() + IndexOfFirstTrainingParameter,
+                    paramsSet.end()
                 ), // Ignoring quantization params
                 randDistGenerators,
                 modelParamsToBeTried
@@ -1097,7 +1102,7 @@ namespace {
                 //log parameters
                 LogParameters(
                     paramNames,
-                    *paramsSet,
+                    paramsSet,
                     parametersToken,
                     generalQuantizeParamsInfo,
                     oneIterLogger

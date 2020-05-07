@@ -6,6 +6,9 @@
 
 #if defined(_unix_)
 #include <sys/mman.h>
+#if !defined(MCL_ONFAULT) && defined(MCL_FUTURE) // Old glibc.
+#define MCL_ONFAULT (MCL_FUTURE << 1)
+#endif
 #if defined(_android_)
 #include <sys/syscall.h>
 #define munlockall() syscall(__NR_munlockall)
@@ -60,6 +63,9 @@ void LockAllMemory(ELockAllMemoryFlags flags) {
     }
     if (flags & LockFutureMemory) {
         sys_flags |= MCL_FUTURE;
+    }
+    if (flags & LockMemoryOnFault) {
+        sys_flags |= MCL_ONFAULT;
     }
     if (mlockall(sys_flags)) {
         ythrow yexception() << LastSystemErrorText();

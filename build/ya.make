@@ -24,6 +24,8 @@ ADD_TEST(
 
 RECURSE(
     conf_fatal_error
+    docs/empty
+    external_resources
     plugins
     scripts
     platform/perl

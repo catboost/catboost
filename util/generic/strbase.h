@@ -6,65 +6,6 @@
 #include "chartraits.h"
 #include "utility.h"
 
-template <typename TDerived, typename TCharType, typename TTraits>
-class TStringBase;
-
-// temporarily here IGNIETFERRO-1198
-template <typename TCharType, typename TTraits = TCharTraits<TCharType>>
-struct TFixedString {
-    constexpr TFixedString()
-        : Start(nullptr)
-        , Length(0)
-    {
-    }
-
-    template <typename T>
-    TFixedString(const TStringBase<T, TCharType, TTraits>& s)
-        : Start(s.data())
-        , Length(s.size())
-    {
-    }
-
-    template <typename T, typename A>
-    TFixedString(const std::basic_string<TCharType, T, A>& s)
-        : Start(s.data())
-        , Length(s.size())
-    {
-    }
-
-    TFixedString(const TCharType* s)
-        : Start(s)
-        , Length(s ? TTraits::GetLength(s) : 0)
-    {
-    }
-
-    constexpr TFixedString(const TCharType* s, size_t n)
-        : Start(s)
-        , Length(n)
-    {
-    }
-
-    constexpr TFixedString(const TCharType* begin, const TCharType* end)
-        : Start(begin)
-        , Length(end - begin)
-    {
-    }
-
-    /* implicit */ constexpr operator std::basic_string_view<TCharType>() const {
-        return std::basic_string_view<TCharType, std::char_traits<TCharType>>(Start, Length);
-    }
-
-    Y_PURE_FUNCTION
-    inline TFixedString SubString(size_t pos, size_t n) const noexcept {
-        pos = Min(pos, Length);
-        n = Min(n, Length - pos);
-        return TFixedString(Start + pos, n);
-    }
-
-    const TCharType* Start;
-    size_t Length;
-};
-
 template <typename TDerived, typename TCharType, typename TTraitsType = TCharTraits<TCharType>>
 class TStringBase {
     using TStringView = std::basic_string_view<TCharType>;

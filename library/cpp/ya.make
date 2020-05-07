@@ -5,9 +5,17 @@ RECURSE(
     accurate_accumulate/benchmark
     accurate_accumulate/benchmark/metrics
     archive/ut
+    cgiparam
+    cgiparam/fuzz
+    cgiparam/ut
     colorizer
     colorizer/ut
     containers
+    coroutine
+    cppparser
+    cpuid_check
+    diff
+    diff/ut
     digest
     dot_product
     dot_product/bench
@@ -17,6 +25,8 @@ RECURSE(
     grid_creator
     grid_creator/fuzz
     grid_creator/ut
+    malloc
+    on_disk
     pop_count
     pop_count/benchmark
     pop_count/ut
@@ -24,8 +34,12 @@ RECURSE(
     string_utils
     terminate_handler
     terminate_handler/sample
+    threading
     tokenizer
     tokenizer/ut
+    yson
+    yson/node
+    yson/node/pybind
 )
 
 IF (OS_LINUX)

@@ -23,7 +23,7 @@ ENDIF()
 
 PEERDIR(
     contrib/libs/cub
-    library/threading/future
+    library/cpp/threading/future
 )
 
 INCLUDE(${ARCADIA_ROOT}/library/cuda/wrappers/default_nvcc_flags.make.inc)

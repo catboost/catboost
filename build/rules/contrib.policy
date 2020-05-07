@@ -115,7 +115,9 @@ ALLOW passport/python/social -> contrib/python/MySQL-python
 ALLOW passport/python/yasms/db -> contrib/python/MySQL-python
 ALLOW testenv/core -> contrib/python/MySQL-python
 ALLOW testenv/recipes/ut -> contrib/python/MySQL-python
+# avia task to migrate from MySQL-python https://st.yandex-team.ru/RASPTICKETS-18201
 ALLOW travel/avia/dump_data/lib/model_classes -> contrib/python/MySQL-python
+ALLOW travel/avia/library/common -> contrib/python/MySQL-python
 ALLOW travel/rasp/admin -> contrib/python/MySQL-python
 ALLOW travel/rasp/library/common -> contrib/python/MySQL-python
 ALLOW travel/rasp/library/python/common -> contrib/python/MySQL-python
@@ -137,6 +139,11 @@ ALLOW contrib/python/mpop -> contrib/python/mipp
 ALLOW weather/workers/nowcasting/preprocess_meteosat -> contrib/python/mipp
 ALLOW yql/udfs/common/python/python_arc -> contrib/python/mipp
 DENY .* -> contrib/python/mipp
+
+DENY .* -> contrib/python/pdbpp
+
+ALLOW contrib/python/pdbpp -> contrib/python/fancycompleter
+DENY .* -> contrib/python/fancycompleter
 
 ALLOW infra/procman -> contrib/python/skynet_pyro4
 ALLOW skynet -> contrib/python/skynet_pyro4
@@ -194,4 +201,5 @@ ALLOW trust/tests/tests_trust_bindings -> contrib/python/pycrypto
 ALLOW yabs/server/tools/banner_user_choice -> contrib/python/pycrypto
 ALLOW ydo/database/models -> contrib/python/pycrypto
 ALLOW yweb/antispam/cid -> contrib/python/pycrypto
+ALLOW mail/payments/payments -> contrib/python/pycrypto
 DENY .* -> contrib/python/pycrypto

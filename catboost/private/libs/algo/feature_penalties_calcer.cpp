@@ -66,18 +66,19 @@ namespace NCB {
     }
 
     void AddFeaturePenaltiesToBestSplits(
-        TLearnContext* ctx,
-        const TTrainingForCPUDataProviders& trainingData,
+        const TLearnContext& ctx,
+        const TTrainingDataProviders& trainingData,
         const TFold& fold,
         ui32 oneHotMaxSize,
         TVector<TCandidateInfo>* candidates
     ) {
-        const NCatboostOptions::TPerFeaturePenalty& featureWeights = ctx->Params.ObliviousTreeOptions->FeaturePenalties->FeatureWeights;
-        const float penaltiesCoefficient = ctx->Params.ObliviousTreeOptions->FeaturePenalties->PenaltiesCoefficient;
-        const NCatboostOptions::TPerFeaturePenalty& firstFeatureUsePenalty = ctx->Params.ObliviousTreeOptions->FeaturePenalties->FirstFeatureUsePenalty;
+        const auto& featurePenaltiesOptions = ctx.Params.ObliviousTreeOptions->FeaturePenalties.Get();
+        const NCatboostOptions::TPerFeaturePenalty& featureWeights = featurePenaltiesOptions.FeatureWeights;
+        const float penaltiesCoefficient = featurePenaltiesOptions.PenaltiesCoefficient;
+        const NCatboostOptions::TPerFeaturePenalty& firstFeatureUsePenalty = featurePenaltiesOptions.FirstFeatureUsePenalty;
 
-        const TFeaturesLayout& layout = *ctx->Layout;
-        const TVector<bool>& usedFeatures = ctx->LearnProgress->UsedFeatures;
+        const TFeaturesLayout& layout = *ctx.Layout;
+        const TVector<bool>& usedFeatures = ctx.LearnProgress->UsedFeatures;
 
         for (auto& cand : *candidates) {
             double& score = cand.BestScore.Val;
@@ -85,13 +86,13 @@ namespace NCB {
 
             score *= GetSplitFeatureWeight(
                 bestSplit,
-                ctx->LearnProgress->EstimatedFeaturesContext,
+                ctx.LearnProgress->EstimatedFeaturesContext,
                 layout,
                 featureWeights
             );
             score -= GetSplitFirstFeatureUsePenalty(
                 bestSplit,
-                ctx->LearnProgress->EstimatedFeaturesContext,
+                ctx.LearnProgress->EstimatedFeaturesContext,
                 layout,
                 usedFeatures,
                 firstFeatureUsePenalty,

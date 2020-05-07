@@ -19,6 +19,9 @@ enum ELockAllMemoryFlag {
 
     /** Lock all pages which will become mapped into the address space of the process in the future. */
     LockFutureMemory = 2,
+
+    /** Since Linux 4.4, with LockCurrentMemory or LockFutureMemory or both, lock only pages that are or once they are present in memory. */
+    LockMemoryOnFault = 4,
 };
 Y_DECLARE_FLAGS(ELockAllMemoryFlags, ELockAllMemoryFlag)
 Y_DECLARE_OPERATORS_FOR_FLAGS(ELockAllMemoryFlags)

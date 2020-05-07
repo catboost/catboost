@@ -78,28 +78,6 @@ namespace NCB {
             );
         }
 
-        // in some cases non-standard T can be useful / more efficient
-        template <class T2 = typename TBase::TValueType>
-        TMaybeOwningArrayHolder<typename TBase::TValueType> ExtractValuesT(NPar::TLocalExecutor* localExecutor) const {
-            Y_UNUSED(localExecutor);
-            TVector<typename TBase::TValueType> dst;
-            dst.yresize(this->GetSize());
-            TArrayRef<typename TBase::TValueType> dstRef(dst);
-
-            NCB::TBinaryFeaturesPack bitMask = NCB::TBinaryFeaturesPack(1) << BitIdx;
-
-            auto visitor = [dstRef, bitIdx = BitIdx, bitMask](ui32 objectIdx, NCB::TBinaryFeaturesPack pack) {
-                dstRef[objectIdx] = (pack & bitMask) >> bitIdx;
-            };
-            PacksData->ForEach(visitor);
-
-            return TMaybeOwningArrayHolder<typename TBase::TValueType>::CreateOwning(std::move(dst));
-        }
-
-        TMaybeOwningArrayHolder<typename TBase::TValueType> ExtractValues(NPar::TLocalExecutor* localExecutor) const {
-            return ExtractValuesT<typename TBase::TValueType>(localExecutor);
-        }
-
         IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const override {
             auto compressedArrayData = PacksData->GetCompressedData();
             const TCompressedArray& compressedArray = *compressedArrayData.GetSrc();
@@ -110,7 +88,7 @@ namespace NCB {
             auto transformer = [bitIdx = BitIdx, bitMask](TBinaryFeaturesPack pack) {
                 return (pack & bitMask) >> bitIdx;
             };
-            return MakeTransformingArraySubsetBlockIterator<typename TBase::TValueType>(
+            return MakeTransformingArraySubsetBlockIterator<ui8>(
                 subsetIndexing,
                 compressedArray.GetRawArray<const TBinaryFeaturesPack>(),
                 offset,
@@ -188,24 +166,12 @@ namespace NCB {
             );
         }
 
-        TMaybeOwningArrayHolder<typename TBase::TValueType> ExtractValues(NPar::TLocalExecutor* localExecutor) const override {
-            switch (BundleSizeInBytes) {
-                case 1:
-                    return ExtractValuesImpl<ui8>(localExecutor);
-                case 2:
-                    return ExtractValuesImpl<ui16>(localExecutor);
-                default:
-                    Y_UNREACHABLE();
-            }
-            Y_UNREACHABLE();
-        }
-
         IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const  override {
             auto compressedArrayData = BundlesData->GetCompressedData();
             const TCompressedArray& compressedArray = *compressedArrayData.GetSrc();
             const TFeaturesArraySubsetIndexing* subsetIndexing = compressedArrayData.GetSubsetIndexing();
 
-            IDynamicBlockIteratorPtr<typename TBase::TValueType> result;
+            IDynamicBlockIteratorPtr<ui8> result;
 
             compressedArray.DispatchBitsPerKeyToDataType(
                 "TBundlePartValuesHolderImpl::GetBlockIterator",
@@ -213,10 +179,10 @@ namespace NCB {
                     using TBundle = std::remove_cvref_t<decltype(*histogram)>;
 
                     auto transformer = [boundsInBundle = BoundsInBundle] (TBundle bundle) {
-                        return GetBinFromBundle<typename TBase::TValueType>(bundle, boundsInBundle);
+                        return GetBinFromBundle<ui8>(bundle, boundsInBundle);
                     };
 
-                    result = MakeTransformingArraySubsetBlockIterator<typename TBase::TValueType>(
+                    result = MakeTransformingArraySubsetBlockIterator<ui8>(
                         subsetIndexing,
                         TArrayRef(
                             histogram,
@@ -240,20 +206,6 @@ namespace NCB {
         }
 
     private:
-        template <class TBundle>
-        TMaybeOwningArrayHolder<typename TBase::TValueType> ExtractValuesImpl(NPar::TLocalExecutor* localExecutor) const {
-            TVector<typename TBase::TValueType> dst;
-            dst.yresize(this->GetSize());
-            TArrayRef<typename TBase::TValueType> dstRef(dst);
-
-            auto visitor = [dstRef, boundsInBundle = BoundsInBundle] (ui32 objectIdx, auto bundle) {
-                dstRef[objectIdx] = GetBinFromBundle<typename TBase::TValueType>(bundle, boundsInBundle);
-            };
-            BundlesData->GetArrayData<TBundle>().ParallelForEach(visitor, localExecutor);
-            return TMaybeOwningArrayHolder<typename TBase::TValueType>::CreateOwning(std::move(dst));
-        }
-
-    private:
         const TExclusiveFeatureBundleArrayHolder* BundlesData;
         ui32 BundleSizeInBytes;
         NCB::TBoundsInBundle BoundsInBundle;
@@ -261,7 +213,7 @@ namespace NCB {
     };
 
 
-    template <class TBase> // T - is always ui8 now
+    template <class TBase>
     class TFeaturesGroupPartValuesHolderImpl : public TBase {
     public:
         TFeaturesGroupPartValuesHolderImpl(ui32 featureId,
@@ -314,26 +266,12 @@ namespace NCB {
             );
         }
 
-        TMaybeOwningArrayHolder<typename TBase::TValueType> ExtractValues(NPar::TLocalExecutor* localExecutor) const override {
-            switch(GroupSizeInBytes) {
-                case 1:
-                    return ExtractValuesImpl<ui8>(localExecutor);
-                case 2:
-                    return ExtractValuesImpl<ui16>(localExecutor);
-                case 4:
-                    return ExtractValuesImpl<ui32>(localExecutor);
-                default:
-                    Y_UNREACHABLE();
-            }
-            Y_UNREACHABLE();
-        }
-
         IDynamicBlockIteratorBasePtr GetBlockIterator(ui32 offset = 0) const override {
             auto compressedArrayData = GroupData->GetCompressedData();
             const TCompressedArray& compressedArray = *compressedArrayData.GetSrc();
             const TFeaturesArraySubsetIndexing* subsetIndexing = compressedArrayData.GetSubsetIndexing();
 
-            IDynamicBlockIteratorPtr<typename TBase::TValueType> result;
+            IDynamicBlockIteratorPtr<ui8> result;
 
             compressedArray.DispatchBitsPerKeyToDataType(
                 "TFeaturesGroupPartValuesHolderImpl::GetBlockIterator",
@@ -344,7 +282,7 @@ namespace NCB {
                         return group >> firstBitPos;
                     };
 
-                    result = MakeTransformingArraySubsetBlockIterator<typename TBase::TValueType>(
+                    result = MakeTransformingArraySubsetBlockIterator<ui8>(
                         subsetIndexing,
                         TArrayRef(
                             histogram,
@@ -356,22 +294,6 @@ namespace NCB {
                 }
             );
             return result;
-        }
-
-    private:
-        template <typename TGroup>
-        TMaybeOwningArrayHolder<typename TBase::TValueType> ExtractValuesImpl(NPar::TLocalExecutor* localExecutor) const {
-            TVector<typename TBase::TValueType> dst;
-            dst.yresize(this->GetSize());
-            TArrayRef<typename TBase::TValueType> dstRef(dst);
-
-            auto visitor = [dstRef, firstBitPos = InGroupIdx * CHAR_BIT](ui32 objectIdx, TGroup group) {
-                dstRef[objectIdx] = (group >> firstBitPos);
-            };
-
-            GroupData->GetArrayData<TGroup>().ParallelForEach(visitor, localExecutor);
-
-            return TMaybeOwningArrayHolder<typename TBase::TValueType>::CreateOwning(std::move(dst));
         }
 
     private:

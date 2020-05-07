@@ -58,3 +58,53 @@ void GradientWalker(
         } while (iterationIdx < iterationCount);
     }
 }
+
+template <bool IsLeafwise, typename TLeafUpdater, typename TApproxUpdater, typename TLossCalcer, typename TStep>
+void FastGradientWalker(
+    bool isTrivial,
+    int iterationCount,
+    int leafCount,
+    int dimensionCount,
+    const TLeafUpdater& leafUpdaterFunc,
+    const TApproxUpdater& approxUpdaterFunc,
+    const TLossCalcer& lossCalcerFunc,
+    TVector<TVector<double>>* point,
+    TVector<TStep>* stepSum
+) {
+    if (IsLeafwise) {
+        leafCount = 0;
+    }
+    TVector<TStep> step(dimensionCount, TStep(leafCount));
+
+    if (isTrivial) {
+        for (int iterationIdx = 0; iterationIdx < iterationCount; ++iterationIdx) {
+            leafUpdaterFunc(iterationIdx == 0, *point, &step);
+            approxUpdaterFunc(step, point);
+            if (stepSum != nullptr) {
+                AddElementwise(step, stepSum);
+            }
+        }
+        return;
+    }
+    double lossValue = lossCalcerFunc(*point, step); // step is zero so far
+    for (int iterationIdx = 0; iterationIdx < iterationCount; ++iterationIdx) {
+        leafUpdaterFunc(iterationIdx == 0, *point, &step);
+        double scale = 1.0;
+        // if monotone constraints are nontrivial the scale should be less or equal to 1.0.
+        // Otherwise monotonicity may be violated.
+        do {
+            const auto scaledStep = ScaleElementwise(scale, step);
+            const double valueAfterStep = lossCalcerFunc(*point, scaledStep);
+            if (valueAfterStep < lossValue) {
+                lossValue = valueAfterStep;
+                approxUpdaterFunc(scaledStep, point);
+                if (stepSum != nullptr) {
+                    AddElementwise(scaledStep, stepSum);
+                }
+                break;
+            }
+            scale /= 2;
+            ++iterationIdx;
+        } while (iterationIdx < iterationCount);
+    }
+}

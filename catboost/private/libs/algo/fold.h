@@ -129,7 +129,7 @@ public:
     void LoadApproxes(IInputStream* s);
 
     static TFold BuildDynamicFold(
-        const NCB::TTrainingForCPUDataProviders& data,
+        const NCB::TTrainingDataProviders& data,
         const TVector<TTargetClassifier>& targetClassifiers,
         bool shuffle,
         ui32 permuteBlockSize,
@@ -145,7 +145,7 @@ public:
     );
 
     static TFold BuildPlainFold(
-        const NCB::TTrainingForCPUDataProviders& data,
+        const NCB::TTrainingDataProviders& data,
         const TVector<TTargetClassifier>& targetClassifiers,
         bool shuffle,
         ui32 permuteBlockSize,
@@ -182,7 +182,7 @@ private:
     void InitOnlineEstimatedFeatures(
         const NCatboostOptions::TBinarizationOptions& quantizationOptions,
         NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo,
-        const NCB::TTrainingForCPUDataProviders& data,
+        const NCB::TTrainingDataProviders& data,
         NPar::TLocalExecutor* localExecutor,
         TRestorableFastRng64* rand
     );

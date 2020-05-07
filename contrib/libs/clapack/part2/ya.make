@@ -7,6 +7,8 @@ LICENSE(
 
 
 NO_COMPILER_WARNINGS()
+NO_RUNTIME()
+NO_UTIL()
 
 INCLUDE(../list.inc)
 

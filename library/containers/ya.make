@@ -22,6 +22,4 @@ RECURSE(
     ring_buffer
     stack_array
     stack_array/ut
-    stack_vector
-    stack_vector/ut
 )

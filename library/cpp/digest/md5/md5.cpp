@@ -6,7 +6,7 @@
 #include <util/generic/string.h>
 #include <util/stream/input.h>
 #include <util/stream/file.h>
-#include <library/string_utils/base64/base64.h>
+#include <library/cpp/string_utils/base64/base64.h>
 #include <util/string/hex.h>
 
 #include <cstring>

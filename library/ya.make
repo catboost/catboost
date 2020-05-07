@@ -9,8 +9,6 @@ RECURSE(
     blockcodecs/ut
     build_info
     cgiparam
-    cgiparam/fuzz
-    cgiparam/ut
     charset
     charset/ut
     chromium_trace
@@ -23,15 +21,10 @@ RECURSE(
     comptrie/ut
     comptrie/benchmark
     containers
-    coroutine
     cpp
-    cppparser
-    cpuid_check
     dbg_output
     dbg_output/ut
     deprecated
-    diff
-    diff/ut
     dns
     dns/ut
     enumbitset
@@ -73,14 +66,12 @@ RECURSE(
     logger/global
     logger/global/ut
     logger/ut
-    malloc
     neh
     neh/asio/ut
     neh/ut
     netliba
     object_factory
     object_factory/ut
-    on_disk
     openssl
     overloaded
     overloaded/ut
@@ -108,10 +99,6 @@ RECURSE(
     unittest/fat
     unittest/main
     unittest/ut
-    yson
-    yson/node
-    yson/node/pybind
-    yson/node/ut
 )
 
 IF (HAVE_CUDA)

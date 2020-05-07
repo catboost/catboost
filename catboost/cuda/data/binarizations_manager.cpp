@@ -15,10 +15,12 @@ namespace NCatboostCuda {
         const NCatboostOptions::TCatFeatureParams& catFeatureOptions,
         TFeatureEstimatorsPtr estimators,
         const TFeaturesLayout& featuresLayout,
+        const TVector<NCB::TExclusiveFeaturesBundle>& learnExclusiveFeatureBundles,
         TQuantizedFeaturesInfoPtr quantizedFeaturesInfo)
         : CatFeatureOptions(catFeatureOptions)
         , QuantizedFeaturesInfo(quantizedFeaturesInfo)
         , FeatureEstimators(estimators)
+        , LearnExclusiveFeatureBundles(learnExclusiveFeatureBundles)
     {
         const auto& featuresMetaInfo = featuresLayout.GetExternalFeaturesMetaInfo();
 
@@ -35,6 +37,7 @@ namespace NCatboostCuda {
         }
 
         RegisterFeatureEstimators(FeatureEstimators);
+        RegisterFeatureBundles();
     }
 
     TBinarizedFeaturesManager::TBinarizedFeaturesManager(
@@ -170,6 +173,8 @@ namespace NCatboostCuda {
             return 0;
         } else if (IsEstimatedFeature(localId)) {
             return EstimatedFeatureUpperBoundHints.at(localId);
+        } else if (IsFeatureBundle(localId)) {
+            return LearnExclusiveFeatureBundles.at(FeatureManagerIdToExclusiveBundleId.at(localId)).GetBinCount();
         } else {
             ythrow TCatBoostException() << "Error: unknown feature id #" << localId;
         }

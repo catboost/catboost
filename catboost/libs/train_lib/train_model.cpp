@@ -146,7 +146,7 @@ struct TMetricsData {
 
 static void InitializeAndCheckMetricData(
     const TTrainModelInternalOptions& internalOptions,
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     const TLearnContext& ctx,
     TMetricsData* metricsData) {
 
@@ -228,7 +228,7 @@ static bool ShouldCalcErrorTrackerMetric(ui32 iter, const TMetricsData& metricsD
 
 // Write history metrics to loggers, error trackers and get info from per iteration metric based callback.
 static void ProcessHistoryMetrics(
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     const TLearnContext& ctx,
     ITrainingCallbacks* trainingCallbacks,
     TMetricsData* metricsData,
@@ -292,7 +292,7 @@ static void ProcessHistoryMetrics(
 }
 
 static void InitializeSamplingStructures(
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     TLearnContext* ctx) {
 
     const bool isPairwiseScoring = IsPairwiseScoring(ctx->Params.LossFunctionDescription->GetLossFunction());
@@ -329,7 +329,7 @@ static void LogThatStoppingOccured(const TErrorTracker& errorTracker) {
 }
 
 static void CalcErrors(
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     const TMetricsData& metricsData,
     int iter,
     TLearnContext* ctx) {
@@ -339,7 +339,7 @@ static void CalcErrors(
 
 static void Train(
     const TTrainModelInternalOptions& internalOptions,
-    const TTrainingForCPUDataProviders& data,
+    const TTrainingDataProviders& data,
     ITrainingCallbacks* trainingCallbacks,
     TLearnContext* ctx,
     TVector<TVector<TVector<double>>>* testMultiApprox // [test][dim][docIdx]
@@ -523,7 +523,7 @@ static THolder<TNonSymmetricTreeNode> BuildTree(
 
 
 static void SaveModel(
-    const TTrainingForCPUDataProviders& trainingDataForCpu,
+    const TTrainingDataProviders& trainingDataForCpu,
     const TLearnContext& ctx,
     TMaybe<TFullModel*> initModel,
     TMaybe<ui32> initLearnProgressLearnAndTestQuantizedFeaturesCheckSum,
@@ -721,9 +721,6 @@ namespace {
             TMetricsAndTimeLeftHistory* metricsAndTimeHistory,
             THolder<TLearnProgress>* dstLearnProgress
         ) const override {
-            TTrainingForCPUDataProviders trainingDataForCpu
-                = trainingData.Cast<TQuantizedForCPUObjectsDataProvider>();
-
             if (!internalOptions.CalcMetricsOnly) {
                 if (dstModel != nullptr) {
                     CB_ENSURE(
@@ -736,6 +733,11 @@ namespace {
                         "Both dstModel == nullptr and ResultModelPath is empty"
                     );
                 }
+            }
+            
+            trainingData.Learn->ObjectsData->CheckCPUTrainCompatibility();
+            for (auto& test : trainingData.Test) {
+                test->ObjectsData->CheckCPUTrainCompatibility();
             }
 
             const TString trainingOptionsFileName = outputOptions.CreateTrainingOptionsFullPath();
@@ -752,8 +754,8 @@ namespace {
 
             if (catboostOptions.BoostingOptions->BoostFromAverage.Get()) {
                 CB_ENSURE(!initModel, "You can't use boost_from_average with initial model now.");
-                CB_ENSURE(!trainingDataForCpu.Learn->TargetData->GetBaseline(), "You can't use boost_from_average with baseline now.");
-                for (ui32 testIdx = 0; testIdx < trainingDataForCpu.Test.size(); ++testIdx) {
+                CB_ENSURE(!trainingData.Learn->TargetData->GetBaseline(), "You can't use boost_from_average with baseline now.");
+                for (ui32 testIdx = 0; testIdx < trainingData.Test.size(); ++testIdx) {
                     CB_ENSURE(!trainingData.Test[testIdx]->TargetData->GetBaseline(), "You can't use boost_from_average with baseline now.");
                 }
             }
@@ -763,8 +765,8 @@ namespace {
                     "Usage of model_shrink_rate option in combination with learning continuation is unimplemented yet."
                 );
                 auto errMessage = "Usage of model_shrink_rate option in combination with baseline is unimplemented yet.";
-                CB_ENSURE(!trainingDataForCpu.Learn->TargetData->GetBaseline(), errMessage);
-                for (ui32 testIdx = 0; testIdx < trainingDataForCpu.Test.size(); ++testIdx) {
+                CB_ENSURE(!trainingData.Learn->TargetData->GetBaseline(), errMessage);
+                for (ui32 testIdx = 0; testIdx < trainingData.Test.size(); ++testIdx) {
                     CB_ENSURE(!trainingData.Test[testIdx]->TargetData->GetBaseline(), errMessage);
                 }
             }
@@ -786,7 +788,7 @@ namespace {
                 objectiveDescriptor,
                 evalMetricDescriptor,
                 outputOptions,
-                trainingDataForCpu,
+                trainingData,
                 labelConverter,
                 startingApprox,
                 rand,
@@ -805,16 +807,16 @@ namespace {
                 MapBuildPlainFold(&ctx);
             }
             TVector<TVector<double>> oneRawValues(ctx.LearnProgress->ApproxDimension);
-            TVector<TVector<TVector<double>>> rawValues(trainingDataForCpu.Test.size(), oneRawValues);
+            TVector<TVector<TVector<double>>> rawValues(trainingData.Test.size(), oneRawValues);
 
-            Train(internalOptions, trainingDataForCpu, trainingCallbacks, &ctx, &rawValues);
+            Train(internalOptions, trainingData, trainingCallbacks, &ctx, &rawValues);
 
             if (!dstLearnProgress) {
                 // Save memory as it is no longer needed
                 ctx.LearnProgress->Folds.clear();
             }
 
-            for (int testIdx = 0; testIdx < trainingDataForCpu.Test.ysize(); ++testIdx) {
+            for (int testIdx = 0; testIdx < trainingData.Test.ysize(); ++testIdx) {
                 evalResultPtrs[testIdx]->SetRawValuesByMove(rawValues[testIdx]);
             }
 
@@ -824,7 +826,7 @@ namespace {
 
             if (!internalOptions.CalcMetricsOnly) {
                 SaveModel(
-                    trainingDataForCpu,
+                    trainingData,
                     ctx,
                     initModel,
                     initLearnProgressLearnAndTestQuantizedFeaturesCheckSum,
@@ -1000,7 +1002,7 @@ static void TrainModel(
             );
         } else {
             SetTrainDataFromMaster(
-                trainingData.Cast<TQuantizedForCPUObjectsDataProvider>(),
+                trainingData,
                 ParseMemorySizeDescription(catBoostOptions.SystemOptions->CpuUsedRamLimit.Get()),
                 executor
             );

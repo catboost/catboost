@@ -15,13 +15,18 @@ namespace CatBoostNet {
         [DllImport(DynamicLibraryName)]
         public static extern IntPtr ModelCalcerCreate();
 
+        [DllImport(DynamicLibraryName)]
+        private static extern IntPtr GetErrorString([In] IntPtr handler);
+
         /// <summary>
         /// Get error string from model library
         /// </summary>
         /// <param name="handler"></param>
         /// <returns>String with textual error description</returns>
-        [DllImport(DynamicLibraryName)]
-        public static extern string GetErrorString([In] IntPtr handler);
+        public static string GetErrorStringConst([In] IntPtr handler) {
+            var ptr = GetErrorString(handler);
+            return PtrToStringUtf8(ptr);
+        }
 
         /// <summary>
         /// Deallocate model by given handle
@@ -61,5 +66,44 @@ namespace CatBoostNet {
             string[] catFeatures, uint catFeaturesSize,
             [Out] double[] result, uint resultSize
         );
+
+        [DllImport(DynamicLibraryName)]
+        private static extern IntPtr GetModelInfoValue([In] IntPtr handler, string key, uint keySize);
+
+        /// <summary>
+        /// Get model metainfo for some key
+        /// </summary>
+        /// <param name="handler"></param>
+        /// <param name="key"></param>
+        /// <param name="keySize"></param>
+        /// <returns>String with metainfo description</returns>
+        public static string GetModelInfoValueConst([In] IntPtr handler, string key, uint keySize) {
+            var ptr = GetModelInfoValue(handler, key, keySize);
+            return PtrToStringUtf8(ptr);
+        }
+
+        /// <summary>
+        /// Use CUDA gpu device for model evaluation
+        /// </summary>
+        /// <param name="handler"></param>
+        /// <param name="deviceId"></param>
+        /// <returns>False if error occured</returns>
+        [DllImport(DynamicLibraryName)]
+        public static extern bool EnableGPUEvaluation([In] IntPtr handler, int deviceId);
+
+        private static string PtrToStringUtf8(IntPtr ptr)
+        {
+            if (ptr == IntPtr.Zero)
+                return "";
+            int len = 0;
+            while (Marshal.ReadByte(ptr, len) != 0)  // string message is zero-terminated
+                len++;
+            if (len == 0)
+                return "";
+            var array = new byte[len];
+            Marshal.Copy(ptr, array, 0, len);
+            return System.Text.Encoding.UTF8.GetString(array);
+        }
+
     }
 }

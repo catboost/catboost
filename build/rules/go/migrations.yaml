@@ -14,35 +14,6 @@ migrations:
       - ST1017
       - ST1018
     packages:
-      - a.yandex-team.ru/alice/gamma/metrics/solomon
-      - a.yandex-team.ru/alice/gamma/metrics/solomon_test
-      - a.yandex-team.ru/alice/gamma/sdk/golang
-      - a.yandex-team.ru/alice/gamma/sdk/golang_test
-      - a.yandex-team.ru/alice/gamma/server
-      - a.yandex-team.ru/alice/gamma/server/skills
-      - a.yandex-team.ru/alice/gamma/server/storage
-      - a.yandex-team.ru/alice/gamma/server/webhook
-      - a.yandex-team.ru/alice/gamma/server/webhook/api
-      - a.yandex-team.ru/alice/gamma/server/webhook/api/admin
-      - a.yandex-team.ru/alice/gamma/server/webhook/api_test
-      - a.yandex-team.ru/alice/gamma/server/webhook/handlers
-      - a.yandex-team.ru/alice/gamma/server/webhook/handlers_test
-      - a.yandex-team.ru/alice/gamma/server/ydb
-      - a.yandex-team.ru/alice/gamma/server/ydb_test
-      - a.yandex-team.ru/alice/gamma/skills/akinator/game
-      - a.yandex-team.ru/alice/gamma/skills/akinator/game_test
-      - a.yandex-team.ru/alice/gamma/skills/akinator/resources/actors
-      - a.yandex-team.ru/alice/gamma/skills/battleship/game
-      - a.yandex-team.ru/alice/gamma/skills/battleship/game_test
-      - a.yandex-team.ru/alice/gamma/skills/cheat_game/resources/questions
-      - a.yandex-team.ru/alice/gamma/skills/odd_word_game/game
-      - a.yandex-team.ru/alice/gamma/skills/odd_word_game/game_test
-      - a.yandex-team.ru/alice/gamma/skills/song_search
-      - a.yandex-team.ru/alice/gamma/skills/song_search/api
-      - a.yandex-team.ru/alice/gamma/skills/song_search/api_test
-      - a.yandex-team.ru/alice/gamma/skills/word_game/resources/default_definitions
-      - a.yandex-team.ru/alice/gamma/skills/zoology/resources/animals
-      - a.yandex-team.ru/alice/megamind/example_apps/go/apps
       - a.yandex-team.ru/cloud/blockstore/public/sdk/go/client
       - a.yandex-team.ru/cloud/blockstore/public/sdk/go/client/ut
       - a.yandex-team.ru/cloud/compute/go-common/database/kikimr
@@ -61,6 +32,8 @@ migrations:
       - a.yandex-team.ru/cloud/compute/snapshot/snapshot/lib_test
       - a.yandex-team.ru/cloud/compute/snapshot/snapshot/lib/kikimr
       - a.yandex-team.ru/cloud/compute/snapshot/snapshot/lib/kikimr_test
+      - a.yandex-team.ru/cloud/compute/snapshot/snapshot/lib/misc
+      - a.yandex-team.ru/cloud/compute/snapshot/snapshot/lib/misc_test
       - a.yandex-team.ru/cloud/compute/snapshot/snapshot/lib/move
       - a.yandex-team.ru/cloud/compute/snapshot/snapshot/lib/move_test
       - a.yandex-team.ru/cloud/compute/snapshot/snapshot/lib/storage
@@ -70,122 +43,7 @@ migrations:
       - a.yandex-team.ru/cloud/serverless/triggers/internal/queue-processor
       - a.yandex-team.ru/cloud/serverless/triggers/metrics
       - a.yandex-team.ru/cloud/serverless/triggers/pkg/ymq
-      - a.yandex-team.ru/commerce/blogs-pumpkin/controllers
-      - a.yandex-team.ru/commerce/blogs-pumpkin/controllers_test
-      - a.yandex-team.ru/direct/infra/dt-db-manager/cmd/server
-      - a.yandex-team.ru/direct/infra/dt-db-manager/internal/sshrequest
-      - a.yandex-team.ru/direct/infra/dt-db-manager/internal/support
-      - a.yandex-team.ru/direct/infra/dt-db-manager/internal/support_test
-      - a.yandex-team.ru/direct/infra/dt-graphite-ch-cacher/cmd/cacher
-      - a.yandex-team.ru/direct/infra/dt-graphite-ch-cacher/cmd/check-graphite
-      - a.yandex-team.ru/direct/infra/dt-graphite-ch-cacher/internal/siphash
-      - a.yandex-team.ru/direct/infra/ppchouse/cmd/dt-clickhouse-backup
-      - a.yandex-team.ru/direct/infra/ppchouse/cmd/dt-clickhouse-copytables
-      - a.yandex-team.ru/direct/infra/ppchouse/cmd/dt-monitoring-clicktables
-      - a.yandex-team.ru/direct/infra/ppchouse/cmd/dt-monitoring-loadlogs
-      - a.yandex-team.ru/disk/admin/abyssync/lib
-      - a.yandex-team.ru/disk/admin/loggiver2yasmagent
-      - a.yandex-team.ru/disk/admin/reals_resolver
-      - a.yandex-team.ru/district/feed_reader/app/bin
-      - a.yandex-team.ru/district/feed_reader/app/config
-      - a.yandex-team.ru/district/feed_reader/app/lib/recommender
-      - a.yandex-team.ru/district/feed_reader/app/lib/recommender/ut
-      - a.yandex-team.ru/extsearch/video/robot/parsers/rt_parser/proxy
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/dler
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/gfront/client
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/comb
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/comb_test
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/db
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/queue
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/queue_test
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/segment_test
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/tcode
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/tcode_test
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/testutil
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/tstor
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/util
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/nitc
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/qproxy
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/remux
-      - a.yandex-team.ru/extsearch/video/station/starter/client
-      - a.yandex-team.ru/extsearch/video/station/starter/downloader
-      - a.yandex-team.ru/extsearch/video/station/starter/downloader_test
-      - a.yandex-team.ru/extsearch/video/station/starter/players
-      - a.yandex-team.ru/extsearch/video/station/starter/players_test
-      - a.yandex-team.ru/extsearch/video/station/starter/pusher
-      - a.yandex-team.ru/extsearch/video/station/starter/pusher_test
-      - a.yandex-team.ru/extsearch/video/station/starter/rules
-      - a.yandex-team.ru/extsearch/video/station/starter/rules_test
-      - a.yandex-team.ru/extsearch/video/station/starter/server
-      - a.yandex-team.ru/extsearch/video/station/starter/server_test
-      - a.yandex-team.ru/extsearch/video/ugc/go/tusd/internal/metavalidator
-      - a.yandex-team.ru/extsearch/video/ugc/go/tusd/internal/metavalidator_test
-      - a.yandex-team.ru/extsearch/video/ugc/go/tusd/internal/yatusd
-      - a.yandex-team.ru/extsearch/video/ugc/go/uploader/internal/config
-      - a.yandex-team.ru/extsearch/video/ugc/go/uploader/internal/handlers
-      - a.yandex-team.ru/extsearch/video/ugc/go/uploader/internal/rt
-      - a.yandex-team.ru/games/backend
-      - a.yandex-team.ru/games/backend/cmd/external-games-backend
-      - a.yandex-team.ru/games/backend/cmd/internal-games-backend
-      - a.yandex-team.ru/games/backend/internal/config
-      - a.yandex-team.ru/games/backend/internal/db_utils
-      - a.yandex-team.ru/games/backend/internal/purchases_utils
-      - a.yandex-team.ru/games/backend/internal/rate_limiter
-      - a.yandex-team.ru/games/backend/internal/rate_limiter_test
-      - a.yandex-team.ru/games/backend/internal/request_utils
-      - a.yandex-team.ru/games/backend/pkg/app_types_service
-      - a.yandex-team.ru/games/backend/pkg/catalogue
-      - a.yandex-team.ru/games/backend/pkg/catalogue_test
-      - a.yandex-team.ru/games/backend/pkg/catalogue/middlewares
-      - a.yandex-team.ru/games/backend/pkg/categories_service
-      - a.yandex-team.ru/games/backend/pkg/games_service
-      - a.yandex-team.ru/games/backend/pkg/leader_boards_service
-      - a.yandex-team.ru/games/backend/pkg/payments_service
-      - a.yandex-team.ru/games/backend/pkg/payments_service/payments_storage
-      - a.yandex-team.ru/games/backend/pkg/payments_service/trust
-      - a.yandex-team.ru/games/backend/pkg/publishers_service
-      - a.yandex-team.ru/games/backend/pkg/rtx
-      - a.yandex-team.ru/games/backend/pkg/rtx_v2
-      - a.yandex-team.ru/games/backend/pkg/server
-      - a.yandex-team.ru/games/backend/pkg/server/catalogue
-      - a.yandex-team.ru/games/backend/pkg/server/catalogue/async_getter
-      - a.yandex-team.ru/games/backend/pkg/server_test
-      - a.yandex-team.ru/games/backend/pkg/server/light_catalogue
-      - a.yandex-team.ru/games/backend/pkg/server/light_catalogue/div_cards_service
-      - a.yandex-team.ru/games/backend/pkg/server/metrics
-      - a.yandex-team.ru/games/backend/pkg/server/metrics_test
-      - a.yandex-team.ru/games/backend/pkg/server/sdk/games_features_service
-      - a.yandex-team.ru/games/backend/pkg/users_service
-      - a.yandex-team.ru/games/backend/pkg/users_service_test
-      - a.yandex-team.ru/games/backend/pkg/users_service/storage
-      - a.yandex-team.ru/infra/dist/repo-daemon/internal/mds
-      - a.yandex-team.ru/infra/nanny2/pkg/hq/cache
-      - a.yandex-team.ru/infra/nanny2/pkg/hq/housekeeping
-      - a.yandex-team.ru/infra/nanny2/pkg/hq/service
-      - a.yandex-team.ru/infra/nanny2/pkg/hq/service/tests
-      - a.yandex-team.ru/infra/nanny2/pkg/hq/validation
-      - a.yandex-team.ru/infra/orly/go/orly
-      - a.yandex-team.ru/infra/rtc/gpu_manager
-      - a.yandex-team.ru/infra/rtc/gpu_manager/tests
-      - a.yandex-team.ru/infra/rtc/instance_resolver/bin/instance-resolver
-      - a.yandex-team.ru/infra/rtc/instance_resolver/internal/server
-      - a.yandex-team.ru/infra/rtc/instance_resolver/pkg/clients/bot
-      - a.yandex-team.ru/infra/rtc/instance_resolver/pkg/clients/iss3
-      - a.yandex-team.ru/infra/rtc/instance_resolver/pkg/clients/iss3_test
-      - a.yandex-team.ru/infra/rtc/instance_resolver/pkg/clients/nanny
-      - a.yandex-team.ru/infra/rtc/instance_resolver/pkg/clients/qloud
-      - a.yandex-team.ru/infra/rtc/instance_resolver/pkg/clients/qyp
-      - a.yandex-team.ru/infra/rtc/instance_resolver/pkg/clients/staff
-      - a.yandex-team.ru/infra/rtc/instance_resolver/pkg/clients/yp
-      - a.yandex-team.ru/infra/rtc/instance_resolver/pkg/fresh_cache
-      - a.yandex-team.ru/infra/rtc/loadgen/main
-      - a.yandex-team.ru/infra/rtc/sbin/ssh_checker
-      - a.yandex-team.ru/infra/ya_salt/server/pkg/app
-      - a.yandex-team.ru/infra/ya_salt/server/pkg/bitbucket
-      - a.yandex-team.ru/infra/ya_salt/server/pkg/bitbucket/tests
-      - a.yandex-team.ru/infra/ya_salt/server/pkg/sync
-      - a.yandex-team.ru/infra/ya_salt/server/pkg/sync/tests
-      - a.yandex-team.ru/infra/ya_salt/server/pkg/types
+      - a.yandex-team.ru/infra/rtc/instance_resolver/pkg/clients/iss3 # autogenerated
       - a.yandex-team.ru/kikimr/public/sdk/go/persqueue
       - a.yandex-team.ru/kikimr/public/sdk/go/persqueue_test
       - a.yandex-team.ru/kikimr/public/sdk/go/ydb/table
@@ -272,36 +130,32 @@ migrations:
       - a.yandex-team.ru/mail/mops/load/pandora
       - a.yandex-team.ru/mail/retriever/load/pandora
       - a.yandex-team.ru/mail/so/spamstop/tools/smtp2http
-      - a.yandex-team.ru/market/idx/delivery/bin/delivery_uploader
-      - a.yandex-team.ru/market/logistics/tracker-perf-testing
-      - a.yandex-team.ru/market/sre/juggler/bundles/rtc/checks/fresh-hprof-files
-      - a.yandex-team.ru/market/sre/library/golang/dispenser
-      - a.yandex-team.ru/market/sre/library/golang/dispenser/ut
-      - a.yandex-team.ru/market/sre/services/dist_meta_store/app
-      - a.yandex-team.ru/market/sre/services/dist_transporter/cmd/dist-transporter
-      - a.yandex-team.ru/market/sre/services/dist_transporter/cmd/dist-transporter-client
-      - a.yandex-team.ru/market/sre/tools/mon_ticket_closer
-      - a.yandex-team.ru/market/sre/tools/mon_ticket_closer/juggler
-      - a.yandex-team.ru/market/sre/tools/mon_ticket_closer/juggler/ut
-      - a.yandex-team.ru/market/sre/tools/mon_ticket_closer/startrek
-      - a.yandex-team.ru/market/sre/tools/mon_ticket_closer/startrek/ut
-      - a.yandex-team.ru/market/sre/tools/starter
-      - a.yandex-team.ru/market/sre/tools/starter/tests/unit
-      - a.yandex-team.ru/market/sre/tools/updateHosts
-      - a.yandex-team.ru/market/sre/tools/updateHosts/tests
+      - a.yandex-team.ru/mail/payments-sdk-backend/backend/cmd/server
+      - a.yandex-team.ru/mail/payments-sdk-backend/backend/cmd/server_test
       - a.yandex-team.ru/mds/kapl/pkg/mdb
+      - a.yandex-team.ru/mds/karl/pkg/migrate
+      - a.yandex-team.ru/mds/karl/pkg/job
       - a.yandex-team.ru/mds/s3/goose/internal/adapters/auth/tvm2
       - a.yandex-team.ru/mds/s3/goose/internal/adapters/auth/tvm2_test
       - a.yandex-team.ru/mds/s3/goose/internal/adapters/cache
       - a.yandex-team.ru/mds/s3/goose/internal/adapters/cache_test
       - a.yandex-team.ru/mds/s3/goose/internal/adapters/postgres
       - a.yandex-team.ru/mds/s3/goose/internal/adapters/postgres_test
+      - a.yandex-team.ru/mds/s3/goose/internal/core/actions
+      - a.yandex-team.ru/mds/s3/goose/internal/core/actions_test
+      - a.yandex-team.ru/mds/s3/goose/internal/core/entities
+      - a.yandex-team.ru/mds/s3/goose/internal/core/entities_test
+      - a.yandex-team.ru/mds/s3/goose/internal/db/postgres
+      - a.yandex-team.ru/mds/s3/goose/internal/db/postgres_test
+      - a.yandex-team.ru/mds/s3/goose/internal/db/postgres/clusters
+      - a.yandex-team.ru/mds/s3/goose/internal/db/postgres/pgcommon
       - a.yandex-team.ru/mds/s3/goose/internal/interconnect/mds/libmds
       - a.yandex-team.ru/mds/s3/goose/internal/interconnect/mds/libmds_test
       - a.yandex-team.ru/mds/valve/pkg/storage
       - a.yandex-team.ru/mds/valve/pkg/valve
       - a.yandex-team.ru/mds/valve/pkg/worker
       - a.yandex-team.ru/mds/valve/proto
+      - a.yandex-team.ru/mds/vasgen/pkg/tcptrace
       - a.yandex-team.ru/mds/vasgen/pkg/tcptrace/xnet
       - a.yandex-team.ru/mds/vasgen/pkg/tcptrace/xnet_test
       - a.yandex-team.ru/mds/yarl/cmd/cli
@@ -309,116 +163,25 @@ migrations:
       - a.yandex-team.ru/mds/yarl/pkg/rest
       - a.yandex-team.ru/mds/yarl/pkg/xgrpc
       - a.yandex-team.ru/mds/yarl/pkg/xgrpc_test
-      - a.yandex-team.ru/mediaplanner/internal/domain
-      - a.yandex-team.ru/mediaplanner/internal/domain_test
-      - a.yandex-team.ru/noc/go-blackbox
-      - a.yandex-team.ru/noc/go-blackbox_test
-      - a.yandex-team.ru/noc/go-startrek
-      - a.yandex-team.ru/noc/go-startrek_test
-      - a.yandex-team.ru/orgvisits/witness/client
-      - a.yandex-team.ru/orgvisits/witness/service
-      - a.yandex-team.ru/plus/morda/cmd
-      - a.yandex-team.ru/plus/morda/internal/bigb
       - a.yandex-team.ru/quasar/gackend
       - a.yandex-team.ru/quasar/gackend/db
       - a.yandex-team.ru/quasar/gackend_test
       - a.yandex-team.ru/quasar/gackend/model
-      - a.yandex-team.ru/quasar/go/blackbox
-      - a.yandex-team.ru/quasar/go/csrf
-      - a.yandex-team.ru/quasar/go/dialogs
-      - a.yandex-team.ru/quasar/go/jsonmatcher
-      - a.yandex-team.ru/quasar/go/jsonmatcher_test
-      - a.yandex-team.ru/quasar/go/metrics
-      - a.yandex-team.ru/quasar/go/metrics_test
       - a.yandex-team.ru/quasar/go/middleware
-      - a.yandex-team.ru/quasar/go/recorder
       - a.yandex-team.ru/quasar/go/render
       - a.yandex-team.ru/quasar/go/retryablehttp
-      - a.yandex-team.ru/quasar/go/tools
-      - a.yandex-team.ru/quasar/go/tools_test
-      - a.yandex-team.ru/quasar/go/tvm_mock
-      - a.yandex-team.ru/quasar/go/unistat_handler
       - a.yandex-team.ru/quasar/go/zaplogger
-      - a.yandex-team.ru/quasar/iot/adapters/philips_adapter/philips
-      - a.yandex-team.ru/quasar/iot/adapters/philips_adapter/philips_test
-      - a.yandex-team.ru/quasar/iot/adapters/philips_adapter/server
-      - a.yandex-team.ru/quasar/iot/adapters/tuya_adapter/db
-      - a.yandex-team.ru/quasar/iot/adapters/tuya_adapter/dto/mobile
-      - a.yandex-team.ru/quasar/iot/adapters/tuya_adapter/dto/mobile_test
-      - a.yandex-team.ru/quasar/iot/adapters/tuya_adapter/server
-      - a.yandex-team.ru/quasar/iot/adapters/tuya_adapter/tuya
-      - a.yandex-team.ru/quasar/iot/adapters/tuya_adapter/tuya_test
-      - a.yandex-team.ru/quasar/iot/adapters/xiaomi_adapter/server
-      - a.yandex-team.ru/quasar/iot/adapters/xiaomi_adapter/xiaomi
-      - a.yandex-team.ru/quasar/iot/adapters/xiaomi_adapter/xiaomi_test
-      - a.yandex-team.ru/quasar/iot/adapters/xiaomi_adapter/xiaomi/iotapi
-      - a.yandex-team.ru/quasar/iot/adapters/xiaomi_adapter/xiaomi/userapi
-      - a.yandex-team.ru/quasar/iot/bulbasaur/backend
-      - a.yandex-team.ru/quasar/iot/bulbasaur/bass
-      - a.yandex-team.ru/quasar/iot/bulbasaur/cmd/db_filler
-      - a.yandex-team.ru/quasar/iot/bulbasaur/cmd/e2e_generator
-      - a.yandex-team.ru/quasar/iot/bulbasaur/db
-      - a.yandex-team.ru/quasar/iot/bulbasaur/db_test
-      - a.yandex-team.ru/quasar/iot/bulbasaur/dto/adapter
-      - a.yandex-team.ru/quasar/iot/bulbasaur/dto/adapter_test
-      - a.yandex-team.ru/quasar/iot/bulbasaur/dto/dialogs
-      - a.yandex-team.ru/quasar/iot/bulbasaur/dto/megamind
-      - a.yandex-team.ru/quasar/iot/bulbasaur/dto/megamind_test
-      - a.yandex-team.ru/quasar/iot/bulbasaur/dto/mobile
-      - a.yandex-team.ru/quasar/iot/bulbasaur/dto/mobile_test
-      - a.yandex-team.ru/quasar/iot/bulbasaur/dto/takeout
-      - a.yandex-team.ru/quasar/iot/bulbasaur/megamind
-      - a.yandex-team.ru/quasar/iot/bulbasaur/model
-      - a.yandex-team.ru/quasar/iot/bulbasaur/model_test
-      - a.yandex-team.ru/quasar/iot/bulbasaur/model/modelbuilder
-      - a.yandex-team.ru/quasar/iot/bulbasaur/provider
-      - a.yandex-team.ru/quasar/iot/bulbasaur/provider_test
-      - a.yandex-team.ru/quasar/iot/bulbasaur/render
-      - a.yandex-team.ru/quasar/iot/bulbasaur/render_test
-      - a.yandex-team.ru/quasar/iot/bulbasaur/server
-      - a.yandex-team.ru/quasar/iot/bulbasaur/server_test
-      - a.yandex-team.ru/quasar/iot/bulbasaur/socialism
-      - a.yandex-team.ru/quasar/iot/steelix/config
-      - a.yandex-team.ru/quasar/iot/steelix/proxy
-      - a.yandex-team.ru/quasar/iot/steelix/proxy_test
       - a.yandex-team.ru/quasar/tsup/db
       - a.yandex-team.ru/quasar/tsup/server
-      - a.yandex-team.ru/rtc/janus/janusapi
-      - a.yandex-team.ru/rtc/janus/janusapi_test
-      - a.yandex-team.ru/rtc/mediator/fanout
-      - a.yandex-team.ru/rtc/mediator/fanout_test
-      - a.yandex-team.ru/rtc/mediator/server
-      - a.yandex-team.ru/rtc/mediator/server_test
-      - a.yandex-team.ru/rtc/sipgw
-      - a.yandex-team.ru/rtc/sipgw_test
       - a.yandex-team.ru/cloud/iam/accessservice/client/go/cloudauth
       - a.yandex-team.ru/cloud/iam/accessservice/client/go/cloudauth_test
-      - a.yandex-team.ru/commerce/blogs_pumpkin/controllers
-      - a.yandex-team.ru/commerce/blogs_pumpkin/controllers_test
       - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/gfront
-      - a.yandex-team.ru/quasar/iot/steelix/server
-      - a.yandex-team.ru/quasar/iot/steelix/server_test
-      - a.yandex-team.ru/rtc/janus/janus
-      - a.yandex-team.ru/rtc/janus/janus_test
-      - a.yandex-team.ru/solomon/tools/solomon-sync
-      - a.yandex-team.ru/strm/gorshok/pkg/content
-      - a.yandex-team.ru/strm/gorshok/pkg/content/contenttypes
-      - a.yandex-team.ru/strm/gorshok/pkg/content/fetchers
-      - a.yandex-team.ru/strm/gorshok/pkg/content_test
-      - a.yandex-team.ru/strm/gorshok/pkg/content/parsers
-      - a.yandex-team.ru/strm/gorshok/pkg/content/parsers_test
-      - a.yandex-team.ru/strm/gorshok/pkg/sandbox
-      - a.yandex-team.ru/strm/gorshok/pkg/server
-      - a.yandex-team.ru/strm/trns_manager/pkg/liveinfo
-      - a.yandex-team.ru/strm/trns_manager/pkg/liveinfo_test
-      - a.yandex-team.ru/strm/trns_manager/pkg/xaccelredirect/config
-      - a.yandex-team.ru/strm/trns_manager/pkg/xaccelredirect/handlers
-      - a.yandex-team.ru/strm/yql/ydb/create_table
-      - a.yandex-team.ru/toolbox/pg-pinger/server
+      - a.yandex-team.ru/transfer_manager/go/cmd/cdc_server
       - a.yandex-team.ru/transfer_manager/go/cmd/pg_to_ch
       - a.yandex-team.ru/transfer_manager/go/internal/config
       - a.yandex-team.ru/transfer_manager/go/internal/metrics
       - a.yandex-team.ru/transfer_manager/go/pkg/abstract
+      - a.yandex-team.ru/transfer_manager/go/pkg/controlplane
       - a.yandex-team.ru/transfer_manager/go/pkg/mapreduce/pg_to_yt
       - a.yandex-team.ru/transfer_manager/go/pkg/server
       - a.yandex-team.ru/transfer_manager/go/pkg/sink/ch
@@ -431,30 +194,21 @@ migrations:
       - a.yandex-team.ru/transfer_manager/go/pkg/worker
       - a.yandex-team.ru/transfer_manager/go/pkg/worker_test
       - a.yandex-team.ru/transfer_manager/go/proto/cdc_server
-      - a.yandex-team.ru/travel/avia/wizard/pkg/wizard/domain/query_parameters
-      - a.yandex-team.ru/travel/avia/wizard/pkg/wizard/helpers
-      - a.yandex-team.ru/travel/avia/wizard/pkg/wizard/logging/yt/query_log
-      - a.yandex-team.ru/travel/avia/wizard/tests/wizard/logging/yt/query_log
-      - a.yandex-team.ru/travel/hotels/tools/geocounter_grpc_loadtesting/main
-      - a.yandex-team.ru/voicetech/infra/uniproxy/tools/ws-echo-shooter
-      - a.yandex-team.ru/yabs/indoor/st_cache/server
-      - a.yandex-team.ru/yabs/vh/cms-pgaas/dhdd
-      - a.yandex-team.ru/yabs/vh/cms-pgaas/dhdd/db
-      - a.yandex-team.ru/yabs/vh/cms-pgaas/dhdd/io
-      - a.yandex-team.ru/yabs/vh/cms-pgaas/dhdd/util
-      - a.yandex-team.ru/yabs/vh/cms-pgaas/dhdd/util_test
-      - a.yandex-team.ru/yabs/vh/cms-pgaas/transcoded
-      - a.yandex-team.ru/yaphone/gotifier/cmd
-      - a.yandex-team.ru/yt/go/mapreduce/spec
-      - a.yandex-team.ru/yt/idm-integration/cmd/yt-idm-integration-v2
-      - a.yandex-team.ru/yt/idm-integration/internal/app
-      - a.yandex-team.ru/yt/idm-integration/internal/app_test
-      - a.yandex-team.ru/yt/jaeger
-      - a.yandex-team.ru/yt/solomon-bridge/bridgex
-      - a.yandex-team.ru/yt/solomon-bridge/bridgex_test
-      - a.yandex-team.ru/yt/solomon-bridge/sensor
-      - a.yandex-team.ru/yt/solomon-bridge/sensor_test
-      - a.yandex-team.ru/yt/solomon-bridge/spack
-      - a.yandex-team.ru/yt/solomon-bridge/spack_test
-      - a.yandex-team.ru/yt/solomon-bridge/writer
-      - a.yandex-team.ru/yt/solomon-bridge/writer_test
+  ST1003:
+    packages:
+      - a.yandex-team.ru/games/backend/pkg/server/sdk/games_features_service
+      - a.yandex-team.ru/games/backend/pkg/server/light_catalogue/div_cards_service
+      - a.yandex-team.ru/games/backend/pkg/server/light_catalogue
+      - a.yandex-team.ru/games/backend/pkg/games_service
+      - a.yandex-team.ru/games/backend/internal/purchases_utils
+      - a.yandex-team.ru/games/backend/pkg/payments_service
+      - a.yandex-team.ru/games/backend/pkg/rtx_v2
+      - a.yandex-team.ru/games/backend/pkg/payments_service/payments_storage
+      - a.yandex-team.ru/games/backend/pkg/categories_service
+      - a.yandex-team.ru/games/backend/pkg/app_types_service
+      - a.yandex-team.ru/games/backend/pkg/publishers_service
+      - a.yandex-team.ru/games/backend/pkg/server/catalogue/async_getter
+      - a.yandex-team.ru/games/backend/pkg/leader_boards_service
+      - a.yandex-team.ru/games/backend/pkg/users_service
+      - a.yandex-team.ru/games/backend/internal/db_utils
+      - a.yandex-team.ru/infra/rtc/instance_resolver/pkg/fresh_cache
