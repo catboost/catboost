@@ -3,16 +3,9 @@
 
 
   <ItemGroup>
-    <Content Include="$(MSBuildThisFileDirectory)..\..\runtimes\win-x64\native\catboostmodel.dll" Condition=" '$(OS)' == 'Windows_NT' ">
+    <Content Include="$(MSBuildThisFileDirectory)..\..\runtimes\win-x64\native\catboostmodel.dll">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>catboostmodel.dll</Link>
-    </Content>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Content Include="$(SolutionDir)/../libs/model_interface/libcatboostmodel.so" Condition=" '$(OS)' == 'UNIX' ">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      <Link>libcatboostmodel.so</Link>
     </Content>
   </ItemGroup>
   
