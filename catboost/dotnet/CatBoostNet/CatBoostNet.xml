@@ -54,6 +54,11 @@
         <member name="M:CatBoostNet.CatBoostModel.Transform(Microsoft.ML.IDataView)">
             <inheritdoc />
         </member>
+        <member name="M:CatBoostNet.CatBoostModel.Dispose">
+            <summary>
+            Dispose of unmanaged resources
+            </summary>
+        </member>
         <member name="T:CatBoostNet.CatBoostModelEvaluator">
             <summary>
             Low-level API for interacting with CatBoost library.
@@ -111,6 +116,16 @@
             Number of categorical features used in the model input
             </summary>
         </member>
+        <member name="M:CatBoostNet.CatBoostModelEvaluator.EnableGpuEvaluation(System.Int32)">
+            <summary>
+            Use CUDA gpu device for model evaluation
+            </summary>
+        </member>
+        <member name="M:CatBoostNet.CatBoostModelEvaluator.GetModelInfoValue(System.String)">
+            <summary>
+            Get model metainfo for some key
+            </summary>
+        </member>
         <member name="P:CatBoostNet.CatBoostModelEvaluator.CatFeaturesIndices">
             <summary>
             Indices of the categorical features in the model input
@@ -150,6 +165,22 @@
             Container storing the model handler
             </summary>
         </member>
+        <member name="F:CatBoostNet.CatBoostModelEvaluator.isDisposed">
+            <summary>
+            Do not dispose resources twice
+            </summary>
+        </member>
+        <member name="M:CatBoostNet.CatBoostModelEvaluator.Dispose">
+            <summary>
+            Dispose of resources
+            Suppress finalization
+            </summary>
+        </member>
+        <member name="M:CatBoostNet.CatBoostModelEvaluator.Dispose(System.Boolean)">
+            <summary>
+            Dispose of unmanaged resources
+            </summary>
+        </member>
         <member name="T:CatBoostNet.CatboostNativeInterface">
             <summary>
             Static class containing definitions for imported functions
@@ -161,7 +192,7 @@
             </summary>
             <returns>Handle (pointer) to empty model</returns>
         </member>
-        <member name="M:CatBoostNet.CatboostNativeInterface.GetErrorString(System.IntPtr)">
+        <member name="M:CatBoostNet.CatboostNativeInterface.GetErrorStringConst(System.IntPtr)">
             <summary>
             Get error string from model library
             </summary>
@@ -173,6 +204,23 @@
             Deallocate model by given handle
             </summary>
             <param name="handler"></param>
+        </member>
+        <member name="M:CatBoostNet.CatboostNativeInterface.GetModelInfoValueConst(System.IntPtr,System.String,System.UInt32)">
+            <summary>
+            Get model metainfo for some key
+            </summary>
+            <param name="handler"></param>
+            <param name="key"></param>
+            <param name="keySize"></param>
+            <returns>String with metainfo description</returns>
+        </member>
+        <member name="M:CatBoostNet.CatboostNativeInterface.EnableGPUEvaluation(System.IntPtr,System.Int32)">
+            <summary>
+            Use CUDA gpu device for model evaluation
+            </summary>
+            <param name="handler"></param>
+            <param name="deviceId"></param>
+            <returns>False if error occured</returns>
         </member>
         <member name="T:CatBoostNet.StringPointerHolder">
             <summary>
