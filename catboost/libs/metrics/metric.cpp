@@ -3546,7 +3546,6 @@ namespace {
                 int begin,
                 int end,
                 NPar::TLocalExecutor& executor) const override;
-        TString GetDescription() const override;
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
 
         private:
@@ -3613,7 +3612,7 @@ TMetricHolder TPRAUCMetric::Eval(
     error.Stats[1] = 1;
 
     int elemCount = end - begin;
-    
+
     struct Sample {
         double approx;
         float target;
@@ -3634,7 +3633,7 @@ TMetricHolder TPRAUCMetric::Eval(
     for (int i = begin; i < end; ++i) {
         sortedSamples.push_back({realApprox(i), target[i], realWeight(i)});
     }
-    
+
     std::sort(sortedSamples.begin(), sortedSamples.end(), [](const Sample& l, const Sample& r) {return l.approx < r.approx;});
 
     int curNegCount = 0;
@@ -3674,14 +3673,14 @@ TMetricHolder TPRAUCMetric::Eval(
                 auto curWeight = sortedSamples[curNegCount].weight;
                 if (sortedSamples[curNegCount].target == PositiveClass) {
                     curTp -= curWeight;
-                    curFn += curWeight;  
+                    curFn += curWeight;
                 } else {
                     curFp -= curWeight;
                 }
             }
             ++curNegCount;
         };
-        
+
         moveOneBorder();
         while (curNegCount < elemCount && isApproxesEqual(sortedSamples[curNegCount - 1].approx, sortedSamples[curNegCount].approx)) {
             moveOneBorder();
@@ -3689,10 +3688,6 @@ TMetricHolder TPRAUCMetric::Eval(
     }
 
     return error;
-}
-
-TString TPRAUCMetric::GetDescription() const {
-    return ToString(ELossFunction::PRAUC);
 }
 
 void TPRAUCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
