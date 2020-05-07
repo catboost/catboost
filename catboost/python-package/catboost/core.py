@@ -4865,6 +4865,9 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
 
     metric_period, verbose, logging_level = _process_verbose(metric_period, verbose, logging_level, verbose_eval)
 
+    if 'loss_function' not in params:
+        raise CatBoostError("Parameter loss_function should be specified for cross-validation")
+
     if any(v is not None for v in [fold_count,nfold]) and folds is not None:
         raise CatBoostError(
             "if folds is not None, then all of fold_count, shuffle, partition_random_seed, inverted are None"
