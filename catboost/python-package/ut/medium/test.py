@@ -3935,15 +3935,15 @@ def test_metadata():
     return compare_canonical_models(output_model_path)
 
 
-@pytest.mark.parametrize('metric', ['Logloss', 'RMSE'])
+@pytest.mark.parametrize('metric', ['Logloss', 'RMSE', 'PRAUC'])
 def test_util_eval_metric(metric):
-    metric_results = eval_metric([1, 0], [0.88, 0.22], metric)
+    metric_results = eval_metric([1, 0, 1, 1, 0, 1, 0, 0, 1, 1], [0.88, 0.22, 1.0, 0.6, 0.12, 0.1, 0.0, 0.5, 0.95, 0.8], metric)
     preds_path = test_output_path(PREDS_PATH)
     np.savetxt(preds_path, np.array(metric_results))
     return local_canonical_file(preds_path)
 
 
-@pytest.mark.parametrize('metric', ['MultiClass', 'AUC', 'AUC:type=OneVsAll', 'AUC:misclass_cost_matrix=0/1/0.33/0/0/0.239/-1/1.2/0'])
+@pytest.mark.parametrize('metric', ['MultiClass', 'AUC', 'AUC:type=OneVsAll', 'AUC:misclass_cost_matrix=0/1/0.33/0/0/0.239/-1/1.2/0', 'PRAUC', 'PRAUC:type=OneVsAll'])
 def test_util_eval_metric_multiclass(metric):
     metric_results = eval_metric([1, 0, 2], [[0.88, 0.22, 0.3], [0.21, 0.45, 0.1], [0.12, 0.32, 0.9]], metric)
     preds_path = test_output_path(PREDS_PATH)

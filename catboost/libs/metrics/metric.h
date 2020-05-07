@@ -290,6 +290,9 @@ THolder<IMetric> MakeBrierScoreMetric(const TMap<TString, TString>& params);
 
 THolder<IMetric> MakeCustomMetric(const TCustomMetricDescriptor& descriptor);
 
+THolder<IMetric> MakeMultiClassPRAUCMetric(const TMap<TString, TString>& params, int positiveClass);
+THolder<IMetric> MakeBinClassPRAUCMetric(const TMap<TString, TString>& params);
+
 TVector<THolder<IMetric>> CreateMetricsFromDescription(const TVector<TString>& description, int approxDim);
 
 TVector<THolder<IMetric>> CreateMetricFromDescription(const NCatboostOptions::TLossDescription& description,

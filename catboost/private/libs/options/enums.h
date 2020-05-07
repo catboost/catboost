@@ -179,6 +179,7 @@ enum class ELossFunction {
     WKappa,
     LogLikelihoodOfPrediction,
     NormalizedGini,
+    PRAUC,
 
     /* pair metrics */
 

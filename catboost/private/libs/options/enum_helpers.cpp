@@ -240,6 +240,10 @@ MakeRegister(LossInfos,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsMultiClassCompatible
     ),
+    Registree(PRAUC,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsMultiClassCompatible
+    ),
     Registree(Accuracy,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsMultiClassCompatible
