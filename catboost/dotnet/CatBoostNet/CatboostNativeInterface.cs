@@ -6,7 +6,11 @@ namespace CatBoostNet {
     /// Static class containing definitions for imported functions
     /// </summary>
     internal static class CatboostNativeInterface {
+#if _WINDOWS
         public const string DynamicLibraryName = "catboostmodel";
+#else
+        public const string DynamicLibraryName = "libcatboostmodel";
+#endif
 
         /// <summary>
         /// Create native model handle
