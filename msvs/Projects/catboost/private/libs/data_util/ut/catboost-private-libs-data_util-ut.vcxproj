@@ -63,7 +63,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Level4</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)$(Configuration)/library/unittest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;$(SolutionDir)../contrib/libs/zlib/include;$(SolutionDir)../contrib/libs/double-conversion/include;$(SolutionDir)$(Configuration)/library/cpp/unittest;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;$(SolutionDir)$(Configuration)\MSVS\62440384-FCD2-5217-9DB5-BBEF00D51E9B\exists_checker.obj;$(SolutionDir)$(Configuration)\MSVS\62440384-FCD2-5217-9DB5-BBEF00D51E9B\line_data_reader.obj;$(SolutionDir)$(Configuration)\MSVS\A945C0FD-E868-BBA0-1189-19BBB2296292\cpu_id_check.obj;%(AdditionalDependencies)</AdditionalDependencies>
@@ -134,6 +134,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\terminate_handler\library-cpp-terminate_handler.vcxproj">
       <Project>{8776CDC6-8FD3-11B1-5A42-EAE93F81174A}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\unittest\library-cpp-unittest.vcxproj">
+      <Project>{C72133F9-206D-B2D7-6A76-B25C00AB3D53}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\unittest\main\cpp-unittest-main.vcxproj">
+      <Project>{FCE80D39-1C22-515D-5496-00EC1DCE2551}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\dbg_output\library-dbg_output.vcxproj">
       <Project>{806C141C-ADC5-203A-DF01-02F7E1563621}</Project>
     </ProjectReference>
@@ -148,9 +154,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
       <Project>{F7622D70-2702-4C7E-04DA-52DC56DF911E}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\unittest\library-unittest.vcxproj">
-      <Project>{370FE76E-4632-6C9C-415B-0652D0E1566F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\unittest\main\library-unittest-main.vcxproj">
       <Project>{28DC724D-5FFA-AB4B-E6C3-DF0F40AC4B6A}</Project>
