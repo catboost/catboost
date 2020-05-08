@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{DE3D7773-D32D-01F5-FAE1-0EBED7524579}</ProjectGUID>
+    <ProjectGUID>{9EA4781F-303F-F2FD-86F1-B98A1D3A93C0}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-threading-atomic</ProjectName>
+    <ProjectName>cpp-threading-local_executor</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-threading-atomic</TargetName>
+    <TargetName>cpp-threading-local_executor</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\threading\atomic\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\DE3D7773-D32D-01F5-FAE1-0EBED7524579\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\threading\local_executor\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\9EA4781F-303F-F2FD-86F1-B98A1D3A93C0\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\threading\atomic\bool.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\threading\atomic\bool.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\threading\local_executor\local_executor.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\threading\local_executor\local_executor.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{64500012-0CE9-1419-96CF-A85C24C84116}</ProjectGUID>
+    <ProjectGUID>{3423E44C-AF1A-8255-BC13-136607F17086}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-threading-skip_list</ProjectName>
+    <ProjectName>cpp-threading-skip_list</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-threading-skip_list</TargetName>
+    <TargetName>cpp-threading-skip_list</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\threading\skip_list\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\64500012-0CE9-1419-96CF-A85C24C84116\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\threading\skip_list\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\3423E44C-AF1A-8255-BC13-136607F17086\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,9 +78,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\threading\skip_list\skiplist.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\threading\skip_list\compare.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\threading\skip_list\skiplist.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\threading\skip_list\skiplist.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\threading\skip_list\compare.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\threading\skip_list\skiplist.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

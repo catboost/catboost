@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</ProjectGUID>
+    <ProjectGUID>{67BCFA78-BD05-0105-6CA9-0D028945EA69}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-threading-local_executor</ProjectName>
+    <ProjectName>cpp-threading-thread_local</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-threading-local_executor</TargetName>
+    <TargetName>cpp-threading-thread_local</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\threading\local_executor\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\threading\thread_local\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\67BCFA78-BD05-0105-6CA9-0D028945EA69\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,8 +78,35 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\threading\local_executor\local_executor.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\threading\local_executor\local_executor.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\threading\thread_local\thread_local.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\cpp\threading\thread_local\thread_local.h_serialized.cpp"/>
+    <CustomBuild Include="$(SolutionDir)..\library\cpp\threading\thread_local\thread_local.h">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\cpp\threading\thread_local
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/threading/thread_local/thread_local.h" "--include-path" "library/cpp/threading/thread_local/thread_local.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/threading/thread_local/thread_local.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\cpp\threading\thread_local
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../library/cpp/threading/thread_local/thread_local.h" "--include-path" "library/cpp/threading/thread_local/thread_local.h" "--output" "$(SolutionDir)$(Configuration)/library/cpp/threading/thread_local/thread_local.h_serialized.cpp"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/library/cpp/threading/thread_local/thread_local.h_serialized.cpp	</Message>
+      <AdditionalInputs>$(SolutionDir)..\library\cpp\threading\thread_local\thread_local.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\cpp\threading\thread_local\thread_local.h_serialized.cpp;</Outputs>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
@@ -95,6 +122,18 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\hot_swap\cpp-threading-hot_swap.vcxproj">
+      <Project>{F2F7163F-2213-4906-A41E-82393C15A6DA}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\skip_list\cpp-threading-skip_list.vcxproj">
+      <Project>{3423E44C-AF1A-8255-BC13-136607F17086}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
+      <Project>{F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
+      <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>

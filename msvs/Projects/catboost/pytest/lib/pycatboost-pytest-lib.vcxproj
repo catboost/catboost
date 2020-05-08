@@ -859,8 +859,32 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\text_processing\tokenizer\cpp-text_processing-tokenizer.vcxproj">
       <Project>{800E8F90-0E45-1435-7ACC-B0DA06C3FAC7}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\atomic\cpp-threading-atomic.vcxproj">
+      <Project>{13FEC1E6-ECB5-4BF5-15C1-B1D4C3C396FA}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\chunk_queue\cpp-threading-chunk_queue.vcxproj">
+      <Project>{8E921F98-5854-56F7-2AFB-4C06B80B46CD}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\future\cpp-threading-future.vcxproj">
       <Project>{3606F768-0467-35B5-0130-059536BE13C1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\hot_swap\cpp-threading-hot_swap.vcxproj">
+      <Project>{F2F7163F-2213-4906-A41E-82393C15A6DA}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\local_executor\cpp-threading-local_executor.vcxproj">
+      <Project>{9EA4781F-303F-F2FD-86F1-B98A1D3A93C0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\mux_event\cpp-threading-mux_event.vcxproj">
+      <Project>{97A0ECF3-8757-C7AE-73DF-EBD1B059B40F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\name_guard\cpp-threading-name_guard.vcxproj">
+      <Project>{E9EC667B-1AE6-0E35-0BF9-6D326F8FFC9D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\skip_list\cpp-threading-skip_list.vcxproj">
+      <Project>{3423E44C-AF1A-8255-BC13-136607F17086}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\thread_local\cpp-threading-thread_local.vcxproj">
+      <Project>{67BCFA78-BD05-0105-6CA9-0D028945EA69}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\tokenizer\library-cpp-tokenizer.vcxproj">
       <Project>{033EAD89-E9BA-0341-D614-91C40D7F543A}</Project>
@@ -960,30 +984,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\svnversion\library-svnversion.vcxproj">
       <Project>{EB1297E8-310F-2F45-45A8-54D412024564}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\atomic\library-threading-atomic.vcxproj">
-      <Project>{DE3D7773-D32D-01F5-FAE1-0EBED7524579}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\chunk_queue\library-threading-chunk_queue.vcxproj">
-      <Project>{51BCA57C-7E5E-48F9-7D56-FD5809F99DCC}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\hot_swap\library-threading-hot_swap.vcxproj">
-      <Project>{03DFB2A4-4366-AD11-DF9C-49D8A6E93B89}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
-      <Project>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\mux_event\library-threading-mux_event.vcxproj">
-      <Project>{B74D5080-3614-52D8-BADE-8FF788EF3582}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\name_guard\library-threading-name_guard.vcxproj">
-      <Project>{245DBD38-96D4-34AF-0014-199EB4C1FEEA}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\skip_list\library-threading-skip_list.vcxproj">
-      <Project>{64500012-0CE9-1419-96CF-A85C24C84116}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\thread_local\library-threading-thread_local.vcxproj">
-      <Project>{0CA825EB-0BEC-9E11-8FE5-8C3E99DF01E6}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\token\library-token.vcxproj">
       <Project>{7A7DF5AD-7B4C-6A47-56E6-6DED393B817F}</Project>
