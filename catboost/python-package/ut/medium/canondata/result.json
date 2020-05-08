@@ -845,6 +845,14 @@
         "checksum": "55a72aad68823431068983f5d7b5a4f2",
         "uri": "file://test.test_pairs_without_groupid/catboost_training.json"
     },
+    "test.test_partial_dependence[features0]": {
+        "checksum": "a184da77e11f18792c202f2364dd630c",
+        "uri": "file://test.test_partial_dependence_features0_/feature_importance.txt"
+    },
+    "test.test_partial_dependence[features1]": {
+        "checksum": "e9217d54c14720ab5c59e9a1775e7580",
+        "uri": "file://test.test_partial_dependence_features1_/feature_importance.txt"
+    },
     "test.test_pmml_export[binclass]": {
         "checksum": "a5ca32495a3ffd85e183322625382a75",
         "uri": "file://test.test_pmml_export_binclass_/model.pmml"
@@ -1080,13 +1088,5 @@
     "test.test_zero_baseline[CPU]": {
         "checksum": "c0a340b1289125a940cbc23985bea817",
         "uri": "file://test.test_zero_baseline_CPU_/model.bin"
-    },
-    "test.test_partial_dependence_2d": {
-        "checksum": "ace1b9c45d71a822ce47c162709e41da",
-        "uri": "file://test.test_partial_dependence_2d/feature_importance.txt"
-    },
-    "test.test_partial_dependence_1d": {
-        "checksum": "75479ad6d14e706aa40b972e2a50a52a",
-        "uri": "file://test.test_partial_dependence_1d/feature_importance.txt"
     }
 }

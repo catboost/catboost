@@ -2753,6 +2753,8 @@ class CatBoost(_CatBoostBase):
             Plot predictions.
         plot_file: str
             Output file for plot predictions.
+        thread_count: int
+            Number of threads to use. If -1 use maximum available number of threads.
         Returns
         -------
             If number of features is one - 1d numpy array and figure with line plot.
@@ -2851,6 +2853,7 @@ class CatBoost(_CatBoostBase):
 
 
         return all_predictions, fig
+
 
     def calc_feature_statistics(self, data, target=None, feature=None, prediction_type=None,
                                 cat_feature_values=None, plot=True, max_cat_features_on_plot=10,
