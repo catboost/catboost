@@ -3,7 +3,7 @@
 #include "util.h"
 
 #include <library/json/json_reader.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/charset/wide.h>
 #include <util/generic/array_ref.h>

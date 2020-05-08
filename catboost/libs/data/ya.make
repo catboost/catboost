@@ -49,7 +49,7 @@ PEERDIR(
     library/object_factory
     library/cpp/string_utils/csv
     library/cpp/threading/future
-    library/threading/local_executor
+    library/cpp/threading/local_executor
 
     catboost/libs/cat_feature
     catboost/libs/column_description

@@ -11,7 +11,7 @@
 #include <library/neh/rpc.h>
 #include <library/netliba/v12/ib_low.h>
 #include <library/netliba/v12/udp_http.h>
-#include <library/threading/atomic/bool.h>
+#include <library/cpp/threading/atomic/bool.h>
 
 #include <util/generic/hash.h>
 #include <util/generic/strbuf.h>

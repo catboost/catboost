@@ -3,7 +3,7 @@
 #include "doc_parallel_dataset.h"
 #include <catboost/libs/helpers/interrupt.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 namespace NCatboostCuda {
     class TDocParallelDataSetBuilder {

@@ -10,7 +10,7 @@
 #include <catboost/private/libs/index_range/index_range.h>
 
 #include <library/dbg_output/dump.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>

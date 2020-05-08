@@ -3,7 +3,7 @@
 
 #include <util/generic/guid.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 namespace NPar {
     TGUID TJobExecutor::TCallback::GetMasterQueryId() {

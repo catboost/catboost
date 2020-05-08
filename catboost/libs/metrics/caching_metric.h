@@ -6,7 +6,7 @@
 #include <catboost/libs/helpers/maybe_data.h>
 #include <catboost/private/libs/data_types/query.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/fwd.h>
 #include <util/generic/array_ref.h>

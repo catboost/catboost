@@ -4,7 +4,7 @@
 
 #include <catboost/private/libs/algo_helpers/approx_updater_helpers.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/vector.h>

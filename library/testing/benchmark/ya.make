@@ -13,7 +13,7 @@ PEERDIR(
     library/cpp/getopt/small
     library/json
     library/linear_regression
-    library/threading/poor_man_openmp
+    library/cpp/threading/poor_man_openmp
 )
 
 END()

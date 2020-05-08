@@ -62,7 +62,7 @@ PEERDIR(
     library/cpp/digest/md5
     library/json
     library/cpp/malloc/api
-    library/threading/local_executor
+    library/cpp/threading/local_executor
 )
 
 GENERATE_ENUM_SERIALIZATION(sparse_array.h)

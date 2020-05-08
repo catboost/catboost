@@ -14,7 +14,7 @@
 #include <catboost/private/libs/target/data_providers.h>
 #include <catboost/private/libs/feature_estimator/text_feature_estimators.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/string/builder.h>

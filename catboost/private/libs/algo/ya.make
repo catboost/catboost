@@ -84,7 +84,7 @@ PEERDIR(
     library/object_factory
     library/cpp/sse
     library/svnversion
-    library/threading/local_executor
+    library/cpp/threading/local_executor
 )
 
 END()

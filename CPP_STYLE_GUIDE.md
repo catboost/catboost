@@ -563,7 +563,7 @@ Include files should be specified in the order of less general to more general (
 
 // library
 #include <library/cpp/string_utils/base64/base64.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 ```
 
 - Everything else except util.

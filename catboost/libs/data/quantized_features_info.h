@@ -17,7 +17,7 @@
 #include <library/cpp/binsaver/bin_saver.h>
 #include <library/cpp/grid_creator/binarization.h>
 #include <library/dbg_output/dump.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/fwd.h>
 #include <util/generic/guid.h>

@@ -18,7 +18,7 @@ PEERDIR(
     catboost/libs/helpers
     catboost/private/libs/target
     library/fast_exp
-    library/threading/local_executor
+    library/cpp/threading/local_executor
 )
 
 GENERATE_ENUM_SERIALIZATION(

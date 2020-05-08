@@ -4,7 +4,7 @@
 #include <catboost/libs/model/model.h>
 #include <catboost/private/libs/options/enums.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 
 void ValidateFeaturePair(int flatFeatureCount, std::pair<int, int> featurePair);

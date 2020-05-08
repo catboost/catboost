@@ -8,7 +8,7 @@
 #include <catboost/private/libs/options/enums.h>
 
 #include <library/cpp/getopt/last_getopt.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/map.h>
