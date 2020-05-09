@@ -123,9 +123,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\dbg_output\library-dbg_output.vcxproj">
       <Project>{806C141C-ADC5-203A-DF01-02F7E1563621}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\json\writer\library-json-writer.vcxproj">
-      <Project>{C27A0E65-4FDF-D0F0-5127-62A23E33B196}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\lcs\library-lcs.vcxproj">
       <Project>{E815EB4E-987D-1ECC-5BB6-03920E993386}</Project>
     </ProjectReference>
