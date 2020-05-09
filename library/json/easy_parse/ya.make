@@ -2,12 +2,8 @@
 
 LIBRARY()
 
-SRCS(
-    json_easy_parser.cpp
-)
-
 PEERDIR(
-    library/json
+    library/cpp/json/easy_parse
 )
 
 END()

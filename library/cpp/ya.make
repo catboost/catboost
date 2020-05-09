@@ -34,6 +34,14 @@ RECURSE(
     grid_creator/fuzz
     grid_creator/ut
     http
+    json
+    json/flex_buffers
+    json/flex_buffers/ut
+    json/fuzzy_test
+    json/ut
+    json/writer/ut
+    json/yson
+    json/yson/ut
     malloc
     lfalloc
     lfalloc/dbg

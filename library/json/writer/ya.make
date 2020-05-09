@@ -3,14 +3,7 @@ LIBRARY()
 
 
 PEERDIR(
-    library/json/common
+    library/cpp/json/writer
 )
-
-SRCS(
-    json_value.cpp
-    json.cpp
-)
-
-GENERATE_ENUM_SERIALIZATION(json_value.h)
 
 END()

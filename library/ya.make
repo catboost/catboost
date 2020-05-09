@@ -28,13 +28,6 @@ RECURSE(
     fast_exp/benchmark
     fast_exp/ut
     json
-    json/flex_buffers
-    json/flex_buffers/ut
-    json/fuzzy_test
-    json/ut
-    json/writer/ut
-    json/yson
-    json/yson/ut
     langmask
     langmask/proto
     langmask/python

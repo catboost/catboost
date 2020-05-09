@@ -2,8 +2,8 @@ LIBRARY()
 
 
 
-SRCS(
-    defs.cpp
+PEERDIR(
+    library/cpp/json/common
 )
 
 END()
