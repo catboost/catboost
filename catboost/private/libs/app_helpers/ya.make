@@ -6,7 +6,6 @@ SRCS(
     mode_calc_helpers.cpp
     mode_fstr_helpers.cpp
     mode_normalize_model_helpers.cpp
-    proceed_pool_in_blocks.cpp
 )
 
 PEERDIR(
@@ -20,9 +19,9 @@ PEERDIR(
     catboost/libs/logging
     catboost/libs/model
     catboost/private/libs/options
-    library/getopt/small
+    library/cpp/getopt/small
     library/object_factory
-    library/threading/local_executor
+    library/cpp/threading/local_executor
 )
 
 GENERATE_ENUM_SERIALIZATION(implementation_type_enum.h)

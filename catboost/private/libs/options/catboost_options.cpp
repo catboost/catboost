@@ -3,7 +3,7 @@
 #include "json_helper.h"
 #include "restrictions.h"
 
-#include <library/json/json_reader.h>
+#include <library/cpp/json/json_reader.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/set.h>
@@ -27,14 +27,13 @@ inline TCatboostOptions FromString<NCatboostOptions::TCatBoostOptions>(const TSt
     return NCatboostOptions::LoadOptions(json);
 }
 
-void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
-    const auto& lossFunctionConfig = LossFunctionDescription.Get();
-
-    auto& treeConfig = ObliviousTreeOptions.Get();
+static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefaults(
+    ETaskType taskType,
+    const NCatboostOptions::TLossDescription& lossFunctionConfig
+) {
     ui32 defaultNewtonIterations = 1;
     ui32 defaultGradientIterations = 1;
     ELeavesEstimation defaultEstimationMethod = ELeavesEstimation::Newton;
-
     double defaultL2Reg = 3.0;
 
     switch (lossFunctionConfig.GetLossFunction()) {
@@ -83,16 +82,9 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
         case ELossFunction::MAE:
         case ELossFunction::MAPE:
         case ELossFunction::Quantile: {
-            if (TaskType == ETaskType::CPU && SystemOptions->IsSingleHost()
-                && !BoostingOptions->ApproxOnFullHistory && treeConfig.MonotoneConstraints.Get().empty()) {
-                defaultEstimationMethod = ELeavesEstimation::Exact;
-                defaultNewtonIterations = 1;
-                defaultGradientIterations = 1;
-            } else {
-                defaultEstimationMethod = ELeavesEstimation::Gradient;
-                defaultNewtonIterations = 1;
-                defaultGradientIterations = 1;
-            }
+            defaultEstimationMethod = ELeavesEstimation::Gradient;
+            defaultNewtonIterations = 1;
+            defaultGradientIterations = 1;
             break;
         }
         case ELossFunction::LogLinQuantile: {
@@ -116,7 +108,7 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
         }
         case ELossFunction::PairLogitPairwise: {
             defaultL2Reg = 5.0;
-            if (TaskType == ETaskType::CPU) {
+            if (taskType == ETaskType::CPU) {
                 defaultEstimationMethod = ELeavesEstimation::Gradient;
                 //CPU doesn't have Newton yet
                 defaultGradientIterations = 50;
@@ -142,14 +134,14 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
         }
         case ELossFunction::YetiRank: {
             defaultL2Reg = 0;
-            defaultEstimationMethod = (GetTaskType() == ETaskType::GPU) ? ELeavesEstimation::Newton : ELeavesEstimation::Gradient;
+            defaultEstimationMethod = (taskType == ETaskType::GPU) ? ELeavesEstimation::Newton : ELeavesEstimation::Gradient;
             defaultGradientIterations = 1;
             defaultNewtonIterations = 1;
             break;
         }
         case ELossFunction::YetiRankPairwise: {
             defaultL2Reg = 0;
-            defaultEstimationMethod = (GetTaskType() == ETaskType::GPU) ? ELeavesEstimation::Simple : ELeavesEstimation::Gradient;
+            defaultEstimationMethod = (taskType == ETaskType::GPU) ? ELeavesEstimation::Simple : ELeavesEstimation::Gradient;
             defaultGradientIterations = 1;
             defaultNewtonIterations = 1;
             break;
@@ -158,7 +150,6 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
             defaultEstimationMethod = ELeavesEstimation::Newton;
             defaultGradientIterations = 1;
             defaultNewtonIterations = 10;
-            treeConfig.PairwiseNonDiagReg.SetDefault(0);
             defaultL2Reg = 1;
             break;
         }
@@ -174,18 +165,88 @@ void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
             // doesn't have Newton
             break;
         }
+        case ELossFunction::StochasticRank: {
+            defaultEstimationMethod = ELeavesEstimation::Gradient;
+            defaultGradientIterations = 1;
+            // doesn't have Newton
+            break;
+        }
         case ELossFunction::UserPerObjMetric:
         case ELossFunction::UserQuerywiseMetric:
+        case ELossFunction::PythonUserDefinedMultiRegression:
         case ELossFunction::PythonUserDefinedPerObject: {
             //skip
             defaultNewtonIterations = 1;
             defaultGradientIterations = 1;
             break;
         }
+        case ELossFunction::Tweedie: {
+            CB_ENSURE(lossFunctionConfig.GetLossParams().contains("variance_power"), "Param variance_power is mandatory for Tweedie loss");
+            defaultEstimationMethod = ELeavesEstimation::Newton;
+            defaultNewtonIterations = 1;
+            defaultGradientIterations = 1;
+            break;
+        }
+        case ELossFunction::Combination: {
+            bool haveDefaults = false;
+            IterateOverCombination(
+                lossFunctionConfig.GetLossParams(),
+                [&] (const auto& loss, float weight) {
+                    if (!haveDefaults) {
+                        std::tie(defaultNewtonIterations, defaultGradientIterations, defaultEstimationMethod, defaultL2Reg) =
+                            GetEstimationMethodDefaults(taskType, loss);
+                        defaultL2Reg *= weight;
+                        return;
+                    }
+                    ui32 newtonIterations;
+                    ui32 gradientIterations;
+                    ELeavesEstimation method;
+                    double l2Reg;
+                    std::tie(newtonIterations, gradientIterations, method, l2Reg) = GetEstimationMethodDefaults(taskType, loss);
+                    defaultNewtonIterations = Max(newtonIterations, defaultNewtonIterations);
+                    defaultGradientIterations = Max(gradientIterations, defaultGradientIterations);
+                    if (method != defaultEstimationMethod) {
+                        defaultEstimationMethod = ELeavesEstimation::Gradient;
+                    }
+                    defaultL2Reg += l2Reg * weight;
+            });
+            break;
+        }
         default: {
             CB_ENSURE(false, "Unknown loss function " << lossFunctionConfig.GetLossFunction());
         }
     }
+    return std::tie(defaultNewtonIterations, defaultGradientIterations, defaultEstimationMethod, defaultL2Reg);
+}
+
+void NCatboostOptions::TCatBoostOptions::SetLeavesEstimationDefault() {
+    ui32 defaultNewtonIterations = 1;
+    ui32 defaultGradientIterations = 1;
+    ELeavesEstimation defaultEstimationMethod = ELeavesEstimation::Newton;
+    double defaultL2Reg = 3.0;
+
+    const auto& lossFunctionConfig = LossFunctionDescription.Get();
+
+    std::tie(defaultNewtonIterations, defaultGradientIterations, defaultEstimationMethod, defaultL2Reg)
+        = GetEstimationMethodDefaults(GetTaskType(), lossFunctionConfig);
+
+    auto& treeConfig = ObliviousTreeOptions.Get();
+
+    if (lossFunctionConfig.GetLossFunction() == ELossFunction::UserQuerywiseMetric) {
+        treeConfig.PairwiseNonDiagReg.SetDefault(0);
+    }
+
+    const bool useExact = TaskType == ETaskType::CPU
+        && EqualToOneOf(lossFunctionConfig.GetLossFunction(), ELossFunction::MAE, ELossFunction::MAPE, ELossFunction::Quantile)
+        && SystemOptions->IsSingleHost()
+        && !BoostingOptions->ApproxOnFullHistory
+        && treeConfig.MonotoneConstraints.Get().empty();
+    if (useExact) {
+        defaultEstimationMethod = ELeavesEstimation::Exact;
+        defaultNewtonIterations = 1;
+        defaultGradientIterations = 1;
+    }
+
     ObliviousTreeOptions->L2Reg.SetDefault(defaultL2Reg);
 
     if (treeConfig.LeavesEstimationMethod.NotSet()) {
@@ -533,7 +594,7 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
             ObliviousTreeOptions->LeavesEstimationBacktrackingType != ELeavesEstimationStepBacktracking::Armijo,
             "Backtracking type Armijo is supported only on GPU");
         CB_ENSURE(
-            lossFunction != ELossFunction::PythonUserDefinedPerObject
+            !IsUserDefined(lossFunction)
             || ObliviousTreeOptions->LeavesEstimationBacktrackingType == ELeavesEstimationStepBacktracking::No,
             "Backtracking is not supported for custom loss functions on CPU");
     }
@@ -618,6 +679,10 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         CB_ENSURE(SystemOptions->IsSingleHost(), "Langevin boosting is supported in single-host mode only.");
     }
 
+    if (GetTaskType() == ETaskType::CPU && ObliviousTreeOptions->FeaturePenalties.IsSet()) {
+        ValidateFeaturePenaltiesOptions(ObliviousTreeOptions->FeaturePenalties.Get());
+    }
+
     if (ObliviousTreeOptions->GrowPolicy != EGrowPolicy::SymmetricTree) {
         CB_ENSURE(BoostingOptions->BoostingType == EBoostingType::Plain,
             "Ordered boosting is not supported for nonsymmetric trees.");
@@ -691,6 +756,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             }
             break;
         }
+        case ELossFunction::PythonUserDefinedMultiRegression:
         case ELossFunction::PythonUserDefinedPerObject: {
             ObliviousTreeOptions->LeavesEstimationBacktrackingType.SetDefault(ELeavesEstimationStepBacktracking::No);
             break;
@@ -723,6 +789,35 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             lossDescription.LossParams.Set(LossFunctionDescription->GetLossParams());
             lossDescription.LossFunction.Set(ELossFunction::FilteredDCG);
             MetricOptions->ObjectiveMetric.Set(lossDescription);
+            break;
+        }
+        case ELossFunction::StochasticRank: {
+            NCatboostOptions::TLossDescription lossDescription;
+            const auto& lossParams = LossFunctionDescription->GetLossParams();
+            CB_ENSURE(lossParams.contains("metric"), "StochasticRank requires metric param");
+            ELossFunction targetMetric = FromString<ELossFunction>(lossParams.at("metric"));
+            TMap<TString, TString> metricParams;
+            TSet<TString> validParams;
+            switch (targetMetric) {
+                case ELossFunction::DCG:
+                case ELossFunction::NDCG:
+                    validParams = {"top", "type", "denominator", "hints"};
+                    break;
+                case ELossFunction::PFound:
+                    validParams = {"top", "decay", "hints"};
+                    break;
+                default:
+                    CB_ENSURE(false, "StochasticRank does not support target_metric " << targetMetric);
+            }
+            for (const auto& paramName : validParams) {
+                if (lossParams.contains(paramName)) {
+                    metricParams[paramName] = lossParams.at(paramName);
+                }
+            }
+            lossDescription.LossParams.Set(metricParams);
+            lossDescription.LossFunction.Set(targetMetric);
+            MetricOptions->ObjectiveMetric.Set(lossDescription);
+            ObliviousTreeOptions->LeavesEstimationBacktrackingType.SetDefault(ELeavesEstimationStepBacktracking::No);
             break;
         }
         default: {
@@ -795,6 +890,9 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
                 } else {
                     shrinkRate = 0.01;
                 }
+            }
+            if (ObliviousTreeOptions->LeavesEstimationBacktrackingType.NotSet()) {
+                ObliviousTreeOptions->LeavesEstimationBacktrackingType.SetDefault(ELeavesEstimationStepBacktracking::No);
             }
         }
 

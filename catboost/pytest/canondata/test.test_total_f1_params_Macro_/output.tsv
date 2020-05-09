@@ -1,4 +1,4 @@
-iter	TotalF1
+iter	TotalF1:average=Macro
 0	0.3787356322
 1	0.3909510213
 2	0.3538461538

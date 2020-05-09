@@ -12,7 +12,7 @@
 #include <catboost/private/libs/options/output_file_options.h>
 #include <catboost/libs/train_lib/train_model.h>
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/folder/tempdir.h>
 #include <util/generic/array_ref.h>

@@ -3,20 +3,17 @@ LIBRARY()
 
 
 PEERDIR(
-    library/colorizer
-    library/dbg_output
-    library/diff
-    library/json/writer
+    library/cpp/unittest
 )
 
 SRCS(
-    gtest.cpp
-    checks.cpp
-    plugin.cpp
-    registar.cpp
-    tests_data.cpp
-    utmain.cpp
-    env.cpp.in
+    env.h
+    gtest.h
+    plugin.h
+    registar.h
+    simple.h
+    tests_data.h
+    utmain.h
 )
 
 END()

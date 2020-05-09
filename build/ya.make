@@ -5,9 +5,9 @@ NEED_CHECK()
 PACKAGE()
 
 PEERDIR(
-    library/deprecated/enum_codegen
-    library/deprecated/split
-    library/string_utils/scan
+    library/cpp/deprecated/enum_codegen
+    library/cpp/deprecated/split
+    library/cpp/string_utils/scan
 )
 
 END()
@@ -24,6 +24,8 @@ ADD_TEST(
 
 RECURSE(
     conf_fatal_error
+    docs/empty
+    external_resources
     plugins
     scripts
     platform/perl

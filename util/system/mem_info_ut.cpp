@@ -13,8 +13,8 @@ class TMemInfoTest: public NUnitTest::TTestBase {
 
         TMemInfo stats = GetMemInfo();
 
-        UNIT_ASSERT(stats.RSS >= NSystemInfo::GetPageSize())
-        UNIT_ASSERT(stats.VMS >= stats.RSS)
+        UNIT_ASSERT(stats.RSS >= NSystemInfo::GetPageSize());
+        UNIT_ASSERT(stats.VMS >= stats.RSS);
     }
 };
 

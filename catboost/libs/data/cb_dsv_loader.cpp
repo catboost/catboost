@@ -7,7 +7,7 @@
 #include <catboost/libs/helpers/mem_usage.h>
 
 #include <library/object_factory/object_factory.h>
-#include <library/string_utils/csv/csv.h>
+#include <library/cpp/string_utils/csv/csv.h>
 
 #include <util/generic/strbuf.h>
 #include <util/generic/vector.h>
@@ -161,7 +161,7 @@ namespace NCB {
                             case EColumn::Categ: {
                                 if (!FeatureIgnored[featureId]) {
                                     const ui32 catFeatureIdx = featuresLayout.GetInternalFeatureIdx(featureId);
-                                    catFeatures[catFeatureIdx] = visitor->GetCatFeatureValue(featureId, token);
+                                    catFeatures[catFeatureIdx] = visitor->GetCatFeatureValue(lineIdx, featureId, token);
                                 }
                                 ++featureId;
                                 break;

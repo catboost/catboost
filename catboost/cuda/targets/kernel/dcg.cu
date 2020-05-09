@@ -129,7 +129,7 @@ __global__ void FuseUi32AndTwoFloatsIntoUi64Impl(
 {
     // uses __float2half_rz (round-towards-zero) because:
     // - this should be the fastest one (it simply drops unused bits)
-    // - this was the only one available float16 rounding mode on CPU (see library/float16) at the
+    // - this was the only one available float16 rounding mode on CPU (see library/cpp/float16) at the
     //   moment
 
     ui64 i = blockIdx.x * blockDim.x + threadIdx.x;

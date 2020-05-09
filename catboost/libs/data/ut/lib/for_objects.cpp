@@ -29,8 +29,8 @@ namespace NCB {
         lhs.GetFeaturesLayout()-> IterateOverAvailableFeatures<EFeatureType::Float>(
             [&] (TFloatFeatureIdx floatFeatureIdx) {
                 UNIT_ASSERT_EQUAL(
-                    *((*lhs.GetFloatFeature(*floatFeatureIdx))->ExtractValues(&localExecutor)),
-                    *((*rhs.GetFloatFeature(*floatFeatureIdx))->ExtractValues(&localExecutor))
+                    (*lhs.GetFloatFeature(*floatFeatureIdx))->ExtractValues<ui16>(&localExecutor),
+                    (*rhs.GetFloatFeature(*floatFeatureIdx))->ExtractValues<ui16>(&localExecutor)
                 );
             }
         );
@@ -38,8 +38,8 @@ namespace NCB {
         lhs.GetFeaturesLayout()-> IterateOverAvailableFeatures<EFeatureType::Categorical>(
             [&] (TCatFeatureIdx catFeatureIdx) {
                 UNIT_ASSERT_EQUAL(
-                    *((*lhs.GetCatFeature(*catFeatureIdx))->ExtractValues(&localExecutor)),
-                    *((*rhs.GetCatFeature(*catFeatureIdx))->ExtractValues(&localExecutor))
+                    (*lhs.GetCatFeature(*catFeatureIdx))->ExtractValues<ui32>(&localExecutor),
+                    (*rhs.GetCatFeature(*catFeatureIdx))->ExtractValues<ui32>(&localExecutor)
                 );
             }
         );

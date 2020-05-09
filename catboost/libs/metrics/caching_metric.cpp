@@ -3,14 +3,21 @@
 #include "description_utils.h"
 #include "classification_utils.h"
 #include "enums.h"
+#include "kappa.h"
 
 #include <catboost/libs/helpers/dispatch_generic_lambda.h>
+#include <catboost/libs/helpers/math_utils.h>
+#include <catboost/libs/helpers/vector_helpers.h>
+#include <catboost/private/libs/options/data_processing_options.h>
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <util/generic/string.h>
 #include <util/generic/set.h>
 
+using NCB::AppendTemporaryMetricsVector;
+using NCB::AsVector;
+
 constexpr int BinaryClassesCount = 2;
-static TString ConfusionMatrixCacheKey = "Confusion Matrix";
+static const TString ConfusionMatrixCacheKey = "Confusion Matrix";
 
 /* Caching metric */
 
@@ -55,6 +62,9 @@ namespace {
     };
 
     struct TCachingMetric: public TMetric {
+        explicit TCachingMetric(ELossFunction lossFunction, const TMap<TString, TString>& params)
+            : TMetric(lossFunction, params)
+            {}
         TMetricHolder Eval(
             const TVector<TVector<double>>& approx,
             TConstArrayRef<float> target,
@@ -64,11 +74,11 @@ namespace {
             int end,
             NPar::TLocalExecutor& executor
         ) const override {
-            return Eval(approx, /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
+            return Eval(To2DConstArrayRef<double>(approx), /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
         }
         TMetricHolder Eval(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -88,8 +98,8 @@ namespace {
             }
         }
         virtual TMetricHolder Eval(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -103,21 +113,23 @@ namespace {
 /* Confusion matrix */
 
 static TMetricHolder BuildConfusionMatrix(
-    const TVector<TVector<double>>& approx,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
     int begin,
     int end,
-    double border
+    double targetBorder,
+    double predictionBorder
 ) {
     const bool isMultiClass = approx.size() > 1;
     const int classesCount = isMultiClass ? approx.size() : BinaryClassesCount;
+    const double predictionLogitBorder = NCB::Logit(predictionBorder);
 
     const auto buildImpl = [&](auto useWeights, auto isMultiClass) {
         TMetricHolder confusionMatrix(classesCount * classesCount);
         for (int idx = begin; idx < end; ++idx) {
-            int approxClass = GetApproxClass(approx, idx);
-            int targetClass = isMultiClass ? static_cast<int>(target[idx]) : target[idx] > border;
+            int approxClass = GetApproxClass(approx, idx, predictionLogitBorder);
+            int targetClass = isMultiClass ? static_cast<int>(target[idx]) : target[idx] > targetBorder;
             float w = useWeights ? weight[idx] : 1;
 
             Y_ASSERT(targetClass >= 0 && targetClass < classesCount);
@@ -133,18 +145,21 @@ static TMetricHolder BuildConfusionMatrix(
 /* MCC caching metric */
 
 namespace {
-    struct TMCCCachingMetric : public TCachingMetric {
-        explicit TMCCCachingMetric(int classesCount)
-            : ClassesCount(classesCount)
-            , IsMultiClass(true) {
+    struct TMCCCachingMetric final : public TCachingMetric {
+        explicit TMCCCachingMetric(const TMap<TString, TString>& params,
+                                   int classesCount)
+            : TCachingMetric(ELossFunction::MCC, params)
+            , ClassesCount(classesCount) {
         }
-        explicit TMCCCachingMetric(double border)
-            : Border(border)
-            , IsMultiClass(false) {
+        explicit TMCCCachingMetric(const TMap<TString, TString>& params,
+                                   double predictionBorder)
+            : TCachingMetric(ELossFunction::MCC, params)
+            , PredictionBorder(predictionBorder)
+        {
         }
         TMetricHolder Eval(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -154,26 +169,25 @@ namespace {
             TMaybe<TCache*> cache
         ) const override;
         double GetFinalError(const TMetricHolder &error) const override;
-        TString GetDescription() const override;
         void GetBestValue(EMetricBestValue *valueType, float *bestPossibleValue) const override;
         bool IsAdditiveMetric() const override {
             return true;
         }
 
     private:
-        int ClassesCount = BinaryClassesCount;
-        double Border = 0.0;
-        bool IsMultiClass = false;
+        static constexpr double TargetBorder = GetDefaultTargetBorder();
+        const int ClassesCount = BinaryClassesCount;
+        const double PredictionBorder = GetDefaultPredictionBorder();
     };
 }
 
-THolder<IMetric> MakeMCCMetric(int classesCount) {
-    return MakeHolder<TMCCCachingMetric>(classesCount);
+THolder<IMetric> MakeMCCMetric(const TMap<TString, TString>& params, int classesCount) {
+    return MakeHolder<TMCCCachingMetric>(params, classesCount);
 }
 
 TMetricHolder TMCCCachingMetric::Eval(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -186,9 +200,11 @@ TMetricHolder TMCCCachingMetric::Eval(
     Y_ASSERT(approxDelta.empty());
 
     const auto MakeMatrix = [&]() {
-        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end, Border);
+        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end,
+                TargetBorder, PredictionBorder);
     };
-    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), Border);
+    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights),
+            TargetBorder, PredictionBorder);
 
     return confusionMatrix;
 }
@@ -223,14 +239,6 @@ double TMCCCachingMetric::GetFinalError(const TMetricHolder &error) const {
     return denominator != 0 ? numerator / denominator : 0.0;
 }
 
-TString TMCCCachingMetric::GetDescription() const {
-    if (true || IsMultiClass) {
-        return BuildDescription(ELossFunction::MCC, UseWeights);
-    } else {
-        return BuildDescription(ELossFunction::MCC, UseWeights, "%.3g", MakeBorderParam(Border));
-    }
-}
-
 void TMCCCachingMetric::GetBestValue(EMetricBestValue *valueType, float *) const {
     *valueType = EMetricBestValue::Max;
 }
@@ -238,18 +246,20 @@ void TMCCCachingMetric::GetBestValue(EMetricBestValue *valueType, float *) const
 /* Zero one loss caching metric */
 
 namespace {
-    struct TZeroOneLossCachingMetric: public TCachingMetric {
-        explicit TZeroOneLossCachingMetric(int classesCount)
-            : ClassesCount(classesCount)
-            , IsMultiClass(true) {
+    struct TZeroOneLossCachingMetric final: public TCachingMetric {
+        explicit TZeroOneLossCachingMetric(const TMap<TString, TString>& params,
+                                           int classesCount)
+            : TCachingMetric(ELossFunction::ZeroOneLoss, params)
+            , ClassesCount(classesCount) {
         }
-        explicit TZeroOneLossCachingMetric(double border)
-            : Border(border)
-            , IsMultiClass(false) {
+        explicit TZeroOneLossCachingMetric(const TMap<TString, TString>& params,
+                                           double predictionBorder)
+            : TCachingMetric(ELossFunction::ZeroOneLoss, params)
+            , PredictionBorder(predictionBorder) {
         }
         TMetricHolder Eval(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -259,22 +269,21 @@ namespace {
             TMaybe<TCache*> cache
         ) const override;
         double GetFinalError(const TMetricHolder &error) const override;
-        TString GetDescription() const override;
         void GetBestValue(EMetricBestValue *valueType, float *bestPossibleValue) const override;
         bool IsAdditiveMetric() const override {
             return true;
         }
 
     private:
-        int ClassesCount = BinaryClassesCount;
-        double Border = GetDefaultTargetBorder();
-        bool IsMultiClass = false;
+        static constexpr double TargetBorder = GetDefaultTargetBorder();
+        const int ClassesCount = BinaryClassesCount;
+        const double PredictionBorder = GetDefaultPredictionBorder();
     };
 }
 
 TMetricHolder TZeroOneLossCachingMetric::Eval(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -287,9 +296,11 @@ TMetricHolder TZeroOneLossCachingMetric::Eval(
     Y_ASSERT(approxDelta.empty());
 
     const auto MakeMatrix = [&]() {
-        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end, Border);
+        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end,
+                TargetBorder, PredictionBorder);
     };
-    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), Border);
+    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights),
+            TargetBorder, PredictionBorder);
 
     const auto getStats = [&](int i, int j) { return confusionMatrix.Stats[i * ClassesCount + j]; };
     TMetricHolder error(2);
@@ -306,42 +317,28 @@ double TZeroOneLossCachingMetric::GetFinalError(const TMetricHolder &error) cons
     return 1 - error.Stats[0] / error.Stats[1];
 }
 
-TString TZeroOneLossCachingMetric::GetDescription() const {
-    if (IsMultiClass) {
-        return BuildDescription(ELossFunction::ZeroOneLoss, UseWeights);
-    } else {
-        return BuildDescription(ELossFunction::ZeroOneLoss, UseWeights, "%.3g", MakeBorderParam(Border));
-    }
-}
-
 void TZeroOneLossCachingMetric::GetBestValue(EMetricBestValue *valueType, float *) const {
     *valueType = EMetricBestValue::Min;
-}
-
-THolder<IMetric> MakeZeroOneLossMetric(double border) {
-    return MakeHolder<TZeroOneLossCachingMetric>(border);
-}
-
-THolder<IMetric> MakeZeroOneLossMetric(int classCount) {
-    return MakeHolder<TZeroOneLossCachingMetric>(classCount);
 }
 
 /* Accuracy caching metric */
 
 namespace {
-    struct TAccuracyCachingMetric : public TCachingMetric {
-        explicit TAccuracyCachingMetric(double border)
-            : Border(border)
-            , IsMultiClass(false) {
+    struct TAccuracyCachingMetric final: public TCachingMetric {
+        explicit TAccuracyCachingMetric(const TMap<TString, TString>& params,
+                                        double predictionBorder)
+            : TCachingMetric(ELossFunction::Accuracy, params)
+            , PredictionBorder(predictionBorder) {
         }
-        explicit TAccuracyCachingMetric(int classesCount)
-            : ClassesCount(classesCount)
-            , IsMultiClass(true) {
+        explicit TAccuracyCachingMetric(const TMap<TString, TString>& params,
+                                        int classesCount)
+            : TCachingMetric(ELossFunction::Accuracy, params)
+            , ClassesCount(classesCount) {
         }
 
         TMetricHolder Eval(
-            const TVector<TVector<double>> &approx,
-            const TVector<TVector<double>> &approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -351,22 +348,21 @@ namespace {
             TMaybe<TCache *> cache
         ) const override;
 
-        TString GetDescription() const override;
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
         bool IsAdditiveMetric() const override {
             return true;
         }
 
     private:
-        double Border = GetDefaultTargetBorder();
-        int ClassesCount = BinaryClassesCount;
-        bool IsMultiClass = false;
+        static constexpr double TargetBorder = GetDefaultTargetBorder();
+        const double PredictionBorder = GetDefaultPredictionBorder();
+        const int ClassesCount = BinaryClassesCount;
     };
 }
 
 TMetricHolder TAccuracyCachingMetric::Eval(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -379,9 +375,11 @@ TMetricHolder TAccuracyCachingMetric::Eval(
     Y_ASSERT(approxDelta.empty());
 
     const auto MakeMatrix = [&]() {
-        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end, Border);
+        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end,
+                TargetBorder, PredictionBorder);
     };
-    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), Border);
+    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights),
+            TargetBorder, PredictionBorder);
 
     const auto getStats = [&](int i, int j) { return confusionMatrix.Stats[i * ClassesCount + j]; };
     TMetricHolder error(2);
@@ -394,14 +392,6 @@ TMetricHolder TAccuracyCachingMetric::Eval(
     return error;
 }
 
-TString TAccuracyCachingMetric::GetDescription() const {
-    if (IsMultiClass) {
-        return BuildDescription(ELossFunction::Accuracy, UseWeights);
-    } else {
-        return BuildDescription(ELossFunction::Accuracy, UseWeights, "%.3g", MakeBorderParam(Border));
-    }
-}
-
 void TAccuracyCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
@@ -409,22 +399,26 @@ void TAccuracyCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) c
 /* Recall caching metric */
 
 namespace {
-    struct TRecallCachingMetric: public TCachingMetric {
-        explicit TRecallCachingMetric(double border)
-            : ClassesCount(BinaryClassesCount)
-            , Border(border)
+    struct TRecallCachingMetric final: public TCachingMetric {
+        explicit TRecallCachingMetric(const TMap<TString, TString>& params,
+                                      double predictionBorder)
+            : TCachingMetric(ELossFunction::Recall, params)
+            , ClassesCount(BinaryClassesCount)
+            , PredictionBorder(predictionBorder)
             , IsMultiClass(false) {
         }
 
-        explicit TRecallCachingMetric(int classesCount, int positiveClass)
-            : ClassesCount(classesCount)
+        explicit TRecallCachingMetric(const TMap<TString, TString>& params,
+                                      int classesCount, int positiveClass)
+            : TCachingMetric(ELossFunction::Recall, params)
+            , ClassesCount(classesCount)
             , PositiveClass(positiveClass)
             , IsMultiClass(true) {
         }
 
         TMetricHolder Eval(
-            const TVector<TVector<double>>& approx,
-            const TVector<TVector<double>>& approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -442,24 +436,27 @@ namespace {
         }
 
     private:
-        int ClassesCount = BinaryClassesCount;
-        int PositiveClass = 1;
-        double Border = GetDefaultTargetBorder();
-        bool IsMultiClass = false;
+        static constexpr double TargetBorder = GetDefaultTargetBorder();
+        const int ClassesCount = BinaryClassesCount;
+        const int PositiveClass = 1;
+        const double PredictionBorder = GetDefaultPredictionBorder();
+        const bool IsMultiClass = false;
     };
 }
 
-THolder<IMetric> MakeBinClassRecallMetric(double border) {
-    return MakeHolder<TRecallCachingMetric>(border);
+THolder<IMetric> MakeBinClassRecallMetric(const TMap<TString, TString>& params,
+                                          double predictionBorder) {
+    return MakeHolder<TRecallCachingMetric>(params, predictionBorder);
 }
 
-THolder<IMetric> MakeMultiClassRecallMetric(int classesCount, int positiveClass) {
-    return MakeHolder<TRecallCachingMetric>(classesCount, positiveClass);
+THolder<IMetric> MakeMultiClassRecallMetric(const TMap<TString, TString>& params,
+                                            int classesCount, int positiveClass) {
+    return MakeHolder<TRecallCachingMetric>(params, classesCount, positiveClass);
 }
 
 TMetricHolder TRecallCachingMetric::Eval(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -472,9 +469,10 @@ TMetricHolder TRecallCachingMetric::Eval(
     Y_ASSERT(approxDelta.empty());
 
     const auto MakeMatrix = [&]() {
-        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end, Border);
+        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end,
+                TargetBorder, PredictionBorder);
     };
-    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), Border);
+    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), TargetBorder, PredictionBorder);
 
     const auto getStats = [&](int i, int j) { return confusionMatrix.Stats[i * ClassesCount + j]; };
     TMetricHolder error(2);
@@ -490,7 +488,8 @@ TString TRecallCachingMetric::GetDescription() const {
         const TMetricParam<int> positiveClass("class", PositiveClass, /*userDefined*/true);
         return BuildDescription(ELossFunction::Recall, UseWeights, positiveClass);
     } else {
-        return BuildDescription(ELossFunction::Recall, UseWeights, "%.3g", MakeBorderParam(Border));
+        return BuildDescription(ELossFunction::Recall, UseWeights, "%.3g", MakeTargetBorderParam(TargetBorder),
+                                MakePredictionBorderParam(PredictionBorder));
     }
 }
 
@@ -505,22 +504,26 @@ void TRecallCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) con
 /* Precision caching metric */
 
 namespace {
-    struct TPrecisionCachingMetric: public TCachingMetric {
-        explicit TPrecisionCachingMetric(double border)
-            : ClassesCount(BinaryClassesCount)
-            , Border(border)
+    struct TPrecisionCachingMetric final: public TCachingMetric {
+        explicit TPrecisionCachingMetric(const TMap<TString, TString>& params,
+                                         double predictionBorder)
+            : TCachingMetric(ELossFunction::Precision, params)
+            , ClassesCount(BinaryClassesCount)
+            , PredictionBorder(predictionBorder)
             , IsMultiClass(false) {
         }
 
-        explicit TPrecisionCachingMetric(int classesCount, int positiveClass)
-            : ClassesCount(classesCount)
+        explicit TPrecisionCachingMetric(const TMap<TString, TString>& params,
+                                         int classesCount, int positiveClass)
+            : TCachingMetric(ELossFunction::Precision, params)
+            , ClassesCount(classesCount)
             , PositiveClass(positiveClass)
             , IsMultiClass(true) {
         }
 
         TMetricHolder Eval(
-            const TVector<TVector<double>> &approx,
-            const TVector<TVector<double>> &approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -538,24 +541,27 @@ namespace {
         }
 
     private:
-        int ClassesCount = BinaryClassesCount;
-        int PositiveClass = 1;
-        double Border = GetDefaultTargetBorder();
-        bool IsMultiClass = false;
+        static constexpr double TargetBorder = GetDefaultTargetBorder();
+        const int ClassesCount = BinaryClassesCount;
+        const int PositiveClass = 1;
+        const double PredictionBorder = GetDefaultPredictionBorder();
+        const bool IsMultiClass = false;
     };
 }
 
-THolder<IMetric> MakeBinClassPrecisionMetric(double border) {
-    return MakeHolder<TPrecisionCachingMetric>(border);
+THolder<IMetric> MakeBinClassPrecisionMetric(const TMap<TString, TString>& params,
+                                             double predictionBorder) {
+    return MakeHolder<TPrecisionCachingMetric>(params, predictionBorder);
 }
 
-THolder<IMetric> MakeMultiClassPrecisionMetric(int classesCount, int positiveClass) {
-    return MakeHolder<TPrecisionCachingMetric>(classesCount, positiveClass);
+THolder<IMetric> MakeMultiClassPrecisionMetric(const TMap<TString, TString>& params,
+                                               int classesCount, int positiveClass) {
+    return MakeHolder<TPrecisionCachingMetric>(params, classesCount, positiveClass);
 }
 
 TMetricHolder TPrecisionCachingMetric::Eval(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -568,9 +574,10 @@ TMetricHolder TPrecisionCachingMetric::Eval(
     Y_ASSERT(approxDelta.empty());
 
     const auto MakeMatrix = [&]() {
-        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end, Border);
+        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end,
+                TargetBorder, PredictionBorder);
     };
-    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), Border);
+    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), TargetBorder, PredictionBorder);
 
     const auto getStats = [&](int i, int j) { return confusionMatrix.Stats[i * ClassesCount + j]; };
     TMetricHolder error(2);
@@ -578,6 +585,7 @@ TMetricHolder TPrecisionCachingMetric::Eval(
     for (auto i : xrange(ClassesCount)) {
         error.Stats[1] += getStats(PositiveClass, i);
     }
+
     return error;
 }
 
@@ -586,7 +594,8 @@ TString TPrecisionCachingMetric::GetDescription() const {
         const TMetricParam<int> positiveClass("class", PositiveClass, /*userDefined*/true);
         return BuildDescription(ELossFunction::Precision, UseWeights, positiveClass);
     } else {
-        return BuildDescription(ELossFunction::Precision, UseWeights, "%.3g", MakeBorderParam(Border));
+        return BuildDescription(ELossFunction::Precision, UseWeights, "%.3g", MakeTargetBorderParam(TargetBorder),
+                                MakePredictionBorderParam(PredictionBorder));
     }
 }
 
@@ -601,22 +610,26 @@ void TPrecisionCachingMetric::GetBestValue(EMetricBestValue* valueType, float*) 
 /* F1 caching metric */
 
 namespace {
-    struct TF1CachingMetric: public TCachingMetric {
-        explicit TF1CachingMetric(double border)
-            : ClassesCount(BinaryClassesCount)
-            , Border(border)
+    struct TF1CachingMetric final: public TCachingMetric {
+        explicit TF1CachingMetric(const TMap<TString, TString>& params,
+                                  double predictionBorder)
+            : TCachingMetric(ELossFunction::F1, params)
+            , ClassesCount(BinaryClassesCount)
+            , PredictionBorder(predictionBorder)
             , IsMultiClass(false) {
         }
 
-        explicit TF1CachingMetric(int classesCount, int positiveClass)
-            : ClassesCount(classesCount)
+        explicit TF1CachingMetric(const TMap<TString, TString>& params,
+                                  int classesCount, int positiveClass)
+            : TCachingMetric(ELossFunction::F1, params)
+            , ClassesCount(classesCount)
             , PositiveClass(positiveClass)
             , IsMultiClass(true) {
         }
 
         TMetricHolder Eval(
-            const TVector<TVector<double>> &approx,
-            const TVector<TVector<double>> &approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -626,8 +639,8 @@ namespace {
             TMaybe<TCache *> cache
         ) const override;
 
-        TVector<TString> GetStatDescriptions() const override;
         TString GetDescription() const override;
+        TVector<TString> GetStatDescriptions() const override;
         double GetFinalError(const TMetricHolder& error) const override;
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
         bool IsAdditiveMetric() const override {
@@ -635,24 +648,27 @@ namespace {
         }
 
     private:
-        int ClassesCount = BinaryClassesCount;
-        int PositiveClass = 1;
-        double Border = GetDefaultTargetBorder();
-        bool IsMultiClass = false;
+        static constexpr double TargetBorder = GetDefaultTargetBorder();
+        const int ClassesCount = BinaryClassesCount;
+        const int PositiveClass = 1;
+        const double PredictionBorder = GetDefaultPredictionBorder();
+        const bool IsMultiClass = false;
     };
 }
 
-THolder<IMetric> MakeBinClassF1Metric(double border) {
-    return MakeHolder<TF1CachingMetric>(border);
+THolder<IMetric> MakeBinClassF1Metric(const TMap<TString, TString>& params,
+                                      double predictionBorder) {
+    return MakeHolder<TF1CachingMetric>(params, predictionBorder);
 }
 
-THolder<IMetric> MakeMultiClassF1Metric(int classesCount, int positiveClass) {
-    return MakeHolder<TF1CachingMetric>(classesCount, positiveClass);
+THolder<IMetric> MakeMultiClassF1Metric(const TMap<TString, TString>& params,
+                                        int classesCount, int positiveClass) {
+    return MakeHolder<TF1CachingMetric>(params, classesCount, positiveClass);
 }
 
 TMetricHolder TF1CachingMetric::Eval(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -665,9 +681,10 @@ TMetricHolder TF1CachingMetric::Eval(
     Y_ASSERT(approxDelta.empty());
 
     const auto MakeMatrix = [&]() {
-        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end, Border);
+        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end,
+                TargetBorder, PredictionBorder);
     };
-    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), Border);
+    auto confusionMatrix = cache.Empty() ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), TargetBorder, PredictionBorder);
 
     const auto getStats = [&](int i, int j) { return confusionMatrix.Stats[i * ClassesCount + j]; };
     TMetricHolder error(3);
@@ -688,7 +705,8 @@ TString TF1CachingMetric::GetDescription() const {
         const TMetricParam<int> positiveClass("class", PositiveClass, /*userDefined*/true);
         return BuildDescription(ELossFunction::F1, UseWeights, positiveClass);
     } else {
-        return BuildDescription(ELossFunction::F1, UseWeights, "%.3g", MakeBorderParam(Border));
+        return BuildDescription(ELossFunction::F1, UseWeights, "%.3g", MakeTargetBorderParam(TargetBorder),
+                                MakePredictionBorderParam(PredictionBorder));
     }
 }
 
@@ -705,25 +723,27 @@ void TF1CachingMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 /* TotalF1 caching metric */
 
 namespace {
-    struct TTotalF1CachingMetric: public TCachingMetric {
+    struct TTotalF1CachingMetric final: public TCachingMetric {
         static constexpr int StatsCardinality = 3;
 
-        explicit TTotalF1CachingMetric(double border, EF1AverageType averageType)
-            : ClassesCount(BinaryClassesCount)
-            , Border(border)
-            , IsMultiClass(false)
+        explicit TTotalF1CachingMetric(const TMap<TString, TString>& params,
+                                       double predictionBorder, EF1AverageType averageType)
+            : TCachingMetric(ELossFunction::TotalF1, params)
+            , ClassesCount(BinaryClassesCount)
+            , PredictionBorder(predictionBorder)
             , AverageType(averageType) {
         }
 
-        explicit TTotalF1CachingMetric(int classesCount, EF1AverageType averageType)
-            : ClassesCount(classesCount)
-            , IsMultiClass(true)
+        explicit TTotalF1CachingMetric(const TMap<TString, TString>& params,
+                                       int classesCount, EF1AverageType averageType)
+            : TCachingMetric(ELossFunction::TotalF1, params)
+            , ClassesCount(classesCount)
             , AverageType(averageType) {
         }
 
         TMetricHolder Eval(
-            const TVector<TVector<double>> &approx,
-            const TVector<TVector<double>> &approxDelta,
+            const TConstArrayRef<TConstArrayRef<double>> approx,
+            const TConstArrayRef<TConstArrayRef<double>> approxDelta,
             bool isExpApprox,
             TConstArrayRef<float> target,
             TConstArrayRef<float> weight,
@@ -734,7 +754,6 @@ namespace {
         ) const override;
 
         TVector<TString> GetStatDescriptions() const override;
-        TString GetDescription() const override;
         double GetFinalError(const TMetricHolder& error) const override;
         void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
         bool IsAdditiveMetric() const override {
@@ -742,20 +761,21 @@ namespace {
         }
 
     private:
-        int ClassesCount = BinaryClassesCount;
-        double Border = 0.0;
-        bool IsMultiClass = false;
-        EF1AverageType AverageType;
+        static constexpr double TargetBorder = GetDefaultTargetBorder();
+        const int ClassesCount = BinaryClassesCount;
+        const double PredictionBorder = GetDefaultPredictionBorder();
+        const EF1AverageType AverageType;
     };
 }
 
-THolder<IMetric> MakeTotalF1Metric(int classesCount, EF1AverageType averageType) {
-    return MakeHolder<TTotalF1CachingMetric>(classesCount, averageType);
+THolder<IMetric> MakeTotalF1Metric(const TMap<TString, TString>& params,
+                                   int classesCount, EF1AverageType averageType) {
+    return MakeHolder<TTotalF1CachingMetric>(params, classesCount, averageType);
 }
 
 TMetricHolder TTotalF1CachingMetric::Eval(
-    const TVector<TVector<double>>& approx,
-    const TVector<TVector<double>>& approxDelta,
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
     bool isExpApprox,
     TConstArrayRef<float> target,
     TConstArrayRef<float> weight,
@@ -768,9 +788,10 @@ TMetricHolder TTotalF1CachingMetric::Eval(
     Y_ASSERT(approxDelta.empty());
 
     const auto MakeMatrix = [&]() {
-        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end, Border);
+        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end,
+                TargetBorder, PredictionBorder);
     };
-    auto confusionMatrix = cache.Empty() || 1 ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), Border);
+    auto confusionMatrix = cache.Empty() || 1 ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), TargetBorder, PredictionBorder);
 
     const auto getStats = [&](int i, int j) { return confusionMatrix.Stats[i * ClassesCount + j]; };
     TVector<double> classTruePositive(ClassesCount);
@@ -805,14 +826,6 @@ TVector<TString> TTotalF1CachingMetric::GetStatDescriptions() const {
     return description;
 }
 
-TString TTotalF1CachingMetric::GetDescription() const {
-    if (true || IsMultiClass) {
-        return BuildDescription(ELossFunction::TotalF1, UseWeights);
-    } else {
-        return BuildDescription(ELossFunction::TotalF1, UseWeights, "%.3g", MakeBorderParam(Border));
-    }
-}
-
 double TTotalF1CachingMetric::GetFinalError(const TMetricHolder& error) const {
     double numerator = 0.0;
     double denumerator = 0.0;
@@ -843,6 +856,173 @@ void TTotalF1CachingMetric::GetBestValue(EMetricBestValue* valueType, float*) co
     *valueType = EMetricBestValue::Max;
 }
 
+/* Kappa */
+
+namespace {
+    struct TKappaMetric final: public TCachingMetric {
+        explicit TKappaMetric(const TMap<TString, TString>& descriptionParams,
+                              int classCount = 2, double predictionBorder = GetDefaultPredictionBorder())
+            : TCachingMetric(ELossFunction::Kappa, descriptionParams)
+            , TargetBorder(GetDefaultTargetBorder())
+            , PredictionBorder(predictionBorder)
+            , ClassCount(classCount) {
+        }
+
+        static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+
+        TMetricHolder Eval(
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
+                bool isExpApprox,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
+                int begin,
+                int end,
+                TMaybe<TCache*> cache
+        ) const override;
+        TString GetDescription() const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+        bool IsAdditiveMetric() const override {
+            return true;
+        }
+
+    private:
+        const double TargetBorder = GetDefaultTargetBorder();
+        const double PredictionBorder = GetDefaultPredictionBorder();
+        const int ClassCount;
+    };
+}
+
+// static.
+TVector<THolder<IMetric>> TKappaMetric::Create(const TMetricConfig& config) {
+    if (config.approxDimension == 1) {
+        config.validParams->insert("border");
+        return AsVector(MakeHolder<TKappaMetric>(config.params, /*classCount=*/2, config.binaryClassPredictionBorder));
+    } else {
+        return AsVector(MakeHolder<TKappaMetric>(config.params, config.approxDimension));
+    }
+}
+
+TMetricHolder TKappaMetric::Eval(
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
+    bool isExpApprox,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+    int begin,
+    int end,
+    TMaybe<TCache*> cache
+) const {
+    Y_ASSERT(approxDelta.empty());
+    Y_ASSERT(!isExpApprox);
+
+    const auto MakeMatrix = [&]() {
+        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end,
+                TargetBorder, PredictionBorder);
+    };
+    return cache.Empty() || 1 ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), TargetBorder, PredictionBorder);
+}
+
+TString TKappaMetric::GetDescription() const {
+    return BuildDescription(ELossFunction::Kappa, "%.3g", MakeTargetBorderParam(TargetBorder),
+                            MakePredictionBorderParam(PredictionBorder));
+}
+
+void TKappaMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
+}
+
+double TKappaMetric::GetFinalError(const TMetricHolder& error) const {
+    return CalcKappa(error, ClassCount, EKappaMetricType::Cohen);
+}
+
+/* WKappa */
+
+namespace {
+    struct TWKappaMetric final: public TCachingMetric {
+        explicit TWKappaMetric(const TMap<TString, TString>& descriptionParams,
+                               int classCount = 2, double predictionBorder = GetDefaultPredictionBorder())
+            : TCachingMetric(ELossFunction::WKappa, descriptionParams)
+            , TargetBorder(GetDefaultTargetBorder())
+            , PredictionBorder(predictionBorder)
+            , ClassCount(classCount) {
+        }
+
+        static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+
+        TMetricHolder Eval(
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
+                bool isExpApprox,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
+                int begin,
+                int end,
+                TMaybe<TCache*> cache
+        ) const override;
+
+        TString GetDescription() const override;
+        double GetFinalError(const TMetricHolder& error) const override;
+        void GetBestValue(EMetricBestValue *valueType, float *bestValue) const override;
+        bool IsAdditiveMetric() const override {
+            return true;
+        }
+
+    private:
+        const double TargetBorder = GetDefaultTargetBorder();
+        const double PredictionBorder = GetDefaultPredictionBorder();
+        const int ClassCount;
+    };
+}
+
+// static.
+TVector<THolder<IMetric>> TWKappaMetric::Create(const TMetricConfig& config) {
+    if (config.approxDimension == 1) {
+        config.validParams->insert("border");
+        return AsVector(MakeHolder<TWKappaMetric>(config.params, /*classCount=*/2, config.binaryClassPredictionBorder));
+    } else {
+        return AsVector(MakeHolder<TWKappaMetric>(config.params, config.approxDimension));
+    }
+}
+
+TMetricHolder TWKappaMetric::Eval(
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
+    bool isExpApprox,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+    int begin,
+    int end,
+    TMaybe<TCache*> cache
+) const {
+    Y_ASSERT(approxDelta.empty());
+    Y_ASSERT(!isExpApprox);
+
+    const auto MakeMatrix = [&]() {
+        return BuildConfusionMatrix(approx, target, UseWeights ? weight : TVector<float>{}, begin, end,
+                TargetBorder, PredictionBorder);
+    };
+    return cache.Empty() || 1 ? MakeMatrix() : cache.GetRef()->Get(ConfusionMatrixCacheKey, MakeMatrix, bool(UseWeights), TargetBorder, PredictionBorder);
+}
+
+TString TWKappaMetric::GetDescription() const {
+    return BuildDescription(ELossFunction::WKappa, "%.3g", MakeTargetBorderParam(TargetBorder),
+                            MakePredictionBorderParam(PredictionBorder));
+}
+
+void TWKappaMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
+}
+
+double TWKappaMetric::GetFinalError(const TMetricHolder& error) const {
+    return CalcKappa(error, ClassCount, EKappaMetricType::Weighted);
+}
+
 TVector<TMetricHolder> EvalErrorsWithCaching(
     const TVector<TVector<double>>& approx,
     const TVector<TVector<double>>& approxDelta,
@@ -860,13 +1040,13 @@ TVector<TMetricHolder> EvalErrorsWithCaching(
     const auto calcCaching = [&](auto metric, auto from, auto to, auto *cache) {
         CB_ENSURE(!metric->NeedTarget() || target.size() == 1, "Metric [" + metric->GetDescription() + "] requires "
                   << (target.size() > 1 ? "one-dimensional" : "") <<  "target");
-        return metric->Eval(approx, approxDelta, isExpApprox, metric->NeedTarget() ? target[0] : TConstArrayRef<float>(),
+        return metric->Eval(To2DConstArrayRef<double>(approx), To2DConstArrayRef<double>(approxDelta), isExpApprox, metric->NeedTarget() ? target[0] : TConstArrayRef<float>(),
                             weight, queriesInfo, from, to, cache);
     };
     const auto calcNonCaching = [&](auto metric, auto from, auto to) {
         CB_ENSURE(!metric->NeedTarget() || target.size() == 1, "Metric [" + metric->GetDescription() + "] requires "
                   << (target.size() > 1 ? "one-dimensional" : "") <<  "target");
-        return metric->Eval(approx, approxDelta, isExpApprox, metric->NeedTarget() ? target[0] : TConstArrayRef<float>(),
+        return metric->Eval(To2DConstArrayRef<double>(approx), To2DConstArrayRef<double>(approxDelta), isExpApprox, metric->NeedTarget() ? target[0] : TConstArrayRef<float>(),
                             weight, queriesInfo, from, to, *localExecutor);
     };
     const auto calcMultiRegression = [&](auto metric, auto from, auto to) {
@@ -939,80 +1119,89 @@ TVector<TMetricHolder> EvalErrorsWithCaching(
 }
 
 template <typename TMetricType>
-static TVector<THolder<IMetric>> CreateMetric(int approxDimension) {
+static TVector<THolder<IMetric>> CreateMetric(int approxDimension, const TMap<TString, TString>& params) {
     TVector<THolder<IMetric>> result;
     if (approxDimension == 1) {
-        result.emplace_back(MakeHolder<TMetricType>(GetDefaultTargetBorder()));
+        const float predictionBorder = NCatboostOptions::GetPredictionBorderFromLossParams(params).GetOrElse(
+                GetDefaultPredictionBorder());
+        result.emplace_back(MakeHolder<TMetricType>(params, predictionBorder));
     } else {
-        result.emplace_back(MakeHolder<TMetricType>(approxDimension));
+        result.emplace_back(MakeHolder<TMetricType>(params, approxDimension));
     }
     return result;
 }
 
 template <typename TMetricType>
-static TVector<THolder<IMetric>> CreateMetricClasswise(int approxDimension) {
+static TVector<THolder<IMetric>> CreateMetricClasswise(int approxDimension, const TMap<TString, TString>& params) {
     TVector<THolder<IMetric>> result;
     if (approxDimension == 1) {
-        result.emplace_back(MakeHolder<TMetricType>(GetDefaultTargetBorder()));
+        const float predictionBorder = NCatboostOptions::GetPredictionBorderFromLossParams(params).GetOrElse(
+                GetDefaultPredictionBorder());
+        result.emplace_back(MakeHolder<TMetricType>(params, predictionBorder));
     } else {
         for (int i : xrange(approxDimension)) {
-            result.emplace_back(MakeHolder<TMetricType>(approxDimension, i));
+            result.emplace_back(MakeHolder<TMetricType>(params, approxDimension, i));
         }
     }
     return result;
 }
 
-TVector<THolder<IMetric>> CreateCachingMetrics(ELossFunction metric, const TMap<TString, TString>& params, int approxDimension, TSet<TString>* validParams) {
-    Y_UNUSED(params);
-    *validParams = TSet<TString>{};
+TVector<THolder<IMetric>> CreateCachingMetrics(const TMetricConfig& config) {
+    *config.validParams = TSet<TString>{};
+    TVector<THolder<IMetric>> result;
 
-    switch(metric) {
+    switch(config.metric) {
         case ELossFunction::F1: {
-            return CreateMetricClasswise<TF1CachingMetric>(approxDimension);
+            return CreateMetricClasswise<TF1CachingMetric>(config.approxDimension, config.params);
         }
         case ELossFunction::TotalF1: {
-            *validParams = TSet<TString>{"average"};
+            config.validParams->insert("average");
             EF1AverageType averageType = EF1AverageType::Weighted;
-            if (params.contains("average")) {
-                averageType = FromString<EF1AverageType>(params.at("average"));
+            if (config.params.contains("average")) {
+                averageType = FromString<EF1AverageType>(config.params.at("average"));
             }
 
-            TVector<THolder<IMetric>> result;
-            if (approxDimension == 1) {
-                result.emplace_back(MakeHolder<TTotalF1CachingMetric>(GetDefaultTargetBorder(), averageType));
+            if (config.approxDimension == 1) {
+                result.emplace_back(MakeHolder<TTotalF1CachingMetric>(config.params, config.binaryClassPredictionBorder, averageType));
             } else {
-                result.emplace_back(MakeHolder<TTotalF1CachingMetric>(approxDimension, averageType));
+                result.emplace_back(MakeHolder<TTotalF1CachingMetric>(config.params, config.approxDimension, averageType));
             }
             return result;
         }
         case ELossFunction::MCC: {
-            return CreateMetric<TMCCCachingMetric>(approxDimension);
+            return CreateMetric<TMCCCachingMetric>(config.approxDimension, config.params);
         }
         case ELossFunction::BrierScore: {
-            CB_ENSURE(approxDimension == 1, "Brier Score is used only for binary classification problems.");
-            TVector<THolder<IMetric>> result;
-            result.emplace_back(MakeBrierScoreMetric());
+            CB_ENSURE(config.approxDimension == 1, "Brier Score is used only for binary classification problems.");
+            result.emplace_back(MakeBrierScoreMetric(config.params));
             return result;
         }
         case ELossFunction::ZeroOneLoss: {
-            return CreateMetric<TZeroOneLossCachingMetric>(approxDimension);
+            return CreateMetric<TZeroOneLossCachingMetric>(config.approxDimension, config.params);
         }
         case ELossFunction::Accuracy: {
-            return CreateMetric<TAccuracyCachingMetric>(approxDimension);
+            return CreateMetric<TAccuracyCachingMetric>(config.approxDimension, config.params);
         }
         case ELossFunction::CtrFactor: {
-            TVector<THolder<IMetric>> result;
-            result.emplace_back(MakeCtrFactorMetric(GetDefaultTargetBorder()));
+            result.emplace_back(MakeCtrFactorMetric(config.params));
             return result;
         }
         case ELossFunction::Precision: {
-            return CreateMetricClasswise<TPrecisionCachingMetric>(approxDimension);
+            return CreateMetricClasswise<TPrecisionCachingMetric>(config.approxDimension, config.params);
         }
-        case ELossFunction::Recall: {
-            return CreateMetricClasswise<TRecallCachingMetric>(approxDimension);
-        }
-        default: {
-            return {};
-        }
+        case ELossFunction::Recall: 
+            return CreateMetricClasswise<TRecallCachingMetric>(config.approxDimension, config.params);
+            break;
+        case ELossFunction::Kappa:
+            AppendTemporaryMetricsVector(TKappaMetric::Create(config), &result);
+            break;
+        
+        case ELossFunction::WKappa:
+            AppendTemporaryMetricsVector(TWKappaMetric::Create(config), &result);
+            break;
+        default:
+            break;
     }
+
+    return result;
 }

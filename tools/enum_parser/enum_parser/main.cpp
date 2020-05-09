@@ -1,6 +1,6 @@
-#include <library/json/writer/json_value.h>
-#include <library/json/writer/json.h>
-#include <library/getopt/small/last_getopt.h>
+#include <library/cpp/json/writer/json_value.h>
+#include <library/cpp/json/writer/json.h>
+#include <library/cpp/getopt/small/last_getopt.h>
 
 #include <tools/enum_parser/parse_enum/parse_enum.h>
 
@@ -28,6 +28,7 @@ void WriteHeader(const TString& headerName, IOutputStream& out, IOutputStream* h
     out << "// This file was auto-generated. Do not edit!!!\n";
     out << "#include " << headerName << "\n";
     out << "#include <tools/enum_parser/enum_serialization_runtime/enum_runtime.h>\n\n";
+    out << "#include <tools/enum_parser/enum_parser/stdlib_deps.h>\n\n";
     out << "#include <util/generic/typetraits.h>\n";
     out << "#include <util/generic/singleton.h>\n";
     out << "#include <util/generic/string.h>\n";
@@ -36,9 +37,6 @@ void WriteHeader(const TString& headerName, IOutputStream& out, IOutputStream* h
     out << "#include <util/generic/serialized_enum.h>\n";
     out << "#include <util/string/cast.h>\n";
     out << "#include <util/stream/output.h>\n\n";
-    out << "#include <array>\n";
-    out << "#include <initializer_list>\n";
-    out << "#include <utility>\n\n";
 
     if (headerOutPtr) {
         auto& outHeader = *headerOutPtr;

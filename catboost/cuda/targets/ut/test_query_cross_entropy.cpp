@@ -284,7 +284,7 @@ Y_UNIT_TEST_SUITE(TQueryCrossEntropyTests) {
                     value += val;
                 }
             }
-            UNIT_ASSERT_DOUBLES_EQUAL_C(value / totalWeight, funcValueRef / totalWeight, 1e-5, TStringBuilder() << value << " " << funcValueRef)
+            UNIT_ASSERT_DOUBLES_EQUAL_C(value / totalWeight, funcValueRef / totalWeight, 1e-5, TStringBuilder() << value << " " << funcValueRef);
         }
     }
 

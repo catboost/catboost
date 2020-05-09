@@ -20,7 +20,7 @@ void SetTrainDataFromQuantizedPool(
     TRestorableFastRng64* rand
 );
 void SetTrainDataFromMaster(
-    NCB::TTrainingForCPUDataProviderPtr trainData,
+    const NCB::TTrainingDataProviders& trainData,
     ui64 cpuUsedRamLimit,
     NPar::TLocalExecutor* localExecutor);
 void MapBuildPlainFold(TLearnContext* ctx);
@@ -35,11 +35,11 @@ void MapCalcScore(
     TLearnContext* ctx);
 void MapRemoteCalcScore(
     double scoreStDev,
-    TCandidatesContext* candidatesContext,
+    TVector<TCandidatesContext>* candidatesContext,
     TLearnContext* ctx);
 void MapRemotePairwiseCalcScore(
     double scoreStDev,
-    TCandidatesContext* candidatesContext,
+    TVector<TCandidatesContext>* candidatesContext,
     TLearnContext* ctx);
 void MapSetIndices(const TSplit& bestSplit, TLearnContext* ctx);
 int MapGetRedundantSplitIdx(TLearnContext* ctx);
@@ -65,7 +65,7 @@ TVector<typename TMapper::TOutput> ApplyMapper(
 void MapSetApproxesSimple(
     const IDerCalcer& error,
     const TVariant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
-    TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData,
+    const NCB::TTrainingDataProviders data, // only test part is used
     TVector<TVector<double>>* averageLeafValues,
     TVector<double>* sumLeafWeights,
     TLearnContext* ctx);
@@ -73,7 +73,7 @@ void MapSetApproxesSimple(
 void MapSetApproxesMulti(
     const IDerCalcer& error,
     const TVariant<TSplitTree, TNonSymmetricTreeStructure>& splitTree,
-    TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData,
+    const NCB::TTrainingDataProviders data, // only test part is used
     TVector<TVector<double>>* averageLeafValues,
     TVector<double>* sumLeafWeights,
     TLearnContext* ctx);

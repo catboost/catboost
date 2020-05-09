@@ -21,7 +21,7 @@ GENERATE_ENUM_SERIALIZATION(formtype.h)
 
 PEERDIR(
     library/langmask
-    library/unicode/normalization
+    library/cpp/unicode/normalization
 )
 
 END()

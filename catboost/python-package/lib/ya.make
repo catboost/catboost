@@ -26,10 +26,10 @@ PEERDIR(
     catboost/private/libs/options
     catboost/private/libs/quantized_pool_analysis
     catboost/private/libs/target
-    library/containers/2d_array
-    library/json/writer
-    library/text_processing/tokenizer
-    library/text_processing/app_helpers
+    library/cpp/containers/2d_array
+    library/cpp/json/writer
+    library/cpp/text_processing/tokenizer
+    library/cpp/text_processing/app_helpers
     contrib/python/graphviz
     contrib/python/numpy
     contrib/python/pandas
@@ -48,8 +48,12 @@ IF(NOT CATBOOST_OPENSOURCE)
     PEERDIR(
         catboost//private/libs/for_python_package
         contrib/python/matplotlib
-        contrib/python/plotly
     )
+    IF (NOT OS_WINDOWS)
+        PEERDIR(
+            contrib/python/plotly
+        )
+    ENDIF()
 ENDIF()
 
 IF(HAVE_CUDA)

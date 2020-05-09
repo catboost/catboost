@@ -1,7 +1,7 @@
 #include "data.h"
 
 #include "approx_dimension.h"
-
+#include "estimated_features.h"
 
 #include <catboost/libs/data/borders_io.h>
 #include <catboost/libs/data/quantization.h>
@@ -14,7 +14,7 @@
 #include <catboost/private/libs/target/data_providers.h>
 #include <catboost/private/libs/feature_estimator/text_feature_estimators.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/string/builder.h>
@@ -26,7 +26,7 @@ namespace NCB {
         const NCatboostOptions::TCatBoostOptions& params) {
 
         TVector<NCatboostOptions::TLossDescription> result;
-        if (params.LossFunctionDescription->GetLossFunction() != ELossFunction::PythonUserDefinedPerObject) {
+        if (!IsUserDefined(params.LossFunctionDescription->GetLossFunction())) {
             result.emplace_back(params.LossFunctionDescription);
         }
 
@@ -75,20 +75,14 @@ namespace NCB {
         const ui64 cpuRamLimit = ParseMemorySizeDescription(params->SystemOptions->CpuUsedRamLimit.Get());
 
         auto trainingData = MakeIntrusive<TTrainingDataProvider>();
+        trainingData->OriginalFeaturesLayout = srcData->MetaInfo.FeaturesLayout;
         trainingData->MetaInfo = srcData->MetaInfo;
         trainingData->ObjectsGrouping = srcData->ObjectsGrouping;
 
-        if (auto* quantizedObjectsDataProviderPtr
-                = dynamic_cast<TQuantizedObjectsDataProvider*>(srcData->ObjectsData.Get()))
+        if (auto* quantizedForCPUObjectsDataProvider
+                = dynamic_cast<TQuantizedForCPUObjectsDataProvider*>(srcData->ObjectsData.Get()))
         {
             if (params->GetTaskType() == ETaskType::CPU) {
-                auto quantizedForCPUObjectsDataProvider
-                    = dynamic_cast<TQuantizedForCPUObjectsDataProvider*>(quantizedObjectsDataProviderPtr);
-                CB_ENSURE(
-                    quantizedForCPUObjectsDataProvider,
-                    "Quantized objects data is not compatible with CPU task type"
-                );
-
                 /*
                  * We need data to be consecutive for efficient blocked permutations
                  * but there're cases (e.g. CV with many folds) when limiting used CPU RAM is more important
@@ -111,18 +105,19 @@ namespace NCB {
                  */
                 CB_ENSURE(
                     (srcData->MetaInfo.FeaturesLayout->GetCatFeatureCount() == 0) ||
-                    dynamic_cast<const TQuantizedForCPUObjectsDataProvider*>(quantizedObjectsDataProviderPtr),
+                    quantizedForCPUObjectsDataProvider,
                     "Quantized objects data is not compatible with final CTR calculation"
                 );
             }
 
             if (params->DataProcessingOptions.Get().IgnoredFeatures.IsSet()) {
-                trainingData->ObjectsData = dynamic_cast<TQuantizedObjectsDataProvider*>(
-                    quantizedObjectsDataProviderPtr->GetFeaturesSubset(
+                trainingData->ObjectsData = dynamic_cast<TQuantizedForCPUObjectsDataProvider*>(
+                    quantizedForCPUObjectsDataProvider->GetFeaturesSubset(
                         params->DataProcessingOptions.Get().IgnoredFeatures,
-                        localExecutor).Get());
+                        localExecutor).Get()
+                );
             } else {
-                trainingData->ObjectsData = quantizedObjectsDataProviderPtr;
+                trainingData->ObjectsData = quantizedForCPUObjectsDataProvider;
             }
         } else {
             trainingData->ObjectsData = GetQuantizedObjectsData(
@@ -368,7 +363,7 @@ namespace NCB {
         TMaybe<float> targetBorder = params->DataProcessingOptions->TargetBorder;
         trainingData.Learn = GetTrainingData(
             std::move(srcData.Learn),
-            /*isLearnData*/ true,
+            /*isLearnData*/ !params->SystemOptions->IsWorker(),
             "learn",
             bordersFile,
             /*unloadCatFeaturePerfectHashFromRam*/ allowWriteFiles && srcData.Test.empty(),
@@ -415,6 +410,19 @@ namespace NCB {
                 quantizedFeaturesInfo->GetTextProcessingOptions().GetTokenizedFeatureDescriptions(),
                 trainingData,
                 localExecutor);
+
+            if (params->GetTaskType() == ETaskType::CPU) {
+                trainingData.EstimatedObjectsData = CreateEstimatedFeaturesData(
+                    params->DataProcessingOptions->FloatFeaturesBinarization.Get(),
+                    /*maxSubsetSizeForBuildBordersAlgorithms*/ 100000,
+                    /*quantizedFeaturesInfo*/ nullptr,
+                    trainingData,
+                    trainingData.FeatureEstimators,
+                    /*learnPermutation*/ Nothing(), // offline features
+                    localExecutor,
+                    rand
+                );
+            }
         }
 
         if (params->MetricOptions->EvalMetric.IsSet() && (srcData.Test.size() > 0)) {

@@ -2,6 +2,8 @@
 
 #include <catboost/private/libs/feature_estimator/feature_estimator.h>
 
+#include <library/cpp/binsaver/bin_saver.h>
+
 #include <util/digest/multi.h>
 #include <util/generic/hash.h>
 #include <util/generic/map.h>
@@ -55,6 +57,7 @@ namespace NCB {
             return MultiHash(IsOnline, Id);
         }
 
+        SAVELOAD(IsOnline, Id);
         Y_SAVELOAD_DEFINE(IsOnline, Id);
     };
 }
@@ -122,6 +125,48 @@ struct THash<NCB::TEstimatorSourceId> {
 };
 
 namespace NCB {
+    struct TEstimatedFeatureId {
+    public:
+        TEstimatorId EstimatorId;
+        ui32 LocalFeatureId = 0; // index in features for TFeatureEstimator
+
+    public:
+        SAVELOAD(EstimatorId, LocalFeatureId);
+        Y_SAVELOAD_DEFINE(EstimatorId, LocalFeatureId);
+
+        bool operator<(const TEstimatedFeatureId& rhs) const {
+            return std::tie(EstimatorId, LocalFeatureId) < std::tie(rhs.EstimatorId, rhs.LocalFeatureId);
+        }
+        bool operator>(const TEstimatedFeatureId& rhs) const {
+            return rhs < *this;
+        }
+        bool operator<=(const TEstimatedFeatureId& rhs) const {
+            return !(rhs < *this);
+        }
+        bool operator>=(const TEstimatedFeatureId& rhs) const {
+            return !(*this < rhs);
+        }
+        bool operator==(const TEstimatedFeatureId& rhs) const {
+            return std::tie(EstimatorId, LocalFeatureId) == std::tie(rhs.EstimatorId, rhs.LocalFeatureId);
+        }
+        bool operator!=(const TEstimatedFeatureId& rhs) const {
+            return !(rhs == *this);
+        }
+
+        ui64 GetHash() const {
+            return MultiHash(EstimatorId, LocalFeatureId);
+        }
+    };
+}
+
+template <>
+struct THash<NCB::TEstimatedFeatureId> {
+    inline size_t operator()(const NCB::TEstimatedFeatureId& value) const {
+        return value.GetHash();
+    }
+};
+
+namespace NCB {
     class TFeatureEstimators : public TThrRefBase {
     public:
         TFeatureEstimators() // TODO(d-kruchinin) replace default constructor calls to instantiation from Builder
@@ -143,6 +188,14 @@ namespace NCB {
 
         bool Empty() const {
             return FeatureEstimators.empty() && OnlineFeatureEstimators.empty();
+        }
+
+        TConstArrayRef<TFeatureEstimatorPtr> GetOfflineFeatureEstimators() const {
+            return FeatureEstimators;
+        }
+
+        TConstArrayRef<TOnlineFeatureEstimatorPtr> GetOnlineFeatureEstimators() const {
+            return OnlineFeatureEstimators;
         }
 
         ui32 GetOfflineFeatureEstimatorsSize() const {
@@ -175,6 +228,7 @@ namespace NCB {
         }
 
         TEstimatorSourceId GetEstimatorSourceFeatureIdx(const TGuid& guid) const;
+        TEstimatorSourceId GetEstimatorSourceFeatureIdx(TEstimatorId estimatorId) const;
 
     private:
         void RebuildInnerData();

@@ -1,23 +1,14 @@
 LIBRARY()
 
+# Temporary proxy library until we moved all consumers
+# to library/cpp/yson
+
 
 
 SRCS(
-    yson2json_adapter.cpp
-    consumer.cpp
-    json_writer.cpp
-    lexer.cpp
-    parser.cpp
-    token.cpp
-    tokenizer.cpp
-    varint.cpp
-    writer.cpp
-    zigzag.h
+    all.cpp
 )
 
-PEERDIR(
-    util
-    library/json
-)
+PEERDIR(library/cpp/yson)
 
 END()

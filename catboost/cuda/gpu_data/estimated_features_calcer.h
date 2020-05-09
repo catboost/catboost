@@ -9,13 +9,14 @@
 #include <catboost/cuda/cuda_lib/device_subtasks_helper.h>
 
 #include <catboost/private/libs/ctr_description/ctr_config.h>
+#include <catboost/libs/data/feature_estimators.h>
 
 namespace NCatboostCuda {
 
     class TEstimatorsExecutor {
     public:
         using TBinarizedFeatureVisitor =  std::function<void(TConstArrayRef<ui8>, //binarizedFeature
-                                                             TEstimatedFeature,
+                                                             NCB::TEstimatedFeatureId,
                                                              ui8)>; //binCount
 
         TEstimatorsExecutor(TBinarizedFeaturesManager& featuresManager,

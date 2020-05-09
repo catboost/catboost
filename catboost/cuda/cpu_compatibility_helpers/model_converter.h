@@ -49,7 +49,6 @@ namespace NCatboostCuda {
         const NCB::TFeaturesLayout& FeaturesLayout;
         const NCB::TPerfectHashedToHashedCatValuesMap& CatFeatureBinToHashIndex;
         TVector<ENanMode> FloatFeaturesNanMode;
-        TVector<TVector<float>> Borders;
 
         const NCB::TClassificationTargetHelper& TargetHelper;
     };

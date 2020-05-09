@@ -99,27 +99,27 @@ private:
  * String input/output stream, similar to `std::stringstream`.
  */
 class TStringStream: private TEmbedPolicy<TString>, public TStringInput, public TStringOutput {
-    using TEmbededString = TEmbedPolicy<TString>;
+    using TEmbeddedString = TEmbedPolicy<TString>;
 
 public:
     inline TStringStream()
-        : TEmbededString()
-        , TStringInput(*TEmbededString::Ptr())
-        , TStringOutput(*TEmbededString::Ptr())
+        : TEmbeddedString()
+        , TStringInput(*TEmbeddedString::Ptr())
+        , TStringOutput(*TEmbeddedString::Ptr())
     {
     }
 
     inline TStringStream(const TString& string)
-        : TEmbededString(string)
-        , TStringInput(*TEmbededString::Ptr())
-        , TStringOutput(*TEmbededString::Ptr())
+        : TEmbeddedString(string)
+        , TStringInput(*TEmbeddedString::Ptr())
+        , TStringOutput(*TEmbeddedString::Ptr())
     {
     }
 
     inline TStringStream(const TStringStream& other)
-        : TEmbededString(other.Str())
-        , TStringInput(*TEmbededString::Ptr())
-        , TStringOutput(*TEmbededString::Ptr())
+        : TEmbeddedString(other.Str())
+        , TStringInput(*TEmbeddedString::Ptr())
+        , TStringOutput(*TEmbeddedString::Ptr())
     {
     }
 

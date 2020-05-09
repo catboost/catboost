@@ -16,8 +16,8 @@
 #include <catboost/private/libs/options/load_options.h>
 #include <catboost/private/libs/options/restrictions.h>
 
-#include <library/binsaver/bin_saver.h>
-#include <library/json/json_value.h>
+#include <library/cpp/binsaver/bin_saver.h>
+#include <library/cpp/json/json_value.h>
 #include <library/par/par.h>
 #include <library/par/par_util.h>
 
@@ -43,19 +43,16 @@ namespace NCatboostDistributed {
     using TWorkerPairwiseStats = TVector<TVector<TPairwiseStats>>; // [cand][subCand]
 
     struct TTrainData : public IObjectBase {
-        NCB::TTrainingForCPUDataProviderPtr TrainData;
+        NCB::TTrainingDataProviders TrainData;
 
     public:
         TTrainData() = default;
-        TTrainData(NCB::TTrainingForCPUDataProviderPtr trainData)
-        : TrainData(trainData)
+        TTrainData(NCB::TTrainingDataProviders trainData)
+        : TrainData(std::move(trainData))
         {
         }
 
-        int operator&(IBinSaver& binSaver) {
-            NCB::AddWithShared(&binSaver, &TrainData);
-            return 0;
-        }
+        SAVELOAD(TrainData);
 
         OBJECT_NOCOPY_METHODS(TTrainData);
     };
@@ -139,7 +136,7 @@ namespace NCatboostDistributed {
 
         NCatboostOptions::TCatBoostOptions Params;
 
-        NCB::TTrainingForCPUDataProviderPtr TrainData;
+        NCB::TTrainingDataProviders TrainData;
         TVector<NJson::TJsonValue> ClassLabelsFromDataset;
 
         TFlatPairsInfo FlatPairs;

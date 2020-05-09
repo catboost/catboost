@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/map.h>
 #include <util/system/types.h>
@@ -55,6 +55,10 @@ namespace NCB {
          * It is possible to add tasks after that and call this method again.
          */
         void ExecTasks();
+
+        NPar::TLocalExecutor* GetExecutorPtr() {
+            return &LocalExecutor;
+        }
 
     private:
         NPar::TLocalExecutor& LocalExecutor;

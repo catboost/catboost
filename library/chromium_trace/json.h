@@ -2,7 +2,7 @@
 
 #include "consumer.h"
 
-#include <library/json/writer/json.h>
+#include <library/cpp/json/writer/json.h>
 
 namespace NChromiumTrace {
     class TJsonTraceConsumer final: public ITraceConsumer {

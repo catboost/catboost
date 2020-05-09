@@ -116,6 +116,10 @@ public:
         return Value_ * (1 / 1000000.0);
     }
 
+    constexpr double MillisecondsFloat() const noexcept {
+        return Value_ * (1 / 1000.0);
+    }
+
     constexpr TValue MicroSeconds() const noexcept {
         return Value_;
     }

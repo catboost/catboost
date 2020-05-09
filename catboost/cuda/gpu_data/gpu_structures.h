@@ -17,6 +17,7 @@
 struct TCBinFeature {
     ui32 FeatureId = static_cast<ui32>(-1);
     ui32 BinId = static_cast<ui32>(-1);
+    bool SkipInScoreCount = false;
 
     bool operator<(const TCBinFeature& other) const {
         return FeatureId < other.FeatureId || (FeatureId == other.FeatureId && BinId < other.BinId);
@@ -38,16 +39,18 @@ struct TCFeature {
     //    global index (not feature-id, index in grid only)
     //    ui32 Index;
     bool OneHotFeature = false;
+    bool SkipFirstBinInScoreCount = false;
 
     TCFeature() = default;
 
-    TCFeature(ui64 offset, ui32 mask, ui32 shift, ui32 firstFoldIndex, ui32 folds, bool oneHotFeature)
+    TCFeature(ui64 offset, ui32 mask, ui32 shift, ui32 firstFoldIndex, ui32 folds, bool oneHotFeature, bool skipFirstBinInScoreCount)
         : Offset(offset)
         , Mask(mask)
         , Shift(shift)
         , FirstFoldIndex(firstFoldIndex)
         , Folds(folds)
         , OneHotFeature(oneHotFeature)
+        , SkipFirstBinInScoreCount(skipFirstBinInScoreCount)
     {
     }
 };

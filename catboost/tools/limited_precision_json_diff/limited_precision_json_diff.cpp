@@ -1,5 +1,5 @@
-#include <library/getopt/small/last_getopt.h>
-#include <library/json/json_reader.h>
+#include <library/cpp/getopt/small/last_getopt.h>
+#include <library/cpp/json/json_reader.h>
 
 #include <util/generic/set.h>
 #include <util/generic/string.h>

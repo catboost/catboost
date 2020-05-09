@@ -22,7 +22,7 @@ namespace NStatistics {
     };
 
     namespace NDetail {
-        //! To retrieve underlying type from TKahanAccumulator from library/accurate_accumulate
+        //! To retrieve underlying type from TKahanAccumulator from library/cpp/accurate_accumulate
         template <bool IsArithmetic, typename T>
         struct TTypeTraits {
             using TResult = typename T::TValueType;

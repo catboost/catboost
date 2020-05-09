@@ -5,8 +5,8 @@
 #include <catboost/libs/model/features.h>
 #include <catboost/private/libs/options/enums.h>
 
-#include <library/binsaver/bin_saver.h>
-#include <library/dbg_output/dump.h>
+#include <library/cpp/binsaver/bin_saver.h>
+#include <library/cpp/dbg_output/dump.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/ptr.h>
@@ -111,10 +111,6 @@ namespace NCB {
             CatFeatureInternalIdxToExternalIdx,
             FloatFeatureInternalIdxToExternalIdx)
 
-        /* *this contains a superset of features in rhs
-         * for now comparison is strict - w/o reordering by name
-         */
-        bool IsSupersetOf(const TFeaturesLayout& rhs) const;
 
         const TFeatureMetaInfo& GetInternalFeatureMetaInfo(
             ui32 internalFeatureIdx,

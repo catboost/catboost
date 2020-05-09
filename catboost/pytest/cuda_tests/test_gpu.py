@@ -1335,8 +1335,7 @@ def test_pairlogit_no_target(compressed_data, boosting_type):
     ]
 
 
-@pytest.mark.parametrize('task_type', ['CPU', 'GPU'])
-def test_learn_without_header_eval_with_header(task_type):
+def test_learn_without_header_eval_with_header():
     train_path = yatest.common.test_output_path('airlines_without_header')
     with open(data_file('airlines_5K', 'train'), 'r') as with_header_file:
         with open(train_path, 'w') as without_header_file:
@@ -1351,11 +1350,7 @@ def test_learn_without_header_eval_with_header(task_type):
         '-i', '10',
         '-m', model_path
     ]
-    execute_catboost_fit(
-        task_type=task_type,
-        params=fit_params,
-        devices='0'
-    )
+    fit_catboost_gpu(fit_params)
 
     cmd_calc = (
         CATBOOST_PATH,
@@ -2556,8 +2551,12 @@ def model_based_eval_catboost_gpu(params):
 
 @pytest.mark.parametrize(
     'dataset',
-    [{'base': 'querywise', 'cd': 'train.cd'}, {'base': 'adult', 'train': 'train_small', 'test': 'test_small', 'cd': 'train.cd'}],
-    ids=['querywise', 'adult']
+    [
+        {'base': 'querywise', 'cd': 'train.cd'},
+        {'base': 'adult', 'train': 'train_small', 'test': 'test_small', 'cd': 'train.cd'},
+        {'base': 'adult', 'train': 'train_small', 'test': 'test_small', 'cd': 'train_with_id.cd'}
+    ],
+    ids=['querywise', 'adult', 'with_names']
 )
 def test_model_based_eval(dataset):
     test_err_log = 'test_error.log'
@@ -2577,51 +2576,60 @@ def test_model_based_eval(dataset):
             '-T', '4',
             '-w', '0.01',
             '--test-err-log', test_err_log,
+            '--data-partition', 'DocParallel',
+            '--random-strength', '0',
+            '--bootstrap-type', 'No',
+            '--has-time',
         )
 
+    ignored_features = '10:11:12:13:15' if dataset['cd'] != 'train_with_id.cd' else 'C7:C8:C9:F3:F5'
+    features_to_evaluate = '10,11,12,13;15' if dataset['cd'] != 'train_with_id.cd' else '10,11,C9-F3;F5'
+
+    zero_out_tested = yatest.common.test_output_path('zero_out_tested')
     fit_catboost_gpu(
         get_params() + (
             '--snapshot-file', 'baseline_model_snapshot',
-            '-I', '10:11:12:13:15:20:31',
-            '--train-dir', 'zero_out_tested',
+            '-I', ignored_features,
+            '--train-dir', zero_out_tested,
         ))
 
     model_based_eval_catboost_gpu(
         get_params() + (
             '--baseline-model-snapshot', 'baseline_model_snapshot',
-            '--features-to-evaluate', '10,11,12,13;15,20,31',
+            '--features-to-evaluate', features_to_evaluate,
             '--offset', '20',
             '--experiment-size', '10',
             '--experiment-count', '2',
-            '--train-dir', 'zero_out_tested',
+            '--train-dir', zero_out_tested,
         ))
 
+    use_tested = yatest.common.test_output_path('use_tested')
     fit_catboost_gpu(
         get_params() + (
             '--snapshot-file', 'baseline_model_snapshot',
-            '--train-dir', 'use_tested',
+            '--train-dir', use_tested,
         ))
 
     model_based_eval_catboost_gpu(
         get_params() + (
             '--baseline-model-snapshot', 'baseline_model_snapshot',
-            '--features-to-evaluate', '10,11,12,13;15,20,31',
+            '--features-to-evaluate', features_to_evaluate,
             '--offset', '20',
             '--experiment-size', '10',
             '--experiment-count', '2',
             '--use-evaluated-features-in-baseline-model',
-            '--train-dir', 'use_tested',
+            '--train-dir', use_tested,
         ))
 
     return [
-        local_canonical_file(os.path.join('zero_out_tested', 'feature_set0_fold0', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('zero_out_tested', 'feature_set0_fold1', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('zero_out_tested', 'feature_set1_fold0', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('zero_out_tested', 'feature_set1_fold1', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('use_tested', 'feature_set0_fold0', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('use_tested', 'feature_set0_fold1', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('use_tested', 'feature_set1_fold0', test_err_log), diff_tool=diff_tool()),
-        local_canonical_file(os.path.join('use_tested', 'feature_set1_fold1', test_err_log), diff_tool=diff_tool())
+        local_canonical_file(os.path.join(zero_out_tested, 'feature_set0_fold0', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join(zero_out_tested, 'feature_set0_fold1', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join(zero_out_tested, 'feature_set1_fold0', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join(zero_out_tested, 'feature_set1_fold1', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join(use_tested, 'feature_set0_fold0', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join(use_tested, 'feature_set0_fold1', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join(use_tested, 'feature_set1_fold0', test_err_log), diff_tool=diff_tool()),
+        local_canonical_file(os.path.join(use_tested, 'feature_set1_fold1', test_err_log), diff_tool=diff_tool())
     ]
 
 
@@ -3014,3 +3022,54 @@ def test_metric_description(dataset_has_weights):
                 expected_custom_metrics_descriptions = [custom_metric_loss]
             assert unique_metrics_descriptions == set(s.lower() for s in [expected_objective_metric_description] + [expected_eval_metric_description] + expected_custom_metrics_descriptions)
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
+
+
+@pytest.mark.parametrize('boosting_type', ['Plain', 'Ordered'])
+@pytest.mark.parametrize('loss_function', ['Logloss', 'QuerySoftMax', 'RMSE', 'QueryRMSE'])
+def test_combination(boosting_type, loss_function):
+    learn_file = data_file('querywise', 'train')
+    test_file = data_file('querywise', 'test')
+    cd_file = data_file('querywise', 'train.cd')
+    params = {
+        '-f': learn_file,
+        '-t': test_file,
+        '--cd': cd_file,
+        '--boosting-type': boosting_type,
+        '-i': '10',
+        '-w': '0.01',
+        '-T': '4',
+        '--leaf-estimation-method': 'Newton',
+        '--leaf-estimation-iterations': '1'
+    }
+
+    weight = {'Logloss': '0.0', 'QuerySoftMax': '0.0', 'RMSE': '0.0', 'QueryRMSE': '0.0'}
+    weight[loss_function] = '1.0'
+    combination_loss = 'Combination:'
+    combination_loss += 'loss0=Logloss;weight0=' + weight['Logloss'] + ';'
+    combination_loss += 'loss1=QuerySoftMax;weight1=' + weight['QuerySoftMax'] + ';'
+    combination_loss += 'loss2=RMSE;weight2=' + weight['RMSE'] + ';'
+    combination_loss += 'loss3=QueryRMSE;weight3=' + weight['QueryRMSE']
+
+    output_eval_path_combination = yatest.common.test_output_path('test.eval.combination')
+    params.update({
+        '--loss-function': combination_loss,
+        '--eval-file': output_eval_path_combination,
+    })
+    fit_catboost_gpu(params)
+
+    output_eval_path = yatest.common.test_output_path('test.eval')
+    params.update({
+        '--loss-function': loss_function,
+        '--eval-file': output_eval_path,
+    })
+    if loss_function == 'Logloss':
+        params.update({
+            '--target-border': '0.5'
+        })
+    if loss_function == 'RMSE':
+        params.update({
+            '--boost-from-average': 'False'
+        })
+    fit_catboost_gpu(params)
+
+    assert filecmp.cmp(output_eval_path_combination, output_eval_path)

@@ -313,6 +313,9 @@ void TGPUCatboostEvaluationContext::EvalQuantizedData(
             1
         );
         break;
+    case NCB::NModelEvaluation::EPredictionType::Exponent:
+        ythrow yexception() << "Unimplemented on GPU";
+        break;
     case NCB::NModelEvaluation::EPredictionType::Probability:
         ProcessResults<NCB::NModelEvaluation::EPredictionType::Probability, true><<<1, 256, 0, Stream>>> (
             EvalDataCache.ResultsFloatBuf.Get(),

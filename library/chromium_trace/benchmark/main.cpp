@@ -4,7 +4,7 @@
 #include <library/chromium_trace/yson.h>
 #include <library/chromium_trace/saveload.h>
 
-#include <library/json/json_writer.h>
+#include <library/cpp/json/json_writer.h>
 #include <library/testing/benchmark/bench.h>
 
 #include <util/generic/xrange.h>

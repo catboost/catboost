@@ -13,7 +13,7 @@
 #include <catboost/private/libs/options/data_processing_options.h>
 #include <catboost/private/libs/options/catboost_options.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>
@@ -34,10 +34,9 @@ namespace NCB {
 
     struct TQuantizationOptions {
         bool CpuCompatibleFormat = true;
-        bool GpuCompatibleFormat = true;
         ui64 CpuRamLimit = Max<ui64>();
         ui32 MaxSubsetSizeForBuildBordersAlgorithms = 200000;
-        bool BundleExclusiveFeaturesForCpu = true;
+        bool BundleExclusiveFeatures = true;
         TExclusiveFeaturesBundlingOptions ExclusiveFeaturesBundlingOptions{};
         bool PackBinaryFeaturesForCpu = true;
         bool GroupFeaturesForCpu = false;
@@ -46,6 +45,22 @@ namespace NCB {
         TMaybe<float> DefaultValueFractionToEnableSparseStorage = Nothing();
         ESparseArrayIndexingType SparseArrayIndexingType = ESparseArrayIndexingType::Indices;
     };
+
+    void PrepareQuantizationParameters(
+        const NCatboostOptions::TCatBoostOptions& params,
+        const TDataMetaInfo& metaInfo,
+        const TMaybe<TString>& bordersFile,
+        TQuantizationOptions* quantizationOptions,
+        TQuantizedFeaturesInfoPtr* quantizedFeaturesInfo
+    );
+
+    void PrepareQuantizationParameters(
+        NJson::TJsonValue plainJsonParams,
+        const TDataMetaInfo& metaInfo,
+        const TMaybe<TString>& bordersFile,
+        TQuantizationOptions* quantizationOptions,
+        TQuantizedFeaturesInfoPtr* quantizedFeaturesInfo
+    );
 
     /*
      * Used for optimization.

@@ -7,6 +7,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/private/libs/options/monotone_constraints.h>
 #include <catboost/private/libs/options/catboost_options.h>
+#include <catboost/private/libs/options/feature_penalties_options.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 #include <catboost/libs/train_lib/train_model.h>
 
@@ -18,7 +19,7 @@
 #include <catboost/libs/logging/logging.h>
 #endif
 
-#include <library/json/json_reader.h>
+#include <library/cpp/json/json_reader.h>
 
 #include <util/generic/ptr.h>
 
@@ -48,8 +49,7 @@ int mode_fit(int argc, const char* argv[]) {
     InitOptions(paramsFile, &catBoostJsonOptions, &outputOptionsJson);
     ConvertIgnoredFeaturesFromStringToIndices(poolLoadParams, &catBoostFlatJsonOptions);
     NCatboostOptions::PlainJsonToOptions(catBoostFlatJsonOptions, &catBoostJsonOptions, &outputOptionsJson);
-    ConvertMonotoneConstraintsToCanonicalFormat(&catBoostJsonOptions);
-    ConvertMonotoneConstraintsFromStringToIndices(poolLoadParams, &catBoostJsonOptions);
+    ConvertParamsToCanonicalFormat(poolLoadParams, &catBoostJsonOptions);
     CopyIgnoredFeaturesToPoolParams(catBoostJsonOptions, &poolLoadParams);
     NCatboostOptions::TOutputFilesOptions outputOptions;
     outputOptions.Load(outputOptionsJson);

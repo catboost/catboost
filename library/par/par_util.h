@@ -2,7 +2,7 @@
 
 #include "par.h"
 
-#include <library/binsaver/mem_io.h>
+#include <library/cpp/binsaver/mem_io.h>
 
 #include <util/generic/type_name.h>
 #include <util/generic/vector.h>

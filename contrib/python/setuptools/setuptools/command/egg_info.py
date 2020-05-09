@@ -266,7 +266,7 @@ class egg_info(InfoCommon, Command):
         to the file.
         """
         log.info("writing %s to %s", what, filename)
-        if six.PY3:
+        if not six.PY2:
             data = data.encode("utf-8")
         if not self.dry_run:
             f = open(filename, 'wb')

@@ -543,7 +543,7 @@ The include files should not be interdependent, meaning an include file must be 
 
 The using namespace declaration is not allowed inside include files.
 
-Include files should be specified in the order of less general to more general (regardless of whether it's in cpp or another include), so that a more specific file is included before a more general file. This order allows you to once again check the independence of the other included header files. For example, for the library/json/some_program/some_class.cpp file, the order of inclusion is:
+Include files should be specified in the order of less general to more general (regardless of whether it's in cpp or another include), so that a more specific file is included before a more general file. This order allows you to once again check the independence of the other included header files. For example, for the library/cpp/json/some_program/some_class.cpp file, the order of inclusion is:
 
 - The paired header file. Always in quotation marks.
 ```cpp
@@ -558,12 +558,12 @@ Include files should be specified in the order of less general to more general (
 
 - Next, groups of files from the project superdirectories in order of nesting.
 ```cpp
-// library/json
-#include <library/json/json_reader.h>
+// library/cpp/json
+#include <library/cpp/json/json_reader.h>
 
 // library
-#include <library/string_utils/base64/base64.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/string_utils/base64/base64.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 ```
 
 - Everything else except util.

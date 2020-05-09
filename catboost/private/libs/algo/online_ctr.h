@@ -60,7 +60,7 @@ void CalcNormalization(const TVector<float>& priors, TVector<float>* shift, TVec
 
 
 void ComputeOnlineCTRs(
-    const NCB::TTrainingForCPUDataProviders& data,
+    const NCB::TTrainingDataProviders& data,
     const TFold& fold,
     const TProjection& proj,
     const TLearnContext* ctx,
@@ -69,7 +69,7 @@ void ComputeOnlineCTRs(
 
 
 struct TDatasetDataForFinalCtrs {
-    NCB::TTrainingForCPUDataProviders Data;
+    NCB::TTrainingDataProviders Data;
 
     TMaybe<const NCB::TArraySubsetIndexing<ui32>*> LearnPermutation;
 

@@ -56,7 +56,7 @@ public:
     {
     }
 
-    explicit TCiString(const TFixedString& s)
+    explicit TCiString(const TStringBuf& s)
         : TString(s)
     {
     }
@@ -65,17 +65,17 @@ public:
     static int compare(const TCiString& s1, const TCiString& s2, const CodePage& cp = csYandex);
     static int compare(const char* p, const TCiString& s2, const CodePage& cp = csYandex);
     static int compare(const TCiString& s1, const char* p, const CodePage& cp = csYandex);
-    static int compare(const TFixedString& p1, const TFixedString& p2, const CodePage& cp = csYandex);
+    static int compare(const TStringBuf& p1, const TStringBuf& p2, const CodePage& cp = csYandex);
 
     // TODO: implement properly in TString via enum ECaseSensitivity
-    static bool is_prefix(const TFixedString& what, const TFixedString& of, const CodePage& cp = csYandex);
-    static bool is_suffix(const TFixedString& what, const TFixedString& of, const CodePage& cp = csYandex);
+    static bool is_prefix(const TStringBuf& what, const TStringBuf& of, const CodePage& cp = csYandex);
+    static bool is_suffix(const TStringBuf& what, const TStringBuf& of, const CodePage& cp = csYandex);
 
-    bool StartsWith(const TFixedString& s, const CodePage& cp = csYandex) const {
+    bool StartsWith(const TStringBuf& s, const CodePage& cp = csYandex) const {
         return is_prefix(s, *this, cp);
     }
 
-    bool EndsWith(const TFixedString& s, const CodePage& cp = csYandex) const {
+    bool EndsWith(const TStringBuf& s, const CodePage& cp = csYandex) const {
         return is_suffix(s, *this, cp);
     }
 
@@ -222,8 +222,8 @@ struct ci_hash {
     inline size_t operator()(const char* s) const {
         return TCiString::hashVal(s, strlen(s));
     }
-    inline size_t operator()(const TFixedString<char>& s) const {
-        return TCiString::hashVal(s.Start, s.Length);
+    inline size_t operator()(const TStringBuf& s) const {
+        return TCiString::hashVal(s.data(), s.size());
     }
 };
 
@@ -245,8 +245,8 @@ struct TCIHash {
 
 template <>
 struct TCIHash<const char*> {
-    inline size_t operator()(const TFixedString<char>& s) const {
-        return TCiString::hashVal(s.Start, s.Length);
+    inline size_t operator()(const TStringBuf& s) const {
+        return TCiString::hashVal(s.data(), s.size());
     }
 };
 
@@ -275,8 +275,8 @@ struct ci_equal_to {
         return csYandex.stricmp(x, y) == 0;
     }
     // this implementation is not suitable for strings with zero characters inside, sorry
-    bool operator()(const TFixedString<char>& x, const TFixedString<char>& y) const {
-        return x.Length == y.Length && csYandex.strnicmp(x.Start, y.Start, y.Length) == 0;
+    bool operator()(const TStringBuf& x, const TStringBuf& y) const {
+        return x.size() == y.size() && csYandex.strnicmp(x.data(), y.data(), y.size()) == 0;
     }
 };
 

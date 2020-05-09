@@ -1,7 +1,7 @@
 #include "modes.h"
 
 #include <catboost/private/libs/algo/plot.h>
-#include <catboost/private/libs/app_helpers/proceed_pool_in_blocks.h>
+#include <catboost/libs/data/proceed_pool_in_blocks.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/private/libs/labels/label_converter.h>
@@ -12,7 +12,8 @@
 #include <catboost/private/libs/options/loss_description.h>
 #include <catboost/private/libs/target/data_providers.h>
 
-#include <library/getopt/small/last_getopt_opts.h>
+#include <library/cpp/getopt/small/last_getopt_opts.h>
+#include <library/cpp/getopt/small/last_getopt_parse_result.h>
 
 #include <util/folder/tempdir.h>
 #include <util/string/split.h>
@@ -82,7 +83,7 @@ static void ReadDatasetParts(
     TVector<TProcessedDataProvider>* processedDatasetParts) {
 
     processedDatasetParts->clear();
-    ReadAndProceedPoolInBlocks(params, blockSize, [&](TDataProviderPtr datasetPart) {
+    ReadAndProceedPoolInBlocks(params.DatasetReadingParams, blockSize, [&](TDataProviderPtr datasetPart) {
         auto processedDataProvider = CreateModelCompatibleProcessedDataProvider(
             *datasetPart,
             metricDescriptions,
@@ -126,12 +127,13 @@ int mode_eval_metrics(int argc, const char* argv[]) {
     }
     TSetLoggingVerboseOrSilent inThisScope(verbose);
 
-    NCatboostOptions::ValidatePoolParams(params.InputPath, params.ColumnarPoolFormatParams);
+    params.DatasetReadingParams.ValidatePoolParams();
 
     TFullModel model = ReadModel(params.ModelFileName, params.ModelFormat);
-    CB_ENSURE(model.GetUsedCatFeaturesCount() == 0 || params.ColumnarPoolFormatParams.CdFilePath.Inited(),
-              "Model has categorical features. Specify column_description file with correct categorical features.");
-    params.ClassLabels = model.GetModelClassLabels();
+    CB_ENSURE(
+        model.GetUsedCatFeaturesCount() == 0 || params.DatasetReadingParams.ColumnarPoolFormatParams.CdFilePath.Inited(),
+        "Model has categorical features. Specify column_description file with correct categorical features.");
+    params.DatasetReadingParams.ClassLabels = model.GetModelClassLabels();
 
     if (plotParams.EndIteration == 0) {
         plotParams.EndIteration = model.GetTreeCount();
@@ -161,25 +163,10 @@ int mode_eval_metrics(int argc, const char* argv[]) {
 
     TVector<TProcessedDataProvider> datasetParts;
     if (plotCalcer.HasAdditiveMetric()) {
-        ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](TDataProviderPtr datasetPart) {
-            auto processedDataProvider = CreateModelCompatibleProcessedDataProvider(
-                *datasetPart,
-                metricDescriptions,
-                model,
-                GetMonopolisticFreeCpuRam(),
-                &rand,
-                &executor);
-
-            plotCalcer.ProceedDataSetForAdditiveMetrics(processedDataProvider);
-            if (plotCalcer.HasNonAdditiveMetric() && !calcOnParts) {
-                datasetParts.push_back(std::move(processedDataProvider));
-            }
-        }, &executor);
-    }
-
-    if (plotCalcer.HasNonAdditiveMetric() && calcOnParts) {
-        while (!plotCalcer.AreAllIterationsProcessed()) {
-            ReadAndProceedPoolInBlocks(params, plotParams.ReadBlockSize, [&](TDataProviderPtr datasetPart) {
+        ReadAndProceedPoolInBlocks(
+            params.DatasetReadingParams,
+            plotParams.ReadBlockSize,
+            [&](TDataProviderPtr datasetPart) {
                 auto processedDataProvider = CreateModelCompatibleProcessedDataProvider(
                     *datasetPart,
                     metricDescriptions,
@@ -187,8 +174,31 @@ int mode_eval_metrics(int argc, const char* argv[]) {
                     GetMonopolisticFreeCpuRam(),
                     &rand,
                     &executor);
-                plotCalcer.ProceedDataSetForNonAdditiveMetrics(processedDataProvider);
-            }, &executor);
+
+                plotCalcer.ProceedDataSetForAdditiveMetrics(processedDataProvider);
+                if (plotCalcer.HasNonAdditiveMetric() && !calcOnParts) {
+                    datasetParts.push_back(std::move(processedDataProvider));
+                }
+            },
+            &executor);
+    }
+
+    if (plotCalcer.HasNonAdditiveMetric() && calcOnParts) {
+        while (!plotCalcer.AreAllIterationsProcessed()) {
+            ReadAndProceedPoolInBlocks(
+                params.DatasetReadingParams,
+                plotParams.ReadBlockSize,
+                [&](TDataProviderPtr datasetPart) {
+                    auto processedDataProvider = CreateModelCompatibleProcessedDataProvider(
+                        *datasetPart,
+                        metricDescriptions,
+                        model,
+                        GetMonopolisticFreeCpuRam(),
+                        &rand,
+                        &executor);
+                    plotCalcer.ProceedDataSetForNonAdditiveMetrics(processedDataProvider);
+                },
+                &executor);
             plotCalcer.FinishProceedDataSetForNonAdditiveMetrics();
         }
     }

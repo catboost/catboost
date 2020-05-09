@@ -6,6 +6,17 @@ NO_UTIL()
 NO_RUNTIME()
 NO_COMPILER_WARNINGS()
 
+IF (OS_WINDOWS)
+    CFLAGS(
+          -D_WIN32
+          -D_CONSOLE
+          -DWIN32_LEAN_AND_MEAN
+          -DNOMINMAX
+    )
+
+    ALLOCATOR(LF)  # by some reason f2c crashes on Windows with default allocator
+ENDIF()
+
 SRCDIR(
     contrib/tools/f2c/src
 )

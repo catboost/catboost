@@ -5,17 +5,18 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 #include <catboost/private/libs/options/analytical_mode_params.h>
+#include <catboost/private/libs/options/dataset_reading_params.h>
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/private/libs/options/enums.h>
 #include <catboost/private/libs/options/enum_helpers.h>
 #include <catboost/private/libs/options/output_file_options.h>
 #include <catboost/private/libs/options/plain_options_helper.h>
 
-#include <library/getopt/small/last_getopt_opts.h>
-#include <library/grid_creator/binarization.h>
-#include <library/json/json_reader.h>
+#include <library/cpp/getopt/small/last_getopt.h>
+#include <library/cpp/grid_creator/binarization.h>
+#include <library/cpp/json/json_reader.h>
 #include <library/logger/log.h>
-#include <library/text_processing/dictionary/options.h>
+#include <library/cpp/text_processing/dictionary/options.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/serialized_enum.h>
@@ -546,8 +547,7 @@ static void BindModelBasedEvalParams(NLastGetopt::TOpts* parserPtr, NJson::TJson
         .RequiredArgument("INDEXES[;INDEXES...]")
         .Help("Evaluate impact of each set of features on test error; each set is a comma-separated list of indices and index intervals, e.g. 4,78-89,312.")
         .Handler1T<TString>([plainJsonPtr](const TString& indicesLine) {
-            auto featuresToEvaluate = ParseIndexSetsLine(indicesLine);
-            NCatboostOptions::TJsonFieldHelper<TVector<TVector<int>>>::Write(featuresToEvaluate, &(*plainJsonPtr)["features_to_evaluate"]);
+            (*plainJsonPtr)["features_to_evaluate"] = indicesLine;
         });
     parser
         .AddLongOption("baseline-model-snapshot")
@@ -883,6 +883,38 @@ static void BindTreeParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* pla
         .Handler0([plainJsonPtr]() {
             (*plainJsonPtr)["dev_leafwise_approxes"] = true;
         });
+
+    parser
+        .AddLongOption("feature-weights")
+        .RequiredArgument("String")
+        .Help("Weights to multiply splits gain where specific feature is used. Possible formats: \"(1,0.5,10,1)\" or \"1:0.5,2:10\" or \"FeatureName1:0.5,FeatureName2:10\". Should be nonnegative.")
+        .Handler1T<TString>([plainJsonPtr](const TString& featureWeights) {
+            (*plainJsonPtr)["feature_weights"] = featureWeights;
+        });
+
+    parser
+        .AddLongOption("penalties-coefficient")
+        .RequiredArgument("Float")
+        .Help("Common coefficient for feature penalties. 1 by default. Should be nonnegative.")
+        .Handler1T<float>([plainJsonPtr](const float penaltiesCoefficient) {
+            (*plainJsonPtr)["penalties_coefficient"] = penaltiesCoefficient;
+        });
+
+    parser
+        .AddLongOption("first-feature-use-penalties")
+        .RequiredArgument("String")
+        .Help("Penalties for first use of feature in model. Possible formats: \"(0,0.5,10,0)\" or \"1:0.5,2:10\" or \"FeatureName1:0.5,FeatureName2:10\" Should be nonnegative.")
+        .Handler1T<TString>([plainJsonPtr](const TString& firstFeatureUsePenalty) {
+            (*plainJsonPtr)["first_feature_use_penalties"] = firstFeatureUsePenalty;
+        });
+
+    parser
+        .AddLongOption("per-object-feature-penalties")
+        .RequiredArgument("String")
+        .Help("Penalties for first use of feature for each object in model. Possible formats: \"(0,0.5,10,0)\" or \"1:0.5,2:10\" or \"FeatureName1:0.5,FeatureName2:10\" Should be nonnegative.")
+        .Handler1T<TString>([plainJsonPtr](const TString& perObjectFeaturePenalty) {
+            (*plainJsonPtr)["per_object_feature_penalties"] = perObjectFeaturePenalty;
+        });
 }
 
 static void BindCatFeatureParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonValue* plainJsonPtr) {
@@ -1208,7 +1240,7 @@ static void BindBinarizationParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonVa
           for (const auto& oneCtrConfig : StringSplitter(ctrDescriptionLine).Split(';').SkipEmpty()) {
               (*plainJsonPtr)["per_float_feature_quantization"].AppendValue(oneCtrConfig.Token());
           }
-          CB_ENSURE(!(*plainJsonPtr)["per_float_feature_quantization"].GetArray().empty(), "Empty perf float feature quantization settings " << ctrDescriptionLine);
+          CB_ENSURE(!(*plainJsonPtr)["per_float_feature_quantization"].GetArray().empty(), "Empty per float feature quantization settings " << ctrDescriptionLine);
       });
 
     const auto featureBorderTypeHelp = TString::Join(
@@ -1229,6 +1261,12 @@ static void BindBinarizationParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonVa
         .RequiredArgument("nan-mode")
         .Handler1T<ENanMode>([plainJsonPtr](const auto nanMode) {
             (*plainJsonPtr)["nan_mode"] = ToString(nanMode);
+        });
+
+    parser.AddLongOption("dev-max-subset-size-for-build-borders", "Maximum size of subset for build borders algorithm. Default: 200000")
+        .RequiredArgument("int")
+        .Handler1T<int>([plainJsonPtr](const int maxSubsetSizeForBuildBorders) {
+          (*plainJsonPtr)["dev_max_subset_size_for_build_borders"] = maxSubsetSizeForBuildBorders;
         });
 }
 

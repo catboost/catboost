@@ -5,7 +5,7 @@
 #include "make_fast_layout.h"
 #include "array_with_size.h"
 
-#include <library/containers/compact_vector/compact_vector.h>
+#include <library/cpp/containers/compact_vector/compact_vector.h>
 
 #include <util/memory/alloc.h>
 #include <util/memory/blob.h>

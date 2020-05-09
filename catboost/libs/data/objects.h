@@ -23,9 +23,9 @@
 
 #include <catboost/private/libs/options/binarization_options.h>
 
-#include <library/binsaver/bin_saver.h>
-#include <library/dbg_output/dump.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/binsaver/bin_saver.h>
+#include <library/cpp/dbg_output/dump.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/maybe.h>
@@ -340,7 +340,7 @@ namespace NCB {
     };
 
     // for use while building and storing this part in TQuantizedObjectsDataProvider
-    struct TQuantizedObjectsData {
+    struct TQuantizedObjectsData : public TMoveOnly {
     public:
         /* some feature holders can contain nullptr
          *  (ignored or this data provider contains only subset of features)
@@ -423,6 +423,10 @@ namespace NCB {
         bool HasDenseData() const override;
         bool HasSparseData() const override;
 
+        const TFeaturesArraySubsetIndexing& GetFeaturesArraySubsetIndexing() const {
+            return *CommonData.SubsetIndexing;
+        }
+
         /* can return nullptr if this feature is unavailable
          * (ignored or this data provider contains only subset of features)
          */
@@ -462,8 +466,7 @@ namespace NCB {
         TQuantizedObjectsData Data;
     };
 
-    using TQuantizedObjectsDataProviderPtr = TIntrusivePtr<TQuantizedObjectsDataProvider>;
-
+    
     void DbgDumpQuantizedFeatures(
         const TQuantizedObjectsDataProvider& quantizedObjectsDataProvider,
         IOutputStream* out
@@ -476,10 +479,10 @@ namespace NCB {
 
         TVector<TExclusiveFeaturesBundle> MetaData; // [bundleIdx]
 
-        /* supported TExclusiveFeatureBundleHolder types are TExclusiveFeatureBundleArrayHolder
+        /* supported TExclusiveFeatureBundleArrayHolder types are TExclusiveFeatureBundleArrayHolder
          * and TExclusiveFeatureBundleSparseArrayHolder
          */
-        TVector<THolder<TExclusiveFeatureBundleHolder>> SrcData; // [bundleIdx]
+        TVector<THolder<IExclusiveFeatureBundleArray>> SrcData; // [bundleIdx]
 
     public:
         TExclusiveFeatureBundlesData() = default;
@@ -508,7 +511,7 @@ namespace NCB {
     struct TFeatureGroupsData {
         TVector<TMaybe<TFeaturesGroupIndex>> FlatFeatureIndexToGroupPart;
         TVector<TFeaturesGroup> MetaData;
-        TVector<THolder<TFeaturesGroupHolder>> SrcData; // [groupIdx]
+        TVector<THolder<IFeaturesGroupArray>> SrcData; // [groupIdx]
 
     public:
         TFeatureGroupsData() = default;
@@ -539,8 +542,7 @@ namespace NCB {
         TVector<TMaybe<TPackedBinaryIndex>> FlatFeatureIndexToPackedBinaryIndex; // [flatFeatureIdx]
         TVector<TFeatureIdxWithType> PackedBinaryToSrcIndex; // [linearPackedBinaryIndex]
 
-        // supported TBinaryPacksHolder types are TBinaryPacksArrayHolder or TBinaryPacksSparseArrayHolder
-        TVector<THolder<TBinaryPacksHolder>> SrcData; // [packIdx][objectIdx][bitIdx]
+        TVector<THolder<IBinaryPacksArray>> SrcData; // [packIdx][objectIdx][bitIdx]
 
     public:
         TPackedBinaryFeaturesData() = default;
@@ -663,7 +665,7 @@ namespace NCB {
             return PackedBinaryFeaturesData.SrcData.size();
         }
 
-        const TBinaryPacksHolder& GetBinaryFeaturesPack(ui32 packIdx) const {
+        const IBinaryPacksArray& GetBinaryFeaturesPack(ui32 packIdx) const {
             return *(PackedBinaryFeaturesData.SrcData[packIdx]);
         }
 
@@ -692,6 +694,7 @@ namespace NCB {
             return PackedBinaryFeaturesData.PackedBinaryToSrcIndex[packedBinaryIndex.GetLinearIdx()];
         }
 
+        void CheckCPUTrainCompatibility() const;
 
         size_t GetExclusiveFeatureBundlesSize() const {
             return ExclusiveFeatureBundlesData.MetaData.size();
@@ -701,7 +704,7 @@ namespace NCB {
             return ExclusiveFeatureBundlesData.MetaData;
         }
 
-        const TExclusiveFeatureBundleHolder& GetExclusiveFeaturesBundle(ui32 bundleIdx) const {
+        const IExclusiveFeatureBundleArray& GetExclusiveFeaturesBundle(ui32 bundleIdx) const {
             return *ExclusiveFeatureBundlesData.SrcData[bundleIdx];
         }
 
@@ -740,7 +743,7 @@ namespace NCB {
             return FeaturesGroupsData.MetaData[groupIdx];
         }
 
-        const TFeaturesGroupHolder& GetFeaturesGroup(ui32 groupIdx) const {
+        const IFeaturesGroupArray& GetFeaturesGroup(ui32 groupIdx) const {
             return *FeaturesGroupsData.SrcData[groupIdx];
         }
 
@@ -758,11 +761,6 @@ namespace NCB {
             return FeaturesGroupsData.FlatFeatureIndexToGroupPart[flatFeatureIdx];
         }
 
-        /* binary packs and bundles in *this are compatible with rhs
-         * useful for low-level compatibility (for example when calculating hashes by packs/bundles)
-         */
-        bool IsPackingCompatibleWith(const TQuantizedForCPUObjectsDataProvider& rhs) const;
-
     protected:
         friend class TObjectsSerialization;
 
@@ -777,12 +775,6 @@ namespace NCB {
         }
 
     private:
-        void Check(
-            const TPackedBinaryFeaturesData& packedBinaryData,
-            const TExclusiveFeatureBundlesData& exclusiveFeatureBundlesData,
-            const TFeatureGroupsData& featuresGroupsData
-        ) const;
-
         void CheckFeatureIsNotInAggregated(
             EFeatureType featureType,
             const TStringBuf featureTypeName,
@@ -797,6 +789,9 @@ namespace NCB {
         // store directly instead of looking up in Data.QuantizedFeaturesInfo for runtime efficiency
         TVector<TCatFeatureUniqueValuesCounts> CatFeatureUniqueValuesCounts; // [catFeatureIdx]
     };
+
+    using TQuantizedObjectsDataProviderPtr = TIntrusivePtr<TQuantizedForCPUObjectsDataProvider>;
+    using TQuantizedForCPUObjectsDataProviderPtr = TIntrusivePtr<TQuantizedForCPUObjectsDataProvider>;
 
 
     // needed to make friends with TObjectsDataProvider s

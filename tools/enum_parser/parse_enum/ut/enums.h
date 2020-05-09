@@ -103,7 +103,7 @@ static inline void f() {
     (void)(f);
 }
 
-// buggy case taken from library/html/face/parstypes.h
+// buggy case taken from library/cpp/html/face/parstypes.h
 enum TEXT_WEIGHT {
     WEIGHT_ZERO=-1,// NOINDEX_RELEV
     WEIGHT_LOW,    // LOW_RELEV
@@ -176,6 +176,15 @@ enum ENonLiteralValues {
 enum EDestructionPriorityTest {
     first,
     second
+};
+
+
+enum class NotifyingStatus
+{
+    NEW = 0,
+    FAILED_WILL_RETRY = 1,
+    FAILED_NO_MORE_TRIALS = 2,
+    SENT = 3
 };
 
 /*

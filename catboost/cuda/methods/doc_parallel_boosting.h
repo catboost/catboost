@@ -19,7 +19,7 @@
 #include <catboost/private/libs/options/loss_description.h>
 #include <catboost/libs/overfitting_detector/overfitting_detector.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/stream/format.h>
 

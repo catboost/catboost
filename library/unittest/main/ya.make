@@ -3,12 +3,7 @@ LIBRARY()
 
 
 PEERDIR(
-    library/unittest
-    library/terminate_handler
-)
-
-SRCS(
-    main.cpp
+    library/cpp/unittest/main
 )
 
 END()

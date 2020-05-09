@@ -1,6 +1,6 @@
 #include "run_gpu_program.h"
 
-#include <library/threading/future/async.h>
+#include <library/cpp/threading/future/async.h>
 #include <util/thread/pool.h>
 
 void RunGpuProgram(std::function<void()> func) {

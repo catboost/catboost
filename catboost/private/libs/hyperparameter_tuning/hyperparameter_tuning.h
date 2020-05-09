@@ -6,7 +6,7 @@
 #include <catboost/private/libs/options/split_params.h>
 #include <catboost/libs/train_lib/cross_validation.h>
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/generic/hash.h>
 #include <util/generic/maybe.h>
@@ -37,6 +37,7 @@ namespace NCB {
         THashMap<TString, ui32> UIntOptions;
         THashMap<TString, double> DoubleOptions;
         THashMap<TString, TString> StringOptions;
+        THashMap<TString, TVector<double>> ListOfDoublesOptions;
     public:
         void SetOptionsFromJson(
             const THashMap<TString, NJson::TJsonValue>& options,
@@ -52,6 +53,7 @@ namespace NCB {
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         TDataProviderPtr data,
         TBestOptionValuesWithCvResult* bestOptionValuesWithCvResult,
+        TMetricsAndTimeLeftHistory* trainTestResult,
         bool isSearchUsingTrainTestSplit = true,
         bool returnCvStat = true,
         int verbose = 1);
@@ -67,6 +69,7 @@ namespace NCB {
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         TDataProviderPtr data,
         TBestOptionValuesWithCvResult* bestOptionValuesWithCvResult,
+        TMetricsAndTimeLeftHistory* trainTestResult,
         bool isSearchUsingTrainTestSplit = true,
         bool returnCvStat = true,
         int verbose = 1);

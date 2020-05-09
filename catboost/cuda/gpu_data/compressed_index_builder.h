@@ -7,12 +7,33 @@
 #include <catboost/cuda/cuda_util/helpers.h>
 #include <catboost/libs/helpers/cpu_random.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/fwd.h>
 #include <util/random/shuffle.h>
 
 namespace NCatboostCuda {
+    struct TDatasetPermutationOrderAndSubsetIndexing {
+        TVector<ui32> IndicesVec;
+        NCB::TFeaturesArraySubsetIndexing SubsetIndexing;
+        TMaybe<NCB::TFeaturesArraySubsetInvertedIndexing> InvertedSubsetIndexing;
+
+        static TAtomicSharedPtr<TDatasetPermutationOrderAndSubsetIndexing> ConstructShared(
+            const NCB::TFeaturesArraySubsetIndexing& featuresArraySubsetIndexing,
+            TVector<ui32>&& indicesVec
+        ) {
+            TVector<ui32> indicesCopy(indicesVec);
+            return MakeAtomicShared<TDatasetPermutationOrderAndSubsetIndexing>(
+                std::move(indicesCopy),
+                NCB::Compose(
+                    featuresArraySubsetIndexing,
+                    NCB::TFeaturesArraySubsetIndexing(std::move(indicesVec))
+                ),
+                Nothing()
+            );
+        }
+    };
+
     template <class TLayoutPolicy = TFeatureParallelLayout>
     class TSharedCompressedIndexBuilder: public TNonCopyable {
     public:
@@ -128,7 +149,7 @@ namespace NCatboostCuda {
                         const TDataSetDescription& description,
                         const TSamplesMapping& samplesMapping,
                         const TVector<ui32>& featureIds,
-                        TAtomicSharedPtr<TVector<ui32>> gatherIndices = nullptr) {
+                        TAtomicSharedPtr<TDatasetPermutationOrderAndSubsetIndexing> gatherIndices = nullptr) {
             CB_ENSURE(!IsWritingStage, "Can't add block after writing stage");
 
             const ui32 blockId = AddDataSetToCompressedIndex(featuresInfo,
@@ -148,70 +169,123 @@ namespace NCatboostCuda {
             return *this;
         }
 
-        template <class TBinType>
-        TSharedCompressedIndexBuilder& Write(const ui32 dataSetId,
-                                             const ui32 featureId,
-                                             const ui32 binCount,
-                                             TConstArrayRef<TBinType> bins) {
+        template <typename IQuantizedFeatureColumn, typename TValueProcessor = TIdentity>
+        TSharedCompressedIndexBuilder& Write(
+            const ui32 dataSetId,
+            const ui32 featureId,
+            const ui32 binCount,
+            IQuantizedFeatureColumn* quantizedFeatureColumn,
+            TValueProcessor&& valueProcessor = TIdentity()
+        ) {
             CB_ENSURE(IsWritingStage, "Error: prepare to write first");
             CB_ENSURE(dataSetId < GatherIndex.size(), "DataSet id is out of bounds: " << dataSetId << " "
                                                                                       << " total dataSets " << GatherIndex.size());
             auto& dataSet = *CompressedIndex.DataSets[dataSetId];
-
             const auto& docsMapping = dataSet.SamplesMapping;
-            const NCudaLib::TDistributedObject<TCFeature>& feature = dataSet.GetTCFeature(featureId);
-            CB_ENSURE(bins.size() == docsMapping.GetObjectsSlice().Size());
-            CB_ENSURE(binCount > 1, "Feature #" << featureId << " is empty");
-            if (binCount > 1) {
-                for (ui32 dev = 0; dev < feature.DeviceCount(); ++dev) {
-                    if (!feature.IsEmpty(dev)) {
-                        const ui32 folds = feature.At(dev).Folds;
-                        CB_ENSURE(binCount <= (folds + 1),
-                                  "There are #" << folds + 1 << " but need at least " << binCount
-                                                << " to store feature");
+            CB_ENSURE(quantizedFeatureColumn->GetSize() == docsMapping.GetObjectsSlice().Size());
+            CB_ENSURE(!SeenFeatures[dataSetId].contains(featureId), "Error: can't write feature twice");
+            THolder<IQuantizedFeatureColumn> reorderedColumn;
+            if (GatherIndex[dataSetId]) {
+                NCB::TCloningParams cloningParams;
+                cloningParams.SubsetIndexing = &GatherIndex[dataSetId]->SubsetIndexing;
+                if (quantizedFeatureColumn->IsSparse()) {
+                    if (!GatherIndex[dataSetId]->InvertedSubsetIndexing) {
+                        GatherIndex[dataSetId]->InvertedSubsetIndexing = NCB::GetInvertedIndexing(
+                            GatherIndex[dataSetId]->SubsetIndexing,
+                            GatherIndex[dataSetId]->SubsetIndexing.Size(),
+                            LocalExecutor
+                        );
                     }
+                    cloningParams.InvertedSubsetIndexing = GatherIndex[dataSetId]->InvertedSubsetIndexing.Get();
                 }
-                CB_ENSURE(!SeenFeatures[dataSetId].contains(featureId), "Error: can't write feature twice");
-
-                TVector<ui8> writeBins(bins.size());
-
-                if (GatherIndex[dataSetId]) {
-                    NPar::ParallelFor(*LocalExecutor, 0, bins.size(), [&](ui32 i) {
-                        writeBins[i] = bins[(*GatherIndex[dataSetId])[i]];
-                        Y_ASSERT(writeBins[i] <= binCount);
-                    });
-                } else {
-                    for (ui32 i = 0; i < bins.size(); ++i) {
-                        writeBins[i] = bins[i];
-                        Y_ASSERT(writeBins[i] <= binCount);
-                    }
-                }
-                //TODO(noxoomo): we could optimize this (for feature-parallel datasets)
-                // by async write (common machines have 2 pci root complex, so it could be almost 2 times faster)
-                // + some speedup on multi-host mode
-                TCudaFeaturesLayoutHelper<TLayoutPolicy>::WriteToCompressedIndex(feature,
-                                                                                 writeBins,
-                                                                                 dataSet.GetSamplesMapping(),
-                                                                                 &CompressedIndex.FlatStorage);
+                reorderedColumn = NCB::DynamicHolderCast<IQuantizedFeatureColumn>(
+                    quantizedFeatureColumn->CloneWithNewSubsetIndexing(
+                        cloningParams,
+                        LocalExecutor
+                    ),
+                    "Column feature type changed after cloning"
+                );
+                quantizedFeatureColumn = reorderedColumn.Get();
             }
-
-            SeenFeatures[dataSetId].insert(featureId);
+            TVector<ui8> writeBins;
+            writeBins.yresize(quantizedFeatureColumn->GetSize());
+            quantizedFeatureColumn->ParallelForEachBlock(
+                LocalExecutor,
+                [writeBinsPtr = writeBins.data(), valueProcessor = std::move(valueProcessor)] (size_t blockStartIdx, auto block) {
+                    auto writePtr = writeBinsPtr + blockStartIdx;
+                    for (auto i : xrange(block.size())) {
+                        writePtr[i] = valueProcessor(block[i]);
+                    }
+                },
+                4096 /*blockSize*/
+            );
+            WriteBinsVector(
+                dataSetId,
+                featureId,
+                binCount,
+                /*permute=*/ false,
+                writeBins
+            );
             return *this;
+        }
+
+        // TODO(kirillovs): figure out, why compilation without template fails here
+        template<typename TBinsVector>
+        void WriteBinsVector(
+            const ui32 dataSetId,
+            const ui32 featureId,
+            const ui32 binCount,
+            bool permute,
+            const TBinsVector& binsVector
+        ) {
+            auto& dataSet = *CompressedIndex.DataSets[dataSetId];
+            const NCudaLib::TDistributedObject<TCFeature>& feature = dataSet.GetTCFeature(featureId);
+
+            CB_ENSURE(binCount > 1, "Feature #" << featureId << " is empty");
+            for (ui32 dev = 0; dev < feature.DeviceCount(); ++dev) {
+                if (!feature.IsEmpty(dev)) {
+                    const ui32 folds = feature.At(dev).Folds;
+                    CB_ENSURE(folds == 0 || binCount <= (folds + 1),
+                                "There are #" << folds + 1 << " but need at least " << binCount
+                                            << " to store feature");
+                }
+            }
+            //TODO(noxoomo): we could optimize this (for feature-parallel datasets)
+            // by async write (common machines have 2 pci root complex, so it could be almost 2 times faster)
+            // + some speedup on multi-host mode
+            if (!permute || !GatherIndex[dataSetId]) {
+                TCudaFeaturesLayoutHelper<TLayoutPolicy>::WriteToCompressedIndex(
+                    feature,
+                    binsVector,
+                    dataSet.GetSamplesMapping(),
+                    &CompressedIndex.FlatStorage
+                );
+            } else {
+                TVector<ui8> permutedBins;
+                permutedBins.yresize(binsVector.size());
+                auto& permutation = GatherIndex[dataSetId]->IndicesVec;
+                Y_ASSERT(permutedBins.size() == permutation.size());
+                for (ui32 i : xrange(permutation.size())) {
+                    permutedBins[i] = binsVector[permutation[i]];
+                }
+                TCudaFeaturesLayoutHelper<TLayoutPolicy>::WriteToCompressedIndex(
+                    feature,
+                    permutedBins,
+                    dataSet.GetSamplesMapping(),
+                    &CompressedIndex.FlatStorage
+                );
+            }
+            SeenFeatures[dataSetId].insert(featureId);
         }
 
         void Finish() {
             CB_ENSURE(!BuildIsDone, "Build could be finished only once");
             CATBOOST_DEBUG_LOG << "Compressed index was written in " << (Now() - StartWrite).SecondsFloat() << " seconds" << Endl;
-
             const ui32 blockCount = SeenFeatures.size();
 
             for (ui32 dataSetId = 0; dataSetId < blockCount; ++dataSetId) {
                 auto& ds = *CompressedIndex.DataSets[dataSetId];
-                const TDataSetDescription& description = ds.Description;
                 ds.PrintInfo();
-                for (ui32 f : ds.GetFeatures()) {
-                    CB_ENSURE(SeenFeatures[dataSetId].count(f), "Unseen feature #" << f << " in dataset " << description.Name);
-                }
             }
 
             BuildIsDone = true;
@@ -224,7 +298,7 @@ namespace NCatboostCuda {
 
         TIndex& CompressedIndex;
         TVector<TSet<ui32>> SeenFeatures;
-        TVector<TAtomicSharedPtr<TVector<ui32>>> GatherIndex;
+        TVector<TAtomicSharedPtr<TDatasetPermutationOrderAndSubsetIndexing>> GatherIndex;
         NPar::TLocalExecutor* LocalExecutor;
     };
 

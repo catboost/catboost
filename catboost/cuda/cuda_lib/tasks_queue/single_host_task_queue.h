@@ -1,7 +1,7 @@
 #pragma once
 
 #include <catboost/cuda/cuda_lib/task.h>
-#include <library/threading/chunk_queue/queue.h>
+#include <library/cpp/threading/chunk_queue/queue.h>
 #include <util/datetime/base.h>
 #include <util/system/event.h>
 #include <util/system/yield.h>

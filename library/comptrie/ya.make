@@ -27,8 +27,8 @@ SRCS(
 
 PEERDIR(
     library/packers
-    library/containers/compact_vector
-    library/on_disk/chunks
+    library/cpp/containers/compact_vector
+    library/cpp/on_disk/chunks
     util/draft
 )
 

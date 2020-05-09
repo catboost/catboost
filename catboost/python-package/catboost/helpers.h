@@ -12,7 +12,7 @@
 #include <catboost/private/libs/target/data_providers.h>
 #include <catboost/libs/train_lib/options_helper.h>
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/generic/noncopyable.h>
 

@@ -6,7 +6,7 @@
 #include <util/stream/output.h>
 #include <util/system/yassert.h>
 
-#include <library/binsaver/bin_saver.h>
+#include <library/cpp/binsaver/bin_saver.h>
 
 // TODO(akhropov): move back to libs/helpers when circular dependencies with private/libs/data_types are resolved
 

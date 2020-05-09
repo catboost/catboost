@@ -3,8 +3,8 @@ PROGRAM()
 
 
 PEERDIR(
-    library/deprecated/split
-    library/getopt/small
+    library/cpp/deprecated/split
+    library/cpp/getopt/small
 )
 
 SRCS(

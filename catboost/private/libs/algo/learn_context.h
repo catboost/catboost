@@ -19,7 +19,7 @@
 #include <catboost/libs/model/target_classifier.h>
 #include <catboost/private/libs/options/catboost_options.h>
 
-#include <library/json/json_reader.h>
+#include <library/cpp/json/json_reader.h>
 
 #include <util/generic/noncopyable.h>
 #include <util/generic/hash_set.h>
@@ -28,6 +28,10 @@
 
 namespace NPar {
     class TLocalExecutor;
+}
+
+namespace NCatboostOptions {
+    struct TBinarizationOptions;
 }
 
 
@@ -74,6 +78,7 @@ struct TLearnProgress {
 
     TVector<TCatFeature> CatFeatures;
     TVector<TFloatFeature> FloatFeatures;
+    TVector<TTextFeature> TextFeatures;
 
     int ApproxDimension = 1;
     TLabelConverter LabelConverter;
@@ -103,12 +108,17 @@ struct TLearnProgress {
     ui32 SeparateInitModelCheckSum = 0;
 
     TRestorableFastRng64 Rand;
+
+    TVector<bool> UsedFeatures;
+    TMap<ui32, TVector<bool>> UsedFeaturesPerObject;
+
+    NCB::TCombinedEstimatedFeaturesContext EstimatedFeaturesContext;
 public:
     TLearnProgress();
     TLearnProgress(
         bool isForWorkerLocalData,
         bool isSingleHost,
-        const NCB::TTrainingForCPUDataProviders& data,
+        const NCB::TTrainingDataProviders& data,
         int approxDimension,
         const TLabelConverter& labelConverter, // unused if isForWorkerLocalData
         ui64 randomSeed,
@@ -118,6 +128,8 @@ public:
         const TVector<TTargetClassifier>& targetClassifiers,
         ui32 featuresCheckSum,
         ui32 foldCreationParamsCheckSum,
+        const NCatboostOptions::TBinarizationOptions& estimatedFeaturesQuantizationOptions,
+        const NCatboostOptions::TObliviousTreeLearnerOptions& trainOptions,
         TMaybe<TFullModel*> initModel,
         NCB::TDataProviders initModelApplyCompatiblePools,
         NPar::TLocalExecutor* localExecutor);
@@ -138,6 +150,8 @@ public:
     ui32 GetCurrentTrainingIterationCount() const;
     ui32 GetCompleteModelTreesSize() const; // includes init model size if it's a continuation training
     ui32 GetInitModelTreesSize() const;
+
+    NCB::TQuantizedEstimatedFeaturesInfo GetOnlineEstimatedFeaturesInfo() const;
 };
 
 class TCommonContext : public TNonCopyable {
@@ -179,7 +193,7 @@ public:
         const TMaybe<TCustomObjectiveDescriptor>& objectiveDescriptor,
         const TMaybe<TCustomMetricDescriptor>& evalMetricDescriptor,
         const NCatboostOptions::TOutputFilesOptions& outputOptions,
-        const NCB::TTrainingForCPUDataProviders& data,
+        const NCB::TTrainingDataProviders& data,
         const TLabelConverter& labelConverter,
         TMaybe<double> startingApprox,
         TMaybe<const TRestorableFastRng64*> initRand,
@@ -205,8 +219,6 @@ public:
     TCalcScoreFold SampledDocs;
     TBucketStatsCache PrevTreeLevelStats;
     TProfileInfo Profile;
-
-    bool LearnAndTestDataPackingAreCompatible;
 
 private:
     bool UseTreeLevelCachingFlag;

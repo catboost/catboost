@@ -6,7 +6,7 @@
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
 #include <catboost/libs/cat_feature/cat_feature.h>
 
-#include <library/sse/sse.h>
+#include <library/cpp/sse/sse.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/hash.h>
@@ -102,7 +102,7 @@ namespace NCB::NModelEvaluation {
             };
             if (UseNanSubstitution) {
                 for (size_t i = 0; i < 8; ++i) {
-                    if (IsNan(val[i])) {
+                    if (std::isnan(val[i])) {
                         val[i] = nanSubstitutionValue;
                     }
                 }
@@ -123,7 +123,7 @@ namespace NCB::NModelEvaluation {
         for (size_t docId = docCount8; docId < docCount; ++docId) {
             float val = floatAccessor(position, start + docId);
             if (UseNanSubstitution) {
-                if (IsNan(val)) {
+                if (std::isnan(val)) {
                     val = nanSubstitutionValue;
                 }
             }
@@ -240,7 +240,7 @@ namespace NCB::NModelEvaluation {
         for (size_t docId = docCount16; docId < docCount; ++docId) {
             float val = floatAccessor(position, start + docId);
             if (UseNanSubstitution) {
-                if (IsNan(val)) {
+                if (std::isnan(val)) {
                     val = nanSubstitutionValue;
                 }
             }

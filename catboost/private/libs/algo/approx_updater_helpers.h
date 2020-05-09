@@ -4,7 +4,7 @@
 
 #include <catboost/private/libs/algo_helpers/approx_updater_helpers.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/vector.h>
@@ -40,7 +40,7 @@ void UpdateAvrgApprox(
     ui32 learnSampleCount,
     const TVector<TIndexType>& indices,
     const TVector<TVector<double>>& treeDelta,
-    TConstArrayRef<NCB::TTrainingForCPUDataProviderPtr> testData, // can be empty
+    TConstArrayRef<NCB::TTrainingDataProviderPtr> testData, // can be empty
     TLearnProgress* learnProgress,
     NPar::TLocalExecutor* localExecutor
 );

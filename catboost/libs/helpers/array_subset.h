@@ -9,8 +9,8 @@
 
 #include <catboost/private/libs/index_range/index_range.h>
 
-#include <library/dbg_output/dump.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/dbg_output/dump.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
@@ -140,23 +140,25 @@ namespace NCB {
         }
 
 
-        inline TMaybe<TSize> Next() override {
+        inline bool Next(TSize* size) override {
             if (CurrentBlock == EndBlock) {
-                return IDynamicIterator<TSize>::END_VALUE;
+                return false;
             }
             if (CurrentIdx == EndIdx) {
                 ++CurrentBlock;
                 if (CurrentBlock == EndBlock) {
-                    return IDynamicIterator<TSize>::END_VALUE;
+                    return false;
                 } else if (CurrentBlock + 1 == EndBlock) {
                     EndIdx = CurrentBlock->SrcBegin + LastBlockInBlockEndIdx;
                 } else {
                     EndIdx = CurrentBlock->SrcEnd;
                 }
                 CurrentIdx = CurrentBlock->SrcBegin + 1;
-                return CurrentBlock->SrcBegin;
+                *size = CurrentBlock->SrcBegin;
+                return true;
             }
-            return CurrentIdx++;
+            *size = CurrentIdx++;
+            return true;
         }
 
     private:
@@ -200,19 +202,27 @@ namespace NCB {
         // default constructor is necessary for BinSaver serialization & Cython
         TArraySubsetIndexing()
             : TArraySubsetIndexing(TFullSubset<TSize>(0))
-        {}
+        {
+            ConsecutiveSubsetBeginCache = GetConsecutiveSubsetBeginImpl();
+        }
 
         explicit TArraySubsetIndexing(TFullSubset<TSize>&& subset)
             : TBase(std::move(subset))
-        {}
+        {
+            ConsecutiveSubsetBeginCache = GetConsecutiveSubsetBeginImpl();
+        }
 
         explicit TArraySubsetIndexing(TRangesSubset<TSize>&& subset)
             : TBase(std::move(subset))
-        {}
+        {
+            ConsecutiveSubsetBeginCache = GetConsecutiveSubsetBeginImpl();
+        }
 
         explicit TArraySubsetIndexing(TIndexedSubset<TSize>&& subset)
             : TBase(std::move(subset))
-        {}
+        {
+            ConsecutiveSubsetBeginCache = GetConsecutiveSubsetBeginImpl();
+        }
 
         friend bool operator ==(const TArraySubsetIndexing& a, const TArraySubsetIndexing& b) {
             return static_cast<const TBase&>(a) == static_cast<const TBase&>(b);
@@ -257,9 +267,11 @@ namespace NCB {
         decltype(auto) Get() const {
             return ::Get<T>((const TBase&)*this);
         }
-
-        // returns Nothing() if subset is not consecutive
         TMaybe<TSize> GetConsecutiveSubsetBegin() const {
+            return ConsecutiveSubsetBeginCache;
+        }
+        // returns Nothing() if subset is not consecutive
+        TMaybe<TSize> GetConsecutiveSubsetBeginImpl() const {
             switch (TBase::index()) {
                 case TVariantIndexV<TFullSubset<TSize>, TBase>:
                     return TSize(0);
@@ -291,28 +303,6 @@ namespace NCB {
                     }
             }
             return Nothing(); // just to silence compiler warnings
-        }
-
-        // assuming we've checked that subset is consecutive before
-        TSize GetConsecutiveSubsetBeginNonChecked() const {
-            switch (TBase::index()) {
-                case TVariantIndexV<TFullSubset<TSize>, TBase>:
-                    return TSize(0);
-                case TVariantIndexV<TRangesSubset<TSize>, TBase>:
-                    {
-                        const auto& blocks = Get<TRangesSubset<TSize>>().Blocks;
-                        return blocks[0].SrcBegin;
-                    }
-                case TVariantIndexV<TIndexedSubset<TSize>, TBase>:
-                    {
-                        TConstArrayRef<TSize> indices = Get<TIndexedSubset<TSize>>();
-                        if (indices.size() == 0) {
-                            return TSize(0);
-                        }
-                        return indices[0];
-                    }
-            }
-            Y_UNREACHABLE();
         }
 
         bool IsConsecutive() const {
@@ -576,6 +566,8 @@ namespace NCB {
                 NPar::TLocalExecutor::WAIT_COMPLETE
             );
         }
+    private:
+        TMaybe<TSize> ConsecutiveSubsetBeginCache;
     };
 
     template <class TS, class TSize>
@@ -872,6 +864,29 @@ namespace NCB {
     }
 
 
+    template <class TSize = size_t>
+    TArraySubsetIndexing<TSize> MakeIncrementalIndexing(
+        const TArraySubsetIndexing<TSize>& indexing,
+        NPar::TLocalExecutor* localExecutor
+    ) {
+        if (HoldsAlternative<TFullSubset<TSize>>(indexing)) {
+            return indexing;
+        } else {
+            TVector<TSize> indices;
+            indices.yresize(indexing.Size());
+            TArrayRef<TSize> indicesRef = indices;
+            indexing.ParallelForEach(
+                [=] (TSize objectIdx, TSize srcObjectIdx) {
+                  indicesRef[objectIdx] = srcObjectIdx;
+                },
+                localExecutor
+            );
+            Sort(indices);
+            return TArraySubsetIndexing<TSize>(std::move(indices));
+        }
+    }
+
+
     // TArrayLike must have O(1) random-access operator[].
     template <class TArrayLike, class TSize = size_t>
     class TArraySubset {
@@ -1054,23 +1069,28 @@ namespace NCB {
      *  SubsetIndexingIterator is a template parameter instead of IDynamicIteratorPtr to allow inlining
      *    for concrete iterator types to avoid double dynamic dispatch.
      */
-    template <class TDstValue, class TArrayLike, class TSubsetIndexingIterator>
+    template <class TDstValue, class TArrayLike, class TSubsetIndexingIterator, class TTransformer>
     class TArraySubsetBlockIterator final : public IDynamicBlockIterator<TDstValue> {
     public:
         TArraySubsetBlockIterator(
             TArrayLike src,
             size_t subsetSize,
-            TSubsetIndexingIterator&& subsetIndexingIterator)
+            TSubsetIndexingIterator&& subsetIndexingIterator,
+            TTransformer&& transformer
+        )
             : Src(std::move(src))
             , RemainingSize(subsetSize)
             , SubsetIndexingIterator(std::move(subsetIndexingIterator))
+            , Transformer(std::move(transformer))
         {}
 
         TConstArrayRef<TDstValue> Next(size_t maxBlockSize = Max<size_t>()) override {
             const size_t dstBlockSize = Min(maxBlockSize, RemainingSize);
             Buffer.yresize(dstBlockSize);
+            typename TSubsetIndexingIterator::value_type index;
             for (auto& dstElement : Buffer) {
-                dstElement = Src[*SubsetIndexingIterator.Next()];
+                SubsetIndexingIterator.Next(&index);
+                dstElement = Transformer(Src[index]);
             }
             RemainingSize -= dstBlockSize;
             return Buffer;
@@ -1081,8 +1101,65 @@ namespace NCB {
         size_t RemainingSize;
         TSubsetIndexingIterator SubsetIndexingIterator;
         TVector<TDstValue> Buffer;
+        TTransformer Transformer;
     };
 
+    template <class TDstValue, class TArrayLike, class TTransformer>
+    IDynamicBlockIteratorPtr<TDstValue> MakeTransformingArraySubsetBlockIterator(
+        const TArraySubsetIndexing<ui32>* subsetIndexing,
+        TArrayLike src,
+        ui32 offset,
+        TTransformer&& transformer
+    ) {
+        const ui32 size = subsetIndexing->Size();
+        const ui32 remainingSize = size - offset;
+
+        switch (subsetIndexing->index()) {
+            case TVariantIndexV<TFullSubset<ui32>, TArraySubsetIndexing<ui32>::TBase>:
+                return MakeHolder<
+                        TArraySubsetBlockIterator<TDstValue, TArrayLike, TRangeIterator<ui32>, TTransformer>
+                    >(
+                        std::move(src),
+                        remainingSize,
+                        TRangeIterator<ui32>(TIndexRange<ui32>(offset, size)),
+                        std::move(transformer)
+                    );
+            case TVariantIndexV<TRangesSubset<ui32>, TArraySubsetIndexing<ui32>::TBase>:
+                return MakeHolder<
+                        TArraySubsetBlockIterator<TDstValue, TArrayLike, TRangesSubsetIterator<ui32>, TTransformer>
+                    >(
+                        std::move(src),
+                        remainingSize,
+                        TRangesSubsetIterator<ui32>(subsetIndexing->Get<TRangesSubset<ui32>>(), offset),
+                        std::move(transformer)
+                    );
+            case TVariantIndexV<TIndexedSubset<ui32>, TArraySubsetIndexing<ui32>::TBase>:
+                {
+                    using TIterator = TStaticIteratorRangeAsDynamic<const ui32*>;
+
+                    const auto& indexedSubset = subsetIndexing->Get<TIndexedSubset<ui32>>();
+
+                    return MakeHolder<TArraySubsetBlockIterator<TDstValue, TArrayLike, TIterator, TTransformer>>(
+                        std::move(src),
+                        remainingSize,
+                        TIterator(indexedSubset.begin() + offset, indexedSubset.end()),
+                        std::move(transformer)
+                    );
+                }
+            default:
+                Y_UNREACHABLE();
+        }
+        Y_UNREACHABLE();
+    }
+
+    template <class TDstValue, class TArrayLike>
+    IDynamicBlockIteratorPtr<TDstValue> MakeArraySubsetBlockIterator(
+        const TArraySubsetIndexing<ui32>* subsetIndexing,
+        TArrayLike src,
+        ui32 offset
+    ) {
+        return MakeTransformingArraySubsetBlockIterator<TDstValue, TArrayLike, TIdentity>(subsetIndexing, src, offset, TIdentity());
+    }
 
     // index in dst data or NOT_PRESENT if not present in subset
     template <class TSize>

@@ -500,6 +500,7 @@ void CrossValidate(
     NJson::TJsonValue outputJsonParams;
     ConvertIgnoredFeaturesFromStringToIndices(trainingData.Get()->MetaInfo, &plainJsonParams);
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
+    ConvertParamsToCanonicalFormat(trainingData.Get()->MetaInfo, &jsonParams);
     NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
     NCatboostOptions::TOutputFilesOptions outputFileOptions;
     outputFileOptions.Load(outputJsonParams);
@@ -537,6 +538,7 @@ void CrossValidate(
     }
 
     UpdateYetiRankEvalMetric(trainingData->MetaInfo.TargetStats, Nothing(), &catBoostOptions);
+    UpdateSampleRateOption(allDataObjectCount, &catBoostOptions);
 
     InitializeEvalMetricIfNotSet(catBoostOptions.MetricOptions->ObjectiveMetric,
                                  &catBoostOptions.MetricOptions->EvalMetric);
@@ -848,6 +850,7 @@ void CrossValidate(
     NJson::TJsonValue outputJsonParams;
     ConvertIgnoredFeaturesFromStringToIndices(data.Get()->MetaInfo, &plainJsonParams);
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &jsonParams, &outputJsonParams);
+    ConvertParamsToCanonicalFormat(data.Get()->MetaInfo, &jsonParams);
     NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
     NCatboostOptions::TOutputFilesOptions outputFileOptions;
     outputFileOptions.Load(outputJsonParams);

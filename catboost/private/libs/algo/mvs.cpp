@@ -6,7 +6,7 @@
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/private/libs/options/restrictions.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/utility.h>
@@ -170,7 +170,7 @@ void TMvsSampler::GenSampleWeights(
         double lambda = GetLambda(derivatives, leafValues, localExecutor);
 
         NPar::TLocalExecutor::TExecRangeParams blockParams(0, SampleCount);
-        blockParams.SetBlockCount(CB_THREAD_LIMIT);
+        blockParams.SetBlockSize(BlockSize);
         const ui64 randSeed = rand->GenRand();
         localExecutor->ExecRange(
             [&](ui32 blockId) {

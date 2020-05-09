@@ -168,9 +168,10 @@ public:
         return doneBytes;
     }
 
-    static void Pipe(TRealPipeHandle& reader, TRealPipeHandle& writer) {
+    static void Pipe(TRealPipeHandle& reader, TRealPipeHandle& writer, EOpenMode mode) {
+        (void)mode;
         REALPIPEHANDLE fds[2];
-        if (!CreatePipe(&fds[0], &fds[1], nullptr, 0))
+        if (!CreatePipe(&fds[0], &fds[1], nullptr /* handles are not inherited */, 0))
             ythrow TFileError() << "failed to create a pipe";
         TRealPipeHandle(fds[0]).Swap(reader);
         TRealPipeHandle(fds[1]).Swap(writer);
@@ -248,8 +249,9 @@ private:
             if (ErrorPipeFd[1].IsOpen()) {
                 ErrorPipeFd[1].Close();
             }
-            if (InputPipeFd[1].IsOpen())
+            if (InputPipeFd[1].IsOpen()) {
                 InputPipeFd[0].Close();
+            }
         }
         void ReleaseParents() {
             InputPipeFd[1].Release();
@@ -732,13 +734,13 @@ void TShellCommand::TImpl::Run() {
     TPipes pipes;
 
     if (!InheritOutput) {
-        TRealPipeHandle::Pipe(pipes.OutputPipeFd[0], pipes.OutputPipeFd[1]);
+        TRealPipeHandle::Pipe(pipes.OutputPipeFd[0], pipes.OutputPipeFd[1], CloseOnExec);
     }
     if (!InheritError) {
-        TRealPipeHandle::Pipe(pipes.ErrorPipeFd[0], pipes.ErrorPipeFd[1]);
+        TRealPipeHandle::Pipe(pipes.ErrorPipeFd[0], pipes.ErrorPipeFd[1], CloseOnExec);
     }
     if (InputMode != TShellCommandOptions::HANDLE_INHERIT) {
-        TRealPipeHandle::Pipe(pipes.InputPipeFd[0], pipes.InputPipeFd[1]);
+        TRealPipeHandle::Pipe(pipes.InputPipeFd[0], pipes.InputPipeFd[1], CloseOnExec);
     }
 
     AtomicSet(ExecutionStatus, SHELL_RUNNING);

@@ -5,13 +5,13 @@
 #include "par_settings.h"
 #include "par_locked_hash.h"
 
-#include <library/digest/crc32c/crc32c.h>
+#include <library/cpp/digest/crc32c/crc32c.h>
 #include <library/neh/multiclient.h>
 #include <library/neh/neh.h>
 #include <library/neh/rpc.h>
 #include <library/netliba/v12/ib_low.h>
 #include <library/netliba/v12/udp_http.h>
-#include <library/threading/atomic/bool.h>
+#include <library/cpp/threading/atomic/bool.h>
 
 #include <util/generic/hash.h>
 #include <util/generic/strbuf.h>

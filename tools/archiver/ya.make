@@ -3,9 +3,9 @@ PROGRAM()
 
 
 PEERDIR(
-    library/archive
-    library/digest/md5
-    library/getopt/small
+    library/cpp/archive
+    library/cpp/digest/md5
+    library/cpp/getopt/small
 )
 
 SRCS(

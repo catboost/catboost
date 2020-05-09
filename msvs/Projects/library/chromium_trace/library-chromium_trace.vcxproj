@@ -131,23 +131,26 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\containers\stack_vector\library-containers-stack_vector.vcxproj">
-      <Project>{16887906-E366-16EA-B53A-A081633E4AB5}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\stack_vector\cpp-containers-stack_vector.vcxproj">
+      <Project>{F5DBE463-173C-4593-95C1-EC1430946913}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\json\common\library-json-common.vcxproj">
-      <Project>{3B322F11-1D2A-AEFE-BC14-4F74683E14DB}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\common\cpp-json-common.vcxproj">
+      <Project>{6330870F-DABE-D84D-BCA5-C0A181746B9E}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\json\fast_sax\library-json-fast_sax.vcxproj">
-      <Project>{8AAB2F9B-ECAA-2170-D871-1CEE27B498C2}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\fast_sax\cpp-json-fast_sax.vcxproj">
+      <Project>{24137F52-65C2-C6DA-9D73-32184D067E15}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\json\library-json.vcxproj">
-      <Project>{E633ADF4-A720-EDCB-A12B-52A8216FF956}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\library-cpp-json.vcxproj">
+      <Project>{F3B6F190-E921-1428-8D6C-A4428CC7654A}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\json\writer\library-json-writer.vcxproj">
-      <Project>{C27A0E65-4FDF-D0F0-5127-62A23E33B196}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\writer\cpp-json-writer.vcxproj">
+      <Project>{94F66460-BD28-7C46-313B-A5F2876E26F8}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\relaxed_escaper\library-string_utils-relaxed_escaper.vcxproj">
-      <Project>{91423FEC-8B3D-547B-2674-3740D83114B5}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\relaxed_escaper\cpp-string_utils-relaxed_escaper.vcxproj">
+      <Project>{81697B25-44BA-8BC7-5E66-2708E5669C60}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yson\library-cpp-yson.vcxproj">
+      <Project>{D05A14C5-BA93-7AA3-1AB8-E62B001110D1}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\yson\library-yson.vcxproj">
       <Project>{2779E1A2-0D5A-216D-65BF-CE9DF81108EF}</Project>

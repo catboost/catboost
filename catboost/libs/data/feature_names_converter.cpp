@@ -2,6 +2,7 @@
 
 #include <catboost/libs/column_description/cd_parser.h>
 #include <catboost/libs/helpers/exception.h>
+#include <catboost/private/libs/options/json_helper.h>
 
 #include <util/string/split.h>
 #include <util/string/type.h>
@@ -58,23 +59,43 @@ static bool IsArrayOfIntegers(const NJson::TJsonValue& ignoredFeaturesJson) {
     });
 }
 
+TMap<TString, ui32> MakeIndicesFromNames(const NCatboostOptions::TPoolLoadParams& poolLoadParams) {
+    TMap<TString, ui32> indicesFromNames;
+    if (poolLoadParams.ColumnarPoolFormatParams.CdFilePath.Inited()) {
+        const TVector<TColumn> columns = ReadCD(poolLoadParams.ColumnarPoolFormatParams.CdFilePath,
+                                                TCdParserDefaults(EColumn::Num));
+        ui32 featureIdx = 0;
+        for (const auto& column : columns) {
+            if (IsFactorColumn(column.Type)) {
+                if (!column.Id.empty()) {
+                    indicesFromNames[column.Id] = featureIdx;
+                }
+                featureIdx++;
+            }
+        }
+    }
+    return indicesFromNames;
+}
+
+TMap<TString, ui32> MakeIndicesFromNames(const NCB::TDataMetaInfo& metaInfo) {
+    TMap<TString, ui32> indicesFromNames;
+    ui32 columnIdx = 0;
+    for (const auto& columnInfo : metaInfo.FeaturesLayout->GetExternalFeaturesMetaInfo()) {
+        if (!columnInfo.Name.empty()) {
+            indicesFromNames[columnInfo.Name] = columnIdx;
+        }
+        columnIdx++;
+    }
+    return indicesFromNames;
+}
+
 static void ConvertStringsArrayIntoIndicesArray(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* ignoredFeaturesJson) {
     if (IsNumbersOrRangesConvert(*ignoredFeaturesJson)) {
         ConvertStringIndicesIntoIntegerIndices(ignoredFeaturesJson);
     } else {
         CB_ENSURE(!poolLoadParams.LearnSetPath.Scheme.Contains("quantized") || poolLoadParams.ColumnarPoolFormatParams.CdFilePath.Inited(),
                 "quatized pool without CD file doesn't support ignoring features by names");
-        const TVector<TColumn> columns = ReadCD(poolLoadParams.ColumnarPoolFormatParams.CdFilePath, TCdParserDefaults(EColumn::Num));
-        ui32 currentId = 0;
-        TMap<TString, ui32> indicesFromNames;
-        for (const auto& column : columns) {
-            if (IsFactorColumn(column.Type)) {
-                if (!column.Id.empty()) {
-                    indicesFromNames[column.Id] = currentId;
-                }
-                currentId++;
-            }
-        }
+        const auto& indicesFromNames = MakeIndicesFromNames(poolLoadParams);
         ConvertNamesIntoIndices(indicesFromNames, ignoredFeaturesJson);
     }
 }
@@ -111,24 +132,33 @@ void ConvertIgnoredFeaturesFromStringToIndices(const NCB::TDataMetaInfo& metaInf
     }
 }
 
-static void ConvertMonotoneConstraintsFromStringToIndices(const TMap<TString, ui32>& indicesFromNames, NJson::TJsonValue* treeOptions) {
+void ConvertPerFeatureOptionsFromStringToIndices(const TMap<TString, ui32>& indicesFromNames, NJson::TJsonValue* options) {
     if (indicesFromNames.empty()) {
         return;
     }
-    auto& constraintsRef = (*treeOptions)["monotone_constraints"];
-    Y_ASSERT(constraintsRef.GetType() == NJson::EJsonValueType::JSON_MAP);
-    bool needConvert = AnyOf(constraintsRef.GetMap(), [](auto element) {
+    auto& optionsRef = *options;
+    Y_ASSERT(optionsRef.GetType() == NJson::EJsonValueType::JSON_MAP);
+    bool needConvert = AnyOf(optionsRef.GetMap(), [](auto& element) {
         int index = 0;
         return !TryFromString(element.first, index);
     });
     if (needConvert) {
-        NJson::TJsonValue constraintsWithIndices(NJson::EJsonValueType::JSON_MAP);
-        for (const auto& [featureName, value] : constraintsRef.GetMap()) {
-            CB_ENSURE(indicesFromNames.contains(featureName), "Unknown feature name in monotone constraints: " << featureName);
-            constraintsWithIndices.InsertValue(ToString(indicesFromNames.at(featureName)), value);
+        NJson::TJsonValue optionsWithIndices(NJson::EJsonValueType::JSON_MAP);
+        for (const auto& [featureName, value] : optionsRef.GetMap()) {
+            auto it = indicesFromNames.find(featureName);
+            CB_ENSURE(it != indicesFromNames.end(), "Unknown feature name: " << featureName);
+            optionsWithIndices.InsertValue(ToString(it->second), value);
         }
-        constraintsRef.Swap(constraintsWithIndices);
+        optionsRef.Swap(optionsWithIndices);
     }
+}
+
+static inline void ConvertPerFeatureOptionsFromStringToIndices(const NCB::TDataMetaInfo& metaInfo, NJson::TJsonValue* options) {
+    ConvertPerFeatureOptionsFromStringToIndices(MakeIndicesFromNames(metaInfo), options);
+}
+
+static inline void ConvertPerFeatureOptionsFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* options) {
+    ConvertPerFeatureOptionsFromStringToIndices(MakeIndicesFromNames(poolLoadParams), options);
 }
 
 void ConvertMonotoneConstraintsFromStringToIndices(const NCB::TDataMetaInfo& metaInfo, NJson::TJsonValue* catBoostJsonOptions) {
@@ -137,15 +167,7 @@ void ConvertMonotoneConstraintsFromStringToIndices(const NCB::TDataMetaInfo& met
         return;
     }
 
-    TMap<TString, ui32> indicesFromNames;
-    ui32 columnIdx = 0;
-    for (const auto& columnInfo : metaInfo.FeaturesLayout->GetExternalFeaturesMetaInfo()) {
-        if (!columnInfo.Name.empty()) {
-            indicesFromNames[columnInfo.Name] = columnIdx;
-        }
-        columnIdx++;
-    }
-    ConvertMonotoneConstraintsFromStringToIndices(indicesFromNames, &treeOptions);
+    ConvertPerFeatureOptionsFromStringToIndices(metaInfo, &treeOptions["monotone_constraints"]);
 }
 
 void ConvertMonotoneConstraintsFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* catBoostJsonOptions) {
@@ -154,19 +176,40 @@ void ConvertMonotoneConstraintsFromStringToIndices(const NCatboostOptions::TPool
         return;
     }
 
-    TMap<TString, ui32> indicesFromNames;
-    if (poolLoadParams.ColumnarPoolFormatParams.CdFilePath.Inited()) {
-        const TVector<TColumn> columns = ReadCD(poolLoadParams.ColumnarPoolFormatParams.CdFilePath,
-                                                TCdParserDefaults(EColumn::Num));
-        ui32 featureIdx = 0;
-        for (const auto& column : columns) {
-            if (IsFactorColumn(column.Type)) {
-                if (!column.Id.empty()) {
-                    indicesFromNames[column.Id] = featureIdx;
+    ConvertPerFeatureOptionsFromStringToIndices(poolLoadParams, &treeOptions["monotone_constraints"]);
+}
+
+ui32 ConvertToIndex(const TString& nameOrIndex, const TMap<TString, ui32>& indicesFromNames) {
+    if (IsNumber(nameOrIndex)) {
+        return FromString<ui32>(nameOrIndex);
+    } else {
+        CB_ENSURE(
+            indicesFromNames.contains(nameOrIndex),
+            "String " + nameOrIndex + " is not a feature name");
+        return indicesFromNames.at(nameOrIndex);
+    }
+}
+
+void ConvertFeaturesToEvaluateFromStringToIndices(const NCatboostOptions::TPoolLoadParams& poolLoadParams, NJson::TJsonValue* catBoostJsonOptions) {
+    if (catBoostJsonOptions->Has("features_to_evaluate")) {
+        const auto& indicesFromNames = MakeIndicesFromNames(poolLoadParams);
+        const auto& featureNamesToEvaluate = (*catBoostJsonOptions)["features_to_evaluate"].GetString();
+        TVector<TVector<int>> featuresToEvaluate;
+        for (const auto& nameSet : StringSplitter(featureNamesToEvaluate).Split(';')) {
+            const TString nameSetAsString(nameSet);
+            featuresToEvaluate.emplace_back(TVector<int>{});
+            for (const auto& nameOrRange : StringSplitter(nameSetAsString).Split(',')) {
+                const TString nameOrRangeAsString(nameOrRange);
+                auto left = nameOrRangeAsString;
+                auto right = nameOrRangeAsString;
+                StringSplitter(nameOrRangeAsString).Split('-').TryCollectInto(&left, &right);
+                for (ui32 idx : xrange(ConvertToIndex(left, indicesFromNames), ConvertToIndex(right, indicesFromNames) + 1)) {
+                    featuresToEvaluate.back().emplace_back(idx);
                 }
-                featureIdx++;
             }
         }
+        NCatboostOptions::TJsonFieldHelper<TVector<TVector<int>>>::Write(
+            featuresToEvaluate,
+            &(*catBoostJsonOptions)["features_to_evaluate"]);
     }
-    ConvertMonotoneConstraintsFromStringToIndices(indicesFromNames, &treeOptions);
 }

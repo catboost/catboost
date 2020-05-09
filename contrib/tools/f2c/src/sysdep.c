@@ -23,7 +23,6 @@ use or performance of this software.
 #include "defs.h"
 #include "usignal.h"
 #include <stdlib.h>
-#include <unistd.h>
 
 char binread[] = "rb", textread[] = "r";
 char binwrite[] = "wb", textwrite[] = "w";

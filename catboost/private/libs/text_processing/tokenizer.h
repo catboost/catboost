@@ -2,7 +2,7 @@
 
 #include <catboost/libs/helpers/guid.h>
 
-#include <library/text_processing/tokenizer/tokenizer.h>
+#include <library/cpp/text_processing/tokenizer/tokenizer.h>
 
 namespace NCB {
 

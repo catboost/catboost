@@ -5,8 +5,8 @@
 #include <catboost/libs/helpers/checksum.h>
 #include <catboost/libs/helpers/exception.h>
 
-#include <library/binsaver/bin_saver.h>
-#include <library/dbg_output/dump.h>
+#include <library/cpp/binsaver/bin_saver.h>
+#include <library/cpp/dbg_output/dump.h>
 
 #include <util/folder/path.h>
 #include <util/generic/guid.h>
@@ -41,6 +41,16 @@ namespace NCB {
     inline ui32 UpdateCheckSumImpl(ui32 init, const TCatFeatureUniqueValuesCounts& data) {
         ui32 checkSum = UpdateCheckSum(init, data.OnLearnOnly);
         return UpdateCheckSum(checkSum, data.OnAll);
+    }
+
+    inline ui8 CalcHistogramWidthForUniqueValuesCount(ui32 count) {
+        if (count <= 1ULL << 8) {
+            return 8;
+        } else if (count <= 1ULL << 16) {
+            return 16;
+        } else { //TODO
+            return 32;
+        }
     }
 
     struct TValueWithCount {
@@ -168,9 +178,6 @@ namespace NCB {
         ~TCatFeaturesPerfectHash() = default;
 
         bool operator==(const TCatFeaturesPerfectHash& rhs) const;
-
-        // *this contains a superset of mapping in rhs
-        bool IsSupersetOf(const TCatFeaturesPerfectHash& rhs) const;
 
         const TCatFeaturePerfectHash& GetFeaturePerfectHash(const TCatFeatureIdx catFeatureIdx) const {
             CheckHasFeature(catFeatureIdx);

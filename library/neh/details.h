@@ -3,7 +3,7 @@
 #include "neh.h"
 #include <library/neh/utils.h>
 
-#include <library/http/io/headers.h>
+#include <library/cpp/http/io/headers.h>
 
 #include <util/generic/singleton.h>
 #include <util/system/atomic.h>

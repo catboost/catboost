@@ -2,7 +2,7 @@
 
 #include <catboost/libs/model/split.h>
 
-#include <library/binsaver/bin_saver.h>
+#include <library/cpp/binsaver/bin_saver.h>
 
 #include <util/digest/multi.h>
 #include <util/generic/algorithm.h>

@@ -246,7 +246,7 @@ namespace NCB {
                             {
                                 const ui32 catFeatureIdx = featuresLayout.GetInternalFeatureIdx(featureIdx);
                                 catFeatureIndices.push_back(catFeatureIdx);
-                                catFeatureValues.push_back(visitor->GetCatFeatureValue(featureIdx, right));
+                                catFeatureValues.push_back(visitor->GetCatFeatureValue(lineIdx, featureIdx, right));
                             } else {
                                 const TFloatFeatureIdx floatFeatureIdx
                                     = featuresLayout.GetExpandingInternalFeatureIdx<EFeatureType::Float>(

@@ -5,10 +5,10 @@
 
 #include <catboost/libs/logging/logging.h>
 
-#include <library/json/json_value.h>
-#include <library/getopt/small/last_getopt.h>
-#include <library/threading/local_executor/local_executor.h>
-#include <library/threading/future/async.h>
+#include <library/cpp/json/json_value.h>
+#include <library/cpp/getopt/small/last_getopt.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/future/async.h>
 
 #include <util/system/info.h>
 #include <util/generic/algorithm.h>

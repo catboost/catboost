@@ -7,9 +7,9 @@
 #include "smart_ptr.h"
 #include "utils.h"
 
-#include <library/http/push_parser/http_parser.h>
-#include <library/http/misc/httpcodes.h>
-#include <library/http/misc/parsed_request.h>
+#include <library/cpp/http/push_parser/http_parser.h>
+#include <library/cpp/http/misc/httpcodes.h>
+#include <library/cpp/http/misc/parsed_request.h>
 #include <library/neh/asio/executor.h>
 
 #include <util/generic/singleton.h>
@@ -102,6 +102,7 @@ bool THttp2Options::FullHeadersAsErrorMessage = false;
 bool THttp2Options::ErrorDetailsAsResponseBody = false;
 bool THttp2Options::RedirectionNotError = false;
 bool THttp2Options::TcpKeepAlive = false;
+i32 THttp2Options::LimitRequestsPerConnection = -1;
 
 bool THttp2Options::Set(TStringBuf name, TStringBuf value) {
 #define HTTP2_TRY_SET(optType, optName)       \
@@ -112,7 +113,7 @@ bool THttp2Options::Set(TStringBuf name, TStringBuf value) {
     HTTP2_TRY_SET(TDuration, ConnectTimeout)
     else HTTP2_TRY_SET(TDuration, InputDeadline)
     else HTTP2_TRY_SET(TDuration, OutputDeadline)
-    else HTTP2_TRY_SET(TDuration, SymptomSlowConnect) else HTTP2_TRY_SET(size_t, InputBufferSize) else HTTP2_TRY_SET(bool, KeepInputBufferForCachedConnections) else HTTP2_TRY_SET(size_t, AsioThreads) else HTTP2_TRY_SET(size_t, AsioServerThreads) else HTTP2_TRY_SET(bool, EnsureSendingCompleteByAck) else HTTP2_TRY_SET(int, Backlog) else HTTP2_TRY_SET(TDuration, ServerInputDeadline) else HTTP2_TRY_SET(TDuration, ServerOutputDeadline) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMax) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMin) else HTTP2_TRY_SET(bool, ServerUseDirectWrite) else HTTP2_TRY_SET(bool, UseResponseAsErrorMessage) else HTTP2_TRY_SET(bool, FullHeadersAsErrorMessage) else HTTP2_TRY_SET(bool, ErrorDetailsAsResponseBody) else HTTP2_TRY_SET(bool, RedirectionNotError) else HTTP2_TRY_SET(bool, TcpKeepAlive) else {
+    else HTTP2_TRY_SET(TDuration, SymptomSlowConnect) else HTTP2_TRY_SET(size_t, InputBufferSize) else HTTP2_TRY_SET(bool, KeepInputBufferForCachedConnections) else HTTP2_TRY_SET(size_t, AsioThreads) else HTTP2_TRY_SET(size_t, AsioServerThreads) else HTTP2_TRY_SET(bool, EnsureSendingCompleteByAck) else HTTP2_TRY_SET(int, Backlog) else HTTP2_TRY_SET(TDuration, ServerInputDeadline) else HTTP2_TRY_SET(TDuration, ServerOutputDeadline) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMax) else HTTP2_TRY_SET(TDuration, ServerInputDeadlineKeepAliveMin) else HTTP2_TRY_SET(bool, ServerUseDirectWrite) else HTTP2_TRY_SET(bool, UseResponseAsErrorMessage) else HTTP2_TRY_SET(bool, FullHeadersAsErrorMessage) else HTTP2_TRY_SET(bool, ErrorDetailsAsResponseBody) else HTTP2_TRY_SET(bool, RedirectionNotError) else HTTP2_TRY_SET(bool, TcpKeepAlive) else HTTP2_TRY_SET(i32, LimitRequestsPerConnection) else {
         return false;
     }
     return true;
@@ -1474,6 +1475,7 @@ namespace {
                 , BuffSize_(THttp2Options::InputBufferSize)
                 , Buff_(new char[BuffSize_])
                 , Canceled_(false)
+                , LeftRequestsToDisconnect_(hs.LimitRequestsPerConnection)
             {
                 DBGOUT("THttpServer::TConn()");
                 HS_.OnCreateConn();
@@ -1529,7 +1531,7 @@ namespace {
                     size_t buffPos = 0;
                     //DBGOUT("receive and parse: " << TStringBuf(Buff_.Get(), amount));
                     while (P_->Parse(Buff_.Get() + buffPos, amount - buffPos)) {
-                        SeenMessageWithoutKeepalive_ |= !P_->IsKeepAlive();
+                        SeenMessageWithoutKeepalive_ |= !P_->IsKeepAlive() || LeftRequestsToDisconnect_ == 1;
                         char rt = *P_->FirstLine().data();
                         const size_t extraDataSize = P_->GetExtraDataSize();
                         if (rt == 'P' || rt == 'p') {
@@ -1562,6 +1564,14 @@ namespace {
                     AtomicSet(PrimaryResponse_, r->Id());
                 }
                 HS_.OnRequest(r);
+                OnRequestDone();
+            }
+
+            void OnRequestDone() {
+                DBGOUT("OnRequestDone()");
+                if (LeftRequestsToDisconnect_ > 0) {
+                    --LeftRequestsToDisconnect_;
+                }
             }
 
             static void PrintHttpVersion(IOutputStream& out, const THttpVersion& ver) {
@@ -1585,7 +1595,7 @@ namespace {
             void Send(TAtomicBase requestId, TData& data, const TString& compressionScheme, const THttpVersion& ver, const TString& headers, int httpCode) {
                 class THttpResponseFormatter {
                 public:
-                    THttpResponseFormatter(TData& theData, const TString& contentEncoding, const THttpVersion& theVer, const TString& theHeaders, int theHttpCode) {
+                    THttpResponseFormatter(TData& theData, const TString& contentEncoding, const THttpVersion& theVer, const TString& theHeaders, int theHttpCode, bool closeConnection) {
                         Header.Reserve(128 + contentEncoding.size() + theHeaders.size());
                         PrintHttpVersion(Header, theVer);
                         Header << AsStringBuf(" ") << HttpCodeStrEx(theHttpCode);
@@ -1593,7 +1603,9 @@ namespace {
                             Header << AsStringBuf("\r\nContent-Encoding: ") << contentEncoding;
                         }
                         Header << AsStringBuf("\r\nContent-Length: ") << theData.size();
-                        if (Y_LIKELY(theVer.Major > 1 || theVer.Minor > 0)) {
+                        if (closeConnection) {
+                            Header << AsStringBuf("\r\nConnection: close");
+                        } else if (Y_LIKELY(theVer.Major > 1 || theVer.Minor > 0)) {
                             // since HTTP/1.1 Keep-Alive is default behaviour
                             Header << AsStringBuf("\r\nConnection: Keep-Alive");
                         }
@@ -1617,8 +1629,8 @@ namespace {
 
                 class TBuffers: public THttpResponseFormatter, public TTcpSocket::IBuffers {
                 public:
-                    TBuffers(TData& theData, const TString& contentEncoding, const THttpVersion& theVer, const TString& theHeaders, int theHttpCode)
-                        : THttpResponseFormatter(theData, contentEncoding, theVer, theHeaders, theHttpCode)
+                    TBuffers(TData& theData, const TString& contentEncoding, const THttpVersion& theVer, const TString& theHeaders, int theHttpCode, bool closeConnection)
+                        : THttpResponseFormatter(theData, contentEncoding, theVer, theHeaders, theHttpCode, closeConnection)
                         , IOVec(Parts, 2)
                     {
                     }
@@ -1630,7 +1642,7 @@ namespace {
                     TContIOVector IOVec;
                 };
 
-                TTcpSocket::TSendedData sd(new TBuffers(data, compressionScheme, ver, headers, httpCode));
+                TTcpSocket::TSendedData sd(new TBuffers(data, compressionScheme, ver, headers, httpCode, SeenMessageWithoutKeepalive_));
                 SendData(requestId, sd);
             }
 
@@ -1642,7 +1654,7 @@ namespace {
 
                 class THttpErrorResponseFormatter {
                 public:
-                    THttpErrorResponseFormatter(unsigned theHttpCode, const TString& theDescr, const THttpVersion& theVer) {
+                    THttpErrorResponseFormatter(unsigned theHttpCode, const TString& theDescr, const THttpVersion& theVer, bool closeConnection) {
                         PrintHttpVersion(Answer, theVer);
                         Answer << AsStringBuf(" ") << theHttpCode << AsStringBuf(" ");
                         if (theDescr.size() && !THttp2Options::ErrorDetailsAsResponseBody) {
@@ -1665,6 +1677,10 @@ namespace {
                             Answer << HttpCodeStr(static_cast<int>(theHttpCode));
                         }
 
+                        if (closeConnection) {
+                            Answer << AsStringBuf("\r\nConnection: close");
+                        }
+
                         if (THttp2Options::ErrorDetailsAsResponseBody) {
                             Answer << AsStringBuf("\r\nContent-Length:") << theDescr.size() << "\r\n\r\n" << theDescr;
                         } else {
@@ -1682,8 +1698,8 @@ namespace {
 
                 class TBuffers: public THttpErrorResponseFormatter, public TTcpSocket::IBuffers {
                 public:
-                    TBuffers(unsigned theHttpCode, const TString& theDescr, const THttpVersion& theVer)
-                        : THttpErrorResponseFormatter(theHttpCode, theDescr, theVer)
+                    TBuffers(unsigned theHttpCode, const TString& theDescr, const THttpVersion& theVer, bool closeConnection)
+                        : THttpErrorResponseFormatter(theHttpCode, theDescr, theVer, closeConnection)
                         , IOVec(Parts, 1)
                     {
                     }
@@ -1695,7 +1711,7 @@ namespace {
                     TContIOVector IOVec;
                 };
 
-                TTcpSocket::TSendedData sd(new TBuffers(httpCode, descr, ver));
+                TTcpSocket::TSendedData sd(new TBuffers(httpCode, descr, ver, SeenMessageWithoutKeepalive_));
                 SendData(requestId, sd);
             }
 
@@ -1801,6 +1817,8 @@ namespace {
 
             TAtomicBool Canceled_;
             bool SeenMessageWithoutKeepalive_ = false;
+
+            i32 LeftRequestsToDisconnect_ = -1;
         };
 
         ///////////////////////////////////////////////////////////
@@ -1809,6 +1827,7 @@ namespace {
         THttpServer(IOnRequest* cb, const TParsedLocation& loc)
             : E_(THttp2Options::AsioServerThreads)
             , CB_(cb)
+            , LimitRequestsPerConnection(THttp2Options::LimitRequestsPerConnection)
         {
             TNetworkAddress addr(loc.GetPort());
 
@@ -1906,6 +1925,9 @@ namespace {
         TVector<TTcpAcceptorPtr> A_;
         TExecutorsPool E_;
         IOnRequest* CB_;
+
+    public:
+        const i32 LimitRequestsPerConnection;
     };
 
     template <class T>

@@ -10,8 +10,8 @@ PEERDIR(
     contrib/libs/onnx
     contrib/libs/protobuf
     contrib/libs/pugixml
-    library/getopt/small
-    library/string_utils/ztstrbuf
+    library/cpp/getopt/small
+    library/cpp/string_utils/ztstrbuf
 )
 
 SRCS(

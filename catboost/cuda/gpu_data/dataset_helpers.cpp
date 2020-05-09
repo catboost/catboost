@@ -126,6 +126,10 @@ TVector<ui32> NCatboostCuda::GetLearnFeatureIds(NCatboostCuda::TBinarizedFeature
 
     auto estimatedFeatures = featuresManager.GetEstimatedFeatureIds();
     featureIdsSet.insert(estimatedFeatures.begin(), estimatedFeatures.end());
+
+    auto featureBundleIds = featuresManager.GetExclusiveFeatureBundleIds();
+    featureIdsSet.insert(featureBundleIds.begin(), featureBundleIds.end());
+
     return TVector<ui32>(featureIdsSet.begin(), featureIdsSet.end());
 }
 

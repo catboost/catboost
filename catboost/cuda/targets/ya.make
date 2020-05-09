@@ -4,6 +4,7 @@ LIBRARY()
 
 SRCS(
     auc.cpp
+    combination_targets_impl.cpp
     gpu_metrics.cpp
     kernel/dcg.cu
     kernel/multilogit.cu
@@ -36,7 +37,7 @@ PEERDIR(
     catboost/libs/logging
     catboost/libs/metrics
     catboost/private/libs/options
-    library/threading/local_executor
+    library/cpp/threading/local_executor
 )
 
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)

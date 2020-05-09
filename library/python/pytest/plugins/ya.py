@@ -38,29 +38,7 @@ yatest_logger = logging.getLogger("ya.test")
 
 
 _pytest.main.EXIT_NOTESTSCOLLECTED = 0
-COVERAGE_INSTANCE = [0]
-COVERAGE_ENV_NAME = 'PYTHON_COVERAGE_PREFIX'
 SHUTDOWN_REQUESTED = False
-
-# Start coverage collection as soon as possible to avoid missing coverage for modules imported from plugins
-if COVERAGE_ENV_NAME in os.environ:
-    try:
-        import coverage
-    except ImportError:
-        coverage = None
-        logging.exception("Failed to import coverage module - no coverage will be collected")
-
-    if coverage:
-        cov = coverage.Coverage(
-            data_file=os.environ.get(COVERAGE_ENV_NAME),
-            concurrency=['multiprocessing', 'thread'],
-            auto_data=True,
-            branch=True,
-            # debug=['pid', 'trace', 'sys', 'config'],
-        )
-        cov.start()
-        COVERAGE_INSTANCE[0] = cov
-        logging.info("Coverage will be collected during testing. pid: %d", os.getpid())
 
 
 def to_str(s):
@@ -110,6 +88,31 @@ class YaTestLoggingFileHandler(logging.FileHandler):
     pass
 
 
+class _TokenFilterFormatter(logging.Formatter):
+    def __init__(self, fmt):
+        super(_TokenFilterFormatter, self).__init__(fmt)
+        self._replacements = []
+        if not self._replacements:
+            if six.PY2:
+                for k, v in os.environ.iteritems():
+                    if k.endswith('TOKEN') and v:
+                        self._replacements.append(v)
+            elif six.PY3:
+                for k, v in os.environ.items():
+                    if k.endswith('TOKEN') and v:
+                        self._replacements.append(v)
+            self._replacements = sorted(self._replacements)
+
+    def _filter(self, s):
+        for r in self._replacements:
+            s = s.replace(r, "[SECRET]")
+
+        return s
+
+    def format(self, record):
+        return self._filter(super(_TokenFilterFormatter, self).format(record))
+
+
 def setup_logging(log_path, level=logging.DEBUG, *other_logs):
     logs = [log_path] + list(other_logs)
     root_logger = logging.getLogger()
@@ -120,7 +123,7 @@ def setup_logging(log_path, level=logging.DEBUG, *other_logs):
     for log_file in logs:
         file_handler = YaTestLoggingFileHandler(log_file)
         log_format = '%(asctime)s - %(levelname)s - %(name)s - %(funcName)s: %(message)s'
-        file_handler.setFormatter(logging.Formatter(log_format))
+        file_handler.setFormatter(_TokenFilterFormatter(log_format))
         file_handler.setLevel(level)
         root_logger.addHandler(file_handler)
 
@@ -161,6 +164,7 @@ def pytest_addoption(parser):
     parser.addoption("--report-deselected", action="store_true", dest="report_deselected", default=False, help="report deselected tests to the trace file")
     parser.addoption("--pdb-on-sigusr1", action="store_true", default=False, help="setup pdb.set_trace on SIGUSR1")
     parser.addoption("--test-tool-bin", help="Path to test_tool")
+    parser.addoption("--test-list-path", dest="test_list_path", action="store", help="path to test list", default="")
 
 
 def pytest_configure(config):
@@ -219,11 +223,6 @@ def pytest_configure(config):
             if envvar + '_ORIGINAL' in os.environ:
                 os.environ[envvar] = os.environ[envvar + '_ORIGINAL']
 
-    config.coverage = None
-    if COVERAGE_INSTANCE[0]:
-        cov_prefix = os.environ[COVERAGE_ENV_NAME]
-        config.coverage_data_dir = os.path.dirname(cov_prefix)
-
     if config.option.root_dir:
         config.rootdir = config.invocation_dir = py.path.local(config.option.root_dir)
 
@@ -253,8 +252,11 @@ def pytest_configure(config):
 
 
 def _smooth_shutdown(*args):
-    if COVERAGE_INSTANCE[0]:
-        COVERAGE_INSTANCE[0].stop()
+    try:
+        import library.python.coverage
+        library.python.coverage.stop_coverage_tracing()
+    except ImportError:
+        pass
     pytest.exit("Smooth shutdown requested")
 
 
@@ -371,35 +373,53 @@ def pytest_collection_modifyitems(items, config):
         config.hook.pytest_deselected(items=deselected_items)
         items[:] = filtered_items
 
+    def filter_by_full_name(filters):
+        filter_set = {flt for flt in filters}
+        filtered_items = []
+        deselected_items = []
+        for item in items:
+            if item.nodeid in filter_set:
+                filtered_items.append(item)
+            else:
+                deselected_items.append(item)
+
+        config.hook.pytest_deselected(items=deselected_items)
+        items[:] = filtered_items
+
     # XXX - check to be removed when tests for peerdirs don't run
     for item in items:
         if not item.nodeid:
             item._nodeid = os.path.basename(item.location[0])
-
-    if config.option.test_filter:
-        filter_items(config.option.test_filter)
-    partition_mode = config.option.partition_mode
-    modulo = config.option.modulo
-    if modulo > 1:
-        items[:] = sorted(items, key=lambda item: item.nodeid)
-        modulo_index = config.option.modulo_index
-        split_by_tests = config.option.split_by_tests
-        items_by_classes = {}
-        res = []
-        for item in items:
-            if item.nodeid.count("::") == 2 and not split_by_tests:
-                class_name = item.nodeid.rsplit("::", 1)[0]
-                if class_name not in items_by_classes:
-                    items_by_classes[class_name] = []
-                    res.append(items_by_classes[class_name])
-                items_by_classes[class_name].append(item)
-            else:
-                res.append([item])
-        chunk_items = test_splitter.get_splitted_tests(res, modulo, modulo_index, partition_mode, is_sorted=True)
-        items[:] = []
-        for item in chunk_items:
-            items.extend(item)
-        yatest_logger.info("Modulo %s tests are: %s", modulo_index, chunk_items)
+    if os.path.exists(config.option.test_list_path):
+        with open(config.option.test_list_path, 'r') as afile:
+            chunks = json.load(afile)
+            filters = chunks[config.option.modulo_index]
+            filter_by_full_name(filters)
+    else:
+        if config.option.test_filter:
+            filter_items(config.option.test_filter)
+        partition_mode = config.option.partition_mode
+        modulo = config.option.modulo
+        if modulo > 1:
+            items[:] = sorted(items, key=lambda item: item.nodeid)
+            modulo_index = config.option.modulo_index
+            split_by_tests = config.option.split_by_tests
+            items_by_classes = {}
+            res = []
+            for item in items:
+                if item.nodeid.count("::") == 2 and not split_by_tests:
+                    class_name = item.nodeid.rsplit("::", 1)[0]
+                    if class_name not in items_by_classes:
+                        items_by_classes[class_name] = []
+                        res.append(items_by_classes[class_name])
+                    items_by_classes[class_name].append(item)
+                else:
+                    res.append([item])
+            chunk_items = test_splitter.get_splitted_tests(res, modulo, modulo_index, partition_mode, is_sorted=True)
+            items[:] = []
+            for item in chunk_items:
+                items.extend(item)
+            yatest_logger.info("Modulo %s tests are: %s", modulo_index, chunk_items)
 
     if config.option.mode == RunMode.Run:
         for item in items:
@@ -482,6 +502,7 @@ def pytest_runtest_makereport(item, call):
 
     def logreport(report, result):
         test_item = TestItem(report, result, pytest.config.option.test_suffix)
+        pytest.config.ya_trace_reporter.on_log_report(test_item)
         if report.when == "call":
             _collect_test_rusage(item)
             pytest.config.ya_trace_reporter.on_finish_test_case(test_item)
@@ -496,6 +517,8 @@ def pytest_runtest_makereport(item, call):
             if report.outcome == "failed":
                 pytest.config.ya_trace_reporter.on_start_test_case(test_item)
                 pytest.config.ya_trace_reporter.on_finish_test_case(test_item)
+            else:
+                pytest.config.ya_trace_reporter.on_finish_test_case(test_item, duration_only=True)
             pytest.config.ya_trace_reporter.on_finish_test_class(test_item)
 
     rep = makereport(item, call)
@@ -708,6 +731,8 @@ class TraceReportGenerator(object):
 
     def __init__(self, out_file_path):
         self.File = open(out_file_path, 'w')
+        self._test_messages = {}
+        self._test_duration = {}
 
     def on_start_test_class(self, test_item):
         pytest.config.ya.set_test_item_node_id(test_item.nodeid)
@@ -727,7 +752,7 @@ class TraceReportGenerator(object):
         pytest.config.ya.set_test_item_node_id(test_item.nodeid)
         self.trace('subtest-started', message)
 
-    def on_finish_test_case(self, test_item):
+    def on_finish_test_case(self, test_item, duration_only=False):
         if test_item.result is not None:
             try:
                 result = canon.serialize(test_item.result)
@@ -738,23 +763,38 @@ class TraceReportGenerator(object):
                 result = None
         else:
             result = None
-        message = {
-            'class': yatest_lib.tools.to_utf8(test_item.class_name),
-            'subtest': yatest_lib.tools.to_utf8(test_item.test_name),
-            'status': test_item.status,
-            'comment': self._get_comment(test_item),
-            'time': test_item.duration,
-            'result': result,
-            'metrics': pytest.config.test_metrics.get(test_item.nodeid),
-            'is_diff_test': 'diff_test' in test_item.keywords,
-            'tags': _get_item_tags(test_item),
-        }
-        if test_item.nodeid in pytest.config.test_logs:
-            message['logs'] = pytest.config.test_logs[test_item.nodeid]
+
+        if duration_only and test_item.nodeid in self._test_messages:  # add teardown time
+            message = self._test_messages[test_item.nodeid]
+        else:
+            comment = self._test_messages[test_item.nodeid]['comment'] if test_item.nodeid in self._test_messages else ''
+            comment += self._get_comment(test_item)
+            message = {
+                'class': yatest_lib.tools.to_utf8(test_item.class_name),
+                'subtest': yatest_lib.tools.to_utf8(test_item.test_name),
+                'status': test_item.status,
+                'comment': comment,
+                'result': result,
+                'metrics': pytest.config.test_metrics.get(test_item.nodeid),
+                'is_diff_test': 'diff_test' in test_item.keywords,
+                'tags': _get_item_tags(test_item),
+            }
+            if test_item.nodeid in pytest.config.test_logs:
+                message['logs'] = pytest.config.test_logs[test_item.nodeid]
+
+        message['time'] = self._test_duration.get(test_item.nodeid, test_item.duration)
+
         self.trace('subtest-finished', message)
+        self._test_messages[test_item.nodeid] = message
 
     def on_error(self, test_item):
         self.trace('suite_event', {"errors": [(test_item.status, self._get_comment(test_item))]})
+
+    def on_log_report(self, test_item):
+        if test_item.nodeid in self._test_duration:
+            self._test_duration[test_item.nodeid] += test_item._duration
+        else:
+            self._test_duration[test_item.nodeid] = test_item._duration
 
     @staticmethod
     def _get_comment(test_item):
@@ -780,7 +820,8 @@ class DryTraceReportGenerator(TraceReportGenerator):
     """
 
     def __init__(self, *args, **kwargs):
-        pass
+        self._test_messages = {}
+        self._test_duration = {}
 
     def trace(self, name, value):
         pass

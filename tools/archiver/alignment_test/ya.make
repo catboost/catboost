@@ -20,7 +20,7 @@ ARCHIVE(
 
 
 PEERDIR(
-    library/archive
+    library/cpp/archive
 )
 
 

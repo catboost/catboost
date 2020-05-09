@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/digest/crc32c/crc32c.h>
+#include <library/cpp/digest/crc32c/crc32c.h>
 
 // Threadsafe
 inline ui64 CalcChecksum(const void* p, int size) {

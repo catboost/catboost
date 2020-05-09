@@ -13,7 +13,7 @@ static void UpdateAvrgApprox(
     ui32 learnSampleCount,
     const TVector<TIndexType>& indices,
     const TVector<TVector<double>>& treeDelta,
-    TConstArrayRef<TTrainingForCPUDataProviderPtr> testData, // can be empty
+    TConstArrayRef<TTrainingDataProviderPtr> testData, // can be empty
     TLearnProgress* learnProgress,
     NPar::TLocalExecutor* localExecutor
 ) {
@@ -76,7 +76,7 @@ void UpdateAvrgApprox(
     ui32 learnSampleCount,
     const TVector<TIndexType>& indices,
     const TVector<TVector<double>>& treeDelta,
-    TConstArrayRef<TTrainingForCPUDataProviderPtr> testData, // can be empty
+    TConstArrayRef<TTrainingDataProviderPtr> testData, // can be empty
     TLearnProgress* learnProgress,
     NPar::TLocalExecutor* localExecutor
 ) {

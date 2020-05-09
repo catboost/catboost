@@ -72,11 +72,11 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
                 if (FeaturesManager.IsFloat(split.FeatureId)) {
                     const auto floatFeatureIdx = DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(split.FeatureId);
                     auto& valuesHolder = **(DataProvider.ObjectsData->GetFloatFeature(*floatFeatureIdx));
-                    updateKeys(valuesHolder.ExtractValues(&NPar::LocalExecutor()));
+                    updateKeys(valuesHolder.ExtractValues<ui16>(&NPar::LocalExecutor()));
                 } else if (FeaturesManager.IsCat(split.FeatureId)) {
                     const auto catFeatureIdx = DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(split.FeatureId);
                     auto& valuesHolder = **(DataProvider.ObjectsData->GetCatFeature(*catFeatureIdx));
-                    updateKeys(valuesHolder.ExtractValues(&NPar::LocalExecutor()));
+                    updateKeys(valuesHolder.ExtractValues<ui32>(&NPar::LocalExecutor()));
                 }
                 ++shift;
             }
@@ -87,11 +87,11 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
 
                 const auto catFeatureIdx = DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(featureId);
                 auto& valuesHolder = **(DataProvider.ObjectsData->GetCatFeature(*catFeatureIdx));
-                NCB::TMaybeOwningArrayHolder<ui32> splitBins = valuesHolder.ExtractValues(&NPar::LocalExecutor());
+                TVector<ui32> splitBins = valuesHolder.ExtractValues<ui32>(&NPar::LocalExecutor());
                 binarization = DataProvider.ObjectsData->GetQuantizedFeaturesInfo()->GetUniqueValuesCounts(catFeatureIdx).OnAll;
                 const ui32 bits = NCB::IntLog2(binarization);
                 for (ui32 i = 0; i < sampleCount; ++i) {
-                    keys[i] |= static_cast<ui64>((*splitBins)[i]) << shift;
+                    keys[i] |= static_cast<ui64>(splitBins[i]) << shift;
                 }
                 shift += bits;
                 CB_ENSURE(shift < 64);
@@ -114,14 +114,14 @@ Y_UNIT_TEST_SUITE(BinBuilderTest) {
             if (FeaturesManager.IsFloat(split.FeatureId)) {
                 const auto floatFeatureIdx = DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Float>(split.FeatureId);
                 auto& valuesHolder = **(DataProvider.ObjectsData->GetFloatFeature(*floatFeatureIdx));
-                auto featureBins = valuesHolder.ExtractValues(&NPar::LocalExecutor());
+                auto featureBins = valuesHolder.ExtractValues<ui16>(&NPar::LocalExecutor());
                 for (ui32 i = 0; i < bins.size(); ++i) {
                     bins[i] |= (featureBins[i] > split.BinIdx) << depth;
                 }
             } else if (FeaturesManager.IsCat(split.FeatureId)) {
                 const auto catFeatureIdx = DataProvider.MetaInfo.FeaturesLayout->GetInternalFeatureIdx<EFeatureType::Categorical>(split.FeatureId);
                 auto& valuesHolder = **(DataProvider.ObjectsData->GetCatFeature(*catFeatureIdx));
-                auto featureBins = valuesHolder.ExtractValues(&NPar::LocalExecutor());
+                auto featureBins = valuesHolder.ExtractValues<ui32>(&NPar::LocalExecutor());
                 for (ui32 i = 0; i < bins.size(); ++i) {
                     bins[i] |= (featureBins[i] == split.BinIdx) << depth;
                 }

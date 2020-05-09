@@ -21,6 +21,14 @@ void compile_test_unsigned() {
     static_assert(57_TB == 57_GB * 1024, "Wrong 57TB value");
     static_assert(1023_TB == 1023_GB * 1024, "Wrong 1023TB value");
 
+    static_assert(1_PB == 1_TB * 1024, "Wrong 1PB value");
+    static_assert(9_PB == 9_TB * 1024, "Wrong 9PB value");
+    static_assert(42_PB == 42_TB * 1024, "Wrong 42PB value");
+    static_assert(1023_PB == 1023_TB * 1024, "Wrong 1023PB value");
+
+    static_assert(1_EB == 1_PB * 1024, "Wrong 1EB value");
+    static_assert(9_EB == 9_PB * 1024, "Wrong 9EB value");
+
     static_assert(9000000_TB == 9000000_GB * 1024, "Wrong 9000000TB value");
 }
 
@@ -44,6 +52,14 @@ void compile_test_signed() {
     static_assert(9_TBs == 9_GBs * 1024, "Wrong 9TBs value");
     static_assert(57_TBs == 57_GBs * 1024, "Wrong 57TBs value");
     static_assert(1023_TBs == 1023_GBs * 1024, "Wrong 1023TBs value");
+
+    static_assert(1_PBs == 1_TBs * 1024, "Wrong 1PBs value");
+    static_assert(9_PBs == 9_TBs * 1024, "Wrong 9PBs value");
+    static_assert(42_PBs == 42_TBs * 1024, "Wrong 42PBs value");
+    static_assert(1023_PBs == 1023_TBs * 1024, "Wrong 1023PBs value");
+
+    static_assert(1_EBs == 1_PBs * 1024, "Wrong 1EBs value");
+    static_assert(7_EBs == 7_PBs * 1024, "Wrong 7EBs value");
 
     static_assert(8388607_TBs == 8388607_GBs * 1024, "Wrong 8388607TBs value"); // 2**23 - 1 TB
 

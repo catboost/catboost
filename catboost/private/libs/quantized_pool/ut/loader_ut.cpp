@@ -11,7 +11,7 @@
 
 #include <contrib/libs/flatbuffers/include/flatbuffers/flatbuffers.h>
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/generic/xrange.h>
 #include <util/memory/blob.h>

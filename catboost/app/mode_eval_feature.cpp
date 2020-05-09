@@ -10,7 +10,7 @@
 #include <catboost/libs/train_lib/eval_feature.h>
 #include <catboost/libs/data/feature_names_converter.h>
 
-#include <library/json/json_reader.h>
+#include <library/cpp/json/json_reader.h>
 
 #include <util/generic/ptr.h>
 
@@ -42,7 +42,7 @@ int mode_eval_feature(int argc, const char* argv[]) {
 
     ConvertIgnoredFeaturesFromStringToIndices(poolLoadParams, &catBoostFlatJsonOptions);
     NCatboostOptions::PlainJsonToOptions(catBoostFlatJsonOptions, &catBoostJsonOptions, &outputOptionsJson);
-
+    ConvertParamsToCanonicalFormat(poolLoadParams, &catBoostJsonOptions);
     CopyIgnoredFeaturesToPoolParams(catBoostJsonOptions, &poolLoadParams);
 
     const auto taskType = NCatboostOptions::GetTaskType(catBoostJsonOptions);

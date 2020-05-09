@@ -27,7 +27,8 @@ namespace {
         IsPairwise                     = 1 << 5,
 
         /* various */
-        IsUserDefined                  = 1 << 6
+        IsUserDefined                  = 1 << 6,
+        IsCombination                  = 1 << 7
     };
 
     using EMetricAttributes = TFlags<EMetricAttribute>;
@@ -48,6 +49,7 @@ namespace {
                       || HasFlags(EMetricAttribute::IsGroupwise)
                       || HasFlags(EMetricAttribute::IsPairwise)
                       || HasFlags(EMetricAttribute::IsUserDefined)
+                      || HasFlags(EMetricAttribute::IsCombination)
                       || HasFlags(EMetricAttribute::IsMultiRegression),
                       "no type (regression, classification, ranking) for [" + ToString(loss) + "]");
         }
@@ -63,6 +65,7 @@ namespace {
                       || HasFlags(EMetricAttribute::IsGroupwise)
                       || HasFlags(EMetricAttribute::IsPairwise)
                       || HasFlags(EMetricAttribute::IsUserDefined)
+                      || HasFlags(EMetricAttribute::IsCombination)
                       || HasFlags(EMetricAttribute::IsMultiRegression),
                       "no type (regression, classification, ranking) for [" + ToString(loss) + "]");
         }
@@ -209,7 +212,13 @@ MakeRegister(LossInfos,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsGroupwise
     ),
+    RankingRegistree(StochasticRank, ERankingType::Order,
+        EMetricAttribute::IsGroupwise
+    ),
     Registree(PythonUserDefinedPerObject,
+        EMetricAttribute::IsUserDefined
+    ),
+    Registree(PythonUserDefinedMultiRegression,
         EMetricAttribute::IsUserDefined
     ),
     Registree(UserPerObjMetric,
@@ -228,6 +237,10 @@ MakeRegister(LossInfos,
         EMetricAttribute::IsRegression
     ),
     Registree(AUC,
+        EMetricAttribute::IsBinaryClassCompatible
+        | EMetricAttribute::IsMultiClassCompatible
+    ),
+    Registree(PRAUC,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsMultiClassCompatible
     ),
@@ -291,6 +304,9 @@ MakeRegister(LossInfos,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsMultiClassCompatible
     ),
+    Registree(Combination,
+        EMetricAttribute::IsCombination
+    ),
     RankingRegistree(PairAccuracy, ERankingType::CrossEntropy,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsGroupwise
@@ -331,6 +347,9 @@ MakeRegister(LossInfos,
     RankingRegistree(FilteredDCG, ERankingType::Order,
         EMetricAttribute::IsBinaryClassCompatible
         | EMetricAttribute::IsGroupwise
+    ),
+    Registree(Tweedie,
+        EMetricAttribute::IsRegression
     )
 )
 
@@ -419,11 +438,13 @@ static const TVector<ELossFunction> RegressionObjectives = {
     ELossFunction::MAPE,
     ELossFunction::Poisson,
     ELossFunction::Lq,
-    ELossFunction::Huber
+    ELossFunction::Huber,
+    ELossFunction::Tweedie
 };
 
 static const TVector<ELossFunction> MultiRegressionObjectives = {
-    ELossFunction::MultiRMSE
+    ELossFunction::MultiRMSE,
+    ELossFunction::PythonUserDefinedMultiRegression
 };
 
 static const TVector<ELossFunction> ClassificationObjectives = {
@@ -442,8 +463,10 @@ static const TVector<ELossFunction> RankingObjectives = {
     ELossFunction::QuerySoftMax,
     ELossFunction::QueryCrossEntropy,
     ELossFunction::StochasticFilter,
+    ELossFunction::StochasticRank,
     ELossFunction::UserPerObjMetric,
-    ELossFunction::UserQuerywiseMetric
+    ELossFunction::UserQuerywiseMetric,
+    ELossFunction::Combination
 };
 
 static const TVector<ELossFunction> Objectives = []() {

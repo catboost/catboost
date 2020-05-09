@@ -5,7 +5,7 @@
 #include <catboost/libs/data/loader.h> // for IsMissingValue
 #include <catboost/libs/helpers/exception.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>
@@ -50,7 +50,7 @@ namespace NCB {
             size_t i = 0;
             (*floatSequence)->ForEach(
                 [resultRef, &i] (float value) {
-                    CB_ENSURE(!IsNan(value), "NaN values are not supported for target");
+                    CB_ENSURE(!std::isnan(value), "NaN values are not supported for target");
                     resultRef[i++] = value;
                 }
             );
@@ -391,7 +391,7 @@ namespace NCB {
 
             THashSet<float> uniqueLabelsSet;
             for (float value : targets) {
-                CB_ENSURE(!IsNan(value), "NaN values are not supported for target");
+                CB_ENSURE(!std::isnan(value), "NaN values are not supported for target");
                 uniqueLabelsSet.insert(value);
             }
 

@@ -2,6 +2,8 @@
 
 #include <catboost/libs/helpers/exception.h>
 
+#include <library/cpp/getopt/small/last_getopt.h>
+
 #include <util/generic/strbuf.h>
 #include <util/generic/serialized_enum.h>
 #include <util/string/split.h>
@@ -19,56 +21,16 @@ TString NCB::BuildModelFormatHelpMessage() {
 }
 
 void NCB::TAnalyticalModeCommonParams::BindParserOpts(NLastGetopt::TOpts& parser) {
-    BindColumnarPoolFormatParams(&parser, &ColumnarPoolFormatParams);
+    DatasetReadingParams.BindParserOpts(&parser);
     BindModelFileParams(&parser, &ModelFileName, &ModelFormat);
-    parser.AddLongOption("input-path", "input path")
-        .DefaultValue("input.tsv")
-        .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
-            InputPath = TPathWithScheme(pathWithScheme, "dsv");
-        });
     parser.AddLongOption('o', "output-path", "output result path")
         .DefaultValue("output.tsv")
         .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
             OutputPath = TPathWithScheme(pathWithScheme, "dsv");
         });
-    parser.AddLongOption("input-pairs", "PATH")
-        .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
-            PairsFilePath = TPathWithScheme(pathWithScheme, "dsv");
-        });
-    parser.AddLongOption("feature-names-path", "PATH")
-        .Handler1T<TStringBuf>([&](const TStringBuf& pathWithScheme) {
-            FeatureNamesPath = TPathWithScheme(pathWithScheme, "dsv");
-        });
 
     parser.AddLongOption('T', "thread-count", "worker thread count (default: core count)")
         .StoreResult(&ThreadCount);
-}
-
-void NCB::BindColumnarPoolFormatParams(
-    NLastGetopt::TOpts* parser,
-    NCatboostOptions::TColumnarPoolFormatParams* columnarPoolFormatParams) {
-
-    parser->AddLongOption("column-description", "[for columnar formats] column description file path")
-        .AddLongName("cd")
-        .RequiredArgument("[SCHEME://]PATH")
-        .Handler1T<TStringBuf>([columnarPoolFormatParams](const TStringBuf& str) {
-            columnarPoolFormatParams->CdFilePath = TPathWithScheme(str, "file");
-        });
-
-    parser->AddLongOption("delimiter",
-        "[for dsv format] Learning and training sets delimiter (single char, '<tab>' by default)")
-        .RequiredArgument("SYMBOL")
-        .Handler1T<TString>([columnarPoolFormatParams](const TString& oneChar) {
-            CB_ENSURE(oneChar.size() == 1, "only single char delimiters supported");
-            columnarPoolFormatParams->DsvFormat.Delimiter = oneChar[0];
-        });
-
-    parser->AddLongOption("has-header", "[for dsv format] Read first line as header")
-        .NoArgument()
-        .StoreValue(&columnarPoolFormatParams->DsvFormat.HasHeader, true);
-    parser->AddLongOption("ignore-csv-quoting")
-        .NoArgument()
-        .StoreValue(&columnarPoolFormatParams->DsvFormat.IgnoreCsvQuoting, true);
 }
 
 void NCB::BindModelFileParams(NLastGetopt::TOpts* parser, TString* modelFileName, EModelType* modelFormat) {

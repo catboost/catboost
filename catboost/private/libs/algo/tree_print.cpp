@@ -116,6 +116,9 @@ TString BuildDescription(const NCB::TFeaturesLayout& layout, const TSplitCandida
         result << " type" << (int)feature.Ctr.CtrIdx;
     } else if (feature.Type == ESplitType::FloatFeature) {
         result << BuildFeatureDescription(layout, feature.FeatureIdx, EFeatureType::Float);
+    } else if (feature.Type == ESplitType::EstimatedFeature) {
+        result << "estimated_" << (feature.IsOnlineEstimatedFeature ? "online" : "offline")
+            << "_feature " << feature.FeatureIdx;
     } else {
         Y_ASSERT(feature.Type == ESplitType::OneHotFeature);
         result << BuildFeatureDescription(layout, feature.FeatureIdx, EFeatureType::Categorical);
@@ -129,7 +132,7 @@ TString BuildDescription(const NCB::TFeaturesLayout& layout, const TSplit& featu
 
     if (feature.Type == ESplitType::OnlineCtr) {
         result << ", border=" << feature.BinBorder;
-    } else if (feature.Type == ESplitType::FloatFeature) {
+    } else if ((feature.Type == ESplitType::FloatFeature) || (feature.Type == ESplitType::EstimatedFeature)) {
         result << ", bin=" << feature.BinBorder;
     } else {
         Y_ASSERT(feature.Type == ESplitType::OneHotFeature);
@@ -168,6 +171,7 @@ TString BuildDescription(const NCB::TFeaturesLayout& layout, const TModelSplit& 
     return result;
 }
 
+// utility function for python_package/catboost/core.py plot_tree function
 TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, size_t treeIdx, const NCB::TDataProviderPtr pool) {
     CB_ENSURE(treeIdx < model.GetTreeCount(),
         "Requested tree splits description for tree " << treeIdx << ", but model has " << model.GetTreeCount());
@@ -203,7 +207,8 @@ TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, size_t treeI
 
         if (binFeature.Type == ESplitType::OneHotFeature) {
             CB_ENSURE(pool,
-                "Model has one hot features. Need training dataset to get correct split descriptions");
+                "Please pass training dataset to plot_tree function, "
+                "training dataset is required if categorical features are present in the model.");
             featureDescription += catFeaturesHash[(ui32)binFeature.OneHotFeature.Value];
         }
 

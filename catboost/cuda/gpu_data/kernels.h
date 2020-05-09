@@ -7,7 +7,7 @@
 #include <catboost/cuda/cuda_util/compression_helpers_gpu.h>
 #include <catboost/private/libs/options/binarization_options.h>
 
-#include <library/grid_creator/binarization.h>
+#include <library/cpp/grid_creator/binarization.h>
 
 namespace NKernelHost {
     class TFindBordersKernel: public TStatelessKernel {

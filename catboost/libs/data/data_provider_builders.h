@@ -8,7 +8,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/sparse_array.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/ptr.h>
 
@@ -46,7 +46,6 @@ namespace NCB {
 
     struct TDataProviderBuilderOptions {
         bool CpuCompatibleFormat = true;
-        bool GpuCompatibleFormat = true;
         bool GpuDistributedFormat = false;
         TPathWithScheme PoolPath = TPathWithScheme();
         ui64 MaxCpuRamUsage = Max<ui64>();

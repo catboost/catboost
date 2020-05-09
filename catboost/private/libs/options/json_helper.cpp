@@ -1,7 +1,7 @@
 #include "json_helper.h"
 
-#include <library/json/json_reader.h>
-#include <library/json/json_writer.h>
+#include <library/cpp/json/json_reader.h>
+#include <library/cpp/json/json_writer.h>
 
 #include <util/stream/str.h>
 
@@ -22,4 +22,8 @@ TString WriteTJsonValue(const NJson::TJsonValue& jsonValue) {
         jsonWriter.Write(jsonValue);
     }
     return out.Str();
+}
+
+void FromJson(const NJson::TJsonValue& value, TString* result) {
+    *result = value.GetString();
 }

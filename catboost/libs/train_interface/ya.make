@@ -22,9 +22,9 @@ PEERDIR(
     catboost/private/libs/options
     catboost/private/libs/target
     catboost/libs/train_lib
-    library/grid_creator
-    library/threading/local_executor
-    library/json
+    library/cpp/grid_creator
+    library/cpp/threading/local_executor
+    library/cpp/json
     library/logger
 )
 

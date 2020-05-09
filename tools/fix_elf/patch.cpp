@@ -1,6 +1,6 @@
 #include "patch.h"
 
-#include <library/getopt/last_getopt.h>
+#include <library/cpp/getopt/last_getopt.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/hash.h>

@@ -50,10 +50,15 @@ class Platform(object):
         self.is_x86_64 = self.arch in ('x86_64', 'amd64')
         self.is_intel = self.is_x86 or self.is_x86_64
 
-        self.is_armv7 = self.arch in ('armv7', 'armv7a', 'armv7a_neon', 'arm')
-        self.is_armv8 = self.arch in ('armv8', 'armv8a', 'arm64', 'aarch64')
+        self.is_armv7 = self.arch in ('armv7', 'armv7a', 'armv7a_neon', 'arm', 'armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
+        self.is_armv8 = self.arch in ('armv8', 'armv8a', 'arm64', 'aarch64', 'armv8a_cortex_a35', 'armv8a_cortex_a53')
         self.is_arm = self.is_armv7 or self.is_armv8
-        self.is_armv7_neon = self.arch == 'armv7a_neon'
+        self.is_armv7_neon = self.arch in ('armv7a_neon', 'armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
+
+        self.is_cortex_a35 = self.arch in ('armv7ahf_cortex_a35', 'armv8a_cortex_a35')
+        self.is_cortex_a53 = self.arch in ('armv7ahf_cortex_a53', 'armv8a_cortex_a53')
+
+        self.is_armv7hf = self.arch in ('armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
 
         self.is_ppc64le = self.arch == 'ppc64le'
 
@@ -484,7 +489,11 @@ class Build(object):
 
     @property
     def is_debug(self):
-        return self.build_type == 'debug' or self.build_type.endswith('-debug')
+        return self.build_type in ('debug', 'debugnoasserts') or self.build_type.endswith('-debug')
+
+    @property
+    def is_size_optimized(self):
+        return self.build_type == 'minsizerel'
 
     @property
     def is_coverage(self):
@@ -497,7 +506,7 @@ class Build(object):
 
     @property
     def with_ndebug(self):
-        return self.build_type in ('release', 'minsizerel', 'valgrind-release', 'profile', 'gprof')
+        return self.build_type in ('release', 'minsizerel', 'valgrind-release', 'profile', 'gprof', 'debugnoasserts')
 
     @property
     def is_valgrind(self):
@@ -1040,13 +1049,15 @@ class GnuToolchain(Toolchain):
                 target_triple = select(default=None, selectors=[
                     (target.is_linux and target.is_x86_64, 'x86_64-linux-gnu'),
                     (target.is_linux and target.is_armv8, 'aarch64-linux-gnu'),
+                    (target.is_linux and target.is_armv7hf, 'arm-linux-gnueabihf'),
+                    (target.is_linux and target.is_armv7, 'arm-linux-gnueabi'),
                     (target.is_linux and target.is_ppc64le, 'powerpc64le-linux-gnu'),
                     (target.is_apple and target.is_x86, 'i386-apple-darwin14'),
                     (target.is_apple and target.is_x86_64, 'x86_64-apple-darwin14'),
                     (target.is_apple and target.is_armv7, 'armv7-apple-darwin14'),
-                (target.is_apple and target.is_armv8, 'arm64-apple-darwin14'),
-                (target.is_yocto and target.is_armv7, 'arm-poky-linux-gnueabi')
-            ])
+                    (target.is_apple and target.is_armv8, 'arm64-apple-darwin14'),
+                    (target.is_yocto and target.is_armv7, 'arm-poky-linux-gnueabi')
+                ])
 
             if target_triple:
                 self.c_flags_platform.append('--target={}'.format(target_triple))
@@ -1055,8 +1066,24 @@ class GnuToolchain(Toolchain):
             for root in list(self.tc.isystem):
                 self.c_flags_platform.extend(['-isystem', root])
 
-        if target.is_armv7_neon:
+        if target.is_cortex_a35:
+            self.c_flags_platform.append('-mcpu=cortex-a35')
+
+        elif target.is_cortex_a53:
+            self.c_flags_platform.append('-mcpu=cortex-a53')
+
+        elif target.is_armv7_neon:
             self.c_flags_platform.append('-mfpu=neon')
+
+        if target.is_armv7 and build.is_size_optimized:
+            # Enable ARM Thumb2 variable-length instruction encoding
+            # to reduce code size
+            self.c_flags_platform.append('-mthumb')
+
+        if target.is_arm or target.is_ppc64le:
+            # On linux, ARM and PPC default to unsigned char
+            # However, Arcadia requires char to be signed
+            self.c_flags_platform.append('-fsigned-char')
 
         if self.tc.is_clang or self.tc.is_gcc and self.tc.version_at_least(8, 2):
             target_flags = select(default=[], selectors=[
@@ -1075,12 +1102,6 @@ class GnuToolchain(Toolchain):
 
             if target.is_ios:
                 self.c_flags_platform.append('-D__IOS__=1')
-
-            if target.is_android:
-                self.c_flags_platform.append('-fsigned-char')
-
-            if target.is_armv7:
-                self.c_flags_platform.append('-fsigned-char')
 
             if self.tc.is_from_arcadia:
                 if target.is_apple:
@@ -1261,8 +1282,16 @@ class GnuCompiler(Compiler):
 
         if self.build.is_release:
             self.c_flags.append('$OPTIMIZE')
-            if self.build.build_type == 'minsizerel':
-                self.optimize = '-Os'
+            if self.build.is_size_optimized:
+                # -Oz is clang's more size-aggressive version of -Os
+                # For ARM specifically, clang -Oz is on par with gcc -Os:
+                # https://github.com/android/ndk/issues/133#issuecomment-365763507
+                if self.tc.is_clang:
+                    self.optimize = '-Oz'
+                else:
+                    self.optimize = '-Os'
+
+                self.c_foptions.extend(['-ffunction-sections', '-fdata-sections'])
             else:
                 self.optimize = '-O3'
 
@@ -1414,7 +1443,7 @@ class GnuCompiler(Compiler):
         append('C_DEFINES', '-D__LONG_LONG_SUPPORTED')
 
         emit('OBJECT_SUF', '$OBJ_SUF%s.o' % self.cross_suffix)
-        emit('GCC_COMPILE_FLAGS', '$EXTRA_C_FLAGS -c -o $_COMPILE_OUTPUTS', '${input:SRC} ${pre=-I:INCLUDE}')
+        emit('GCC_COMPILE_FLAGS', '$EXTRA_C_FLAGS -c -o $_COMPILE_OUTPUTS', '${input:SRC} ${pre=-I:_C__INCLUDE} ${pre=-I:INCLUDE}')
         emit('EXTRA_COVERAGE_OUTPUT', '${output;noauto;hide;suf=${OBJ_SUF}%s.gcno:SRC}' % self.cross_suffix)
         emit('YNDEXER_OUTPUT_FILE', '${output;noauto;suf=${OBJ_SUF}%s.ydx.pb2:SRC}' % self.cross_suffix)  # should be the last output
 
@@ -1477,9 +1506,12 @@ class Linker(object):
         """
         self.tc = tc
         self.build = build
+
         if self.tc.is_from_arcadia and self.build.host.is_linux and not (self.build.target.is_apple or self.build.target.is_android or self.build.target.is_windows):
+
             if self.tc.is_clang:
-                self.type = Linker.LLD
+                # DEVTOOLSSUPPORT-47 LLD cannot deal with extsearch/images/saas/base/imagesrtyserver
+                self.type = Linker.GOLD if is_positive('USE_LTO') and not is_positive('MUSL') else Linker.LLD
             elif self.tc.is_gcc and (self.build.target.is_linux_armv7 or self.build.target.is_yocto_lg_wk7y or self.build.target.is_yocto_jbl_portable_music or self.build.target.is_yocto_aacrh64_lightcomm_mt8516):
                 self.type = Linker.BFD
             else:
@@ -1581,6 +1613,9 @@ class LD(Linker):
                 self.ar = 'ar'
 
         self.ld_flags = []
+
+        if self.build.is_size_optimized:
+            self.ld_flags.append('-Wl,--gc-sections')
 
         if self.musl.value:
             self.ld_flags.extend(['-Wl,--no-as-needed'])
@@ -2154,11 +2189,11 @@ class MSVCCompiler(MSVC, Compiler):
             }
 
             macro _SRC_cpp(SRC, SRCFLAGS...) {
-                .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo$_COMPILE_OUTPUTS ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :INCLUDE} ${CXXFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+                .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo$_COMPILE_OUTPUTS ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :_C__INCLUDE} ${pre=/I :INCLUDE} ${CXXFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
             }
 
             macro _SRC_c(SRC, SRCFLAGS...) {
-                .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo$_COMPILE_OUTPUTS ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+                .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo$_COMPILE_OUTPUTS ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :_C__INCLUDE} ${pre=/I :INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
             }
 
             macro _SRC_m(SRC, SRCFLAGS...) {
@@ -2551,7 +2586,7 @@ class Cuda(object):
     def print_macros(self):
         cmd_vars = {
             'skip_nocxxinc': '' if self.cuda_arcadia_includes.value else '--y_skip_nocxxinc',
-            'includes': '${pre=-I:INCLUDE}' if self.cuda_arcadia_includes.value else '-I$ARCADIA_ROOT',
+            'includes': '${pre=-I:_C__INCLUDE} ${pre=-I:INCLUDE}' if self.cuda_arcadia_includes.value else '-I$ARCADIA_ROOT',
         }
 
         if not self.cuda_use_clang.value:
@@ -2703,7 +2738,7 @@ class Yasm(object):
         output = '${{output;noext;suf={}:SRC}}'.format('${OBJ_SUF}.o' if self.fmt != 'win' else '${OBJ_SUF}.obj')
         print '''\
 macro _SRC_yasm_impl(SRC, PREINCLUDES[], SRCFLAGS...) {{
-    .CMD={} -f {}$HARDWARE_ARCH {} $YASM_DEBUG_INFO_DISABLE_CACHE__NO_UID__ -D ${{pre=_;suf=_:HARDWARE_TYPE}} -D_YASM_ $ASM_PREFIX_VALUE {} ${{YASM_FLAGS}} ${{pre=-I :INCLUDE}} ${{SRCFLAGS}} -o {} ${{pre=-P :PREINCLUDES}} ${{input;hide:PREINCLUDES}} ${{input:SRC}} ${{kv;hide:"p AS"}} ${{kv;hide:"pc light-green"}}
+    .CMD={} -f {}$HARDWARE_ARCH {} $YASM_DEBUG_INFO_DISABLE_CACHE__NO_UID__ -D ${{pre=_;suf=_:HARDWARE_TYPE}} -D_YASM_ $ASM_PREFIX_VALUE {} ${{YASM_FLAGS}} ${{pre=-I :_ASM__INCLUDE}} ${{pre=-I :INCLUDE}} ${{SRCFLAGS}} -o {} ${{pre=-P :PREINCLUDES}} ${{input;hide:PREINCLUDES}} ${{input:SRC}} ${{kv;hide:"p AS"}} ${{kv;hide:"pc light-green"}}
 
 }}
 '''.format(self.yasm_tool, self.fmt, d_platform, ' '.join(self.flags), output)

@@ -19,6 +19,8 @@
 #endif
 #endif
 
+#define WITH_DECIMAL_CONTEXTVAR 1
+
 #if defined(__linux__)
 #include "pyconfig-linux.h"
 #endif

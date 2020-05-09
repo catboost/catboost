@@ -14,7 +14,7 @@ Y_UNIT_TEST_SUITE(StochasticFilterMetricTests) {
     }
 
     Y_UNIT_TEST(StochasticFilterTest) {
-        THolder<IMetric> stochasticFilter = MakeFilteredDcgMetric(ENdcgMetricType::Base, ENdcgDenominatorType::Position);
+        THolder<IMetric> stochasticFilter = std::move(CreateMetric(ELossFunction::FilteredDCG, /*params=*/{}, /*approxDimension=*/1)[0]);
         double epsilon = 1e-6;
         NPar::TLocalExecutor executor;
 

@@ -17,6 +17,7 @@ SRCS(
     GLOBAL pointwise_non_symmetric.cpp
     GLOBAL querywise_non_symmetric.cpp
     GLOBAL multiclass_non_symmetric.cpp
+    GLOBAL combination.cpp
 )
 
 PEERDIR(
@@ -41,9 +42,9 @@ PEERDIR(
     catboost/libs/overfitting_detector
     catboost/private/libs/quantization
     catboost/libs/train_lib
-    library/json
+    library/cpp/json
     library/object_factory
-    library/threading/local_executor
+    library/cpp/threading/local_executor
 )
 
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)

@@ -89,12 +89,13 @@ PEERDIR(
     catboost/cuda/models
     catboost/cuda/targets
     catboost/private/libs/ctr_description
+    catboost/libs/data
     catboost/libs/helpers
     catboost/private/libs/lapack
     catboost/libs/loggers
     catboost/libs/metrics
     catboost/libs/overfitting_detector
-    library/threading/local_executor
+    library/cpp/threading/local_executor
 )
 
 INCLUDE(${ARCADIA_ROOT}/catboost/cuda/cuda_lib/default_nvcc_flags.make.inc)

@@ -20,6 +20,7 @@
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
 #include <util/string/join.h>
+#include <util/system/compiler.h>
 #include <util/system/yassert.h>
 
 #include <numeric>
@@ -263,7 +264,7 @@ struct TTreesAttributes {
     onnx::AttributeProto* target_treeids;
     onnx::AttributeProto* target_weights;
 
-    onnx::AttributeProto* base_values;
+    onnx::AttributeProto* base_values;  // can be nullptr if model has no bias.
     onnx::AttributeProto* nodes_falsenodeids;
     onnx::AttributeProto* nodes_featureids;
     onnx::AttributeProto* nodes_hitrates;
@@ -277,6 +278,7 @@ struct TTreesAttributes {
 public:
     TTreesAttributes(
         bool isClassifierModel,
+        bool hasBias,
         google::protobuf::RepeatedPtrField<onnx::AttributeProto>* treesNodeAttributes) {
 
 #define GET_ATTR(attr, attr_type_suffix) \
@@ -306,7 +308,9 @@ public:
             GET_ATTR(target_weights, FLOATS);
         }
 
-        GET_ATTR(base_values, FLOATS);
+        if (hasBias) {
+            GET_ATTR(base_values, FLOATS);
+        }
         GET_ATTR(nodes_falsenodeids, INTS);
         GET_ATTR(nodes_featureids, INTS);
         GET_ATTR(nodes_hitrates, FLOATS);
@@ -391,7 +395,7 @@ static void AddTree(
         if (split.Type == ESplitType::FloatFeature) {
             const auto& floatFeature = trees.GetFloatFeatures()[split.FloatFeature.FloatFeature];
             splitFlatFeatureIdx = floatFeature.Position.FlatIndex;
-            nodeMode = TModeNode::BRANCH_GTE;
+            nodeMode = TModeNode::BRANCH_GT;
             if (floatFeature.NanValueTreatment == TFloatFeature::ENanValueTreatment::AsTrue) {
                 missingValueTracksTrue = 1;
             }
@@ -546,8 +550,16 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
         treesNode->add_output("predictions");
     }
 
-    TTreesAttributes treesAttributes(isClassifierModel, treesNode->mutable_attribute());
-    treesAttributes.base_values->add_floats(float(model.GetScaleAndBias().Bias));
+    const float bias = float(model.GetScaleAndBias().Bias);
+
+    TTreesAttributes treesAttributes(isClassifierModel, bias != 0, treesNode->mutable_attribute());
+
+    if (bias != 0) {
+        for (auto i : xrange(trees.GetDimensionsCount())) {
+            Y_UNUSED(i);
+            treesAttributes.base_values->add_floats(bias);
+        }
+    }
     for (auto treeIdx : xrange(trees.GetTreeCount())) {
         AddTree(trees, treeIdx, isClassifierModel, &treesAttributes);
     }

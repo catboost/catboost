@@ -3,7 +3,7 @@
 #include "option.h"
 #include "unimplemented_aware_option.h"
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/generic/string.h>
 #include <util/generic/set.h>
@@ -304,6 +304,36 @@ namespace NCatboostOptions {
         TUnimplementedAwareOptionsSaver saver(dst);
         saver.SaveMany(fields...);
     };
+}
+
+template <typename T>
+void FromJson(const NJson::TJsonValue& value, T* result) {
+    switch (value.GetType()) {
+        case NJson::EJsonValueType::JSON_INTEGER:
+            *result = T(value.GetInteger());
+            break;
+        case NJson::EJsonValueType::JSON_DOUBLE:
+            *result = T(value.GetDouble());
+            break;
+        case NJson::EJsonValueType::JSON_UINTEGER:
+            *result = T(value.GetUInteger());
+            break;
+        case NJson::EJsonValueType::JSON_STRING:
+            *result = FromString<T>(value.GetString());
+            break;
+        default:
+            CB_ENSURE("Incorrect format");
+    }
+}
+
+template <>
+void FromJson(const NJson::TJsonValue& value, TString* result);
+
+template <typename T>
+T FromJson(const NJson::TJsonValue& value) {
+    T result;
+    FromJson(value, &result);
+    return result;
 }
 
 NJson::TJsonValue ReadTJsonValue(TStringBuf paramsJson);

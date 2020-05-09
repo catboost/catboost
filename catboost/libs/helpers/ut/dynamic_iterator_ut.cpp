@@ -12,6 +12,98 @@
 
 using namespace NCB;
 
+namespace {
+    template <class TValue>
+    class TDynamicIteratorAsStatic {
+    public:
+        using iterator_category = std::input_iterator_tag;
+        using value_type = TValue;
+        using difference_type = size_t;
+        using pointer = const TValue*;
+        using reference = TValue&;
+
+        using IBaseIterator = IDynamicIterator<TValue>;
+
+    public:
+        // use as end() sentinel
+        TDynamicIteratorAsStatic() = default;
+
+        // baseIteratorPtr must be non-nullptr
+        explicit TDynamicIteratorAsStatic(THolder<IBaseIterator> baseIteratorPtr)
+            : Current{}
+            , GotCurrent(baseIteratorPtr->Next(&Current))
+            , BaseIteratorPtr(baseIteratorPtr.Release())
+        {}
+
+        reference operator*() {
+            return Current;
+        }
+
+        TDynamicIteratorAsStatic& operator++() {
+            GotCurrent = BaseIteratorPtr->Next(&Current);
+            return *this;
+        }
+
+        // this iterator is non-copyable so return TReturnValue to make '*it++' idiom work
+        TValue operator++(int) {
+            TValue result = std::move(Current);
+            GotCurrent = BaseIteratorPtr->Next(&Current);
+            return result;
+        }
+
+        // the only valid comparison is comparison with end() sentinel
+        bool operator==(const TDynamicIteratorAsStatic& rhs) const {
+            Y_ASSERT(!rhs.BaseIteratorPtr);
+            return GotCurrent;
+        }
+
+        // the only valid comparison is comparison with end() sentinel
+        bool operator!=(const TDynamicIteratorAsStatic& rhs) const {
+            Y_ASSERT(!rhs.BaseIteratorPtr);
+            return !GotCurrent;
+        }
+
+    private:
+        TValue Current;
+        bool GotCurrent;
+        TIntrusivePtr<IBaseIterator> BaseIteratorPtr; // TIntrusivePtr for copyability
+    };
+
+    template <class TBaseIterator, class TIndex = size_t>
+    class TStaticIteratorRangeAsSparseDynamic final
+        : public IDynamicSparseIterator<typename std::iterator_traits<TBaseIterator>::value_type, TIndex> {
+    public:
+        using TValue = typename std::iterator_traits<TBaseIterator>::value_type;
+        using IBase = IDynamicSparseIterator<TValue, TIndex>;
+
+    public:
+        TStaticIteratorRangeAsSparseDynamic(TBaseIterator begin, TBaseIterator end)
+            : Begin(std::move(begin))
+            , End(std::move(end))
+            , Index(0)
+        {}
+
+        template <class TContainer>
+        explicit TStaticIteratorRangeAsSparseDynamic(const TContainer& container)
+            : TStaticIteratorRangeAsSparseDynamic(container.begin(), container.end())
+        {}
+
+        bool Next(std::pair<TIndex, TValue>* value) override {
+            if (Begin == End) {
+                return false;
+            }
+            *value = std::pair<TIndex, TValue>(Index++, *Begin++);
+            return true;
+        }
+
+    private:
+        TBaseIterator Begin;
+        TBaseIterator End;
+        TIndex Index;
+    };
+
+}
+
 
 Y_UNIT_TEST_SUITE(DynamicIterator) {
     Y_UNIT_TEST(TStaticIteratorRangeAsDynamic) {
@@ -20,34 +112,18 @@ Y_UNIT_TEST_SUITE(DynamicIterator) {
 
             {
                 TIterator iterator(nullptr, nullptr);
-                UNIT_ASSERT(!iterator.Next());
+                UNIT_ASSERT(!iterator.Next(nullptr));
             }
             {
                 int data[] = {0, 5, 10, 7};
 
                 TIterator iterator(data, data + Y_ARRAY_SIZE(data));
                 for (auto element : data) {
-                    auto next = iterator.Next();
-                    UNIT_ASSERT(next);
-                    UNIT_ASSERT_VALUES_EQUAL(element, *next);
+                    int next;
+                    UNIT_ASSERT(iterator.Next(&next));
+                    UNIT_ASSERT_VALUES_EQUAL(element, next);
                 }
-                UNIT_ASSERT(!iterator.Next());
-            }
-        }
-        {
-            // iteration with element mutation
-            using TIterator = TStaticIteratorRangeAsDynamic<int*, int*>;
-
-            {
-                TVector<int> data = {0, 5, 10, 7};
-
-                TIterator iterator(data);
-                while (auto next = iterator.Next()) {
-                    *next += 2;
-                }
-
-                TVector<int> expectedData = {2, 7, 12, 9};
-                UNIT_ASSERT_VALUES_EQUAL(data, expectedData);
+                UNIT_ASSERT(!iterator.Next(nullptr));
             }
         }
     }
@@ -61,7 +137,7 @@ Y_UNIT_TEST_SUITE(DynamicIterator) {
 
         for (auto i : xrange(data.size())) {
             for (auto j : xrange(i, data.size())) {
-                const bool result = AreSequencesEqual<TString, TMaybe<TString>>(
+                const bool result = AreSequencesEqual<TString>(
                     MakeHolder<TIterator>(data[i]),
                     MakeHolder<TIterator>(data[j]));
                 UNIT_ASSERT_EQUAL(result, (i == j));
@@ -82,24 +158,9 @@ Y_UNIT_TEST_SUITE(DynamicIterator) {
                     Equal(
                         data.begin(),
                         data.end(),
-                        TIterator(MakeHolder<TDynamicIterator>(data)),
-                        TIterator()));
+                        TIterator(MakeHolder<TDynamicIterator>(data))
+                    ));
             }
-        }
-        {
-            // iteration with element mutation
-            using TDynamicIterator = TStaticIteratorRangeAsDynamic<ui32*, ui32*>;
-            using TIterator = TDynamicIteratorAsStatic<ui32, ui32*>;
-
-            TVector<ui32> data = {0, 5, 10, 7};
-
-            ForEach(
-                TIterator(MakeHolder<TDynamicIterator>(data)),
-                TIterator(),
-                [] (auto& element) { element += 2; });
-
-            TVector<ui32> expectedData = {2, 7, 12, 9};
-            UNIT_ASSERT_VALUES_EQUAL(data, expectedData);
         }
     }
 
@@ -108,19 +169,18 @@ Y_UNIT_TEST_SUITE(DynamicIterator) {
 
         {
             TIterator iterator(nullptr, nullptr);
-            UNIT_ASSERT(!iterator.Next());
+            UNIT_ASSERT(!iterator.Next(nullptr));
         }
         {
             TVector<int> data = {0, 5, 10, 7};
             TIterator iterator(data);
-
+            typename TIterator::value_type next;
             for (auto i : xrange(data.size())) {
-                auto next = iterator.Next();
-                UNIT_ASSERT(next);
-                UNIT_ASSERT_VALUES_EQUAL(i, next->first);
-                UNIT_ASSERT_VALUES_EQUAL(data[i], next->second);
+                UNIT_ASSERT(iterator.Next(&next));
+                UNIT_ASSERT_VALUES_EQUAL(i, next.first);
+                UNIT_ASSERT_VALUES_EQUAL(data[i], next.second);
             }
-            UNIT_ASSERT(!iterator.Next());
+            UNIT_ASSERT(!iterator.Next(nullptr));
         }
     }
 

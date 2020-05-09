@@ -1,6 +1,6 @@
 #include <catboost/libs/helpers/compression.h>
 
-#include <library/binsaver/util_stream_io.h>
+#include <library/cpp/binsaver/util_stream_io.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/maybe.h>

@@ -4,7 +4,7 @@
 #include <catboost/libs/data/ut/lib/for_objects.h>
 #include <catboost/libs/data/ut/lib/for_target.h>
 
-#include <library/binsaver/util_stream_io.h>
+#include <library/cpp/binsaver/util_stream_io.h>
 
 #include <library/unittest/registar.h>
 
@@ -182,23 +182,13 @@ static void CreateQuantizedObjectsDataProviderTestData(
         TVector<TFeaturesGroup>()
     );
 
-    if constexpr(std::is_same<TTObjectsDataProvider, TQuantizedForCPUObjectsDataProvider>::value) {
-        *objectsData = MakeIntrusive<TQuantizedForCPUObjectsDataProvider>(
-            *objectsGrouping,
-            std::move(commonObjectsData),
-            std::move(quantizedObjectsData),
-            true,
-            Nothing()
-        );
-    } else {
-        *objectsData = MakeIntrusive<TQuantizedObjectsDataProvider>(
-            *objectsGrouping,
-            std::move(commonObjectsData),
-            std::move(quantizedObjectsData.Data),
-            true,
-            Nothing()
-        );
-    }
+    *objectsData = MakeIntrusive<TQuantizedForCPUObjectsDataProvider>(
+        *objectsGrouping,
+        std::move(commonObjectsData),
+        std::move(quantizedObjectsData),
+        true,
+        Nothing()
+    );
 }
 
 
@@ -266,7 +256,7 @@ Y_UNIT_TEST_SUITE(TDataProviderTemplate) {
     }
 
     Y_UNIT_TEST(Equal) {
-        TestEqual<TQuantizedObjectsDataProvider>(CreateRawTargetData);
+        TestEqual<TQuantizedForCPUObjectsDataProvider>(CreateRawTargetData);
         TestEqual<TQuantizedForCPUObjectsDataProvider>(CreateRawMultiTargetData);
     }
 }

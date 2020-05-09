@@ -9,11 +9,11 @@ SRCS(
 
 PEERDIR(
     contrib/libs/re2
-    library/colorizer
-    library/getopt/small
-    library/json
+    library/cpp/colorizer
+    library/cpp/getopt/small
+    library/cpp/json
     library/linear_regression
-    library/threading/poor_man_openmp
+    library/cpp/threading/poor_man_openmp
 )
 
 END()

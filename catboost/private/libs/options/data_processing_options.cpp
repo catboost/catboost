@@ -1,9 +1,10 @@
 #include "data_processing_options.h"
 #include "json_helper.h"
 #include "restrictions.h"
+#include "metric_options.h"
 
 #include <catboost/libs/helpers/exception.h>
-
+#include <util/string/cast.h>
 
 NCatboostOptions::TDataProcessingOptions::TDataProcessingOptions(ETaskType type)
     : IgnoredFeatures("ignored_features", TVector<ui32>())
@@ -14,7 +15,7 @@ NCatboostOptions::TDataProcessingOptions::TDataProcessingOptions(ETaskType type)
           EBorderSelectionType::GreedyLogSum,
           type == ETaskType::GPU ? 128 : 254,
           ENanMode::Min,
-          type
+          200000
       ))
       , PerFloatFeatureQuantization("per_float_feature_quantization", TMap<ui32, TBinarizationOptions>())
       , TextProcessingOptions("text_processing_options", TTextProcessingOptions())
@@ -97,6 +98,11 @@ void NCatboostOptions::TDataProcessingOptions::SetPerFeatureMissingSettingToComm
     const auto& commonSettings = FloatFeaturesBinarization.Get();
     for (auto& [id, binarizationOption] : PerFloatFeatureQuantization.Get()) {
         Y_UNUSED(id);
+        binarizationOption.BorderSelectionType.SetDefault(commonSettings.BorderSelectionType.GetDefaultValue());
+        binarizationOption.BorderCount.SetDefault(commonSettings.BorderCount.GetDefaultValue());
+        binarizationOption.NanMode.SetDefault(commonSettings.NanMode.GetDefaultValue());
+        binarizationOption.MaxSubsetSizeForBuildBorders.SetDefault(commonSettings.MaxSubsetSizeForBuildBorders.GetDefaultValue());
+
         if (!binarizationOption.BorderCount.IsSet() && commonSettings.BorderCount.IsSet()) {
             binarizationOption.BorderCount = commonSettings.BorderCount;
         }
@@ -106,5 +112,18 @@ void NCatboostOptions::TDataProcessingOptions::SetPerFeatureMissingSettingToComm
         if (!binarizationOption.NanMode.IsSet() && commonSettings.NanMode.IsSet()) {
             binarizationOption.NanMode = commonSettings.NanMode;
         }
+        if (!binarizationOption.MaxSubsetSizeForBuildBorders.IsSet() && commonSettings.MaxSubsetSizeForBuildBorders.IsSet()) {
+            binarizationOption.MaxSubsetSizeForBuildBorders = commonSettings.MaxSubsetSizeForBuildBorders;
+        }
     }
+}
+
+TMaybe<float> NCatboostOptions::GetPredictionBorderFromLossParams(const TMap<TString, TString>& params) {
+    auto it = params.find(TMetricOptions::PREDICTION_BORDER_PARAM);
+    if (it == params.end()) {
+        return Nothing();
+    }
+    const auto border = FromString<float>(it->second);
+    CB_ENSURE(0 <= border && border <= 1.0, "Probability threshold must be in [0, 1] interval.");
+    return border;
 }

@@ -33,6 +33,9 @@ namespace NKernel {
             if (i + tid >= binFeatureCount) {
                 break;
             }
+            if (bf[i + tid].SkipInScoreCount) {
+                continue;
+            }
 
             const float* current = binSums + 2 * (i + tid);
 
@@ -196,6 +199,9 @@ namespace NKernel {
             if (i + tid >= binFeatureCount) {
                 break;
             }
+            if (bf[i + tid].SkipInScoreCount) {
+                continue;
+            }
             calcer.NextFeature(bf[i + tid]);
 
             THistLoader histLoader(binSums,
@@ -271,6 +277,9 @@ namespace NKernel {
         for (int i = blockIdx.x * BLOCK_SIZE; i < binFeatureCount; i += BLOCK_SIZE * gridDim.x) {
             if (i + tid >= binFeatureCount) {
                 break;
+            }
+            if (bf[i + tid].SkipInScoreCount) {
+                continue;
             }
 
             float score = 0;
