@@ -204,7 +204,7 @@ def do_vet(args):
         cmd.extend(args.vet_flags)
     cmd.append(vet_config)
     # print >>sys.stderr, '>>>> [{}]'.format(' '.join(cmd))
-    p_vet = subprocess.Popen(cmd, stdin=None, stderr=subprocess.PIPE, stdout=subprocess.PIPE, cwd=args.build_root)
+    p_vet = subprocess.Popen(cmd, stdin=None, stderr=subprocess.PIPE, stdout=subprocess.PIPE, cwd=args.arc_source_root)
     vet_out, vet_err = p_vet.communicate()
     report = decode_vet_report(vet_out) if vet_out else ''
     dump_vet_report(args, report)
