@@ -17,6 +17,7 @@ RECURSE(
     coroutine
     cppparser
     cpuid_check
+    deprecated
     diff
     diff/ut
     digest

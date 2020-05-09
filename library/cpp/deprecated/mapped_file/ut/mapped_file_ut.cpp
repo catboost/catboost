@@ -1,4 +1,4 @@
-#include <library/deprecated/mapped_file/mapped_file.h>
+#include <library/cpp/deprecated/mapped_file/mapped_file.h>
 #include <library/unittest/registar.h>
 
 #include <util/system/fs.h>

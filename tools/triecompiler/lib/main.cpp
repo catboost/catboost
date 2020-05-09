@@ -5,7 +5,7 @@
 #endif
 
 #include <library/comptrie/comptrie.h>
-#include <library/deprecated/mapped_file/mapped_file.h>
+#include <library/cpp/deprecated/mapped_file/mapped_file.h>
 #include <library/cpp/getopt/small/last_getopt.h>
 
 #include <util/charset/wide.h>
