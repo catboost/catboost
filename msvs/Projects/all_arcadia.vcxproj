@@ -1104,6 +1104,18 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\http\push_parser\cpp-http-push_parser.vcxproj">
       <Project>7E318157-ACEB-A54B-85C9-3F458B867B6D</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\common\cpp-json-common.vcxproj">
+      <Project>6330870F-DABE-D84D-BCA5-C0A181746B9E</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\fast_sax\cpp-json-fast_sax.vcxproj">
+      <Project>24137F52-65C2-C6DA-9D73-32184D067E15</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\library-cpp-json.vcxproj">
+      <Project>F3B6F190-E921-1428-8D6C-A4428CC7654A</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\writer\cpp-json-writer.vcxproj">
+      <Project>94F66460-BD28-7C46-313B-A5F2876E26F8</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\lfalloc\library-cpp-lfalloc.vcxproj">
       <Project>AB5AFC2D-002B-AF50-A906-75D4604E3D34</Project>
     </ProjectReference>
@@ -1241,12 +1253,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\fast_exp\library-fast_exp.vcxproj">
       <Project>E0EC7772-5C0F-6407-290B-3900C3FF324B</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\json\common\library-json-common.vcxproj">
-      <Project>3B322F11-1D2A-AEFE-BC14-4F74683E14DB</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\json\fast_sax\library-json-fast_sax.vcxproj">
-      <Project>8AAB2F9B-ECAA-2170-D871-1CEE27B498C2</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\json\library-json.vcxproj">
       <Project>E633ADF4-A720-EDCB-A12B-52A8216FF956</Project>
