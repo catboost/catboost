@@ -27,7 +27,6 @@ RECURSE(
     fast_exp
     fast_exp/benchmark
     fast_exp/ut
-    json
     langmask
     langmask/proto
     langmask/python
