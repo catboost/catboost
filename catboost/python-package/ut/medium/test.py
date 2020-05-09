@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 import hashlib
 import math
 import numpy as np
@@ -2207,6 +2207,33 @@ def test_class_weights(task_type):
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     model.save_model(output_model_path)
     return compare_canonical_models(output_model_path)
+
+
+def test_auto_class_weights():
+    rnd = np.random.RandomState(2020)
+    data = rnd.rand(10, 2)
+    target = rnd.randint(2, size=10)
+
+    counts = Counter(target)
+    max_class_count = max(count for key, count in counts.items())
+    expected_balanced = np.array([max_class_count / counts[class_id] if counts[class_id] > 0 else 1.
+                                  for class_id in range(2)])
+    expected_sqrt_balanced = np.sqrt(expected_balanced)
+
+    balanced_model = CatBoostClassifier(iterations=5, auto_class_weights='Balanced')
+    balanced_model.fit(data, target)
+
+    balanced_params = balanced_model.get_all_params()
+    assert 'class_weights' in balanced_params and _check_data(balanced_params['class_weights'],
+                                                              expected_balanced)
+    assert 'class_weights' not in balanced_model.get_params()
+
+    sqrt_balanced_model = CatBoostClassifier(iterations=5, auto_class_weights='SqrtBalanced')
+    sqrt_balanced_model.fit(data, target)
+    sqrt_balanced_params = sqrt_balanced_model.get_all_params()
+    assert 'class_weights' in sqrt_balanced_params and _check_data(sqrt_balanced_params['class_weights'],
+                                                                   expected_sqrt_balanced)
+    assert 'class_weights' not in sqrt_balanced_model.get_params()
 
 
 def test_classification_ctr(task_type):
