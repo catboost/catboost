@@ -22,7 +22,7 @@ SRCS(
 
 PEERDIR(
     library/cpp/containers/flat_hash
-    library/json
+    library/cpp/json
     library/cpp/text_processing/dictionary/idl
     library/cpp/threading/local_executor
 )

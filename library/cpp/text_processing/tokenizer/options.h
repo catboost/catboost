@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 #include <library/langs/langs.h>
 
 #include <util/ysaveload.h>

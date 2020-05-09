@@ -4,8 +4,8 @@
 
 #include <library/cpp/colorizer/colors.h>
 
-#include <library/json/writer/json.h>
-#include <library/json/writer/json_value.h>
+#include <library/cpp/json/writer/json.h>
+#include <library/cpp/json/writer/json_value.h>
 
 #include <util/datetime/base.h>
 
