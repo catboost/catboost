@@ -1120,9 +1120,9 @@ static void BindDataProcessingParams(NLastGetopt::TOpts* parserPtr, NJson::TJson
 
     parser
         .AddLongOption("auto-class-weights")
-        .NoArgument()
-        .Handler0([plainJsonPtr](){
-            (*plainJsonPtr)["auto_class_weights"] = true;
+        .RequiredArgument("String")
+        .Handler1T<EAutoClassWeightsType>([plainJsonPtr](const auto classWeightsType){
+            (*plainJsonPtr)["auto_class_weights"] = ToString(classWeightsType);
         });
 }
 

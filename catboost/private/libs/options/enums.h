@@ -327,6 +327,12 @@ enum class EFeatureCalcerType : ui32 {
     EmbeddingDistanceToClass
 };
 
+enum class EAutoClassWeightsType {
+    Balanced,
+    SqrtBalanced,
+    None
+};
+
 namespace NCB {
     enum class EFeatureEvalMode {
         OneVsNone,

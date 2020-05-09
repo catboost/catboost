@@ -490,8 +490,8 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
             CB_ENSURE(classesCount > 1, "classes-count should be at least 2");
         }
         const auto& classWeights = DataProcessingOptions->ClassWeights.Get();
-        const bool autoClassWeights = DataProcessingOptions->AutoClassWeights.Get();
-        if (!classWeights.empty() || autoClassWeights) {
+        const EAutoClassWeightsType autoClassWeights = DataProcessingOptions->AutoClassWeights.Get();
+        if (!classWeights.empty() || autoClassWeights != EAutoClassWeightsType::None) {
             CB_ENSURE(lossFunction == ELossFunction::Logloss || IsMultiClassOnlyMetric(lossFunction) || IsUserDefined(lossFunction),
                       "class weights takes effect only with Logloss, MultiClass, MultiClassOneVsAll and user-defined loss functions");
             if (!classWeights.empty()) {

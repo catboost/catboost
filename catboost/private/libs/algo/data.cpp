@@ -165,7 +165,8 @@ namespace NCB {
         TOutputClassificationInfo outputClassificationInfo {
             dataProcessingOptions.ClassLabels.Get(),
             labelConverter,
-            *targetBorder
+            *targetBorder,
+            dataProcessingOptions.ClassWeights.Get()
         };
         TOutputPairsInfo outputPairsInfo;
 
@@ -209,6 +210,10 @@ namespace NCB {
         trainingData->MetaInfo.HasWeights |= !inputClassificationInfo.ClassWeights.empty();
         dataProcessingOptions.ClassLabels.Get() = outputClassificationInfo.ClassLabels;
         *targetBorder = outputClassificationInfo.TargetBorder;
+
+        if (!outputClassificationInfo.ClassWeights.Empty()) {
+            dataProcessingOptions.ClassWeights.Get() = *outputClassificationInfo.ClassWeights.Get();
+        }
 
         trainingData->UpdateMetaInfo();
 

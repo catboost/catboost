@@ -26,7 +26,7 @@ NCatboostOptions::TDataProcessingOptions::TDataProcessingOptions(ETaskType type)
       , GpuCatFeaturesStorage("gpu_cat_features_storage", EGpuCatFeaturesStorage::GpuRam, type)
       , DevLeafwiseScoring("dev_leafwise_scoring", false, type)
       , DevGroupFeatures("dev_group_features", false, type)
-      , AutoClassWeights("auto_class_weights", false)
+      , AutoClassWeights("auto_class_weights", EAutoClassWeightsType::None)
 {
     GpuCatFeaturesStorage.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
     DevGroupFeatures.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
@@ -85,7 +85,7 @@ void NCatboostOptions::TDataProcessingOptions::Validate() const {
         DevGroupFeatures.NotSet() || DevLeafwiseScoring.IsSet(),
         "DevGroupFeatures is supported only with DevLeafwiseScoring"
     );
-    CB_ENSURE(!AutoClassWeights.Get() || ClassWeights.IsDefault(),
+    CB_ENSURE(AutoClassWeights.Get() == EAutoClassWeightsType::None || ClassWeights.IsDefault(),
         "ClassWeights should be default if AutoClassWeights is true");
 }
 

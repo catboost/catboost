@@ -22,7 +22,7 @@ namespace NCB {
         bool CreateMultiClassTarget;
         bool CreateGroups;
         bool CreatePairs;
-        bool CalculateClassWeights;
+        EAutoClassWeightsType AutoClassWeightsType;
         TMaybe<ui32> MaxPairsCount;
     };
 
@@ -37,6 +37,7 @@ namespace NCB {
         TVector<NJson::TJsonValue> ClassLabels; // can be Integers, Floats or Strings
         TMaybe<TLabelConverter*> LabelConverter; // needed only for multiclass
         TMaybe<float> TargetBorder; // TODO(isaf27): delete it from output parameters
+        TMaybe<TVector<float>> ClassWeights;
     };
 
     struct TOutputPairsInfo {
@@ -55,7 +56,7 @@ namespace NCB {
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
         TMaybe<ui32> knownModelApproxDimension,
         const TInputClassificationInfo& inputClassificationInfo,
-        bool autoClassWeights);
+        EAutoClassWeightsType autoClassWeightsType);
 
     void CheckTargetConsistency(
         TTargetDataProviderPtr targetDataProvider,

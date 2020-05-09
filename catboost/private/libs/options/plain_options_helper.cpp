@@ -808,6 +808,9 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
         CopyOption(dataProcessingOptions, "class_weights", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyDataProcessing, "class_weights");
 
+        CopyOption(dataProcessingOptions, "auto_class_weights", &plainOptionsJson, &seenKeys);
+        DeleteSeenOption(&optionsCopyDataProcessing, "auto_class_weights");
+
         CopyOption(dataProcessingOptions, "dev_default_value_fraction_for_sparse", &plainOptionsJson, &seenKeys);
         DeleteSeenOption(&optionsCopyDataProcessing, "dev_default_value_fraction_for_sparse");
 
