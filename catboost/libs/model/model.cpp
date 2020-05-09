@@ -17,8 +17,8 @@
 #include <catboost/private/libs/options/class_label_options.h>
 
 #include <library/cpp/json/json_reader.h>
-#include <library/dbg_output/dump.h>
-#include <library/dbg_output/auto.h>
+#include <library/cpp/dbg_output/dump.h>
+#include <library/cpp/dbg_output/auto.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/cast.h>

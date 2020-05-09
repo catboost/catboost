@@ -1,4 +1,4 @@
-UNITTEST_FOR(library/dbg_output)
+UNITTEST_FOR(library/cpp/dbg_output)
 
 
 

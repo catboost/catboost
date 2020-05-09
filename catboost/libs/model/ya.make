@@ -32,7 +32,7 @@ PEERDIR(
     contrib/libs/flatbuffers
     library/cpp/binsaver
     library/cpp/containers/dense_hash
-    library/dbg_output
+    library/cpp/dbg_output
     library/fast_exp
     library/cpp/json
     library/object_factory
