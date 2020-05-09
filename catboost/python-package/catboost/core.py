@@ -3675,9 +3675,11 @@ class CatBoostClassifier(CatBoost):
     text_processing : dict,
         Text processging description.
     
-    auto_class_weights : bool [default=False]
-        Enables automatic class weights calculation as follows:
-            weight = max_class_count / class_count, statistics determined from train pool
+    auto_class_weights : string [default=None]
+        Enables automatic class weights calculation. Possible values:
+            - Balanced  # weight = max_class_count / class_count, statistics determined from train pool
+            - SqrtBalanced  # weight = sqrt(max_class_count / class_count)
+            
     """
     def __init__(
         self,
@@ -4878,6 +4880,9 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
 
     if 'text_features' in params:
         raise CatBoostError("Cv with text features is not implemented.")
+
+    if params.get('auto_class_weights', None) is None:
+        params['auto_class_weights'] = 'None'
 
     with log_fixup(), plot_wrapper(plot, [_get_train_dir(params)]):
         return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified,
