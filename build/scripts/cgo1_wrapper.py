@@ -11,7 +11,7 @@ def call(cmd, cwd, env=None):
 def postprocess(source_root, path):
     with open(path, 'r') as f:
         content = f.read()
-        content = content.replace(source_root, '')
+        content = content.replace(source_root, '__ARCADIA_SOURCE_ROOT_PREFIX__/')
     with open(path, 'w') as f:
         f.write(content)
 
