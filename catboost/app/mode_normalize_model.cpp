@@ -15,7 +15,7 @@
 #include <catboost/private/libs/data_util/path_with_scheme.h>
 
 #include <library/cpp/getopt/small/last_getopt.h>
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/serialized_enum.h>

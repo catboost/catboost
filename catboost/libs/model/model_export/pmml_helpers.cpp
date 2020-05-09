@@ -6,7 +6,7 @@
 #include <catboost/libs/helpers/xml_output.h>
 #include <catboost/private/libs/options/enum_helpers.h>
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 #include <library/svnversion/svnversion.h>
 
 #include <util/datetime/base.h>

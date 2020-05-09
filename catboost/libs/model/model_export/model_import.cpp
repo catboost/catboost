@@ -5,7 +5,7 @@
 #include <catboost/private/libs/options/json_helper.h>
 #include <catboost/libs/model/model_export/onnx_helpers.h>
 
-#include <library/json/json_reader.h>
+#include <library/cpp/json/json_reader.h>
 
 #include <contrib/libs/coreml/TreeEnsemble.pb.h>
 #include <contrib/libs/coreml/Model.pb.h>

@@ -45,7 +45,7 @@ SRCS(
 PEERDIR(
     library/cpp/pop_count
     library/dbg_output
-    library/json
+    library/cpp/json
     library/object_factory
     library/cpp/string_utils/csv
     library/cpp/threading/future

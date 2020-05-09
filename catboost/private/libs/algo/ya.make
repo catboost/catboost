@@ -79,7 +79,7 @@ PEERDIR(
     library/fast_exp
     library/cpp/fast_log
     library/cpp/grid_creator
-    library/json
+    library/cpp/json
     library/cpp/malloc/api
     library/object_factory
     library/cpp/sse

@@ -40,7 +40,7 @@
 #include <catboost/private/libs/target/classification_target_helper.h>
 
 #include <library/cpp/grid_creator/binarization.h>
-#include <library/json/json_prettifier.h>
+#include <library/cpp/json/json_prettifier.h>
 
 #include <util/generic/cast.h>
 #include <util/generic/mapfindptr.h>

@@ -4,7 +4,7 @@
 
 #include <catboost/private/libs/options/enums.h>
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/generic/fwd.h>
 #include <util/generic/maybe.h>

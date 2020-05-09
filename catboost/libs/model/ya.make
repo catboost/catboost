@@ -34,7 +34,7 @@ PEERDIR(
     library/cpp/containers/dense_hash
     library/dbg_output
     library/fast_exp
-    library/json
+    library/cpp/json
     library/object_factory
     library/svnversion
 )

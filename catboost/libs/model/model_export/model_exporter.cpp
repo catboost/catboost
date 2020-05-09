@@ -9,7 +9,7 @@
 
 #include <catboost/private/libs/options/output_file_options.h>
 
-#include <library/json/json_reader.h>
+#include <library/cpp/json/json_reader.h>
 
 #include <contrib/libs/coreml/TreeEnsemble.pb.h>
 #include <contrib/libs/coreml/Model.pb.h>
