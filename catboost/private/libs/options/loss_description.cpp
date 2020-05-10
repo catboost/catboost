@@ -25,18 +25,16 @@ TLossParams ParseLossParams(const TStringBuf lossDescription) {
     CB_ENSURE(!tokens.empty(), "Metric description should not be empty");
     CB_ENSURE(tokens.size() <= 2, errorMessage);
 
-    TMap<TString, TString> params;
-    TVector<TString> paramKeysOrdered;
+    TVector<std::pair<TString, TString>> keyValuePairs;
     if (tokens.size() == 2) {
         for (const auto& token : StringSplitter(tokens[1]).Split(';')) {
             const TVector<TString> keyValue = StringSplitter(token.Token()).Split('=').Limit(2);
             CB_ENSURE(keyValue.size() == 2, errorMessage);
-            params[keyValue[0]] = keyValue[1];
-            paramKeysOrdered.push_back(keyValue[0]);
+            keyValuePairs.emplace_back(keyValue[0], keyValue[1]);
         }
     }
 
-    return {std::move(params), std::move(paramKeysOrdered)};
+    return TLossParams::FromVector(keyValuePairs);
 }
 
 NCatboostOptions::TLossDescription::TLossDescription()
@@ -67,14 +65,7 @@ const TMap<TString, TString>& NCatboostOptions::TLossDescription::GetLossParamsM
 };
 
 TLossParams NCatboostOptions::TLossDescription::GetLossParams() const {
-    // We cannot infer the order of the keys since they are loaded from JSON.
-    const TMap<TString, TString>& paramsMap = LossParams.Get();
-    TVector<TString> keys;
-    keys.reserve(paramsMap.size());
-    for (const auto& keyValue: paramsMap) {
-        keys.push_back(keyValue.first);
-    }
-    return {paramsMap, keys};
+    return TLossParams::FromMap(LossParams.Get());
 }
 
 bool NCatboostOptions::TLossDescription::operator!=(const TLossDescription& rhs) const {
@@ -170,7 +161,7 @@ double NCatboostOptions::GetTweedieParam(const TLossDescription& lossFunctionCon
 NCatboostOptions::TLossDescription NCatboostOptions::ParseLossDescription(TStringBuf stringLossDescription) {
     TLossDescription description;
     description.LossFunction.Set(ParseLossType(stringLossDescription));
-    description.LossParams.Set(ParseLossParams(stringLossDescription).paramsMap);
+    description.LossParams.Set(ParseLossParams(stringLossDescription).paramsMap());
     return description;
 }
 
@@ -251,8 +242,8 @@ NJson::TJsonValue LossDescriptionToJson(const TStringBuf lossDescription) {
     ELossFunction lossFunction = ParseLossType(lossDescription);
     TLossParams lossParams = ParseLossParams(lossDescription);
     descriptionJson["type"] = ToString(lossFunction);
-    for (const auto& lossParam : lossParams.userSpecifiedKeyOrder) {
-        descriptionJson["params"][lossParam] = lossParams.paramsMap[lossParam];
+    for (const auto& lossParam : lossParams.userSpecifiedKeyOrder()) {
+        descriptionJson["params"][lossParam] = lossParams.paramsMap().at(lossParam);
     }
     return descriptionJson;
 }

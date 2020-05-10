@@ -35,12 +35,12 @@ struct TMetricConfig {
         , validParams(validParams) {}
 
     double GetPredictionBorderOrDefault() const {
-        return NCatboostOptions::GetPredictionBorderFromLossParams(params.paramsMap).GetOrElse(
+        return NCatboostOptions::GetPredictionBorderFromLossParams(params.paramsMap()).GetOrElse(
                 GetDefaultPredictionBorder());
     }
 
     const TMap<TString, TString>& ParamsMap() const {
-        return params.paramsMap;
+        return params.paramsMap();
     }
 
     ELossFunction metric;

@@ -76,13 +76,9 @@ const TMap<TString, TString>& TMetric::GetHints() const {
 
 TString TMetric::GetDescription() const {
     auto descriptionParamsCopy = DescriptionParams;
-    descriptionParamsCopy.paramsMap.erase("hints");
+    descriptionParamsCopy.Erase("hints");
     if (UseWeights.IsUserDefined()) {
-        bool hasKey = descriptionParamsCopy.paramsMap.contains(UseWeights.GetName());
-        descriptionParamsCopy.paramsMap[UseWeights.GetName()] = UseWeights.Get() ? "true" : "false";
-        if (!hasKey) {
-            descriptionParamsCopy.userSpecifiedKeyOrder.push_back(UseWeights.GetName());
-        }
+        descriptionParamsCopy.Put(UseWeights.GetName(), UseWeights.Get() ? "true" : "false");
     }
     return BuildDescriptionFromParams(LossFunction, descriptionParamsCopy);
 }
@@ -2306,7 +2302,7 @@ namespace {
     struct TR2TargetSumMetric final: public TAdditiveMetric {
 
         explicit TR2TargetSumMetric()
-            : TAdditiveMetric(ELossFunction::R2, /*params=*/{}) {
+            : TAdditiveMetric(ELossFunction::R2, TLossParams()) {
             UseWeights.SetDefaultValue(true);
         }
         TMetricHolder EvalSingleThread(
@@ -2328,7 +2324,7 @@ namespace {
 
     struct TR2ImplMetric final: public TAdditiveMetric {
         explicit TR2ImplMetric(double targetMean)
-            : TAdditiveMetric(ELossFunction::R2, /*params=*/{})
+            : TAdditiveMetric(ELossFunction::R2, TLossParams())
             , TargetMean(targetMean) {
             UseWeights.SetDefaultValue(true);
         }
@@ -3860,9 +3856,8 @@ namespace {
     };
 }
 
-
 TMultiRegressionCustomMetric::TMultiRegressionCustomMetric(const TCustomMetricDescriptor& descriptor)
-        : TMultiRegressionMetric(ELossFunction::PythonUserDefinedPerObject, /*params=*/{})
+        : TMultiRegressionMetric(ELossFunction::PythonUserDefinedPerObject, TLossParams())
         , Descriptor(descriptor)
 {
     UseWeights.SetDefaultValue(true);
@@ -3959,7 +3954,7 @@ TVector<THolder<IMetric>> TUserDefinedPerObjectMetric::Create(const TMetricConfi
 
 TUserDefinedPerObjectMetric::TUserDefinedPerObjectMetric(const TLossParams& params)
         : TMetric(ELossFunction::UserPerObjMetric, params)
-        , Alpha(params.paramsMap.contains("alpha") ? FromString<float>(params.paramsMap.at("alpha")) : 0.0) {
+        , Alpha(params.paramsMap().contains("alpha") ? FromString<float>(params.paramsMap().at("alpha")) : 0.0) {
     UseWeights.MakeIgnored();
 }
 
@@ -4014,7 +4009,7 @@ TVector<THolder<IMetric>> TUserDefinedQuerywiseMetric::Create(const TMetricConfi
 
 TUserDefinedQuerywiseMetric::TUserDefinedQuerywiseMetric(const TLossParams& params)
     : TAdditiveMetric(ELossFunction::UserQuerywiseMetric, params)
-    , Alpha(params.paramsMap.contains("alpha") ? FromString<float>(params.paramsMap.at("alpha")) : 0.0)
+    , Alpha(params.paramsMap().contains("alpha") ? FromString<float>(params.paramsMap().at("alpha")) : 0.0)
 {
     UseWeights.MakeIgnored();
 }
@@ -4313,7 +4308,7 @@ namespace {
     public:
         explicit TCombinationLoss(const TLossParams& params)
         : TAdditiveMetric(ELossFunction::Combination, params)
-        , Params(params.paramsMap)
+        , Params(params.paramsMap())
         {
         }
 
@@ -4735,13 +4730,13 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TLossParams& 
         for (THolder<IMetric>& metricHolder : result) {
             metricHolder->AddHint("skip_train", "true");
         }
-        if (!HintedToEvalOnTrain(params.paramsMap)) {
+        if (!HintedToEvalOnTrain(params.paramsMap())) {
             CATBOOST_INFO_LOG << "Metric " << metric << " is not calculated on train by default. To calculate this metric on train, add hints=skip_train~false to metric parameters." << Endl;
         }
     }
 
-    if (params.paramsMap.contains("hints")) { // TODO(smirnovpavel): hints shouldn't be added for each metric
-        TMap<TString, TString> hints = ParseHintsDescription(params.paramsMap.at("hints"));
+    if (params.paramsMap().contains("hints")) { // TODO(smirnovpavel): hints shouldn't be added for each metric
+        TMap<TString, TString> hints = ParseHintsDescription(params.paramsMap().at("hints"));
         for (const auto& hint : hints) {
             for (THolder<IMetric>& metricHolder : result) {
                 metricHolder->AddHint(hint.first, hint.second);
@@ -4749,17 +4744,17 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TLossParams& 
         }
     }
 
-    if (params.paramsMap.contains("use_weights")) {
-        const bool useWeights = FromString<bool>(params.paramsMap.at("use_weights"));
+    if (params.paramsMap().contains("use_weights")) {
+        const bool useWeights = FromString<bool>(params.paramsMap().at("use_weights"));
         for (THolder<IMetric>& metricHolder : result) {
             metricHolder->UseWeights = useWeights;
         }
     }
 
-    CheckParameters(ToString(metric), validParams, params.paramsMap);
+    CheckParameters(ToString(metric), validParams, params.paramsMap());
 
     if (metric == ELossFunction::Combination) {
-        CheckCombinationParameters(params.paramsMap);
+        CheckCombinationParameters(params.paramsMap());
     }
 
     return result;

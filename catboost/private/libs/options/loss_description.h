@@ -16,19 +16,66 @@ namespace NJson {
 }
 
 
-struct TLossParams {
-    TMap<TString, TString> paramsMap;
-    TVector<TString> userSpecifiedKeyOrder;
+class TLossParams {
+public:
+    explicit TLossParams() = default;
 
-    static TLossParams FromVector(const TVector<std::pair<TString, TString>> params) {
+    static TLossParams FromVector(const TVector<std::pair<TString, TString>>& params) {
         TMap<TString, TString> paramsMap;
         TVector<TString> userSpecifiedKeyOrder;
         for (const auto& keyValue : params) {
-            paramsMap[keyValue.first] = keyValue.second;
+            const bool inserted = paramsMap.insert({keyValue.first, keyValue.second}).second;
+            CB_ENSURE(inserted, "Duplicated loss param found: " << keyValue.first);
             userSpecifiedKeyOrder.push_back(keyValue.first);
         }
-        return {std::move(paramsMap), std::move(userSpecifiedKeyOrder)};
+        return TLossParams(std::move(paramsMap), std::move(userSpecifiedKeyOrder));
     }
+
+    static TLossParams FromMap(TMap<TString, TString> paramsMap) {
+        TVector<TString> keys;
+        keys.reserve(paramsMap.size());
+        for (const auto& keyValue: paramsMap) {
+            keys.push_back(keyValue.first);
+        }
+        return TLossParams(std::move(paramsMap), std::move(keys));
+    }
+
+    void Put(const TString& key, const TString& value) {
+        auto containedBefore = ParamsMap.contains(key);
+        ParamsMap[key] = value;
+        if (containedBefore) {
+            UserSpecifiedKeyOrder.push_back(key);
+        };
+    }
+
+    void Erase(const TString& key) {
+        auto it = ParamsMap.find(key);
+        if (it != ParamsMap.end()) {
+            ParamsMap.erase(it);
+            UserSpecifiedKeyOrder.erase(
+                    std::remove(UserSpecifiedKeyOrder.begin(), UserSpecifiedKeyOrder.end(), key),
+                    UserSpecifiedKeyOrder.end());
+        }
+    }
+
+    const TMap<TString, TString>& paramsMap() const {
+        return ParamsMap;
+    }
+
+    const TVector<TString>& userSpecifiedKeyOrder() const {
+        return UserSpecifiedKeyOrder;
+    }
+
+private:
+    explicit TLossParams(TMap<TString, TString> paramsMap,
+                         TVector<TString> userSpecifiedKeyOrder)
+    : ParamsMap(std::move(paramsMap))
+    , UserSpecifiedKeyOrder(std::move(userSpecifiedKeyOrder))
+    {}
+
+
+    TMap<TString, TString> ParamsMap;
+    TVector<TString> UserSpecifiedKeyOrder;
 };
 
 ELossFunction ParseLossType(TStringBuf lossDescription);
