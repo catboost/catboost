@@ -27,7 +27,7 @@ using NCatboostOptions::GetDefaultTargetBorder;
 using NCatboostOptions::GetDefaultPredictionBorder;
 
 struct TMetricConfig {
-    explicit TMetricConfig(ELossFunction metric, TLossParams  params,
+    explicit TMetricConfig(ELossFunction metric, TLossParams params,
                            int approxDimension, TSet<TString>* validParams)
         : metric(metric)
         , params(std::move(params))
@@ -35,12 +35,11 @@ struct TMetricConfig {
         , validParams(validParams) {}
 
     double GetPredictionBorderOrDefault() const {
-        return NCatboostOptions::GetPredictionBorderFromLossParams(params.paramsMap()).GetOrElse(
-                GetDefaultPredictionBorder());
+        return NCatboostOptions::GetPredictionBorderOrDefault(params.GetParamsMap(), GetDefaultPredictionBorder());
     }
 
-    const TMap<TString, TString>& ParamsMap() const {
-        return params.paramsMap();
+    const TMap<TString, TString>& GetParamsMap() const {
+        return params.GetParamsMap();
     }
 
     ELossFunction metric;

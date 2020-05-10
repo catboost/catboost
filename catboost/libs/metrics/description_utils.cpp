@@ -15,15 +15,15 @@ TString BuildDescriptionFromParams(ELossFunction lossFunction, const TLossParams
         buffer << ToString(lossFunction);
     }
 
-    if (params.paramsMap().empty()) {
+    if (params.GetParamsMap().empty()) {
         return buffer;
     }
     buffer << ":";
 
     TVector<std::pair<TString, TString>> keyAndValues;
     for (const auto& key: params.userSpecifiedKeyOrder()) {
-        auto it = params.paramsMap().find(key);
-        if (it == params.paramsMap().end()) {
+        auto it = params.GetParamsMap().find(key);
+        if (it == params.GetParamsMap().end()) {
             continue;
         }
         keyAndValues.emplace_back(it->first, it->second);

@@ -572,9 +572,9 @@ namespace {
 
 // static
 TVector<THolder<IMetric>> TLqMetric::Create(const TMetricConfig& config) {
-    CB_ENSURE(config.ParamsMap().contains("q"), "Metric " << ELossFunction::Lq << " requires q as parameter");
+    CB_ENSURE(config.GetParamsMap().contains("q"), "Metric " << ELossFunction::Lq << " requires q as parameter");
     config.validParams->insert("q");
-    return AsVector(MakeHolder<TLqMetric>(FromString<float>(config.ParamsMap().at("q")),
+    return AsVector(MakeHolder<TLqMetric>(FromString<float>(config.GetParamsMap().at("q")),
                                           config.params));
 }
 
@@ -660,8 +660,8 @@ TVector<THolder<IMetric>> TQuantileMetric::Create(const TMetricConfig& config) {
             return AsVector(MakeHolder<TQuantileMetric>(config.metric, config.params, MaeAlpha, MaeDelta));
             break;
         case ELossFunction::Quantile: {
-            double alpha = NCatboostOptions::GetParamOrDefault(config.ParamsMap(), "alpha", 0.5);
-            double delta = NCatboostOptions::GetParamOrDefault(config.ParamsMap(), "delta", 1e-6);
+            double alpha = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "alpha", 0.5);
+            double delta = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "delta", 1e-6);
 
             config.validParams->insert("alpha");
             config.validParams->insert("delta");
@@ -781,11 +781,11 @@ namespace {
 
 // static.
 TVector<THolder<IMetric>> TExpectileMetric::Create(const TMetricConfig& config) {
-    auto it = config.ParamsMap().find("alpha");
+    auto it = config.GetParamsMap().find("alpha");
     config.validParams->insert("alpha");
     return AsVector(MakeHolder<TExpectileMetric>(
         config.params,
-        it != config.ParamsMap().end() ? FromString<float>(it->second) : DefaultAlpha));
+        it != config.GetParamsMap().end() ? FromString<float>(it->second) : DefaultAlpha));
 }
 
 TExpectileMetric::TExpectileMetric(const TLossParams& params, double alpha)
@@ -868,10 +868,10 @@ namespace {
 
 // static.
 TVector<THolder<IMetric>> TLogLinQuantileMetric::Create(const TMetricConfig& config) {
-    auto it = config.ParamsMap().find("alpha");
+    auto it = config.GetParamsMap().find("alpha");
     config.validParams->insert("alpha");
     return AsVector(MakeHolder<TLogLinQuantileMetric>(config.params,
-        it != config.ParamsMap().end() ? FromString<float>(it->second) : DefaultAlpha));
+        it != config.GetParamsMap().end() ? FromString<float>(it->second) : DefaultAlpha));
 }
 
 TLogLinQuantileMetric::TLogLinQuantileMetric(const TLossParams& params, double alpha)
@@ -1039,10 +1039,10 @@ namespace {
 }
 
 TVector<THolder<IMetric>> TNumErrorsMetric::Create(const TMetricConfig& config) {
-    CB_ENSURE(config.ParamsMap().contains("greater_than"), "Metric " << ELossFunction::NumErrors << " requires greater_than as parameter");
+    CB_ENSURE(config.GetParamsMap().contains("greater_than"), "Metric " << ELossFunction::NumErrors << " requires greater_than as parameter");
     config.validParams->insert("greater_than");
     return AsVector(MakeHolder<TNumErrorsMetric>(config.params,
-                                                 FromString<double>(config.ParamsMap().at("greater_than"))));
+                                                 FromString<double>(config.GetParamsMap().at("greater_than"))));
 }
 
 TMetricHolder TNumErrorsMetric::EvalSingleThread(
@@ -1198,10 +1198,10 @@ namespace {
 
 // static
 TVector<THolder<IMetric>> TTweedieMetric::Create(const TMetricConfig& config) {
-    CB_ENSURE(config.ParamsMap().contains("variance_power"), "Metric " << ELossFunction::Tweedie << " requires variance_power as parameter");
+    CB_ENSURE(config.GetParamsMap().contains("variance_power"), "Metric " << ELossFunction::Tweedie << " requires variance_power as parameter");
     config.validParams->insert("variance_power");
     return AsVector(MakeHolder<TTweedieMetric>(config.params,
-                                               FromString<float>(config.ParamsMap().at("variance_power"))));
+                                               FromString<float>(config.GetParamsMap().at("variance_power"))));
 }
 
 TMetricHolder TTweedieMetric::EvalSingleThread(
@@ -1946,10 +1946,10 @@ namespace {
 
 // static
 TVector<THolder<IMetric>> TPFoundMetric::Create(const TMetricConfig& config) {
-    auto itTopSize = config.ParamsMap().find("top");
-    auto itDecay = config.ParamsMap().find("decay");
-    const int topSize = itTopSize != config.ParamsMap().end() ? FromString<int>(itTopSize->second) : DefaultTopSize;
-    const double decay = itDecay != config.ParamsMap().end() ? FromString<double>(itDecay->second) : DefaultDecay;
+    auto itTopSize = config.GetParamsMap().find("top");
+    auto itDecay = config.GetParamsMap().find("decay");
+    const int topSize = itTopSize != config.GetParamsMap().end() ? FromString<int>(itTopSize->second) : DefaultTopSize;
+    const double decay = itDecay != config.GetParamsMap().end() ? FromString<double>(itDecay->second) : DefaultDecay;
     config.validParams->insert("top");
     config.validParams->insert("decay");
     return AsVector(MakeHolder<TPFoundMetric>(config.params, topSize, decay));
@@ -2051,20 +2051,20 @@ namespace {
 
 // static
 TVector<THolder<IMetric>> TDcgMetric::Create(const TMetricConfig& config) {
-    auto itTopSize = config.ParamsMap().find("top");
-    auto itType = config.ParamsMap().find("type");
-    auto itDenominator = config.ParamsMap().find("denominator");
-    int topSize = itTopSize != config.ParamsMap().end() ? FromString<int>(itTopSize->second) : -1;
+    auto itTopSize = config.GetParamsMap().find("top");
+    auto itType = config.GetParamsMap().find("type");
+    auto itDenominator = config.GetParamsMap().find("denominator");
+    int topSize = itTopSize != config.GetParamsMap().end() ? FromString<int>(itTopSize->second) : -1;
 
     ENdcgMetricType type = ENdcgMetricType::Base;
 
-    if (itType != config.ParamsMap().end()) {
+    if (itType != config.GetParamsMap().end()) {
         type = FromString<ENdcgMetricType>(itType->second);
     }
 
     ENdcgDenominatorType denominator = ENdcgDenominatorType::LogPosition;
 
-    if (itDenominator != config.ParamsMap().end()) {
+    if (itDenominator != config.GetParamsMap().end()) {
         denominator = FromString<ENdcgDenominatorType>(itDenominator->second);
     }
     config.validParams->insert("top");
@@ -2545,8 +2545,8 @@ namespace {
 TVector<THolder<IMetric>> TAUCMetric::Create(const TMetricConfig& config) {
     config.validParams->insert("type");
     EAucType aucType = config.approxDimension == 1 ? EAucType::Classic : EAucType::Mu;
-    if (config.ParamsMap().contains("type")) {
-        const TString name = config.ParamsMap().at("type");
+    if (config.GetParamsMap().contains("type")) {
+        const TString name = config.GetParamsMap().at("type");
         aucType = FromString<EAucType>(name);
         if (config.approxDimension == 1) {
             CB_ENSURE(aucType == EAucType::Classic || aucType == EAucType::Ranking,
@@ -2568,9 +2568,9 @@ TVector<THolder<IMetric>> TAUCMetric::Create(const TMetricConfig& config) {
         case EAucType::Mu: {
             config.validParams->insert("misclass_cost_matrix");
             TMaybe<TVector<TVector<double>>> misclassCostMatrix = Nothing();
-            if (config.ParamsMap().contains("misclass_cost_matrix")) {
+            if (config.GetParamsMap().contains("misclass_cost_matrix")) {
                 misclassCostMatrix.ConstructInPlace(ConstructSquareMatrix<double>(
-                    config.ParamsMap().at("misclass_cost_matrix")));
+                        config.GetParamsMap().at("misclass_cost_matrix")));
             }
             if (misclassCostMatrix) {
                 for (ui32 i = 0; i < misclassCostMatrix->size(); ++i) {
@@ -2858,7 +2858,7 @@ namespace {
 
 // static.
 TVector<THolder<IMetric>> TFairLossMetric::Create(const TMetricConfig& config) {
-    double smoothness = NCatboostOptions::GetParamOrDefault(config.ParamsMap(), "smoothness", TFairLossMetric::DefaultSmoothness);
+    double smoothness = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "smoothness", TFairLossMetric::DefaultSmoothness);
     config.validParams->insert("smoothness");
     return AsVector(MakeHolder<TFairLossMetric>(config.params, smoothness));
 }
@@ -3303,7 +3303,7 @@ namespace {
 
 // static.
 TVector<THolder<IMetric>> TPrecisionAtKMetric::Create(const TMetricConfig& config) {
-    int topSize = NCatboostOptions::GetParamOrDefault(config.ParamsMap(), "top", -1);
+    int topSize = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "top", -1);
     config.validParams->insert("top");
     config.validParams->insert("border");
     return AsVector(MakeHolder<TPrecisionAtKMetric>(config.params, topSize));
@@ -3380,7 +3380,7 @@ namespace {
 }
 
 TVector<THolder<IMetric>> TRecallAtKMetric::Create(const TMetricConfig& config) {
-    int topSize = NCatboostOptions::GetParamOrDefault(config.ParamsMap(), "top", -1);
+    int topSize = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "top", -1);
     config.validParams->insert("top");
     config.validParams->insert("border");
     return AsVector(MakeHolder<TRecallAtKMetric>(config.params, topSize));
@@ -3458,7 +3458,7 @@ namespace {
 
 // static.
 TVector<THolder<IMetric>> TMAPKMetric::Create(const TMetricConfig& config) {
-    int topSize = NCatboostOptions::GetParamOrDefault(config.ParamsMap(), "top", -1);
+    int topSize = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "top", -1);
     config.validParams->insert("top");
     config.validParams->insert("border");
     return AsVector(MakeHolder<TMAPKMetric>(config.params, topSize));
@@ -3566,8 +3566,8 @@ THolder<IMetric> MakeMultiClassPRAUCMetric(const TLossParams& params, int positi
 TVector<THolder<IMetric>> TPRAUCMetric::Create(const TMetricConfig& config) {
     config.validParams->insert("type");
     EAucType aucType = config.approxDimension == 1 ? EAucType::Classic : EAucType::OneVsAll;
-    if (config.params.paramsMap().contains("type")) {
-        const TString name = config.params.paramsMap().at("type");
+    if (config.params.GetParamsMap().contains("type")) {
+        const TString name = config.params.GetParamsMap().at("type");
         aucType = FromString<EAucType>(name);
         if (config.approxDimension == 1) {
             CB_ENSURE(aucType == EAucType::Classic,
@@ -3954,7 +3954,7 @@ TVector<THolder<IMetric>> TUserDefinedPerObjectMetric::Create(const TMetricConfi
 
 TUserDefinedPerObjectMetric::TUserDefinedPerObjectMetric(const TLossParams& params)
         : TMetric(ELossFunction::UserPerObjMetric, params)
-        , Alpha(params.paramsMap().contains("alpha") ? FromString<float>(params.paramsMap().at("alpha")) : 0.0) {
+        , Alpha(params.GetParamsMap().contains("alpha") ? FromString<float>(params.GetParamsMap().at("alpha")) : 0.0) {
     UseWeights.MakeIgnored();
 }
 
@@ -4009,7 +4009,7 @@ TVector<THolder<IMetric>> TUserDefinedQuerywiseMetric::Create(const TMetricConfi
 
 TUserDefinedQuerywiseMetric::TUserDefinedQuerywiseMetric(const TLossParams& params)
     : TAdditiveMetric(ELossFunction::UserQuerywiseMetric, params)
-    , Alpha(params.paramsMap().contains("alpha") ? FromString<float>(params.paramsMap().at("alpha")) : 0.0)
+    , Alpha(params.GetParamsMap().contains("alpha") ? FromString<float>(params.GetParamsMap().at("alpha")) : 0.0)
 {
     UseWeights.MakeIgnored();
 }
@@ -4072,10 +4072,10 @@ namespace {
 
 // static.
 TVector<THolder<IMetric>> THuberLossMetric::Create(const TMetricConfig& config) {
-    CB_ENSURE(config.ParamsMap().contains("delta"), "Metric " << ELossFunction::Huber << " requires delta as parameter");
+    CB_ENSURE(config.GetParamsMap().contains("delta"), "Metric " << ELossFunction::Huber << " requires delta as parameter");
     config.validParams->insert("delta");
     return AsVector(MakeHolder<THuberLossMetric>(
-        config.params, FromString<float>(config.ParamsMap().at("delta"))));
+        config.params, FromString<float>(config.GetParamsMap().at("delta"))));
 }
 
 TMetricHolder THuberLossMetric::EvalSingleThread(
@@ -4146,8 +4146,8 @@ namespace {
 
 // static.
 TVector<THolder<IMetric>> TFilteredDcgMetric::Create(const TMetricConfig& config) {
-    auto type = NCatboostOptions::GetParamOrDefault(config.ParamsMap(), "type", ENdcgMetricType::Base);
-    auto denominator = NCatboostOptions::GetParamOrDefault(config.ParamsMap(), "denominator", ENdcgDenominatorType::Position);
+    auto type = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "type", ENdcgMetricType::Base);
+    auto denominator = NCatboostOptions::GetParamOrDefault(config.GetParamsMap(), "denominator", ENdcgDenominatorType::Position);
     config.validParams->insert("sigma");
     config.validParams->insert("num_estimations");
     config.validParams->insert("type");
@@ -4237,8 +4237,8 @@ namespace {
 }
 
 TVector<THolder<IMetric>> TAverageGain::Create(const TMetricConfig& config) {
-    auto it = config.ParamsMap().find("top");
-    CB_ENSURE(it != config.ParamsMap().end(), "AverageGain metric should have top parameter");
+    auto it = config.GetParamsMap().find("top");
+    CB_ENSURE(it != config.GetParamsMap().end(), "AverageGain metric should have top parameter");
     config.validParams->insert("top");
     return AsVector(MakeHolder<TAverageGain>(config.metric, config.params, FromString<float>(it->second)));
 }
@@ -4308,7 +4308,7 @@ namespace {
     public:
         explicit TCombinationLoss(const TLossParams& params)
         : TAdditiveMetric(ELossFunction::Combination, params)
-        , Params(params.paramsMap())
+        , Params(params.GetParamsMap())
         {
         }
 
@@ -4336,9 +4336,9 @@ namespace {
 // static.
 TVector<THolder<IMetric>> TCombinationLoss::Create(const TMetricConfig& config) {
     CB_ENSURE(config.approxDimension == 1, "Combination loss cannot be used in multi-classification");
-    CB_ENSURE(config.ParamsMap().size() >= 2, "Combination loss must have 2 or more parameters");
-    CB_ENSURE(config.ParamsMap().size() % 2 == 0, "Combination loss must have even number of parameters, not " << config.ParamsMap().size());
-    const ui32 lossCount = config.ParamsMap().size() / 2;
+    CB_ENSURE(config.GetParamsMap().size() >= 2, "Combination loss must have 2 or more parameters");
+    CB_ENSURE(config.GetParamsMap().size() % 2 == 0, "Combination loss must have even number of parameters, not " << config.GetParamsMap().size());
+    const ui32 lossCount = config.GetParamsMap().size() / 2;
     for (ui32 idx : xrange(lossCount)) {
         config.validParams->insert(GetCombinationLossKey(idx));
         config.validParams->insert(GetCombinationWeightKey(idx));
@@ -4457,11 +4457,11 @@ namespace {
 
 // static.
 TVector<THolder<IMetric>> TQueryCrossEntropyMetric::Create(const TMetricConfig& config) {
-    auto it = config.ParamsMap().find("alpha");
+    auto it = config.GetParamsMap().find("alpha");
     config.validParams->insert("alpha");
     return AsVector(MakeHolder<TQueryCrossEntropyMetric>(
         config.params,
-        it != config.ParamsMap().end() ? FromString<float>(it->second) : DefaultAlpha));
+        it != config.GetParamsMap().end() ? FromString<float>(it->second) : DefaultAlpha));
 }
 
 void TQueryCrossEntropyMetric::AddSingleQuery(const double* approxes, const float* targets, const float* weights, int querySize,
@@ -4730,13 +4730,13 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TLossParams& 
         for (THolder<IMetric>& metricHolder : result) {
             metricHolder->AddHint("skip_train", "true");
         }
-        if (!HintedToEvalOnTrain(params.paramsMap())) {
+        if (!HintedToEvalOnTrain(params.GetParamsMap())) {
             CATBOOST_INFO_LOG << "Metric " << metric << " is not calculated on train by default. To calculate this metric on train, add hints=skip_train~false to metric parameters." << Endl;
         }
     }
 
-    if (params.paramsMap().contains("hints")) { // TODO(smirnovpavel): hints shouldn't be added for each metric
-        TMap<TString, TString> hints = ParseHintsDescription(params.paramsMap().at("hints"));
+    if (params.GetParamsMap().contains("hints")) { // TODO(smirnovpavel): hints shouldn't be added for each metric
+        TMap<TString, TString> hints = ParseHintsDescription(params.GetParamsMap().at("hints"));
         for (const auto& hint : hints) {
             for (THolder<IMetric>& metricHolder : result) {
                 metricHolder->AddHint(hint.first, hint.second);
@@ -4744,17 +4744,17 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TLossParams& 
         }
     }
 
-    if (params.paramsMap().contains("use_weights")) {
-        const bool useWeights = FromString<bool>(params.paramsMap().at("use_weights"));
+    if (params.GetParamsMap().contains("use_weights")) {
+        const bool useWeights = FromString<bool>(params.GetParamsMap().at("use_weights"));
         for (THolder<IMetric>& metricHolder : result) {
             metricHolder->UseWeights = useWeights;
         }
     }
 
-    CheckParameters(ToString(metric), validParams, params.paramsMap());
+    CheckParameters(ToString(metric), validParams, params.GetParamsMap());
 
     if (metric == ELossFunction::Combination) {
-        CheckCombinationParameters(params.paramsMap());
+        CheckCombinationParameters(params.GetParamsMap());
     }
 
     return result;

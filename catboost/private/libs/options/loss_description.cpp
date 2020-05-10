@@ -1,6 +1,7 @@
 #include "loss_description.h"
 #include "data_processing_options.h"
 #include "json_helper.h"
+#include "metric_options.h"
 
 #include <util/string/builder.h>
 #include <util/string/cast.h>
@@ -158,10 +159,20 @@ double NCatboostOptions::GetTweedieParam(const TLossDescription& lossFunctionCon
     return FromString<double>(lossParams.at("variance_power"));
 }
 
+double NCatboostOptions::GetPredictionBorderOrDefault(const TMap<TString, TString>& params, double defaultValue) {
+    auto it = params.find(TMetricOptions::PREDICTION_BORDER_PARAM);
+    if (it == params.end()) {
+        return defaultValue;
+    }
+    const auto border = FromString<double>(it->second);
+    CB_ENSURE(0 <= border && border <= 1.0, "Probability threshold must be in [0, 1] interval.");
+    return border;
+}
+
 NCatboostOptions::TLossDescription NCatboostOptions::ParseLossDescription(TStringBuf stringLossDescription) {
     TLossDescription description;
     description.LossFunction.Set(ParseLossType(stringLossDescription));
-    description.LossParams.Set(ParseLossParams(stringLossDescription).paramsMap());
+    description.LossParams.Set(ParseLossParams(stringLossDescription).GetParamsMap());
     return description;
 }
 
@@ -243,7 +254,7 @@ NJson::TJsonValue LossDescriptionToJson(const TStringBuf lossDescription) {
     TLossParams lossParams = ParseLossParams(lossDescription);
     descriptionJson["type"] = ToString(lossFunction);
     for (const auto& lossParam : lossParams.userSpecifiedKeyOrder()) {
-        descriptionJson["params"][lossParam] = lossParams.paramsMap().at(lossParam);
+        descriptionJson["params"][lossParam] = lossParams.GetParamsMap().at(lossParam);
     }
     return descriptionJson;
 }

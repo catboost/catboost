@@ -1153,8 +1153,8 @@ TVector<THolder<IMetric>> CreateCachingMetrics(const TMetricConfig& config) {
         case ELossFunction::TotalF1: {
             config.validParams->insert("average");
             EF1AverageType averageType = EF1AverageType::Weighted;
-            if (config.ParamsMap().contains("average")) {
-                averageType = FromString<EF1AverageType>(config.ParamsMap().at("average"));
+            if (config.GetParamsMap().contains("average")) {
+                averageType = FromString<EF1AverageType>(config.GetParamsMap().at("average"));
             }
 
             if (config.approxDimension == 1) {

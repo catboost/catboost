@@ -58,7 +58,7 @@ public:
         }
     }
 
-    const TMap<TString, TString>& paramsMap() const {
+    const TMap<TString, TString>& GetParamsMap() const {
         return ParamsMap;
     }
 
@@ -142,6 +142,11 @@ namespace NCatboostOptions {
     int GetStochasticFilterNumEstimations(const TLossDescription& lossDescription);
 
     double GetTweedieParam(const TLossDescription& lossFunctionConfig);
+
+    // Tries to find the target probability border for the binary metrics among params (see |PREDICTION_BORDER_PARAM|
+    // key). Returns default value if the key isn't present in the map and throws an exception if the border target is not
+    // a valid floating point number.
+    double GetPredictionBorderOrDefault(const TMap<TString, TString>& params, double defaultValue);
 
     TLossDescription ParseLossDescription(TStringBuf stringLossDescription);
 }
