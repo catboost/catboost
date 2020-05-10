@@ -43,7 +43,7 @@ public:
     void Put(const TString& key, const TString& value) {
         auto containedBefore = ParamsMap.contains(key);
         ParamsMap[key] = value;
-        if (containedBefore) {
+        if (!containedBefore) {
             UserSpecifiedKeyOrder.push_back(key);
         };
     }

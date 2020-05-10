@@ -75,7 +75,7 @@ const TMap<TString, TString>& TMetric::GetHints() const {
 }
 
 TString TMetric::GetDescription() const {
-    auto descriptionParamsCopy = DescriptionParams;
+    TLossParams descriptionParamsCopy = DescriptionParams;
     descriptionParamsCopy.Erase("hints");
     if (UseWeights.IsUserDefined()) {
         descriptionParamsCopy.Put(UseWeights.GetName(), UseWeights.Get() ? "true" : "false");
@@ -3514,13 +3514,13 @@ void TMAPKMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 
 namespace {
     struct TPRAUCMetric : public TNonAdditiveMetric {
-        explicit TPRAUCMetric(const TMap<TString, TString>& params, int positiveClass)
+        explicit TPRAUCMetric(const TLossParams& params, int positiveClass)
             : TNonAdditiveMetric(ELossFunction::PRAUC, params),
              PositiveClass(positiveClass), IsMultiClass(true) {
             UseWeights.SetDefaultValue(false);
         }
 
-        explicit TPRAUCMetric(const TMap<TString, TString>& params)
+        explicit TPRAUCMetric(const TLossParams& params)
             : TNonAdditiveMetric(ELossFunction::PRAUC, params) {
             UseWeights.SetDefaultValue(false);
         }
@@ -3555,19 +3555,19 @@ namespace {
     };
 }
 
-THolder<IMetric> MakeBinClassPRAUCMetric(const TMap<TString, TString>& params) {
+THolder<IMetric> MakeBinClassPRAUCMetric(const TLossParams& params) {
     return MakeHolder<TPRAUCMetric>(params);
 }
 
-THolder<IMetric> MakeMultiClassPRAUCMetric(const TMap<TString, TString>& params, int positiveClass) {
+THolder<IMetric> MakeMultiClassPRAUCMetric(const TLossParams& params, int positiveClass) {
     return MakeHolder<TPRAUCMetric>(params, positiveClass);
 }
 
 TVector<THolder<IMetric>> TPRAUCMetric::Create(const TMetricConfig& config) {
     config.validParams->insert("type");
     EAucType aucType = config.approxDimension == 1 ? EAucType::Classic : EAucType::OneVsAll;
-    if (config.params.contains("type")) {
-        const TString name = config.params.at("type");
+    if (config.params.paramsMap().contains("type")) {
+        const TString name = config.params.paramsMap().at("type");
         aucType = FromString<EAucType>(name);
         if (config.approxDimension == 1) {
             CB_ENSURE(aucType == EAucType::Classic,
