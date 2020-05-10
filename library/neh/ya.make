@@ -4,19 +4,19 @@ LIBRARY()
 
 PEERDIR(
     contrib/libs/openssl
-    library/containers/intrusive_rb_tree
+    library/cpp/containers/intrusive_rb_tree
     library/cpp/coroutine/engine
     library/cpp/coroutine/listener
     library/dns
-    library/http/io
-    library/http/misc
-    library/http/push_parser
+    library/cpp/http/io
+    library/cpp/http/misc
+    library/cpp/http/push_parser
     library/neh/asio
     library/netliba/v6
-    library/openssl/init
-    library/openssl/method
-    library/threading/atomic
-    library/threading/thread_local
+    library/cpp/openssl/init
+    library/cpp/openssl/method
+    library/cpp/threading/atomic
+    library/cpp/threading/thread_local
 )
 
 SRCS(

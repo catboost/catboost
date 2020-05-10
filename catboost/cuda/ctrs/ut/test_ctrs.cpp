@@ -8,7 +8,7 @@
 #include <util/generic/hash.h>
 #include <util/random/shuffle.h>
 #include <library/unittest/registar.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 #include <iostream>
 
 using namespace std;

@@ -8883,145 +8883,145 @@
     ],
     "test.test_stochastic_rank_pfound[0.0--1]": [
         {
-            "checksum": "e645cf892320c4583a39a3aafc30aaf8",
+            "checksum": "c9d6b2dcc5492de636fe03420d7645bd",
             "uri": "file://test.test_stochastic_rank_pfound_0.0--1_/learn_error.tsv"
         },
         {
-            "checksum": "566ca8e2bd3b8124343426000f0b2c7e",
+            "checksum": "0c770cb08731833af18c22f71379988d",
             "uri": "file://test.test_stochastic_rank_pfound_0.0--1_/test_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound[0.0-10]": [
         {
-            "checksum": "e645cf892320c4583a39a3aafc30aaf8",
+            "checksum": "dde9ecfe479451570a3ae99b72f5892e",
             "uri": "file://test.test_stochastic_rank_pfound_0.0-10_/learn_error.tsv"
         },
         {
-            "checksum": "566ca8e2bd3b8124343426000f0b2c7e",
+            "checksum": "7f67a0ba4c105a28d468ce528208ba77",
             "uri": "file://test.test_stochastic_rank_pfound_0.0-10_/test_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound[0.0-1]": [
         {
-            "checksum": "e645cf892320c4583a39a3aafc30aaf8",
+            "checksum": "fad8d68a9651798094b7723da0d07ac3",
             "uri": "file://test.test_stochastic_rank_pfound_0.0-1_/learn_error.tsv"
         },
         {
-            "checksum": "566ca8e2bd3b8124343426000f0b2c7e",
+            "checksum": "5f6c466c5a6a39a7f600dc48f698e37a",
             "uri": "file://test.test_stochastic_rank_pfound_0.0-1_/test_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound[0.6--1]": [
         {
-            "checksum": "d94546df7a5c582f88a27715e3ad0e4c",
+            "checksum": "d2e63f6bbabffed2bbcd1a32d7aeac21",
             "uri": "file://test.test_stochastic_rank_pfound_0.6--1_/learn_error.tsv"
         },
         {
-            "checksum": "35fce2417514814e21f21c66cb971c25",
+            "checksum": "3f105a977cac43f698c7464e19c2b9df",
             "uri": "file://test.test_stochastic_rank_pfound_0.6--1_/test_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound[0.6-10]": [
         {
-            "checksum": "0a112ce69d71f997c5515a3e4b3f0235",
+            "checksum": "a3301896fc53251eb7652412716f56fc",
             "uri": "file://test.test_stochastic_rank_pfound_0.6-10_/learn_error.tsv"
         },
         {
-            "checksum": "ef8b7d7477cdf301efe69455bb1eba5f",
+            "checksum": "f53d8ca67a3e5353f5b9269d1ca6ebe0",
             "uri": "file://test.test_stochastic_rank_pfound_0.6-10_/test_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound[0.6-1]": [
         {
-            "checksum": "5b6cacd55308e210f644cf23c8210668",
+            "checksum": "32045153d6f75c9ae1c19b068f9afa29",
             "uri": "file://test.test_stochastic_rank_pfound_0.6-1_/learn_error.tsv"
         },
         {
-            "checksum": "662abde0f14e56bc63f77d4902af8a68",
+            "checksum": "f60fc8fadc11261e75b8206e808a7578",
             "uri": "file://test.test_stochastic_rank_pfound_0.6-1_/test_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound[1.0--1]": [
         {
-            "checksum": "ecacfe6dc0992775c98b55219d8dc67b",
+            "checksum": "568b3c16b3c7a7d6fbe776f6ba178c8d",
             "uri": "file://test.test_stochastic_rank_pfound_1.0--1_/learn_error.tsv"
         },
         {
-            "checksum": "20118f929fee3eeb3158c595168d31ae",
+            "checksum": "5cc1428be9837335e0a3cdcdb5a0d9fa",
             "uri": "file://test.test_stochastic_rank_pfound_1.0--1_/test_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound[1.0-10]": [
         {
-            "checksum": "ecacfe6dc0992775c98b55219d8dc67b",
+            "checksum": "2309b990f2610c5c3697d8ba66bd22e0",
             "uri": "file://test.test_stochastic_rank_pfound_1.0-10_/learn_error.tsv"
         },
         {
-            "checksum": "20118f929fee3eeb3158c595168d31ae",
+            "checksum": "02144f672017385093f037a97fa70dc3",
             "uri": "file://test.test_stochastic_rank_pfound_1.0-10_/test_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound[1.0-1]": [
         {
-            "checksum": "ecacfe6dc0992775c98b55219d8dc67b",
+            "checksum": "d09a83a23921175542bf498034fce8f4",
             "uri": "file://test.test_stochastic_rank_pfound_1.0-1_/learn_error.tsv"
         },
         {
-            "checksum": "20118f929fee3eeb3158c595168d31ae",
+            "checksum": "42096671298ae3c97df076e1dcefdcbb",
             "uri": "file://test.test_stochastic_rank_pfound_1.0-1_/test_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound_with_many_ones[0.0--1]": [
         {
-            "checksum": "ef29af567bcf69e71d41141b5cb28d48",
+            "checksum": "954a0ba5e48f45fc115663ffef4cce75",
             "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.0--1_/learn_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound_with_many_ones[0.0-10]": [
         {
-            "checksum": "ef29af567bcf69e71d41141b5cb28d48",
+            "checksum": "4fbcf09166f2e1e14ced1322bfbede6d",
             "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.0-10_/learn_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound_with_many_ones[0.0-1]": [
         {
-            "checksum": "ef29af567bcf69e71d41141b5cb28d48",
+            "checksum": "6edbd2731a5c97a7d9301b80a7a0f364",
             "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.0-1_/learn_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound_with_many_ones[0.6--1]": [
         {
-            "checksum": "0a157ca17c283f3d055f72131636b9ef",
+            "checksum": "f87879304de96e0b0bc8cd689bfc751b",
             "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.6--1_/learn_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound_with_many_ones[0.6-10]": [
         {
-            "checksum": "6feb44746792073db4bd65c3168a9ad2",
+            "checksum": "aafe33270a9937a082ced825b533f9c8",
             "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.6-10_/learn_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound_with_many_ones[0.6-1]": [
         {
-            "checksum": "16d61aa3c39397de621d567494a215ba",
+            "checksum": "bdb6d59a526b9926df69095a8057ae35",
             "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.6-1_/learn_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound_with_many_ones[1.0--1]": [
         {
-            "checksum": "e67e748c38d180f709957d5216bf3294",
+            "checksum": "5c52c00f0c6da99e22100b2830be75f9",
             "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_1.0--1_/learn_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound_with_many_ones[1.0-10]": [
         {
-            "checksum": "e67e748c38d180f709957d5216bf3294",
+            "checksum": "81ca96ca740b0834123459a4fd44ee4f",
             "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_1.0-10_/learn_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound_with_many_ones[1.0-1]": [
         {
-            "checksum": "e67e748c38d180f709957d5216bf3294",
+            "checksum": "85392881305f3b537e3ec9cd4a41ab03",
             "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_1.0-1_/learn_error.tsv"
         }
     ],

@@ -5,7 +5,7 @@
 #include <contrib/libs/coreml/TreeEnsemble.pb.h>
 #include <contrib/libs/coreml/Model.pb.h>
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/generic/hash.h>
 

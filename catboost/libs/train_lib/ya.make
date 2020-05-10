@@ -32,9 +32,9 @@ PEERDIR(
     catboost/private/libs/pairs
     catboost/private/libs/target
     library/cpp/grid_creator
-    library/json
+    library/cpp/json
     library/object_factory
-    library/threading/local_executor
+    library/cpp/threading/local_executor
 )
 
 IF (USE_MPI)

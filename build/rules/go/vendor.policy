@@ -434,6 +434,9 @@ ALLOW .* -> vendor/github.com/karrick/godirwalk
 # CONTRIB-1864 Zstandard (zstd) data compression algorithm
 ALLOW .* -> vendor/github.com/klauspost/compress/zstd
 
+# CONTRIB-1865 Decorated Syntax Tree for Go AST
+ALLOW .* -> vendor/github.com/dave/dst
+
 #
 # Temporary exceptions.
 #

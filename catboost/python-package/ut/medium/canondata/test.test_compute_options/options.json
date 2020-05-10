@@ -207,8 +207,7 @@
     }, 
     "detailed_profile": false, 
     "flat_params": {
-        "thread_count": 1, 
-        "verbose": 1
+        "thread_count": 1
     }, 
     "logging_level": "Verbose", 
     "loss_function": {

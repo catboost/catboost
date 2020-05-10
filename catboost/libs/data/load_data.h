@@ -10,7 +10,7 @@
 #include <catboost/libs/logging/profile_info.h>
 #include <catboost/private/libs/options/load_options.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/vector.h>

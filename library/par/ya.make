@@ -22,16 +22,16 @@ SRCS(
 GENERATE_ENUM_SERIALIZATION(par_host_stats.h)
 
 PEERDIR(
-    library/binsaver
+    library/cpp/binsaver
     library/blockcodecs
     library/chromium_trace
-    library/containers/ring_buffer
+    library/cpp/containers/ring_buffer
     library/cpp/digest/crc32c
     library/logger/global
     library/neh
     library/netliba/v12
-    library/threading/atomic
-    library/threading/local_executor
+    library/cpp/threading/atomic
+    library/cpp/threading/local_executor
 )
 
 END()

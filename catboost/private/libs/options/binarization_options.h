@@ -5,7 +5,7 @@
 
 #include <library/cpp/grid_creator/binarization.h>
 
-// TODO(yazevnul): make fwd header for library/json
+// TODO(yazevnul): make fwd header for library/cpp/json
 namespace NJson {
     class TJsonValue;
 }

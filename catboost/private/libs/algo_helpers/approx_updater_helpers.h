@@ -6,8 +6,8 @@
 #include <catboost/private/libs/options/restrictions.h>
 
 #include <library/fast_exp/fast_exp.h>
-#include <library/fast_log/fast_log.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/fast_log/fast_log.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/vector.h>

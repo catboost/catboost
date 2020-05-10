@@ -14,7 +14,7 @@
 #include <catboost/private/libs/options/metric_options.h>
 #include <catboost/libs/helpers/maybe_data.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 #include <library/cpp/containers/2d_array/2d_array.h>
 
 #include <util/generic/fwd.h>
@@ -289,6 +289,9 @@ THolder<IMetric> MakeMCCMetric(const TMap<TString, TString>& params,
 THolder<IMetric> MakeBrierScoreMetric(const TMap<TString, TString>& params);
 
 THolder<IMetric> MakeCustomMetric(const TCustomMetricDescriptor& descriptor);
+
+THolder<IMetric> MakeMultiClassPRAUCMetric(const TMap<TString, TString>& params, int positiveClass);
+THolder<IMetric> MakeBinClassPRAUCMetric(const TMap<TString, TString>& params);
 
 TVector<THolder<IMetric>> CreateMetricsFromDescription(const TVector<TString>& description, int approxDim);
 

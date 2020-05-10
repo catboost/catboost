@@ -3,7 +3,7 @@
 #include "poller.h"
 #include "sockmap.h"
 
-#include <library/containers/intrusive_rb_tree/rb_tree.h>
+#include <library/cpp/containers/intrusive_rb_tree/rb_tree.h>
 
 #include <util/datetime/base.h>
 #include <util/memory/pool.h>

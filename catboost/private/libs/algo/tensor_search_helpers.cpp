@@ -8,7 +8,7 @@
 #include <catboost/libs/helpers/restorable_rng.h>
 #include <catboost/private/libs/options/catboost_options.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/xrange.h>
@@ -237,6 +237,8 @@ THolder<IDerCalcer> BuildError(
         }
         case ELossFunction::PythonUserDefinedPerObject:
             return MakeHolder<TCustomError>(params, descriptor);
+        case ELossFunction::PythonUserDefinedMultiRegression:
+            return MakeHolder<TMultiRegressionCustomError>(params, descriptor);
         case ELossFunction::UserPerObjMetric:
             return MakeHolder<TUserDefinedPerObjectError>(
                 params.LossFunctionDescription->GetLossParams(),

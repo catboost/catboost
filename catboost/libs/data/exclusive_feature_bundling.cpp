@@ -9,7 +9,7 @@
 #include <catboost/libs/helpers/parallel_tasks.h>
 
 #include <library/cpp/pop_count/popcount.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/array_ref.h>

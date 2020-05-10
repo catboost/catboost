@@ -6,7 +6,7 @@
 #include <catboost/libs/data/ut/lib/for_loader.h>
 #include <catboost/libs/train_lib/train_model.h>
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/string/builder.h>
 #include <util/folder/tempdir.h>

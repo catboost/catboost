@@ -3,7 +3,7 @@
 #include "enums.h"
 #include "option.h"
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/generic/vector.h>
 

@@ -1,6 +1,6 @@
 #include "tracer.h"
 
-#include <library/json/json_writer.h>
+#include <library/cpp/json/json_writer.h>
 
 namespace NChromiumTrace {
     void TTracer::NotifySuppressedException() {

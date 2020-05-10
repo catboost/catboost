@@ -5,8 +5,8 @@
 
 #include <catboost/libs/model/flatbuffers/model.fbs.h>
 
-#include <library/json/json_reader.h>
-#include <library/json/json_writer.h>
+#include <library/cpp/json/json_reader.h>
+#include <library/cpp/json/json_writer.h>
 
 #include <util/generic/set.h>
 #include <util/string/builder.h>

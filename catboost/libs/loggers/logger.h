@@ -5,7 +5,7 @@
 #include <catboost/libs/logging/logging.h>
 #include <catboost/libs/logging/profile_info.h>
 
-#include <library/json/writer/json_value.h>
+#include <library/cpp/json/writer/json_value.h>
 #include <util/stream/format.h>
 #include <util/generic/hash.h>
 #include <util/generic/ymath.h>

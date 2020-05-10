@@ -96,8 +96,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zlib\contrib-libs-zlib.vcxproj">
       <Project>{E8A35EC0-40EE-2D96-1FB2-D065B804958D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\containers\paged_vector\library-containers-paged_vector.vcxproj">
-      <Project>{F2373D22-DBF0-B7E4-B028-8BF674973AED}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\paged_vector\cpp-containers-paged_vector.vcxproj">
+      <Project>{5B0D41B4-E09B-5679-7188-95162A85D1F0}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>

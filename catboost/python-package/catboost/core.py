@@ -38,30 +38,11 @@ except ImportError:
 import scipy.sparse
 
 
-def get_so_paths(dir_name):
-    dir_name = os.path.join(os.path.dirname(__file__), dir_name)
-    list_dir = os.listdir(dir_name) if os.path.isdir(dir_name) else []
-    return [os.path.join(dir_name, so_name) for so_name in list_dir if so_name.split('.')[-1] in ['so', 'pyd']]
-
-
-def get_catboost_bin_module():
-    if '_catboost' in sys.modules:
-        return sys.modules['_catboost']
-    so_paths = get_so_paths('./')
-    for so_path in so_paths:
-        try:
-            loaded_catboost = imp.load_dynamic('_catboost', so_path)
-            sys.modules['catboost._catboost'] = loaded_catboost
-            return loaded_catboost
-        except ImportError:
-            pass
-    from . import _catboost
-    return _catboost
-
-
 _typeof = type
 
-_catboost = get_catboost_bin_module()
+from . import _catboost
+
+
 _PoolBase = _catboost._PoolBase
 _CatBoost = _catboost._CatBoost
 _MetricCalcerBase = _catboost._MetricCalcerBase
@@ -83,7 +64,8 @@ _NumpyAwareEncoder = _catboost._NumpyAwareEncoder
 FeaturesData = _catboost.FeaturesData
 _have_equal_features = _catboost._have_equal_features
 SPARSE_MATRIX_TYPES = _catboost.SPARSE_MATRIX_TYPES
-MultiLabelCustomMetric = _catboost.MultiLabelCustomMetric
+MultiRegressionCustomMetric = _catboost.MultiRegressionCustomMetric
+MultiRegressionCustomObjective = _catboost.MultiRegressionCustomObjective
 
 
 from contextlib import contextmanager  # noqa E402
@@ -157,7 +139,6 @@ def _process_verbose(metric_period=None, verbose=None, logging_level=None, verbo
         elif verbose_eval is not None:
             verbose = verbose_eval
     if verbose is not None:
-        logging_level = 'Verbose' if verbose else 'Silent'
         verbose = int(verbose)
 
     return (metric_period, verbose, logging_level)
@@ -4883,6 +4864,9 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
     _process_synonyms(params)
 
     metric_period, verbose, logging_level = _process_verbose(metric_period, verbose, logging_level, verbose_eval)
+
+    if 'loss_function' not in params:
+        raise CatBoostError("Parameter loss_function should be specified for cross-validation")
 
     if any(v is not None for v in [fold_count,nfold]) and folds is not None:
         raise CatBoostError(

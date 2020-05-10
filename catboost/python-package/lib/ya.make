@@ -27,9 +27,9 @@ PEERDIR(
     catboost/private/libs/quantized_pool_analysis
     catboost/private/libs/target
     library/cpp/containers/2d_array
-    library/json/writer
-    library/text_processing/tokenizer
-    library/text_processing/app_helpers
+    library/cpp/json/writer
+    library/cpp/text_processing/tokenizer
+    library/cpp/text_processing/app_helpers
     contrib/python/graphviz
     contrib/python/numpy
     contrib/python/pandas

@@ -3,7 +3,7 @@
 #include <catboost/libs/helpers/map_merge.h>
 #include <catboost/private/libs/index_range/index_range.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/cast.h>
 

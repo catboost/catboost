@@ -2,7 +2,7 @@
 
 #include <catboost/libs/model/model.h>
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 NJson::TJsonValue ConvertModelToJson(
     const TFullModel& model,

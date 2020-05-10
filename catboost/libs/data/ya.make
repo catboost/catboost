@@ -44,12 +44,12 @@ SRCS(
 
 PEERDIR(
     library/cpp/pop_count
-    library/dbg_output
-    library/json
+    library/cpp/dbg_output
+    library/cpp/json
     library/object_factory
     library/cpp/string_utils/csv
     library/cpp/threading/future
-    library/threading/local_executor
+    library/cpp/threading/local_executor
 
     catboost/libs/cat_feature
     catboost/libs/column_description

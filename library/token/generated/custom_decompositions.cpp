@@ -1,4 +1,4 @@
-#include <library/unicode/normalization/normalization.h>
+#include <library/cpp/unicode/normalization/normalization.h>
 
 namespace { namespace NLemmerDecompositionGenerated {
     using TV = const NUnicode::NPrivate::TDecompositionTable::TStored;

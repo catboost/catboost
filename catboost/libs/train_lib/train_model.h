@@ -11,7 +11,7 @@
 #include <catboost/private/libs/options/output_file_options.h>
 #include <catboost/private/libs/options/catboost_options.h>
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 #include <library/object_factory/object_factory.h>
 
 #include <util/generic/maybe.h>

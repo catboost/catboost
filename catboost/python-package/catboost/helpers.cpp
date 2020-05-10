@@ -1,5 +1,6 @@
 #include "helpers.h"
 
+#include <catboost/libs/data/feature_names_converter.h>
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/helpers/interrupt.h>
 #include <catboost/libs/helpers/matrix.h>
@@ -174,6 +175,7 @@ NJson::TJsonValue GetTrainingOptions(
     NJson::TJsonValue trainOptionsJson;
     NJson::TJsonValue outputFilesOptionsJson;
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &trainOptionsJson, &outputFilesOptionsJson);
+    ConvertParamsToCanonicalFormat(trainDataMetaInfo, &trainOptionsJson);
     NCatboostOptions::TCatBoostOptions catboostOptions(NCatboostOptions::LoadOptions(trainOptionsJson));
     NCatboostOptions::TOption<bool> useBestModelOption("use_best_model", false);
     SetDataDependentDefaults(

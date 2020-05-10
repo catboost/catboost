@@ -8,7 +8,7 @@ SRCS(
 
 PEERDIR(
     catboost/private/libs/index_range
-    library/threading/local_executor
+    library/cpp/threading/local_executor
 )
 
 END()

@@ -13,7 +13,7 @@ PEERDIR(
     catboost/libs/train_lib
     catboost/libs/metrics
     catboost/private/libs/options
-    library/json
+    library/cpp/json
 )
 
 END()

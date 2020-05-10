@@ -16,8 +16,8 @@
 #include <catboost/private/libs/options/load_options.h>
 #include <catboost/private/libs/options/restrictions.h>
 
-#include <library/binsaver/bin_saver.h>
-#include <library/json/json_value.h>
+#include <library/cpp/binsaver/bin_saver.h>
+#include <library/cpp/json/json_value.h>
 #include <library/par/par.h>
 #include <library/par/par_util.h>
 

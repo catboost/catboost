@@ -1,11 +1,10 @@
 import math
 
-from .core import get_catboost_bin_module, CatBoost, CatBoostError
+from . import _catboost
+from .core import CatBoost, CatBoostError
 
 from .utils import _import_matplotlib
 
-
-_catboost = get_catboost_bin_module()
 FeatureExplanation = _catboost.FeatureExplanation
 
 

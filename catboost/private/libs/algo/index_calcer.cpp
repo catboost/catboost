@@ -16,7 +16,7 @@
 #include <catboost/libs/model/model.h>
 
 #include <library/cpp/containers/stack_vector/stack_vec.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <functional>
 

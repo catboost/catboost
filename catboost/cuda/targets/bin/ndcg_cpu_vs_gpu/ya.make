@@ -13,7 +13,7 @@ PEERDIR(
     catboost/libs/metrics
     catboost/private/libs/options
     library/cpp/getopt
-    library/threading/local_executor
+    library/cpp/threading/local_executor
 )
 
 END()

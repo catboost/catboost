@@ -1,7 +1,7 @@
 #include "par.h"
 #include "par_host.h"
 
-#include <library/binsaver/mem_io.h>
+#include <library/cpp/binsaver/mem_io.h>
 
 namespace NPar {
     void TJobDescription::SetCurrentOperation(IDistrCmd* op) {

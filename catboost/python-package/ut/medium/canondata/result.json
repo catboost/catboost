@@ -40,7 +40,7 @@
         "uri": "file://test.test_classification_ctr_CPU_/model.bin"
     },
     "test.test_compute_options": {
-        "checksum": "92f53dd14e380f0a0dd81ab0996679d6",
+        "checksum": "2ee624ea4d81e8809c6bd36f375507b3",
         "uri": "file://test.test_compute_options/options.json"
     },
     "test.test_continue_learning_with_changing_dataset[samples=more,features=more]": {
@@ -751,7 +751,7 @@
             "uri": "file://test.test_multiclass_classes_count_CPU-missed_classes=False_/predictions.txt"
         },
         {
-            "checksum": "c2c1ce0e4c9907b4ae09600c78adc880",
+            "checksum": "d7753b9b114a94e79a651e3611f429a7",
             "uri": "file://test.test_multiclass_classes_count_CPU-missed_classes=False_/model.bin"
         }
     ],
@@ -761,7 +761,7 @@
             "uri": "file://test.test_multiclass_classes_count_CPU-missed_classes=True_/predictions.txt"
         },
         {
-            "checksum": "03aa16118ed95c4976bb938d4ed5f52b",
+            "checksum": "db5c1759c1151af5d39f8bf52e8652ba",
             "uri": "file://test.test_multiclass_classes_count_CPU-missed_classes=True_/model.bin"
         }
     ],
@@ -814,23 +814,23 @@
         "uri": "file://test.test_ones_weight_CPU_/model.bin"
     },
     "test.test_onnx_export[problem_type=binclass-boost_from_average=False]": {
-        "checksum": "320053c53bc37156aedd89a35a50ef16",
+        "checksum": "761635a339444362c53eb23d35c566b0",
         "uri": "file://test.test_onnx_export_problem_type=binclass-boost_from_average=False_/model.onnx"
     },
     "test.test_onnx_export[problem_type=binclass-boost_from_average=True]": {
-        "checksum": "07b17ce1d67eeda9896f3ec9e9d15573",
+        "checksum": "7eb0ae6d50e933658a60593785428971",
         "uri": "file://test.test_onnx_export_problem_type=binclass-boost_from_average=True_/model.onnx"
     },
     "test.test_onnx_export[problem_type=multiclass-boost_from_average=False]": {
-        "checksum": "5d7aed7a559121f2f92b3d858f86e787",
+        "checksum": "635475ec793a5ca715ee3bbbb58cd99e",
         "uri": "file://test.test_onnx_export_problem_type=multiclass-boost_from_average=False_/model.onnx"
     },
     "test.test_onnx_export[problem_type=regression-boost_from_average=False]": {
-        "checksum": "5eafe1406f89f8b2e947373bf894c119",
+        "checksum": "1c82d2a750c81eb8ee4ebbd7e7d6eb1d",
         "uri": "file://test.test_onnx_export_problem_type=regression-boost_from_average=False_/model.onnx"
     },
     "test.test_onnx_export[problem_type=regression-boost_from_average=True]": {
-        "checksum": "36abba8a029efbf9344f2d0432403023",
+        "checksum": "31eb115302f40aeb25d00ed43ebb8bb0",
         "uri": "file://test.test_onnx_export_problem_type=regression-boost_from_average=True_/model.onnx"
     },
     "test.test_pairs_generation[CPU]": {
@@ -1018,11 +1018,15 @@
         "uri": "file://test.test_text_processing_dictionary/dictionary.tsv"
     },
     "test.test_util_eval_metric[Logloss]": {
-        "checksum": "0779ae985d0a7dbddec543e531e535da",
+        "checksum": "9678056dc356a9b975add4fc17897b0b",
         "uri": "file://test.test_util_eval_metric_Logloss_/predictions.npy"
     },
+    "test.test_util_eval_metric[PRAUC]": {
+        "checksum": "6b5362b85c94c0f7868d6b202a1824e6",
+        "uri": "file://test.test_util_eval_metric_PRAUC_/predictions.npy"
+    },
     "test.test_util_eval_metric[RMSE]": {
-        "checksum": "d29e0fa8ebe22f960a0c86d321e44be7",
+        "checksum": "d0dc7133c53d8e1816fdef42b9ed87d3",
         "uri": "file://test.test_util_eval_metric_RMSE_/predictions.npy"
     },
     "test.test_util_eval_metric_multiclass[AUC:misclass_cost_matrix=0/1/0.33/0/0/0.239/-1/1.2/0]": {
@@ -1040,6 +1044,14 @@
     "test.test_util_eval_metric_multiclass[MultiClass]": {
         "checksum": "0b7e2597de60f628bb79d1569a20dee6",
         "uri": "file://test.test_util_eval_metric_multiclass_MultiClass_/predictions.npy"
+    },
+    "test.test_util_eval_metric_multiclass[PRAUC:type=OneVsAll]": {
+        "checksum": "511f2ee527a207f3487739874d5e9b14",
+        "uri": "file://test.test_util_eval_metric_multiclass_PRAUC_type=OneVsAll_/predictions.npy"
+    },
+    "test.test_util_eval_metric_multiclass[PRAUC]": {
+        "checksum": "511f2ee527a207f3487739874d5e9b14",
+        "uri": "file://test.test_util_eval_metric_multiclass_PRAUC_/predictions.npy"
     },
     "test.test_util_eval_metric_pairwise[PairAccuracy]": {
         "checksum": "9bdd42193bbc9b01a0f02a574e99db7c",

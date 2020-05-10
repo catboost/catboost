@@ -24,7 +24,7 @@
 #include <catboost/private/libs/options/loss_description.h>
 
 #include <library/fast_exp/fast_exp.h>
-#include <library/fast_log/fast_log.h>
+#include <library/cpp/fast_log/fast_log.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/hash.h>
@@ -40,6 +40,7 @@
 
 #include <limits>
 #include <tuple>
+
 
 using NCB::AppendTemporaryMetricsVector;
 using NCB::AsVector;
@@ -2597,7 +2598,6 @@ THolder<IMetric> MakeBinClassAucMetric(const TMap<TString, TString>& params) {
     return MakeHolder<TAUCMetric>(params, EAucType::Classic);
 }
 
-
 THolder<IMetric> MakeMultiClassAucMetric(const TMap<TString, TString>& params, int positiveClass) {
     return MakeHolder<TAUCMetric>(params, positiveClass);
 }
@@ -3509,6 +3509,191 @@ void TMAPKMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     *valueType = EMetricBestValue::Max;
 }
 
+/* Precision-Recall AUC */
+
+namespace {
+    struct TPRAUCMetric : public TNonAdditiveMetric {
+        explicit TPRAUCMetric(const TMap<TString, TString>& params, int positiveClass)
+            : TNonAdditiveMetric(ELossFunction::PRAUC, params),
+             PositiveClass(positiveClass), IsMultiClass(true) {
+            UseWeights.SetDefaultValue(false);
+        }
+
+        explicit TPRAUCMetric(const TMap<TString, TString>& params)
+            : TNonAdditiveMetric(ELossFunction::PRAUC, params) {
+            UseWeights.SetDefaultValue(false);
+        }
+
+        static TVector<THolder<IMetric>> Create(const TMetricConfig& config);
+
+        TMetricHolder Eval(
+                const TVector<TVector<double>>& approx,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
+                int begin,
+                int end,
+                NPar::TLocalExecutor& executor) const override {
+                    return Eval(To2DConstArrayRef<double>(approx), /*approxDelta*/{}, /*isExpApprox*/false, target, weight, queriesInfo, begin, end, executor);
+                }
+        TMetricHolder Eval(
+                const TConstArrayRef<TConstArrayRef<double>> approx,
+                const TConstArrayRef<TConstArrayRef<double>> approxDelta,
+                bool isExpApprox,
+                TConstArrayRef<float> target,
+                TConstArrayRef<float> weight,
+                TConstArrayRef<TQueryInfo> queriesInfo,
+                int begin,
+                int end,
+                NPar::TLocalExecutor& executor) const override;
+        void GetBestValue(EMetricBestValue* valueType, float* bestValue) const override;
+
+        private:
+            int PositiveClass = 1;
+            bool IsMultiClass = false;
+    };
+}
+
+THolder<IMetric> MakeBinClassPRAUCMetric(const TMap<TString, TString>& params) {
+    return MakeHolder<TPRAUCMetric>(params);
+}
+
+THolder<IMetric> MakeMultiClassPRAUCMetric(const TMap<TString, TString>& params, int positiveClass) {
+    return MakeHolder<TPRAUCMetric>(params, positiveClass);
+}
+
+TVector<THolder<IMetric>> TPRAUCMetric::Create(const TMetricConfig& config) {
+    config.validParams->insert("type");
+    EAucType aucType = config.approxDimension == 1 ? EAucType::Classic : EAucType::OneVsAll;
+    if (config.params.contains("type")) {
+        const TString name = config.params.at("type");
+        aucType = FromString<EAucType>(name);
+        if (config.approxDimension == 1) {
+            CB_ENSURE(aucType == EAucType::Classic,
+                      "PRAUC type \"" << aucType << "\" isn't a singleclass PRAUC type");
+        } else {
+            CB_ENSURE(aucType == EAucType::OneVsAll,
+                      "PRAUC type \"" << aucType << "\" isn't a multiclass PRAUC type");
+        }
+    }
+    switch (aucType) {
+        case EAucType::Classic: {
+            return AsVector(MakeHolder<TPRAUCMetric>(config.params));
+        }
+        case EAucType::OneVsAll: {
+            TVector<THolder<IMetric>> metrics;
+            for (int i = 0; i < config.approxDimension; ++i) {
+                metrics.push_back(MakeHolder<TPRAUCMetric>(config.params, i));
+            }
+            return metrics;
+        }
+        default: {
+            Y_VERIFY(false);
+        }
+    }
+}
+
+TMetricHolder TPRAUCMetric::Eval(
+    const TConstArrayRef<TConstArrayRef<double>> approx,
+    const TConstArrayRef<TConstArrayRef<double>> approxDelta,
+    bool isExpApprox,
+    TConstArrayRef<float> target,
+    TConstArrayRef<float> weight,
+    TConstArrayRef<TQueryInfo> /*queriesInfo*/,
+    int begin,
+    int end,
+    NPar::TLocalExecutor& /*executor*/
+) const {
+    Y_ASSERT(!isExpApprox);
+    Y_ASSERT((approx.size() > 1) == IsMultiClass);
+    Y_ASSERT(approx[0].size() == target.size());
+
+    TMetricHolder error(2);
+    error.Stats[1] = 1;
+
+    int elemCount = end - begin;
+
+    struct Sample {
+        double approx;
+        float target;
+        float weight;
+    };
+
+    TVector<Sample> sortedSamples;
+    sortedSamples.reserve(elemCount);
+
+    const auto realApprox = [&](int idx) {
+        return approx[IsMultiClass ? PositiveClass : 0][idx]
+        + (approxDelta.empty() ? 0.0 : approxDelta[IsMultiClass ? PositiveClass : 0][idx]);
+    };
+    const auto realWeight = [&](int idx) {
+        return UseWeights && !weight.empty() ? weight[idx] : 1.0f;
+    };
+
+    for (int i = begin; i < end; ++i) {
+        sortedSamples.push_back({realApprox(i), target[i], realWeight(i)});
+    }
+
+    std::sort(sortedSamples.begin(), sortedSamples.end(), [](const Sample& l, const Sample& r) {return l.approx < r.approx;});
+
+    int curNegCount = 0;
+    double curTp = 0;
+    double curFp = 0;
+    double curFn = 0;
+
+    for (size_t i = 0; i < target.size(); ++i) {
+        if (sortedSamples[i].target == PositiveClass) {
+            curTp += sortedSamples[i].weight;
+        } else {
+            curFp += sortedSamples[i].weight;
+        }
+    }
+
+    CB_ENSURE(curTp > 0, "No element of a positive class");
+
+    double prevPrecision = 0;
+    double prevRecall = 1;
+    double& auc = error.Stats[0];
+
+    auto isApproxesEqual = [] (double approxL, double approxR) {
+        return Abs(approxL - approxR) < 1e-8;
+    };
+
+    while (curNegCount <= elemCount) {
+        double precision = (curTp == 0 && curFp == 0) ? 1 : curTp / (curTp + curFp + 0.0);
+        double recall = curTp / (curTp + curFn + 0.0);
+
+        auc += (prevRecall - recall) * (prevPrecision + precision) / 2;
+
+        prevRecall = recall;
+        prevPrecision = precision;
+
+        auto moveOneBorder = [&]() {
+            if (curNegCount < elemCount) {
+                auto curWeight = sortedSamples[curNegCount].weight;
+                if (sortedSamples[curNegCount].target == PositiveClass) {
+                    curTp -= curWeight;
+                    curFn += curWeight;
+                } else {
+                    curFp -= curWeight;
+                }
+            }
+            ++curNegCount;
+        };
+
+        moveOneBorder();
+        while (curNegCount < elemCount && isApproxesEqual(sortedSamples[curNegCount - 1].approx, sortedSamples[curNegCount].approx)) {
+            moveOneBorder();
+        }
+    }
+
+    return error;
+}
+
+void TPRAUCMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+    *valueType = EMetricBestValue::Max;
+}
+
 /* Custom */
 
 namespace {
@@ -3620,9 +3805,9 @@ void TCustomMetric::AddHint(const TString& key, const TString& value) {
 /* CustomMultiRegression */
 
 namespace {
-    class TMultiLabelCustomMetric: public TMultiRegressionMetric {
+    class TMultiRegressionCustomMetric: public TMultiRegressionMetric {
     public:
-        explicit TMultiLabelCustomMetric(const TCustomMetricDescriptor& descriptor);
+        explicit TMultiRegressionCustomMetric(const TCustomMetricDescriptor& descriptor);
 
         TMetricHolder Eval(
             TConstArrayRef<TVector<double>> approx,
@@ -3670,14 +3855,15 @@ namespace {
     };
 }
 
-TMultiLabelCustomMetric::TMultiLabelCustomMetric(const TCustomMetricDescriptor& descriptor)
+
+TMultiRegressionCustomMetric::TMultiRegressionCustomMetric(const TCustomMetricDescriptor& descriptor)
         : TMultiRegressionMetric(ELossFunction::PythonUserDefinedPerObject, /*params=*/{})
         , Descriptor(descriptor)
 {
     UseWeights.SetDefaultValue(true);
 }
 
-TMetricHolder TMultiLabelCustomMetric::Eval_(
+TMetricHolder TMultiRegressionCustomMetric::Eval_(
     TConstArrayRef<TVector<double>> approx,
     TConstArrayRef<TConstArrayRef<float>> target,
     TConstArrayRef<float> weightIn,
@@ -3695,24 +3881,24 @@ TMetricHolder TMultiLabelCustomMetric::Eval_(
     return result;
 }
 
-TString TMultiLabelCustomMetric::GetDescription() const {
+TString TMultiRegressionCustomMetric::GetDescription() const {
     TString description = Descriptor.GetDescriptionFunc(Descriptor.CustomData);
     return BuildDescription(description, UseWeights);
 }
 
-void TMultiLabelCustomMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
+void TMultiRegressionCustomMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
     bool isMaxOptimal = Descriptor.IsMaxOptimalFunc(Descriptor.CustomData);
     *valueType = isMaxOptimal ? EMetricBestValue::Max : EMetricBestValue::Min;
 }
 
-double TMultiLabelCustomMetric::GetFinalError(const TMetricHolder& error) const {
+double TMultiRegressionCustomMetric::GetFinalError(const TMetricHolder& error) const {
     return Descriptor.GetFinalErrorFunc(error, Descriptor.CustomData);
 }
 
 
 THolder<IMetric> MakeCustomMetric(const TCustomMetricDescriptor& descriptor) {
     if (descriptor.IsMultiregressionMetric()) {
-        return MakeHolder<TMultiLabelCustomMetric>(descriptor);
+        return MakeHolder<TMultiRegressionCustomMetric>(descriptor);
     } else {
         return MakeHolder<TCustomMetric>(descriptor);
     }
@@ -4438,6 +4624,9 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<TString,
         case ELossFunction::MSLE:
             AppendTemporaryMetricsVector(TMSLEMetric::Create(config), &result);
             break;
+        case ELossFunction::PRAUC:
+            AppendTemporaryMetricsVector(TPRAUCMetric::Create(config), &result);
+            break;
         case ELossFunction::MultiClass:
             AppendTemporaryMetricsVector(TMultiClassMetric::Create(config), &result);
             break;
@@ -4517,7 +4706,7 @@ TVector<THolder<IMetric>> CreateMetric(ELossFunction metric, const TMap<TString,
         case ELossFunction::NormalizedGini:
             AppendTemporaryMetricsVector(TNormalizedGini::Create(config), &result);
             break;
-        case ELossFunction::Combination: 
+        case ELossFunction::Combination:
             AppendTemporaryMetricsVector(TCombinationLoss::Create(config), &result);
             break;
         default: {
@@ -4629,7 +4818,7 @@ void InitializeEvalMetricIfNotSet(
     CB_ENSURE(objectiveMetric.IsSet(), "Objective metric must be set.");
     const NCatboostOptions::TLossDescription& objectiveMetricDescription = objectiveMetric.Get();
     if (evalMetric->NotSet()) {
-        CB_ENSURE(objectiveMetricDescription.GetLossFunction() != ELossFunction::PythonUserDefinedPerObject,
+        CB_ENSURE(!IsUserDefined(objectiveMetricDescription.GetLossFunction()),
                   "If loss function is a user defined object, then the eval metric must be specified.");
         evalMetric->Set(objectiveMetricDescription);
     }
@@ -4647,7 +4836,7 @@ TVector<THolder<IMetric>> CreateMetrics(
     const NCatboostOptions::TLossDescription& evalMetricDescription = evalMetricOptions->EvalMetric.Get();
 
     TVector<THolder<IMetric>> createdObjectiveMetrics;
-    if (objectiveMetricDescription.GetLossFunction() != ELossFunction::PythonUserDefinedPerObject) {
+    if (!IsUserDefined(objectiveMetricDescription.GetLossFunction())) {
         createdObjectiveMetrics = CreateMetricFromDescription(
             objectiveMetricDescription,
             approxDimension);
@@ -4664,7 +4853,7 @@ TVector<THolder<IMetric>> CreateMetrics(
     THashSet<TString> usedDescriptions;
     THashSet<TString> metricsToCalcOnTrain;
 
-    if (evalMetricDescription.GetLossFunction() == ELossFunction::PythonUserDefinedPerObject) {
+    if (IsUserDefined(evalMetricDescription.GetLossFunction())) {
         metrics.emplace_back(MakeCustomMetric(*evalMetricDescriptor));
     } else {
         metrics = CreateMetricFromDescription(evalMetricDescription, approxDimension);

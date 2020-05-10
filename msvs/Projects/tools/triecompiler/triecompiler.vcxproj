@@ -122,14 +122,17 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\comptrie\library-comptrie.vcxproj">
       <Project>{76943172-A17F-362F-8E2E-D4DEC653984D}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\containers\compact_vector\library-containers-compact_vector.vcxproj">
-      <Project>{047C7A50-2D9A-391C-C42D-8B39A296D2D2}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\colorizer\library-cpp-colorizer.vcxproj">
       <Project>{78881F22-8136-23DF-843E-58AA6DB6D337}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\compact_vector\cpp-containers-compact_vector.vcxproj">
+      <Project>{4394134A-0B20-E6EA-3626-1FBF34227AFB}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cpuid_check\library-cpp-cpuid_check.vcxproj">
       <Project>{A945C0FD-E868-BBA0-1189-19BBB2296292}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\deprecated\mapped_file\cpp-deprecated-mapped_file.vcxproj">
+      <Project>{76F4EA6B-38E3-9595-F63D-F5CF3F956AF5}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\getopt\library-cpp-getopt.vcxproj">
       <Project>{9DBDDA00-C8DB-E3C2-F0FF-04B6B7E4F75A}</Project>
@@ -148,15 +151,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\base64\cpp-string_utils-base64.vcxproj">
       <Project>{A4764222-1478-DE04-CC5B-2369096E96BC}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\deprecated\mapped_file\library-deprecated-mapped_file.vcxproj">
-      <Project>{C8D7BEC2-3BB7-029A-969A-FF92ADCB2087}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\getopt\library-getopt.vcxproj">
-      <Project>{1B84398E-CEDA-82B5-EE84-A684324BB064}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\getopt\small\library-getopt-small.vcxproj">
-      <Project>{DB9C26F0-E241-89AB-6F12-8CE533A7E012}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
       <Project>{2CE71367-048B-26B0-2DAC-CA9BB7D00E76}</Project>

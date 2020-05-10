@@ -24,7 +24,7 @@
 #include <catboost/private/libs/algo_helpers/langevin_utils.h>
 #include <catboost/private/libs/distributed/master.h>
 
-#include <library/fast_log/fast_log.h>
+#include <library/cpp/fast_log/fast_log.h>
 
 #include <util/generic/cast.h>
 #include <util/generic/queue.h>

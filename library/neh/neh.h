@@ -3,7 +3,7 @@
 #include "wfmo.h"
 #include "stat.h"
 
-#include <library/http/io/headers.h>
+#include <library/cpp/http/io/headers.h>
 
 #include <util/generic/ptr.h>
 #include <util/generic/string.h>

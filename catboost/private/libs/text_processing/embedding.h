@@ -2,8 +2,8 @@
 
 #include "text_dataset.h"
 
-#include <library/containers/dense_hash/dense_hash.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/containers/dense_hash/dense_hash.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/system/types.h>
 #include <util/generic/ptr.h>
