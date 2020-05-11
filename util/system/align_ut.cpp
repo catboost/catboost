@@ -1,6 +1,6 @@
 #include "align.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 class TAlignTest: public TTestBase {
     UNIT_TEST_SUITE(TAlignTest);
