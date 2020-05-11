@@ -1,7 +1,7 @@
 #include "proto_packer.h"
 
 #include <library/packers/ut/test.pb.h>
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/generic/string.h>
 

@@ -1,6 +1,6 @@
 #include "cgiparam.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TCgiParametersTest) {
     Y_UNIT_TEST(TestScan1) {
