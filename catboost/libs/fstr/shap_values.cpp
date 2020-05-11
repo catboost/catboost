@@ -851,7 +851,7 @@ static inline void AddValuesToShapValues(
     TVector<TVector<double>>* shapValues
 ) {
     for (const TShapValue& shapValue : shapValuesByLeaf) {
-        for (int dimension = 0; dimension < approxDimension; ++dimension) {
+        for (int dimension : xrange(approxDimension)) {
             (*shapValues)[dimension][shapValue.Feature] += shapValue.Value[dimension];
         }
     }
@@ -1449,10 +1449,10 @@ TVector<TVector<TVector<double>>> CalcShapValuesMulti(
         &dataset,
         referenceDataset,
         mode,
-        calcType,
-        modelOutputType,
         localExecutor,
-        /*calcInternalValues*/ false
+        /*calcInternalValues*/ false,
+        calcType,
+        modelOutputType
     );
     CalcShapValuesByLeaf(
         model,
@@ -1600,10 +1600,9 @@ void CalcAndOutputShapValues(
         &dataset,
         /*referenceDataset*/ nullptr,
         mode,
-        calcType,
-        /*modelOutputType*/ EModelOutputType::Raw,
         localExecutor,
-        /*calcInternalValues*/ false
+        /*calcInternalValues*/ false,
+        calcType
     );
     CalcShapValuesByLeaf(
         model,

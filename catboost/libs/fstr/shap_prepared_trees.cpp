@@ -12,8 +12,6 @@
 #include <catboost/libs/model/cpu/quantization.h>
 #include <catboost/private/libs/options/restrictions.h>
 
-#include <library/threading/local_executor/local_executor.h>
-
 #include <util/generic/algorithm.h>
 #include <util/generic/cast.h>
 #include <util/generic/utility.h>
@@ -512,7 +510,7 @@ TShapPreparedTrees PrepareTrees(
         !model.ModelTrees->GetLeafWeights().empty(),
         "Model must have leaf weights or sample pool must be provided"
     );
-    TShapPreparedTrees preparedTrees = PrepareTrees(model, nullptr, nullptr, EPreCalcShapValues::Auto, ECalcTypeShapValues::Regular, EModelOutputType::Raw, localExecutor);
+    TShapPreparedTrees preparedTrees = PrepareTrees(model, nullptr, nullptr, EPreCalcShapValues::Auto, localExecutor);
     CalcShapValuesByLeaf(
         model,
         /*fixedFeatureParams*/ Nothing(),

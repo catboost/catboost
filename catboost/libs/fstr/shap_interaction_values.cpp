@@ -561,8 +561,6 @@ TInteractionValuesFull CalcShapInteractionValuesMulti(
         &dataset,
         /*referenceDataset*/ nullptr,
         mode,
-        /*calcType*/ ECalcTypeShapValues::Regular,
-        /*modelOutputType*/ EModelOutputType::Raw,
         localExecutor,
         /*calcInternalValues*/ true
     );
