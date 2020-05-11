@@ -310,9 +310,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\token\library-token.vcxproj">
       <Project>{7A7DF5AD-7B4C-6A47-56E6-6DED393B817F}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\unittest\main\library-unittest-main.vcxproj">
-      <Project>{28DC724D-5FFA-AB4B-E6C3-DF0F40AC4B6A}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>
     </ProjectReference>
