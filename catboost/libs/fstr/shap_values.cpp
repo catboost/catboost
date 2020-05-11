@@ -845,44 +845,6 @@ static TVector<bool> GetDocumentIsGoRightMapperForNodesInNonObliviousTree(
     );
 }
 
-
-/*
-static void FillShapValues(
-    const TVariant<TVector<TShapValue>, TVector<TVector<TVector<double>>>> shapValuesByLeaf,
-    const TMaybe<TIndependentTreeShapParams>& independentTreeShapParams,
-    size_t treeIdx,
-    size_t leafCount,
-    int approxDimension,
-    ECalcTypeShapValues calcType,
-    TVector<TVector<double>>* shapValues,
-    TVector<TVector<TVector<double>>>* shapValuesForAllReferences
-) {
-    switch (calcType) {
-        case ECalcTypeShapValues::Independent: {
-            Y_ASSERT(independentTreeShapParams);
-            SetValuesToShapValuesByAllReferences(
-                shapValuesByLeaf,
-                independentTreeShapParams->ReferenceIndicesForAllTrees[treeIdx],
-                independentTreeShapParams->ReferenceLeafIndicesForAllTrees[treeIdx],
-                leafCount,
-                independentTreeShapParams->IsCalcForAllLeaves[treeIdx],
-                shapValuesForAllReferences
-            );
-            break;
-        }
-        default: {
-            const auto& shapValuesByLeafWithShaps = Get<TVector<TShapValue>>(shapValuesByLeaf);
-            for (const TShapValue& shapValue : shapValuesByLeafWithShaps) {
-                for (int dimension = 0; dimension < approxDimension; ++dimension) {
-                    (*shapValues)[dimension][shapValue.Feature] += shapValue.Value[dimension];
-                }
-            }
-            break;
-        }
-    }
-}
-*/
-
 static inline void AddValuesToShapValues(
     const TVector<TShapValue>& shapValuesByLeaf,
     int approxDimension,
@@ -894,36 +856,6 @@ static inline void AddValuesToShapValues(
         }
     }
 }
-/*
-static inline void FillShapValues(
-    const TVariant<TVector<TShapValue>, TVector<TVector<TVector<double>>>> shapValuesByLeaf,
-    const TMaybe<TIndependentTreeShapParams>& independentTreeShapParams,
-    size_t leafCount,
-    int approxDimension,
-    size_t treeIdx,
-    bool isIndependent,
-    TVariant<TVector<TVector<double>>*, TTVector<TVector<TVector<double>>>*> shapValues
-) {
-    if (isIndependent) {
-        Y_ASSERT(independentTreeShapParams);
-        SetValuesToShapValuesByAllReferences(
-            shapValuesByLeaf,
-            independentTreeShapParams->ReferenceIndicesForAllTrees[treeIdx],
-            independentTreeShapParams->ReferenceLeafIndicesForAllTrees[treeIdx],
-            leafCount,
-            independentTreeShapParams->IsCalcForAllLeafesForAllTrees[treeIdx],
-            shapValues
-        );
-    } else {
-        SetValuesToShapValues(
-            shapValuesByLeaf,
-            approxDimension,
-            shapValues
-        );
-    }
-}
-*/
-
 
 void CalcShapValuesForDocumentMulti(
     const TFullModel& model,
@@ -946,9 +878,10 @@ void CalcShapValuesForDocumentMulti(
     TVector<TVector<TVector<double>>> shapValuesForAllReferences;
     if (isIndependent) {
         const size_t referenceCount = independentTreeShapParams->ReferenceLeafIndicesForAllTrees[0].size();
+        const size_t classCount = preparedTrees.CombinationClassFeatures.size();
         shapValuesForAllReferences.resize(referenceCount);
         for (size_t referenceIdx = 0; referenceIdx < referenceCount; ++referenceIdx) {
-            shapValuesForAllReferences[referenceIdx].assign(approxDimension, TVector<double>(featuresCount + 1, 0.0));
+            shapValuesForAllReferences[referenceIdx].assign(approxDimension, TVector<double>(classCount + 1, 0.0));
         }
     }
     const size_t treeCount = model.GetTreeCount();
@@ -1204,7 +1137,6 @@ static void CalcShapValuesByLeafForTreeBlock(
             const size_t leafCount = (size_t(1) << forest.GetTreeSizes()[treeIdx]);
             TVector<TVector<TShapValue>>& shapValuesByLeaf = preparedTrees->ShapValuesByLeafForAllTrees[treeIdx];
             shapValuesByLeaf.resize(leafCount);
-
             for (size_t leafIdx = 0; leafIdx < leafCount; ++leafIdx) {
                 switch (calcType) {
                     case ECalcTypeShapValues::Approximate:
@@ -1247,14 +1179,19 @@ static void CalcShapValuesByLeafForTreeBlock(
                         break;
                     case ECalcTypeShapValues::Independent: {
                         auto& independentTreeShapParams = preparedTrees->IndependentTreeShapParams;
+                        auto& shapValueByDepthBetweenLeaves = independentTreeShapParams->ShapValueByDepthBetweenLeavesForAllTrees[treeIdx][leafIdx];
+                        shapValueByDepthBetweenLeaves.resize(leafCount);
                         Y_ASSERT(independentTreeShapParams);
-                        CalcIndependentTreeShapValuesByLeafForTreeBlock(
+                        CalcObliviousShapValuesByDepthForLeaf(
                             forest,
-                            *independentTreeShapParams,
-                            binFeatureCombinationClass,
-                            combinationClassFeatures,
+                            independentTreeShapParams->ReferenceLeafIndicesForAllTrees[treeIdx],
+                            preparedTrees->BinFeatureCombinationClass,
+                            preparedTrees->CombinationClassFeatures,
+                            independentTreeShapParams->Weights,
+                            leafIdx,
                             treeIdx,
-                            &independentTreeShapParams->ShapValueByDepthBetweenLeavesForAllTrees[treeIdx]
+                            independentTreeShapParams->IsCalcForAllLeafesForAllTrees[treeIdx],
+                            &shapValueByDepthBetweenLeaves
                         );
                         break;
                     }

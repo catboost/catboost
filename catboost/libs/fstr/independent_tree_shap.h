@@ -3,15 +3,6 @@
 #include "shap_prepared_trees.h"
 
 
-void CalcIndependentTreeShapValuesByLeafForTreeBlock(
-    const TModelTrees& forest,
-    const TIndependentTreeShapParams& independentTreeShapParams,
-    const TVector<int>& binFeatureCombinationClass,
-    const TVector<TVector<int>>& combinationClassFeatures,
-    size_t treeIdx,
-    TVector<TVector<TVector<TVector<double>>>>* shapValueByDepthForLeaf
-);
-
 void PostProcessingIndependent(
     const TIndependentTreeShapParams& independentTreeShapParams,
     const TVector<TVector<TVector<double>>>& shapValuesForAllReferences,

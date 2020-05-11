@@ -428,21 +428,22 @@ void PostProcessingIndependent(
         TArrayRef<double> shapValuesRef = MakeArrayRef((*shapValues)[dimension]);
         const double approxOfDocument = approxOfDataset[dimension][documentIdx];
         const double targetOfDocument = targetOfDataset[dimension][documentIdx];
-        const double transformedTargetOfDocument = transformedTargetOfDataset[dimension][documentIdx];
+        const double transformedTargetOfDocument = isNotRawOutputType ? transformedTargetOfDataset[dimension][documentIdx] : 0.0;
         for (size_t referenceIdx = 0; referenceIdx < referenceCount; ++referenceIdx) {
-            TVector<double> shapValueOneDimension;
-            if (calcInternalValues) {
-                shapValueOneDimension = std::move(shapValuesForAllReferences[referenceIdx][dimension]);
-            } else {
-                shapValueOneDimension.resize(flatFeatureCount + 1);
+            TVector<double> unpackedShapValues;
+            if (!calcInternalValues) {
+                unpackedShapValues.resize(flatFeatureCount + 1);
                 UnpackInternalShapsForDocumentOneDimension(
                     shapValuesForAllReferences[referenceIdx][dimension],
                     combinationClassFeatures,
-                    &shapValueOneDimension
+                    &unpackedShapValues
                 );
                 // set mean value
-                shapValueOneDimension.back() = shapValuesForAllReferences[referenceIdx][dimension].back();
+                unpackedShapValues.back() = shapValuesForAllReferences[referenceIdx][dimension].back();
             }
+            auto& shapValuesOneDimension = calcInternalValues ?
+                shapValuesForAllReferences[referenceIdx][dimension] :
+                unpackedShapValues;
             double rescaleCoefficient = referenceCount;
             double transformedCoeffient = 1.0;
             if (isNotRawOutputType && approxOfDocument != approxOfReferenceDatasetRef[referenceIdx]) {
@@ -457,17 +458,17 @@ void PostProcessingIndependent(
             }
             double totalCoeffient = transformedCoeffient / rescaleCoefficient;
             for (size_t featureIdx = 0; featureIdx < featureCount; ++featureIdx) {
-                shapValuesRef[featureIdx] += shapValueOneDimension[featureIdx] * totalCoeffient;
+                shapValuesRef[featureIdx] += shapValuesOneDimension[featureIdx] * totalCoeffient;
             }
             if (isNotRawOutputType) {
                 shapValuesRef[featureCount] += GetTransformData(
                     metric,
                     modelOutputType,
                     targetOfDocument,
-                    shapValueOneDimension[featureCount] + bias
+                    shapValuesOneDimension[featureCount] + bias
                 ) / rescaleCoefficient;
             } else {
-                shapValuesRef[featureCount] += (shapValueOneDimension[featureCount] / rescaleCoefficient);
+                shapValuesRef[featureCount] += (shapValuesOneDimension[featureCount] / rescaleCoefficient);
             }
         }
     }
@@ -598,29 +599,3 @@ TIndependentTreeShapParams::TIndependentTreeShapParams(
         InitTransformedData(model, dataset, metricDescription, localExecutor);
     }
 }
-
-void CalcIndependentTreeShapValuesByLeafForTreeBlock(
-    const TModelTrees& forest,
-    const TIndependentTreeShapParams& independentTreeShapParams,
-    const TVector<int>& binFeatureCombinationClass,
-    const TVector<TVector<int>>& combinationClassFeatures,
-    size_t treeIdx,
-    TVector<TVector<TVector<TVector<double>>>>* shapValueByDepthForLeaf
-) {
-    const size_t leafCount = (size_t(1) << forest.GetTreeSizes()[treeIdx]);
-    for (size_t leafIdx = 0; leafIdx < leafCount; ++leafIdx) {
-        auto& shapValueByDepthBetweenLeaves = (*shapValueByDepthForLeaf)[leafIdx];
-        shapValueByDepthBetweenLeaves.resize(leafCount);
-        CalcObliviousShapValuesByDepthForLeaf(
-            forest,
-            independentTreeShapParams.ReferenceLeafIndicesForAllTrees[treeIdx],
-            binFeatureCombinationClass,
-            combinationClassFeatures,
-            independentTreeShapParams.Weights,
-            leafIdx,
-            treeIdx,
-            independentTreeShapParams.IsCalcForAllLeafesForAllTrees[treeIdx],
-            &shapValueByDepthBetweenLeaves
-        );
-    }
-} 
