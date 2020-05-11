@@ -1,7 +1,7 @@
 #include <catboost/libs/metrics/auc_mu.h>
 #include <catboost/libs/helpers/cpu_random.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/random/fast.h>
 #include <util/random/shuffle.h>

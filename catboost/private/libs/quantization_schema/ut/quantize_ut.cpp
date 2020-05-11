@@ -1,7 +1,7 @@
 #include <catboost/private/libs/quantization_schema/quantize.h>
 #include <catboost/private/libs/options/enums.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <limits>
 

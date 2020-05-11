@@ -1,4 +1,4 @@
-#include <library/unittest/utmain.h>
+#include <library/cpp/unittest/utmain.h>
 #include <catboost/cuda/cuda_lib/mpi/mpi_manager.h>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
 

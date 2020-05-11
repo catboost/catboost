@@ -1,5 +1,5 @@
 #include <catboost/cuda/cuda_lib/cuda_base.h>
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 #include <iostream>
 #include <thread>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
