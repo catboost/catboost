@@ -857,6 +857,34 @@ static inline void AddValuesToShapValues(
     }
 }
 
+
+static inline void AddValuesToShapValues(
+    const TModelTrees& forest,
+    const TVector<int>& binFeatureCombinationClass,
+    const TMaybe<TIndependentTreeShapParams>& independentTreeShapParams,
+    size_t treeIdx,
+    size_t approxDimension,
+    std::pair<const TVector<TShapValue>*, TVector<TVector<double>>*>&& storageShapValuesByLeaf,
+    std::pair<const TVector<TVector<TVector<double>>>*, TVector<TVector<TVector<double>>>*>&& storageShapValuesBetweenLeaves
+) {
+    if (independentTreeShapParams) {
+        const auto& binFeatureCombinationClassByDepth =
+            GetBinFeatureCombinationClassByDepth(forest, binFeatureCombinationClass, treeIdx);
+        AddValuesToShapValuesByAllReferences(
+            *storageShapValuesBetweenLeaves.first,
+            independentTreeShapParams->ReferenceLeafIndicesForAllTrees[treeIdx],
+            binFeatureCombinationClassByDepth,
+            storageShapValuesBetweenLeaves.second
+        );
+    } else {
+        AddValuesToShapValues(
+            *storageShapValuesByLeaf.first,
+            approxDimension,
+            storageShapValuesByLeaf.second
+        );
+    }
+}
+
 void CalcShapValuesForDocumentMulti(
     const TFullModel& model,
     const TShapPreparedTrees& preparedTrees,
@@ -874,7 +902,6 @@ void CalcShapValuesForDocumentMulti(
     const TModelTrees& forest = *model.ModelTrees;
     const bool isIndependent = (calcType == ECalcTypeShapValues::Independent);
     const auto& independentTreeShapParams = preparedTrees.IndependentTreeShapParams;
-    const auto& binFeatureCombinationClass = preparedTrees.BinFeatureCombinationClass;
     TVector<TVector<TVector<double>>> shapValuesForAllReferences;
     if (isIndependent) {
         const size_t referenceCount = independentTreeShapParams->ReferenceLeafIndicesForAllTrees[0].size();
@@ -884,27 +911,20 @@ void CalcShapValuesForDocumentMulti(
             shapValuesForAllReferences[referenceIdx].assign(approxDimension, TVector<double>(classCount + 1, 0.0));
         }
     }
+    constexpr auto NullPair = std::make_pair(nullptr, nullptr);
     const size_t treeCount = model.GetTreeCount();
     for (size_t treeIdx = 0; treeIdx < treeCount; ++treeIdx) {
         const size_t leafCount = (size_t(1) << forest.GetTreeSizes()[treeIdx]);
         if (preparedTrees.CalcShapValuesByLeafForAllTrees && model.IsOblivious()) {
-            if (isIndependent) {
-                Y_ASSERT(independentTreeShapParams);
-                const auto& binFeatureCombinationClassByDepth =
-                    GetBinFeatureCombinationClassByDepth(forest, binFeatureCombinationClass, treeIdx);
-                AddValuesToShapValuesByAllReferences(
-                    independentTreeShapParams->ShapValueByDepthBetweenLeavesForAllTrees[treeIdx][docIndices[treeIdx]],
-                    independentTreeShapParams->ReferenceLeafIndicesForAllTrees[treeIdx],
-                    binFeatureCombinationClassByDepth,
-                    &shapValuesForAllReferences
-                );
-            } else {
-                AddValuesToShapValues(
-                    preparedTrees.ShapValuesByLeafForAllTrees[treeIdx][docIndices[treeIdx]],
-                    approxDimension,
-                    shapValues
-                );
-            }
+            AddValuesToShapValues(
+                forest,
+                preparedTrees.BinFeatureCombinationClass,
+                independentTreeShapParams,
+                treeIdx,
+                approxDimension,
+                !isIndependent ? std::make_pair(&preparedTrees.ShapValuesByLeafForAllTrees[treeIdx][docIndices[treeIdx]], shapValues) : NullPair,
+                isIndependent ? std::make_pair(&independentTreeShapParams->ShapValueByDepthBetweenLeavesForAllTrees[treeIdx][docIndices[treeIdx]], &shapValuesForAllReferences) : NullPair
+            );
         } else {
             TVector<TShapValue> shapValuesByLeaf;
             TVector<TVector<TVector<double>>> shapValueByDepthBetweenLeaves(leafCount);
@@ -1003,24 +1023,15 @@ void CalcShapValuesForDocumentMulti(
                     );
                     break;
             }
-
-            if (isIndependent) {
-                Y_ASSERT(independentTreeShapParams);
-                const auto& binFeatureCombinationClassByDepth =
-                    GetBinFeatureCombinationClassByDepth(forest, binFeatureCombinationClass, treeIdx);
-                AddValuesToShapValuesByAllReferences(
-                    shapValueByDepthBetweenLeaves,
-                    independentTreeShapParams->ReferenceLeafIndicesForAllTrees[treeIdx],
-                    binFeatureCombinationClassByDepth,
-                    &shapValuesForAllReferences
-                );
-            } else {
-                AddValuesToShapValues(
-                    shapValuesByLeaf,
-                    approxDimension,
-                    shapValues
-                );
-            }
+            AddValuesToShapValues(
+                forest,
+                preparedTrees.BinFeatureCombinationClass,
+                independentTreeShapParams,
+                treeIdx,
+                approxDimension,
+                !isIndependent ? std::make_pair(&shapValuesByLeaf, shapValues) : NullPair,
+                isIndependent ? std::make_pair(&shapValueByDepthBetweenLeaves, &shapValuesForAllReferences) : NullPair
+            );
         }
         if (!isIndependent) {
             for (int dimension = 0; dimension < approxDimension; ++dimension) {

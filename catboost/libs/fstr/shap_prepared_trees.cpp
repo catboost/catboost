@@ -488,10 +488,10 @@ TShapPreparedTrees PrepareTrees(
     const TDataProvider* dataset, // can be nullptr if model has LeafWeights
     const TDataProviderPtr referenceDataset,
     EPreCalcShapValues mode,
-    ECalcTypeShapValues calcType,
-    EModelOutputType modelOutputType,
     NPar::TLocalExecutor* localExecutor,
-    bool calcInternalValues
+    bool calcInternalValues,
+    ECalcTypeShapValues calcType,
+    EModelOutputType modelOutputType
 ) {
     TVector<double> leafWeights;
     InitLeafWeights(model, dataset, localExecutor, &leafWeights);
