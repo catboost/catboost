@@ -105,6 +105,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\compact_vector\cpp-containers-compact_vector.vcxproj">
       <Project>{4394134A-0B20-E6EA-3626-1FBF34227AFB}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\comptrie\cpp-containers-comptrie.vcxproj">
+      <Project>{C4A93F1D-7D12-E137-DA11-255666865B86}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\deprecated\mapped_file\cpp-deprecated-mapped_file.vcxproj">
       <Project>{76F4EA6B-38E3-9595-F63D-F5CF3F956AF5}</Project>
     </ProjectReference>
