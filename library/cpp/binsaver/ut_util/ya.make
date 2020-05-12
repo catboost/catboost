@@ -8,7 +8,7 @@ SRCS(
 
 PEERDIR(
     library/cpp/binsaver
-    library/unittest
+    library/cpp/unittest
 )
 
 END()
