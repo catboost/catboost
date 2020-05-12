@@ -199,8 +199,9 @@ namespace NCB {
             {
                 CB_ENSURE(
                     catFeature.FeatureId == datasetFeaturesMetaInfo[catFeature.Position.FlatIndex].Name,
-                    "Feature " << datasetFeaturesMetaInfo[catFeature.Position.FlatIndex].Name
-                    << " from pool must be " << catFeature.FeatureId << ".";);
+                    "At position " << catFeature.Position.FlatIndex
+                    << " should be feature with name " << catFeature.FeatureId
+                    << " (found " << datasetFeaturesMetaInfo[catFeature.Position.FlatIndex].Name << ").");
             }
             TString featurePoolName;
             if (SafeIntegerCast<size_t>(catFeature.Position.FlatIndex) < datasetFeaturesMetaInfo.size()) {
@@ -232,8 +233,9 @@ namespace NCB {
             {
                 CB_ENSURE(
                     floatFeature.FeatureId == datasetFeaturesMetaInfo[floatFeature.Position.FlatIndex].Name,
-                    "Feature " << datasetFeaturesMetaInfo[floatFeature.Position.FlatIndex].Name
-                    << " from pool must be " << floatFeature.FeatureId << ".");
+                    "At position " << floatFeature.Position.FlatIndex
+                    << " should be feature with name " << floatFeature.FeatureId
+                    << " (found " << datasetFeaturesMetaInfo[floatFeature.Position.FlatIndex].Name << ").");
             }
             TString featurePoolName;
             if (SafeIntegerCast<size_t>(floatFeature.Position.FlatIndex) < datasetFeaturesMetaInfo.size()) {
@@ -269,8 +271,9 @@ namespace NCB {
             {
                 CB_ENSURE(
                     textFeature.FeatureId == datasetFeaturesMetaInfo[textFeature.Position.FlatIndex].Name,
-                    "Feature " << datasetFeaturesMetaInfo[textFeature.Position.FlatIndex].Name
-                    << " from pool must be " << textFeature.FeatureId << ".");
+                    "At position " << textFeature.Position.FlatIndex
+                    << " should be feature with name " << textFeature.FeatureId
+                    << " (found " << datasetFeaturesMetaInfo[textFeature.Position.FlatIndex].Name << ").");
             }
             TString featurePoolName;
             if (SafeIntegerCast<size_t>(textFeature.Position.FlatIndex) < datasetFeaturesMetaInfo.size()) {
