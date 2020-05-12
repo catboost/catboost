@@ -92,6 +92,8 @@ ALLOW weather/grid_api/lib -> contrib/restricted/boost
 ALLOW yabs/telephony -> contrib/restricted/boost
 ALLOW yandex_io -> contrib/restricted/boost
 ALLOW yweb/robot/js -> contrib/restricted/boost
+ALLOW speechkit -> contrib/restricted/boost
+ALLOW speechkit -> contrib/restricted/openal-soft
 
 # Allow boost in all contrib projects
 ALLOW contrib/deprecated -> contrib/restricted/boost
