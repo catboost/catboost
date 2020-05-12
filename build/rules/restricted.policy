@@ -28,9 +28,11 @@ ALLOW yandex_io -> contrib/restricted/avahi
 
 # GLib is LGPL
 ALLOW contrib/libs/harfbuzz/glib -> contrib/restricted/glib
-ALLOW yandex_io -> contrib/restricted/glib
+ALLOW market/cataloger -> contrib/restricted/glib
+ALLOW market/idx/feeds/feedparser -> contrib/restricted/glib
 ALLOW metrika/core/libs/statdaemons -> contrib/restricted/glib
 ALLOW metrika/core/libs/strconvert -> contrib/restricted/glib
+ALLOW yandex_io -> contrib/restricted/glib
 
 # GStreamer is LGPL
 ALLOW yandex_io -> contrib/restricted/gstreamer
