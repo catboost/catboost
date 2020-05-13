@@ -6,7 +6,7 @@
 #include <catboost/private/libs/options/split_params.h>
 #include <catboost/libs/train_lib/cross_validation.h>
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/generic/hash.h>
 #include <util/generic/maybe.h>

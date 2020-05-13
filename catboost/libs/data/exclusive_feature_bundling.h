@@ -9,7 +9,7 @@
 #include <catboost/private/libs/options/enums.h>
 
 #include <library/cpp/binsaver/bin_saver.h>
-#include <library/dbg_output/dump.h>
+#include <library/cpp/dbg_output/dump.h>
 
 #include <util/generic/bitops.h>
 #include <util/generic/vector.h>

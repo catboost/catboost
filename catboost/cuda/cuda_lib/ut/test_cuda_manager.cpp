@@ -1,4 +1,4 @@
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 #include <catboost/cuda/cuda_lib/cuda_base.h>
 #include <iostream>
 #include <thread>
@@ -9,7 +9,7 @@
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/utils/countdown_latch.h>
 #include <catboost/cuda/cuda_lib/device_subtasks_helper.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/buffer_resharding.h>
 
 using namespace NCudaLib;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/dbg_output/dump.h>
+#include <library/cpp/dbg_output/dump.h>
 
 #include <util/generic/array_ref.h>
 #include <util/generic/xrange.h>

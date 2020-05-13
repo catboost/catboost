@@ -9,7 +9,7 @@
 
 #include <library/cpp/getopt/small/modchooser.h>
 #include <library/cpp/getopt/small/last_getopt.h>
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/stream/output.h>
 #include <util/string/join.h>

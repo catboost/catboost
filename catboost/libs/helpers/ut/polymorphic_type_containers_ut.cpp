@@ -2,14 +2,14 @@
 
 #include <catboost/libs/helpers/array_subset.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>
 #include <util/system/types.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 
 using namespace NCB;

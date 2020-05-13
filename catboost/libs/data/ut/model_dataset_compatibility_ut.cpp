@@ -3,7 +3,7 @@
 #include <catboost/libs/data/features_layout.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 
 using namespace NCB;

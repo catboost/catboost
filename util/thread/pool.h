@@ -78,11 +78,44 @@ IObjectInQueue* MakeThrFuncObj(T&& func) {
     return new TThrFuncObj<std::remove_cv_t<std::remove_reference_t<T>>>(std::forward<T>(func));
 }
 
+struct TThreadPoolParams {
+    bool Catching_ = true;
+    bool Blocking_ = false;
+    IThreadFactory* Factory_ = SystemThreadFactory();
+
+    using TSelf = TThreadPoolParams;
+
+    TThreadPoolParams() {
+    }
+
+    TThreadPoolParams(IThreadFactory* factory)
+        : Factory_(factory)
+    {
+    }
+
+    TSelf& SetCatching(bool val) {
+        Catching_ = val;
+        return *this;
+    }
+
+    TSelf& SetBlocking(bool val) {
+        Blocking_ = val;
+        return *this;
+    }
+
+    TSelf& SetFactory(IThreadFactory* factory) {
+        Factory_ = factory;
+        return *this;
+    }
+};
+
 /**
  * A queue processed simultaneously by several threads
  */
 class IThreadPool: public IThreadFactory, public TNonCopyable {
 public:
+    using TParams = TThreadPoolParams;
+
     ~IThreadPool() override = default;
 
     /**
@@ -198,21 +231,48 @@ public:
     }
 };
 
-/** queue processed by fixed size thread pool */
-class TThreadPool: public IThreadPool, public TThreadFactoryHolder {
+class TThreadPoolBase: public IThreadPool, public TThreadFactoryHolder {
 public:
+    TThreadPoolBase(const TParams& params);
+
+protected:
+    TParams Params;
+};
+
+/** queue processed by fixed size thread pool */
+class TThreadPool: public TThreadPoolBase {
+public:
+    TThreadPool(const TParams& params = {});
+
+    // legacy
     enum EBlocking {
         NonBlockingMode,
         BlockingMode
     };
 
+    // legacy
     enum ECatching {
         NonCatchingMode,
         CatchingMode
     };
 
-    TThreadPool(EBlocking blocking = NonBlockingMode, ECatching catching = CatchingMode);
-    TThreadPool(IThreadFactory* pool, EBlocking blocking = NonBlockingMode, ECatching catching = CatchingMode);
+    // legacy
+    TThreadPool(EBlocking blocking, ECatching catching = CatchingMode)
+        : TThreadPool(TParams()
+            .SetBlocking(blocking == BlockingMode)
+            .SetCatching(catching == CatchingMode))
+    {
+    }
+
+    // legacy
+    TThreadPool(IThreadFactory* factory, EBlocking blocking, ECatching catching = CatchingMode)
+        : TThreadPool(TParams()
+            .SetFactory(factory)
+            .SetBlocking(blocking == BlockingMode)
+            .SetCatching(catching == CatchingMode))
+    {
+    }
+
     ~TThreadPool() override;
 
     bool Add(IObjectInQueue* obj) override Y_WARN_UNUSED_RESULT;
@@ -230,19 +290,15 @@ public:
 private:
     class TImpl;
     THolder<TImpl> Impl_;
-
-    const EBlocking Blocking;
-    const ECatching Catching;
 };
 
 /**
  * Always create new thread for new task, when all existing threads are busy.
  * Maybe dangerous, number of threads is not limited.
  */
-class TAdaptiveThreadPool: public IThreadPool, public TThreadFactoryHolder {
+class TAdaptiveThreadPool: public TThreadPoolBase {
 public:
-    TAdaptiveThreadPool();
-    TAdaptiveThreadPool(IThreadFactory* pool);
+    TAdaptiveThreadPool(const TParams& params = {});
     ~TAdaptiveThreadPool() override;
 
     /**
@@ -258,17 +314,15 @@ public:
     void Stop() noexcept override;
     size_t Size() const noexcept override;
 
-    class TImpl;
-
 private:
+    class TImpl;
     THolder<TImpl> Impl_;
 };
 
 /** Behave like TThreadPool or TAdaptiveThreadPool, choosen by thrnum parameter of Start()  */
-class TSimpleThreadPool: public IThreadPool, public TThreadFactoryHolder {
+class TSimpleThreadPool: public TThreadPoolBase {
 public:
-    TSimpleThreadPool();
-    TSimpleThreadPool(IThreadFactory* pool);
+    TSimpleThreadPool(const TParams& params = {});
     ~TSimpleThreadPool() override;
 
     bool Add(IObjectInQueue* obj) override Y_WARN_UNUSED_RESULT;
@@ -339,4 +393,19 @@ inline void Delete(THolder<IThreadPool> q) {
  * Creates and starts TThreadPool if threadsCount > 1, or TFakeThreadPool otherwise
  * You could specify blocking and catching modes for TThreadPool only
  */
-THolder<IThreadPool> CreateThreadPool(size_t threadsCount, size_t queueSizeLimit = 0, TThreadPool::EBlocking blocking = TThreadPool::EBlocking::NonBlockingMode, TThreadPool::ECatching catching = TThreadPool::ECatching::CatchingMode);
+THolder<IThreadPool> CreateThreadPool(size_t threadCount, size_t queueSizeLimit = 0, const IThreadPool::TParams& params = {});
+
+// legacy
+inline THolder<IThreadPool> CreateThreadPool(
+    size_t threadCount,
+    size_t queueSizeLimit,
+    TThreadPool::EBlocking blocking,
+    TThreadPool::ECatching catching = TThreadPool::ECatching::CatchingMode)
+{
+    return CreateThreadPool(
+        threadCount,
+        queueSizeLimit,
+        IThreadPool::TParams()
+            .SetBlocking(blocking == TThreadPool::BlockingMode)
+            .SetCatching(catching == TThreadPool::CatchingMode));
+}

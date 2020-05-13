@@ -13,7 +13,7 @@
 #include <catboost/libs/model/ctr_value_table.h>
 #include <catboost/libs/model/model.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/bitops.h>
 #include <util/generic/utility.h>

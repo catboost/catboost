@@ -1,6 +1,6 @@
 #include "special_tokens.h"
 
-#include <library/comptrie/set.h>
+#include <library/cpp/containers/comptrie/set.h>
 
 #include <util/generic/singleton.h>
 

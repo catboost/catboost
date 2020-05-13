@@ -19,7 +19,7 @@ PEERDIR(
     catboost/private/libs/options
     library/cpp/text_processing/dictionary
     library/cpp/text_processing/tokenizer
-    library/threading/local_executor
+    library/cpp/threading/local_executor
 )
 
 

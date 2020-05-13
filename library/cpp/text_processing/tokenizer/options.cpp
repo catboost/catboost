@@ -1,7 +1,7 @@
 #include "options.h"
 
-#include "library/json/json_reader.h"
-#include "library/json/json_writer.h"
+#include "library/cpp/json/json_reader.h"
+#include "library/cpp/json/json_writer.h"
 #include "util/string/cast.h"
 
 using NTextProcessing::NTokenizer::TTokenizerOptions;

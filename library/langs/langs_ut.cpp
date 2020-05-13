@@ -1,6 +1,6 @@
 #include "langs.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/system/yassert.h>
 

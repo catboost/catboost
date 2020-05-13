@@ -199,7 +199,7 @@ cdef extern from "catboost/python-package/catboost/helpers.h":
     cdef void ThrowCppExceptionWithMessage(const TString&) nogil
 
 
-cdef extern from "library/threading/local_executor/local_executor.h" namespace "NPar":
+cdef extern from "library/cpp/threading/local_executor/local_executor.h" namespace "NPar":
     cdef cppclass TLocalExecutor:
         TLocalExecutor() nogil
         void RunAdditionalThreads(int threadCount) nogil except +ProcessException
@@ -1009,7 +1009,7 @@ cdef extern from "catboost/libs/model/model_export/model_exporter.h" namespace "
         const TFullModel& model,
         const TString& userParametersJson)
 
-cdef extern from "library/json/writer/json_value.h" namespace "NJson":
+cdef extern from "library/cpp/json/writer/json_value.h" namespace "NJson":
     cdef enum EJsonValueType:
         JSON_UNDEFINED,
         JSON_NULL,

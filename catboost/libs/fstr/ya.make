@@ -23,7 +23,7 @@ PEERDIR(
     catboost/libs/model
     catboost/private/libs/options
     catboost/private/libs/target
-    library/threading/local_executor
+    library/cpp/threading/local_executor
 )
 
 END()

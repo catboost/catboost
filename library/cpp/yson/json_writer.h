@@ -3,7 +3,7 @@
 #include "public.h"
 #include "consumer.h"
 
-#include <library/json/json_writer.h>
+#include <library/cpp/json/json_writer.h>
 
 #include <util/generic/vector.h>
 

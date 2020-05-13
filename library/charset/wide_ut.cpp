@@ -2,7 +2,7 @@
 #include "codepage.h"
 #include "recyr.hh"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/charset/utf8.h>
 #include <util/digest/numeric.h>

@@ -6,9 +6,9 @@
 #include "factory.h"
 #include "https.h"
 
-#include <library/unittest/registar.h>
-#include <library/unittest/env.h>
-#include <library/unittest/tests_data.h>
+#include <library/cpp/unittest/registar.h>
+#include <library/cpp/unittest/env.h>
+#include <library/cpp/unittest/tests_data.h>
 
 #include <util/generic/buffer.h>
 #include <util/network/endpoint.h>

@@ -32,7 +32,7 @@ PEERDIR(
     library/cpp/containers/2d_array
     library/cpp/containers/stack_vector
     library/cpp/dot_product
-    library/threading/local_executor
+    library/cpp/threading/local_executor
 )
 
 GENERATE_ENUM_SERIALIZATION(enums.h)

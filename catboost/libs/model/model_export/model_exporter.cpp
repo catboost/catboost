@@ -9,7 +9,7 @@
 
 #include <catboost/private/libs/options/output_file_options.h>
 
-#include <library/json/json_reader.h>
+#include <library/cpp/json/json_reader.h>
 
 #include <contrib/libs/coreml/TreeEnsemble.pb.h>
 #include <contrib/libs/coreml/Model.pb.h>
@@ -143,8 +143,8 @@ namespace NCB {
         const THashMap<ui32, TString>* catFeaturesHashToString
     ) {
         //TODO(eermishkina): support non symmetric trees
-        CB_ENSURE(model.IsOblivious() || format == EModelType::CatboostBinary || format == EModelType::Json,
-            "Can save non symmetric trees only in cbm or Json format");
+        CB_ENSURE(model.IsOblivious() || format == EModelType::CatboostBinary || format == EModelType::Json || format == EModelType::Pmml,
+            "Can save non symmetric trees only in cbm, Json, or Pmml format");
         //TODO(d-kruchinin): support text features
         CB_ENSURE(
             !model.TextProcessingCollection || format == EModelType::CatboostBinary,

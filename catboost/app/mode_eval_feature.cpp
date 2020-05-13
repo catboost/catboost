@@ -10,7 +10,7 @@
 #include <catboost/libs/train_lib/eval_feature.h>
 #include <catboost/libs/data/feature_names_converter.h>
 
-#include <library/json/json_reader.h>
+#include <library/cpp/json/json_reader.h>
 
 #include <util/generic/ptr.h>
 

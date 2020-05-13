@@ -7,7 +7,7 @@
 #include <util/system/shmat.h>
 #include <util/system/yield.h>
 #include <util/system/spinlock.h>
-#include <library/threading/chunk_queue/queue.h>
+#include <library/cpp/threading/chunk_queue/queue.h>
 #include <util/system/thread.h>
 #include "cpu_affinity.h"
 #include "block_chain.h"

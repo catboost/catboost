@@ -5573,9 +5573,7 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [
-                    664161901
-                ],
+                "sandbox_id": [673804140],
                 "match": "ymake"
             },
             "executable": {
@@ -6877,7 +6875,7 @@
         "yp-util": {
             "formula": {
                 "sandbox_id": [
-                    643511915
+                    673622896
                 ],
                 "match": "yp_util"
             },
@@ -6903,7 +6901,7 @@
         "yd-migrate": {
             "formula": {
                 "sandbox_id": [
-                    652676106
+                    673280041
                 ],
                 "match": "yd_migrate"
             },
@@ -6916,7 +6914,7 @@
         "dctl": {
             "formula": {
                 "sandbox_id": [
-                    664405083
+                    674042226
                 ],
                 "match": "dctl"
             },
@@ -7286,7 +7284,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 669129194,
+                "sandbox_id": 673674895,
                 "match": "horadric"
             },
             "executable": {
@@ -7418,7 +7416,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 660385494,
+                "sandbox_id": 670312252,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -7701,7 +7699,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 670087919,
+                "sandbox_id": 672739894,
                 "match": "SEDEM archive"
             },
             "executable": {

@@ -175,25 +175,6 @@ migrations:
       - a.yandex-team.ru/quasar/tsup/server
       - a.yandex-team.ru/cloud/iam/accessservice/client/go/cloudauth
       - a.yandex-team.ru/cloud/iam/accessservice/client/go/cloudauth_test
-      - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/gfront
-      - a.yandex-team.ru/transfer_manager/go/cmd/cdc_server
-      - a.yandex-team.ru/transfer_manager/go/cmd/pg_to_ch
-      - a.yandex-team.ru/transfer_manager/go/internal/config
-      - a.yandex-team.ru/transfer_manager/go/internal/metrics
-      - a.yandex-team.ru/transfer_manager/go/pkg/abstract
-      - a.yandex-team.ru/transfer_manager/go/pkg/controlplane
-      - a.yandex-team.ru/transfer_manager/go/pkg/mapreduce/pg_to_yt
-      - a.yandex-team.ru/transfer_manager/go/pkg/server
-      - a.yandex-team.ru/transfer_manager/go/pkg/sink/ch
-      - a.yandex-team.ru/transfer_manager/go/pkg/sink/ch_test
-      - a.yandex-team.ru/transfer_manager/go/pkg/source/logfeller
-      - a.yandex-team.ru/transfer_manager/go/pkg/source/logfeller_test
-      - a.yandex-team.ru/transfer_manager/go/pkg/source/pg
-      - a.yandex-team.ru/transfer_manager/go/pkg/storage/ch
-      - a.yandex-team.ru/transfer_manager/go/pkg/vault
-      - a.yandex-team.ru/transfer_manager/go/pkg/worker
-      - a.yandex-team.ru/transfer_manager/go/pkg/worker_test
-      - a.yandex-team.ru/transfer_manager/go/proto/cdc_server
   ST1003:
     packages:
       - a.yandex-team.ru/games/backend/pkg/server/sdk/games_features_service

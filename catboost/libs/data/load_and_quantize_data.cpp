@@ -20,7 +20,7 @@
 #include <catboost/private/libs/options/plain_options_helper.h>
 #include <catboost/private/libs/quantization/utils.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
 #include <util/generic/xrange.h>

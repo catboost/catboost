@@ -14,7 +14,7 @@
 
 #include <library/cpp/getopt/small/last_getopt.h>
 #include <library/cpp/grid_creator/binarization.h>
-#include <library/json/json_reader.h>
+#include <library/cpp/json/json_reader.h>
 #include <library/logger/log.h>
 #include <library/cpp/text_processing/dictionary/options.h>
 
@@ -1233,7 +1233,7 @@ static void BindBinarizationParams(NLastGetopt::TOpts* parserPtr, NJson::TJsonVa
           for (const auto& oneCtrConfig : StringSplitter(ctrDescriptionLine).Split(';').SkipEmpty()) {
               (*plainJsonPtr)["per_float_feature_quantization"].AppendValue(oneCtrConfig.Token());
           }
-          CB_ENSURE(!(*plainJsonPtr)["per_float_feature_quantization"].GetArray().empty(), "Empty perf float feature quantization settings " << ctrDescriptionLine);
+          CB_ENSURE(!(*plainJsonPtr)["per_float_feature_quantization"].GetArray().empty(), "Empty per float feature quantization settings " << ctrDescriptionLine);
       });
 
     const auto featureBorderTypeHelp = TString::Join(

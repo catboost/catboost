@@ -3,7 +3,7 @@ PROGRAM()
 
 
 PEERDIR(
-    library/json
+    library/cpp/json
     library/cpp/getopt/small
 )
 

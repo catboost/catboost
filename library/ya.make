@@ -11,15 +11,7 @@ RECURSE(
     chromium_trace/benchmark
     chromium_trace/examples
     chromium_trace/ut
-    comptrie
-    comptrie/loader
-    comptrie/loader/ut
-    comptrie/ut
-    comptrie/benchmark
     cpp
-    dbg_output
-    dbg_output/ut
-    deprecated
     dns
     dns/ut
     enumbitset
@@ -27,14 +19,6 @@ RECURSE(
     fast_exp
     fast_exp/benchmark
     fast_exp/ut
-    json
-    json/flex_buffers
-    json/flex_buffers/ut
-    json/fuzzy_test
-    json/ut
-    json/writer/ut
-    json/yson
-    json/yson/ut
     langmask
     langmask/proto
     langmask/python
@@ -70,15 +54,10 @@ RECURSE(
     svnversion
     svnversion/java
     testing
-    threading
     token
     token/serialization
     token/serialization/ut
     token/ut
-    unittest
-    unittest/fat
-    unittest/main
-    unittest/ut
 )
 
 IF (HAVE_CUDA)

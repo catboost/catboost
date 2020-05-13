@@ -1,3 +1,4 @@
+
 import sys
 from copy import deepcopy
 from six import iteritems, string_types, integer_types
@@ -86,6 +87,21 @@ def log_fixup():
     yield
     _reset_logger()
 
+_CATBOOST_SKLEARN_COMPAT_TAGS = {
+    'non_deterministic': False,
+    'requires_positive_X': False,
+    'requires_positive_y': False,
+    'X_types': ['2darray','sparse','categorical'],
+    'poor_score': True,
+    'no_validation': True,
+    'multioutput': True,
+    "allow_nan": True,
+    'stateless': False,
+    'multilabel': False,
+    '_skip_test': False,
+    'multioutput_only': False,
+    'binary_only': False,
+    'requires_fit': True}
 
 def _cast_to_base_types(value):
     # NOTE: Special case, avoiding new list creation.
@@ -1437,6 +1453,13 @@ class _CatBoostBase(object):
         feature_names: 1-d array of strings with new feature names in the same order as in pool
         '''
         self._object._set_feature_names(feature_names)
+
+
+    def _get_tags(self):
+        tags = _CATBOOST_SKLEARN_COMPAT_TAGS
+        if self._init_params['task_type'] == 'GPU':
+            tags['non_deterministic'] = True
+        return tags
 
     def get_scale_and_bias(self):
         return self._object._get_scale_and_bias()
@@ -4650,8 +4673,9 @@ class CatBoostRegressor(CatBoost):
             # TODO(ilyzhin) change on get_all_params after MLTOOLS-4758
             params = deepcopy(self._init_params)
             _process_synonyms(params)
-            if 'loss_function' in params:
-                if 'Poisson' in params['loss_function'] or 'Tweedie' in params['loss_function']:
+            loss_function = params.get('loss_function')
+            if loss_function and isinstance(loss_function, str):
+                if loss_function.startswith('Poisson') or loss_function.startswith('Tweedie'):
                     prediction_type = 'Exponent'
         return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict')
 

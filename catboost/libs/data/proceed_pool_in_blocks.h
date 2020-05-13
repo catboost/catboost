@@ -8,7 +8,7 @@
 #include <catboost/private/libs/options/dataset_reading_params.h>
 
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 template <class TConsumer>
 inline void ReadAndProceedPoolInBlocks(const NCatboostOptions::TDatasetReadingParams& params,

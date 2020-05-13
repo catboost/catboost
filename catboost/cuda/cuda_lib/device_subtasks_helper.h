@@ -2,7 +2,7 @@
 
 #include "cuda_manager.h"
 #include <catboost/cuda/utils/countdown_latch.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 namespace NCudaLib {
     //helper method for run per device subtask with child cudaManagers

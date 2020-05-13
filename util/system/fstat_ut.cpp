@@ -3,8 +3,8 @@
 #include "sysstat.h"
 #include "fs.h"
 
-#include <library/unittest/registar.h>
-#include <library/unittest/tests_data.h>
+#include <library/cpp/unittest/registar.h>
+#include <library/cpp/unittest/tests_data.h>
 
 #include <util/folder/path.h>
 

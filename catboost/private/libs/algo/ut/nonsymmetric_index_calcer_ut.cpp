@@ -9,8 +9,8 @@
 #include <catboost/private/libs/labels/label_converter.h>
 #include <catboost/private/libs/options/restrictions.h>
 
-#include <library/threading/local_executor/local_executor.h>
-#include <library/unittest/registar.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/folder/dirut.h>
 #include <util/generic/algorithm.h>

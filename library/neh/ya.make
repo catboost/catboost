@@ -15,8 +15,8 @@ PEERDIR(
     library/netliba/v6
     library/cpp/openssl/init
     library/cpp/openssl/method
-    library/threading/atomic
-    library/threading/thread_local
+    library/cpp/threading/atomic
+    library/cpp/threading/thread_local
 )
 
 SRCS(
