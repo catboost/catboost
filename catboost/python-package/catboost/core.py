@@ -4561,8 +4561,9 @@ class CatBoostRegressor(CatBoost):
             # TODO(ilyzhin) change on get_all_params after MLTOOLS-4758
             params = deepcopy(self._init_params)
             _process_synonyms(params)
-            if 'loss_function' in params:
-                if 'Poisson' in params['loss_function'] or 'Tweedie' in params['loss_function']:
+            loss_function = params.get('loss_function')
+            if loss_function and isinstance(loss_function, str):
+                if loss_function.startswith('Poisson') or loss_function.startswith('Tweedie'):
                     prediction_type = 'Exponent'
         return self._predict(data, prediction_type, ntree_start, ntree_end, thread_count, verbose, 'predict')
 
