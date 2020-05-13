@@ -68,21 +68,6 @@ SPARSE_MATRIX_TYPES = _catboost.SPARSE_MATRIX_TYPES
 MultiRegressionCustomMetric = _catboost.MultiRegressionCustomMetric
 MultiRegressionCustomObjective = _catboost.MultiRegressionCustomObjective
 
-_CATBOOST_SKLEARN_COMPAT_TAGS = {
-    'non_deterministic': False,
-    'requires_positive_X': False,
-    'requires_positive_y': False,
-    'X_types': ['2darray','sparse','categorical'],
-    'poor_score': True,
-    'no_validation': True,
-    'multioutput': True,
-    "allow_nan": True,
-    'stateless': False,
-    'multilabel': False,
-    '_skip_test': False,
-    'multioutput_only': False,
-    'binary_only': False,
-    'requires_fit': True}
 
 from contextlib import contextmanager  # noqa E402
 
@@ -102,6 +87,21 @@ def log_fixup():
     yield
     _reset_logger()
 
+_CATBOOST_SKLEARN_COMPAT_TAGS = {
+    'non_deterministic': False,
+    'requires_positive_X': False,
+    'requires_positive_y': False,
+    'X_types': ['2darray','sparse','categorical'],
+    'poor_score': True,
+    'no_validation': True,
+    'multioutput': True,
+    "allow_nan": True,
+    'stateless': False,
+    'multilabel': False,
+    '_skip_test': False,
+    'multioutput_only': False,
+    'binary_only': False,
+    'requires_fit': True}
 
 def _cast_to_base_types(value):
     # NOTE: Special case, avoiding new list creation.
