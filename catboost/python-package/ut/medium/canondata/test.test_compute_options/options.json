@@ -212,6 +212,7 @@
     "logging_level": "Verbose", 
     "loss_function": {
         "params": {}, 
+        "params_ordered_keys": [], 
         "type": "RMSE"
     }, 
     "metadata": {}, 
@@ -219,10 +220,12 @@
         "custom_metrics": [], 
         "eval_metric": {
             "params": {}, 
+            "params_ordered_keys": [], 
             "type": "RMSE"
         }, 
         "objective_metric": {
             "params": {}, 
+            "params_ordered_keys": [], 
             "type": "RMSE"
         }
     }, 

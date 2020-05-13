@@ -6776,7 +6776,7 @@
         "uri": "file://test.test_output_columns_format/test.eval"
     },
     "test.test_output_options": {
-        "checksum": "4af56f06da3eef6afebde00a0334b42c",
+        "checksum": "792f07ca728491b906efbf7a8d154823",
         "uri": "file://test.test_output_options/training_options.json"
     },
     "test.test_overfit_detector_inc_to_dec[Ordered-SymmetricTree]": [
@@ -8587,7 +8587,7 @@
             "uri": "file://test.test_stochastic_filter_num_estimations=1-sigma=0.01_/learn_error.tsv"
         },
         {
-            "checksum": "96d425a8ed189f814291f2aaabacd121",
+            "checksum": "2a24f3b855c9a01733cbf95d755f5c77",
             "uri": "file://test.test_stochastic_filter_num_estimations=1-sigma=0.01_/test_error.tsv"
         }
     ],
@@ -8597,7 +8597,7 @@
             "uri": "file://test.test_stochastic_filter_num_estimations=1-sigma=10_/learn_error.tsv"
         },
         {
-            "checksum": "d611f7f40194e73256b8c63776054c17",
+            "checksum": "a109c1c53c35a9685f2948f4c5aa469c",
             "uri": "file://test.test_stochastic_filter_num_estimations=1-sigma=10_/test_error.tsv"
         }
     ],
@@ -8607,7 +8607,7 @@
             "uri": "file://test.test_stochastic_filter_num_estimations=1-sigma=1_/learn_error.tsv"
         },
         {
-            "checksum": "bf5da779d2e3fabafa868abe5318fa81",
+            "checksum": "1a27479cdf8cce0007338c7595d71d32",
             "uri": "file://test.test_stochastic_filter_num_estimations=1-sigma=1_/test_error.tsv"
         }
     ],
@@ -8617,7 +8617,7 @@
             "uri": "file://test.test_stochastic_filter_num_estimations=100-sigma=0.01_/learn_error.tsv"
         },
         {
-            "checksum": "b2c5ce4a90e9ce51579ba72f127be920",
+            "checksum": "1d1ba4992b77b5e613ed76ad94bf2051",
             "uri": "file://test.test_stochastic_filter_num_estimations=100-sigma=0.01_/test_error.tsv"
         }
     ],
@@ -8627,7 +8627,7 @@
             "uri": "file://test.test_stochastic_filter_num_estimations=100-sigma=10_/learn_error.tsv"
         },
         {
-            "checksum": "d2f080614d2448ae8cf14f95951e36a1",
+            "checksum": "8e46c6ae437109dd968498fc3f6127c9",
             "uri": "file://test.test_stochastic_filter_num_estimations=100-sigma=10_/test_error.tsv"
         }
     ],
@@ -8637,7 +8637,7 @@
             "uri": "file://test.test_stochastic_filter_num_estimations=100-sigma=1_/learn_error.tsv"
         },
         {
-            "checksum": "3a7952811d8e0ff0f5c2a33d2a650cb3",
+            "checksum": "bca3cd664f624833087cc53939489d9a",
             "uri": "file://test.test_stochastic_filter_num_estimations=100-sigma=1_/test_error.tsv"
         }
     ],

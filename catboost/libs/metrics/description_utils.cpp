@@ -21,7 +21,7 @@ TString BuildDescriptionFromParams(ELossFunction lossFunction, const TLossParams
     buffer << ":";
 
     TVector<std::pair<TString, TString>> keyAndValues;
-    for (const auto& key: params.userSpecifiedKeyOrder()) {
+    for (const auto& key: params.GetUserSpecifiedKeyOrder()) {
         keyAndValues.emplace_back(key, params.GetParamsMap().at(key));
     }
     for (size_t i = 0; i < keyAndValues.size(); ++i) {

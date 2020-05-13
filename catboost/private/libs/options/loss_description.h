@@ -20,25 +20,9 @@ class TLossParams {
 public:
     explicit TLossParams() = default;
 
-    static TLossParams FromVector(const TVector<std::pair<TString, TString>>& params) {
-        TMap<TString, TString> paramsMap;
-        TVector<TString> userSpecifiedKeyOrder;
-        for (const auto& keyValue : params) {
-            const bool inserted = paramsMap.insert({keyValue.first, keyValue.second}).second;
-            CB_ENSURE(inserted, "Duplicated loss param found: " << keyValue.first);
-            userSpecifiedKeyOrder.push_back(keyValue.first);
-        }
-        return TLossParams(std::move(paramsMap), std::move(userSpecifiedKeyOrder));
-    }
+    static TLossParams FromVector(const TVector<std::pair<TString, TString>>& params);
 
-    static TLossParams FromMap(TMap<TString, TString> paramsMap) {
-        TVector<TString> keys;
-        keys.reserve(paramsMap.size());
-        for (const auto& keyValue: paramsMap) {
-            keys.push_back(keyValue.first);
-        }
-        return TLossParams(std::move(paramsMap), std::move(keys));
-    }
+    static TLossParams FromMap(TMap<TString, TString> paramsMap);
 
     void Put(const TString& key, const TString& value) {
         auto containedBefore = ParamsMap.contains(key);
@@ -62,16 +46,13 @@ public:
         return ParamsMap;
     }
 
-    const TVector<TString>& userSpecifiedKeyOrder() const {
+    const TVector<TString>& GetUserSpecifiedKeyOrder() const {
         return UserSpecifiedKeyOrder;
     }
 
 private:
     explicit TLossParams(TMap<TString, TString> paramsMap,
-                         TVector<TString> userSpecifiedKeyOrder)
-    : ParamsMap(std::move(paramsMap))
-    , UserSpecifiedKeyOrder(std::move(userSpecifiedKeyOrder))
-    {}
+                         TVector<TString> userSpecifiedKeyOrder);
 
 
     TMap<TString, TString> ParamsMap;
@@ -88,6 +69,8 @@ namespace NCatboostOptions {
     public:
         explicit TLossDescription();
 
+        TLossDescription CloneWithLossFunction(ELossFunction function);
+
         ELossFunction GetLossFunction() const;
 
         void Load(const NJson::TJsonValue& options);
@@ -97,11 +80,13 @@ namespace NCatboostOptions {
         bool operator!=(const TLossDescription& rhs) const;
 
         const TMap<TString, TString>& GetLossParamsMap() const;
+        const TVector<TString>& GetLossParamKeysOrdered() const;
         TLossParams GetLossParams() const;
 
     public:
         TOption<ELossFunction> LossFunction;
         TOption<TMap<TString, TString>> LossParams;
+        TOption<TVector<TString>> LossParamKeysOrdered;
     };
 
     template <typename T>

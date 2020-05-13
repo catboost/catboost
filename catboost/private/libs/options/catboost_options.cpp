@@ -775,16 +775,12 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
         }
         case ELossFunction::PairLogit:
         case ELossFunction::PairLogitPairwise: {
-            NCatboostOptions::TLossDescription lossDescription;
-            lossDescription.LossParams.Set(LossFunctionDescription->GetLossParamsMap());
-            lossDescription.LossFunction.Set(ELossFunction::PairLogit);
+            NCatboostOptions::TLossDescription lossDescription = LossFunctionDescription->CloneWithLossFunction(ELossFunction::PairLogit);
             MetricOptions->ObjectiveMetric.Set(lossDescription);
             break;
         }
         case ELossFunction::StochasticFilter: {
-            NCatboostOptions::TLossDescription lossDescription;
-            lossDescription.LossParams.Set(LossFunctionDescription->GetLossParamsMap());
-            lossDescription.LossFunction.Set(ELossFunction::FilteredDCG);
+            NCatboostOptions::TLossDescription lossDescription = LossFunctionDescription->CloneWithLossFunction(ELossFunction::FilteredDCG);
             MetricOptions->ObjectiveMetric.Set(lossDescription);
             break;
         }
@@ -794,6 +790,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             CB_ENSURE(lossParams.contains("metric"), "StochasticRank requires metric param");
             ELossFunction targetMetric = FromString<ELossFunction>(lossParams.at("metric"));
             TMap<TString, TString> metricParams;
+            TVector<TString> metricKeyOrder;
             TSet<TString> validParams;
             switch (targetMetric) {
                 case ELossFunction::DCG:
@@ -806,12 +803,15 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
                 default:
                     CB_ENSURE(false, "StochasticRank does not support target_metric " << targetMetric);
             }
-            for (const auto& paramName : validParams) {
-                if (lossParams.contains(paramName)) {
-                    metricParams[paramName] = lossParams.at(paramName);
+            for (const auto& key : LossFunctionDescription->GetLossParamKeysOrdered()) {
+                if (!validParams.contains(key)) {
+                    continue;
                 }
+                metricParams[key] = lossParams.at(key);
+                metricKeyOrder.push_back(key);
             }
             lossDescription.LossParams.Set(metricParams);
+            lossDescription.LossParamKeysOrdered.Set(metricKeyOrder);
             lossDescription.LossFunction.Set(targetMetric);
             MetricOptions->ObjectiveMetric.Set(lossDescription);
             ObliviousTreeOptions->LeavesEstimationBacktrackingType.SetDefault(ELeavesEstimationStepBacktracking::No);

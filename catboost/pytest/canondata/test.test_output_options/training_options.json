@@ -19,10 +19,12 @@
     },
     "metrics" : {
         "objective_metric" : {
+            "params_ordered_keys" : [ ],
             "type" : "Logloss",
             "params" : { }
         },
         "eval_metric" : {
+            "params_ordered_keys" : [ ],
             "type" : "Logloss",
             "params" : { }
         },
@@ -223,6 +225,7 @@
         }
     },
     "loss_function" : {
+        "params_ordered_keys" : [ ],
         "type" : "Logloss",
         "params" : { }
     },
