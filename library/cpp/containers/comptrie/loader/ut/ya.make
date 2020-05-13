@@ -12,7 +12,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/comptrie/loader
+    library/cpp/containers/comptrie/loader
 )
 
 END()

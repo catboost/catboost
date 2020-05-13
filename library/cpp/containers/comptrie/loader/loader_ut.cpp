@@ -1,6 +1,6 @@
 #include <library/cpp/unittest/registar.h>
-#include <library/comptrie/comptrie.h>
-#include <library/comptrie/loader/loader.h>
+#include <library/cpp/containers/comptrie/comptrie.h>
+#include <library/cpp/containers/comptrie/loader/loader.h>
 
 using TDummyTrie = TCompactTrie<char, i32>;
 

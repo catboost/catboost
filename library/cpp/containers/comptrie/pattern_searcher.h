@@ -1,9 +1,9 @@
 #pragma once
 
-#include <library/comptrie/comptrie_builder.h>
-#include <library/comptrie/comptrie_trie.h>
+#include "comptrie_builder.h"
+#include "comptrie_trie.h"
+#include "comptrie_impl.h"
 #include <library/packers/packers.h>
-#include <library/comptrie/comptrie_impl.h>
 
 #include <util/system/yassert.h>
 #include <util/generic/vector.h>
