@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{32E78DFF-5451-B440-4B35-E627E82B514E}</ProjectGUID>
+    <ProjectGUID>{C4244186-1688-FFD7-FAB5-CB9E056577E2}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>contrib-deprecated-libffi</ProjectName>
+    <ProjectName>contrib-restricted-libffi</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>contrib-deprecated-libffi</TargetName>
+    <TargetName>contrib-restricted-libffi</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\contrib\deprecated\libffi\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\32E78DFF-5451-B440-4B35-E627E82B514E\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\contrib\restricted\libffi\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\C4244186-1688-FFD7-FAB5-CB9E056577E2\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -63,7 +63,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/deprecated/libffi/include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/restricted/libffi/include;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -78,31 +78,31 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\contrib\deprecated\libffi\src\closures.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\libffi\src\closures.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\deprecated\libffi\src\java_raw_api.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\libffi\src\java_raw_api.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\deprecated\libffi\src\prep_cif.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\libffi\src\prep_cif.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\deprecated\libffi\src\raw_api.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\libffi\src\raw_api.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\deprecated\libffi\src\types.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\libffi\src\types.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\contrib\deprecated\libffi\src\x86\ffi.c">
+    <ClCompile Include="$(SolutionDir)..\contrib\restricted\libffi\src\x86\ffi.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <CustomBuild Include="$(SolutionDir)..\contrib\deprecated\libffi\src\x86\win64.masm">
+    <CustomBuild Include="$(SolutionDir)..\contrib\restricted\libffi\src\x86\win64.masm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\libffi
+cd /d $(SolutionDir)$(Configuration)\contrib\restricted\libffi
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/deprecated/libffi/_/src/x86/win64.masm.obj" "$(SolutionDir)../contrib/deprecated/libffi/src/x86/win64.masm"
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/restricted/libffi/_/src/x86/win64.masm.obj" "$(SolutionDir)../contrib/restricted/libffi/src/x86/win64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -111,11 +111,11 @@ exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
       <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\contrib\deprecated\libffi
+cd /d $(SolutionDir)$(Configuration)\contrib\restricted\libffi
 if %errorlevel% neq 0 goto :cmEnd
 cd /d "$(SolutionDir)$(Configuration)"
 if %errorlevel% neq 0 goto :cmEnd
-"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/deprecated/libffi/_/src/x86/win64.masm.obj" "$(SolutionDir)../contrib/deprecated/libffi/src/x86/win64.masm"
+"python" "$(SolutionDir)../build/scripts/fix_msvc_output.py" "ml" "$(VC_ExecutablePath_x64_x64)\ml64.exe" "/nologo" "/c" "/Fo$(SolutionDir)$(Configuration)/contrib/restricted/libffi/_/src/x86/win64.masm.obj" "$(SolutionDir)../contrib/restricted/libffi/src/x86/win64.masm"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -123,31 +123,31 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/contrib/deprecated/libffi/_/src/x86/win64.masm.obj	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\deprecated\libffi\src\x86\win64.masm;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\contrib\deprecated\libffi\_\src\x86\win64.masm.obj;</Outputs>
+      <Message>$B/contrib/restricted/libffi/_/src/x86/win64.masm.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\fix_msvc_output.py;$(SolutionDir)..\contrib\restricted\libffi\src\x86\win64.masm;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\contrib\restricted\libffi\_\src\x86\win64.masm.obj;</Outputs>
     </CustomBuild>
-    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ffi.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ffi_arm64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ffi_armv7.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ffi_common.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ffi_i386.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ffi_x86_64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\fficonfig-linux.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\fficonfig-osx.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\fficonfig-win.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\fficonfig-win32.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\fficonfig.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ffitarget.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ios\fficonfig_arm64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ios\fficonfig_armv7.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ios\fficonfig_i386.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ios\fficonfig_x86_64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ios\ffitarget_arm64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ios\ffitarget_armv7.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ios\ffitarget_i386.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\include\ios\ffitarget_x86_64.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\deprecated\libffi\src\x86\ffitarget.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\libffi\include\ffi.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\libffi\include\ffi_arm64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\libffi\include\ffi_armv7.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\libffi\include\ffi_common.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\libffi\include\ffi_i386.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\libffi\include\ffi_x86_64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\libffi\include\fficonfig-linux.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\libffi\include\fficonfig-osx.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\libffi\include\fficonfig-win.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\libffi\include\fficonfig-win32.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\libffi\include\fficonfig.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\libffi\include\ffitarget.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\libffi\include\ios\fficonfig_arm64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\libffi\include\ios\fficonfig_armv7.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\libffi\include\ios\fficonfig_i386.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\libffi\include\ios\fficonfig_x86_64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\libffi\include\ios\ffitarget_arm64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\libffi\include\ios\ffitarget_armv7.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\libffi\include\ios\ffitarget_i386.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\libffi\include\ios\ffitarget_x86_64.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\restricted\libffi\src\x86\ffitarget.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
