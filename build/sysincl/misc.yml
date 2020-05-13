@@ -538,10 +538,6 @@
   includes:
     - validator/validator.h: infra/contrib/unbound/unbound/validator/validator.h
 
-- source_filter: "^yandex_io/external_libs/speechkit"
-  includes:
-    - threads.h: yandex_io/external_libs/speechkit/c11-threads/threads.h
-
 - source_filter: "^contrib/restricted/openal-soft"
   includes:
     - threads.h: contrib/restricted/openal-soft/common/threads.h
