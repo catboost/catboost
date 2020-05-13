@@ -1,3 +1,4 @@
+
 import sys
 from copy import deepcopy
 from six import iteritems, string_types, integer_types
@@ -67,6 +68,21 @@ SPARSE_MATRIX_TYPES = _catboost.SPARSE_MATRIX_TYPES
 MultiRegressionCustomMetric = _catboost.MultiRegressionCustomMetric
 MultiRegressionCustomObjective = _catboost.MultiRegressionCustomObjective
 
+_CATBOOST_SKLEARN_COMPAT_TAGS = {
+    'non_deterministic': False,
+    'requires_positive_X': False,
+    'requires_positive_y': False,
+    'X_types': ['2darray','sparse','categorical'],
+    'poor_score': True,
+    'no_validation': True,
+    'multioutput': True,
+    "allow_nan": True,
+    'stateless': False,
+    'multilabel': False,
+    '_skip_test': False,
+    'multioutput_only': False,
+    'binary_only': False,
+    'requires_fit': True}
 
 from contextlib import contextmanager  # noqa E402
 
@@ -1437,6 +1453,13 @@ class _CatBoostBase(object):
         feature_names: 1-d array of strings with new feature names in the same order as in pool
         '''
         self._object._set_feature_names(feature_names)
+
+
+    def _get_tags(self):
+        tags = _CATBOOST_SKLEARN_COMPAT_TAGS
+        if self._init_params['task_type'] == 'GPU':
+            tags['non_deterministic'] = True
+        return tags
 
     def get_scale_and_bias(self):
         return self._object._get_scale_and_bias()
