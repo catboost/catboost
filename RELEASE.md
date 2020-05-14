@@ -15,11 +15,11 @@ Specify weights for specific features by index or name like `feature_weights="Fe
 Scores for splits with this features will be multiplied by corresponding weights. 
 Implemented by @Taube03.
 * Feature penalties can be used for cost efficient gradient boosting.
-Penalties are specified in a similar fashion to feature weights, using parameter `first_use_feature_penalties`.
+Penalties are specified in a similar fashion to feature weights, using parameter `first_feature_use_penalties`.
 This parameter penalized the first usage of a feature. This should be used in case if the calculation of the feature is costly.
 The penalty value (or the cost of using a feature) is subtracted from scores of the splits of this feature if feature has not been used in the model.
 After the feature has been used once, it is considered free to proceed using this feature, so no substruction is done.
-There is also a common multiplier for all `first_use_feature_penalties`, it can be specified by `penalties_coefficient` parameter.
+There is also a common multiplier for all `first_feature_use_penalties`, it can be specified by `penalties_coefficient` parameter.
 Implemented by @Taube03 (issue #1155)
 * `recordCount` attribute is added to PMML models (issue #1026).
 
