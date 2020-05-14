@@ -167,13 +167,15 @@ TVector<double> CalculatePartialDependence(
         const TVector<double> leafWeights,
         NPar::TLocalExecutor* localExecutor
 ) {
-    const auto& [leafBucketRanges, leafWeightsNew] = CalculateBucketRangesAndWeightsOblivious(
+    const auto& calculationResult = CalculateBucketRangesAndWeightsOblivious(
             model,
             features,
             borderIdxForSplit,
             leafWeights,
             localExecutor
     );
+    const auto& leafBucketRanges = calculationResult.first;
+    const auto& leafWeightsNew = calculationResult.second;
 
     TVector<double> predictionsByBuckets = MergeBucketRanges(model, features, dataProvider, leafBucketRanges, leafWeightsNew);
 
