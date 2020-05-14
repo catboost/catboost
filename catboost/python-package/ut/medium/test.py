@@ -6190,12 +6190,28 @@ def test_feature_statistics():
         return np.array([data[np.digitize(X[:, feature_num], res['borders']) == bin_num].mean()
                          for bin_num in range(len(res['borders']) + 1)])
 
+    def vary_feature(res, feature_num, bucket_num, X):
+        if bucket_num == 0:
+            bucket_value = np.min(X[:, feature_num])
+        elif bucket_num == len(res['borders']):
+            bucket_value = np.max(X[:, feature_num])
+        else:
+            bucket_value = np.mean(res['borders'][bucket_num-1:bucket_num+1])
+        return np.hstack((X[:, :feature_num], np.tile(bucket_value, (n_samples, 1)), X[:, feature_num + 1:]))
+
     assert(np.alltrue(np.array(res['binarized_feature']) == np.digitize(X[:, feature_num], res['borders'])))
     assert(res['objects_per_bin'].sum() == X.shape[0])
     assert(np.alltrue(np.unique(np.digitize(X[:, feature_num], res['borders']), return_counts=True)[1] ==
                       res['objects_per_bin']))
     assert(np.allclose(res['mean_prediction'],
                        mean_per_bin(res, feature_num, model.predict(X)),
+                       atol=1e-4))
+    assert(np.allclose(res['mean_target'],
+                       mean_per_bin(res, feature_num, y),
+                       atol=1e-4))
+    assert(np.allclose(res['predictions_on_varying_feature'],
+                       list(np.mean(model.predict(vary_feature(res, feature_num, bucket_num, X)))
+                            for bucket_num in range(len(res['borders']) + 1)),
                        atol=1e-4))
 
 
@@ -6730,30 +6746,184 @@ def test_quantized_pool_with_all_features_ignored():
         CatBoostClassifier(ignored_features=list(range(100))).fit(quantized_pool)
 
 
-def test_pool_quantize():
-    train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
-    test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
-    train_quantized_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+@pytest.fixture(params=[
+    ('higgs', HIGGS_TRAIN_FILE, HIGGS_TEST_FILE, HIGGS_CD_FILE, 'Logloss'),
+    ('querywise', QUERYWISE_TRAIN_FILE, QUERYWISE_TEST_FILE, QUERYWISE_CD_FILE, 'RMSE'),
+], ids=[
+    'higgs',
+    'querywise'
+])
+def train_on_raw_and_quantized_data_params_fixture(request):
+    pool_name, train_pool_file, test_pool_file, column_description, loss_function = request.param
+    borders_file = test_output_path('{}_borders.dat'.format(pool_name))
+    train_pool = Pool(train_pool_file, column_description=column_description)
+    test_pool = Pool(test_pool_file, column_description=column_description)
+    train_quantized_pool = Pool(train_pool_file, column_description=column_description)
+    test_quantized_pool = Pool(test_pool_file, column_description=column_description)
     params = {
         'task_type': 'CPU',
-        'loss_function': 'RMSE',
+        'loss_function': loss_function,
         'iterations': 5,
         'depth': 4,
     }
+
     train_quantized_pool.quantize()
+    train_quantized_pool.save_quantization_borders(borders_file)
+    test_quantized_pool.quantize(input_borders=borders_file)
 
     assert(train_quantized_pool.is_quantized())
+    assert(test_quantized_pool.is_quantized())
+
+    return {
+        'train_pool': train_pool,
+        'test_pool': test_pool,
+        'train_quantized_pool': train_quantized_pool,
+        'test_quantized_pool': test_quantized_pool,
+        'loss_function': loss_function,
+        'params': params,
+    }
+
+
+@pytest.fixture()
+def models_trained_on_raw_and_quantized_data_fixture(train_on_raw_and_quantized_data_params_fixture):
+    train_pool = train_on_raw_and_quantized_data_params_fixture['train_pool']
+    test_pool = train_on_raw_and_quantized_data_params_fixture['test_pool']
+    train_quantized_pool = train_on_raw_and_quantized_data_params_fixture['train_quantized_pool']
+    test_quantized_pool = train_on_raw_and_quantized_data_params_fixture['test_quantized_pool']
+    loss_function = train_on_raw_and_quantized_data_params_fixture['loss_function']
+    params = train_on_raw_and_quantized_data_params_fixture['params']
 
     model = CatBoost(params=params)
     model_fitted_with_quantized_pool = CatBoost(params=params)
 
     model.fit(train_pool)
-    predictions1 = model.predict(test_pool)
-
     model_fitted_with_quantized_pool.fit(train_quantized_pool)
-    predictions2 = model_fitted_with_quantized_pool.predict(test_pool)
 
-    assert all(predictions1 == predictions2)
+    return {
+        'train_pool': train_pool,
+        'test_pool': test_pool,
+        'train_quantized_pool': train_quantized_pool,
+        'test_quantized_pool': test_quantized_pool,
+        'model': model,
+        'model_fitted_with_quantized_pool': model_fitted_with_quantized_pool,
+        'loss_function': loss_function,
+    }
+
+
+def test_quantized_pool_cv(train_on_raw_and_quantized_data_params_fixture):
+    train_pool = train_on_raw_and_quantized_data_params_fixture['train_pool']
+    train_quantized_pool = train_on_raw_and_quantized_data_params_fixture['train_quantized_pool']
+    params = train_on_raw_and_quantized_data_params_fixture['params']
+
+    results = cv(train_pool, params)
+    results_with_quantized_pool = cv(train_quantized_pool, params)
+    assert results.equals(results_with_quantized_pool)
+
+
+def test_quantized_pool_train_predict(train_on_raw_and_quantized_data_params_fixture):
+    train_pool = train_on_raw_and_quantized_data_params_fixture['train_pool']
+    test_pool = train_on_raw_and_quantized_data_params_fixture['test_pool']
+    train_quantized_pool = train_on_raw_and_quantized_data_params_fixture['train_quantized_pool']
+    test_quantized_pool = train_on_raw_and_quantized_data_params_fixture['test_quantized_pool']
+    params = train_on_raw_and_quantized_data_params_fixture['params']
+
+    model = train(train_pool, params=params)
+    model_fitted_with_quantized_pool = train(train_quantized_pool, params=params)
+
+    predictions = model.predict(test_pool)
+    predictions_with_quantized_pool = model_fitted_with_quantized_pool.predict(test_quantized_pool)
+    assert np.all(predictions == predictions_with_quantized_pool)
+
+
+def test_quantized_pool_predict(models_trained_on_raw_and_quantized_data_fixture):
+    test_pool = models_trained_on_raw_and_quantized_data_fixture['test_pool']
+    test_quantized_pool = models_trained_on_raw_and_quantized_data_fixture['test_quantized_pool']
+    model = models_trained_on_raw_and_quantized_data_fixture['model']
+    model_fitted_with_quantized_pool = models_trained_on_raw_and_quantized_data_fixture['model_fitted_with_quantized_pool']
+
+    predictions = model.predict(test_pool)
+    predictions_with_quantized_pool = model_fitted_with_quantized_pool.predict(test_quantized_pool)
+    assert np.all(predictions == predictions_with_quantized_pool)
+
+
+@pytest.mark.parametrize('pool_type', ['train', 'test'])
+def test_quantized_pool_calc_feature_statistics(models_trained_on_raw_and_quantized_data_fixture, pool_type):
+    pool = models_trained_on_raw_and_quantized_data_fixture[pool_type + '_pool']
+    quantized_pool = models_trained_on_raw_and_quantized_data_fixture[pool_type + '_quantized_pool']
+    model = models_trained_on_raw_and_quantized_data_fixture['model']
+    model_fitted_with_quantized_pool = models_trained_on_raw_and_quantized_data_fixture['model_fitted_with_quantized_pool']
+
+    class NumpyEncoder(json.JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj, np.ndarray):
+                return obj.tolist()
+            return json.JSONEncoder.default(self, obj)
+
+    def serialize_feature_statistics(stats):
+        return json.dumps(stats, cls=NumpyEncoder, sort_keys=True)
+
+    stats = model.calc_feature_statistics(pool, plot=False)
+    stats_with_quantized_pool = model_fitted_with_quantized_pool.calc_feature_statistics(quantized_pool, plot=False)
+    assert serialize_feature_statistics(stats) == serialize_feature_statistics(stats_with_quantized_pool)
+
+
+@pytest.mark.parametrize('pool_type', ['train', 'test'])
+def test_quantized_pool_eval_metrics(models_trained_on_raw_and_quantized_data_fixture, pool_type):
+    pool = models_trained_on_raw_and_quantized_data_fixture[pool_type + '_pool']
+    quantized_pool = models_trained_on_raw_and_quantized_data_fixture[pool_type + '_quantized_pool']
+    model = models_trained_on_raw_and_quantized_data_fixture['model']
+    model_fitted_with_quantized_pool = models_trained_on_raw_and_quantized_data_fixture['model_fitted_with_quantized_pool']
+    loss_function = models_trained_on_raw_and_quantized_data_fixture['loss_function']
+
+    metrics = model.eval_metrics(pool, metrics=[loss_function])
+    metrics_with_quantized_pool = model_fitted_with_quantized_pool.eval_metrics(quantized_pool, metrics=[loss_function])
+    assert metrics == metrics_with_quantized_pool
+
+
+@pytest.mark.parametrize('pool_type', ['train', 'test'])
+@pytest.mark.parametrize('fstr_type', [
+    EFstrType.PredictionValuesChange,
+    EFstrType.FeatureImportance,
+    EFstrType.ShapValues,
+    EFstrType.ShapInteractionValues,
+    EFstrType.Interaction
+])
+def test_quantized_pool_get_feature_importance(models_trained_on_raw_and_quantized_data_fixture, pool_type, fstr_type):
+    pool = models_trained_on_raw_and_quantized_data_fixture[pool_type + '_pool']
+    quantized_pool = models_trained_on_raw_and_quantized_data_fixture[pool_type + '_quantized_pool']
+    model = models_trained_on_raw_and_quantized_data_fixture['model']
+    model_fitted_with_quantized_pool = models_trained_on_raw_and_quantized_data_fixture['model_fitted_with_quantized_pool']
+
+    fstr = model.get_feature_importance(data=pool, type=fstr_type)
+    fstr_with_quantized_pool = \
+        model_fitted_with_quantized_pool.get_feature_importance(data=quantized_pool, type=fstr_type)
+    assert np.all(fstr == fstr_with_quantized_pool)
+
+
+def test_quantized_pool_get_object_importance(models_trained_on_raw_and_quantized_data_fixture):
+    train_pool = models_trained_on_raw_and_quantized_data_fixture['train_pool']
+    test_pool = models_trained_on_raw_and_quantized_data_fixture['test_pool']
+    train_quantized_pool = models_trained_on_raw_and_quantized_data_fixture['train_quantized_pool']
+    test_quantized_pool = models_trained_on_raw_and_quantized_data_fixture['test_quantized_pool']
+    model = models_trained_on_raw_and_quantized_data_fixture['model']
+    model_fitted_with_quantized_pool = models_trained_on_raw_and_quantized_data_fixture['model_fitted_with_quantized_pool']
+
+    importance = model.get_object_importance(test_pool, train_pool)
+    importance_with_quantized_pool = \
+        model_fitted_with_quantized_pool.get_object_importance(test_quantized_pool, train_quantized_pool)
+    assert np.all(np.array(importance) == np.array(importance_with_quantized_pool))
+
+
+@pytest.mark.parametrize('pool_type', ['train', 'test'])
+def test_quantized_pool_select_threshold(models_trained_on_raw_and_quantized_data_fixture, pool_type):
+    pool = models_trained_on_raw_and_quantized_data_fixture[pool_type + '_pool']
+    quantized_pool = models_trained_on_raw_and_quantized_data_fixture[pool_type + '_quantized_pool']
+    model = models_trained_on_raw_and_quantized_data_fixture['model']
+    model_fitted_with_quantized_pool = models_trained_on_raw_and_quantized_data_fixture['model_fitted_with_quantized_pool']
+
+    threshold = select_threshold(model, pool)
+    threshold_with_quantized_pool = select_threshold(model_fitted_with_quantized_pool, quantized_pool)
+    assert threshold == threshold_with_quantized_pool
 
 
 def test_save_quantized_pool():
