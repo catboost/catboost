@@ -606,9 +606,7 @@ def onadd_pytest_bin(unit, *args):
         )
 
     runner_bin = kws.get('RUNNER_BIN', [None])[0]
-    test_type = 'py3test.bin' if (unit.get("PYTHON3") == 'yes') else "pytest.bin"
-
-    add_test_to_dart(unit, test_type, runner_bin=runner_bin)
+    add_test_to_dart(unit, "pytest.bin", runner_bin=runner_bin)
 
 
 def add_test_to_dart(unit, test_type, binary_path=None, runner_bin=None):
