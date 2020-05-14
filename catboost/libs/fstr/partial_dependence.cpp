@@ -37,7 +37,7 @@ namespace {
     };
 } //anonymous
 
-TVector<TFloatFeatureBucketRange> prepareFeatureRanges(
+TVector<TFloatFeatureBucketRange> PrepareFeatureRanges(
         const TFullModel& model,
         const TVector<int>& featuresIdx
 ) {
@@ -51,28 +51,6 @@ TVector<TFloatFeatureBucketRange> prepareFeatureRanges(
         featureRanges.push_back(range);
     }
     return featureRanges;
-}
-
-void UpdateFeatureRanges(
-        const TFullModel& model,
-        TVector<TFloatFeatureBucketRange>* featureRanges,
-        const TVector<int>& splits,
-        const TVector<ui32>& borderIdxForSplit,
-        int mask
-) {
-    const auto& binSplits = model.ModelTrees->GetBinFeatures();
-
-    for (size_t splitIdx = 0; splitIdx < splits.size(); ++splitIdx) {
-        bool decision = (mask >> splitIdx) & 1;
-        const auto& split = binSplits[splits[splitIdx]];
-        for (auto& range: *featureRanges) {
-            if (range.FeatureIdx == split.FloatFeature.FloatFeature) {
-                int borderIdx = borderIdxForSplit[splits[splitIdx]];
-                range.Update(borderIdx, decision);
-            }
-        }
-    }
-
 }
 
 std::pair<TVector<TVector<TFloatFeatureBucketRange>>, TVector<double>>  CalculateBucketRangesAndWeightsOblivious(
@@ -89,7 +67,7 @@ std::pair<TVector<TVector<TFloatFeatureBucketRange>>, TVector<double>>  Calculat
     const auto& treeSplits = model.ModelTrees->GetTreeSplits();
     size_t leafNum = model.ModelTrees->GetLeafValues().size();
 
-    const TVector<TFloatFeatureBucketRange> defaultRanges = prepareFeatureRanges(model, features);
+    const TVector<TFloatFeatureBucketRange> defaultRanges = PrepareFeatureRanges(model, features);
     TVector<TVector<TFloatFeatureBucketRange>> leafBucketRanges(leafNum, defaultRanges);
     TVector<double> leafWeightsNew(leafWeights.size(), 0.0);
 
@@ -118,8 +96,14 @@ std::pair<TVector<TVector<TFloatFeatureBucketRange>>, TVector<double>>  Calculat
                     int depth = depthsToExplore[splitIdx];
                     int decision = (mask >> splitIdx) & 1;
                     newLeafIdx = (newLeafIdx & ~(1UL << depth)) | (decision << depth);
+                    const auto& split = binSplits[splitsToExplore[splitIdx]];
+                    for (auto& range: featureRanges) {
+                        if (range.FeatureIdx == split.FloatFeature.FloatFeature) {
+                            int borderIdx = borderIdxForSplit[splitsToExplore[splitIdx]];
+                            range.Update(borderIdx, decision);
+                        }
+                    }
                 }
-                UpdateFeatureRanges(model, &featureRanges, splitsToExplore, borderIdxForSplit, mask);
                 leafBucketRanges[offset + newLeafIdx] = featureRanges;
                 leafWeightsNew[offset + leafIdx] += leafWeights[offset + newLeafIdx];
             }
@@ -138,7 +122,7 @@ TVector<double> MergeBucketRanges(
         const TVector<double> leafWeights
 ) {
     const auto& leafValues = model.ModelTrees->GetLeafValues();
-    TVector<TFloatFeatureBucketRange> defaultRanges = prepareFeatureRanges(model, features);
+    TVector<TFloatFeatureBucketRange> defaultRanges = PrepareFeatureRanges(model, features);
     CB_ENSURE(defaultRanges.size() == 2, "Number of features must be 2");
 
     int columnNum = defaultRanges[1].NumOfBuckets;
@@ -203,7 +187,7 @@ TVector<double> GetPartialDependence(
         int threadCount
 ) {
     CB_ENSURE(model.ModelTrees->GetDimensionsCount() == 1,  "Is not supported for multiclass");
-    CB_ENSURE(model.GetNumCatFeatures() == 0, "Model with categorical features are not supported");
+    CB_ENSURE(model.GetNumCatFeatures() == 0, "Models with categorical features are not supported");
     CB_ENSURE(features.size() > 0 && features.size() <= 2, "Number of features should be equal to one or two");
 
     NPar::TLocalExecutor localExecutor;

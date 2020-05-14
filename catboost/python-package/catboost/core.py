@@ -2798,6 +2798,7 @@ class CatBoost(_CatBoostBase):
             else:
                 feature_idx = feature
             assert feature_idx in self._get_borders(), "only float features indexes are supported"
+            assert len(self._get_borders()[feature_idx]) > 0, "feature with idx {} is not used in model".format(feature_idx)
             return feature_idx
 
         def getFeatureIndices(features):

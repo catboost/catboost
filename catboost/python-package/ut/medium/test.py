@@ -8037,7 +8037,6 @@ def test_partial_dependence(features):
     return local_canonical_file(fimp_txt_path)
 
 
-
 @pytest.mark.parametrize('grow_policy', ['SymmetricTree', 'Depthwise', 'Lossguide'])
 def test_per_object_feature_penalties_work(grow_policy):
     pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
