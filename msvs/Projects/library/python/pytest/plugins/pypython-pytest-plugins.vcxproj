@@ -79,6 +79,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\pytest\plugins\0d2532d03412f1cba2c3b05e2e.cpp"/>
+    <ClCompile Include="$(SolutionDir)$(Configuration)\library\python\pytest\plugins\1b450de614cb38132d72f22bf7.cpp"/>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_0d2532d03412f1cba2c3b05e2e.yasm">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
@@ -106,11 +107,42 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_0d2532d03412f1cba2c3b05e2e.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
       <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_0d2532d03412f1cba2c3b05e2e.py2.obj;</Outputs>
     </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_1b450de614cb38132d72f22bf7.yasm">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_1b450de614cb38132d72f22bf7.py2.obj" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_1b450de614cb38132d72f22bf7.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/contrib/tools/yasm/yasm.exe" "-f" "win64" -D "WIN64" -D "_x86_64_" -D_YASM_ "-I" "$(SolutionDir)$(Configuration)" "-I" "$(SolutionDir).." "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include" "-I" "$(SolutionDir)../contrib/libs/zlib/include" "-I" "$(SolutionDir)../contrib/libs/double-conversion/include" "-I" "$(SolutionDir)../contrib/libs/python/Include" "-I" "$(SolutionDir)../contrib/libs/openssl/include" "-o" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_1b450de614cb38132d72f22bf7.py2.obj" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_1b450de614cb38132d72f22bf7.yasm"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/library/python/pytest/plugins/_1b450de614cb38132d72f22bf7.py2.obj	</Message>
+      <AdditionalInputs>$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_1b450de614cb38132d72f22bf7.yasm;$(SolutionDir)$(Configuration)\contrib\tools\yasm\yasm.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_1b450de614cb38132d72f22bf7.py2.obj;</Outputs>
+    </CustomBuild>
     <CustomBuild Include="$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/0d2532d03412f1cba2c3b05e2e.cpp" "_fd72a8184d92c531434d4551a8=/py_modules/library.python.pytest.plugins.ya" "_b8479bcaeb1b45f4cad175e553=resfs/src//py_modules/library.python.pytest.plugins.ya" "_ad6d60851308115b653f469c32=/py_code/library.python.pytest.plugins.ya" "_c0077441eb0357fa55ef503efb=/py_modules/library.python.pytest.plugins.collection" "_d08dcd9bd6dca4f1d2aae84364=resfs/src//py_modules/library.python.pytest.plugins.collection" "_ceae7cf57737e8d55aa3a1e410=/py_code/library.python.pytest.plugins.collection" "_fa57f8ce0bc8eead660f198dc4=/py_modules/library.python.pytest.plugins.conftests" "_fffad94ff68f0477bf3ee83cdd=resfs/src//py_modules/library.python.pytest.plugins.conftests" "_4f5a4b4b3f23db2fc66009d63e=/py_code/library.python.pytest.plugins.conftests" "_37007870ff05db7fbe64672586=/py_modules/library.python.pytest.plugins.fixtures" "_b6e8dcafc666843f9dcc267b66=resfs/src//py_modules/library.python.pytest.plugins.fixtures" "_635ddd9846f1ec4ec484f8641e=/py_code/library.python.pytest.plugins.fixtures"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/1b450de614cb38132d72f22bf7.cpp" "_df3d6b30eb7d48b6e6de2f8cab=/py_modules/library.python.pytest.plugins.fakeid_py2" "_bcff8c0273a5c2151413c9a8ea=resfs/src//py_modules/library.python.pytest.plugins.fakeid_py2" "_d5bd5aacb7a070a9a8aa0cef0a=/py_code/library.python.pytest.plugins.fakeid_py2"
 if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
@@ -123,15 +155,19 @@ cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
 "$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/0d2532d03412f1cba2c3b05e2e.cpp" "_fd72a8184d92c531434d4551a8=/py_modules/library.python.pytest.plugins.ya" "_b8479bcaeb1b45f4cad175e553=resfs/src//py_modules/library.python.pytest.plugins.ya" "_ad6d60851308115b653f469c32=/py_code/library.python.pytest.plugins.ya" "_c0077441eb0357fa55ef503efb=/py_modules/library.python.pytest.plugins.collection" "_d08dcd9bd6dca4f1d2aae84364=resfs/src//py_modules/library.python.pytest.plugins.collection" "_ceae7cf57737e8d55aa3a1e410=/py_code/library.python.pytest.plugins.collection" "_fa57f8ce0bc8eead660f198dc4=/py_modules/library.python.pytest.plugins.conftests" "_fffad94ff68f0477bf3ee83cdd=resfs/src//py_modules/library.python.pytest.plugins.conftests" "_4f5a4b4b3f23db2fc66009d63e=/py_code/library.python.pytest.plugins.conftests" "_37007870ff05db7fbe64672586=/py_modules/library.python.pytest.plugins.fixtures" "_b6e8dcafc666843f9dcc267b66=resfs/src//py_modules/library.python.pytest.plugins.fixtures" "_635ddd9846f1ec4ec484f8641e=/py_code/library.python.pytest.plugins.fixtures"
 if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rorescompiler/rorescompiler.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/1b450de614cb38132d72f22bf7.cpp" "_df3d6b30eb7d48b6e6de2f8cab=/py_modules/library.python.pytest.plugins.fakeid_py2" "_bcff8c0273a5c2151413c9a8ea=resfs/src//py_modules/library.python.pytest.plugins.fakeid_py2" "_d5bd5aacb7a070a9a8aa0cef0a=/py_code/library.python.pytest.plugins.fakeid_py2"
+if %errorlevel% neq 0 goto :cmEnd
 :cmEnd
 endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 :cmErrorLevel
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/pytest/plugins/0d2532d03412f1cba2c3b05e2e.cpp	</Message>
+      <Message>$B/library/python/pytest/plugins/0d2532d03412f1cba2c3b05e2e.cpp	$B/library/python/pytest/plugins/1b450de614cb38132d72f22bf7.cpp	</Message>
       <AdditionalInputs>$(SolutionDir)$(Configuration)\tools\rorescompiler\rorescompiler.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\plugins\0d2532d03412f1cba2c3b05e2e.cpp;</Outputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\plugins\0d2532d03412f1cba2c3b05e2e.cpp;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\1b450de614cb38132d72f22bf7.cpp;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\py_compile.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
@@ -145,6 +181,10 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/fakeid_py2.py-" "$(SolutionDir)../library/python/pytest/plugins/fakeid_py2.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/fakeid_py2.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
+if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/fixtures.py-" "$(SolutionDir)../library/python/pytest/plugins/fixtures.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/fixtures.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
@@ -168,6 +208,10 @@ if %errorlevel% neq 0 goto :cmEnd
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
 if %errorlevel% neq 0 goto :cmEnd
+"python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/fakeid_py2.py-" "$(SolutionDir)../library/python/pytest/plugins/fakeid_py2.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/fakeid_py2.py.yapyc"
+if %errorlevel% neq 0 goto :cmEnd
+cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
+if %errorlevel% neq 0 goto :cmEnd
 "python" "$(SolutionDir)../build/scripts/py_compile.py" "library/python/pytest/plugins/fixtures.py-" "$(SolutionDir)../library/python/pytest/plugins/fixtures.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/fixtures.py.yapyc"
 if %errorlevel% neq 0 goto :cmEnd
 cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
@@ -180,9 +224,36 @@ endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
 exit /b %1
 :cmDone
 if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/library/python/pytest/plugins/collection.py.yapyc	$B/library/python/pytest/plugins/conftests.py.yapyc	$B/library/python/pytest/plugins/fixtures.py.yapyc	$B/library/python/pytest/plugins/ya.py.yapyc	</Message>
-      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\library\python\pytest\plugins\collection.py;$(SolutionDir)..\library\python\pytest\plugins\conftests.py;$(SolutionDir)..\library\python\pytest\plugins\fixtures.py;$(SolutionDir)..\library\python\pytest\plugins\ya.py;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\plugins\collection.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\conftests.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\fixtures.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\ya.py.yapyc;</Outputs>
+      <Message>$B/library/python/pytest/plugins/collection.py.yapyc	$B/library/python/pytest/plugins/conftests.py.yapyc	$B/library/python/pytest/plugins/fakeid_py2.py.yapyc	$B/library/python/pytest/plugins/fixtures.py.yapyc	$B/library/python/pytest/plugins/ya.py.yapyc	</Message>
+      <AdditionalInputs>$(SolutionDir)..\build\scripts\py_compile.py;$(SolutionDir)..\library\python\pytest\plugins\collection.py;$(SolutionDir)..\library\python\pytest\plugins\conftests.py;$(SolutionDir)..\library\python\pytest\plugins\fakeid_py2.py;$(SolutionDir)..\library\python\pytest\plugins\fixtures.py;$(SolutionDir)..\library\python\pytest\plugins\ya.py;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\plugins\collection.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\conftests.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\fakeid_py2.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\fixtures.py.yapyc;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\ya.py.yapyc;</Outputs>
+    </CustomBuild>
+    <CustomBuild Include="$(SolutionDir)..\library\python\pytest\plugins\fakeid_py2.py">
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_1b450de614cb38132d72f22bf7.yasm" "$(SolutionDir)../library/python/pytest/plugins/fakeid_py2.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_df3d6b30eb7d48b6e6de2f8cab.rodata" "-" "library/python/pytest/plugins/fakeid_py2.py" "_bcff8c0273a5c2151413c9a8ea.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/fakeid_py2.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_d5bd5aacb7a070a9a8aa0cef0a.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+cd /d $(SolutionDir)$(Configuration)\library\python\pytest\plugins
+if %errorlevel% neq 0 goto :cmEnd
+"$(SolutionDir)$(Configuration)/tools/rescompressor/rescompressor.exe" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_1b450de614cb38132d72f22bf7.yasm" "$(SolutionDir)../library/python/pytest/plugins/fakeid_py2.py" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_df3d6b30eb7d48b6e6de2f8cab.rodata" "-" "library/python/pytest/plugins/fakeid_py2.py" "_bcff8c0273a5c2151413c9a8ea.rodata" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/fakeid_py2.py.yapyc" "$(SolutionDir)$(Configuration)/library/python/pytest/plugins/_d5bd5aacb7a070a9a8aa0cef0a.rodata"
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <Message>$B/library/python/pytest/plugins/_1b450de614cb38132d72f22bf7.yasm	</Message>
+      <AdditionalInputs>$(SolutionDir)..\library\python\pytest\plugins\fakeid_py2.py;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\fakeid_py2.py.yapyc;$(SolutionDir)$(Configuration)\tools\rescompressor\rescompressor.exe;</AdditionalInputs>
+      <Outputs>$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_1b450de614cb38132d72f22bf7.yasm;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_df3d6b30eb7d48b6e6de2f8cab.rodata;$(SolutionDir)$(Configuration)\library\python\pytest\plugins\_d5bd5aacb7a070a9a8aa0cef0a.rodata;</Outputs>
     </CustomBuild>
     <CustomBuild Include="$(SolutionDir)..\library\python\pytest\plugins\ya.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
