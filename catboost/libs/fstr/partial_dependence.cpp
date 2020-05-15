@@ -53,11 +53,12 @@ TVector<TFloatFeatureBucketRange> PrepareFeatureRanges(
     return featureRanges;
 }
 
-std::pair<TVector<TVector<TFloatFeatureBucketRange>>, TVector<double>>  CalculateBucketRangesAndWeightsOblivious(
+TVector<TVector<TFloatFeatureBucketRange>> CalculateBucketRangesAndWeightsOblivious(
         const TFullModel& model,
         const TVector<int>& features,
         const TVector<ui32>& borderIdxForSplit,
         const TVector<double>& leafWeights,
+        TVector<double>* leafWeightsNew,
         NPar::TLocalExecutor* localExecutor
 ) {
     const auto& binSplits = model.ModelTrees->GetBinFeatures();
@@ -69,7 +70,6 @@ std::pair<TVector<TVector<TFloatFeatureBucketRange>>, TVector<double>>  Calculat
 
     const TVector<TFloatFeatureBucketRange> defaultRanges = PrepareFeatureRanges(model, features);
     TVector<TVector<TFloatFeatureBucketRange>> leafBucketRanges(leafNum, defaultRanges);
-    TVector<double> leafWeightsNew(leafWeights.size(), 0.0);
 
     int treeCount = model.ModelTrees->GetTreeCount();
     NPar::TLocalExecutor::TExecRangeParams blockParams(0, treeCount);
@@ -105,13 +105,13 @@ std::pair<TVector<TVector<TFloatFeatureBucketRange>>, TVector<double>>  Calculat
                     }
                 }
                 leafBucketRanges[offset + newLeafIdx] = featureRanges;
-                leafWeightsNew[offset + leafIdx] += leafWeights[offset + newLeafIdx];
+                (*leafWeightsNew)[offset + leafIdx] += leafWeights[offset + newLeafIdx];
             }
         }
     }, blockParams, NPar::TLocalExecutor::WAIT_COMPLETE);
 
 
-    return std::pair(leafBucketRanges, leafWeightsNew);
+    return leafBucketRanges;
 }
 
 TVector<double> MergeBucketRanges(
@@ -167,15 +167,15 @@ TVector<double> CalculatePartialDependence(
         const TVector<double> leafWeights,
         NPar::TLocalExecutor* localExecutor
 ) {
-    const auto& calculationResult = CalculateBucketRangesAndWeightsOblivious(
+    TVector<double> leafWeightsNew(leafWeights.size(), 0.0);
+    const auto& leafBucketRanges = CalculateBucketRangesAndWeightsOblivious(
             model,
             features,
             borderIdxForSplit,
             leafWeights,
+            &leafWeightsNew,
             localExecutor
     );
-    const auto& leafBucketRanges = calculationResult.first;
-    const auto& leafWeightsNew = calculationResult.second;
 
     TVector<double> predictionsByBuckets = MergeBucketRanges(model, features, dataProvider, leafBucketRanges, leafWeightsNew);
 
@@ -227,5 +227,3 @@ TVector<double> GetPartialDependence(
     );
     return predictionsByBuckets;
 }
-
-
