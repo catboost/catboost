@@ -128,10 +128,6 @@
     - atomic.h:      contrib/libs/musl/src/internal/atomic.h
     - bits/fenv.h:   contrib/libs/musl/arch/x86_64/bits/fenv.h
 
-- source_filter: "^contrib/libs/unixodbc"
-  includes:
-    - argz.h:        contrib/libs/unixodbc/libltdl/argz.h
-
 - source_filter: "^contrib/libs/zbar"
   includes:
     - error.h:       contrib/libs/zbar/zbar/error.h
