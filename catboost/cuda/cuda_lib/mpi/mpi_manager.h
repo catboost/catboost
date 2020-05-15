@@ -8,7 +8,7 @@
 #include <catboost/cuda/cuda_lib/serialization/task_factory.h>
 #include <catboost/cuda/utils/spin_wait.h>
 #include <library/blockcodecs/codecs.h>
-#include <library/threading/chunk_queue/queue.h>
+#include <library/cpp/threading/chunk_queue/queue.h>
 #include <util/thread/singleton.h>
 #include <util/system/types.h>
 #include <util/stream/buffer.h>

@@ -1,7 +1,7 @@
 ALLOW contrib -> contrib
 ALLOW contrib -> build
-ALLOW contrib -> library/unittest
-ALLOW contrib -> library/getopt
+ALLOW contrib -> library/cpp/unittest
+ALLOW contrib -> library/cpp/getopt
 ALLOW contrib -> library/resource
 ALLOW contrib -> library/charset
 ALLOW contrib -> library/svnversion
@@ -32,7 +32,7 @@ ALLOW contrib/python/python-magic -> library/python/symbols/libmagic
 ALLOW contrib/tools/jdk/test -> devtools/ya/yalibrary/tools
 ALLOW contrib/libs/inja -> library/scheme
 ALLOW contrib/libs/geos/capi/ctypes -> library/python/ctypes
-ALLOW contrib/libs/leveldb -> library/deprecated/mapped_file
+ALLOW contrib/libs/leveldb -> library/cpp/deprecated/mapped_file
 ALLOW contrib/libs/leveldb -> library/logger
 ALLOW contrib/libs/leveldb -> library/cpp/digest/crc32c
 ALLOW contrib/libs/lua -> library/cpp/archive
@@ -41,7 +41,7 @@ ALLOW contrib/python/horovod/horovod/common/syms -> library/python/symbols/regis
 ALLOW contrib/python/opensfm -> library/vl_feat
 ALLOW contrib/python/pytest-mongodb -> devtools/swag/lib
 ALLOW contrib/python/wand/ImageMagick -> library/python/symbols/registry
-ALLOW contrib/nginx/modules/nginx-rtmp-module -> library/json
+ALLOW contrib/nginx/modules/nginx-rtmp-module -> library/cpp/json
 ALLOW contrib/python/psycopg2/tests -> mail/devpack
 ALLOW contrib/python/asn1crypto -> library/python/symbols/crypto
 ALLOW contrib/python/win_unicode_console -> library/python/symbols/win_unicode_console

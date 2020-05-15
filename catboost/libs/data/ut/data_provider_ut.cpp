@@ -4,9 +4,9 @@
 #include <catboost/libs/data/ut/lib/for_objects.h>
 #include <catboost/libs/data/ut/lib/for_target.h>
 
-#include <library/binsaver/util_stream_io.h>
+#include <library/cpp/binsaver/util_stream_io.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 
 using namespace NCB;

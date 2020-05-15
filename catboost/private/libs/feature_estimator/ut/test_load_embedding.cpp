@@ -4,8 +4,8 @@
 #include <catboost/private/libs/text_processing/embedding_loader.h>
 #include <catboost/private/libs/text_processing/embedding.h>
 #include <catboost/private/libs/text_processing/text_column_builder.h>
-#include <library/text_processing/dictionary/dictionary_builder.h>
-#include <library/unittest/registar.h>
+#include <library/cpp/text_processing/dictionary/dictionary_builder.h>
+#include <library/cpp/unittest/registar.h>
 #include <util/generic/guid.h>
 #include <util/random/fast.h>
 #include <util/stream/file.h>

@@ -2,12 +2,14 @@
 #include "deque.h"
 #include "vector.h"
 #include "yexception.h"
+#include "strbuf.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/string/subst.h>
 #include <util/stream/output.h>
 #include <util/charset/wide.h>
+#include <util/str_stl.h>
 
 #include <string>
 #include <sstream>
@@ -682,7 +684,7 @@ public:
         TString copy = s;
         copy.replace(copy.size() - 1, 1, "z");
         UNIT_ASSERT(s != copy);
-        copy.replace(copy.size() - 1, 1, "\0", 0, 1, 1);
+        copy.replace(copy.size() - 1, 1, "\0", 0, 1);
         UNIT_ASSERT(s == copy);
 
         TString prefix(data, 5);
@@ -2213,5 +2215,18 @@ Y_UNIT_TEST_SUITE(TStringConversionTest) {
         TString abra = "cadabra";
         std::string_view stdAbra = abra;
         UNIT_ASSERT_VALUES_EQUAL(stdAbra, "cadabra");
+    }
+}
+
+Y_UNIT_TEST_SUITE(HashFunctorTests) {
+    Y_UNIT_TEST(TestTransparency) {
+        THash<TString> h;
+        const char* ptr = "a";
+        const TStringBuf strbuf = ptr;
+        const TString str = ptr;
+        const std::string stdStr = ptr;
+        UNIT_ASSERT_VALUES_EQUAL(h(ptr), h(strbuf));
+        UNIT_ASSERT_VALUES_EQUAL(h(ptr), h(str));
+        UNIT_ASSERT_VALUES_EQUAL(h(ptr), h(stdStr));
     }
 }

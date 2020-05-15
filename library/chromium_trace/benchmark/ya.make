@@ -1,10 +1,10 @@
-BENCHMARK()
+Y_BENCHMARK()
 
 
 
 PEERDIR(
     library/chromium_trace
-    library/json
+    library/cpp/json
 )
 
 SRCS(

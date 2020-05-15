@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/binsaver/bin_saver.h>
+#include <library/cpp/binsaver/bin_saver.h>
 
 #include <util/generic/vector.h>
 #include <util/ysaveload.h>

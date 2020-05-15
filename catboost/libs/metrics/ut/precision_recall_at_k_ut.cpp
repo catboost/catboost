@@ -1,4 +1,4 @@
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/metrics/metric_holder.h>
 
@@ -14,7 +14,7 @@ Y_UNIT_TEST(PrecisionAtKTest) {
         TVector<TQueryInfo> queries{TQueryInfo(0, 2)};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakePrecisionAtKMetric(2);
+        const auto metric = std::move(CreateMetric(ELossFunction::PrecisionAt, /*params=*/{{"top", "2"}}, /*approxDimension=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, 1, executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.5, 1e-6);
@@ -26,7 +26,7 @@ Y_UNIT_TEST(PrecisionAtKTest) {
         TVector<TQueryInfo> queries{TQueryInfo(0, 4)};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakePrecisionAtKMetric(2);
+        const auto metric = std::move(CreateMetric(ELossFunction::PrecisionAt, /*params=*/{{"top", "2"}}, /*approxDimension=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, 1, executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.5, 1e-6);
@@ -41,7 +41,7 @@ Y_UNIT_TEST(RecallAtKTest) {
         TVector<TQueryInfo> queries{TQueryInfo(0, 2)};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeRecallAtKMetric(2);
+        const auto metric = std::move(CreateMetric(ELossFunction::RecallAt, /*params=*/{{"top", "2"}}, /*approxDimension=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, 1, executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1, 1e-6);
@@ -53,7 +53,7 @@ Y_UNIT_TEST(RecallAtKTest) {
         TVector<TQueryInfo> queries{TQueryInfo(0, 4)};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeRecallAtKMetric(2);
+        const auto metric = std::move(CreateMetric(ELossFunction::RecallAt, /*params=*/{{"top", "2"}}, /*approxDimension=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, 1, executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.5, 1e-6);
@@ -68,7 +68,7 @@ Y_UNIT_TEST(MAPAtKTest) {
         TVector<TQueryInfo> queries{TQueryInfo(0, 2)};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeMAPKMetric();
+        const auto metric = std::move(CreateMetric(ELossFunction::MAP, /*params=*/{}, /*approxDimension=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, 1, executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1, 1e-1);
@@ -80,7 +80,7 @@ Y_UNIT_TEST(MAPAtKTest) {
         TVector<TQueryInfo> queries{TQueryInfo(0, 4)};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeMAPKMetric();
+        const auto metric = std::move(CreateMetric(ELossFunction::MAP, /*params=*/{}, /*approxDimension=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, 1, executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.5, 1e-2);
@@ -92,7 +92,7 @@ Y_UNIT_TEST(MAPAtKTest) {
         TVector<TQueryInfo> queries{TQueryInfo(0, 4)};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeMAPKMetric(2);
+        const auto metric = std::move(CreateMetric(ELossFunction::MAP, /*params=*/{{"top", "2"}}, /*approxDimension=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, queries, 0, 1, executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.25, 1e-3);

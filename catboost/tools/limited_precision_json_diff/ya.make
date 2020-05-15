@@ -3,8 +3,8 @@ PROGRAM()
 
 
 PEERDIR(
-    library/json
-    library/getopt/small
+    library/cpp/json
+    library/cpp/getopt/small
 )
 
 SRCS(

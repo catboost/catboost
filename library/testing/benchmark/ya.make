@@ -3,17 +3,11 @@ LIBRARY()
 
 
 SRCS(
-    bench.cpp
-    dummy.cpp
+    bench.h
 )
 
 PEERDIR(
-    contrib/libs/re2
-    library/cpp/colorizer
-    library/getopt/small
-    library/json
-    library/linear_regression
-    library/threading/poor_man_openmp
+    library/cpp/testing/benchmark
 )
 
 END()

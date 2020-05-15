@@ -150,6 +150,7 @@ enum class ELossFunction {
     /* user defined errors */
 
     PythonUserDefinedPerObject,
+    PythonUserDefinedMultiRegression,
     UserPerObjMetric,
     UserQuerywiseMetric,
 
@@ -178,6 +179,7 @@ enum class ELossFunction {
     WKappa,
     LogLikelihoodOfPrediction,
     NormalizedGini,
+    PRAUC,
 
     /* pair metrics */
 
@@ -251,7 +253,8 @@ enum class EPreCalcShapValues {
 
 enum class ECalcTypeShapValues {
     Approximate,
-    Regular
+    Regular,
+    Exact
 };
 
 enum class EObservationsToBootstrap {

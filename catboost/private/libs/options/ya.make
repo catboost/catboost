@@ -37,16 +37,16 @@ SRCS(
 )
 
 PEERDIR(
-    library/json
+    library/cpp/json
     catboost/libs/helpers
     catboost/libs/logging
     catboost/private/libs/ctr_description
     catboost/private/libs/data_util
-    library/getopt/small
+    library/cpp/getopt/small
     library/cpp/grid_creator
-    library/json
-    library/text_processing/dictionary
-    library/text_processing/tokenizer
+    library/cpp/json
+    library/cpp/text_processing/dictionary
+    library/cpp/text_processing/tokenizer
 )
 
 GENERATE_ENUM_SERIALIZATION(enums.h)

@@ -192,6 +192,7 @@ namespace NCatboostDistributed {
             /*foldCreationParamsCheckSum*/ 0,
             /*estimatedFeaturesQuantizationOptions*/
                 trainParams.DataProcessingOptions->FloatFeaturesBinarization.Get(),
+            trainParams.ObliviousTreeOptions.Get(),
             /*initModel*/ Nothing(),
             /*initModelApplyCompatiblePools*/ NCB::TDataProviders(),
             &NPar::LocalExecutor());

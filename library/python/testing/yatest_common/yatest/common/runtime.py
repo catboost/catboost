@@ -318,4 +318,8 @@ class Context(object):
         else:
             return dict()
 
+    def get_context_key(self, key):
+        return _get_ya_plugin_instance().get_context(key)
+
+
 context = Context()

@@ -2,8 +2,8 @@
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
 
-#include <library/unittest/registar.h>
-#include <library/unittest/env.h>
+#include <library/cpp/unittest/registar.h>
+#include <library/cpp/unittest/env.h>
 
 #if defined(_unix_)
 #include <sys/types.h>
@@ -108,6 +108,22 @@ Y_UNIT_TEST_SUITE(THttpListen) {
                 close(socketFd);
             }
 
+            void Bind() {
+                SOCKET socketFd = socket(AF_UNIX, SOCK_STREAM, 0);
+                DestructIfTrue(socketFd == -1, {socketFd}, "socket");
+
+                struct sockaddr_un sockAddr;
+                sockAddr.sun_family = AF_UNIX;
+                strcpy(sockAddr.sun_path, UnixSocketPath_.Path.data());
+                unlink(UnixSocketPath_.Path.data());
+
+                DestructIfTrue(
+                    bind(socketFd, (struct sockaddr*)&sockAddr, sizeof(sockAddr)) == -1,
+                    {socketFd},
+                    "socket"
+                );
+            }
+
         private:
             void DestructIfTrue(bool cond, const TVector<SOCKET>& sockets, const TString& errMsg) {
                 if (cond) {
@@ -154,6 +170,29 @@ Y_UNIT_TEST_SUITE(THttpListen) {
 
             UNIT_ASSERT(response);
             UNIT_ASSERT_VALUES_EQUAL(response->Data, requestData);
+        }
+
+        Y_UNIT_TEST(TNoSuchUnixSocketFile) {
+            TString requestData = "sample";
+            TUnixSocketPath unixSocketPath("./unixsocket");
+
+            auto handle = NNeh::Request(NNeh::TMessage{"full+unix://[" + unixSocketPath.Path + "]/echo", requestData});
+            THolder<TResponse> response = handle->Wait(TDuration::MilliSeconds(5000));
+
+            UNIT_ASSERT_VALUES_EQUAL(response->GetSystemErrorCode(), ENOENT);
+        }
+
+        Y_UNIT_TEST(TConnRefusedUnixSocket) {
+            TString requestData = "sample";
+            TUnixSocketPath unixSocketPath("./unixsocket");
+
+            THolder<TUnixSocketServer> server = new TUnixSocketServer(unixSocketPath);
+            server->Bind();
+
+            auto handle = NNeh::Request(NNeh::TMessage{"full+unix://[" + unixSocketPath.Path + "]/echo", requestData});
+            THolder<TResponse> response = handle->Wait(TDuration::MilliSeconds(5000));
+
+            UNIT_ASSERT_VALUES_EQUAL(response->GetSystemErrorCode(), ECONNREFUSED);
         }
     #endif
 }

@@ -14,7 +14,7 @@
 #include <catboost/private/libs/algo_helpers/langevin_utils.h>
 #include <catboost/private/libs/algo_helpers/online_predictor.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 void CalcApproxDeltaMulti(
     const TFold& fold,

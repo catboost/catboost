@@ -7,7 +7,7 @@
 
 #include <catboost/libs/logging/logging.h>
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/generic/strbuf.h>
 #include <util/string/builder.h>
@@ -377,6 +377,7 @@ void NCatboostOptions::PlainJsonToOptions(
     CopyOption(plainOptions, "feature_weights", &featurePenaltiesOptions, &seenKeys);
     CopyOption(plainOptions, "penalties_coefficient", &featurePenaltiesOptions, &seenKeys);
     CopyOption(plainOptions, "first_feature_use_penalties", &featurePenaltiesOptions, &seenKeys);
+    CopyOption(plainOptions, "per_object_feature_penalties", &featurePenaltiesOptions, &seenKeys);
 
     //feature evaluation options
     if (GetTaskType(plainOptions) == ETaskType::GPU) {
@@ -731,6 +732,9 @@ void NCatboostOptions::ConvertOptionsToPlainJson(
 
             CopyOption(penaltiesOptions, "first_feature_use_penalties", &plainOptionsJson, &seenKeys);
             DeleteSeenOption(&optionsCopyTreePenalties, "first_feature_use_penalties");
+
+            CopyOption(penaltiesOptions, "per_object_feature_penalties", &plainOptionsJson, &seenKeys);
+            DeleteSeenOption(&optionsCopyTreePenalties, "per_object_feature_penalties");
 
             CB_ENSURE(optionsCopyTreePenalties.GetMapSafe().empty(), "penalties: key " + optionsCopyTreePenalties.GetMapSafe().begin()->first + " wasn't added to plain options.");
             DeleteSeenOption(&optionsCopyTree, "penalties");

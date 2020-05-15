@@ -1,6 +1,6 @@
 #include "chartraits.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 #include <util/charset/unidata.h>
 
 Y_UNIT_TEST_SUITE(TCharTraits) {

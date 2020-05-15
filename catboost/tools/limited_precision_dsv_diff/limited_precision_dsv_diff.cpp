@@ -1,9 +1,9 @@
-#include <library/getopt/small/last_getopt.h>
+#include <library/cpp/getopt/small/last_getopt.h>
 
 #include <util/stream/file.h>
 #include <util/stream/output.h>
 #include <util/string/builder.h>
-#include <library/deprecated/split/delim_string_iter.h>
+#include <library/cpp/deprecated/split/delim_string_iter.h>
 
 #include <cmath>
 

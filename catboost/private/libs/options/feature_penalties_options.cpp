@@ -9,11 +9,11 @@ using namespace NCatboostOptions;
 
 namespace NCatboostOptions {
     void NCatboostOptions::TFeaturePenaltiesOptions::Load(const NJson::TJsonValue& options) {
-        CheckedLoad(options, &FeatureWeights, &PenaltiesCoefficient, &FirstFeatureUsePenalty);
+        CheckedLoad(options, &FeatureWeights, &PenaltiesCoefficient, &FirstFeatureUsePenalty, &PerObjectFeaturePenalty);
     }
 
     void NCatboostOptions::TFeaturePenaltiesOptions::Save(NJson::TJsonValue* options) const {
-        SaveFields(options, FeatureWeights, PenaltiesCoefficient, FirstFeatureUsePenalty);
+        SaveFields(options, FeatureWeights, PenaltiesCoefficient, FirstFeatureUsePenalty, PerObjectFeaturePenalty);
     }
 
     static constexpr auto nonnegativeFloatRegex = AsStringBuf("([+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)");
@@ -59,6 +59,30 @@ namespace NCatboostOptions {
                 DEFAULT_FEATURE_PENALTY,
                 &penaltiesRef["first_feature_use_penalties"]
             );
+        }
+        if (penaltiesRef.Has("per_object_feature_penalties")) {
+            ConvertFeaturePenaltiesToCanonicalFormat(
+                "per_object_feature_penalties",
+                DEFAULT_FEATURE_PENALTY,
+                &penaltiesRef["per_object_feature_penalties"]
+            );
+        }
+    }
+
+    static void ValidateFeatureSinglePenaltiesOption(const TPerFeaturePenalty& options, const TString& featureName) {
+        for (auto [featureIdx, value] : options) {
+            CB_ENSURE(value >= 0, "Values in " << featureName << " should be nonnegative. Got: " << featureIdx << ":" << value);
+        }
+    }
+
+    void ValidateFeaturePenaltiesOptions(const TFeaturePenaltiesOptions& options) {
+        const TPerFeaturePenalty& featureWeights = options.FeatureWeights.Get();
+        if (!featureWeights.empty()) {
+            ValidateFeatureSinglePenaltiesOption(featureWeights, "feature_weights");
+        }
+        const TPerFeaturePenalty& firstFeatureUsePenalties = options.FirstFeatureUsePenalty.Get();
+        if (!firstFeatureUsePenalties.empty()) {
+            ValidateFeatureSinglePenaltiesOption(firstFeatureUsePenalties, "first_feature_use_penalties");
         }
     }
 }

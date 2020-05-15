@@ -200,9 +200,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
       <Project>{149CAE2F-67B1-E007-9F05-67247453CE03}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\binsaver\library-binsaver.vcxproj">
-      <Project>{9C4284EC-342F-438F-B12F-EF54AD02C9C0}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\codecs\brotli\blockcodecs-codecs-brotli.vcxproj">
       <Project>{2674849B-0330-C348-578B-DB562AA37E65}</Project>
     </ProjectReference>
@@ -236,20 +233,23 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
       <Project>{E62EED19-EC2A-B4C3-0650-0923E4030E8B}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cgiparam\library-cgiparam.vcxproj">
-      <Project>{AF572C0E-2445-0F56-2E4F-8E4C656C4786}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\chromium_trace\library-chromium_trace.vcxproj">
       <Project>{9541389A-C448-428A-BEEE-604F1A02F5EA}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\containers\intrusive_rb_tree\library-containers-intrusive_rb_tree.vcxproj">
-      <Project>{53AA6AAE-E388-987D-9719-F611E55F76E8}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\binsaver\library-cpp-binsaver.vcxproj">
+      <Project>{8DDA0983-F11F-A0FE-622D-D04B3B6E3C27}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\containers\ring_buffer\library-containers-ring_buffer.vcxproj">
-      <Project>{A2C28480-F7EF-BB91-851E-44FEBBF8B8ED}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cgiparam\library-cpp-cgiparam.vcxproj">
+      <Project>{7D7BC687-C41D-BE31-16E6-D1EFDED414F9}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\2d_array\cpp-containers-2d_array.vcxproj">
       <Project>{245105A8-ED48-C3D9-83C3-D6894AA984B0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\intrusive_rb_tree\cpp-containers-intrusive_rb_tree.vcxproj">
+      <Project>{B43F59AA-F4C6-C980-DC64-0ED89BEB2617}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\ring_buffer\cpp-containers-ring_buffer.vcxproj">
+      <Project>{0B2B4553-9DB0-C282-EDA5-C6116BB409E0}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\stack_vector\cpp-containers-stack_vector.vcxproj">
       <Project>{F5DBE463-173C-4593-95C1-EC1430946913}</Project>
@@ -266,6 +266,36 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\lower_case\cpp-digest-lower_case.vcxproj">
       <Project>{93A05BE8-043A-10FC-0497-840803A20BA0}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\http\io\cpp-http-io.vcxproj">
+      <Project>{A9F9E508-BAB4-557E-18B4-37EA4B295012}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\http\misc\cpp-http-misc.vcxproj">
+      <Project>{19A72958-3B98-AB8E-6B75-1B4E1D6D1040}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\http\push_parser\cpp-http-push_parser.vcxproj">
+      <Project>{7E318157-ACEB-A54B-85C9-3F458B867B6D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\common\cpp-json-common.vcxproj">
+      <Project>{6330870F-DABE-D84D-BCA5-C0A181746B9E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\fast_sax\cpp-json-fast_sax.vcxproj">
+      <Project>{24137F52-65C2-C6DA-9D73-32184D067E15}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\library-cpp-json.vcxproj">
+      <Project>{F3B6F190-E921-1428-8D6C-A4428CC7654A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\writer\cpp-json-writer.vcxproj">
+      <Project>{94F66460-BD28-7C46-313B-A5F2876E26F8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\openssl\holders\cpp-openssl-holders.vcxproj">
+      <Project>{3318B551-DF57-9A14-A9FD-139582C56800}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\openssl\init\cpp-openssl-init.vcxproj">
+      <Project>{73FF335C-FC30-580B-5FC3-48A023DE9936}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\openssl\method\cpp-openssl-method.vcxproj">
+      <Project>{6D02E5A5-8E5A-2F70-0A15-A0EAFD5875F2}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\streams\brotli\cpp-streams-brotli.vcxproj">
       <Project>{88BDDF2B-3A41-DF09-EA33-A8354BC1FD2B}</Project>
     </ProjectReference>
@@ -275,29 +305,44 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\streams\lzma\cpp-streams-lzma.vcxproj">
       <Project>{A75DC6C1-858D-5097-8CB6-68A4A62E2D73}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\quote\cpp-string_utils-quote.vcxproj">
+      <Project>{722B6806-67C9-1169-6ED9-AF9509BBCB17}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\relaxed_escaper\cpp-string_utils-relaxed_escaper.vcxproj">
+      <Project>{81697B25-44BA-8BC7-5E66-2708E5669C60}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\scan\cpp-string_utils-scan.vcxproj">
+      <Project>{BCBC0614-8494-9BA1-E424-1B58DC96EBF6}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\url\cpp-string_utils-url.vcxproj">
+      <Project>{F67E22D5-1471-725B-CCA8-05EF8A940282}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\atomic\cpp-threading-atomic.vcxproj">
+      <Project>{13FEC1E6-ECB5-4BF5-15C1-B1D4C3C396FA}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\chunk_queue\cpp-threading-chunk_queue.vcxproj">
+      <Project>{8E921F98-5854-56F7-2AFB-4C06B80B46CD}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\hot_swap\cpp-threading-hot_swap.vcxproj">
+      <Project>{F2F7163F-2213-4906-A41E-82393C15A6DA}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\local_executor\cpp-threading-local_executor.vcxproj">
+      <Project>{9EA4781F-303F-F2FD-86F1-B98A1D3A93C0}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\mux_event\cpp-threading-mux_event.vcxproj">
+      <Project>{97A0ECF3-8757-C7AE-73DF-EBD1B059B40F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\skip_list\cpp-threading-skip_list.vcxproj">
+      <Project>{3423E44C-AF1A-8255-BC13-136607F17086}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\thread_local\cpp-threading-thread_local.vcxproj">
+      <Project>{67BCFA78-BD05-0105-6CA9-0D028945EA69}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yson\library-cpp-yson.vcxproj">
+      <Project>{D05A14C5-BA93-7AA3-1AB8-E62B001110D1}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\dns\library-dns.vcxproj">
       <Project>{8C356353-67D3-3399-7DA3-792F6D7BF6D5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\http\io\library-http-io.vcxproj">
-      <Project>{7AAD42F7-318F-829E-0019-82746753CD46}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\http\misc\library-http-misc.vcxproj">
-      <Project>{673846BF-CACD-8F51-393A-34F2381DAE0C}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\http\push_parser\library-http-push_parser.vcxproj">
-      <Project>{B05B7FF9-4CE5-696B-D8BB-5C8C4EEDBD2C}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\json\common\library-json-common.vcxproj">
-      <Project>{3B322F11-1D2A-AEFE-BC14-4F74683E14DB}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\json\fast_sax\library-json-fast_sax.vcxproj">
-      <Project>{8AAB2F9B-ECAA-2170-D871-1CEE27B498C2}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\json\library-json.vcxproj">
-      <Project>{E633ADF4-A720-EDCB-A12B-52A8216FF956}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\json\writer\library-json-writer.vcxproj">
-      <Project>{C27A0E65-4FDF-D0F0-5127-62A23E33B196}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\logger\global\library-logger-global.vcxproj">
       <Project>{D1EB170E-C5D0-989C-A93C-B5A2CD895E62}</Project>
@@ -319,48 +364,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\netliba\v6\library-netliba-v6.vcxproj">
       <Project>{CF99E3A7-16F9-8EA9-027D-B9629FC7C3CD}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\holders\library-openssl-holders.vcxproj">
-      <Project>{8BD519C9-FE74-64B1-416B-3052CA898BD0}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\init\library-openssl-init.vcxproj">
-      <Project>{0A9ED00A-8390-D6BA-3A2A-7A98AAFFB3E5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\openssl\method\library-openssl-method.vcxproj">
-      <Project>{EBC3626B-F273-EB61-E7BE-9BBC217D8FB4}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\quote\library-string_utils-quote.vcxproj">
-      <Project>{075BADF5-1D74-1D82-2261-20891F7B1B30}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\relaxed_escaper\library-string_utils-relaxed_escaper.vcxproj">
-      <Project>{91423FEC-8B3D-547B-2674-3740D83114B5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\scan\library-string_utils-scan.vcxproj">
-      <Project>{3EBC1D40-BAA8-5D8A-8385-635FD3E56F31}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\url\library-string_utils-url.vcxproj">
-      <Project>{F79D59BA-A429-102B-7C71-A1F895119240}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\atomic\library-threading-atomic.vcxproj">
-      <Project>{DE3D7773-D32D-01F5-FAE1-0EBED7524579}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\chunk_queue\library-threading-chunk_queue.vcxproj">
-      <Project>{51BCA57C-7E5E-48F9-7D56-FD5809F99DCC}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\hot_swap\library-threading-hot_swap.vcxproj">
-      <Project>{03DFB2A4-4366-AD11-DF9C-49D8A6E93B89}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\local_executor\library-threading-local_executor.vcxproj">
-      <Project>{5707A0DE-3EF6-1E74-8DEE-4FDC5C2E6854}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\mux_event\library-threading-mux_event.vcxproj">
-      <Project>{B74D5080-3614-52D8-BADE-8FF788EF3582}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\skip_list\library-threading-skip_list.vcxproj">
-      <Project>{64500012-0CE9-1419-96CF-A85C24C84116}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\threading\thread_local\library-threading-thread_local.vcxproj">
-      <Project>{0CA825EB-0BEC-9E11-8FE5-8C3E99DF01E6}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\yson\library-yson.vcxproj">
       <Project>{2779E1A2-0D5A-216D-65BF-CE9DF81108EF}</Project>

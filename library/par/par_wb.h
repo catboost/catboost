@@ -3,7 +3,7 @@
 #include "par_remote.h"
 #include "par_log.h"
 
-#include <library/binsaver/mem_io.h>
+#include <library/cpp/binsaver/mem_io.h>
 #include <library/chromium_trace/interface.h>
 
 #include <util/thread/lfstack.h>

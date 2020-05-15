@@ -1,13 +1,13 @@
 
 
-BENCHMARK()
+Y_BENCHMARK()
 
 SRCS(
     main.cpp
 )
 
 PEERDIR(
-    library/fast_log
+    library/cpp/fast_log
 )
 
 END()

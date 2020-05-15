@@ -14,6 +14,70 @@ vendor_prefix = 'vendor/'
 vet_info_ext = '.vet.out'
 vet_report_ext = '.vet.txt'
 
+FIXED_CGO1_SUFFIX='.fixed.cgo1.go'
+
+
+def preprocess_cgo1(src_path, dst_path, source_root):
+    with open(src_path, 'r') as f:
+        content = f.read()
+        content = content.replace('__ARCADIA_SOURCE_ROOT_PREFIX__', source_root)
+    with open(dst_path, 'w') as f:
+        f.write(content)
+
+
+def preprocess_args(args):
+    # Temporary work around for noauto
+    if args.cgo_srcs and len(args.cgo_srcs) > 0:
+        cgo_srcs_set = set(args.cgo_srcs)
+        args.srcs = list(filter(lambda x: x not in cgo_srcs_set, args.srcs))
+
+    args.pkg_root = os.path.join(str(args.tools_root), 'pkg')
+    args.tool_root = os.path.join(args.pkg_root, 'tool', '{}_{}'.format(args.host_os, args.host_arch))
+    args.go_compile = os.path.join(args.tool_root, 'compile')
+    args.go_cgo = os.path.join(args.tool_root, 'cgo')
+    args.go_link = os.path.join(args.tool_root, 'link')
+    args.go_asm = os.path.join(args.tool_root, 'asm')
+    args.go_pack = os.path.join(args.tool_root, 'pack')
+    args.go_vet = os.path.join(args.tool_root, 'vet') if args.vet is True else args.vet
+    args.output = os.path.normpath(args.output)
+    args.vet_report_output = vet_report_output_name(args.output, args.vet_report_ext)
+    args.build_root = os.path.normpath(args.build_root) + os.path.sep
+    args.output_root = os.path.normpath(args.output_root)
+    args.import_map = {}
+    args.module_map = {}
+    if args.cgo_peers:
+        args.cgo_peers = [x for x in args.cgo_peers if not x.endswith('.fake.pkg')]
+
+    assert args.mode == 'test' or args.test_srcs is None and args.xtest_srcs is None
+    # add lexical oreder by basename for go sources
+    args.srcs.sort(key=lambda x: os.path.basename(x))
+    if args.test_srcs:
+        args.srcs += sorted(args.test_srcs, key=lambda x: os.path.basename(x))
+        del args.test_srcs
+    if args.xtest_srcs:
+        args.xtest_srcs.sort(key=lambda x: os.path.basename(x))
+
+    # compute root relative module dir path
+    assert args.output is None or args.output_root == os.path.dirname(args.output)
+    assert args.output_root.startswith(args.build_root)
+    args.module_path = args.output_root[len(args.build_root):]
+    assert len(args.module_path) > 0
+    args.import_path, args.is_std = get_import_path(args.module_path)
+
+    assert args.asmhdr is None or args.word == 'go'
+
+    srcs = []
+    for f in args.srcs:
+        if f.endswith(FIXED_CGO1_SUFFIX) and f.startswith(args.build_root):
+            path = os.path.join(args.output_root, '{}.cgo1.go'.format(os.path.basename(f[:-len(FIXED_CGO1_SUFFIX)])))
+            srcs.append(path)
+            preprocess_cgo1(f, path, args.arc_source_root)
+        else:
+            srcs.append(f)
+    args.srcs = srcs
+
+    classify_srcs(args.srcs, args)
+
 
 def compare_versions(version1, version2):
     v1 = tuple(str(int(x)).zfill(8) for x in version1.split('.'))
@@ -176,7 +240,7 @@ def decode_vet_report(json_report):
 
 def dump_vet_report(args, report):
     if report:
-        report = report.replace(args.build_root, '$B')
+        report = report.replace(args.build_root[:-1], '$B')
         report = report.replace(args.arc_source_root, '$S')
     with open(args.vet_report_output, 'w') as f:
         f.write(report)
@@ -203,7 +267,8 @@ def do_vet(args):
     if args.vet_flags:
         cmd.extend(args.vet_flags)
     cmd.append(vet_config)
-    p_vet = subprocess.Popen(cmd, stdin=None, stderr=subprocess.PIPE, stdout=subprocess.PIPE, cwd=args.build_root)
+    # print >>sys.stderr, '>>>> [{}]'.format(' '.join(cmd))
+    p_vet = subprocess.Popen(cmd, stdin=None, stderr=subprocess.PIPE, stdout=subprocess.PIPE, cwd=args.arc_source_root)
     vet_out, vet_err = p_vet.communicate()
     report = decode_vet_report(vet_out) if vet_out else ''
     dump_vet_report(args, report)
@@ -326,7 +391,15 @@ def do_link_exe(args):
         cmd += ['-importcfg', import_config_name]
     if args.link_flags:
         cmd += args.link_flags
-    cmd += ['-buildmode=exe', '-extld={}'.format(args.extld)]
+
+    if args.mode in ('exe', 'test'):
+        cmd.append('-buildmode=exe')
+    elif args.mode == 'dll':
+        cmd.append('-buildmode=c-shared')
+    else:
+        assert False, 'Unexpected mode: {}'.format(args.mode)
+    cmd.append('-extld={}'.format(args.extld))
+
     extldflags = []
     if args.extldflags is not None:
         filter_musl = None
@@ -517,19 +590,32 @@ def do_link_test(args):
     test_module_path = get_source_path(args)
     test_import_path, _ = get_import_path(test_module_path)
 
-    test_lib_args = None
-    xtest_lib_args = None
+    test_lib_args = copy_args(args) if args.srcs else None
+    xtest_lib_args = copy_args(args) if args.xtest_srcs else None
 
-    if args.srcs:
-        test_lib_args = copy_args(args)
+    ydx_file_name = None
+    xtest_ydx_file_name = None
+    need_append_ydx = test_lib_args and xtest_lib_args and args.ydx_file and args.vet_flags
+    if need_append_ydx:
+        def find_ydx_file_name(name, flags):
+            for i, elem in enumerate(flags):
+                if elem.endswith(name):
+                    return (i, elem)
+            assert False, 'Unreachable code'
+
+        idx, ydx_file_name = find_ydx_file_name(xtest_lib_args.ydx_file, xtest_lib_args.vet_flags)
+        xtest_ydx_file_name = '{}_xtest'.format(ydx_file_name)
+        xtest_lib_args.vet_flags = copy.copy(xtest_lib_args.vet_flags)
+        xtest_lib_args.vet_flags[idx] = xtest_ydx_file_name
+
+    if test_lib_args:
         test_lib_args.output = os.path.join(args.output_root, 'test.a')
         test_lib_args.vet_report_output = vet_report_output_name(test_lib_args.output)
         test_lib_args.module_path = test_module_path
         test_lib_args.import_path = test_import_path
         do_link_lib(test_lib_args)
 
-    if args.xtest_srcs:
-        xtest_lib_args = copy_args(args)
+    if xtest_lib_args:
         xtest_lib_args.srcs = xtest_lib_args.xtest_srcs
         classify_srcs(xtest_lib_args.srcs, xtest_lib_args)
         xtest_lib_args.output = os.path.join(args.output_root, 'xtest.a')
@@ -539,19 +625,11 @@ def do_link_test(args):
         if test_lib_args:
             xtest_lib_args.module_map[test_import_path] = test_lib_args.output
         need_append_ydx = args.ydx_file and args.srcs and args.vet_flags
-        if need_append_ydx:
-            def find_ydx_file_name(name, flags):
-                for i, elem in enumerate(flags):
-                    if elem.endswith(name):
-                        return (i, elem)
-                assert False, 'Unreachable code'
-
-            idx, ydx_file_name = find_ydx_file_name(args.ydx_file, args.vet_flags)
-            xtest_ydx_file_name = '{}_xtest'.format(ydx_file_name)
-            args.vet_flags[idx] = xtest_ydx_file_name
         do_link_lib(xtest_lib_args)
-        if need_append_ydx:
-            with open(ydx_file_name, 'ab') as dst_file, open(xtest_ydx_file_name, 'rb') as src_file:
+
+    if need_append_ydx:
+        with open(os.path.join(args.build_root, ydx_file_name), 'ab') as dst_file:
+            with open(os.path.join(args.build_root, xtest_ydx_file_name), 'rb') as src_file:
                 dst_file.write(src_file.read())
 
     test_main_content = gen_test_main(args, test_lib_args, xtest_lib_args)
@@ -581,7 +659,7 @@ def do_link_test(args):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prefix_chars='+')
-    parser.add_argument('++mode', choices=['lib', 'exe', 'test'], required=True)
+    parser.add_argument('++mode', choices=['dll', 'exe', 'lib', 'test'], required=True)
     parser.add_argument('++srcs', nargs='*', required=True)
     parser.add_argument('++cgo-srcs', nargs='*')
     parser.add_argument('++test_srcs', nargs='*')
@@ -620,52 +698,12 @@ if __name__ == '__main__':
     parser.add_argument('++ydx-file', default='')
     args = parser.parse_args()
 
-    # Temporary work around for noauto
-    if args.cgo_srcs and len(args.cgo_srcs) > 0:
-        cgo_srcs_set = set(args.cgo_srcs)
-        args.srcs = list(filter(lambda x: x not in cgo_srcs_set, args.srcs))
-
-    args.pkg_root = os.path.join(str(args.tools_root), 'pkg')
-    args.tool_root = os.path.join(args.pkg_root, 'tool', '{}_{}'.format(args.host_os, args.host_arch))
-    args.go_compile = os.path.join(args.tool_root, 'compile')
-    args.go_cgo = os.path.join(args.tool_root, 'cgo')
-    args.go_link = os.path.join(args.tool_root, 'link')
-    args.go_asm = os.path.join(args.tool_root, 'asm')
-    args.go_pack = os.path.join(args.tool_root, 'pack')
-    args.go_vet = os.path.join(args.tool_root, 'vet') if args.vet is True else args.vet
-    args.output = os.path.normpath(args.output)
-    args.vet_report_output = vet_report_output_name(args.output, args.vet_report_ext)
-    args.build_root = os.path.normpath(args.build_root) + os.path.sep
-    args.output_root = os.path.normpath(args.output_root)
-    args.import_map = {}
-    args.module_map = {}
-    if args.cgo_peers:
-        args.cgo_peers = [x for x in args.cgo_peers if not x.endswith('.fake.pkg')]
-
-    assert args.mode == 'test' or args.test_srcs is None and args.xtest_srcs is None
-    # add lexical oreder by basename for go sources
-    args.srcs.sort(key=lambda x: os.path.basename(x))
-    if args.test_srcs:
-        args.srcs += sorted(args.test_srcs, key=lambda x: os.path.basename(x))
-        del args.test_srcs
-    if args.xtest_srcs:
-        args.xtest_srcs.sort(key=lambda x: os.path.basename(x))
+    preprocess_args(args)
 
     arc_project_prefix = args.arc_project_prefix
     std_lib_prefix = args.std_lib_prefix
     vet_info_ext = args.vet_info_ext
     vet_report_ext = args.vet_report_ext
-
-    # compute root relative module dir path
-    assert args.output is None or args.output_root == os.path.dirname(args.output)
-    assert args.output_root.startswith(args.build_root)
-    args.module_path = args.output_root[len(args.build_root):]
-    assert len(args.module_path) > 0
-    args.import_path, args.is_std = get_import_path(args.module_path)
-
-    classify_srcs(args.srcs, args)
-
-    assert args.asmhdr is None or args.word == 'go'
 
     try:
         os.unlink(args.output)
@@ -676,8 +714,9 @@ if __name__ == '__main__':
     # and as a result we are going to generate only one build node per module
     # (or program)
     dispatch = {
-        'lib': do_link_lib,
         'exe': do_link_exe,
+        'dll': do_link_exe,
+        'lib': do_link_lib,
         'test': do_link_test
     }
 

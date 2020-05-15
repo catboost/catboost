@@ -1,11 +1,11 @@
 #include <catboost/libs/helpers/serialization.h>
 
-#include <library/binsaver/util_stream_io.h>
+#include <library/cpp/binsaver/util_stream_io.h>
 
 #include <util/generic/string.h>
 #include <util/stream/buffer.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 
 Y_UNIT_TEST_SUITE(BinSaverSerialization) {

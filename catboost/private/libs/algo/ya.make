@@ -69,22 +69,22 @@ PEERDIR(
     catboost/private/libs/text_features
     catboost/private/libs/options
     catboost/libs/overfitting_detector
-    library/binsaver
+    library/cpp/binsaver
     library/cpp/containers/2d_array
-    library/containers/dense_hash
+    library/cpp/containers/dense_hash
     library/cpp/containers/stack_vector
     library/cpp/digest/crc32c
     library/cpp/digest/md5
     library/cpp/dot_product
     library/fast_exp
-    library/fast_log
+    library/cpp/fast_log
     library/cpp/grid_creator
-    library/json
+    library/cpp/json
     library/cpp/malloc/api
     library/object_factory
-    library/sse
+    library/cpp/sse
     library/svnversion
-    library/threading/local_executor
+    library/cpp/threading/local_executor
 )
 
 END()

@@ -3,7 +3,7 @@
 #include <catboost/private/libs/data_util/exists_checker.h>
 #include <catboost/private/libs/labels/helpers.h>
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/is_in.h>

@@ -5574,7 +5574,7 @@
         "ymake": {
             "formula": {
                 "sandbox_id": [
-                    660097596
+                    673804140
                 ],
                 "match": "ymake"
             },
@@ -5598,7 +5598,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    657943201
+                    674173831
                 ],
                 "match": "arc"
             },
@@ -5678,7 +5678,7 @@
         "releaser": {
             "formula": {
                 "sandbox_id": [
-                    647693292
+                    675299732
                 ],
                 "match": "releaser"
             },
@@ -5704,7 +5704,7 @@
         "sandboxctl": {
             "formula": {
                 "sandbox_id": [
-                    657687165
+                    667910329
                 ],
                 "match": "tools/sandboxctl/bin/sandboxctl"
             },
@@ -6877,7 +6877,7 @@
         "yp-util": {
             "formula": {
                 "sandbox_id": [
-                    643511915
+                    673622896
                 ],
                 "match": "yp_util"
             },
@@ -6903,7 +6903,7 @@
         "yd-migrate": {
             "formula": {
                 "sandbox_id": [
-                    652676106
+                    673280041
                 ],
                 "match": "yd_migrate"
             },
@@ -6916,7 +6916,7 @@
         "dctl": {
             "formula": {
                 "sandbox_id": [
-                    643184984
+                    674042226
                 ],
                 "match": "dctl"
             },
@@ -7286,7 +7286,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 660707223,
+                "sandbox_id": 675267117,
                 "match": "horadric"
             },
             "executable": {
@@ -7363,7 +7363,7 @@
         },
         "contexts_difference": {
             "formula": {
-                "sandbox_id": 656514194,
+                "sandbox_id": 662668618,
                 "match": "contexts_difference"
             },
             "executable": {
@@ -7374,7 +7374,7 @@
         },
         "ycmerge": {
             "formula": {
-                "sandbox_id": 656863542,
+                "sandbox_id": 668570008,
                 "match": "ycmerge"
             },
             "executable": {
@@ -7385,7 +7385,7 @@
         },
         "ygdiff": {
             "formula": {
-                "sandbox_id": 612924628,
+                "sandbox_id": 668511811,
                 "match": "ygdiff"
             },
             "executable": {
@@ -7396,7 +7396,7 @@
         },
         "ya-tc": {
             "formula": {
-                "sandbox_id": 656731493,
+                "sandbox_id": 661776613,
                 "match": "ya-tc"
             },
             "executable": {
@@ -7418,7 +7418,7 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 658091479,
+                "sandbox_id": 670312252,
                 "match": "app_host_launcher"
             },
             "executable": {
@@ -7500,7 +7500,7 @@
         "qyp": {
             "formula": {
                 "sandbox_id": [
-                    627934942
+                    674139720
                 ],
                 "match": "infra/qyp/vmctl/bin/vmctl"
             },
@@ -7667,7 +7667,7 @@
         "vmexec": {
             "formula": {
                 "sandbox_id": [
-                    566964606
+                    667857814
                 ],
                 "match": "infra/qemu/vmexec/vmexec"
             },
@@ -7701,7 +7701,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 654685057,
+                "sandbox_id": 674686662,
                 "match": "SEDEM archive"
             },
             "executable": {
@@ -7730,7 +7730,7 @@
         "ya_sed": {
             "formula": {
                 "sandbox_id": [
-                    645365301
+                    668361467
                 ],
                 "match": "ya_sed"
             },

@@ -1,6 +1,6 @@
 #include "zlib.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include "file.h"
 #include <util/system/tempfile.h>

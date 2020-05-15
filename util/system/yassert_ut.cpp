@@ -2,7 +2,7 @@
 // yassert.h must be included before all headers
 #include "yassert.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(YassertTest) {
     Y_UNIT_TEST(TestAcsLikeFunctionCall) {

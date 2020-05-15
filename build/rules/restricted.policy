@@ -11,7 +11,8 @@ ALLOW clickhouse -> contrib/restricted/ryu
 
 ALLOW contrib/libs/clickhouse -> contrib/restricted/apache-orc
 
-ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp
+# Patched webrtc dependency: CONTRIB-1851
+ALLOW contrib/libs/webrtc -> contrib/restricted/rnnoise
 
 ALLOW contrib/libs/libbpf -> contrib/restricted/libelf
 
@@ -19,6 +20,7 @@ ALLOW contrib/libs/libbpf -> contrib/restricted/libelf
 ALLOW passport/cpp -> contrib/restricted/thrift
 
 # ALSA library is LGPL
+ALLOW contrib/libs/webrtc -> contrib/restricted/alsa-lib
 ALLOW yandex_io -> contrib/restricted/alsa-lib
 
 # Avahi is LGPL
@@ -26,6 +28,10 @@ ALLOW yandex_io -> contrib/restricted/avahi
 
 # GLib is LGPL
 ALLOW contrib/libs/harfbuzz/glib -> contrib/restricted/glib
+ALLOW market/cataloger -> contrib/restricted/glib
+ALLOW market/idx/feeds/feedparser -> contrib/restricted/glib
+ALLOW metrika/core/libs/statdaemons -> contrib/restricted/glib
+ALLOW metrika/core/libs/strconvert -> contrib/restricted/glib
 ALLOW yandex_io -> contrib/restricted/glib
 
 # GStreamer is LGPL
@@ -42,7 +48,11 @@ ALLOW extsearch/audio/kernel/recoglib -> contrib/restricted/mpg123
 ALLOW yandex_io -> contrib/restricted/openal
 
 # Allowed subset of abseil is exported via library/
-ALLOW library/containers/absl_flat_hash -> contrib/restricted/abseil-cpp/absl/container
+ALLOW library/cpp/containers/absl_flat_hash -> contrib/restricted/abseil-cpp/absl/container
+
+ALLOW contrib/libs/webrtc -> contrib/restricted/abseil-cpp
+ALLOW contrib/libs/ortools -> contrib/restricted/abseil-cpp
+ALLOW contrib/libs/tf_1_14 -> contrib/restricted/abseil-cpp
 
 # Prefer using skynet for data distribution
 ALLOW maps/infra/ecstatic/ymtorrent -> contrib/restricted/libtorrent
@@ -82,12 +92,20 @@ ALLOW weather/grid_api/lib -> contrib/restricted/boost
 ALLOW yabs/telephony -> contrib/restricted/boost
 ALLOW yandex_io -> contrib/restricted/boost
 ALLOW yweb/robot/js -> contrib/restricted/boost
+ALLOW speechkit -> contrib/restricted/boost
+ALLOW speechkit -> contrib/restricted/openal-soft
 
 # Allow boost in all contrib projects
 ALLOW contrib/deprecated -> contrib/restricted/boost
 ALLOW contrib/libs -> contrib/restricted/boost
 ALLOW contrib/python/horovod -> contrib/restricted/boost
 ALLOW contrib/tools -> contrib/restricted/boost
+
+# libffi is a limited-use low level library
+ALLOW contrib/deprecated -> contrib/restricted/libffi
+ALLOW contrib/libs -> contrib/restricted/libffi
+ALLOW contrib/python -> contrib/restricted/libffi
+ALLOW contrib/tools -> contrib/restricted/libffi
 
 # Default policies:
 

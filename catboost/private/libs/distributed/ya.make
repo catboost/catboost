@@ -17,8 +17,8 @@ PEERDIR(
     catboost/private/libs/algo_helpers
     catboost/private/libs/index_range
     catboost/private/libs/options
-    library/binsaver
-    library/json
+    library/cpp/binsaver
+    library/cpp/json
     library/par
 )
 

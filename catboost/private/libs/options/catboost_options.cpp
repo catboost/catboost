@@ -3,7 +3,7 @@
 #include "json_helper.h"
 #include "restrictions.h"
 
-#include <library/json/json_reader.h>
+#include <library/cpp/json/json_reader.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/set.h>
@@ -173,6 +173,7 @@ static std::tuple<ui32, ui32, ELeavesEstimation, double> GetEstimationMethodDefa
         }
         case ELossFunction::UserPerObjMetric:
         case ELossFunction::UserQuerywiseMetric:
+        case ELossFunction::PythonUserDefinedMultiRegression:
         case ELossFunction::PythonUserDefinedPerObject: {
             //skip
             defaultNewtonIterations = 1;
@@ -590,7 +591,7 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
             ObliviousTreeOptions->LeavesEstimationBacktrackingType != ELeavesEstimationStepBacktracking::Armijo,
             "Backtracking type Armijo is supported only on GPU");
         CB_ENSURE(
-            lossFunction != ELossFunction::PythonUserDefinedPerObject
+            !IsUserDefined(lossFunction)
             || ObliviousTreeOptions->LeavesEstimationBacktrackingType == ELeavesEstimationStepBacktracking::No,
             "Backtracking is not supported for custom loss functions on CPU");
     }
@@ -675,6 +676,10 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
         CB_ENSURE(SystemOptions->IsSingleHost(), "Langevin boosting is supported in single-host mode only.");
     }
 
+    if (GetTaskType() == ETaskType::CPU && ObliviousTreeOptions->FeaturePenalties.IsSet()) {
+        ValidateFeaturePenaltiesOptions(ObliviousTreeOptions->FeaturePenalties.Get());
+    }
+
     if (ObliviousTreeOptions->GrowPolicy != EGrowPolicy::SymmetricTree) {
         CB_ENSURE(BoostingOptions->BoostingType == EBoostingType::Plain,
             "Ordered boosting is not supported for nonsymmetric trees.");
@@ -748,6 +753,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             }
             break;
         }
+        case ELossFunction::PythonUserDefinedMultiRegression:
         case ELossFunction::PythonUserDefinedPerObject: {
             ObliviousTreeOptions->LeavesEstimationBacktrackingType.SetDefault(ELeavesEstimationStepBacktracking::No);
             break;
@@ -793,6 +799,9 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
                 case ELossFunction::DCG:
                 case ELossFunction::NDCG:
                     validParams = {"top", "type", "denominator", "hints"};
+                    break;
+                case ELossFunction::PFound:
+                    validParams = {"top", "decay", "hints"};
                     break;
                 default:
                     CB_ENSURE(false, "StochasticRank does not support target_metric " << targetMetric);

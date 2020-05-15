@@ -4,7 +4,7 @@
 
 #include <catboost/private/libs/data_util/path_with_scheme.h>
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/generic/vector.h>
 #include <util/system/types.h>

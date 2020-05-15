@@ -483,7 +483,7 @@ public:
     typedef typename __base::difference_type         difference_type;
     typedef typename __base::pointer                 pointer;
     typedef typename __base::const_pointer           const_pointer;
-#ifdef _LIBCPP_POINTER_VECTOR_ITERATORS
+#if _YNDX_LIBCPP_MAKE_VECTOR_ITERATOR_POINTERS == 1
     typedef typename __base::pointer                 iterator;
     typedef typename __base::const_pointer           const_iterator;
 #else
@@ -779,9 +779,12 @@ public:
         __invalidate_all_iterators();
     }
 
+#if _YNDX_LIBCXX_ENABLE_VECTOR_POD_RESIZE_UNINITIALIZED
     void yresize(size_type __new_size);
 
     void resize_uninitialized(size_type __sz);
+#endif
+
     void resize(size_type __sz);
     void resize(size_type __sz, const_reference __x);
 
@@ -2047,6 +2050,8 @@ vector<_Tp, _Allocator>::insert(const_iterator __position, _ForwardIterator __fi
     return __make_iter(__p);
 }
 
+#if _YNDX_LIBCXX_ENABLE_VECTOR_POD_RESIZE_UNINITIALIZED
+
 template <class _Tp, class _Allocator>
 void
 vector<_Tp, _Allocator>::yresize(size_type __new_size)
@@ -2070,6 +2075,8 @@ vector<_Tp, _Allocator>::resize_uninitialized(size_type __sz)
         __annotate_shrink(__cs);
     }
 }
+
+#endif
 
 template <class _Tp, class _Allocator>
 void
@@ -2203,7 +2210,7 @@ vector<_Tp, _Allocator>::__invalidate_iterators_past(pointer __new_last) {
 #endif
 }
 
-#ifndef _LIBCPP_NO_VECTOR_BOOL_COMPRESSION
+#if _YNDX_LIBCXX_ENABLE_VECTOR_BOOL_COMPRESSION == 1
 // vector<bool>
 
 template <class _Allocator> class vector<bool, _Allocator>;
@@ -3386,7 +3393,7 @@ struct _LIBCPP_TEMPLATE_VIS hash<vector<bool, _Allocator> >
     size_t operator()(const vector<bool, _Allocator>& __vec) const _NOEXCEPT
         {return __vec.__hash_code();}
 };
-#endif // _LIBCPP_NO_VECTOR_BOOL_COMPRESSION
+#endif // _YNDX_LIBCXX_DISABLE_VECTOR_BOOL_COMPRESSION
 
 template <class _Tp, class _Allocator>
 inline _LIBCPP_INLINE_VISIBILITY

@@ -5,8 +5,8 @@
 #include <catboost/libs/helpers/checksum.h>
 #include <catboost/libs/helpers/exception.h>
 
-#include <library/binsaver/bin_saver.h>
-#include <library/dbg_output/dump.h>
+#include <library/cpp/binsaver/bin_saver.h>
+#include <library/cpp/dbg_output/dump.h>
 
 #include <util/folder/path.h>
 #include <util/generic/guid.h>

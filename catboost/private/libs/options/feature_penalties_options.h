@@ -22,12 +22,13 @@ namespace NCatboostOptions {
             : FeatureWeights("feature_weights", {}, ETaskType::CPU)
             , PenaltiesCoefficient("penalties_coefficient", 1, ETaskType::CPU)
             , FirstFeatureUsePenalty("first_feature_use_penalties", {}, ETaskType::CPU)
+            , PerObjectFeaturePenalty("per_object_feature_penalties", {}, ETaskType::CPU)
         {
         }
 
         bool operator==(const TFeaturePenaltiesOptions& rhs) const {
-            return std::tie(FeatureWeights, PenaltiesCoefficient, FirstFeatureUsePenalty) ==
-                std::tie(rhs.FeatureWeights, PenaltiesCoefficient, FirstFeatureUsePenalty);
+            return std::tie(FeatureWeights, PenaltiesCoefficient, FirstFeatureUsePenalty, PerObjectFeaturePenalty) ==
+                std::tie(rhs.FeatureWeights, PenaltiesCoefficient, FirstFeatureUsePenalty, PerObjectFeaturePenalty);
         }
 
         bool operator!=(const TFeaturePenaltiesOptions& rhs) const {
@@ -40,8 +41,10 @@ namespace NCatboostOptions {
         TCpuOnlyOption<TPerFeaturePenalty> FeatureWeights;
         TCpuOnlyOption<float> PenaltiesCoefficient;
         TCpuOnlyOption<TPerFeaturePenalty> FirstFeatureUsePenalty;
-        //TODO(taube): add more penalties
+        TCpuOnlyOption<TPerFeaturePenalty> PerObjectFeaturePenalty;
     };
 
     void ConvertAllFeaturePenaltiesToCanonicalFormat(NJson::TJsonValue* catBoostJsonOptions);
+
+    void ValidateFeaturePenaltiesOptions(const TFeaturePenaltiesOptions& options);
 }

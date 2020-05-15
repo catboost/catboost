@@ -7,7 +7,7 @@
 #include <catboost/libs/helpers/maybe_owning_array_holder.h>
 #include <catboost/libs/helpers/serialization.h>
 
-#include <library/binsaver/bin_saver.h>
+#include <library/cpp/binsaver/bin_saver.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/cast.h>

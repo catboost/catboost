@@ -9,7 +9,7 @@
 #include <catboost/libs/model/model.h>
 #include <catboost/private/libs/options/json_helper.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/folder/path.h>
 #include <util/generic/array_ref.h>

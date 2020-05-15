@@ -40,7 +40,7 @@
 #include <catboost/private/libs/target/classification_target_helper.h>
 
 #include <library/cpp/grid_creator/binarization.h>
-#include <library/json/json_prettifier.h>
+#include <library/cpp/json/json_prettifier.h>
 
 #include <util/generic/cast.h>
 #include <util/generic/mapfindptr.h>
@@ -734,7 +734,7 @@ namespace {
                     );
                 }
             }
-            
+
             trainingData.Learn->ObjectsData->CheckCPUTrainCompatibility();
             for (auto& test : trainingData.Test) {
                 test->ObjectsData->CheckCPUTrainCompatibility();
@@ -951,6 +951,10 @@ static void TrainModel(
             *learnFeaturesLayout,
             *testPool.MetaInfo.FeaturesLayout,
             TStringBuilder() << "test dataset #" << testPoolIdx);
+    }
+
+    if (updatedOutputOptions.GetVerbosePeriod() == 0 && catBoostOptions.LoggingLevel.NotSet()) {
+        catBoostOptions.LoggingLevel.SetDefault(ELoggingLevel::Silent);
     }
 
     TSetLogging inThisScope(catBoostOptions.LoggingLevel);
@@ -1467,10 +1471,7 @@ void TrainModel(
     NJson::TJsonValue outputFilesOptionsJson;
     ConvertIgnoredFeaturesFromStringToIndices(pools.Learn.Get()->MetaInfo, &plainJsonParams);
     NCatboostOptions::PlainJsonToOptions(plainJsonParams, &trainOptionsJson, &outputFilesOptionsJson);
-    ConvertMonotoneConstraintsToCanonicalFormat(&trainOptionsJson);
-    ConvertMonotoneConstraintsFromStringToIndices(pools.Learn.Get()->MetaInfo, &trainOptionsJson);
-    NCatboostOptions::ConvertAllFeaturePenaltiesToCanonicalFormat(&trainOptionsJson);
-    ConvertAllFeaturePenaltiesFromStringToIndices(pools.Learn.Get()->MetaInfo, &trainOptionsJson);
+    ConvertParamsToCanonicalFormat(pools.Learn.Get()->MetaInfo, &trainOptionsJson);
 
     CB_ENSURE(!plainJsonParams.Has("node_type") || plainJsonParams["node_type"] == "SingleHost", "CatBoost Python module does not support distributed training");
 

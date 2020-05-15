@@ -1,8 +1,8 @@
 #include <catboost/private/libs/app_helpers/mode_calc_helpers.h>
 #include <catboost/libs/model/model.h>
 
-#include <library/getopt/small/last_getopt_opts.h>
-#include <library/getopt/small/last_getopt_parse_result.h>
+#include <library/cpp/getopt/small/last_getopt_opts.h>
+#include <library/cpp/getopt/small/last_getopt_parse_result.h>
 
 namespace {
     class TOpenSourceModeCalcImplementation : public NCB::IModeCalcImplementation {

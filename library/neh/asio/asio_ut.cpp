@@ -2,7 +2,8 @@
 #include "tcp_acceptor_impl.h"
 #include <util/network/address.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
+#include <library/cpp/unittest/tests_data.h>
 
 #include <util/stream/str.h>
 
@@ -113,6 +114,98 @@ Y_UNIT_TEST_SUITE(TAsio) {
         UNIT_ASSERT(sess.WriteOk);
         UNIT_ASSERT(sess.ReadOk);
     }
+
+    class TTestErrorSession {
+    public:
+        TTestErrorSession()
+            : SOut(Srv)
+            , ConnectErrorCode(0)
+        {}
+
+        ~TTestErrorSession() {
+            close(SocketFd_);
+        }
+
+        void OnConnect(const TErrorCode& ec, IHandlingContext&) {
+            ConnectErrorCode = ec.Value();
+        }
+
+        ui16 AllocateTcpPort() {
+            return PortManager_.GetPort();
+        }
+
+    #ifdef __unix__
+        void PrepareUnixSocket(const TUnixSocketPath& unixSocketPath) {
+            SocketFd_ = socket(AF_UNIX, SOCK_STREAM, 0);
+            UNIT_ASSERT(SocketFd_ != -1);
+
+            struct sockaddr_un sockAddr;
+            sockAddr.sun_family = AF_UNIX;
+            strcpy(sockAddr.sun_path, unixSocketPath.Path.data());
+            unlink(unixSocketPath.Path.data());
+
+            UNIT_ASSERT(bind(SocketFd_, (struct sockaddr*)&sockAddr, sizeof(sockAddr)) != -1);
+
+            NetworkAddress_ = new TNetworkAddress(unixSocketPath);
+        }
+    #endif
+
+        TEndpoint::TAddrRef GetFirstAddress() {
+            Y_ENSURE(NetworkAddress_);
+
+            THolder<NAddr::TAddrInfo> addrInfo = nullptr;
+            for (TNetworkAddress::TIterator ai = NetworkAddress_->Begin(); ai != NetworkAddress_->End(); ai++) {
+                addrInfo = new NAddr::TAddrInfo(&*ai);
+            }
+            Y_ENSURE(addrInfo);
+
+            return TEndpoint::TAddrRef(addrInfo.Release());
+        }
+
+    public:
+        TIOService Srv;
+        TTcpSocket SOut;
+
+        int ConnectErrorCode;
+
+    private:
+        TPortManager PortManager_;
+
+        SOCKET SocketFd_;
+        THolder<TNetworkAddress> NetworkAddress_;
+    };
+
+    Y_UNIT_TEST(TTcpSocket_ConnectionRefused) {
+        TTestErrorSession sess;
+
+        ui16 bindedPort = sess.AllocateTcpPort();
+        UNIT_ASSERT(bindedPort);
+
+        TEndpoint dest(new NAddr::TIPv4Addr(TIpAddress(InetToHost(INADDR_LOOPBACK), bindedPort)));
+
+        sess.SOut.AsyncConnect(dest, std::bind(&TTestErrorSession::OnConnect, std::ref(sess), _1, _2), TDuration::Seconds(3));
+
+        sess.Srv.Run();
+
+        UNIT_ASSERT_VALUES_EQUAL(sess.ConnectErrorCode, ECONNREFUSED);
+    }
+
+#ifdef __unix__
+    Y_UNIT_TEST(TTcpSocket_UnixSocket_ConnectionRefused) {
+        TTestErrorSession sess;
+
+        TUnixSocketPath unixSocketPath("./unixsocket");
+        sess.PrepareUnixSocket(unixSocketPath);
+
+        TEndpoint dest(sess.GetFirstAddress());
+
+        sess.SOut.AsyncConnect(dest, std::bind(&TTestErrorSession::OnConnect, std::ref(sess), _1, _2), TDuration::Seconds(3));
+
+        sess.Srv.Run();
+
+        UNIT_ASSERT_VALUES_EQUAL(sess.ConnectErrorCode, ECONNREFUSED);
+    }
+#endif
 
     struct TTestTimer {
         TTestTimer()

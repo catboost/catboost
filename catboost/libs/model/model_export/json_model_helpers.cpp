@@ -5,8 +5,8 @@
 
 #include <catboost/libs/model/flatbuffers/model.fbs.h>
 
-#include <library/json/json_reader.h>
-#include <library/json/json_writer.h>
+#include <library/cpp/json/json_reader.h>
+#include <library/cpp/json/json_writer.h>
 
 #include <util/generic/set.h>
 #include <util/string/builder.h>
@@ -237,11 +237,13 @@ static TJsonValue ToJson(const TFloatFeature& floatFeature) {
 }
 
 static TFloatFeature FloatFeatureFromJson(const TJsonValue& value) {
-    return TFloatFeature(
-            value["has_nans"].GetBoolean(),
-            value["feature_index"].GetInteger(),
-            value["flat_feature_index"].GetInteger(),
-            JsonToVector<float>(value["borders"]));
+    auto feature = TFloatFeature(
+        value["has_nans"].GetBoolean(),
+        value["feature_index"].GetInteger(),
+        value["flat_feature_index"].GetInteger(),
+        JsonToVector<float>(value["borders"]));
+    feature.NanValueTreatment = FromString<TFloatFeature::ENanValueTreatment>(value["nan_value_treatment"].GetString());
+    return feature;
 }
 
 static TJsonValue ToJson(const TCatFeature& catFeature) {

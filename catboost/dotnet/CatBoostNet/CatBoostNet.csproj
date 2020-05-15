@@ -29,13 +29,22 @@
     <Version>0.1.1</Version>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(OS)' == 'Windows_NT' ">
+    <DefineConstants>_WINDOWS</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Microsoft.ML" Version="1.0.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="$(SolutionDir)$(Configuration)\catboostmodel.dll">
+    <Content Include="$(SolutionDir)$(Configuration)\catboostmodel.dll" Condition=" '$(OS)' == 'Windows_NT' ">
       <PackagePath>runtimes/win/native/catboostmodel.dll</PackagePath>
+      <Pack>true</Pack>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="$(SolutionDir)/../libs/model_interface/libcatboostmodel.so" Condition=" '$(OS)' == 'UNIX' ">
+      <PackagePath>runtimes/win/native/libcatboostmodel.so</PackagePath>
       <Pack>true</Pack>
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

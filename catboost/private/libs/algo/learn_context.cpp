@@ -20,7 +20,7 @@
 
 #include <library/cpp/digest/crc32c/crc32c.h>
 #include <library/cpp/digest/md5/md5.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/digest/multi.h>
 #include <util/generic/algorithm.h>
@@ -345,6 +345,7 @@ TLearnContext::TLearnContext(
             foldCreationParamsCheckSum,
             /*estimatedFeaturesQuantizationOptions*/
                 params.DataProcessingOptions->FloatFeaturesBinarization.Get(),
+            params.ObliviousTreeOptions.Get(),
             initModel,
             initModelApplyCompatiblePools,
             LocalExecutor
@@ -450,6 +451,7 @@ TLearnProgress::TLearnProgress(
     ui32 featuresCheckSum,
     ui32 foldCreationParamsCheckSum,
     const NCatboostOptions::TBinarizationOptions& estimatedFeaturesQuantizationOptions,
+    const NCatboostOptions::TObliviousTreeLearnerOptions& trainOptions,
     TMaybe<TFullModel*> initModel,
     NCB::TDataProviders initModelApplyCompatiblePools,
     NPar::TLocalExecutor* localExecutor)
@@ -612,7 +614,16 @@ TLearnProgress::TLearnProgress(
         );
     }
 
-    UsedFeatures.resize(data.Learn->ObjectsData->GetFeaturesLayout()->GetExternalFeatureCount(), false);
+    const auto externalFeaturesCount = data.Learn->ObjectsData->GetFeaturesLayout()->GetExternalFeatureCount();
+    const auto objectsCount = data.Learn->ObjectsData->GetObjectCount();
+    UsedFeatures.resize(externalFeaturesCount, false);
+    // for symmetric tree features usage is equal for all objects, so we don't need to store it for each object individually
+    if (trainOptions.GrowPolicy.Get() != EGrowPolicy::SymmetricTree) {
+        const auto& featurePenaltiesOptions = trainOptions.FeaturePenalties.Get();
+        for (const auto[featureIdx, penalty] : featurePenaltiesOptions.PerObjectFeaturePenalty.Get()) {
+            UsedFeaturesPerObject[featureIdx].resize(objectsCount, false);
+        }
+    }
 
     EstimatedFeaturesContext.FeatureEstimators = data.FeatureEstimators;
     EstimatedFeaturesContext.OfflineEstimatedFeaturesLayout
@@ -736,7 +747,9 @@ void TLearnProgress::Save(IOutputStream* s) const {
         SeparateInitModelTreesSize,
         SeparateInitModelCheckSum,
         Rand,
-        StartingApprox
+        StartingApprox,
+        UsedFeatures,
+        UsedFeaturesPerObject
     );
 }
 
@@ -771,7 +784,9 @@ void TLearnProgress::Load(IInputStream* s) {
         SeparateInitModelTreesSize,
         SeparateInitModelCheckSum,
         Rand,
-        StartingApprox
+        StartingApprox,
+        UsedFeatures,
+        UsedFeaturesPerObject
     );
 }
 

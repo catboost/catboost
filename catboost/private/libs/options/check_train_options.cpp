@@ -18,15 +18,17 @@ void CheckFitParams(
     }
     auto options = NCatboostOptions::LoadOptions(catBoostJsonOptions);
 
-    if (options.LossFunctionDescription->GetLossFunction() == ELossFunction::PythonUserDefinedPerObject) {
+    if (IsUserDefined(options.LossFunctionDescription->GetLossFunction())) {
         CB_ENSURE(objectiveDescriptor != nullptr, "Error: provide objective descriptor for custom loss");
     }
 
-    if (options.MetricOptions->EvalMetric.IsSet() && options.MetricOptions->EvalMetric->GetLossFunction() == ELossFunction::PythonUserDefinedPerObject) {
+    if (options.MetricOptions->EvalMetric.IsSet() && IsUserDefined(options.MetricOptions->EvalMetric->GetLossFunction())) {
         CB_ENSURE(evalMetricDescriptor != nullptr, "Error: provide eval metric descriptor for custom eval metric");
     }
 
     const auto& penaltiesOptions = options.ObliviousTreeOptions->FeaturePenalties;
+    // Feature penalties params should be correctly converted to canonical format before loading.
+    // Because of absent information about feature layout here, we can only check common coefficient param.
     if (penaltiesOptions.IsSet() && penaltiesOptions->PenaltiesCoefficient.IsSet()) {
         CB_ENSURE(penaltiesOptions->PenaltiesCoefficient >= 0, "Error: penalties coefficient should be nonnegative");
     }

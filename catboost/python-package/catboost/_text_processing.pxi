@@ -17,8 +17,8 @@ from util.generic.ptr cimport THolder, MakeHolder, TIntrusivePtr
 from util.generic.vector cimport TVector
 from util.string.cast cimport FromString
 
-from library.text_processing.tokenizer.tokenizer cimport TTokenizer, TTokenizerOptions, ETokenType
-from library.text_processing.dictionary.dictionary cimport (
+from library.cpp.text_processing.tokenizer.tokenizer cimport TTokenizer, TTokenizerOptions, ETokenType
+from library.cpp.text_processing.dictionary.dictionary cimport (
     IDictionary, TDictionary, TBpeDictionary, TTokenId, TFileInput, IInputStream, TFileOutput,
     ETokenLevelType, EEndOfWordTokenPolicy, EEndOfSentenceTokenPolicy, EUnknownTokenPolicy,
     TDictionaryOptions, TDictionaryBuilderOptions, TBpeDictionaryOptions, TDictionaryBuilder,
@@ -32,13 +32,13 @@ except ImportError:
     class Series(object):
         pass
 
-include "library/text_processing/tokenizer/tokenizer.pxi"
+include "library/cpp/text_processing/tokenizer/tokenizer.pxi"
 
 
 ctypedef TBpeDictionary * TBpeDictionaryPtr
 
 
-cdef extern from "library/text_processing/app_helpers/app_helpers.h" namespace "NTextProcessing::NDictionary" nogil:
+cdef extern from "library/cpp/text_processing/app_helpers/app_helpers.h" namespace "NTextProcessing::NDictionary" nogil:
     cdef TIntrusivePtr[TDictionary] BuildDictionary(
         const TString& inputFilePath,
         const TDictionaryBuilderOptions& dictionaryBuilderOptions,

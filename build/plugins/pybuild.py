@@ -2,7 +2,7 @@ import os
 import collections
 
 import ymake
-from _common import stripext, rootrel_arc_src, tobuilddir, listid, resolve_to_ymake_path, generate_chunks
+from _common import stripext, rootrel_arc_src, tobuilddir, listid, resolve_to_ymake_path, generate_chunks, pathid
 
 
 def is_arc_src(src, unit):
@@ -12,12 +12,16 @@ def is_arc_src(src, unit):
         unit.resolve_arc_path(src).startswith('$S/')
     )
 
-
 def to_build_root(path, unit):
     if is_arc_src(path, unit):
         return '${ARCADIA_BUILD_ROOT}/' + rootrel_arc_src(path, unit)
     return path
 
+def uniq_suffix(path, unit):
+    upath = unit.path()
+    if '/' not in path:
+        return ''
+    return '.{}'.format(pathid(path)[:4])
 
 def pb2_arg(suf, path, mod, unit):
     return '{path}__int__{suf}={mod}{modsuf}'.format(
@@ -389,8 +393,9 @@ def onpy_srcs(unit, *args):
                     res += ['DEST', dest, path]
                 if with_pyc:
                     root_rel_path = rootrel_arc_src(path, unit)
-                    unit.on_py3_compile_bytecode([root_rel_path + '-', path])
-                    res += ['DEST', dest + '.yapyc3', path + '.yapyc3']
+                    dst = path + uniq_suffix(path, unit)
+                    unit.on_py3_compile_bytecode([root_rel_path + '-', path, dst])
+                    res += ['DEST', dest + '.yapyc3', dst + '.yapyc3']
 
             unit.onresource_files(res)
             add_python_lint_checks(unit, 3, [path for path, mod in pys] + unit.get(['_PY_EXTRA_LINT_FILES_VALUE']).split())
@@ -405,9 +410,9 @@ def onpy_srcs(unit, *args):
                     ]
                 if with_pyc:
                     src = unit.resolve_arc_path(path) or path
-                    dst = tobuilddir(src) + '.yapyc'
-                    unit.on_py_compile_bytecode([root_rel_path + '-', src])
-                    res += [dst, '/py_code/' + mod]
+                    dst = path + uniq_suffix(path, unit)
+                    unit.on_py_compile_bytecode([root_rel_path + '-', src, dst])
+                    res += [dst + '.yapyc', '/py_code/' + mod]
 
             unit.onresource(res)
             add_python_lint_checks(unit, 2, [path for path, mod in pys] + unit.get(['_PY_EXTRA_LINT_FILES_VALUE']).split())

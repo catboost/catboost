@@ -88,6 +88,14 @@ public:
         return S_.at(Pos_);
     }
 
+    TChar* operator& () {
+        return S_.begin() + Pos_;
+    }
+
+    const TChar* operator& () const {
+        return S_.cbegin() + Pos_;
+    }
+
     TBasicCharRef& operator=(TChar c) {
         Y_ASSERT(Pos_ < S_.size());
 
@@ -980,7 +988,8 @@ public:
         return replace(pos, n, s.data(), spos, sn, s.size());
     }
 
-    // ~~~ main driver: should be protected (in the future)
+private:
+    // ~~~ main driver
     TBasicString& replace(size_t pos, size_t del, const TCharType* pc, size_t pos1, size_t ins, size_t len1) {
         size_t len = length();
         // 'pc' can point to a single character that is not null terminated, so in this case TTraits::GetLength must not be called
@@ -1034,6 +1043,7 @@ public:
         return *this;
     }
 
+public:
     // ~~~ Reversion ~~~~
     void reverse() {
         Detach();

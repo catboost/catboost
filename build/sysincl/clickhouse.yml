@@ -8,6 +8,10 @@
   - config_formats.h
   - config_functions.h
 
+  # Protobuf is currently disabled in CH build, this allows dependency checker not to fail because of missing includes
+  - google/protobuf/compiler/importer.h
+  - google/protobuf/descriptor.h
+
   # It's includes from contribs under #ifdef's from original code that are missing in Arcadia for now,
   # or just not yet PEERDIR'ed properly.
   - aws/core/Aws.h

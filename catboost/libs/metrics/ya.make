@@ -9,6 +9,7 @@ SRCS(
     brier_score.cpp
     classification_utils.cpp
     dcg.cpp
+    description_utils.cpp
     hinge_loss.cpp
     kappa.cpp
     llp.cpp
@@ -27,11 +28,11 @@ PEERDIR(
     catboost/libs/logging
     catboost/private/libs/options
     catboost/libs/helpers/parallel_sort
-    library/binsaver
+    library/cpp/binsaver
     library/cpp/containers/2d_array
     library/cpp/containers/stack_vector
     library/cpp/dot_product
-    library/threading/local_executor
+    library/cpp/threading/local_executor
 )
 
 GENERATE_ENUM_SERIALIZATION(enums.h)

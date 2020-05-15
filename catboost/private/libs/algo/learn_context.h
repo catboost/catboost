@@ -19,7 +19,7 @@
 #include <catboost/libs/model/target_classifier.h>
 #include <catboost/private/libs/options/catboost_options.h>
 
-#include <library/json/json_reader.h>
+#include <library/cpp/json/json_reader.h>
 
 #include <util/generic/noncopyable.h>
 #include <util/generic/hash_set.h>
@@ -110,6 +110,7 @@ struct TLearnProgress {
     TRestorableFastRng64 Rand;
 
     TVector<bool> UsedFeatures;
+    TMap<ui32, TVector<bool>> UsedFeaturesPerObject;
 
     NCB::TCombinedEstimatedFeaturesContext EstimatedFeaturesContext;
 public:
@@ -128,6 +129,7 @@ public:
         ui32 featuresCheckSum,
         ui32 foldCreationParamsCheckSum,
         const NCatboostOptions::TBinarizationOptions& estimatedFeaturesQuantizationOptions,
+        const NCatboostOptions::TObliviousTreeLearnerOptions& trainOptions,
         TMaybe<TFullModel*> initModel,
         NCB::TDataProviders initModelApplyCompatiblePools,
         NPar::TLocalExecutor* localExecutor);

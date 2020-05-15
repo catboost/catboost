@@ -1,8 +1,8 @@
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <catboost/libs/helpers/short_vector_ops.h>
 
-#include <library/sse/sse.h>
+#include <library/cpp/sse/sse.h>
 
 Y_UNIT_TEST_SUITE(ShortVectorOpsTest) {
     Y_UNIT_TEST(CalculateScorePattern) {

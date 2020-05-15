@@ -191,4 +191,7 @@ Y_MAP_ARGS(
 namespace NCudaLib {
     REGISTER_KERNEL(0xAAA001, TUpdatePartitionDimensionsKernel);
     REGISTER_KERNEL(0xAAA002, TUpdatePartitionOffsetsKernel);
+    REGISTER_KERNEL_TEMPLATE(0xAAA003, TComputeSegmentSizesKernel, EPtrType::CudaDevice);
+    REGISTER_KERNEL_TEMPLATE(0xAAA004, TComputeSegmentSizesKernel, EPtrType::CudaHost);
+    REGISTER_KERNEL_TEMPLATE(0xAAA005, TComputeSegmentSizesKernel, EPtrType::Host);
 }

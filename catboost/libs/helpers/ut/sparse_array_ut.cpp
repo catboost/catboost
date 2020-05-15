@@ -2,8 +2,8 @@
 
 #include <catboost/libs/helpers/vector_helpers.h>
 
-#include <library/binsaver/ut_util/ut_util.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/binsaver/ut_util/ut_util.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/random/shuffle.h>
 #include <util/system/compiler.h>
@@ -11,7 +11,7 @@
 #include <cmath>
 #include <type_traits>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 
 using namespace NCB;

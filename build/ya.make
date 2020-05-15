@@ -5,9 +5,9 @@ NEED_CHECK()
 PACKAGE()
 
 PEERDIR(
-    library/deprecated/enum_codegen
-    library/deprecated/split
-    library/string_utils/scan
+    library/cpp/deprecated/enum_codegen
+    library/cpp/deprecated/split
+    library/cpp/string_utils/scan
 )
 
 END()

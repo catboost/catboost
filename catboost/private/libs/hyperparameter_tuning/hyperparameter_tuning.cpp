@@ -2,6 +2,7 @@
 
 #include <catboost/private/libs/algo/data.h>
 #include <catboost/private/libs/algo/approx_dimension.h>
+#include <catboost/libs/data/feature_names_converter.h>
 #include <catboost/libs/data/objects_grouping.h>
 #include <catboost/libs/helpers/cpu_random.h>
 #include <catboost/libs/helpers/exception.h>
@@ -690,6 +691,7 @@ namespace {
     }
 
     bool ParseJsonParams(
+        const NCB::TDataMetaInfo& metaInfo,
         const NJson::TJsonValue& modelParamsToBeTried,
         NCatboostOptions::TCatBoostOptions *catBoostOptions,
         NCatboostOptions::TOutputFilesOptions *outputFileOptions) {
@@ -697,6 +699,7 @@ namespace {
             NJson::TJsonValue jsonParams;
             NJson::TJsonValue outputJsonParams;
             NCatboostOptions::PlainJsonToOptions(modelParamsToBeTried, &jsonParams, &outputJsonParams);
+            ConvertParamsToCanonicalFormat(metaInfo, &jsonParams);
             *catBoostOptions = NCatboostOptions::LoadOptions(jsonParams);
             outputFileOptions->Load(outputJsonParams);
 
@@ -740,7 +743,7 @@ namespace {
             gridIterator->GetTotalElementsCount(),
             &logger
         );
-        double bestParamsSetMetricValue;
+        double bestParamsSetMetricValue = 0;
         // Other parameters
         NCB::TTrainingDataProviderPtr quantizedData;
         TQuantizationParamsInfo lastQuantizationParamsSet;
@@ -770,7 +773,12 @@ namespace {
 
             NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::CPU);
             NCatboostOptions::TOutputFilesOptions outputFileOptions;
-            bool areParamsValid = ParseJsonParams(*modelParamsToBeTried, &catBoostOptions, &outputFileOptions);
+            bool areParamsValid = ParseJsonParams(
+                data.Get()->MetaInfo,
+                *modelParamsToBeTried,
+                &catBoostOptions,
+                &outputFileOptions
+            );
             if (!areParamsValid) {
                 continue;
             }
@@ -931,7 +939,7 @@ namespace {
             gridIterator->GetTotalElementsCount(),
             &logger
         );
-        double bestParamsSetMetricValue;
+        double bestParamsSetMetricValue = 0;
         // Other parameters
         NCB::TTrainingDataProviders trainTestData;
         TQuantizationParamsInfo lastQuantizationParamsSet;
@@ -960,7 +968,12 @@ namespace {
 
             NCatboostOptions::TCatBoostOptions catBoostOptions(ETaskType::CPU);
             NCatboostOptions::TOutputFilesOptions outputFileOptions;
-            bool areParamsValid = ParseJsonParams(*modelParamsToBeTried, &catBoostOptions, &outputFileOptions);
+            bool areParamsValid = ParseJsonParams(
+                data.Get()->MetaInfo,
+                *modelParamsToBeTried,
+                &catBoostOptions,
+                &outputFileOptions
+            );
             if (!areParamsValid) {
                 continue;
             }
@@ -1181,6 +1194,7 @@ namespace NCB {
         NJson::TJsonValue jsonParams;
         NJson::TJsonValue outputJsonParams;
         NCatboostOptions::PlainJsonToOptions(modelJsonParams, &jsonParams, &outputJsonParams);
+        ConvertParamsToCanonicalFormat(data.Get()->MetaInfo, &jsonParams);
         NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
         NCatboostOptions::TOutputFilesOptions outputFileOptions;
         outputFileOptions.Load(outputJsonParams);
@@ -1312,6 +1326,7 @@ namespace NCB {
         NJson::TJsonValue jsonParams;
         NJson::TJsonValue outputJsonParams;
         NCatboostOptions::PlainJsonToOptions(modelJsonParams, &jsonParams, &outputJsonParams);
+        ConvertParamsToCanonicalFormat(data.Get()->MetaInfo, &jsonParams);
         NCatboostOptions::TCatBoostOptions catBoostOptions(NCatboostOptions::LoadOptions(jsonParams));
         NCatboostOptions::TOutputFilesOptions outputFileOptions;
         outputFileOptions.Load(outputJsonParams);

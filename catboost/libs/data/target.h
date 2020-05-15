@@ -14,9 +14,9 @@
 #include <catboost/libs/helpers/serialization.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 
-#include <library/binsaver/bin_saver.h>
+#include <library/cpp/binsaver/bin_saver.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/digest/multi.h>
 #include <util/generic/array_ref.h>
@@ -201,7 +201,8 @@ namespace NCB {
 
     private:
         friend class TQuantizationImpl;
-        friend class TRawBuilderDataHelper;
+        template <class TTObjectsDataProvider>
+        friend class TBuilderDataHelper;
 
     private:
         void AssignWeights(TConstArrayRef<float> src, TWeights<float>* dst);

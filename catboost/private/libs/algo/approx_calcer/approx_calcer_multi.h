@@ -14,7 +14,7 @@
 #include <catboost/private/libs/algo_helpers/online_predictor.h>
 #include <catboost/private/libs/options/catboost_options.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 
 template <typename TStep>

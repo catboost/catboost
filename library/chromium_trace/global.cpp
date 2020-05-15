@@ -4,7 +4,7 @@
 #include "sync.h"
 #include "sampler.h"
 
-#include <library/json/json_writer.h>
+#include <library/cpp/json/json_writer.h>
 
 #include <util/generic/singleton.h>
 #include <util/stream/file.h>

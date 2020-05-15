@@ -1,14 +1,12 @@
-#include <contrib/libs/cppdemangle/demangle.h>
-
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/generic/ptr.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
+#include <util/system/demangle.h>
 
 void Check(TString symbol, TString expectedName) {
-    THolder<char, TFree> name = llvm_demangle_gnu3(symbol.data());
-    TString actualName = name.Get();
+    TString actualName = CppDemangle(symbol);
     UNIT_ASSERT_VALUES_EQUAL(expectedName, actualName);
 }
 
@@ -18,7 +16,7 @@ Y_UNIT_TEST_SUITE(Demangle) {
     }
 
     Y_UNIT_TEST(Simple2) {
-        Check("_ZN2na2nb2caI2cbNS_2nc2cbEFS2_RKS4_EEENS_2ccIT_EENS_2cdIT0_EERKNS_2ceIT1_EE", "na::cc<cb> na::nb::ca<cb, na::nc::cb, cb (na::nc::cb const&)>(na::cd<na::nc::cb>, na::ce<cb ()(na::nc::cb const&)> const&)");
+        Check("_ZN2na2nb2caI2cbNS_2nc2cbEFS2_RKS4_EEENS_2ccIT_EENS_2cdIT0_EERKNS_2ceIT1_EE", "na::cc<cb> na::nb::ca<cb, na::nc::cb, cb (na::nc::cb const&)>(na::cd<na::nc::cb>, na::ce<cb (na::nc::cb const&)> const&)");
     }
 
     Y_UNIT_TEST(List1) {
@@ -54,7 +52,7 @@ Y_UNIT_TEST_SUITE(Demangle) {
     }
 
     Y_UNIT_TEST(Difficult2) {
-        Check("_ZTSN2na2nb2caINS0_2cbIZZNS_2nc2cc2cd2maERKNS_2ceINS_2nd2cfINS_2ne2nf2cgEEEEERKNS6_INS9_2chEEEENKUlPT_E_clINSA_2ciEEEDaSL_EUlvE_EEFvvESR_EE", "typeinfo name for na::nb::ca<na::nb::cb<auto na::nc::cc::cd::ma(na::ce<na::nd::cf<na::ne::nf::cg> > const&, na::ce<na::ne::ch> const&)::'lambda'(auto*)::operator()<na::ne::nf::ci>(auto*) const::'lambda'()>, void (), void ()()>");
+        Check("_ZTSN2na2nb2caINS0_2cbIZZNS_2nc2cc2cd2maERKNS_2ceINS_2nd2cfINS_2ne2nf2cgEEEEERKNS6_INS9_2chEEEENKUlPT_E_clINSA_2ciEEEDaSL_EUlvE_EEFvvESR_EE", "typeinfo name for na::nb::ca<na::nb::cb<auto na::nc::cc::cd::ma(na::ce<na::nd::cf<na::ne::nf::cg> > const&, na::ce<na::ne::ch> const&)::'lambda'(auto*)::operator()<na::ne::nf::ci>(auto*) const::'lambda'()>, void (), void ()>");
     }
 
     Y_UNIT_TEST(Difficult3) {

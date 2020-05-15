@@ -8,8 +8,8 @@
 
 #include <catboost/libs/helpers/serialization.h>
 
-#include <library/binsaver/bin_saver.h>
-#include <library/json/json_value.h>
+#include <library/cpp/binsaver/bin_saver.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/generic/string.h>
 #include <util/generic/vector.h>

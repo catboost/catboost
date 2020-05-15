@@ -54,15 +54,15 @@ PEERDIR(
     catboost/private/libs/index_range
     catboost/libs/logging
     contrib/libs/flatbuffers
-    library/binsaver
+    library/cpp/binsaver
     library/cpp/containers/2d_array
     library/cpp/pop_count
-    library/dbg_output
+    library/cpp/dbg_output
     library/cpp/digest/crc32c
     library/cpp/digest/md5
-    library/json
+    library/cpp/json
     library/cpp/malloc/api
-    library/threading/local_executor
+    library/cpp/threading/local_executor
 )
 
 GENERATE_ENUM_SERIALIZATION(sparse_array.h)

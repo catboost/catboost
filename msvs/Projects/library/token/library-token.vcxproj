@@ -161,6 +161,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\lower_case\cpp-digest-lower_case.vcxproj">
       <Project>{93A05BE8-043A-10FC-0497-840803A20BA0}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\unicode\normalization\cpp-unicode-normalization.vcxproj">
+      <Project>{6E0E64B9-3A05-DBD1-DC49-86C427EBD124}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\enumbitset\library-enumbitset.vcxproj">
       <Project>{001BC0D7-D4A9-8F1B-F8D9-077578710964}</Project>
     </ProjectReference>
@@ -169,9 +172,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\langs\library-langs.vcxproj">
       <Project>{1660E94D-B0FA-8C52-3B1B-10230401A2CA}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\unicode\normalization\library-unicode-normalization.vcxproj">
-      <Project>{35D62A82-F7EE-0FE0-7269-27D8C0E0F637}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
       <Project>{F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B}</Project>

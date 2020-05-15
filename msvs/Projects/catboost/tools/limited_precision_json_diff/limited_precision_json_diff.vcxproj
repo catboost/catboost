@@ -107,32 +107,32 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cpuid_check\library-cpp-cpuid_check.vcxproj">
       <Project>{A945C0FD-E868-BBA0-1189-19BBB2296292}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\getopt\small\cpp-getopt-small.vcxproj">
+      <Project>{58379026-CFDC-70D1-4FC0-7A73F77E31B5}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\common\cpp-json-common.vcxproj">
+      <Project>{6330870F-DABE-D84D-BCA5-C0A181746B9E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\fast_sax\cpp-json-fast_sax.vcxproj">
+      <Project>{24137F52-65C2-C6DA-9D73-32184D067E15}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\library-cpp-json.vcxproj">
+      <Project>{F3B6F190-E921-1428-8D6C-A4428CC7654A}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\writer\cpp-json-writer.vcxproj">
+      <Project>{94F66460-BD28-7C46-313B-A5F2876E26F8}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\api\cpp-malloc-api.vcxproj">
       <Project>{98AF9344-15D9-0539-93F4-0E901C36E301}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\system\cpp-malloc-system.vcxproj">
       <Project>{54C3F326-D733-B490-93B9-EEA3BE28C3A9}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\getopt\small\library-getopt-small.vcxproj">
-      <Project>{DB9C26F0-E241-89AB-6F12-8CE533A7E012}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\json\common\library-json-common.vcxproj">
-      <Project>{3B322F11-1D2A-AEFE-BC14-4F74683E14DB}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\json\fast_sax\library-json-fast_sax.vcxproj">
-      <Project>{8AAB2F9B-ECAA-2170-D871-1CEE27B498C2}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\json\library-json.vcxproj">
-      <Project>{E633ADF4-A720-EDCB-A12B-52A8216FF956}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\json\writer\library-json-writer.vcxproj">
-      <Project>{C27A0E65-4FDF-D0F0-5127-62A23E33B196}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\relaxed_escaper\cpp-string_utils-relaxed_escaper.vcxproj">
+      <Project>{81697B25-44BA-8BC7-5E66-2708E5669C60}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
       <Project>{2CE71367-048B-26B0-2DAC-CA9BB7D00E76}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\string_utils\relaxed_escaper\library-string_utils-relaxed_escaper.vcxproj">
-      <Project>{91423FEC-8B3D-547B-2674-3740D83114B5}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>

@@ -103,7 +103,7 @@ static inline void f() {
     (void)(f);
 }
 
-// buggy case taken from library/html/face/parstypes.h
+// buggy case taken from library/cpp/html/face/parstypes.h
 enum TEXT_WEIGHT {
     WEIGHT_ZERO=-1,// NOINDEX_RELEV
     WEIGHT_LOW,    // LOW_RELEV

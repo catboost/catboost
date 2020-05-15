@@ -1,4 +1,4 @@
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/metrics/metric_holder.h>
@@ -14,7 +14,7 @@ Y_UNIT_TEST(MSLETest) {
         TVector<float> weight{1, 1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeMSLEMetric();
+        const auto metric = std::move(CreateMetric(ELossFunction::MSLE, {}, 1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.03973, 1e-5);
@@ -25,7 +25,7 @@ Y_UNIT_TEST(MSLETest) {
         TVector<float> weight{1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        const auto metric = MakeMSLEMetric();
+        const auto metric = std::move(CreateMetric(ELossFunction::MSLE, {}, 1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.31485, 1e-5);

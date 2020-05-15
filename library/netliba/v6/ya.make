@@ -36,11 +36,11 @@ IF (CATBOOST_OPENSOURCE)
 ENDIF()
 
 PEERDIR(
-    library/binsaver
+    library/cpp/binsaver
     library/netliba/socket
-    library/string_utils/url
-    library/threading/atomic
-    library/threading/mux_event
+    library/cpp/string_utils/url
+    library/cpp/threading/atomic
+    library/cpp/threading/mux_event
 )
 
 END()

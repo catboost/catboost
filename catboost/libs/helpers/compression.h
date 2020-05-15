@@ -5,8 +5,8 @@
 #include "exception.h"
 #include "maybe_owning_array_holder.h"
 
-#include <library/binsaver/bin_saver.h>
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/binsaver/bin_saver.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/system/defaults.h>
 #include <util/system/types.h>

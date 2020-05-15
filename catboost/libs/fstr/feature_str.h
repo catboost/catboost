@@ -102,10 +102,10 @@ public:
         , Feature2(-1)
     {
     }
-    TFeaturePairInteractionInfo(double score, int f1, int f2)
+    TFeaturePairInteractionInfo(double score, int feature1, int feature2)
         : Score(score)
-        , Feature1(f1)
-        , Feature2(f2)
+        , Feature1(feature1)
+        , Feature2(feature2)
     {
     }
 
@@ -119,11 +119,23 @@ const int EXISTING_PAIRS_COUNT = -1;
 TVector<TFeaturePairInteractionInfo> CalcMostInteractingFeatures(const TVector<TMxTree>& trees,
                                                                  int topPairsCount = EXISTING_PAIRS_COUNT);
 
+
+TVector<TFeaturePairInteractionInfo> CalcMostInteractingFeatures(const TFullModel& model,
+                                                                 const THashMap<TFeature, int, TFeatureHash>& featureToIdx,
+                                                                 int topPairsCount = EXISTING_PAIRS_COUNT);
+
+
+/*
+ * Don't use this function for converted oblivious model,
+ * results would be mismatch with results of CalcEffect if tree has oblivious sub trees
+ */
 template <class T>
-TVector<double> CalcEffect(
+TVector<double> CalcEffectForNonObliviousModel(
     const TFullModel& model,
     const THashMap<TFeature, int, TFeatureHash>& featureToIdx,
     TConstArrayRef<T> weightedDocCountInLeaf) {
+
+    CB_ENSURE_INTERNAL(!model.IsOblivious(), "CalcEffectForNonObliviousModel function got oblivious model");
 
     const auto& binFeatures = model.ModelTrees->GetBinFeatures();
     const auto leafValues = model.ModelTrees->GetLeafValues();
@@ -142,7 +154,7 @@ TVector<double> CalcEffect(
         for (int nodeIdx = treeIdxsStart; nodeIdx < treeIdxsEnd; ++nodeIdx) {
             const auto& node = model.ModelTrees->GetNonSymmetricStepNodes()[nodeIdx];
 
-            if (node.LeftSubtreeDiff == 0 && node.RightSubtreeDiff == 0) { // node is terminal
+            if (node.LeftSubtreeDiff == 0 || node.RightSubtreeDiff == 0) { // node is terminal
                 const int leafValueIndex = model.ModelTrees->GetNonSymmetricNodeIdToLeafId()[nodeIdx];
                 TVector<double> values(
                     leafValues.begin() + leafValueIndex,
@@ -151,19 +163,21 @@ TVector<double> CalcEffect(
                     values,
                     weightedDocCountInLeaf[leafValueIndex / approxDimension]
                 };
-            } else {
-                const int split = model.ModelTrees->GetTreeSplits()[nodeIdx];
-                const auto& feature = GetFeature(binFeatures[split]);
-                const int featureIdx = featureToIdx.at(feature);
-                nodesStack.push_back(
-                    TTriangleNodes {
-                        nodeIdx,
-                        nodeIdx + node.LeftSubtreeDiff,
-                        nodeIdx + node.RightSubtreeDiff,
-                        featureIdx
-                    }
-                );
+                if (node.LeftSubtreeDiff == 0 && node.RightSubtreeDiff == 0) {
+                    continue;
+                }
             }
+            const int split = model.ModelTrees->GetTreeSplits()[nodeIdx];
+            const auto& feature = GetFeature(binFeatures[split]);
+            const int featureIdx = featureToIdx.at(feature);
+            nodesStack.push_back(
+                TTriangleNodes {
+                    nodeIdx,
+                    nodeIdx + node.LeftSubtreeDiff,
+                    nodeIdx + node.RightSubtreeDiff,
+                    featureIdx
+                }
+            );
         }
         while (!nodesStack.empty()) {
             const TTriangleNodes nodes = nodesStack.back();
@@ -184,7 +198,7 @@ TVector<double> CalcEffect(
             const double sumCount = count1 + count2;
 
             TVector<double> parentAvrg;
-            for(int dimension = 0; dimension < approxDimension; dimension++) {
+            for (int dimension = 0; dimension < approxDimension; dimension++) {
                 const double val1 = count1 ? leftInfo.Values[dimension] : 0;
                 const double val2 = count2 ? rightInfo.Values[dimension] : 0;
 

@@ -72,7 +72,7 @@ def run_nvidia_smi():
 
 # params is either dict or iterable
 # devices used only if task_type == 'GPU'
-def execute_catboost_fit(task_type, params, devices='0'):
+def execute_catboost_fit(task_type, params, devices='0', stdout=None, timeout=None, env=None):
     if task_type not in ('CPU', 'GPU'):
         raise Exception('task_type must be "CPU" or "GPU"')
 
@@ -99,7 +99,9 @@ def execute_catboost_fit(task_type, params, devices='0'):
             ]
         )
 
-    yatest.common.execute(cmd)
+    mkl_cbwr_env = dict(env) if env else dict()
+    mkl_cbwr_env.update(MKL_CBWR='SSE4_2')
+    yatest.common.execute(cmd, stdout=stdout, timeout=timeout, env=mkl_cbwr_env)
 
 
 # cd_path should be None for yt-search-proto pools
@@ -168,7 +170,8 @@ def execute_dist_train(cmd):
         while pm.is_port_free(port0) or pm.is_port_free(port1):
             time.sleep(1)
 
-        yatest.common.execute(
+        execute_catboost_fit(
+            'CPU',
             cmd + ('--node-type', 'Master', '--file-with-hosts', hosts_path,)
         )
         worker0.wait()

@@ -9,7 +9,7 @@
 
 #include <catboost/private/libs/options/output_file_options.h>
 
-#include <library/json/json_reader.h>
+#include <library/cpp/json/json_reader.h>
 
 #include <contrib/libs/coreml/TreeEnsemble.pb.h>
 #include <contrib/libs/coreml/Model.pb.h>
@@ -80,14 +80,16 @@ namespace NCB {
         out.Write(data);
     }
 
-    void OutputModelOnnx(
+    void SerializeFullModelToOnnxStream(
         const TFullModel& model,
-        const TString& modelFile,
-        const NJson::TJsonValue& userParameters) {
+        const TString& userParametersJson,
+        IOutputStream* oStream) {
 
-        /* TODO(akhropov): the problem with OneHotFeatures is that raw 'float' values
-        * could be interpreted as nans so that equality comparison won't work for such splits
-        */
+        TStringInput is(userParametersJson);
+        NJson::TJsonValue userParameters;
+        NJson::ReadJsonTree(&is, &userParameters);
+        CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "exporting ONNX model");
+
         CB_ENSURE(
             !model.HasCategoricalFeatures(),
             "ONNX-ML format export does yet not support categorical features"
@@ -106,9 +108,29 @@ namespace NCB {
 
         TString data;
         outModel.SerializeToString(&data);
+        oStream->Write(data);
+    }
 
+    TString ConvertTreeToOnnxProto(
+        const TFullModel& model,
+        const TString& userParametersJson) {
+
+        TString data;
+        TStringOutput out(data);
+        SerializeFullModelToOnnxStream(model, userParametersJson, &out);
+        return data;
+        }
+
+    void OutputModelOnnx(
+        const TFullModel& model,
+        const TString& modelFile,
+        const TString& userParametersJson) {
+
+        /* TODO(akhropov): the problem with OneHotFeatures is that raw 'float' values
+        * could be interpreted as nans so that equality comparison won't work for such splits
+        */
         TOFStream out(modelFile);
-        out.Write(data);
+        SerializeFullModelToOnnxStream(model, userParametersJson, &out);
     }
 
     void ExportModel(
@@ -121,8 +143,8 @@ namespace NCB {
         const THashMap<ui32, TString>* catFeaturesHashToString
     ) {
         //TODO(eermishkina): support non symmetric trees
-        CB_ENSURE(model.IsOblivious() || format == EModelType::CatboostBinary || format == EModelType::Json,
-            "Can save non symmetric trees only in cbm or Json format");
+        CB_ENSURE(model.IsOblivious() || format == EModelType::CatboostBinary || format == EModelType::Json || format == EModelType::Pmml,
+            "Can save non symmetric trees only in cbm, Json, or Pmml format");
         //TODO(d-kruchinin): support text features
         CB_ENSURE(
             !model.TextProcessingCollection || format == EModelType::CatboostBinary,
@@ -158,12 +180,7 @@ namespace NCB {
                 break;
             case EModelType::Onnx:
                 {
-                    TStringInput is(userParametersJson);
-                    NJson::TJsonValue params;
-                    NJson::ReadJsonTree(&is, &params);
-
-                    CB_ENSURE_SCALE_IDENTITY(model.GetScaleAndBias(), "exporting ONNX model");
-                    OutputModelOnnx(model, modelFileName, params);
+                    OutputModelOnnx(model, modelFileName, userParametersJson);
                 }
                 break;
             case EModelType::Pmml:

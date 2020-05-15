@@ -1,7 +1,7 @@
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/metrics/metric_holder.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 // use balanced_accuracy_score from sklearn to compute benchmark value
 Y_UNIT_TEST_SUITE(BalancedAccuracyMetricTest) {
@@ -12,7 +12,8 @@ Y_UNIT_TEST(BalancedAccuracyTest) {
         TVector<float> weight{1, 1, 1, 1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        auto metric = MakeBinClassBalancedAccuracyMetric();
+        auto metric = std::move(CreateMetric(ELossFunction::BalancedAccuracy,
+                                             /*params=*/{}, /*approxDimension=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.625, 1e-3);
@@ -23,7 +24,8 @@ Y_UNIT_TEST(BalancedAccuracyTest) {
         TVector<float> weight{1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        auto metric = MakeBinClassBalancedAccuracyMetric();
+        auto metric = std::move(CreateMetric(ELossFunction::BalancedAccuracy,
+                                             /*params=*/{}, /*approxDimension=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);;
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 0.75, 1e-2);
@@ -34,7 +36,8 @@ Y_UNIT_TEST(BalancedAccuracyTest) {
         TVector<float> weight{1, 1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        auto metric = MakeBinClassBalancedAccuracyMetric();
+        auto metric = std::move(CreateMetric(ELossFunction::BalancedAccuracy,
+                                             /*params=*/{}, /*approxDimension=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1, 1e-1);
@@ -45,7 +48,8 @@ Y_UNIT_TEST(BalancedAccuracyTest) {
         TVector<float> weight{1, 1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        auto metric = MakeBinClassBalancedAccuracyMetric();
+        auto metric = std::move(CreateMetric(ELossFunction::BalancedAccuracy,
+                                             /*params=*/{}, /*approxDimension=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 1, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1, 1e-1);
@@ -56,7 +60,8 @@ Y_UNIT_TEST(BalancedAccuracyTest) {
         TVector<float> weight{1, 1, 1, 1};
 
         NPar::TLocalExecutor executor;
-        auto metric = MakeBinClassBalancedAccuracyMetric();
+        auto metric = std::move(CreateMetric(ELossFunction::BalancedAccuracy,
+                                            /*params=*/{}, /*approxDimension=*/1)[0]);
         TMetricHolder score = metric->Eval(approx, target, weight, {}, 1, target.size(), executor);
 
         UNIT_ASSERT_DOUBLES_EQUAL(metric->GetFinalError(score), 1, 1e-1);

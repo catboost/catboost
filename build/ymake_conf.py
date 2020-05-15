@@ -489,7 +489,7 @@ class Build(object):
 
     @property
     def is_debug(self):
-        return self.build_type == 'debug' or self.build_type.endswith('-debug')
+        return self.build_type in ('debug', 'debugnoasserts') or self.build_type.endswith('-debug')
 
     @property
     def is_size_optimized(self):
@@ -506,7 +506,7 @@ class Build(object):
 
     @property
     def with_ndebug(self):
-        return self.build_type in ('release', 'minsizerel', 'valgrind-release', 'profile', 'gprof')
+        return self.build_type in ('release', 'minsizerel', 'valgrind-release', 'profile', 'gprof', 'debugnoasserts')
 
     @property
     def is_valgrind(self):
@@ -1443,7 +1443,7 @@ class GnuCompiler(Compiler):
         append('C_DEFINES', '-D__LONG_LONG_SUPPORTED')
 
         emit('OBJECT_SUF', '$OBJ_SUF%s.o' % self.cross_suffix)
-        emit('GCC_COMPILE_FLAGS', '$EXTRA_C_FLAGS -c -o $_COMPILE_OUTPUTS', '${input:SRC} ${pre=-I:INCLUDE}')
+        emit('GCC_COMPILE_FLAGS', '$EXTRA_C_FLAGS -c -o $_COMPILE_OUTPUTS', '${input:SRC} ${pre=-I:_C__INCLUDE} ${pre=-I:INCLUDE}')
         emit('EXTRA_COVERAGE_OUTPUT', '${output;noauto;hide;suf=${OBJ_SUF}%s.gcno:SRC}' % self.cross_suffix)
         emit('YNDEXER_OUTPUT_FILE', '${output;noauto;suf=${OBJ_SUF}%s.ydx.pb2:SRC}' % self.cross_suffix)  # should be the last output
 
@@ -2189,11 +2189,11 @@ class MSVCCompiler(MSVC, Compiler):
             }
 
             macro _SRC_cpp(SRC, SRCFLAGS...) {
-                .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo$_COMPILE_OUTPUTS ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :INCLUDE} ${CXXFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+                .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${CXX_COMPILER} /c /Fo$_COMPILE_OUTPUTS ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :_C__INCLUDE} ${pre=/I :INCLUDE} ${CXXFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
             }
 
             macro _SRC_c(SRC, SRCFLAGS...) {
-                .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo$_COMPILE_OUTPUTS ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
+                .CMD=${TOOLCHAIN_ENV} ${CL_WRAPPER} ${C_COMPILER} /c /Fo$_COMPILE_OUTPUTS ${input;msvs_source:SRC} ${EXTRA_C_FLAGS} ${pre=/I :_C__INCLUDE} ${pre=/I :INCLUDE} ${CFLAGS} ${CONLYFLAGS} ${SRCFLAGS} ${hide;kv:"soe"} ${hide;kv:"p CC"} ${hide;kv:"pc yellow"}
             }
 
             macro _SRC_m(SRC, SRCFLAGS...) {
@@ -2586,7 +2586,7 @@ class Cuda(object):
     def print_macros(self):
         cmd_vars = {
             'skip_nocxxinc': '' if self.cuda_arcadia_includes.value else '--y_skip_nocxxinc',
-            'includes': '${pre=-I:INCLUDE}' if self.cuda_arcadia_includes.value else '-I$ARCADIA_ROOT',
+            'includes': '${pre=-I:_C__INCLUDE} ${pre=-I:INCLUDE}' if self.cuda_arcadia_includes.value else '-I$ARCADIA_ROOT',
         }
 
         if not self.cuda_use_clang.value:
@@ -2738,7 +2738,7 @@ class Yasm(object):
         output = '${{output;noext;suf={}:SRC}}'.format('${OBJ_SUF}.o' if self.fmt != 'win' else '${OBJ_SUF}.obj')
         print '''\
 macro _SRC_yasm_impl(SRC, PREINCLUDES[], SRCFLAGS...) {{
-    .CMD={} -f {}$HARDWARE_ARCH {} $YASM_DEBUG_INFO_DISABLE_CACHE__NO_UID__ -D ${{pre=_;suf=_:HARDWARE_TYPE}} -D_YASM_ $ASM_PREFIX_VALUE {} ${{YASM_FLAGS}} ${{pre=-I :INCLUDE}} ${{SRCFLAGS}} -o {} ${{pre=-P :PREINCLUDES}} ${{input;hide:PREINCLUDES}} ${{input:SRC}} ${{kv;hide:"p AS"}} ${{kv;hide:"pc light-green"}}
+    .CMD={} -f {}$HARDWARE_ARCH {} $YASM_DEBUG_INFO_DISABLE_CACHE__NO_UID__ -D ${{pre=_;suf=_:HARDWARE_TYPE}} -D_YASM_ $ASM_PREFIX_VALUE {} ${{YASM_FLAGS}} ${{pre=-I :_ASM__INCLUDE}} ${{pre=-I :INCLUDE}} ${{SRCFLAGS}} -o {} ${{pre=-P :PREINCLUDES}} ${{input;hide:PREINCLUDES}} ${{input:SRC}} ${{kv;hide:"p AS"}} ${{kv;hide:"pc light-green"}}
 
 }}
 '''.format(self.yasm_tool, self.fmt, d_platform, ' '.join(self.flags), output)

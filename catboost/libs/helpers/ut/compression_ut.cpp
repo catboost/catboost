@@ -1,6 +1,6 @@
 #include <catboost/libs/helpers/compression.h>
 
-#include <library/binsaver/util_stream_io.h>
+#include <library/cpp/binsaver/util_stream_io.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/maybe.h>
@@ -8,7 +8,7 @@
 #include <util/stream/buffer.h>
 #include <util/system/yassert.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 
 using namespace NCB;

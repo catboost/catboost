@@ -140,7 +140,7 @@
 #include <util/system/atomic.h>
 #include <util/system/yield.h>
 #include <util/system/filemap.h>
-#include <library/deprecated/mapped_file/mapped_file.h>
+#include <library/cpp/deprecated/mapped_file/mapped_file.h>
 #include <util/system/sys_alloc.h>
 #include <util/system/sysstat.h>
 #include <util/system/env.h>
@@ -181,7 +181,7 @@
 #include <util/memory/smallobj.h>
 #include <util/memory/segmented_string_pool.h>
 #include <util/memory/mmapalloc.h>
-#include <library/deprecated/split/delim_string_iter.h>
+#include <library/cpp/deprecated/split/delim_string_iter.h>
 #include <util/draft/ip.h>
 #include <util/draft/matrix.h>
 #include <util/draft/date.h>
@@ -190,9 +190,9 @@
 #include <util/draft/holder_vector.h>
 #include <util/generic/object_counter.h>
 #include <util/draft/datetime.h>
-#include <library/deprecated/estimators/estimators.h>
+#include <library/cpp/deprecated/estimators/estimators.h>
 #include <util/network/netloss.h>
-#include <library/deprecated/enum_codegen/enum_codegen.h>
+#include <library/cpp/deprecated/enum_codegen/enum_codegen.h>
 #include <util/generic/array_size.h>
 #include <util/generic/bitmap.h>
 #include <util/generic/intrlist.h>
@@ -248,7 +248,7 @@
 #include <util/generic/queue.h>
 #include <util/generic/adaptor.h>
 #include <util/string/escape.h>
-#include <library/string_utils/scan/scan.h>
+#include <library/cpp/string_utils/scan/scan.h>
 #include <util/string/type.h>
 #include <util/string/join.h>
 #include <util/string/vector.h>
@@ -260,7 +260,7 @@
 #include <util/string/printf.h>
 #include <util/string/ascii.h>
 #include <util/string/cast.h>
-#include <library/deprecated/split/split_iterator.h>
+#include <library/cpp/deprecated/split/split_iterator.h>
 #include <util/string/util.h>
 #include <util/string/strip.h>
 #include <util/string/builder.h>

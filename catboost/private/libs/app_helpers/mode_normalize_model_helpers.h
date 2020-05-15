@@ -2,7 +2,7 @@
 
 #include "implementation_type_enum.h"
 
-#include <library/getopt/small/last_getopt_opts.h>
+#include <library/cpp/getopt/small/last_getopt_opts.h>
 #include <library/object_factory/object_factory.h>
 
 namespace NCB {

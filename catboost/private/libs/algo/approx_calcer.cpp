@@ -31,7 +31,7 @@
 #include <catboost/private/libs/options/loss_description.h>
 #include <catboost/private/libs/functools/forward_as_const.h>
 
-#include <library/threading/local_executor/local_executor.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/ymath.h>

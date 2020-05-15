@@ -12,7 +12,6 @@ import sys
 import tempfile
 import json
 from catboost import (
-    MultiLabelCustomMetric,
     CatBoost,
     CatBoostClassifier,
     CatBoostRegressor,
@@ -25,7 +24,9 @@ from catboost import (
     train,
     _have_equal_features,
     to_regressor,
-    to_classifier,)
+    to_classifier,
+    MultiRegressionCustomMetric,
+    MultiRegressionCustomObjective,)
 from catboost.eval.catboost_evaluation import CatboostEvaluation, EvalType
 from catboost.utils import eval_metric, create_cd, read_cd, get_roc_curve, select_threshold, quantize
 from catboost.utils import DataMetaInfo, TargetStats, compute_training_options
@@ -75,6 +76,8 @@ NAN_TRAIN_FILE = data_file('adult_nan', 'train_small')
 NAN_TEST_FILE = data_file('adult_nan', 'test_small')
 NAN_CD_FILE = data_file('adult_nan', 'train.cd')
 
+FLOAT_WITH_NAN_FILE = data_file('float_with_nan.tsv')
+
 CLOUDNESS_TRAIN_FILE = data_file('cloudness_small', 'train_small')
 CLOUDNESS_TEST_FILE = data_file('cloudness_small', 'test_small')
 CLOUDNESS_CD_FILE = data_file('cloudness_small', 'train.cd')
@@ -108,6 +111,7 @@ BLACK_FRIDAY_TEST_FILE = data_file('black_friday', 'test')
 BLACK_FRIDAY_CD_FILE = data_file('black_friday', 'cd')
 
 HIGGS_TRAIN_FILE = data_file('higgs', 'train_small')
+HIGGS_5K_TRAIN_FILE = data_file('higgs', 'train_5K')
 HIGGS_TEST_FILE = data_file('higgs', 'test_small')
 HIGGS_CD_FILE = data_file('higgs', 'train.cd')
 
@@ -271,7 +275,7 @@ def load_simple_dataset_as_lists(is_test):
 
 @pytest.mark.parametrize('niter', [100, 500])
 def test_multiregression_custom_eval(niter, n=10):
-    class MultiRMSE(MultiLabelCustomMetric):
+    class MultiRMSE(MultiRegressionCustomMetric):
         def get_final_error(self, error, weight):
             if (weight == 0):
                 return 0
@@ -2184,6 +2188,53 @@ def test_custom_objective(task_type):
         assert abs(p1 - p2) < EPS
 
 
+@fails_on_gpu(how='cuda/train_lib/train.cpp:283: Error: loss function is not supported for GPU learning Custom')
+def test_multilabel_custom_objective(task_type, n=10):
+    class MultiRMSEObjective(MultiRegressionCustomObjective):
+        def calc_ders_multi(self, approxes, targets, weight):
+            assert len(approxes) == len(targets)
+
+            grad = []
+            hess = [[0 for j in range(len(targets))] for i in range(len(targets))]
+
+            for index in xrange(len(targets)):
+                der1 = (targets[index] - approxes[index]) * weight
+                der2 = -weight
+
+                grad.append(der1)
+                hess[index][index] = der2
+
+            return (grad, hess)
+
+    xs = np.arange(n).reshape((-1, 1)).astype(np.float32)
+    ys = np.hstack([
+        (xs > 0.5 * n),
+        (xs < 0.5 * n)
+    ]).astype(np.float32)
+
+    train_pool = Pool(data=xs,
+                      label=ys)
+
+    test_pool = Pool(data=xs,
+                     label=ys)
+
+    model = CatBoostRegressor(iterations=5, learning_rate=0.03, use_best_model=True,
+                               loss_function=MultiRMSEObjective(), eval_metric="MultiRMSE",
+                               # Leaf estimation method and gradient iteration are set to match
+                               # defaults for Logloss.
+                               leaf_estimation_method="Newton", leaf_estimation_iterations=1, task_type=task_type, devices='0')
+
+    model.fit(train_pool, eval_set=test_pool)
+    pred1 = model.predict(test_pool, prediction_type='RawFormulaVal')
+
+    model2 = CatBoostRegressor(iterations=5, learning_rate=0.03, use_best_model=True, loss_function="MultiRMSE", leaf_estimation_method="Newton", leaf_estimation_iterations=1)
+    model2.fit(train_pool, eval_set=test_pool)
+    pred2 = model2.predict(test_pool, prediction_type='RawFormulaVal')
+
+    for p1, p2 in zip(pred1, pred2):
+        assert (abs(p1 - p2) < EPS).all()
+
+
 def test_pool_after_fit(task_type):
     pool1 = Pool(TRAIN_FILE, column_description=CD_FILE)
     pool2 = Pool(TRAIN_FILE, column_description=CD_FILE)
@@ -2280,13 +2331,128 @@ def test_ignored_features_names(task_type):
     return compare_canonical_models(output_model_path)
 
 
-def test_class_weights(task_type):
+def test_class_weights_list_binclass(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, class_weights=[1, 2], task_type=task_type, devices='0')
     model.fit(pool)
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     model.save_model(output_model_path)
     return compare_canonical_models(output_model_path)
+
+
+@pytest.mark.parametrize(
+    'dict_type',
+    [dict, OrderedDict],
+    ids=['label_type=' + val for val in ['dict', 'OrderedDict']]
+)
+@pytest.mark.parametrize(
+    'label_type',
+    [int, str],
+    ids=['label_type=' + val for val in ['int', 'str']]
+)
+def test_class_weights_dict_binclass(dict_type, label_type):
+    if label_type is int:
+        uniq_labels = [0, 1]
+    elif label_type is str:
+        uniq_labels = ['a', 'b']
+
+    features, labels = generate_random_labeled_dataset(100, 5, uniq_labels)
+
+    class_weights_dict = dict_type(zip(uniq_labels, [0.5, 2.0]))
+
+    model_with_class_weights_as_list = CatBoostClassifier(
+        iterations=5,
+        class_names=class_weights_dict.keys(),
+        class_weights=class_weights_dict.values()
+    )
+    model_with_class_weights_as_list.fit(features, labels)
+
+    model_with_class_weights_as_dict = CatBoostClassifier(
+        iterations=5,
+        class_weights=class_weights_dict
+    )
+    model_with_class_weights_as_dict.fit(features, labels)
+
+    assert model_with_class_weights_as_list == model_with_class_weights_as_dict
+
+
+@pytest.mark.parametrize(
+    'label_type',
+    [int, str],
+    ids=['label_type=' + val for val in ['int', 'str']]
+)
+def test_bad_class_weights_dict_binclass(label_type):
+    if label_type is int:
+        uniq_labels = [0, 1, 2]
+    elif label_type is str:
+        uniq_labels = ['a', 'b', 'c']
+
+    features, labels = generate_random_labeled_dataset(100, 5, uniq_labels[:2])
+
+    model = CatBoostClassifier(
+        class_weights={uniq_labels[0]: 0.5, uniq_labels[1]: 2.0, uniq_labels[2]: 0.3}
+    )
+    with pytest.raises(CatBoostError):
+        model.fit(features, labels)
+
+
+@pytest.mark.parametrize(
+    'dict_type',
+    [dict, OrderedDict],
+    ids=['label_type=' + val for val in ['dict', 'OrderedDict']]
+)
+@pytest.mark.parametrize(
+    'label_type',
+    [int, str],
+    ids=['label_type=' + val for val in ['int', 'str']]
+)
+def test_class_weights_dict_multiclass(dict_type, label_type):
+    if label_type is int:
+        uniq_labels = [0, 1, 2, 3]
+    elif label_type is str:
+        uniq_labels = ['a', 'b', 'c', 'd']
+
+    features, labels = generate_random_labeled_dataset(100, 5, uniq_labels)
+
+    class_weights_dict = dict_type(zip(uniq_labels, [0.1, 2.0, 3.0, 0.4]))
+
+    model_with_class_weights_as_list = CatBoostClassifier(
+        loss_function='MultiClass',
+        iterations=5,
+        class_names=class_weights_dict.keys(),
+        class_weights=class_weights_dict.values()
+    )
+    model_with_class_weights_as_list.fit(features, labels)
+
+    model_with_class_weights_as_dict = CatBoostClassifier(
+        loss_function='MultiClass',
+        iterations=5,
+        class_weights=class_weights_dict
+    )
+    model_with_class_weights_as_dict.fit(features, labels)
+
+    assert model_with_class_weights_as_list == model_with_class_weights_as_dict
+
+
+@pytest.mark.parametrize(
+    'label_type',
+    [int, str],
+    ids=['label_type=' + val for val in ['int', 'str']]
+)
+def test_bad_class_weights_dict_multiclass(label_type):
+    if label_type is int:
+        uniq_labels = [0, 1, 2, 3]
+    elif label_type is str:
+        uniq_labels = ['a', 'b', 'c', 'd']
+
+    features, labels = generate_random_labeled_dataset(100, 5, uniq_labels)
+
+    model = CatBoostClassifier(
+        loss_function='MultiClass',
+        class_weights={uniq_labels[0]: 0.5, uniq_labels[1]: 2.0, uniq_labels[2]: 0.3}
+    )
+    with pytest.raises(CatBoostError):
+        model.fit(features, labels)
 
 
 def test_classification_ctr(task_type):
@@ -2579,6 +2745,12 @@ def test_cv_small_data():
         "verbose": False
     }
     cv(pool, params, fold_count=2)
+
+
+def test_cv_without_loss_function():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    with pytest.raises(CatBoostError, message="Parameter loss_function should be specified for cross-validation"):
+        cv(pool, {})
 
 
 def test_tune_hyperparams_small_data():
@@ -3003,6 +3175,21 @@ def test_feature_importance(task_type):
     return local_canonical_file(fimp_npy_path)
 
 
+def test_feature_importance_interaction_asymmetric_grow_policy():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(
+        iterations=5,
+        learning_rate=0.03,
+        max_ctr_complexity=3)
+    model.fit(pool)
+
+    fstr_symm = np.array(model.get_feature_importance(type='Interaction', data=pool))
+    model._convert_to_asymmetric_representation()
+    fstr_asymm = np.array(model.get_feature_importance(type='Interaction', data=pool))
+
+    assert np.all(fstr_symm - fstr_asymm < 1e-8)
+
+
 @pytest.mark.parametrize('grow_policy', NONSYMMETRIC)
 def test_feature_importance_asymmetric_prediction_value_change(task_type, grow_policy):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
@@ -3084,6 +3271,18 @@ def test_approximate_shap_feature_importance(task_type):
     return local_canonical_file(fimp_npy_path)
 
 
+def test_exact_shap_feature_importance(task_type):
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, max_ctr_complexity=1, task_type=task_type, devices='0')
+    model.fit(pool)
+    shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Exact")
+    assert np.allclose(model.predict(pool, prediction_type='RawFormulaVal'), np.sum(shaps, axis=1))
+
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.around(np.array(shaps), 9))
+    return local_canonical_file(fimp_npy_path)
+
+
 def test_shap_feature_importance_multiclass(task_type):
     pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass')
@@ -3100,6 +3299,16 @@ def test_approximate_shap_feature_importance_multiclass(task_type):
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
     np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool,
                                                                            shap_calc_type="Approximate")), 9))
+    return local_canonical_file(fimp_npy_path)
+
+
+def test_exact_shap_feature_importance_multiclass(task_type):
+    pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, task_type=task_type, devices='0', loss_function='MultiClass')
+    model.fit(pool)
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.around(np.array(model.get_feature_importance(type=EFstrType.ShapValues, data=pool,
+                                                                           shap_calc_type="Exact")), 9))
     return local_canonical_file(fimp_npy_path)
 
 
@@ -3139,6 +3348,29 @@ def test_approximate_shap_feature_importance_ranking(task_type):
     )
     model.fit(pool)
     shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Approximate")
+    assert np.allclose(model.predict(pool), np.sum(shaps, axis=1))
+
+    if task_type == 'GPU':
+        return pytest.xfail(reason="On GPU models with loss Pairlogit are too unstable. MLTOOLS-4722")
+    else:
+        fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+        np.save(fimp_npy_path, np.around(np.array(shaps), 9))
+        return local_canonical_file(fimp_npy_path)
+
+
+def test_exact_shap_feature_importance_ranking(task_type):
+    pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE, pairs=QUERYWISE_TRAIN_PAIRS_FILE)
+    model = CatBoost(
+        {
+            "iterations": 20,
+            "learning_rate": 0.03,
+            "task_type": task_type,
+            "devices": "0",
+            "loss_function": "PairLogit"
+        }
+    )
+    model.fit(pool)
+    shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Exact")
     assert np.allclose(model.predict(pool), np.sum(shaps, axis=1))
 
     if task_type == 'GPU':
@@ -3198,6 +3430,18 @@ def test_approximate_shap_feature_importance_with_langevin():
     model = CatBoostClassifier(iterations=5, learning_rate=0.03, depth=10, langevin=True, diffusion_temperature=1000)
     model.fit(pool)
     shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Approximate")
+    assert np.allclose(model.predict(pool, prediction_type='RawFormulaVal'), np.sum(shaps, axis=1))
+
+    fimp_npy_path = test_output_path(FIMP_NPY_PATH)
+    np.save(fimp_npy_path, np.around(np.array(shaps), 9))
+    return local_canonical_file(fimp_npy_path)
+
+
+def test_exact_shap_feature_importance_with_langevin():
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=5, learning_rate=0.03, depth=10, langevin=True, diffusion_temperature=1000)
+    model.fit(pool)
+    shaps = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, shap_calc_type="Exact")
     assert np.allclose(model.predict(pool, prediction_type='RawFormulaVal'), np.sum(shaps, axis=1))
 
     fimp_npy_path = test_output_path(FIMP_NPY_PATH)
@@ -3815,15 +4059,15 @@ def test_metadata():
     return compare_canonical_models(output_model_path)
 
 
-@pytest.mark.parametrize('metric', ['Logloss', 'RMSE'])
+@pytest.mark.parametrize('metric', ['Logloss', 'RMSE', 'PRAUC'])
 def test_util_eval_metric(metric):
-    metric_results = eval_metric([1, 0], [0.88, 0.22], metric)
+    metric_results = eval_metric([1, 0, 1, 1, 0, 1, 0, 0, 1, 1], [0.88, 0.22, 1.0, 0.6, 0.12, 0.1, 0.0, 0.5, 0.95, 0.8], metric)
     preds_path = test_output_path(PREDS_PATH)
     np.savetxt(preds_path, np.array(metric_results))
     return local_canonical_file(preds_path)
 
 
-@pytest.mark.parametrize('metric', ['MultiClass', 'AUC', 'AUC:type=OneVsAll', 'AUC:misclass_cost_matrix=0/1/0.33/0/0/0.239/-1/1.2/0'])
+@pytest.mark.parametrize('metric', ['MultiClass', 'AUC', 'AUC:type=OneVsAll', 'AUC:misclass_cost_matrix=0/1/0.33/0/0/0.239/-1/1.2/0', 'PRAUC', 'PRAUC:type=OneVsAll'])
 def test_util_eval_metric_multiclass(metric):
     metric_results = eval_metric([1, 0, 2], [[0.88, 0.22, 0.3], [0.21, 0.45, 0.1], [0.12, 0.32, 0.9]], metric)
     preds_path = test_output_path(PREDS_PATH)
@@ -6064,12 +6308,28 @@ def test_feature_statistics():
         return np.array([data[np.digitize(X[:, feature_num], res['borders']) == bin_num].mean()
                          for bin_num in range(len(res['borders']) + 1)])
 
+    def vary_feature(res, feature_num, bucket_num, X):
+        if bucket_num == 0:
+            bucket_value = np.min(X[:, feature_num])
+        elif bucket_num == len(res['borders']):
+            bucket_value = np.max(X[:, feature_num])
+        else:
+            bucket_value = np.mean(res['borders'][bucket_num-1:bucket_num+1])
+        return np.hstack((X[:, :feature_num], np.tile(bucket_value, (n_samples, 1)), X[:, feature_num + 1:]))
+
     assert(np.alltrue(np.array(res['binarized_feature']) == np.digitize(X[:, feature_num], res['borders'])))
     assert(res['objects_per_bin'].sum() == X.shape[0])
     assert(np.alltrue(np.unique(np.digitize(X[:, feature_num], res['borders']), return_counts=True)[1] ==
                       res['objects_per_bin']))
     assert(np.allclose(res['mean_prediction'],
                        mean_per_bin(res, feature_num, model.predict(X)),
+                       atol=1e-4))
+    assert(np.allclose(res['mean_target'],
+                       mean_per_bin(res, feature_num, y),
+                       atol=1e-4))
+    assert(np.allclose(res['predictions_on_varying_feature'],
+                       list(np.mean(model.predict(vary_feature(res, feature_num, bucket_num, X)))
+                            for bucket_num in range(len(res['borders']) + 1)),
                        atol=1e-4))
 
 
@@ -6604,30 +6864,184 @@ def test_quantized_pool_with_all_features_ignored():
         CatBoostClassifier(ignored_features=list(range(100))).fit(quantized_pool)
 
 
-def test_pool_quantize():
-    train_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
-    test_pool = Pool(QUERYWISE_TEST_FILE, column_description=QUERYWISE_CD_FILE)
-    train_quantized_pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
+@pytest.fixture(params=[
+    ('higgs', HIGGS_TRAIN_FILE, HIGGS_TEST_FILE, HIGGS_CD_FILE, 'Logloss'),
+    ('querywise', QUERYWISE_TRAIN_FILE, QUERYWISE_TEST_FILE, QUERYWISE_CD_FILE, 'RMSE'),
+], ids=[
+    'higgs',
+    'querywise'
+])
+def train_on_raw_and_quantized_data_params_fixture(request):
+    pool_name, train_pool_file, test_pool_file, column_description, loss_function = request.param
+    borders_file = test_output_path('{}_borders.dat'.format(pool_name))
+    train_pool = Pool(train_pool_file, column_description=column_description)
+    test_pool = Pool(test_pool_file, column_description=column_description)
+    train_quantized_pool = Pool(train_pool_file, column_description=column_description)
+    test_quantized_pool = Pool(test_pool_file, column_description=column_description)
     params = {
         'task_type': 'CPU',
-        'loss_function': 'RMSE',
+        'loss_function': loss_function,
         'iterations': 5,
         'depth': 4,
     }
+
     train_quantized_pool.quantize()
+    train_quantized_pool.save_quantization_borders(borders_file)
+    test_quantized_pool.quantize(input_borders=borders_file)
 
     assert(train_quantized_pool.is_quantized())
+    assert(test_quantized_pool.is_quantized())
+
+    return {
+        'train_pool': train_pool,
+        'test_pool': test_pool,
+        'train_quantized_pool': train_quantized_pool,
+        'test_quantized_pool': test_quantized_pool,
+        'loss_function': loss_function,
+        'params': params,
+    }
+
+
+@pytest.fixture()
+def models_trained_on_raw_and_quantized_data_fixture(train_on_raw_and_quantized_data_params_fixture):
+    train_pool = train_on_raw_and_quantized_data_params_fixture['train_pool']
+    test_pool = train_on_raw_and_quantized_data_params_fixture['test_pool']
+    train_quantized_pool = train_on_raw_and_quantized_data_params_fixture['train_quantized_pool']
+    test_quantized_pool = train_on_raw_and_quantized_data_params_fixture['test_quantized_pool']
+    loss_function = train_on_raw_and_quantized_data_params_fixture['loss_function']
+    params = train_on_raw_and_quantized_data_params_fixture['params']
 
     model = CatBoost(params=params)
     model_fitted_with_quantized_pool = CatBoost(params=params)
 
     model.fit(train_pool)
-    predictions1 = model.predict(test_pool)
-
     model_fitted_with_quantized_pool.fit(train_quantized_pool)
-    predictions2 = model_fitted_with_quantized_pool.predict(test_pool)
 
-    assert all(predictions1 == predictions2)
+    return {
+        'train_pool': train_pool,
+        'test_pool': test_pool,
+        'train_quantized_pool': train_quantized_pool,
+        'test_quantized_pool': test_quantized_pool,
+        'model': model,
+        'model_fitted_with_quantized_pool': model_fitted_with_quantized_pool,
+        'loss_function': loss_function,
+    }
+
+
+def test_quantized_pool_cv(train_on_raw_and_quantized_data_params_fixture):
+    train_pool = train_on_raw_and_quantized_data_params_fixture['train_pool']
+    train_quantized_pool = train_on_raw_and_quantized_data_params_fixture['train_quantized_pool']
+    params = train_on_raw_and_quantized_data_params_fixture['params']
+
+    results = cv(train_pool, params)
+    results_with_quantized_pool = cv(train_quantized_pool, params)
+    assert results.equals(results_with_quantized_pool)
+
+
+def test_quantized_pool_train_predict(train_on_raw_and_quantized_data_params_fixture):
+    train_pool = train_on_raw_and_quantized_data_params_fixture['train_pool']
+    test_pool = train_on_raw_and_quantized_data_params_fixture['test_pool']
+    train_quantized_pool = train_on_raw_and_quantized_data_params_fixture['train_quantized_pool']
+    test_quantized_pool = train_on_raw_and_quantized_data_params_fixture['test_quantized_pool']
+    params = train_on_raw_and_quantized_data_params_fixture['params']
+
+    model = train(train_pool, params=params)
+    model_fitted_with_quantized_pool = train(train_quantized_pool, params=params)
+
+    predictions = model.predict(test_pool)
+    predictions_with_quantized_pool = model_fitted_with_quantized_pool.predict(test_quantized_pool)
+    assert np.all(predictions == predictions_with_quantized_pool)
+
+
+def test_quantized_pool_predict(models_trained_on_raw_and_quantized_data_fixture):
+    test_pool = models_trained_on_raw_and_quantized_data_fixture['test_pool']
+    test_quantized_pool = models_trained_on_raw_and_quantized_data_fixture['test_quantized_pool']
+    model = models_trained_on_raw_and_quantized_data_fixture['model']
+    model_fitted_with_quantized_pool = models_trained_on_raw_and_quantized_data_fixture['model_fitted_with_quantized_pool']
+
+    predictions = model.predict(test_pool)
+    predictions_with_quantized_pool = model_fitted_with_quantized_pool.predict(test_quantized_pool)
+    assert np.all(predictions == predictions_with_quantized_pool)
+
+
+@pytest.mark.parametrize('pool_type', ['train', 'test'])
+def test_quantized_pool_calc_feature_statistics(models_trained_on_raw_and_quantized_data_fixture, pool_type):
+    pool = models_trained_on_raw_and_quantized_data_fixture[pool_type + '_pool']
+    quantized_pool = models_trained_on_raw_and_quantized_data_fixture[pool_type + '_quantized_pool']
+    model = models_trained_on_raw_and_quantized_data_fixture['model']
+    model_fitted_with_quantized_pool = models_trained_on_raw_and_quantized_data_fixture['model_fitted_with_quantized_pool']
+
+    class NumpyEncoder(json.JSONEncoder):
+        def default(self, obj):
+            if isinstance(obj, np.ndarray):
+                return obj.tolist()
+            return json.JSONEncoder.default(self, obj)
+
+    def serialize_feature_statistics(stats):
+        return json.dumps(stats, cls=NumpyEncoder, sort_keys=True)
+
+    stats = model.calc_feature_statistics(pool, plot=False)
+    stats_with_quantized_pool = model_fitted_with_quantized_pool.calc_feature_statistics(quantized_pool, plot=False)
+    assert serialize_feature_statistics(stats) == serialize_feature_statistics(stats_with_quantized_pool)
+
+
+@pytest.mark.parametrize('pool_type', ['train', 'test'])
+def test_quantized_pool_eval_metrics(models_trained_on_raw_and_quantized_data_fixture, pool_type):
+    pool = models_trained_on_raw_and_quantized_data_fixture[pool_type + '_pool']
+    quantized_pool = models_trained_on_raw_and_quantized_data_fixture[pool_type + '_quantized_pool']
+    model = models_trained_on_raw_and_quantized_data_fixture['model']
+    model_fitted_with_quantized_pool = models_trained_on_raw_and_quantized_data_fixture['model_fitted_with_quantized_pool']
+    loss_function = models_trained_on_raw_and_quantized_data_fixture['loss_function']
+
+    metrics = model.eval_metrics(pool, metrics=[loss_function])
+    metrics_with_quantized_pool = model_fitted_with_quantized_pool.eval_metrics(quantized_pool, metrics=[loss_function])
+    assert metrics == metrics_with_quantized_pool
+
+
+@pytest.mark.parametrize('pool_type', ['train', 'test'])
+@pytest.mark.parametrize('fstr_type', [
+    EFstrType.PredictionValuesChange,
+    EFstrType.FeatureImportance,
+    EFstrType.ShapValues,
+    EFstrType.ShapInteractionValues,
+    EFstrType.Interaction
+])
+def test_quantized_pool_get_feature_importance(models_trained_on_raw_and_quantized_data_fixture, pool_type, fstr_type):
+    pool = models_trained_on_raw_and_quantized_data_fixture[pool_type + '_pool']
+    quantized_pool = models_trained_on_raw_and_quantized_data_fixture[pool_type + '_quantized_pool']
+    model = models_trained_on_raw_and_quantized_data_fixture['model']
+    model_fitted_with_quantized_pool = models_trained_on_raw_and_quantized_data_fixture['model_fitted_with_quantized_pool']
+
+    fstr = model.get_feature_importance(data=pool, type=fstr_type)
+    fstr_with_quantized_pool = \
+        model_fitted_with_quantized_pool.get_feature_importance(data=quantized_pool, type=fstr_type)
+    assert np.all(fstr == fstr_with_quantized_pool)
+
+
+def test_quantized_pool_get_object_importance(models_trained_on_raw_and_quantized_data_fixture):
+    train_pool = models_trained_on_raw_and_quantized_data_fixture['train_pool']
+    test_pool = models_trained_on_raw_and_quantized_data_fixture['test_pool']
+    train_quantized_pool = models_trained_on_raw_and_quantized_data_fixture['train_quantized_pool']
+    test_quantized_pool = models_trained_on_raw_and_quantized_data_fixture['test_quantized_pool']
+    model = models_trained_on_raw_and_quantized_data_fixture['model']
+    model_fitted_with_quantized_pool = models_trained_on_raw_and_quantized_data_fixture['model_fitted_with_quantized_pool']
+
+    importance = model.get_object_importance(test_pool, train_pool)
+    importance_with_quantized_pool = \
+        model_fitted_with_quantized_pool.get_object_importance(test_quantized_pool, train_quantized_pool)
+    assert np.all(np.array(importance) == np.array(importance_with_quantized_pool))
+
+
+@pytest.mark.parametrize('pool_type', ['train', 'test'])
+def test_quantized_pool_select_threshold(models_trained_on_raw_and_quantized_data_fixture, pool_type):
+    pool = models_trained_on_raw_and_quantized_data_fixture[pool_type + '_pool']
+    quantized_pool = models_trained_on_raw_and_quantized_data_fixture[pool_type + '_quantized_pool']
+    model = models_trained_on_raw_and_quantized_data_fixture['model']
+    model_fitted_with_quantized_pool = models_trained_on_raw_and_quantized_data_fixture['model_fitted_with_quantized_pool']
+
+    threshold = select_threshold(model, pool)
+    threshold_with_quantized_pool = select_threshold(model_fitted_with_quantized_pool, quantized_pool)
+    assert threshold == threshold_with_quantized_pool
 
 
 def test_save_quantized_pool():
@@ -7037,6 +7451,97 @@ def test_different_formats_of_monotone_constraints(model_shrink_rate):
         model2.fit(train_pool)
         predictions2 = model2.predict(test_pool)
         assert all(predictions1 == predictions2)
+
+
+def test_different_formats_of_monotone_constraints_in_different_modes():
+    from catboost.datasets import monotonic2, set_cache_path
+    set_cache_path(test_output_path())  # specify cache dir to fix potential data race while downloading dataset
+    monotonic2_train, monotonic2_test = monotonic2()
+    X_train, y_train = monotonic2_train.drop(columns=['Target']), monotonic2_train['Target']
+    feature_names = list(X_train.columns)
+    train_pool = Pool(data=X_train, label=y_train, feature_names=feature_names)
+
+    monotone_constraints_array = np.array([-1, 1, 1, -1])
+    monotone_constraints_list = [-1, 1, 1, -1]
+    monotone_constraints_dict_1 = {0: -1, 1: 1, 2: 1, 3: -1}
+    monotone_constraints_dict_2 = {'MonotonicNeg0': -1, 'MonotonicPos0': 1, 'MonotonicPos1': 1, 'MonotonicNeg1': -1}
+    monotone_constraints_string_1 = "(-1,1,1,-1)"
+    monotone_constraints_string_2 = "0:-1,1:1,2:1,3:-1"
+    monotone_constraints_string_3 = "MonotonicNeg0:-1,MonotonicPos0:1,MonotonicPos1:1,MonotonicNeg1:-1"
+
+    common_options = dict(iterations=5, loss_function='RMSE')
+
+    for monotone_constraints in [
+        monotone_constraints_array,
+        monotone_constraints_list,
+        monotone_constraints_dict_1,
+        monotone_constraints_dict_2,
+        monotone_constraints_string_1,
+        monotone_constraints_string_2,
+        monotone_constraints_string_3
+    ]:
+        # grid search
+        model = CatBoost(dict(common_options, **{'monotone_constraints': monotone_constraints}))
+        max_depth_list = [4, 5]
+        model.grid_search(
+            {
+                'max_depth': max_depth_list,
+            },
+            train_pool,
+        )
+        # random search
+        model = CatBoost(dict(common_options, **{'monotone_constraints': monotone_constraints}))
+        model.randomized_search(
+            {
+                'max_depth': max_depth_list,
+            },
+            train_pool,
+            n_iter=1,
+        )
+        # cv
+        cv(train_pool, params=dict(common_options, **{'monotone_constraints': monotone_constraints}))
+
+    wrong_monotone_constraints_array = np.array([-1, 2, 1, -1])
+    wrong_monotone_constraints_list = [-1, 2, 1, -1]
+    wrong_monotone_constraints_dict_1 = {0: -1, 1: 2, 2: 1, 3: -1}
+    wrong_monotone_constraints_dict_2 = {'MonotonicNeg0': -1, 'MonotonicPos0': 2, 'MonotonicPos1': 1, 'MonotonicNeg1': -1}
+    wrong_monotone_constraints_string_1 = "(-1,2,1,-1)"
+    wrong_monotone_constraints_string_2 = "0:-1,1:2,2:1,3:-1"
+    wrong_monotone_constraints_string_3 = "MonotonicNeg0:-1,MonotonicPos0:2,MonotonicPos1:1,MonotonicNeg1:-1"
+
+    for monotone_constraints in [
+        wrong_monotone_constraints_array,
+        wrong_monotone_constraints_list,
+        wrong_monotone_constraints_dict_1,
+        wrong_monotone_constraints_dict_2,
+        wrong_monotone_constraints_string_1,
+        wrong_monotone_constraints_string_2,
+        wrong_monotone_constraints_string_3
+    ]:
+        with pytest.raises(CatBoostError):
+            model = CatBoostRegressor(monotone_constraints=monotone_constraints, **common_options)
+            model.fit(train_pool)
+        with pytest.raises(CatBoostError):
+            model = CatBoost({"monotone_constraints": monotone_constraints})
+            iterations_list = [5, 10]
+            model.grid_search(
+                {
+                    'iterations': iterations_list,
+                },
+                train_pool,
+            )
+        with pytest.raises(CatBoostError):
+            model = CatBoost({"monotone_constraints": monotone_constraints})
+            iterations_list = [5, 10]
+            model.randomized_search(
+                {
+                    'iterations': iterations_list,
+                },
+                train_pool,
+                n_iter=1,
+            )
+        with pytest.raises(CatBoostError):
+            cv(train_pool, params=dict(common_options, **{'monotone_constraints': monotone_constraints}))
 
 
 def test_same_values_with_different_types(task_type):
@@ -7550,7 +8055,7 @@ def test_different_formats_of_feature_weights():
     feature_weights_string_2 = "3:0.1,7:2"
     feature_weights_string_3 = "DepTime:0.1,Distance:2"
 
-    common_options = dict(iterations=50)
+    common_options = dict(iterations=50, loss_function='Logloss')
     model1 = CatBoostClassifier(feature_weights=feature_weights_array, **common_options)
     model1.fit(train_pool)
     predictions1 = model1.predict(test_pool)
@@ -7566,6 +8071,81 @@ def test_different_formats_of_feature_weights():
         model2.fit(train_pool)
         predictions2 = model2.predict(test_pool)
         assert all(predictions1 == predictions2)
+
+    # check that it works not only in fit mode
+    for first_feature_use_penalties in [
+        feature_weights_array,
+        feature_weights_list,
+        feature_weights_dict_1,
+        feature_weights_dict_2,
+        feature_weights_string_1,
+        feature_weights_string_2,
+        feature_weights_string_3
+    ]:
+        # grid search
+        model = CatBoost({"feature_weights": feature_weights})
+        iterations_list = [5, 10]
+        model.grid_search(
+            {
+                'iterations': iterations_list,
+            },
+            train_pool,
+        )
+        # random search
+        model = CatBoost({"feature_weights": feature_weights})
+        iterations_list = [5, 10]
+        model.randomized_search(
+            {
+                'iterations': iterations_list,
+            },
+            train_pool,
+            n_iter=1,
+        )
+        # cv
+        cv(train_pool, params=dict(common_options, **{'feature_weights': feature_weights}))
+
+    # check that negative values are not accepted
+    wrong_feature_weights_array = np.array([1, 1, 1, 0.1, 1, 1, 1, -2])
+    wrong_feature_weights_list = [1, 1, 1, 0.1, 1, 1, 1, -2]
+    wrong_feature_weights_dict_1 = {3: 0.1, 7: -2}
+    wrong_feature_weights_dict_2 = {'DepTime': 0.1, 'Distance': -2}
+    wrong_feature_weights_string_1 = "(1,1,1,0.1,1,1,1,-2)"
+    wrong_feature_weights_string_2 = "3:0.1,7:-2"
+    wrong_feature_weights_string_3 = "DepTime:0.1,Distance:-2"
+
+    for feature_weights in [
+        wrong_feature_weights_array,
+        wrong_feature_weights_list,
+        wrong_feature_weights_dict_1,
+        wrong_feature_weights_dict_2,
+        wrong_feature_weights_string_1,
+        wrong_feature_weights_string_2,
+        wrong_feature_weights_string_3
+    ]:
+        with pytest.raises(CatBoostError):
+            model = CatBoostClassifier(feature_weights=feature_weights, **common_options)
+            model.fit(train_pool)
+        with pytest.raises(CatBoostError):
+            model = CatBoost({"feature_weights": feature_weights})
+            iterations_list = [5, 10]
+            model.grid_search(
+                {
+                    'iterations': iterations_list,
+                },
+                train_pool,
+            )
+        with pytest.raises(CatBoostError):
+            model = CatBoost({"feature_weights": feature_weights})
+            iterations_list = [5, 10]
+            model.randomized_search(
+                {
+                    'iterations': iterations_list,
+                },
+                train_pool,
+                n_iter=1,
+            )
+        with pytest.raises(CatBoostError):
+            cv(train_pool, params=dict(common_options, **{'feature_weights': feature_weights}))
 
 
 def test_first_feature_use_penalties_work():
@@ -7611,7 +8191,7 @@ def test_different_formats_of_first_feature_use_penalties():
     first_feature_use_penalties_string_2 = "3:10,7:2"
     first_feature_use_penalties_string_3 = "DepTime:10,Distance:2"
 
-    common_options = dict(iterations=50)
+    common_options = dict(iterations=50, loss_function='Logloss')
     model1 = CatBoostClassifier(first_feature_use_penalties=first_feature_use_penalties_array, **common_options)
     model1.fit(train_pool)
     predictions1 = model1.predict(test_pool)
@@ -7627,6 +8207,80 @@ def test_different_formats_of_first_feature_use_penalties():
         model2.fit(train_pool)
         predictions2 = model2.predict(test_pool)
         assert all(predictions1 == predictions2)
+
+    # check that it works not only in fit mode
+    for first_feature_use_penalties in [
+        first_feature_use_penalties_array,
+        first_feature_use_penalties_list,
+        first_feature_use_penalties_dict_1,
+        first_feature_use_penalties_dict_2,
+        first_feature_use_penalties_string_1,
+        first_feature_use_penalties_string_2,
+        first_feature_use_penalties_string_3
+    ]:
+        # grid search
+        model = CatBoost({"first_feature_use_penalties": first_feature_use_penalties})
+        iterations_list = [5, 10]
+        model.grid_search(
+            {
+                'iterations': iterations_list,
+            },
+            train_pool,
+        )
+        # random search
+        model = CatBoost({"first_feature_use_penalties": first_feature_use_penalties})
+        iterations_list = [5, 10]
+        model.randomized_search(
+            {
+                'iterations': iterations_list,
+            },
+            train_pool,
+            n_iter=1,
+        )
+        # cv
+        cv(train_pool, params=dict(common_options, **{'first_feature_use_penalties': first_feature_use_penalties}))
+
+    # check that negative values are not accepted
+    wrong_first_feature_use_penalties_array = np.array([0, 0, 0, 10, 0, 0, 0, -2])
+    wrong_first_feature_use_penalties_list = [0, 0, 0, 10, 0, 0, 0, -2]
+    wrong_first_feature_use_penalties_dict_1 = {3: 10, 7: -2}
+    wrong_first_feature_use_penalties_dict_2 = {'DepTime': 10, 'Distance': -2}
+    wrong_first_feature_use_penalties_string_1 = "(0,0,0,10,0,0,0,-2)"
+    wrong_first_feature_use_penalties_string_2 = "3:10,7:-2"
+    wrong_first_feature_use_penalties_string_3 = "DepTime:10,Distance:-2"
+    for first_feature_use_penalties in [
+        wrong_first_feature_use_penalties_array,
+        wrong_first_feature_use_penalties_list,
+        wrong_first_feature_use_penalties_dict_1,
+        wrong_first_feature_use_penalties_dict_2,
+        wrong_first_feature_use_penalties_string_1,
+        wrong_first_feature_use_penalties_string_2,
+        wrong_first_feature_use_penalties_string_3
+    ]:
+        with pytest.raises(CatBoostError):
+            model = CatBoostClassifier(first_feature_use_penalties=first_feature_use_penalties, **common_options)
+            model.fit(train_pool)
+        with pytest.raises(CatBoostError):
+            model = CatBoost({"first_feature_use_penalties": first_feature_use_penalties})
+            iterations_list = [5, 10]
+            model.grid_search(
+                {
+                    'iterations': iterations_list,
+                },
+                train_pool,
+            )
+        with pytest.raises(CatBoostError):
+            model = CatBoost({"first_feature_use_penalties": first_feature_use_penalties})
+            iterations_list = [5, 10]
+            model.randomized_search(
+                {
+                    'iterations': iterations_list,
+                },
+                train_pool,
+                n_iter=1,
+            )
+        with pytest.raises(CatBoostError):
+            cv(train_pool, params=dict(common_options, **{'first_feature_use_penalties': first_feature_use_penalties}))
 
 
 def test_penalties_coefficient_work():
@@ -7658,6 +8312,79 @@ def test_penalties_coefficient_work():
 
     assert any(model_without_feature_penalties.predict_proba(pool)[0] == model_with_zero_feature_penalties.predict_proba(pool)[0])
     assert any(model_without_feature_penalties.predict_proba(pool)[0] != model_with_feature_penalties.predict_proba(pool)[0])
+
+
+@pytest.mark.parametrize('features', [[5, 7], [5]])
+def test_partial_dependence(features):
+    pool_file = 'higgs'
+    pool = Pool(data_file(pool_file, 'train_small'), column_description=data_file(pool_file, 'train.cd'))
+    model = CatBoostClassifier(iterations=100, learning_rate=0.03, max_ctr_complexity=1, devices='0')
+    model.fit(pool)
+    fimp_txt_path = test_output_path(FIMP_TXT_PATH)
+    np.savetxt(fimp_txt_path, np.around(np.array(model.plot_partial_dependence(pool, features, plot=False)[0]).flatten(), 8))
+    return local_canonical_file(fimp_txt_path)
+
+
+@pytest.mark.parametrize('grow_policy', ['SymmetricTree', 'Depthwise', 'Lossguide'])
+def test_per_object_feature_penalties_work(grow_policy):
+    pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    most_important_feature_index = 3
+    classifier_params = {
+        'iterations': 5,
+        'learning_rate': 0.03,
+        'task_type': 'CPU',
+        'loss_function': 'MultiClass',
+        'grow_policy': grow_policy,
+    }
+
+    model_without_feature_penalties = CatBoostClassifier(**classifier_params)
+    model_without_feature_penalties.fit(pool)
+    importance_without_feature_penalties = model_without_feature_penalties.get_feature_importance(
+        type=EFstrType.PredictionValuesChange,
+        data=pool
+    )[most_important_feature_index]
+
+    model_with_feature_penalties = CatBoostClassifier(
+        per_object_feature_penalties={most_important_feature_index: 100},
+        **classifier_params
+    )
+    model_with_feature_penalties.fit(pool)
+    importance_with_feature_penalties = model_with_feature_penalties.get_feature_importance(
+        type=EFstrType.PredictionValuesChange,
+        data=pool
+    )[most_important_feature_index]
+
+    assert importance_with_feature_penalties < importance_without_feature_penalties
+
+
+def test_different_formats_of_per_object_feature_penalties():
+    train_pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+    test_pool = Pool(AIRLINES_5K_TEST_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
+
+    per_row_feature_penalties_array = np.array([0, 0, 0, 10, 0, 0, 0, 2])
+    per_row_feature_penalties_list = [0, 0, 0, 10, 0, 0, 0, 2]
+    per_row_feature_penalties_dict_1 = {3: 10, 7: 2}
+    per_row_feature_penalties_dict_2 = {'DepTime': 10, 'Distance': 2}
+    per_row_feature_penalties_string_1 = "(0,0,0,10,0,0,0,2)"
+    per_row_feature_penalties_string_2 = "3:10,7:2"
+    per_row_feature_penalties_string_3 = "DepTime:10,Distance:2"
+
+    common_options = dict(iterations=10)
+    model1 = CatBoostClassifier(per_object_feature_penalties=per_row_feature_penalties_array, **common_options)
+    model1.fit(train_pool)
+    predictions1 = model1.predict(test_pool)
+    for per_row_feature_penalties in [
+        per_row_feature_penalties_list,
+        per_row_feature_penalties_dict_1,
+        per_row_feature_penalties_dict_2,
+        per_row_feature_penalties_string_1,
+        per_row_feature_penalties_string_2,
+        per_row_feature_penalties_string_3
+    ]:
+        model2 = CatBoostClassifier(per_object_feature_penalties=per_row_feature_penalties, **common_options)
+        model2.fit(train_pool)
+        predictions2 = model2.predict(test_pool)
+        assert all(predictions1 == predictions2)
 
 
 LOAD_AND_QUANTIZE_TEST_PARAMS = {
@@ -7717,7 +8444,20 @@ LOAD_AND_QUANTIZE_TEST_PARAMS = {
         {'input_borders': QUERYWISE_QUANTIZATION_BORDERS_EXAMPLE},  # quantize_params
         False,  # subset_quantization_differs
     ),
-    # TODO(vetaleha): test for non-default nan_mode parameter
+    'float_with_nan_mode_max': (
+        FLOAT_WITH_NAN_FILE,
+        None,  # column_description
+        {},  # load_params
+        {'nan_mode': 'Max'},  # quantize_params
+        True,  # subset_quantization_differs
+    ),
+    'higgs_5K_without_params': (
+        HIGGS_5K_TRAIN_FILE,
+        HIGGS_CD_FILE,
+        {},  # load_params
+        {},  # quantize_params
+        True,  # subset_quantization_differs
+    ),
 }
 
 
@@ -7780,3 +8520,33 @@ def test_quantize_unknown_param():
     pool = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
     with pytest.raises(CatBoostError):
         pool.quantize(this_param_is_unknown=123)
+
+
+def test_iterate_leaf_indexes():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=2, learning_rate=.05, objective='Logloss')
+    model.fit(train_pool)
+    for _ in model.iterate_leaf_indexes(train_pool):
+        pass
+
+
+def test_plot_tree():
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model = CatBoostClassifier(iterations=2, learning_rate=.05, objective='Logloss')
+    model.fit(train_pool)
+    model.plot_tree(0)
+
+
+@pytest.mark.parametrize('params', [{},
+                                    {'verbose': True},
+                                    {'verbose': False},
+                                    {'logging_level': 'Silent'},
+                                    {'logging_level': 'Verbose'},
+                                    {'metric_period': 5}])
+def test_same_params(params):
+    train_pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    model_path = test_output_path('model.bin')
+    params['iterations'] = 10
+    params['loss_function'] = 'Logloss'
+    CatBoost(params).fit(train_pool).save_model(model_path)
+    assert CatBoost().load_model(model_path).get_params() == params
