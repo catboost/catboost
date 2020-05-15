@@ -1,3 +1,29 @@
+# Release 0.23.1
+
+## New functionality
+* CatBoost model could be simply converted into ONNX object in Python with `catboost.utils.convert_to_onnx_object` method. Implemented by @monkey0head
+* We now print metric options with metric names as metric description in error logs by default. This allows you to distinguish between metrics of the same type with different parameters. For example, if user sets weigheted average `TotalF1` metric CatBoost will print `TotalF1:average=Weighted` as corresponding metric column header in error logs. Implemented by @ivanychev
+* Implemented PRAUC metric (issue  #737). Thanks @azikmsu
+* It's now possible to write custom multiregression objective in Python. Thanks @azikmsu
+* Supported nonsymmetric models export to PMML
+* `class_weights` parameter accepts dictionary with class name to class weight mapping
+* Added `_get_tags()` method for compatibility with sklearn (issue #1282). Implemented by @crazyleg
+* Lot's of improvements in .Net CatBoost library: implemented IDisposable interface, splitted ML.NET compatible and basic prediction classes in separate libraries, added base UNIX compatibility, supported GPU model evaluation, fixed tests. Thanks @khanova
+* In addition to first_feature_use_penalties presented in the previous release, we added new option per_object_feature_penalties which considers feature usage on each object individually. For more details refer the [tutorial](https://github.com/catboost/catboost/blob/master/catboost/tutorials/feature_penalties/feature_penalties.ipynb).
+
+## Breaking changes
+* From now on we require explicit `loss_function` param in python `cv` method.
+
+## Bugfixes:
+* Fixed deprecation warning on import (issue #1269)
+* Fixed saved models logging_level/verbose parameters conflict (issue #696)
+* Fixed kappa metric - in some cases there were integer overflow, switched accumulation types to double
+* Fixed per float feature quantization settings defaults
+
+## Educational materials
+* Extended shap values [tutorial](https://github.com/catboost/tutorials/blob/master/model_analysis/shap_values_tutorial.ipynb) with summary plot examples. Thanks @azanovivan02
+
+
 # Release 0.23
 
 ## New functionality
@@ -9,10 +35,10 @@ This can be accomplished by storing only quantized data in memory (it is many ti
 Use saved borders when quantizing other Pools by specifying `input_borders` parameter of the `quantize` method.
 Implemented by @noxwell.
 * Text features are supported on CPU
-* It is now possible to set `border_count` > 255 for GPU training. This might be useful if you have a "golden feature", see [docs](https://catboost.ai/docs/concepts/parameter-tuning.html#golden-features). 
+* It is now possible to set `border_count` > 255 for GPU training. This might be useful if you have a "golden feature", see [docs](https://catboost.ai/docs/concepts/parameter-tuning.html#golden-features).
 * Feature weights are implemented.
 Specify weights for specific features by index or name like `feature_weights="FeatureName1:1.5,FeatureName2:0.5"`.
-Scores for splits with this features will be multiplied by corresponding weights. 
+Scores for splits with this features will be multiplied by corresponding weights.
 Implemented by @Taube03.
 * Feature penalties can be used for cost efficient gradient boosting.
 Penalties are specified in a similar fashion to feature weights, using parameter `first_feature_use_penalties`.
@@ -94,7 +120,7 @@ The release also contains a list of bug fixes.
 - Target border and class weights are now taken from model when necessary for feature strength, metrics evaluation, roc_curve, object importances and calc_feature_statistics calculations.
 - Fixed that L2 regularization was not applied for non symmetric trees for binary classification on GPU.
 - [R-package] Fixed the bug that ``catboost.get_feature_importance`` did not work after model is loaded #1064
-- [R-package] Fixed the bug that ``catboost.train`` did not work when called with the single dataset parameter. #1162 
+- [R-package] Fixed the bug that ``catboost.train`` did not work when called with the single dataset parameter. #1162
 - Fixed L2 score calculation on CPU
 
 ##Other:
