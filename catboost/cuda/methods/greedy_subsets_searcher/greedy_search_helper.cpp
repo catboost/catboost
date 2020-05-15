@@ -264,6 +264,7 @@ namespace NCudaLib {
     REGISTER_KERNEL(0xA1BCA12, NKernelHost::TComputeTargetVarianceKernel);
     REGISTER_KERNEL(0xA1BCA13, NKernelHost::TComputeOptimalSplitLeafwiseKernel);
     REGISTER_KERNEL(0xA1BCA14, NKernelHost::TComputeOptimalSplitsLeafwiseKernel);
+    REGISTER_KERNEL(0xA1BCA15, NKernelHost::TComputeCurrentTreeScoreKernel);
 
 }
 
