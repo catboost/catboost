@@ -8314,6 +8314,17 @@ def test_penalties_coefficient_work():
     assert any(model_without_feature_penalties.predict_proba(pool)[0] != model_with_feature_penalties.predict_proba(pool)[0])
 
 
+@pytest.mark.parametrize('features', [[5, 7], [5]])
+def test_partial_dependence(features):
+    pool_file = 'higgs'
+    pool = Pool(data_file(pool_file, 'train_small'), column_description=data_file(pool_file, 'train.cd'))
+    model = CatBoostClassifier(iterations=100, learning_rate=0.03, max_ctr_complexity=1, devices='0')
+    model.fit(pool)
+    fimp_txt_path = test_output_path(FIMP_TXT_PATH)
+    np.savetxt(fimp_txt_path, np.around(np.array(model.plot_partial_dependence(pool, features, plot=False)[0]).flatten(), 8))
+    return local_canonical_file(fimp_txt_path)
+
+
 @pytest.mark.parametrize('grow_policy', ['SymmetricTree', 'Depthwise', 'Lossguide'])
 def test_per_object_feature_penalties_work(grow_policy):
     pool = Pool(AIRLINES_5K_TRAIN_FILE, column_description=AIRLINES_5K_CD_FILE, has_header=True)
