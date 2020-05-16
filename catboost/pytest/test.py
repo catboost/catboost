@@ -2557,18 +2557,18 @@ def do_test_fstr(
     output_fstr_path = yatest.common.test_output_path('fstr.tsv')
 
     cmd = (
-              '--use-best-model', 'false',
-              '--loss-function', loss_function,
-              '-f', input_path,
-              '--column-description', cd_path,
-              '--boosting-type', boosting_type,
-              '--grow-policy', grow_policy,
-              '-i', '10',
-              '-w', '0.03',
-              '-T', '4',
-              '--one-hot-max-size', '10',
-              '-m', model_path
-          ) + additional_train_params
+        '--use-best-model', 'false',
+        '--loss-function', loss_function,
+        '-f', input_path,
+        '--column-description', cd_path,
+        '--boosting-type', boosting_type,
+        '--grow-policy', grow_policy,
+        '-i', '10',
+        '-w', '0.03',
+        '-T', '4',
+        '--one-hot-max-size', '10',
+        '-m', model_path
+    ) + additional_train_params
     execute_catboost_fit('CPU', cmd)
 
     if fstr_type == 'PredictionDiff':
@@ -2698,15 +2698,15 @@ def test_fstr_feature_importance_default_value(boosting_type, ranking_parameters
     has_header_suffix = ('--has-header',) if pool == 'black_friday' else ()
 
     cmd = (
-              '--use-best-model', 'false',
-              '--learn-set', pool_path,
-              '--column-description', cd_path,
-              '-i', '10',
-              '-T', '4',
-              '--one-hot-max-size', '10',
-              '--model-file', model_path,
-              '--loss-function', ranking_parameters['loss-function']
-          ) + has_header_suffix
+        '--use-best-model', 'false',
+        '--learn-set', pool_path,
+        '--column-description', cd_path,
+        '-i', '10',
+        '-T', '4',
+        '--one-hot-max-size', '10',
+        '--model-file', model_path,
+        '--loss-function', ranking_parameters['loss-function']
+    ) + has_header_suffix
 
     if ranking_parameters['loss-function'] == 'Logloss':
         cmd += ('--target-border', '0.5')
@@ -2728,12 +2728,12 @@ def test_fstr_feature_importance_default_value(boosting_type, ranking_parameters
     assert filecmp.cmp(internal_fstr_path_0, internal_fstr_path_1)
 
     fstr_cmd = (
-                   CATBOOST_PATH,
-                   'fstr',
-                   '--input-path', pool_path,
-                   '--column-description', cd_path,
-                   '--model-file', model_path,
-               ) + has_header_suffix
+        CATBOOST_PATH,
+        'fstr',
+        '--input-path', pool_path,
+        '--column-description', cd_path,
+        '--model-file', model_path,
+    ) + has_header_suffix
 
     yatest.common.execute(
         fstr_cmd + ('--output-path', fstr_path_1,
@@ -5087,19 +5087,19 @@ def do_test_eval_metrics(metric, metric_period, train, test, cd, loss_function, 
     test_error_path = yatest.common.test_output_path('test_error.tsv')
     eval_path = yatest.common.test_output_path('output.tsv')
     cmd = (
-              '--loss-function', loss_function,
-              '--eval-metric', metric,
-              '-f', train,
-              '-t', test,
-              '--column-description', cd,
-              '-i', '10',
-              '-w', '0.03',
-              '-T', '4',
-              '-m', output_model_path,
-              '--test-err-log', test_error_path,
-              '--use-best-model', 'false',
-              '--metric-period', metric_period
-          ) + additional_train_params
+        '--loss-function', loss_function,
+        '--eval-metric', metric,
+        '-f', train,
+        '-t', test,
+        '--column-description', cd,
+        '-i', '10',
+        '-w', '0.03',
+        '-T', '4',
+        '-m', output_model_path,
+        '--test-err-log', test_error_path,
+        '--use-best-model', 'false',
+        '--metric-period', metric_period
+    ) + additional_train_params
     execute_catboost_fit('CPU', cmd)
 
     cmd = (
@@ -5634,16 +5634,16 @@ def do_test_object_importances(pool, loss_function, additional_train_params):
     output_model_path = yatest.common.test_output_path('model.bin')
     object_importances_path = yatest.common.test_output_path('object_importances.tsv')
     cmd = (
-              '--loss-function', loss_function,
-              '-f', data_file(pool, 'train_small'),
-              '-t', data_file(pool, 'test_small'),
-              '--column-description', data_file(pool, 'train.cd'),
-              '-i', '10',
-              '--boosting-type', 'Plain',
-              '-T', '4',
-              '-m', output_model_path,
-              '--use-best-model', 'false'
-          ) + additional_train_params
+        '--loss-function', loss_function,
+        '-f', data_file(pool, 'train_small'),
+        '-t', data_file(pool, 'test_small'),
+        '--column-description', data_file(pool, 'train.cd'),
+        '-i', '10',
+        '--boosting-type', 'Plain',
+        '-T', '4',
+        '-m', output_model_path,
+        '--use-best-model', 'false'
+    ) + additional_train_params
     execute_catboost_fit('CPU', cmd)
 
     cmd = (
@@ -5748,19 +5748,21 @@ def test_multiple_eval_sets_order_independent(boosting_type, num_tests):
     train_path = data_file('adult', 'train_small')
     cd_path = data_file('adult', 'train.cd')
     test_input_path = data_file('adult', 'test_small')
-    fit_stem = ('--loss-function', 'RMSE',
-                '-f', train_path,
-                '--cd', cd_path,
-                '--boosting-type', boosting_type,
-                '-i', '5',
-                '-T', '4',
-                '--use-best-model', 'false',
-                )
-    calc_stem = (CATBOOST_PATH, 'calc',
-                 '--cd', cd_path,
-                 '--input-path', test_input_path,
-                 '-T', '4',
-                 )
+    fit_stem = (
+        '--loss-function', 'RMSE',
+        '-f', train_path,
+        '--cd', cd_path,
+        '--boosting-type', boosting_type,
+        '-i', '5',
+        '-T', '4',
+        '--use-best-model', 'false',
+    )
+    calc_stem = (
+        CATBOOST_PATH, 'calc',
+        '--cd', cd_path,
+        '--input-path', test_input_path,
+        '-T', '4',
+    )
     # We use a few shuffles of tests and check equivalence of resulting models
     prng = np.random.RandomState(seed=20181219)
     test_shuffles = create_test_shuffles(split_test_to(num_tests, test_input_path), prng=prng)
@@ -6210,8 +6212,8 @@ def test_save_and_apply_multiclass_labels_from_classes_count(loss_function, pred
                     assert line[:-1] == 'SampleId\t{}:Class=0\t{}:Class=1\t{}:Class=2\t{}:Class=3' \
                         .format(prediction_type, prediction_type, prediction_type, prediction_type)
                 else:
-                    assert abs(float(line[:-1].split()[1])) < 1e-307 \
-                           and abs(float(line[:-1].split()[4])) < 1e-307  # fictitious probabilities must be virtually zero
+                    assert (abs(float(line[:-1].split()[1])) < 1e-307
+                            and abs(float(line[:-1].split()[4])) < 1e-307)  # fictitious probabilities must be virtually zero
 
     if prediction_type == 'Class':
         with open(eval_path, "rt") as f:
@@ -7117,7 +7119,7 @@ def test_group_weights_file_quantized():
             '-i', '5',
             '-T', '4',
             '--eval-file', eval_path,
-                  ]
+        ]
         if is_additional_query_weights:
             cmd += [
                 '--learn-group-weights', data_file('querywise', 'train.group_weights'),
@@ -8194,9 +8196,10 @@ def test_metric_description(dataset_has_weights, eval_metric_loss, eval_metric_u
                     expected_custom_metrics_descriptions = \
                         ['AUC' if custom_metric_use_weights is None else 'AUC:use_weights=' + str(custom_metric_use_weights)]
                 else:
-                    expected_custom_metrics_descriptions = \
-                        [custom_metric_loss + ':use_weights=False', custom_metric_loss + ':use_weights=True'] if custom_metric_use_weights is None \
-                            else [custom_metric_loss + ':use_weights=' + str(custom_metric_use_weights)]
+                    expected_custom_metrics_descriptions = (
+                        [custom_metric_loss + ':use_weights=False', custom_metric_loss + ':use_weights=True']
+                        if custom_metric_use_weights is None
+                        else [custom_metric_loss + ':use_weights=' + str(custom_metric_use_weights)])
             else:
                 expected_eval_metric_description = eval_metric_loss
                 expected_custom_metrics_descriptions = [custom_metric_loss]

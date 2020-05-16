@@ -1,4 +1,4 @@
-iter	PFound:decay=1.0;top=10
+iter	PFound:top=10;decay=1.0
 0	0.8867527234
 1	0.9025753398
 2	0.9025904645

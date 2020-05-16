@@ -19,14 +19,12 @@
     },
     "metrics" : {
         "objective_metric" : {
-            "params_ordered_keys" : [ ],
             "type" : "Logloss",
-            "params" : { }
+            "params" : [ ]
         },
         "eval_metric" : {
-            "params_ordered_keys" : [ ],
             "type" : "Logloss",
-            "params" : { }
+            "params" : [ ]
         },
         "custom_metrics" : [ ]
     },
@@ -225,9 +223,8 @@
         }
     },
     "loss_function" : {
-        "params_ordered_keys" : [ ],
         "type" : "Logloss",
-        "params" : { }
+        "params" : [ ]
     },
     "tree_learner_options" : {
         "model_size_reg" : 0.5,

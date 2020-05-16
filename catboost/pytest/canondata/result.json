@@ -6776,7 +6776,7 @@
         "uri": "file://test.test_output_columns_format/test.eval"
     },
     "test.test_output_options": {
-        "checksum": "792f07ca728491b906efbf7a8d154823",
+        "checksum": "623fc3807d369e0f8bbaf08d345a3456",
         "uri": "file://test.test_output_options/training_options.json"
     },
     "test.test_overfit_detector_inc_to_dec[Ordered-SymmetricTree]": [
@@ -8883,145 +8883,145 @@
     ],
     "test.test_stochastic_rank_pfound[0.0--1]": [
         {
-            "checksum": "c9d6b2dcc5492de636fe03420d7645bd",
+            "checksum": "50c5f17e064867ff40d9f274d6ed4876",
             "uri": "file://test.test_stochastic_rank_pfound_0.0--1_/learn_error.tsv"
         },
         {
-            "checksum": "0c770cb08731833af18c22f71379988d",
+            "checksum": "fb8441c4fe75953503c7083f40a005ec",
             "uri": "file://test.test_stochastic_rank_pfound_0.0--1_/test_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound[0.0-10]": [
         {
-            "checksum": "dde9ecfe479451570a3ae99b72f5892e",
+            "checksum": "c65c3dbd25fa91430e706ea3a28c77ac",
             "uri": "file://test.test_stochastic_rank_pfound_0.0-10_/learn_error.tsv"
         },
         {
-            "checksum": "7f67a0ba4c105a28d468ce528208ba77",
+            "checksum": "9edd2bbd1cea4a099c60821feab57eb6",
             "uri": "file://test.test_stochastic_rank_pfound_0.0-10_/test_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound[0.0-1]": [
         {
-            "checksum": "fad8d68a9651798094b7723da0d07ac3",
+            "checksum": "2440fcda0bb97c9078c83c577b60030a",
             "uri": "file://test.test_stochastic_rank_pfound_0.0-1_/learn_error.tsv"
         },
         {
-            "checksum": "5f6c466c5a6a39a7f600dc48f698e37a",
+            "checksum": "66a0ceb80502b76f5429c4d2067e5ec1",
             "uri": "file://test.test_stochastic_rank_pfound_0.0-1_/test_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound[0.6--1]": [
         {
-            "checksum": "d2e63f6bbabffed2bbcd1a32d7aeac21",
+            "checksum": "c7e4237c91cdbe0581bb328a8558d4ba",
             "uri": "file://test.test_stochastic_rank_pfound_0.6--1_/learn_error.tsv"
         },
         {
-            "checksum": "3f105a977cac43f698c7464e19c2b9df",
+            "checksum": "36fb292f57b52a5123f23b2af4945f76",
             "uri": "file://test.test_stochastic_rank_pfound_0.6--1_/test_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound[0.6-10]": [
         {
-            "checksum": "a3301896fc53251eb7652412716f56fc",
+            "checksum": "4d05dbecedbfd6219edb416b75007fc8",
             "uri": "file://test.test_stochastic_rank_pfound_0.6-10_/learn_error.tsv"
         },
         {
-            "checksum": "f53d8ca67a3e5353f5b9269d1ca6ebe0",
+            "checksum": "5c1d65a31c6edad314df59decd3064f3",
             "uri": "file://test.test_stochastic_rank_pfound_0.6-10_/test_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound[0.6-1]": [
         {
-            "checksum": "32045153d6f75c9ae1c19b068f9afa29",
+            "checksum": "b52c6f0b21ca9e62df947f68b5418653",
             "uri": "file://test.test_stochastic_rank_pfound_0.6-1_/learn_error.tsv"
         },
         {
-            "checksum": "f60fc8fadc11261e75b8206e808a7578",
+            "checksum": "62cd176bc45c0d58a3f5d6d9ca8ee3e5",
             "uri": "file://test.test_stochastic_rank_pfound_0.6-1_/test_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound[1.0--1]": [
         {
-            "checksum": "568b3c16b3c7a7d6fbe776f6ba178c8d",
+            "checksum": "004e3e6d8f63465e59c1af55c3cd90fd",
             "uri": "file://test.test_stochastic_rank_pfound_1.0--1_/learn_error.tsv"
         },
         {
-            "checksum": "5cc1428be9837335e0a3cdcdb5a0d9fa",
+            "checksum": "5065c7a782192610647afadb01d62347",
             "uri": "file://test.test_stochastic_rank_pfound_1.0--1_/test_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound[1.0-10]": [
         {
-            "checksum": "2309b990f2610c5c3697d8ba66bd22e0",
+            "checksum": "839eedaf128e781ac510ba66418f9efb",
             "uri": "file://test.test_stochastic_rank_pfound_1.0-10_/learn_error.tsv"
         },
         {
-            "checksum": "02144f672017385093f037a97fa70dc3",
+            "checksum": "396b460fbf0608209b41b0eb3ffcb655",
             "uri": "file://test.test_stochastic_rank_pfound_1.0-10_/test_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound[1.0-1]": [
         {
-            "checksum": "d09a83a23921175542bf498034fce8f4",
+            "checksum": "2a7f5994c583007dad62c48e03d564d9",
             "uri": "file://test.test_stochastic_rank_pfound_1.0-1_/learn_error.tsv"
         },
         {
-            "checksum": "42096671298ae3c97df076e1dcefdcbb",
+            "checksum": "42264b60a74e60f3bc79f0a6aaab5fc4",
             "uri": "file://test.test_stochastic_rank_pfound_1.0-1_/test_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound_with_many_ones[0.0--1]": [
         {
-            "checksum": "954a0ba5e48f45fc115663ffef4cce75",
+            "checksum": "bfae6f9dace7be513a36ecf1e9cfd0b3",
             "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.0--1_/learn_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound_with_many_ones[0.0-10]": [
         {
-            "checksum": "4fbcf09166f2e1e14ced1322bfbede6d",
+            "checksum": "a9403ff5c85d91dacb269aa09368a6f9",
             "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.0-10_/learn_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound_with_many_ones[0.0-1]": [
         {
-            "checksum": "6edbd2731a5c97a7d9301b80a7a0f364",
+            "checksum": "0bf9327d4cd587dfa0c62099f4df391d",
             "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.0-1_/learn_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound_with_many_ones[0.6--1]": [
         {
-            "checksum": "f87879304de96e0b0bc8cd689bfc751b",
+            "checksum": "c33e5e1f421e40cbb48983623effdb70",
             "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.6--1_/learn_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound_with_many_ones[0.6-10]": [
         {
-            "checksum": "aafe33270a9937a082ced825b533f9c8",
+            "checksum": "b622a6823810f7476b3d1af12b58cdea",
             "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.6-10_/learn_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound_with_many_ones[0.6-1]": [
         {
-            "checksum": "bdb6d59a526b9926df69095a8057ae35",
+            "checksum": "8a27d4a52b0e262d2c6817808ca1f080",
             "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_0.6-1_/learn_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound_with_many_ones[1.0--1]": [
         {
-            "checksum": "5c52c00f0c6da99e22100b2830be75f9",
+            "checksum": "9fb236323c696034be50286c8dd3c6ee",
             "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_1.0--1_/learn_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound_with_many_ones[1.0-10]": [
         {
-            "checksum": "81ca96ca740b0834123459a4fd44ee4f",
+            "checksum": "ebc4921f88e0a1334167791003ff79a0",
             "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_1.0-10_/learn_error.tsv"
         }
     ],
     "test.test_stochastic_rank_pfound_with_many_ones[1.0-1]": [
         {
-            "checksum": "85392881305f3b537e3ec9cd4a41ab03",
+            "checksum": "6e2b0a2efb713221e50feb995abdc5cf",
             "uri": "file://test.test_stochastic_rank_pfound_with_many_ones_1.0-1_/learn_error.tsv"
         }
     ],
