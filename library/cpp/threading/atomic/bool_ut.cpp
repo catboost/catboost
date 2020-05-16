@@ -1,6 +1,6 @@
 #include "bool.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(AtomicBool) {
     Y_UNIT_TEST(ReadWrite) {

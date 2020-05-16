@@ -14,11 +14,15 @@ vendor_prefix = 'vendor/'
 vet_info_ext = '.vet.out'
 vet_report_ext = '.vet.txt'
 
+FIXED_CGO1_SUFFIX='.fixed.cgo1.go'
+
+COMPILE_OPTIMIZATION_FLAGS=('-N',)
+
 
 def preprocess_cgo1(src_path, dst_path, source_root):
     with open(src_path, 'r') as f:
         content = f.read()
-        content = content.replace('__ARCADIA_SOURCE_ROOT_PREFIX__/', source_root + os.path.sep)
+        content = content.replace('__ARCADIA_SOURCE_ROOT_PREFIX__', source_root)
     with open(dst_path, 'w') as f:
         f.write(content)
 
@@ -66,8 +70,8 @@ def preprocess_args(args):
 
     srcs = []
     for f in args.srcs:
-        if f.startswith(args.build_root) and f.endswith('.cgo1.go'):
-            path = os.path.join(args.output_root, '{}.fixed.go'.format(os.path.basename(f[:-3])))
+        if f.endswith(FIXED_CGO1_SUFFIX) and f.startswith(args.build_root):
+            path = os.path.join(args.output_root, '{}.cgo1.go'.format(os.path.basename(f[:-len(FIXED_CGO1_SUFFIX)])))
             srcs.append(path)
             preprocess_cgo1(f, path, args.arc_source_root)
         else:
@@ -301,7 +305,10 @@ def _do_compile_go(args):
             cmd.append('-allabis')
     compile_workers = '4'
     if args.compile_flags:
-        cmd += args.compile_flags
+        if import_path == 'runtime' or import_path.startswith('runtime/'):
+            cmd.extend(x for x in args.compile_flags if x not in COMPILE_OPTIMIZATION_FLAGS)
+        else:
+            cmd.extend(args.compile_flags)
         if '-race' in args.compile_flags:
             compile_workers = '1'
     cmd += ['-pack', '-c={}'.format(compile_workers)]

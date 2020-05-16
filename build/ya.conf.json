@@ -5573,7 +5573,9 @@
         },
         "ymake": {
             "formula": {
-                "sandbox_id": [670424731],
+                "sandbox_id": [
+                    673804140
+                ],
                 "match": "ymake"
             },
             "executable": {
@@ -5596,7 +5598,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    669103112
+                    674173831
                 ],
                 "match": "arc"
             },
@@ -5676,7 +5678,7 @@
         "releaser": {
             "formula": {
                 "sandbox_id": [
-                    647693292
+                    675299732
                 ],
                 "match": "releaser"
             },
@@ -6875,7 +6877,7 @@
         "yp-util": {
             "formula": {
                 "sandbox_id": [
-                    643511915
+                    673622896
                 ],
                 "match": "yp_util"
             },
@@ -6901,7 +6903,7 @@
         "yd-migrate": {
             "formula": {
                 "sandbox_id": [
-                    652676106
+                    673280041
                 ],
                 "match": "yd_migrate"
             },
@@ -6914,7 +6916,7 @@
         "dctl": {
             "formula": {
                 "sandbox_id": [
-                    664405083
+                    674042226
                 ],
                 "match": "dctl"
             },
@@ -7284,7 +7286,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 671912249,
+                "sandbox_id": 676115394,
                 "match": "horadric"
             },
             "executable": {
@@ -7498,7 +7500,7 @@
         "qyp": {
             "formula": {
                 "sandbox_id": [
-                    627934942
+                    674139720
                 ],
                 "match": "infra/qyp/vmctl/bin/vmctl"
             },
@@ -7699,7 +7701,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 670087919,
+                "sandbox_id": 674686662,
                 "match": "SEDEM archive"
             },
             "executable": {

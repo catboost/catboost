@@ -28,9 +28,11 @@ ALLOW yandex_io -> contrib/restricted/avahi
 
 # GLib is LGPL
 ALLOW contrib/libs/harfbuzz/glib -> contrib/restricted/glib
-ALLOW yandex_io -> contrib/restricted/glib
+ALLOW market/cataloger -> contrib/restricted/glib
+ALLOW market/idx/feeds/feedparser -> contrib/restricted/glib
 ALLOW metrika/core/libs/statdaemons -> contrib/restricted/glib
 ALLOW metrika/core/libs/strconvert -> contrib/restricted/glib
+ALLOW yandex_io -> contrib/restricted/glib
 
 # GStreamer is LGPL
 ALLOW yandex_io -> contrib/restricted/gstreamer
@@ -90,12 +92,20 @@ ALLOW weather/grid_api/lib -> contrib/restricted/boost
 ALLOW yabs/telephony -> contrib/restricted/boost
 ALLOW yandex_io -> contrib/restricted/boost
 ALLOW yweb/robot/js -> contrib/restricted/boost
+ALLOW speechkit -> contrib/restricted/boost
+ALLOW speechkit -> contrib/restricted/openal-soft
 
 # Allow boost in all contrib projects
 ALLOW contrib/deprecated -> contrib/restricted/boost
 ALLOW contrib/libs -> contrib/restricted/boost
 ALLOW contrib/python/horovod -> contrib/restricted/boost
 ALLOW contrib/tools -> contrib/restricted/boost
+
+# libffi is a limited-use low level library
+ALLOW contrib/deprecated -> contrib/restricted/libffi
+ALLOW contrib/libs -> contrib/restricted/libffi
+ALLOW contrib/python -> contrib/restricted/libffi
+ALLOW contrib/tools -> contrib/restricted/libffi
 
 # Default policies:
 

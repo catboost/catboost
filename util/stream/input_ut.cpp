@@ -1,7 +1,7 @@
 #include "input.h"
 #include "output.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/system/file.h>
 #include <util/system/yassert.h>

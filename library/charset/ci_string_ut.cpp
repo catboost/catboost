@@ -1,6 +1,6 @@
 #include "ci_string.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/generic/string_ut.h>
 

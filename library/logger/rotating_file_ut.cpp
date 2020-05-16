@@ -5,8 +5,8 @@
 #include <util/system/fstat.h>
 #include <util/system/fs.h>
 
-#include <library/unittest/registar.h>
-#include <library/unittest/tests_data.h>
+#include <library/cpp/unittest/registar.h>
+#include <library/cpp/unittest/tests_data.h>
 
 Y_UNIT_TEST_SUITE(NewRotatingFileSuite) {
     const TString PATH = GetWorkPath() + "/my.log";

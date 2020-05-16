@@ -7,7 +7,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/unittest
+    library/cpp/unittest
     library/cpp/text_processing/tokenizer
 )
 

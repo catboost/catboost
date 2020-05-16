@@ -213,7 +213,8 @@ namespace NCB {
 
     private:
         friend class TQuantizationImpl;
-        friend class TRawBuilderDataHelper;
+        template <class TTObjectsDataProvider>
+        friend class TBuilderDataHelper;
 
     protected:
         TObjectsGroupingPtr ObjectsGrouping;
@@ -333,7 +334,13 @@ namespace NCB {
 
     private:
         friend class TQuantizationImpl;
-        friend class TRawBuilderDataHelper;
+        template <class TTObjectsDataProvider>
+        friend class TBuilderDataHelper;
+
+    private:
+        TData ExtractObjectData() {
+            return std::move(Data);
+        }
 
     private:
         TRawObjectsData Data;
@@ -456,10 +463,16 @@ namespace NCB {
 
     protected:
         friend class TObjectsSerialization;
+        template <class TTObjectsDataProvider>
+        friend class TBuilderDataHelper;
 
     protected:
         void SaveDataNonSharedPart(IBinSaver* binSaver) const {
             Data.SaveNonSharedPart(*GetFeaturesLayout(), binSaver);
+        }
+
+        TData ExtractObjectData() {
+            return std::move(Data);
         }
 
     protected:
@@ -763,6 +776,8 @@ namespace NCB {
 
     protected:
         friend class TObjectsSerialization;
+        template <class TTObjectsDataProvider>
+        friend class TBuilderDataHelper;
 
     protected:
         void SaveDataNonSharedPart(IBinSaver* binSaver) const {
@@ -772,6 +787,15 @@ namespace NCB {
             ExclusiveFeatureBundlesData.Save(&localExecutor, binSaver);
             FeaturesGroupsData.Save(&localExecutor, binSaver);
             Data.SaveNonSharedPart(*GetFeaturesLayout(), binSaver);
+        }
+
+        TData ExtractObjectData() {
+            TData result;
+            result.PackedBinaryFeaturesData = std::move(PackedBinaryFeaturesData);
+            result.ExclusiveFeatureBundlesData = std::move(ExclusiveFeatureBundlesData);
+            result.FeaturesGroupsData = std::move(FeaturesGroupsData);
+            result.Data = TQuantizedObjectsDataProvider::ExtractObjectData();
+            return result;
         }
 
     private:

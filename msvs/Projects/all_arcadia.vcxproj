@@ -414,9 +414,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\certs\certs.vcxproj">
       <Project>C092F5EB-6E3B-CBC5-C723-B1E4327CB1A8</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\deprecated\libffi\contrib-deprecated-libffi.vcxproj">
-      <Project>32E78DFF-5451-B440-4B35-E627E82B514E</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\base64\avx2\libs-base64-avx2.vcxproj">
       <Project>69A3431A-8A49-B198-8E40-2F61C1B0C1BC</Project>
     </ProjectReference>
@@ -906,6 +903,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\testpath\pycontrib-python-testpath.vcxproj">
       <Project>8E9D3E5D-72FC-14BE-D403-F8FC953F8164</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\restricted\libffi\contrib-restricted-libffi.vcxproj">
+      <Project>C4244186-1688-FFD7-FAB5-CB9E056577E2</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\tools\f2c\f2c.vcxproj">
       <Project>65ED7A96-9AF7-8308-F3E6-7C54576A4963</Project>
     </ProjectReference>
@@ -999,9 +999,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\chromium_trace\library-chromium_trace.vcxproj">
       <Project>9541389A-C448-428A-BEEE-604F1A02F5EA</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\comptrie\library-comptrie.vcxproj">
-      <Project>76943172-A17F-362F-8E2E-D4DEC653984D</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\accurate_accumulate\library-cpp-accurate_accumulate.vcxproj">
       <Project>7F8E70FD-CC97-C5C2-A4A3-48036C893265</Project>
     </ProjectReference>
@@ -1025,6 +1022,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\compact_vector\cpp-containers-compact_vector.vcxproj">
       <Project>4394134A-0B20-E6EA-3626-1FBF34227AFB</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\comptrie\cpp-containers-comptrie.vcxproj">
+      <Project>C4A93F1D-7D12-E137-DA11-255666865B86</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\dense_hash\cpp-containers-dense_hash.vcxproj">
       <Project>DFCB4CF2-CF97-86C5-B608-DF9B9A23EFE1</Project>
@@ -1385,12 +1385,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\token\library-token.vcxproj">
       <Project>7A7DF5AD-7B4C-6A47-56E6-6DED393B817F</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\unittest\library-unittest.vcxproj">
-      <Project>370FE76E-4632-6C9C-415B-0652D0E1566F</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\unittest\main\library-unittest-main.vcxproj">
-      <Project>28DC724D-5FFA-AB4B-E6C3-DF0F40AC4B6A</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\yson\library-yson.vcxproj">
       <Project>2779E1A2-0D5A-216D-65BF-CE9DF81108EF</Project>

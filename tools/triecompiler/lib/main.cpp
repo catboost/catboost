@@ -4,7 +4,7 @@
 #include <library/charset/recyr.hh>
 #endif
 
-#include <library/comptrie/comptrie.h>
+#include <library/cpp/containers/comptrie/comptrie.h>
 #include <library/cpp/deprecated/mapped_file/mapped_file.h>
 #include <library/cpp/getopt/small/last_getopt.h>
 

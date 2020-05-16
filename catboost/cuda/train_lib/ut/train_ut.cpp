@@ -3,7 +3,7 @@
 #include <catboost/libs/model/model.h>
 #include <catboost/libs/train_lib/train_model.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/folder/tempdir.h>
 

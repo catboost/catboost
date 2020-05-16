@@ -996,4 +996,6 @@ namespace NCudaLib {
     REGISTER_KERNEL_TEMPLATE(0x110023, TMakeEndOfGroupMarkers, ui32);
 
     REGISTER_KERNEL_TEMPLATE_2(0x110024, TGatherBySizeAndOffset, float, ui32);
+
+    REGISTER_KERNEL_TEMPLATE_2(0x110025, TRemoveGroupMean, float, ui32);
 }

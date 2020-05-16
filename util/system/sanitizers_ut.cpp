@@ -1,7 +1,7 @@
 #include "sanitizers.h"
 #include "sys_alloc.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(Sanitizers) {
     Y_UNIT_TEST(MarkAsIntentionallyLeaked) {

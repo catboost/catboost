@@ -2,7 +2,7 @@
 #include "guard.h"
 #include "condvar.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/system/atomic.h>
 #include <util/system/atomic_ops.h>

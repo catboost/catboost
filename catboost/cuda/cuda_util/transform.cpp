@@ -973,4 +973,10 @@ namespace NCudaLib {
 
     REGISTER_KERNEL_TEMPLATE(0x110015, TPowKernel, float);
     REGISTER_KERNEL_TEMPLATE(0x110021, TPowWithOutputKernel, float);
+
+    REGISTER_KERNEL_TEMPLATE(0x110026, TReverseKernel, float);
+    REGISTER_KERNEL_TEMPLATE(0x110027, TReverseKernel, int);
+    REGISTER_KERNEL_TEMPLATE(0x110028, TReverseKernel, ui32);
+    REGISTER_KERNEL_TEMPLATE(0x11002A, TReverseKernel, ui8);
+    REGISTER_KERNEL_TEMPLATE(0x11002C, TReverseKernel, ui16);
 }

@@ -1,4 +1,4 @@
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/metrics/hinge_loss.h>

@@ -196,6 +196,8 @@ namespace NCB {
             }
         }
 
+        TConstArrayRef<ui32> GetFloatFeatureInternalIdxToExternalIdx() const;
+
         TConstArrayRef<ui32> GetCatFeatureInternalIdxToExternalIdx() const;
 
         TConstArrayRef<ui32> GetTextFeatureInternalIdxToExternalIdx() const;
@@ -207,8 +209,8 @@ namespace NCB {
     private:
         TVector<TFeatureMetaInfo> ExternalIdxToMetaInfo;
         TVector<ui32> FeatureExternalIdxToInternalIdx;
-        TVector<ui32> CatFeatureInternalIdxToExternalIdx;
         TVector<ui32> FloatFeatureInternalIdxToExternalIdx;
+        TVector<ui32> CatFeatureInternalIdxToExternalIdx;
         TVector<ui32> TextFeatureInternalIdxToExternalIdx;
     };
 

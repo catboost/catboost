@@ -119,14 +119,14 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\build_info\library-build_info.vcxproj">
       <Project>{F14974DD-FCD1-9883-1B38-7294F1EC7341}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\comptrie\library-comptrie.vcxproj">
-      <Project>{76943172-A17F-362F-8E2E-D4DEC653984D}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\colorizer\library-cpp-colorizer.vcxproj">
       <Project>{78881F22-8136-23DF-843E-58AA6DB6D337}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\compact_vector\cpp-containers-compact_vector.vcxproj">
       <Project>{4394134A-0B20-E6EA-3626-1FBF34227AFB}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\comptrie\cpp-containers-comptrie.vcxproj">
+      <Project>{C4A93F1D-7D12-E137-DA11-255666865B86}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cpuid_check\library-cpp-cpuid_check.vcxproj">
       <Project>{A945C0FD-E868-BBA0-1189-19BBB2296292}</Project>

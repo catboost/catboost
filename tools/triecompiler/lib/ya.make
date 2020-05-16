@@ -7,7 +7,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/comptrie
+    library/cpp/containers/comptrie
     library/cpp/deprecated/mapped_file
     library/cpp/getopt/small
 )
