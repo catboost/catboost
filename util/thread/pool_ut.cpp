@@ -99,7 +99,7 @@ Y_UNIT_TEST_SUITE(TThreadPoolTest) {
 
     Y_UNIT_TEST(TestTThreadPoolBlocking) {
         TThreadPoolTest t;
-        TThreadPool q(TThreadPool::BlockingMode);
+        TThreadPool q(TThreadPool::TParams().SetBlocking(true));
         t.TestAnyQueue(&q, 100);
     }
 
@@ -151,7 +151,7 @@ Y_UNIT_TEST_SUITE(TThreadPoolTest) {
             }
         };
 
-        TThreadPool queue(TThreadPool::NonBlockingMode, TThreadPool::CatchingMode);
+        TThreadPool queue(TThreadPool::TParams().SetBlocking(false).SetCatching(true));
         queue.Start(2);
 
         queue.SafeAddFunc([data = TFailOnCopy()]() {});
