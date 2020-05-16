@@ -24,6 +24,9 @@ public:
 
     static TLossParams FromMap(TMap<TString, TString> paramsMap);
 
+    bool operator==(const TLossParams& that) const;
+    bool operator!=(const TLossParams& that) const;
+
     void Put(const TString& key, const TString& value) {
         auto containedBefore = ParamsMap.contains(key);
         ParamsMap[key] = value;
@@ -81,12 +84,11 @@ namespace NCatboostOptions {
 
         const TMap<TString, TString>& GetLossParamsMap() const;
         const TVector<TString>& GetLossParamKeysOrdered() const;
-        TLossParams GetLossParams() const;
+        const TLossParams& GetLossParams() const;
 
     public:
         TOption<ELossFunction> LossFunction;
-        TOption<TMap<TString, TString>> LossParams;
-        TOption<TVector<TString>> LossParamKeysOrdered;
+        TOption<TLossParams> LossParams;
     };
 
     template <typename T>

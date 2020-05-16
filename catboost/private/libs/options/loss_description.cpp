@@ -40,8 +40,7 @@ TLossParams ParseLossParams(const TStringBuf lossDescription) {
 
 NCatboostOptions::TLossDescription::TLossDescription()
     : LossFunction("type", ELossFunction::RMSE)
-    , LossParams("params", TMap<TString, TString>())
-    , LossParamKeysOrdered("params_ordered_keys", TVector<TString>())
+    , LossParams("params", TLossParams())
 {
 }
 
@@ -50,32 +49,28 @@ ELossFunction NCatboostOptions::TLossDescription::GetLossFunction() const {
 }
 
 void NCatboostOptions::TLossDescription::Load(const NJson::TJsonValue& options) {
-    CheckedLoad(options, &LossFunction, &LossParams, &LossParamKeysOrdered);
+    CheckedLoad(options, &LossFunction, &LossParams);
 }
 
 void NCatboostOptions::TLossDescription::Save(NJson::TJsonValue* options) const {
-    SaveFields(options, LossFunction, LossParams, LossParamKeysOrdered);
+    SaveFields(options, LossFunction, LossParams);
 }
 
 bool NCatboostOptions::TLossDescription::operator==(const TLossDescription& rhs) const {
-    return std::tie(LossFunction, LossParams, LossParamKeysOrdered) ==
-            std::tie(rhs.LossFunction, rhs.LossParams, LossParamKeysOrdered);
+    return std::tie(LossFunction, LossParams) ==
+            std::tie(rhs.LossFunction, rhs.LossParams);
 }
 
 const TMap<TString, TString>& NCatboostOptions::TLossDescription::GetLossParamsMap() const {
-    return LossParams.Get();
+    return LossParams->GetParamsMap();
 };
 
 const TVector<TString>& NCatboostOptions::TLossDescription::GetLossParamKeysOrdered() const {
-    return LossParamKeysOrdered.Get();
+    return LossParams->GetUserSpecifiedKeyOrder();
 };
 
-TLossParams NCatboostOptions::TLossDescription::GetLossParams() const {
-    TVector<std::pair<TString, TString>> keyValuePairs;
-    for (const auto& key : LossParamKeysOrdered.Get()) {
-        keyValuePairs.emplace_back(key, LossParams.Get().at(key));
-    }
-    return TLossParams::FromVector(keyValuePairs);
+const TLossParams& NCatboostOptions::TLossDescription::GetLossParams() const {
+    return LossParams;
 }
 
 // static.
@@ -189,8 +184,7 @@ NCatboostOptions::TLossDescription NCatboostOptions::ParseLossDescription(TStrin
     TLossDescription description;
     description.LossFunction.Set(ParseLossType(stringLossDescription));
     TLossParams params = ParseLossParams(stringLossDescription);
-    description.LossParams.Set(params.GetParamsMap());
-    description.LossParamKeysOrdered.Set(params.GetUserSpecifiedKeyOrder());
+    description.LossParams.Set(params);
     return description;
 }
 
@@ -239,6 +233,14 @@ TLossParams TLossParams::FromMap(TMap<TString, TString> paramsMap) {
     return TLossParams(std::move(paramsMap), std::move(keys));
 }
 
+
+bool TLossParams::operator==(const TLossParams &that) const {
+    return std::tie(ParamsMap, UserSpecifiedKeyOrder) == std::tie(that.ParamsMap, that.UserSpecifiedKeyOrder);
+}
+
+bool TLossParams::operator!=(const TLossParams &that) const {
+    return !(*this == that);
+}
 
 
 void ValidateHints(const TMap<TString, TString>& hints) {
@@ -292,16 +294,15 @@ TString MakeHintsDescription(const TMap<TString, TString>& hints) {
 }
 
 
-NJson::TJsonValue LossDescriptionToJson(const TStringBuf lossDescription) {
-    NJson::TJsonValue descriptionJson(NJson::JSON_MAP);
+NJson::TJsonValue LossDescriptionToJson(const TStringBuf lossDescriptionRaw) {
+    NJson::TJsonValue descriptionJson;
 
-    ELossFunction lossFunction = ParseLossType(lossDescription);
-    TLossParams lossParams = ParseLossParams(lossDescription);
-    descriptionJson["type"] = ToString(lossFunction);
-    for (const auto& lossParam : lossParams.GetUserSpecifiedKeyOrder()) {
-        descriptionJson["params"][lossParam] = lossParams.GetParamsMap().at(lossParam);
-        descriptionJson["params_ordered_keys"].AppendValue(lossParam);
-    }
+    ELossFunction lossFunction = ParseLossType(lossDescriptionRaw);
+    TLossParams lossParams = ParseLossParams(lossDescriptionRaw);
+    NCatboostOptions::TLossDescription lossDescription;
+    lossDescription.LossParams.Set(std::move(lossParams));
+    lossDescription.LossFunction.Set(lossFunction);
+    lossDescription.Save(&descriptionJson);
     return descriptionJson;
 }
 

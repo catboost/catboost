@@ -618,16 +618,16 @@ void NCatboostOptions::TCatBoostOptions::Validate() const {
     // Delete it when MLTOOLS-3572 is implemented.
     if (ShouldBinarizeLabel(LossFunctionDescription->LossFunction.Get())) {
         const TString message = "Metric parameter 'border' isn't supported when target is binarized.";
-        CB_ENSURE(!LossFunctionDescription->LossParams->contains("border"), message);
-        CB_ENSURE(!MetricOptions->EvalMetric->LossParams->contains("border"), message);
-        CB_ENSURE(!MetricOptions->ObjectiveMetric->LossParams->contains("border"), message);
+        CB_ENSURE(!LossFunctionDescription->GetLossParamsMap().contains("border"), message);
+        CB_ENSURE(!MetricOptions->EvalMetric->GetLossParamsMap().contains("border"), message);
+        CB_ENSURE(!MetricOptions->ObjectiveMetric->GetLossParamsMap().contains("border"), message);
         for (const auto& metric : MetricOptions->CustomMetrics.Get()) {
-            CB_ENSURE(!metric.LossParams->contains("border"), message);
+            CB_ENSURE(!metric.GetLossParamsMap().contains("border"), message);
         }
     }
 
     // Delete it when MLTOOLS-3612 is implemented.
-    CB_ENSURE(!LossFunctionDescription->LossParams->contains("use_weights"),
+    CB_ENSURE(!LossFunctionDescription->GetLossParamsMap().contains("use_weights"),
         "Metric parameter 'use_weights' isn't supported for objective function. " <<
         "If weights are present they will necessarily be used in optimization. " <<
         "It cannot be disabled.");
@@ -789,8 +789,7 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
             const auto& lossParams = LossFunctionDescription->GetLossParamsMap();
             CB_ENSURE(lossParams.contains("metric"), "StochasticRank requires metric param");
             ELossFunction targetMetric = FromString<ELossFunction>(lossParams.at("metric"));
-            TMap<TString, TString> metricParams;
-            TVector<TString> metricKeyOrder;
+            TVector<std::pair<TString, TString>> metricParams;
             TSet<TString> validParams;
             switch (targetMetric) {
                 case ELossFunction::DCG:
@@ -807,11 +806,9 @@ void NCatboostOptions::TCatBoostOptions::SetNotSpecifiedOptionsToDefaults() {
                 if (!validParams.contains(key)) {
                     continue;
                 }
-                metricParams[key] = lossParams.at(key);
-                metricKeyOrder.push_back(key);
+                metricParams.emplace_back(key, lossParams.at(key));
             }
-            lossDescription.LossParams.Set(metricParams);
-            lossDescription.LossParamKeysOrdered.Set(metricKeyOrder);
+            lossDescription.LossParams.Set(TLossParams::FromVector(metricParams));
             lossDescription.LossFunction.Set(targetMetric);
             MetricOptions->ObjectiveMetric.Set(lossDescription);
             ObliviousTreeOptions->LeavesEstimationBacktrackingType.SetDefault(ELeavesEstimationStepBacktracking::No);
