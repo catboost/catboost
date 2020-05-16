@@ -210,8 +210,7 @@ namespace NCatboostOptions {
                     CB_ENSURE(keyValuePair.size() == 2, "Error: payload must contain lists of length 2 (key-value pairs)");
                     keyValuePairs.emplace_back(keyValuePair[0], keyValuePair[1]);
                 }
-            } else {
-                // Source is a map.
+            } else if (src.IsMap()) {
                 // {"key1": "value1", "key2": "value2"}
                 CB_ENSURE(src.IsMap(), "Error: TLossParams serialized JSON is not a map nor a list.");
                 const auto& data = src.GetMapSafe();
@@ -219,6 +218,8 @@ namespace NCatboostOptions {
                     CB_ENSURE(entry.second.IsString(), "Error: TLossParams map values must be strings.");
                     keyValuePairs.emplace_back(entry.first, entry.second.GetStringSafe());
                 }
+            } else {
+                ythrow TCatBoostException() << "Error: wrong json type";
             }
             *dst = TLossParams::FromVector(keyValuePairs);
         }
