@@ -42,7 +42,7 @@ PEERDIR(
     catboost/libs/overfitting_detector
     catboost/private/libs/quantization
     catboost/libs/train_lib
-    library/json
+    library/cpp/json
     library/object_factory
     library/cpp/threading/local_executor
 )

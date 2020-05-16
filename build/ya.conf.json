@@ -242,17 +242,17 @@
         "apphost": {
             "description": "Run local apphost instance"
         },
-        "go_1.13.6": {
-            "description": "Run go tool (1.13.6)"
-        },
-        "gofmt_1.13.6": {
-            "description": "Run gofmt tool (1.13.6)"
-        },
-        "go": {
+        "go_1.14.2": {
             "description": "Run go tool (1.14.2)"
         },
-        "gofmt": {
+        "gofmt_1.14.2": {
             "description": "Run gofmt tool (1.14.2)"
+        },
+        "go": {
+            "description": "Run go tool (1.14.3)"
+        },
+        "gofmt": {
+            "description": "Run gofmt tool (1.14.3)"
         },
         "godoc": {
             "description": "Arcadia version of godoc"
@@ -5067,59 +5067,19 @@
                 }
             ]
         },
-        "golang_1_13_6": {
-            "tools": {
-                "golang_1.13.6": {
-                    "bottle": "golang_1.13.6",
-                    "executable": "golangi_1.13.6"
-                },
-                "go_1.13.6": {
-                    "bottle": "golang_1.13.6",
-                    "executable": "go_1.13.6"
-                },
-                "gofmt_1.13.6": {
-                    "bottle": "golang_1.13.6",
-                    "executable": "gofmt_1.13.6"
-                }
-            },
-            "platforms": [
-                {
-                    "host": {
-                        "os": "LINUX"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "DARWIN"
-                    },
-                    "default": true
-                },
-                {
-                    "host": {
-                        "os": "WIN"
-                    },
-                    "default": true
-                }
-            ],
-            "params": {
-                "type": "golang",
-                "version": "1.13.6"
-            }
-        },
         "golang_1_14_2": {
             "tools": {
-                "golang": {
+                "golang_1.14.2": {
                     "bottle": "golang_1.14.2",
-                    "executable": "golang"
+                    "executable": "golangi_1.14.2"
                 },
-                "go": {
+                "go_1.14.2": {
                     "bottle": "golang_1.14.2",
-                    "executable": "go"
+                    "executable": "go_1.14.2"
                 },
-                "gofmt": {
+                "gofmt_1.14.2": {
                     "bottle": "golang_1.14.2",
-                    "executable": "gofmt"
+                    "executable": "gofmt_1.14.2"
                 }
             },
             "platforms": [
@@ -5145,6 +5105,46 @@
             "params": {
                 "type": "golang",
                 "version": "1.14.2"
+            }
+        },
+        "golang_1_14_3": {
+            "tools": {
+                "golang": {
+                    "bottle": "golang_1.14.3",
+                    "executable": "golang"
+                },
+                "go": {
+                    "bottle": "golang_1.14.3",
+                    "executable": "go"
+                },
+                "gofmt": {
+                    "bottle": "golang_1.14.3",
+                    "executable": "gofmt"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                }
+            ],
+            "params": {
+                "type": "golang",
+                "version": "1.14.3"
             }
         },
         "godoc": {
@@ -5574,7 +5574,7 @@
         "ymake": {
             "formula": {
                 "sandbox_id": [
-                    664161901
+                    673804140
                 ],
                 "match": "ymake"
             },
@@ -5598,7 +5598,7 @@
         "arc": {
             "formula": {
                 "sandbox_id": [
-                    669103112
+                    674173831
                 ],
                 "match": "arc"
             },
@@ -5678,7 +5678,7 @@
         "releaser": {
             "formula": {
                 "sandbox_id": [
-                    647693292
+                    675299732
                 ],
                 "match": "releaser"
             },
@@ -6877,7 +6877,7 @@
         "yp-util": {
             "formula": {
                 "sandbox_id": [
-                    643511915
+                    673622896
                 ],
                 "match": "yp_util"
             },
@@ -6903,7 +6903,7 @@
         "yd-migrate": {
             "formula": {
                 "sandbox_id": [
-                    652676106
+                    673280041
                 ],
                 "match": "yd_migrate"
             },
@@ -6916,7 +6916,7 @@
         "dctl": {
             "formula": {
                 "sandbox_id": [
-                    664405083
+                    674042226
                 ],
                 "match": "dctl"
             },
@@ -7286,7 +7286,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 669752233,
+                "sandbox_id": 676760014,
                 "match": "horadric"
             },
             "executable": {
@@ -7418,32 +7418,12 @@
         },
         "apphost": {
             "formula": {
-                "sandbox_id": 660385494,
+                "sandbox_id": 670312252,
                 "match": "app_host_launcher"
             },
             "executable": {
                 "app_host_launcher": [
                     "app_host_launcher"
-                ]
-            }
-        },
-        "golang_1.13.6": {
-            "formula": {
-                "sandbox_id": [
-                    586987209,
-                    586987645,
-                    586988069
-                ],
-                "match": "GOLANG"
-            },
-            "executable": {
-                "go_1.13.6": [
-                    "bin",
-                    "go"
-                ],
-                "gofmt_1.13.6": [
-                    "bin",
-                    "gofmt"
                 ]
             }
         },
@@ -7453,6 +7433,26 @@
                     649065905,
                     649066533,
                     649067244
+                ],
+                "match": "GOLANG"
+            },
+            "executable": {
+                "go_1.14.2": [
+                    "bin",
+                    "go"
+                ],
+                "gofmt_1.14.2": [
+                    "bin",
+                    "gofmt"
+                ]
+            }
+        },
+        "golang_1.14.3": {
+            "formula": {
+                "sandbox_id": [
+                    676231434,
+                    676232261,
+                    676232843
                 ],
                 "match": "GOLANG"
             },
@@ -7500,7 +7500,7 @@
         "qyp": {
             "formula": {
                 "sandbox_id": [
-                    627934942
+                    674139720
                 ],
                 "match": "infra/qyp/vmctl/bin/vmctl"
             },
@@ -7701,7 +7701,7 @@
         },
         "sedem": {
             "formula": {
-                "sandbox_id": 670087919,
+                "sandbox_id": 674686662,
                 "match": "SEDEM archive"
             },
             "executable": {

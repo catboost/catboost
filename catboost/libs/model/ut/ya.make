@@ -22,7 +22,7 @@ PEERDIR(
     catboost/libs/model/ut/lib
     catboost/libs/train_lib
     catboost/private/libs/text_features/ut/lib
-    library/json
+    library/cpp/json
 )
 
 END()

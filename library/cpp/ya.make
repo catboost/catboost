@@ -17,6 +17,9 @@ RECURSE(
     coroutine
     cppparser
     cpuid_check
+    dbg_output
+    dbg_output/ut
+    deprecated
     diff
     diff/ut
     digest
@@ -34,6 +37,15 @@ RECURSE(
     grid_creator/fuzz
     grid_creator/ut
     http
+    json
+    json/fast_sax
+    json/flex_buffers
+    json/flex_buffers/ut
+    json/fuzzy_test
+    json/ut
+    json/writer/ut
+    json/yson
+    json/yson/ut
     malloc
     lfalloc
     lfalloc/dbg
@@ -49,11 +61,16 @@ RECURSE(
     string_utils
     terminate_handler
     terminate_handler/sample
+    testing
     text_processing
     threading
     tokenizer
     tokenizer/ut
     unicode
+    unittest
+    unittest/fat
+    unittest/main
+    unittest/ut
     yson
     yson/node
     yson/node/pybind

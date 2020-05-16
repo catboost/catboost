@@ -2,7 +2,7 @@
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/metrics/sample.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <util/stream/labeled.h>
 #include <util/generic/algorithm.h>

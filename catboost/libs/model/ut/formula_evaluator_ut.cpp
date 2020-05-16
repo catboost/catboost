@@ -6,7 +6,7 @@
 #include <catboost/libs/train_lib/train_model.h>
 #include <catboost/private/libs/text_features/ut/lib/text_features_data.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 using namespace NCB;
 using namespace NCB::NModelEvaluation;

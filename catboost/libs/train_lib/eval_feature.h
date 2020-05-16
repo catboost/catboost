@@ -6,7 +6,7 @@
 #include <catboost/private/libs/algo_helpers/custom_objective_descriptor.h>
 #include <catboost/private/libs/options/feature_eval_options.h>
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/ptr.h>

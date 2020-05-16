@@ -24,7 +24,7 @@ PEERDIR(
     catboost/libs/train_lib
     library/cpp/grid_creator
     library/cpp/threading/local_executor
-    library/json
+    library/cpp/json
     library/logger
 )
 

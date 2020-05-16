@@ -11,7 +11,7 @@
 
 #include <contrib/libs/flatbuffers/include/flatbuffers/flatbuffers.h>
 
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/generic/xrange.h>
 #include <util/memory/blob.h>
@@ -20,7 +20,7 @@
 #include <util/string/printf.h>
 #include <util/system/mktemp.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 
 using namespace NCB;

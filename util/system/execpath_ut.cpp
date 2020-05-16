@@ -1,6 +1,6 @@
 #include "execpath.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include "platform.h"
 #include <util/folder/dirut.h>

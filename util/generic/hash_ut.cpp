@@ -2,7 +2,7 @@
 #include "vector.h"
 #include "hash_set.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <utility>
 #include <util/str_stl.h>

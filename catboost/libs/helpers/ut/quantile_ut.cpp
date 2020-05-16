@@ -1,4 +1,4 @@
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <catboost/libs/helpers/quantile.h>
 #include <catboost/private/libs/options/restrictions.h>

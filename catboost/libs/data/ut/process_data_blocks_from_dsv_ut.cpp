@@ -9,7 +9,7 @@
 
 #include <util/system/compiler.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 
 using namespace NCB;

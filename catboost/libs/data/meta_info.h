@@ -6,7 +6,7 @@
 #include <catboost/libs/column_description/column.h>
 
 #include <library/cpp/binsaver/bin_saver.h>
-#include <library/json/json_value.h>
+#include <library/cpp/json/json_value.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/string.h>

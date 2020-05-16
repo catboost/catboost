@@ -1,6 +1,6 @@
 #include "memory.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #pragma pack(1)
 struct _packed TSampleStruct1 {

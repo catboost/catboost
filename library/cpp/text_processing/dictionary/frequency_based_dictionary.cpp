@@ -2,7 +2,7 @@
 #include "frequency_based_dictionary_impl.h"
 #include "util.h"
 
-#include <library/json/json_reader.h>
+#include <library/cpp/json/json_reader.h>
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/charset/wide.h>

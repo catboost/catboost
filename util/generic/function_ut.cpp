@@ -1,7 +1,7 @@
 #include "function.h"
 #include "typetraits.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TestFunctionSignature) {
     int FF(double x) {

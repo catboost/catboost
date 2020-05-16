@@ -8,9 +8,9 @@
 #include <catboost/private/libs/algo/apply.h>
 #include <catboost/private/libs/algo/learn_context.h>
 
-#include <library/json/json_writer.h>
+#include <library/cpp/json/json_writer.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 using namespace std;
 using namespace NCB;

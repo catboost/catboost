@@ -8,7 +8,7 @@
 #include <util/generic/xrange.h>
 #include <util/system/types.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 
 using namespace NCB;
