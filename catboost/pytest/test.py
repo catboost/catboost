@@ -4900,8 +4900,8 @@ def test_dist_train_subgroup(dev_score_calc_obj_block_size):
         test='test',
         cd='train.cd.subgroup_id',
         dev_score_calc_obj_block_size=dev_score_calc_obj_block_size,
-        other_options=('--eval-metric', 'PFound')),
-        output_file_switch='--test-err-log'))]
+        other_options=('--eval-metric', 'PFound')
+    ), output_file_switch='--test-err-log'))]
 
 
 @pytest.mark.parametrize(
@@ -4917,7 +4917,8 @@ def test_dist_train_pairlogit(dev_score_calc_obj_block_size):
         test='test',
         cd='train.cd.query_id',
         dev_score_calc_obj_block_size=dev_score_calc_obj_block_size,
-        other_options=('--learn-pairs', data_file('querywise', 'train.pairs')))))]
+        other_options=('--learn-pairs', data_file('querywise', 'train.pairs'))
+    )))]
 
 
 @pytest.mark.parametrize('pairs_file', ['train.pairs', 'train.pairs.weighted'])
@@ -4928,7 +4929,8 @@ def test_dist_train_pairlogitpairwise(pairs_file):
         train='train',
         test='test',
         cd='train.cd',
-        other_options=('--learn-pairs', data_file('querywise', pairs_file)))))]
+        other_options=('--learn-pairs', data_file('querywise', pairs_file))
+    )))]
 
 
 @pytest.mark.parametrize(
@@ -4954,8 +4956,8 @@ def test_dist_train_auc(loss_func):
         train='train_small',
         test='test_small',
         cd='train_baseline.cd',
-        other_options=('--eval-metric', 'AUC')),
-        output_file_switch='--test-err-log'))]
+        other_options=('--eval-metric', 'AUC')
+    ), output_file_switch='--test-err-log'))]
 
 
 @pytest.mark.parametrize('loss_func', ['Logloss', 'RMSE'])
@@ -4966,8 +4968,8 @@ def test_dist_train_auc_weight(loss_func):
         train='train_small',
         test='test_small',
         cd='train_weight.cd',
-        other_options=('--eval-metric', 'AUC', '--boost-from-average', '0')),
-        output_file_switch='--test-err-log'))]
+        other_options=('--eval-metric', 'AUC', '--boost-from-average', '0')
+    ), output_file_switch='--test-err-log'))]
 
 
 @pytest.mark.xfail(reason='Boost from average for distributed training')
