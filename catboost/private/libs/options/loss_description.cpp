@@ -1,6 +1,7 @@
 #include "loss_description.h"
 #include "data_processing_options.h"
 #include "json_helper.h"
+#include "metric_options.h"
 
 #include <util/string/builder.h>
 #include <util/string/cast.h>
@@ -17,7 +18,7 @@ ELossFunction ParseLossType(const TStringBuf lossDescription) {
     return customLoss;
 }
 
-TMap<TString, TString> ParseLossParams(const TStringBuf lossDescription) {
+TLossParams ParseLossParams(const TStringBuf lossDescription) {
     const char* errorMessage = "Invalid metric description, it should be in the form "
                                "\"metric_name:param1=value1;...;paramN=valueN\"";
 
@@ -25,21 +26,21 @@ TMap<TString, TString> ParseLossParams(const TStringBuf lossDescription) {
     CB_ENSURE(!tokens.empty(), "Metric description should not be empty");
     CB_ENSURE(tokens.size() <= 2, errorMessage);
 
-    TMap<TString, TString> params;
+    TVector<std::pair<TString, TString>> keyValuePairs;
     if (tokens.size() == 2) {
         for (const auto& token : StringSplitter(tokens[1]).Split(';')) {
             const TVector<TString> keyValue = StringSplitter(token.Token()).Split('=').Limit(2);
             CB_ENSURE(keyValue.size() == 2, errorMessage);
-            params[keyValue[0]] = keyValue[1];
+            keyValuePairs.emplace_back(keyValue[0], keyValue[1]);
         }
     }
 
-    return params;
+    return TLossParams::FromVector(keyValuePairs);
 }
 
 NCatboostOptions::TLossDescription::TLossDescription()
     : LossFunction("type", ELossFunction::RMSE)
-    , LossParams("params", TMap<TString, TString>())
+    , LossParams("params", TLossParams())
 {
 }
 
@@ -60,9 +61,24 @@ bool NCatboostOptions::TLossDescription::operator==(const TLossDescription& rhs)
             std::tie(rhs.LossFunction, rhs.LossParams);
 }
 
-const TMap<TString, TString>& NCatboostOptions::TLossDescription::GetLossParams() const {
-    return LossParams.Get();
+const TMap<TString, TString>& NCatboostOptions::TLossDescription::GetLossParamsMap() const {
+    return LossParams->GetParamsMap();
 };
+
+const TVector<TString>& NCatboostOptions::TLossDescription::GetLossParamKeysOrdered() const {
+    return LossParams->GetUserSpecifiedKeyOrder();
+};
+
+const TLossParams& NCatboostOptions::TLossDescription::GetLossParams() const {
+    return LossParams;
+}
+
+// static.
+NCatboostOptions::TLossDescription NCatboostOptions::TLossDescription::CloneWithLossFunction(ELossFunction function) {
+    TLossDescription desc = *this;
+    desc.LossFunction.Set(function);
+    return desc;
+}
 
 bool NCatboostOptions::TLossDescription::operator!=(const TLossDescription& rhs) const {
     return !(rhs == *this);
@@ -78,7 +94,7 @@ double NCatboostOptions::GetAlpha(const TMap<TString, TString>& lossParams) {
 }
 
 double NCatboostOptions::GetAlpha(const TLossDescription& lossFunctionConfig) {
-    const auto& lossParams = lossFunctionConfig.GetLossParams();
+    const auto& lossParams = lossFunctionConfig.GetLossParamsMap();
     return GetAlpha(lossParams);
 }
 
@@ -87,7 +103,7 @@ double NCatboostOptions::GetAlphaQueryCrossEntropy(const TMap<TString, TString>&
 }
 
 double NCatboostOptions::GetAlphaQueryCrossEntropy(const TLossDescription& lossFunctionConfig) {
-    const auto& lossParams = lossFunctionConfig.GetLossParams();
+    const auto& lossParams = lossFunctionConfig.GetLossParamsMap();
     return GetAlphaQueryCrossEntropy(lossParams);
 }
 
@@ -108,14 +124,14 @@ double NCatboostOptions::GetYetiRankDecay(const TLossDescription& lossFunctionCo
 
 double NCatboostOptions::GetLqParam(const TLossDescription& lossFunctionConfig) {
     Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::Lq);
-    const auto& lossParams = lossFunctionConfig.GetLossParams();
+    const auto& lossParams = lossFunctionConfig.GetLossParamsMap();
     CB_ENSURE(lossParams.contains("q"), "For " << ELossFunction::Lq << " q parameter is mandatory");
     return FromString<double>(lossParams.at("q"));
 }
 
 double NCatboostOptions::GetHuberParam(const TLossDescription& lossFunctionConfig) {
     Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::Huber);
-    const auto& lossParams = lossFunctionConfig.GetLossParams();
+    const auto& lossParams = lossFunctionConfig.GetLossParamsMap();
     CB_ENSURE(lossParams.contains("delta"), "For " << ELossFunction::Huber << " delta parameter is mandatory");
     return FromString<double>(lossParams.at("delta"));
 }
@@ -147,17 +163,28 @@ int NCatboostOptions::GetStochasticFilterNumEstimations(const TLossDescription& 
 
 double NCatboostOptions::GetTweedieParam(const TLossDescription& lossFunctionConfig) {
     Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::Tweedie);
-    const auto& lossParams = lossFunctionConfig.GetLossParams();
+    const auto& lossParams = lossFunctionConfig.GetLossParamsMap();
     CB_ENSURE(
         lossParams.contains("variance_power"),
         "For " << ELossFunction::Tweedie << " variance_power parameter is mandatory");
     return FromString<double>(lossParams.at("variance_power"));
 }
 
+double NCatboostOptions::GetPredictionBorderOrDefault(const TMap<TString, TString>& params, double defaultValue) {
+    auto it = params.find(TMetricOptions::PREDICTION_BORDER_PARAM);
+    if (it == params.end()) {
+        return defaultValue;
+    }
+    const auto border = FromString<double>(it->second);
+    CB_ENSURE(0 <= border && border <= 1.0, "Probability threshold must be in [0, 1] interval.");
+    return border;
+}
+
 NCatboostOptions::TLossDescription NCatboostOptions::ParseLossDescription(TStringBuf stringLossDescription) {
     TLossDescription description;
     description.LossFunction.Set(ParseLossType(stringLossDescription));
-    description.LossParams.Set(ParseLossParams(stringLossDescription));
+    TLossParams params = ParseLossParams(stringLossDescription);
+    description.LossParams.Set(params);
     return description;
 }
 
@@ -165,7 +192,7 @@ template <>
 void Out<NCatboostOptions::TLossDescription>(IOutputStream& out, const NCatboostOptions::TLossDescription& description) {
     TVector<TString> entries;
     entries.push_back(ToString(description.GetLossFunction()));
-    for (const auto& param : description.GetLossParams()) {
+    for (const auto& param : description.GetLossParamsMap()) {
         entries.push_back(TString::Join(param.first, "=", ToString(param.second)));
     }
     out << JoinStrings(entries, ",");
@@ -179,6 +206,41 @@ inline NCatboostOptions::TLossDescription FromString<NCatboostOptions::TLossDesc
     return description;
 }
 
+TLossParams::TLossParams(TMap<TString, TString> paramsMap, TVector<TString> userSpecifiedKeyOrder)
+    : ParamsMap(std::move(paramsMap))
+    , UserSpecifiedKeyOrder(std::move(userSpecifiedKeyOrder))
+{}
+
+// static.
+TLossParams TLossParams::FromVector(const TVector<std::pair<TString, TString>>& params) {
+    TMap<TString, TString> paramsMap;
+    TVector<TString> userSpecifiedKeyOrder;
+    for (const auto& keyValue : params) {
+        const bool inserted = paramsMap.insert({keyValue.first, keyValue.second}).second;
+        CB_ENSURE(inserted, "Duplicated loss param found: " << keyValue.first);
+        userSpecifiedKeyOrder.push_back(keyValue.first);
+    }
+    return TLossParams(std::move(paramsMap), std::move(userSpecifiedKeyOrder));
+}
+
+// static.
+TLossParams TLossParams::FromMap(TMap<TString, TString> paramsMap) {
+    TVector<TString> keys;
+    keys.reserve(paramsMap.size());
+    for (const auto& keyValue: paramsMap) {
+        keys.push_back(keyValue.first);
+    }
+    return TLossParams(std::move(paramsMap), std::move(keys));
+}
+
+
+bool TLossParams::operator==(const TLossParams &that) const {
+    return std::tie(ParamsMap, UserSpecifiedKeyOrder) == std::tie(that.ParamsMap, that.UserSpecifiedKeyOrder);
+}
+
+bool TLossParams::operator!=(const TLossParams &that) const {
+    return !(*this == that);
+}
 
 
 void ValidateHints(const TMap<TString, TString>& hints) {
@@ -232,15 +294,15 @@ TString MakeHintsDescription(const TMap<TString, TString>& hints) {
 }
 
 
-NJson::TJsonValue LossDescriptionToJson(const TStringBuf lossDescription) {
-    NJson::TJsonValue descriptionJson(NJson::JSON_MAP);
+NJson::TJsonValue LossDescriptionToJson(const TStringBuf lossDescriptionRaw) {
+    NJson::TJsonValue descriptionJson;
 
-    ELossFunction lossFunction = ParseLossType(lossDescription);
-    TMap<TString, TString> lossParams = ParseLossParams(lossDescription);
-    descriptionJson["type"] = ToString(lossFunction);
-    for (const auto& lossParam : lossParams) {
-        descriptionJson["params"][lossParam.first] = lossParam.second;
-    }
+    ELossFunction lossFunction = ParseLossType(lossDescriptionRaw);
+    TLossParams lossParams = ParseLossParams(lossDescriptionRaw);
+    NCatboostOptions::TLossDescription lossDescription;
+    lossDescription.LossParams.Set(std::move(lossParams));
+    lossDescription.LossFunction.Set(lossFunction);
+    lossDescription.Save(&descriptionJson);
     return descriptionJson;
 }
 
