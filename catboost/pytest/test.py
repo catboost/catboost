@@ -2544,14 +2544,14 @@ def test_fstr_with_target_border_and_class_weights(fstr_type):
 
 
 def do_test_fstr(
-        fstr_type,
-        loss_function,
-        input_path,
-        cd_path,
-        boosting_type,
-        grow_policy,
-        normalize,
-        additional_train_params=()
+    fstr_type,
+    loss_function,
+    input_path,
+    cd_path,
+    boosting_type,
+    grow_policy,
+    normalize,
+    additional_train_params=()
 ):
     model_path = yatest.common.test_output_path('model.bin')
     output_fstr_path = yatest.common.test_output_path('fstr.tsv')
@@ -5000,8 +5000,8 @@ def test_dist_train_yetirank():
         pool='querywise',
         train='repeat_same_query_8_times',
         test='repeat_same_query_8_times',
-        cd='train.cd'),
-        output_file_switch='--test-err-log'))]
+        cd='train.cd'
+    ), output_file_switch='--test-err-log'))]
 
 
 def test_no_target():
