@@ -3461,8 +3461,6 @@ class CatBoost(_CatBoostBase):
         if not isinstance(param_distributions, Mapping):
             assert CatBoostError("param_distributions should be a dictionary")
         for param in param_distributions:
-            #if not not hasattr(param_distributions[key], "rvs"): #isinstance(param_distributions[key], Iterable) and not hasattr(param_distributions[key], "rvs"):
-            #    raise TypeError('Parameter grid value do not have \'rvs\' method (key={!r}, value={!r})'.format(key, param_distributions[key]))
             if not isinstance(param, skopt.space.space.Dimension):
                 raise TypeError('Parameter grid value is not from skopt.space.space.Dimension')
 
@@ -3519,78 +3517,12 @@ class CatBoost(_CatBoostBase):
                               n_calls=n_calls,
                               n_random_starts=n_random_starts,
                               random_state=random_state)
-        #print(optimized_params_names)
-        #print(results)
         best_params = {optimized_params_names[i]: results.x[i] for i in range(len(optimized_params_names))}
         self.set_params(**best_params)
         if refit:
             self.set_params(**best_params)
             self.fit(X, y, silent=True)
         return best_params
-
-
-    """
-    def _gaussian_search(self, param_distributions, X, y=None,
-                         n_initial_points=10, random_state=None, n_points=100,
-                         cv=3, search_by_train_test_split=True):
-
-        # надо возвращать ...
-        # надо поддержать вывод текущих результатов в консоль ()
-        # n_initial_points - число случайных запусков до начала алгоритма
-        # random_state -
-        # n_points - сколько всего запусков делать
-
-        train_params = self._prepare_train_params(
-            X, y, None, None, None, None, None, None, None, None, None, None, None, None,
-            None, None, None, None, None, True, None, None, None, None, None
-        )
-        params = train_params["params"]
-        loss_function = params.get('loss_function', None)
-
-        start_params = []
-        start_results = []
-
-        # делаем первичные запуски
-        for _ in range(n_initial_points):
-            generated_params = _generate_random_params(param_distributions)
-            start_params.append(generated_params)
-            generated_params["loss_function"] = loss_function
-            result = _calc_loss(X, y, params, train_params, cv, random_state, search_by_train_test_split)
-            start_results.append(result)
-
-        # делаем гауссовские запуски
-        for _ in range(n_points - n_initial_points):
-            generated_params = _generate_gaussian_params(param_distributions)
-
-    def _calc_loss(self, X, y, params, train_params, cv=3, random_state=None, search_by_train_test_split=True):
-        loss_function = params.get('loss_function', None)
-        if search_by_train_test_split:
-                self.set_params(**params)
-                # !!!!!!!!! надо делать train-test-split, а не учиться на всём
-                self.fit(X, y, silent=True)
-                # !!!!!!!!! метрику надо считать на val датасете, а не на всём
-                result = self.eval_metrics(train_params["train_pool"],
-                                           metrics=[loss_function],
-                                           ntree_start=(self.tree_count_ - 1))[loss_function][0]
-            else:
-                result = self.cv(train_params["train_pool"],
-                                  params=params,
-                                  fold_count=cv,
-                                  partition_random_seed=random_state)
-                result = list(result["test-" + loss_function + "-mean"])[-1] # mean cv result on val-dataset for loss_funtion
-        return result
-
-
-    def _generate_random_params(param_distributions):
-        generated_params = {}
-        for key in param_distributions.keys():
-            generated_params[key] = param_distributions[key].rvs()
-        return generated_params
-
-    def _generate_gaussian_params(param_distributions, previous_params, previous_results):
-        pass
-    """
-
 
     def _convert_to_asymmetric_representation(self):
         self._object._convert_oblivious_to_asymmetric()
