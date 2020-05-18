@@ -3456,7 +3456,7 @@ class CatBoost(_CatBoostBase):
                         partition_random_seed=None, n_jobs=1, const_params={}, to_minimize_objective=True,
                         refit=True, train_size=0.8, verbose=True, plot=False):
         import skopt
-        if n_calls<= 0:
+        if n_calls <= 0:
             assert CatBoostError("n_iter should be a positive number")
         if not isinstance(param_distributions, Mapping):
             assert CatBoostError("param_distributions should be a dictionary")
@@ -3479,8 +3479,6 @@ class CatBoost(_CatBoostBase):
                          random_state=None, n_calls=100, search_by_train_test_split=True,
                          partition_random_seed=None, n_jobs=1, const_params={}, to_minimize_objective=True,
                          refit=True, train_size=0.8, verbose=True, plot=False):
-
-
         train_params = self._prepare_train_params(
             X, y, None, None, None, None, None, None, None, None, None, None, None, None,
             None, None, None, None, None, True, None, None, None, None, None
