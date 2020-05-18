@@ -154,6 +154,7 @@ namespace NCB {
         TInputClassificationInfo inputClassificationInfo {
             dataProcessingOptions.ClassesCount.Get() ? TMaybe<ui32>(dataProcessingOptions.ClassesCount.Get()) : Nothing(),
             dataProcessingOptions.ClassWeights.Get(),
+            dataProcessingOptions.AutoClassWeights.Get(),
             dataProcessingOptions.ClassLabels.Get(),
             *targetBorder
         };
@@ -169,8 +170,7 @@ namespace NCB {
             srcData->RawTargetData,
             GetMetricDescriptions(*params),
             /*knownModelApproxDimension*/ Nothing(),
-            inputClassificationInfo,
-            dataProcessingOptions.AutoClassWeights.Get()
+            inputClassificationInfo
         );
 
         CB_ENSURE(!isLearnData || srcData->RawTargetData.GetObjectCount() > 0, "Train dataset is empty");

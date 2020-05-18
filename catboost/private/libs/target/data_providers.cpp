@@ -321,8 +321,7 @@ namespace NCB {
         const TRawTargetDataProvider& rawData,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
         TMaybe<ui32> knownModelApproxDimension,
-        const TInputClassificationInfo& inputClassificationInfo,
-        EAutoClassWeightsType autoClassWeightsType
+        const TInputClassificationInfo& inputClassificationInfo
     ) {
         CB_ENSURE(!metricDescriptions.empty(), "No metrics specified");
 
@@ -361,9 +360,6 @@ namespace NCB {
             inputClassificationInfo.TargetBorder
         );
 
-        if (!classTargetData) {
-            autoClassWeightsType = EAutoClassWeightsType::None;
-        }
         bool multiClassTargetData = false;
 
         if (knownModelApproxDimension) {
@@ -429,7 +425,6 @@ namespace NCB {
                 || (!rawData.GetObjectsGrouping()->IsTrivial() && hasUserDefinedMetrics)
             ),
             /*CreatePairs*/ isAnyOfMetrics(IsPairwiseMetric),
-            /*AutoClassWeightsType*/ autoClassWeightsType,
             /*MaxPairsCount*/ maxPairsCount,
         };
         return options;
@@ -613,14 +608,19 @@ namespace NCB {
 
         // Weights
         {
-            if (createClassTarget && (!inputClassificationInfo.ClassWeights.empty() || targetCreationOptions.AutoClassWeightsType != EAutoClassWeightsType::None)) {
+            if (createClassTarget && (!inputClassificationInfo.ClassWeights.empty() ||
+                    inputClassificationInfo.AutoClassWeightsType != EAutoClassWeightsType::None)) {
                 auto targetClasses = !maybeConvertedTarget.empty() ? TMaybe<TConstArrayRef<float>>(*maybeConvertedTarget[0]) : Nothing();
 
                 TConstArrayRef<float> classWeights = targetClasses ? inputClassificationInfo.ClassWeights : TConstArrayRef<float>();
                 TVector<float> autoClassWeights;
 
-                if (targetClasses && classWeights.empty() && targetCreationOptions.AutoClassWeightsType != EAutoClassWeightsType::None) {
-                    autoClassWeights = CalculateClassWeights(*targetClasses, classCount, targetCreationOptions.AutoClassWeightsType);
+                if (targetClasses && classWeights.empty() && inputClassificationInfo.AutoClassWeightsType != EAutoClassWeightsType::None) {
+                    autoClassWeights = CalculateClassWeights(
+                        *targetClasses,
+                        classCount,
+                        inputClassificationInfo.AutoClassWeightsType,
+                        localExecutor);
                     classWeights = autoClassWeights;
 
                     if (outputClassificationInfo->ClassWeights) {
@@ -752,8 +752,7 @@ namespace NCB {
             }
         }
         if (param.Has("auto_class_weights")) {
-            const EAutoClassWeightsType autoClassWeightsValue = FromString<EAutoClassWeightsType>(param["auto_class_weights"].GetStringSafe());
-            *autoClassWeights = autoClassWeightsValue;
+            *autoClassWeights = FromString<EAutoClassWeightsType>(param["auto_class_weights"].GetStringSafe());
         }
     }
 
@@ -899,8 +898,9 @@ namespace NCB {
         TInputClassificationInfo inputClassificationInfo{
             classCount,
             classWeights,
+            autoClassWeights,
             classLabels,
-            targetBorder
+            targetBorder,
         };
         TOutputClassificationInfo outputClassificationInfo {
             classLabels,
@@ -912,8 +912,7 @@ namespace NCB {
             srcData.RawTargetData,
             updatedMetricsDescriptions,
             model.GetDimensionsCount(),
-            inputClassificationInfo,
-            autoClassWeights
+            inputClassificationInfo
         );
         result.TargetData = CreateTargetDataProvider(
             srcData.RawTargetData,
@@ -1049,6 +1048,7 @@ namespace NCB {
         TInputClassificationInfo inputClassificationInfo{
             classCount,
             classWeights,
+            autoClassWeights,
             classLabels,
             targetBorder
         };
@@ -1062,8 +1062,7 @@ namespace NCB {
             srcData.RawTargetData,
             metricsDescriptions,
             model.GetDimensionsCount(),
-            inputClassificationInfo,
-            autoClassWeights
+            inputClassificationInfo
         );
         result.TargetData = CreateTargetDataProvider(
             srcData.RawTargetData,

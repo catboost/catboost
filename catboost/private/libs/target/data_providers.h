@@ -22,13 +22,13 @@ namespace NCB {
         bool CreateMultiClassTarget;
         bool CreateGroups;
         bool CreatePairs;
-        EAutoClassWeightsType AutoClassWeightsType;
         TMaybe<ui32> MaxPairsCount;
     };
 
     struct TInputClassificationInfo {
         TMaybe<ui32> KnownClassCount;
         TConstArrayRef<float> ClassWeights; // [classIdx], empty if not specified
+        EAutoClassWeightsType AutoClassWeightsType;
         TVector<NJson::TJsonValue> ClassLabels; // can be Integers, Floats or Strings
         TMaybe<float> TargetBorder;
     };
@@ -55,8 +55,7 @@ namespace NCB {
         const TRawTargetDataProvider &rawData,
         TConstArrayRef<NCatboostOptions::TLossDescription> metricDescriptions,
         TMaybe<ui32> knownModelApproxDimension,
-        const TInputClassificationInfo& inputClassificationInfo,
-        EAutoClassWeightsType autoClassWeightsType);
+        const TInputClassificationInfo& inputClassificationInfo);
 
     void CheckTargetConsistency(
         TTargetDataProviderPtr targetDataProvider,
