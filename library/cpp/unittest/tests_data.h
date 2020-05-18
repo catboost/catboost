@@ -12,6 +12,8 @@ TString GetArcadiaTestsData();
 TString GetWorkPath();
 TFsPath GetYaPath();
 TFsPath GetOutputPath();
+TString GetRamDrivePath();
+TString GetOutputRamDrivePath();
 
 // set two options: SO_REUSEADDR and SO_REUSEPORT, both are required for
 // correct implementation of TPortManager because of different operating systems
