@@ -8,10 +8,6 @@
   - config_formats.h
   - config_functions.h
 
-  # Files excluded from arcadia build
-  - Common/BitonicSort.h
-  - Common/oclBasics.h
-
   # Protobuf is currently disabled in CH build, this allows dependency checker not to fail because of missing includes
   - google/protobuf/compiler/importer.h
   - google/protobuf/descriptor.h
