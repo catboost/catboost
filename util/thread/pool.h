@@ -99,6 +99,10 @@ struct TThreadPoolParams {
         SetThreadName(name);
     }
 
+    TThreadPoolParams(const char* name) {
+        SetThreadName(name);
+    }
+
     TSelf& SetCatching(bool val) {
         Catching_ = val;
         return *this;
