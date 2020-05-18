@@ -21,13 +21,13 @@ NCatboostOptions::TDataProcessingOptions::TDataProcessingOptions(ETaskType type)
       , TextProcessingOptions("text_processing_options", TTextProcessingOptions())
       , ClassesCount("classes_count", 0)
       , ClassWeights("class_weights", TVector<float>())
+      , AutoClassWeights("auto_class_weights", EAutoClassWeightsType::None)
       , ClassLabels("class_names", TVector<NJson::TJsonValue>()) // "class_names" is used for compatibility
       , DevDefaultValueFractionToEnableSparseStorage("dev_default_value_fraction_for_sparse", 0.83f)
       , DevSparseArrayIndexingType("dev_sparse_array_indexing", NCB::ESparseArrayIndexingType::Indices)
       , GpuCatFeaturesStorage("gpu_cat_features_storage", EGpuCatFeaturesStorage::GpuRam, type)
       , DevLeafwiseScoring("dev_leafwise_scoring", false, type)
       , DevGroupFeatures("dev_group_features", false, type)
-      , AutoClassWeights("auto_class_weights", EAutoClassWeightsType::None)
 {
     GpuCatFeaturesStorage.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
     DevGroupFeatures.ChangeLoadUnimplementedPolicy(ELoadUnimplementedPolicy::SkipWithWarning);
@@ -87,7 +87,7 @@ void NCatboostOptions::TDataProcessingOptions::Validate() const {
         "DevGroupFeatures is supported only with DevLeafwiseScoring"
     );
     CB_ENSURE(AutoClassWeights.Get() == EAutoClassWeightsType::None || ClassWeights.IsDefault(),
-        "ClassWeights should be default if AutoClassWeights is true");
+        "ClassWeights should be default if AutoClassWeights is not None");
 }
 
 

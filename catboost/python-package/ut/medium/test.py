@@ -2343,7 +2343,7 @@ def test_auto_class_weights():
     target = rnd.randint(2, size=10)
 
     counts = Counter(target)
-    max_class_count = max(count for key, count in counts.items())
+    max_class_count = max(counts.values())
     expected_balanced = np.array([max_class_count / counts[class_id] if counts[class_id] > 0 else 1.
                                   for class_id in range(2)])
     expected_sqrt_balanced = np.sqrt(expected_balanced)
