@@ -3497,20 +3497,20 @@ class CatBoost(_CatBoostBase):
         optimized_params_names = [distibution.name for distibution in param_distributions]
         init_params = self._init_params.copy()
 
-        objective = Objective(X,
-                              y,
-                              random_state,
-                              train_size,
-                              cv,
-                              partition_random_seed,
-                              optimized_params_names,
-                              self,
-                              loss_function,
-                              train_params["train_pool"],
-                              search_by_train_test_split,
-                              to_minimize_objective,
-                              const_params,
-                              init_params)
+        objective = SkoptObjective(X,
+                                   y,
+                                   random_state,
+                                   train_size,
+                                   cv,
+                                   partition_random_seed,
+                                   optimized_params_names,
+                                   self,
+                                   loss_function,
+                                   train_params["train_pool"],
+                                   search_by_train_test_split,
+                                   to_minimize_objective,
+                                   const_params,
+                                   init_params)
 
         results = gp_minimize(objective,
                               param_distributions,
@@ -3528,7 +3528,7 @@ class CatBoost(_CatBoostBase):
         self._object._convert_oblivious_to_asymmetric()
 
 
-class Objective(object):
+class SkoptObjective(object):
     def __init__(self, X, y, random_state, train_size, cv,
                  partition_random_seed, optimized_params_names,
                  model, loss_function, train_pool, search_by_train_test_split,
