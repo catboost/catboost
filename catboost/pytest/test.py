@@ -5175,6 +5175,73 @@ def test_eval_metrics_with_target_border_and_class_weights():
     )
 
 
+@pytest.mark.parametrize('config', [('Constant', 0.2, 0.1), ('Constant', 2, 0.1), ('Decreasing', 0.2, 0.1)])
+def test_eval_metrics_with_boost_from_average_and_model_shrinkage(config):
+    mode, rate, lr = config
+    train = data_file('higgs', 'train_small')
+    test = data_file('higgs', 'test_small')
+    cd = data_file('higgs', 'train.cd')
+    loss_function = 'Logloss'
+
+    output_model_path = yatest.common.test_output_path('model.bin')
+    learn_error_path = yatest.common.test_output_path('learn_error.tsv')
+    test_error_path = yatest.common.test_output_path('test_error.tsv')
+    cmd = (
+        '--loss-function', loss_function,
+        '--eval-metric', 'Logloss',
+        '-f', train,
+        '-t', test,
+        '--column-description', cd,
+        '-i', '10',
+        '-w', '0.03',
+        '-T', '4',
+        '-m', output_model_path,
+        '--test-err-log', test_error_path,
+        '--use-best-model', 'false',
+        '--metric-period', '10',
+        '--learn-err-log', learn_error_path,
+        '--model-shrink-mode', mode,
+        '--model-shrink-rate', str(rate),
+        '--boost-from-average', 'true'
+    )
+    execute_catboost_fit('CPU', cmd)
+
+    test_eval_path = yatest.common.test_output_path('test_output.tsv')
+    learn_eval_path = yatest.common.test_output_path('learn_output.tsv')
+    cmd = (
+        CATBOOST_PATH,
+        'eval-metrics',
+        '--metrics', 'Logloss',
+        '--input-path', train,
+        '--column-description', cd,
+        '-m', output_model_path,
+        '-o', learn_eval_path,
+        '--block-size', '100',
+        '--eval-period', '10',
+        '--save-stats',
+    )
+    yatest.common.execute(cmd)
+    cmd = (
+        CATBOOST_PATH,
+        'eval-metrics',
+        '--metrics', 'Logloss',
+        '--input-path', test,
+        '--column-description', cd,
+        '-m', output_model_path,
+        '-o', test_eval_path,
+        '--block-size', '100',
+        '--eval-period', '10',
+        '--save-stats',
+    )
+    yatest.common.execute(cmd)
+    test_first_metrics = np.round(np.loadtxt(test_error_path, skiprows=1)[:, 1:], 8)
+    test_second_metrics = np.round(np.loadtxt(test_eval_path, skiprows=1)[:, 1:], 8)
+    learn_first_metrics = np.round(np.loadtxt(learn_error_path, skiprows=1)[:, 1:], 8)
+    learn_second_metrics = np.round(np.loadtxt(learn_eval_path, skiprows=1)[:, 1:], 8)
+    assert test_first_metrics[-1] == test_second_metrics[-1]
+    assert learn_first_metrics[-1] == learn_second_metrics[-1]
+
+
 @pytest.mark.parametrize('metrics', ['AUC', 'AUC,Precision'])
 def test_eval_metrics_with_binarized_target(metrics):
     train = data_file('adult', 'train_small')
