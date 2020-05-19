@@ -1,4 +1,4 @@
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <catboost/libs/metrics/metric.h>
 #include <catboost/libs/metrics/metric_holder.h>
@@ -14,7 +14,7 @@ Y_UNIT_TEST_SUITE(TweedieMetricTest) {
 
             NPar::TLocalExecutor executor;
             const auto metric = std::move(CreateMetric(ELossFunction::Tweedie,
-                                                       /*params=*/{{"variance_power", "1.5"}},
+                                                       TLossParams::FromVector({{"variance_power", "1.5"}}),
                                                        /*approxDimension=*/1)[0]);
             TMetricHolder score = metric->Eval(approx, target, weight, {}, 0, target.size(), executor);
 

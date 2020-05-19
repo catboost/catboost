@@ -5,7 +5,7 @@
 #include <catboost/libs/data/objects_grouping.h>
 
 #include <library/testing/benchmark/bench.h>
-#include <library/unittest/tests_data.h>
+#include <library/cpp/unittest/tests_data.h>
 
 using namespace NCB;
 using namespace NDataNewUT;

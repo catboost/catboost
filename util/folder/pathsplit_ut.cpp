@@ -5,7 +5,7 @@
 
 #include "pathsplit.h"
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #define VAR(NAME) Y_CAT(NAME, __LINE__)
 

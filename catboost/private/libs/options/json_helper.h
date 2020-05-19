@@ -1,7 +1,10 @@
 #pragma once
 
+#include <utility>
+
 #include "option.h"
 #include "unimplemented_aware_option.h"
+#include "loss_description.h"
 
 #include <library/cpp/json/json_value.h>
 
@@ -187,6 +190,50 @@ namespace NCatboostOptions {
             } else {
                 TJsonFieldHelper<T>::Write(src.GetRef(), dst);
             }
+        }
+    };
+
+    template <>
+    class TJsonFieldHelper<TLossParams, false> {
+    public:
+        static Y_NO_INLINE void Read(const NJson::TJsonValue& src, TLossParams* dst) {
+            CB_ENSURE(dst, "Error: can't write to nullptr");
+            TVector<std::pair<TString, TString>> keyValuePairs;
+            // The input JSON might be either a map of parameters or a list of key-value pairs (which are lists of
+            // length 2).
+            if (src.IsArray()) {
+                // [["key1, "value1"], ["key2", "value2"]]
+                const NJson::TJsonValue::TArray& data = src.GetArraySafe();
+                TVector<TString> keyValuePair;
+                for (ui32 i = 0; i < data.size(); ++i) {
+                    TJsonFieldHelper<TVector<TString>, false>::Read(data.at(i), &keyValuePair);
+                    CB_ENSURE(keyValuePair.size() == 2, "Error: payload must contain lists of length 2 (key-value pairs)");
+                    keyValuePairs.emplace_back(keyValuePair[0], keyValuePair[1]);
+                }
+            } else if (src.IsMap()) {
+                // {"key1": "value1", "key2": "value2"}
+                CB_ENSURE(src.IsMap(), "Error: TLossParams serialized JSON is not a map nor a list.");
+                const auto& data = src.GetMapSafe();
+                for (const auto& entry : data) {
+                    CB_ENSURE(entry.second.IsString(), "Error: TLossParams map values must be strings.");
+                    keyValuePairs.emplace_back(entry.first, entry.second.GetStringSafe());
+                }
+            } else {
+                ythrow TCatBoostException() << "Error: wrong json type";
+            }
+            *dst = TLossParams::FromVector(keyValuePairs);
+        }
+
+        static Y_NO_INLINE void Write(const TLossParams& src, NJson::TJsonValue* dst) {
+            // Writing TLossParams as a vector of key-value pairs to preserve the params order.
+            CB_ENSURE(dst, "Error: can't write to nullptr");
+            TVector<TVector<TString>> keyValuePairs;
+            keyValuePairs.reserve(src.GetUserSpecifiedKeyOrder().size());
+            for (const auto& key : src.GetUserSpecifiedKeyOrder()) {
+                const TString& value = src.GetParamsMap().at(key);
+                keyValuePairs.emplace_back(TVector<TString>{key, value});
+            }
+            TJsonFieldHelper<TVector<TVector<TString>>, false>::Write(keyValuePairs, dst);
         }
     };
 

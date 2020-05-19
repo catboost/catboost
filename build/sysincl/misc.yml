@@ -128,10 +128,6 @@
     - atomic.h:      contrib/libs/musl/src/internal/atomic.h
     - bits/fenv.h:   contrib/libs/musl/arch/x86_64/bits/fenv.h
 
-- source_filter: "^contrib/libs/unixodbc"
-  includes:
-    - argz.h:        contrib/libs/unixodbc/libltdl/argz.h
-
 - source_filter: "^contrib/libs/zbar"
   includes:
     - error.h:       contrib/libs/zbar/zbar/error.h
@@ -538,10 +534,6 @@
   includes:
     - validator/validator.h: infra/contrib/unbound/unbound/validator/validator.h
 
-- source_filter: "^yandex_io/external_libs/speechkit"
-  includes:
-    - threads.h: yandex_io/external_libs/speechkit/c11-threads/threads.h
-
 - source_filter: "^contrib/restricted/openal-soft"
   includes:
     - threads.h: contrib/restricted/openal-soft/common/threads.h
@@ -549,3 +541,7 @@
 - source_filter: "^devtools/experimental/umbrella/embedded"
   includes:
     - threads.h: devtools/experimental/umbrella/include/c11/threads.h
+
+- source_filter: "^speechkit/libs/spotter"
+  includes:
+    - threads.h: speechkit/libs/spotter/c11-threads/threads.h

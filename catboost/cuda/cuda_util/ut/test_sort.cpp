@@ -5,7 +5,7 @@
 #include <catboost/cuda/cuda_util/sort.h>
 #include <catboost/libs/helpers/cpu_random.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 #include <iostream>
 

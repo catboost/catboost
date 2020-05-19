@@ -2,7 +2,7 @@
 #include <catboost/private/libs/text_features/naive_bayesian.h>
 #include <catboost/private/libs/text_features/embedding_online_features.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 #include <util/random/fast.h>
 
 using namespace NCB;

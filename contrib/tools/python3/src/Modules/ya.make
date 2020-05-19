@@ -9,11 +9,11 @@ PEERDIR(
     ADDINCL contrib/libs/libbz2
     ADDINCL contrib/libs/openssl
     ADDINCL contrib/libs/zlib
-    contrib/deprecated/libffi
+    contrib/restricted/libffi
 )
 
 ADDINCL(
-    contrib/deprecated/libffi/include
+    contrib/restricted/libffi/include
     contrib/tools/python3/src/Include
     contrib/tools/python3/src/Modules
     contrib/tools/python3/src/Modules/_decimal/libmpdec

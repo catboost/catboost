@@ -2,7 +2,7 @@
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
 #include <catboost/cuda/cuda_util/segmented_sort.h>
 #include <catboost/libs/helpers/cpu_random.h>
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 #include <iostream>
 #include <util/generic/algorithm.h>
 #include <catboost/cuda/cuda_util/fill.h>

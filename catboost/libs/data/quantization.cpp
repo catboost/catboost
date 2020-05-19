@@ -2656,11 +2656,13 @@ namespace NCB {
 
             quantizationOptions->CpuCompatibleFormat = true;
 
-            quantizationOptions->BundleExclusiveFeatures = true;
+            quantizationOptions->BundleExclusiveFeatures = false;
+            // TODO(kirillovs): temporarily disabled EFB for GPU until i figure out what's happening with binary buckets
+            /*
             quantizationOptions->ExclusiveFeaturesBundlingOptions.MaxBuckets = Min<ui32>(
                 254, params.ObliviousTreeOptions->DevExclusiveFeaturesBundleMaxBuckets.Get());
             quantizationOptions->ExclusiveFeaturesBundlingOptions.OnlyOneHotsAndBinaryFloats = true;
-
+            */
             quantizationOptions->PackBinaryFeaturesForCpu = false;
             quantizationOptions->GroupFeaturesForCpu = false;
         }

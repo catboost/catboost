@@ -437,6 +437,9 @@ ALLOW .* -> vendor/github.com/klauspost/compress/zstd
 # CONTRIB-1865 Decorated Syntax Tree for Go AST
 ALLOW .* -> vendor/github.com/dave/dst
 
+# CONTRIB-1874 Parse and demux MPEG Transport Streams
+ALLOW .* -> vendor/github.com/asticode/go-astits
+
 #
 # Temporary exceptions.
 #

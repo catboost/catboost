@@ -158,13 +158,13 @@ namespace NCatboostCuda {
             TAdditiveStatistic totalStats;
             for (ui32 idx : xrange(QuerywiseLosses.size())) {
                 const auto& metrics = CreateMetricFromDescription(QuerywiseLosses[idx].Loss, /*approxDimension*/ 1);
-                const auto& stats = QuerywiseTargets[idx]->ComputeStats(point, QuerywiseLosses[idx].Loss.GetLossParams());
+                const auto& stats = QuerywiseTargets[idx]->ComputeStats(point, QuerywiseLosses[idx].Loss.GetLossParamsMap());
                 const double value = metrics[0]->GetFinalError(stats);
                 totalStats.Add(MakeSimpleAdditiveStatistic(value * QuerywiseLosses[idx].Weight, 0));
             }
             for (ui32 idx : xrange(PointwiseLosses.size())) {
                 const auto& metrics = CreateMetricFromDescription(PointwiseLosses[idx].Loss, /*approxDimension*/ 1);
-                const auto& stats = PointwiseTargets[idx]->ComputeStats(point, PointwiseLosses[idx].Loss.GetLossParams());
+                const auto& stats = PointwiseTargets[idx]->ComputeStats(point, PointwiseLosses[idx].Loss.GetLossParamsMap());
                 const double value = metrics[0]->GetFinalError(stats);
                 totalStats.Add(MakeSimpleAdditiveStatistic(value * PointwiseLosses[idx].Weight, 0));
             }
@@ -348,7 +348,7 @@ namespace NCatboostCuda {
         void CreateLosses(const NCatboostOptions::TLossDescription& targetOptions) {
             CB_ENSURE(targetOptions.GetLossFunction() == ELossFunction::Combination,  "Only combination loss is supported");
             IterateOverCombination(
-                targetOptions.GetLossParams(),
+                targetOptions.GetLossParamsMap(),
                 [&] (const auto& loss, float weight) {
                     const auto lossFunction = loss.GetLossFunction();
                     if (IsDiagQuerywiseLoss(lossFunction)) {

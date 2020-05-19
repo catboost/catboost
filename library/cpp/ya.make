@@ -38,6 +38,7 @@ RECURSE(
     grid_creator/ut
     http
     json
+    json/fast_sax
     json/flex_buffers
     json/flex_buffers/ut
     json/fuzzy_test
@@ -60,6 +61,7 @@ RECURSE(
     string_utils
     terminate_handler
     terminate_handler/sample
+    testing
     text_processing
     threading
     tokenizer

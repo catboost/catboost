@@ -3,17 +3,22 @@ import os
 import subprocess
 
 
+CGO1_SUFFIX='.cgo1.go'
+FIXED_CGO1_SUFFIX='.fixed.cgo1.go'
+
+
 def call(cmd, cwd, env=None):
     # print >>sys.stderr, ' '.join(cmd)
     return subprocess.check_output(cmd, stdin=None, stderr=subprocess.STDOUT, cwd=cwd, env=env)
 
 
-def postprocess(source_root, path):
-    with open(path, 'r') as f:
-        content = f.read()
-        content = content.replace(source_root, '__ARCADIA_SOURCE_ROOT_PREFIX__/')
-    with open(path, 'w') as f:
-        f.write(content)
+def process_cgo1_go(source_root, src_path, dst_path):
+    with open(src_path, 'r') as src_file, open(dst_path, 'w') as dst_file:
+        for line in src_file:
+            if line.startswith('//'):
+                dst_file.write(line.replace(source_root, '__ARCADIA_SOURCE_ROOT_PREFIX__'))
+            else:
+                dst_file.write(line)
 
 
 if __name__ == '__main__':
@@ -27,6 +32,7 @@ if __name__ == '__main__':
     call(args.cgo1_cmd, args.source_root)
 
     if args.process_cgo1_go:
-        source_root = args.source_root + os.path.sep
-        for path in args.cgo1_files:
-            postprocess(source_root, path)
+        for dst_path in args.cgo1_files:
+            assert dst_path.endswith(FIXED_CGO1_SUFFIX)
+            src_path = '{}{}'.format(dst_path[:-len(FIXED_CGO1_SUFFIX)], CGO1_SUFFIX)
+            process_cgo1_go(args.source_root, src_path, dst_path)

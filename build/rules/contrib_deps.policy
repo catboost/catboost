@@ -1,6 +1,5 @@
 ALLOW contrib -> contrib
 ALLOW contrib -> build
-ALLOW contrib -> library/unittest
 ALLOW contrib -> library/cpp/unittest
 ALLOW contrib -> library/cpp/getopt
 ALLOW contrib -> library/resource
@@ -20,7 +19,7 @@ ALLOW contrib/tools/python3/pycc -> library/python/runtime_py3
 ALLOW contrib/python/.*/(_?)test(s?) -> library/python/testing/yatest_common
 ALLOW contrib/python/.*/(_?)test(s?) -> library/python/import_test
 ALLOW contrib/python/click -> library/python/symbols/python
-ALLOW contrib/java/ru/yandex/market -> market
+ALLOW contrib/java/ru/yandex/market -> (market)|(maps/doc/proto/yandex/maps/proto)
 ALLOW contrib/libs/tf -> library/python/testing/gtest
 ALLOW contrib/libs/tf/tests/test_vars_to_const/cpp_check_inference -> maps/libs/common
 ALLOW contrib/libs/tf/tests/test_vars_to_const/cpp_check_inference -> yandex/maps/common

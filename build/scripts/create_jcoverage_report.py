@@ -63,6 +63,7 @@ def main(source, output, java, prefix_filter, exclude_filter, jars_list, output_
                 else:
                     continue
 
+                entry.filename = entry.filename.encode('utf-8')
                 jf.extract(entry, dest)
     timer.step("Jar files extracted")
 
@@ -87,6 +88,10 @@ def main(source, output, java, prefix_filter, exclude_filter, jars_list, output_
 
 
 if __name__ == '__main__':
+    if 'LC_ALL' in os.environ:
+        if os.environ['LC_ALL'] == 'C':
+            os.environ['LC_ALL'] = 'en_GB.UTF-8'
+
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--source', action='store')

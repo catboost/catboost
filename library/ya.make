@@ -11,11 +11,6 @@ RECURSE(
     chromium_trace/benchmark
     chromium_trace/examples
     chromium_trace/ut
-    comptrie
-    comptrie/loader
-    comptrie/loader/ut
-    comptrie/ut
-    comptrie/benchmark
     cpp
     dns
     dns/ut
@@ -63,8 +58,6 @@ RECURSE(
     token/serialization
     token/serialization/ut
     token/ut
-    unittest
-    unittest/main
 )
 
 IF (HAVE_CUDA)

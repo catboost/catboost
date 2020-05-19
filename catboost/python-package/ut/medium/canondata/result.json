@@ -31,16 +31,16 @@
         "checksum": "d6e477ed1d6272de96b95c9a99ded78b",
         "uri": "file://test.test_class_names_CPU_/predictions.txt"
     },
-    "test.test_class_weights[CPU]": {
-        "checksum": "aa6942875621f21631f0ae45ff925d65",
-        "uri": "file://test.test_class_weights_CPU_/model.bin"
+    "test.test_class_weights_list_binclass[CPU]": {
+        "checksum": "550cab9f181b09597e1bb814fab0c3b7",
+        "uri": "file://test.test_class_weights_list_binclass_CPU_/model.bin"
     },
     "test.test_classification_ctr[CPU]": {
         "checksum": "0a8426dbf6780b375a91e72c03df87d0",
         "uri": "file://test.test_classification_ctr_CPU_/model.bin"
     },
     "test.test_compute_options": {
-        "checksum": "2ee624ea4d81e8809c6bd36f375507b3",
+        "checksum": "76003a4427572fa9e54a32303d87d824",
         "uri": "file://test.test_compute_options/options.json"
     },
     "test.test_continue_learning_with_changing_dataset[samples=more,features=more]": {
@@ -747,11 +747,11 @@
     },
     "test.test_multiclass_classes_count[CPU-missed_classes=False]": [
         {
-            "checksum": "3d3e1da90862fa4b56fe57a7c724c80d",
+            "checksum": "88da5146d938cf92b1840d044361b30c",
             "uri": "file://test.test_multiclass_classes_count_CPU-missed_classes=False_/predictions.txt"
         },
         {
-            "checksum": "d7753b9b114a94e79a651e3611f429a7",
+            "checksum": "0ac507b4016b8bccc5f8044ff63e71f1",
             "uri": "file://test.test_multiclass_classes_count_CPU-missed_classes=False_/model.bin"
         }
     ],
@@ -761,7 +761,7 @@
             "uri": "file://test.test_multiclass_classes_count_CPU-missed_classes=True_/predictions.txt"
         },
         {
-            "checksum": "db5c1759c1151af5d39f8bf52e8652ba",
+            "checksum": "eb0dd2e319572086eb99df6f618dda8e",
             "uri": "file://test.test_multiclass_classes_count_CPU-missed_classes=True_/model.bin"
         }
     ],
@@ -844,6 +844,14 @@
     "test.test_pairs_without_groupid": {
         "checksum": "55a72aad68823431068983f5d7b5a4f2",
         "uri": "file://test.test_pairs_without_groupid/catboost_training.json"
+    },
+    "test.test_partial_dependence[features0]": {
+        "checksum": "a184da77e11f18792c202f2364dd630c",
+        "uri": "file://test.test_partial_dependence_features0_/feature_importance.txt"
+    },
+    "test.test_partial_dependence[features1]": {
+        "checksum": "e9217d54c14720ab5c59e9a1775e7580",
+        "uri": "file://test.test_partial_dependence_features1_/feature_importance.txt"
     },
     "test.test_pmml_export[binclass]": {
         "checksum": "a5ca32495a3ffd85e183322625382a75",

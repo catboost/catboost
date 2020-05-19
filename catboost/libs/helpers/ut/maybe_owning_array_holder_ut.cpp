@@ -5,7 +5,7 @@
 #include <util/stream/buffer.h>
 #include <util/generic/string.h>
 
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 struct TStringHolder : public NCB::IResourceHolder {
     TString S;

@@ -1,7 +1,7 @@
 #include "src_root.h"
 
 #include <util/folder/pathsplit.h>
-#include <library/unittest/registar.h>
+#include <library/cpp/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TestSourceRoot) {
     Y_UNIT_TEST(TestStrip) {

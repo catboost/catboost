@@ -31,15 +31,6 @@ IF (SANITIZER_TYPE STREQUAL undefined)
     NO_SANITIZE()
 ENDIF ()
 
-IF (MUSL)
-    ADDINCL(
-        contrib/libs/musl/arch/x86_64
-        contrib/libs/musl/arch/generic
-        contrib/libs/musl/include
-        contrib/libs/musl/extra
-    )
-ENDIF ()
-
 CXXFLAGS(
     -nostdinc++
 )
