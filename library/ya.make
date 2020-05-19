@@ -66,16 +66,6 @@ IF (HAVE_CUDA)
 )
 ENDIF()
 
-IF (OS_WINDOWS)
-    RECURSE(
-    
-)
-ELSE()
-    RECURSE(
-    
-)
-ENDIF()
-
 IF (NOT SANITIZER_TYPE)
     RECURSE(
     
