@@ -21,9 +21,10 @@ static std::function<float(ui64, ui64)> GetWeightFunction(EAutoClassWeightsType 
 }
 
 static TVector<ui64> CalculateNumberOfClassItems(
-        TConstArrayRef<float> targetClasses,
-        ui32 classCount,
-        NPar::TLocalExecutor* localExecutor) {
+    TConstArrayRef<float> targetClasses,
+    ui32 classCount,
+    NPar::TLocalExecutor* localExecutor
+) {
     const int numThreads = std::max(localExecutor->GetThreadCount(), 1);
     TVector<TVector<ui64>> numClassItemsPerBatch(numThreads, TVector<ui64>(classCount, 0ll));
 
@@ -48,10 +49,11 @@ static TVector<ui64> CalculateNumberOfClassItems(
 }
 
 TVector<float> CalculateClassWeights(
-        TConstArrayRef<float> targetClasses,
-        ui32 classCount,
-        EAutoClassWeightsType autoClassWeightsType,
-        NPar::TLocalExecutor* localExecutor) {
+    TConstArrayRef<float> targetClasses,
+    ui32 classCount,
+    EAutoClassWeightsType autoClassWeightsType,
+    NPar::TLocalExecutor* localExecutor
+) {
     Y_VERIFY(classCount > 0);
     TVector<ui64> numClassItems = CalculateNumberOfClassItems(targetClasses, classCount, localExecutor);
     Y_VERIFY(numClassItems.size() == classCount);

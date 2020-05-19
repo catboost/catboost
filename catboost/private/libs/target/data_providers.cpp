@@ -613,18 +613,16 @@ namespace NCB {
                 auto targetClasses = !maybeConvertedTarget.empty() ? TMaybe<TConstArrayRef<float>>(*maybeConvertedTarget[0]) : Nothing();
 
                 TConstArrayRef<float> classWeights = targetClasses ? inputClassificationInfo.ClassWeights : TConstArrayRef<float>();
-                TVector<float> autoClassWeights;
 
                 if (targetClasses && classWeights.empty() && inputClassificationInfo.AutoClassWeightsType != EAutoClassWeightsType::None) {
-                    autoClassWeights = CalculateClassWeights(
+                    classWeights = CalculateClassWeights(
                         *targetClasses,
                         classCount,
                         inputClassificationInfo.AutoClassWeightsType,
                         localExecutor);
-                    classWeights = autoClassWeights;
 
                     if (outputClassificationInfo->ClassWeights) {
-                        outputClassificationInfo->ClassWeights = autoClassWeights;
+                        outputClassificationInfo->ClassWeights = TVector<float>(classWeights.begin(), classWeights.end());
                     }
                 }
 
