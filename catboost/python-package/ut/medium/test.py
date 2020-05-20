@@ -3150,6 +3150,25 @@ def test_grid_search_several_grids(task_type):
     assert results['params']['border_count'] in grids[grid_num]['border_count']
 
 
+def test_skopt_parameter_search():
+    try:
+        from skopt.space import Integer, Real
+    except ImportError:
+        return
+
+    pool = Pool(TRAIN_FILE, column_description=CD_FILE)
+    grid = {
+        'random_strength': Integer(1, 20),
+        'l2_leaf_reg': Real(1., 5.),
+        'leaf_estimation_iterations': Integer(1, 10)
+    }
+
+    results = CatBoostClassifier(iterations=10).skopt_parameter_search(grid, pool, verbose=False, search_by_train_test_split=True)
+    assert set(results["params"].keys()) == set(grid.keys())
+    results = CatBoostClassifier(iterations=10).skopt_parameter_search(grid, pool, verbose=False, search_by_train_test_split=False)
+    assert set(results["params"].keys()) == set(grid.keys())
+
+
 def test_feature_importance(task_type):
     pool = Pool(TRAIN_FILE, column_description=CD_FILE)
     pool_querywise = Pool(QUERYWISE_TRAIN_FILE, column_description=QUERYWISE_CD_FILE)
