@@ -1,5 +1,8 @@
 ALLOW vendor/ -> .*
 
+# CONTRIB-1872 pure ipp proto implementation
+ALLOW .* -> vendor/github.com/phin1x/go-ipp
+
 # Validate and define text-based and dynamic configuration
 ALLOW .* -> vendor/cuelang.org/go
 
