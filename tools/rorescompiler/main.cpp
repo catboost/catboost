@@ -1,4 +1,4 @@
-#include <library/resource/registry.h>
+#include <library/cpp/resource/registry.h>
 
 #include <util/digest/city.h>
 #include <util/stream/output.h>
@@ -29,7 +29,7 @@ int main(int argc, char** argv) {
     TFixedBufferFileOutput out(argv[1]);
 
     argv = argv + 2;
-    out << "#include <library/resource/registry.h>\n\n";
+    out << "#include <library/cpp/resource/registry.h>\n\n";
 
     while (*argv) {
         TVector<TString> items = StringSplitter(TString(*(argv))).Split('=').Limit(2).ToList<TString>();

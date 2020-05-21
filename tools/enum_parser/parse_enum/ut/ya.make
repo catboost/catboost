@@ -4,7 +4,7 @@ UNITTEST()
 
 PEERDIR(
     ADDINCL tools/enum_parser/parse_enum
-    library/resource
+    library/cpp/resource
 )
 
 SRCDIR(tools/enum_parser/parse_enum)

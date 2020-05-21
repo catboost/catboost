@@ -56,6 +56,8 @@ RECURSE(
     pop_count
     pop_count/benchmark
     pop_count/ut
+    resource
+    resource/ut
     sse
     streams
     string_utils

@@ -2,7 +2,7 @@ ALLOW contrib -> contrib
 ALLOW contrib -> build
 ALLOW contrib -> library/cpp/unittest
 ALLOW contrib -> library/cpp/getopt
-ALLOW contrib -> library/resource
+ALLOW contrib -> library/cpp/resource
 ALLOW contrib -> library/charset
 ALLOW contrib -> library/svnversion
 ALLOW contrib -> certs

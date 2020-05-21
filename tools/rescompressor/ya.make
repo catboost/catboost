@@ -3,7 +3,7 @@ PROGRAM()
 
 
 PEERDIR(
-    library/resource
+    library/cpp/resource
 )
 
 SRCS(

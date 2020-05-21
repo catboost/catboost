@@ -5,7 +5,7 @@
 #include <catboost/libs/model/ctr_helpers.h>
 #include <catboost/libs/model/static_ctr_provider.h>
 
-#include <library/resource/resource.h>
+#include <library/cpp/resource/resource.h>
 
 #include <util/generic/map.h>
 #include <util/generic/set.h>
