@@ -70,6 +70,9 @@ ALLOW .* -> vendor/github.com/gorilla/websocket
 # http sessions with cookie and filesystem session storage
 ALLOW .* -> vendor/github.com/gorilla/sessions
 
+# Package gorilla/schema fills a struct with form values
+ALLOW .* -> vendor/github.com/gorilla/schema
+
 # S2 geometry
 ALLOW .* -> vendor/github.com/golang/geo
 
