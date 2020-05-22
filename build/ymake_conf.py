@@ -1056,7 +1056,11 @@ class GnuToolchain(Toolchain):
                     (target.is_apple and target.is_x86_64, 'x86_64-apple-darwin14'),
                     (target.is_apple and target.is_armv7, 'armv7-apple-darwin14'),
                     (target.is_apple and target.is_armv8, 'arm64-apple-darwin14'),
-                    (target.is_yocto and target.is_armv7, 'arm-poky-linux-gnueabi')
+                    (target.is_yocto and target.is_armv7, 'arm-poky-linux-gnueabi'),
+                    (target.is_android and target.is_x86, 'i686-linux-android16'),
+                    (target.is_android and target.is_x86_64, 'x86_64-linux-android21'),
+                    (target.is_android and target.is_armv7, 'armv7a-linux-androideabi16'),
+                    (target.is_android and target.is_armv8, 'aarch64-linux-android21'),
                 ])
 
             if target_triple:
@@ -1065,6 +1069,9 @@ class GnuToolchain(Toolchain):
         if self.tc.isystem:
             for root in list(self.tc.isystem):
                 self.c_flags_platform.extend(['-isystem', root])
+
+        if target.is_android:
+            self.c_flags_platform.extend(['-isystem', '{}/sources/cxx-stl/llvm-libc++abi/include'.format(self.tc.name_marker)])
 
         if target.is_cortex_a35:
             self.c_flags_platform.append('-mcpu=cortex-a35')
@@ -1203,7 +1210,7 @@ class GnuCompiler(Compiler):
         if not self.target.is_android:
             # There is no usable _FILE_OFFSET_BITS=64 support in Androids until API 21. And it's incomplete until at least API 24.
             # https://android.googlesource.com/platform/bionic/+/master/docs/32-bit-abi.md
-            # Arcadia have API 14 for 32-bit Androids.
+            # Arcadia have API 16 for 32-bit Androids.
             self.c_defines.append('-D_FILE_OFFSET_BITS=64')
 
         if self.target.is_linux or self.target.is_cygwin or self.target.is_yocto_lg_wk7y or self.target.is_yocto_jbl_portable_music or self.target.is_yocto_aacrh64_lightcomm_mt8516:
@@ -1217,9 +1224,6 @@ class GnuCompiler(Compiler):
                 self.c_warnings.append('-Wno-aligned-allocation-unavailable')
             if preset('MAPSMOBI_BUILD_TARGET') and self.target.is_arm:
                 self.c_foptions.append('-fembed-bitcode')
-
-        if self.target.is_android:
-            self.c_flags.append('-I{}/include/llvm-libc++abi/include'.format(tc.name_marker))
 
         self.extra_compile_opts = []
 
@@ -1588,18 +1592,6 @@ class LD(Linker):
 
         self.musl = Setting('MUSL', convert=to_bool)
 
-        if target.is_android:
-            if self.ar is None:
-                tc_root = tc.name_marker if target.is_x86 or (tc.is_clang and tc.version_at_least(5, 0)) else '{}/clang'.format(tc.name_marker)
-                prefix = select(no_default=True, selectors=[
-                    (target.is_x86, 'i686-linux-android'),
-                    (target.is_x86_64, 'x86_64-linux-android'),
-                    (target.is_armv7, 'arm-linux-androideabi'),
-                    (target.is_armv8, 'aarch64-linux-android')
-                ])
-                self.ar = '{root}/bin/{prefix}-ar'.format(root=tc_root, prefix=prefix)
-                self.ar_plugin = '{root}/lib64/LLVMgold.{ext}'.format(root=tc_root, ext='dylib' if tc.host.is_macos else 'so')
-
         if self.ar is None:
             if target.is_apple:
                 # Use libtool. cctools ar does not understand -M needed for archive merging
@@ -1623,9 +1615,6 @@ class LD(Linker):
             self.ld_flags.extend(['-ldl', '-lrt', '-Wl,--no-as-needed'])
         elif target.is_android:
             self.ld_flags.extend(['-ldl', '-Wl,--no-as-needed'])
-            if is_positive('USE_LTO'):
-                # https://github.com/android-ndk/ndk/issues/498
-                self.ld_flags.append('-Wl,-plugin-opt,-emulated-tls')
         elif target.is_macos:
             self.ld_flags.append('-Wl,-no_deduplicate')
             if not self.tc.is_clang:
@@ -1688,10 +1677,6 @@ class LD(Linker):
         if target.is_android:
             if target.is_armv7 and self.type != Linker.LLD:
                 self.sys_lib.append('-Wl,--fix-cortex-a8')
-
-            if self.tc.is_clang and self.tc.compiler_version == '3.8':
-                self.sys_lib.append('-L{}/clang/arm-linux-androideabi/lib/armv7-a'.format(self.tc.name_marker))
-
             if target.is_armv7:
                 self.sys_lib.append('-lunwind')
             self.sys_lib.append('-lgcc')
