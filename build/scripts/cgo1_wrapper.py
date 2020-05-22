@@ -1,6 +1,7 @@
 import argparse
 import os
 import subprocess
+import sys
 
 
 CGO1_SUFFIX='.cgo1.go'
@@ -9,7 +10,7 @@ FIXED_CGO1_SUFFIX='.fixed.cgo1.go'
 
 def call(cmd, cwd, env=None):
     # print >>sys.stderr, ' '.join(cmd)
-    return subprocess.check_output(cmd, stdin=None, stderr=subprocess.STDOUT, cwd=cwd, env=env)
+    return subprocess.call(cmd, stdin=None, stderr=sys.stderr, stdout=sys.stdout, cwd=cwd, env=env)
 
 
 def process_cgo1_go(source_root, src_path, dst_path):
@@ -29,7 +30,9 @@ if __name__ == '__main__':
     parser.add_argument('cgo1_cmd', nargs='*')
     args = parser.parse_args()
 
-    call(args.cgo1_cmd, args.source_root)
+    exit_code = call(args.cgo1_cmd, args.source_root)
+    if exit_code != 0:
+        sys.exit(exit_code)
 
     if args.process_cgo1_go:
         for dst_path in args.cgo1_files:
