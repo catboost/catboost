@@ -670,9 +670,8 @@ def convert_to_onnx_object(model, export_parameters=None, **kwargs):
             "There is no trained model to use save_model(). Use fit() to train model. Then use this method.")
 
     for kwarg in kwargs:
-        if kwarg in ['initial_types', 'target_opset', 'custom_conversion_functions', 'custom_shape_calculators'] \
-                and kwargs[kwarg] is not None:
-            warnings.warn(str(kwarg + " argument is not supported"))
+        if kwarg == 'target_opset' and (kwargs[kwarg] != 2 or kwargs[kwarg] is not None):
+            warnings.warn(str(kwarg + " argument is not supported. Default target_opset is 2 (ai.onnx.ml domain)"))
 
     params_string = ""
     if export_parameters:
