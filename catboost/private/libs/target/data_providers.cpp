@@ -425,7 +425,7 @@ namespace NCB {
                 || (!rawData.GetObjectsGrouping()->IsTrivial() && hasUserDefinedMetrics)
             ),
             /*CreatePairs*/ isAnyOfMetrics(IsPairwiseMetric),
-            /*MaxPairsCount*/ maxPairsCount,
+            /*MaxPairsCount*/ maxPairsCount
         };
         return options;
     }
@@ -609,20 +609,27 @@ namespace NCB {
         // Weights
         {
             if (createClassTarget && (!inputClassificationInfo.ClassWeights.empty() ||
-                    inputClassificationInfo.AutoClassWeightsType != EAutoClassWeightsType::None)) {
-                auto targetClasses = !maybeConvertedTarget.empty() ? TMaybe<TConstArrayRef<float>>(*maybeConvertedTarget[0]) : Nothing();
+                inputClassificationInfo.AutoClassWeightsType != EAutoClassWeightsType::None))
+            {
+                auto targetClasses = !maybeConvertedTarget.empty() ?
+                        TMaybe<TConstArrayRef<float>>(*maybeConvertedTarget[0]) : Nothing();
 
-                TConstArrayRef<float> classWeights = targetClasses ? inputClassificationInfo.ClassWeights : TConstArrayRef<float>();
+                TConstArrayRef<float> classWeights = targetClasses ? inputClassificationInfo.ClassWeights :
+                        TConstArrayRef<float>();
 
-                if (targetClasses && classWeights.empty() && inputClassificationInfo.AutoClassWeightsType != EAutoClassWeightsType::None) {
-                    classWeights = CalculateClassWeights(
+                TVector<float> autoClassWeights;
+                if (targetClasses && classWeights.empty() &&
+                    inputClassificationInfo.AutoClassWeightsType != EAutoClassWeightsType::None)
+                {
+                    classWeights = autoClassWeights = CalculateClassWeights(
                         *targetClasses,
+                        rawData.GetWeights(),
                         classCount,
                         inputClassificationInfo.AutoClassWeightsType,
                         localExecutor);
 
                     if (outputClassificationInfo->ClassWeights) {
-                        outputClassificationInfo->ClassWeights = TVector<float>(classWeights.begin(), classWeights.end());
+                        outputClassificationInfo->ClassWeights = autoClassWeights;
                     }
                 }
 
