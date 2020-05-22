@@ -11,7 +11,8 @@ static std::function<float(ui64, ui64)> GetWeightFunction(EAutoClassWeightsType 
     switch (autoClassWeightsType) {
         case EAutoClassWeightsType::Balanced:
             return [](float maxSummaryClassWeight, float summaryClassWeight) -> float {
-                return summaryClassWeight > MINIMAL_CLASS_WEIGHT ? maxSummaryClassWeight / summaryClassWeight : 1.f;
+                return summaryClassWeight > MINIMAL_CLASS_WEIGHT ?
+                       maxSummaryClassWeight / summaryClassWeight : 1.f;
             };
         case EAutoClassWeightsType::SqrtBalanced:
             return [](float maxSummaryClassWeight, float summaryClassWeight) -> float {
@@ -53,18 +54,18 @@ static TVector<float> CalculateSummaryClassWeight(
 
 namespace NCB {
     TVector<float> CalculateClassWeights(
-            TConstArrayRef<float> targetClasses,
-            const TWeights<float>& itemWeights,
-            ui32 classCount,
-            EAutoClassWeightsType autoClassWeightsType,
-            NPar::TLocalExecutor* localExecutor
+        TConstArrayRef<float> targetClasses,
+        const TWeights<float>& itemWeights,
+        ui32 classCount,
+        EAutoClassWeightsType autoClassWeightsType,
+        NPar::TLocalExecutor* localExecutor
     ) {
         Y_VERIFY(classCount > 0);
         TVector<float> summaryClassWeights = CalculateSummaryClassWeight(
-                targetClasses,
-                itemWeights,
-                classCount,
-                localExecutor
+            targetClasses,
+            itemWeights,
+            classCount,
+            localExecutor
         );
 
         Y_VERIFY(summaryClassWeights.size() == classCount);
@@ -78,8 +79,8 @@ namespace NCB {
         const auto weightFunction = GetWeightFunction(autoClassWeightsType);
         for (const auto& summaryClassWeight : summaryClassWeights) {
             classWeights.emplace_back(weightFunction(maxSummaryClassWeight, summaryClassWeight));
-            CATBOOST_INFO_LOG << "Weight of class " << classWeights.size() - 1 << ": " <<
-                              classWeights.back() << Endl;
+            CATBOOST_INFO_LOG << "Weight of class " << classWeights.size() - 1 << ": "
+                              << classWeights.back() << Endl;
         }
 
         return classWeights;
