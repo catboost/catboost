@@ -3635,6 +3635,10 @@ class CatBoostClassifier(CatBoost):
         If dict - dict of class_name -> class_weight.
         If several of 'classes_count', 'class_weights', 'class_names' parameters are defined
         the numbers of classes specified by each of them must be equal.
+    auto_class_weights : string [default=None]
+        Enables automatic class weights calculation. Possible values:
+            - Balanced  # weight = max_class_count / class_count, statistics determined from train pool
+            - SqrtBalanced  # weight = sqrt(max_class_count / class_count)
     class_names: list of strings, [default=None]
         Class names. Allows to redefine the default values for class labels (integer numbers).
         If several of 'classes_count', 'class_weights', 'class_names' parameters are defined
@@ -3892,12 +3896,6 @@ class CatBoostClassifier(CatBoost):
 
     text_processing : dict,
         Text processging description.
-    
-    auto_class_weights : string [default=None]
-        Enables automatic class weights calculation. Possible values:
-            - Balanced  # weight = max_class_count / class_count, statistics determined from train pool
-            - SqrtBalanced  # weight = sqrt(max_class_count / class_count)
-            
     """
     def __init__(
         self,
@@ -3937,6 +3935,7 @@ class CatBoostClassifier(CatBoost):
         target_border=None,
         classes_count=None,
         class_weights=None,
+        auto_class_weights=None,
         class_names=None,
         one_hot_max_size=None,
         random_strength=None,
@@ -4012,8 +4011,7 @@ class CatBoostClassifier(CatBoost):
         tokenizers=None,
         dictionaries=None,
         feature_calcers=None,
-        text_processing=None,
-        auto_class_weights=None
+        text_processing=None
     ):
         params = {}
         not_params = ["not_params", "self", "params", "__class__"]
@@ -5123,9 +5121,6 @@ def cv(pool=None, params=None, dtrain=None, iterations=None, num_boost_round=Non
 
     if 'text_features' in params:
         raise CatBoostError("Cv with text features is not implemented.")
-
-    if params.get('auto_class_weights', None) is None:
-        params['auto_class_weights'] = 'None'
 
     with log_fixup(), plot_wrapper(plot, [_get_train_dir(params)]):
         return _cv(params, pool, fold_count, inverted, partition_random_seed, shuffle, stratified,
