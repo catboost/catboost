@@ -751,7 +751,7 @@
             "uri": "file://test.test_multiclass_classes_count_CPU-missed_classes=False_/predictions.txt"
         },
         {
-            "checksum": "0ac507b4016b8bccc5f8044ff63e71f1",
+            "checksum": "192f5b316a674896aebbd10bb12feb40",
             "uri": "file://test.test_multiclass_classes_count_CPU-missed_classes=False_/model.bin"
         }
     ],
@@ -761,7 +761,7 @@
             "uri": "file://test.test_multiclass_classes_count_CPU-missed_classes=True_/predictions.txt"
         },
         {
-            "checksum": "eb0dd2e319572086eb99df6f618dda8e",
+            "checksum": "b04a4ee0d3945be4d4605181ab41c2d3",
             "uri": "file://test.test_multiclass_classes_count_CPU-missed_classes=True_/model.bin"
         }
     ],
