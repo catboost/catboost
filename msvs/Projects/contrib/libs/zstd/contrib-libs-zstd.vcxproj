@@ -63,7 +63,7 @@
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Debug|x64'"/>
       <WarningLevel Condition="'$(Configuration)|$(Platform)'=='Release|x64'">TurnOffAllWarnings</WarningLevel>
       <RemoveUnreferencedCodeData Condition="'$(Configuration)|$(Platform)'=='Release|x64'"/>
-      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/xxhash;$(SolutionDir)../contrib/libs/zstd;$(SolutionDir)../contrib/libs/zstd/common;$(SolutionDir)../contrib/libs/zstd/legacy;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>;$(SolutionDir)$(Configuration);$(SolutionDir)..;$(SolutionDir)../contrib/libs/cxxsupp/libcxx/include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;comdlg32.lib;advapi32.lib;crypt32.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -115,6 +115,9 @@
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_compress_sequences.c">
+      <CompileAs>CompileAsC</CompileAs>
+    </ClCompile>
+    <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_compress_superblock.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <ClCompile Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_double_fast.c">
@@ -205,6 +208,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_compress_internal.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_compress_literals.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_compress_sequences.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_compress_superblock.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_cwksp.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_double_fast.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zstd\compress\zstd_fast.h"/>
