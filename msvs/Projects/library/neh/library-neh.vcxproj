@@ -266,6 +266,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\lower_case\cpp-digest-lower_case.vcxproj">
       <Project>{93A05BE8-043A-10FC-0497-840803A20BA0}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\dns\library-cpp-dns.vcxproj">
+      <Project>{91C1EED9-1431-B67A-0849-C29C4CC35B79}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\http\io\cpp-http-io.vcxproj">
       <Project>{A9F9E508-BAB4-557E-18B4-37EA4B295012}</Project>
     </ProjectReference>
@@ -319,9 +322,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\thread_local\cpp-threading-thread_local.vcxproj">
       <Project>{67BCFA78-BD05-0105-6CA9-0D028945EA69}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\dns\library-dns.vcxproj">
-      <Project>{8C356353-67D3-3399-7DA3-792F6D7BF6D5}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\neh\asio\library-neh-asio.vcxproj">
       <Project>{ACDED067-8B74-5223-7E1A-7937B35A78E1}</Project>
