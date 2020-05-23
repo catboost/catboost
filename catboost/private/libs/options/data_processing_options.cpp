@@ -37,10 +37,10 @@ void NCatboostOptions::TDataProcessingOptions::Load(const NJson::TJsonValue& opt
     CheckedLoad(
         options, &IgnoredFeatures, &HasTimeFlag, &AllowConstLabel, &TargetBorder,
         &FloatFeaturesBinarization, &PerFloatFeatureQuantization, &TextProcessingOptions,
-        &ClassesCount, &ClassWeights, &ClassLabels,
+        &ClassesCount, &ClassWeights, &AutoClassWeights, &ClassLabels,
         &DevDefaultValueFractionToEnableSparseStorage,
         &DevSparseArrayIndexingType,
-        &GpuCatFeaturesStorage, &DevLeafwiseScoring, &DevGroupFeatures, &AutoClassWeights
+        &GpuCatFeaturesStorage, &DevLeafwiseScoring, &DevGroupFeatures
     );
     Validate();
     SetPerFeatureMissingSettingToCommonValues();
@@ -50,10 +50,10 @@ void NCatboostOptions::TDataProcessingOptions::Save(NJson::TJsonValue* options) 
     SaveFields(
         options, IgnoredFeatures, HasTimeFlag, AllowConstLabel, TargetBorder,
         FloatFeaturesBinarization, PerFloatFeatureQuantization, TextProcessingOptions,
-        ClassesCount, ClassWeights, ClassLabels,
+        ClassesCount, ClassWeights, AutoClassWeights, ClassLabels,
         DevDefaultValueFractionToEnableSparseStorage,
         DevSparseArrayIndexingType,
-        GpuCatFeaturesStorage, DevLeafwiseScoring, DevGroupFeatures, AutoClassWeights
+        GpuCatFeaturesStorage, DevLeafwiseScoring, DevGroupFeatures
     );
 }
 
