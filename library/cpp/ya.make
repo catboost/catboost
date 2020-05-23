@@ -8,6 +8,7 @@ RECURSE(
     binsaver
     binsaver/ut_util
     binsaver/ut
+    build_info
     cgiparam
     cgiparam/fuzz
     cgiparam/ut

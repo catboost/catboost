@@ -1,6 +1,6 @@
 #include "build_info_static.h"
 
-#include <library/build_info/buildinfo_data.h>
+#include <library/cpp/build_info/buildinfo_data.h>
 
 extern "C" const char* GetCompilerVersion() {
 #if defined(BUILD_COMPILER_VERSION)

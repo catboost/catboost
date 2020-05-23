@@ -4,7 +4,6 @@ RECURSE(
     blockcodecs
     blockcodecs/fuzz
     blockcodecs/ut
-    build_info
     charset
     charset/ut
     chromium_trace
