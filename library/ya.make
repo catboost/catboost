@@ -29,8 +29,6 @@ RECURSE(
     linear_regression
     linear_regression/benchmark
     linear_regression/ut
-    logger
-    logger/global
     neh
     neh/asio/ut
     neh/ut

@@ -43,7 +43,7 @@ PEERDIR(
     library/cpp/getopt/small
     library/cpp/grid_creator
     library/cpp/json
-    library/logger
+    library/cpp/logger
     library/svnversion
     library/cpp/text_processing/dictionary
     library/cpp/threading/local_executor
