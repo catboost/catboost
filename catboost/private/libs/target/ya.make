@@ -7,7 +7,6 @@ SRCS(
     classification_target_helper.cpp
     data_providers.cpp
     target_converter.cpp
-    calc_class_weights.cpp
 )
 
 PEERDIR(

@@ -154,15 +154,13 @@ namespace NCB {
         TInputClassificationInfo inputClassificationInfo {
             dataProcessingOptions.ClassesCount.Get() ? TMaybe<ui32>(dataProcessingOptions.ClassesCount.Get()) : Nothing(),
             dataProcessingOptions.ClassWeights.Get(),
-            dataProcessingOptions.AutoClassWeights.Get(),
             dataProcessingOptions.ClassLabels.Get(),
             *targetBorder
         };
         TOutputClassificationInfo outputClassificationInfo {
             dataProcessingOptions.ClassLabels.Get(),
             labelConverter,
-            *targetBorder,
-            dataProcessingOptions.ClassWeights.Get()
+            *targetBorder
         };
         TOutputPairsInfo outputPairsInfo;
 
@@ -205,10 +203,6 @@ namespace NCB {
         trainingData->MetaInfo.HasWeights |= !inputClassificationInfo.ClassWeights.empty();
         dataProcessingOptions.ClassLabels.Get() = outputClassificationInfo.ClassLabels;
         *targetBorder = outputClassificationInfo.TargetBorder;
-
-        if (!outputClassificationInfo.ClassWeights.Empty()) {
-            dataProcessingOptions.ClassWeights.Get() = *outputClassificationInfo.ClassWeights.Get();
-        }
 
         trainingData->UpdateMetaInfo();
 
