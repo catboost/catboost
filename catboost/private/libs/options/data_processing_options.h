@@ -38,6 +38,7 @@ namespace NCatboostOptions {
         TOption<TTextProcessingOptions> TextProcessingOptions;
         TOption<ui32> ClassesCount;
         TOption<TVector<float>> ClassWeights;
+        TOption<EAutoClassWeightsType> AutoClassWeights;
         TOption<TVector<NJson::TJsonValue>> ClassLabels; // can be Integers, Floats or Strings
 
         TOption<float> DevDefaultValueFractionToEnableSparseStorage; // 0 means sparse storage is disabled

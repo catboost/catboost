@@ -139,6 +139,7 @@
         "target_border" : null,
         "dev_leafwise_scoring" : false,
         "dev_sparse_array_indexing" : "Indices",
+        "auto_class_weights" : "None",
         "float_features_binarization" : {
             "border_count" : 254,
             "dev_max_subset_size_for_build_borders" : 200000,

@@ -21,6 +21,7 @@ NCatboostOptions::TDataProcessingOptions::TDataProcessingOptions(ETaskType type)
       , TextProcessingOptions("text_processing_options", TTextProcessingOptions())
       , ClassesCount("classes_count", 0)
       , ClassWeights("class_weights", TVector<float>())
+      , AutoClassWeights("auto_class_weights", EAutoClassWeightsType::None)
       , ClassLabels("class_names", TVector<NJson::TJsonValue>()) // "class_names" is used for compatibility
       , DevDefaultValueFractionToEnableSparseStorage("dev_default_value_fraction_for_sparse", 0.83f)
       , DevSparseArrayIndexingType("dev_sparse_array_indexing", NCB::ESparseArrayIndexingType::Indices)
@@ -36,7 +37,7 @@ void NCatboostOptions::TDataProcessingOptions::Load(const NJson::TJsonValue& opt
     CheckedLoad(
         options, &IgnoredFeatures, &HasTimeFlag, &AllowConstLabel, &TargetBorder,
         &FloatFeaturesBinarization, &PerFloatFeatureQuantization, &TextProcessingOptions,
-        &ClassesCount, &ClassWeights, &ClassLabels,
+        &ClassesCount, &ClassWeights, &AutoClassWeights, &ClassLabels,
         &DevDefaultValueFractionToEnableSparseStorage,
         &DevSparseArrayIndexingType,
         &GpuCatFeaturesStorage, &DevLeafwiseScoring, &DevGroupFeatures
@@ -49,7 +50,7 @@ void NCatboostOptions::TDataProcessingOptions::Save(NJson::TJsonValue* options) 
     SaveFields(
         options, IgnoredFeatures, HasTimeFlag, AllowConstLabel, TargetBorder,
         FloatFeaturesBinarization, PerFloatFeatureQuantization, TextProcessingOptions,
-        ClassesCount, ClassWeights, ClassLabels,
+        ClassesCount, ClassWeights, AutoClassWeights, ClassLabels,
         DevDefaultValueFractionToEnableSparseStorage,
         DevSparseArrayIndexingType,
         GpuCatFeaturesStorage, DevLeafwiseScoring, DevGroupFeatures
@@ -62,13 +63,13 @@ bool NCatboostOptions::TDataProcessingOptions::operator==(const TDataProcessingO
                     ClassesCount, ClassWeights, ClassLabels,
                     DevDefaultValueFractionToEnableSparseStorage,
                     DevSparseArrayIndexingType, GpuCatFeaturesStorage, DevLeafwiseScoring,
-                    DevGroupFeatures) ==
+                    DevGroupFeatures, AutoClassWeights) ==
            std::tie(rhs.IgnoredFeatures, rhs.HasTimeFlag, rhs.AllowConstLabel, rhs.TargetBorder,
                     rhs.FloatFeaturesBinarization, rhs.PerFloatFeatureQuantization, rhs.TextProcessingOptions,
                     rhs.ClassesCount, rhs.ClassWeights, rhs.ClassLabels,
                     rhs.DevDefaultValueFractionToEnableSparseStorage,
                     rhs.DevSparseArrayIndexingType, rhs.GpuCatFeaturesStorage, rhs.DevLeafwiseScoring,
-                    rhs.DevGroupFeatures);
+                    rhs.DevGroupFeatures, rhs.AutoClassWeights);
 }
 
 bool NCatboostOptions::TDataProcessingOptions::operator!=(const TDataProcessingOptions& rhs) const {
@@ -85,6 +86,8 @@ void NCatboostOptions::TDataProcessingOptions::Validate() const {
         DevGroupFeatures.NotSet() || DevLeafwiseScoring.IsSet(),
         "DevGroupFeatures is supported only with DevLeafwiseScoring"
     );
+    CB_ENSURE(AutoClassWeights.Get() == EAutoClassWeightsType::None || ClassWeights.IsDefault(),
+        "ClassWeights should be default if AutoClassWeights is not None");
 }
 
 
