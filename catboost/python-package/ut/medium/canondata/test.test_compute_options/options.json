@@ -114,6 +114,7 @@
     }, 
     "data_processing_options": {
         "allow_const_label": false, 
+        "auto_class_weights": "None", 
         "class_names": [], 
         "class_weights": [], 
         "classes_count": 0, 
