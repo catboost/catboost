@@ -3256,7 +3256,7 @@
         }
     ],
     "test_gpu.test_output_options": {
-        "checksum": "29556db378163edef25ac7265f49fb40",
+        "checksum": "2b439c31d605e7cdd721ab2677732034",
         "uri": "file://test_gpu.test_output_options/training_options.json"
     },
     "test_gpu.test_overfit_detector_inc_to_dec[Ordered]": [

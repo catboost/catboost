@@ -1,7 +1,6 @@
 #include "data_providers.h"
 
 #include "binarize_target.h"
-#include "calc_class_weights.h"
 #include "target_converter.h"
 
 #include <catboost/libs/helpers/connected_components.h>
@@ -359,7 +358,6 @@ namespace NCB {
             (inputClassificationInfo.ClassLabels.size() > 0) ||
             inputClassificationInfo.TargetBorder
         );
-
         bool multiClassTargetData = false;
 
         if (knownModelApproxDimension) {
@@ -608,33 +606,7 @@ namespace NCB {
 
         // Weights
         {
-            if (createClassTarget && (!inputClassificationInfo.ClassWeights.empty() ||
-                inputClassificationInfo.AutoClassWeightsType != EAutoClassWeightsType::None))
-            {
-                auto targetClasses = !maybeConvertedTarget.empty()
-                    ? TMaybe<TConstArrayRef<float>>(*maybeConvertedTarget[0])
-                    : Nothing();
-
-                TConstArrayRef<float> classWeights = targetClasses
-                    ? inputClassificationInfo.ClassWeights
-                    : TConstArrayRef<float>();
-
-                TVector<float> autoClassWeights;
-                if (targetClasses && classWeights.empty() &&
-                    inputClassificationInfo.AutoClassWeightsType != EAutoClassWeightsType::None)
-                {
-                    classWeights = autoClassWeights = CalculateClassWeights(
-                        *targetClasses,
-                        rawData.GetWeights(),
-                        classCount,
-                        inputClassificationInfo.AutoClassWeightsType,
-                        localExecutor);
-
-                    if (outputClassificationInfo->ClassWeights) {
-                        outputClassificationInfo->ClassWeights = autoClassWeights;
-                    }
-                }
-
+            if (createClassTarget && !inputClassificationInfo.ClassWeights.empty()) {
                 processedTargetData.Weights.emplace(
                     "",
                     MakeClassificationWeights(
@@ -642,8 +614,8 @@ namespace NCB {
                         rawData.GetGroupWeights(),
                         targetCreationOptions.CreateMultiClassTarget ? classCount : ui32(2),
                         isForGpu,
-                        targetClasses,
-                        classWeights,
+                        !maybeConvertedTarget.empty() ? TMaybe<TConstArrayRef<float>>(*maybeConvertedTarget[0]) : Nothing(),
+                        rawData.GetTarget() ? inputClassificationInfo.ClassWeights : TConstArrayRef<float>(),
                         localExecutor
                     )
                 );
@@ -739,8 +711,7 @@ namespace NCB {
         const NJson::TJsonValue& param,
         TVector<float>* classWeights,
         TVector<NJson::TJsonValue>* classLabels,
-        TMaybe<ui32>* classCount,
-        EAutoClassWeightsType* autoClassWeights
+        TMaybe<ui32>* classCount
     ) {
         if (param.Has("class_weights")) {
             classWeights->clear();
@@ -757,9 +728,6 @@ namespace NCB {
             if (classesCountValue) { // compatibility with existing saved data
                 classCount->ConstructInPlace(classesCountValue);
             }
-        }
-        if (param.Has("auto_class_weights")) {
-            *autoClassWeights = FromString<EAutoClassWeightsType>(param["auto_class_weights"].GetStringSafe());
         }
     }
 
@@ -805,9 +773,8 @@ namespace NCB {
         TVector<float> classWeights;
         TVector<NJson::TJsonValue> classLabels;
         TMaybe<ui32> classCount = Nothing();
-        EAutoClassWeightsType autoClassWeights = EAutoClassWeightsType::None;
-
         TMaybe<NCatboostOptions::TLossDescription> modelLossDescription;
+
         if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, "params")) {
             NJson::TJsonValue paramsJson = ReadTJsonValue(*modelInfoParams);
 
@@ -816,8 +783,7 @@ namespace NCB {
                     paramsJson["data_processing_options"],
                     &classWeights,
                     &classLabels,
-                    &classCount,
-                    &autoClassWeights);
+                    &classCount);
             }
 
             if (paramsJson.Has("loss_function")) {
@@ -905,14 +871,12 @@ namespace NCB {
         TInputClassificationInfo inputClassificationInfo{
             classCount,
             classWeights,
-            autoClassWeights,
             classLabels,
-            targetBorder,
+            targetBorder
         };
         TOutputClassificationInfo outputClassificationInfo {
             classLabels,
             &labelConverter,
-            Nothing(),
             Nothing()
         };
         auto targetCreationOptions = MakeTargetCreationOptions(
@@ -988,7 +952,6 @@ namespace NCB {
         TVector<float> classWeights;
         TVector<NJson::TJsonValue> classLabels;
         TMaybe<ui32> classCount = Nothing();
-        EAutoClassWeightsType autoClassWeights;
 
         if (const auto* modelInfoParams = MapFindPtr(model.ModelInfo, ParamsJsonKey)) {
             NJson::TJsonValue paramsJson = ReadTJsonValue(*modelInfoParams);
@@ -997,8 +960,7 @@ namespace NCB {
                     paramsJson[DataProcessingOptionsJsonKey],
                     &classWeights,
                     &classLabels,
-                    &classCount,
-                    &autoClassWeights);
+                    &classCount);
 
                 if (classLabels.empty() && !classCount) {
                     if (paramsJson[DataProcessingOptionsJsonKey].Has(TargetBorderJsonKey)) {
@@ -1055,14 +1017,12 @@ namespace NCB {
         TInputClassificationInfo inputClassificationInfo{
             classCount,
             classWeights,
-            autoClassWeights,
             classLabels,
             targetBorder
         };
         TOutputClassificationInfo outputClassificationInfo {
             classLabels,
             &labelConverter,
-            Nothing(),
             Nothing()
         };
         auto targetCreationOptions = MakeTargetCreationOptions(
