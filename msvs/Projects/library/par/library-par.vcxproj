@@ -350,9 +350,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yson\library-cpp-yson.vcxproj">
       <Project>{D05A14C5-BA93-7AA3-1AB8-E62B001110D1}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\logger\global\library-logger-global.vcxproj">
-      <Project>{D1EB170E-C5D0-989C-A93C-B5A2CD895E62}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\neh\asio\library-neh-asio.vcxproj">
       <Project>{ACDED067-8B74-5223-7E1A-7937B35A78E1}</Project>
     </ProjectReference>
