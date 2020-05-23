@@ -3,7 +3,7 @@ UNITTEST()
 
 
 PEERDIR(
-    library/dns
+    library/cpp/dns
 )
 
 SRCS(

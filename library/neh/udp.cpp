@@ -5,7 +5,7 @@
 #include "utils.h"
 #include "factory.h"
 
-#include <library/dns/cache.h>
+#include <library/cpp/dns/cache.h>
 
 #include <util/network/socket.h>
 #include <util/network/address.h>

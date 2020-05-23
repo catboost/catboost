@@ -3,10 +3,10 @@ UNITTEST()
 
 
 PEERDIR(
-    ADDINCL library/logger
+    ADDINCL library/cpp/logger
 )
 
-SRCDIR(library/logger)
+SRCDIR(library/cpp/logger)
 
 SRCS(
     log_ut.cpp
