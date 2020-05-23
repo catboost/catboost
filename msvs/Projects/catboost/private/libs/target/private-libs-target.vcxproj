@@ -79,10 +79,12 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\target\binarize_target.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\catboost\private\libs\target\calc_class_weights.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\target\classification_target_helper.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\target\data_providers.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\private\libs\target\target_converter.cpp"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\target\binarize_target.h"/>
+    <ClInclude Include="$(SolutionDir)..\catboost\private\libs\target\calc_class_weights.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\target\classification_target_helper.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\target\data_providers.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\private\libs\target\target_converter.h"/>

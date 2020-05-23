@@ -28,6 +28,7 @@ namespace NCB {
     struct TInputClassificationInfo {
         TMaybe<ui32> KnownClassCount;
         TConstArrayRef<float> ClassWeights; // [classIdx], empty if not specified
+        EAutoClassWeightsType AutoClassWeightsType;
         TVector<NJson::TJsonValue> ClassLabels; // can be Integers, Floats or Strings
         TMaybe<float> TargetBorder;
     };
@@ -36,6 +37,7 @@ namespace NCB {
         TVector<NJson::TJsonValue> ClassLabels; // can be Integers, Floats or Strings
         TMaybe<TLabelConverter*> LabelConverter; // needed only for multiclass
         TMaybe<float> TargetBorder; // TODO(isaf27): delete it from output parameters
+        TMaybe<TVector<float>> ClassWeights;
     };
 
     struct TOutputPairsInfo {
