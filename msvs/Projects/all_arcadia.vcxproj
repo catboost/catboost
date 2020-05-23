@@ -993,9 +993,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\blockcodecs\library-blockcodecs.vcxproj">
       <Project>E62EED19-EC2A-B4C3-0650-0923E4030E8B</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\build_info\library-build_info.vcxproj">
-      <Project>F14974DD-FCD1-9883-1B38-7294F1EC7341</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\chromium_trace\library-chromium_trace.vcxproj">
       <Project>9541389A-C448-428A-BEEE-604F1A02F5EA</Project>
     </ProjectReference>
@@ -1010,6 +1007,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\binsaver\ut_util\cpp-binsaver-ut_util.vcxproj">
       <Project>BBE5F5BB-65A8-85D2-82AE-C4525D92BEC1</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\build_info\library-cpp-build_info.vcxproj">
+      <Project>75AA4D86-C2AE-6E67-9434-636BC64B3E6A</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cgiparam\library-cpp-cgiparam.vcxproj">
       <Project>7D7BC687-C41D-BE31-16E6-D1EFDED414F9</Project>
