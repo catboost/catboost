@@ -6745,6 +6745,7 @@ def test_prediction_border_in_eval_metric(metric_name, proba_border):
 
 
 def test_dataframe_with_custom_index():
+    np.random.seed(0)
     X = DataFrame(np.random.randint(0, 9, (3, 2)), index=[55, 675, 34])
     X[0] = X[0].astype('category')
     y = X[1]
