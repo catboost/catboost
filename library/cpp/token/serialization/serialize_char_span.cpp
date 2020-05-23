@@ -1,7 +1,7 @@
 #include "serialize_char_span.h"
 
-#include <library/token/token_structure.h>
-#include <library/token/serialization/protos/char_span.pb.h>
+#include <library/cpp/token/token_structure.h>
+#include <library/cpp/token/serialization/protos/char_span.pb.h>
 
 void SerializeCharSpan(const TCharSpan& span, NProto::TCharSpan& message) {
     message.SetPos(span.Pos);

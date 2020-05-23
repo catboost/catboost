@@ -1,7 +1,7 @@
 #pragma once
 
-#include <library/token/nlptypes.h>
-#include <library/token/token_structure.h>
+#include <library/cpp/token/nlptypes.h>
+#include <library/cpp/token/token_structure.h>
 
 void CorrectDelimiters(TCharSpan& prevtok, wchar16 suffixChar, TCharSpan& lasttok, wchar16 prefixChar);
 
