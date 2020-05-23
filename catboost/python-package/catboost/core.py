@@ -3637,8 +3637,8 @@ class CatBoostClassifier(CatBoost):
         the numbers of classes specified by each of them must be equal.
     auto_class_weights : string [default=None]
         Enables automatic class weights calculation. Possible values:
-            - Balanced  # weight = max_class_count / class_count, statistics determined from train pool
-            - SqrtBalanced  # weight = sqrt(max_class_count / class_count)
+            - Balanced  # weight = maxSummaryClassWeight / summaryClassWeight, statistics determined from train pool
+            - SqrtBalanced  # weight = sqrt(maxSummaryClassWeight / summaryClassWeight)
     class_names: list of strings, [default=None]
         Class names. Allows to redefine the default values for class labels (integer numbers).
         If several of 'classes_count', 'class_weights', 'class_names' parameters are defined

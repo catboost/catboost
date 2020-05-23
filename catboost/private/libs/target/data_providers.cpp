@@ -611,11 +611,13 @@ namespace NCB {
             if (createClassTarget && (!inputClassificationInfo.ClassWeights.empty() ||
                 inputClassificationInfo.AutoClassWeightsType != EAutoClassWeightsType::None))
             {
-                auto targetClasses = !maybeConvertedTarget.empty() ?
-                        TMaybe<TConstArrayRef<float>>(*maybeConvertedTarget[0]) : Nothing();
+                auto targetClasses = !maybeConvertedTarget.empty()
+                    ? TMaybe<TConstArrayRef<float>>(*maybeConvertedTarget[0])
+                    : Nothing();
 
-                TConstArrayRef<float> classWeights = targetClasses ? inputClassificationInfo.ClassWeights :
-                        TConstArrayRef<float>();
+                TConstArrayRef<float> classWeights = targetClasses
+                    ? inputClassificationInfo.ClassWeights
+                    : TConstArrayRef<float>();
 
                 TVector<float> autoClassWeights;
                 if (targetClasses && classWeights.empty() &&
