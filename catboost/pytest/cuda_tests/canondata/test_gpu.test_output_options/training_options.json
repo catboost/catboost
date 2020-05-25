@@ -233,6 +233,7 @@
         "params" : [ ]
     },
     "tree_learner_options" : {
+        "model_size_reg" : 0.5,
         "bayesian_matrix_reg" : 0.1000000015,
         "add_ridge_penalty_to_loss_function" : false,
         "score_function" : "Cosine",
