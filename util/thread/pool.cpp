@@ -1,3 +1,5 @@
+#include <atomic>
+
 #include <util/system/defaults.h>
 
 #if defined(_unix_)
