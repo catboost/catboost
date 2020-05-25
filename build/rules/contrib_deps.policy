@@ -38,7 +38,7 @@ ALLOW contrib/libs/leveldb -> library/cpp/digest/crc32c
 ALLOW contrib/libs/lua -> library/cpp/archive
 ALLOW contrib/libs/phonedetect/src -> library/cpp/digest/md5
 ALLOW contrib/python/horovod/horovod/common/syms -> library/python/symbols/registry
-ALLOW contrib/python/opensfm -> library/vl_feat
+ALLOW contrib/python/opensfm -> library/cpp/vl_feat
 ALLOW contrib/python/pytest-mongodb -> devtools/swag/lib
 ALLOW contrib/python/wand/ImageMagick -> library/python/symbols/registry
 ALLOW contrib/nginx/modules/nginx-rtmp-module -> library/cpp/json
