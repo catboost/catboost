@@ -5,7 +5,7 @@ ALLOW library -> library
 ALLOW library -> certs
 ALLOW library/.*/(n)?yt -> mapreduce/yt
 ALLOW library/java/.*/ut -> devtools/(jtest)|(junit-runner)
-ALLOW library/hnsw/java/ut -> devtools/(jtest)|(junit-runner)
+ALLOW library/java/hnsw/ut -> devtools/(jtest)|(junit-runner)
 ALLOW library/python/.*/test -> devtools/ya/(test)|(exts)
 ALLOW library/(python/)?testing -> devtools/ya/
 ALLOW library/recipes -> devtools/ya/
