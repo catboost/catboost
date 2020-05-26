@@ -15,6 +15,9 @@ ALLOW .* -> vendor/github.com/alicebob/miniredis/v2
 # AMQP client with RabbitMQ extensions
 ALLOW .* -> vendor/github.com/streadway/amqp
 
+# Native Go debugger
+ALLOW .* -> vendor/github.com/go-delve/delve/cmd/dlv
+
 # AWS client libraries
 ALLOW .* -> vendor/github.com/aws/aws-sdk-go/aws
 ALLOW .* -> vendor/github.com/aws/aws-sdk-go/service/s3
