@@ -1,0 +1,27 @@
+#include <library/cpp/build_info/sandbox.h>
+#include <library/cpp/string_utils/base64/base64.h>
+#include <util/generic/string.h>
+#include <util/string/subst.h>
+
+extern "C" const char* GetSandboxTaskId() {
+    return "@SANDBOX_TASK_ID@";
+}
+
+class TKosherVersionHolder {
+public:
+    const char* Version() const {
+        if (!Version_) {
+            TString version = "@KOSHER_SVN_VERSION@";
+            SubstGlobal(version, ".", "=");
+            Version_ = Base64Decode(version);
+        }
+        return Version_.c_str();
+    }
+private:
+    mutable TString Version_;
+};
+
+// Experimental code for RMDEV-365
+extern "C" const char* GetKosherSvnVersion() {
+    return Singleton<TKosherVersionHolder>()->Version();
+}

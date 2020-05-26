@@ -5275,7 +5275,7 @@
         "ymake": {
             "formula": {
                 "sandbox_id": [
-                    679323188
+                    682238347
                 ],
                 "match": "ymake"
             },
@@ -5755,37 +5755,59 @@
             },
             "executable": {
                 "c++": [
-                    "llvm-toolchain", "bin", "clang++"
+                    "llvm-toolchain",
+                    "bin",
+                    "clang++"
                 ],
                 "cc": [
-                    "llvm-toolchain", "bin", "clang"
+                    "llvm-toolchain",
+                    "bin",
+                    "clang"
                 ],
                 "strip": [
-                    "llvm-toolchain", "bin", "llvm-strip"
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-strip"
                 ],
                 "c++filt": [
-                    "llvm-toolchain", "bin", "i686-linux-android-c++filt"
+                    "llvm-toolchain",
+                    "bin",
+                    "i686-linux-android-c++filt"
                 ],
                 "clang-format": [
-                    "llvm-toolchain", "bin", "clang-format"
+                    "llvm-toolchain",
+                    "bin",
+                    "clang-format"
                 ],
                 "clang-tidy": [
-                    "llvm-toolchain", "bin", "clang-tidy"
+                    "llvm-toolchain",
+                    "bin",
+                    "clang-tidy"
                 ],
                 "llvm-cov": [
-                    "llvm-toolchain", "bin", "llvm-cov"
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-cov"
                 ],
                 "llvm-profdata": [
-                    "llvm-toolchain", "bin", "llvm-profdata"
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-profdata"
                 ],
                 "llvm-symbolizer": [
-                    "llvm-toolchain", "bin", "llvm-symbolizer"
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-symbolizer"
                 ],
                 "nm": [
-                    "llvm-toolchain", "bin", "llvm-nm"
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-nm"
                 ],
                 "objcopy": [
-                    "llvm-toolchain", "bin", "llvm-objcopy"
+                    "llvm-toolchain",
+                    "bin",
+                    "llvm-objcopy"
                 ]
             }
         },
@@ -6390,7 +6412,7 @@
         "yd-migrate": {
             "formula": {
                 "sandbox_id": [
-                    679096104
+                    683732831
                 ],
                 "match": "yd_migrate"
             },
@@ -6773,7 +6795,7 @@
         },
         "horadric": {
             "formula": {
-                "sandbox_id": 680764467,
+                "sandbox_id": 684106275,
                 "match": "horadric"
             },
             "executable": {

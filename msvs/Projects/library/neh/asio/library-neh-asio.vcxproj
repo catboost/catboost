@@ -114,8 +114,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\coroutine\engine\cpp-coroutine-engine.vcxproj">
       <Project>{D4715C6C-9CC0-8DC2-580D-1131AC501867}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\dns\library-dns.vcxproj">
-      <Project>{8C356353-67D3-3399-7DA3-792F6D7BF6D5}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\dns\library-cpp-dns.vcxproj">
+      <Project>{91C1EED9-1431-B67A-0849-C29C4CC35B79}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>

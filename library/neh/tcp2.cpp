@@ -6,7 +6,7 @@
 #include "neh.h"
 #include "utils.h"
 
-#include <library/dns/cache.h>
+#include <library/cpp/dns/cache.h>
 #include <library/neh/asio/executor.h>
 #include <library/cpp/threading/atomic/bool.h>
 

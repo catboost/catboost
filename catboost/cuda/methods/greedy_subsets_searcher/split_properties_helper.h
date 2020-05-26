@@ -54,6 +54,8 @@ namespace NCatboostCuda {
         TStripeBuffer<float> Histograms;
         TStripeBuffer<const TCBinFeature> BinFeatures;
 
+        TMirrorBuffer<float> FeatureWeights;
+
         //existed leaves
         TVector<TLeaf> Leaves; //existed leaves
 

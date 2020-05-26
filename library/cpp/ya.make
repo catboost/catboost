@@ -8,6 +8,7 @@ RECURSE(
     binsaver
     binsaver/ut_util
     binsaver/ut
+    build_info
     cgiparam
     cgiparam/fuzz
     cgiparam/ut
@@ -23,6 +24,8 @@ RECURSE(
     diff
     diff/ut
     digest
+    dns
+    dns/ut
     dot_product
     dot_product/bench
     dot_product/ut
@@ -46,6 +49,10 @@ RECURSE(
     json/writer/ut
     json/yson
     json/yson/ut
+    logger
+    logger/global
+    logger/global/ut
+    logger/ut
     malloc
     lfalloc
     lfalloc/dbg
@@ -66,6 +73,10 @@ RECURSE(
     testing
     text_processing
     threading
+    token
+    token/serialization
+    token/serialization/ut
+    token/ut
     tokenizer
     tokenizer/ut
     unicode

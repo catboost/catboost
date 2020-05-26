@@ -9,7 +9,7 @@
 #include <library/cpp/coroutine/listener/listen.h>
 #include <library/cpp/coroutine/engine/events.h>
 #include <library/cpp/coroutine/engine/sockpool.h>
-#include <library/dns/cache.h>
+#include <library/cpp/dns/cache.h>
 
 #include <util/ysaveload.h>
 #include <util/generic/buffer.h>

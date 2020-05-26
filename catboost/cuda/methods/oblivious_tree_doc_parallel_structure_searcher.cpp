@@ -1,7 +1,10 @@
 #include "oblivious_tree_doc_parallel_structure_searcher.h"
+
+#include "helpers.h"
 #include "pointwise_scores_calcer.h"
 #include "random_score_helper.h"
-#include "helpers.h"
+#include "update_feature_weights.h"
+
 #include <catboost/cuda/cuda_lib/cuda_buffer_helpers/all_reduce.h>
 
 namespace NCatboostCuda {
@@ -48,6 +51,8 @@ namespace NCatboostCuda {
         TVector<double> weights;
         auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
 
+        TMirrorBuffer<float> featureWeights;
+
         for (ui32 depth = 0; depth < TreeConfig.MaxDepth; ++depth) {
             {
                 auto guard = profiler.Profile("Gather observation indices");
@@ -58,6 +63,8 @@ namespace NCatboostCuda {
             NCudaLib::AllReduceThroughMaster(partitionsStatsStriped, reducedPartStats);
             //all reduce through master will implicitly sync
             //                manager.WaitComplete();
+
+            UpdateFeatureWeightsForBestSplits(FeaturesManager, TreeConfig.ModelSizeReg, featureWeights);
 
             TBinarySplit bestSplit;
             {
@@ -75,11 +82,13 @@ namespace NCatboostCuda {
                 {
                     if (featuresScoreCalcer) {
                         featuresScoreCalcer->ComputeOptimalSplit(reducedPartStats,
+                                                                 featureWeights,
                                                                  scoreStdDevMult,
                                                                  random.NextUniformL());
                     }
                     if (simpleCtrScoreCalcer) {
                         simpleCtrScoreCalcer->ComputeOptimalSplit(reducedPartStats,
+                                                                  featureWeights,
                                                                   scoreStdDevMult,
                                                                   random.NextUniformL());
                     }
@@ -104,6 +113,9 @@ namespace NCatboostCuda {
 
             bestSplit = ToSplit(FeaturesManager, bestSplitProp);
             PrintBestScore(FeaturesManager, bestSplit, bestSplitProp.Score, depth);
+            if (FeaturesManager.IsCtr(bestSplitProp.FeatureId)) {
+                FeaturesManager.AddUsedCtr(bestSplitProp.FeatureId);
+            }
 
             const bool needLeavesEstimation = TreeConfig.LeavesEstimationMethod == ELeavesEstimation::Simple;
 

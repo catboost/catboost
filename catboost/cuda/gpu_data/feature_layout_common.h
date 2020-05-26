@@ -170,12 +170,14 @@ namespace NCatboostCuda {
         using TSamplesMapping = NCudaLib::TSingleMapping;
         using TCompressedIndexMapping = NCudaLib::TSingleMapping;
         using TPartStatsMapping = NCudaLib::TSingleMapping;
+        using TFeatureWeightsMapping = NCudaLib::TSingleMapping;
     };
 
     struct TFeatureParallelLayout {
         using TFeaturesMapping = NCudaLib::TStripeMapping;
         using TSamplesMapping = NCudaLib::TMirrorMapping;
         using TCompressedIndexMapping = NCudaLib::TStripeMapping;
+        using TFeatureWeightsMapping = NCudaLib::TMirrorMapping;
     };
 
     struct TDocParallelLayout {
@@ -183,5 +185,6 @@ namespace NCatboostCuda {
         using TSamplesMapping = NCudaLib::TStripeMapping;
         using TCompressedIndexMapping = NCudaLib::TStripeMapping;
         using TPartStatsMapping = NCudaLib::TMirrorMapping;
+        using TFeatureWeightsMapping = NCudaLib::TMirrorMapping;
     };
 }

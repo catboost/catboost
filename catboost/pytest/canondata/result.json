@@ -4867,21 +4867,21 @@
     ],
     "test.test_loglikelihood_of_prediction[Ordered]": [
         {
-            "checksum": "f189bed40f243ea0bdbb3df9f01f025a",
+            "checksum": "c033f51b587954ddd3ca69c5791f595b",
             "uri": "file://test.test_loglikelihood_of_prediction_Ordered_/learn_error.tsv"
         },
         {
-            "checksum": "651d280444d2c66ec3647a37578445f6",
+            "checksum": "2ceebc060e70f7948282e2a0f3920a3b",
             "uri": "file://test.test_loglikelihood_of_prediction_Ordered_/test_error.tsv"
         }
     ],
     "test.test_loglikelihood_of_prediction[Plain]": [
         {
-            "checksum": "9ce2b301545fb5c25eb6fc1066fd49b2",
+            "checksum": "52d78ab6af1a9731d333292804359ead",
             "uri": "file://test.test_loglikelihood_of_prediction_Plain_/learn_error.tsv"
         },
         {
-            "checksum": "49d12c88f1af4d86ee3ce17394388dbc",
+            "checksum": "daa6b903fb16b8f90d2cbdb5bc9f4cec",
             "uri": "file://test.test_loglikelihood_of_prediction_Plain_/test_error.tsv"
         }
     ],
@@ -6776,7 +6776,7 @@
         "uri": "file://test.test_output_columns_format/test.eval"
     },
     "test.test_output_options": {
-        "checksum": "623fc3807d369e0f8bbaf08d345a3456",
+        "checksum": "00a218e15bedf83e10cdb0fe5388d19a",
         "uri": "file://test.test_output_options/training_options.json"
     },
     "test.test_overfit_detector_inc_to_dec[Ordered-SymmetricTree]": [

@@ -27,7 +27,7 @@ PEERDIR(
     library/chromium_trace
     library/cpp/containers/ring_buffer
     library/cpp/digest/crc32c
-    library/logger/global
+    library/cpp/logger/global
     library/neh
     library/netliba/v12
     library/cpp/threading/atomic

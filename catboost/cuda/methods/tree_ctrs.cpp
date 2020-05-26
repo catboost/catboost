@@ -403,6 +403,29 @@ void NCatboostCuda::TTreeCtrDataSetsHelper::VisitPermutationDataSets(ui32 permut
     });
 }
 
+ui32 NCatboostCuda::TTreeCtrDataSetsHelper::GetMaxUniqueValues() const {
+    ui32 maxUniqueValues = 1;
+    NCudaLib::RunPerDeviceSubtasks([&](ui32 device) {
+        for (const auto& dataSetPtr : DataSets[device]) {
+            const auto& ctrs = dataSetPtr->GetCtrs();
+            for (const TCtr& ctr : ctrs) {
+                if (!FeaturesManager.IsKnown(ctr) || !FeaturesManager.IsUsedCtr(FeaturesManager.GetId(ctr))) {
+                    maxUniqueValues = Max(maxUniqueValues, FeaturesManager.GetMaxCtrUniqueValues(ctr));
+                }
+            }
+        }
+        for (const auto& dataSetPtr : PureTreeCtrDataSets[device]) {
+            const auto& ctrs = dataSetPtr->GetCtrs();
+            for (const TCtr& ctr : ctrs) {
+                if (!FeaturesManager.IsKnown(ctr) || !FeaturesManager.IsUsedCtr(FeaturesManager.GetId(ctr))) {
+                    maxUniqueValues = Max(maxUniqueValues, FeaturesManager.GetMaxCtrUniqueValues(ctr));
+                }
+            }
+        }
+    });
+    return maxUniqueValues;
+}
+
 void NCatboostCuda::TTreeCtrDataSetsHelper::ProceedDataSets(const ui32 dataSetPermutationId,
                                                             const TVector<NCatboostCuda::TTreeCtrDataSet*>& dataSets,
                                                             NCatboostCuda::TTreeCtrDataSetsHelper::TDataSetVisitor& visitor) {
