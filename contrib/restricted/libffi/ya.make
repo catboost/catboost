@@ -122,6 +122,21 @@ ELSEIF (ARCH_I386 AND OS_WINDOWS)
         configs/i386-microsoft-windows/sysv_intel.masm
         src/x86/ffi.c
     )
+ELSEIF (ARCH_PPC64LE AND OS_LINUX)
+    ADDINCL(
+        contrib/restricted/libffi/configs/powerpc64le-unknown-linux-gnu
+        GLOBAL contrib/restricted/libffi/configs/powerpc64le-unknown-linux-gnu/include
+    )
+
+    SRCS(
+        src/powerpc/ffi.c
+        src/powerpc/ffi_linux64.c
+        src/powerpc/ffi_sysv.c
+        src/powerpc/linux64.S
+        src/powerpc/linux64_closure.S
+        src/powerpc/ppc_closure.S
+        src/powerpc/sysv.S
+    )
 ELSEIF (ARCH_X86_64 AND OS_ANDROID)
     ADDINCL(
         contrib/restricted/libffi/configs/x86_64-pc-linux-android21
@@ -185,3 +200,7 @@ ELSE()
 ENDIF()
 
 END()
+
+RECURSE(
+    testsuite
+)
