@@ -308,6 +308,9 @@
         "fio": {
             "description": "flexible I/O tester"
         },
+        "foremost": {
+            "description": "Foremost is a Linux program to recover files based on their headers"
+        },
         "stress-ng": {
             "description": "stress load tester"
         },
@@ -4948,6 +4951,22 @@
                 }
             ]
         },
+        "foremost": {
+            "tools": {
+                "foremost": {
+                    "bottle": "foremost",
+                    "executable": "foremost"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                }
+            ]
+        },
         "atop": {
             "tools": {
                 "atop": {
@@ -7032,6 +7051,17 @@
                     "bin",
                     "fio"
                 ]
+            }
+        },
+        "foremost": {
+            "formula": {
+                "sandbox_id": [
+                    684724398
+                ],
+                "match": "infra/kernel/tools/foremost/build/foremost-static.tar.gz"
+            },
+            "executable": {
+                "foremost": ["foremost"]
             }
         },
         "atop": {
