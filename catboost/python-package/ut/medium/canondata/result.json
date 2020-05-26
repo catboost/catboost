@@ -814,11 +814,11 @@
         "uri": "file://test.test_ones_weight_CPU_/model.bin"
     },
     "test.test_onnx_export[problem_type=binclass-boost_from_average=False]": {
-        "checksum": "9e4826267b9189385dd567462a7440ed",
+        "checksum": "707438432d53003c245fd04dcf5c13f4",
         "uri": "file://test.test_onnx_export_problem_type=binclass-boost_from_average=False_/model.onnx"
     },
     "test.test_onnx_export[problem_type=binclass-boost_from_average=True]": {
-        "checksum": "255e1fa2b33e7d7868c20f04bee43e13",
+        "checksum": "798d7f5788d0f316cca0710b4038021e",
         "uri": "file://test.test_onnx_export_problem_type=binclass-boost_from_average=True_/model.onnx"
     },
     "test.test_onnx_export[problem_type=multiclass-boost_from_average=False]": {

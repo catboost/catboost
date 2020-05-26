@@ -1398,6 +1398,9 @@ def test_onnx_export(problem_type, boost_from_average):
     ]
 )
 def test_onnx_import(problem_type, boost_from_average):
+    if (problem_type == 'binclass') and boost_from_average:
+        pytest.xfail('CatBoost does not support importing classification onnx models with bias')
+
     if problem_type == 'binclass':
         loss_function = 'Logloss'
         train_path = TRAIN_FILE
@@ -1444,7 +1447,10 @@ def test_onnx_import(problem_type, boost_from_average):
         }
     )
     model.save_model(output_onnx_model_path, format="onnx")
-    canon_pred = model.predict(test_pool)
+
+    prediction_type = 'RawFormulaVal' if problem_type == 'regression' else 'Class'
+    canon_pred = model.predict(test_pool, prediction_type=prediction_type)
+
     onnx_loaded_model = CatBoost(
         {
             'task_type': 'CPU',
@@ -1457,7 +1463,20 @@ def test_onnx_import(problem_type, boost_from_average):
     )
 
     onnx_loaded_model.load_model(output_onnx_model_path, format="onnx")
-    assert(np.allclose(canon_pred, onnx_loaded_model.predict(test_pool), atol=1e-4))
+    if problem_type == 'regression':
+        assert(
+            np.allclose(
+                canon_pred,
+                onnx_loaded_model.predict(test_pool, prediction_type=prediction_type),
+                atol=1e-4
+            )
+        )
+    else:
+        loaded_pred = onnx_loaded_model.predict(test_pool, prediction_type=prediction_type)
+        if problem_type == 'binclass':
+            # TODO(akhropov): remove when MLTOOLS-4924 is fixed
+            loaded_pred = np.array([value[0] for value in loaded_pred])
+        assert np.all(canon_pred == loaded_pred)
 
 
 def test_onnx_export_lightgbm_import_catboost():
