@@ -23,7 +23,7 @@ int main() {
     Cout << "GetVCS(): " << GetVCS() << Endl;
     Cout << "GetBranch(): " << GetBranch() << Endl;
     Cout << "GetTag(): " << GetTag() << Endl;
-    Cout << "GetArcadiaGitPatchNumber(): " << GetArcadiaGitPatchNumber() << Endl;
+    Cout << "GetArcadiaPatchNumber(): " << GetArcadiaPatchNumber() << Endl;
     return 0;
 }
 

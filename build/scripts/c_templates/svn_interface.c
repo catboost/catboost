@@ -158,7 +158,7 @@ const char* GetBranch() {
 #endif
 }
 
-int GetArcadiaGitPatchNumber() {
+int GetArcadiaPatchNumber() {
 #if defined(ARCADIA_PATCH_NUMBER)
     return ARCADIA_PATCH_NUMBER;
 #else
