@@ -19,7 +19,7 @@ ALLOW library/python/django_abc_data -> intranet/sync_tools
 ALLOW library/python/cqueue -> skynet/api/copier
 ALLOW library/python/ylock -> yt/python/yt/wrapper
 ALLOW library/python/statface_client -> statbox/libstatbox/python
-ALLOW library/minhash/tools/mr_hash -> mapreduce
+ALLOW library/cpp/minhash/tools/mr_hash -> mapreduce
 ALLOW library/cpp/token/ut -> kernel
 ALLOW library/infected_masks -> kernel
 ALLOW library/cpp/deprecated/dater_old/scanner -> kernel
