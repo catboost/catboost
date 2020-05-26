@@ -796,7 +796,7 @@ TVector<TVector<TVector<TVector<double>>>> CalcShapFeatureInteractionMulti(
     int logPeriod,
     ECalcTypeShapValues calcType
 ) {
-    ValidateFeatureInteractionParams(fstrType, model, dataset);
+    ValidateFeatureInteractionParams(fstrType, model, dataset, calcType);
     if (pairOfFeatures.Defined()) {
         const int flatFeatureCount = SafeIntegerCast<int>(dataset->MetaInfo.GetFeatureCount());
         ValidateFeaturePair(flatFeatureCount, pairOfFeatures.GetRef());
