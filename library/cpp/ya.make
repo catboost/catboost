@@ -29,6 +29,8 @@ RECURSE(
     dot_product
     dot_product/bench
     dot_product/ut
+    enumbitset
+    enumbitset/ut
     fast_log
     float16
     float16/ut

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/enumbitset/enumbitset.h>
+#include <library/cpp/enumbitset/enumbitset.h>
 #include <library/langs/langs.h>
 
 #include <util/generic/fwd.h>

@@ -1,4 +1,4 @@
-UNITTEST_FOR(library/enumbitset)
+UNITTEST_FOR(library/cpp/enumbitset)
 
 
 

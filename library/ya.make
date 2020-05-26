@@ -11,8 +11,6 @@ RECURSE(
     chromium_trace/examples
     chromium_trace/ut
     cpp
-    enumbitset
-    enumbitset/ut
     fast_exp
     fast_exp/benchmark
     fast_exp/ut

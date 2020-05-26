@@ -7,7 +7,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/enumbitset
+    library/cpp/enumbitset
     library/langs
 )
 
