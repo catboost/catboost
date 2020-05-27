@@ -835,6 +835,7 @@ def _dump_test(
             'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
             'BUILD-FOLDER-PATH': _common.strip_roots(unit_path),
             'BLOB': unit.get('TEST_BLOB_DATA') or '',
+            'CANONIZE_SUB_PATH': unit.get('CANONIZE_SUB_PATH') or '',
         }
         if binary_path:
             test_record['BINARY-PATH'] = _common.strip_roots(binary_path)
