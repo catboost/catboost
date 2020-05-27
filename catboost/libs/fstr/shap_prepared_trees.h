@@ -37,7 +37,6 @@ struct TIndependentTreeShapParams {
     TVector<TVector<double>> ApproxOfDataset; // [dim][documentIdx]
     TVector<TVector<double>> ApproxOfReferenceDataset; // [dim][documentIdx]
     EModelOutputType ModelOutputType;
-    TTransformFunc TransformFunction;
     THolder<IMetric> Metric;
 
     TVector<TVector<double>> Weights;
@@ -104,6 +103,7 @@ public:
 };
 
 TShapPreparedTrees PrepareTrees(const TFullModel& model, NPar::TLocalExecutor* localExecutor);
+
 TShapPreparedTrees PrepareTrees(
     const TFullModel& model,
     const NCB::TDataProvider* dataset, // can be nullptr if model has LeafWeights

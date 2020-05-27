@@ -251,7 +251,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
 )
 {
     NCatboostOptions::TLossDescription metricDescription;
-    CB_ENSURE(TryGetObjectiveMetric(model, metricDescription), "Cannot calculate LossFunctionChange feature importances without metric, need model with params");
+    CB_ENSURE(TryGetObjectiveMetric(model, &metricDescription), "Cannot calculate LossFunctionChange feature importances without metric, need model with params");
     CATBOOST_INFO_LOG << "Used " << metricDescription << " metric for fstr calculation" << Endl;
     int approxDimension = model.ModelTrees->GetDimensionsCount();
     
@@ -304,7 +304,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     ui32 blockSize = Min(ui32(10000), ui32(1e6) / (featuresCount * approx.ysize())); // shapValues[blockSize][featuresCount][dim] double
 
     NCatboostOptions::TLossDescription lossDescription;
-    CB_ENSURE(TryGetLossDescription(model, lossDescription), "No loss_function in model params");
+    CB_ENSURE(TryGetLossDescription(model, &lossDescription), "No loss_function in model params");
 
     // NDCG and PFound metrics are possible for YetiRank
     // PFound replace with PairLogit (with YetiRank generated pairs) due to quality

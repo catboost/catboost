@@ -281,30 +281,62 @@ void CalcObliviousShapValuesByDepthForLeaf(
 }
 
 static inline double TransformDocument(
-    const THolder<IMetric>& metric,
+    const IMetric& metric,
     double target,
     double approx
 ) {
     TVector<TVector<double>> approxVector(1, TVector<double>(1, approx));
     TVector<float> targetVector(1, target);
-    auto score = metric->Eval(approxVector, targetVector, {}, {}, 0, 1, NPar::LocalExecutor());
-    return metric->GetFinalError(score);
+    auto score = metric.Eval(approxVector, targetVector, {}, {}, 0, 1, NPar::LocalExecutor());
+    return metric.GetFinalError(score);
 }
 
-static inline double GetTransformData(
-    const THolder<IMetric>& metric,
+static inline TVector<double> GetTransformData(
+    const IMetric& metric,
+    TConstArrayRef<double> approxOfDataset,
+    EModelOutputType modelOutputType,
+    double target
+) {
+    TVector<double> transformedData(approxOfDataset.size());
+    for (size_t idx = 0; idx < approxOfDataset.size(); ++idx) {
+        double approx = approxOfDataset[idx];
+        switch (modelOutputType) {
+            case EModelOutputType::Probability: {
+                transformedData[idx] =  1.0 / (1 + exp(-approx));
+                break;
+            }
+            case EModelOutputType::LossFunction: {
+                transformedData[idx] = TransformDocument(metric, target, approx);
+                break;
+            }
+            default:
+                CB_ENSURE_INTERNAL(false, "Not recognized type of model output");
+        }
+    }
+    return transformedData;
+}
+
+static TVector<double> GetMeanValues(
+    const IMetric& metric,
+    const TVector<TVector<double>>& shapValues,
     EModelOutputType modelOutputType,
     double target,
-    double approx
+    bool isNotRawOutputType,
+    double bias
 ) {
-    switch (modelOutputType) {
-        case EModelOutputType::Probability:
-            return 1.0 / (1 + exp(-approx));
-        case EModelOutputType::LossFunction:
-            return TransformDocument(metric, target, approx);
-        default:
-            CB_ENSURE_INTERNAL(false, "Not recognized type of model output");
+    TVector<double> meanValues(shapValues.size());
+    for (size_t idx = 0; idx < shapValues.size(); ++idx) {
+        meanValues[idx] = shapValues[idx].back() + bias;
     }
+    if (!isNotRawOutputType) {
+        return meanValues;
+    }
+    return GetTransformData(
+        metric,
+        MakeConstArrayRef(meanValues),
+        modelOutputType,
+        target
+    );
 }
 
 static void UnpackInternalShapsForDocumentOneDimension(
@@ -325,9 +357,27 @@ static void UnpackInternalShapsForDocumentOneDimension(
     }
 }
 
+static TVector<double> GetUnpackedShapValues(
+    const TVector<double>& shapValuesInternal,
+    const TVector<TVector<int>>& combinationClassFeatures,
+    size_t flatFeatureCount
+){
+    TVector<double> unpackedShapValues(flatFeatureCount + 1);
+    unpackedShapValues.resize(flatFeatureCount + 1);
+    UnpackInternalShapsForDocumentOneDimension(
+        shapValuesInternal,
+        combinationClassFeatures,
+        &unpackedShapValues
+    );
+    // set mean value
+    unpackedShapValues.back() = shapValuesInternal.back();
+    return unpackedShapValues;
+}
+
+
 void PostProcessingIndependent(
     const TIndependentTreeShapParams& independentTreeShapParams,
-    const TVector<TVector<TVector<double>>>& shapValuesForAllReferences,
+    const TVector<TVector<TVector<double>>>& shapValuesInternalForAllReferences,
     const TVector<TVector<int>>& combinationClassFeatures,
     size_t approxDimension,
     size_t flatFeatureCount,
@@ -340,58 +390,67 @@ void PostProcessingIndependent(
     const size_t referenceCount = independentTreeShapParams.ReferenceLeafIndicesForAllTrees[0].size();
     EModelOutputType modelOutputType = independentTreeShapParams.ModelOutputType;
     const bool isNotRawOutputType = (EModelOutputType::Raw != modelOutputType);
-    const auto& metric = independentTreeShapParams.Metric;
+    const auto& metric = *independentTreeShapParams.Metric.Get();
     const auto& approxOfDataset = independentTreeShapParams.ApproxOfDataset;
     const auto& approxOfReferenceDataset = independentTreeShapParams.ApproxOfReferenceDataset;
     const auto& targetOfDataset = independentTreeShapParams.TargetOfDataset;
     const auto& transformedTargetOfDataset = independentTreeShapParams.TransformedTargetOfDataset;
+    // prepare shap values for all references
+    TVector<TVector<TVector<double>>> shapValuesForAllReferences(approxDimension);
     for (size_t dimension = 0; dimension < approxDimension; ++dimension) {
-        TConstArrayRef<double> approxOfReferenceDatasetRef = MakeConstArrayRef(approxOfReferenceDataset[dimension]); 
+        shapValuesForAllReferences[dimension].resize(referenceCount);
+        for (size_t referenceIdx = 0; referenceIdx < referenceCount; ++referenceIdx) {
+            shapValuesForAllReferences[dimension][referenceIdx] = calcInternalValues ?
+                shapValuesInternalForAllReferences[referenceIdx][dimension] :
+                GetUnpackedShapValues(
+                    shapValuesInternalForAllReferences[referenceIdx][dimension],
+                    combinationClassFeatures,
+                    flatFeatureCount
+                );
+        }
+    }
+    // main algorithm
+    for (size_t dimension = 0; dimension < approxDimension; ++dimension) {
+        TConstArrayRef<double> approxOfReferenceDatasetRef = MakeConstArrayRef(approxOfReferenceDataset[dimension]);
+        const double targetOfDocument = targetOfDataset[dimension][documentIdx];
+        const auto& transformedTargetOfReferenceDataset = isNotRawOutputType ?
+            GetTransformData(
+                metric,
+                approxOfReferenceDatasetRef,
+                modelOutputType,
+                targetOfDocument
+            ) :
+            TVector<double>();    
+        const auto& meanValues = GetMeanValues(
+            metric,
+            shapValuesForAllReferences[dimension],
+            modelOutputType,
+            targetOfDocument,
+            isNotRawOutputType,
+            bias
+        );
         TArrayRef<double> shapValuesRef = MakeArrayRef((*shapValues)[dimension]);
         const double approxOfDocument = approxOfDataset[dimension][documentIdx];
-        const double targetOfDocument = targetOfDataset[dimension][documentIdx];
         const double transformedTargetOfDocument = isNotRawOutputType ? transformedTargetOfDataset[dimension][documentIdx] : 0.0;
         for (size_t referenceIdx = 0; referenceIdx < referenceCount; ++referenceIdx) {
-            TVector<double> unpackedShapValues;
-            if (!calcInternalValues) {
-                unpackedShapValues.resize(flatFeatureCount + 1);
-                UnpackInternalShapsForDocumentOneDimension(
-                    shapValuesForAllReferences[referenceIdx][dimension],
-                    combinationClassFeatures,
-                    &unpackedShapValues
-                );
-                // set mean value
-                unpackedShapValues.back() = shapValuesForAllReferences[referenceIdx][dimension].back();
-            }
             auto& shapValuesOneDimension = calcInternalValues ?
-                shapValuesForAllReferences[referenceIdx][dimension] :
-                unpackedShapValues;
+                shapValuesInternalForAllReferences[referenceIdx][dimension] :
+                GetUnpackedShapValues(
+                    shapValuesInternalForAllReferences[referenceIdx][dimension],
+                    combinationClassFeatures,
+                    flatFeatureCount
+                );
             double rescaleCoefficient = referenceCount;
             double transformedCoeffient = 1.0;
             if (isNotRawOutputType && approxOfDocument != approxOfReferenceDatasetRef[referenceIdx]) {
-                double transformReferenceTarget = GetTransformData(
-                    metric,
-                    modelOutputType,
-                    targetOfDocument,
-                    approxOfReferenceDatasetRef[referenceIdx]
-                );
-                transformedCoeffient = (transformedTargetOfDocument - transformReferenceTarget) /
+                transformedCoeffient = (transformedTargetOfDocument - transformedTargetOfReferenceDataset[referenceIdx]) /
                     (approxOfDocument - approxOfReferenceDatasetRef[referenceIdx]);
             }
             double totalCoeffient = transformedCoeffient / rescaleCoefficient;
             for (size_t featureIdx = 0; featureIdx < featureCount; ++featureIdx) {
                 shapValuesRef[featureIdx] += shapValuesOneDimension[featureIdx] * totalCoeffient;
             }
-            if (isNotRawOutputType) {
-                shapValuesRef[featureCount] += GetTransformData(
-                    metric,
-                    modelOutputType,
-                    targetOfDocument,
-                    shapValuesOneDimension[featureCount] + bias
-                ) / rescaleCoefficient;
-            } else {
-                shapValuesRef[featureCount] += (shapValuesOneDimension[featureCount] / rescaleCoefficient);
-            }
+            shapValuesRef[featureCount] += (meanValues[referenceIdx] / rescaleCoefficient);
         }
     }
 }
@@ -415,7 +474,7 @@ static TVector<TVector<double>> CalcWeightsForIndependentTreeShap(const TFullMod
 static TVector<TVector<double>> GetTransformedTarget(
     const TVector<TVector<double>>& approx,
     const TVector<TVector<double>>& targetData,
-    const THolder<IMetric>& metric
+    const IMetric& metric
 ) {
     CB_ENSURE_INTERNAL(
         approx.size() == targetData.size() && approx[0].size() == targetData[0].size(),
@@ -456,7 +515,7 @@ void TIndependentTreeShapParams::InitTransformedData(
             TransformedTargetOfDataset = GetTransformedTarget(
                 ApproxOfDataset,
                 TargetOfDataset,
-                Metric
+                *Metric
             );
             break;
         }
@@ -475,7 +534,7 @@ TIndependentTreeShapParams::TIndependentTreeShapParams(
     ModelOutputType = modelOutputType;
     Weights = CalcWeightsForIndependentTreeShap(model);
     NCatboostOptions::TLossDescription metricDescription;
-    CB_ENSURE(TryGetObjectiveMetric(model, metricDescription), "Cannot calculate Shap values without metric, need model with params");
+    CB_ENSURE(TryGetObjectiveMetric(model, &metricDescription), "Cannot calculate Shap values without metric, need model with params");
     CATBOOST_INFO_LOG << "Used " << metricDescription << " metric for fstr calculation" << Endl;
     // prepare data for reference dataset
     auto binarizedFeatures = MakeQuantizedFeaturesForEvaluator(model, *referenceDataset.ObjectsData);
