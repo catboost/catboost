@@ -3216,6 +3216,9 @@ class CatBoost(_CatBoostBase):
         if not isinstance(param_grid, (Mapping, Iterable)):
             raise TypeError('Parameter grid is not a dict or a list ({!r})'.format(param_grid))
 
+        if refit and self.is_fitted():
+            raise CatBoostError("Model was fitted before hyperparameters tuning. You can't change hyperparameters of fitted model.")
+
         train_params = self._prepare_train_params(
             X, y, None, None, None, None, None, None, None, None, None, None, None, None,
             None, None, None, None, None, True, None, None, None, None, None
@@ -3252,8 +3255,6 @@ class CatBoost(_CatBoostBase):
             )
 
         if refit:
-            if self.is_fitted():
-                raise CatBoostError("Model was fitted before hyperparameters tuning. You can't change hyperparameters of fitted model.")
             self.set_params(**cv_result['params'])
             self.fit(X, y, silent=True)
         return cv_result
@@ -3475,6 +3476,9 @@ class CatBoost(_CatBoostBase):
         if not isinstance(param_distributions, Mapping):
             raise TypeError('Parameter grid is not a dict ({!r})'.format(param_distributions))
 
+        if refit and self.is_fitted():
+            raise CatBoostError("Model was fitted before hyperparameters tuning. You can't change hyperparameters of fitted model.")
+
         train_params = self._prepare_train_params(
             X, y, None, None, None, None, None, None, None, None, None, None, None, None,
             None, None, None, None, None, True, None, None, None, None, None
@@ -3507,6 +3511,9 @@ class CatBoost(_CatBoostBase):
             split = train_test_split(range(pool_size), train_size=train_size, random_state=partition_random_seed, shuffle=shuffle)
             test_fold = np.zeros(pool_size, dtype=int)
             test_fold[split[0]] = -1
+            # split = (train_indices, test_indices)
+            # test_fold has -1 at train indices and 0 at test indices
+            # so, PredefinedSplit(test_fold) generates exactly one train set and one test set corresponding to that split
             custom_folds_for_optimize = PredefinedSplit(test_fold)
             fold_count_for_optimize = None
         else:
@@ -3551,8 +3558,6 @@ class CatBoost(_CatBoostBase):
             results_dict["cv_results"] = cv_results
 
         if refit:
-            if self.is_fitted():
-                raise CatBoostError("Model was fitted before hyperparameters tuning. You can't change hyperparameters of fitted model.")
             self.set_params(**best_params)
             self.fit(X, y, silent=True)
 
