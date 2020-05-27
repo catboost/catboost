@@ -4,7 +4,7 @@ LIBRARY()
 
 PEERDIR(
     library/cpp/getopt/small
-    library/svnversion
+    library/cpp/svnversion
     library/cpp/build_info
 )
 

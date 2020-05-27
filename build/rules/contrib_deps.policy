@@ -4,7 +4,7 @@ ALLOW contrib -> library/cpp/unittest
 ALLOW contrib -> library/cpp/getopt
 ALLOW contrib -> library/cpp/resource
 ALLOW contrib -> library/charset
-ALLOW contrib -> library/svnversion
+ALLOW contrib -> library/cpp/svnversion
 ALLOW contrib -> certs
 ALLOW contrib/libs/.*/ut -> library
 ALLOW contrib/python -> library/python/resource

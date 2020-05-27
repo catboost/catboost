@@ -12,7 +12,7 @@
 #include <catboost/private/libs/options/system_options.h>
 #include <catboost/private/libs/target/classification_target_helper.h>
 
-#include <library/svnversion/svnversion.h>
+#include <library/cpp/svnversion/svnversion.h>
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/datetime/base.h>

@@ -8,7 +8,7 @@
 #include <catboost/libs/logging/logging.h>
 
 #include <library/cpp/getopt/small/modchooser.h>
-#include <library/svnversion/svnversion.h>
+#include <library/cpp/svnversion/svnversion.h>
 
 #include <util/generic/ptr.h>
 #include <util/stream/output.h>
