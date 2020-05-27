@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{EB1297E8-310F-2F45-45A8-54D412024564}</ProjectGUID>
+    <ProjectGUID>{C3083C9F-6349-B5A2-3DD0-2098D66566DB}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-svnversion</ProjectName>
+    <ProjectName>library-cpp-svnversion</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-svnversion</TargetName>
+    <TargetName>library-cpp-svnversion</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\svnversion\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\EB1297E8-310F-2F45-45A8-54D412024564\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\svnversion\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\C3083C9F-6349-B5A2-3DD0-2098D66566DB\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,11 +78,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\svnversion\svn_interface.c">
+    <ClCompile Include="$(SolutionDir)..\library\cpp\svnversion\svn_interface.c">
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\library\svnversion\svnversion.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\svnversion\svnversion.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\svnversion\svnversion.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\svnversion\svnversion.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
