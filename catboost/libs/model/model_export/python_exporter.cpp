@@ -160,8 +160,12 @@ namespace NCB {
                 str << feature.Position.Index << ", ";
             }
         }
-        str.pop_back();
-        Out << ++indent << str << "\n";
+        if (!str.empty()) {
+            str.pop_back();
+            Out << ++indent << str << "\n";
+        } else {
+            ++indent;
+        }
         Out << --indent << "]\n";
         Out << indent << "float_feature_count = " << model.ModelTrees->GetNumFloatFeatures() << '\n';
         Out << indent << "cat_feature_count = " << model.ModelTrees->GetNumCatFeatures() << '\n';
