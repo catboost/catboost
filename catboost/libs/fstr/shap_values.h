@@ -2,6 +2,14 @@
 
 #include "shap_prepared_trees.h"
 
+#include <catboost/libs/data/data_provider.h>
+#include <catboost/libs/model/model.h>
+#include <catboost/private/libs/options/enums.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
+
+#include <util/generic/vector.h>
+
+
 struct TFixedFeatureParams {
     enum class EMode {
         FixedOn, FixedOff, NotFixed

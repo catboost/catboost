@@ -10,6 +10,7 @@
 #include <catboost/private/libs/algo/features_data_helpers.h>
 #include <catboost/private/libs/algo/index_calcer.h>
 #include <catboost/private/libs/target/data_providers.h>
+#include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/cast.h>
@@ -409,7 +410,7 @@ void PostProcessingIndependent(
                 );
         }
     }
-    // main algorithm
+
     for (size_t dimension = 0; dimension < approxDimension; ++dimension) {
         TConstArrayRef<double> approxOfReferenceDatasetRef = MakeConstArrayRef(approxOfReferenceDataset[dimension]);
         const double targetOfDocument = targetOfDataset[dimension][documentIdx];
@@ -429,17 +430,11 @@ void PostProcessingIndependent(
             isNotRawOutputType,
             bias
         );
+        const auto& shapValuesForAllReferencesOneDimensional = shapValuesForAllReferences[dimension];
         TArrayRef<double> shapValuesRef = MakeArrayRef((*shapValues)[dimension]);
         const double approxOfDocument = approxOfDataset[dimension][documentIdx];
         const double transformedTargetOfDocument = isNotRawOutputType ? transformedTargetOfDataset[dimension][documentIdx] : 0.0;
         for (size_t referenceIdx = 0; referenceIdx < referenceCount; ++referenceIdx) {
-            auto& shapValuesOneDimension = calcInternalValues ?
-                shapValuesInternalForAllReferences[referenceIdx][dimension] :
-                GetUnpackedShapValues(
-                    shapValuesInternalForAllReferences[referenceIdx][dimension],
-                    combinationClassFeatures,
-                    flatFeatureCount
-                );
             double rescaleCoefficient = referenceCount;
             double transformedCoeffient = 1.0;
             if (isNotRawOutputType && approxOfDocument != approxOfReferenceDatasetRef[referenceIdx]) {
@@ -447,8 +442,9 @@ void PostProcessingIndependent(
                     (approxOfDocument - approxOfReferenceDatasetRef[referenceIdx]);
             }
             double totalCoeffient = transformedCoeffient / rescaleCoefficient;
+            TConstArrayRef<double> shapValuesForReferenceOneDimensional = shapValuesForAllReferencesOneDimensional[referenceIdx];
             for (size_t featureIdx = 0; featureIdx < featureCount; ++featureIdx) {
-                shapValuesRef[featureIdx] += shapValuesOneDimension[featureIdx] * totalCoeffient;
+                shapValuesRef[featureIdx] += shapValuesForReferenceOneDimensional[featureIdx] * totalCoeffient;
             }
             shapValuesRef[featureCount] += (meanValues[referenceIdx] / rescaleCoefficient);
         }

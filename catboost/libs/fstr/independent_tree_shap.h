@@ -2,6 +2,9 @@
 
 #include "shap_prepared_trees.h"
 
+#include <catboost/libs/model/model.h>
+
+#include <util/generic/vector.h>
 
 void PostProcessingIndependent(
     const TIndependentTreeShapParams& independentTreeShapParams,
