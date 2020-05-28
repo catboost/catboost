@@ -23,8 +23,6 @@ public:
         , Value(approxDimension)
     {
     }
-
-    Y_SAVELOAD_DEFINE(Feature, Value);
 };
 
 namespace {
@@ -88,18 +86,6 @@ public:
         , MeanValuesForAllTrees(meanValuesForAllTrees)
     {
     }
-
-    Y_SAVELOAD_DEFINE(
-        ShapValuesByLeafForAllTrees,
-        MeanValuesForAllTrees,
-        AverageApproxByTree,
-        BinFeatureCombinationClass,
-        CombinationClassFeatures,
-        CalcShapValuesByLeafForAllTrees,
-        CalcInternalValues,
-        LeafWeightsForAllTrees,
-        SubtreeWeightsForAllTrees
-    );
 };
 
 TShapPreparedTrees PrepareTrees(const TFullModel& model, NPar::TLocalExecutor* localExecutor);
