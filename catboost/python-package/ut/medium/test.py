@@ -1,4 +1,4 @@
-from collections import OrderedDict
+from collections import OrderedDict, Counter
 import filecmp
 import hashlib
 import math
@@ -1398,6 +1398,9 @@ def test_onnx_export(problem_type, boost_from_average):
     ]
 )
 def test_onnx_import(problem_type, boost_from_average):
+    if (problem_type == 'binclass') and boost_from_average:
+        pytest.xfail('CatBoost does not support importing classification onnx models with bias')
+
     if problem_type == 'binclass':
         loss_function = 'Logloss'
         train_path = TRAIN_FILE
@@ -1444,7 +1447,10 @@ def test_onnx_import(problem_type, boost_from_average):
         }
     )
     model.save_model(output_onnx_model_path, format="onnx")
-    canon_pred = model.predict(test_pool)
+
+    prediction_type = 'RawFormulaVal' if problem_type == 'regression' else 'Class'
+    canon_pred = model.predict(test_pool, prediction_type=prediction_type)
+
     onnx_loaded_model = CatBoost(
         {
             'task_type': 'CPU',
@@ -1457,7 +1463,20 @@ def test_onnx_import(problem_type, boost_from_average):
     )
 
     onnx_loaded_model.load_model(output_onnx_model_path, format="onnx")
-    assert(np.allclose(canon_pred, onnx_loaded_model.predict(test_pool), atol=1e-4))
+    if problem_type == 'regression':
+        assert(
+            np.allclose(
+                canon_pred,
+                onnx_loaded_model.predict(test_pool, prediction_type=prediction_type),
+                atol=1e-4
+            )
+        )
+    else:
+        loaded_pred = onnx_loaded_model.predict(test_pool, prediction_type=prediction_type)
+        if problem_type == 'binclass':
+            # TODO(akhropov): remove when MLTOOLS-4924 is fixed
+            loaded_pred = np.array([value[0] for value in loaded_pred])
+        assert np.all(canon_pred == loaded_pred)
 
 
 def test_onnx_export_lightgbm_import_catboost():
@@ -2338,6 +2357,33 @@ def test_class_weights_list_binclass(task_type):
     output_model_path = test_output_path(OUTPUT_MODEL_PATH)
     model.save_model(output_model_path)
     return compare_canonical_models(output_model_path)
+
+
+def test_auto_class_weights():
+    rnd = np.random.RandomState(2020)
+    data = rnd.rand(10, 2)
+    target = rnd.randint(2, size=10)
+
+    counts = Counter(target)
+    max_class_count = max(counts.values())
+    expected_balanced = np.array([max_class_count / counts[class_id] if counts[class_id] > 0 else 1.
+                                  for class_id in range(2)])
+    expected_sqrt_balanced = np.sqrt(expected_balanced)
+
+    balanced_model = CatBoostClassifier(iterations=5, auto_class_weights='Balanced')
+    balanced_model.fit(data, target)
+
+    balanced_params = balanced_model.get_all_params()
+    assert 'class_weights' in balanced_params and _check_data(balanced_params['class_weights'],
+                                                              expected_balanced)
+    assert 'class_weights' not in balanced_model.get_params()
+
+    sqrt_balanced_model = CatBoostClassifier(iterations=5, auto_class_weights='SqrtBalanced')
+    sqrt_balanced_model.fit(data, target)
+    sqrt_balanced_params = sqrt_balanced_model.get_all_params()
+    assert 'class_weights' in sqrt_balanced_params and _check_data(sqrt_balanced_params['class_weights'],
+                                                                   expected_sqrt_balanced)
+    assert 'class_weights' not in sqrt_balanced_model.get_params()
 
 
 @pytest.mark.parametrize(
@@ -6745,6 +6791,7 @@ def test_prediction_border_in_eval_metric(metric_name, proba_border):
 
 
 def test_dataframe_with_custom_index():
+    np.random.seed(0)
     X = DataFrame(np.random.randint(0, 9, (3, 2)), index=[55, 675, 34])
     X[0] = X[0].astype('category')
     y = X[1]

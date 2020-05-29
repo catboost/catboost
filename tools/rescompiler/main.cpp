@@ -1,4 +1,4 @@
-#include <library/resource/registry.h>
+#include <library/cpp/resource/registry.h>
 
 #include <util/stream/output.h>
 #include <util/stream/file.h>
@@ -42,7 +42,7 @@ int main(int argc, char** argv) {
 
     argv = argv + 2;
 
-    out << "#include <library/resource/registry.h>\n\n";
+    out << "#include <library/cpp/resource/registry.h>\n\n";
 
     while (*argv) {
         if (AsStringBuf("-") == *argv) {

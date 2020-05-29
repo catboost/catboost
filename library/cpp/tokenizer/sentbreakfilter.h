@@ -2,9 +2,9 @@
 
 #include "tokenizer.h"
 
-#include <library/token/nlptypes.h>
+#include <library/cpp/token/nlptypes.h>
 #include <library/langmask/langmask.h>
-#include <library/token/token_structure.h>
+#include <library/cpp/token/token_structure.h>
 
 #include <util/generic/hash_set.h>
 #include <util/generic/noncopyable.h>

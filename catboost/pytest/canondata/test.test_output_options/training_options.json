@@ -20,11 +20,11 @@
     "metrics" : {
         "objective_metric" : {
             "type" : "Logloss",
-            "params" : { }
+            "params" : [ ]
         },
         "eval_metric" : {
             "type" : "Logloss",
-            "params" : { }
+            "params" : [ ]
         },
         "custom_metrics" : [ ]
     },
@@ -139,6 +139,7 @@
         "target_border" : null,
         "dev_leafwise_scoring" : false,
         "dev_sparse_array_indexing" : "Indices",
+        "auto_class_weights" : "None",
         "float_features_binarization" : {
             "border_count" : 254,
             "dev_max_subset_size_for_build_borders" : 200000,
@@ -224,7 +225,7 @@
     },
     "loss_function" : {
         "type" : "Logloss",
-        "params" : { }
+        "params" : [ ]
     },
     "tree_learner_options" : {
         "model_size_reg" : 0.5,

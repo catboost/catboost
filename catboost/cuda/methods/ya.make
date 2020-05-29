@@ -70,6 +70,7 @@ SRCS(
     tree_ctr_datasets_visitor.cpp
     serialization_helper.cpp
     pointwise_optimization_subsets.cpp
+    update_feature_weights.cpp
 
     pairwise_oblivious_trees/pairwise_score_calcer_for_policy.cpp
     pairwise_oblivious_trees/pairwise_scores_calcer.cpp

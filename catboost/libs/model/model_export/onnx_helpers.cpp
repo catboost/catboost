@@ -9,7 +9,7 @@
 #include <catboost/private/libs/options/loss_description.h>
 #include <catboost/private/libs/options/class_label_options.h>
 
-#include <library/svnversion/svnversion.h>
+#include <library/cpp/svnversion/svnversion.h>
 
 #include <contrib/libs/onnx/onnx/common/constants.h>
 #include <contrib/libs/protobuf/repeated_field.h>
@@ -454,9 +454,14 @@ static void AddTree(
             } else {
                 treesAttributes->class_treeids->add_ints(treeIdx);
                 treesAttributes->class_nodeids->add_ints(nodeIdx);
+                treesAttributes->class_ids->add_ints(0);
+                treesAttributes->class_weights->add_floats(-(float)*leafValue);
 
+                treesAttributes->class_treeids->add_ints(treeIdx);
+                treesAttributes->class_nodeids->add_ints(nodeIdx);
                 treesAttributes->class_ids->add_ints(1);
                 treesAttributes->class_weights->add_floats((float)*leafValue);
+
                 ++leafValue;
             }
         } else {
@@ -502,7 +507,11 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
         GetClassLabels(model, &classLabelsInt64, &classLabelsString);
 
         AddClassLabelsAttribute(classLabelsInt64, classLabelsString, treesNode);
-        AddAttribute("post_transform", "SOFTMAX", treesNode);
+        AddAttribute(
+            "post_transform",
+            trees.GetDimensionsCount() == 1 ? "LOGISTIC" : "SOFTMAX",
+            treesNode
+        );
 
         InitValueInfo(
             "label",
@@ -555,9 +564,14 @@ void NCB::NOnnx::ConvertTreeToOnnxGraph(
     TTreesAttributes treesAttributes(isClassifierModel, bias != 0, treesNode->mutable_attribute());
 
     if (bias != 0) {
-        for (auto i : xrange(trees.GetDimensionsCount())) {
-            Y_UNUSED(i);
+        if (isClassifierModel && (trees.GetDimensionsCount() == 1)) {
+            treesAttributes.base_values->add_floats(-bias);
             treesAttributes.base_values->add_floats(bias);
+        } else {
+            for (auto i : xrange(trees.GetDimensionsCount())) {
+                Y_UNUSED(i);
+                treesAttributes.base_values->add_floats(bias);
+            }
         }
     }
     for (auto treeIdx : xrange(trees.GetTreeCount())) {
@@ -700,7 +714,7 @@ static THolder<TNonSymmetricTreeNode> BuildNonSymmetricTree(
 static int GetFloatFeatureCount(const onnx::GraphProto& onnxGraph) {
     const auto valueInfo = onnxGraph.input()[0];
     CB_ENSURE(valueInfo.type().tensor_type().shape().dimSize() == 2,
-        "Dimemsion must have format 'FloatTensorType'[0, featuresCount]");
+        "Dimension must have format 'FloatTensorType'[0, featuresCount]");
     const int featuresCount = valueInfo.type().tensor_type().shape().dim(1).dim_value();
     CB_ENSURE(featuresCount >= 1, "Count of features must be greater than one");
     return featuresCount;

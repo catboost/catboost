@@ -1,3 +1,5 @@
+#include <atomic>
+
 #include <util/system/defaults.h>
 
 #if defined(_unix_)
@@ -25,6 +27,39 @@
 #include "factory.h"
 #include "pool.h"
 
+namespace {
+    class TThreadNamer {
+    public:
+        TThreadNamer(const IThreadPool::TParams& params)
+            : ThreadName(params.ThreadName_)
+            , EnumerateThreads(params.EnumerateThreads_)
+        {
+        }
+
+        explicit operator bool () const {
+            return !ThreadName.empty();
+        }
+
+        void SetCurrentThreadName() {
+            if (EnumerateThreads) {
+                Set(TStringBuilder() << ThreadName << (Index++));
+            } else {
+                Set(ThreadName);
+            }
+        }
+
+    private:
+        void Set(const TString& name) {
+            TThread::SetCurrentThreadName(name.c_str());
+        }
+
+    private:
+        TString ThreadName;
+        bool EnumerateThreads = false;
+        std::atomic<ui64> Index{0};
+    };
+}
+
 TThreadFactoryHolder::TThreadFactoryHolder() noexcept
     : Pool_(SystemThreadFactory())
 {
@@ -40,6 +75,7 @@ public:
         : Parent_(parent)
         , Blocking(params.Blocking_)
         , Catching(params.Catching_)
+        , Namer(params)
         , ShouldTerminate(1)
         , MaxQueueSize(0)
         , ThreadCountExpected(0)
@@ -168,6 +204,10 @@ private:
     void DoExecute() override {
         THolder<TTsr> tsr(new TTsr(Parent_));
 
+        if (Namer) {
+            Namer.SetCurrentThreadName();
+        }
+
         while (true) {
             IObjectInQueue* job = nullptr;
 
@@ -216,6 +256,7 @@ private:
     TThreadPool* Parent_;
     const bool Blocking;
     const bool Catching;
+    TThreadNamer Namer;
     mutable TMutex QueueMutex;
     mutable TMutex StopMutex;
     TCondVar QueuePushCond;
@@ -346,6 +387,10 @@ public:
         void DoExecute() noexcept override {
             THolder<TThread> This(this);
 
+            if (Impl_->Namer) {
+                Impl_->Namer.SetCurrentThreadName();
+            }
+
             {
                 TTsr tsr(Impl_->Parent_);
                 IObjectInQueue* obj;
@@ -376,6 +421,7 @@ public:
     inline TImpl(TAdaptiveThreadPool* parent, const TParams& params)
         : Parent_(parent)
         , Catching(params.Catching_)
+        , Namer(params)
         , ThrCount_(0)
         , AllDone_(false)
         , Obj_(nullptr)
@@ -489,6 +535,7 @@ private:
 private:
     TAdaptiveThreadPool* Parent_;
     const bool Catching;
+    TThreadNamer Namer;
     TAtomic ThrCount_;
     TMutex Mutex_;
     TCondVar CondReady_;

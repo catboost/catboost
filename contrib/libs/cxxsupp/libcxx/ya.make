@@ -25,10 +25,14 @@ IF (OS_ANDROID)
         GLOBAL contrib/libs/android_ifaddrs
     )
 
+    # android_support actually depends on c++abi:
+    # https://github.com/android/ndk/issues/1130
+    LDFLAGS(-Wl,--start-group)
     LDFLAGS(-lc++abi)
     IF (ARCH_I686 OR ARCH_ARM7)
         LDFLAGS(-landroid_support)
     ENDIF()
+    LDFLAGS(-Wl,--end-group)
 
     CFLAGS(-DLIBCXX_BUILDING_LIBCXXABI)
 
@@ -43,12 +47,7 @@ ELSEIF (CLANG OR MUSL OR OS_DARWIN OR USE_LTO)
         DEFAULT(CXX_RT "libcxxrt")
     ENDIF()
     IF (MUSL)
-        ADDINCL(
-            GLOBAL contrib/libs/musl/arch/x86_64
-            GLOBAL contrib/libs/musl/arch/generic
-            GLOBAL contrib/libs/musl/include
-            GLOBAL contrib/libs/musl/extra
-        )
+        PEERDIR(contrib/libs/musl/include)
     ENDIF()
 ELSEIF (OS_WINDOWS)
     SRCS(

@@ -99,8 +99,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\lower_case\cpp-digest-lower_case.vcxproj">
       <Project>{93A05BE8-043A-10FC-0497-840803A20BA0}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\enumbitset\library-enumbitset.vcxproj">
-      <Project>{001BC0D7-D4A9-8F1B-F8D9-077578710964}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\enumbitset\library-cpp-enumbitset.vcxproj">
+      <Project>{6440B812-5ED4-4365-7564-0F5EC4AEDBBC}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\langs\library-langs.vcxproj">
       <Project>{1660E94D-B0FA-8C52-3B1B-10230401A2CA}</Project>

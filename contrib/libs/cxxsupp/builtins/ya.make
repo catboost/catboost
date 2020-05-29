@@ -84,4 +84,11 @@ IF (OS_DARWIN)
     SRCS(os_version_check.c)
 ENDIF()
 
+IF (ARCH_ARM)
+    SRCS(
+        clear_cache.c
+        multc3.c
+    )
+ENDIF()
+
 END()

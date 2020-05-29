@@ -1,3 +1,16 @@
+# Release 0.23.2
+
+## New functionality
+* Added `plot_partial_dependence` method in python-package (Now it works for models with symmetric trees trained on dataset with numerical features only). Implemented by @felixandrer.
+* Allowed using `boost_from_average` option together with `model_shrink_rate` option. In this case shrinkage is applied to the starting value..
+* Added new `auto_class_weights` option in python-package, R-package and cli with possible values `Balanced` and `SqrtBalanced`. For `Balanced` every class is weighted `maxSumWeightInClass / sumWeightInClass`, where sumWeightInClass is sum of weights of all samples in this class. If no weights are present then sample weight is 1. And maxSumWeightInClass - is maximum sum weight among all classes. For `SqrtBalanced` the formula is `sqrt(maxSumWeightInClass / sumWeightInClass)`. This option supported in binclass and multiclass tasks. Implemented by @egiby.
+* Supported `model_size_reg` option on GPU. Set to 0.5 by default (same as in CPU). This regularization works slightly differently on GPU: feature combinations are regularized more aggressively than on CPU. For CPU cost of a combination is equal to number of different feature values in this combinations that are present in training dataset. On GPU cost of a combination is equal to number of all possible different values of this combination. For example, if combination contains two categorical features c1 and c2, then the cost will be #categories in c1 * #categories in c2, even though many of the values from this combination might not be present in the dataset.
+* Added calculation of Shapley values, (see formula (2) from https://arxiv.org/pdf/1802.03888.pdf). By default estimation from this paper (Algorithm 2) is calcucated, that is much more faster. To use this mode specify shap_calc_type parameter of CatBoost.get_feature_importance function as "Exact". Implemented by @LordProtoss.
+
+## Bugfixes:
+* Fixed onnx converter for old onnx versions.
+
+
 # Release 0.23.1
 
 ## New functionality

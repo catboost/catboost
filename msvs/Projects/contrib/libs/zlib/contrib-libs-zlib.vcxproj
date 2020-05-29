@@ -126,6 +126,7 @@
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zlib\crc32.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zlib\deflate.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zlib\gzguts.h"/>
+    <ClInclude Include="$(SolutionDir)..\contrib\libs\zlib\include\zlib.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zlib\inffast.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zlib\inffixed.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\zlib\inflate.h"/>

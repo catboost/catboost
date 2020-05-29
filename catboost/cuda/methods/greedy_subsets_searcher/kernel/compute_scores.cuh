@@ -9,6 +9,7 @@ namespace NKernel {
 
 
     void ComputeOptimalSplits(const TCBinFeature* binaryFeatures, ui32 binaryFeatureCount,
+                              const float* binFeaturesWeights, ui32 binFeaturesWeightsCount,
                               const float* histograms,
                               const double* partStats, int statCount,
                               const ui32* partIds, int partBlockSize, int partBlockCount,

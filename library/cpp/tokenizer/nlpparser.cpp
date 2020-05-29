@@ -2,8 +2,8 @@
 #include "sentbreakfilter.h"
 #include "special_tokens.h"
 
-#include <library/token/charfilter.h>
-#include <library/token/token_iterator.h>
+#include <library/cpp/token/charfilter.h>
+#include <library/cpp/token/token_iterator.h>
 
 #include <util/charset/utf8.h>
 #include <util/charset/wide.h>

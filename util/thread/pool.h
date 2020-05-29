@@ -82,6 +82,8 @@ struct TThreadPoolParams {
     bool Catching_ = true;
     bool Blocking_ = false;
     IThreadFactory* Factory_ = SystemThreadFactory();
+    TString ThreadName_;
+    bool EnumerateThreads_ = false;
 
     using TSelf = TThreadPoolParams;
 
@@ -91,6 +93,14 @@ struct TThreadPoolParams {
     TThreadPoolParams(IThreadFactory* factory)
         : Factory_(factory)
     {
+    }
+
+    TThreadPoolParams(const TString& name) {
+        SetThreadName(name);
+    }
+
+    TThreadPoolParams(const char* name) {
+        SetThreadName(name);
     }
 
     TSelf& SetCatching(bool val) {
@@ -105,6 +115,18 @@ struct TThreadPoolParams {
 
     TSelf& SetFactory(IThreadFactory* factory) {
         Factory_ = factory;
+        return *this;
+    }
+
+    TSelf& SetThreadName(const TString& name) {
+        ThreadName_ = name;
+        EnumerateThreads_ = false;
+        return *this;
+    }
+
+    TSelf& SetThreadNamePrefix(const TString& prefix) {
+        ThreadName_ = prefix;
+        EnumerateThreads_ = true;
         return *this;
     }
 };
@@ -243,36 +265,6 @@ protected:
 class TThreadPool: public TThreadPoolBase {
 public:
     TThreadPool(const TParams& params = {});
-
-    // legacy
-    enum EBlocking {
-        NonBlockingMode,
-        BlockingMode
-    };
-
-    // legacy
-    enum ECatching {
-        NonCatchingMode,
-        CatchingMode
-    };
-
-    // legacy
-    TThreadPool(EBlocking blocking, ECatching catching = CatchingMode)
-        : TThreadPool(TParams()
-            .SetBlocking(blocking == BlockingMode)
-            .SetCatching(catching == CatchingMode))
-    {
-    }
-
-    // legacy
-    TThreadPool(IThreadFactory* factory, EBlocking blocking, ECatching catching = CatchingMode)
-        : TThreadPool(TParams()
-            .SetFactory(factory)
-            .SetBlocking(blocking == BlockingMode)
-            .SetCatching(catching == CatchingMode))
-    {
-    }
-
     ~TThreadPool() override;
 
     bool Add(IObjectInQueue* obj) override Y_WARN_UNUSED_RESULT;
@@ -394,18 +386,3 @@ inline void Delete(THolder<IThreadPool> q) {
  * You could specify blocking and catching modes for TThreadPool only
  */
 THolder<IThreadPool> CreateThreadPool(size_t threadCount, size_t queueSizeLimit = 0, const IThreadPool::TParams& params = {});
-
-// legacy
-inline THolder<IThreadPool> CreateThreadPool(
-    size_t threadCount,
-    size_t queueSizeLimit,
-    TThreadPool::EBlocking blocking,
-    TThreadPool::ECatching catching = TThreadPool::ECatching::CatchingMode)
-{
-    return CreateThreadPool(
-        threadCount,
-        queueSizeLimit,
-        IThreadPool::TParams()
-            .SetBlocking(blocking == TThreadPool::BlockingMode)
-            .SetCatching(catching == TThreadPool::CatchingMode));
-}

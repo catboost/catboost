@@ -17,6 +17,8 @@ namespace NKernel {
     template <int BLOCK_SIZE>
     __global__ void FindOptimalSplitSolarImpl(const TCBinFeature* bf,
                                               int binFeatureCount,
+                                              const float* binFeaturesWeights,
+                                              int binFeaturesWeightsCount,
                                               const float* binSums,
                                               const TPartitionStatistics* parts,
                                               int pCount, int foldCount,
@@ -27,7 +29,7 @@ namespace NKernel {
         int tid = threadIdx.x;
         result += blockIdx.x;
 
-         TPointwisePartOffsetsHelper helper(foldCount);
+        TPointwisePartOffsetsHelper helper(foldCount);
 
         for (int i = blockIdx.x * BLOCK_SIZE; i < binFeatureCount; i += BLOCK_SIZE * gridDim.x) {
             if (i + tid >= binFeatureCount) {
@@ -86,6 +88,9 @@ namespace NKernel {
                 score += leftTotalWeight > 2 ? leftScore * (1 + 2 * log(leftTotalWeight + 1)) : 0;
                 score += rightTotalWeight > 2 ? rightScore * (1 + 2 * log(rightTotalWeight + 1)) : 0;
             }
+
+            ui32 featureId = bf[i + tid].FeatureId;
+            score *= __ldg(binFeaturesWeights + featureId);
 
             if (score < bestScore) {
                 bestScore = score;
@@ -183,6 +188,8 @@ namespace NKernel {
             class TScoreCalcer>
     __global__ void FindOptimalSplitSingleFoldImpl(const TCBinFeature* bf,
                                                    int binFeatureCount,
+                                                   const float* binFeaturesWeights,
+                                                   int binFeaturesWeightsCount,
                                                    const float* binSums,
                                                    const TPartitionStatistics* parts,
                                                    int pCount,
@@ -193,7 +200,7 @@ namespace NKernel {
         int tid = threadIdx.x;
         result += blockIdx.x;
 
-         TPointwisePartOffsetsHelper helper(1);
+        TPointwisePartOffsetsHelper helper(1);
 
         for (int i = blockIdx.x * BLOCK_SIZE; i < binFeatureCount; i += BLOCK_SIZE * gridDim.x) {
             if (i + tid >= binFeatureCount) {
@@ -222,7 +229,10 @@ namespace NKernel {
                 calcer.AddLeaf(sumLeft, weightLeft);
                 calcer.AddLeaf(sumRight, weightRight);
             }
-            const float score = calcer.GetScore();
+            float score = calcer.GetScore();
+
+            ui32 featureId = bf[i + tid].FeatureId;
+            score *= __ldg(binFeaturesWeights + featureId);
 
             if (score < bestScore) {
                 bestScore = score;
@@ -260,11 +270,14 @@ namespace NKernel {
 
 
     template <int BLOCK_SIZE>
-    __global__ void FindOptimalSplitCosineImpl(const TCBinFeature* bf, int binFeatureCount, const float* binSums,
-                                                    const TPartitionStatistics* parts, int pCount, int foldCount,
-                                                    double l2, bool normalize,
-                                                    double scoreStdDev, ui64 globalSeed,
-                                                    TBestSplitProperties* result)
+    __global__ void FindOptimalSplitCosineImpl(const TCBinFeature* bf, int binFeatureCount,
+                                               const float* binFeaturesWeights,
+                                               int binFeaturesWeightsCount,
+                                               const float* binSums,
+                                               const TPartitionStatistics* parts, int pCount, int foldCount,
+                                               double l2, bool normalize,
+                                               double scoreStdDev, ui64 globalSeed,
+                                               TBestSplitProperties* result)
     {
         float bestScore = FLT_MAX;
         int bestIndex = 0;
@@ -328,9 +341,13 @@ namespace NKernel {
             }
 
             score = denumSqr > 1e-15f ? -score / sqrt(denumSqr) : FLT_MAX;
+
+            ui32 featureId = bf[i + tid].FeatureId;
+            score *= __ldg(binFeaturesWeights + featureId);
+
             float tmp = score;
             if (scoreStdDev) {
-                ui64 seed = globalSeed + bf[i + tid].FeatureId;
+                ui64 seed = globalSeed + featureId;
                 AdvanceSeed(&seed, 4);
 
                 tmp += NextNormal(&seed) * scoreStdDev;
@@ -369,7 +386,8 @@ namespace NKernel {
 
 
 
-    void FindOptimalSplitDynamic(const TCBinFeature* binaryFeatures,ui32 binaryFeatureCount,
+    void FindOptimalSplitDynamic(const TCBinFeature* binaryFeatures, ui32 binaryFeatureCount,
+                                 const float* binFeaturesWeights, ui32 binaryFeatureWeightsCount,
                                  const float* splits, const TPartitionStatistics* parts, ui32 pCount, ui32 foldCount,
                                  TBestSplitProperties* result, ui32 resultSize,
                                  EScoreFunction scoreFunction, double l2, bool normalize,
@@ -379,12 +397,12 @@ namespace NKernel {
         switch (scoreFunction)
         {
             case  EScoreFunction::SolarL2: {
-                FindOptimalSplitSolarImpl<blockSize> << < resultSize, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, splits, parts, pCount, foldCount, result);
+                FindOptimalSplitSolarImpl<blockSize> << < resultSize, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, binFeaturesWeights, binaryFeatureWeightsCount, splits, parts, pCount, foldCount, result);
                 break;
             }
             case  EScoreFunction::Cosine:
             case  EScoreFunction::NewtonCosine: {
-                FindOptimalSplitCosineImpl<blockSize> << < resultSize, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, splits, parts, pCount, foldCount, l2, normalize, scoreStdDev, seed, result);
+                FindOptimalSplitCosineImpl<blockSize> << < resultSize, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, binFeaturesWeights, binaryFeatureWeightsCount, splits, parts, pCount, foldCount, l2, normalize, scoreStdDev, seed, result);
                 break;
             }
             default: {
@@ -394,7 +412,8 @@ namespace NKernel {
     }
 
     template <class TLoader>
-    void FindOptimalSplitPlain(const TCBinFeature* binaryFeatures,ui32 binaryFeatureCount,
+    void FindOptimalSplitPlain(const TCBinFeature* binaryFeatures, ui32 binaryFeatureCount,
+                               const float* binFeaturesWeights, ui32 binaryFeatureWeightsCount,
                                const float* splits, const TPartitionStatistics* parts, ui32 pCount,
                                TBestSplitProperties* result, ui32 resultSize,
                                EScoreFunction scoreFunction, double l2, bool normalize,
@@ -402,7 +421,7 @@ namespace NKernel {
                                TCudaStream stream) {
         const int blockSize = 128;
         #define RUN() \
-        FindOptimalSplitSingleFoldImpl<blockSize, TLoader, TScoreCalcer> << < resultSize, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, splits, parts, pCount, scoreCalcer, result);
+        FindOptimalSplitSingleFoldImpl<blockSize, TLoader, TScoreCalcer> << < resultSize, blockSize, 0, stream >> > (binaryFeatures, binaryFeatureCount, binFeaturesWeights, binaryFeatureWeightsCount, splits, parts, pCount, scoreCalcer, result);
 
 
         switch (scoreFunction)
@@ -450,7 +469,8 @@ namespace NKernel {
     }
 
 
-    void FindOptimalSplit(const TCBinFeature* binaryFeatures,ui32 binaryFeatureCount,
+    void FindOptimalSplit(const TCBinFeature* binaryFeatures, ui32 binaryFeatureCount,
+                          const float* binFeaturesWeights, ui32 binaryFeatureWeightsCount,
                           const float* splits, const TPartitionStatistics* parts, ui32 pCount, ui32 foldCount,
                           TBestSplitProperties* result, ui32 resultSize,
                           EScoreFunction scoreFunction, double l2, bool normalize,
@@ -461,13 +481,13 @@ namespace NKernel {
         if (foldCount == 1) {
             if (gatheredByLeaves) {
                 using THistLoader = TGatheredByLeavesHistLoader;
-                FindOptimalSplitPlain<THistLoader>(binaryFeatures, binaryFeatureCount, splits, parts, pCount, result, resultSize, scoreFunction, l2, normalize, scoreStdDev, seed, stream);
+                FindOptimalSplitPlain<THistLoader>(binaryFeatures, binaryFeatureCount, binFeaturesWeights, binaryFeatureWeightsCount, splits, parts, pCount, result, resultSize, scoreFunction, l2, normalize, scoreStdDev, seed, stream);
             } else {
                 using THistLoader = TDirectHistLoader;
-                FindOptimalSplitPlain<THistLoader>(binaryFeatures, binaryFeatureCount, splits, parts, pCount, result, resultSize, scoreFunction, l2, normalize, scoreStdDev, seed, stream);
+                FindOptimalSplitPlain<THistLoader>(binaryFeatures, binaryFeatureCount, binFeaturesWeights, binaryFeatureWeightsCount, splits, parts, pCount, result, resultSize, scoreFunction, l2, normalize, scoreStdDev, seed, stream);
             }
         } else {
-            FindOptimalSplitDynamic(binaryFeatures, binaryFeatureCount, splits, parts, pCount, foldCount, result, resultSize, scoreFunction, l2, normalize, scoreStdDev, seed, stream);
+            FindOptimalSplitDynamic(binaryFeatures, binaryFeatureCount, binFeaturesWeights, binaryFeatureWeightsCount, splits, parts, pCount, foldCount, result, resultSize, scoreFunction, l2, normalize, scoreStdDev, seed, stream);
         }
     }
 

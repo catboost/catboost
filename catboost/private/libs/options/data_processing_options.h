@@ -38,6 +38,7 @@ namespace NCatboostOptions {
         TOption<TTextProcessingOptions> TextProcessingOptions;
         TOption<ui32> ClassesCount;
         TOption<TVector<float>> ClassWeights;
+        TOption<EAutoClassWeightsType> AutoClassWeights;
         TOption<TVector<NJson::TJsonValue>> ClassLabels; // can be Integers, Floats or Strings
 
         TOption<float> DevDefaultValueFractionToEnableSparseStorage; // 0 means sparse storage is disabled
@@ -57,9 +58,4 @@ namespace NCatboostOptions {
     constexpr float GetDefaultPredictionBorder() {
         return 0.5;
     }
-
-    // Tries to find the target probability border for the binary metrics among params (see |PREDICTION_BORDER_PARAM|
-    // key). Returns nothing if the key isn't present in the map and throws an exception if the border target is not
-    // a valid floating point number.
-    TMaybe<float> GetPredictionBorderFromLossParams(const TMap<TString, TString>& params);
 }

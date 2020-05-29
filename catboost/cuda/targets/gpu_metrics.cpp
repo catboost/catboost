@@ -174,7 +174,7 @@ namespace NCatboostCuda {
 
             double totalWeight = SumVector(weights);
             auto metricType = GetMetricDescription().GetLossFunction();
-            const auto& params = GetMetricDescription().GetLossParams();
+            const auto& params = GetMetricDescription().GetLossParamsMap();
             switch (metricType) {
                 case ELossFunction::Logloss:
                 case ELossFunction::CrossEntropy: {
@@ -412,7 +412,7 @@ namespace NCatboostCuda {
                     return MakeSimpleAdditiveStatistic(-sum, totalPairsWeight);
                 }
                 case ELossFunction::NDCG: {
-                    const auto& params = GetMetricDescription().GetLossParams();
+                    const auto& params = GetMetricDescription().GetLossParamsMap();
 
                     auto type = ENdcgMetricType::Base;
                     if (const auto it = params.find("type"); it != params.end()) {
@@ -475,7 +475,7 @@ namespace NCatboostCuda {
                            *localExecutor);
     }
 
-    static THolder<IMetric> CreateSingleMetric(ELossFunction metric, const TMap<TString, TString>& params, int approxDimension) {
+    static THolder<IMetric> CreateSingleMetric(ELossFunction metric, const TLossParams& params, int approxDimension) {
         THolder<IMetric> metricHolder = std::move(CreateMetric(metric, params, approxDimension)[0]);
         return metricHolder;
     }
@@ -491,12 +491,10 @@ namespace NCatboostCuda {
         }
 
         auto metricType = metricDescription.GetLossFunction();
-        const TMap<TString, TString>& params = metricDescription.GetLossParams();
-        const double binaryClassPredictionBorder = NCatboostOptions::GetPredictionBorderFromLossParams(params).GetOrElse(
-            GetDefaultPredictionBorder());
+        const TLossParams& params = metricDescription.GetLossParams();
         TSet<TString> unusedValidParams;
 
-        TMetricConfig config(metricType, params, approxDim, binaryClassPredictionBorder, &unusedValidParams);
+        TMetricConfig config(metricType, params, approxDim, &unusedValidParams);
         
         switch (metricType) {
             case ELossFunction::Logloss:
@@ -571,12 +569,6 @@ namespace NCatboostCuda {
             }
 
             case ELossFunction::HammingLoss: {
-                double border = GetDefaultTargetBorder();
-                const auto& params = metricDescription.GetLossParams();
-                if (params.contains("border")) {
-                    border = FromString<float>(params.at("border"));
-                }
-
                 result.emplace_back(new TCpuFallbackMetric(CreateSingleMetric(metricType, params, approxDim), metricDescription));
                 break;
             }

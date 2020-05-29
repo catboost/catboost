@@ -5,6 +5,7 @@ RECURSE(
     chunk_queue/ut
     future
     future/perf
+    future/subscription
     future/ut
     hot_swap
     hot_swap/ut

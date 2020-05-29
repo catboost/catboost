@@ -635,7 +635,7 @@ def quantize(
     return result
 
 
-def convert_to_onnx_object(model, export_parameters=None):
+def convert_to_onnx_object(model, export_parameters=None, **kwargs):
     """
     Convert given CatBoost model to ONNX-ML model.
     Categorical Features are not supported.
@@ -668,6 +668,12 @@ def convert_to_onnx_object(model, export_parameters=None):
     if not model.is_fitted():
         raise CatBoostError(
             "There is no trained model to use save_model(). Use fit() to train model. Then use this method.")
+
+    for name, value in kwargs.items():
+        if name == 'target_opset' and value not in [None, 2]:
+            warnings.warn('target_opset argument is not supported. Default target_opset is 2 (ai.onnx.ml domain)')
+        elif name == 'initial_types' and value is not None:
+            warnings.warn('initial_types argument is not supported')
 
     params_string = ""
     if export_parameters:

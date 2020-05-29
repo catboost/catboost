@@ -1,8 +1,8 @@
 #pragma once
 
-#include <library/enumbitset/enumbitset.h>
+#include <library/cpp/enumbitset/enumbitset.h>
 #include <library/langmask/langmask.h>
-#include <library/token/nlptypes.h>
+#include <library/cpp/token/nlptypes.h>
 
 #include <util/generic/bitmap.h>
 #include <util/generic/string.h>

@@ -160,6 +160,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\lower_case\cpp-digest-lower_case.vcxproj">
       <Project>{93A05BE8-043A-10FC-0497-840803A20BA0}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\enumbitset\library-cpp-enumbitset.vcxproj">
+      <Project>{6440B812-5ED4-4365-7564-0F5EC4AEDBBC}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\common\cpp-json-common.vcxproj">
       <Project>{6330870F-DABE-D84D-BCA5-C0A181746B9E}</Project>
     </ProjectReference>
@@ -175,14 +178,14 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\relaxed_escaper\cpp-string_utils-relaxed_escaper.vcxproj">
       <Project>{81697B25-44BA-8BC7-5E66-2708E5669C60}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\token\library-cpp-token.vcxproj">
+      <Project>{E6C46AB0-C7AB-1025-2F16-BF83205FE0C1}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\tokenizer\library-cpp-tokenizer.vcxproj">
       <Project>{033EAD89-E9BA-0341-D614-91C40D7F543A}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\unicode\normalization\cpp-unicode-normalization.vcxproj">
       <Project>{6E0E64B9-3A05-DBD1-DC49-86C427EBD124}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\enumbitset\library-enumbitset.vcxproj">
-      <Project>{001BC0D7-D4A9-8F1B-F8D9-077578710964}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\langmask\library-langmask.vcxproj">
       <Project>{54EC8CF1-9FAA-FA14-D0CE-A8E86B1F0A3B}</Project>
@@ -192,9 +195,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
       <Project>{F7622D70-2702-4C7E-04DA-52DC56DF911E}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\token\library-token.vcxproj">
-      <Project>{7A7DF5AD-7B4C-6A47-56E6-6DED393B817F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
       <Project>{F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B}</Project>

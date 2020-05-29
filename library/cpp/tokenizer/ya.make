@@ -23,9 +23,9 @@ SRCS(
 )
 
 PEERDIR(
-    library/enumbitset
+    library/cpp/enumbitset
     library/langmask
-    library/token
+    library/cpp/token
 )
 
 IF(CATBOOST_OPENSOURCE)

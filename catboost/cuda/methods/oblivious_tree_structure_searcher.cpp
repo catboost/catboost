@@ -3,6 +3,8 @@
 #include "random_score_helper.h"
 #include "tree_ctrs.h"
 #include "tree_ctr_datasets_visitor.h"
+#include "update_feature_weights.h"
+
 #include <catboost/cuda/gpu_data/oblivious_tree_bin_builder.h>
 #include <catboost/cuda/cuda_util/run_stream_parallel_jobs.h>
 
@@ -101,6 +103,7 @@ namespace NCatboostCuda {
         auto& profiler = NCudaLib::GetCudaManager().GetProfiler();
 
         THolder<TTreeCtrDataSetsHelper> ctrDataSetsHelperPtr;
+        TMirrorBuffer<float> featureWeights;
 
         for (ui32 depth = 0; depth < TreeConfig.MaxDepth; ++depth) {
             //warning: don't change order of commands. current pipeline ensures maximum stream-parallelism until read
@@ -122,6 +125,21 @@ namespace NCatboostCuda {
             }
             TBinarySplit bestSplit;
 
+            ui32 maxUniqueValues = 1;
+            if (FeaturesManager.IsTreeCtrsEnabled()) {
+                if (ctrDataSetsHelperPtr == nullptr) {
+                    using TCtrHelperType = TTreeCtrDataSetsHelper;
+                    ctrDataSetsHelperPtr = MakeHolder<TCtrHelperType>(DataSet,
+                                                                      FeaturesManager,
+                                                                      TreeConfig.MaxDepth,
+                                                                      foldCount,
+                                                                      *treeUpdater.CreateEmptyTensorTracker());
+                }
+                maxUniqueValues = ctrDataSetsHelperPtr->GetMaxUniqueValues();
+            }
+
+            UpdateFeatureWeightsForBestSplits(FeaturesManager, TreeConfig.ModelSizeReg, featureWeights, maxUniqueValues);
+
             auto& manager = NCudaLib::GetCudaManager();
 
             manager.WaitComplete();
@@ -141,11 +159,13 @@ namespace NCatboostCuda {
                 {
                     if (featuresScoreCalcer) {
                         featuresScoreCalcer->ComputeOptimalSplit(partitionsStats,
+                                                                 featureWeights,
                                                                  ScoreStdDev,
                                                                  GetRandom().NextUniformL());
                     }
                     if (simpleCtrScoreCalcer) {
                         simpleCtrScoreCalcer->ComputeOptimalSplit(partitionsStats,
+                                                                  featureWeights,
                                                                   ScoreStdDev,
                                                                   GetRandom().NextUniformL());
                     }
@@ -169,14 +189,6 @@ namespace NCatboostCuda {
             bool isTreeCtrSplit = false;
 
             if (FeaturesManager.IsTreeCtrsEnabled()) {
-                if (ctrDataSetsHelperPtr == nullptr) {
-                    using TCtrHelperType = TTreeCtrDataSetsHelper;
-                    ctrDataSetsHelperPtr = MakeHolder<TCtrHelperType>(DataSet,
-                                                                      FeaturesManager,
-                                                                      TreeConfig.MaxDepth,
-                                                                      foldCount,
-                                                                      *treeUpdater.CreateEmptyTensorTracker());
-                }
 
                 auto& ctrDataSetsHelper = *ctrDataSetsHelperPtr;
 
@@ -209,7 +221,9 @@ namespace NCatboostCuda {
                             ctrDataSetVisitor.Accept(ctrDataSet,
                                                      partitionsStats,
                                                      inverseIndices,
-                                                     directObservationIndices);
+                                                     directObservationIndices,
+                                                     maxUniqueValues,
+                                                     TreeConfig.ModelSizeReg);
                         };
 
                         ctrDataSetsHelper.VisitPermutationDataSets(permutation,
@@ -260,6 +274,9 @@ namespace NCatboostCuda {
             }
 
             result.Splits.push_back(bestSplit);
+            if (isTreeCtrSplit) {
+                FeaturesManager.AddUsedCtr(bestSplitProp.FeatureId);
+            }
         }
 
         CacheBinsForModel(ScopedCache,

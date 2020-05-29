@@ -24,7 +24,7 @@ NCatboostOptions::TObliviousTreeLearnerOptions::TObliviousTreeLearnerOptions(ETa
       , MinDataInLeaf("min_data_in_leaf", 1)
       , DevExclusiveFeaturesBundleMaxBuckets("dev_efb_max_buckets", taskType == ETaskType::CPU ? 1 << 10 : 254)
       , SamplingFrequency("sampling_frequency", ESamplingFrequency::PerTree, taskType)
-      , ModelSizeReg("model_size_reg", 0.5f, taskType)
+      , ModelSizeReg("model_size_reg", 0.5f)
       , DevScoreCalcObjBlockSize("dev_score_calc_obj_block_size", 5000000, taskType)
       , SparseFeaturesConflictFraction("sparse_features_conflict_fraction", 0.0f, taskType)
       , ObservationsToBootstrap("observations_to_bootstrap", EObservationsToBootstrap::TestOnly, taskType) //it's specific for fold-based scheme, so here and not in bootstrap options

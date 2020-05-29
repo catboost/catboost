@@ -1,6 +1,6 @@
 Metadata-Version: 2.1
 Name: six
-Version: 1.14.0
+Version: 1.15.0
 Summary: Python 2 and 3 compatibility utilities
 Home-page: https://github.com/benjaminp/six
 Author: Benjamin Peterson

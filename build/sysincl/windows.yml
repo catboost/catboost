@@ -12,6 +12,7 @@
   - bcrypt.h
   - bits.h
   - capi.h
+  - cet.h
   - cfg.h
   - commctrl.h
   - commdlg.h

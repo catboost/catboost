@@ -87,6 +87,7 @@ def validate_requirement(req_name, value, test_size, is_force_sandbox, in_autoch
         'cpu': lambda n, v: validate_force_sandbox_requirement(n, v, test_size, is_force_sandbox, in_autocheck, is_fuzzing, is_kvm, reqs.check_cpu),
         'disk_usage': validate_numerical_requirement,
         'dns': lambda n, v: validate_choice_requirement(n, v, VALID_DNS_REQUIREMENTS),
+        'kvm': None,
         'network': lambda n, v: validate_choice_requirement(n, v, VALID_NETWORK_REQUIREMENTS),
         'ram': lambda n, v: validate_force_sandbox_requirement(n, v, test_size, is_force_sandbox, in_autocheck, is_fuzzing, is_kvm, reqs.check_ram),
         'ram_disk': lambda n, v: validate_force_sandbox_requirement(n, v, test_size, is_force_sandbox, in_autocheck, is_fuzzing, is_kvm, reqs.check_ram_disk),
@@ -117,10 +118,6 @@ def validate_test(unit, kw):
         project_path = valid_kw.get('BUILD-FOLDER-PATH', "")
         if not project_path.startswith(("contrib", "mail", "maps", "tools/idl", "metrika", "devtools", "mds", "yandex_io", "smart_devices")):
             errors.append("BOOSTTEST is not allowed here")
-    elif valid_kw.get('SCRIPT-REL-PATH') == 'ytest.py':
-        project_path = valid_kw.get('BUILD-FOLDER-PATH', "")
-        if not project_path.startswith("yweb/antispam") and not project_path.startswith("devtools"):
-            errors.append("FLEUR test is not allowed here")
     elif valid_kw.get('SCRIPT-REL-PATH') == 'gtest':
         project_path = valid_kw.get('BUILD-FOLDER-PATH', "")
         if not project_path.startswith(("adfox", "contrib", "devtools", "mail", "mds", "yp", "yt")):
@@ -131,33 +128,41 @@ def validate_test(unit, kw):
     size = valid_kw.get('SIZE', consts.TestSize.Small).lower()
     # TODO: use set instead list
     tags = get_list("TAG")
-    requirements_set = set(get_list("REQUIREMENTS"))
+    requirements_orig = get_list("REQUIREMENTS")
     in_autocheck = "ya:not_autocheck" not in tags and 'ya:manual' not in tags
     is_fat = 'ya:fat' in tags
     is_force_sandbox = 'ya:force_sandbox' in tags
     is_fuzzing = valid_kw.get("FUZZING", False)
-    is_kvm = 'kvm' in requirements_set
+    is_kvm = 'kvm' in requirements_orig
     requirements = {}
     list_requirements = ('sb_vault')
-    for req in requirements_set:
+    for req in requirements_orig:
         if req in ('kvm', ):
             requirements[req] = str(True)
             continue
 
         if ":" in req:
             req_name, req_value = req.split(":", 1)
-            error_msg = validate_requirement(req_name, req_value, size, is_force_sandbox, in_autocheck, is_fuzzing, is_kvm)
-            if error_msg:
-                errors += [error_msg]
+            if req_name in list_requirements:
+                requirements[req_name] = ",".join(filter(None, [requirements.get(req_name), req_value]))
             else:
-                if req_name in list_requirements:
-                    requirements[req_name] = ",".join(filter(None, [requirements.get(req_name), req_value]))
-                else:
-                    if req_name in requirements:
+                if req_name in requirements:
+                    if req_value in ["0"]:
+                        warnings.append("Requirement [[imp]]{}[[rst]] is dropped [[imp]]{}[[rst]] -> [[imp]]{}[[rst]]".format(req_name, requirements[req_name], req_value))
+                        del requirements[req_name]
+                    else:
                         warnings.append("Requirement [[imp]]{}[[rst]] is redefined [[imp]]{}[[rst]] -> [[imp]]{}[[rst]]".format(req_name, requirements[req_name], req_value))
+                        requirements[req_name] = req_value
+                else:
                     requirements[req_name] = req_value
         else:
             errors.append("Invalid requirement syntax [[imp]]{}[[rst]]: expect <requirement>:<value>".format(req))
+
+    if not errors:
+        for req_name, req_value in requirements.items():
+            error_msg = validate_requirement(req_name, req_value, size, is_force_sandbox, in_autocheck, is_fuzzing, is_kvm)
+            if error_msg:
+                errors += [error_msg]
 
     invalid_requirements_for_distbuild = [requirement for requirement in requirements.keys() if requirement not in ('ram', 'ram_disk', 'cpu', 'network')]
     sb_tags = [tag for tag in tags if tag.startswith('sb:')]
@@ -606,7 +611,9 @@ def onadd_pytest_bin(unit, *args):
         )
 
     runner_bin = kws.get('RUNNER_BIN', [None])[0]
-    add_test_to_dart(unit, "pytest.bin", runner_bin=runner_bin)
+    test_type = 'py3test.bin' if (unit.get("PYTHON3") == 'yes') else "pytest.bin"
+
+    add_test_to_dart(unit, test_type, runner_bin=runner_bin)
 
 
 def add_test_to_dart(unit, test_type, binary_path=None, runner_bin=None):
@@ -790,8 +797,6 @@ def _dump_test(
 
     if test_type == "PY_TEST":
         script_rel_path = "py.test"
-    elif test_type == "FLEUR":
-        script_rel_path = "ytest.py"
     elif test_type == "PEP8":
         script_rel_path = "py.test.pep8"
     elif test_type == "PY_FLAKES":
@@ -806,7 +811,7 @@ def _dump_test(
     if test_cwd:
         test_cwd = test_cwd.replace("$TEST_CWD_VALUE", "").replace('"MACRO_CALLS_DELIM"', "").strip()
     if binary_path:
-        if fork_test_files == 'on':
+        if fork_test_files == 'on' or unit.get('FORK_TEST_FILES_FILTER') == 'yes':
             tests = test_files
         else:
             tests = [os.path.basename(binary_path)]
@@ -839,6 +844,7 @@ def _dump_test(
             'SKIP_TEST': unit.get('SKIP_TEST_VALUE') or '',
             'BUILD-FOLDER-PATH': _common.strip_roots(unit_path),
             'BLOB': unit.get('TEST_BLOB_DATA') or '',
+            'CANONIZE_SUB_PATH': unit.get('CANONIZE_SUB_PATH') or '',
         }
         if binary_path:
             test_record['BINARY-PATH'] = _common.strip_roots(binary_path)

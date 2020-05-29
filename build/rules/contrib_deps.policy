@@ -2,9 +2,9 @@ ALLOW contrib -> contrib
 ALLOW contrib -> build
 ALLOW contrib -> library/cpp/unittest
 ALLOW contrib -> library/cpp/getopt
-ALLOW contrib -> library/resource
+ALLOW contrib -> library/cpp/resource
 ALLOW contrib -> library/charset
-ALLOW contrib -> library/svnversion
+ALLOW contrib -> library/cpp/svnversion
 ALLOW contrib -> certs
 ALLOW contrib/libs/.*/ut -> library
 ALLOW contrib/python -> library/python/resource
@@ -19,7 +19,7 @@ ALLOW contrib/tools/python3/pycc -> library/python/runtime_py3
 ALLOW contrib/python/.*/(_?)test(s?) -> library/python/testing/yatest_common
 ALLOW contrib/python/.*/(_?)test(s?) -> library/python/import_test
 ALLOW contrib/python/click -> library/python/symbols/python
-ALLOW contrib/java/ru/yandex/market -> market
+ALLOW contrib/java/ru/yandex/market -> (market)|(maps/doc/proto/yandex/maps/proto)
 ALLOW contrib/libs/tf -> library/python/testing/gtest
 ALLOW contrib/libs/tf/tests/test_vars_to_const/cpp_check_inference -> maps/libs/common
 ALLOW contrib/libs/tf/tests/test_vars_to_const/cpp_check_inference -> yandex/maps/common
@@ -33,12 +33,12 @@ ALLOW contrib/tools/jdk/test -> devtools/ya/yalibrary/tools
 ALLOW contrib/libs/inja -> library/scheme
 ALLOW contrib/libs/geos/capi/ctypes -> library/python/ctypes
 ALLOW contrib/libs/leveldb -> library/cpp/deprecated/mapped_file
-ALLOW contrib/libs/leveldb -> library/logger
+ALLOW contrib/libs/leveldb -> library/cpp/logger
 ALLOW contrib/libs/leveldb -> library/cpp/digest/crc32c
 ALLOW contrib/libs/lua -> library/cpp/archive
 ALLOW contrib/libs/phonedetect/src -> library/cpp/digest/md5
 ALLOW contrib/python/horovod/horovod/common/syms -> library/python/symbols/registry
-ALLOW contrib/python/opensfm -> library/vl_feat
+ALLOW contrib/python/opensfm -> library/cpp/vl_feat
 ALLOW contrib/python/pytest-mongodb -> devtools/swag/lib
 ALLOW contrib/python/wand/ImageMagick -> library/python/symbols/registry
 ALLOW contrib/nginx/modules/nginx-rtmp-module -> library/cpp/json

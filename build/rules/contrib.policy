@@ -37,7 +37,6 @@ DENY contrib/python -> contrib/python/django/django-1.11
 DENY contrib/python -> contrib/python/django/django-2.2
 
 ALLOW maps -> maps/contrib
-ALLOW devtools/experimental/mapsmobi -> maps/contrib
 DENY .* -> maps/contrib
 
 ALLOW contrib/deprecated/python/ruamel.ordereddict/tests -> contrib/deprecated/python/ruamel.ordereddict

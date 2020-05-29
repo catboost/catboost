@@ -5,7 +5,7 @@
 #include <catboost/libs/model/ctr_helpers.h>
 #include <catboost/libs/model/static_ctr_provider.h>
 
-#include <library/resource/resource.h>
+#include <library/cpp/resource/resource.h>
 
 #include <util/generic/map.h>
 #include <util/generic/set.h>
@@ -160,8 +160,12 @@ namespace NCB {
                 str << feature.Position.Index << ", ";
             }
         }
-        str.pop_back();
-        Out << ++indent << str << "\n";
+        if (!str.empty()) {
+            str.pop_back();
+            Out << ++indent << str << "\n";
+        } else {
+            ++indent;
+        }
         Out << --indent << "]\n";
         Out << indent << "float_feature_count = " << model.ModelTrees->GetNumFloatFeatures() << '\n';
         Out << indent << "cat_feature_count = " << model.ModelTrees->GetNumCatFeatures() << '\n';

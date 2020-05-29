@@ -15,7 +15,7 @@
 #include <library/cpp/getopt/small/last_getopt.h>
 #include <library/cpp/grid_creator/binarization.h>
 #include <library/cpp/json/json_reader.h>
-#include <library/logger/log.h>
+#include <library/cpp/logger/log.h>
 #include <library/cpp/text_processing/dictionary/options.h>
 
 #include <util/generic/algorithm.h>
@@ -1124,6 +1124,19 @@ static void BindDataProcessingParams(NLastGetopt::TOpts* parserPtr, NJson::TJson
             CB_ENSURE(!(*plainJsonPtr)["class_weights"].GetArray().empty(), "Empty class weights list " << weightsLine);
         })
         .Help("Takes effect only with MultiClass/LogLoss loss functions. Number of classes indicated by classes-count, class-names and class-weights should be the same");
+
+    const auto autoClassWeightsHelp = TString::Join(
+        "Takes effect only with MultiClass/LogLoss loss functions. Must be one of: ",
+        GetEnumAllNames<EAutoClassWeightsType>(),
+        ". Default: ",
+        ToString(EAutoClassWeightsType::None));
+
+    parser.AddLongOption("auto-class-weights")
+        .RequiredArgument("String")
+        .Handler1T<EAutoClassWeightsType>([plainJsonPtr](const auto classWeightsType){
+            (*plainJsonPtr)["auto_class_weights"] = ToString(classWeightsType);
+        })
+        .Help(autoClassWeightsHelp);
 
     const auto gpuCatFeatureStorageHelp = TString::Join(
         "GPU only. Must be one of: ",

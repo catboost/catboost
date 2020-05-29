@@ -243,6 +243,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\md5\cpp-digest-md5.vcxproj">
       <Project>{4FF825A6-758B-94D9-9960-004CE22E96DF}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\enumbitset\library-cpp-enumbitset.vcxproj">
+      <Project>{6440B812-5ED4-4365-7564-0F5EC4AEDBBC}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\getopt\small\cpp-getopt-small.vcxproj">
       <Project>{58379026-CFDC-70D1-4FC0-7A73F77E31B5}</Project>
     </ProjectReference>
@@ -261,6 +264,12 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\writer\cpp-json-writer.vcxproj">
       <Project>{94F66460-BD28-7C46-313B-A5F2876E26F8}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\logger\global\cpp-logger-global.vcxproj">
+      <Project>{4A8A1664-2BAB-5432-B287-171C2954FDA1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\logger\library-cpp-logger.vcxproj">
+      <Project>{9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\api\cpp-malloc-api.vcxproj">
       <Project>{98AF9344-15D9-0539-93F4-0E901C36E301}</Project>
     </ProjectReference>
@@ -272,6 +281,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\relaxed_escaper\cpp-string_utils-relaxed_escaper.vcxproj">
       <Project>{81697B25-44BA-8BC7-5E66-2708E5669C60}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\svnversion\library-cpp-svnversion.vcxproj">
+      <Project>{C3083C9F-6349-B5A2-3DD0-2098D66566DB}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\text_processing\dictionary\cpp-text_processing-dictionary.vcxproj">
       <Project>{73E0C414-7306-5CAF-23A6-CCF99172A94D}</Project>
@@ -288,6 +300,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\local_executor\cpp-threading-local_executor.vcxproj">
       <Project>{9EA4781F-303F-F2FD-86F1-B98A1D3A93C0}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\token\library-cpp-token.vcxproj">
+      <Project>{E6C46AB0-C7AB-1025-2F16-BF83205FE0C1}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\tokenizer\library-cpp-tokenizer.vcxproj">
       <Project>{033EAD89-E9BA-0341-D614-91C40D7F543A}</Project>
     </ProjectReference>
@@ -296,9 +311,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cuda\wrappers\library-cuda-wrappers.vcxproj">
       <Project>{B83E09E6-36E4-BF0E-BBC4-CCC2D4B42CCC}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\enumbitset\library-enumbitset.vcxproj">
-      <Project>{001BC0D7-D4A9-8F1B-F8D9-077578710964}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\fast_exp\library-fast_exp.vcxproj">
       <Project>{E0EC7772-5C0F-6407-290B-3900C3FF324B}</Project>
@@ -309,23 +321,11 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\langs\library-langs.vcxproj">
       <Project>{1660E94D-B0FA-8C52-3B1B-10230401A2CA}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\logger\global\library-logger-global.vcxproj">
-      <Project>{D1EB170E-C5D0-989C-A93C-B5A2CD895E62}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\logger\library-logger.vcxproj">
-      <Project>{83A191D5-D636-DE22-2633-0CBA3DEA99BB}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
       <Project>{F7622D70-2702-4C7E-04DA-52DC56DF911E}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
       <Project>{2CE71367-048B-26B0-2DAC-CA9BB7D00E76}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\svnversion\library-svnversion.vcxproj">
-      <Project>{EB1297E8-310F-2F45-45A8-54D412024564}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\token\library-token.vcxproj">
-      <Project>{7A7DF5AD-7B4C-6A47-56E6-6DED393B817F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>

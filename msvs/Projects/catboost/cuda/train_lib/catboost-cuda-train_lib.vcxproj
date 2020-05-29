@@ -452,8 +452,14 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\digest\md5\cpp-digest-md5.vcxproj">
       <Project>{4FF825A6-758B-94D9-9960-004CE22E96DF}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\dns\library-cpp-dns.vcxproj">
+      <Project>{91C1EED9-1431-B67A-0849-C29C4CC35B79}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\dot_product\library-cpp-dot_product.vcxproj">
       <Project>{BAB48646-C601-88C8-A272-6E1619FA017C}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\enumbitset\library-cpp-enumbitset.vcxproj">
+      <Project>{6440B812-5ED4-4365-7564-0F5EC4AEDBBC}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\fast_log\library-cpp-fast_log.vcxproj">
       <Project>{84BB2BD6-98FF-448B-165A-0B95E63F4208}</Project>
@@ -485,6 +491,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\writer\cpp-json-writer.vcxproj">
       <Project>{94F66460-BD28-7C46-313B-A5F2876E26F8}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\logger\global\cpp-logger-global.vcxproj">
+      <Project>{4A8A1664-2BAB-5432-B287-171C2954FDA1}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\logger\library-cpp-logger.vcxproj">
+      <Project>{9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\api\cpp-malloc-api.vcxproj">
       <Project>{98AF9344-15D9-0539-93F4-0E901C36E301}</Project>
     </ProjectReference>
@@ -499,6 +511,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\pop_count\library-cpp-pop_count.vcxproj">
       <Project>{6B557DF5-6D6B-ECE1-B5B5-9CD1B8625387}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\resource\library-cpp-resource.vcxproj">
+      <Project>{1E91F91B-DC98-C7C6-CD7E-C89F350D131A}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\sse\library-cpp-sse.vcxproj">
       <Project>{418E96CF-B75E-3C4F-2B82-0636CFE2782C}</Project>
@@ -529,6 +544,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\string_utils\url\cpp-string_utils-url.vcxproj">
       <Project>{F67E22D5-1471-725B-CCA8-05EF8A940282}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\svnversion\library-cpp-svnversion.vcxproj">
+      <Project>{C3083C9F-6349-B5A2-3DD0-2098D66566DB}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\text_processing\dictionary\cpp-text_processing-dictionary.vcxproj">
       <Project>{73E0C414-7306-5CAF-23A6-CCF99172A94D}</Project>
@@ -566,6 +584,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\thread_local\cpp-threading-thread_local.vcxproj">
       <Project>{67BCFA78-BD05-0105-6CA9-0D028945EA69}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\token\library-cpp-token.vcxproj">
+      <Project>{E6C46AB0-C7AB-1025-2F16-BF83205FE0C1}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\tokenizer\library-cpp-tokenizer.vcxproj">
       <Project>{033EAD89-E9BA-0341-D614-91C40D7F543A}</Project>
     </ProjectReference>
@@ -578,12 +599,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cuda\wrappers\library-cuda-wrappers.vcxproj">
       <Project>{B83E09E6-36E4-BF0E-BBC4-CCC2D4B42CCC}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\dns\library-dns.vcxproj">
-      <Project>{8C356353-67D3-3399-7DA3-792F6D7BF6D5}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\enumbitset\library-enumbitset.vcxproj">
-      <Project>{001BC0D7-D4A9-8F1B-F8D9-077578710964}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\fast_exp\library-fast_exp.vcxproj">
       <Project>{E0EC7772-5C0F-6407-290B-3900C3FF324B}</Project>
     </ProjectReference>
@@ -592,12 +607,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\langs\library-langs.vcxproj">
       <Project>{1660E94D-B0FA-8C52-3B1B-10230401A2CA}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\logger\global\library-logger-global.vcxproj">
-      <Project>{D1EB170E-C5D0-989C-A93C-B5A2CD895E62}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\logger\library-logger.vcxproj">
-      <Project>{83A191D5-D636-DE22-2633-0CBA3DEA99BB}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\neh\asio\library-neh-asio.vcxproj">
       <Project>{ACDED067-8B74-5223-7E1A-7937B35A78E1}</Project>
@@ -623,17 +632,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\par\library-par.vcxproj">
       <Project>{33DA38DE-6DFE-3983-55A4-A689CCC58EFD}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\resource\library-resource.vcxproj">
-      <Project>{0182C1FA-B7CF-C21E-561C-06B91159C53A}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\statistics\library-statistics.vcxproj">
       <Project>{898C3811-AD77-869C-24DC-EF6A89FA8399}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\svnversion\library-svnversion.vcxproj">
-      <Project>{EB1297E8-310F-2F45-45A8-54D412024564}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\token\library-token.vcxproj">
-      <Project>{7A7DF5AD-7B4C-6A47-56E6-6DED393B817F}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\yson\library-yson.vcxproj">
       <Project>{2779E1A2-0D5A-216D-65BF-CE9DF81108EF}</Project>

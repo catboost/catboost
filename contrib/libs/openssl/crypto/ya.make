@@ -23,7 +23,6 @@ ADDINCL(
     contrib/libs/openssl/crypto/include
     contrib/libs/openssl/crypto/modes
     contrib/libs/openssl/include
-    contrib/libs/zlib
     GLOBAL contrib/libs/openssl/include
 )
 
@@ -1265,6 +1264,12 @@ IF (OS_ANDROID AND ARCH_I686)
 ENDIF()
 
 IF (OS_ANDROID AND ARCH_ARM7)
+    IF (CLANG)
+        # XXX: This is a workarond for 'out of range immediate fixup value'
+        # error with clang integrated assembler:
+        # https://github.com/openssl/openssl/issues/7878
+        CFLAGS(-mno-thumb)
+    ENDIF()
     CFLAGS(
         -DOPENSSL_PIC
         -DOPENSSL_BN_ASM_GF2m

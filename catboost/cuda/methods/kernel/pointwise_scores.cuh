@@ -26,6 +26,7 @@ namespace NKernel {
     );
 
     void FindOptimalSplit(const TCBinFeature* binaryFeatures,ui32 binaryFeatureCount,
+                          const float* binFeaturesWeights, ui32 binaryFeatureWeightsCount,
                           const float* splits, const TPartitionStatistics* parts, ui32 pCount, ui32 foldCount,
                           TBestSplitProperties* result, ui32 resultSize,
                           EScoreFunction scoreFunction, double l2, bool normalize,

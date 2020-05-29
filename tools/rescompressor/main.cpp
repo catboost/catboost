@@ -1,4 +1,4 @@
-#include <library/resource/registry.h>
+#include <library/cpp/resource/registry.h>
 #include <util/stream/file.h>
 #include <util/folder/path.h>
 
