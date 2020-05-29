@@ -337,7 +337,7 @@ def _do_compile_go(args):
             cmd.extend(x for x in args.compile_flags if x not in COMPILE_OPTIMIZATION_FLAGS)
         else:
             cmd.extend(args.compile_flags)
-        if '-race' in args.compile_flags:
+        if any(map(lambda x: x in ('-race', '-shared'), args.compile_flags)):
             compile_workers = '1'
     cmd += ['-pack', '-c={}'.format(compile_workers)]
     cmd += args.go_srcs
