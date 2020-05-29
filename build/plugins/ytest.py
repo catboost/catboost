@@ -87,6 +87,7 @@ def validate_requirement(req_name, value, test_size, is_force_sandbox, in_autoch
         'cpu': lambda n, v: validate_force_sandbox_requirement(n, v, test_size, is_force_sandbox, in_autocheck, is_fuzzing, is_kvm, reqs.check_cpu),
         'disk_usage': validate_numerical_requirement,
         'dns': lambda n, v: validate_choice_requirement(n, v, VALID_DNS_REQUIREMENTS),
+        'kvm': None,
         'network': lambda n, v: validate_choice_requirement(n, v, VALID_NETWORK_REQUIREMENTS),
         'ram': lambda n, v: validate_force_sandbox_requirement(n, v, test_size, is_force_sandbox, in_autocheck, is_fuzzing, is_kvm, reqs.check_ram),
         'ram_disk': lambda n, v: validate_force_sandbox_requirement(n, v, test_size, is_force_sandbox, in_autocheck, is_fuzzing, is_kvm, reqs.check_ram_disk),
@@ -127,33 +128,41 @@ def validate_test(unit, kw):
     size = valid_kw.get('SIZE', consts.TestSize.Small).lower()
     # TODO: use set instead list
     tags = get_list("TAG")
-    requirements_set = set(get_list("REQUIREMENTS"))
+    requirements_orig = get_list("REQUIREMENTS")
     in_autocheck = "ya:not_autocheck" not in tags and 'ya:manual' not in tags
     is_fat = 'ya:fat' in tags
     is_force_sandbox = 'ya:force_sandbox' in tags
     is_fuzzing = valid_kw.get("FUZZING", False)
-    is_kvm = 'kvm' in requirements_set
+    is_kvm = 'kvm' in requirements_orig
     requirements = {}
     list_requirements = ('sb_vault')
-    for req in requirements_set:
+    for req in requirements_orig:
         if req in ('kvm', ):
             requirements[req] = str(True)
             continue
 
         if ":" in req:
             req_name, req_value = req.split(":", 1)
-            error_msg = validate_requirement(req_name, req_value, size, is_force_sandbox, in_autocheck, is_fuzzing, is_kvm)
-            if error_msg:
-                errors += [error_msg]
+            if req_name in list_requirements:
+                requirements[req_name] = ",".join(filter(None, [requirements.get(req_name), req_value]))
             else:
-                if req_name in list_requirements:
-                    requirements[req_name] = ",".join(filter(None, [requirements.get(req_name), req_value]))
-                else:
-                    if req_name in requirements:
+                if req_name in requirements:
+                    if req_value in ["0"]:
+                        warnings.append("Requirement [[imp]]{}[[rst]] is dropped [[imp]]{}[[rst]] -> [[imp]]{}[[rst]]".format(req_name, requirements[req_name], req_value))
+                        del requirements[req_name]
+                    else:
                         warnings.append("Requirement [[imp]]{}[[rst]] is redefined [[imp]]{}[[rst]] -> [[imp]]{}[[rst]]".format(req_name, requirements[req_name], req_value))
+                        requirements[req_name] = req_value
+                else:
                     requirements[req_name] = req_value
         else:
             errors.append("Invalid requirement syntax [[imp]]{}[[rst]]: expect <requirement>:<value>".format(req))
+
+    if not errors:
+        for req_name, req_value in requirements.items():
+            error_msg = validate_requirement(req_name, req_value, size, is_force_sandbox, in_autocheck, is_fuzzing, is_kvm)
+            if error_msg:
+                errors += [error_msg]
 
     invalid_requirements_for_distbuild = [requirement for requirement in requirements.keys() if requirement not in ('ram', 'ram_disk', 'cpu', 'network')]
     sb_tags = [tag for tag in tags if tag.startswith('sb:')]
