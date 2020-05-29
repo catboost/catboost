@@ -1604,6 +1604,18 @@ class LD(Linker):
             else:
                 self.ar = 'ar'
 
+        self.ar_type = 'GNU_AR'
+        self.llvm_ar_format = 'None'
+
+        if 'libtool' in self.ar:
+            self.ar_type = 'LIBTOOL'
+        elif 'llvm-ar' in self.ar:
+            self.ar_type = 'LLVM_AR'
+            if target.is_apple:
+                self.llvm_ar_format="darwin"
+            else:
+                self.llvm_ar_format="gnu"
+
         self.ld_flags = []
 
         if self.build.is_size_optimized:
@@ -1688,7 +1700,7 @@ class LD(Linker):
         super(LD, self).print_linker()
 
         emit('AR_TOOL', self.ar)
-        emit('AR_TYPE', 'AR' if 'libtool' not in self.ar else 'LIBTOOL')
+        emit('AR_TYPE', self.ar_type)
 
         emit('STRIP_TOOL_VENDOR', self.strip)
         emit('OBJCOPY_TOOL_VENDOR', self.objcopy)
@@ -1793,7 +1805,7 @@ class LD(Linker):
         emit('LINK_EXEC_DYN_LIB', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_LINK_EXEC_DYN_LIB && $DWARF_COMMAND')
         emit('SWIG_DLL_JAR_CMD', '$GENERATE_MF && $GENERATE_VCS_C_INFO_NODEP && $REAL_SWIG_DLL_JAR_CMD && $DWARF_COMMAND')
 
-        archiver = '$YMAKE_PYTHON ${input:"build/scripts/link_lib.py"} ${quo:AR_TOOL} $AR_TYPE $ARCADIA_BUILD_ROOT %s' % (self.ar_plugin or 'None')
+        archiver = '$YMAKE_PYTHON ${input:"build/scripts/link_lib.py"} ${quo:AR_TOOL} $AR_TYPE %s $ARCADIA_BUILD_ROOT %s' % (self.llvm_ar_format, self.ar_plugin or 'None')
 
         # Static Library
 
