@@ -12,6 +12,8 @@ RECURSE(
     cgiparam
     cgiparam/fuzz
     cgiparam/ut
+    charset
+    charset/ut
     colorizer
     colorizer/ut
     containers

@@ -1,5 +1,5 @@
-#include <library/charset/codepage.h>
-#include <library/charset/wide.h>
+#include <library/cpp/charset/codepage.h>
+#include <library/cpp/charset/wide.h>
 
 extern const char defchars[][DEFCHAR_BUF];
 static const char PP_00[257] =

@@ -19,8 +19,8 @@
 
 #include <library/cpp/string_utils/url/url.h>
 
-#include <library/charset/codepage.h>
-#include <library/charset/recyr.hh>
+#include <library/cpp/charset/codepage.h>
+#include <library/cpp/charset/recyr.hh>
 
 #include <util/generic/vector.h>
 #include <util/generic/hash.h>

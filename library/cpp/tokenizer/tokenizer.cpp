@@ -1,5 +1,5 @@
 #ifndef CATBOOST_OPENSOURCE
-#include <library/charset/wide.h>
+#include <library/cpp/charset/wide.h>
 #endif
 
 #include <util/charset/wide.h>

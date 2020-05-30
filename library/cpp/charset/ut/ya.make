@@ -1,4 +1,4 @@
-UNITTEST_FOR(library/charset)
+UNITTEST_FOR(library/cpp/charset)
 
 
 
