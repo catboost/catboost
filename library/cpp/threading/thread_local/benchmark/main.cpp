@@ -1,5 +1,5 @@
 #include <library/cpp/colorizer/colors.h>
-#include <library/statistics/statistics.h>
+#include <library/cpp/statistics/statistics.h>
 #include <library/testing/benchmark/bench.h>
 #include <library/cpp/threading/thread_local/thread_local.h>
 

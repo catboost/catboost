@@ -3,7 +3,7 @@
 #include <catboost/libs/helpers/exception.h>
 #include <catboost/libs/logging/logging.h>
 
-#include <library/statistics/statistics.h>
+#include <library/cpp/statistics/statistics.h>
 
 #include <util/system/compiler.h>
 

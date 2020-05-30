@@ -1,4 +1,4 @@
-#include <library/statistics/statistics.h>
+#include <library/cpp/statistics/statistics.h>
 
 #include <library/cpp/accurate_accumulate/accurate_accumulate.h>
 #include <library/cpp/unittest/registar.h>

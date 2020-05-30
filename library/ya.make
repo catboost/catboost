@@ -36,8 +36,6 @@ RECURSE(
     packers/ut
     par
     python
-    statistics
-    statistics/ut
     testing
 )
 
