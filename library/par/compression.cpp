@@ -1,6 +1,6 @@
 #include "par_log.h"
 
-#include <library/blockcodecs/codecs.h>
+#include <library/cpp/blockcodecs/codecs.h>
 #include <library/cpp/logger/global/global.h>
 #include <util/system/env.h>
 #include <util/generic/singleton.h>

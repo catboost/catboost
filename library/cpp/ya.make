@@ -8,6 +8,9 @@ RECURSE(
     binsaver
     binsaver/ut_util
     binsaver/ut
+    blockcodecs
+    blockcodecs/fuzz
+    blockcodecs/ut
     build_info
     cgiparam
     cgiparam/fuzz

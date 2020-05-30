@@ -1,9 +1,6 @@
 
 
 RECURSE(
-    blockcodecs
-    blockcodecs/fuzz
-    blockcodecs/ut
     chromium_trace
     chromium_trace/benchmark
     chromium_trace/examples
