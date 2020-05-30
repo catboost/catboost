@@ -21,8 +21,6 @@ RECURSE(
     langmask/ut
     langs
     langs/ut
-    lcs
-    lcs/ut
     linear_regression
     linear_regression/benchmark
     linear_regression/ut
