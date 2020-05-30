@@ -6,15 +6,18 @@
 #include <util/system/file.h>
 #include <util/system/yassert.h>
 
+#ifdef _win_
+#include <io.h>
+#endif
+
 class TMockStdIn {
 public:
     TMockStdIn()
-        : StdIn(0)
-        , StdInCopy(StdIn.Duplicate())
+        : StdInCopy(dup(0))
     {
     }
     ~TMockStdIn() {
-        StdIn.Release();
+        close(StdInCopy);
     }
 
     template <typename FuncType>
@@ -25,18 +28,17 @@ public:
         tempFile.Seek(0, sSet);
 
         TFileHandle tempFh(tempFile.GetHandle());
-        StdIn.LinkTo(tempFh);
+        tempFh.Duplicate2Posix(0);
         tempFh.Release();
 
         func();
         Cin.ReadAll();
-        StdIn.LinkTo(StdInCopy);
+        dup2(StdInCopy, 0);
         clearerr(stdin);
     }
 
 private:
-    TFileHandle StdIn;
-    TFileHandle StdInCopy;
+    int StdInCopy;
 };
 
 class TNoInput: public IInputStream {

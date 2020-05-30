@@ -69,7 +69,7 @@ namespace NPrivate {
         } else {
             o << "  " << function << "() failed" << Endl;
         }
-        Cerr << r;
+        Cerr << r << Flush;
 #ifndef WITH_VALGRIND
         PrintBackTrace();
 #endif
