@@ -128,6 +128,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\writer\cpp-json-writer.vcxproj">
       <Project>{94F66460-BD28-7C46-313B-A5F2876E26F8}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\lcs\library-cpp-lcs.vcxproj">
+      <Project>{227C35F3-9B89-E80F-1555-7BB4ED1F6FFC}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\api\cpp-malloc-api.vcxproj">
       <Project>{98AF9344-15D9-0539-93F4-0E901C36E301}</Project>
     </ProjectReference>
@@ -145,9 +148,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\unittest\main\cpp-unittest-main.vcxproj">
       <Project>{FCE80D39-1C22-515D-5496-00EC1DCE2551}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\lcs\library-lcs.vcxproj">
-      <Project>{E815EB4E-987D-1ECC-5BB6-03920E993386}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>

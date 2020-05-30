@@ -102,8 +102,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\stack_array\cpp-containers-stack_array.vcxproj">
       <Project>{BF161D83-E5D3-2E1E-3860-78744018CF2C}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\lcs\library-lcs.vcxproj">
-      <Project>{E815EB4E-987D-1ECC-5BB6-03920E993386}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\lcs\library-cpp-lcs.vcxproj">
+      <Project>{227C35F3-9B89-E80F-1555-7BB4ED1F6FFC}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\util\charset\util-charset.vcxproj">
       <Project>{44174C28-7454-8F7D-C06B-E2E8E0B4BF9E}</Project>
