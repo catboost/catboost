@@ -56,6 +56,7 @@ is_cv_stratified_objective = _catboost.is_cv_stratified_objective
 is_regression_objective = _catboost.is_regression_objective
 is_multiregression_objective = _catboost.is_multiregression_objective
 is_groupwise_metric = _catboost.is_groupwise_metric
+is_maximizable_metric = _catboost.is_maximizable_metric
 _PreprocessParams = _catboost._PreprocessParams
 _check_train_params = _catboost._check_train_params
 _MetadataHashProxy = _catboost._MetadataHashProxy
@@ -3484,7 +3485,24 @@ class CatBoost(_CatBoostBase):
             None, None, None, None, None, True, None, None, None, None, None
         )
         params = train_params["params"]
-        params.update(self.get_params())
+
+        # the same behavior as in the other hyperparameter search methods, depending on values of loss_function and eval_metric
+        loss_function = params["loss_function"]
+        eval_metric = params.get("eval_metric")
+        is_custom_loss_function = not isinstance(loss_function, STRING_TYPES)
+        if eval_metric is None:
+            if is_custom_loss_function:
+                raise CatBoostError("If loss function is a user defined object, then the eval metric must be specified.")
+            eval_metric_name = loss_function
+            maximize_metric = False
+        else:
+            is_custom_eval_metric = not isinstance(eval_metric, STRING_TYPES)
+            if is_custom_eval_metric:
+                eval_metric_name = eval_metric.__class__.__name__
+                maximize_metric = eval_metric.is_max_optimal()
+            else:
+                eval_metric_name = eval_metric
+                maximize_metric = is_maximizable_metric(eval_metric)
 
         custom_folds = None
         fold_count = None
@@ -3523,7 +3541,9 @@ class CatBoost(_CatBoostBase):
 
         objective = _SkoptObjective(train_params["train_pool"],
                                     optimized_param_names,
+                                    eval_metric_name,
                                     params,
+                                    maximize_metric,
                                     fold_count_for_optimize,
                                     custom_folds_for_optimize,
                                     partition_random_seed,
@@ -3547,7 +3567,9 @@ class CatBoost(_CatBoostBase):
         if calc_cv_statistics:
             objective = _SkoptObjective(train_params["train_pool"],
                                         optimized_param_names,
+                                        eval_metric_name,
                                         params,
+                                        maximize_metric,
                                         fold_count,
                                         custom_folds,
                                         partition_random_seed,
@@ -3671,11 +3693,13 @@ class CatBoost(_CatBoostBase):
 
 
 class _SkoptObjective(object):
-    def __init__(self, pool, optimized_param_names, init_params={}, fold_count=None, folds=None, partition_random_seed=0,
-                 shuffle=True, stratified=None, verbose=False, plot=False, return_cv_results=False):
+    def __init__(self, pool, optimized_param_names, eval_metric_name, init_params={}, maximize_metric=False, fold_count=None, folds=None,
+                 partition_random_seed=0, shuffle=True, stratified=None, verbose=False, plot=False, return_cv_results=False):
         self.pool = pool
         self.optimized_param_names = optimized_param_names
+        self.eval_metric_name = eval_metric_name
         self.init_params = init_params
+        self.maximize_metric = maximize_metric
         self.fold_count = fold_count
         self.folds = folds
         self.partition_random_seed = partition_random_seed
@@ -3701,11 +3725,9 @@ class _SkoptObjective(object):
                         plot=self.plot,
                         as_pandas=False)
 
-        # score = cv_results["test-" + self.init_params["loss_function"] + "-mean"][-1]
-        for key in cv_results:
-            if key[:4] == "test" and key[-4:] == "mean":
-                score = cv_results[key][-1]
-                break
+        score = cv_results["test-" + self.eval_metric_name + "-mean"][-1]
+        if self.maximize_metric:
+            score *= -1
 
         if self.return_cv_results:
             return score, cv_results
