@@ -1414,8 +1414,7 @@ class GnuCompiler(Compiler):
                 }}
                 YASM_DEBUG_INFO_DISABLE_CACHE__NO_UID__={yasm_debug}
             }}
-
-            when ($CONSISTENT_DEBUG_LIGHT == "yes") {{
+            elsewhen ($CONSISTENT_DEBUG_LIGHT == "yes") {{
                 when ($CLANG == "yes") {{
                     CL_DEBUG_INFO_DISABLE_CACHE__NO_UID__={c_debug_light_cl}
                 }}
