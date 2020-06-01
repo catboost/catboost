@@ -1815,7 +1815,7 @@ This macro can be used if module depends on the directories specified but thery 
 
 ###### Macro [RESOURCE][]([FORCE\_TEXT ][Src Key]\* [- Key=Value]\*) _# built-in_ <a name="macro_RESOURCE"></a>
 Add data (resources, random files, strings) to the program)
-The common usage is to place Src file into binary. The Key is used to access it using library/resource or library/resource/python.
+The common usage is to place Src file into binary. The Key is used to access it using library/cpp/resource or library/python/resource.
 Alternative syntax with '- Key=Value' allows placing Value string as resource data into binary and make it accessible by Key.
 
 This is a simpler but less flexible option than ARCHIVE(), because in the case of ARCHIVE(), you have to use the data explicitly,
