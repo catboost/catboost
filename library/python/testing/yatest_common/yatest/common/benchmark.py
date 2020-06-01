@@ -13,7 +13,7 @@ def execute_benchmark(path, budget=None, threads=None):
     :return: map of benchmark values
     """
     benchmark_path = runtime.binary_path(path)
-    cmd = [benchmark_path, "--benchmark_format", "json"]
+    cmd = [benchmark_path, "--benchmark_format=json"]
     if budget is not None:
         cmd += ["-b", str(budget)]
     if threads is not None:
