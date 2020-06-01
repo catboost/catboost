@@ -600,6 +600,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\enum34\pycontrib-python-enum34.vcxproj">
       <Project>A4701379-95E5-BF2B-2E20-B71461B5CC55</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\python\faulthandler\pycontrib-python-faulthandler.vcxproj">
+      <Project>B91FAD52-E23E-B3E4-D7A1-568C2BA36521</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\python\funcsigs\pycontrib-python-funcsigs.vcxproj">
       <Project>7E6B0B75-8CFD-8357-FA3A-F2B353EDA5DF</Project>
     </ProjectReference>
