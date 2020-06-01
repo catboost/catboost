@@ -5,6 +5,7 @@ RECURSE(
     attrs
     dateutil
     enum34
+    faulthandler
     funcsigs
     graphviz
     Jinja2

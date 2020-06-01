@@ -16,6 +16,8 @@ import signal
 import inspect
 import six
 
+import faulthandler
+
 from yatest_lib import test_splitter
 
 try:
@@ -246,6 +248,12 @@ def pytest_configure(config):
     sys.meta_path.append(CustomImporter([config.option.build_root] + [os.path.join(config.option.build_root, dep) for dep in config.option.dep_roots]))
     if config.option.pdb_on_sigusr1:
         configure_pdb_on_demand()
+
+    # Dump python backtrace in case of any errors
+    faulthandler.enable()
+    if hasattr(signal, "SIGQUIT"):
+        # SIGQUIT is used by test_tool to teardown tests which overruns timeout
+        faulthandler.register(signal.SIGQUIT, chain=True)
 
     if hasattr(signal, "SIGUSR2"):
         signal.signal(signal.SIGUSR2, _smooth_shutdown)
