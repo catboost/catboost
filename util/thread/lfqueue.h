@@ -69,11 +69,11 @@ class TLockFreeQueue: public TNonCopyable {
             n = keepNext;
         }
     }
-
-    TRootNode* volatile JobQueue;
-    volatile TAtomic FreememCounter;
-    volatile TAtomic FreeingTaskCounter;
-    TRootNode* volatile FreePtr;
+   
+    alignas(64) TRootNode* volatile JobQueue;
+    alignas(64) volatile TAtomic FreememCounter;
+    alignas(64) volatile TAtomic FreeingTaskCounter;
+    alignas(64) TRootNode* volatile FreePtr;
 
     void TryToFreeAsyncMemory() {
         TAtomic keepCounter = AtomicAdd(FreeingTaskCounter, 0);
