@@ -26,7 +26,6 @@ RECURSE(
     overloaded/ut
     packers
     packers/ut
-    par
     python
     testing
 )
