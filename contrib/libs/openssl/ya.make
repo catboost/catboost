@@ -254,7 +254,6 @@ IF (OS_ANDROID AND ARCH_X86_64)
         -DMD5_ASM
         -DGHASH_ASM
         -DX25519_ASM
-        -D__ANDROID_API__=21
     )
     SRCS(
         asm/android/x86_64/engines/e_padlock-x86_64.s
@@ -274,7 +273,6 @@ IF (OS_ANDROID AND ARCH_I686)
         -DVPAES_ASM
         -DWHIRLPOOL_ASM
         -DGHASH_ASM
-        -D__ANDROID_API__=15
     )
     SRCS(
         asm/android/i686/engines/e_padlock-x86.s
@@ -289,7 +287,6 @@ IF (OS_ANDROID AND ARCH_ARM7)
         -DAES_ASM
         -DBSAES_ASM
         -DGHASH_ASM
-        -D__ANDROID_API__=15
     )
 ENDIF()
 
@@ -298,7 +295,6 @@ IF (OS_ANDROID AND ARCH_ARM64)
         -DOPENSSL_PIC
         -DKECCAK1600_ASM
         -DVPAES_ASM
-        -D__ANDROID_API__=21
     )
 ENDIF()
 
