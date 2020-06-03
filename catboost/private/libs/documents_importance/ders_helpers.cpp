@@ -4,7 +4,7 @@
 #include <catboost/private/libs/algo_helpers/error_functions.h>
 #include <catboost/libs/helpers/exception.h>
 
-#include <library/fast_exp/fast_exp.h>
+#include <library/cpp/fast_exp/fast_exp.h>
 
 #include <util/generic/cast.h>
 #include <util/system/yassert.h>

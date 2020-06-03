@@ -3,7 +3,7 @@ Y_BENCHMARK()
 
 
 PEERDIR(
-    library/fast_exp
+    library/cpp/fast_exp
 )
 
 SRCS(

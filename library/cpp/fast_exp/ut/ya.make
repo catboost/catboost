@@ -1,4 +1,4 @@
-UNITTEST_FOR(library/fast_exp)
+UNITTEST_FOR(library/cpp/fast_exp)
 
 
 

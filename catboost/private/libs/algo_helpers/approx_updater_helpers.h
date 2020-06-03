@@ -5,7 +5,7 @@
 #include <catboost/private/libs/options/catboost_options.h>
 #include <catboost/private/libs/options/restrictions.h>
 
-#include <library/fast_exp/fast_exp.h>
+#include <library/cpp/fast_exp/fast_exp.h>
 #include <library/cpp/fast_log/fast_log.h>
 #include <library/cpp/threading/local_executor/local_executor.h>
 
