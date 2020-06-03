@@ -59,17 +59,17 @@ RECURSE(
     json/writer/ut
     json/yson
     json/yson/ut
-    logger
-    logger/global
-    logger/global/ut
-    logger/ut
-    malloc
     lcs
     lcs/ut
     lfalloc
     lfalloc/dbg
     lfalloc/dbg_info
     lfalloc/yt
+    logger
+    logger/global
+    logger/global/ut
+    logger/ut
+    malloc
     on_disk
     openssl
     par
