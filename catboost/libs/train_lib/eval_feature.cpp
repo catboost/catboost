@@ -1043,6 +1043,9 @@ static void EvaluateFeaturesImpl(
                 ETrainingKind::Baseline,
                 featureSetIdx,
                 foldsData);
+            CB_ENSURE(
+                HaveFeaturesToEvaluate(newFoldsData),
+                "All features in baseline for feature set " << featureSetIdx << " are ignored or constant");
             trainFullModels(/*isTest*/false, featureSetIdx, &newFoldsData);
         } else {
             results->BestMetrics[/*isTest*/0][featureSetIdx] = results->BestMetrics[/*isTest*/0][0];
