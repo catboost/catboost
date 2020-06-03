@@ -359,6 +359,7 @@ IF (MUSL)
     )
 ELSE()
     SRCS(
+        system/strlcat.c
         system/strlcpy.c
     )
     IF (OS_LINUX OR SUN OR CYGWIN OR OS_WINDOWS)
