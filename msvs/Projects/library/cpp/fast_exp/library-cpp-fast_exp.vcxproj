@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{E0EC7772-5C0F-6407-290B-3900C3FF324B}</ProjectGUID>
+    <ProjectGUID>{619D2CC0-4F2C-17C8-8D5C-C873EAB19EA9}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-fast_exp</ProjectName>
+    <ProjectName>library-cpp-fast_exp</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-fast_exp</TargetName>
+    <TargetName>library-cpp-fast_exp</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\fast_exp\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\E0EC7772-5C0F-6407-290B-3900C3FF324B\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\fast_exp\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\619D2CC0-4F2C-17C8-8D5C-C873EAB19EA9\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,16 +78,16 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\fast_exp\fast_exp.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\fast_exp\fast_exp_avx2.cpp">
+    <ClCompile Include="$(SolutionDir)..\library\cpp\fast_exp\fast_exp.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\fast_exp\fast_exp_avx2.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/arch:AVX2 /DAVX2_ENABLED=1 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/arch:AVX2 /DAVX2_ENABLED=1 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
-    <ClCompile Include="$(SolutionDir)..\library\fast_exp\fast_exp_sse2.cpp">
+    <ClCompile Include="$(SolutionDir)..\library\cpp\fast_exp\fast_exp_sse2.cpp">
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/D__SSE2__=1 %(AdditionalOptions)</AdditionalOptions>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/D__SSE2__=1 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
-    <ClInclude Include="$(SolutionDir)..\library\fast_exp\fast_exp.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\fast_exp\fast_exp.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
