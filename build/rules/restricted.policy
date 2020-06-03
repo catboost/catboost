@@ -74,7 +74,8 @@ ALLOW extsearch/geo/poi_service/tools/storage_reader -> contrib/restricted/boost
 ALLOW infra/contrib/pdns -> contrib/restricted/boost
 ALLOW juggler/pongerd -> contrib/restricted/boost
 ALLOW lbs/locator -> contrib/restricted/boost
-ALLOW library/testing/ya_boost_test -> contrib/restricted/boost
+ALLOW library/testing/ya_boost_test$ -> contrib/restricted/boost/libs/test
+ALLOW library/cpp/testing/boost_test_main -> contrib/restricted/boost/libs/test
 ALLOW logbroker/pipe-parser -> contrib/restricted/boost
 ALLOW mail -> contrib/restricted/boost
 ALLOW maps -> contrib/restricted/boost
