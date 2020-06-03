@@ -82,6 +82,13 @@ class Platform(object):
         self.is_windows_x86_64 = self.is_windows and self.is_x86_64
 
         self.is_android = self.os == 'android'
+        if self.is_android:
+            # This is default Android API level unless `ANDROID_API` is specified
+            # 16 is the smallest level supported by current NDK
+            # 21 is the smallest level for 64-bit platforms
+            default_android_api = 21 if self.is_64_bit else 16
+            self.android_api = int(preset('ANDROID_API', default_android_api))
+
         self.is_cygwin = self.os == 'cygwin'
         self.is_freebsd = self.os == 'freebsd'
         self.is_yocto = self.os == 'yocto'
@@ -698,6 +705,16 @@ when (($USEMPROF == "yes") || ($USE_MPROF == "yes")) {
 }
 '''
 
+    def print_android_const(self):
+        # Set `ANDROID_API=XXX` for substitution purposes
+        emit('ANDROID_API', str(self.platform.android_api))
+
+        # Since ymake does not support `>=` expressions, set
+        # `ANDROID_API_AT_LEAST_XXX` for each supported API level
+        min_android_api = 16  # api levels below are not supported by modern NDK and can be assumed implicitly
+        for api_level in xrange(min_android_api, self.platform.android_api + 1):
+            emit('ANDROID_API_AT_LEAST_{}'.format(api_level), 'yes')
+
     def print_target_settings(self):
         emit('TARGET_PLATFORM', self.platform.os_compat)
         emit('HARDWARE_ARCH', '32' if self.platform.is_32_bit else '64')
@@ -708,6 +725,9 @@ when (($USEMPROF == "yes") || ($USE_MPROF == "yes")) {
 
         for variable in self.platform.os_variables:
             emit(variable, 'yes')
+
+        if self.platform.is_android:
+            self.print_android_const()
 
         if self.platform.is_posix:
             self.print_nix_target_const()
@@ -1057,11 +1077,16 @@ class GnuToolchain(Toolchain):
                     (target.is_apple and target.is_armv7, 'armv7-apple-darwin14'),
                     (target.is_apple and target.is_armv8, 'arm64-apple-darwin14'),
                     (target.is_yocto and target.is_armv7, 'arm-poky-linux-gnueabi'),
-                    (target.is_android and target.is_x86, 'i686-linux-android16'),
-                    (target.is_android and target.is_x86_64, 'x86_64-linux-android21'),
-                    (target.is_android and target.is_armv7, 'armv7a-linux-androideabi16'),
-                    (target.is_android and target.is_armv8, 'aarch64-linux-android21'),
+                    (target.is_android and target.is_x86, 'i686-linux-android'),
+                    (target.is_android and target.is_x86_64, 'x86_64-linux-android'),
+                    (target.is_android and target.is_armv7, 'armv7a-linux-androideabi'),
+                    (target.is_android and target.is_armv8, 'aarch64-linux-android'),
                 ])
+
+            if target.is_android:
+                # Android NDK allows specification of API level in target triple, e.g.:
+                # armv7a-linux-androideabi16, aarch64-linux-android21
+                target_triple += str(target.android_api)
 
             if target_triple:
                 self.c_flags_platform.append('--target={}'.format(target_triple))
