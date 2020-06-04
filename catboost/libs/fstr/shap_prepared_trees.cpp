@@ -44,9 +44,9 @@ static TVector<double> CalcMeanValueForTree(
         const bool isLastTree = treeIdx == forest.GetTreeStartOffsets().size() - 1;
         const size_t startOffset = forest.GetTreeStartOffsets()[treeIdx];
         const size_t endOffset = isLastTree ? totalNodesCount : forest.GetTreeStartOffsets()[treeIdx + 1];
-        auto leafValues = forest.GetLeafValues();
-        auto leafWeights = forest.GetLeafWeights();
-        auto nonSymmetricNodeIdToLeafId = forest.GetNonSymmetricNodeIdToLeafId();
+        const auto leafValues = forest.GetLeafValues();
+        const auto leafWeights = forest.GetLeafWeights();
+        const auto nonSymmetricNodeIdToLeafId = forest.GetNonSymmetricNodeIdToLeafId();
         const size_t leafValueCount = leafValues.size();
         for (size_t nodeIdx = startOffset; nodeIdx < endOffset; ++nodeIdx) {
             size_t leafIdx = nonSymmetricNodeIdToLeafId[nodeIdx];
@@ -75,7 +75,7 @@ static TVector<size_t> GetReversedSubtreeForNonObliviousTree(
     const int startOffset = forest.GetTreeStartOffsets()[treeIdx];
     const int endOffset = isLastTree ? totalNodesCount : forest.GetTreeStartOffsets()[treeIdx + 1];
     const int treeSize = endOffset - startOffset;
-    auto nonSymmetricStepNodes = forest.GetNonSymmetricStepNodes();
+    const auto nonSymmetricStepNodes = forest.GetNonSymmetricStepNodes();
 
     TVector<size_t> reversedTree(treeSize, 0);
     for (int nodeIdx = startOffset; nodeIdx < endOffset; ++nodeIdx) {
@@ -455,7 +455,7 @@ static void InitLeafWeights(
     NPar::TLocalExecutor* localExecutor,
     TVector<double>* leafWeights
 ) {
-    auto leafWeightsOfModels = model.ModelTrees->GetLeafWeights();
+    const auto leafWeightsOfModels = model.ModelTrees->GetLeafWeights();
     if (leafWeightsOfModels.empty()) {
         CB_ENSURE(
             dataset,
