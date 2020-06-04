@@ -321,9 +321,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\zstd06\contrib-libs-zstd06.vcxproj">
       <Project>{149CAE2F-67B1-E007-9F05-67247453CE03}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\chromium_trace\library-chromium_trace.vcxproj">
-      <Project>{9541389A-C448-428A-BEEE-604F1A02F5EA}</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\binsaver\library-cpp-binsaver.vcxproj">
       <Project>{8DDA0983-F11F-A0FE-622D-D04B3B6E3C27}</Project>
     </ProjectReference>
@@ -362,6 +359,9 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cgiparam\library-cpp-cgiparam.vcxproj">
       <Project>{7D7BC687-C41D-BE31-16E6-D1EFDED414F9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\chromium_trace\library-cpp-chromium_trace.vcxproj">
+      <Project>{BA92C460-BDB1-034A-BBCD-CD96DE45A151}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\colorizer\library-cpp-colorizer.vcxproj">
       <Project>{78881F22-8136-23DF-843E-58AA6DB6D337}</Project>
