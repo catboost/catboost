@@ -309,10 +309,11 @@ NJson::TJsonValue LossDescriptionToJson(const TStringBuf lossDescriptionRaw) {
 TString BuildMetricOptionDescription(const NJson::TJsonValue& lossOptions) {
     TString paramType = StripString(ToString(lossOptions["type"]), EqualsStripAdapter('"'));
     paramType += ":";
-
-    for (const auto& elem : lossOptions["params"].GetMap()) {
-        const TString& paramName = elem.first;
-        const TString& paramValue = StripString(ToString(elem.second), EqualsStripAdapter('"'));
+    TLossParams lossParams;
+    NCatboostOptions::TJsonFieldHelper<TLossParams, false>::Read(lossOptions["params"], &lossParams);
+    const auto& paramsMap = lossParams.GetParamsMap();
+    for (const auto& paramName : lossParams.GetUserSpecifiedKeyOrder()) {
+        const TString& paramValue = StripString(paramsMap.at(paramName), EqualsStripAdapter('"'));
         paramType += paramName + "=" + paramValue + ";";
     }
 

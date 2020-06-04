@@ -212,18 +212,18 @@
     }, 
     "logging_level": "Verbose", 
     "loss_function": {
-        "params": [], 
+        "params": {}, 
         "type": "RMSE"
     }, 
     "metadata": {}, 
     "metrics": {
         "custom_metrics": [], 
         "eval_metric": {
-            "params": [], 
+            "params": {}, 
             "type": "RMSE"
         }, 
         "objective_metric": {
-            "params": [], 
+            "params": {}, 
             "type": "RMSE"
         }
     }, 

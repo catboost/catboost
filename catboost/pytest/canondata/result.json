@@ -6776,7 +6776,7 @@
         "uri": "file://test.test_output_columns_format/test.eval"
     },
     "test.test_output_options": {
-        "checksum": "00a218e15bedf83e10cdb0fe5388d19a",
+        "checksum": "b7700f161a49cc28bd73edc8bf61e904",
         "uri": "file://test.test_output_options/training_options.json"
     },
     "test.test_overfit_detector_inc_to_dec[Ordered-SymmetricTree]": [
