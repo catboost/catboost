@@ -1,7 +1,7 @@
 #pragma once
 
 #include <library/cpp/binsaver/bin_saver.h>
-#include <library/chromium_trace/interface.h>
+#include <library/cpp/chromium_trace/interface.h>
 
 #include <util/generic/vector.h>
 #include <util/generic/ptr.h>

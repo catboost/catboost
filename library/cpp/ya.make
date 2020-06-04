@@ -17,6 +17,7 @@ RECURSE(
     cgiparam/ut
     charset
     charset/ut
+    chromium_trace
     colorizer
     colorizer/ut
     containers

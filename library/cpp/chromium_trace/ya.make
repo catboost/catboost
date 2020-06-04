@@ -29,3 +29,10 @@ SRCS(
 )
 
 END()
+
+RECURSE(
+    benchmark
+    examples
+)
+
+RECURSE_FOR_TESTS(ut)

@@ -1,8 +1,8 @@
-#include <library/chromium_trace/global.h>
-#include <library/chromium_trace/json.h>
-#include <library/chromium_trace/sync.h>
-#include <library/chromium_trace/sampler.h>
-#include <library/chromium_trace/samplers.h>
+#include <library/cpp/chromium_trace/global.h>
+#include <library/cpp/chromium_trace/json.h>
+#include <library/cpp/chromium_trace/sync.h>
+#include <library/cpp/chromium_trace/sampler.h>
+#include <library/cpp/chromium_trace/samplers.h>
 
 using namespace NChromiumTrace;
 

@@ -3,7 +3,7 @@ PROGRAM()
 
 
 PEERDIR(
-    library/chromium_trace
+    library/cpp/chromium_trace
 )
 
 SRCS(

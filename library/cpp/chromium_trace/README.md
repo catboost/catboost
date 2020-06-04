@@ -7,7 +7,7 @@
 ![Example](https://jing.yandex-team.ru/files/borman/browsertracing_2016-04-08_02-22-17.png)
 
 ```cpp
-#include <library/chromium_trace/interface.h>
+#include <library/cpp/chromium_trace/interface.h>
 
 void TracedFunction() {
     CHROMIUM_TRACE_FUNCTION();
