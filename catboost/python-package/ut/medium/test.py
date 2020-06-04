@@ -3865,7 +3865,7 @@ def test_shap_complex_ctr(task_type, calc_shap_mode):
     for pred_idx in range(len(predictions)):
         assert(abs(sum(shap_values[pred_idx]) - predictions[pred_idx]) < 1e-9)
     fimp_txt_path = test_output_path(FIMP_TXT_PATH)
-    np.savetxt(fimp_txt_path, shap_values)
+    np.savetxt(fimp_txt_path, np.around(np.array(shap_values), 9))
     return local_canonical_file(fimp_txt_path)
 
 

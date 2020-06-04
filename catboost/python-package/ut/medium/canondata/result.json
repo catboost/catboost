@@ -974,11 +974,11 @@
         "uri": "file://test.test_shap_CPU_/feature_importance.txt"
     },
     "test.test_shap_complex_ctr[CPU-IndependentTreeSHAP]": {
-        "checksum": "18cd4612569794b9326376b0d804bce2",
+        "checksum": "9f635da4f3d03cc765a718ea8965e042",
         "uri": "file://test.test_shap_complex_ctr_CPU-IndependentTreeSHAP_/feature_importance.txt"
     },
     "test.test_shap_complex_ctr[CPU-TreeSHAP]": {
-        "checksum": "492ce7ab997efa356e8b9a955cbb7415",
+        "checksum": "dafac81e1a5626c5c4c133dbd178a48b",
         "uri": "file://test.test_shap_complex_ctr_CPU-TreeSHAP_/feature_importance.txt"
     },
     "test.test_shap_feature_importance[CPU-IndependentTreeSHAP]": {
