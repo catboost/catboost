@@ -19,7 +19,7 @@ ELSEIF(GOSTD_VERSION STREQUAL 1.14.4)
         sbr:1539499264 FOR WIN32
     )
 ELSE()
-    MESSAGE(FATAL_ERROR Unsupported version [$GOSTD] of Go Standard Library)
+    MESSAGE(FATAL_ERROR Unsupported version [${GOSTD_VERSION}] of Go Standard Library)
 ENDIF()
 
 END()
