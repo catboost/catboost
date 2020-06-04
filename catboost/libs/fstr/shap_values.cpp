@@ -906,7 +906,7 @@ void CalcShapValuesForDocumentMulti(
             }
         } else {
             TVector<TShapValue> shapValuesByLeaf;
-            TVector<TVector<TVector<double>>> shapValueByDepthBetweenLeaves(leafCount);
+            TVector<TVector<TVector<double>>> shapValueByDepthBetweenLeaves;
             switch (calcType) {
                 case ECalcTypeShapValues::Approximate:
                     if (model.IsOblivious()) {
@@ -989,6 +989,7 @@ void CalcShapValuesForDocumentMulti(
                     break;
                 case ECalcTypeShapValues::Independent:
                     CB_ENSURE(model.IsOblivious(), "'Independent' calculation type is supported only for symmetric trees.");
+                    shapValueByDepthBetweenLeaves.resize(leafCount);
                     CalcObliviousShapValuesByDepthForLeaf(
                         forest,
                         independentTreeShapParams->ReferenceLeafIndicesForAllTrees[treeIdx],

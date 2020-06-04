@@ -3562,6 +3562,19 @@ def test_shap_feature_probability(task_type):
         assert abs(sum(shap_values[doc_idx]) - predictions[doc_idx][1]) < 1e-6
 
 
+def test_shap_feature_multiclass_probability(task_type):
+    pool = Pool(CLOUDNESS_TRAIN_FILE, column_description=CLOUDNESS_CD_FILE)
+    reference_data = make_reference_data(pool, "IndependentTreeSHAP")
+    model = CatBoostClassifier(iterations=50, loss_function='MultiClass', task_type=task_type)
+    classes_count = 3
+    model.fit(pool)
+    shap_values = model.get_feature_importance(type=EFstrType.ShapValues, data=pool, reference_data=reference_data, model_output="Probability")
+    predictions = model.predict(pool, "Probability")
+    for doc_idx in range(len(shap_values)):
+        for class_idx in range(classes_count):
+            assert abs(sum(shap_values[doc_idx][class_idx]) - predictions[doc_idx][class_idx]) < 1e-6
+
+
 def test_shap_feature_log_loss(task_type):
     def log_loss(yt, yp):
         return (-(yt * np.log(yp) + (1 - yt) * np.log(1 - yp)))

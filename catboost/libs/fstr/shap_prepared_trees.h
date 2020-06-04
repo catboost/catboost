@@ -30,6 +30,7 @@ namespace {
 }
 
 struct TIndependentTreeShapParams {
+    TVector<TVector<double>> ProbabilitiesOfReferenceDataset; // [dim][documentIdx]
     TVector<TVector<double>> TransformedTargetOfDataset; // [dim][documentIdx]
     TVector<TVector<double>> TargetOfDataset; // [dim][documentIdx]
     TVector<TVector<double>> ApproxOfDataset; // [dim][documentIdx]

@@ -296,22 +296,27 @@ static inline TVector<double> GetTransformData(
     const IMetric& metric,
     TConstArrayRef<double> approxOfDataset,
     EModelOutputType modelOutputType,
+    bool isNotRawOutputType,
     double target
 ) {
+    if (!isNotRawOutputType) {
+        return TVector<double>();
+    }
     TVector<double> transformedData(approxOfDataset.size());
-    for (size_t idx = 0; idx < approxOfDataset.size(); ++idx) {
-        double approx = approxOfDataset[idx];
-        switch (modelOutputType) {
-            case EModelOutputType::Probability: {
-                transformedData[idx] =  1.0 / (1 + exp(-approx));
-                break;
-            }
-            case EModelOutputType::LossFunction: {
+    switch (modelOutputType) {
+        case EModelOutputType::Probability: {
+            transformedData = CalcSigmoid(approxOfDataset);
+            break;
+        }
+        case EModelOutputType::LossFunction: {
+            for (size_t idx = 0; idx < approxOfDataset.size(); ++idx) {
+                double approx = approxOfDataset[idx];
                 transformedData[idx] = TransformDocument(metric, target, approx);
-                break;
             }
-            default:
-                CB_ENSURE_INTERNAL(false, "Not recognized type of model output");
+            break;
+        }
+        default: {
+            CB_ENSURE_INTERNAL(false, "Not recognized type of model output");
         }
     }
     return transformedData;
@@ -336,6 +341,7 @@ static TVector<double> GetMeanValues(
         metric,
         MakeConstArrayRef(meanValues),
         modelOutputType,
+        isNotRawOutputType,
         target
     );
 }
@@ -375,6 +381,26 @@ static TVector<double> GetUnpackedShapValues(
     return unpackedShapValues;
 }
 
+static TVector<TVector<double>> GetProbabilityMeanValues(
+    const TVector<TVector<TVector<double>>>& shapValues, // [refIdx][dim][feature]
+    double bias
+) {
+    TVector<TVector<double>> probabilityMeanValues(shapValues[0].size(), TVector<double>(shapValues.size(), 0.0));
+    for (auto referenceIdx : xrange(shapValues.size())) {
+        const auto& shapValuesForReference = shapValues[referenceIdx];
+        const size_t approxDimension = shapValuesForReference.size();
+        TVector<double> meanValuesForReference(approxDimension);
+        for (auto dimension : xrange(approxDimension)) {
+            meanValuesForReference[dimension] = shapValuesForReference[dimension].back() + bias;
+        }
+        TVector<double> probabilityMeanValuesForReference(approxDimension);
+        CalcSoftmax(meanValuesForReference, &probabilityMeanValuesForReference);
+        for (auto dimension : xrange(approxDimension)) {
+            probabilityMeanValues[dimension][referenceIdx] = probabilityMeanValuesForReference[dimension];
+        }
+    }
+    return probabilityMeanValues;
+}
 
 void PostProcessingIndependent(
     const TIndependentTreeShapParams& independentTreeShapParams,
@@ -396,6 +422,11 @@ void PostProcessingIndependent(
     const auto& approxOfReferenceDataset = independentTreeShapParams.ApproxOfReferenceDataset;
     const auto& targetOfDataset = independentTreeShapParams.TargetOfDataset;
     const auto& transformedTargetOfDataset = independentTreeShapParams.TransformedTargetOfDataset;
+    const bool isExplainMultiClassProbabilities = approxDimension > 1 && EModelOutputType::Probability == modelOutputType;
+    TVector<TVector<double>> meanValuesProbabitiesForAllReference;
+    if (isExplainMultiClassProbabilities) {
+        meanValuesProbabitiesForAllReference = GetProbabilityMeanValues(shapValuesInternalForAllReferences, bias);
+    }
     // prepare shap values for all references
     TVector<TVector<TVector<double>>> shapValuesForAllReferences(approxDimension);
     for (size_t dimension = 0; dimension < approxDimension; ++dimension) {
@@ -411,25 +442,30 @@ void PostProcessingIndependent(
         }
     }
 
+    const auto& probabilitiesOfReferenceDataset = independentTreeShapParams.ProbabilitiesOfReferenceDataset;
+    const bool isMultiTarget = (targetOfDataset.size() > 1);
     for (size_t dimension = 0; dimension < approxDimension; ++dimension) {
         TConstArrayRef<double> approxOfReferenceDatasetRef = MakeConstArrayRef(approxOfReferenceDataset[dimension]);
-        const double targetOfDocument = targetOfDataset[dimension][documentIdx];
-        const auto& transformedTargetOfReferenceDataset = isNotRawOutputType ?
+        const double targetOfDocument = isMultiTarget ? targetOfDataset[dimension][documentIdx] : targetOfDataset[0][documentIdx];
+        const auto& transformedTargetOfReferenceDataset = isExplainMultiClassProbabilities ?
+            probabilitiesOfReferenceDataset[dimension] :
             GetTransformData(
                 metric,
                 approxOfReferenceDatasetRef,
                 modelOutputType,
+                isNotRawOutputType,
                 targetOfDocument
-            ) :
-            TVector<double>();    
-        const auto& meanValues = GetMeanValues(
-            metric,
-            shapValuesForAllReferences[dimension],
-            modelOutputType,
-            targetOfDocument,
-            isNotRawOutputType,
-            bias
-        );
+            );
+        const auto& meanValues = isExplainMultiClassProbabilities ?
+            meanValuesProbabitiesForAllReference[dimension] :
+            GetMeanValues(
+                metric,
+                shapValuesForAllReferences[dimension],
+                modelOutputType,
+                targetOfDocument,
+                isNotRawOutputType,
+                bias
+            );
         const auto& shapValuesForAllReferencesOneDimensional = shapValuesForAllReferences[dimension];
         TArrayRef<double> shapValuesRef = MakeArrayRef((*shapValues)[dimension]);
         const double approxOfDocument = approxOfDataset[dimension][documentIdx];
@@ -442,7 +478,7 @@ void PostProcessingIndependent(
                     (approxOfDocument - approxOfReferenceDatasetRef[referenceIdx]);
             }
             double totalCoeffient = transformedCoeffient / rescaleCoefficient;
-            TConstArrayRef<double> shapValuesForReferenceOneDimensional = shapValuesForAllReferencesOneDimensional[referenceIdx];
+            TConstArrayRef<double> shapValuesForReferenceOneDimensional = MakeConstArrayRef(shapValuesForAllReferencesOneDimensional[referenceIdx]);
             for (size_t featureIdx = 0; featureIdx < featureCount; ++featureIdx) {
                 shapValuesRef[featureIdx] += shapValuesForReferenceOneDimensional[featureIdx] * totalCoeffient;
             }
@@ -473,12 +509,13 @@ static TVector<TVector<double>> GetTransformedTarget(
     const IMetric& metric
 ) {
     CB_ENSURE_INTERNAL(
-        approx.size() == targetData.size() && approx[0].size() == targetData[0].size(),
+        approx[0].size() == targetData[0].size(),
         "Approx and target must have same sizes"
     );
     TVector<TVector<double>> transformedTarget(approx.size(), TVector<double>(approx[0].size(), 0.0));
+    const bool isMultiTarget = (targetData.size() > 1);
     for (auto dimension : xrange(approx.size())) {
-        TConstArrayRef<double> targetDataRef = MakeConstArrayRef(targetData[dimension]);
+        TConstArrayRef<double> targetDataRef = isMultiTarget ? MakeConstArrayRef(targetData[dimension]) : MakeConstArrayRef(targetData[0]);
         TConstArrayRef<double> approxRef = MakeConstArrayRef(approx[dimension]);
         TArrayRef<double> transformedTargetRef = MakeArrayRef(transformedTarget[dimension]);
 
@@ -506,8 +543,7 @@ void TIndependentTreeShapParams::InitTransformedData(
             break;
         }
         case EModelOutputType::LossFunction : {
-            Metric = std::move(CreateMetricFromDescription(metricDescription, model.GetDimensionsCount())[0]);
-            CB_ENSURE(model.GetDimensionsCount() <= 1, "Multi-dimensional target fstr is unimplemented yet");
+            Metric.Swap(CreateMetricFromDescription(metricDescription, model.GetDimensionsCount()).front());
             TransformedTargetOfDataset = GetTransformedTarget(
                 ApproxOfDataset,
                 TargetOfDataset,
@@ -561,6 +597,10 @@ TIndependentTreeShapParams::TIndependentTreeShapParams(
     FlatFeatureCount = SafeIntegerCast<int>(dataset.MetaInfo.GetFeatureCount());
     ApproxOfDataset = ApplyModelMulti(model, *dataset.ObjectsData, EPredictionType::RawFormulaVal, 0, 0, localExecutor);
     ApproxOfReferenceDataset = ApplyModelMulti(model, *referenceDataset.ObjectsData, EPredictionType::RawFormulaVal, 0, 0, localExecutor);
+    const bool isMultiClass = (model.GetDimensionsCount() > 1); 
+    if (isMultiClass && EModelOutputType::Probability == modelOutputType) {
+        ProbabilitiesOfReferenceDataset = ApplyModelMulti(model, *referenceDataset.ObjectsData, EPredictionType::Probability, 0, 0, localExecutor);
+    }
     auto targetDataProvider =
         CreateModelCompatibleProcessedDataProvider(dataset, {metricDescription}, model, GetMonopolisticFreeCpuRam(), nullptr, localExecutor).TargetData;
     CB_ENSURE(targetDataProvider->GetTarget(), "Label must be provided");
