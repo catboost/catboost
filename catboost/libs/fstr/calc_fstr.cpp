@@ -279,6 +279,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     TShapPreparedTrees preparedTrees = PrepareTrees(
         model,
         &dataset,
+        /*referenceDataset*/ nullptr,
         EPreCalcShapValues::Auto,
         localExecutor,
         true,
@@ -709,12 +710,13 @@ TVector<TVector<double>> GetFeatureImportances(
     const EFstrType fstrType,
     const TFullModel& model,
     const TDataProviderPtr dataset, // can be nullptr
+    const TDataProviderPtr referenceDataset, // can be nullptr
     int threadCount,
     EPreCalcShapValues mode,
     int logPeriod,
-    ECalcTypeShapValues calcType
-)
-{
+    ECalcTypeShapValues calcType,
+    EExplainableModelOutput modelOutputType
+) {
     TSetLoggingVerboseOrSilent inThisScope(logPeriod);
     CB_ENSURE(model.GetTreeCount(), "Model is not trained");
     if (dataset) {
@@ -743,8 +745,8 @@ TVector<TVector<double>> GetFeatureImportances(
             NPar::TLocalExecutor localExecutor;
             localExecutor.RunAdditionalThreads(threadCount - 1);
 
-            return CalcShapValues(model, *dataset, /*fixedFeatureParams*/ Nothing(), logPeriod, mode, &localExecutor,
-                                  calcType);
+            return CalcShapValues(model, *dataset, referenceDataset, /*fixedFeatureParams*/ Nothing(), logPeriod, mode, &localExecutor,
+                                  calcType, modelOutputType);
         }
         case EFstrType::PredictionDiff: {
             NPar::TLocalExecutor localExecutor;
@@ -762,12 +764,13 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
     const EFstrType fstrType,
     const TFullModel& model,
     const TDataProviderPtr dataset,
+    const TDataProviderPtr referenceDataset, // can be nullptr
     int threadCount,
     EPreCalcShapValues mode,
     int logPeriod,
-    ECalcTypeShapValues calcType
-)
-{
+    ECalcTypeShapValues calcType,
+    EExplainableModelOutput modelOutputType
+) {
     TSetLoggingVerboseOrSilent inThisScope(logPeriod);
     CB_ENSURE(model.GetTreeCount(), "Model is not trained");
 
@@ -780,8 +783,8 @@ TVector<TVector<TVector<double>>> GetFeatureImportancesMulti(
     NPar::TLocalExecutor localExecutor;
     localExecutor.RunAdditionalThreads(threadCount - 1);
 
-    return CalcShapValuesMulti(model, *dataset, /*fixedFeatureParams*/ Nothing(), logPeriod, mode, &localExecutor,
-                               calcType);
+    return CalcShapValuesMulti(model, *dataset, referenceDataset, /*fixedFeatureParams*/ Nothing(), logPeriod, mode, &localExecutor,
+                               calcType, modelOutputType);
 }
 
 TVector<TVector<TVector<TVector<double>>>> CalcShapFeatureInteractionMulti(
@@ -794,7 +797,7 @@ TVector<TVector<TVector<TVector<double>>>> CalcShapFeatureInteractionMulti(
     int logPeriod,
     ECalcTypeShapValues calcType
 ) {
-    ValidateFeatureInteractionParams(fstrType, model, dataset);
+    ValidateFeatureInteractionParams(fstrType, model, dataset, calcType);
     if (pairOfFeatures.Defined()) {
         const int flatFeatureCount = SafeIntegerCast<int>(dataset->MetaInfo.GetFeatureCount());
         ValidateFeaturePair(flatFeatureCount, pairOfFeatures.GetRef());

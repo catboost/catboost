@@ -11,24 +11,7 @@
 #include <util/stream/input.h>
 #include <util/stream/output.h>
 #include <util/system/types.h>
-#include <util/ysaveload.h>
 
-
-struct TShapValue {
-    int Feature = -1;
-    TVector<double> Value;
-
-public:
-    TShapValue() = default;
-
-    TShapValue(int feature, int approxDimension)
-        : Feature(feature)
-        , Value(approxDimension)
-    {
-    }
-
-    Y_SAVELOAD_DEFINE(Feature, Value);
-};
 
 struct TFixedFeatureParams {
     enum class EMode {
@@ -69,9 +52,10 @@ void CalcShapValuesForDocumentMulti(
     const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     int flatFeatureCount,
     TConstArrayRef<NCB::NModelEvaluation::TCalcerIndexType> docIndices,
-    size_t documentIdx,
+    size_t documentIdxInBlock,
     TVector<TVector<double>>* shapValues,
-    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular,
+    size_t documentIdx = (size_t)(-1)
 );
 
 void CalcShapValuesForDocumentMulti(
@@ -99,22 +83,26 @@ void CalcShapValuesByLeaf(
 TVector<TVector<TVector<double>>> CalcShapValuesMulti(
     const TFullModel& model,
     const NCB::TDataProvider& dataset,
+    const NCB::TDataProviderPtr referenceDataset, // can be nullptr if using Independent Tree SHAP algorithm
     const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     int logPeriod,
     EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor,
-    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular,
+    EExplainableModelOutput modelOutputType = EExplainableModelOutput::Raw
 );
 
 // returned: ShapValues[documentIdx][feature]
 TVector<TVector<double>> CalcShapValues(
     const TFullModel& model,
     const NCB::TDataProvider& dataset,
+    const NCB::TDataProviderPtr referenceDataset, // can be nullptr if using Independent Tree SHAP algorithm
     const TMaybe<TFixedFeatureParams>& fixedFeatureParams,
     int logPeriod,
     EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor,
-    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular,
+    EExplainableModelOutput modelOutputType = EExplainableModelOutput::Raw
 );
 
 // returned: ShapValues[featureIdx][dim][documentIdx]

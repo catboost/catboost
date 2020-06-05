@@ -408,6 +408,12 @@ cdef extern from "catboost/private/libs/options/enums.h":
     cdef cppclass EFstrType:
         pass
 
+    cdef cppclass EExplainableModelOutput:
+        pass
+
+    cdef cppclass ECalcTypeShapValues:
+        pass
+
     cdef cppclass EPreCalcShapValues:
         pass
 
@@ -1358,20 +1364,24 @@ cdef extern from "catboost/libs/fstr/calc_fstr.h":
         const EFstrType type,
         const TFullModel& model,
         const TDataProviderPtr dataset,
+        const TDataProviderPtr referenceDataset,
         int threadCount,
         EPreCalcShapValues mode,
         int logPeriod,
-        ECalcTypeShapValues calcType
+        ECalcTypeShapValues calcType,
+        EExplainableModelOutput modelOutputType
     ) nogil except +ProcessException
 
     cdef TVector[TVector[TVector[double]]] GetFeatureImportancesMulti(
         const EFstrType type,
         const TFullModel& model,
         const TDataProviderPtr dataset,
+        const TDataProviderPtr referenceDataset,
         int threadCount,
         EPreCalcShapValues mode,
         int logPeriod,
-        ECalcTypeShapValues calcType
+        ECalcTypeShapValues calcType,
+        EExplainableModelOutput modelOutputType
     ) nogil except +ProcessException
 
     cdef TVector[TVector[TVector[TVector[double]]]] CalcShapFeatureInteractionMulti(
@@ -1997,6 +2007,13 @@ cdef ECalcTypeShapValues string_to_calc_type(shap_calc_type) except *:
     if not TryFromString[ECalcTypeShapValues](to_arcadia_string(shap_calc_type), calc_type):
         raise CatBoostError("Unknown shap values calculation type {}.".format(shap_calc_type))
     return calc_type
+
+
+cdef EExplainableModelOutput string_to_model_output(model_output_str) except *:
+    cdef EExplainableModelOutput model_output
+    if not TryFromString[EExplainableModelOutput](to_arcadia_string(model_output_str), model_output):
+        raise CatBoostError("Unknown shap values mode {}.".format(model_output_str))
+    return model_output
 
 
 cdef class _PreprocessParams:
@@ -4571,8 +4588,7 @@ cdef class _CatBoost:
         )
         return _vector_of_double_to_np_array(fstr)
 
-    cpdef _calc_fstr(self, type_name, _PoolBase pool, int thread_count, int verbose, shap_mode_name, interaction_indices,
-                     shap_calc_type):
+    cpdef _calc_fstr(self, type_name, _PoolBase pool, _PoolBase reference_data, int thread_count, int verbose, model_output_name, shap_mode_name, interaction_indices, shap_calc_type):
         thread_count = UpdateThreadCount(thread_count);
         cdef TVector[TString] feature_ids = GetMaybeGeneratedModelFeatureIds(
             dereference(self.__model),
@@ -4586,13 +4602,18 @@ cdef class _CatBoost:
         if pool:
             dataProviderPtr = pool.__pool
 
+        cdef TDataProviderPtr referenceDataProviderPtr
         cdef EFstrType fstr_type = string_to_fstr_type(type_name)
         cdef EPreCalcShapValues shap_mode = string_to_shap_mode(shap_mode_name)
+        cdef EExplainableModelOutput model_output = string_to_model_output(model_output_name)
         cdef TMaybe[pair[int, int]] pair_of_features
 
         if shap_calc_type == 'Exact':
             assert dereference(self.__model).IsOblivious(), "'Exact' calculation type is supported only for symmetric trees."
         cdef ECalcTypeShapValues calc_type = string_to_calc_type(shap_calc_type)
+        if reference_data:
+            referenceDataProviderPtr = reference_data.__pool
+            TryFromString[ECalcTypeShapValues](to_arcadia_string("Independent"), calc_type)
 
         if type_name == 'ShapValues' and dereference(self.__model).GetDimensionsCount() > 1:
             with nogil:
@@ -4600,10 +4621,12 @@ cdef class _CatBoost:
                     fstr_type,
                     dereference(self.__model),
                     dataProviderPtr,
+                    referenceDataProviderPtr,
                     thread_count,
                     shap_mode,
                     verbose,
-                    calc_type
+                    calc_type,
+                    model_output
                 )
             return _3d_vector_of_double_to_np_array(fstr_multi), native_feature_ids
         elif type_name == 'ShapInteractionValues':
@@ -4632,10 +4655,12 @@ cdef class _CatBoost:
                     fstr_type,
                     dereference(self.__model),
                     dataProviderPtr,
+                    referenceDataProviderPtr,
                     thread_count,
                     shap_mode,
                     verbose,
-                    calc_type
+                    calc_type,
+                    model_output
                 )
             return _2d_vector_of_double_to_np_array(fstr), native_feature_ids
 

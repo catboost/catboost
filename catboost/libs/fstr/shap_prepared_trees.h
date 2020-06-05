@@ -11,7 +11,55 @@
 #include <util/ysaveload.h>
 
 
-struct TShapValue;
+struct TShapValue {
+    int Feature = -1;
+    TVector<double> Value;
+
+public:
+    TShapValue() = default;
+
+    TShapValue(int feature, int approxDimension)
+        : Feature(feature)
+        , Value(approxDimension)
+    {
+    }
+
+    Y_SAVELOAD_DEFINE(Feature, Value);
+};
+
+struct TIndependentTreeShapParams {
+    TVector<TVector<double>> ProbabilitiesOfReferenceDataset; // [dim][documentIdx]
+    TVector<TVector<double>> TransformedTargetOfDataset; // [dim][documentIdx]
+    TVector<TVector<double>> TargetOfDataset; // [dim][documentIdx]
+    TVector<TVector<double>> ApproxOfDataset; // [dim][documentIdx]
+    TVector<TVector<double>> ApproxOfReferenceDataset; // [dim][documentIdx]
+    EExplainableModelOutput ModelOutputType;
+    THolder<IMetric> Metric;
+
+    TVector<TVector<double>> Weights;
+    TVector<TVector<TVector<TVector<TVector<double>>>>> ShapValueByDepthBetweenLeavesForAllTrees; // [treeIdx][leafIdx(foregroundLeafIdx)][leafIdx(referenceLeafIdx)][depth][dimension]
+    TVector<TVector<NCB::NModelEvaluation::TCalcerIndexType>> ReferenceLeafIndicesForAllTrees; // [treeIdx][refIdx] -> leafIdx on refIdx
+    TVector<TVector<TVector<ui32>>> ReferenceIndicesForAllTrees; // [treeIdx][leafIdx] -> TVector<ui32> ref Indices
+    TVector<bool> IsCalcForAllLeafesForAllTrees;
+    int FlatFeatureCount;
+
+public:
+    TIndependentTreeShapParams(
+        const TFullModel& model,
+        const NCB::TDataProvider& dataset,
+        const NCB::TDataProvider& referenceDataset,
+        EExplainableModelOutput modelOutputType,
+        NPar::TLocalExecutor* localExecutor
+    );
+
+private:
+    void InitTransformedData(
+        const TFullModel& model,
+        const NCB::TDataProvider& dataset,
+        const NCatboostOptions::TLossDescription& metricDescription,
+        NPar::TLocalExecutor* localExecutor
+    );
+};
 
 struct TShapPreparedTrees {
     TVector<TVector<TVector<TShapValue>>> ShapValuesByLeafForAllTrees; // [treeIdx][leafIdx][shapFeature] trees * 2^d * d
@@ -24,6 +72,7 @@ struct TShapPreparedTrees {
     TVector<double> LeafWeightsForAllTrees;
     TVector<TVector<TVector<double>>> SubtreeWeightsForAllTrees;
     TVector<TVector<TVector<TVector<double>>>> SubtreeValuesForAllTrees;
+    TMaybe<TIndependentTreeShapParams> IndependentTreeShapParams;
 
 public:
     TShapPreparedTrees() = default;
@@ -47,7 +96,7 @@ public:
         CalcInternalValues,	
         LeafWeightsForAllTrees,	
         SubtreeWeightsForAllTrees,	
-        SubtreeValuesForAllTrees	
+        SubtreeValuesForAllTrees
     );
 };
 
@@ -56,9 +105,11 @@ TShapPreparedTrees PrepareTrees(const TFullModel& model, NPar::TLocalExecutor* l
 TShapPreparedTrees PrepareTrees(
     const TFullModel& model,
     const NCB::TDataProvider* dataset, // can be nullptr if model has LeafWeights
+    const NCB::TDataProviderPtr referenceDataset, // can be nullptr if using Independent Tree SHAP algorithm
     EPreCalcShapValues mode,
     NPar::TLocalExecutor* localExecutor,
     bool calcInternalValues = false,
-    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular
+    ECalcTypeShapValues calcType = ECalcTypeShapValues::Regular,
+    EExplainableModelOutput modelOutputType = EExplainableModelOutput::Raw
 );
 

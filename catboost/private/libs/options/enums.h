@@ -254,7 +254,14 @@ enum class EPreCalcShapValues {
 enum class ECalcTypeShapValues {
     Approximate,
     Regular,
-    Exact
+    Exact,
+    Independent
+};
+
+enum class EExplainableModelOutput {
+    Raw,
+    Probability,
+    LossFunction
 };
 
 enum class EObservationsToBootstrap {
