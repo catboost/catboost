@@ -646,8 +646,8 @@ struct DispatchSpmv
             int segment_fixup_tile_size     = segment_fixup_config.block_threads * segment_fixup_config.items_per_thread;
 
             // Number of tiles for kernels
-            unsigned int num_merge_tiles            = (num_merge_items + merge_tile_size - 1) / merge_tile_size;
-            unsigned int num_segment_fixup_tiles    = (num_merge_tiles + segment_fixup_tile_size - 1) / segment_fixup_tile_size;
+            int num_merge_tiles            = (num_merge_items + merge_tile_size - 1) / merge_tile_size;
+            int num_segment_fixup_tiles    = (num_merge_tiles + segment_fixup_tile_size - 1) / segment_fixup_tile_size;
 
             // Get SM occupancy for kernels
             int spmv_sm_occupancy;
