@@ -79,16 +79,27 @@ TVector<double> CollectLeavesStatistics(
     return leavesStatistics;
 }
 
-bool TryGetLossDescription(const TFullModel& model, NCatboostOptions::TLossDescription& lossDescription) {
+bool TryGetLossDescription(const TFullModel& model, NCatboostOptions::TLossDescription* lossDescription) {
     if (!(model.ModelInfo.contains("loss_function") ||  model.ModelInfo.contains("params") && ReadTJsonValue(model.ModelInfo.at("params")).Has("loss_function"))) {
         return false;
     }
     if (model.ModelInfo.contains("loss_function")) {
-        lossDescription.Load(ReadTJsonValue(model.ModelInfo.at("loss_function")));
+        lossDescription->Load(ReadTJsonValue(model.ModelInfo.at("loss_function")));
     } else {
-        lossDescription.Load(ReadTJsonValue(model.ModelInfo.at("params"))["loss_function"]);
+        lossDescription->Load(ReadTJsonValue(model.ModelInfo.at("params"))["loss_function"]);
     }
     return true;
+}
+
+bool TryGetObjectiveMetric(const TFullModel& model, NCatboostOptions::TLossDescription* lossDescription) {
+    if (model.ModelInfo.contains("params")) {
+        const auto &params = ReadTJsonValue(model.ModelInfo.at("params"));
+        if (params.Has("metrics") && params["metrics"].Has("objective_metric")) {
+            lossDescription->Load(params["metrics"]["objective_metric"]);
+            return true;
+        }
+    }
+    return TryGetLossDescription(model, lossDescription);
 }
 
 void CheckNonZeroApproxForZeroWeightLeaf(const TFullModel& model) {
@@ -103,3 +114,4 @@ void CheckNonZeroApproxForZeroWeightLeaf(const TFullModel& model) {
         }
     }
 }
+

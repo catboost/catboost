@@ -8,9 +8,10 @@ SRCS(
     feature_str.cpp
     output_fstr.cpp
     partial_dependence.cpp
-    shap_values.cpp
     shap_exact.cpp
     shap_interaction_values.cpp
+    shap_prepared_trees.cpp
+    shap_values.cpp
     util.cpp
 )
 
