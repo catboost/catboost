@@ -50,13 +50,13 @@ Y_UNIT_TEST_SUITE(TestFeatureEstimators) {
             }
         };
 
-        class TSampleCountEstimator : public TBaseEstimator<TIdentityCalcer, TIdentityVisitor> {
+        class TSampleCountEstimator : public TTextBaseEstimator<TIdentityCalcer, TIdentityVisitor> {
         public:
             TSampleCountEstimator(
                 TTextClassificationTargetPtr target,
                 TTextDataSetPtr learnTexts,
                 TArrayRef<TTextDataSetPtr> testText)
-                : TBaseEstimator(std::move(target), std::move(learnTexts), testText)
+                : TTextBaseEstimator(std::move(target), std::move(learnTexts), testText)
                 , Identity()
             {
             }
