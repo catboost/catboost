@@ -243,17 +243,6 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectAverageChange(
     return result;
 }
 
-static bool TryGetObjectiveMetric(const TFullModel& model, NCatboostOptions::TLossDescription& lossDescription) {
-    if (model.ModelInfo.contains("params")) {
-        const auto &params = ReadTJsonValue(model.ModelInfo.at("params"));
-        if (params.Has("metrics") && params["metrics"].Has("objective_metric")) {
-            lossDescription.Load(params["metrics"]["objective_metric"]);
-            return true;
-        }
-    }
-    return TryGetLossDescription(model, lossDescription);
-}
-
 static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     const TFullModel& model,
     const TDataProvider& dataProvider,
@@ -262,7 +251,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
 )
 {
     NCatboostOptions::TLossDescription metricDescription;
-    CB_ENSURE(TryGetObjectiveMetric(model, metricDescription), "Cannot calculate LossFunctionChange feature importances without metric, need model with params");
+    CB_ENSURE(TryGetObjectiveMetric(model, &metricDescription), "Cannot calculate LossFunctionChange feature importances without metric, need model with params");
     CATBOOST_INFO_LOG << "Used " << metricDescription << " metric for fstr calculation" << Endl;
     int approxDimension = model.ModelTrees->GetDimensionsCount();
     
@@ -287,8 +276,14 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     auto targetData = CreateModelCompatibleProcessedDataProvider(dataset, {metricDescription}, model, GetMonopolisticFreeCpuRam(), &rand, localExecutor).TargetData;
     CB_ENSURE(targetData->GetTargetDimension() <= 1, "Multi-dimensional target fstr is unimplemented yet");
 
-    TShapPreparedTrees preparedTrees = PrepareTrees(model, &dataset, EPreCalcShapValues::Auto, localExecutor, true,
-            calcType);
+    TShapPreparedTrees preparedTrees = PrepareTrees(
+        model,
+        &dataset,
+        EPreCalcShapValues::Auto,
+        localExecutor,
+        true,
+        calcType
+    );
     CalcShapValuesByLeaf(
         model,
         /*fixedFeatureParams*/ Nothing(),
@@ -309,7 +304,7 @@ static TVector<std::pair<double, TFeature>> CalcFeatureEffectLossChange(
     ui32 blockSize = Min(ui32(10000), ui32(1e6) / (featuresCount * approx.ysize())); // shapValues[blockSize][featuresCount][dim] double
 
     NCatboostOptions::TLossDescription lossDescription;
-    CB_ENSURE(TryGetLossDescription(model, lossDescription), "No loss_function in model params");
+    CB_ENSURE(TryGetLossDescription(model, &lossDescription), "No loss_function in model params");
 
     // NDCG and PFound metrics are possible for YetiRank
     // PFound replace with PairLogit (with YetiRank generated pairs) due to quality
@@ -848,3 +843,4 @@ TVector<TString> GetMaybeGeneratedModelFeatureIds(const TFullModel& model, const
     }
     return modelFeatureIds;
 }
+
