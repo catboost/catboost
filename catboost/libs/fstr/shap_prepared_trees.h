@@ -8,6 +8,7 @@
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/vector.h>
+#include <util/ysaveload.h>
 
 
 struct TShapValue;
@@ -35,6 +36,19 @@ public:
         , MeanValuesForAllTrees(meanValuesForAllTrees)
     {
     }
+
+    Y_SAVELOAD_DEFINE(	
+        ShapValuesByLeafForAllTrees,	
+        MeanValuesForAllTrees,	
+        AverageApproxByTree,	
+        BinFeatureCombinationClass,	
+        CombinationClassFeatures,	
+        CalcShapValuesByLeafForAllTrees,	
+        CalcInternalValues,	
+        LeafWeightsForAllTrees,	
+        SubtreeWeightsForAllTrees,	
+        SubtreeValuesForAllTrees	
+    );
 };
 
 TShapPreparedTrees PrepareTrees(const TFullModel& model, NPar::TLocalExecutor* localExecutor);

@@ -11,6 +11,7 @@
 #include <util/stream/input.h>
 #include <util/stream/output.h>
 #include <util/system/types.h>
+#include <util/ysaveload.h>
 
 
 struct TShapValue {
@@ -25,6 +26,8 @@ public:
         , Value(approxDimension)
     {
     }
+
+    Y_SAVELOAD_DEFINE(Feature, Value);
 };
 
 struct TFixedFeatureParams {
