@@ -206,6 +206,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\containers\flat_hash\lib\containers-flat_hash-lib.vcxproj">
       <Project>{03219428-83B6-7413-0454-07C8A8ABA708}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\cuda\wrappers\cpp-cuda-wrappers.vcxproj">
+      <Project>{9935B7C4-C890-9840-0263-8F903791A80D}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\dbg_output\library-cpp-dbg_output.vcxproj">
       <Project>{FAD72648-D1D4-61AA-86EF-81FACE7EE467}</Project>
     </ProjectReference>
@@ -292,9 +295,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\unicode\normalization\cpp-unicode-normalization.vcxproj">
       <Project>{6E0E64B9-3A05-DBD1-DC49-86C427EBD124}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cuda\wrappers\library-cuda-wrappers.vcxproj">
-      <Project>{B83E09E6-36E4-BF0E-BBC4-CCC2D4B42CCC}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\langmask\library-langmask.vcxproj">
       <Project>{54EC8CF1-9FAA-FA14-D0CE-A8E86B1F0A3B}</Project>
