@@ -26,6 +26,6 @@ PEERDIR(
     library/cpp/threading/future
 )
 
-INCLUDE(${ARCADIA_ROOT}/library/cuda/wrappers/default_nvcc_flags.make.inc)
+INCLUDE(${ARCADIA_ROOT}/library/cpp/cuda/wrappers/default_nvcc_flags.make.inc)
 
 END()

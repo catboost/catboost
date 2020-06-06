@@ -130,3 +130,9 @@ ELSE()
     sse/ut
 )
 ENDIF()
+
+IF (HAVE_CUDA)
+    RECURSE(
+    cuda
+)
+ENDIF()

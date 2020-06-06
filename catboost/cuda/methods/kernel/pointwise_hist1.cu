@@ -1,7 +1,7 @@
 #include "pointwise_hist1.cuh"
 #include "split_properties_helpers.cuh"
 #include <cooperative_groups.h>
-#include <library/cuda/wrappers/arch.cuh>
+#include <library/cpp/cuda/wrappers/arch.cuh>
 #include <catboost/cuda/cuda_util/kernel/instructions.cuh>
 #include <catboost/cuda/cuda_util/kernel/kernel_helpers.cuh>
 
