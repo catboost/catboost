@@ -1161,6 +1161,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\system\cpp-malloc-system.vcxproj">
       <Project>54C3F326-D733-B490-93B9-EEA3BE28C3A9</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\object_factory\library-cpp-object_factory.vcxproj">
+      <Project>6D119854-6D47-C914-7B2B-E6ECF111A695</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\on_disk\chunks\cpp-on_disk-chunks.vcxproj">
       <Project>43AA153B-11A0-706A-C7A7-DD9001E90936</Project>
     </ProjectReference>
@@ -1304,9 +1307,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\netliba\v6\library-netliba-v6.vcxproj">
       <Project>CF99E3A7-16F9-8EA9-027D-B9629FC7C3CD</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\object_factory\library-object_factory.vcxproj">
-      <Project>F7622D70-2702-4C7E-04DA-52DC56DF911E</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
       <Project>2CE71367-048B-26B0-2DAC-CA9BB7D00E76</Project>
