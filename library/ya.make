@@ -4,7 +4,6 @@ RECURSE(
     cpp
     langmask
     langmask/proto
-    langmask/python
     langmask/serialization
     langmask/ut
     neh
