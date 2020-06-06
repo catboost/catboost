@@ -3,10 +3,10 @@ UNITTEST()
 
 
 PEERDIR(
-    ADDINCL library/langs
+    ADDINCL library/cpp/langs
 )
 
-SRCDIR(library/langs)
+SRCDIR(library/cpp/langs)
 
 SRCS(
     langs_ut.cpp

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/langs/langs.h>
+#include <library/cpp/langs/langs.h>
 #include <library/object_factory/object_factory.h>
 
 namespace NTextProcessing::NTokenizer {

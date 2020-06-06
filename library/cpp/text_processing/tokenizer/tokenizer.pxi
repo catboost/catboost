@@ -18,7 +18,7 @@ from library.cpp.text_processing.tokenizer.tokenizer cimport (
     ETokenType, ESeparatorType, ESubTokensPolicy, ETokenProcessPolicy, ELanguage, TTokenizer, TTokenizerOptions)
 
 
-cdef extern from "library/langs/langs.h" nogil:
+cdef extern from "library/cpp/langs/langs.h" nogil:
     cdef ELanguage LanguageByNameOrDie(TStringBuf language) except +
 
 

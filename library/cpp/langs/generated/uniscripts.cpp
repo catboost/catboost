@@ -1,6 +1,6 @@
 // Generated from http://www.unicode.org/Public/UNIDATA/Scripts.txt
 // The best way to alter this file is to modify uniscripts.py
-#include <library/langs/langs.h>
+#include <library/cpp/langs/langs.h>
 #include <util/system/yassert.h>
 
 #include <cstring>
