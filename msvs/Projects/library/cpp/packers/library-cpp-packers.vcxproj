@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGUID>{9436F4D8-5E19-8C76-D632-4704304D6504}</ProjectGUID>
+    <ProjectGUID>{3032211A-5BEB-EC3D-0AD1-8904EC9DF338}</ProjectGUID>
     <Keyword>Win32Proj</Keyword>
     <Platform>x64</Platform>
-    <ProjectName>library-packers</ProjectName>
+    <ProjectName>library-cpp-packers</ProjectName>
     <LatestTargetPlatformVersion>$([Microsoft.Build.Utilities.ToolLocationHelper]::GetLatestSDKTargetPlatformVersion('Windows', '10.0'))</LatestTargetPlatformVersion>
     <WindowsTargetPlatformVersion>$(LatestTargetPlatformVersion)</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -33,10 +33,10 @@
   <PropertyGroup>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
-    <TargetName>library-packers</TargetName>
+    <TargetName>library-cpp-packers</TargetName>
     <TargetExtention>.lib</TargetExtention>
-    <OutDir>$(SolutionDir)$(Configuration)\library\packers\</OutDir>
-    <IntDir>$(SolutionDir)$(Configuration)\MSVS\9436F4D8-5E19-8C76-D632-4704304D6504\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\library\cpp\packers\</OutDir>
+    <IntDir>$(SolutionDir)$(Configuration)\MSVS\3032211A-5BEB-EC3D-0AD1-8904EC9DF338\</IntDir>
   </PropertyGroup>
   <ItemDefinitionGroup>
     <ClCompile>
@@ -78,12 +78,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="$(SolutionDir)..\library\packers\packers.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\packers\proto_packer.cpp"/>
-    <ClCompile Include="$(SolutionDir)..\library\packers\region_packer.cpp"/>
-    <ClInclude Include="$(SolutionDir)..\library\packers\packers.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\packers\proto_packer.h"/>
-    <ClInclude Include="$(SolutionDir)..\library\packers\region_packer.h"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\packers\packers.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\packers\proto_packer.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\packers\region_packer.cpp"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\packers\packers.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\packers\proto_packer.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\packers\region_packer.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>

@@ -1173,6 +1173,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\openssl\method\cpp-openssl-method.vcxproj">
       <Project>6D02E5A5-8E5A-2F70-0A15-A0EAFD5875F2</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\packers\library-cpp-packers.vcxproj">
+      <Project>3032211A-5BEB-EC3D-0AD1-8904EC9DF338</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\par\library-cpp-par.vcxproj">
       <Project>67D7246F-3DB6-3A4E-DA0A-2432DE8B35CE</Project>
     </ProjectReference>
@@ -1307,9 +1310,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
       <Project>2CE71367-048B-26B0-2DAC-CA9BB7D00E76</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\packers\library-packers.vcxproj">
-      <Project>9436F4D8-5E19-8C76-D632-4704304D6504</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\python\coredump_filter\pylibrary-python-coredump_filter.vcxproj">
       <Project>F460E0E3-3DEA-2CD7-67E0-EA55FF40B2B0</Project>
