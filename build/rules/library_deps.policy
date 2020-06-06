@@ -21,7 +21,7 @@ ALLOW library/python/ylock -> yt/python/yt/wrapper
 ALLOW library/python/statface_client -> statbox/libstatbox/python
 ALLOW library/cpp/minhash/tools/mr_hash -> mapreduce
 ALLOW library/cpp/token/ut -> kernel
-ALLOW library/infected_masks -> kernel
+ALLOW library/cpp/infected_masks -> kernel
 ALLOW library/cpp/deprecated/dater_old/scanner -> kernel
 ALLOW library/cpp/http/client/fetch -> kernel
 ALLOW library/cpp/text_processing/yandex_specific_lemmer -> kernel/lemmer
