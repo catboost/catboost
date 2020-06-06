@@ -2,7 +2,7 @@
 
 #include <catboost/libs/model/model.h>
 
-#include <library/object_factory/object_factory.h>
+#include <library/cpp/object_factory/object_factory.h>
 
 #include <util/generic/array_ref.h>
 #include <util/system/hp_timer.h>

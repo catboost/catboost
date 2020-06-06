@@ -35,7 +35,7 @@ PEERDIR(
     library/cpp/dbg_output
     library/cpp/fast_exp
     library/cpp/json
-    library/object_factory
+    library/cpp/object_factory
     library/cpp/svnversion
 )
 

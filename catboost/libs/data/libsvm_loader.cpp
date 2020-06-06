@@ -9,7 +9,7 @@
 #include <catboost/libs/helpers/mem_usage.h>
 #include <catboost/libs/helpers/sparse_array.h>
 
-#include <library/object_factory/object_factory.h>
+#include <library/cpp/object_factory/object_factory.h>
 
 #include <util/generic/algorithm.h>
 #include <util/generic/maybe.h>

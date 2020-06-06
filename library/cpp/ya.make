@@ -76,6 +76,8 @@ RECURSE(
     logger/global/ut
     logger/ut
     malloc
+    object_factory
+    object_factory/ut
     on_disk
     openssl
     packers

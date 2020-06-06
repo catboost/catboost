@@ -2,7 +2,7 @@
 
 #include "path_with_scheme.h"
 
-#include <library/object_factory/object_factory.h>
+#include <library/cpp/object_factory/object_factory.h>
 
 #include <util/system/fs.h>
 

@@ -4,7 +4,7 @@
 
 #include <catboost/libs/helpers/exception.h>
 
-#include <library/object_factory/object_factory.h>
+#include <library/cpp/object_factory/object_factory.h>
 
 #include <util/generic/maybe.h>
 #include <util/generic/string.h>
