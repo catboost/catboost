@@ -496,7 +496,11 @@ class Build(object):
 
     @property
     def is_debug(self):
-        return self.build_type in ('debug', 'debugnoasserts') or self.build_type.endswith('-debug')
+        return self.build_type in ('debug', 'debugnoasserts', 'fastdebug') or self.build_type.endswith('-debug')
+
+    @property
+    def is_fast_debug(self):
+        return self.build_type == 'fastdebug'
 
     @property
     def is_size_optimized(self):
@@ -1308,6 +1312,9 @@ class GnuCompiler(Compiler):
 
         if self.build.is_debug:
             self.c_foptions.append('$FSTACK')
+
+        if self.build.is_fast_debug:
+            self.c_flags.append('-Og')
 
         if self.build.is_release:
             self.c_flags.append('$OPTIMIZE')
