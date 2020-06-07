@@ -296,6 +296,15 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\logger\library-cpp-logger.vcxproj">
       <Project>{9C9461B3-BFC4-D6E3-DFA7-E28AEE23EF41}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\netliba\socket\cpp-netliba-socket.vcxproj">
+      <Project>{E12F8BEB-69BE-C96E-532C-837B8BD764F3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\netliba\v12\cpp-netliba-v12.vcxproj">
+      <Project>{58A2BCF3-22F9-EA08-9675-05EC92FE264D}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\netliba\v6\cpp-netliba-v6.vcxproj">
+      <Project>{E50ABEA1-E47D-2A1D-8BB0-C2BE9B608AD2}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\openssl\holders\cpp-openssl-holders.vcxproj">
       <Project>{3318B551-DF57-9A14-A9FD-139582C56800}</Project>
     </ProjectReference>
@@ -355,15 +364,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\neh\library-neh.vcxproj">
       <Project>{7FF4A650-AA1E-8970-CED7-751939DB312C}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\netliba\socket\library-netliba-socket.vcxproj">
-      <Project>{F9056049-5115-AB7C-F09D-A4BCA92367DD}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\netliba\v12\library-netliba-v12.vcxproj">
-      <Project>{89AB8FF8-D670-7C29-CED9-549FB45E0AAD}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\netliba\v6\library-netliba-v6.vcxproj">
-      <Project>{CF99E3A7-16F9-8EA9-027D-B9629FC7C3CD}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\yson\library-yson.vcxproj">
       <Project>{2779E1A2-0D5A-216D-65BF-CE9DF81108EF}</Project>
