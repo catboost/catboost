@@ -18,6 +18,7 @@ ALLOW library/python/django -> devtools/ya/yalibrary/makelists
 ALLOW library/python/django_abc_data -> intranet/sync_tools
 ALLOW library/python/cqueue -> skynet/api/copier
 ALLOW library/python/ylock -> yt/python/yt/wrapper
+ALLOW library/python/yt -> yt/python/client_lite
 ALLOW library/python/statface_client -> statbox/libstatbox/python
 ALLOW library/cpp/minhash/tools/mr_hash -> mapreduce
 ALLOW library/cpp/token/ut -> kernel
