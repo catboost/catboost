@@ -8,7 +8,7 @@
 #include <util/generic/ptr.h>
 #include <util/generic/guid.h>
 #include <library/cpp/threading/mux_event/mux_event.h>
-#include <library/netliba/socket/socket.h>
+#include <library/cpp/netliba/socket/socket.h>
 
 namespace NNetliba {
     const ui64 MAX_PACKET_SIZE = 0x70000000;

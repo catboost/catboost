@@ -9,7 +9,6 @@ RECURSE(
     neh
     neh/asio/ut
     neh/ut
-    netliba
     overloaded
     overloaded/ut
     python

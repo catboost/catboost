@@ -2,7 +2,7 @@
 
 #include <util/generic/ptr.h>
 #include <util/generic/utility.h>
-#include <library/netliba/socket/socket.h>
+#include <library/cpp/netliba/socket/socket.h>
 
 namespace NNetliba {
     bool IsLocalIPv4(ui32 ip);

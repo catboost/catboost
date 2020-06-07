@@ -2,7 +2,7 @@
 
 #include <util/generic/ptr.h>
 #include <util/generic/guid.h>
-#include <library/netliba/socket/socket.h>
+#include <library/cpp/netliba/socket/socket.h>
 
 #include "udp_address.h"
 #include "net_request.h"

@@ -12,7 +12,7 @@ PEERDIR(
     library/cpp/http/misc
     library/cpp/http/push_parser
     library/neh/asio
-    library/netliba/v6
+    library/cpp/netliba/v6
     library/cpp/openssl/init
     library/cpp/openssl/method
     library/cpp/threading/atomic

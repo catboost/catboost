@@ -7,7 +7,7 @@
 #include "settings.h"
 #include "block_chain.h"
 
-#include <library/netliba/socket/allocator.h>
+#include <library/cpp/netliba/socket/allocator.h>
 
 namespace NNetliba_v12 {
     struct IConnection: public TThrRefBase {

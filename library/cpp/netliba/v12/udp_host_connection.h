@@ -24,7 +24,7 @@
 #include "udp_recv_packet.h"
 #include "udp_socket.h"
 
-#include <library/netliba/socket/allocator.h>
+#include <library/cpp/netliba/socket/allocator.h>
 
 #include <array>
 

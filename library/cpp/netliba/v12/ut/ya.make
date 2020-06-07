@@ -1,4 +1,4 @@
-UNITTEST_FOR(library/netliba/v12)
+UNITTEST_FOR(library/cpp/netliba/v12)
 
 
 

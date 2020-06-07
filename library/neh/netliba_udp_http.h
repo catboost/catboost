@@ -1,8 +1,8 @@
 #pragma once
 
-#include <library/netliba/v6/net_queue_stat.h>
-#include <library/netliba/v6/udp_address.h>
-#include <library/netliba/v6/udp_debug.h>
+#include <library/cpp/netliba/v6/net_queue_stat.h>
+#include <library/cpp/netliba/v6/udp_address.h>
+#include <library/cpp/netliba/v6/udp_debug.h>
 
 #include <util/generic/guid.h>
 #include <util/generic/ptr.h>

@@ -7,7 +7,7 @@
 #include <util/generic/ptr.h>
 #include <util/generic/string.h>
 #include <util/generic/vector.h>
-#include <library/netliba/socket/allocator.h>
+#include <library/cpp/netliba/socket/allocator.h>
 #include "udp_recv_packet.h"
 #include "posix_shared_memory.h"
 #include <util/generic/noncopyable.h>

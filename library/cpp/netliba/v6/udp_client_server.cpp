@@ -12,7 +12,7 @@
 #include "udp_socket.h"
 #include "ib_cs.h"
 
-#include <library/netliba/socket/socket.h>
+#include <library/cpp/netliba/socket/socket.h>
 
 #include <util/random/random.h>
 #include <util/system/sanitizers.h>

@@ -29,7 +29,7 @@ PEERDIR(
     library/cpp/digest/crc32c
     library/cpp/logger/global
     library/neh
-    library/netliba/v12
+    library/cpp/netliba/v12
     library/cpp/threading/atomic
     library/cpp/threading/local_executor
 )
