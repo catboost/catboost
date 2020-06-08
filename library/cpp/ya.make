@@ -62,6 +62,10 @@ RECURSE(
     json/yson/ut
     langs
     langs/ut
+    langmask
+    langmask/proto
+    langmask/serialization
+    langmask/ut
     lcs
     lcs/ut
     lfalloc

@@ -1,7 +1,7 @@
 #pragma once
 
 #include <library/cpp/token/nlptypes.h>
-#include <library/langmask/langmask.h>
+#include <library/cpp/langmask/langmask.h>
 #include <library/cpp/token/token_structure.h>
 
 #include <util/system/defaults.h>

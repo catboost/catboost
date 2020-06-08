@@ -1,6 +1,6 @@
 #pragma once
 
-#include <library/langmask/langmask.h>
+#include <library/cpp/langmask/langmask.h>
 
 namespace NProto {
     class TLangMask;

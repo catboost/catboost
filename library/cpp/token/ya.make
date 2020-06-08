@@ -20,7 +20,7 @@ GENERATE_ENUM_SERIALIZATION(nlptypes.h)
 GENERATE_ENUM_SERIALIZATION(formtype.h)
 
 PEERDIR(
-    library/langmask
+    library/cpp/langmask
     library/cpp/unicode/normalization
 )
 

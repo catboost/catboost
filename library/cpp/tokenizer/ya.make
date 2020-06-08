@@ -24,7 +24,7 @@ SRCS(
 
 PEERDIR(
     library/cpp/enumbitset
-    library/langmask
+    library/cpp/langmask
     library/cpp/token
 )
 

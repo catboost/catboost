@@ -2,10 +2,6 @@
 
 RECURSE(
     cpp
-    langmask
-    langmask/proto
-    langmask/serialization
-    langmask/ut
     neh
     neh/asio/ut
     neh/ut

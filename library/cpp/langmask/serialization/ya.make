@@ -3,8 +3,8 @@ LIBRARY()
 
 
 PEERDIR(
-    library/langmask
-    library/langmask/proto
+    library/cpp/langmask
+    library/cpp/langmask/proto
 )
 
 SRCS(
