@@ -30,7 +30,7 @@ ALLOW contrib/(deprecated/)?python/django -> library/python/django
 ALLOW contrib/(deprecated/)?python/django -> library/python/gunicorn
 ALLOW contrib/python/python-magic -> library/python/symbols/libmagic
 ALLOW contrib/tools/jdk/test -> devtools/ya/yalibrary/tools
-ALLOW contrib/libs/inja -> library/scheme
+ALLOW contrib/libs/inja -> library/cpp/scheme
 ALLOW contrib/libs/geos/capi/ctypes -> library/python/ctypes
 ALLOW contrib/libs/leveldb -> library/cpp/deprecated/mapped_file
 ALLOW contrib/libs/leveldb -> library/cpp/logger
