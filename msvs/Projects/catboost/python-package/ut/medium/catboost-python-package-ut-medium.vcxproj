@@ -951,6 +951,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\json\writer\cpp-json-writer.vcxproj">
       <Project>{94F66460-BD28-7C46-313B-A5F2876E26F8}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\langmask\library-cpp-langmask.vcxproj">
+      <Project>{1E76F603-7AB0-A560-A16D-D6FDEE84CA84}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\langs\library-cpp-langs.vcxproj">
       <Project>{7A259257-161F-BD3F-016E-D02C15A4826D}</Project>
     </ProjectReference>
@@ -1082,9 +1085,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yson\library-cpp-yson.vcxproj">
       <Project>{D05A14C5-BA93-7AA3-1AB8-E62B001110D1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\langmask\library-langmask.vcxproj">
-      <Project>{54EC8CF1-9FAA-FA14-D0CE-A8E86B1F0A3B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\neh\asio\library-neh-asio.vcxproj">
       <Project>{ACDED067-8B74-5223-7E1A-7937B35A78E1}</Project>
