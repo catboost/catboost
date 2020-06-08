@@ -1,5 +1,7 @@
 #pragma once
 
+#include <library/cpp/testing/common/env.h>
+
 #include <util/generic/noncopyable.h>
 #include <util/generic/ptr.h>
 #include <util/folder/path.h>
@@ -7,13 +9,6 @@
 #include <util/network/sock.h>
 
 class TInet6StreamSocket;
-
-TString GetArcadiaTestsData();
-TString GetWorkPath();
-TFsPath GetYaPath();
-TFsPath GetOutputPath();
-TString GetRamDrivePath();
-TString GetOutputRamDrivePath();
 
 // set two options: SO_REUSEADDR and SO_REUSEPORT, both are required for
 // correct implementation of TPortManager because of different operating systems
