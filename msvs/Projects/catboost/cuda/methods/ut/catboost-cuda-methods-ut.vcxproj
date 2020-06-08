@@ -538,6 +538,9 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\openssl\method\cpp-openssl-method.vcxproj">
       <Project>{6D02E5A5-8E5A-2F70-0A15-A0EAFD5875F2}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\overloaded\library-cpp-overloaded.vcxproj">
+      <Project>{8FA80072-6B06-87FC-6917-262EEFBEA5FB}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\par\library-cpp-par.vcxproj">
       <Project>{67D7246F-3DB6-3A4E-DA0A-2432DE8B35CE}</Project>
     </ProjectReference>
@@ -648,9 +651,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\neh\library-neh.vcxproj">
       <Project>{7FF4A650-AA1E-8970-CED7-751939DB312C}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\overloaded\library-overloaded.vcxproj">
-      <Project>{2CE71367-048B-26B0-2DAC-CA9BB7D00E76}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\yson\library-yson.vcxproj">
       <Project>{2779E1A2-0D5A-216D-65BF-CE9DF81108EF}</Project>
