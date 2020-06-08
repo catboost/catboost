@@ -482,10 +482,15 @@ static void PrepareFolds(
         const ui32 offsetInRange = featureEvalOptions.Offset;
         CB_ENSURE_INTERNAL(offsetInRange + foldCount <= testSubsets.size(), "Dataset permutation logic failed");
     }
-    // group subsets, maybe trivial
-    TVector<NCB::TArraySubsetIndexing<ui32>> trainSubsets
-        = CalcTrainSubsets(testSubsets, objectsGrouping.GetGroupCount());
+    const ui32 offsetInRange = !cvParams.Initialized() ? featureEvalOptions.Offset : 0;
 
+    TVector<NCB::TArraySubsetIndexing<ui32>> trainSubsets
+        = CalcTrainSubsetsRange(testSubsets, objectsGrouping.GetGroupCount(), TIndexRange<ui32>(offsetInRange, offsetInRange + foldCount));
+
+    if (!cvParams.Initialized()) {
+        TakeMiddleElements(offsetInRange, foldCount, &trainSubsets);
+        TakeMiddleElements(offsetInRange, foldCount, &testSubsets);
+    }
     testSubsets.swap(trainSubsets);
 
     CB_ENSURE(foldsData->empty(), "Need empty vector of folds data");
@@ -497,11 +502,6 @@ static void PrepareFolds(
         testFoldsData = foldsData;
     }
 
-    if (!cvParams.Initialized()) {
-        const ui32 offsetInRange = featureEvalOptions.Offset;
-        TakeMiddleElements(offsetInRange, foldCount, &trainSubsets);
-        TakeMiddleElements(offsetInRange, foldCount, &testSubsets);
-    }
     CreateFoldData(
         srcData,
         cpuUsedRamLimit,
