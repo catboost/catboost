@@ -85,6 +85,8 @@ RECURSE(
     object_factory/ut
     on_disk
     openssl
+    overloaded
+    overloaded/ut
     packers
     packers/ut
     par

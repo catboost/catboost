@@ -5,8 +5,6 @@ RECURSE(
     neh
     neh/asio/ut
     neh/ut
-    overloaded
-    overloaded/ut
     python
     testing
 )

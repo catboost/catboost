@@ -1,6 +1,6 @@
 #include "completion_generator.h"
 
-#include <library/overloaded/overloaded.h>
+#include <library/cpp/overloaded/overloaded.h>
 
 #include <util/string/ascii.h>
 #include <util/generic/hash_set.h>
