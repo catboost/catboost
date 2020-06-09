@@ -1,11 +1,11 @@
 # coding: utf-8
 
-import sys
 import codecs
 import errno
 import logging
 import os
 import shutil
+import six
 import stat
 import random
 
@@ -127,9 +127,7 @@ def remove_dir(path):
 
 
 def fix_path_encoding(path):
-    if isinstance(path, unicode):
-        return path.encode(sys.getfilesystemencoding())
-    return path
+    return library.python.strings.to_str(path, library.python.strings.fs_encoding())
 
 
 # File/directory remove
@@ -282,8 +280,12 @@ def read_file(path, binary=True):
 @errorfix_win
 def read_file_unicode(path, binary=True, enc='utf-8'):
     if not binary:
-        with open(path, 'r') as f:
-            return library.python.strings.to_unicode(f.read(), enc)
+        if six.PY2:
+            with open(path, 'r') as f:
+                return library.python.strings.to_unicode(f.read(), enc)
+        else:
+            with open(path, 'r', encoding=enc) as f:
+                return f.read()
     # codecs.open is always binary
     with codecs.open(path, 'r', encoding=enc, errors=library.python.strings.ENCODING_ERRORS_POLICY) as f:
         return f.read()

@@ -1,5 +1,6 @@
 import locale
 import logging
+import six
 import sys
 import codecs
 
@@ -22,12 +23,15 @@ def left_strip(el, prefix):
 
 
 # Explicit to-text conversion
-# Chooses between str/unicode
+# Chooses between str/unicode, i.e. six.binary_type/six.text_type
 def to_basestring(value):
-    if isinstance(value, basestring):
+    if isinstance(value, (six.binary_type, six.text_type)):
         return value
     try:
-        return unicode(value)
+        if six.PY2:
+            return unicode(value)
+        else:
+            return str(value)
     except UnicodeDecodeError:
         try:
             return str(value)
@@ -37,32 +41,35 @@ to_text = to_basestring
 
 
 def to_unicode(value, from_enc=DEFAULT_ENCODING):
-    if isinstance(value, unicode):
+    if isinstance(value, six.text_type):
         return value
-    if isinstance(value, basestring):
-        return unicode(value, from_enc, ENCODING_ERRORS_POLICY)
-    return unicode(value)
+    if isinstance(value, six.binary_type):
+        if six.PY2:
+            return unicode(value, from_enc, ENCODING_ERRORS_POLICY)
+        else:
+            return value.decode(from_enc, errors=ENCODING_ERRORS_POLICY)
+    return six.text_type(value)
 
 
 # Optional from_enc enables transcoding
 def to_str(value, to_enc=DEFAULT_ENCODING, from_enc=None):
-    if isinstance(value, str):
+    if isinstance(value, six.binary_type):
         if from_enc is None or to_enc == from_enc:
             # Unknown input encoding or input and output encoding are the same
             return value
         value = to_unicode(value, from_enc=from_enc)
-    if isinstance(value, unicode):
+    if isinstance(value, six.text_type):
         return value.encode(to_enc, ENCODING_ERRORS_POLICY)
-    return str(value)
+    return six.binary_type(value)
 
 
 def _convert_deep(x, enc, convert, relaxed=True):
     if x is None:
         return None
-    if isinstance(x, (str, unicode)):
+    if isinstance(x, (six.text_type, six.binary_type)):
         return convert(x, enc)
     if isinstance(x, dict):
-        return {convert(k, enc): _convert_deep(v, enc, convert, relaxed) for k, v in x.iteritems()}
+        return {convert(k, enc): _convert_deep(v, enc, convert, relaxed) for k, v in six.iteritems(x)}
     if isinstance(x, list):
         return [_convert_deep(e, enc, convert, relaxed) for e in x]
     if isinstance(x, tuple):
