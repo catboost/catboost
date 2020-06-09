@@ -76,7 +76,7 @@ public:
 using TCandidateList = TVector<TCandidatesInfoList>;
 
 struct TCandidatesContext {
-    NCB::TQuantizedForCPUObjectsDataProviderPtr LearnData;
+    NCB::TQuantizedObjectsDataProviderPtr LearnData;
 
     ui32 OneHotMaxSize; // needed to select for which categorical features in bundles to calc stats
     TConstArrayRef<NCB::TExclusiveFeaturesBundle> BundlesMetaData;

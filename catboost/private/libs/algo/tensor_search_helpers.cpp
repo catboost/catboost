@@ -37,7 +37,7 @@ TSplit TCandidateInfo::GetBestSplit(
     const TFold& fold,
     ui32 oneHotMaxSize
 ) const {
-    const TQuantizedForCPUObjectsDataProviderPtr objectsData = [&] () {
+    const TQuantizedObjectsDataProviderPtr objectsData = [&] () {
         if (SplitEnsemble.IsOnlineEstimated) {
             return fold.GetOnlineEstimatedFeatures().Learn;
         }

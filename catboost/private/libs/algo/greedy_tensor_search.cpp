@@ -920,7 +920,7 @@ static void SelectBestCandidate(
 static TCandidatesContext SelectDatasetFeaturesForScoring(
     bool isEstimated,
     bool isOnlineEstimated,
-    TQuantizedForCPUObjectsDataProviderPtr learnData, // can be nullptr if estimated data is absent
+    TQuantizedObjectsDataProviderPtr learnData, // can be nullptr if estimated data is absent
     ui32 testSampleCount,
     const TMaybe<TSplitTree>& currentSplitTree,
     TFold* fold,
