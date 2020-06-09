@@ -149,6 +149,9 @@ ALLOW .* -> vendor/github.com/montanaflynn/stats
 # runtime dependencies of go-swagger
 ALLOW .* -> vendor/github.com/go-openapi
 
+# CONTRIB-469: swagger code generator for both client and server
+ALLOW .* -> vendor/github.com/go-swagger/go-swagger/cmd/swagger
+
 # redis client
 ALLOW .* -> vendor/github.com/go-redis/redis/v7
 
