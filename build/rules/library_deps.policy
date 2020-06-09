@@ -10,7 +10,7 @@ ALLOW library/python/.*/test -> devtools/ya/(test)|(exts)
 ALLOW library/(python/)?testing -> devtools/ya/
 ALLOW library/recipes -> devtools/ya/
 ALLOW library/.*/ipreg -> ipreg
-ALLOW library/libipreg1 -> ipreg
+ALLOW library/cpp/deprecated/ipreg1 -> ipreg
 ALLOW library/geobase -> geobase
 ALLOW library/python/zipatch -> vcs/svn/wc/client
 ALLOW library/(java/ticket_parser2)|(hnsw) -> iceberg
