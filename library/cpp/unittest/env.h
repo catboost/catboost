@@ -1,3 +1,3 @@
-// just shortcut
-#include <library/cpp/testing/common/env.h>
+#pragma once
+#include <library/cpp/testing/unittest/env.h>
 

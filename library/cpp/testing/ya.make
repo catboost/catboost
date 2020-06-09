@@ -4,4 +4,8 @@ RECURSE(
     benchmark/examples
     benchmark/examples/metrics
     benchmark/main
+    unittest
+    unittest/fat
+    unittest/main
+    unittest/ut
 )

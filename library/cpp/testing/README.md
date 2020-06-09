@@ -8,9 +8,9 @@
 * `gtest_extensions` — расширения gtest и gmock, улучшающие поддержку Аркадийных типов. Все расширения включены в модуле `GTEST_BETA` по-умолчанию
 * `gtest_main` — реализация `int main(argc, argv)` для модуля `GTEST_BETA` (вынесена в отдельную библиотеку, чтобы в перспективе была возможна реализация `GTEST_WITH_CUSTOM_ENTRY_POINT`)
 * `mock_server` — реализация http-сервера для тестов.
+* `unittest` — реализация модуля UNITTEST — основного средства для тестирования тестов на С++ в Аркадии.
+* `unittest/main` — реализация `int main(argc, argv)` для модуля UNITTEST (она вынесена в отдельную библиотеку, чтобы оставить возможность для реализации `UNITTEST_WITH_CUSTOM_ENTRY_POINT` и `YT_UNITTEST`.
 
 По недосмотру отсутствуют в данной директории:
 
-* `library/unittest` — реализация модуля UNITTEST — основного средства для тестирования тестов на С++ в Аркадии.
-* `library/unittest/main` — реализация `int main(argc, argv)` для модуля UNITTEST (она вынесена в отдельную библиотеку, чтобы оставить возможность для реализации `UNITTEST_WITH_CUSTOM_ENTRY_POINT` и `YT_UNITTEST`.
 * Содержимое директории `library/testing` — будет перемещено в рамках тикетов из очереди SUBBOTNIK.
