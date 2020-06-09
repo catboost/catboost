@@ -692,6 +692,11 @@ def do_link_test(args):
 
 
 if __name__ == '__main__':
+    # Support @response-file notation for windows to reduce cmd length
+    if sys.argv[1].startswith('@'):
+        with open(sys.argv[1][1:]) as afile:
+            sys.argv[1:] = afile.read().splitlines()
+
     parser = argparse.ArgumentParser(prefix_chars='+')
     parser.add_argument('++mode', choices=['dll', 'exe', 'lib', 'test'], required=True)
     parser.add_argument('++srcs', nargs='*', required=True)
