@@ -160,6 +160,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\flatbuffers\contrib-libs-flatbuffers.vcxproj">
       <Project>{B88207AE-800B-A7B1-AE0B-F609E8684A5A}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\libc_compat\contrib-libs-libc_compat.vcxproj">
+      <Project>{116AA49B-0C0D-7CF7-45DB-A708FB126C84}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\nayuki_md5\contrib-libs-nayuki_md5.vcxproj">
       <Project>{C0251DC8-E401-B1AF-785F-72D686693CB9}</Project>
     </ProjectReference>
