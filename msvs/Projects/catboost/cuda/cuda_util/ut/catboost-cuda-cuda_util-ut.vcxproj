@@ -321,8 +321,8 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\testing\unittest\cpp-testing-unittest.vcxproj">
       <Project>{A4CAA34B-E96C-B010-71AC-2425B5C8B123}</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\testing\unittest\main\testing-unittest-main.vcxproj">
-      <Project>{9777BD48-4227-F640-6D49-2B3628A3EA37}</Project>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\testing\unittest_main\cpp-testing-unittest_main.vcxproj">
+      <Project>{A5C8D0A0-7CC3-5E2B-6D01-0262E6253DEA}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\threading\future\cpp-threading-future.vcxproj">
       <Project>{3606F768-0467-35B5-0130-059536BE13C1}</Project>
