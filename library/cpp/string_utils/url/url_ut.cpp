@@ -16,6 +16,8 @@ Y_UNIT_TEST_SUITE(TUtilUrlTest) {
         UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetHostAndPort("ya.ru/bebe:8080"));
         UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetHost("ya.ru:8080/bebe"));
         UNIT_ASSERT_VALUES_EQUAL("ya.ru", GetHost("https://ya.ru:8080/bebe"));
+        UNIT_ASSERT_VALUES_EQUAL("www.ya.ru", GetHost("www.ya.ru:8080/bebe"));
+        UNIT_ASSERT_VALUES_EQUAL("www.ya.ru", GetHost("https://www.ya.ru:8080/bebe"));
         UNIT_ASSERT_VALUES_EQUAL("ya.ru:8080", GetHostAndPort("ya.ru:8080/bebe"));
         // irl RFC3986 sometimes gets ignored
         UNIT_ASSERT_VALUES_EQUAL("pravda-kmv.ru", GetHost("pravda-kmv.ru?page=news&id=6973"));
