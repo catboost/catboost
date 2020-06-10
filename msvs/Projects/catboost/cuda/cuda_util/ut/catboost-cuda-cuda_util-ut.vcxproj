@@ -78,6 +78,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_util\ut\test_calculate_threshold.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_util\ut\test_compression_cpu.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_util\ut\test_compression_gpu.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\cuda\cuda_util\ut\test_fill.cpp"/>
