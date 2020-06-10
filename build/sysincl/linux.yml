@@ -53,6 +53,7 @@
   - sys/cdefs.h
   - sys/memfd.h
   - sys/queue.h
+  - sys/platform/ppc.h
   - sys/socketvar.h
   - sys/sysctl.h
   - sys/unistd.h
