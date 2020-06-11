@@ -815,6 +815,7 @@ SEXP CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fs
         TVector<TVector<TVector<double>>> fstr = GetFeatureImportancesMulti(fstrType,
                                                                             *model,
                                                                             pool,
+                                                                            /*referenceDataset*/ nullptr,
                                                                             threadCount,
                                                                             EPreCalcShapValues::Auto,
                                                                             verbose);
@@ -840,6 +841,7 @@ SEXP CatBoostCalcRegularFeatureEffect_R(SEXP modelParam, SEXP poolParam, SEXP fs
         TVector<TVector<double>> fstr = GetFeatureImportances(fstrType,
                                                               *model,
                                                               pool,
+                                                              /*referenceDataset*/ nullptr,
                                                               threadCount,
                                                               EPreCalcShapValues::Auto,
                                                               verbose);
