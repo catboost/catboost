@@ -488,6 +488,7 @@ def quantize(
     pairs=None,
     delimiter='\t',
     has_header=False,
+    ignore_csv_quoting=False,
     feature_names=None,
     thread_count=-1,
     ignored_features=None,
@@ -525,6 +526,9 @@ def quantize(
 
     has_header : bool, [default=False]
         If True, read column names from first line.
+
+    ignore_csv_quoting : bool optional (default=False)
+        If True ignore quoting '"'.
 
     feature_names : string, [default=None]
         Path with scheme for feature names data to load.
@@ -630,7 +634,7 @@ def quantize(
         dev_max_subset_size_for_build_borders)
 
     result = Pool(None)
-    result._read(data_path, column_description, pairs, feature_names, delimiter, has_header, thread_count, params)
+    result._read(data_path, column_description, pairs, feature_names, delimiter, has_header, ignore_csv_quoting, thread_count, params)
 
     return result
 

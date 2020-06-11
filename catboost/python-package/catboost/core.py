@@ -277,6 +277,7 @@ class Pool(_PoolBase):
         pairs=None,
         delimiter='\t',
         has_header=False,
+        ignore_csv_quoting=False,
         weight=None,
         group_id=None,
         group_weight=None,
@@ -340,6 +341,9 @@ class Pool(_PoolBase):
         has_header : bool optional (default=False)
             If True, read column names from first line.
 
+        ignore_csv_quoting : bool optional (default=False)
+            If True ignore quoting '"'.
+
         weight : list or numpy.ndarray, optional (default=None)
             Weight for each instance.
             If not None, giving 1 dimensional array like data.
@@ -394,7 +398,7 @@ class Pool(_PoolBase):
                     raise CatBoostError(
                         "feature_names should have None or string type when the pool is read from the file."
                     )
-                self._read(data, column_description, pairs, feature_names, delimiter, has_header, thread_count)
+                self._read(data, column_description, pairs, feature_names, delimiter, has_header, ignore_csv_quoting, thread_count)
             else:
                 if isinstance(data, FeaturesData):
                     if any(v is not None for v in [cat_features, text_features, feature_names]):
@@ -827,6 +831,7 @@ class Pool(_PoolBase):
         feature_names_path,
         delimiter,
         has_header,
+        ignore_csv_quoting,
         thread_count,
         quantization_params=None
     ):
@@ -852,6 +857,7 @@ class Pool(_PoolBase):
                 feature_names_path,
                 delimiter[0],
                 has_header,
+                ignore_csv_quoting,
                 thread_count,
                 quantization_params
             )
