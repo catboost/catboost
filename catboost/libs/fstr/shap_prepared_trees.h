@@ -7,6 +7,7 @@
 #include <catboost/private/libs/options/loss_description.h>
 #include <library/cpp/threading/local_executor/local_executor.h>
 
+#include <util/generic/ptr.h>
 #include <util/generic/vector.h>
 #include <util/ysaveload.h>
 
@@ -34,7 +35,7 @@ struct TIndependentTreeShapParams {
     TVector<TVector<double>> ApproxOfDataset; // [dim][documentIdx]
     TVector<TVector<double>> ApproxOfReferenceDataset; // [dim][documentIdx]
     EExplainableModelOutput ModelOutputType;
-    THolder<IMetric> Metric;
+    TAtomicSharedPtr<IMetric> Metric;
 
     TVector<TVector<double>> Weights;
     TVector<TVector<TVector<TVector<TVector<double>>>>> ShapValueByDepthBetweenLeavesForAllTrees; // [treeIdx][leafIdx(foregroundLeafIdx)][leafIdx(referenceLeafIdx)][depth][dimension]
