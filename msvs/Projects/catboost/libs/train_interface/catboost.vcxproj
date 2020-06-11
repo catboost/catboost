@@ -510,6 +510,12 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\malloc\system\cpp-malloc-system.vcxproj">
       <Project>{54C3F326-D733-B490-93B9-EEA3BE28C3A9}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\neh\asio\cpp-neh-asio.vcxproj">
+      <Project>{FAB53BC8-A8A8-6883-CF07-CD0268AAD99E}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\library\cpp\neh\library-cpp-neh.vcxproj">
+      <Project>{9D16DE2F-0DA3-2F25-E4B4-1AF0FF06A2E2}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\netliba\socket\cpp-netliba-socket.vcxproj">
       <Project>{E12F8BEB-69BE-C96E-532C-837B8BD764F3}</Project>
     </ProjectReference>
@@ -626,12 +632,6 @@
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\yson\library-cpp-yson.vcxproj">
       <Project>{D05A14C5-BA93-7AA3-1AB8-E62B001110D1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\neh\asio\library-neh-asio.vcxproj">
-      <Project>{ACDED067-8B74-5223-7E1A-7937B35A78E1}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\neh\library-neh.vcxproj">
-      <Project>{7FF4A650-AA1E-8970-CED7-751939DB312C}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>
