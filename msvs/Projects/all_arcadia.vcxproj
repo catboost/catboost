@@ -1401,9 +1401,6 @@
     <ProjectReference Include="$(SolutionDir)Projects\library\python\windows\pylibrary-python-windows.vcxproj">
       <Project>73CACD62-64C7-DBB4-CF29-B554C02CAA74</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\library\yson\library-yson.vcxproj">
-      <Project>2779E1A2-0D5A-216D-65BF-CE9DF81108EF</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\archiver\archiver.vcxproj">
       <Project>3A427065-DB99-B402-99C1-9AAFD5A75A30</Project>
     </ProjectReference>
