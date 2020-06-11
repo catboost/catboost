@@ -6,9 +6,9 @@
 #include "par_locked_hash.h"
 
 #include <library/cpp/digest/crc32c/crc32c.h>
-#include <library/neh/multiclient.h>
-#include <library/neh/neh.h>
-#include <library/neh/rpc.h>
+#include <library/cpp/neh/multiclient.h>
+#include <library/cpp/neh/neh.h>
+#include <library/cpp/neh/rpc.h>
 #include <library/cpp/netliba/v12/ib_low.h>
 #include <library/cpp/netliba/v12/udp_http.h>
 #include <library/cpp/threading/atomic/bool.h>

@@ -2,9 +2,6 @@
 
 RECURSE(
     cpp
-    neh
-    neh/asio/ut
-    neh/ut
     python
     testing
 )

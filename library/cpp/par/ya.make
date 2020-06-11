@@ -28,7 +28,7 @@ PEERDIR(
     library/cpp/containers/ring_buffer
     library/cpp/digest/crc32c
     library/cpp/logger/global
-    library/neh
+    library/cpp/neh
     library/cpp/netliba/v12
     library/cpp/threading/atomic
     library/cpp/threading/local_executor

@@ -11,7 +11,7 @@ PEERDIR(
     library/cpp/http/io
     library/cpp/http/misc
     library/cpp/http/push_parser
-    library/neh/asio
+    library/cpp/neh/asio
     library/cpp/netliba/v6
     library/cpp/openssl/init
     library/cpp/openssl/method

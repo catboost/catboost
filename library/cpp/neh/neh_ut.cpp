@@ -27,9 +27,9 @@ namespace {
 
 Y_UNIT_TEST_SUITE(Neh) {
     static const TString HTTPS_PARAMS = TStringBuilder()
-                                        << "cert=" << ArcadiaSourceRoot() << AsStringBuf("/library/neh/ut/server.pem")
+                                        << "cert=" << ArcadiaSourceRoot() << AsStringBuf("/library/cpp/neh/ut/server.pem")
                                         << ';'
-                                        << "key=" << ArcadiaSourceRoot() << AsStringBuf("/library/neh/ut/server.pem")
+                                        << "key=" << ArcadiaSourceRoot() << AsStringBuf("/library/cpp/neh/ut/server.pem")
                                         << '@';
 
     class TServer {
