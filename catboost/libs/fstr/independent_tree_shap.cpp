@@ -543,7 +543,7 @@ void TIndependentTreeShapParams::InitTransformedData(
             break;
         }
         case EExplainableModelOutput::LossFunction : {
-            Metric = std::move(CreateMetricFromDescription(metricDescription, model.GetDimensionsCount()).front());
+            Metric = CreateMetricFromDescription(metricDescription, model.GetDimensionsCount()).front().Release();
             TransformedTargetOfDataset = GetTransformedTarget(
                 ApproxOfDataset,
                 TargetOfDataset,
