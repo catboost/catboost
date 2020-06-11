@@ -1,6 +1,7 @@
 {
     "operation_spec": {
         "scheduling_tag_filter": "porto",
+        "pool": "research_gpu",
         "pool_trees": [
             "gpu_geforce_1080ti"
         ]
