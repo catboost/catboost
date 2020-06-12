@@ -9,7 +9,7 @@
 #include <catboost/cuda/cuda_util/transform.h>
 #include <catboost/libs/helpers/cpu_random.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <iostream>
 

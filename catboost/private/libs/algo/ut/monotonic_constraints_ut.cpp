@@ -1,6 +1,6 @@
 #include <catboost/private/libs/algo/monotonic_constraint_utils.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 #include <util/generic/xrange.h>
 #include <util/generic/algorithm.h>
 #include <util/string/vector.h>

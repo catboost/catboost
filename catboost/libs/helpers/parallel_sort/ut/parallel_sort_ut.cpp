@@ -1,7 +1,7 @@
 #include <catboost/libs/helpers/cpu_random.h>
 #include <catboost/libs/helpers/parallel_sort/parallel_sort.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <util/generic/algorithm.h>
 #include <util/random/shuffle.h>

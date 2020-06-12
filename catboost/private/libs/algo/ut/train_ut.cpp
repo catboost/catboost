@@ -1,7 +1,7 @@
 #include <catboost/libs/data/data_provider_builders.h>
 #include <catboost/libs/helpers/vector_helpers.h>
 #include <catboost/libs/train_lib/train_model.h>
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 #include <library/cpp/json/json_reader.h>
 #include <library/cpp/threading/local_executor/local_executor.h>
 

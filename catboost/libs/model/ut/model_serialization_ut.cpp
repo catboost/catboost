@@ -10,7 +10,7 @@
 
 #include <library/cpp/json/json_writer.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 using namespace std;
 using namespace NCB;

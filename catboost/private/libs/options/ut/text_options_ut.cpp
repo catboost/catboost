@@ -1,7 +1,7 @@
 #include <catboost/private/libs/options/text_processing_options.h>
 #include <catboost/private/libs/options/runtime_text_options.h>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 #include <library/cpp/json/json_reader.h>
 
 #include <util/generic/xrange.h>
