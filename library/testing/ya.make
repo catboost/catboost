@@ -1,4 +1,0 @@
-RECURSE(
-    benchmark
-    benchmark/main
-)

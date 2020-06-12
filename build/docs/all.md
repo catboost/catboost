@@ -685,7 +685,7 @@ Documentation about the Arcadia test system: https://wiki.yandex-team.ru/yatool/
 YT Unit test module based on mapreduce/yt/library/utlib
 
 ###### Module [Y\_BENCHMARK][]([benchmarkname]) <a name="module_Y_BENCHMARK"></a>
-Benchmark test based on the library/testing/benchmark.
+Benchmark test based on the library/cpp/testing/benchmark.
 
 For more details see: https://wiki.yandex-team.ru/yatool/test/#zapuskbenchmark
 

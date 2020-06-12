@@ -5,7 +5,7 @@
 #include <library/cpp/chromium_trace/saveload.h>
 
 #include <library/cpp/json/json_writer.h>
-#include <library/testing/benchmark/bench.h>
+#include <library/cpp/testing/benchmark/bench.h>
 
 #include <util/generic/xrange.h>
 #include <util/stream/null.h>

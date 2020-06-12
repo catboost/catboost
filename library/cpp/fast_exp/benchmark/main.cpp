@@ -1,5 +1,5 @@
 #include <library/cpp/fast_exp/fast_exp.h>
-#include <library/testing/benchmark/bench.h>
+#include <library/cpp/testing/benchmark/bench.h>
 
 #include <util/random/fast.h>
 #include <util/random/random.h>
