@@ -24,8 +24,8 @@ bool FromYaTest();
 
 // @brief returns TestsData dir (from env:ARCADIA_TESTS_DATA_DIR or path to existing folder `arcadia_tests_data` within parent folders)
 TString GetArcadiaTestsData();
-// @brief return current working dir (from env:TEST_WORK_PATH or cwd)
 
+// @brief return current working dir (from env:TEST_WORK_PATH or cwd)
 TString GetWorkPath();
 
 // @brief return .ya dir path (~/.ya or from env:YA_CACHE_DIR)
