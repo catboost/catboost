@@ -273,7 +273,7 @@
 #endif
 
 #if defined(_64_)
-#if defined(__aarch64__)
+#if defined(__aarch64__) || defined(__powerpc__)
 #else
 #define VA_LIST_IS_ARRAY 1
 #endif
