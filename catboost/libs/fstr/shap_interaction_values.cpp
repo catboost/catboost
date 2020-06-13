@@ -23,7 +23,8 @@ void ValidateFeaturePair(int flatFeatureCount, std::pair<int, int> featurePair) 
 void ValidateFeatureInteractionParams(
     const EFstrType fstrType,
     const TFullModel& model,
-    const NCB::TDataProviderPtr dataset
+    const NCB::TDataProviderPtr dataset,
+    ECalcTypeShapValues calcType
 ) {
     CB_ENSURE(model.GetTreeCount(), "Model is not trained");
 
@@ -33,6 +34,11 @@ void ValidateFeatureInteractionParams(
     );
 
     CB_ENSURE(dataset, "Dataset is not provided");   
+
+    CB_ENSURE(
+        calcType != ECalcTypeShapValues::Independent,
+        "SHAP Interaction Values can't calculate in mode " + ToString<ECalcTypeShapValues>(calcType)
+    );
 }
 
 using TInteractionValuesSubset = THashMap<std::pair<size_t, size_t>, TVector<TVector<double>>>;
@@ -560,6 +566,7 @@ TInteractionValuesFull CalcShapInteractionValuesMulti(
     TShapPreparedTrees preparedTrees = PrepareTrees(
         model,
         &dataset,
+        /*referenceDataset*/ nullptr,
         mode,
         localExecutor,
         /*calcInternalValues*/ true,
