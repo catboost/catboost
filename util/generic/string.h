@@ -6,7 +6,6 @@
 #include <stdexcept>
 #include <string_view>
 
-#include <util/system/compat.h>
 #include <util/system/yassert.h>
 #include <util/system/atomic.h>
 
