@@ -18,7 +18,6 @@ struct TErrorMessageHolder {
 using namespace NCB;
 
 static TDataProviderPtr MakeDataProvider(
-    bool isGpu,
     TConstArrayRef<float> features,
     ui32 fCount,
     TConstArrayRef<float> labels,
@@ -26,8 +25,7 @@ static TDataProviderPtr MakeDataProvider(
     TConstArrayRef<float> baseline
     ) {
 
-    TDataProviderBuilderOptions builderOptions{!isGpu,
-                                               false};
+    TDataProviderBuilderOptions builderOptions;
 
     THolder<IDataProviderBuilder> dataProviderBuilder;
     IRawFeaturesOrderDataVisitor* builderVisitor;
@@ -86,13 +84,13 @@ TDataProviders MakeDataProviders(TDataProviderPtr learn, TDataProviderPtr test) 
     return providers;
 }
 
-static inline TDataProviderPtr MakeProvider(bool gpu, const TDataSet& ds) {
+static inline TDataProviderPtr MakeProvider(const TDataSet& ds) {
 
     TConstArrayRef<float> features(ds.Features, ds.FeaturesCount * ds.SamplesCount);
     TConstArrayRef<float> labels(ds.Labels,  ds.SamplesCount);
     TConstArrayRef<float> weights(ds.Weights,  ds.SamplesCount);
     TConstArrayRef<float> baseline(ds.Baseline,  ds.SamplesCount * ds.BaselineDim);
-    return MakeDataProvider(gpu, features, (ui32)ds.FeaturesCount, labels, weights, baseline);
+    return MakeDataProvider(features, (ui32)ds.FeaturesCount, labels, weights, baseline);
 }
 
 
@@ -195,10 +193,9 @@ CATBOOST_API bool TrainCatBoost(const TDataSet* trainPtr,
         NCatboostOptions::TJsonFieldHelper<decltype(taskType)>::Read(plainJsonParams, &taskType);
 
 
-        const bool useGpu = taskType == ETaskType::GPU;
         TDataProviders dataProviders = MakeDataProviders(
-            MakeProvider(useGpu, train),
-            MakeProvider(useGpu, test));
+            MakeProvider(train),
+            MakeProvider(test));
         NCB::TQuantizedFeaturesInfoPtr quantizedFeaturesInfo;
 
         TMetricsAndTimeLeftHistory history;

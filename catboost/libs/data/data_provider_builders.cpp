@@ -1372,9 +1372,7 @@ namespace NCB {
                 *metaInfo.FeaturesLayout,
                 *Data.ObjectsData.Data.QuantizedFeaturesInfo,
                 Data.ObjectsData.ExclusiveFeatureBundlesData,
-
-                // packed binary features are present only in TQuantizedForCPUObjectsDataProvider
-                /*dontPack*/ !Options.CpuCompatibleFormat || Options.GpuDistributedFormat
+                /*dontPack*/ Options.GpuDistributedFormat
             );
 
             Data.ObjectsData.FeaturesGroupsData = TFeatureGroupsData(
