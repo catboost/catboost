@@ -1,5 +1,5 @@
 #include <contrib/libs/python/ut/lib/test.h>
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TestPy3Binding) {
     Y_UNIT_TEST(version) {
