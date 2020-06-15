@@ -1,7 +1,6 @@
 ALLOW contrib -> contrib
 ALLOW contrib -> build
 ALLOW contrib -> library/cpp/testing/unittest_main
-ALLOW contrib -> library/cpp/unittest
 ALLOW contrib -> library/cpp/testing/unittest
 ALLOW contrib -> library/cpp/getopt
 ALLOW contrib -> library/cpp/resource
