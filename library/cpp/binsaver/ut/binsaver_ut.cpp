@@ -2,7 +2,7 @@
 #include <library/cpp/binsaver/mem_io.h>
 #include <library/cpp/binsaver/bin_saver.h>
 #include <library/cpp/binsaver/ut_util/ut_util.h>
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <util/stream/buffer.h>
 #include <util/generic/map.h>

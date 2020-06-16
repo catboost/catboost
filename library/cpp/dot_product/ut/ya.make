@@ -7,7 +7,7 @@ SRCS(
 )
 
 PEERDIR(
-    library/cpp/unittest
+    library/cpp/testing/unittest
 )
 
 END()

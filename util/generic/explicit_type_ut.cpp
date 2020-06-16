@@ -1,6 +1,6 @@
 #include "explicit_type.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 struct TCallableBase {
 public:

@@ -1,7 +1,7 @@
 #include "guard.h"
 #include "rwlock.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <util/thread/pool.h>
 

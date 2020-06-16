@@ -2,8 +2,8 @@
 #include "tcp_acceptor_impl.h"
 #include <util/network/address.h>
 
-#include <library/cpp/unittest/registar.h>
-#include <library/cpp/unittest/tests_data.h>
+#include <library/cpp/testing/unittest/registar.h>
+#include <library/cpp/testing/unittest/tests_data.h>
 
 #include <util/stream/str.h>
 

@@ -46,7 +46,7 @@ namespace NUnitTest {
     TString GetResetTag();
 
     // Raise error handler
-    // Used for testing library/cpp/unittest macroses
+    // Used for testing library/cpp/testing/unittest macroses
     // and unittest helpers.
     // For all other unittests standard handler is used
     using TRaiseErrorHandler = std::function<void(const char*, const TString&, bool)>;

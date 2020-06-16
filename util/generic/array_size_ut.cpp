@@ -1,6 +1,6 @@
 #include "array_size.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(ArraySizeTest) {
     Y_UNIT_TEST(Test1) {

@@ -1,6 +1,6 @@
 #include "walk.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 class TStringListInput: public IWalkInput {
 public:

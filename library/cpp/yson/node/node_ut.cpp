@@ -1,7 +1,7 @@
 #include "node.h"
 #include "node_io.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <util/ysaveload.h>
 

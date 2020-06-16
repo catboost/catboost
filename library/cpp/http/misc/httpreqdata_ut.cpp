@@ -1,6 +1,6 @@
 #include "httpreqdata.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 Y_UNIT_TEST_SUITE(TRequestServerDataTest) {
     Y_UNIT_TEST(Headers) {

@@ -2,7 +2,7 @@
 #include "rpc.h"
 #include "utils.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <util/generic/list.h>
 #include <util/stream/str.h>

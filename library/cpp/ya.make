@@ -116,10 +116,6 @@ RECURSE(
     tokenizer
     tokenizer/ut
     unicode
-    unittest
-    unittest/fat
-    unittest/main
-    unittest/ut
     yson
     yson/node
     yson/node/pybind

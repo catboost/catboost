@@ -7,7 +7,7 @@
 #include <util/generic/ptr.h>
 #include <utility>
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 class TLogElementTest: public TTestBase {
     UNIT_TEST_SUITE(TLogElementTest);

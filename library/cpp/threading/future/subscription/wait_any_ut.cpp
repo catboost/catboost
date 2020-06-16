@@ -1,7 +1,7 @@
 #include "wait_any.h"
 #include "wait_ut_common.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 #include <util/generic/strbuf.h>
 
 #include <exception>

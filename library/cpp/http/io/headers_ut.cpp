@@ -4,7 +4,7 @@
 #include <utility>
 
 #include <library/cpp/http/io/headers.h>
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 namespace {
     class THeadersExistence {

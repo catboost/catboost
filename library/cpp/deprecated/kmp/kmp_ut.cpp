@@ -1,6 +1,6 @@
 #include "kmp.h"
 
-#include <library/cpp/unittest/registar.h>
+#include <library/cpp/testing/unittest/registar.h>
 
 #include <util/stream/output.h>
 
