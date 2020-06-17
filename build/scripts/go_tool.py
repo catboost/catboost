@@ -2,6 +2,7 @@ import argparse
 import copy
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -498,8 +499,17 @@ func coverRegisterFile(fileName string, counter []uint32, pos []uint32, numStmts
 
 
 def filter_out_skip_tests(tests, skip_tests):
-    skip_set = set(skip_tests)
-    return filter(lambda x: x not in skip_set, tests)
+    skip_set = set()
+    star_skip_set = set()
+    for t in skip_tests:
+        work_set = star_skip_set if '*' in t else skip_set
+        work_set.add(t)
+
+    re_star_tests = None
+    if len(star_skip_set) > 0:
+        re_star_tests = re.compile(re.sub(r'(\*)+', r'.\1', '^({})$'.format('|'.join(star_skip_set))))
+
+    return [x for x in tests if not (x in skip_tests or re_star_tests and re_star_tests.match(x))]
 
 
 def gen_test_main(args, test_lib_args, xtest_lib_args):
