@@ -249,7 +249,7 @@ namespace NCatboostCuda {
 
     template <>
     THolder<TAdditiveModel<TObliviousTreeModel>> MakeObliviousModel(THolder<TAdditiveModel<TNonSymmetricTree>>&& model, NPar::TLocalExecutor* executor) {
-        THolder<TAdditiveModel<TObliviousTreeModel>> result = new TAdditiveModel<TObliviousTreeModel>;
+        THolder<TAdditiveModel<TObliviousTreeModel>> result = MakeHolder<TAdditiveModel<TObliviousTreeModel>>();
         (*result) = MakeOTEnsemble(*model, executor);
         return result;
     }

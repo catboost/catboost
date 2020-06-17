@@ -617,7 +617,7 @@ namespace NCatboostCuda {
             }
             default: {
                 CB_ENSURE(approxDim == 1, "Error: can't use CPU for unknown multiclass metric");
-                THolder<IGpuMetric> metric = new TCpuFallbackMetric(metricDescription, approxDim);
+                THolder<IGpuMetric> metric = MakeHolder<TCpuFallbackMetric>(metricDescription, approxDim);
                 CATBOOST_WARNING_LOG << "Metric " << metric->GetCpuMetric().GetDescription() << " is not implemented on GPU. Will use CPU for metric computation, this could significantly affect learning time" << Endl;
                 result.push_back(std::move(metric));
                 break;

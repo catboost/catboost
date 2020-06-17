@@ -4,7 +4,7 @@
 
 namespace NKernelHost {
     THolder<TSplitPointsKernel::TKernelContext> TSplitPointsKernel::PrepareContext(IMemoryManager& manager) const {
-        THolder<TSplitPointsKernel::TKernelContext> context = new TSplitPointsKernel::TKernelContext;
+        THolder<TSplitPointsKernel::TKernelContext> context = MakeHolder<TSplitPointsKernel::TKernelContext>();
         context->TempStorageSizes.resize(LeafIdsToSplitCpu.Size());
 
         ui64 tempStorageMemory = Min<ui64>(StatsPerKernel, Statistics.GetColumnCount()) * Statistics.AlignedColumnSize() * sizeof(float);
@@ -198,7 +198,7 @@ namespace NKernelHost {
     }
 
     THolder<TSplitPointsSingleLeafKernel::TKernelContext> TSplitPointsSingleLeafKernel::PrepareContext(IMemoryManager& manager) const {
-        THolder<TSplitPointsSingleLeafKernel::TKernelContext> context = new TSplitPointsSingleLeafKernel::TKernelContext;
+        THolder<TSplitPointsSingleLeafKernel::TKernelContext> context = MakeHolder<TSplitPointsSingleLeafKernel::TKernelContext>();
         context->TempStorageSizes.resize(1);
 
         ui64 tempStorageMemory = Min<ui64>(StatsPerKernel, Statistics.GetColumnCount()) * Statistics.AlignedColumnSize() * sizeof(float);

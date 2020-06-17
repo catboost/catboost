@@ -47,7 +47,7 @@ namespace NCatboostCuda {
                     return info.GetGroupingLevel(left) < info.GetGroupingLevel(right);
                 });
             }
-            THolder<TFeaturesBlock> resultHolder = new TFeaturesBlock(TCpuGrid(info, featureIds));
+            THolder<TFeaturesBlock> resultHolder = MakeHolder<TFeaturesBlock>(TCpuGrid(info, featureIds));
             TFeaturesBlock& result = *resultHolder;
             ui32 featureCount = featureIds.size();
 
