@@ -131,7 +131,7 @@ struct TDumper<NCB::TValueWithCount> {
         S& s,
         NCB::TValueWithCount valueWithCount
     ) {
-        s << "{Value=" << valueWithCount.Value << ",Count=" << valueWithCount.Count << '}';
+        s << "{Value=" << valueWithCount.Value << ",Count=" << valueWithCount.Count << "}";
     }
 };
 
@@ -158,7 +158,7 @@ struct TDumper<NCB::TCatFeaturePerfectHash> {
         } else {
             s << "None";
         }
-        s << "Map=" << DbgDump(catFeaturePerfectHash.Map) << "}\n";
+        s << ", Map=" << DbgDump(catFeaturePerfectHash.Map) << "}\n";
     }
 };
 
