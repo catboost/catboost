@@ -3296,6 +3296,7 @@ static int aes_gcm_cipher(EVP_CIPHER_CTX *ctx, unsigned char *out,
                     return -1;
             }
         }
+        __msan_unpoison(out, len);
         return len;
     } else {
         if (!ctx->encrypt) {
