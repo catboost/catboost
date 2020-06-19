@@ -1815,6 +1815,17 @@
                         "arch": "armv8a_cortex_a53"
                     },
                     "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX",
+                        "arch": "ppc64le"
+                    },
+                    "target": {
+                        "os": "LINUX",
+                        "arch": "ppc64le"
+                    },
+                    "default": true
                 }
             ],
             "params": {
@@ -5650,7 +5661,8 @@
             "formula": {
                 "sandbox_id": [
                     433792615,
-                    425919040
+                    425919040,
+                    703744721
                 ],
                 "match": "CLANG"
             },
