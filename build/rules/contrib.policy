@@ -31,6 +31,7 @@ ALLOW contrib/python/httptools -> contrib/deprecated/http-parser
 ALLOW passport/python/contrib/bjoern -> contrib/deprecated/http-parser
 ALLOW yt/yt/core/http -> contrib/deprecated/http-parser
 ALLOW yweb/robot/fetcher/fetcher/user/http -> contrib/deprecated/http-parser
+ALLOW yt/yt/core/http -> contrib/deprecated/http-parser
 DENY .* -> contrib/deprecated/http-parser
 
 ALLOW contrib/deprecated/uriparser -> contrib/deprecated/uriparser
