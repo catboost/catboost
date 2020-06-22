@@ -1,7 +1,7 @@
 #pragma once
 
 #include "compiler.h"
-#include "compat.h"
+#include "defaults.h"
 
 #include <type_traits>
 
@@ -29,8 +29,8 @@ namespace NPrivate {
 
 #define STATIC_BUF(x) ::NPrivate::TStaticBuf(x, sizeof(x) - 1)
 
-    constexpr TStaticBuf ArcRoot = STATIC_BUF(__XSTRING(ARCADIA_ROOT));
-    constexpr TStaticBuf BuildRoot = STATIC_BUF(__XSTRING(ARCADIA_BUILD_ROOT));
+    constexpr TStaticBuf ArcRoot = STATIC_BUF(Y_STRINGIZE(ARCADIA_ROOT));
+    constexpr TStaticBuf BuildRoot = STATIC_BUF(Y_STRINGIZE(ARCADIA_BUILD_ROOT));
 
     constexpr Y_FORCE_INLINE bool IsProperPrefix(const TStaticBuf prefix, const TStaticBuf string) noexcept {
         if (prefix.Len < string.Len) {
