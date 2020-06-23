@@ -35,6 +35,7 @@ static TDataProviderPtr SmallFloatPool(EWeightsMode addWeights, ETargetDimMode m
                 (ui32)3,
                 TVector<ui32>{},
                 TVector<ui32>{},
+                TVector<ui32>{},
                 TVector<TString>{});
 
             visitor->Start(metaInfo, 3, EObjectsOrder::Undefined, {});

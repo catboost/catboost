@@ -27,13 +27,14 @@ bool TFeatureMetaInfo::EqualTo(const TFeatureMetaInfo& rhs, bool ignoreSparsity)
 }
 
 TFeaturesLayout::TFeaturesLayout(const ui32 featureCount)
-    : TFeaturesLayout(featureCount, {}, {}, {})
+    : TFeaturesLayout(featureCount, {}, {}, {}, {})
 {}
 
 TFeaturesLayout::TFeaturesLayout(
     const ui32 featureCount,
     const TVector<ui32>& catFeatureIndices,
     const TVector<ui32>& textFeatureIndices,
+    const TVector<ui32>& embeddingFeatureIndices,
     const TVector<TString>& featureId,
     bool allFeaturesAreSparse)
 {
@@ -64,6 +65,14 @@ TFeaturesLayout::TFeaturesLayout(
         );
         ExternalIdxToMetaInfo[textFeatureExternalIdx].Type = EFeatureType::Text;
     }
+    for (auto embeddingFeatureExternalIdx : embeddingFeatureIndices) {
+        CB_ENSURE(
+            embeddingFeatureExternalIdx < featureCount,
+            "Embedding feature index (" << embeddingFeatureExternalIdx << ") is out of valid range [0,"
+            << featureCount << ')'
+        );
+        ExternalIdxToMetaInfo[embeddingFeatureExternalIdx].Type = EFeatureType::Embedding;
+    }
 
     for (auto externalFeatureIdx : xrange(ExternalIdxToMetaInfo.size())) {
         switch (ExternalIdxToMetaInfo[externalFeatureIdx].Type) {
@@ -80,6 +89,11 @@ TFeaturesLayout::TFeaturesLayout(
             case EFeatureType::Text: {
                 FeatureExternalIdxToInternalIdx.push_back((ui32)TextFeatureInternalIdxToExternalIdx.size());
                 TextFeatureInternalIdxToExternalIdx.push_back(externalFeatureIdx);
+                break;
+            }
+            case EFeatureType::Embedding: {
+                FeatureExternalIdxToInternalIdx.push_back((ui32)EmbeddingFeatureInternalIdxToExternalIdx.size());
+                EmbeddingFeatureInternalIdxToExternalIdx.push_back(externalFeatureIdx);
                 break;
             }
         }
@@ -174,6 +188,8 @@ ui32 TFeaturesLayout::GetExternalFeatureIdx(ui32 internalFeatureIdx, EFeatureTyp
             return CatFeatureInternalIdxToExternalIdx[internalFeatureIdx];
         case EFeatureType::Text:
             return TextFeatureInternalIdxToExternalIdx[internalFeatureIdx];
+        case EFeatureType::Embedding:
+            return EmbeddingFeatureInternalIdxToExternalIdx[internalFeatureIdx];
     }
 }
 
@@ -199,6 +215,8 @@ bool TFeaturesLayout::IsCorrectInternalFeatureIdx(ui32 internalFeatureIdx, EFeat
             return (size_t)internalFeatureIdx < CatFeatureInternalIdxToExternalIdx.size();
         case EFeatureType::Text:
             return (size_t)internalFeatureIdx < TextFeatureInternalIdxToExternalIdx.size();
+        case EFeatureType::Embedding:
+            return (size_t)internalFeatureIdx < EmbeddingFeatureInternalIdxToExternalIdx.size();
     }
 }
 
@@ -224,6 +242,11 @@ ui32 TFeaturesLayout::GetTextFeatureCount() const {
     return (ui32)TextFeatureInternalIdxToExternalIdx.size();
 }
 
+ui32 TFeaturesLayout::GetEmbeddingFeatureCount() const {
+    // cast is safe because of size invariant established in constructors
+    return (ui32)EmbeddingFeatureInternalIdxToExternalIdx.size();
+}
+
 ui32 TFeaturesLayout::GetExternalFeatureCount() const {
     // cast is safe because of size invariant established in constructors
     return (ui32)ExternalIdxToMetaInfo.size();
@@ -237,6 +260,8 @@ ui32 TFeaturesLayout::GetFeatureCount(EFeatureType type) const {
             return GetCatFeatureCount();
         case EFeatureType::Text:
             return GetTextFeatureCount();
+        case EFeatureType::Embedding:
+            return GetEmbeddingFeatureCount();
     }
 }
 
@@ -277,6 +302,10 @@ TConstArrayRef<ui32> TFeaturesLayout::GetTextFeatureInternalIdxToExternalIdx() c
     return TextFeatureInternalIdxToExternalIdx;
 }
 
+TConstArrayRef<ui32> TFeaturesLayout::GetEmbeddingFeatureInternalIdxToExternalIdx() const {
+    return EmbeddingFeatureInternalIdxToExternalIdx;
+}
+
 
 bool TFeaturesLayout::EqualTo(const TFeaturesLayout& rhs, bool ignoreSparsity) const {
     if (ExternalIdxToMetaInfo.size() != rhs.ExternalIdxToMetaInfo.size()) {
@@ -292,12 +321,14 @@ bool TFeaturesLayout::EqualTo(const TFeaturesLayout& rhs, bool ignoreSparsity) c
             FeatureExternalIdxToInternalIdx,
             CatFeatureInternalIdxToExternalIdx,
             FloatFeatureInternalIdxToExternalIdx,
-            TextFeatureInternalIdxToExternalIdx
+            TextFeatureInternalIdxToExternalIdx,
+            EmbeddingFeatureInternalIdxToExternalIdx
         ) == std::tie(
             rhs.FeatureExternalIdxToInternalIdx,
             rhs.CatFeatureInternalIdxToExternalIdx,
             rhs.FloatFeatureInternalIdxToExternalIdx,
-            rhs.TextFeatureInternalIdxToExternalIdx
+            rhs.TextFeatureInternalIdxToExternalIdx,
+            rhs.EmbeddingFeatureInternalIdxToExternalIdx
         );
 }
 
@@ -347,6 +378,12 @@ void TFeaturesLayout::AddFeature(TFeatureMetaInfo&& featureMetaInfo) {
                 SafeIntegerCast<ui32>(TextFeatureInternalIdxToExternalIdx.size())
             );
             TextFeatureInternalIdxToExternalIdx.push_back(externalIdx);
+            break;
+        case EFeatureType::Embedding:
+            FeatureExternalIdxToInternalIdx.push_back(
+                SafeIntegerCast<ui32>(EmbeddingFeatureInternalIdxToExternalIdx.size())
+            );
+            EmbeddingFeatureInternalIdxToExternalIdx.push_back(externalIdx);
             break;
         default:
             Y_FAIL();

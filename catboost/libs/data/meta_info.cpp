@@ -91,6 +91,7 @@ TDataMetaInfo::TDataMetaInfo(
         featureIdx,
         std::move(catFeatureIndices),
         std::move(textFeatureIndices),
+        /*embeddingFeatureIndices*/ TVector<ui32>{},
         finalFeatureNames);
 
     ColumnsInfo->Validate();

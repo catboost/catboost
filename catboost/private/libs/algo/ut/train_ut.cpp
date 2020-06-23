@@ -44,6 +44,7 @@ Y_UNIT_TEST_SUITE(TTrainTest) {
                     FactorCount,
                     TVector<ui32>{},
                     TVector<ui32>{},
+                    TVector<ui32>{},
                     TVector<TString>{});
 
                 visitor->Start(metaInfo, TestDocCount, EObjectsOrder::Undefined, {});

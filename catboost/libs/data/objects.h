@@ -234,6 +234,7 @@ namespace NCB {
         TVector<THolder<TFloatValuesHolder>> FloatFeatures; // [floatFeatureIdx]
         TVector<THolder<THashedCatValuesHolder>> CatFeatures; // [catFeatureIdx]
         TVector<THolder<TStringTextValuesHolder>> TextFeatures; // [textFeatureIdx]
+        TVector<THolder<TEmbeddingValuesHolder>> EmbeddingFeatures; // [embeddingFeatureIdx]
 
     public:
         bool operator==(const TRawObjectsData& rhs) const;
@@ -323,6 +324,13 @@ namespace NCB {
          */
         TMaybeData<const TStringTextValuesHolder*> GetTextFeature(ui32 textFeatureIdx) const {
             return MakeMaybeData<const TStringTextValuesHolder>(Data.TextFeatures[textFeatureIdx]);
+        }
+
+        /* can return nullptr if this feature is unavailable
+         * (ignored or this data provider contains only subset of features)
+         */
+        TMaybeData<const TEmbeddingValuesHolder*> GetEmbeddingFeature(ui32 embeddingFeatureIdx) const {
+            return MakeMaybeData<const TEmbeddingValuesHolder>(Data.EmbeddingFeatures[embeddingFeatureIdx]);
         }
 
         /* set functions are needed for current python mutable Pool interface

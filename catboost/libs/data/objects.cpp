@@ -447,7 +447,8 @@ static bool AreFeaturesValuesEqual(
 bool NCB::TRawObjectsData::operator==(const NCB::TRawObjectsData& rhs) const {
     return AreFeaturesValuesEqual(FloatFeatures, rhs.FloatFeatures) &&
         AreFeaturesValuesEqual(CatFeatures, rhs.CatFeatures) &&
-        AreFeaturesValuesEqual(TextFeatures, rhs.TextFeatures);
+        AreFeaturesValuesEqual(TextFeatures, rhs.TextFeatures) &&
+        AreFeaturesValuesEqual(EmbeddingFeatures, rhs.EmbeddingFeatures);
 }
 
 void NCB::TRawObjectsData::PrepareForInitialization(const TDataMetaInfo& metaInfo) {
@@ -461,6 +462,9 @@ void NCB::TRawObjectsData::PrepareForInitialization(const TDataMetaInfo& metaInf
 
     TextFeatures.clear();
     TextFeatures.resize((size_t)metaInfo.FeaturesLayout->GetTextFeatureCount());
+
+    EmbeddingFeatures.clear();
+    EmbeddingFeatures.resize((size_t)metaInfo.FeaturesLayout->GetEmbeddingFeatureCount());
 }
 
 
@@ -524,6 +528,7 @@ void NCB::TRawObjectsData::Check(
     }
     CheckDataSizes(objectCount, featuresLayout, EFeatureType::Categorical, CatFeatures);
     CheckDataSizes(objectCount, featuresLayout, EFeatureType::Text, TextFeatures);
+    CheckDataSizes(objectCount, featuresLayout, EFeatureType::Embedding, EmbeddingFeatures);
 
     localExecutor->ExecRangeWithThrow(
         [&] (int catFeatureIdx) {
@@ -707,6 +712,7 @@ TObjectsDataProviderPtr NCB::TRawObjectsDataProvider::GetSubsetImpl(
     getSubsetWithScheduling(Data.FloatFeatures, &subsetData.FloatFeatures);
     getSubsetWithScheduling(Data.CatFeatures, &subsetData.CatFeatures);
     getSubsetWithScheduling(Data.TextFeatures, &subsetData.TextFeatures);
+    getSubsetWithScheduling(Data.EmbeddingFeatures, &subsetData.EmbeddingFeatures);
 
     resourceConstrainedExecutor.ExecTasks();
 
@@ -742,14 +748,16 @@ static bool HasSparseData(const TVector<THolder<T>>& columns) {
 bool NCB::TRawObjectsDataProvider::HasDenseData() const {
     return ::HasDenseData(Data.FloatFeatures) ||
         ::HasDenseData(Data.CatFeatures) ||
-        ::HasDenseData(Data.TextFeatures);
+        ::HasDenseData(Data.TextFeatures) ||
+        ::HasDenseData(Data.EmbeddingFeatures);
 }
 
 
 bool NCB::TRawObjectsDataProvider::HasSparseData() const {
     return ::HasSparseData(Data.FloatFeatures) ||
         ::HasSparseData(Data.CatFeatures) ||
-        ::HasSparseData(Data.TextFeatures);
+        ::HasSparseData(Data.TextFeatures) ||
+        ::HasDenseData(Data.EmbeddingFeatures);
 }
 
 void NCB::TRawObjectsDataProvider::SetGroupIds(TConstArrayRef<TStringBuf> groupStringIds) {

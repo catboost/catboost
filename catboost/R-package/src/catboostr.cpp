@@ -205,6 +205,7 @@ SEXP CatBoostCreateFromMatrix_R(SEXP matrixParam,
             dataColumns,
             ToUnsigned(GetVectorFromSEXP<int>(catFeaturesParam)),
             TVector<ui32>{}, // TODO(d-kruchinin) support text features in R
+            TVector<ui32>{}, // TODO(akhropov) support embedding features in R
             featureId);
 
         metaInfo.TargetType = targetColumns ? ERawTargetType::Float : ERawTargetType::None;

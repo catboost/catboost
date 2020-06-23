@@ -1,5 +1,7 @@
 #pragma once
 
+#include "maybe_owning_array_holder.h"
+
 #include <catboost/private/libs/data_types/text.h>
 
 #include <library/cpp/digest/crc32c/crc32c.h>
@@ -80,6 +82,11 @@ namespace NCB {
         } else {
             return UpdateCheckSum(init, defined);
         }
+    }
+
+    template <class T>
+    inline ui32 UpdateCheckSumImpl(ui32 init, const TMaybeOwningArrayHolder<T>& value) {
+        return UpdateCheckSumImpl(init, *value);
     }
 
     template <class T>
