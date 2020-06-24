@@ -80,6 +80,7 @@
   <ItemGroup>
     <ClCompile Include="$(SolutionDir)..\library\cpp\testing\common\env.cpp"/>
     <ClCompile Include="$(SolutionDir)$(Configuration)\library\cpp\testing\common\env_tmpl.cpp"/>
+    <ClCompile Include="$(SolutionDir)..\library\cpp\testing\common\scope.cpp"/>
     <CustomBuild Include="$(SolutionDir)..\build\scripts\configure_file.py">
       <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
 cd /d $(SolutionDir)$(Configuration)\library\cpp\testing\common
@@ -108,6 +109,7 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
       <Outputs>$(SolutionDir)$(Configuration)\library\cpp\testing\common\env_tmpl.cpp;</Outputs>
     </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\library\cpp\testing\common\env.h"/>
+    <ClInclude Include="$(SolutionDir)..\library\cpp\testing\common\scope.h"/>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets"/>
   <ImportGroup Label="ExtensionTargets"/>
