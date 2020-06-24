@@ -102,11 +102,9 @@ ALLOW passport/cpp/daemons/blackbox/ut/totp_manual/tests -> contrib/python/MySQL
 ALLOW passport/cpp/recipes/passport/passport_mock -> contrib/python/MySQL-python
 ALLOW passport/python/adm_api -> contrib/python/MySQL-python
 ALLOW passport/python/api -> contrib/python/MySQL-python
-ALLOW passport/python/core -> contrib/python/MySQL-python
+ALLOW passport/python/core/tests -> contrib/python/MySQL-python
 ALLOW passport/python/dbscripts -> contrib/python/MySQL-python
 ALLOW passport/python/grants_configurator -> contrib/python/MySQL-python
-ALLOW passport/python/oauth/core/db/eav -> contrib/python/MySQL-python
-ALLOW passport/python/perimeter_api -> contrib/python/MySQL-python
 ALLOW passport/python/social -> contrib/python/MySQL-python
 ALLOW passport/python/yasms/db -> contrib/python/MySQL-python
 ALLOW testenv/core -> contrib/python/MySQL-python
