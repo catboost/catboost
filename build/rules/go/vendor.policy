@@ -493,7 +493,6 @@ ALLOW locdoc/doc/daas-farm/pkg/daasclient -> vendor/github.com/pkg/errors
 ALLOW locdoc/doc/daas-farm/pkg/menugen -> vendor/github.com/pkg/errors
 ALLOW locdoc/doc/daas-farm/pkg/wikiclient -> vendor/github.com/pkg/errors
 ALLOW locdoc/doc/daas-farm/pkg/wikigen -> vendor/github.com/pkg/errors
-ALLOW market/sre/library/golang/dispenser -> vendor/github.com/pkg/errors
 ALLOW market/sre/services/rtcstats2graphite/src/internal/blogic -> vendor/github.com/pkg/errors
 ALLOW market/sre/services/rtcstats2graphite/src/internal/nanny -> vendor/github.com/pkg/errors
 ALLOW market/sre/services/rtcstats2graphite/src/internal/oops -> vendor/github.com/pkg/errors
@@ -504,8 +503,6 @@ ALLOW market/sre/tools/ya-gde/src/pkg/hostinfo -> vendor/github.com/pkg/errors
 ALLOW market/sre/tools/ya-gde/src/pkg/util -> vendor/github.com/pkg/errors
 ALLOW transfer_manager/go/pkg/abstract -> vendor/github.com/pkg/errors
 ALLOW yabs/telephony/platform/inventory/api/http -> vendor/github.com/pkg/errors
-ALLOW yabs/telephony/platform/inventory/core -> vendor/github.com/pkg/errors
-ALLOW yabs/telephony/platform/push-service/api/http -> vendor/github.com/pkg/errors
 ALLOW yt/jaeger/plugin/cmd/agent -> vendor/github.com/pkg/errors
 ALLOW yt/jaeger/plugin/cmd/collector -> vendor/github.com/pkg/errors
 
