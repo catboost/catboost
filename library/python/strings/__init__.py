@@ -91,7 +91,13 @@ def stringize_deep(x, enc=DEFAULT_ENCODING, relaxed=True):
 @library.python.func.memoize(thread_safe=True)
 def locale_encoding():
     try:
-        return locale.getdefaultlocale()[1]
+        loc = locale.getdefaultlocale()[1]
+        if loc:
+            codecs.lookup(loc)
+        return loc
+    except LookupError as e:
+        logger.warn('Cannot get system locale: %s', e)
+        return None
     except ValueError as e:
         logger.warn('Cannot get system locale: %s', e)
         return None
