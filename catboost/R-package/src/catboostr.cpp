@@ -118,6 +118,7 @@ SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
                               SEXP pairsFileParam,
                               SEXP featureNamesFileParam,
                               SEXP delimiterParam,
+                              SEXP numVectorDelimiterParam,
                               SEXP hasHeaderParam,
                               SEXP threadCountParam,
                               SEXP verboseParam) {
@@ -126,8 +127,11 @@ SEXP CatBoostCreateFromFile_R(SEXP poolFileParam,
 
     NCatboostOptions::TColumnarPoolFormatParams columnarPoolFormatParams;
     columnarPoolFormatParams.DsvFormat =
-        TDsvFormatOptions{static_cast<bool>(asLogical(hasHeaderParam)),
-                               CHAR(asChar(delimiterParam))[0]};
+        TDsvFormatOptions{
+            static_cast<bool>(asLogical(hasHeaderParam)),
+            CHAR(asChar(delimiterParam))[0],
+            CHAR(asChar(numVectorDelimiterParam))[0]
+        };
 
     TStringBuf cdPathWithScheme(CHAR(asChar(cdFileParam)));
     if (!cdPathWithScheme.empty()) {

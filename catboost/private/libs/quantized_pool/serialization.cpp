@@ -209,6 +209,7 @@ static TPoolMetainfo MakePoolMetainfo(
             case EColumn::Prediction:
             case EColumn::Auxiliary:
             case EColumn::Text:
+            case EColumn::NumVector:
                 ythrow TCatBoostException() << "unexpected column type in quantized pool";
         }
 

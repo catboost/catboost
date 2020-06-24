@@ -570,6 +570,37 @@ void NCB::TRawObjectsData::Check(
         SafeIntegerCast<int>(CatFeatures.size()),
         NPar::TLocalExecutor::WAIT_COMPLETE
     );
+
+    if (objectCount) {
+        localExecutor->ExecRangeWithThrow(
+            [&] (int embeddingFeatureIdx) {
+                auto* embeddingFeaturePtr = EmbeddingFeatures[embeddingFeatureIdx].Get();
+                if (embeddingFeaturePtr) {
+                    size_t expectedDimension = embeddingFeaturePtr->GetBlockIterator()->Next(1)[0].GetSize();
+
+                    if (auto* denseEmbeddingFeaturePtr
+                            = dynamic_cast<const TEmbeddingArrayValuesHolder*>(embeddingFeaturePtr))
+                    {
+                        denseEmbeddingFeaturePtr->GetData()->ParallelForEach(
+                            [&] (ui32 objectIdx, const TConstEmbedding& value) {
+                                CB_ENSURE_INTERNAL(
+                                    value.GetSize() == expectedDimension,
+                                    "Inconsistent dimensions for embedding data for objects #0 and #"
+                                    << objectIdx
+                                );
+                            },
+                            localExecutor
+                        );
+                    } else {
+                        CB_ENSURE_INTERNAL(false, "unknown TEmbeddingValuesHolder subtype");
+                    }
+                }
+            },
+            0,
+            SafeIntegerCast<int>(EmbeddingFeatures.size()),
+            NPar::TLocalExecutor::WAIT_COMPLETE
+        );
+    }
 }
 
 template <class TColumn, class TGetAggregatedColumn>

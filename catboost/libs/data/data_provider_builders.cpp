@@ -1,6 +1,7 @@
 #include "data_provider_builders.h"
 
 #include "cat_feature_perfect_hash.h"
+#include "columns.h"
 #include "data_provider.h"
 #include "feature_index.h"
 #include "lazy_columns.h"
@@ -115,6 +116,7 @@ namespace NCB {
             prepareFeaturesStorage(FloatFeaturesStorage);
             prepareFeaturesStorage(CatFeaturesStorage);
             prepareFeaturesStorage(TextFeaturesStorage);
+            prepareFeaturesStorage(EmbeddingFeaturesStorage);
 
             switch (Data.MetaInfo.TargetType) {
                 case ERawTargetType::Float:
@@ -274,6 +276,19 @@ namespace NCB {
                 [&] (ui32 perTypeFeatureIdx, TString value) {
                     TextFeaturesStorage.Set(TTextFeatureIdx(perTypeFeatureIdx), objectIdx, std::move(value));
                 }
+            );
+        }
+
+        void AddEmbeddingFeature(
+            ui32 localObjectIdx,
+            ui32 flatFeatureIdx,
+            TMaybeOwningConstArrayHolder<float> feature
+        ) override {
+            auto embeddingFeatureIdx = GetInternalFeatureIdx<EFeatureType::Embedding>(flatFeatureIdx);
+            EmbeddingFeaturesStorage.Set(
+                embeddingFeatureIdx,
+                Cursor + localObjectIdx,
+                std::move(feature)
             );
         }
 
@@ -448,6 +463,7 @@ namespace NCB {
             }
 
             getFeaturesResult(TextFeaturesStorage, &Data.ObjectsData.TextFeatures);
+            getFeaturesResult(EmbeddingFeaturesStorage, &Data.ObjectsData.EmbeddingFeatures);
 
             ResultTaken = true;
 
@@ -620,7 +636,7 @@ namespace NCB {
                 T value,
                 TFeaturesStorage* storage
             ) {
-                storage->PerFeatureData[*perTypeFeatureIdx].DenseDstView[objectIdx] = value;
+                storage->PerFeatureData[*perTypeFeatureIdx].DenseDstView[objectIdx] = std::move(value);
             }
 
             static void SetSparseFeature(
@@ -635,7 +651,7 @@ namespace NCB {
                 }
                 auto& sparseDataPart = storage->SparseDataParts[threadId];
                 sparseDataPart.Indices.emplace_back(TSparseIndex2d{*perTypeFeatureIdx, objectIdx});
-                sparseDataPart.Values.emplace_back(value);
+                sparseDataPart.Values.push_back(std::move(value));
             }
 
             static void IgnoreFeature(
@@ -912,6 +928,7 @@ namespace NCB {
         TFeaturesStorage<EFeatureType::Float, float> FloatFeaturesStorage;
         TFeaturesStorage<EFeatureType::Categorical, ui32> CatFeaturesStorage;
         TFeaturesStorage<EFeatureType::Text, TString> TextFeaturesStorage;
+        TFeaturesStorage<EFeatureType::Embedding, TConstEmbedding> EmbeddingFeaturesStorage;
 
         std::array<THashPart, CB_THREAD_LIMIT> HashMapParts;
 

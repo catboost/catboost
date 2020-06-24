@@ -10,15 +10,36 @@
 #include <util/generic/string.h>
 
 #include <util/stream/file.h>
-
+#include <util/string/escape.h>
 
 
 namespace NCB {
 
     struct TDsvFormatOptions {
-        bool HasHeader = false;
-        char Delimiter = '\t';
-        bool IgnoreCsvQuoting = false;
+    public:
+        bool HasHeader;
+        char Delimiter;
+        char NumVectorDelimiter;
+        bool IgnoreCsvQuoting;
+
+    public:
+        explicit TDsvFormatOptions(
+            bool hasHeader = false,
+            char delimiter = '\t',
+            char numVectorDelimiter = ';',
+            bool ignoreCsvQuoting = false
+        )
+            : HasHeader(hasHeader)
+            , Delimiter(delimiter)
+            , NumVectorDelimiter(numVectorDelimiter)
+            , IgnoreCsvQuoting(ignoreCsvQuoting)
+        {
+            CB_ENSURE(
+                delimiter != numVectorDelimiter,
+                "Field delimiter (" << EscapeC(Delimiter) << ") is the same as num vector delimiter ("
+                << EscapeC(NumVectorDelimiter) << ')'
+            );
+        }
     };
 
     struct TLineDataReaderArgs {
@@ -50,7 +71,7 @@ namespace NCB {
         NObjectFactory::TParametrizedObjectFactory<ILineDataReader, TString, TLineDataReaderArgs>;
 
     THolder<ILineDataReader> GetLineDataReader(const TPathWithScheme& pathWithScheme,
-                                               const TDsvFormatOptions& format = {});
+                                               const TDsvFormatOptions& format = TDsvFormatOptions());
 
 
     int CountLines(const TString& poolFile);

@@ -290,6 +290,7 @@ void NCB::TCBQuantizedDataLoader::AddChunk(
             // Are skipped in a caller
         case EColumn::Auxiliary:
         case EColumn::Text:
+        case EColumn::NumVector:
             // Should not be present in quantized pool
         case EColumn::Sparse:
             // Not supported by CatBoost at all
