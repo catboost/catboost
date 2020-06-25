@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
@@ -31,11 +32,13 @@ public class CatBoostModel implements AutoCloseable {
         private String name;
         private int featureIndex;
         private int flatFeatureIndex;
+        private boolean usedInModel;
 
-        protected Feature(String name, int featureIndex, int flatFeatureIndex) {
+        protected Feature(String name, int featureIndex, int flatFeatureIndex, boolean usedInModel) {
             this.name = name;
             this.featureIndex = featureIndex;
             this.flatFeatureIndex = flatFeatureIndex;
+            this.usedInModel = usedInModel;
         }
 
         public String getName() {
@@ -49,11 +52,15 @@ public class CatBoostModel implements AutoCloseable {
         public int getFlatFeatureIndex() {
             return flatFeatureIndex;
         }
+
+        public boolean isUsedInModel() {
+            return usedInModel;
+        }
     }
 
     public static final class TextFeature extends Feature {
-        protected TextFeature(String name, int featureIndex, int flatFeatureIndex) {
-            super(name, featureIndex, flatFeatureIndex);
+        protected TextFeature(String name, int featureIndex, int flatFeatureIndex, boolean usedInModel) {
+            super(name, featureIndex, flatFeatureIndex, usedInModel);
         }
     }
 
@@ -67,8 +74,8 @@ public class CatBoostModel implements AutoCloseable {
         private NanValueTreatment nanValueTreatment;
         private boolean hasNans;
 
-        protected FloatFeature(String name, int featureIndex, int flatFeatureIndex, int hasNans, String nanValueTreatment) {
-            super(name, featureIndex, flatFeatureIndex);
+        protected FloatFeature(String name, int featureIndex, int flatFeatureIndex, boolean usedInModel, int hasNans, String nanValueTreatment) {
+            super(name, featureIndex, flatFeatureIndex, usedInModel);
             this.hasNans = hasNans > 0;
             this.nanValueTreatment = NanValueTreatment.valueOf(nanValueTreatment);
         }
@@ -83,8 +90,8 @@ public class CatBoostModel implements AutoCloseable {
     }
 
     public static final class CatFeature extends Feature {
-        protected CatFeature(String name, int featureIndex, int flatFeatureIndex) {
-            super(name, featureIndex, flatFeatureIndex);
+        protected CatFeature(String name, int featureIndex, int flatFeatureIndex, boolean usedInModel) {
+            super(name, featureIndex, flatFeatureIndex, usedInModel);
         }
     }
 
@@ -111,6 +118,8 @@ public class CatBoostModel implements AutoCloseable {
         final int[][] textFlatFeatureIndex = new int[1][];
         final int[][] textFeatureIndex = new int[1][];
 
+        final int[][] usedFeatureIndicesArr = new int[1][];
+
         try {
             NativeLib.handle().catBoostModelGetPredictionDimension(handle, predictionDimension);
             NativeLib.handle().catBoostModelGetTreeCount(handle, treeCount);
@@ -121,9 +130,15 @@ public class CatBoostModel implements AutoCloseable {
             NativeLib.handle().catBoostModelGetFloatFeatures(handle, floatFeatureNames, floatFlatFeatureIndex, floatFeatureIndex, floatHasNans, floatNanValueTreatment);
             NativeLib.handle().catBoostModelGetCatFeatures(handle, catFeatureNames, catFlatFeatureIndex, catFeatureIndex);
             NativeLib.handle().catBoostModelGetTextFeatures(handle, textFeatureNames, textFlatFeatureIndex, textFeatureIndex);
+            NativeLib.handle().catBoostModelGetUsedFeatureIndices(handle, usedFeatureIndicesArr);
         } catch (CatBoostError e) {
             this.close();
             throw e;
+        }
+
+        final HashSet<Integer> usedFeatureIndices = new HashSet<>();
+        for (int i = 0; i < usedFeatureIndicesArr[0].length; i++) {
+            usedFeatureIndices.add(usedFeatureIndicesArr[0][i]);
         }
 
         this.predictionDimension = predictionDimension[0];
@@ -139,18 +154,21 @@ public class CatBoostModel implements AutoCloseable {
             this.features.add(new FloatFeature(floatFeatureNames[0][i],
                                                floatFeatureIndex[0][i],
                                                floatFlatFeatureIndex[0][i],
+                                               usedFeatureIndices.contains(floatFlatFeatureIndex[0][i]),
                                                floatHasNans[0][i],
                                                floatNanValueTreatment[0][i]));
         }
         for (int i = 0; i < catFeatureNames[0].length; i++) {
             this.features.add(new CatFeature(catFeatureNames[0][i],
                                              catFeatureIndex[0][i],
-                                             catFlatFeatureIndex[0][i]));
+                                             catFlatFeatureIndex[0][i],
+                                             usedFeatureIndices.contains(catFlatFeatureIndex[0][i])));
         }
         for (int i = 0; i < textFeatureNames[0].length; i++) {
             this.features.add(new TextFeature(textFeatureNames[0][i],
                                               textFeatureIndex[0][i],
-                                              textFlatFeatureIndex[0][i]));
+                                              textFlatFeatureIndex[0][i],
+                                              usedFeatureIndices.contains(textFlatFeatureIndex[0][i])));
         }
         Collections.sort(this.features, new Comparator<Feature>() {
             public int compare(Feature v1, Feature v2) {

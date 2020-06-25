@@ -89,6 +89,12 @@ class CatBoostJNI {
         CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetTextFeatures(handle, names, flat_feature_index, feature_index));
     }
 
+    final void catBoostModelGetUsedFeatureIndices(
+            final long handle,
+            final @NotNull int[][] featureIndices) throws CatBoostError {
+        CatBoostJNIImpl.checkCall(CatBoostJNIImpl.catBoostModelGetUsedFeatureIndices(handle, featureIndices));
+    }
+
     final void catBoostModelGetTreeCount(
             final long handle,
             final @NotNull int[] treeCount) throws CatBoostError {

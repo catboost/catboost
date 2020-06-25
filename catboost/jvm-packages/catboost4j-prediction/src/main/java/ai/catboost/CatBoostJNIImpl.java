@@ -83,6 +83,11 @@ class CatBoostJNIImpl {
             @NotNull int[][] feature_index);
 
     @Nullable
+    final static native String catBoostModelGetUsedFeatureIndices(
+            long handle,
+            @NotNull int[][] featureIndices);
+
+    @Nullable
     final static native String catBoostModelGetTreeCount(
             long handle,
             @NotNull int[] treeCount);

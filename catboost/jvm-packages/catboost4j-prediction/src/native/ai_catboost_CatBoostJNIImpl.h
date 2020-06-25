@@ -115,6 +115,14 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetTextF
 
 /*
  * Class:     ai_catboost_CatBoostJNIImpl
+ * Method:    catBoostModelGetUsedFeatureIndices
+ * Signature: (J[[I)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetUsedFeatureIndices
+  (JNIEnv *, jclass, jlong, jobjectArray);
+
+/*
+ * Class:     ai_catboost_CatBoostJNIImpl
  * Method:    catBoostModelGetTreeCount
  * Signature: (J[I)Ljava/lang/String;
  */

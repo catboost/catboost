@@ -194,6 +194,7 @@ public class CatBoostModelTest {
             TestCase.assertEquals(0, model.getFeatures().get(0).getFeatureIndex());
             TestCase.assertTrue(model.getFeatures().get(0) instanceof CatBoostModel.CatFeature);
             TestCase.assertEquals("3", model.getFeatures().get(3).getName());
+            TestCase.assertTrue(model.getFeatures().get(3).isUsedInModel());
             TestCase.assertEquals(false, ((CatBoostModel.FloatFeature) model.getFeatures().get(3)).hasNans());
             TestCase.assertEquals(CatBoostModel.FloatFeature.NanValueTreatment.AsIs, ((CatBoostModel.FloatFeature) model.getFeatures().get(3)).getNanValueTreatment());
         }

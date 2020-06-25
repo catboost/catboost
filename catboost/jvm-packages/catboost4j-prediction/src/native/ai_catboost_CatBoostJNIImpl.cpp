@@ -479,6 +479,45 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetTextF
     Y_END_JNI_API_CALL();
 }
 
+JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetUsedFeatureIndices
+  (JNIEnv* jenv, jclass, jlong jhandle, jobjectArray jflatFeatureIndex) {
+    Y_BEGIN_JNI_API_CALL();
+
+    const auto* const model = ToConstFullModelPtr(jhandle);
+    CB_ENSURE(model, "got nullptr model pointer");
+
+    auto featureCount = model->GetUsedCatFeaturesCount() + model->GetUsedFloatFeaturesCount() + model->GetUsedTextFeaturesCount();
+    auto flatFeatureIndex = jenv->NewIntArray(featureCount);
+    CB_ENSURE(flatFeatureIndex, "OutOfMemoryError");
+    jenv->SetObjectArrayElement(jflatFeatureIndex, 0, flatFeatureIndex);
+
+    int index = 0;
+
+    for (const auto& feature : model->ModelTrees->GetTextFeatures()) {
+        if (feature.UsedInModel()) {
+            jenv->SetIntArrayRegion(flatFeatureIndex, index, 1, &feature.Position.FlatIndex);
+            index++;
+        }
+    }
+
+    for (const auto& feature : model->ModelTrees->GetCatFeatures()) {
+        if (feature.UsedInModel()) {
+            jenv->SetIntArrayRegion(flatFeatureIndex, index, 1, &feature.Position.FlatIndex);
+            index++;
+        }
+    }
+
+    for (const auto& feature : model->ModelTrees->GetFloatFeatures()) {
+        if (feature.UsedInModel()) {
+            jenv->SetIntArrayRegion(flatFeatureIndex, index, 1, &feature.Position.FlatIndex);
+            index++;
+        }
+    }
+
+    Y_END_JNI_API_CALL();
+}
+
+
 JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetTreeCount
   (JNIEnv* jenv, jclass, jlong jhandle, jintArray jtreeCount) {
     Y_BEGIN_JNI_API_CALL();
