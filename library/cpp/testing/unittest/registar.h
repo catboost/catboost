@@ -880,7 +880,7 @@ public:                       \
             }                                                                                                           \
                                                                                                                         \
             static void AddTest(const char* name, std::function<void(NUnitTest::TTestContext&)> body, bool forceFork) { \
-                Tests().push_back([=]{ return new NUnitTest::TBaseTestCase(name, body, forceFork); });                  \
+                Tests().push_back([=]{ return MakeHolder<NUnitTest::TBaseTestCase>(name, body, forceFork); });          \
             }                                                                                                           \
                                                                                                                         \
             static void AddTest(TTestCaseFactory testCaseFactory) {                                                     \
