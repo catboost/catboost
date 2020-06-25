@@ -787,6 +787,13 @@
                         "arch": "aarch64"
                     },
                     "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX",
+                        "arch": "ppc64le"
+                    },
+                    "default": true
                 }
             ]
         },
