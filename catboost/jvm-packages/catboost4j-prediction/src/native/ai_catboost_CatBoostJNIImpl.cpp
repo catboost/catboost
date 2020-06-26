@@ -374,28 +374,30 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetFloat
         jenv->SetObjectArrayElement(namesArray, i, jname);
         jenv->DeleteLocalRef(jname);
 
-        jenv->SetIntArrayRegion(flatFeatureIndex, i, 1, &feature.Position.FlatIndex);
-        jenv->SetIntArrayRegion(featureIndex, i, 1, &feature.Position.Index);
-        int lhasNans = feature.HasNans ? 1 : 0;
-        jenv->SetIntArrayRegion(hasNans, i, 1, &lhasNans);
+        const jint iFlatIndex = feature.Position.FlatIndex;
+        jenv->SetIntArrayRegion(flatFeatureIndex, i, 1, &iFlatIndex);
+        const jint iFeatureIndex = feature.Position.Index;
+        jenv->SetIntArrayRegion(featureIndex, i, 1, &iFeatureIndex);
+        const jint iHasNans = feature.HasNans ? 1 : 0;
+        jenv->SetIntArrayRegion(hasNans, i, 1, &iHasNans);
 
-        jstring jnanValueTreatment;
+        jstring iNanValueTreatment;
         switch (feature.NanValueTreatment) {
           case TFloatFeature::ENanValueTreatment::AsIs:
-            jnanValueTreatment = jenv->NewStringUTF("AsIs");
+            iNanValueTreatment = jenv->NewStringUTF("AsIs");
             break;
           case TFloatFeature::ENanValueTreatment::AsFalse:
-            jnanValueTreatment = jenv->NewStringUTF("AsFalse");
+            iNanValueTreatment = jenv->NewStringUTF("AsFalse");
             break;
           case TFloatFeature::ENanValueTreatment::AsTrue:
-            jnanValueTreatment = jenv->NewStringUTF("AsTrue");
+            iNanValueTreatment = jenv->NewStringUTF("AsTrue");
             break;
         }
 
-        CB_ENSURE(jnanValueTreatment, "OutOfMemoryError");
+        CB_ENSURE(iNanValueTreatment, "OutOfMemoryError");
 
-        jenv->SetObjectArrayElement(nanValueTreatment, i, jnanValueTreatment);
-        jenv->DeleteLocalRef(jnan_value_treatment);
+        jenv->SetObjectArrayElement(nanValueTreatment, i, iNanValueTreatment);
+        jenv->DeleteLocalRef(iNanValueTreatment);
 
         i++;
     }
@@ -432,8 +434,10 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetCatFe
         jenv->SetObjectArrayElement(namesArray, i, jname);
         jenv->DeleteLocalRef(jname);
 
-        jenv->SetIntArrayRegion(flatFeatureIndex, i, 1, &feature.Position.FlatIndex);
-        jenv->SetIntArrayRegion(featureIndex, i, 1, &feature.Position.Index);
+        const jint iFlatIndex = feature.Position.FlatIndex;
+        jenv->SetIntArrayRegion(flatFeatureIndex, i, 1, &iFlatIndex);
+        const jint iIndex = feature.Position.Index;
+        jenv->SetIntArrayRegion(featureIndex, i, 1, &iIndex);
 
         i++;
     }
@@ -470,8 +474,10 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetTextF
         jenv->SetObjectArrayElement(namesArray, i, jname);
         jenv->DeleteLocalRef(jname);
 
-        jenv->SetIntArrayRegion(flatFeatureIndex, i, 1, &feature.Position.FlatIndex);
-        jenv->SetIntArrayRegion(featureIndex, i, 1, &feature.Position.Index);
+        const jint iFlatIndex = feature.Position.FlatIndex;
+        jenv->SetIntArrayRegion(flatFeatureIndex, i, 1, &iFlatIndex);
+        const jint iIndex = feature.Position.Index;
+        jenv->SetIntArrayRegion(featureIndex, i, 1, &iIndex);
 
         i++;
     }
@@ -495,28 +501,30 @@ JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetUsedF
 
     for (const auto& feature : model->ModelTrees->GetTextFeatures()) {
         if (feature.UsedInModel()) {
-            jenv->SetIntArrayRegion(flatFeatureIndex, index, 1, &feature.Position.FlatIndex);
+            const jint iFlatIndex = feature.Position.FlatIndex;
+            jenv->SetIntArrayRegion(flatFeatureIndex, index, 1, &iFlatIndex);
             index++;
         }
     }
 
     for (const auto& feature : model->ModelTrees->GetCatFeatures()) {
         if (feature.UsedInModel()) {
-            jenv->SetIntArrayRegion(flatFeatureIndex, index, 1, &feature.Position.FlatIndex);
+            const jint iFlatIndex = feature.Position.FlatIndex;
+            jenv->SetIntArrayRegion(flatFeatureIndex, index, 1, &iFlatIndex);
             index++;
         }
     }
 
     for (const auto& feature : model->ModelTrees->GetFloatFeatures()) {
         if (feature.UsedInModel()) {
-            jenv->SetIntArrayRegion(flatFeatureIndex, index, 1, &feature.Position.FlatIndex);
+            const jint iFlatIndex = feature.Position.FlatIndex;
+            jenv->SetIntArrayRegion(flatFeatureIndex, index, 1, &iFlatIndex);
             index++;
         }
     }
 
     Y_END_JNI_API_CALL();
 }
-
 
 JNIEXPORT jstring JNICALL Java_ai_catboost_CatBoostJNIImpl_catBoostModelGetTreeCount
   (JNIEnv* jenv, jclass, jlong jhandle, jintArray jtreeCount) {
