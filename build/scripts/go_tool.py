@@ -443,15 +443,21 @@ def do_link_exe(args):
             extldflags.append('-static')
             filter_musl = lambda x: not x in ('-lc', '-ldl', '-lm', '-lpthread', '-lrt')
         extldflags += list(filter(filter_musl, args.extldflags))
+    cgo_peers = []
     if args.cgo_peers is not None and len(args.cgo_peers) > 0:
         is_group = args.targ_os == 'linux'
         if is_group:
-            extldflags.append('-Wl,--start-group')
-        extldflags.extend(os.path.join(args.build_root, x) for x in args.cgo_peers)
+            cgo_peers.append('-Wl,--start-group')
+        cgo_peers.extend(os.path.join(args.build_root, x) for x in args.cgo_peers)
         if is_group:
-            extldflags.append('-Wl,--end-group')
+            cgo_peers.append('-Wl,--end-group')
+    try:
+        index = extldflags.index('--cgo-peers')
+        extldflags = extldflags[:index] + cgo_peers + extldflags[index+1:]
+    except ValueError:
+        extldflags.extend(cgo_peers)
     if len(extldflags) > 0:
-        cmd.append('-extldflags=' + ' '.join(extldflags))
+        cmd.append('-extldflags={}'.format(' '.join(extldflags)))
     cmd.append(compile_args.output)
     call(cmd, args.build_root)
 
