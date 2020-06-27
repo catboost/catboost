@@ -86,7 +86,7 @@ namespace NCudaLib {
         static inline THolder<ICommand> LoadCommand(IInputStream* input) {
             ui32 id = 0;
             ::Load(input, id);
-            THolder<ICommand> command = TTaskFactory::Construct(id);
+            THolder<ICommand> command = THolder<ICommand>(TTaskFactory::Construct(id));
             CB_ENSURE(command, "Error: Can't find object with id " << id);
             command->Load(input);
             return command;

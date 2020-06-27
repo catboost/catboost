@@ -50,7 +50,7 @@ namespace NCB {
             );
         CB_ENSURE(res != nullptr,
                   "Processor for scheme [" << pathWithScheme.Scheme << "] not found");
-        return res;
+        return THolder<ISchemeDependentProcessor>(res);
     }
 
 }

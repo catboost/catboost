@@ -51,7 +51,7 @@ namespace NCB {
     void TTextFeatureCalcer::Load(IInputStream* stream) {
         ui64 bufferSize;
         ::Load(stream, bufferSize);
-        TArrayHolder<ui8> buffer = new ui8[bufferSize];
+        TArrayHolder<ui8> buffer = TArrayHolder<ui8>(new ui8[bufferSize]);
         const ui64 loadedBytes = stream->Load(buffer.Get(), bufferSize);
         CB_ENSURE(loadedBytes == bufferSize, "Failed to deserialize: Couldn't read calcer flatbuffer");
 

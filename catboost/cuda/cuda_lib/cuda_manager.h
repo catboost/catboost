@@ -433,7 +433,7 @@ namespace NCudaLib {
             Events.push_back(TManualEvent());
             Events.back().Reset();
             childManager.StartChild(Parent, devices, Events.back());
-            return new TStopChildCudaManagerCallback(&childManager);
+            return MakeHolder<TStopChildCudaManagerCallback>(&childManager);
         }
 
         THolder<TStopChildCudaManagerCallback> Initialize(ui64 dev) {
