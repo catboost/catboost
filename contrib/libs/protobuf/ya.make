@@ -1,5 +1,7 @@
 LIBRARY()
 
+PROVIDES(protobuf)
+
 LICENSE(
     BSD3
 )
