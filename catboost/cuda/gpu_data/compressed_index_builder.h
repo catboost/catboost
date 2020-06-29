@@ -119,7 +119,7 @@ namespace NCatboostCuda {
             TVector<ui32> restFeatures = FilterZeroFeatures(featuresInfo,
                                                             featureIds);
 
-            dst->DataSets.push_back(new TDataSet(description,
+            dst->DataSets.push_back(MakeHolder<TDataSet>(description,
                                                  samplesMapping,
                                                  dst->FlatStorage,
                                                  featureIds));

@@ -30,7 +30,7 @@ TVector<TBucketStats, TPoolAllocator>& TBucketStatsCache::GetStats(
         } else {
             splitStats = new TVector<TBucketStats, TPoolAllocator>(MemoryPool.Get());
             splitStats->yresize(MaxBodyTailCount * ApproxDimension * splitStatsCount);
-            Stats[splitEnsemble] = splitStats;
+            Stats[splitEnsemble] = THolder<TVector<TBucketStats, TPoolAllocator>>(splitStats);
             *areStatsDirty = true;
         }
     }
