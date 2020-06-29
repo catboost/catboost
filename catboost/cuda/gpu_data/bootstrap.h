@@ -12,20 +12,35 @@
 #include <catboost/cuda/cuda_util/sort.h>
 #include <catboost/cuda/cuda_util/filter.h>
 #include <catboost/cuda/cuda_util/helpers.h>
-#include <catboost/cuda/cuda_util/scan.h>
+
+#include <util/generic/ymath.h>
 
 namespace NCatboostCuda {
     template <class TMapping>
     class TBootstrap {
     public:
-        TBootstrap(const NCatboostOptions::TBootstrapConfig& config)
+        TBootstrap(const NCatboostOptions::TBootstrapConfig& config, TMaybe<float> leavesL1Sum = Nothing())
             : Config(config)
+            , Lambda(config.GetMvsReg())
         {
+            if (!Lambda.Defined()) {
+                Lambda = leavesL1Sum;
+            }
         }
 
-        static void Bootstrap(const NCatboostOptions::TBootstrapConfig& config,
-                              TGpuAwareRandom& random,
-                              TCudaBuffer<float, TMapping>& weights) {
+        void Reset(TMaybe<float> leavesL1Sum) {
+            if (!(Config.GetMvsReg().Defined())) {
+                Lambda = leavesL1Sum;
+            }
+        }
+
+        static void Bootstrap(
+            const NCatboostOptions::TBootstrapConfig& config,
+            TGpuAwareRandom& random,
+            TCudaBuffer<float, TMapping>& weights,
+            TMaybe<float> mvsLambda = Nothing(),
+            const TCudaBuffer<float, TMapping>* derPtr = nullptr)
+        {
             auto& seeds = random.GetGpuSeeds<TMapping>();
 
             switch (config.GetBootstrapType()) {
@@ -41,6 +56,15 @@ namespace NCatboostCuda {
                     UniformBootstrap(seeds, weights, config.GetTakenFraction());
                     break;
                 }
+                case EBootstrapType::MVS: {
+                    const ui32 size = derPtr->GetObjectsSlice().Size();
+
+                    if (!mvsLambda.Defined()) {
+                        mvsLambda = Sqr(ReduceToHost(*derPtr, EOperatorType::L1Sum) / size);
+                    }
+                    MvsBootstrapRadixSort(seeds, weights, *derPtr, config.GetTakenFraction(), mvsLambda.GetRef());
+                    break;
+                }
                 case EBootstrapType::No: {
                     break;
                 }
@@ -50,26 +74,30 @@ namespace NCatboostCuda {
             }
         }
 
-        void Bootstrap(TGpuAwareRandom& random,
-                       TCudaBuffer<float, TMapping>& weights) {
-            Bootstrap(Config, random, weights);
+        void Bootstrap(
+            TGpuAwareRandom& random,
+            TCudaBuffer<float, TMapping>& weights)
+        {
+            Bootstrap(Config, random, weights, Nothing(), nullptr);
         }
 
         TCudaBuffer<float, TMapping> BootstrappedWeights(TGpuAwareRandom& random,
-                                                         const TMapping& mapping) {
-            TCudaBuffer<float, TMapping> weights = TCudaBuffer<float, TMapping>::Create(mapping);
-            FillBuffer(weights, 1.0f);
-            Bootstrap(Config, random, weights);
+                                                         TCudaBuffer<float, TMapping>* derPtr=nullptr) {
+            TCudaBuffer<float, TMapping> weights = TCudaBuffer<float, TMapping>::Create(derPtr->GetMapping());
+            if (Config.GetBootstrapType() != EBootstrapType::MVS) {
+                FillBuffer(weights, 1.0f);
+            }
+            Bootstrap(Config, random, weights, Lambda, derPtr);
             return weights;
         }
 
         void BootstrapAndFilter(TGpuAwareRandom& random,
                                 TCudaBuffer<float, TMapping>& der,
                                 TCudaBuffer<float, TMapping>& weights,
-                                TCudaBuffer<ui32, TMapping>& indices) {
+                                TCudaBuffer<ui32, TMapping>& indices)
+        {
             if (Config.GetBootstrapType() != EBootstrapType::No) {
-                auto tmp = BootstrappedWeights(random, der.GetMapping());
-
+                auto tmp = BootstrappedWeights(random, &der);
                 MultiplyVector(der, tmp);
                 MultiplyVector(weights, tmp);
 
@@ -100,11 +128,12 @@ namespace NCatboostCuda {
                                        const TMapping& mapping,
                                        TCudaBuffer<float, TMapping>* bootstrappedWeights,
                                        TCudaBuffer<ui32, TMapping>* bootstrappedIndices) {
-            CB_ENSURE(mapping.GetObjectsSlice().Size());
+            Y_ASSERT(config.GetBootstrapType() != EBootstrapType::MVS);
+            Y_ASSERT(mapping.GetObjectsSlice().Size());
             if (config.GetBootstrapType() != EBootstrapType::No) {
                 bootstrappedWeights->Reset(mapping);
                 FillBuffer(*bootstrappedWeights, 1.0f);
-                Bootstrap(config, random, *bootstrappedWeights);
+                Bootstrap(config, random, *bootstrappedWeights, Nothing(), nullptr);
 
                 if (AreZeroWeightsAfterBootstrap(config.GetBootstrapType())) {
                     FilterZeroEntries(bootstrappedWeights, bootstrappedIndices);
@@ -125,6 +154,7 @@ namespace NCatboostCuda {
 
     private:
         const NCatboostOptions::TBootstrapConfig& Config;
+        TMaybe<float> Lambda;
     };
 
     extern template class TBootstrap<NCudaLib::TStripeMapping>;

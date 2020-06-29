@@ -146,13 +146,13 @@
     "test_gpu.test_bootstrap[Ordered]": [
         {
             "checksum": "46510052848c5852e793bdd82066aa98",
-            "uri": "file://test_gpu.test_bootstrap_Ordered_/test_no.eval"
+            "uri": "file://test_gpu.test_bootstrap_Ordered_/test_bernoulli.eval"
         }
     ],
     "test_gpu.test_bootstrap[Plain]": [
         {
-            "checksum": "8720ece0e0ec59f1abd8c2cb7aba6fcd",
-            "uri": "file://test_gpu.test_bootstrap_Plain_/test_no.eval"
+            "checksum": "31ed80be9a929d6cfa26237696baaaa3",
+            "uri": "file://test_gpu.test_bootstrap_Plain_/test_bernoulli.eval"
         }
     ],
     "test_gpu.test_class_names_multiclass[MultiClassOneVsAll]": [
@@ -3205,6 +3205,30 @@
         {
             "checksum": "7f6ed3f90ea407b87b5f11798058c48a",
             "uri": "file://test_gpu.test_multiclass_baseline_MultiClass_/test_error.tsv"
+        }
+    ],
+    "test_gpu.test_mvs_bootstrap[Logloss-Ordered]": [
+        {
+            "checksum": "9d22f3d362d167b085641d7c307adf15",
+            "uri": "file://test_gpu.test_mvs_bootstrap_Logloss-Ordered_/test.eval"
+        }
+    ],
+    "test_gpu.test_mvs_bootstrap[Logloss-Plain]": [
+        {
+            "checksum": "c8e322f83d4460a3b2af78bf6855514c",
+            "uri": "file://test_gpu.test_mvs_bootstrap_Logloss-Plain_/test.eval"
+        }
+    ],
+    "test_gpu.test_mvs_bootstrap[RMSE-Ordered]": [
+        {
+            "checksum": "85b192482efa20c1e7982aa1853f24e7",
+            "uri": "file://test_gpu.test_mvs_bootstrap_RMSE-Ordered_/test.eval"
+        }
+    ],
+    "test_gpu.test_mvs_bootstrap[RMSE-Plain]": [
+        {
+            "checksum": "6747838de4a1653cbb33fd95bdd9fdd0",
+            "uri": "file://test_gpu.test_mvs_bootstrap_RMSE-Plain_/test.eval"
         }
     ],
     "test_gpu.test_nan_mode[Ordered-Max]": [

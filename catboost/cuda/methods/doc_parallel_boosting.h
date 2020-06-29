@@ -340,7 +340,9 @@ namespace NCatboostCuda {
                                                                           (*learnCursors)[learnPermutationId]);
                     auto mult = CalcScoreModelLengthMult(dataSet.GetDataProvider().GetObjectCount(),
                                                          iteration * step);
-                    auto optimizer = weak->template CreateStructureSearcher<TWeakTarget, TDocParallelDataSet>(mult);
+                    auto optimizer = weak->template CreateStructureSearcher<TWeakTarget, TDocParallelDataSet>(
+                        mult,
+                        (*result)[learnPermutationId]);
                     //search for best model and values of shifted target
                     auto model = optimizer.Fit(taskDataSet,
                                                target);

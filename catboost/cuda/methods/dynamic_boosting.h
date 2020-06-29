@@ -293,7 +293,8 @@ namespace NCatboostCuda {
 
                         auto optimizer = weak.template CreateStructureSearcher<TWeakTarget, TFeatureParallelDataSet>(
                             *iterationCacheHolderPtr,
-                            taskDataSet);
+                            taskDataSet,
+                            *result);
 
                         optimizer.SetRandomStrength(
                             CalcScoreModelLengthMult(dataSet.GetDataProvider().GetObjectCount(),

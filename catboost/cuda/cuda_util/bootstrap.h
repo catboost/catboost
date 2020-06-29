@@ -28,6 +28,7 @@ template <class TMapping>
 void MvsBootstrapRadixSort(
     NCudaLib::TCudaBuffer<ui64, TMapping>& seeds,
     NCudaLib::TCudaBuffer<float, TMapping>& weights,
+    const NCudaLib::TCudaBuffer<float, TMapping>& ders,
     float takenFraction,
     float lambda,
     ui32 stream = 0);

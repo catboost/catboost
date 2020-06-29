@@ -153,10 +153,9 @@ namespace NCatboostCuda {
         double queriesSampleRate = 1.0;
         if (bootstrapConfig.GetBootstrapType() == EBootstrapType::Bernoulli) {
             queriesSampleRate = bootstrapConfig.GetTakenFraction();
-        }
-
-        if (bootstrapConfig.GetBootstrapType() == EBootstrapType::Poisson) {
-            ythrow TCatBoostException() << "Poisson bootstrap is not supported for LLMax";
+        } else {
+            CB_ENSURE(bootstrapConfig.GetBootstrapType() == EBootstrapType::No,
+                bootstrapConfig.GetBootstrapType() << " bootstrap is not supported for LLMax");
         }
 
         if (queriesSampleRate < 1.0 || HasBigQueries()) {

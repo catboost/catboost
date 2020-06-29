@@ -10,6 +10,7 @@ void MvsBootstrapRadixSort(
     const float takenFraction,
     const float lambda,
     float* weights,
+    const float* ders,
     ui32 size,
     const ui64* seeds,
     ui32 seedSize,

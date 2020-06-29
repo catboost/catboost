@@ -32,10 +32,6 @@ namespace NCatboostOptions {
                 break;
             }
             case EBootstrapType::MVS: {
-                if (TaskType != ETaskType::CPU) {
-                    ythrow TCatBoostException()
-                        << "Error: MVS bootstrap is supported only on CPU";
-                }
                 CB_ENSURE(
                     GetSamplingUnit() == ESamplingUnit::Object,
                     "MVS bootstrap supports per object sampling only."

@@ -57,7 +57,7 @@ namespace NCatboostCuda {
         //TODO: two bootstrap type: docs and gathered target
         {
             auto slices = MakeTaskSlices();
-            auto weights = Bootstrap.BootstrappedWeights(GetRandom(), target.Weights.GetMapping());
+            auto weights = Bootstrap.BootstrappedWeights(GetRandom(), &target.Weights);
             //TODO(noxoomo): remove tiny overhead from bootstrap learn also
             if (TreeConfig.ObservationsToBootstrap == EObservationsToBootstrap::TestOnly) {
                 //make learn weights equal to 1

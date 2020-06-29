@@ -127,10 +127,11 @@ Y_UNIT_TEST_SUITE(TMvsThresholdCalculationTest) {
 
                     auto mapping = TSingleMapping(0, size);
                     auto cudaVec = TSingleBuffer<float>::Create(mapping);
+                    auto result = TSingleBuffer<float>::Create(mapping);
                     cudaVec.Write(vecCpu);
                     {
                         auto guard = profiler.Profile(TStringBuilder() << "Calculate MVS weights for #" << size << " elements");
-                        MvsBootstrapRadixSort(seeds, cudaVec, takenFraction, 0.05);
+                        MvsBootstrapRadixSort(seeds, result, cudaVec, takenFraction, 0.05);
                     }
                 }
             }

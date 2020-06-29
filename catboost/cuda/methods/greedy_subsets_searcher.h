@@ -8,6 +8,7 @@
 #include <catboost/cuda/cuda_lib/cuda_buffer.h>
 #include <catboost/cuda/cuda_lib/cuda_manager.h>
 #include <catboost/cuda/cuda_lib/cuda_profiler.h>
+#include <catboost/cuda/models/additive_model.h>
 #include <catboost/cuda/models/oblivious_model.h>
 #include <catboost/cuda/models/region_model.h>
 #include <catboost/cuda/models/non_symmetric_tree.h>
@@ -58,8 +59,9 @@ namespace NCatboostCuda {
 
         template <class TTarget,
                   class TDataSet>
-        TGreedyTreeLikeStructureSearcher<TTreeModel> CreateStructureSearcher(double randomStrengthMult) {
+        TGreedyTreeLikeStructureSearcher<TTreeModel> CreateStructureSearcher(double randomStrengthMult, const TAdditiveModel<TResultModel>& /*result*/) {
             TTreeStructureSearcherOptions options = StructureSearcherOptions;
+            Y_ASSERT(options.BootstrapOptions.GetBootstrapType() != EBootstrapType::MVS);
             options.RandomStrength *= randomStrengthMult;
             return TGreedyTreeLikeStructureSearcher<TTreeModel>(FeaturesManager, options);
         }

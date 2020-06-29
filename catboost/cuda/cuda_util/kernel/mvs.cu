@@ -181,6 +181,7 @@ __global__ void MvsBootstrapRadixSortImpl(
     float takenFraction,
     float lambda,
     float* weights,
+    const float* ders,
     ui32 size,
     const ui64* seeds,
     ui32 seedSize
@@ -196,28 +197,27 @@ __global__ void MvsBootstrapRadixSortImpl(
     } tempStorage;
 
     // Per-thread tile items
-    float weights_per_thread[ITEMS_PER_THREAD];
+    float weightsPerThread[ITEMS_PER_THREAD];
     float items[ITEMS_PER_THREAD];
     float scanItems[ITEMS_PER_THREAD];
 
-    int idx = blockOffset + threadIdx.x;
+    const int idx = blockOffset + threadIdx.x;
     const float inf = sqrtf(std::numeric_limits<float>::max()) - 2 * lambda;
-    #pragma unroll
-    for (int k = 0; k < ITEMS_PER_THREAD; k++) {
-        if (idx < size) {
-            weights_per_thread[k] = StreamLoad(weights + idx);
-        } else {
-            weights_per_thread[k] = inf;
-        }
-        idx += BLOCK_THREADS;
-    }
+    cub::CacheModifiedInputIterator<cub::LOAD_CS, float> inputIterator(ders);
+    cub::LoadDirectWarpStriped(
+        idx,
+        inputIterator,
+        weightsPerThread,
+        size,
+        inf
+    );
 
     #pragma unroll
     for (int k = 0; k < ITEMS_PER_THREAD; k++) {
-        weights_per_thread[k] = sqrtf(
-            fmaf(weights_per_thread[k], weights_per_thread[k], lambda)
+        weightsPerThread[k] = sqrtf(
+            fmaf(weightsPerThread[k], weightsPerThread[k], lambda)
         );
-        items[k] = weights_per_thread[k];
+        items[k] = weightsPerThread[k];
     }
     __syncthreads();
 
@@ -241,28 +241,29 @@ __global__ void MvsBootstrapRadixSortImpl(
     ui32 i = blockIdx.x * blockDim.x + threadIdx.x;
     ui64 s = __ldg(seeds + i % seedSize) + blockIdx.x;
     const float eps = std::numeric_limits<float>::epsilon();
+
     #pragma unroll
     for (int k = 0; k < ITEMS_PER_THREAD; k++) {
-        const float probability = GetSingleProbability(weights_per_thread[k], threshold);
-        weights_per_thread[k] = (probability > eps && NextUniformF(&s) < probability)
+        const float probability = GetSingleProbability(weightsPerThread[k], threshold);
+        weightsPerThread[k] = (probability > eps && NextUniformF(&s) < probability)
             ? __fdividef(1.0f, probability)
             : 0.0f;
     }
 
-    idx = blockOffset + threadIdx.x;
-    #pragma unroll
-    for (int k = 0; k < ITEMS_PER_THREAD; k++) {
-        if (idx < size) {
-            weights[idx] = weights_per_thread[k];
-        }
-        idx += BLOCK_THREADS;
-    }
+    cub::CacheModifiedOutputIterator<cub::STORE_CS, float> outputIterator(weights);
+    cub::StoreDirectWarpStriped(
+        idx,
+        outputIterator,
+        weightsPerThread,
+        size
+    );
 }
 
 void MvsBootstrapRadixSort(
     const float takenFraction,
     const float lambda,
     float* weights,
+    const float* ders,
     ui32 size,
     const ui64* seeds,
     ui32 seedSize,
@@ -274,7 +275,7 @@ void MvsBootstrapRadixSort(
 
     {
         MvsBootstrapRadixSortImpl<SCAN_ITEMS_PER_THREAD, blockThreads> <<< numBlocks, blockThreads, 0, stream >>> (
-            takenFraction, lambda, weights, size, seeds, seedSize
+            takenFraction, lambda, weights, ders, size, seeds, seedSize
         );
     }
 }

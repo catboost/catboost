@@ -8,6 +8,17 @@
 
 namespace NKernel {
 
+    /**
+    * \brief Default sum functor
+    */
+    struct L1Sum
+    {
+        /// Boolean sum operator, returns <tt>|a| + |b|</tt>
+        __host__ __device__ __forceinline__ float operator()(const float &a, const float &b) const
+        {
+            return fabs(a) + fabs(b);
+        }
+    };
 
     //current cub segmented reduce sucks on small segments problems
     //LINE_SIZE should be leq 32
@@ -142,6 +153,13 @@ namespace NKernel {
                                                  T(),
                                                  stream);
             }
+            case EOperatorType::L1Sum: {
+                return cub::DeviceReduce::Reduce(context.TempStorage, context.TempStorageSize,
+                                                 input, output, size,
+                                                 L1Sum(),
+                                                 T(),
+                                                 stream);
+            }
             default: {
                 return cudaErrorNotYetImplemented;
             }
@@ -182,6 +200,15 @@ namespace NKernel {
                                                       input, output,
                                                       outputSize,
                                                       cub::Min(),
+                                                      size,
+                                                      stream);
+            }
+            case EOperatorType::L1Sum: {
+                return cub::DeviceReduce::ReduceByKey(context.TempStorage, context.TempStorageSize,
+                                                      keys, outKeys,
+                                                      input, output,
+                                                      outputSize,
+                                                      L1Sum(),
                                                       size,
                                                       stream);
             }
@@ -290,6 +317,15 @@ namespace NKernel {
                                                               numSegments,
                                                               beginOffsets, endOffsets,
                                                               cub::Min(),
+                                                              T(),
+                                                              stream);
+                }
+                case EOperatorType::L1Sum: {
+                    return cub::DeviceSegmentedReduce::Reduce(context.TempStorage, context.TempStorageSize,
+                                                              input, output,
+                                                              numSegments,
+                                                              beginOffsets, endOffsets,
+                                                              L1Sum(),
                                                               T(),
                                                               stream);
                 }
