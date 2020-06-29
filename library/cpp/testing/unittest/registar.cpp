@@ -510,7 +510,7 @@ unsigned NUnitTest::TTestFactory::Execute() {
 
     Processor_->End();
 
-    return Processor_->FailTests();
+    return bool(Processor_->FailTests());
 }
 
 void NUnitTest::TTestFactory::SetProcessor(ITestSuiteProcessor* processor) {
