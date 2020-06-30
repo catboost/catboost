@@ -127,6 +127,19 @@ ALLOW contrib/libs -> contrib/restricted/libffi
 ALLOW contrib/python -> contrib/restricted/libffi
 ALLOW contrib/tools -> contrib/restricted/libffi
 
+# use GTEST_BETA target in ya.make instead of PEERDIRing contrib/restricted/googletest
+# and include <library/cpp/testing/gtest.h> instead of <gtest/gtest.h> (<gmock/gmock.h>)
+ALLOW contrib -> contrib/restricted/googletest
+ALLOW library/cpp/testing/gmock_in_unittest -> contrib/restricted/googletest
+ALLOW library/cpp/testing/gtest -> contrib/restricted/googletest
+ALLOW library/cpp/testing/gtest_extensions -> contrib/restricted/googletest
+ALLOW library/cpp/testing/gtest_main -> contrib/restricted/googletest
+ALLOW library/python/testing/gtest/test/gtest -> contrib/restricted/googletest
+# TODO remove this lines after they will switch to library/cpp/testing/gtest
+ALLOW mail -> contrib/restricted/googletest
+ALLOW maps/mobile/libs -> contrib/restricted/googletest
+ALLOW mds -> contrib/restricted/googletest
+
 # Default policies:
 
 # 1. All peerdirs within contrib/restricted are permitted
