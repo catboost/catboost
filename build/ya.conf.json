@@ -2900,6 +2900,13 @@
                         "os": "DARWIN"
                     },
                     "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX",
+                        "arch": "ppc64le"
+                    },
+                    "default": true
                 }
             ],
             "env": {
@@ -2937,6 +2944,13 @@
                 {
                     "host": {
                         "os": "DARWIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "LINUX",
+                        "arch": "ppc64le"
                     },
                     "default": true
                 }
@@ -6292,7 +6306,8 @@
             "formula": {
                 "sandbox_id": [
                     510387094,
-                    491831556
+                    491831556,
+                    713395116
                 ],
                 "match": "GDB"
             },
