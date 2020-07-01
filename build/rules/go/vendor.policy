@@ -460,6 +460,9 @@ ALLOW .* -> vendor/github.com/asticode/go-astits
 # CONTRIB-1896 Fast, portable, non-Turing complete expression evaluation with gradual typing                                                                   
 ALLOW .* -> vendor/github.com/google/cel-go
 
+# CONTRIB-1654 Hard to misuse extensible crypto library 
+ALLOW .* -> vendor/github.com/google/tink/go
+
 #
 # Temporary exceptions.
 #
