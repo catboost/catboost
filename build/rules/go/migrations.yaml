@@ -357,8 +357,6 @@ migrations:
       - a.yandex-team.ru/travel/buses/backend/internal/common/resourcestorage
       - a.yandex-team.ru/travel/buses/backend/internal/common/resourcestorage/tests
       - a.yandex-team.ru/travel/buses/backend/internal/common/utils
-      - a.yandex-team.ru/travel/library/go/dicts/example
-      - a.yandex-team.ru/travel/library/go/dicts/repository
       - a.yandex-team.ru/travel/rasp/train_bandit_api/cmd/api
       - a.yandex-team.ru/travel/rasp/train_bandit_api/internal/api/handler
       - a.yandex-team.ru/travel/rasp/train_bandit_api/internal/api/handler/tests
