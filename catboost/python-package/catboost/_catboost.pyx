@@ -273,9 +273,16 @@ cdef extern from "catboost/libs/helpers/polymorphic_type_containers.h" namespace
     cdef ITypedSequencePtr[TInterfaceValue] MakeTypeCastArrayHolderFromVector[TInterfaceValue, TStoredValue](
         TVector[TStoredValue]& values
     ) except +ProcessException
+    
+    cdef ITypedSequencePtr[TMaybeOwningConstArrayHolder[TInterfaceValue]] MakeTypeCastArraysHolderFromVector[
+        TInterfaceValue,
+        TStoredValue
+    ](
+        TVector[TMaybeOwningConstArrayHolder[TStoredValue]]& values
+    ) except +ProcessException
 
 
-cdef class Py_ITypedSequencePtr:
+cdef class Py_FloatSequencePtr:
     cdef ITypedSequencePtr[np.float32_t] result
 
     def __cinit__(self):
@@ -285,6 +292,23 @@ cdef class Py_ITypedSequencePtr:
         self.result = result
 
     cdef get_result(self, ITypedSequencePtr[np.float32_t]* result):
+        result[0] = self.result
+
+    def __dealloc__(self):
+        pass
+
+ctypedef TMaybeOwningConstArrayHolder[np.float32_t] TEmbeddingData
+
+cdef class Py_EmbeddingSequencePtr:
+    cdef ITypedSequencePtr[TEmbeddingData] result
+
+    def __cinit__(self):
+        pass
+
+    cdef set_result(self, ITypedSequencePtr[TEmbeddingData] result):
+        self.result = result
+
+    cdef get_result(self, ITypedSequencePtr[TEmbeddingData]* result):
         result[0] = self.result
 
     def __dealloc__(self):
@@ -307,7 +331,7 @@ def make_non_owning_type_cast_array_holder(np.ndarray[numpy_num_dtype, ndim=1] a
         array_begin = &array[0]
         array_end = array_begin + array.shape[0]
 
-    cdef Py_ITypedSequencePtr py_result = Py_ITypedSequencePtr()
+    cdef Py_FloatSequencePtr py_result = Py_FloatSequencePtr()
     cdef ITypedSequencePtr[np.float32_t] result
 
     if numpy_num_dtype is np.int8_t:
@@ -334,6 +358,82 @@ def make_non_owning_type_cast_array_holder(np.ndarray[numpy_num_dtype, ndim=1] a
     py_result.set_result(result)
 
     return py_result
+
+
+# returns (Py_EmbeddingSequencePtr, new data holders array)
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def make_embedding_type_cast_array_holder(
+    size_t flat_feature_idx,
+    np.ndarray[numpy_num_dtype, ndim=1] first_element,
+    np.ndarray[object, ndim=1] elements): # 
+
+    cdef np.ndarray[numpy_num_dtype, ndim=1] element
+    cdef TVector[TMaybeOwningConstArrayHolder[numpy_num_dtype]] data
+    cdef size_t embedding_dimension = len(first_element)
+    cdef size_t object_count = len(elements)
+    cdef size_t object_idx
+
+    data_holders = []
+
+    for object_idx in range(object_count):
+        element = elements[object_idx]
+        if len(element) != embedding_dimension:
+            raise CatBoostError(
+                (
+                    'Inсonsistent array size for embedding_feature[object_idx={},feature_idx={}]={}, should be '
+                    + 'equal to array size for the first object ={}'
+                ).format(
+                    object_idx,
+                    flat_feature_idx,
+                    len(element),
+                    embedding_dimension
+                )
+            )
+
+        if not element.flags.c_contiguous:
+            element = np.ascontiguousarray(element)
+            data_holders.append(element)
+
+        data.push_back(
+            TMaybeOwningConstArrayHolder[numpy_num_dtype].CreateNonOwning(
+                TConstArrayRef[numpy_num_dtype](
+                    <numpy_num_dtype*>&element[0],
+                    embedding_dimension
+                )
+            )
+        )
+
+    if len(data_holders) != len(elements):
+        data_holders.append(elements)
+
+    cdef ITypedSequencePtr[TMaybeOwningConstArrayHolder[np.float32_t]] result
+    
+    if numpy_num_dtype is np.int8_t:
+        result = MakeTypeCastArraysHolderFromVector[np.float32_t, np.int8_t](data)
+    if numpy_num_dtype is np.int16_t:
+        result = MakeTypeCastArraysHolderFromVector[np.float32_t, np.int16_t](data)
+    if numpy_num_dtype is np.int32_t:
+        result = MakeTypeCastArraysHolderFromVector[np.float32_t, np.int32_t](data)
+    if numpy_num_dtype is np.int64_t:
+        result = MakeTypeCastArraysHolderFromVector[np.float32_t, np.int64_t](data)
+    if numpy_num_dtype is np.uint8_t:
+        result = MakeTypeCastArraysHolderFromVector[np.float32_t, np.uint8_t](data)
+    if numpy_num_dtype is np.uint16_t:
+        result = MakeTypeCastArraysHolderFromVector[np.float32_t, np.uint16_t](data)
+    if numpy_num_dtype is np.uint32_t:
+        result = MakeTypeCastArraysHolderFromVector[np.float32_t, np.uint32_t](data)
+    if numpy_num_dtype is np.uint64_t:
+        result = MakeTypeCastArraysHolderFromVector[np.float32_t, np.uint64_t](data)
+    if numpy_num_dtype is np.float32_t:
+        result = MakeTypeCastArraysHolderFromVector[np.float32_t, np.float32_t](data)
+    if numpy_num_dtype is np.float64_t:
+        result = MakeTypeCastArraysHolderFromVector[np.float32_t, np.float64_t](data)
+
+    cdef Py_EmbeddingSequencePtr py_result = Py_EmbeddingSequencePtr()
+    py_result.set_result(result)
+
+    return py_result, data_holders
 
 
 cdef extern from "catboost/libs/helpers/sparse_array.h" namespace "NCB":
@@ -394,6 +494,7 @@ cdef extern from "catboost/private/libs/options/enums.h":
     cdef EFeatureType EFeatureType_Float "EFeatureType::Float"
     cdef EFeatureType EFeatureType_Categorical "EFeatureType::Categorical"
     cdef EFeatureType EFeatureType_Text "EFeatureType::Text"
+    cdef EFeatureType EFeatureType_Embedding "EFeatureType::Embedding"
 
 
     cdef cppclass EPredictionType:
@@ -478,9 +579,11 @@ cdef extern from "catboost/libs/data/features_layout.h" namespace "NCB":
         EFeatureType GetExternalFeatureType(ui32 externalFeatureIdx) except +ProcessException
         ui32 GetFloatFeatureCount() except +ProcessException
         ui32 GetCatFeatureCount() except +ProcessException
+        ui32 GetEmbeddingFeatureCount() except +ProcessException
         ui32 GetExternalFeatureCount() except +ProcessException
         TConstArrayRef[ui32] GetCatFeatureInternalIdxToExternalIdx() except +ProcessException
         TConstArrayRef[ui32] GetTextFeatureInternalIdxToExternalIdx() except +ProcessException
+        TConstArrayRef[ui32] GetEmbeddingFeatureInternalIdxToExternalIdx() except +ProcessException
 
     ctypedef TIntrusivePtr[TFeaturesLayout] TFeaturesLayoutPtr
 
@@ -749,6 +852,12 @@ cdef extern from "catboost/libs/data/visitor.h" namespace "NCB":
         void AddTextFeature(ui32 localObjectIdx, ui32 flatFeatureIdx, TStringBuf feature) except +ProcessException
         void AddAllTextFeatures(ui32 localObjectIdx, TConstArrayRef[ui32] features) except +ProcessException
         void AddTextFeatureDefaultValue(ui32 flatFeatureIdx, TStringBuf feature) except +ProcessException
+        
+        void AddEmbeddingFeature(
+            ui32 localObjectIdx,
+            ui32 flatFeatureIdx,
+            TMaybeOwningConstArrayHolder[float] feature
+        ) except +ProcessException
 
         void AddTarget(ui32 localObjectIdx, const TString& value) except +ProcessException
         void AddTarget(ui32 localObjectIdx, float value) except +ProcessException
@@ -786,6 +895,11 @@ cdef extern from "catboost/libs/data/visitor.h" namespace "NCB":
 
         void AddTextFeature(ui32 flatFeatureIdx, TConstArrayRef[TString] feature) except +ProcessException
         void AddTextFeature(ui32 flatFeatureIdx, TConstArrayRef[TStringBuf] feature) except +ProcessException
+        
+        void AddEmbeddingFeature(
+            ui32 flatFeatureIdx,
+            ITypedSequencePtr[TMaybeOwningConstArrayHolder[float]] features
+        ) except +ProcessException
 
         void AddTarget(TConstArrayRef[TString] value) except +ProcessException
         void AddTarget(ITypedSequencePtr[float] value) except +ProcessException
@@ -2410,7 +2524,7 @@ def _set_features_order_data_features_data(
     cdef ui32 num_feature_count = <ui32>(num_feature_values.shape[1] if num_feature_values is not None else 0)
     cdef ui32 cat_feature_count = <ui32>(cat_feature_values.shape[1] if cat_feature_values is not None else 0)
 
-    cdef Py_ITypedSequencePtr py_num_factor_data
+    cdef Py_FloatSequencePtr py_num_factor_data
     cdef ITypedSequencePtr[np.float32_t] num_factor_data
 
     cdef TString factor_string
@@ -2445,6 +2559,7 @@ def _set_features_order_data_ndarray(
     np.ndarray[numpy_num_dtype, ndim=2] feature_values,
     bool_t [:] is_cat_feature_mask,
     bool_t [:] is_text_feature_mask,
+    bool_t [:] is_embedding_feature_mask,
     Py_FeaturesOrderBuilderVisitor py_builder_visitor
 ):
 
@@ -2459,7 +2574,7 @@ def _set_features_order_data_ndarray(
     cdef ui32 doc_count = <ui32>(feature_values.shape[0])
     cdef ui32 feature_count = <ui32>(feature_values.shape[1])
 
-    cdef Py_ITypedSequencePtr py_num_factor_data
+    cdef Py_FloatSequencePtr py_num_factor_data
     cdef ITypedSequencePtr[np.float32_t] num_factor_data
 
     cdef TVector[TString] string_factor_data
@@ -2478,6 +2593,15 @@ def _set_features_order_data_ndarray(
                 builder_visitor[0].AddCatFeature(flat_feature_idx, <TConstArrayRef[TString]>string_factor_data)
             else:
                 builder_visitor[0].AddTextFeature(flat_feature_idx, <TConstArrayRef[TString]>string_factor_data)
+        elif is_embedding_feature_mask[flat_feature_idx]:
+            raise CatBoostError(
+                (
+                    'Feature_idx={}: feature is Embedding but features data is specified as numpy.ndarray '
+                    + ' with non-object type'
+                ).format(
+                    feature_idx=flat_feature_idx
+                )
+            )
         else:
             py_num_factor_data = make_non_owning_type_cast_array_holder(feature_values[:,flat_feature_idx])
             py_num_factor_data.get_result(&num_factor_data)
@@ -2507,7 +2631,7 @@ cdef create_num_factor_data(
     cdef TIntrusivePtr[TVectorHolder[float]] num_factor_data
     cdef TIntrusivePtr[IResourceHolder] num_factor_data_holder
 
-    cdef Py_ITypedSequencePtr py_num_factor_data
+    cdef Py_FloatSequencePtr py_num_factor_data
 
     cdef ui32 doc_idx
 
@@ -2583,6 +2707,132 @@ cdef get_text_factor_bytes_representation(
         )
 
 
+cdef TVector[np.float32_t] get_embedding_array_as_vector(
+    ui32 object_idx,
+    ui32 flat_feature_idx,
+    size_t embedding_dimension,
+    src_array
+):
+    cdef TVector[np.float32_t] object_embedding_data
+    if len(src_array) != embedding_dimension:
+        raise CatBoostError(
+            (
+                'Inсonsistent array size for embedding_feature[object_idx={},feature_idx={}]={}, '
+                + 'should be equal to array size for the first object ={}'
+            ).format(
+                object_idx,
+                flat_feature_idx,
+                len(src_array),
+                embedding_dimension
+            )
+        )
+
+    # TODO(akhropov): make yresize accessible in Cython
+    object_embedding_data.resize(embedding_dimension)
+    for element_idx in range(embedding_dimension):
+        try:
+            object_embedding_data[element_idx] = _FloatOrNan(src_array[element_idx])
+        except TypeError as e:
+            raise CatBoostError(
+                'Bad value for embedding[object_idx={},feature_idx={},array_idx={}]="{}": {}'.format(
+                    object_idx,
+                    flat_feature_idx,
+                    element_idx,
+                    src_array[element_idx],
+                    e
+                )
+            )
+    return object_embedding_data
+
+
+# returns new data holders array
+cdef get_embedding_array_data(
+    ui32 object_idx,
+    ui32 flat_feature_idx,
+    size_t embedding_dimension,
+    src_array,
+    TEmbeddingData* result
+):
+    cdef np.float32_t[:] src_array_data
+    cdef TVector[np.float32_t] embedding_data
+
+    if len(src_array) != embedding_dimension:
+        raise CatBoostError(
+            (
+                'Inсonsistent array size for embedding_feature[object_idx={},feature_idx={}]={}, '
+                + 'should be equal to array size for the first object ={}'
+            ).format(
+                object_idx,
+                flat_feature_idx,
+                len(src_array),
+                embedding_dimension
+            )
+        )
+    if isinstance(src_array, np.ndarray) and (src_array.dtype == np.float32) and src_array.flags.c_contiguous:
+        src_array_data = src_array
+        result[0] = TMaybeOwningConstArrayHolder[np.float32_t].CreateNonOwning(
+            TConstArrayRef[np.float32_t](
+                <np.float32_t*>&src_array_data[0],
+                embedding_dimension
+            )
+        )
+        return [src_array]
+    else:
+        embedding_data = get_embedding_array_as_vector(
+            object_idx,
+            flat_feature_idx,
+            embedding_dimension,
+            src_array
+        )
+        result[0] = TMaybeOwningConstArrayHolder[np.float32_t].CreateOwningMovedFrom(embedding_data)
+        return []
+
+
+# returns new data holders array
+cdef create_embedding_factor_data(
+    ui32 flat_feature_idx,
+    np.ndarray column_values,
+    ITypedSequencePtr[TEmbeddingData]* result
+):
+    cdef TVector[TEmbeddingData] data
+    cdef TVector[np.float32_t] object_embedding_data
+
+    cdef Py_EmbeddingSequencePtr py_embedding_factor_data
+
+    cdef size_t object_count = len(column_values)
+    cdef size_t embedding_dimension = len(column_values[0])
+
+    if object_count == 0:
+        result[0] = MakeNonOwningTypeCastArrayHolder[TEmbeddingData, TEmbeddingData](
+            <const TEmbeddingData*>nullptr,
+            <const TEmbeddingData*>nullptr
+        )
+        return []
+    elif isinstance(column_values[0], np.ndarray) and (column_values[0].dtype in numpy_num_dtype_list):
+        py_embedding_factor_data, data_holders = make_embedding_type_cast_array_holder(
+            flat_feature_idx,
+            column_values[0],
+            column_values
+        )
+        py_embedding_factor_data.get_result(result)
+        return data_holders
+    else:
+        data.reserve(object_count)
+        for object_idx in range(object_count):
+            object_embedding_data = get_embedding_array_as_vector(
+                object_idx,
+                flat_feature_idx,
+                embedding_dimension,
+                column_values[object_idx]
+            )
+            data.push_back(
+                TMaybeOwningConstArrayHolder[np.float32_t].CreateOwningMovedFrom(object_embedding_data)
+            )
+
+        result[0] = MakeTypeCastArrayHolderFromVector[TEmbeddingData, TEmbeddingData](data)
+        return []
+
+
 # returns new data holders array
 cdef get_canonical_type_indexing_array(np.ndarray indices, TMaybeOwningConstArrayHolder[ui32] * result):
 
@@ -2638,6 +2888,7 @@ cdef object _set_features_order_data_pd_data_frame_sparse_column(
     ui32 doc_count,
     ui32 flat_feature_idx,
     bool_t is_cat_feature,
+    bool_t is_embedding_feature,
     object column_values, # pd.SparseArray, but Cython requires cimport to provide type here
     TVector[TString]* cat_factor_data,  # pass from parent to avoid reallocations
     IRawFeaturesOrderDataVisitor* builder_visitor
@@ -2683,6 +2934,12 @@ cdef object _set_features_order_data_pd_data_frame_sparse_column(
                     <TConstArrayRef[TString]> cat_factor_data[0]
                 ),
                 factor_string
+            )
+        )
+    elif is_embedding_feature:
+        raise CatBoostError(
+            'Feature_idx={}: Sparse data for embedding features is not supported yet'.format(
+                feature_idx=flat_feature_idx
             )
         )
     else:
@@ -2769,6 +3026,7 @@ cdef object _set_features_order_data_pd_data_frame(
 ):
     cdef TVector[bool_t] is_cat_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Categorical)
     cdef TVector[bool_t] is_text_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Text)
+    cdef TVector[bool_t] is_embedding_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Embedding)
     cdef ui32 doc_count = data_frame.shape[0]
 
     cdef TString factor_string
@@ -2776,6 +3034,8 @@ cdef object _set_features_order_data_pd_data_frame(
     cdef ITypedSequencePtr[np.float32_t] num_factor_data
 
     cdef TVector[TString] string_factor_data
+
+    cdef ITypedSequencePtr[TEmbeddingData] embedding_factor_data
 
     # this buffer for categorical processing is here to avoid reallocations in
     # _set_features_order_data_pd_data_frame_categorical_column
@@ -2796,6 +3056,7 @@ cdef object _set_features_order_data_pd_data_frame(
                 doc_count,
                 flat_feature_idx,
                 is_cat_feature_mask[flat_feature_idx],
+                is_embedding_feature_mask[flat_feature_idx],
                 column_data.values,
                 &string_factor_data,
                 builder_visitor
@@ -2838,6 +3099,13 @@ cdef object _set_features_order_data_pd_data_frame(
                     )
                     string_factor_data.push_back(factor_string)
                 builder_visitor[0].AddTextFeature(flat_feature_idx, <TConstArrayRef[TString]>string_factor_data)
+            elif is_embedding_feature_mask[flat_feature_idx]:
+                new_data_holders += create_embedding_factor_data(
+                    flat_feature_idx,
+                    column_values,
+                    &embedding_factor_data
+                )
+                builder_visitor[0].AddEmbeddingFeature(flat_feature_idx, embedding_factor_data)
             else:
                 new_data_holders += create_num_factor_data(
                     flat_feature_idx,
@@ -3101,8 +3369,11 @@ cdef _set_objects_order_data_scipy_sparse_matrix(
 
     cdef TVector[bool_t] is_cat_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Categorical)
     cdef TVector[bool_t] is_text_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Text)
+    cdef TVector[bool_t] is_embedding_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Embedding)
     if np.any(is_text_feature_mask):
         raise CatBoostError('Text features reading is not supported in sparse matrix format')
+    if np.any(is_embedding_feature_mask):
+        raise CatBoostError('Embedding features reading is not supported in sparse matrix format')
 
     if isinstance(data, scipy.sparse.bsr_matrix):
         _set_data_from_scipy_bsr_sparse(
@@ -3259,6 +3530,7 @@ cdef _set_features_order_data_scipy_sparse_matrix(
 
     return new_data_holders
 
+# returns new data holders array
 cdef _set_data_from_generic_matrix(
     data,
     const TFeaturesLayout* features_layout,
@@ -3269,15 +3541,23 @@ cdef _set_data_from_generic_matrix(
     cdef int feature_count = data_shape[1]
 
     if doc_count == 0:
-        return
+        return []
 
     cdef TString factor_strbuf
+    cdef TEmbeddingData object_embedding_data
     cdef int doc_idx
     cdef int feature_idx
     cdef int cat_feature_idx
 
     cdef TVector[bool_t] is_cat_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Categorical)
     cdef TVector[bool_t] is_text_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Text)
+    cdef TVector[bool_t] is_embedding_feature_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Embedding)
+    cdef TVector[ui32] embedding_dimensions
+    
+    # TODO(akhropov): make yresize accessible in Cython
+    embedding_dimensions.resize(feature_count)
+
+    new_data_holders = []
 
     for doc_idx in xrange(doc_count):
         doc_data = data[doc_idx]
@@ -3299,6 +3579,17 @@ cdef _set_data_from_generic_matrix(
                     &factor_strbuf
                 )
                 builder_visitor[0].AddTextFeature(doc_idx, feature_idx, <TStringBuf>factor_strbuf)
+            elif is_embedding_feature_mask[feature_idx]:
+                if doc_idx == 0:
+                    embedding_dimensions[feature_idx] = len(factor)
+                new_data_holders += get_embedding_array_data(
+                    doc_idx,
+                    feature_idx,
+                    embedding_dimensions[feature_idx],
+                    factor,
+                    &object_embedding_data
+                )
+                builder_visitor[0].AddEmbeddingFeature(doc_idx, feature_idx, object_embedding_data)
             else:
                 builder_visitor[0].AddFloatFeature(
                     doc_idx,
@@ -3306,7 +3597,13 @@ cdef _set_data_from_generic_matrix(
                     get_float_feature(doc_idx, feature_idx, factor)
                 )
 
+    return new_data_holders
+
+
+# returns new data holders array
 cdef _set_data(data, const TFeaturesLayout* features_layout, Py_ObjectsOrderBuilderVisitor py_builder_visitor):
+    new_data_holders = []
+
     if isinstance(data, FeaturesData):
         _set_data_np(data.num_feature_data, data.cat_feature_data, py_builder_visitor.builder_visitor)
     elif isinstance(data, np.ndarray) and data.dtype == np.float32:
@@ -3314,7 +3611,12 @@ cdef _set_data(data, const TFeaturesLayout* features_layout, Py_ObjectsOrderBuil
     elif isinstance(data, SPARSE_MATRIX_TYPES):
         _set_objects_order_data_scipy_sparse_matrix(data, features_layout, py_builder_visitor)
     else:
-        _set_data_from_generic_matrix(data, features_layout, py_builder_visitor.builder_visitor)
+        new_data_holders = _set_data_from_generic_matrix(
+            data,
+            features_layout,
+            py_builder_visitor.builder_visitor
+        )
+    return new_data_holders
 
 
 cdef TString obj_to_arcadia_string(obj) except *:
@@ -3533,7 +3835,7 @@ cdef class _PoolBase:
                     )
 
     cdef _set_label_features_order(self, label, IRawFeaturesOrderDataVisitor* builder_visitor):
-        cdef Py_ITypedSequencePtr py_num_target_data
+        cdef Py_FloatSequencePtr py_num_target_data
         cdef ITypedSequencePtr[np.float32_t] num_target_data
         cdef np.ndarray target_array
         cdef TVector[TString] string_target_data
@@ -3687,16 +3989,19 @@ cdef class _PoolBase:
                 py_builder_visitor
             )
         elif isinstance(data, np.ndarray):
-            if data_meta_info.FeaturesLayout.Get()[0].GetFloatFeatureCount():
+            if (data_meta_info.FeaturesLayout.Get()[0].GetFloatFeatureCount() or 
+                data_meta_info.FeaturesLayout.Get()[0].GetEmbeddingFeatureCount()):
                 new_data_holders = data
 
             cat_features_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Categorical)
             text_features_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Text)
+            embedding_features_mask = _get_is_feature_type_mask(features_layout, EFeatureType_Embedding)
 
             _set_features_order_data_ndarray(
                 data,
                 <bool_t[:features_layout[0].GetExternalFeatureCount()]>cat_features_mask.data(),
                 <bool_t[:features_layout[0].GetExternalFeatureCount()]>text_features_mask.data(),
+                <bool_t[:features_layout[0].GetExternalFeatureCount()]>embedding_features_mask.data(),
                 py_builder_visitor
             )
 
@@ -3748,8 +4053,6 @@ cdef class _PoolBase:
         cdef IRawObjectsOrderDataVisitor* builder_visitor = py_builder_visitor.builder_visitor
         py_builder_visitor.set_features_layout(data_meta_info.FeaturesLayout.Get())
 
-        self.__data_holder = None # free previously used resources
-
         cdef TVector[TIntrusivePtr[IResourceHolder]] resource_holders
         builder_visitor[0].Start(
             False,
@@ -3761,7 +4064,7 @@ cdef class _PoolBase:
         )
         builder_visitor[0].StartNextBlock(_get_object_count(data))
 
-        _set_data(data, data_meta_info.FeaturesLayout.Get(), py_builder_visitor)
+        new_data_holders = _set_data(data, data_meta_info.FeaturesLayout.Get(), py_builder_visitor)
 
         if label is not None:
             self._set_label_objects_order(label, py_builder_visitor)
@@ -3783,10 +4086,11 @@ cdef class _PoolBase:
         builder_visitor[0].Finish()
 
         self.__pool = py_builder_visitor.data_provider_builder.Get()[0].GetResult()
+        self.__data_holders = new_data_holders
 
 
-    cpdef _init_pool(self, data, label, cat_features, text_features, pairs, weight, group_id, group_weight,
-                     subgroup_id, pairs_weight, baseline, feature_names, thread_count):
+    cpdef _init_pool(self, data, label, cat_features, text_features, embedding_features, pairs, weight,
+                     group_id, group_weight, subgroup_id, pairs_weight, baseline, feature_names, thread_count):
         if group_weight is not None and weight is not None:
             raise CatBoostError('Pool must have either weight or group_weight.')
 
@@ -3810,7 +4114,7 @@ cdef class _PoolBase:
             data,
             cat_features,
             text_features,
-            [],
+            embedding_features,
             feature_names
         )
 
@@ -4168,6 +4472,17 @@ cdef class _PoolBase:
         cdef TFeaturesLayout* featuresLayout = dereference(self.__pool.Get()).MetaInfo.FeaturesLayout.Get()
         return [int(i) for i in featuresLayout[0].GetTextFeatureInternalIdxToExternalIdx()]
 
+    cpdef get_embedding_feature_indices(self):
+        """
+        Get embedding_feature indices from Pool.
+
+        Returns
+        -------
+        embedding_feature_indices : list
+        """
+        cdef TFeaturesLayout* featuresLayout = dereference(self.__pool.Get()).MetaInfo.FeaturesLayout.Get()
+        return [int(i) for i in featuresLayout[0].GetEmbeddingFeatureInternalIdxToExternalIdx()]
+
     cpdef get_weight(self):
         """
         Get weight for each instance.
@@ -4513,6 +4828,10 @@ cdef class _CatBoost:
     cpdef _get_text_feature_indices(self):
         cdef TConstArrayRef[TTextFeature] arrayView = self.__model.ModelTrees.Get().GetTextFeatures()
         return [feature.Position.FlatIndex for feature in arrayView]
+
+    cpdef _get_embedding_feature_indices(self):
+        # TODO(akhropov): embedding features support in model
+        return []
 
     cpdef _get_float_feature_indices(self):
         cdef TConstArrayRef[TFloatFeature] arrayView = self.__model.ModelTrees.Get().GetFloatFeatures()

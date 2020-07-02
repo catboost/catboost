@@ -121,6 +121,12 @@ ROTTEN_TOMATOES_TEST_FILE = data_file('rotten_tomatoes', 'test')
 ROTTEN_TOMATOES_CD_FILE = data_file('rotten_tomatoes', 'cd')
 ROTTEN_TOMATOES_CD_BINCLASS_FILE = data_file('rotten_tomatoes', 'cd_binclass')
 
+ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE = data_file('rotten_tomatoes_small_with_embeddings', 'train')
+ROTTEN_TOMATOES_WITH_EMBEDDINGS_CD_BINCLASS_FILE = data_file(
+    'rotten_tomatoes_small_with_embeddings',
+    'cd_binclass'
+)
+
 AIRLINES_ONEHOT_TRAIN_FILE = data_file('airlines_onehot_250', 'train_small')
 AIRLINES_ONEHOT_TEST_FILE = data_file('airlines_onehot_250', 'test_small')
 AIRLINES_ONEHOT_CD_FILE = data_file('airlines_onehot_250', 'train.cd')
@@ -376,7 +382,13 @@ def test_load_list():
     assert _check_shape(Pool(features_data, labels, CAT_FEATURES), 101, 17)
 
 
-datasets_for_test_ndarray = ['adult', 'cloudness_small', 'higgs', 'rotten_tomatoes']
+datasets_for_test_ndarray = [
+    'adult',
+    'cloudness_small',
+    'higgs',
+    'rotten_tomatoes',
+    'rotten_tomatoes_small_with_embeddings'
+]
 
 
 def get_only_features_names(columns_metadata):
@@ -417,14 +429,22 @@ def test_load_ndarray_vs_load_from_file(dataset, order):
         cd_file = ROTTEN_TOMATOES_CD_BINCLASS_FILE
         dtypes = [object]
         float_dtype_is_ok = False
+    elif dataset == 'rotten_tomatoes_small_with_embeddings':
+        # mixed numeric, categorical and embedding features data
+        train_file = ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE
+        cd_file = ROTTEN_TOMATOES_WITH_EMBEDDINGS_CD_BINCLASS_FILE
+        dtypes = [object]
+        float_dtype_is_ok = False
 
     columns_metadata = read_cd(cd_file, data_file=train_file, canonize_column_types=True)
     target_column_idx = columns_metadata['column_type_to_indices']['Label'][0]
     cat_column_indices = columns_metadata['column_type_to_indices'].get('Categ', [])
     text_column_indices = columns_metadata['column_type_to_indices'].get('Text', [])
+    num_vector_column_indices = columns_metadata['column_type_to_indices'].get('NumVector', [])
     n_features = (
         + len(cat_column_indices)
         + len(text_column_indices)
+        + len(num_vector_column_indices)
         + len(columns_metadata['column_type_to_indices'].get('Num', []))
     )
     feature_names = get_only_features_names(columns_metadata)
@@ -443,11 +463,16 @@ def test_load_ndarray_vs_load_from_file(dataset, order):
                     if column_idx == target_column_idx:
                         labels[line_idx] = float(element)
                     else:
-                        features_data[line_idx, feature_idx] = (
-                            element
-                            if (dtype is object) or (column_idx in cat_column_indices) or (column_idx in text_column_indices)
-                            else dtype(element)
-                        )
+                        if feature_idx in num_vector_column_indices:
+                            features_data[line_idx, feature_idx] = (
+                                np.array([float(e) for e in element.split(';')])
+                            )
+                        else:
+                            features_data[line_idx, feature_idx] = (
+                                element
+                                if (dtype is object) or (column_idx in cat_column_indices) or (column_idx in text_column_indices)
+                                else dtype(element)
+                            )
                         feature_idx += 1
 
         if (dtype in [np.float32, np.float64]) and (not float_dtype_is_ok):
@@ -455,11 +480,13 @@ def test_load_ndarray_vs_load_from_file(dataset, order):
                 pool_from_ndarray = Pool(features_data, labels,
                                          cat_features=columns_metadata['cat_feature_indices'],
                                          text_features=columns_metadata['text_feature_indices'],
+                                         embedding_features=columns_metadata['embedding_feature_indices'],
                                          feature_names=feature_names)
         else:
             pool_from_ndarray = Pool(features_data, labels,
                                      cat_features=columns_metadata['cat_feature_indices'],
                                      text_features=columns_metadata['text_feature_indices'],
+                                     embedding_features=columns_metadata['embedding_feature_indices'],
                                      feature_names=feature_names)
 
             assert _have_equal_features(pool_from_file, pool_from_ndarray)
@@ -542,16 +569,30 @@ def test_fit_on_ndarray(features_dtype):
     return local_canonical_file(preds_path)
 
 
-@pytest.mark.parametrize('dataset', ['adult', 'adult_nan', 'querywise', 'rotten_tomatoes'])
+@pytest.mark.parametrize(
+    'dataset',
+    ['adult', 'adult_nan', 'querywise', 'rotten_tomatoes', 'rotten_tomatoes_small_with_embeddings']
+)
 def test_load_df_vs_load_from_file(dataset):
     train_file, cd_file, target_idx, group_id_idx, other_non_feature_columns = {
         'adult': (TRAIN_FILE, CD_FILE, TARGET_IDX, None, []),
         'adult_nan': (NAN_TRAIN_FILE, NAN_CD_FILE, TARGET_IDX, None, []),
         'querywise': (QUERYWISE_TRAIN_FILE, QUERYWISE_CD_FILE, 2, 1, [0, 3, 4]),
-        'rotten_tomatoes': (ROTTEN_TOMATOES_TRAIN_FILE, ROTTEN_TOMATOES_CD_BINCLASS_FILE, 11, None, [])
+        'rotten_tomatoes': (ROTTEN_TOMATOES_TRAIN_FILE, ROTTEN_TOMATOES_CD_BINCLASS_FILE, 11, None, []),
+        'rotten_tomatoes_small_with_embeddings': (
+            ROTTEN_TOMATOES_WITH_EMBEDDINGS_TRAIN_FILE,
+            ROTTEN_TOMATOES_WITH_EMBEDDINGS_CD_BINCLASS_FILE,
+            11,
+            None,
+            []
+        )
     }[dataset]
 
     pool1 = Pool(train_file, column_description=cd_file)
+    cat_features = pool1.get_cat_feature_indices()
+    text_features = pool1.get_text_feature_indices()
+    embedding_features = pool1.get_embedding_feature_indices()
+
     data = read_csv(train_file, header=None, delimiter='\t', na_filter=False)
 
     labels = data.iloc[:, target_idx]
@@ -565,14 +606,34 @@ def test_load_df_vs_load_from_file(dataset):
         inplace=True
     )
 
-    cat_features = pool1.get_cat_feature_indices()
-    text_features = pool1.get_text_feature_indices()
-
     pool1.set_feature_names(list(data.columns))
 
-    pool2 = Pool(data, labels, cat_features=cat_features, text_features=text_features, group_id=group_ids)
-    assert _have_equal_features(pool1, pool2)
-    assert _check_data([float(label) for label in pool1.get_label()], pool2.get_label())
+    def check(pool1, data2):
+        pool2 = Pool(
+            data2,
+            labels,
+            cat_features=cat_features,
+            text_features=text_features,
+            embedding_features=embedding_features,
+            group_id=group_ids
+        )
+        assert _have_equal_features(pool1, pool2)
+        assert _check_data([float(label) for label in pool1.get_label()], pool2.get_label())
+
+    if len(embedding_features):
+        for embedding_array_ctor in [np.array, list]:
+            for embedding_elements_dtype in [np.float32, float]:
+                data2 = data.copy()
+                for embedding_feature in embedding_features:
+                    data2[embedding_feature] = [
+                        embedding_array_ctor(
+                            [embedding_elements_dtype(element) for element in object_embedding_str.split(';')]
+                        )
+                        for object_embedding_str in data[embedding_feature]
+                    ]
+                check(pool1, data2)
+    else:
+        check(pool1, data)
 
 
 def test_load_df_vs_load_from_file_multitarget():

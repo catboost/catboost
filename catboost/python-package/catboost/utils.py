@@ -45,6 +45,7 @@ def _draw(plt, x, y, x_label, y_label, title):
 def create_cd(
     label=None,
     cat_features=None,
+    embedding_features=None,
     weight=None,
     baseline=None,
     doc_id=None,
@@ -67,7 +68,7 @@ def create_cd(
     _column_description = defaultdict(lambda: ['Num', ''])
     for key, value in locals().copy().items():
         if not (key.startswith('_') or value is None):
-            if key in ('cat_features', 'auxiliary_columns'):
+            if key in ('cat_features', 'embedding_features', 'auxiliary_columns'):
                 if isinstance(value, int):
                     value = [value]
                 for index in value:
@@ -75,7 +76,12 @@ def create_cd(
                         raise CatBoostError('Unsupported index type. Expected int, got {}'.format(type(index)))
                     if index in _column_description:
                         raise CatBoostError('The index {} occurs more than once'.format(index))
-                    _column_description[index] = ['Categ', ''] if key == 'cat_features' else ['Auxiliary', '']
+                    if key == 'cat_features':
+                        _column_description[index] = ['Categ', '']
+                    elif key == 'embedding_features':
+                        _column_description[index] = ['NumVector', '']
+                    else:
+                        _column_description[index] = ['Auxiliary', '']
             elif key not in ('feature_names', 'output_path'):
                 if not isinstance(value, int):
                     raise CatBoostError('Unsupported index type. Expected int, got {}'.format(type(value)))
@@ -126,6 +132,10 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
             indices of text features in array of all features.
             Note: indices in array of features, not indices in array of all columns!
 
+        "embedding_feature_indices" : list of integers
+            indices of embedding features in array of all features.
+            Note: indices in array of features, not indices in array of all columns!
+
         "column_names" : list of strings
 
         "non_feature_column_indices" : list of integers
@@ -150,6 +160,7 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
     column_dtypes = {}
     cat_feature_indices = []
     text_feature_indices = []
+    embedding_feature_indices = []
     column_names = []
     non_feature_column_indices = []
 
@@ -188,7 +199,7 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
             if len(line_columns) == 3:
                 column_name = line_columns[2]
 
-            if column_type in ['Num', 'Categ', 'Text']:
+            if column_type in ['Num', 'Categ', 'Text', 'NumVector']:
                 feature_idx = column_idx - len(non_feature_column_indices)
                 if column_name is None:
                     column_name = 'feature_%i' % feature_idx
@@ -197,6 +208,9 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
                     column_dtypes[column_name] = 'category'
                 elif column_type == 'Text':
                     text_feature_indices.append(feature_idx)
+                    column_dtypes[column_name] = object
+                elif column_type == 'NumVector':
+                    embedding_feature_indices.append(feature_idx)
                     column_dtypes[column_name] = object
                 else:
                     column_dtypes[column_name] = np.float32
@@ -216,6 +230,7 @@ def read_cd(cd_file, column_count=None, data_file=None, canonize_column_types=Fa
         'column_dtypes' : column_dtypes,
         'cat_feature_indices' : cat_feature_indices,
         'text_feature_indices' : text_feature_indices,
+        'embedding_feature_indices' : embedding_feature_indices,
         'column_names' : column_names,
         'non_feature_column_indices' : non_feature_column_indices
     }
