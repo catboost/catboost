@@ -5,9 +5,29 @@ ALLOW taxi/tools/dorblu -> maps/libs/deprecated/bson
 ALLOW maps/masstransit/info -> maps/libs/deprecated/mongo
 ALLOW taxi/tools/dorblu -> maps/libs/deprecated/mongo
 
-ALLOW maps/libs/deprecated -> maps/libs/deprecated
+# Use maps/libs/locale instead
+ALLOW maps/automotive/remote_access/libs/i18n -> maps/libs/deprecated/localeutils
+ALLOW maps/carparks/renderer/datasource -> maps/libs/deprecated/localeutils
+ALLOW maps/fastcgi/tilerenderer-serv -> maps/libs/deprecated/localeutils
+ALLOW maps/garden/modules/renderer_denormalization -> maps/libs/deprecated/localeutils
+ALLOW maps/infopoint -> maps/libs/deprecated/localeutils
+ALLOW maps/jams/renderer2 -> maps/libs/deprecated/localeutils
+ALLOW maps/libs/i18n -> maps/libs/deprecated/localeutils
+ALLOW maps/libs/i18n-geobase -> maps/libs/deprecated/localeutils
+ALLOW maps/libs/jams/static-graph -> maps/libs/deprecated/localeutils
+ALLOW maps/libs/locale/compatibility -> maps/libs/deprecated/localeutils
+ALLOW maps/libs/road_graph -> maps/libs/deprecated/localeutils
+ALLOW maps/poi/personalized_poi -> maps/libs/deprecated/localeutils
+ALLOW maps/renderer -> maps/libs/deprecated/localeutils
+ALLOW maps/routing/router -> maps/libs/deprecated/localeutils
+ALLOW maps/routing/graph-tile-builder -> maps/libs/deprecated/localeutils
+ALLOW maps/snippets/tools/masstransit -> maps/libs/deprecated/localeutils
+ALLOW maps/tools/indoor -> maps/libs/deprecated/localeutils
+ALLOW maps/wikimap/mapspro/services/mrc -> maps/libs/deprecated/localeutils
+ALLOW netsys/tiles-vcdiff/gen-tiles -> maps/libs/deprecated/localeutils
 
 # Stop spreading deprecated stuff
+ALLOW maps/libs/deprecated -> maps/libs/deprecated
 DENY .* -> maps/libs/deprecated
 
 # maps/doc/proto holds proto interface for maps backends. Anyone can use them.
@@ -31,7 +51,6 @@ ALLOW extsearch/geo/poi_service -> maps/renderer
 ALLOW media/road-graph-tool -> maps/libs/road_graph
 ALLOW media/road-graph-tool -> maps/libs/snap
 ALLOW media/road-graph-tool -> maps/libs/succinct_rtree
-ALLOW netsys/tiles-vcdiff/gen-tiles -> maps/libs/localeutils
 ALLOW netsys/tiles-vcdiff/gen-tiles -> maps/renderer
 ALLOW quality/ab_testing/cofe/projects/maps -> maps/analytics
 ALLOW taxi/antifraud/mult_id -> maps/libs/geolib
