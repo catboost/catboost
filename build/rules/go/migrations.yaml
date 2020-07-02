@@ -337,7 +337,6 @@ migrations:
       - a.yandex-team.ru/strm/trns_manager/pkg/manager/dsm_test
       - a.yandex-team.ru/strm/trns_manager/pkg/manager/raft
       - a.yandex-team.ru/strm/trns_manager/pkg/manager/raft_test
-      - a.yandex-team.ru/strm/trns_agent/pkg/transcoder
       - a.yandex-team.ru/talents/facebackend/server
       - a.yandex-team.ru/transfer_manager/go/pkg/source/pg
       - a.yandex-team.ru/travel/avia/flight_status_receiver/internal/collectors
