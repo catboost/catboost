@@ -315,8 +315,6 @@ migrations:
       - a.yandex-team.ru/kikimr/public/sdk/go/ydb/table_test
       - a.yandex-team.ru/kikimr/public/sdk/go/ydb/ydbsql
       - a.yandex-team.ru/kikimr/public/sdk/go/ydb/ydbsql_test
-      - a.yandex-team.ru/library/go/core/metrics/prometheus
-      - a.yandex-team.ru/library/go/core/metrics/prometheus_test
       - a.yandex-team.ru/market/combinator/pkg/combinator-app/routes
       - a.yandex-team.ru/market/sre/services/dist_transporter/app
       - a.yandex-team.ru/mds/yarl/pkg/quota
