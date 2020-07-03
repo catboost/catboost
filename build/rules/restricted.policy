@@ -127,7 +127,7 @@ ALLOW contrib/libs -> contrib/restricted/libffi
 ALLOW contrib/python -> contrib/restricted/libffi
 ALLOW contrib/tools -> contrib/restricted/libffi
 
-# use GTEST_BETA target in ya.make instead of PEERDIRing contrib/restricted/googletest
+# use GTEST target in ya.make instead of PEERDIRing contrib/restricted/googletest
 # and include <library/cpp/testing/gtest.h> instead of <gtest/gtest.h> (<gmock/gmock.h>)
 ALLOW contrib -> contrib/restricted/googletest
 ALLOW library/cpp/testing/gmock_in_unittest -> contrib/restricted/googletest

@@ -31,7 +31,7 @@ General info: [How to write ya.make files](https://wiki.yandex-team.ru/yatool/Ho
        - Module [GO_PROGRAM](#module_GO_PROGRAM)
        - Module [GO_TEST](#module_GO_TEST)
        - Module [GTEST](#module_GTEST)
-       - Module [GTEST_BETA](#module_GTEST_BETA)
+       - Module [GTEST](#module_GTEST)
        - Module [G_BENCHMARK](#module_G_BENCHMARK)
        - Module [IOS_INTERFACE](#module_IOS_INTERFACE)
        - Module [JAVA_LIBRARY](#module_JAVA_LIBRARY)
@@ -302,7 +302,7 @@ Use public documentation on gtest for details.
 
 Documentation about the Arcadia test system: https://wiki.yandex-team.ru/yatool/test/
 
-###### Module [GTEST\_BETA][]([name]) <a name="module_GTEST_BETA"></a>
+###### Module [GTEST\_BETA][]([name]) <a name="module_GTEST"></a>
 Unstable version of better GTEST support.
 
 ###### Module [G\_BENCHMARK][]([benchmarkname]) <a name="module_G_BENCHMARK"></a>
