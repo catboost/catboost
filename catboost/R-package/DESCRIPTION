@@ -48,7 +48,7 @@ Authors@R: c(
     person("Dmitry", "Baksheev", role = c("aut", "cre"))
     )
 Author: CatBoost DevTeam [aut, cre]
-Maintainer: CatBoost DevTeam <https://catboost.ai/>
+Maintainer: Stanislav Kirillov <staskirillov@gmail.com>
 URL: https://catboost.ai/, https://github.com/catboost/catboost
 BugReports: https://github.com/catboost/catboost/issues
 Suggests: caret, testthat, dplyr, e1071
