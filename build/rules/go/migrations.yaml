@@ -179,7 +179,6 @@ migrations:
     packages:
       - a.yandex-team.ru/alice/library/response_similarity/proto
       - a.yandex-team.ru/crypta/graph/soup/config/proto
-      - a.yandex-team.ru/devtools/distbuild/matchmaker/idl/proto
       - a.yandex-team.ru/extsearch/video/content_id/proto
       - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ad/proto
       - a.yandex-team.ru/extsearch/video/robot/rt_transcoder/ng/proto
@@ -252,8 +251,6 @@ migrations:
       - a.yandex-team.ru/cloud/disk_manager/internal/pkg/tasks
       - a.yandex-team.ru/cloud/disk_manager/pkg/client
       - a.yandex-team.ru/cloud/disk_manager/test/remote/cmd
-      - a.yandex-team.ru/devtools/distbuild/matchmaker/database
-      - a.yandex-team.ru/devtools/distbuild/matchmaker/database_test
       - a.yandex-team.ru/edadeal/analytics/geoloh-go/cmd/customer-traffic-ext
       - a.yandex-team.ru/edadeal/backend/go/charm/internal/app
       - a.yandex-team.ru/edadeal/backend/go/charm/internal/pkg/store/pg
