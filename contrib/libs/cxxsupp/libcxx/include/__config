@@ -905,7 +905,7 @@ typedef unsigned int   char32_t;
 #  define _LIBCPP_EXPLICIT
 #endif
 
-#if !__has_builtin(__builtin_operator_new) || !__has_builtin(__builtin_operator_delete)
+#if !__has_builtin(__builtin_operator_new) || !__has_builtin(__builtin_operator_delete) || defined(__CUDACC__)
 #define _LIBCPP_HAS_NO_BUILTIN_OPERATOR_NEW_DELETE
 #endif
 
