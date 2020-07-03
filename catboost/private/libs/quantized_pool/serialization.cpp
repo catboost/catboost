@@ -206,6 +206,8 @@ static TPoolMetainfo MakePoolMetainfo(
                 pbColumnType = NCB::NIdl::CT_SPARSE;
                 break;
             case EColumn::Timestamp:
+                pbColumnType = NCB::NIdl::CT_TIMESTAMP;
+                break;
             case EColumn::Prediction:
             case EColumn::Auxiliary:
             case EColumn::Text:
