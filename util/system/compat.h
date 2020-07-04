@@ -16,11 +16,6 @@
 #include <process.h>
 #endif
 
-#if !defined(__unix__)
-#define __CONCAT1(x, y) x##y
-#define __CONCAT(x, y) __CONCAT1(x, y)
-#endif
-
 extern "C" {
 #if defined(_win_)
 using pid_t = int;
