@@ -1,5 +1,10 @@
 #pragma once
 
+// WARNING: this is a legacy header that tries to mimic the gtest interface while using unittest
+// under the hood. Avoid using this interface -- use the genuine gtest instead (the GTEST macro).
+// If you're already using GTEST macro and you've found yourself here, you probably meant
+// to include `library/cpp/testing/gtest/gtest.h`.
+
 #include "registar.h"
 
 #include <util/generic/ymath.h>
