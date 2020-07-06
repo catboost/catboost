@@ -1,0 +1,27 @@
+--- a/py/_vendored_packages/iniconfig.py	(working tree)
++++ b/py/_vendored_packages/iniconfig.py	(index)
+@@ -1,6 +1,8 @@
+ """ brain-dead simple parser for ini-style files.
+ (C) Ronny Pfannschmidt, Holger Krekel -- MIT licensed
+ """
++import io
++
+ __all__ = ['IniConfig', 'ParseError']
+ 
+ COMMENTCHARS = "#;"
+@@ -49,7 +51,14 @@
+     def __init__(self, path, data=None):
+         self.path = str(path)  # convenience
+         if data is None:
++            if self.path.startswith('pkg:'):
++                import pkgutil
++
++                _, package, resource = self.path.split(':')
++                content = pkgutil.get_data(package, resource)
++                f = io.StringIO(content.decode('utf-8'))
++            else:
++                f = open(self.path)
+-            f = open(self.path)
+             try:
+                 tokens = self._parse(iter(f))
+             finally:

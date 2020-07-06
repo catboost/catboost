@@ -1,7 +1,7 @@
 """ brain-dead simple parser for ini-style files.
 (C) Ronny Pfannschmidt, Holger Krekel -- MIT licensed
 """
-import six
+import io
 
 __all__ = ['IniConfig', 'ParseError']
 
@@ -56,7 +56,7 @@ class IniConfig(object):
 
                 _, package, resource = self.path.split(':')
                 content = pkgutil.get_data(package, resource)
-                f = six.StringIO(content.decode('utf-8'))
+                f = io.StringIO(content.decode('utf-8'))
             else:
                 f = open(self.path)
             try:
