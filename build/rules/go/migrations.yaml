@@ -130,9 +130,6 @@ migrations:
       - a.yandex-team.ru/mail/so/spamstop/tools/smtp2http
       - a.yandex-team.ru/mail/payments-sdk-backend/backend/cmd/server
       - a.yandex-team.ru/mail/payments-sdk-backend/backend/cmd/server_test
-      - a.yandex-team.ru/mds/kapl/pkg/mdb
-      - a.yandex-team.ru/mds/karl/pkg/migrate
-      - a.yandex-team.ru/mds/karl/pkg/job
       - a.yandex-team.ru/mds/valve/pkg/storage
       - a.yandex-team.ru/mds/valve/pkg/valve
       - a.yandex-team.ru/mds/valve/pkg/worker
@@ -140,11 +137,6 @@ migrations:
       - a.yandex-team.ru/mds/vasgen/pkg/tcptrace
       - a.yandex-team.ru/mds/vasgen/pkg/tcptrace/xnet
       - a.yandex-team.ru/mds/vasgen/pkg/tcptrace/xnet_test
-      - a.yandex-team.ru/mds/yarl/cmd/cli
-      - a.yandex-team.ru/mds/yarl/pkg/counters/updater
-      - a.yandex-team.ru/mds/yarl/pkg/rest
-      - a.yandex-team.ru/mds/yarl/pkg/xgrpc
-      - a.yandex-team.ru/mds/yarl/pkg/xgrpc_test
       - a.yandex-team.ru/quasar/gackend
       - a.yandex-team.ru/quasar/gackend/db
       - a.yandex-team.ru/quasar/gackend_test
@@ -193,7 +185,6 @@ migrations:
       - a.yandex-team.ru/library/cpp/eventlog/proto
       - a.yandex-team.ru/market/idx/golibrary/pbsn/proto
       - a.yandex-team.ru/mds/valve/proto
-      - a.yandex-team.ru/mds/yarl/proto
       - a.yandex-team.ru/rtline/library/executor/proto
       - a.yandex-team.ru/rtline/library/time_restriction/proto
       - a.yandex-team.ru/rtline/services/drive/frontend/data/proto
@@ -291,9 +282,6 @@ migrations:
       - a.yandex-team.ru/kikimr/public/sdk/go/ydb/ydbsql_test
       - a.yandex-team.ru/market/combinator/pkg/combinator-app/routes
       - a.yandex-team.ru/market/sre/services/dist_transporter/app
-      - a.yandex-team.ru/mds/yarl/pkg/quota
-      - a.yandex-team.ru/mds/yarl/pkg/quota_test
-      - a.yandex-team.ru/mds/yarl/proto
       - a.yandex-team.ru/mds/valve/pkg/worker
       - a.yandex-team.ru/talents/facebackend/server
       - a.yandex-team.ru/transfer_manager/go/pkg/source/pg
