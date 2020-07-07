@@ -5077,6 +5077,7 @@ def do_test_roc(task_type, pool, iterations, additional_train_params={}):
         local_canonical_file(out_bounds)
     ]
 
+
 # different iteration parameters needed to check less and more accurate models
 @pytest.mark.parametrize('iterations', [5, 20, 110], ids=['iterations=5', 'iterations=20', 'iterations=110'])
 def test_roc(task_type, iterations):
