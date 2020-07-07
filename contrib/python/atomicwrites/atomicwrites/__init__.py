@@ -9,7 +9,13 @@ try:
 except ImportError:
     fcntl = None
 
-__version__ = '1.3.0'
+# `fspath` was added in Python 3.6
+try:
+    from os import fspath
+except ImportError:
+    fspath = None
+
+__version__ = '1.4.0'
 
 
 PY2 = sys.version_info[0] == 2
@@ -137,6 +143,10 @@ class AtomicWriter(object):
         if 'w' not in mode:
             raise ValueError('AtomicWriters can only be written to.')
 
+        # Attempt to convert `path` to `str` or `bytes`
+        if fspath is not None:
+            path = fspath(path)
+
         self._path = path
         self._mode = mode
         self._overwrite = overwrite
@@ -165,8 +175,8 @@ class AtomicWriter(object):
                 except Exception:
                     pass
 
-    def get_fileobject(self, suffix="", prefix=tempfile.template, dir=None,
-                       **kwargs):
+    def get_fileobject(self, suffix="", prefix=tempfile.gettempprefix(),
+                       dir=None, **kwargs):
         '''Return the temporary file to use.'''
         if dir is None:
             dir = os.path.normpath(os.path.dirname(self._path))
