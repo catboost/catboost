@@ -362,6 +362,9 @@
         },
         "ya_sed": {
             "description": "This tool simplifies replacing of some text in Arcadia"
+        },
+        "black": {
+            "description": "Python styler"
         }
     },
     "toolchain": {
@@ -5360,6 +5363,34 @@
                     "default": true
                 }
             ]
+        },
+        "black": {
+            "tools": {
+                "black": {
+                    "bottle": "black",
+                    "executable": "black"
+                }
+            },
+            "platforms": [
+                {
+                    "host": {
+                        "os": "LINUX"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "WIN"
+                    },
+                    "default": true
+                },
+                {
+                    "host": {
+                        "os": "DARWIN"
+                    },
+                    "default": true
+                }
+            ]
         }
     },
     "bottles": {
@@ -7248,6 +7279,19 @@
             "executable": {
                 "ya_sed": [
                     "ya_sed"
+                ]
+            }
+        },
+        "black": {
+            "formula": {
+                "sandbox_id": [
+                    718136999
+                ],
+                "match": "black"
+            },
+            "executable": {
+                "black": [
+                    "black"
                 ]
             }
         }
