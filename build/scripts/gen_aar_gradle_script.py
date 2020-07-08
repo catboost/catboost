@@ -208,7 +208,7 @@ android {{
                     def outputPath = "$buildDir/tmp/aarJar/${{aar.name.replace('.aar', '.jar')}}"
                     classpath += files(outputPath)
 
-                    dependsOn task(name: "extract ${{aar.name}}-${{capitalizedVariantName}}").doLast {{
+                    dependsOn task(name: "extract_${{aar.getAbsolutePath().replace(File.separatorChar, '_' as char)}}-${{capitalizedVariantName}}").doLast {{
                         extractClassesJar(aar, outputPath)
                     }}
                 }}
