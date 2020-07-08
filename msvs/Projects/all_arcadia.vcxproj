@@ -528,14 +528,14 @@
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\contrib-libs-protobuf.vcxproj">
       <Project>18399176-5408-8102-7C5F-8DA029B8F78E</Project>
     </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\protoc\libs-protobuf-protoc.vcxproj">
-      <Project>14A8CC70-8353-091C-5E93-D6A6861D1D6C</Project>
-    </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\py3protobuf-python-google_lib.vcxproj">
       <Project>EBFCFEB6-7F53-5434-3E5A-016929A7E62D</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protobuf\python\google_lib\pyprotobuf-python-google_lib.vcxproj">
       <Project>1529DFE3-5177-2C02-3975-17E5F54C498D</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\protoc\contrib-libs-protoc.vcxproj">
+      <Project>BB73A48B-0928-DD07-1DE1-A5B5AD5335E3</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\contrib\libs\pugixml\contrib-libs-pugixml.vcxproj">
       <Project>960D51CA-7BAE-9310-E44C-96FB62C4BC70</Project>
