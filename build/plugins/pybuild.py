@@ -112,8 +112,7 @@ def add_python_lint_checks(unit, py_ver, files):
                 resolved_files.append(resolved)
         return resolved_files
 
-    need_style_check = unit.get('LINT_LEVEL_VALUE') != "none" or unit.get('FLAKE8_CONFIG') != "none"
-    if files and need_style_check:
+    if files and unit.get('LINT_LEVEL_VALUE') != "none":
         resolved_files = get_resolved_files()
         flake8_cfg = 'build/config/tests/flake8.conf'
         unit.onadd_check(["flake8.py{}".format(py_ver), flake8_cfg] + resolved_files)
