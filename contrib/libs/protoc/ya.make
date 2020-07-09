@@ -2,6 +2,8 @@
 
 LIBRARY()
 
+PROVIDES(protoc)
+
 LICENSE(
     BSD3
 )
