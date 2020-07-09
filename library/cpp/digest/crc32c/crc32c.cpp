@@ -19,7 +19,7 @@ namespace {
             Pimpl->Delete();
         }
 
-        inline ui32 Extend(ui32 init, const void* data, size_t n) noexcept {
+        inline ui32 Extend(ui32 init, const void* data, size_t n) const noexcept {
             crcutil_interface::UINT64 sum = init;
             Pimpl->Compute(data, n, &sum);
             return (ui32)sum;
