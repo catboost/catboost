@@ -2,15 +2,15 @@
 #include "wide.h"
 
 int TCiString::compare(const TCiString& s1, const TCiString& s2, const CodePage& cp) {
-    return cp.stricmp(s1.Data_, s2.Data_);
+    return cp.stricmp(s1.data(), s2.data());
 }
 
 int TCiString::compare(const char* p, const TCiString& s2, const CodePage& cp) {
-    return cp.stricmp(p, s2.Data_);
+    return cp.stricmp(p, s2.data());
 }
 
 int TCiString::compare(const TCiString& s1, const char* p, const CodePage& cp) {
-    return cp.stricmp(s1.Data_, p);
+    return cp.stricmp(s1.data(), p);
 }
 
 int TCiString::compare(const TStringBuf& p1, const TStringBuf& p2, const CodePage& cp) {
