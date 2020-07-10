@@ -141,6 +141,15 @@ double NCatboostOptions::GetQuerySoftMaxLambdaReg(const TLossDescription& lossFu
     return GetParamOrDefault(lossFunctionConfig, "lambda", 0.01);
 }
 
+double NCatboostOptions::GetQuerySoftMaxBeta(const TMap<TString, TString>& lossParams) {
+    return GetParamOrDefault(lossParams, "beta", 1.0);
+}
+
+double NCatboostOptions::GetQuerySoftMaxBeta(const TLossDescription& lossFunctionConfig) {
+    Y_ASSERT(lossFunctionConfig.GetLossFunction() == ELossFunction::QuerySoftMax);
+    return GetParamOrDefault(lossFunctionConfig, "beta", 1.0);
+}
+
 ui32 NCatboostOptions::GetMaxPairCount(const TLossDescription& lossFunctionConfig) {
     Y_ASSERT(IsPairwiseMetric(lossFunctionConfig.GetLossFunction()));
     if (IsPairLogit(lossFunctionConfig.GetLossFunction())) {

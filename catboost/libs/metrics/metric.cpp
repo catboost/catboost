@@ -2153,7 +2153,9 @@ void TDcgMetric::GetBestValue(EMetricBestValue* valueType, float*) const {
 namespace {
     struct TQuerySoftMaxMetric final: public TAdditiveMetric {
         explicit TQuerySoftMaxMetric(const TLossParams& params)
-          : TAdditiveMetric(ELossFunction::QuerySoftMax, params) {
+          : TAdditiveMetric(ELossFunction::QuerySoftMax, params)
+          , Beta(NCatboostOptions::GetQuerySoftMaxBeta(params.GetParamsMap()))
+        {
             UseWeights.SetDefaultValue(true);
         }
 
@@ -2183,12 +2185,14 @@ namespace {
             TConstArrayRef<float> weights,
             TArrayRef<double> softmax
         ) const;
+        double Beta;
     };
 }
 
 // static
 TVector<THolder<IMetric>> TQuerySoftMaxMetric::Create(const TMetricConfig& config) {
     config.validParams->insert("lambda");
+    config.validParams->insert("beta");
     return AsVector(MakeHolder<TQuerySoftMaxMetric>(config.params));
 }
 
@@ -2248,7 +2252,7 @@ TMetricHolder TQuerySoftMaxMetric::EvalSingleQuery(
 
         for (int dim : xrange(count)) {
             const double delta = hasDelta ? approxDelta[start + dim] : 0;
-            softmax[dim] = approx[start + dim] + delta;
+            softmax[dim] = Beta * (approx[start + dim] + delta);
         }
         double maxApprox = -std::numeric_limits<double>::max();
         for (int dim : xrange(count)) {

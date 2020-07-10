@@ -682,11 +682,13 @@ private:
 class TQuerySoftMaxError final : public IDerCalcer {
 public:
     const double LambdaReg;
+    const double Beta;
 
 public:
-    explicit TQuerySoftMaxError(double lambdaReg, bool isExpApprox)
+    explicit TQuerySoftMaxError(double lambdaReg, double beta, bool isExpApprox)
         : IDerCalcer(isExpApprox, /*maxDerivativeOrder*/ 2, EErrorType::QuerywiseError)
         , LambdaReg(lambdaReg)
+        , Beta(beta)
     {
         CB_ENSURE(isExpApprox == false, "Approx format does not match");
     }
