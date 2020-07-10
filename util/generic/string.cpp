@@ -7,6 +7,7 @@
 #include <iostream>
 #include <cctype>
 
+#ifndef TSTRING_IS_STD_STRING
 namespace NDetail {
     struct TStaticData {
         TStringData Data;
@@ -57,6 +58,7 @@ namespace NDetail {
         y_deallocate(data);
     }
 }
+#endif
 
 std::ostream& operator<<(std::ostream& os, const TString& s) {
     return os.write(s.data(), s.size());

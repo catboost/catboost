@@ -16,7 +16,11 @@
 #include <algorithm>
 #include <stdexcept>
 
+#ifdef TSTRING_IS_STD_STRING
+static_assert(sizeof(TString) == sizeof(std::string), "expect sizeof(TString) == sizeof(std::string)");
+#else
 static_assert(sizeof(TString) == sizeof(const char*), "expect sizeof(TString) == sizeof(const char*)");
+#endif
 
 template <class TStringType, typename TTestData>
 class TStringTestImpl {
@@ -28,6 +32,9 @@ protected:
 
 public:
     void TestMaxSize() {
+#ifdef TSTRING_IS_STD_STRING
+        const size_t badMaxVal = TStringType{}.max_size() + 1;
+#else
         size_t l = TStringType::TDataTraits::MaxSize;
         UNIT_ASSERT(TStringType::TDataTraits::CalcAllocationSizeAndCapacity(l) >= TStringType::TDataTraits::MaxSize * sizeof(char_type));
         UNIT_ASSERT(l >= TStringType::TDataTraits::MaxSize);
@@ -35,6 +42,7 @@ public:
         const size_t badMaxVal = TStringType::TDataTraits::MaxSize + 1;
         l = badMaxVal;
         UNIT_ASSERT(TStringType::TDataTraits::CalcAllocationSizeAndCapacity(l) < badMaxVal * sizeof(char_type));
+#endif
 
         TStringType s;
         UNIT_CHECK_GENERATED_EXCEPTION(s.reserve(badMaxVal), std::length_error);
@@ -50,8 +58,10 @@ public:
         TStringType s2(Data._0());
         UNIT_ASSERT(s1 == s2);
 
+#ifndef TSTRING_IS_STD_STRING
         TStringType s3 = TStringType::Uninitialized(10);
         UNIT_ASSERT(s3.size() == 10);
+#endif
 
         TStringType s4(Data._0123456(), 1, 3);
         UNIT_ASSERT(s4 == Data._123());
@@ -63,7 +73,9 @@ public:
         UNIT_ASSERT(s6 == Data._0123456());
         TStringType s7(s6);
         UNIT_ASSERT(s7 == s6);
+#ifndef TSTRING_IS_STD_STRING
         UNIT_ASSERT(s7.c_str() == s6.c_str());
+#endif
 
         TStringType s8(s7, 1, 3);
         UNIT_ASSERT(s8 == Data._123());
@@ -73,7 +85,11 @@ public:
 
         TStringType s10(Reserve(100));
         UNIT_ASSERT(s10.empty());
+#ifdef TSTRING_IS_STD_STRING
+        UNIT_ASSERT(s10.capacity() >= 100);
+#else
         UNIT_ASSERT(s10.capacity() > 100);
+#endif
     }
 
     void TestReplace() {
@@ -84,7 +100,11 @@ public:
         s.append(Data.x());
         UNIT_ASSERT(s == Data._0123456x());
 
+#ifdef TSTRING_IS_STD_STRING
+        s.append(Data.xyz() + 1, 1);
+#else
         s.append(Data.xyz(), 1, 1);
+#endif
         UNIT_ASSERT(s == Data._0123456xy());
 
         s.append(TStringType(Data.z()));
@@ -151,6 +171,7 @@ public:
         UNIT_ASSERT(s[s.size()] == 0);
     }
 
+#ifndef TSTRING_IS_STD_STRING
     void TestRefCount() {
         // access protected member
         class TestStroka: public TStringType {
@@ -176,6 +197,7 @@ public:
         UNIT_ASSERT_EQUAL(s2.RefCount() == 1, true);
         UNIT_ASSERT_EQUAL(s1.c_str() == s2.c_str(), false);
     }
+#endif
 
     //  Find family
 
@@ -499,6 +521,7 @@ public:
         UNIT_ASSERT_EQUAL(str.EndsWith(emptyStr), true);
     }
 
+#ifndef TSTRING_IS_STD_STRING
     void TestCharRef() {
         const char_type abc[] = {'a', 'b', 'c', 0};
         const char_type bbc[] = {'b', 'b', 'c', 0};
@@ -545,6 +568,7 @@ public:
             UNIT_ASSERT_VALUES_EQUAL(s1, red_eared);
         }
     }
+#endif
 
     void TestBack() {
         const char_type chars[] = {'f', 'o', 'o', 0};
@@ -739,6 +763,7 @@ protected:
         // Non-shared behaviour - never shrink
 
         s.reserve(256);
+#ifndef TSTRING_IS_STD_STRING
         const auto* data = s.data();
 
         UNIT_ASSERT(s.capacity() >= 256);
@@ -746,12 +771,18 @@ protected:
         s.reserve(128);
 
         UNIT_ASSERT(s.capacity() >= 256 && s.data() == data);
+#endif
 
         s.resize(64, 'x');
         s.reserve(10);
 
+#ifdef TSTRING_IS_STD_STRING
+        UNIT_ASSERT(s.capacity() >= 64);
+#else
         UNIT_ASSERT(s.capacity() >= 256 && s.data() == data);
+#endif
 
+#ifndef TSTRING_IS_STD_STRING
         // Shared behaviour - always reallocate, just as much as requisted
 
         TStringType holder = s;
@@ -771,6 +802,7 @@ protected:
 
         UNIT_ASSERT(s.capacity() >= 64 && s.capacity() < 128 && s.data() != data);
         UNIT_ASSERT(s.IsDetached());
+#endif
     }
 
     void short_string() {
@@ -1811,7 +1843,9 @@ public:
     UNIT_TEST(TestMaxSize);
     UNIT_TEST(TestConstructors);
     UNIT_TEST(TestReplace);
+#ifndef TSTRING_IS_STD_STRING
     UNIT_TEST(TestRefCount);
+#endif
     UNIT_TEST(TestFind);
     UNIT_TEST(TestContains);
     UNIT_TEST(TestOperators);
@@ -1823,7 +1857,9 @@ public:
     UNIT_TEST(TestCopy);
     UNIT_TEST(TestStrCpy);
     UNIT_TEST(TestPrefixSuffix);
+#ifndef TSTRING_IS_STD_STRING
     UNIT_TEST(TestCharRef);
+#endif
     UNIT_TEST(TestBack)
     UNIT_TEST(TestFront)
     UNIT_TEST(TestIterators);
@@ -1839,7 +1875,9 @@ public:
     UNIT_TEST_SUITE(TWideStringTest);
     UNIT_TEST(TestConstructors);
     UNIT_TEST(TestReplace);
+#ifndef TSTRING_IS_STD_STRING
     UNIT_TEST(TestRefCount);
+#endif
     UNIT_TEST(TestFind);
     UNIT_TEST(TestContains);
     UNIT_TEST(TestOperators);
@@ -1852,7 +1890,9 @@ public:
     UNIT_TEST(TestCopy);
     UNIT_TEST(TestStrCpy);
     UNIT_TEST(TestPrefixSuffix);
+#ifndef TSTRING_IS_STD_STRING
     UNIT_TEST(TestCharRef);
+#endif
     UNIT_TEST(TestBack);
     UNIT_TEST(TestFront)
     UNIT_TEST(TestDecodingMethods);
@@ -1959,7 +1999,9 @@ public:
     UNIT_TEST_SUITE(TUtf32StringTest);
     UNIT_TEST(TestConstructors);
     UNIT_TEST(TestReplace);
+#ifndef TSTRING_IS_STD_STRING
     UNIT_TEST(TestRefCount);
+#endif
     UNIT_TEST(TestFind);
     UNIT_TEST(TestContains);
     UNIT_TEST(TestOperators);
@@ -1972,7 +2014,9 @@ public:
     UNIT_TEST(TestCopy);
     UNIT_TEST(TestStrCpy);
     UNIT_TEST(TestPrefixSuffix);
+#ifndef TSTRING_IS_STD_STRING
     UNIT_TEST(TestCharRef);
+#endif
     UNIT_TEST(TestBack);
     UNIT_TEST(TestFront)
     UNIT_TEST(TestDecodingMethods);
