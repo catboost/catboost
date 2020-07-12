@@ -356,8 +356,13 @@ def onadd_ytest(unit, *args):
                 "FORK_SUBTESTS": 0, "FORK_TESTS": 0}
     flat_args, spec_args = _common.sort_by_keywords(keywords, args)
 
+    test_data = sorted(_common.filter_out_by_keyword(spec_args.get('DATA', []) + get_norm_paths(unit, 'TEST_DATA_VALUE'), 'AUTOUPDATED'))
+
     if flat_args[1] == "fuzz.test":
         unit.ondata("arcadia/fuzzing/{}/corpus.json".format(get_norm_unit_path(unit)))
+    elif flat_args[1] == "go.test":
+        data, _ = get_canonical_test_resources(unit)
+        test_data += data
     elif flat_args[1] == "coverage.extractor" and not match_coverage_extractor_requirements(unit):
         # XXX
         # Current ymake implementation doesn't allow to call macro inside the 'when' body
@@ -389,7 +394,7 @@ def onadd_ytest(unit, *args):
         'TEST-RECIPES': prepare_recipes(unit.get("TEST_RECIPES_VALUE")),
         'TEST-ENV': prepare_env(unit.get("TEST_ENV_VALUE")),
         #  'TEST-PRESERVE-ENV': 'da',
-        'TEST-DATA': serialize_list(sorted(_common.filter_out_by_keyword(spec_args.get('DATA', []) + get_norm_paths(unit, 'TEST_DATA_VALUE'), 'AUTOUPDATED'))),
+        'TEST-DATA': serialize_list(test_data),
         'TEST-TIMEOUT': ''.join(spec_args.get('TIMEOUT', [])) or unit.get('TEST_TIMEOUT') or '',
         'FORK-MODE': fork_mode,
         'SPLIT-FACTOR': ''.join(spec_args.get('SPLIT_FACTOR', [])) or unit.get('TEST_SPLIT_FACTOR') or '',
