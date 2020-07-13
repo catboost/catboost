@@ -163,6 +163,7 @@ DENY .* -> contrib/deprecated/python/xmpppy
 ALLOW contrib/python/fancycompleter -> contrib/python/pyrepl
 DENY .* -> contrib/python/pyrepl
 
+ALLOW intranet/domenator/src -> contrib/python/pycrypto
 ALLOW intranet/yandex_directory/src -> contrib/python/pycrypto
 ALLOW addappter/backend -> contrib/python/pycrypto
 ALLOW adfox -> contrib/python/pycrypto
