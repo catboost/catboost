@@ -33,5 +33,6 @@ RECURSE(
     platform/python
     platform/python/ldflags
     plugins
+    prebuilt
     scripts
 )
