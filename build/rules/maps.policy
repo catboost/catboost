@@ -48,6 +48,7 @@ ALLOW .* -> maps/libs/local_postgres
 ALLOW .* -> maps/libs/pgpool
 ALLOW .* -> maps/libs/s3mds
 ALLOW .* -> maps/libs/sql_chemistry
+ALLOW .* -> maps/libs/st
 ALLOW .* -> maps/libs/tile
 
 # Fix current PEERDIRs and prevent any further growth
