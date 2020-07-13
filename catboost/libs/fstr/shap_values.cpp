@@ -811,7 +811,6 @@ static TVector<bool> GetDocumentPathToLeafForNonObliviousBlock(
     const ui8* binFeatures = block.QuantizedData.data();
     const size_t docCountInBlock = block.ObjectsCount;
     const TRepackedBin* treeSplitsPtr = forest.GetRepackedBins().data();
-    const auto firstLeafOffsets = forest.GetFirstLeafOffsets();
     const int totalNodesCount = forest.GetTreeSplits().size();
     const bool isLastTree = static_cast<size_t>(treeIdx + 1) == forest.GetTreeStartOffsets().size();
     const size_t endOffset = isLastTree ? totalNodesCount : forest.GetTreeStartOffsets()[treeIdx + 1];

@@ -182,7 +182,7 @@ TVector<TString> GetTreeSplitsDescriptions(const TFullModel& model, size_t treeI
 
     TVector<TString> splits;
 
-    TVector<TModelSplit> binFeatures = model.ModelTrees->GetBinFeatures();
+    const auto binFeatures = model.ModelTrees->GetBinFeatures();
 
     size_t treeSplitEnd = (treeIdx + 1 < model.GetTreeCount())
         ? model.ModelTrees->GetTreeStartOffsets()[treeIdx + 1]

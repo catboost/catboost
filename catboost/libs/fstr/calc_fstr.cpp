@@ -103,7 +103,7 @@ static TVector<TMxTree> BuildTrees(
     CB_ENSURE_INTERNAL(model.IsOblivious(), "BuildTrees are supported only for symmetric trees");
 
     TVector<TMxTree> trees(model.GetTreeCount());
-    auto& binFeatures = model.ModelTrees->GetBinFeatures();
+    const auto binFeatures = model.ModelTrees->GetBinFeatures();
     for (int treeIdx = 0; treeIdx < trees.ysize(); ++treeIdx) {
         auto& tree = trees[treeIdx];
         const int leafCount = (1uLL << model.ModelTrees->GetTreeSizes()[treeIdx]);
