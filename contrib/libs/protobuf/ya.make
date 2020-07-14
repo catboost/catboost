@@ -12,9 +12,10 @@ NO_COMPILER_WARNINGS()
 
 SUPPRESSIONS(tsan.supp)
 
+ADDINCLSELF()
+
 ADDINCL(
     GLOBAL contrib/libs/protobuf
-    GLOBAL FOR proto contrib/libs/protobuf
     GLOBAL contrib/libs/protobuf/src
     GLOBAL contrib/libs/protobuf/google/protobuf
 )
