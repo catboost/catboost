@@ -1136,7 +1136,13 @@ static void CountDisjointFolds(
             "Relative fold size must be greater than " << 1.0f / samplingUnitsCount << " so that size of each fold is non-zero";
         );
     }
-    *disjointFoldCount = Max<ui32>(1, samplingUnitsCount / *absoluteFoldSize);
+    *disjointFoldCount = samplingUnitsCount / *absoluteFoldSize;
+    if (*disjointFoldCount < 2) {
+        CATBOOST_WARNING_LOG << "Fold size (" << *absoluteFoldSize << " units) excceds 50% of dataset size (" << samplingUnitsCount << " units). "
+            << "Fold size is decreased to 50% of dataset size." << Endl;
+        *disjointFoldCount = 2;
+        *absoluteFoldSize = samplingUnitsCount / 2;
+    }
 }
 
 TFeatureEvaluationSummary EvaluateFeatures(
