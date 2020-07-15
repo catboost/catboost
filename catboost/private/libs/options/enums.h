@@ -355,6 +355,19 @@ enum class EAutoClassWeightsType {
     None
 };
 
+enum class EAucType {
+    Classic,
+    Ranking,
+    Mu,
+    OneVsAll
+};
+
+enum class EF1AverageType {
+    Micro,
+    Macro,
+    Weighted
+};
+
 namespace NCB {
     enum class EFeatureEvalMode {
         OneVsNone,

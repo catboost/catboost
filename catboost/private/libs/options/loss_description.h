@@ -126,6 +126,8 @@ namespace NCatboostOptions {
     double GetQuerySoftMaxBeta(const TMap<TString, TString>& lossParams);
     double GetQuerySoftMaxBeta(const TLossDescription& lossFunctionConfig);
 
+    EAucType GetAucType(const TMap<TString, TString>& lossParams);
+
     ui32 GetMaxPairCount(const TLossDescription& lossFunctionConfig);
 
     double GetStochasticFilterSigma(const TLossDescription& lossDescription);

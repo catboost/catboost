@@ -3066,6 +3066,31 @@ def test_metric_description(dataset_has_weights):
     return [local_canonical_file(learn_error_path), local_canonical_file(test_error_path)]
 
 
+def test_ranking_auc():
+    learn_error = yatest.common.test_output_path('learn_error.tsv')
+    test_error = yatest.common.test_output_path('test_error.tsv')
+    train = data_file('black_friday', 'train')  # labels are outside [0, 1]
+    test = data_file('black_friday', 'test')
+    cd = data_file('black_friday', 'cd')
+    ranking_auc = 'AUC:hints=skip_train~false;type=Ranking'
+    classic_auc = 'AUC:hints=skip_train~false;type=Classic'
+
+    params = (
+        '--loss-function', 'PairLogit',
+        '--has-header',
+        '-f', train,
+        '-t', test,
+        '--cd', cd,
+        '-i', '10',
+        '--learn-err-log', learn_error,
+        '--test-err-log', test_error,
+    )
+    fit_catboost_gpu(params + ('--eval-metric', ranking_auc,))
+
+    with pytest.raises(yatest.common.ExecutionError):
+        fit_catboost_gpu(params + ('--eval-metric', classic_auc,))
+
+
 @pytest.mark.parametrize('boosting_type', ['Plain', 'Ordered'])
 @pytest.mark.parametrize('loss_function', ['Logloss', 'QuerySoftMax', 'RMSE', 'QueryRMSE', 'QuerySoftMax:beta=0.5'])
 def test_combination(boosting_type, loss_function):

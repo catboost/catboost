@@ -13,7 +13,6 @@
 #include "pfound.h"
 #include "precision_recall_at_k.h"
 #include "description_utils.h"
-#include "enums.h"
 
 #include <catboost/libs/helpers/dispatch_generic_lambda.h>
 #include <catboost/libs/helpers/exception.h>
@@ -2599,7 +2598,7 @@ TVector<THolder<IMetric>> TAUCMetric::Create(const TMetricConfig& config) {
 }
 
 THolder<IMetric> MakeBinClassAucMetric(const TLossParams& params) {
-    return MakeHolder<TAUCMetric>(params, EAucType::Classic);
+    return MakeHolder<TAUCMetric>(params, NCatboostOptions::GetAucType(params.GetParamsMap()));
 }
 
 

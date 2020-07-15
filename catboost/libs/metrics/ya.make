@@ -35,6 +35,4 @@ PEERDIR(
     library/cpp/threading/local_executor
 )
 
-GENERATE_ENUM_SERIALIZATION(enums.h)
-
 END()

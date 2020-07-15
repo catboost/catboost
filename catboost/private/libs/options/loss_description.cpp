@@ -150,6 +150,10 @@ double NCatboostOptions::GetQuerySoftMaxBeta(const TLossDescription& lossFunctio
     return GetParamOrDefault(lossFunctionConfig, "beta", 1.0);
 }
 
+EAucType NCatboostOptions::GetAucType(const TMap<TString, TString>& lossParams) {
+    return GetParamOrDefault(lossParams, "type", EAucType::Classic);
+}
+
 ui32 NCatboostOptions::GetMaxPairCount(const TLossDescription& lossFunctionConfig) {
     Y_ASSERT(IsPairwiseMetric(lossFunctionConfig.GetLossFunction()));
     if (IsPairLogit(lossFunctionConfig.GetLossFunction())) {
