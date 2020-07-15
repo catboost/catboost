@@ -119,6 +119,10 @@
   includes:
     - error.h:       contrib/libs/cppkafka/include/cppkafka/error.h
 
+- source_filter: "^contrib/libs/clang10-rt"
+  includes:
+    - xray/xray_interface.h: contrib/libs/clang10-rt/include/xray/xray_interface.h
+
 - source_filter: "^contrib/libs/libevent"
   includes:
     - sys/queue.h:   contrib/libs/libevent/compat/sys/queue.h
