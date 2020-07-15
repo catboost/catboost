@@ -284,8 +284,6 @@ migrations:
       - a.yandex-team.ru/travel/avia/shared_flights/api/internal/storage/flight
       - a.yandex-team.ru/travel/avia/shared_flights/api/internal/storage/flight_test
       - a.yandex-team.ru/travel/avia/shared_flights/api/internal/storage_test
-      - a.yandex-team.ru/travel/avia/shared_flights/api/internal/storage/status
-      - a.yandex-team.ru/travel/avia/shared_flights/api/internal/storage/status_test
       - a.yandex-team.ru/travel/avia/shared_flights/lib/go/iata_correction
       - a.yandex-team.ru/travel/avia/shared_flights/lib/go/iata_correction_test
       - a.yandex-team.ru/travel/avia/shared_flights/status_importer/internal/status
