@@ -201,3 +201,7 @@ DENY .* -> contrib/python/pycrypto
 
 ALLOW yql/udfs/common/python/python_arc -> contrib/python/Geohash
 DENY .* -> contrib/python/Geohash
+
+ALLOW metrika/java/api -> contrib/java/patched/com/android/tools/r8
+ALLOW contrib/java/patched/com/android/tools/r8 -> contrib/java/patched/com/android/tools/r8
+DENY .* -> contrib/java/patched
