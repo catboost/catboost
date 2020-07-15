@@ -86,7 +86,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\classification_utils.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\dcg.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\description_utils.cpp"/>
-    <ClCompile Include="$(SolutionDir)$(Configuration)\catboost\libs\metrics\enums.h_serialized.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\hinge_loss.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\kappa.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\llp.cpp"/>
@@ -95,33 +94,6 @@
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\pfound.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\precision_recall_at_k.cpp"/>
     <ClCompile Include="$(SolutionDir)..\catboost\libs\metrics\sample.cpp"/>
-    <CustomBuild Include="$(SolutionDir)..\catboost\libs\metrics\enums.h">
-      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\metrics
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/metrics/enums.h" "--include-path" "catboost/libs/metrics/enums.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/metrics/enums.h_serialized.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
-cd /d $(SolutionDir)$(Configuration)\catboost\libs\metrics
-if %errorlevel% neq 0 goto :cmEnd
-"$(SolutionDir)$(Configuration)/tools/enum_parser/enum_parser/enum_parser.exe" "$(SolutionDir)../catboost/libs/metrics/enums.h" "--include-path" "catboost/libs/metrics/enums.h" "--output" "$(SolutionDir)$(Configuration)/catboost/libs/metrics/enums.h_serialized.cpp"
-if %errorlevel% neq 0 goto :cmEnd
-:cmEnd
-endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
-:cmErrorLevel
-exit /b %1
-:cmDone
-if %errorlevel% neq 0 goto :VCEnd</Command>
-      <Message>$B/catboost/libs/metrics/enums.h_serialized.cpp	</Message>
-      <AdditionalInputs>$(SolutionDir)..\catboost\libs\metrics\enums.h;$(SolutionDir)$(Configuration)\tools\enum_parser\enum_parser\enum_parser.exe;</AdditionalInputs>
-      <Outputs>$(SolutionDir)$(Configuration)\catboost\libs\metrics\enums.h_serialized.cpp;</Outputs>
-    </CustomBuild>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\auc.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\auc_mu.h"/>
     <ClInclude Include="$(SolutionDir)..\catboost\libs\metrics\balanced_accuracy.h"/>
@@ -404,9 +376,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\library\cpp\unicode\normalization\cpp-unicode-normalization.vcxproj">
       <Project>{6E0E64B9-3A05-DBD1-DC49-86C427EBD124}</Project>
-    </ProjectReference>
-    <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_parser\enum_parser.vcxproj">
-      <Project>{F6CDBBB3-9B26-9DC1-90B1-CF3F94F04C9B}</Project>
     </ProjectReference>
     <ProjectReference Include="$(SolutionDir)Projects\tools\enum_parser\enum_serialization_runtime\tools-enum_parser-enum_serialization_runtime.vcxproj">
       <Project>{F745D73A-277F-A595-1468-618C82B9B77E}</Project>
