@@ -147,7 +147,7 @@ public:
         return ThreadCountReal;
     }
 
-    inline void AtforkAction() noexcept {
+    inline void AtforkAction() noexcept Y_NO_SANITIZE("thread") {
         Forked = true;
     }
 
