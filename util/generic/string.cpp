@@ -141,6 +141,20 @@ TBasicString<wchar32, TCharTraits<wchar32>>::AppendAscii(const ::TStringBuf& s) 
 }
 
 template<>
+TBasicString<char, TCharTraits<char>>&
+TBasicString<char, TCharTraits<char>>::AppendUtf16(const ::TWtringBuf& s) {
+    const size_t oldSize = size();
+    ReserveAndResize(size() + WideToUTF8BufferSize(s.size()));
+
+    size_t written = 0;
+    WideToUTF8(s.data(), s.size(), begin() + oldSize, written);
+
+    remove(oldSize + written);
+
+    return *this;
+}
+
+template<>
 TUtf32String&
 TBasicString<wchar32, TCharTraits<wchar32>>::AppendUtf8(const ::TStringBuf& s) {
     size_t oldSize = size();
