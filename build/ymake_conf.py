@@ -1530,13 +1530,13 @@ class Linker(object):
         self.tc = tc
         self.build = build
 
-        if self.tc.is_from_arcadia and self.build.host.is_linux and not (self.build.target.is_apple or self.build.target.is_android or self.build.target.is_windows):
+        if self.tc.is_from_arcadia and self.build.host.is_linux and not (self.build.target.is_apple or self.build.target.is_windows):
 
-            if self.tc.is_clang:
+            if self.build.target.is_android:
+                self.type = Linker.LLD
+            elif self.tc.is_clang:
                 # DEVTOOLSSUPPORT-47 LLD cannot deal with extsearch/images/saas/base/imagesrtyserver
                 self.type = Linker.GOLD if is_positive('USE_LTO') and not is_positive('MUSL') else Linker.LLD
-            elif self.tc.is_gcc and self.build.target.is_linux_armv7:
-                self.type = Linker.BFD
             else:
                 self.type = Linker.GOLD
         else:
