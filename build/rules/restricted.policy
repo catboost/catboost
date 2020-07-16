@@ -39,7 +39,7 @@ ALLOW yandex_io -> contrib/restricted/gstreamer
 ALLOW yandex_io -> contrib/restricted/gst-plugins-base
 ALLOW yandex_io -> contrib/restricted/gst-plugins-good
 ALLOW yandex_io -> contrib/restricted/gst-plugins-bad
-ALLOW yandex_io -> contrib/restricted/gst-libav
+ALLOW yandex_io -> contrib/restricted/patched/gst-libav
 
 # mpg123 is LGPL
 ALLOW extsearch/audio/kernel/recoglib -> contrib/restricted/mpg123
