@@ -1,13 +1,19 @@
-PROGRAM()
 
 
+IF (USE_PREBUILT_TOOLS)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/rescompressor/ya.make)
+ENDIF()
 
-PEERDIR(
-    library/cpp/resource
-)
+IF (NOT PREBUILT)
+    PROGRAM()
 
-SRCS(
-    main.cpp
-)
+    PEERDIR(
+        library/cpp/resource
+    )
 
-END()
+    SRCS(
+        main.cpp
+    )
+
+    END()
+ENDIF()

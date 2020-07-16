@@ -1,15 +1,21 @@
-PROGRAM()
 
 
+IF (USE_PREBUILT_TOOLS)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/rorescompiler/ya.make.prebuilt)
+ENDIF()
 
-PEERDIR(
-    library/cpp/resource
-)
+IF (NOT PREBUILT)
+    PROGRAM()
 
-SRCS(
-    main.cpp
-)
+    PEERDIR(
+        library/cpp/resource
+    )
 
-INDUCED_DEPS(cpp ${ARCADIA_ROOT}/library/cpp/resource/registry.h)
+    SRCS(
+        main.cpp
+    )
 
-END()
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/rorescompiler/ya.make.induced_deps)
+
+    END()
+ENDIF()
