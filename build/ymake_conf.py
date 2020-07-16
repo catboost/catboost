@@ -60,10 +60,12 @@ class Platform(object):
 
         self.is_armv7hf = self.arch in ('armv7ahf_cortex_a35', 'armv7ahf_cortex_a53')
 
-        self.is_ppc64le = self.arch == 'ppc64le'
+        self.is_power8le = self.arch == 'ppc64le'
+        self.is_power9le = self.arch == 'power9le'
+        self.is_powerpc = self.is_power8le or self.is_power9le
 
         self.is_32_bit = self.is_x86 or self.is_armv7
-        self.is_64_bit = self.is_x86_64 or self.is_armv8 or self.is_ppc64le
+        self.is_64_bit = self.is_x86_64 or self.is_armv8 or self.is_powerpc
 
         assert self.is_32_bit or self.is_64_bit
         assert not (self.is_32_bit and self.is_64_bit)
@@ -72,7 +74,9 @@ class Platform(object):
         self.is_linux_x86_64 = self.is_linux and self.is_x86_64
         self.is_linux_armv8 = self.is_linux and self.is_armv8
         self.is_linux_armv7 = self.is_linux and self.is_armv7
-        self.is_linux_ppc64le = self.is_linux and self.is_ppc64le
+        self.is_linux_power8le = self.is_linux and self.is_power8le
+        self.is_linux_power9le = self.is_linux and self.is_power9le
+        self.is_linux_powerpc = self.is_linux_power8le or self.is_linux_power9le
 
         self.is_macos = self.os == 'macos'
         self.is_macos_x86_64 = self.is_macos and self.is_x86_64
@@ -129,7 +133,9 @@ class Platform(object):
             (self.is_armv8, 'ARCH_ARM64'),
             (self.is_arm, 'ARCH_ARM'),
             (self.is_linux_armv8, 'ARCH_AARCH64'),
-            (self.is_ppc64le, 'ARCH_PPC64LE'),
+            (self.is_powerpc, 'ARCH_PPC64LE'),
+            (self.is_power8le, 'ARCH_POWER8LE'),
+            (self.is_power9le, 'ARCH_POWER9LE'),
             (self.is_32_bit, 'ARCH_TYPE_32'),
             (self.is_64_bit, 'ARCH_TYPE_64'),
         ))
@@ -984,7 +990,7 @@ class GnuToolchainOptions(ToolchainOptions):
             if self.target.is_armv7:
                 return 'ubuntu-16'
 
-            if self.target.is_ppc64le:
+            if self.target.is_powerpc:
                 return 'ubuntu-14'
 
             # Default OS SDK for Linux builds
@@ -1073,7 +1079,7 @@ class GnuToolchain(Toolchain):
                     (target.is_linux and target.is_armv8, 'aarch64-linux-gnu'),
                     (target.is_linux and target.is_armv7hf, 'arm-linux-gnueabihf'),
                     (target.is_linux and target.is_armv7, 'arm-linux-gnueabi'),
-                    (target.is_linux and target.is_ppc64le, 'powerpc64le-linux-gnu'),
+                    (target.is_linux and target.is_powerpc, 'powerpc64le-linux-gnu'),
                     (target.is_apple and target.is_x86, 'i386-apple-darwin14'),
                     (target.is_apple and target.is_x86_64, 'x86_64-apple-darwin14'),
                     (target.is_apple and target.is_armv7, 'armv7-apple-darwin14'),
@@ -1114,14 +1120,15 @@ class GnuToolchain(Toolchain):
             # to reduce code size
             self.c_flags_platform.append('-mthumb')
 
-        if target.is_arm or target.is_ppc64le:
+        if target.is_arm or target.is_powerpc:
             # On linux, ARM and PPC default to unsigned char
             # However, Arcadia requires char to be signed
             self.c_flags_platform.append('-fsigned-char')
 
         if self.tc.is_clang or self.tc.is_gcc and self.tc.version_at_least(8, 2):
             target_flags = select(default=[], selectors=[
-                (target.is_linux and target.is_ppc64le, ['-mcpu=power8', '-mtune=power8', '-maltivec']),
+                (target.is_linux and target.is_power8le, ['-mcpu=power8', '-mtune=power8', '-maltivec']),
+                (target.is_linux and target.is_power9le, ['-mcpu=power9', '-mtune=power9', '-maltivec']),
                 (target.is_linux and target.is_armv8, ['-march=armv8a']),
                 (target.is_macos, ['-mmacosx-version-min=10.11']),
                 (target.is_ios and not target.is_intel, ['-mios-version-min=9.0']),
@@ -1156,7 +1163,7 @@ class GnuToolchain(Toolchain):
                             self.setup_tools(project='build/platform/linux_sdk', var='$OS_SDK_ROOT_RESOURCE_GLOBAL', bin='usr/bin', ldlibs='usr/lib/x86_64-linux-gnu')
                         elif host.is_macos:
                             self.setup_tools(project='build/platform/binutils', var='$BINUTILS_ROOT_RESOURCE_GLOBAL', bin='x86_64-linux-gnu/bin', ldlibs=None)
-                    elif target.is_ppc64le:
+                    elif target.is_powerpc:
                         self.setup_tools(project='build/platform/linux_sdk', var='$OS_SDK_ROOT_RESOURCE_GLOBAL', bin='usr/bin', ldlibs='usr/x86_64-linux-gnu/powerpc64le-linux-gnu/lib')
                     elif target.is_armv8:
                         self.setup_tools(project='build/platform/linux_sdk', var='$OS_SDK_ROOT_RESOURCE_GLOBAL', bin='usr/bin', ldlibs='usr/lib/x86_64-linux-gnu')
@@ -2620,7 +2627,7 @@ class Cuda(object):
     def have_cuda_in_arcadia(self):
         host, target = self.build.host_target
 
-        if not host.is_linux_x86_64 and not host.is_macos_x86_64 and not host.is_windows_x86_64 and not host.is_linux_ppc64le:
+        if not any((host.is_linux_x86_64, host.is_macos_x86_64, host.is_windows_x86_64, host.is_linux_powerpc)):
             return False
 
         # We have no CUDA cross-build yet
@@ -2674,7 +2681,7 @@ class Cuda(object):
 
         return select((
             (host.is_linux_x86_64 and target.is_linux_x86_64, '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/bin/clang'),
-            (host.is_linux_ppc64le and target.is_linux_ppc64le, '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/bin/clang'),
+            (host.is_linux_powerpc and target.is_linux_powerpc, '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/bin/clang'),
             (host.is_macos_x86_64 and target.is_macos_x86_64, '$CUDA_HOST_TOOLCHAIN_RESOURCE_GLOBAL/usr/bin/clang'),
         ))
 
