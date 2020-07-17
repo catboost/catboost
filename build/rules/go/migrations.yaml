@@ -169,7 +169,6 @@ migrations:
       - a.yandex-team.ru/infra/orly/proto
       - a.yandex-team.ru/infra/rtc/rebootctl/proto
       - a.yandex-team.ru/infra/ya_salt/proto
-      - a.yandex-team.ru/library/cpp/eventlog/proto
       - a.yandex-team.ru/market/idx/golibrary/pbsn/proto
       - a.yandex-team.ru/mds/valve/proto
       - a.yandex-team.ru/rtline/library/executor/proto
