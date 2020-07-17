@@ -1,21 +1,7 @@
 
 
-PREBUILT_PROGRAM()
+INCLUDE(${ARCADIA_ROOT}/build/prebuilt/protoc-gen-go/ya.make.prebuilt)
 
-IF (HOST_OS_DARWIN AND HOST_ARCH_X86_64 OR
-    HOST_OS_LINUX AND HOST_ARCH_X86_64 OR
-    HOST_OS_WINDOWS AND HOST_ARCH_X86_64)
-ELSE()
-    MESSAGE(FATAL_ERROR Unsupported host platform for prebuilt arcadia protoc-gen-go)
+IF (NOT PREBUILT)
+    MESSAGE(FATAL_ERROR Unsupported host platform for prebuilt protoc-gen-go tool)
 ENDIF()
-
-DECLARE_EXTERNAL_HOST_RESOURCES_BUNDLE(
-    ARCADIA_PROTOC_GEN_GO
-    sbr:1603593690 FOR DARWIN
-    sbr:1603594229 FOR LINUX
-    sbr:1603593956 FOR WIN32
-)
-
-PRIMARY_OUTPUT(${ARCADIA_PROTOC_GEN_GO_RESOURCE_GLOBAL}/protoc-gen-go${MODULE_SUFFIX})
-
-END()
