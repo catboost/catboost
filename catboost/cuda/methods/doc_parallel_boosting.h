@@ -204,7 +204,7 @@ namespace NCatboostCuda {
 
             if (ProgressTracker->NeedBestTestCursor()) {
                 Y_VERIFY(TestDataProvider);
-                cursors->BestTestCursor = new TStripeBuffer<float>();
+                cursors->BestTestCursor = MakeHolder<TStripeBuffer<float>>();
                 (*cursors->BestTestCursor) = TStripeBuffer<float>::CopyMappingAndColumnCount(cursors->TestCursor);
             }
             return cursors;
@@ -277,7 +277,7 @@ namespace NCatboostCuda {
         }
 
         THolder<TObjective> CreateTarget(const TDocParallelDataSet& dataSet) const {
-            return new TObjective(dataSet,
+            return MakeHolder<TObjective>(dataSet,
                                   Random,
                                   TargetOptions);
         }
@@ -308,7 +308,7 @@ namespace NCatboostCuda {
             TMetricCalcer<TObjective> learnMetricCalcer(*learnTarget[estimationPermutation], LocalExecutor);
             THolder<TMetricCalcer<TObjective>> testMetricCalcer;
             if (testTarget) {
-                testMetricCalcer = new TMetricCalcer<TObjective>(*testTarget, LocalExecutor);
+                testMetricCalcer = MakeHolder<TMetricCalcer<TObjective>>(*testTarget, LocalExecutor);
             }
 
             auto snapshotSaver = [&](IOutputStream* out) {
@@ -504,7 +504,7 @@ namespace NCatboostCuda {
             );
             auto& modelToExport = models[inputData->GetEstimationPermutation()];
             modelToExport.SetBias(cursors->StartingPoint.GetOrElse(0.0f));
-            return new TResultModel(modelToExport);
+            return MakeHolder<TResultModel>(modelToExport);
         }
 
         void RunModelBasedEval() {
