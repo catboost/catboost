@@ -46,7 +46,7 @@
 #include "reflection_internal.h"
 #include "io/coded_stream.h"
 #include "io/zero_copy_stream_impl.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "descriptor.h"
 #include "generated_message_util.h"
 #include "map_field.h"

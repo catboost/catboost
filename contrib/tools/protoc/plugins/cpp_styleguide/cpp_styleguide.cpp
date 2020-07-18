@@ -4,7 +4,7 @@
 #include <stubs/strutil.h>
 #include <stubs/common.h>
 #include <descriptor.h>
-#include <descriptor.pb.h>
+#include <google/protobuf/descriptor.pb.h>
 
 #include "cpp_styleguide.h"
 #include <util/stream/output.h>

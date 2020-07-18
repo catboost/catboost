@@ -36,7 +36,7 @@
 
 #include "reflection_ops.h"
 #include "descriptor.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "map_field.h"
 #include "unknown_field_set.h"
 #include "stubs/strutil.h"

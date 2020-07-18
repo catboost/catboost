@@ -38,7 +38,7 @@
 #include "descriptor.h"
 #include "dynamic_message.h"
 #include "message.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "pyext/descriptor.h"
 #include "pyext/message.h"
 #include "pyext/message_factory.h"

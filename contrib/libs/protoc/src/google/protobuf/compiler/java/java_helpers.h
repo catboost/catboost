@@ -37,7 +37,7 @@
 
 #include "compiler/java/java_context.h"
 #include "io/printer.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "descriptor.h"
 
 namespace google {

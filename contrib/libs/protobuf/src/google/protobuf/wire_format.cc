@@ -44,7 +44,7 @@
 #include "dynamic_message.h"
 #include "map_field.h"
 #include "wire_format_lite_inl.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "io/coded_stream.h"
 #include "io/zero_copy_stream.h"
 #include "io/zero_copy_stream_impl.h"

@@ -32,7 +32,7 @@
 #define GOOGLE_PROTOBUF_UTIL_CONVERTER_TYPE_INFO_H__
 
 #include "stubs/common.h"
-#include "type.pb.h"
+#include <google/protobuf/type.pb.h>
 #include "util/type_resolver.h"
 #include <contrib/libs/protobuf/stubs/stringpiece.h>
 #include "stubs/status.h"

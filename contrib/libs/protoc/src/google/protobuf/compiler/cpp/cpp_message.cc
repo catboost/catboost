@@ -50,7 +50,7 @@
 #include "compiler/cpp/cpp_helpers.h"
 #include "io/coded_stream.h"
 #include "io/printer.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "generated_message_table_driven.h"
 #include "generated_message_util.h"
 #include "map_entry_lite.h"

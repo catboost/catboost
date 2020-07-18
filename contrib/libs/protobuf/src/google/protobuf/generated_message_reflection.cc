@@ -37,7 +37,7 @@
 
 #include <contrib/libs/protobuf/stubs/logging.h>
 #include "stubs/common.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "descriptor.h"
 #include "extension_set.h"
 #include "generated_message_reflection.h"

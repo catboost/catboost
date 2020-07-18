@@ -30,8 +30,8 @@
 
 #include <google/protobuf/util/internal/datapiece.h>
 
-#include "struct.pb.h"
-#include "type.pb.h"
+#include <google/protobuf/struct.pb.h>
+#include <google/protobuf/type.pb.h>
 #include "descriptor.h"
 #include <google/protobuf/util/internal/utility.h>
 #include "stubs/strutil.h"

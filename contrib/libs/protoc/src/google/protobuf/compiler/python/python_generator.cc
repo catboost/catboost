@@ -56,7 +56,7 @@
 #include <vector>
 
 #include "compiler/python/python_generator.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 
 #include <contrib/libs/protobuf/stubs/logging.h>
 #include "stubs/common.h"

@@ -40,7 +40,7 @@
 #define GOOGLE_PROTOBUF_WIRE_FORMAT_H__
 
 #include "stubs/common.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "descriptor.h"
 #include "message.h"
 #include "wire_format_lite.h"

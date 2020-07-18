@@ -36,7 +36,7 @@
 #include <map>
 #include "compiler/cpp/cpp_helpers.h"
 #include "io/printer.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "stubs/strutil.h"
 
 

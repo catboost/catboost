@@ -35,8 +35,8 @@
 #include "stubs/callback.h"
 #include "stubs/common.h"
 #include <contrib/libs/protobuf/stubs/logging.h>
-#include "wrappers.pb.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/wrappers.pb.h>
+#include <google/protobuf/descriptor.pb.h>
 #include "descriptor.h"
 #include <google/protobuf/util/internal/constants.h>
 #include "stubs/strutil.h"

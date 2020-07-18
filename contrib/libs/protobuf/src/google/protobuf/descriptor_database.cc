@@ -36,7 +36,7 @@
 
 #include <set>
 
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "wire_format_lite_inl.h"
 #include "stubs/strutil.h"
 

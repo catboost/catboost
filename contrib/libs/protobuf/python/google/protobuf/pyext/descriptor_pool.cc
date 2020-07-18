@@ -32,7 +32,7 @@
 
 #include <Python.h>
 
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "pyext/descriptor.h"
 #include "pyext/descriptor_database.h"
 #include "pyext/descriptor_pool.h"

@@ -12,12 +12,10 @@ NO_COMPILER_WARNINGS()
 
 SUPPRESSIONS(tsan.supp)
 
-ADDINCLSELF()
-
 ADDINCL(
     GLOBAL contrib/libs/protobuf
     GLOBAL contrib/libs/protobuf/src
-    GLOBAL contrib/libs/protobuf/google/protobuf
+    GLOBAL FOR proto contrib/libs/protobuf/src
 )
 
 JOINSRC()
@@ -114,17 +112,17 @@ SRCS(
 )
 
 FILES(
-    google/protobuf/any.proto
-    google/protobuf/api.proto
-    google/protobuf/descriptor.proto
-    google/protobuf/duration.proto
-    google/protobuf/empty.proto
-    google/protobuf/field_mask.proto
-    google/protobuf/source_context.proto
-    google/protobuf/struct.proto
-    google/protobuf/timestamp.proto
-    google/protobuf/type.proto
-    google/protobuf/wrappers.proto
+    src/google/protobuf/any.proto
+    src/google/protobuf/api.proto
+    src/google/protobuf/descriptor.proto
+    src/google/protobuf/duration.proto
+    src/google/protobuf/empty.proto
+    src/google/protobuf/field_mask.proto
+    src/google/protobuf/source_context.proto
+    src/google/protobuf/struct.proto
+    src/google/protobuf/timestamp.proto
+    src/google/protobuf/type.proto
+    src/google/protobuf/wrappers.proto
 )
 
 END()

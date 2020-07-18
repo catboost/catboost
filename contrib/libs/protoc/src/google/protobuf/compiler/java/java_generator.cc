@@ -47,7 +47,7 @@
 #include "compiler/java/java_shared_code_generator.h"
 #include "io/printer.h"
 #include "io/zero_copy_stream.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 
 #include "stubs/strutil.h"
 

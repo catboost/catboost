@@ -53,7 +53,7 @@
 #include "io/printer.h"
 #include "io/zero_copy_stream.h"
 #include "io/zero_copy_stream_impl.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "dynamic_message.h"
 #include "text_format.h"
 #include "util/field_comparator.h"

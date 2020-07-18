@@ -41,7 +41,7 @@
 
 #include "compiler/parser.h"
 #include "descriptor.h"
-#include "descriptor.pb.h"
+#include <google/protobuf/descriptor.pb.h>
 #include "wire_format.h"
 #include "io/tokenizer.h"
 #include <contrib/libs/protobuf/stubs/logging.h>
