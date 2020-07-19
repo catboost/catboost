@@ -106,13 +106,17 @@ public:
     // NOTE: Content of `name` will be copied.
     //
     // NOTE: On Linux thread name is limited to 15 symbols which is probably the smallest one among
-    // all platforms. If you'll provide name longer than 15 symbols it will be cut. So if you expect
+    // all platforms. If you provide a name longer than 15 symbols it will be cut. So if you expect
     // `CurrentThreadName` to return the same name as `name` make sure it's not longer than 15
     // symbols.
     static void SetCurrentThreadName(const char* name);
 
-    // NOTE: May return empty string for platforms different from Darwin or Linux.
+    // NOTE: Will return empty string where CanGetCurrentThreadName() returns false.
     static TString CurrentThreadName();
+
+    // NOTE: Depends on a platform version.
+    // Will return true for Darwin, Linux or fresh Windows 10.
+    static bool CanGetCurrentThreadName();
 
 private:
     struct TCallableBase {
