@@ -108,7 +108,7 @@ static TFullModel SaveLoadCoreML(const TFullModel& trainedModel) {
 }
 
 static void CheckWeights(const TWeights<float>& docWeights, const TFullModel& model) {
-    if (model.ModelTrees->GetLeafWeights().empty()) {
+    if (model.ModelTrees->GetModelTreeData()->GetLeafWeights().empty()) {
         return;
     }
 
@@ -117,8 +117,8 @@ static void CheckWeights(const TWeights<float>& docWeights, const TFullModel& mo
         trueWeightSum += docWeights[i];
     }
 
-    const auto weights = model.ModelTrees->GetLeafWeights();
-    const auto treeSizes = model.ModelTrees->GetTreeSizes();
+    const auto weights = model.ModelTrees->GetModelTreeData()->GetLeafWeights();
+    const auto treeSizes = model.ModelTrees->GetModelTreeData()->GetTreeSizes();
     const int approxDimension = model.ModelTrees->GetDimensionsCount();
     auto leafOffsetPtr = model.ModelTrees->GetFirstLeafOffsets();
     for (size_t treeIdx = 0; treeIdx < model.GetTreeCount(); ++treeIdx) {
@@ -146,7 +146,7 @@ static void RunTestWithParams(EWeightsMode addWeights, ETargetDimMode multiclass
     if (exportToCBM) {
         CheckWeights(floatPool->RawTargetData.GetWeights(), deserializedModel);
     } else {
-        UNIT_ASSERT(deserializedModel.ModelTrees->GetLeafWeights().empty());
+        UNIT_ASSERT(deserializedModel.ModelTrees->GetModelTreeData()->GetLeafWeights().empty());
     }
 }
 

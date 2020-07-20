@@ -211,9 +211,9 @@ TVector<TFeaturePairInteractionInfo> CalcMostInteractingFeatures(const TVector<T
 }
 
 static void DFS(const TFullModel& model, const THashMap<TFeature, int, TFeatureHash>& featureToIdx, ui32 nodeIdx, TVector<std::pair<int, int>>* pathPtr, THashMap<std::pair<int, int>, double>* sumInteractionsPtr) {
-    const int split = model.ModelTrees->GetTreeSplits()[nodeIdx];
+    const int split = model.ModelTrees->GetModelTreeData()->GetTreeSplits()[nodeIdx];
     const auto& binFeatures = model.ModelTrees->GetBinFeatures();
-    const auto& node = model.ModelTrees->GetNonSymmetricStepNodes()[nodeIdx];
+    const auto& node = model.ModelTrees->GetModelTreeData()->GetNonSymmetricStepNodes()[nodeIdx];
 
     const auto& feature = GetFeature(binFeatures[split]);
     const int featureIdx = featureToIdx.at(feature);
@@ -225,9 +225,9 @@ static void DFS(const TFullModel& model, const THashMap<TFeature, int, TFeatureH
 
     if (leftNodeIdx == nodeIdx || rightNodeIdx == nodeIdx) { // terminal
 
-        const auto leafValues = model.ModelTrees->GetLeafValues();
+        const auto leafValues = model.ModelTrees->GetModelTreeData()->GetLeafValues();
         const int approxDimension = model.ModelTrees->GetDimensionsCount();
-        const int leafValueIndex = model.ModelTrees->GetNonSymmetricNodeIdToLeafId()[nodeIdx];
+        const int leafValueIndex = model.ModelTrees->GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[nodeIdx];
         double delta = std::accumulate(leafValues.begin() + leafValueIndex,
                                       leafValues.begin() + leafValueIndex + approxDimension, 0.);
 
@@ -270,7 +270,7 @@ TVector<TFeaturePairInteractionInfo> CalcMostInteractingFeatures(const TFullMode
 
     for (size_t treeIdx = 0; treeIdx < model.GetTreeCount(); ++treeIdx) {
 
-        const int treeIdxsStart = model.ModelTrees->GetTreeStartOffsets()[treeIdx];
+        const int treeIdxsStart = model.ModelTrees->GetModelTreeData()->GetTreeStartOffsets()[treeIdx];
 
         TVector<std::pair<int, int>> path;
         THashMap<std::pair<int, int>, double> treeSumInteractions;

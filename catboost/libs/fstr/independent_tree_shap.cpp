@@ -65,7 +65,7 @@ namespace {
             , ListOfFeaturesDocumentLeafReference(classCount) 
             , DocumentLeafIdx(documentLeafIdx) 
             , DocumentLeafIdxReference(documentLeafIdxReference) 
-            , DepthOfTree(forest.GetTreeSizes()[treeIdx]) 
+            , DepthOfTree(forest.GetModelTreeData()->GetTreeSizes()[treeIdx])
             , ApproxDimension(forest.GetDimensionsCount()) 
             , LeafValuesPtr(forest.GetFirstLeafPtrForTree(treeIdx)) 
             , ShapValuesInternalByDepth(*shapValuesInternalByDepth) 
@@ -257,9 +257,9 @@ void CalcObliviousShapValuesByDepthForLeaf(
 ) {
     const auto& binFeatureCombinationClassByDepth =
         GetBinFeatureCombinationClassByDepth(forest, binFeatureCombinationClass, treeIdx);
-    const size_t depthOfTree = forest.GetTreeSizes()[treeIdx];
+    const size_t depthOfTree = forest.GetModelTreeData()->GetTreeSizes()[treeIdx];
     const size_t approxDimension = forest.GetDimensionsCount();
-    const size_t leafCountInTree = (size_t(1) << forest.GetTreeSizes()[treeIdx]);
+    const size_t leafCountInTree = (size_t(1) << forest.GetModelTreeData()->GetTreeSizes()[treeIdx]);
     const size_t leafCount = isCalcForAllLeafes ? leafCountInTree : referenceLeafIndices.size(); 
     const size_t classCount = combinationClassFeatures.size();
     for (size_t idx = 0; idx < leafCount; ++idx) {
@@ -489,7 +489,7 @@ void PostProcessingIndependent(
 
 static TVector<TVector<double>> CalcWeightsForIndependentTreeShap(const TFullModel& model) {
     const TModelTrees& forest = *model.ModelTrees;
-    const auto treeSizes = forest.GetTreeSizes();
+    const auto treeSizes = forest.GetModelTreeData()->GetTreeSizes();
     const size_t maxTreeDepth = *MaxElement(treeSizes.begin(), treeSizes.end());
     TVector<TVector<double>> weights;
     weights.assign(maxTreeDepth + 1, TVector<double>(maxTreeDepth + 1, 0.0));
@@ -579,7 +579,7 @@ TIndependentTreeShapParams::TIndependentTreeShapParams(
     ReferenceIndicesForAllTrees.resize(treeCount);
     ShapValueByDepthBetweenLeavesForAllTrees.resize(treeCount);
     for (size_t treeIdx = 0; treeIdx < treeCount; ++treeIdx) {
-        const size_t leafCount = size_t(1) << forest.GetTreeSizes()[treeIdx];
+        const size_t leafCount = size_t(1) << forest.GetModelTreeData()->GetTreeSizes()[treeIdx];
         ReferenceIndicesForAllTrees[treeIdx].resize(leafCount);
         ShapValueByDepthBetweenLeavesForAllTrees[treeIdx].resize(leafCount);
         const bool isCalcForAllLeafes = (referenceCount >= leafCount);

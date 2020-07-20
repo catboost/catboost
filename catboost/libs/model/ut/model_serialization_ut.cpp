@@ -45,8 +45,8 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
         trainedModel.Save(&strStream);
         ExportModel(trainedModel, "model.coreml", EModelType::AppleCoreML);
         TFullModel deserializedModel = ReadModel("model.coreml", EModelType::AppleCoreML);
-        UNIT_ASSERT_EQUAL(trainedModel.ModelTrees->GetLeafValues(), deserializedModel.ModelTrees->GetLeafValues());
-        UNIT_ASSERT_EQUAL(trainedModel.ModelTrees->GetTreeSplits(), deserializedModel.ModelTrees->GetTreeSplits());
+        UNIT_ASSERT_EQUAL(trainedModel.ModelTrees->GetModelTreeData()->GetLeafValues(), deserializedModel.ModelTrees->GetModelTreeData()->GetLeafValues());
+        UNIT_ASSERT_EQUAL(trainedModel.ModelTrees->GetModelTreeData()->GetTreeSplits(), deserializedModel.ModelTrees->GetModelTreeData()->GetTreeSplits());
     }
 
     Y_UNIT_TEST(TestNonSymmetricJsonApply) {

@@ -92,6 +92,70 @@ static bool EstimatedFeatureIdsAreEqual(const TEstimatedFeature& lhs, const TEst
         == std::tie(rhs.SourceFeatureId, rhs.CalcerId, rhs.LocalId);
 }
 
+struct TSolidModelTree : IModelTreeData {
+    TConstArrayRef<int> GetTreeSplits() const override;
+    TConstArrayRef<int> GetTreeSizes() const override;
+    TConstArrayRef<int> GetTreeStartOffsets() const override;
+    TConstArrayRef<TNonSymmetricTreeStepNode> GetNonSymmetricStepNodes() const override;
+    TConstArrayRef<ui32> GetNonSymmetricNodeIdToLeafId() const override;
+    TConstArrayRef<double> GetLeafValues() const override;
+    TConstArrayRef<double> GetLeafWeights() const override;
+    THolder<IModelTreeData> Clone(ECloningPolicy policy) const override;
+
+    void SetTreeSplits(const TVector<int>&) override;
+    void SetTreeSizes(const TVector<int>&) override;
+    void SetTreeStartOffsets(const TVector<int>&) override;
+    void SetNonSymmetricStepNodes(const TVector<TNonSymmetricTreeStepNode>&) override;
+    void SetNonSymmetricNodeIdToLeafId(const TVector<ui32>&) override;
+    void SetLeafValues(const TVector<double>&) override;
+    void SetLeafWeights(const TVector<double>&) override;
+
+    TVector<int> TreeSplits;
+    TVector<int> TreeSizes;
+    TVector<int> TreeStartOffsets;
+    TVector<TNonSymmetricTreeStepNode> NonSymmetricStepNodes;
+    TVector<ui32> NonSymmetricNodeIdToLeafId;
+    TVector<double> LeafValues;
+    TVector<double> LeafWeights;
+};
+
+static TSolidModelTree* CastToSolidTree(const TModelTrees& trees) {
+    auto ptr = dynamic_cast<TSolidModelTree*>(trees.GetModelTreeData().Get());
+    CB_ENSURE(ptr, "Only solid models are modifiable");
+    return ptr;
+}
+
+struct TOpaqueModelTree : IModelTreeData {
+    TConstArrayRef<int> GetTreeSplits() const override;
+    TConstArrayRef<int> GetTreeSizes() const override;
+    TConstArrayRef<int> GetTreeStartOffsets() const override;
+    TConstArrayRef<TNonSymmetricTreeStepNode> GetNonSymmetricStepNodes() const override;
+    TConstArrayRef<ui32> GetNonSymmetricNodeIdToLeafId() const override;
+    TConstArrayRef<double> GetLeafValues() const override;
+    TConstArrayRef<double> GetLeafWeights() const override;
+    THolder<IModelTreeData> Clone(ECloningPolicy policy) const override;
+
+    void SetTreeSplits(const TVector<int>&) override;
+    void SetTreeSizes(const TVector<int>&) override;
+    void SetTreeStartOffsets(const TVector<int>&) override;
+    void SetNonSymmetricStepNodes(const TVector<TNonSymmetricTreeStepNode>&) override;
+    void SetNonSymmetricNodeIdToLeafId(const TVector<ui32>&) override;
+    void SetLeafValues(const TVector<double>&) override;
+    void SetLeafWeights(const TVector<double>&) override;
+
+    TConstArrayRef<int> TreeSplits;
+    TConstArrayRef<int> TreeSizes;
+    TConstArrayRef<int> TreeStartOffsets;
+    TConstArrayRef<TNonSymmetricTreeStepNode> NonSymmetricStepNodes;
+    TConstArrayRef<ui32> NonSymmetricNodeIdToLeafId;
+    TConstArrayRef<double> LeafValues;
+    TConstArrayRef<double> LeafWeights;
+};
+
+TModelTrees::TModelTrees() {
+    ModelTreeData = MakeHolder<TSolidModelTree>();
+}
+
 void TModelTrees::ProcessSplitsSet(
     const TSet<TModelSplit>& modelSplitSet,
     const TVector<size_t>& floatFeaturesInternalIndexesMap,
@@ -145,32 +209,80 @@ void TModelTrees::ProcessSplitsSet(
     }
 }
 
+void TModelTrees::AddBinTree(const TVector<int>& binSplits) {
+    auto& data = *CastToSolidTree(*this);
+
+    Y_ASSERT(data.TreeSizes.size() == data.TreeStartOffsets.size() && data.TreeSplits.empty() == data.TreeSizes.empty());
+    data.TreeSplits.insert(data.TreeSplits.end(), binSplits.begin(), binSplits.end());
+    if (data.TreeStartOffsets.empty()) {
+        data.TreeStartOffsets.push_back(0);
+    } else {
+        data.TreeStartOffsets.push_back(data.TreeStartOffsets.back() + data.TreeSizes.back());
+    }
+    data.TreeSizes.push_back(binSplits.ysize());
+}
+
+void TModelTrees::ClearLeafWeights() {
+    CastToSolidTree(*this)->LeafWeights.clear();
+}
+
+void TModelTrees::AddTreeSplit(int treeSplit) {
+    CastToSolidTree(*this)->TreeSplits.push_back(treeSplit);
+}
+void TModelTrees::AddTreeSize(int treeSize) {
+    auto& data = *CastToSolidTree(*this);
+    if (data.TreeStartOffsets.empty()) {
+        data.TreeStartOffsets.push_back(0);
+    } else {
+        data.TreeStartOffsets.push_back(data.TreeStartOffsets.back() + data.TreeSizes.back());
+    }
+    data.TreeSizes.push_back(treeSize);
+}
+
+void TModelTrees::AddLeafValue(double leafValue) {
+    CastToSolidTree(*this)->LeafValues.push_back(leafValue);
+}
+
+void TModelTrees::AddLeafWeight(double leafWeight) {
+    CastToSolidTree(*this)->LeafWeights.push_back(leafWeight);
+}
+
+bool TModelTrees::IsSolid() const {
+    return dynamic_cast<TSolidModelTree*>(ModelTreeData.Get());
+}
+
 void TModelTrees::TruncateTrees(size_t begin, size_t end) {
     //TODO(eermishkina): support non symmetric trees
     CB_ENSURE(IsOblivious(), "Truncate support only symmetric trees");
     CB_ENSURE(begin <= end, "begin tree index should be not greater than end tree index.");
-    CB_ENSURE(end <= TreeSplits.size(), "end tree index should be not greater than tree count.");
+    CB_ENSURE(end <= GetModelTreeData()->GetTreeSplits().size(), "end tree index should be not greater than tree count.");
     auto savedScaleAndBias = GetScaleAndBias();
     TObliviousTreeBuilder builder(FloatFeatures, CatFeatures, TextFeatures, ApproxDimension);
     const auto& leafOffsets = RuntimeData->TreeFirstLeafOffsets;
+
+    const auto treeSizes = GetModelTreeData()->GetTreeSizes();
+    const auto treeSplits = GetModelTreeData()->GetTreeSplits();
+    const auto leafValues = GetModelTreeData()->GetLeafValues();
+    const auto leafWeights = GetModelTreeData()->GetLeafWeights();
+    const auto treeStartOffsets = GetModelTreeData()->GetTreeStartOffsets();
     for (size_t treeIdx = begin; treeIdx < end; ++treeIdx) {
         TVector<TModelSplit> modelSplits;
-        for (int splitIdx = TreeStartOffsets[treeIdx];
-             splitIdx < TreeStartOffsets[treeIdx] + TreeSizes[treeIdx];
+        for (int splitIdx = treeStartOffsets[treeIdx];
+             splitIdx < treeStartOffsets[treeIdx] + treeSizes[treeIdx];
              ++splitIdx)
         {
-            modelSplits.push_back(RuntimeData->BinFeatures[TreeSplits[splitIdx]]);
+            modelSplits.push_back(RuntimeData->BinFeatures[treeSplits[splitIdx]]);
         }
         TConstArrayRef<double> leafValuesRef(
-            LeafValues.begin() + leafOffsets[treeIdx],
-            LeafValues.begin() + leafOffsets[treeIdx] + ApproxDimension * (1u << TreeSizes[treeIdx])
+            leafValues.begin() + leafOffsets[treeIdx],
+            leafValues.begin() + leafOffsets[treeIdx] + ApproxDimension * (1u << treeSizes[treeIdx])
         );
         builder.AddTree(
             modelSplits,
             leafValuesRef,
-            LeafWeights.empty() ? TConstArrayRef<double>() : TConstArrayRef<double>(
-                LeafWeights.begin() + leafOffsets[treeIdx] / ApproxDimension,
-                LeafWeights.begin() + leafOffsets[treeIdx] / ApproxDimension + (1ull << TreeSizes[treeIdx])
+            leafWeights.empty() ? TConstArrayRef<double>() : TConstArrayRef<double>(
+                leafWeights.begin() + leafOffsets[treeIdx] / ApproxDimension,
+                leafWeights.begin() + leafOffsets[treeIdx] / ApproxDimension + (1ull << treeSizes[treeIdx])
             )
         );
     }
@@ -180,54 +292,77 @@ void TModelTrees::TruncateTrees(size_t begin, size_t end) {
 
 flatbuffers::Offset<NCatBoostFbs::TModelTrees>
 TModelTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
+    auto& builder = serializer.FlatbufBuilder;
+
     std::vector<flatbuffers::Offset<NCatBoostFbs::TCatFeature>> catFeaturesOffsets;
     for (const auto& catFeature : CatFeatures) {
-        catFeaturesOffsets.push_back(catFeature.FBSerialize(serializer.FlatbufBuilder));
+        catFeaturesOffsets.push_back(catFeature.FBSerialize(builder));
     }
+    auto fbsCatFeaturesOffsets = builder.CreateVector(catFeaturesOffsets);
+
     std::vector<flatbuffers::Offset<NCatBoostFbs::TFloatFeature>> floatFeaturesOffsets;
     for (const auto& floatFeature : FloatFeatures) {
-        floatFeaturesOffsets.push_back(floatFeature.FBSerialize(serializer.FlatbufBuilder));
+        floatFeaturesOffsets.push_back(floatFeature.FBSerialize(builder));
     }
+    auto fbsFloatFeaturesOffsets = builder.CreateVector(floatFeaturesOffsets);
+
     std::vector<flatbuffers::Offset<NCatBoostFbs::TTextFeature>> textFeaturesOffsets;
     for (const auto& textFeature : TextFeatures) {
-        textFeaturesOffsets.push_back(textFeature.FBSerialize(serializer.FlatbufBuilder));
+        textFeaturesOffsets.push_back(textFeature.FBSerialize(builder));
     }
+    auto fbsTextFeaturesOffsets = builder.CreateVector(textFeaturesOffsets);
+
     std::vector<flatbuffers::Offset<NCatBoostFbs::TEstimatedFeature>> estimatedFeaturesOffsets;
     for (const auto& estimatedFeature : EstimatedFeatures) {
-        estimatedFeaturesOffsets.push_back(estimatedFeature.FBSerialize(serializer.FlatbufBuilder));
+        estimatedFeaturesOffsets.push_back(estimatedFeature.FBSerialize(builder));
     }
+    auto fbsEstimatedFeaturesOffsets = builder.CreateVector(estimatedFeaturesOffsets);
+
     std::vector<flatbuffers::Offset<NCatBoostFbs::TOneHotFeature>> oneHotFeaturesOffsets;
     for (const auto& oneHotFeature : OneHotFeatures) {
-        oneHotFeaturesOffsets.push_back(oneHotFeature.FBSerialize(serializer.FlatbufBuilder));
+        oneHotFeaturesOffsets.push_back(oneHotFeature.FBSerialize(builder));
     }
+    auto fbsOneHotFeaturesOffsets = builder.CreateVector(oneHotFeaturesOffsets);
+
     std::vector<flatbuffers::Offset<NCatBoostFbs::TCtrFeature>> ctrFeaturesOffsets;
     for (const auto& ctrFeature : CtrFeatures) {
         ctrFeaturesOffsets.push_back(ctrFeature.FBSerialize(serializer));
     }
-    TVector<NCatBoostFbs::TNonSymmetricTreeStepNode> fbsNonSymmetricTreeStepNode;
-    fbsNonSymmetricTreeStepNode.reserve(NonSymmetricStepNodes.size());
-    for (const auto& nonSymmetricStep: NonSymmetricStepNodes) {
-        fbsNonSymmetricTreeStepNode.emplace_back(NCatBoostFbs::TNonSymmetricTreeStepNode{
+    auto fbsCtrFeaturesOffsets = builder.CreateVector(ctrFeaturesOffsets);
+
+    TVector<NCatBoostFbs::TNonSymmetricTreeStepNode> nonSymmetricTreeStepNode;
+    nonSymmetricTreeStepNode.reserve(GetModelTreeData()->GetNonSymmetricStepNodes().size());
+    for (const auto& nonSymmetricStep: GetModelTreeData()->GetNonSymmetricStepNodes()) {
+        nonSymmetricTreeStepNode.emplace_back(NCatBoostFbs::TNonSymmetricTreeStepNode{
             nonSymmetricStep.LeftSubtreeDiff,
             nonSymmetricStep.RightSubtreeDiff
         });
     }
-    return NCatBoostFbs::CreateTModelTreesDirect(
-        serializer.FlatbufBuilder,
+    auto fbsNonSymmetricTreeStepNode = builder.CreateVectorOfStructs(nonSymmetricTreeStepNode);
+
+    auto& data = GetModelTreeData();
+    auto fbsTreeSplits = builder.CreateVector(data->GetTreeSplits().data(), data->GetTreeSplits().size());
+    auto fbsTreeSizes = builder.CreateVector(data->GetTreeSizes().data(), data->GetTreeSizes().size());
+    auto fbsTreeStartOffsets = builder.CreateVector(data->GetTreeStartOffsets().data(), data->GetTreeStartOffsets().size());
+    auto fbsLeafValues = builder.CreateVector(data->GetLeafValues().data(), data->GetLeafValues().size());
+    auto fbsLeafWeights = builder.CreateVector(data->GetLeafWeights().data(), data->GetLeafWeights().size());
+    auto fbsNonSymmetricNodeIdToLeafId = builder.CreateVector(data->GetNonSymmetricNodeIdToLeafId().data(), data->GetNonSymmetricNodeIdToLeafId().size());
+    return NCatBoostFbs::CreateTModelTrees(
+        builder,
         ApproxDimension,
-        &TreeSplits,
-        &TreeSizes,
-        &TreeStartOffsets,
-        &catFeaturesOffsets,
-        &floatFeaturesOffsets,
-        &oneHotFeaturesOffsets,
-        &ctrFeaturesOffsets,
-        &LeafValues,
-        &LeafWeights,
-        &fbsNonSymmetricTreeStepNode,
-        &NonSymmetricNodeIdToLeafId,
-        &textFeaturesOffsets,
-        &estimatedFeaturesOffsets,
+        fbsTreeSplits,
+        fbsTreeSizes,
+        fbsTreeStartOffsets,
+        fbsCatFeaturesOffsets,
+        fbsFloatFeaturesOffsets,
+        fbsOneHotFeaturesOffsets,
+        fbsCtrFeaturesOffsets,
+        fbsLeafValues,
+        fbsLeafWeights,
+        fbsNonSymmetricTreeStepNode,
+        fbsNonSymmetricNodeIdToLeafId,
+        fbsTextFeaturesOffsets,
+        fbsEstimatedFeaturesOffsets,
         GetScaleAndBias().Scale,
         GetScaleAndBias().Bias
     );
@@ -242,24 +377,28 @@ void TModelTrees::UpdateRuntimeData() const {
     TVector<TFeatureSplitId> splitIds;
     auto& ref = RuntimeData.GetRef();
 
-    ref.TreeFirstLeafOffsets.resize(TreeSizes.size());
+
+    auto treeSizes = GetModelTreeData()->GetTreeSizes();
+    auto treeStartOffsets = GetModelTreeData()->GetTreeStartOffsets();
+
+    ref.TreeFirstLeafOffsets.resize(treeSizes.size());
     if (IsOblivious()) {
         size_t currentOffset = 0;
-        for (size_t i = 0; i < TreeSizes.size(); ++i) {
+        for (size_t i = 0; i < treeSizes.size(); ++i) {
             ref.TreeFirstLeafOffsets[i] = currentOffset;
-            currentOffset += (1 << TreeSizes[i]) * ApproxDimension;
+            currentOffset += (1 << treeSizes[i]) * ApproxDimension;
         }
     } else {
-        for (size_t treeId = 0; treeId < TreeSizes.size(); ++treeId) {
-            const int treeNodesStart = TreeStartOffsets[treeId];
-            const int treeNodesEnd = treeNodesStart + TreeSizes[treeId];
+        for (size_t treeId = 0; treeId < treeSizes.size(); ++treeId) {
+            const int treeNodesStart = treeStartOffsets[treeId];
+            const int treeNodesEnd = treeNodesStart + treeSizes[treeId];
             ui32 minLeafValueIndex = Max();
             ui32 maxLeafValueIndex = 0;
             ui32 valueNodeCount = 0; // count of nodes with values
             for (auto nodeIndex = treeNodesStart; nodeIndex < treeNodesEnd; ++nodeIndex) {
-                const auto& node = NonSymmetricStepNodes[nodeIndex];
+                const auto& node = GetModelTreeData()->GetNonSymmetricStepNodes()[nodeIndex];
                 if (node.LeftSubtreeDiff == 0|| node.RightSubtreeDiff == 0) {
-                    const ui32 leafValueIndex = NonSymmetricNodeIdToLeafId[nodeIndex];
+                    const ui32 leafValueIndex = GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[nodeIndex];
                     Y_ASSERT(leafValueIndex != Max<ui32>());
                     Y_VERIFY_DEBUG(
                         leafValueIndex % ApproxDimension == 0,
@@ -362,7 +501,9 @@ void TModelTrees::UpdateRuntimeData() const {
         ref.EffectiveBinFeaturesBucketCount
             += (feature.Borders.size() + MAX_VALUES_PER_BIN - 1) / MAX_VALUES_PER_BIN;
     }
-    for (const auto& binSplit : TreeSplits) {
+
+    auto treeSplits = GetModelTreeData()->GetTreeSplits();
+    for (const auto& binSplit : treeSplits) {
         const auto& feature = ref.BinFeatures[binSplit];
         const auto& featureIndex = splitIds[binSplit];
         Y_ENSURE(
@@ -389,7 +530,7 @@ void TModelTrees::DropUnusedFeatures() {
 }
 
 void TModelTrees::ConvertObliviousToAsymmetric() {
-    if (!IsOblivious()) {
+    if (!IsOblivious() || !IsSolid()) {
         return;
     }
     TVector<int> treeSplits;
@@ -399,11 +540,12 @@ void TModelTrees::ConvertObliviousToAsymmetric() {
     TVector<ui32> nonSymmetricNodeIdToLeafId;
 
     size_t leafStartOffset = 0;
-    for (size_t treeId = 0; treeId < TreeSizes.size(); ++treeId) {
+    auto& data = *CastToSolidTree(*this);
+    for (size_t treeId = 0; treeId < data.TreeSizes.size(); ++treeId) {
         size_t treeSize = 0;
         treeStartOffsets.push_back(treeSplits.size());
-        for (int depth = 0; depth < TreeSizes[treeId]; ++depth) {
-            const auto split = TreeSplits[TreeStartOffsets[treeId] + TreeSizes[treeId] - 1 - depth];
+        for (int depth = 0; depth < data.TreeSizes[treeId]; ++depth) {
+            const auto split = data.TreeSplits[data.TreeStartOffsets[treeId] + data.TreeSizes[treeId] - 1 - depth];
             for (size_t cloneId = 0; cloneId < (1ull << depth); ++cloneId) {
                 treeSplits.push_back(split);
                 nonSymmetricNodeIdToLeafId.push_back(Max<ui32>());
@@ -411,20 +553,21 @@ void TModelTrees::ConvertObliviousToAsymmetric() {
                 ++treeSize;
             }
         }
-        for (size_t cloneId = 0; cloneId < (1ull << TreeSizes[treeId]); ++cloneId) {
+        for (size_t cloneId = 0; cloneId < (1ull << data.TreeSizes[treeId]); ++cloneId) {
             treeSplits.push_back(0);
             nonSymmetricNodeIdToLeafId.push_back((leafStartOffset + cloneId) * ApproxDimension);
             nonSymmetricStepNodes.emplace_back(TNonSymmetricTreeStepNode{0, 0});
             ++treeSize;
         }
-        leafStartOffset += (1ull << TreeSizes[treeId]);
+        leafStartOffset += (1ull << data.TreeSizes[treeId]);
         treeSizes.push_back(treeSize);
     }
-    TreeSplits = std::move(treeSplits);
-    TreeSizes = std::move(treeSizes);
-    TreeStartOffsets = std::move(treeStartOffsets);
-    NonSymmetricStepNodes = std::move(nonSymmetricStepNodes);
-    NonSymmetricNodeIdToLeafId = std::move(nonSymmetricNodeIdToLeafId);
+
+    data.TreeSplits = std::move(treeSplits);
+    data.TreeSizes = std::move(treeSizes);
+    data.TreeStartOffsets = std::move(treeStartOffsets);
+    data.NonSymmetricStepNodes = std::move(nonSymmetricStepNodes);
+    data.NonSymmetricNodeIdToLeafId = std::move(nonSymmetricNodeIdToLeafId);
     UpdateRuntimeData();
 }
 
@@ -437,7 +580,7 @@ TVector<ui32> TModelTrees::GetTreeLeafCounts() const {
         const size_t currTreeLeafValuesEnd = (
             treeNum + 1 < GetTreeCount()
             ? firstLeafOfsets[treeNum + 1]
-            : LeafValues.size()
+            : GetModelTreeData()->GetLeafValues().size()
         );
         const size_t currTreeLeafValuesCount = currTreeLeafValuesEnd - firstLeafOfsets[treeNum];
         Y_ASSERT(currTreeLeafValuesCount % ApproxDimension == 0);
@@ -453,33 +596,35 @@ void TModelTrees::SetScaleAndBias(const TScaleAndBias& scaleAndBias) {
 }
 
 void TModelTrees::FBDeserialize(const NCatBoostFbs::TModelTrees* fbObj) {
+    auto& data = *CastToSolidTree(*this);
+
     ApproxDimension = fbObj->ApproxDimension();
     if (fbObj->TreeSplits()) {
-        TreeSplits.assign(fbObj->TreeSplits()->begin(), fbObj->TreeSplits()->end());
+        data.TreeSplits.assign(fbObj->TreeSplits()->begin(), fbObj->TreeSplits()->end());
     }
     if (fbObj->TreeSizes()) {
-        TreeSizes.assign(fbObj->TreeSizes()->begin(), fbObj->TreeSizes()->end());
+        data.TreeSizes.assign(fbObj->TreeSizes()->begin(), fbObj->TreeSizes()->end());
     }
     if (fbObj->TreeStartOffsets()) {
-        TreeStartOffsets.assign(fbObj->TreeStartOffsets()->begin(), fbObj->TreeStartOffsets()->end());
+        data.TreeStartOffsets.assign(fbObj->TreeStartOffsets()->begin(), fbObj->TreeStartOffsets()->end());
     }
 
     if (fbObj->LeafValues()) {
-        LeafValues.assign(
+        data.LeafValues.assign(
             fbObj->LeafValues()->data(),
             fbObj->LeafValues()->data() + fbObj->LeafValues()->size()
         );
     }
     if (fbObj->NonSymmetricStepNodes()) {
-        NonSymmetricStepNodes.resize(fbObj->NonSymmetricStepNodes()->size());
+        data.NonSymmetricStepNodes.resize(fbObj->NonSymmetricStepNodes()->size());
         std::copy(
             fbObj->NonSymmetricStepNodes()->begin(),
             fbObj->NonSymmetricStepNodes()->end(),
-            NonSymmetricStepNodes.begin()
+            data.NonSymmetricStepNodes.begin()
         );
     }
     if (fbObj->NonSymmetricNodeIdToLeafId()) {
-        NonSymmetricNodeIdToLeafId.assign(
+        data.NonSymmetricNodeIdToLeafId.assign(
             fbObj->NonSymmetricNodeIdToLeafId()->begin(), fbObj->NonSymmetricNodeIdToLeafId()->end()
         );
     }
@@ -499,12 +644,183 @@ void TModelTrees::FBDeserialize(const NCatBoostFbs::TModelTrees* fbObj) {
     FBS_ARRAY_DESERIALIZER(CtrFeatures)
 #undef FBS_ARRAY_DESERIALIZER
     if (fbObj->LeafWeights() && fbObj->LeafWeights()->size() > 0) {
-            LeafWeights.assign(
+            data.LeafWeights.assign(
                 fbObj->LeafWeights()->data(),
                 fbObj->LeafWeights()->data() + fbObj->LeafWeights()->size()
             );
     }
     SetScaleAndBias({fbObj->Scale(), fbObj->Bias()});
+}
+
+TConstArrayRef<int> TSolidModelTree::GetTreeSplits() const {
+    return TreeSplits;
+}
+
+TConstArrayRef<int> TSolidModelTree::GetTreeSizes() const {
+    return TreeSizes;
+}
+
+TConstArrayRef<int> TSolidModelTree::GetTreeStartOffsets() const {
+    return TreeStartOffsets;
+}
+
+TConstArrayRef<TNonSymmetricTreeStepNode> TSolidModelTree::GetNonSymmetricStepNodes() const {
+    return NonSymmetricStepNodes;
+}
+
+TConstArrayRef<ui32> TSolidModelTree::GetNonSymmetricNodeIdToLeafId() const {
+    return NonSymmetricNodeIdToLeafId;
+}
+
+TConstArrayRef<double> TSolidModelTree::GetLeafValues() const {
+    return LeafValues;
+}
+
+TConstArrayRef<double> TSolidModelTree::GetLeafWeights() const {
+    return LeafWeights;
+}
+
+THolder<IModelTreeData> TSolidModelTree::Clone(ECloningPolicy policy) const {
+    Y_UNUSED(policy);
+
+    auto holder = MakeHolder<TSolidModelTree>();
+    std::tie(
+        holder->TreeSplits,
+        holder->TreeSizes,
+        holder->TreeStartOffsets,
+        holder->NonSymmetricStepNodes,
+        holder->NonSymmetricNodeIdToLeafId,
+        holder->LeafValues,
+        holder->LeafWeights
+    )
+    = std::tie(
+        TreeSplits,
+        TreeSizes,
+        TreeStartOffsets,
+        NonSymmetricStepNodes,
+        NonSymmetricNodeIdToLeafId,
+        LeafValues,
+        LeafWeights
+    );
+    return holder;
+}
+
+void TSolidModelTree::SetTreeSplits(const TVector<int> &v) {
+    TreeSplits = v;
+}
+
+void TSolidModelTree::SetTreeSizes(const TVector<int> &v) {
+    TreeSizes = v;
+}
+
+void TSolidModelTree::SetTreeStartOffsets(const TVector<int> &v) {
+    TreeStartOffsets = v;
+}
+
+void TSolidModelTree::SetNonSymmetricStepNodes(const TVector<TNonSymmetricTreeStepNode> &v) {
+    NonSymmetricStepNodes = v;
+}
+
+void TSolidModelTree::SetNonSymmetricNodeIdToLeafId(const TVector<ui32> &v) {
+    NonSymmetricNodeIdToLeafId = v;
+}
+
+void TSolidModelTree::SetLeafValues(const TVector<double> &v) {
+    LeafValues = v;
+}
+
+void TSolidModelTree::SetLeafWeights(const TVector<double> &v) {
+    LeafWeights = v;
+}
+
+
+TConstArrayRef<int> TOpaqueModelTree::GetTreeSplits() const {
+    return TreeSplits;
+}
+
+TConstArrayRef<int> TOpaqueModelTree::GetTreeSizes() const {
+    return TreeSizes;
+}
+
+TConstArrayRef<int> TOpaqueModelTree::GetTreeStartOffsets() const {
+    return TreeStartOffsets;
+}
+
+TConstArrayRef<TNonSymmetricTreeStepNode> TOpaqueModelTree::GetNonSymmetricStepNodes() const {
+    return NonSymmetricStepNodes;
+}
+
+TConstArrayRef<ui32> TOpaqueModelTree::GetNonSymmetricNodeIdToLeafId() const {
+    return NonSymmetricNodeIdToLeafId;
+}
+
+TConstArrayRef<double> TOpaqueModelTree::GetLeafValues() const {
+    return LeafValues;
+}
+
+TConstArrayRef<double> TOpaqueModelTree::GetLeafWeights() const {
+    return LeafWeights;
+}
+
+THolder<IModelTreeData> TOpaqueModelTree::Clone(ECloningPolicy policy) const {
+    switch (policy) {
+        case ECloningPolicy::Default: {
+            return MakeHolder<TOpaqueModelTree>(*this);
+        }
+        case ECloningPolicy::CloneAsSolid: {
+            auto holder = MakeHolder<TSolidModelTree>();
+            std::tie(
+                holder->TreeSplits,
+                holder->TreeSizes,
+                holder->TreeStartOffsets,
+                holder->NonSymmetricStepNodes,
+                holder->NonSymmetricNodeIdToLeafId,
+                holder->LeafValues,
+                holder->LeafWeights
+            )
+            = std::forward_as_tuple(
+                TVector<int>(TreeSplits.begin(), TreeSplits.end()),
+                TVector<int>(TreeSizes.begin(), TreeSizes.end()),
+                TVector<int>(TreeStartOffsets.begin(), TreeStartOffsets.end()),
+                TVector<TNonSymmetricTreeStepNode>(NonSymmetricStepNodes.begin(), NonSymmetricStepNodes.end()),
+                TVector<ui32>(NonSymmetricNodeIdToLeafId.begin(), NonSymmetricNodeIdToLeafId.end()),
+                TVector<double>(LeafValues.begin(), LeafValues.end()),
+                TVector<double>(LeafWeights.begin(), LeafWeights.end())
+            );
+            return holder;
+        }
+        default:
+            CB_ENSURE(false, "Unknown cloning policy");
+    }
+    Y_UNREACHABLE();
+}
+
+void TOpaqueModelTree::SetTreeSplits(const TVector<int>&) {
+    CB_ENSURE(false, "Only solid models are modifiable");
+}
+
+void TOpaqueModelTree::SetTreeSizes(const TVector<int>&) {
+    CB_ENSURE(false, "Only solid models are modifiable");
+}
+
+void TOpaqueModelTree::SetTreeStartOffsets(const TVector<int>&) {
+    CB_ENSURE(false, "Only solid models are modifiable");
+}
+
+void TOpaqueModelTree::SetNonSymmetricStepNodes(const TVector<TNonSymmetricTreeStepNode>&) {
+    CB_ENSURE(false, "Only solid models are modifiable");
+}
+
+void TOpaqueModelTree::SetNonSymmetricNodeIdToLeafId(const TVector<ui32>&) {
+    CB_ENSURE(false, "Only solid models are modifiable");
+}
+
+void TOpaqueModelTree::SetLeafValues(const TVector<double>&) {
+    CB_ENSURE(false, "Only solid models are modifiable");
+}
+
+void TOpaqueModelTree::SetLeafWeights(const TVector<double>&) {
+    CB_ENSURE(false, "Only solid models are modifiable");
 }
 
 void TFullModel::CalcFlat(
@@ -916,36 +1232,37 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
     TObliviousTreeBuilder* builder,
     bool streamLeafWeights)
 {
+    auto& data = trees.GetModelTreeData();
     const auto& binFeatures = trees.GetBinFeatures();
     const auto& leafOffsets = trees.GetFirstLeafOffsets();
-    for (size_t treeIdx = 0; treeIdx < trees.GetTreeSizes().size(); ++treeIdx) {
+    for (size_t treeIdx = 0; treeIdx < data->GetTreeSizes().size(); ++treeIdx) {
         TVector<TModelSplit> modelSplits;
-        for (int splitIdx = trees.GetTreeStartOffsets()[treeIdx];
-             splitIdx < trees.GetTreeStartOffsets()[treeIdx] + trees.GetTreeSizes()[treeIdx];
+        for (int splitIdx = data->GetTreeStartOffsets()[treeIdx];
+             splitIdx < data->GetTreeStartOffsets()[treeIdx] + data->GetTreeSizes()[treeIdx];
              ++splitIdx)
         {
-            modelSplits.push_back(binFeatures[trees.GetTreeSplits()[splitIdx]]);
+            modelSplits.push_back(binFeatures[data->GetTreeSplits()[splitIdx]]);
         }
         if (leafMultiplier == 1.0) {
             TConstArrayRef<double> leafValuesRef(
-                trees.GetLeafValues().begin() + leafOffsets[treeIdx],
-                trees.GetLeafValues().begin() + leafOffsets[treeIdx]
-                    + trees.GetDimensionsCount() * (1ull << trees.GetTreeSizes()[treeIdx])
+                data->GetLeafValues().begin() + leafOffsets[treeIdx],
+                data->GetLeafValues().begin() + leafOffsets[treeIdx]
+                    + trees.GetDimensionsCount() * (1ull << data->GetTreeSizes()[treeIdx])
             );
             builder->AddTree(
                 modelSplits,
                 leafValuesRef,
                 !streamLeafWeights ? TConstArrayRef<double>() : TConstArrayRef<double>(
-                    trees.GetLeafWeights().begin() + leafOffsets[treeIdx] / trees.GetDimensionsCount(),
-                    trees.GetLeafWeights().begin() + leafOffsets[treeIdx] / trees.GetDimensionsCount()
-                        + (1ull << trees.GetTreeSizes()[treeIdx])
+                    data->GetLeafWeights().begin() + leafOffsets[treeIdx] / trees.GetDimensionsCount(),
+                    data->GetLeafWeights().begin() + leafOffsets[treeIdx] / trees.GetDimensionsCount()
+                        + (1ull << data->GetTreeSizes()[treeIdx])
                 )
             );
         } else {
             TVector<double> leafValues(
-                trees.GetLeafValues().begin() + leafOffsets[treeIdx],
-                trees.GetLeafValues().begin() + leafOffsets[treeIdx]
-                    + trees.GetDimensionsCount() * (1ull << trees.GetTreeSizes()[treeIdx])
+                data->GetLeafValues().begin() + leafOffsets[treeIdx],
+                data->GetLeafValues().begin() + leafOffsets[treeIdx]
+                    + trees.GetDimensionsCount() * (1ull << data->GetTreeSizes()[treeIdx])
             );
             for (auto& leafValue: leafValues) {
                 leafValue *= leafMultiplier;
@@ -954,8 +1271,8 @@ static void StreamModelTreesWithoutScaleAndBiasToBuilder(
                 modelSplits,
                 leafValues,
                 !streamLeafWeights ? TConstArrayRef<double>() : TConstArrayRef<double>(
-                    trees.GetLeafWeights().begin() + leafOffsets[treeIdx] / trees.GetDimensionsCount(),
-                    (1ull << trees.GetTreeSizes()[treeIdx])
+                    data->GetLeafWeights().begin() + leafOffsets[treeIdx] / trees.GetDimensionsCount(),
+                    (1ull << data->GetTreeSizes()[treeIdx])
                 )
             );
         }
@@ -1094,10 +1411,10 @@ TFullModel SumModels(
         );
         ctrProviders.push_back(model->CtrProvider);
         // empty model does not disable LeafWeights:
-        if (model->ModelTrees->GetLeafWeights().size() < model->GetTreeCount()) {
+        if (model->ModelTrees->GetModelTreeData()->GetLeafWeights().size() < model->GetTreeCount()) {
             allModelsHaveLeafWeights = false;
         }
-        if (!model->ModelTrees->GetLeafWeights().empty()) {
+        if (!model->ModelTrees->GetModelTreeData()->GetLeafWeights().empty()) {
             someModelHasLeafWeights = true;
         }
     }

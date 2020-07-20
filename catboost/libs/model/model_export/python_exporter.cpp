@@ -170,7 +170,7 @@ namespace NCB {
         Out << indent << "float_feature_count = " << model.ModelTrees->GetNumFloatFeatures() << '\n';
         Out << indent << "cat_feature_count = " << model.ModelTrees->GetNumCatFeatures() << '\n';
         Out << indent << "binary_feature_count = " << model.ModelTrees->GetEffectiveBinaryFeaturesBucketsCount() << '\n';
-        Out << indent << "tree_count = " << model.ModelTrees->GetTreeSizes().size() << '\n';
+        Out << indent << "tree_count = " << model.ModelTrees->GetModelTreeData()->GetTreeSizes().size() << '\n';
 
         Out << indent++ << "float_feature_borders = [" << '\n';
         comma.ResetCount(model.ModelTrees->GetFloatFeatures().size());
@@ -184,7 +184,7 @@ namespace NCB {
         }
         Out << --indent << "]" << '\n';
 
-        Out << indent << "tree_depth = [" << OutputArrayInitializer(model.ModelTrees->GetTreeSizes()) << "]" << '\n';
+        Out << indent << "tree_depth = [" << OutputArrayInitializer(model.ModelTrees->GetModelTreeData()->GetTreeSizes()) << "]" << '\n';
 
         const auto bins = model.ModelTrees->GetRepackedBins();
         Out << indent << "tree_split_border = [" << OutputArrayInitializer([&bins](size_t i) { return (int)bins[i].SplitIdx; }, bins.size()) << "]" << '\n';
@@ -217,7 +217,7 @@ namespace NCB {
         Out << --indent << "]" << '\n';
 
         int leafValueCount = 0;
-        for (const auto& treeSize : model.ModelTrees->GetTreeSizes()) {
+        for (const auto& treeSize : model.ModelTrees->GetModelTreeData()->GetTreeSizes()) {
             leafValueCount += treeSize * model.ModelTrees->GetDimensionsCount();
         }
         Out << '\n';

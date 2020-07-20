@@ -15,7 +15,7 @@ static void CalcObliviousIndicatorCoefficients(
     TArrayRef<ui32> treeLeafIdxes,
     TVector<TVector<double>>* floatFeatureImpact
 ) {
-    const auto& treeSplitOffsets = model.ModelTrees->GetTreeStartOffsets();
+    const auto& treeSplitOffsets = model.ModelTrees->GetModelTreeData()->GetTreeStartOffsets();
     floatFeatureImpact->resize(model.ModelTrees->GetFloatFeatures().size());
 
     for (ui32 featureIdx = 0; featureIdx < floatFeatureImpact->size(); ++featureIdx) {
@@ -26,15 +26,15 @@ static void CalcObliviousIndicatorCoefficients(
 
     size_t offset = 0;
     for (size_t treeId = 0; treeId < model.ModelTrees->GetTreeCount(); ++treeId) {
-        double leafValue = model.ModelTrees->GetLeafValues()[offset + treeLeafIdxes[treeId]];
-        const size_t treeDepth = model.ModelTrees->GetTreeSizes().at(treeId);
+        double leafValue = model.ModelTrees->GetModelTreeData()->GetLeafValues()[offset + treeLeafIdxes[treeId]];
+        const size_t treeDepth = model.ModelTrees->GetModelTreeData()->GetTreeSizes().at(treeId);
         for (size_t depthIdx = 0; depthIdx < treeDepth; ++depthIdx) {
             size_t leafIdx = treeLeafIdxes[treeId] ^ (1 << depthIdx);
-            double diff = model.ModelTrees->GetLeafValues()[offset + leafIdx] - leafValue;
+            double diff = model.ModelTrees->GetModelTreeData()->GetLeafValues()[offset + leafIdx] - leafValue;
             if (abs(diff) < 1e-12) {
                 continue;
             }
-            const int splitIdx = model.ModelTrees->GetTreeSplits()[treeSplitOffsets[treeId] + depthIdx];
+            const int splitIdx = model.ModelTrees->GetModelTreeData()->GetTreeSplits()[treeSplitOffsets[treeId] + depthIdx];
             auto split = binSplits[splitIdx];
             CB_ENSURE_INTERNAL(split.Type == ESplitType::FloatFeature, "Models only with float features are supported");
             int featureIdx = split.FloatFeature.FloatFeature;
@@ -50,8 +50,8 @@ static double CalcNonSymmetricLeafValue(
     int splitIdx,
     const TVector<double>& featureValues
 ) {
-    const auto& treeSplits = model.ModelTrees->GetTreeSplits();
-    const auto& stepNodes = model.ModelTrees->GetNonSymmetricStepNodes();
+    const auto& treeSplits = model.ModelTrees->GetModelTreeData()->GetTreeSplits();
+    const auto& stepNodes = model.ModelTrees->GetModelTreeData()->GetNonSymmetricStepNodes();
     const auto& binFeatures = model.ModelTrees->GetBinFeatures();
 
     int nextNodeStep = 0;
@@ -62,8 +62,8 @@ static double CalcNonSymmetricLeafValue(
         nextNodeStep = (featureValue > splitValue) ? stepNodes[splitIdx].RightSubtreeDiff : stepNodes[splitIdx].LeftSubtreeDiff;
         splitIdx += nextNodeStep;
     } while (nextNodeStep != 0);
-    ui32 leafIdx = model.ModelTrees->GetNonSymmetricNodeIdToLeafId()[splitIdx];
-    return model.ModelTrees->GetLeafValues()[leafIdx];
+    ui32 leafIdx = model.ModelTrees->GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[splitIdx];
+    return model.ModelTrees->GetModelTreeData()->GetLeafValues()[leafIdx];
 }
 
 
@@ -79,14 +79,14 @@ static void CalcNonSymmetricIndicatorCoefficients(
         (*floatFeatureImpact)[featureIdx].resize(model.ModelTrees->GetFloatFeatures()[featureIdx].Borders.size() + 1);
     }
 
-    const auto& treeSplits = model.ModelTrees->GetTreeSplits();
-    const auto& stepNodes = model.ModelTrees->GetNonSymmetricStepNodes();
+    const auto& treeSplits = model.ModelTrees->GetModelTreeData()->GetTreeSplits();
+    const auto& stepNodes = model.ModelTrees->GetModelTreeData()->GetNonSymmetricStepNodes();
     const auto& binFeatures = model.ModelTrees->GetBinFeatures();
 
     for (size_t treeId = 0; treeId < model.ModelTrees->GetTreeCount(); ++treeId) {
         size_t leafOffset = model.ModelTrees->GetFirstLeafOffsets()[treeId];
-        double leafValue = model.ModelTrees->GetLeafValues()[leafOffset + treeLeafIdxes[treeId]];
-        size_t splitIdx = model.ModelTrees->GetTreeStartOffsets()[treeId];
+        double leafValue = model.ModelTrees->GetModelTreeData()->GetLeafValues()[leafOffset + treeLeafIdxes[treeId]];
+        size_t splitIdx = model.ModelTrees->GetModelTreeData()->GetTreeStartOffsets()[treeId];
         int nextSplitStep = 0;
         do {
             const auto& split = binFeatures[treeSplits[splitIdx]];

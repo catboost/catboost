@@ -64,11 +64,11 @@ TVector<TVector<TFloatFeatureBucketRange>> CalculateBucketRangesAndWeightsOblivi
     CB_ENSURE_INTERNAL(model.IsOblivious(), "Partial dependence is supported only for symmetric trees");
 
     const auto& binSplits = model.ModelTrees->GetBinFeatures();
-    const auto& treeSplitOffsets = model.ModelTrees->GetTreeStartOffsets();
+    const auto& treeSplitOffsets = model.ModelTrees->GetModelTreeData()->GetTreeStartOffsets();
     const auto& leafOffsets = model.ModelTrees->GetFirstLeafOffsets();
-    const auto& treeSizes = model.ModelTrees->GetTreeSizes();
-    const auto& treeSplits = model.ModelTrees->GetTreeSplits();
-    size_t leafNum = model.ModelTrees->GetLeafValues().size();
+    const auto& treeSizes = model.ModelTrees->GetModelTreeData()->GetTreeSizes();
+    const auto& treeSplits = model.ModelTrees->GetModelTreeData()->GetTreeSplits();
+    size_t leafNum = model.ModelTrees->GetModelTreeData()->GetLeafValues().size();
 
     const TVector<TFloatFeatureBucketRange> defaultRanges = PrepareFeatureRanges(model, features);
     TVector<TVector<TFloatFeatureBucketRange>> leafBucketRanges(leafNum, defaultRanges);
@@ -122,7 +122,7 @@ TVector<double> MergeBucketRanges(
         const TVector<TVector<TFloatFeatureBucketRange>>& leafBucketRanges,
         const TVector<double> leafWeights
 ) {
-    const auto& leafValues = model.ModelTrees->GetLeafValues();
+    const auto& leafValues = model.ModelTrees->GetModelTreeData()->GetLeafValues();
     TVector<TFloatFeatureBucketRange> defaultRanges = PrepareFeatureRanges(model, features);
     CB_ENSURE(defaultRanges.size() == 2, "Number of features must be 2");
 

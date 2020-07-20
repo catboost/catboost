@@ -138,7 +138,7 @@ TVector<double> CalcEffectForNonObliviousModel(
     CB_ENSURE_INTERNAL(!model.IsOblivious(), "CalcEffectForNonObliviousModel function got oblivious model");
 
     const auto& binFeatures = model.ModelTrees->GetBinFeatures();
-    const auto leafValues = model.ModelTrees->GetLeafValues();
+    const auto leafValues = model.ModelTrees->GetModelTreeData()->GetLeafValues();
     const int approxDimension = model.ModelTrees->GetDimensionsCount();
     const int featureCount = featureToIdx.size();
     TVector<double> res(featureCount, 0);
@@ -146,16 +146,16 @@ TVector<double> CalcEffectForNonObliviousModel(
     for (size_t treeIdx = 0; treeIdx < model.GetTreeCount(); ++treeIdx) {
         TVector<TTriangleNodes> nodesStack;
 
-        const int treeIdxsStart = model.ModelTrees->GetTreeStartOffsets()[treeIdx];
-        const int treeIdxsEnd = treeIdxsStart + model.ModelTrees->GetTreeSizes()[treeIdx];
+        const int treeIdxsStart = model.ModelTrees->GetModelTreeData()->GetTreeStartOffsets()[treeIdx];
+        const int treeIdxsEnd = treeIdxsStart + model.ModelTrees->GetModelTreeData()->GetTreeSizes()[treeIdx];
 
         THashMap<int, TNodeInfo> nodeIdxToInfo;
 
         for (int nodeIdx = treeIdxsStart; nodeIdx < treeIdxsEnd; ++nodeIdx) {
-            const auto& node = model.ModelTrees->GetNonSymmetricStepNodes()[nodeIdx];
+            const auto& node = model.ModelTrees->GetModelTreeData()->GetNonSymmetricStepNodes()[nodeIdx];
 
             if (node.LeftSubtreeDiff == 0 || node.RightSubtreeDiff == 0) { // node is terminal
-                const int leafValueIndex = model.ModelTrees->GetNonSymmetricNodeIdToLeafId()[nodeIdx];
+                const int leafValueIndex = model.ModelTrees->GetModelTreeData()->GetNonSymmetricNodeIdToLeafId()[nodeIdx];
                 TVector<double> values(
                     leafValues.begin() + leafValueIndex,
                     leafValues.begin() + leafValueIndex + approxDimension);
@@ -167,7 +167,7 @@ TVector<double> CalcEffectForNonObliviousModel(
                     continue;
                 }
             }
-            const int split = model.ModelTrees->GetTreeSplits()[nodeIdx];
+            const int split = model.ModelTrees->GetModelTreeData()->GetTreeSplits()[nodeIdx];
             const auto& feature = GetFeature(binFeatures[split]);
             const int featureIdx = featureToIdx.at(feature);
             nodesStack.push_back(
