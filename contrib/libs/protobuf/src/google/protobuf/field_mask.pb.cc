@@ -6,15 +6,15 @@
 
 #include <algorithm>
 
-#include <contrib/libs/protobuf/stubs/common.h>
-#include <contrib/libs/protobuf/stubs/port.h>
-#include <contrib/libs/protobuf/stubs/once.h>
-#include <contrib/libs/protobuf/io/coded_stream.h>
-#include <contrib/libs/protobuf/wire_format_lite_inl.h>
-#include <contrib/libs/protobuf/descriptor.h>
-#include <contrib/libs/protobuf/generated_message_reflection.h>
-#include <contrib/libs/protobuf/reflection_ops.h>
-#include <contrib/libs/protobuf/wire_format.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/port.h>
+#include <google/protobuf/stubs/once.h>
+#include <google/protobuf/io/coded_stream.h>
+#include <google/protobuf/wire_format_lite_inl.h>
+#include <google/protobuf/descriptor.h>
+#include <google/protobuf/generated_message_reflection.h>
+#include <google/protobuf/reflection_ops.h>
+#include <google/protobuf/wire_format.h>
 // @@protoc_insertion_point(includes)
 
 namespace google {

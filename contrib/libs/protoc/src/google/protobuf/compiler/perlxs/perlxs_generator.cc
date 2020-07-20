@@ -100,8 +100,8 @@ PerlXSGenerator::GenerateMessageXS(const Descriptor* descriptor,
   printer.Print(
 		"#include <stdint.h>\n"
 		"#include <sstream>\n"
-		"#include <contrib/libs/protobuf/stubs/common.h>\n"
-		"#include <contrib/libs/protobuf/io/zero_copy_stream.h>\n"
+		"#include <google/protobuf/stubs/common.h>\n"
+		"#include <google/protobuf/io/zero_copy_stream.h>\n"
 		"#include \"$base$.pb.h\"\n"
         "#ifdef __cplusplus\n"
 		"extern \"C\" {\n"
