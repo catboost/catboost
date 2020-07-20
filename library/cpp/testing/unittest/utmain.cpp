@@ -731,7 +731,7 @@ int NUnitTest::RunMain(int argc, char** argv) {
                     processor.SetTraceProcessor(new TTraceWriterProcessor(argv[i], OpenAlways | ForAppend));
                 } else if (strcmp(name, "--list-path") == 0) {
                     ++i;
-                    listFile = new TFixedBufferFileOutput(argv[i]);
+                    listFile = MakeHolder<TFixedBufferFileOutput>(argv[i]);
                     listStream = listFile.Get();
                 } else if (strcmp(name, "--test-param") == 0) {
                     ++i;

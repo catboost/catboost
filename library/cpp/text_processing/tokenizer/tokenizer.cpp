@@ -217,12 +217,12 @@ NTokenizer::TTokenizer::TTokenizer()
 
 void NTokenizer::TTokenizer::Initialize() {
     if (TLemmerImplementationFactory::Has(EImplementationType::YandexSpecific)) {
-        Lemmer = TLemmerImplementationFactory::Construct(EImplementationType::YandexSpecific, Options.Languages);
+        Lemmer.Reset(TLemmerImplementationFactory::Construct(EImplementationType::YandexSpecific, Options.Languages));
     } else {
         Y_ENSURE(TLemmerImplementationFactory::Has(EImplementationType::Trivial),
             "Lemmer implementation factory should have open source implementation.");
         Y_ENSURE(!Options.Lemmatizing, "Lemmer isn't implemented yet.");
-        Lemmer = TLemmerImplementationFactory::Construct(EImplementationType::Trivial, {});
+        Lemmer.Reset(TLemmerImplementationFactory::Construct(EImplementationType::Trivial, {}));
     }
 
     NeedToModifyTokensFlag |= Options.SeparatorType == NTokenizer::ESeparatorType::BySense;
