@@ -211,7 +211,7 @@ def hardlink_or_copy(src, lnk):
     except Exception as e:
         logger.debug('Failed to hardlink %s to %s with error %s, will copy it', src, lnk, repr(e))
         if should_fallback_to_copy(e):
-            shutil.copy2(src, lnk)
+            copy2(src, lnk, follow_symlinks=False)
         else:
             raise
 
@@ -226,6 +226,19 @@ def symlink(src, lnk):
         library.python.windows.run_disabled(src, lnk)
     else:
         os.symlink(src, lnk)
+
+
+# shutil.copy2 with follow_symlinks=False parameter (Unix only)
+def copy2(src, lnk, follow_symlinks=True):
+    if six.PY3:
+        shutil.copy2(src, lnk, follow_symlinks=follow_symlinks)
+        return
+
+    if follow_symlinks or not os.path.islink(src):
+        shutil.copy2(src, lnk)
+        return
+
+    symlink(os.readlink(src), lnk)
 
 
 # Recursively hardlink directory

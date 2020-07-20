@@ -1000,3 +1000,11 @@ def test_copy_tree_custom_copy_function():
     assert len(copied) == 2
     assert yatest.common.work_path("test_copy_tree_dst/deepper/deepper.txt") in copied
     assert yatest.common.work_path("test_copy_tree_dst/deepper/inner/inner.txt") in copied
+
+
+def test_copy2():
+    library.python.fs.symlink("non-existent", "link")
+    library.python.fs.copy2("link", "link2", follow_symlinks=False)
+
+    assert os.path.islink("link2")
+    assert os.readlink("link2") == "non-existent"
