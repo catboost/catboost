@@ -99,6 +99,7 @@ ALLOW .* -> vendor/github.com/jackc/pgx/v4
 ALLOW .* -> vendor/github.com/jackc/pgconn
 ALLOW .* -> vendor/github.com/jackc/pgtype
 ALLOW .* -> vendor/github.com/jackc/pgerrcode
+ALLOW .* -> vendor/github.com/jackc/pgproto3/v2
 
 # database/sql wrapper with a lot of helper functions
 ALLOW .* -> vendor/github.com/jmoiron/sqlx
@@ -457,10 +458,10 @@ ALLOW .* -> vendor/github.com/dave/dst
 # CONTRIB-1874 Parse and demux MPEG Transport Streams
 ALLOW .* -> vendor/github.com/asticode/go-astits
 
-# CONTRIB-1896 Fast, portable, non-Turing complete expression evaluation with gradual typing                                                                   
+# CONTRIB-1896 Fast, portable, non-Turing complete expression evaluation with gradual typing
 ALLOW .* -> vendor/github.com/google/cel-go
 
-# CONTRIB-1654 Hard to misuse extensible crypto library 
+# CONTRIB-1654 Hard to misuse extensible crypto library
 ALLOW .* -> vendor/github.com/google/tink/go
 
 # CONTRIB-1907 Parser of the Graphviz DOT language
