@@ -274,7 +274,6 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\descriptor_database.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\dynamic_message.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\extension_set.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\generated_enum_reflection.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\generated_message_reflection.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\generated_message_table_driven.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\generated_message_util.h"/>
@@ -287,12 +286,9 @@ if %errorlevel% neq 0 goto :VCEnd</Command>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\zero_copy_stream.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\zero_copy_stream_impl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\io\zero_copy_stream_impl_lite.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\json_util.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\map.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\map_entry.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\map_entry_lite.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\map_field.h"/>
-    <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\map_field_inl.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\message.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\message_lite.h"/>
     <ClInclude Include="$(SolutionDir)..\contrib\libs\protobuf\messagext.h"/>
