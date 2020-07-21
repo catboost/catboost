@@ -13,6 +13,8 @@ IF (HOST_OS_DARWIN AND HOST_ARCH_X86_64 OR
         sbr:1601124619 FOR WIN32
     )
 
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/protoc/ya.make.induced_deps)
+
     PRIMARY_OUTPUT(${ARCADIA_PROTOC_RESOURCE_GLOBAL}/protoc${MODULE_SUFFIX})
 
     END()
