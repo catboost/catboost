@@ -124,6 +124,6 @@ def get_stream_encoding(stream):
 
 
 def encode(value, encoding=DEFAULT_ENCODING):
-    if type(value) == str:
+    if isinstance(value, six.binary_type):
         value = value.decode(encoding, errors='ignore')
     return value.encode(encoding)
