@@ -97,27 +97,27 @@ namespace {
         {
         }
 
-        TStringBuf Scheme() override {
+        TStringBuf Scheme() const override {
             return AsStringBuf("inproc");
         }
 
-        TString RemoteHost() override {
+        TString RemoteHost() const override {
             return TString();
         }
 
-        TStringBuf Service() override {
+        TStringBuf Service() const override {
             return Location.InprocService;
         }
 
-        TStringBuf Data() override {
+        TStringBuf Data() const override {
             return Handle_->Message().Data;
         }
 
-        TStringBuf RequestId() override {
+        TStringBuf RequestId() const override {
             return Location.InprocId;
         }
 
-        bool Canceled() override {
+        bool Canceled() const override {
             return Handle_->Canceled();
         }
 

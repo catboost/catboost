@@ -1159,25 +1159,25 @@ namespace {
                 TRequest(const TConnectionRef& conn, TBuffer& buf, const TString& content);
                 ~TRequest() override;
 
-                TStringBuf Scheme() override {
+                TStringBuf Scheme() const override {
                     return AsStringBuf("tcp2");
                 }
 
-                TString RemoteHost() override;
+                TString RemoteHost() const override;
 
-                TStringBuf Service() override {
+                TStringBuf Service() const override {
                     return TStringBuf(Buf.Data() + sizeof(TRequestHeader), Buf.End());
                 }
 
-                TStringBuf Data() override {
+                TStringBuf Data() const override {
                     return TStringBuf(Content_);
                 }
 
-                TStringBuf RequestId() override {
+                TStringBuf RequestId() const override {
                     return TStringBuf();
                 }
 
-                bool Canceled() override {
+                bool Canceled() const override {
                     return State->Canceled;
                 }
 
@@ -1613,7 +1613,7 @@ namespace {
             Conn->OnFinishRequest(RequestHeader().Id);
         }
 
-        TString TServer::TRequest::RemoteHost() {
+        TString TServer::TRequest::RemoteHost() const {
             return Conn->RemoteHost();
         }
 

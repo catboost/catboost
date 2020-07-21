@@ -31,15 +31,14 @@ namespace NNeh {
         {
         }
 
-        virtual ~IRequest() {
-        }
+        virtual ~IRequest() = default;
 
-        virtual TStringBuf Scheme() = 0;
-        virtual TString RemoteHost() = 0; //IP-literal / IPv4address / reg-name()
-        virtual TStringBuf Service() = 0;
-        virtual TStringBuf Data() = 0;
-        virtual TStringBuf RequestId() = 0;
-        virtual bool Canceled() = 0;
+        virtual TStringBuf Scheme() const = 0;
+        virtual TString RemoteHost() const = 0; //IP-literal / IPv4address / reg-name()
+        virtual TStringBuf Service() const = 0;
+        virtual TStringBuf Data() const = 0;
+        virtual TStringBuf RequestId() const = 0;
+        virtual bool Canceled() const = 0;
         virtual void SendReply(TData& data) = 0;
         enum TResponseError {
             BadRequest,             // bad request data - http_code 400
@@ -54,7 +53,7 @@ namespace NNeh {
             MaxResponseError        // count error types
         };
         virtual void SendError(TResponseError err, const TString& details = TString()) = 0;
-        virtual TInstant ArrivalTime() {
+        virtual TInstant ArrivalTime() const {
             return ArrivalTime_;
         }
 

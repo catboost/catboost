@@ -184,27 +184,27 @@ namespace {
                     }
                 }
 
-                TStringBuf Scheme() override {
+                TStringBuf Scheme() const override {
                     return AsStringBuf("tcp");
                 }
 
-                TString RemoteHost() override {
+                TString RemoteHost() const override {
                     return Link->RemoteHost;
                 }
 
-                TStringBuf Service() override {
+                TStringBuf Service() const override {
                     return TStringBuf(ServiceBegin(), ServiceLen());
                 }
 
-                TStringBuf Data() override {
+                TStringBuf Data() const override {
                     return TStringBuf(Service().end(), Buf.End());
                 }
 
-                TStringBuf RequestId() override {
+                TStringBuf RequestId() const override {
                     return TStringBuf(Buf.Data(), 16);
                 }
 
-                bool Canceled() override {
+                bool Canceled() const override {
                     //TODO
                     return false;
                 }
@@ -217,12 +217,12 @@ namespace {
                     // TODO
                 }
 
-                size_t ServiceLen() noexcept {
+                size_t ServiceLen() const noexcept {
                     const char* ptr = RequestId().end();
                     return *(ui32*)ptr;
                 }
 
-                const char* ServiceBegin() noexcept {
+                const char* ServiceBegin() const noexcept {
                     return RequestId().end() + sizeof(ui32);
                 }
 
