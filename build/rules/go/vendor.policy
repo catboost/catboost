@@ -61,6 +61,9 @@ ALLOW .* -> vendor/github.com/go-chi/chi
 # a pure Go MySQL driver
 ALLOW .* -> vendor/github.com/go-sql-driver/mysql
 
+# a Go MSSQL driver
+ALLOW .* -> vendor/github.com/denisenkom/go-mssqldb
+
 # thread-safe file locking library
 ALLOW .* -> vendor/github.com/gofrs/flock
 
