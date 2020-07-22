@@ -795,11 +795,9 @@ cdef extern from "catboost/libs/data/data_provider.h" namespace "NCB":
     ctypedef TIntrusivePtr[TProcessedDataProvider] TProcessedDataProviderPtr
 
 
-    cdef cppclass TTrainingDataProvidersTemplate[TTObjectsDataProvider]:
+    cdef cppclass TTrainingDataProviders:
         TIntrusivePtr[TProcessedDataProviderTemplate[TObjectsDataProvider]] Learn
         TVector[TIntrusivePtr[TProcessedDataProviderTemplate[TObjectsDataProvider]]] Test
-
-    ctypedef TTrainingDataProvidersTemplate[TObjectsDataProvider] TTrainingDataProviders
 
 
 cdef extern from "catboost/private/libs/quantized_pool/serialization.h" namespace "NCB":

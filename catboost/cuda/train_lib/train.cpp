@@ -333,13 +333,6 @@ namespace NCatboostCuda {
                     ->CalcMaxCategoricalFeaturesUniqueValuesCountOnLearn()
                   > updatedCatboostOptions.CatFeatureParams.Get().OneHotMaxSize.Get());
 
-            TTrainingDataProviders trainingDataForFinalCtrCalculation;
-            // TODO(kirillovs): remove casts later
-            if (saveFinalCtrsInModel) {
-                // do it at this stage to check before training
-                trainingDataForFinalCtrCalculation = trainingData.Cast<TQuantizedForCPUObjectsDataProvider>();
-            }
-
             auto quantizedFeaturesInfo = trainingData.Learn->ObjectsData->GetQuantizedFeaturesInfo();
             TVector<TExclusiveFeaturesBundle> exclusiveBundlesCopy;
             const auto lossFunction = catboostOptions.LossFunctionDescription->LossFunction;
@@ -475,7 +468,7 @@ namespace NCatboostCuda {
                 featureCalcerComputationMode);
 
             coreModelToFullModelConverter.WithBinarizedDataComputedFrom(
-                                             std::move(trainingDataForFinalCtrCalculation),
+                                             trainingData,
                                              std::move(featureCombinationToProjection),
                                              targetClassifiers)
                 .WithPerfectHashedToHashedCatValuesMap(
