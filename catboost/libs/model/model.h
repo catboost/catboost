@@ -86,7 +86,7 @@ struct TNonSymmetricTreeStepNode {
 };
 
 struct IModelTreeData {
-    enum class ECloningPolicy { Default, CloneAsSolid };
+    enum class ECloningPolicy { Default, CloneAsSolid, CloneAsOpaque };
 
     //! Split values
     virtual TConstArrayRef<int> GetTreeSplits() const = 0;
@@ -263,7 +263,8 @@ public:
      * Deserialize from flatbuffers object
      * @param fbObj
      */
-    void FBDeserialize(const NCatBoostFbs::TModelTrees* fbObj);
+    void FBDeserializeOwning(const NCatBoostFbs::TModelTrees* fbObj);
+    void FBDeserializeNonOwning(const NCatBoostFbs::TModelTrees* fbObj);
 
     /**
      * Internal usage only.
@@ -537,6 +538,9 @@ public:
     void SetScaleAndBias(const TScaleAndBias&);
 
 private:
+    void DeserializeFeatures(const NCatBoostFbs::TModelTrees* fbObj);
+
+private:
     //! Number of classes in model, in most cases equals to 1.
     int ApproxDimension = 1;
 
@@ -612,6 +616,8 @@ private:
     TAdaptiveLock CurrentEvaluatorLock;
     mutable NCB::NModelEvaluation::TModelEvaluatorPtr Evaluator;
 public:
+    void InitNonOwning(const void* binaryBuffer, size_t dataSize);
+
     void SetEvaluatorType(EFormulaEvaluatorType evaluatorType) {
         with_lock(CurrentEvaluatorLock) {
             if (FormulaEvaluatorType != evaluatorType) {
@@ -1117,6 +1123,9 @@ public:
      * Update indexes between TextProcessingCollection and Estimated features in ModelTrees
      */
     void UpdateEstimatedFeaturesIndices(TVector<TEstimatedFeature>&& newEstimatedFeatures);
+
+private:
+    void DefaultFullModelInit(const NCatBoostFbs::TModelCore* fbModelCore);
 };
 
 void OutputModel(const TFullModel& model, TStringBuf modelFile);
@@ -1129,6 +1138,7 @@ TFullModel ReadModel(
     const void* binaryBuffer,
     size_t binaryBufferSize,
     EModelType format = EModelType::CatboostBinary);
+TFullModel ReadZeroCopyModel(const void* binaryBuffer, size_t binaryBufferSize);
 
 /**
  * Serialize model to string

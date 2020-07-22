@@ -53,22 +53,29 @@ bool IsDeserializableModelFormat(EModelType format) {
     return NCB::TModelLoaderFactory::Has(format);
 }
 
-TFullModel ReadModel(const TString& modelFile, EModelType format) {
+static void CheckFormat(EModelType format) {
     CB_ENSURE(
         NCB::TModelLoaderFactory::Has(format),
         "Model format " << format << " deserialization not supported or missing. Link with catboost/libs/model/model_export if you need CoreML or JSON"
     );
+}
+
+TFullModel ReadModel(const TString& modelFile, EModelType format) {
+    CheckFormat(format);
     THolder<NCB::IModelLoader> modelLoader(NCB::TModelLoaderFactory::Construct(format));
     return modelLoader->ReadModel(modelFile);
 }
 
 TFullModel ReadModel(const void* binaryBuffer, size_t binaryBufferSize, EModelType format) {
-    CB_ENSURE(
-        NCB::TModelLoaderFactory::Has(format),
-        "Model format " << format << " deserialization not supported or missing. Link with catboost/libs/model/model_export if you need CoreML or JSON"
-    );
+    CheckFormat(format);
     THolder<NCB::IModelLoader> modelLoader(NCB::TModelLoaderFactory::Construct(format));
     return modelLoader->ReadModel(binaryBuffer, binaryBufferSize);
+}
+
+TFullModel ReadZeroCopyModel(const void* binaryBuffer, size_t binaryBufferSize) {
+    TFullModel model;
+    model.InitNonOwning(binaryBuffer, binaryBufferSize);
+    return model;
 }
 
 TString SerializeModel(const TFullModel& model) {
@@ -151,6 +158,12 @@ struct TOpaqueModelTree : IModelTreeData {
     TConstArrayRef<double> LeafValues;
     TConstArrayRef<double> LeafWeights;
 };
+
+static TOpaqueModelTree* CastToOpaqueTree(const TModelTrees& trees) {
+    auto ptr = dynamic_cast<TOpaqueModelTree*>(trees.GetModelTreeData().Get());
+    CB_ENSURE(ptr, "Not an opaque model");
+    return ptr;
+}
 
 TModelTrees::TModelTrees() {
     ModelTreeData = MakeHolder<TSolidModelTree>();
@@ -595,10 +608,30 @@ void TModelTrees::SetScaleAndBias(const TScaleAndBias& scaleAndBias) {
     ScaleAndBias = scaleAndBias;
 }
 
-void TModelTrees::FBDeserialize(const NCatBoostFbs::TModelTrees* fbObj) {
+void TModelTrees::DeserializeFeatures(const NCatBoostFbs::TModelTrees* fbObj) {
+#define FBS_ARRAY_DESERIALIZER(var) \
+    if (fbObj->var()) {\
+        var.resize(fbObj->var()->size());\
+        for (size_t i = 0; i < fbObj->var()->size(); ++i) {\
+            var[i].FBDeserialize(fbObj->var()->Get(i));\
+        }\
+    }
+
+    FBS_ARRAY_DESERIALIZER(CatFeatures)
+    FBS_ARRAY_DESERIALIZER(FloatFeatures)
+    FBS_ARRAY_DESERIALIZER(TextFeatures)
+    FBS_ARRAY_DESERIALIZER(EstimatedFeatures)
+    FBS_ARRAY_DESERIALIZER(OneHotFeatures)
+    FBS_ARRAY_DESERIALIZER(CtrFeatures)
+#undef FBS_ARRAY_DESERIALIZER
+}
+
+void TModelTrees::FBDeserializeOwning(const NCatBoostFbs::TModelTrees* fbObj) {
+    ApproxDimension = fbObj->ApproxDimension();
+    SetScaleAndBias({fbObj->Scale(), fbObj->Bias()});
+
     auto& data = *CastToSolidTree(*this);
 
-    ApproxDimension = fbObj->ApproxDimension();
     if (fbObj->TreeSplits()) {
         data.TreeSplits.assign(fbObj->TreeSplits()->begin(), fbObj->TreeSplits()->end());
     }
@@ -628,28 +661,58 @@ void TModelTrees::FBDeserialize(const NCatBoostFbs::TModelTrees* fbObj) {
             fbObj->NonSymmetricNodeIdToLeafId()->begin(), fbObj->NonSymmetricNodeIdToLeafId()->end()
         );
     }
-
-#define FBS_ARRAY_DESERIALIZER(var) \
-        if (fbObj->var()) {\
-            var.resize(fbObj->var()->size());\
-            for (size_t i = 0; i < fbObj->var()->size(); ++i) {\
-                var[i].FBDeserialize(fbObj->var()->Get(i));\
-            }\
-        }
-    FBS_ARRAY_DESERIALIZER(CatFeatures)
-    FBS_ARRAY_DESERIALIZER(FloatFeatures)
-    FBS_ARRAY_DESERIALIZER(TextFeatures)
-    FBS_ARRAY_DESERIALIZER(EstimatedFeatures)
-    FBS_ARRAY_DESERIALIZER(OneHotFeatures)
-    FBS_ARRAY_DESERIALIZER(CtrFeatures)
-#undef FBS_ARRAY_DESERIALIZER
     if (fbObj->LeafWeights() && fbObj->LeafWeights()->size() > 0) {
-            data.LeafWeights.assign(
-                fbObj->LeafWeights()->data(),
-                fbObj->LeafWeights()->data() + fbObj->LeafWeights()->size()
-            );
+        data.LeafWeights.assign(
+            fbObj->LeafWeights()->data(),
+            fbObj->LeafWeights()->data() + fbObj->LeafWeights()->size()
+        );
     }
+
+    DeserializeFeatures(fbObj);
+}
+
+void TModelTrees::FBDeserializeNonOwning(const NCatBoostFbs::TModelTrees* fbObj) {
+    ModelTreeData = MakeHolder<TOpaqueModelTree>();
+
+    ApproxDimension = fbObj->ApproxDimension();
     SetScaleAndBias({fbObj->Scale(), fbObj->Bias()});
+
+#define ENSURE_NO_FEATURE(var) \
+    CB_ENSURE(!fbObj->var() || !fbObj->var()->size(), "Model contains not float or oneHot features")
+
+    ENSURE_NO_FEATURE(TextFeatures);
+    ENSURE_NO_FEATURE(EstimatedFeatures);
+    ENSURE_NO_FEATURE(CtrFeatures);
+#undef ENSURE_NO_FEATURE
+
+    DeserializeFeatures(fbObj);
+
+    auto& data = *CastToOpaqueTree(*this);
+
+    if (fbObj->TreeSplits()) {
+        data.TreeSplits = TConstArrayRef<int>(fbObj->TreeSplits()->data(), fbObj->TreeSplits()->size());
+    }
+    if (fbObj->TreeSizes()) {
+        data.TreeSizes = TConstArrayRef<int>(fbObj->TreeSizes()->data(), fbObj->TreeSizes()->size());
+    }
+    if (fbObj->TreeStartOffsets()) {
+        data.TreeStartOffsets = TConstArrayRef<int>(fbObj->TreeStartOffsets()->data(), fbObj->TreeStartOffsets()->size());
+    }
+
+    if (fbObj->LeafValues()) {
+        data.LeafValues = TConstArrayRef<double>(fbObj->LeafValues()->data(), fbObj->LeafValues()->size());
+    }
+    if (fbObj->NonSymmetricStepNodes()) {
+        static_assert(sizeof(TNonSymmetricTreeStepNode) == sizeof(NCatBoostFbs::TNonSymmetricTreeStepNode));
+        auto ptr = reinterpret_cast<const TNonSymmetricTreeStepNode*>(fbObj->NonSymmetricStepNodes()->data());
+        data.NonSymmetricStepNodes = TConstArrayRef<TNonSymmetricTreeStepNode>(ptr, fbObj->NonSymmetricStepNodes()->size());
+    }
+    if (fbObj->NonSymmetricNodeIdToLeafId()) {
+        data.NonSymmetricNodeIdToLeafId = TConstArrayRef<ui32>(fbObj->NonSymmetricNodeIdToLeafId()->data(), fbObj->NonSymmetricNodeIdToLeafId()->size());
+    }
+    if (fbObj->LeafWeights() && fbObj->LeafWeights()->size() > 0) {
+        data.LeafWeights = TConstArrayRef<double>(fbObj->LeafWeights()->data(), fbObj->LeafWeights()->size());
+    }
 }
 
 TConstArrayRef<int> TSolidModelTree::GetTreeSplits() const {
@@ -681,28 +744,21 @@ TConstArrayRef<double> TSolidModelTree::GetLeafWeights() const {
 }
 
 THolder<IModelTreeData> TSolidModelTree::Clone(ECloningPolicy policy) const {
-    Y_UNUSED(policy);
-
-    auto holder = MakeHolder<TSolidModelTree>();
-    std::tie(
-        holder->TreeSplits,
-        holder->TreeSizes,
-        holder->TreeStartOffsets,
-        holder->NonSymmetricStepNodes,
-        holder->NonSymmetricNodeIdToLeafId,
-        holder->LeafValues,
-        holder->LeafWeights
-    )
-    = std::tie(
-        TreeSplits,
-        TreeSizes,
-        TreeStartOffsets,
-        NonSymmetricStepNodes,
-        NonSymmetricNodeIdToLeafId,
-        LeafValues,
-        LeafWeights
-    );
-    return holder;
+    switch (policy) {
+        case ECloningPolicy::CloneAsOpaque: {
+            auto holder = MakeHolder<TOpaqueModelTree>();
+            holder->LeafValues = TConstArrayRef<double>(LeafValues.data(), LeafValues.size());
+            holder->LeafWeights = TConstArrayRef<double>(LeafWeights.data(), LeafWeights.size());
+            holder->NonSymmetricNodeIdToLeafId = TConstArrayRef<ui32>(NonSymmetricNodeIdToLeafId.data(), NonSymmetricNodeIdToLeafId.size());
+            holder->NonSymmetricStepNodes = TConstArrayRef<TNonSymmetricTreeStepNode>(NonSymmetricStepNodes.data(), NonSymmetricStepNodes.size());
+            holder->TreeSizes = TConstArrayRef<int>(TreeSizes.data(), TreeSizes.size());
+            holder->TreeSplits = TConstArrayRef<int>(TreeSplits.data(), TreeSplits.size());
+            holder->TreeStartOffsets = TConstArrayRef<int>(TreeStartOffsets.data(), TreeStartOffsets.size());
+            return holder;
+        }
+        default:
+            return MakeHolder<TSolidModelTree>(*this);
+    }
 }
 
 void TSolidModelTree::SetTreeSplits(const TVector<int> &v) {
@@ -764,35 +820,20 @@ TConstArrayRef<double> TOpaqueModelTree::GetLeafWeights() const {
 
 THolder<IModelTreeData> TOpaqueModelTree::Clone(ECloningPolicy policy) const {
     switch (policy) {
-        case ECloningPolicy::Default: {
-            return MakeHolder<TOpaqueModelTree>(*this);
-        }
         case ECloningPolicy::CloneAsSolid: {
             auto holder = MakeHolder<TSolidModelTree>();
-            std::tie(
-                holder->TreeSplits,
-                holder->TreeSizes,
-                holder->TreeStartOffsets,
-                holder->NonSymmetricStepNodes,
-                holder->NonSymmetricNodeIdToLeafId,
-                holder->LeafValues,
-                holder->LeafWeights
-            )
-            = std::forward_as_tuple(
-                TVector<int>(TreeSplits.begin(), TreeSplits.end()),
-                TVector<int>(TreeSizes.begin(), TreeSizes.end()),
-                TVector<int>(TreeStartOffsets.begin(), TreeStartOffsets.end()),
-                TVector<TNonSymmetricTreeStepNode>(NonSymmetricStepNodes.begin(), NonSymmetricStepNodes.end()),
-                TVector<ui32>(NonSymmetricNodeIdToLeafId.begin(), NonSymmetricNodeIdToLeafId.end()),
-                TVector<double>(LeafValues.begin(), LeafValues.end()),
-                TVector<double>(LeafWeights.begin(), LeafWeights.end())
-            );
+            holder->TreeSplits = TVector<int>(TreeSplits.begin(), TreeSplits.end());
+            holder->TreeSizes = TVector<int>(TreeSizes.begin(), TreeSizes.end());
+            holder->TreeStartOffsets = TVector<int>(TreeStartOffsets.begin(), TreeStartOffsets.end());
+            holder->NonSymmetricStepNodes = TVector<TNonSymmetricTreeStepNode>(NonSymmetricStepNodes.begin(), NonSymmetricStepNodes.end());
+            holder->NonSymmetricNodeIdToLeafId = TVector<ui32>(NonSymmetricNodeIdToLeafId.begin(), NonSymmetricNodeIdToLeafId.end());
+            holder->LeafValues = TVector<double>(LeafValues.begin(), LeafValues.end());
+            holder->LeafWeights = TVector<double>(LeafWeights.begin(), LeafWeights.end());
             return holder;
         }
         default:
-            CB_ENSURE(false, "Unknown cloning policy");
+            return MakeHolder<TOpaqueModelTree>(*this);
     }
-    Y_UNREACHABLE();
 }
 
 void TOpaqueModelTree::SetTreeSplits(const TVector<int>&) {
@@ -956,6 +997,22 @@ void TFullModel::Save(IOutputStream* s) const {
     }
 }
 
+void TFullModel::DefaultFullModelInit(const NCatBoostFbs::TModelCore* fbModelCore) {
+    CB_ENSURE(
+        fbModelCore->FormatVersion() && fbModelCore->FormatVersion()->str() == CURRENT_CORE_FORMAT_STRING,
+        "Unsupported model format: " << fbModelCore->FormatVersion()->str()
+    );
+    if (fbModelCore->ModelTrees()) {
+        ModelTrees.GetMutable()->FBDeserializeOwning(fbModelCore->ModelTrees());
+    }
+    ModelInfo.clear();
+    if (fbModelCore->InfoMap()) {
+        for (auto keyVal : *fbModelCore->InfoMap()) {
+            ModelInfo[keyVal->Key()->str()] = keyVal->Value()->str();
+        }
+    }
+}
+
 void TFullModel::Load(IInputStream* s) {
     using namespace flatbuffers;
     using namespace NCatBoostFbs;
@@ -971,19 +1028,12 @@ void TFullModel::Load(IInputStream* s) {
         CB_ENSURE(VerifyTModelCoreBuffer(verifier), "Flatbuffers model verification failed");
     }
     auto fbModelCore = GetTModelCore(arrayHolder.Get());
-    CB_ENSURE(
-        fbModelCore->FormatVersion() && fbModelCore->FormatVersion()->str() == CURRENT_CORE_FORMAT_STRING,
-        "Unsupported model format: " << fbModelCore->FormatVersion()->str()
-    );
+    DefaultFullModelInit(fbModelCore);
+
     if (fbModelCore->ModelTrees()) {
-        ModelTrees.GetMutable()->FBDeserialize(fbModelCore->ModelTrees());
+        ModelTrees.GetMutable()->FBDeserializeOwning(fbModelCore->ModelTrees());
     }
-    ModelInfo.clear();
-    if (fbModelCore->InfoMap()) {
-        for (auto keyVal : *fbModelCore->InfoMap()) {
-            ModelInfo[keyVal->Key()->str()] = keyVal->Value()->str();
-        }
-    }
+
     TVector<TString> modelParts;
     if (fbModelCore->ModelPartIds()) {
         for (auto part : *fbModelCore->ModelPartIds()) {
@@ -1007,6 +1057,41 @@ void TFullModel::Load(IInputStream* s) {
             }
         }
     }
+    UpdateDynamicData();
+}
+
+void TFullModel::InitNonOwning(const void* binaryBuffer, size_t binarySize) {
+    CB_ENSURE(binarySize > 8, "Invalid binary size");
+
+    using namespace flatbuffers;
+    using namespace NCatBoostFbs;
+    ui32 fileDescriptor = *static_cast<const ui32*>(binaryBuffer);
+    CB_ENSURE(fileDescriptor == GetModelFormatDescriptor(), "Incorrect model file descriptor");
+
+    auto dataPtr = static_cast<const ui8*>(binaryBuffer);
+    size_t coreSize = *reinterpret_cast<const ui32*>(dataPtr+4);
+    const ui8* fbPtr = static_cast<const ui8*>(coreSize == 0xffffffff ? dataPtr+16 : dataPtr+8);
+    if (coreSize == 0xffffffff) {
+        CB_ENSURE(binarySize > 12, "Invalid binary size");
+        coreSize = *reinterpret_cast<const ui64*>(dataPtr+8);
+        CB_ENSURE(coreSize + 16 == binarySize, "Invalid binary size");
+    } else {
+        CB_ENSURE(coreSize + 8 == binarySize, "Invalid binary size");
+    }
+
+    {
+        flatbuffers::Verifier verifier(fbPtr, coreSize);
+        CB_ENSURE(VerifyTModelCoreBuffer(verifier), "Flatbuffers model verification failed");
+    }
+
+    auto fbModelCore = GetTModelCore(fbPtr);
+    DefaultFullModelInit(fbModelCore);
+
+    if (fbModelCore->ModelTrees()) {
+        ModelTrees.GetMutable()->FBDeserializeNonOwning(fbModelCore->ModelTrees());
+    }
+
+    CB_ENSURE(!fbModelCore->ModelPartIds() || !fbModelCore->ModelPartIds()->size(), "Model contains not float or oneHot features");
     UpdateDynamicData();
 }
 

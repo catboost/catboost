@@ -39,6 +39,16 @@ Y_UNIT_TEST_SUITE(TModelSerialization) {
         DoSerializeDeserialize(trainedModel);
     }
 
+    Y_UNIT_TEST(TestSerializeDeserializeFullModelNonOwning) {
+        TFullModel model = TrainFloatCatboostModel();
+
+        TStringStream strStream;
+        model.Save(&strStream);
+        TFullModel deserializedModel;
+        deserializedModel.InitNonOwning(strStream.Data(), strStream.Size());
+        UNIT_ASSERT_EQUAL(model, deserializedModel);
+    }
+
     Y_UNIT_TEST(TestSerializeDeserializeCoreML) {
         TFullModel trainedModel = TrainFloatCatboostModel();
         TStringStream strStream;
