@@ -3,6 +3,10 @@
 RECURSE(
     cpp_styleguide
     enum_parser
+    event2cpp
+    fix_elf
+    flatc
+    flatc64
     grpc_cpp
     grpc_java
     grpc_python

@@ -1,28 +1,31 @@
 
 
-PROGRAM()
+IF (USE_PREBUILT_TOOLS)
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/flatc/ya.make.prebuilt)
+ENDIF()
 
-NO_UTIL()
+IF (NOT PREBUILT)
+    PROGRAM()
 
-ADDINCL(
-    contrib/libs/flatbuffers/include
-)
+    NO_UTIL()
 
-PEERDIR(
-    contrib/libs/flatbuffers/flatc
-)
+    ADDINCL(
+        contrib/libs/flatbuffers/include
+    )
 
-SRCDIR(
-    contrib/libs/flatbuffers/src
-)
+    PEERDIR(
+        contrib/libs/flatbuffers/flatc
+    )
 
-SRCS(
-    flatc_main.cpp
-)
+    SRCDIR(
+        contrib/libs/flatbuffers/src
+    )
 
-INDUCED_DEPS(h
-    ${ARCADIA_ROOT}/contrib/libs/flatbuffers/include/flatbuffers/flatbuffers.h
-    ${ARCADIA_ROOT}/contrib/libs/flatbuffers/include/flatbuffers/flatbuffers_iter.h
-)
+    SRCS(
+        flatc_main.cpp
+    )
 
-END()
+    INCLUDE(${ARCADIA_ROOT}/build/prebuilt/flatc/ya.make.induced_deps)
+
+    END()
+ENDIF()
