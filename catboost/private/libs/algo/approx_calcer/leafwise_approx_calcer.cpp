@@ -186,7 +186,7 @@ static void CalcExactLeafDeltas(
     for (int i = 0; i < objectsCount; i++) {
         samples[i] = labels[i] - approxes[i];
     }
-    leafDelta = *NCB::CalcOptimumConstApprox(lossDescription, samples, weights);
+    leafDelta = *NCB::CalcOneDimensionalOptimumConstApprox(lossDescription, samples, weights);
 }
 
 static void CalcLeafValuesSimple(

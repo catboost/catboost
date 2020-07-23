@@ -8062,7 +8062,7 @@ def test_shap_assert():
     model.save_model(model_path, format='json')
 
     json_model = json.load(open(model_path))
-    json_model['scale_and_bias'] = [1, 1]
+    json_model['scale_and_bias'] = [1, [1]]
     json.dump(json_model, open(model_path, 'w'))
     model = CatBoost().load_model(model_path, format='json')
     shap_values = model.get_feature_importance(type='ShapValues', data=pool)

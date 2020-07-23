@@ -35,3 +35,21 @@ void NormalizeLeafValues(
         }
     }
 }
+
+void InitApproxes(
+    int size,
+    const TMaybe<TVector<double>>& startingApprox,
+    double approxDimension,
+    bool storeExpApproxes,
+    TVector<TVector<double>>* approx
+) {
+    approx->resize(approxDimension);
+    Y_ASSERT(!startingApprox.Defined() || startingApprox->ysize() == approxDimension);
+    for (auto dim : xrange(approxDimension)) {
+        (*approx)[dim].resize(
+            size,
+            startingApprox ? ExpApproxIf(storeExpApproxes, (*startingApprox)[dim]) : GetNeutralApprox(storeExpApproxes)
+        );
+    }
+}
+

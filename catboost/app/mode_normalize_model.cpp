@@ -19,6 +19,7 @@
 #include <library/cpp/threading/local_executor/local_executor.h>
 
 #include <util/generic/serialized_enum.h>
+#include <util/string/split.h>
 #include <util/system/mutex.h>
 
 using namespace NCB;
@@ -32,7 +33,7 @@ namespace {
         TMaybe<EModelType> OutputModelType;
         NCatboostOptions::TColumnarPoolFormatParams ColumnarPoolFormatParams;
         TMaybe<double> Scale;
-        TMaybe<double> Bias;
+        TMaybe<TVector<double>> Bias;
         ELoggingLevel LoggingLevel;
         int ThreadCount;
         TVector<TPathWithScheme> PoolPaths;
@@ -49,7 +50,12 @@ namespace {
                 .Help("Scale")
                 ;
             parser.AddLongOption("set-bias").RequiredArgument("BIAS")
-                .Handler1T<double>([=](auto bias){ Bias = bias; })
+                .Handler1T<TStringBuf>([=](auto bias) {
+                    Bias = TVector<double>(0);
+                    for (const auto& biasValue : StringSplitter(bias).Split(':')) {
+                        Bias->push_back(FromString<double>(biasValue.Token()));
+                    }
+                })
                 .Help("Bias")
                 ;
             parser.AddLongOption("print-scale-and-bias").NoArgument()
@@ -96,21 +102,21 @@ namespace {
             if (modeParams.PrintScaleAndBias) {
                 Cout << "Input model"
                     << " scale " << inputScaleAndBias.Scale
-                    << " bias " << inputScaleAndBias.Bias
+                    << " bias " << inputScaleAndBias.GetOneDimensionalBiasOrZero()
                     << Endl;
             }
 
             if (modeParams.PoolPaths) {
                 CB_ENSURE(!modeParams.Scale.Defined() && !modeParams.Bias.Defined(), "Conflicting options: -i and --set-scale/bias");
-                model.SetScaleAndBias({1.0, 0.0});
+                model.SetScaleAndBias({1.0, {}});
                 auto approx = CalcMinMaxOnAllPools(model, modeParams);
                 CB_ENSURE(approx.Min < approx.Max, "Model gives same result on all docs");
                 double scale = 1.0 / (approx.Max - approx.Min);
                 double bias = - scale * approx.Min;
-                model.SetScaleAndBias({scale, bias});
+                model.SetScaleAndBias({scale, {bias}});
             } else {
                 double scale = modeParams.Scale.GetOrElse(model.GetScaleAndBias().Scale);
-                double bias = modeParams.Bias.GetOrElse(model.GetScaleAndBias().Bias);
+                auto bias = modeParams.Bias.GetOrElse(model.GetScaleAndBias().GetBiasRef());
                 model.SetScaleAndBias({scale, bias});
             }
 
@@ -118,7 +124,7 @@ namespace {
                 if (modeParams.PrintScaleAndBias) {
                     Cout << "Output model"
                         << " scale " << model.GetScaleAndBias().Scale
-                        << " bias " << model.GetScaleAndBias().Bias
+                        << " bias " << model.GetScaleAndBias().GetOneDimensionalBiasOrZero()
                         << Endl;
                 }
                 const TString& outputModelFileName = modeParams.OutputModelFileName ? modeParams.OutputModelFileName : modeParams.ModelFileName;

@@ -80,11 +80,12 @@ Y_UNIT_TEST_SUITE(TObliviousTreeModel) {
 
     Y_UNIT_TEST(TestFlatCalcFloatWithScaleAndBias) {
         auto model = SimpleFloatModel();
-        model.SetScaleAndBias({0.5, 0.125});
+        model.SetScaleAndBias({0.5, {0.125}});
         auto norm = model.GetScaleAndBias();
         TVector<double> expectedPredicts;
+        double bias = norm.GetOneDimensionalBias();
         for (int sampleId : xrange(8)) {
-            expectedPredicts.push_back(sampleId * norm.Scale + norm.Bias);
+            expectedPredicts.push_back(sampleId * norm.Scale + bias);
         }
         CheckFlatCalcResult(model, expectedPredicts, xrange<ui32>(8));
         model.ModelTrees.GetMutable()->ConvertObliviousToAsymmetric();

@@ -1,11 +1,24 @@
 #pragma once
 
+#include <catboost/libs/helpers/exception.h>
+
 #include <util/generic/array_ref.h>
+#include <util/generic/vector.h>
 
 //! For computing final formula as `Scale * sumTrees + Bias`
 struct TScaleAndBias {
     double Scale = 1.0;
-    double Bias = 0.0;
+private:
+    TVector<double> Bias = {};
+
+public:
+    TScaleAndBias() = default;
+
+    TScaleAndBias(double scale, const TVector<double>& bias)
+        : Scale(scale)
+        , Bias(bias)
+    {
+    }
 
     auto AsTie() const {
         return std::tie(Scale, Bias);
@@ -19,8 +32,36 @@ struct TScaleAndBias {
         return !(*this == other);
     }
 
+    bool IsZeroBias() const {
+        for (auto x : Bias) {
+            if (x != 0.0) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     bool IsIdentity() const {
-        return Scale == 1.0 && Bias == 0.0;
+        return Scale == 1.0 && IsZeroBias();
+    }
+
+    const TVector<double>& GetBiasRef() const {
+        return Bias;
+    }
+
+    double GetOneDimensionalBias(TStringBuf errorMessage = "") const {
+        CB_ENSURE_INTERNAL(Bias.size() == 1,
+            "Asked one-dimensional bias, has " << Bias.size() << "." << errorMessage);
+        return Bias[0];
+    }
+
+    double GetOneDimensionalBiasOrZero(TStringBuf errorMessage = "") const {
+        if (IsZeroBias()) {
+            return 0;
+        }
+        CB_ENSURE_INTERNAL(Bias.size() == 1,
+                           "Asked one-dimensional bias, has " << Bias.size() << "." << errorMessage);
+        return Bias[0];
     }
 };
 

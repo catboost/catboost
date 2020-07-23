@@ -79,7 +79,7 @@ namespace NCB {
     }
 
     //TODO(isaf27): add baseline to CalcOptimumConstApprox
-    inline TMaybe<double> CalcOptimumConstApprox(
+    inline TMaybe<double> CalcOneDimensionalOptimumConstApprox(
         const NCatboostOptions::TLossDescription& lossDescription,
         TConstArrayRef<float> target,
         TConstArrayRef<float> weights
@@ -108,6 +108,19 @@ namespace NCB {
                 return CalculateOptimalConstApproxForMAPE(target, weights);
             default:
                 return Nothing();
+        }
+    }
+
+    inline TMaybe<TVector<double>> CalcOptimumConstApprox(
+        const NCatboostOptions::TLossDescription& lossDescription,
+        TConstArrayRef<float> target,
+        TConstArrayRef<float> weights
+    ) {
+        TMaybe<double> optimum = CalcOneDimensionalOptimumConstApprox(lossDescription, target, weights);
+        if (optimum.Defined()) {
+            return TVector<double>(1, *optimum.Get());
+        } else {
+            return Nothing();
         }
     }
 }

@@ -544,7 +544,11 @@ static NJson::TJsonValue ConvertCtrsToJson(const TStaticCtrProvider* ctrProvider
 static TJsonValue GetScaleAndBiasJson(const TFullModel& model) {
     TJsonValue jsonValue;
     jsonValue.AppendValue(model.GetScaleAndBias().Scale);
-    jsonValue.AppendValue(model.GetScaleAndBias().Bias);
+    jsonValue.AppendValue(TJsonValue());
+    auto bias = model.GetScaleAndBias().GetBiasRef();
+    for (auto b : bias) {
+        jsonValue[1].AppendValue(b);
+    }
     return jsonValue;
 }
 
@@ -648,7 +652,10 @@ void ConvertJsonToCatboostModel(const TJsonValue& jsonModel, TFullModel* fullMod
     if (jsonModel.Has("scale_and_bias")) {
         const auto& scaleAndBias = jsonModel["scale_and_bias"].GetArray();
         double scale = scaleAndBias[0].GetDouble();
-        double bias = scaleAndBias[1].GetDouble();
+        TVector<double> bias;
+        for (const auto& biasValue : scaleAndBias[1].GetArray()) {
+            bias.push_back(biasValue.GetDouble());
+        }
         fullModel->SetScaleAndBias({scale, bias});
     }
 

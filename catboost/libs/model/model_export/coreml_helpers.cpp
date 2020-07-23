@@ -256,7 +256,10 @@ void NCB::NCoreML::ConfigureTreeModelIO(
     const auto classesCount = static_cast<size_t>(model.ModelTrees->GetDimensionsCount());
     regressor->mutable_treeensemble()->set_numpredictiondimensions(classesCount);
     if (classesCount == 1) {
-        regressor->mutable_treeensemble()->add_basepredictionvalue(model.ModelTrees->GetScaleAndBias().Bias);
+        regressor->mutable_treeensemble()->add_basepredictionvalue(
+            model.ModelTrees->GetScaleAndBias().GetOneDimensionalBias(
+                "Non single-dimension approxes are not supported")
+        );
     } else {
         for (size_t outputIdx = 0; outputIdx < classesCount; ++outputIdx) {
             regressor->mutable_treeensemble()->add_basepredictionvalue(0.0);
@@ -498,9 +501,7 @@ void NCB::NCoreML::ConvertCoreMLToCatboostModel(const Model& coreMLModel, TFullM
         }
     }
     if (approxDimension == 1) {
-        TScaleAndBias scaleAndBias;
-        scaleAndBias.Bias = ensemble.basepredictionvalue()[0];
-        fullModel->SetScaleAndBias(scaleAndBias);
+        fullModel->SetScaleAndBias({1., {ensemble.basepredictionvalue()[0]}});
     }
     fullModel->UpdateDynamicData();
 }

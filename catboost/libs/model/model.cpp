@@ -360,6 +360,8 @@ TModelTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
     auto fbsLeafValues = builder.CreateVector(data->GetLeafValues().data(), data->GetLeafValues().size());
     auto fbsLeafWeights = builder.CreateVector(data->GetLeafWeights().data(), data->GetLeafWeights().size());
     auto fbsNonSymmetricNodeIdToLeafId = builder.CreateVector(data->GetNonSymmetricNodeIdToLeafId().data(), data->GetNonSymmetricNodeIdToLeafId().size());
+    auto bias = GetScaleAndBias().GetBiasRef();
+    auto fbsBias = builder.CreateVector(bias.data(), bias.size());
     return NCatBoostFbs::CreateTModelTrees(
         builder,
         ApproxDimension,
@@ -377,7 +379,8 @@ TModelTrees::FBSerialize(TModelPartsCachingSerializer& serializer) const {
         fbsTextFeaturesOffsets,
         fbsEstimatedFeaturesOffsets,
         GetScaleAndBias().Scale,
-        GetScaleAndBias().Bias
+        0,
+        fbsBias
     );
 }
 
@@ -603,9 +606,32 @@ TVector<ui32> TModelTrees::GetTreeLeafCounts() const {
 }
 
 void TModelTrees::SetScaleAndBias(const TScaleAndBias& scaleAndBias) {
-    CB_ENSURE(IsValidFloat(scaleAndBias.Scale) && IsValidFloat(scaleAndBias.Bias), "Invalid scale " << scaleAndBias.Scale << " or bias " << scaleAndBias.Bias);
-    CB_ENSURE(scaleAndBias.IsIdentity() || GetDimensionsCount() == 1, "SetScaleAndBias is not supported for multi dimensional models yet");
-    ScaleAndBias = scaleAndBias;
+    CB_ENSURE(IsValidFloat(scaleAndBias.Scale), "Invalid scale " << scaleAndBias.Scale);
+    TVector<double> bias = scaleAndBias.GetBiasRef();
+    for (auto b: bias) {
+        CB_ENSURE(IsValidFloat(b), "Invalid bias " << b);
+    }
+    if (bias.empty()) {
+        bias.resize(GetDimensionsCount(), 0);
+    }
+    CB_ENSURE(
+        GetDimensionsCount() == bias.size(),
+        "Inappropraite dimension of bias, should be " << GetDimensionsCount() << " found " << bias.size());
+
+    ScaleAndBias = TScaleAndBias(scaleAndBias.Scale, bias);
+}
+
+void TModelTrees::SetScaleAndBias(const NCatBoostFbs::TModelTrees* fbObj) {
+    ApproxDimension = fbObj->ApproxDimension();
+    TVector<double> bias;
+    if (fbObj->MultiBias() && fbObj->MultiBias()->size()) {
+        bias.assign(fbObj->MultiBias()->data(), fbObj->MultiBias()->data() + fbObj->MultiBias()->size());
+    } else {
+        CB_ENSURE(ApproxDimension == 1 || fbObj->Bias() == 0,
+                  "Inappropraite dimension of bias, should be " << GetDimensionsCount() << " found 1");
+        bias.resize(ApproxDimension, fbObj->Bias());
+    }
+    SetScaleAndBias({fbObj->Scale(), bias});
 }
 
 void TModelTrees::DeserializeFeatures(const NCatBoostFbs::TModelTrees* fbObj) {
@@ -628,7 +654,7 @@ void TModelTrees::DeserializeFeatures(const NCatBoostFbs::TModelTrees* fbObj) {
 
 void TModelTrees::FBDeserializeOwning(const NCatBoostFbs::TModelTrees* fbObj) {
     ApproxDimension = fbObj->ApproxDimension();
-    SetScaleAndBias({fbObj->Scale(), fbObj->Bias()});
+    SetScaleAndBias(fbObj);
 
     auto& data = *CastToSolidTree(*this);
 
@@ -675,7 +701,7 @@ void TModelTrees::FBDeserializeNonOwning(const NCatBoostFbs::TModelTrees* fbObj)
     ModelTreeData = MakeHolder<TOpaqueModelTree>();
 
     ApproxDimension = fbObj->ApproxDimension();
-    SetScaleAndBias({fbObj->Scale(), fbObj->Bias()});
+    SetScaleAndBias(fbObj);
 
 #define ENSURE_NO_FEATURE(var) \
     CB_ENSURE(!fbObj->var() || !fbObj->var()->size(), "Model contains not float or oneHot features")
@@ -1458,7 +1484,12 @@ static void SumModelsParams(
         for (const auto& model : modelVector) {
             NJson::TJsonValue scaleAndBias;
             scaleAndBias.InsertValue("scale", model->GetScaleAndBias().Scale);
-            scaleAndBias.InsertValue("bias", model->GetScaleAndBias().Bias);
+            NJson::TJsonValue biasValue;
+            auto bias = model->GetScaleAndBias().GetBiasRef();
+            for (auto b : bias) {
+                biasValue.AppendValue(b);
+            }
+            scaleAndBias.InsertValue("bias", biasValue);
             summandScaleAndBiases.AppendValue(scaleAndBias);
         }
         (*modelInfo)["summand_scale_and_biases"] = summandScaleAndBiases.GetStringRobust();
@@ -1521,10 +1552,16 @@ TFullModel SumModels(
         Visit(merger, flatFeature.FeatureVariant);
     }
     TObliviousTreeBuilder builder(merger.MergedFloatFeatures, merger.MergedCatFeatures, {}, approxDimension);
-    double totalBias = 0;
+    TVector<double> totalBias(approxDimension);
     for (const auto modelId : xrange(modelVector.size())) {
         TScaleAndBias normer = modelVector[modelId]->GetScaleAndBias();
-        totalBias += weights[modelId] * normer.Bias;
+        auto normerBias = normer.GetBiasRef();
+        if (!normerBias.empty()) {
+            CB_ENSURE(totalBias.size() == normerBias.size(), "Bias dimensions missmatch");
+            for (auto dim : xrange(totalBias.size())) {
+                totalBias[dim] += weights[modelId] * normerBias[dim];
+            }
+        }
         StreamModelTreesWithoutScaleAndBiasToBuilder(
             *modelVector[modelId]->ModelTrees,
             weights[modelId] * normer.Scale,

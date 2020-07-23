@@ -137,7 +137,7 @@ public:
         double multiplier,
         bool storeExpApproxes,
         bool hasPairwiseWeights,
-        TMaybe<double> startingApprox,
+        const TMaybe<TVector<double>>& startingApprox,
         const NCatboostOptions::TBinarizationOptions& onlineEstimatedFeaturesQuantizationOptions,
         NCB::TQuantizedFeaturesInfoPtr onlineEstimatedFeaturesQuantizedInfo, // can be nullptr
         TRestorableFastRng64* rand,
@@ -152,7 +152,7 @@ public:
         int approxDimension,
         bool storeExpApproxes,
         bool hasPairwiseWeights,
-        TMaybe<double> startingApprox,
+        const TMaybe<TVector<double>>& startingApprox,
         const NCatboostOptions::TBinarizationOptions& onlineEstimatedFeaturesQuantizationOptions,
         NCB::TQuantizedFeaturesInfoPtr onlineEstimatedFeaturesQuantizedInfo, // can be nullptr
         TRestorableFastRng64* rand,
