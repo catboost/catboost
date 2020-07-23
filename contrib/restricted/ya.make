@@ -1,10 +1,6 @@
 
 
 RECURSE(
-    
-)
-
-RECURSE(
     libffi
 )
 
