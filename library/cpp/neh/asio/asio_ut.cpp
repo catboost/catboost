@@ -146,7 +146,7 @@ Y_UNIT_TEST_SUITE(TAsio) {
 
             UNIT_ASSERT(bind(SocketFd_, (struct sockaddr*)&sockAddr, sizeof(sockAddr)) != -1);
 
-            NetworkAddress_ = new TNetworkAddress(unixSocketPath);
+            NetworkAddress_ = MakeHolder<TNetworkAddress>(unixSocketPath);
         }
     #endif
 
@@ -155,7 +155,7 @@ Y_UNIT_TEST_SUITE(TAsio) {
 
             THolder<NAddr::TAddrInfo> addrInfo = nullptr;
             for (TNetworkAddress::TIterator ai = NetworkAddress_->Begin(); ai != NetworkAddress_->End(); ai++) {
-                addrInfo = new NAddr::TAddrInfo(&*ai);
+                addrInfo = MakeHolder<NAddr::TAddrInfo>(&*ai);
             }
             Y_ENSURE(addrInfo);
 

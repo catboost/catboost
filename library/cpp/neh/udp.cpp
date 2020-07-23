@@ -63,7 +63,7 @@ namespace {
                 case AF_INET: {
                     const TIpAddress a = *(const sockaddr_in*)addr;
 
-                    return new TIPv4Addr(TIpAddress(InetToHost(INADDR_LOOPBACK), a.Port()));
+                    return MakeHolder<TIPv4Addr>(TIpAddress(InetToHost(INADDR_LOOPBACK), a.Port()));
                 }
 
                 case AF_INET6: {
@@ -71,7 +71,7 @@ namespace {
 
                     a.sin6_addr = in6addr_loopback;
 
-                    return new TIPv6Addr(a);
+                    return MakeHolder<TIPv6Addr>(a);
                 }
             }
 

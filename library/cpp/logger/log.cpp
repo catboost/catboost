@@ -16,31 +16,31 @@ static inline THolder<TLogBackend> BackendFactory(const TString& logType, ELogPr
     try {
         if (priority != LOG_MAX_PRIORITY) {
             if (logType == "console") {
-                return new TFilteredLogBackend<TStreamLogBackend>(new TStreamLogBackend(&Cerr), priority);
+                return MakeHolder<TFilteredLogBackend<TStreamLogBackend>>(new TStreamLogBackend(&Cerr), priority);
             }
             if (logType == "cout") {
-                return new TFilteredLogBackend<TStreamLogBackend>(new TStreamLogBackend(&Cout), priority);
+                return MakeHolder<TFilteredLogBackend<TStreamLogBackend>>(new TStreamLogBackend(&Cout), priority);
             }
             if (logType == "cerr") {
-                return new TFilteredLogBackend<TStreamLogBackend>(new TStreamLogBackend(&Cerr), priority);
+                return MakeHolder<TFilteredLogBackend<TStreamLogBackend>>(new TStreamLogBackend(&Cerr), priority);
             } else if (logType == "null" || !logType || logType == "/dev/null") {
-                return new TFilteredLogBackend<TNullLogBackend>(new TNullLogBackend(), priority);
+                return MakeHolder<TFilteredLogBackend<TNullLogBackend>>(new TNullLogBackend(), priority);
             } else {
-                return new TFilteredLogBackend<TFileLogBackend>(new TFileLogBackend(logType), priority);
+                return MakeHolder<TFilteredLogBackend<TFileLogBackend>>(new TFileLogBackend(logType), priority);
             }
         } else {
             if (logType == "console") {
-                return new TStreamLogBackend(&Cerr);
+                return MakeHolder<TStreamLogBackend>(&Cerr);
             }
             if (logType == "cout") {
-                return new TStreamLogBackend(&Cout);
+                return MakeHolder<TStreamLogBackend>(&Cout);
             }
             if (logType == "cerr") {
-                return new TStreamLogBackend(&Cerr);
+                return MakeHolder<TStreamLogBackend>(&Cerr);
             } else if (logType == "null" || !logType || logType == "/dev/null") {
-                return new TNullLogBackend;
+                return MakeHolder<TNullLogBackend>();
             } else {
-                return new TFileLogBackend(logType);
+                return MakeHolder<TFileLogBackend>(logType);
             }
         }
     } catch (...) {
@@ -48,9 +48,9 @@ static inline THolder<TLogBackend> BackendFactory(const TString& logType, ELogPr
     }
 
     if (priority != LOG_MAX_PRIORITY) {
-        return new TFilteredLogBackend<TStreamLogBackend>(new TStreamLogBackend(&Cerr), priority);
+        return MakeHolder<TFilteredLogBackend<TStreamLogBackend>>(new TStreamLogBackend(&Cerr), priority);
     }
-    return new TStreamLogBackend(&Cerr);
+    return MakeHolder<TStreamLogBackend>(&Cerr);
 }
 
 THolder<TLogBackend> CreateLogBackend(const TString& fname, ELogPriority priority, bool threaded) {
@@ -61,11 +61,11 @@ THolder<TLogBackend> CreateLogBackend(const TString& fname, ELogPriority priorit
 }
 
 THolder<TLogBackend> CreateFilteredOwningThreadedLogBackend(const TString& fname, ELogPriority priority, size_t queueLen) {
-    return new TFilteredLogBackend<TOwningThreadedLogBackend>(CreateOwningThreadedLogBackend(fname, queueLen).Release(), priority);
+    return MakeHolder<TFilteredLogBackend<TOwningThreadedLogBackend>>(CreateOwningThreadedLogBackend(fname, queueLen).Release(), priority);
 }
 
 THolder<TOwningThreadedLogBackend> CreateOwningThreadedLogBackend(const TString& fname, size_t queueLen) {
-    return new TOwningThreadedLogBackend(BackendFactory(fname, LOG_MAX_PRIORITY).Release(), queueLen);
+    return MakeHolder<TOwningThreadedLogBackend>(BackendFactory(fname, LOG_MAX_PRIORITY).Release(), queueLen);
 }
 
 class TLog::TImpl: public TAtomicRefCount<TImpl> {
@@ -127,7 +127,7 @@ public:
     }
 
     inline THolder<TLogBackend> ReleaseBackend() noexcept {
-        return BackEnd_.Release();
+        return std::move(BackEnd_);
     }
 
     inline bool IsNullLog() const noexcept {
@@ -254,7 +254,7 @@ bool TLog::OpenLog(const char* path, ELogPriority lp) {
     if (path) {
         ResetBackend(BackendFactory(path, lp));
     } else {
-        ResetBackend(new TStreamLogBackend(&Cerr));
+        ResetBackend(MakeHolder<TStreamLogBackend>(&Cerr));
     }
 
     return true;
