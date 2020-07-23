@@ -419,11 +419,21 @@ Y_UNIT_TEST_SUITE(TLastGetoptTests) {
         TOptsNoDefault opts;
         TString data;
         int number;
+        TMaybe<TString> optionalString0, optionalString1;
+        TMaybe<int> optionalNumber0, optionalNumber1;
         opts.AddLongOption('d', "data").StoreResult(&data);
         opts.AddLongOption('n', "number").StoreResult(&number);
-        TOptsParseResultTestWrapper r(&opts, V({"cmd", "--data=jjhh", "-n", "11"}));
+        opts.AddLongOption("optional-string-0").StoreResult(&optionalString0);
+        opts.AddLongOption("optional-number-0").StoreResult(&optionalNumber0);
+        opts.AddLongOption("optional-string-1").StoreResult(&optionalString1);
+        opts.AddLongOption("optional-number-1").StoreResult(&optionalNumber1);
+        TOptsParseResultTestWrapper r(&opts, V({"cmd", "--data=jjhh", "-n", "11", "--optional-number-1=8", "--optional-string-1=os1"}));
         UNIT_ASSERT_VALUES_EQUAL("jjhh", data);
         UNIT_ASSERT_VALUES_EQUAL(11, number);
+        UNIT_ASSERT(!optionalString0.Defined());
+        UNIT_ASSERT(!optionalNumber0.Defined());
+        UNIT_ASSERT_VALUES_EQUAL(*optionalString1, "os1");
+        UNIT_ASSERT_VALUES_EQUAL(*optionalNumber1, 8);
     }
 
     Y_UNIT_TEST(TestStoreValue) {
