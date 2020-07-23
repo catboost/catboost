@@ -17,15 +17,19 @@ def shlex_join(cmd):
 
 def parse_export_file(p):
     with open(p, 'r') as f:
-        for l in f.read().split('\n'):
+        for l in f:
             l = l.strip()
 
             if l and '#' not in l:
-                x, y = l.split()
-                if x == 'linux_version':
-                    yield {'linux_version': y}
+                words = l.split()
+                if len(words) == 2 and words[0] == 'linux_version':
+                    yield {'linux_version': words[1]}
+                elif len(words) == 2:
+                    yield {'lang': words[0], 'sym': words[1]}
+                elif len(words) == 1:
+                    yield {'lang': 'C', 'sym': words[0]}
                 else:
-                    yield {'lang': x, 'sym': y}
+                    raise Exception('unsupported exports line: ' + l)
 
 
 def to_c(sym):
