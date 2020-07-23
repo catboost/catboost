@@ -38,7 +38,7 @@
 #undef max  // Visual Studio defines this macro
 #endif
 #if LANG_CXX11
-#include "stubs/type_traits.h"
+#include <google/protobuf/stubs/type_traits.h>
 #endif
 #if defined(_MSC_VER) && !_HAS_EXCEPTIONS
 // Work around bugs in MSVC <typeinfo> header when _HAS_EXCEPTIONS=0.

@@ -43,7 +43,7 @@
 #include <stdint.h>
 #endif
 
-#include "stubs/platform_macros.h"
+#include <google/protobuf/stubs/platform_macros.h>
 
 #undef PROTOBUF_LITTLE_ENDIAN
 #ifdef _WIN32

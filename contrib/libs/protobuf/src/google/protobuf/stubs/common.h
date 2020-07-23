@@ -42,15 +42,15 @@
 using TProtoStringType = TString;
 // End of Yandex-specific
 
-#include "stubs/port.h"
-#include "stubs/macros.h"
-#include "stubs/platform_macros.h"
+#include <google/protobuf/stubs/port.h>
+#include <google/protobuf/stubs/macros.h>
+#include <google/protobuf/stubs/platform_macros.h>
 
 // TODO(liujisi): Remove the following includes after the include clean-up.
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/scoped_ptr.h"
-#include <contrib/libs/protobuf/stubs/mutex.h>
-#include "stubs/callback.h"
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/scoped_ptr.h>
+#include <google/protobuf/stubs/mutex.h>
+#include <google/protobuf/stubs/callback.h>
 
 #if defined(__APPLE__)
 #include <TargetConditionals.h>  // for TARGET_OS_IPHONE

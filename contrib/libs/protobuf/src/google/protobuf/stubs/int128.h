@@ -30,7 +30,7 @@
 #ifndef GOOGLE_PROTOBUF_STUBS_INT128_H_
 #define GOOGLE_PROTOBUF_STUBS_INT128_H_
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 
 #include <iosfwd>
 

@@ -2,7 +2,7 @@
 #define GOOGLE_PROTOBUF_COMPILER_PERLXS_HELPERS_H__
 
 #include <map>
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 
 namespace google {
 namespace protobuf {

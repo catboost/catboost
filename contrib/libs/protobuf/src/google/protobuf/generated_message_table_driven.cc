@@ -30,7 +30,7 @@
 
 #include "generated_message_table_driven.h"
 
-#include "stubs/type_traits.h"
+#include <google/protobuf/stubs/type_traits.h>
 
 #include "generated_message_table_driven_lite.h"
 #include "io/zero_copy_stream_impl_lite.h"

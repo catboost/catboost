@@ -36,11 +36,11 @@
 #ifndef GOOGLE_PROTOBUF_IO_CODED_STREAM_INL_H__
 #define GOOGLE_PROTOBUF_IO_CODED_STREAM_INL_H__
 
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/common.h"
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
 #include "io/coded_stream.h"
 #include "io/zero_copy_stream_impl_lite.h"
-#include "stubs/stl_util.h"
+#include <google/protobuf/stubs/stl_util.h>
 
 namespace google {
 namespace protobuf {

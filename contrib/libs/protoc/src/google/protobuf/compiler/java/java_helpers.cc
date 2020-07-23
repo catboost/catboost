@@ -33,7 +33,7 @@
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
 #include <algorithm>
-#include "stubs/hash.h"
+#include <google/protobuf/stubs/hash.h>
 #include <limits>
 #include <vector>
 
@@ -41,11 +41,11 @@
 #include "compiler/java/java_name_resolver.h"
 #include <google/protobuf/descriptor.pb.h>
 #include "wire_format.h"
-#include "stubs/strutil.h"
-#include "stubs/substitute.h"
+#include <google/protobuf/stubs/strutil.h>
+#include <google/protobuf/stubs/substitute.h>
 
 
-#include "stubs/hash.h"  // for hash<T *>
+#include <google/protobuf/stubs/hash.h>  // for hash<T *>
 
 namespace google {
 namespace protobuf {

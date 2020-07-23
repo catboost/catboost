@@ -36,8 +36,8 @@
 #include "descriptor.h"
 #include <google/protobuf/util/internal/utility.h>
 #include "util/type_resolver.h"
-#include "stubs/strutil.h"
-#include "stubs/status.h"
+#include <google/protobuf/stubs/strutil.h>
+#include <google/protobuf/stubs/status.h>
 
 namespace google {
 namespace protobuf {

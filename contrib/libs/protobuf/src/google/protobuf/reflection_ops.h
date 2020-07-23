@@ -38,7 +38,7 @@
 #ifndef GOOGLE_PROTOBUF_REFLECTION_OPS_H__
 #define GOOGLE_PROTOBUF_REFLECTION_OPS_H__
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 #include "message.h"
 
 namespace google {

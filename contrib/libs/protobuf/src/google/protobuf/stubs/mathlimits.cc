@@ -33,9 +33,9 @@
 // Author: Maxim Lifantsev
 //
 
-#include "stubs/mathlimits.h"
+#include <google/protobuf/stubs/mathlimits.h>
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 
 namespace google {
 namespace protobuf {

@@ -44,9 +44,9 @@
 #include <limits.h>
 #include "io/zero_copy_stream.h"
 #include "arena.h"
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/common.h"
-#include "stubs/stl_util.h"
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/stl_util.h>
 
 
 namespace google {

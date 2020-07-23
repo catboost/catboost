@@ -43,10 +43,10 @@
 #include <signal.h>
 #endif
 
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/common.h"
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
 #include "message.h"
-#include "stubs/substitute.h"
+#include <google/protobuf/stubs/substitute.h>
 
 namespace google {
 namespace protobuf {

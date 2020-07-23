@@ -46,11 +46,11 @@
 #include <set>
 #include <utility>
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 #include "arena.h"
 #include "generated_enum_util.h"
 #include "map_type_handler.h"
-#include "stubs/hash.h"
+#include <google/protobuf/stubs/hash.h>
 
 namespace google {
 namespace protobuf {

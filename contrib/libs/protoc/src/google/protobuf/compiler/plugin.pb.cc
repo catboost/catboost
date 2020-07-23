@@ -6,9 +6,9 @@
 
 #include <algorithm>
 
-#include <contrib/libs/protobuf/stubs/common.h>
-#include <contrib/libs/protobuf/stubs/port.h>
-#include <contrib/libs/protobuf/stubs/once.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/port.h>
+#include <google/protobuf/stubs/once.h>
 #include <contrib/libs/protobuf/io/coded_stream.h>
 #include <contrib/libs/protobuf/wire_format_lite_inl.h>
 #include <contrib/libs/protobuf/descriptor.h>

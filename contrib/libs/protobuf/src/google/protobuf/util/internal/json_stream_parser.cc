@@ -37,15 +37,15 @@
 #include <cstring>
 #include <memory>
 #ifndef _SHARED_PTR_H
-#include "stubs/shared_ptr.h"
+#include <google/protobuf/stubs/shared_ptr.h>
 #endif
 
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/common.h"
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
 #include <google/protobuf/util/internal/object_writer.h>
 #include <google/protobuf/util/internal/json_escaping.h>
-#include "stubs/strutil.h"
-#include "stubs/mathlimits.h"
+#include <google/protobuf/stubs/strutil.h>
+#include <google/protobuf/stubs/mathlimits.h>
 
 
 namespace google {

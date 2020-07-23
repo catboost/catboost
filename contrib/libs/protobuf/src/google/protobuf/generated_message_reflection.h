@@ -39,8 +39,8 @@
 #define GOOGLE_PROTOBUF_GENERATED_MESSAGE_REFLECTION_H__
 
 #include <vector>
-#include "stubs/casts.h"
-#include "stubs/common.h"
+#include <google/protobuf/stubs/casts.h>
+#include <google/protobuf/stubs/common.h>
 // TODO(jasonh): Remove this once the compiler change to directly include this
 // is released to components.
 #include "generated_enum_reflection.h"

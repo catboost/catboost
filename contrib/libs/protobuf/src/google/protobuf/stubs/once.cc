@@ -35,7 +35,7 @@
 // This header is intended to be included only by internal .cc files and
 // generated .pb.cc files.  Users should not use this directly.
 
-#include "stubs/once.h"
+#include <google/protobuf/stubs/once.h>
 
 #ifndef GOOGLE_PROTOBUF_NO_THREAD_SAFETY
 
@@ -45,7 +45,7 @@
 #include <sched.h>
 #endif
 
-#include "stubs/atomicops.h"
+#include <google/protobuf/stubs/atomicops.h>
 
 namespace google {
 namespace protobuf {

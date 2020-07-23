@@ -31,8 +31,8 @@
 #ifndef GOOGLE_PROTOBUF_CASTS_H__
 #define GOOGLE_PROTOBUF_CASTS_H__
 
-#include "stubs/common.h"
-#include "stubs/type_traits.h"
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/type_traits.h>
 
 namespace google {
 namespace protobuf {

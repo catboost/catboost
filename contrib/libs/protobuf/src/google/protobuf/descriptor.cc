@@ -32,23 +32,23 @@
 //  Based on original Protocol Buffers design by
 //  Sanjay Ghemawat, Jeff Dean, and others.
 
-#include "stubs/hash.h"
+#include <google/protobuf/stubs/hash.h>
 #include <map>
 #include <memory>
 #ifndef _SHARED_PTR_H
-#include "stubs/shared_ptr.h"
+#include <google/protobuf/stubs/shared_ptr.h>
 #endif
 #include <set>
 #include <vector>
 #include <algorithm>
 #include <limits>
 
-#include "stubs/common.h"
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include <contrib/libs/protobuf/stubs/mutex.h>
-#include "stubs/once.h"
-#include "stubs/stringprintf.h"
-#include "stubs/strutil.h"
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/mutex.h>
+#include <google/protobuf/stubs/once.h>
+#include <google/protobuf/stubs/stringprintf.h>
+#include <google/protobuf/stubs/strutil.h>
 #include "io/strtod.h"
 #include "io/coded_stream.h"
 #include "io/tokenizer.h"
@@ -61,10 +61,10 @@
 #include "text_format.h"
 #include "unknown_field_set.h"
 #include "wire_format.h"
-#include "stubs/substitute.h"
+#include <google/protobuf/stubs/substitute.h>
 
-#include "stubs/map_util.h"
-#include "stubs/stl_util.h"
+#include <google/protobuf/stubs/map_util.h>
+#include <google/protobuf/stubs/stl_util.h>
 
 #undef PACKAGE  // autoheader #defines this.  :(
 

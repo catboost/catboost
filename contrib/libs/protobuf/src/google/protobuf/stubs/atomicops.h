@@ -56,8 +56,8 @@
 // Don't include this file for people not concerned about thread safety.
 #ifndef GOOGLE_PROTOBUF_NO_THREAD_SAFETY
 
-#include "stubs/common.h"
-#include "stubs/platform_macros.h"
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/platform_macros.h>
 
 namespace google {
 namespace protobuf {
@@ -187,11 +187,11 @@ Atomic64 Release_Load(volatile const Atomic64* ptr);
 
 // ThreadSanitizer, http://clang.llvm.org/docs/ThreadSanitizer.html.
 #if defined(THREAD_SANITIZER)
-#include "stubs/atomicops_internals_tsan.h"
+#include <google/protobuf/stubs/atomicops_internals_tsan.h>
 // MSVC.
 #elif defined(_MSC_VER)
 #if defined(GOOGLE_PROTOBUF_ARCH_IA32) || defined(GOOGLE_PROTOBUF_ARCH_X64) || defined(GOOGLE_PROTOBUF_ARCH_ARM)
-#include "stubs/atomicops_internals_x86_msvc.h"
+#include <google/protobuf/stubs/atomicops_internals_x86_msvc.h>
 #else
 #error GOOGLE_PROTOBUF_ATOMICOPS_ERROR
 #endif
@@ -202,38 +202,38 @@ Atomic64 Release_Load(volatile const Atomic64* ptr);
 
 // AIX
 #elif defined(GOOGLE_PROTOBUF_OS_AIX)
-// #include "stubs/atomicops_internals_power.h"
+// #include <google/protobuf/stubs/atomicops_internals_power.h>
 
 // GCC.
 #elif defined(__GNUC__)
 #if defined(GOOGLE_PROTOBUF_ARCH_IA32) || defined(GOOGLE_PROTOBUF_ARCH_X64)
-#include "stubs/atomicops_internals_x86_gcc.h"
+#include <google/protobuf/stubs/atomicops_internals_x86_gcc.h>
 #elif defined(GOOGLE_PROTOBUF_ARCH_ARM) && defined(__linux__)
 #if (((__GNUC__ == 4) && (__GNUC_MINOR__ >= 7)) || (__GNUC__ > 4))
-#include "stubs/atomicops_internals_generic_gcc.h"
+#include <google/protobuf/stubs/atomicops_internals_generic_gcc.h>
 #else
-#include "stubs/atomicops_internals_arm_gcc.h"
+#include <google/protobuf/stubs/atomicops_internals_arm_gcc.h>
 #endif
 #elif defined(GOOGLE_PROTOBUF_ARCH_AARCH64)
-#include "stubs/atomicops_internals_arm64_gcc.h"
+#include <google/protobuf/stubs/atomicops_internals_arm64_gcc.h>
 #elif defined(GOOGLE_PROTOBUF_ARCH_ARM_QNX)
 // #include "stubs/atomicops_internals_arm_qnx.h"
 #elif defined(GOOGLE_PROTOBUF_ARCH_MIPS) || defined(GOOGLE_PROTOBUF_ARCH_MIPS64)
 // #include "stubs/atomicops_internals_mips_gcc.h"
 #elif defined(GOOGLE_PROTOBUF_ARCH_POWER)
-#include "stubs/atomicops_internals_power.h"
+#include <google/protobuf/stubs/atomicops_internals_power.h>
 #elif defined(__native_client__)
 // The static_asserts in the C++11 atomics implementation cause it to fail
 // with certain compilers, e.g. nvcc on macOS. Don't use elsewhere unless
 // the TODO in that file is addressed.
-#include "stubs/atomicops_internals_generic_c11_atomic.h"
+#include <google/protobuf/stubs/atomicops_internals_generic_c11_atomic.h>
 #elif defined(GOOGLE_PROTOBUF_ARCH_PPC)
 // #include "stubs/atomicops_internals_ppc_gcc.h"
 #elif (((__GNUC__ == 4) && (__GNUC_MINOR__ >= 7)) || (__GNUC__ > 4))
-#include "stubs/atomicops_internals_generic_gcc.h"
+#include <google/protobuf/stubs/atomicops_internals_generic_gcc.h>
 #elif defined(__clang__)
 #if __has_extension(c_atomic)
-#include "stubs/atomicops_internals_generic_gcc.h"
+#include <google/protobuf/stubs/atomicops_internals_generic_gcc.h>
 #else
 #error GOOGLE_PROTOBUF_ATOMICOPS_ERROR
 #endif
@@ -249,7 +249,7 @@ Atomic64 Release_Load(volatile const Atomic64* ptr);
 // On some platforms we need additional declarations to make AtomicWord
 // compatible with our other Atomic* types.
 #if defined(GOOGLE_PROTOBUF_OS_APPLE)
-#include "stubs/atomicops_internals_atomicword_compat.h"
+#include <google/protobuf/stubs/atomicops_internals_atomicword_compat.h>
 #endif
 
 #undef GOOGLE_PROTOBUF_ATOMICOPS_ERROR

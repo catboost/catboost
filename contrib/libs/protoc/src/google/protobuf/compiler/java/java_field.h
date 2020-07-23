@@ -38,12 +38,12 @@
 #include <map>
 #include <memory>
 #ifndef _SHARED_PTR_H
-#include "stubs/shared_ptr.h"
+#include <google/protobuf/stubs/shared_ptr.h>
 #endif
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 #include "descriptor.h"
-#include <contrib/libs/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/logging.h>
 
 namespace google {
 namespace protobuf {

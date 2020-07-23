@@ -35,12 +35,12 @@
 
 #include <limits>
 
-#include "stubs/atomic_sequence_num.h"
-#include "stubs/atomicops.h"
-#include "stubs/common.h"
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include <contrib/libs/protobuf/stubs/mutex.h>
-#include "stubs/type_traits.h"
+#include <google/protobuf/stubs/atomic_sequence_num.h>
+#include <google/protobuf/stubs/atomicops.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/mutex.h>
+#include <google/protobuf/stubs/type_traits.h>
 
 namespace google {
 

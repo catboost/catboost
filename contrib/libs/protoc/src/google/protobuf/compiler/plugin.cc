@@ -41,9 +41,9 @@
 #include <unistd.h>
 #endif
 
-#include "stubs/io_win32.h"
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/common.h"
+#include <google/protobuf/stubs/io_win32.h>
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
 #include "compiler/plugin.pb.h"
 #include "compiler/code_generator.h"
 #include "descriptor.h"

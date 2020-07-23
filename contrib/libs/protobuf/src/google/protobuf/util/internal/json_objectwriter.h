@@ -33,12 +33,12 @@
 
 #include <memory>
 #ifndef _SHARED_PTR_H
-#include "stubs/shared_ptr.h"
+#include <google/protobuf/stubs/shared_ptr.h>
 #endif
 
 #include "io/coded_stream.h"
 #include <google/protobuf/util/internal/structured_objectwriter.h>
-#include "stubs/bytestream.h"
+#include <google/protobuf/stubs/bytestream.h>
 
 namespace google {
 namespace protobuf {

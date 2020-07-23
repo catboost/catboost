@@ -32,7 +32,7 @@
 
 #include <Python.h>
 #include <frameobject.h>
-#include "stubs/hash.h"
+#include <google/protobuf/stubs/hash.h>
 
 #include "io/coded_stream.h"
 #include <google/protobuf/descriptor.pb.h>

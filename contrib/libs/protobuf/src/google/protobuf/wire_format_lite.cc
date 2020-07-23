@@ -39,9 +39,9 @@
 #endif
 #include <stack>
 #include <vector>
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/common.h"
-#include "stubs/stringprintf.h"
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/stringprintf.h>
 #include "io/coded_stream_inl.h"
 #include "io/zero_copy_stream.h"
 #include "io/zero_copy_stream_impl_lite.h"

@@ -50,10 +50,10 @@
 #include <iterator>
 #include <limits>
 #include <util/generic/algorithm.h>
-#include "stubs/casts.h"
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/common.h"
-#include "stubs/type_traits.h"
+#include <google/protobuf/stubs/casts.h>
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/type_traits.h>
 #include "arena.h"
 #include "message_lite.h"
 

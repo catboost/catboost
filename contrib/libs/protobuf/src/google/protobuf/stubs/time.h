@@ -30,7 +30,7 @@
 #ifndef GOOGLE_PROTOBUF_STUBS_TIME_H_
 #define GOOGLE_PROTOBUF_STUBS_TIME_H_
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 
 namespace google {
 namespace protobuf {

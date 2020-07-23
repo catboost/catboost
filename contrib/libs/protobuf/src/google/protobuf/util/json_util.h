@@ -35,7 +35,7 @@
 
 #include "message.h"
 #include "util/type_resolver.h"
-#include "stubs/bytestream.h"
+#include <google/protobuf/stubs/bytestream.h>
 
 namespace google {
 namespace protobuf {

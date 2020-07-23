@@ -30,8 +30,8 @@
 
 #include <google/protobuf/util/internal/field_mask_utility.h>
 
-#include "stubs/strutil.h"
-#include "stubs/status_macros.h"
+#include <google/protobuf/stubs/strutil.h>
+#include <google/protobuf/stubs/status_macros.h>
 
 namespace google {
 namespace protobuf {

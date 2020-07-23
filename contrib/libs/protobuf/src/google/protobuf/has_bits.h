@@ -31,7 +31,7 @@
 #ifndef GOOGLE_PROTOBUF_HAS_BITS_H__
 #define GOOGLE_PROTOBUF_HAS_BITS_H__
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 
 namespace google {
 namespace protobuf {

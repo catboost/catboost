@@ -86,7 +86,7 @@
 #include <new>
 #include <utility>
 
-#include "stubs/status.h"
+#include <google/protobuf/stubs/status.h>
 
 namespace google {
 namespace protobuf {

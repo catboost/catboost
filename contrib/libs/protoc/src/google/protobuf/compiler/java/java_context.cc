@@ -34,8 +34,8 @@
 #include "compiler/java/java_helpers.h"
 #include "compiler/java/java_name_resolver.h"
 #include "descriptor.h"
-#include "stubs/strutil.h"
-#include "stubs/map_util.h"
+#include <google/protobuf/stubs/strutil.h>
+#include <google/protobuf/stubs/map_util.h>
 
 namespace google {
 namespace protobuf {

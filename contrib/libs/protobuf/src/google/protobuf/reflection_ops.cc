@@ -39,7 +39,7 @@
 #include <google/protobuf/descriptor.pb.h>
 #include "map_field.h"
 #include "unknown_field_set.h"
-#include "stubs/strutil.h"
+#include <google/protobuf/stubs/strutil.h>
 
 namespace google {
 namespace protobuf {

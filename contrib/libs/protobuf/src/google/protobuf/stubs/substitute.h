@@ -31,8 +31,8 @@
 // Author: kenton@google.com (Kenton Varda)
 // from google3/strings/substitute.h
 
-#include "stubs/common.h"
-#include "stubs/strutil.h"
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/strutil.h>
 
 #ifndef GOOGLE_PROTOBUF_STUBS_SUBSTITUTE_H_
 #define GOOGLE_PROTOBUF_STUBS_SUBSTITUTE_H_

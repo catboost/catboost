@@ -32,9 +32,9 @@
 #define GOOGLE_PROTOBUF_ARENASTRING_H__
 
 
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/common.h"
-#include "stubs/fastmem.h"
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/fastmem.h>
 #include "arena.h"
 
 

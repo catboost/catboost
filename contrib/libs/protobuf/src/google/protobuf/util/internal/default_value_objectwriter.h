@@ -33,19 +33,19 @@
 
 #include <memory>
 #ifndef _SHARED_PTR_H
-#include "stubs/shared_ptr.h"
+#include <google/protobuf/stubs/shared_ptr.h>
 #endif
 #include <stack>
 #include <vector>
 
-#include "stubs/callback.h"
-#include "stubs/common.h"
+#include <google/protobuf/stubs/callback.h>
+#include <google/protobuf/stubs/common.h>
 #include <google/protobuf/util/internal/type_info.h>
 #include <google/protobuf/util/internal/datapiece.h>
 #include <google/protobuf/util/internal/object_writer.h>
 #include <google/protobuf/util/internal/utility.h>
 #include <google/protobuf/util/type_resolver.h>
-#include <contrib/libs/protobuf/stubs/stringpiece.h>
+#include <google/protobuf/stubs/stringpiece.h>
 
 namespace google {
 namespace protobuf {

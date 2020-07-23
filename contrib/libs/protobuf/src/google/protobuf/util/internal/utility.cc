@@ -32,16 +32,16 @@
 
 #include <algorithm>
 
-#include "stubs/callback.h"
-#include "stubs/common.h"
-#include <contrib/libs/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/callback.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/logging.h>
 #include <google/protobuf/wrappers.pb.h>
 #include <google/protobuf/descriptor.pb.h>
 #include "descriptor.h"
 #include <google/protobuf/util/internal/constants.h>
-#include "stubs/strutil.h"
-#include "stubs/map_util.h"
-#include "stubs/mathlimits.h"
+#include <google/protobuf/stubs/strutil.h>
+#include <google/protobuf/stubs/map_util.h>
+#include <google/protobuf/stubs/mathlimits.h>
 
 #include <util/string/util.h>
 

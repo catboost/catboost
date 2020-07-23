@@ -37,8 +37,8 @@
 #define GOOGLE_PROTOBUF_WIRE_FORMAT_LITE_INL_H__
 
 #include <algorithm>
-#include "stubs/common.h"
-#include <contrib/libs/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/logging.h>
 #include "message_lite.h"
 #include "repeated_field.h"
 #include "wire_format_lite.h"

@@ -33,16 +33,16 @@
 #include <functional>
 #include <stack>
 
-#include "stubs/once.h"
-#include "stubs/time.h"
+#include <google/protobuf/stubs/once.h>
+#include <google/protobuf/stubs/time.h>
 #include "wire_format_lite.h"
 #include <google/protobuf/util/internal/field_mask_utility.h>
 #include <google/protobuf/util/internal/object_location_tracker.h>
 #include <google/protobuf/util/internal/constants.h>
 #include <google/protobuf/util/internal/utility.h>
-#include "stubs/strutil.h"
-#include "stubs/map_util.h"
-#include "stubs/statusor.h"
+#include <google/protobuf/stubs/strutil.h>
+#include <google/protobuf/stubs/map_util.h>
+#include <google/protobuf/stubs/statusor.h>
 
 
 namespace google {

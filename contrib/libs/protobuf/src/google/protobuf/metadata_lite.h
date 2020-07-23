@@ -31,7 +31,7 @@
 #ifndef GOOGLE_PROTOBUF_METADATA_LITE_H__
 #define GOOGLE_PROTOBUF_METADATA_LITE_H__
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 #include "arena.h"
 #include "generated_message_util.h"
 

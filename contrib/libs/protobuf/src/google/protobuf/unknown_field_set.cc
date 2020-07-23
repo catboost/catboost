@@ -34,14 +34,14 @@
 
 #include "unknown_field_set.h"
 
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/common.h"
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
 #include "io/coded_stream.h"
 #include "io/zero_copy_stream.h"
 #include "io/zero_copy_stream_impl.h"
 #include "metadata.h"
 #include "wire_format.h"
-#include "stubs/stl_util.h"
+#include <google/protobuf/stubs/stl_util.h>
 
 namespace google {
 namespace protobuf {

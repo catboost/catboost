@@ -36,9 +36,9 @@
 #include <functional>
 #include <stack>
 
-#include "stubs/common.h"
-#include <contrib/libs/protobuf/stubs/stringpiece.h>
-#include "stubs/status.h"
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/stringpiece.h>
+#include <google/protobuf/stubs/status.h>
 
 namespace google {
 namespace protobuf {

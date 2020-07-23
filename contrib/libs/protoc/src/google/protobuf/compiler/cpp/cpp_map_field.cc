@@ -33,7 +33,7 @@
 #include "io/printer.h"
 #include "wire_format.h"
 
-#include "stubs/strutil.h"
+#include <google/protobuf/stubs/strutil.h>
 
 namespace google {
 namespace protobuf {

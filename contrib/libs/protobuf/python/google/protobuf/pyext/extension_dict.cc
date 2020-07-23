@@ -33,8 +33,8 @@
 
 #include "pyext/extension_dict.h"
 
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/common.h"
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
 #include "descriptor.h"
 #include "dynamic_message.h"
 #include "message.h"
@@ -45,7 +45,7 @@
 #include "pyext/repeated_composite_container.h"
 #include "pyext/repeated_scalar_container.h"
 #include "pyext/scoped_pyobject_ptr.h"
-#include "stubs/shared_ptr.h"
+#include <google/protobuf/stubs/shared_ptr.h>
 
 #if PY_MAJOR_VERSION >= 3
   #if PY_VERSION_HEX < 0x03030000

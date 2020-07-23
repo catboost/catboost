@@ -35,7 +35,7 @@
 // Recursive descent FTW.
 
 #include <float.h>
-#include "stubs/hash.h"
+#include <google/protobuf/stubs/hash.h>
 #include <limits>
 
 
@@ -44,10 +44,10 @@
 #include <google/protobuf/descriptor.pb.h>
 #include "wire_format.h"
 #include "io/tokenizer.h"
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/common.h"
-#include "stubs/strutil.h"
-#include "stubs/map_util.h"
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/strutil.h>
+#include <google/protobuf/stubs/map_util.h>
 
 namespace google {
 namespace protobuf {

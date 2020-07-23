@@ -1,9 +1,9 @@
 // Copyright 2005-2008 Google Inc. All Rights Reserved.
 // Author: jrm@google.com (Jim Meehan)
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 
-#include <contrib/libs/protobuf/stubs/stringpiece.h>
+#include <google/protobuf/stubs/stringpiece.h>
 
 namespace google {
 namespace protobuf {

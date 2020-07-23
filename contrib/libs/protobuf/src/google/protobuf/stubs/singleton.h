@@ -30,9 +30,9 @@
 #ifndef GOOGLE_PROTOBUF_STUBS_SINGLETON_H__
 #define GOOGLE_PROTOBUF_STUBS_SINGLETON_H__
 
-#include "stubs/atomicops.h"
-#include "stubs/common.h"
-#include "stubs/once.h"
+#include <google/protobuf/stubs/atomicops.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/once.h>
 
 namespace google {
 namespace protobuf {

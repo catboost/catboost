@@ -31,7 +31,7 @@
 #ifndef GOOGLE_PROTOBUF_STUBS_SCOPED_PTR_H_
 #define GOOGLE_PROTOBUF_STUBS_SCOPED_PTR_H_
 
-#include "stubs/port.h"
+#include <google/protobuf/stubs/port.h>
 
 namespace google {
 namespace protobuf {

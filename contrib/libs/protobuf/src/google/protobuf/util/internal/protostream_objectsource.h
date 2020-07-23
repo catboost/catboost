@@ -32,17 +32,17 @@
 #define GOOGLE_PROTOBUF_UTIL_CONVERTER_PROTOSTREAM_OBJECTSOURCE_H__
 
 #include <functional>
-#include "stubs/hash.h"
+#include <google/protobuf/stubs/hash.h>
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 #include <google/protobuf/type.pb.h>
 #include <google/protobuf/util/internal/object_source.h>
 #include <google/protobuf/util/internal/object_writer.h>
 #include <google/protobuf/util/internal/type_info.h>
 #include "util/type_resolver.h"
-#include <contrib/libs/protobuf/stubs/stringpiece.h>
-#include "stubs/status.h"
-#include "stubs/statusor.h"
+#include <google/protobuf/stubs/stringpiece.h>
+#include <google/protobuf/stubs/status.h>
+#include <google/protobuf/stubs/statusor.h>
 
 
 namespace google {

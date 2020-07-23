@@ -35,11 +35,11 @@
 #include "compiler/java/java_message.h"
 
 #include <algorithm>
-#include "stubs/hash.h"
+#include <google/protobuf/stubs/hash.h>
 #include <map>
 #include <memory>
 #ifndef _SHARED_PTR_H
-#include "stubs/shared_ptr.h"
+#include <google/protobuf/stubs/shared_ptr.h>
 #endif
 #include <vector>
 
@@ -56,8 +56,8 @@
 #include "io/printer.h"
 #include <google/protobuf/descriptor.pb.h>
 #include "wire_format.h"
-#include "stubs/substitute.h"
-#include "stubs/strutil.h"
+#include <google/protobuf/stubs/substitute.h>
+#include <google/protobuf/stubs/strutil.h>
 
 
 namespace google {

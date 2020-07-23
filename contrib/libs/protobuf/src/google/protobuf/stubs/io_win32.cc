@@ -56,8 +56,8 @@
 #include <wctype.h>
 #include <windows.h>
 
-#include "stubs/io_win32.h"
-#include "stubs/scoped_ptr.h"
+#include <google/protobuf/stubs/io_win32.h>
+#include <google/protobuf/stubs/scoped_ptr.h>
 
 #include <cassert>
 #include <memory>

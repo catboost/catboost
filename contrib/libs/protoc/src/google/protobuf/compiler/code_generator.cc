@@ -35,10 +35,10 @@
 #include "compiler/code_generator.h"
 
 #include "compiler/plugin.pb.h"
-#include <contrib/libs/protobuf/stubs/logging.h>
-#include "stubs/common.h"
+#include <google/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
 #include "descriptor.h"
-#include "stubs/strutil.h"
+#include <google/protobuf/stubs/strutil.h>
 
 namespace google {
 namespace protobuf {

@@ -37,7 +37,7 @@
 #include "io/printer.h"
 #include <google/protobuf/descriptor.pb.h>
 
-#include "stubs/strutil.h"
+#include <google/protobuf/stubs/strutil.h>
 
 namespace google {
 namespace protobuf {

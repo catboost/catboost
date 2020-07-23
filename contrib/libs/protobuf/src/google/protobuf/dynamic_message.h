@@ -41,14 +41,14 @@
 #include <algorithm>
 #include <memory>
 #ifndef _SHARED_PTR_H
-#include "stubs/shared_ptr.h"
+#include <google/protobuf/stubs/shared_ptr.h>
 #endif
 #include <vector>
 
 #include "message.h"
 #include "repeated_field.h"
-#include "stubs/common.h"
-#include <contrib/libs/protobuf/stubs/mutex.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/mutex.h>
 
 namespace google {
 namespace protobuf {
@@ -124,7 +124,7 @@ class LIBPROTOBUF_EXPORT DynamicMessageFactory : public MessageFactory {
   const DescriptorPool* pool_;
   bool delegate_to_generated_factory_;
 
-  // This struct just contains a hash_map.  We can't #include "stubs/hash.h" from
+  // This struct just contains a hash_map.  We can't #include <google/protobuf/stubs/hash.h> from
   // this header due to hacks needed for hash_map portability in the open source
   // release.  Namely, stubs/hash.h, which defines hash_map portably, is not a
   // public header (for good reason), but dynamic_message.h is, and public

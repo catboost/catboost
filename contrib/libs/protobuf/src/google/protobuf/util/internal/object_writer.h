@@ -31,8 +31,8 @@
 #ifndef GOOGLE_PROTOBUF_UTIL_CONVERTER_OBJECT_WRITER_H__
 #define GOOGLE_PROTOBUF_UTIL_CONVERTER_OBJECT_WRITER_H__
 
-#include "stubs/common.h"
-#include <contrib/libs/protobuf/stubs/stringpiece.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/stringpiece.h>
 
 namespace google {
 namespace protobuf {

@@ -31,7 +31,7 @@
 #ifndef GOOGLE_PROTOBUF_UTIL_CONVERTER_CONSTANTS_H__
 #define GOOGLE_PROTOBUF_UTIL_CONVERTER_CONSTANTS_H__
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 
 // This file contains constants used by //net/proto2/util/converter.
 

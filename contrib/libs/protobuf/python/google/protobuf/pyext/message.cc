@@ -36,7 +36,7 @@
 #include <map>
 #include <memory>
 #ifndef _SHARED_PTR_H
-#include "stubs/shared_ptr.h"
+#include <google/protobuf/stubs/shared_ptr.h>
 #endif
 #include <vector>
 #include "structmember.h"  // A Python header file.
@@ -48,8 +48,8 @@
 #define Py_TYPE(ob) (((PyObject*)(ob))->ob_type)
 #endif
 #include <google/protobuf/descriptor.pb.h>
-#include "stubs/common.h"
-#include <contrib/libs/protobuf/stubs/logging.h>
+#include <google/protobuf/stubs/common.h>
+#include <google/protobuf/stubs/logging.h>
 #include "io/coded_stream.h"
 #include "io/zero_copy_stream_impl_lite.h"
 #include "util/message_differencer.h"
@@ -66,7 +66,7 @@
 #include "pyext/message_factory.h"
 #include "pyext/safe_numerics.h"
 #include "pyext/scoped_pyobject_ptr.h"
-#include "stubs/strutil.h"
+#include <google/protobuf/stubs/strutil.h>
 
 #if PY_MAJOR_VERSION >= 3
   #define PyInt_AsLong PyLong_AsLong

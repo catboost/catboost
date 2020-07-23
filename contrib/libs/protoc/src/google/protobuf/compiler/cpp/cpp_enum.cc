@@ -37,7 +37,7 @@
 #include "compiler/cpp/cpp_enum.h"
 #include "compiler/cpp/cpp_helpers.h"
 #include "io/printer.h"
-#include "stubs/strutil.h"
+#include <google/protobuf/stubs/strutil.h>
 
 namespace google {
 namespace protobuf {

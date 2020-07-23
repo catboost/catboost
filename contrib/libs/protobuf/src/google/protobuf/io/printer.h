@@ -39,7 +39,7 @@
 
 #include <map>
 #include <vector>
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 
 namespace google {
 namespace protobuf {

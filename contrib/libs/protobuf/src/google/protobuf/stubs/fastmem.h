@@ -49,7 +49,7 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 
 namespace google {
 namespace protobuf {

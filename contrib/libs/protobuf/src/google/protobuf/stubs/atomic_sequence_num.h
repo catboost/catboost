@@ -30,7 +30,7 @@
 #ifndef GOOGLE_PROTOBUF_ATOMIC_SEQUENCE_NUM_H_
 #define GOOGLE_PROTOBUF_ATOMIC_SEQUENCE_NUM_H_
 
-#include "stubs/atomicops.h"
+#include <google/protobuf/stubs/atomicops.h>
 
 namespace google {
 namespace protobuf {

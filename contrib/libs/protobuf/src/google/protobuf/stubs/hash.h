@@ -36,7 +36,7 @@
 #define GOOGLE_PROTOBUF_STUBS_HASH_H__
 
 #include <string.h>
-#include "stubs/common.h"
+#include <google/protobuf/stubs/common.h>
 
 #define GOOGLE_PROTOBUF_HAVE_HASH_MAP 1
 #define GOOGLE_PROTOBUF_HAVE_HASH_SET 1

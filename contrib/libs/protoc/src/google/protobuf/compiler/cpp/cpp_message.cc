@@ -35,11 +35,11 @@
 #include "compiler/cpp/cpp_message.h"
 
 #include <algorithm>
-#include "stubs/hash.h"
+#include <google/protobuf/stubs/hash.h>
 #include <map>
 #include <memory>
 #ifndef _SHARED_PTR_H
-#include "stubs/shared_ptr.h"
+#include <google/protobuf/stubs/shared_ptr.h>
 #endif
 #include <utility>
 #include <vector>
@@ -55,8 +55,8 @@
 #include "generated_message_util.h"
 #include "map_entry_lite.h"
 #include "wire_format.h"
-#include "stubs/strutil.h"
-#include "stubs/substitute.h"
+#include <google/protobuf/stubs/strutil.h>
+#include <google/protobuf/stubs/substitute.h>
 
 
 namespace google {
