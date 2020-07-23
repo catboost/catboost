@@ -14,9 +14,11 @@ RECURSE(
     protoc-gen-go
     protoc_std
     python3_pycc
+    python_bootstrap
     ragel6
     rescompiler
     rescompressor
     rorescompiler
+    uca9dump
     yasm
 )
