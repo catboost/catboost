@@ -618,14 +618,25 @@ constexpr TDuration operator+(const TDuration& l, const TDuration& r) noexcept {
 }
 
 template <class T>
-inline TDuration operator*(const TDuration& d, const T& t) noexcept {
+inline TDuration operator*(TDuration d, T t) noexcept {
     Y_ASSERT(t >= T());
     Y_ASSERT(t == T() || Max<TDuration::TValue>() / t >= d.GetValue());
     return TDuration::FromValue(d.GetValue() * t);
 }
 
+template <>
+inline TDuration operator*(TDuration d, double t) noexcept {
+    Y_ASSERT(t >= 0 && MaxFloor<TDuration::TValue>() >= d.GetValue() * t);
+    return TDuration::FromValue(d.GetValue() * t);
+}
+
+template <>
+inline TDuration operator*(TDuration d, float t) noexcept {
+    return d * static_cast<double>(t);
+}
+
 template <class T>
-inline TDuration operator*(const T& t, const TDuration& d) noexcept {
+inline TDuration operator*(T t, TDuration d) noexcept {
     return d * t;
 }
 

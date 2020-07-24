@@ -6,6 +6,7 @@
 #include <util/generic/variant.h>
 #include <util/generic/vector.h>
 #include <util/generic/yexception.h>
+#include <util/generic/ylimits.h>
 #include <util/string/cast.h>
 
 #include <cmath>
@@ -320,8 +321,7 @@ inline T TNode::ConvertTo() const {
             case NYT::TNode::Uint64:
                 return IntCast<T>();
             case NYT::TNode::Double:
-                // >= because of (1<<sizeof(T)) + 1
-                if (AsDouble() < std::numeric_limits<T>::min() || AsDouble() >= std::numeric_limits<T>::max() || !std::isfinite(AsDouble())) {
+                if (AsDouble() < Min<T>() || AsDouble() > MaxFloor<T>() || !std::isfinite(AsDouble())) {
                     ythrow TTypeError() << AsDouble() << " can't be converted to " << TypeName<T>();
                 }
                 return AsDouble();
