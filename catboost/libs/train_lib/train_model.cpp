@@ -911,10 +911,10 @@ static void TrainModel(
 
     const bool isGpuDeviceType = taskType == ETaskType::GPU;
     if (isGpuDeviceType && TTrainerFactory::Has(ETaskType::GPU)) {
-        modelTrainerHolder = TTrainerFactory::Construct(ETaskType::GPU);
+        modelTrainerHolder.Reset(TTrainerFactory::Construct(ETaskType::GPU));
     } else {
         CB_ENSURE(!isGpuDeviceType, "Can't load GPU learning library. Module was not compiled or driver  is incompatible with package. Please install latest NVDIA driver and check again");
-        modelTrainerHolder = TTrainerFactory::Construct(ETaskType::CPU);
+        modelTrainerHolder.Reset(TTrainerFactory::Construct(ETaskType::CPU));
     }
 
     if (outputOptions.SaveSnapshot()) {

@@ -44,5 +44,5 @@ NAddr::IRemoteAddrPtr NNeh::GetPeerAddr(SOCKET s) {
         ythrow TSystemError() << "getpeername() failed";
     }
 
-    return addr.Release();
+    return NAddr::IRemoteAddrPtr(addr.Release());
 }
