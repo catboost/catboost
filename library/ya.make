@@ -1,5 +1,4 @@
 
-
 RECURSE(
     blockcodecs
     blockcodecs/fuzz
@@ -48,6 +47,10 @@ IF (HAVE_CUDA)
     cuda
 )
 ENDIF()
+
+PEERDIR(
+    contrib/libs/cxxsupp/openmp
+)
 
 IF (NOT SANITIZER_TYPE)
     RECURSE(
