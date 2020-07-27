@@ -51,19 +51,19 @@ namespace NPrivate {
     }
     template <>
     constexpr double MaxFloorValue<0x7FFF'FFFF'FFFF'FFFFull>() {
-        return 0x7FFFFFFFFFFFFC00p0; // 9223372036854774784.0
+        return 9223372036854774784.0; // 0x7FFFFFFFFFFFFC00p0
     }
     template <>
     constexpr double MaxCeilValue<0x7FFF'FFFF'FFFF'FFFFull>() {
-        return 0x8000000000000000p0; // 9223372036854775808.0
+        return 9223372036854775808.0; // 0x8000000000000000p0
     }
     template <>
     constexpr double MaxFloorValue<0xFFFF'FFFF'FFFF'FFFFull>() {
-        return 0xFFFFFFFFFFFFF800p0; // 18446744073709549568.0
+        return 18446744073709549568.0; // 0xFFFFFFFFFFFFF800p0
     }
     template <>
     constexpr double MaxCeilValue<0xFFFF'FFFF'FFFF'FFFFull>() {
-        return 0x10000000000000000p0; // 18446744073709551616.0
+        return 18446744073709551616.0; // 0x10000000000000000p0
     }
 }
 
