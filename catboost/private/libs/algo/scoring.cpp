@@ -11,6 +11,7 @@
 
 #include <catboost/libs/data/objects.h>
 #include <catboost/libs/helpers/map_merge.h>
+#include <catboost/libs/helpers/dispatch_generic_lambda.h>
 #include <catboost/private/libs/algo_helpers/online_predictor.h>
 #include <catboost/private/libs/algo_helpers/scoring_helpers.h>
 #include <catboost/private/libs/data_types/pair.h>
@@ -36,6 +37,7 @@ namespace {
     struct TStatsIndexer {
     public:
         const int BucketCount;
+        const int Depth;
         const TIndexType* const LeafIndices;
         const char* const QuantizedValues;
         const size_t BitsPerValue;
@@ -45,6 +47,7 @@ namespace {
     public:
         explicit TStatsIndexer(int bucketCount)
         : BucketCount(bucketCount)
+        , Depth(0)
         , LeafIndices(nullptr)
         , QuantizedValues(nullptr)
         , BitsPerValue(0)
@@ -55,12 +58,14 @@ namespace {
 
         TStatsIndexer(
             int bucketCount,
+            int depth,
             const TIndexType* leafIndices,
             const char* quantizedValues,
             size_t bitsPerValue,
             const ui32* objectIndices,
             int objectOffset)
         : BucketCount(bucketCount)
+        , Depth(depth)
         , LeafIndices(leafIndices)
         , QuantizedValues(quantizedValues)
         , BitsPerValue(bitsPerValue)
@@ -79,12 +84,15 @@ namespace {
             return BucketCount * leafIndex + bucketIndex;
         }
 
-        template <typename TQuantType>
+        template <bool isOneNodeTree, typename TQuantType>
         int GetIndex(int obj, const TQuantType* quantizedValues) const {
             Y_ASSERT(LeafIndices && QuantizedValues);
-            const auto leafIndex = LeafIndices[obj];
             const auto objectIdx = ObjectIndices ? ObjectIndices[obj] : ObjectOffset + obj;
             const auto quantizedValue = quantizedValues[objectIdx];
+            if (isOneNodeTree) {
+                return quantizedValue;
+            }
+            const auto leafIndex = LeafIndices[obj];
             return BucketCount * leafIndex + quantizedValue;
         }
     };
@@ -201,11 +209,15 @@ inline static void UpdateWeighted(
 ) {
     DispatchByBitsPerValue(
         [=] (const auto* quantizedValues) {
-            for (int doc : docIndexRange.Iter()) {
-                TBucketStats& leafStats = stats[indexer.GetIndex(doc, quantizedValues)];
-                leafStats.SumWeightedDelta += weightedDer[doc];
-                leafStats.SumWeight += sampleWeights[doc];
-            }
+            DispatchGenericLambda(
+                [=] (auto isOneNode) {
+                    for (int doc : docIndexRange.Iter()) {
+                        auto& leafStats0 = stats[indexer.GetIndex<isOneNode>(doc, quantizedValues)];
+                        leafStats0.SumWeightedDelta += weightedDer[doc];
+                        leafStats0.SumWeight += sampleWeights[doc];
+                    }
+                },
+                indexer.Depth == 0);
         },
         indexer.BitsPerValue,
         indexer.QuantizedValues);
@@ -222,19 +234,15 @@ inline static void UpdateDeltaCount(
 ) {
     DispatchByBitsPerValue(
         [=] (const auto* quantizedValues) {
-            if (learnWeights == nullptr) {
-                for (int doc : docIndexRange.Iter()) {
-                    TBucketStats& leafStats = stats[indexer.GetIndex(doc, quantizedValues)];
-                    leafStats.SumDelta += derivatives[doc];
-                    leafStats.Count += 1;
-                }
-            } else {
-                for (int doc : docIndexRange.Iter()) {
-                    TBucketStats& leafStats = stats[indexer.GetIndex(doc, quantizedValues)];
-                    leafStats.SumDelta += derivatives[doc];
-                    leafStats.Count += learnWeights[doc];
-                }
-            }
+            DispatchGenericLambda(
+                [=] (auto haveWeights, auto isOneNode) {
+                    for (int doc : docIndexRange.Iter()) {
+                        auto& leafStats = stats[indexer.GetIndex<isOneNode>(doc, quantizedValues)];
+                        leafStats.SumDelta += derivatives[doc];
+                        leafStats.Count += haveWeights ? learnWeights[doc] : 1;
+                    }
+                },
+                learnWeights != nullptr, indexer.Depth == 0);
         },
         indexer.BitsPerValue,
         indexer.QuantizedValues);
@@ -734,40 +742,32 @@ static void CalculateNonPairwiseScore(
     const int approxDimension = fold.GetApproxDimension();
     const bool haveMonotonicConstraints = !candidateSplitMonotonicConstraints.empty();
 
-    for (int bodyTailIdx = 0; bodyTailIdx < fold.GetBodyTailCount(); ++bodyTailIdx) {
-        const double sumAllWeights = initialFold.BodyTailArr[bodyTailIdx].BodySumWeight;
-        const int docCount = initialFold.BodyTailArr[bodyTailIdx].BodyFinish;
-        const double scaledL2Regularizer = l2Regularizer * (sumAllWeights / docCount);
-        scoreCalcer->SetL2Regularizer(scaledL2Regularizer);
-        const auto updateScores = [&] (auto isPlainMode, auto haveMonotonicConstraints, const auto* stats) {
-            UpdateScores(
-                stats,
-                leafCount,
-                indexer,
-                splitEnsembleSpec,
-                scaledL2Regularizer,
-                isPlainMode,
-                haveMonotonicConstraints,
-                oneHotMaxSize,
-                currTreeMonotonicConstraints,
-                candidateSplitMonotonicConstraints,
-                scoreCalcer
-            );
-        };
-        for (int dim = 0; dim < approxDimension; ++dim) {
-            const TBucketStats* stats = splitStats
-                + (bodyTailIdx * approxDimension + dim) * splitStatsCount;
-            if (isPlainMode && haveMonotonicConstraints) {
-                updateScores(std::true_type(), std::true_type(), stats);
-            } else if (isPlainMode && !haveMonotonicConstraints) {
-                updateScores(std::true_type(), std::false_type(), stats);
-            } else if (!isPlainMode && haveMonotonicConstraints) {
-                updateScores(std::false_type(), std::true_type(), stats);
-            } else {
-                updateScores(std::false_type(), std::false_type(), stats);
-            }
-        }
-    }
+    DispatchGenericLambda(
+        [&] (auto isPlainMode, auto haveMonotonicConstraints) {
+            for (int bodyTailIdx = 0; bodyTailIdx < fold.GetBodyTailCount(); ++bodyTailIdx) {
+                const double sumAllWeights = initialFold.BodyTailArr[bodyTailIdx].BodySumWeight;
+                const int docCount = initialFold.BodyTailArr[bodyTailIdx].BodyFinish;
+                const double scaledL2Regularizer = l2Regularizer * (sumAllWeights / docCount);
+                scoreCalcer->SetL2Regularizer(scaledL2Regularizer);
+                for (int dim = 0; dim < approxDimension; ++dim) {
+                    const TBucketStats* stats = splitStats
+                        + (bodyTailIdx * approxDimension + dim) * splitStatsCount;
+                    UpdateScores(
+                        stats,
+                        leafCount,
+                        indexer,
+                        splitEnsembleSpec,
+                        scaledL2Regularizer,
+                        isPlainMode,
+                        haveMonotonicConstraints,
+                        oneHotMaxSize,
+                        currTreeMonotonicConstraints,
+                        candidateSplitMonotonicConstraints,
+                        scoreCalcer);
+                }
+             }
+        },
+        isPlainMode, haveMonotonicConstraints);
 }
 
 
@@ -878,6 +878,7 @@ void CalcStatsAndScores(
 
             const TStatsIndexer indexer(
                 bucketCount,
+                depth,
                 GetDataPtr(fold.Indices),
                 rawPtr,
                 bitsPerValue,
